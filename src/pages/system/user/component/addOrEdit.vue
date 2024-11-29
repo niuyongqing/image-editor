@@ -42,7 +42,7 @@
               <a-select-option  v-for="post in posts" :value="post.postId" :key="post.postKey" >{{post.postName}}</a-select-option>
             </a-select>
           </a-form-item>
-          <a-form-item label="仓库角色" name="platformRoleIds" :rules="[{required:true}]">
+          <a-form-item label="平台角色" name="platformRoleIds" :rules="[{required:true}]">
             <a-select v-model:value="formData.platformRoleIds"  mode="multiple" >
               <a-select-option  v-for="role in platformRoles" :value="role.roleId" :key="role.roleKey" >{{role.roleName}}</a-select-option>
             </a-select>
