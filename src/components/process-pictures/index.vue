@@ -9,13 +9,13 @@
        </div>
      </div>
    </div>
-   <a-card style="width: 320px">
-     <scale-composition v-show="current.id === 1"></scale-composition>
-     <draw-composition v-show="current.id === 2"></draw-composition>
-     <frame-composition v-show="current.id === 4"></frame-composition>
-     <mark-composition v-show="current.id === 6"></mark-composition>
-     <material-composition v-show="current.id === 5"></material-composition>
-     <text-composition v-show="current.id === 3"></text-composition>
+   <a-card>
+     <scale-composition v-show="current.id === 1" style="width: 210px"></scale-composition>
+     <draw-composition v-show="current.id === 2"  style="width: 210px"></draw-composition>
+     <frame-composition v-show="current.id === 4"  style="width: 210px"></frame-composition>
+     <mark-composition v-show="current.id === 6"  style="width: 210px"></mark-composition>
+     <material-composition v-show="current.id === 5"  style="width: 210px"></material-composition>
+     <text-composition v-show="current.id === 3"  style="width: 210px"></text-composition>
    </a-card>
    <canvas-component :img-url="imgUrl" :canvas-height="canvasHeight" :canvas-width="canvasWidth" style="margin-left: 10px"></canvas-component>
  </div>
@@ -27,7 +27,7 @@ import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import DrawComposition from "~/components/process-pictures/component/DrawComposition.vue";
 import MarkComposition from "~/components/process-pictures/component/MarkComposition.vue";
 const canvasHeight = ref(window.innerHeight - 80);
-const canvasWidth = ref(window.innerWidth  - 350);
+const canvasWidth = ref(window.innerWidth  - 400);
 const current = ref({});
 const menu = ref([
   {

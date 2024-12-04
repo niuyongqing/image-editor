@@ -1,4 +1,12 @@
 <script lang="ts">
+import {ref} from 'vue'
+import EventBus from "~/utils/event-bus";
+const canvas = ref(null);
+
+EventBus.on("canvas",(c)=>{
+  canvas.value = c;
+});
+
 
 </script>
 

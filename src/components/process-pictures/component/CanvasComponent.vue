@@ -1,104 +1,78 @@
 <template>
  <div>
-   <canvas :width="canvasWidth" :height="canvasHeight" id="canvasWidthAndHeight" ref="canvasWidthAndHeight"></canvas>
+   <canvas :width="canvasWidth" :height="canvasHeight" id="canvasElement" ref="canvasElement"></canvas>
    <a-button @click="isDrawing = true">开始裁剪</a-button>
    <a-button @click="saveCroppedImage">保存图片</a-button>
  </div>
 </template>
-<script lang="js" setup>
-import {Canvas, FabricImage, Rect, Shadow} from 'fabric'
+<script lang="ts" setup>
+
 import {ref} from 'vue'
-import EventBus from "~/utils/event-bus.js";
+import {createCanvas} from './FabricCancas.js'
 const canvas = ref(null)
-const fabricImage = ref(null)
-const canvasWidthAndHeight = ref(null);
+const canvasElement = ref(null);
 const selectionRect = ref(null);  // 用于保存用户绘制的矩形
 const isDrawing = ref(false); // 是否正在绘制
+
 const props = defineProps({
   canvasWidth:{type:Number, required:true},
   canvasHeight:{type:Number, required:true},
   imgUrl:{type:String,required: true},
 })
 
-EventBus.on("update",(e)=>{
-  console.log(111)
-})
+
 
 onMounted(async () => {
-  // 创建canvas对象
-  canvas.value = new Canvas('canvasWidthAndHeight');
-
-  try {
-    // 异步加载图片
-    fabricImage.value = await FabricImage.fromURL(props.imgUrl, {
-      crossOrigin: 'anonymous',  // 处理跨域问题
-    });
-
-    // 获取图片原始宽高
-    const imgWidth = fabricImage.value.width;
-    const imgHeight = fabricImage.value.height;
-
-    // 计算缩放比例
-    const scaleX = props.canvasWidth / imgWidth;
-    const scaleY = props.canvasHeight / imgHeight;
-    const scale = Math.min(scaleX, scaleY);  // 保持比例缩放
-
-    // 设置图片的缩放比例
-    fabricImage.value.set({
-      scaleX: scale,
-      scaleY: scale,
-      selectable: false,  // 禁止选择
-    });
-
-    // 将图片添加到 canvas
-    canvas.value.add(fabricImage.value);
-  } catch (error) {
-    console.error('图片加载失败:', error);
+  if (canvasElement.value) {
+    canvas.value = await createCanvas(canvasElement.value,props)
   }
+  
+  // 创建canvas对象
+
   // 监听鼠标事件来绘制矩形
-  canvas.value.on('mouse:down', (event) => {
-    if (!isDrawing.value) return;
-    const pointer = canvas.value.getPointer(event.e);
-    const { x, y } = pointer;
-
-    selectionRect.value = new Rect({
-      left: x,
-      top: y,
-      width: 0,
-      height: 0,
-      fill: 'rgba(0, 0, 0, 0.2)',
-      stroke: 'black',
-      strokeWidth: 2,
-      selectable: false,
-    });
-
-    canvas.value.add(selectionRect.value);
-  });
-
-  canvas.value.on('mouse:move', (event) => {
-    if (!selectionRect.value || !isDrawing.value) return;
-    const pointer = canvas.value.getPointer(event.e);
-    const { x, y } = pointer;
-
-    // 更新矩形的大小
-    const width = x - selectionRect.value.left;
-    const height = y - selectionRect.value.top;
-
-    selectionRect.value.set({ width, height });
-    canvas.value.renderAll();
-  });
-
-  canvas.value.on('mouse:up', () => {
-    isDrawing.value = false; // 停止绘制矩形
-  });
-
-  // 开始绘制矩形
-  // 暴露绘制和保存功能
-  window.startDrawing = () => {
-    isDrawing.value = true;
-  };
-  window.saveCroppedImage = saveCroppedImage;
-
+  // canvas.value.on('mouse:down', (event) => {
+  //   if (!isDrawing.value) return;
+  //   const pointer = canvas.value.getPointer(event.e);
+  //   const { x, y } = pointer;
+  //
+  //   selectionRect.value = new Rect({
+  //     left: x,
+  //     top: y,
+  //     width: 0,
+  //     height: 0,
+  //     fill: 'rgba(0, 0, 0, 0.2)',
+  //     stroke: 'black',
+  //     strokeWidth: 2,
+  //     selectable: false,
+  //   });
+  //
+  //   canvas.value.add(selectionRect.value);
+  // });
+  //
+  // canvas.value.on('mouse:move', (event) => {
+  //   if (!selectionRect.value || !isDrawing.value) return;
+  //   const pointer = canvas.value.getPointer(event.e);
+  //   const { x, y } = pointer;
+  //
+  //   // 更新矩形的大小
+  //   const width = x - selectionRect.value.left;
+  //   const height = y - selectionRect.value.top;
+  //
+  //   selectionRect.value.set({ width, height });
+  //   canvas.value.renderAll();
+  // });
+  //
+  // canvas.value.on('mouse:up', () => {
+  //   isDrawing.value = false; // 停止绘制矩形
+  // });
+  //
+  // // 开始绘制矩形
+  // // 暴露绘制和保存功能
+  // window.startDrawing = () => {
+  //   isDrawing.value = true;
+  // };
+  // window.saveCroppedImage = saveCroppedImage;
+  // EventBus.emit("scale",canvas);
 });
 
 // 保存裁剪图像
@@ -205,7 +179,7 @@ function save() {
 
 
 <style scoped lang="less">
-#canvasWidthAndHeight {
+#canvasElement {
   border: 1px solid #f30606;
   border-radius: 10px;
 }
