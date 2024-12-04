@@ -41,42 +41,98 @@ const element = ref([
       {id:6, title: '自由比例', icon:'ScissorOutlined', select:false},
       {id:7, title: '自由比例', icon:'ScissorOutlined', select:false},
       {id:8, title: '自由比例', icon:'ScissorOutlined', select:false},
-      {id:9, title: '自由比例', icon:'ScissorOutlined', select:false,}
+      {id:9, title: '自由比例', icon:'ScissorOutlined', select:false}
     ]
   },
   {id: 2, title: '调整尺寸', icon:'RadiusSettingOutlined', select:false,
     children:[
-        {id:2, title: '自由比例',icon:'ScissorOutlined',  select:false}
+      {id:1, title: '自由比例', icon:'RadiusSettingOutlined', select:false},
+      {id:2, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:3, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:4, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:5, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:6, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:7, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:8, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:9, title: '自由比例', icon:'ScissorOutlined', select:false}
     ]
   },
   {id: 3, title: '消除笔', icon:'RadiusSettingOutlined', select:false,
     children:[
-      {id:2, title: '自由比例',icon:'ScissorOutlined',  select:false}
+      {id:1, title: '自由比例', icon:'RadiusSettingOutlined', select:false},
+      {id:2, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:3, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:4, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:5, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:6, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:7, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:8, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:9, title: '自由比例', icon:'ScissorOutlined', select:false}
     ]
   },
   {id: 4, title: '色彩调节', icon:'RadiusSettingOutlined', select:false,
     children:[
-      {id:2, title: '自由比例',icon:'ScissorOutlined',  select:false}
+      {id:1, title: '自由比例', icon:'RadiusSettingOutlined', select:false},
+      {id:2, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:3, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:4, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:5, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:6, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:7, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:8, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:9, title: '自由比例', icon:'ScissorOutlined', select:false}
     ]
   },
   {id: 5, title: '颜色叠加', icon:'RadiusSettingOutlined', select:false,
     children:[
-      {id:2, title: '自由比例',icon:'ScissorOutlined',  select:false}
+      {id:1, title: '自由比例', icon:'RadiusSettingOutlined', select:false},
+      {id:2, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:3, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:4, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:5, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:6, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:7, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:8, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:9, title: '自由比例', icon:'ScissorOutlined', select:false}
     ]
   },
   {id: 6, title: '滤镜', icon:'RadiusSettingOutlined', select:false,
     children:[
-      {id:2, title: '自由比例',icon:'ScissorOutlined',  select:false}
+      {id:1, title: '自由比例', icon:'RadiusSettingOutlined', select:false},
+      {id:2, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:3, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:4, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:5, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:6, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:7, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:8, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:9, title: '自由比例', icon:'ScissorOutlined', select:false}
     ]
   },
   {id: 7, title: '马赛克', icon:'RadiusSettingOutlined', select:false,
     children:[
-      {id:2, title: '自由比例',icon:'ScissorOutlined',  select:false}
+      {id:1, title: '自由比例', icon:'RadiusSettingOutlined', select:false},
+      {id:2, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:3, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:4, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:5, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:6, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:7, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:8, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:9, title: '自由比例', icon:'ScissorOutlined', select:false}
     ]
   },
   {id: 8, title: '标尺', icon:'RadiusSettingOutlined', select:false,
     children:[
-      {id:2, title: '自由比例',icon:'ScissorOutlined',  select:false}
+      {id:1, title: '自由比例', icon:'RadiusSettingOutlined', select:false},
+      {id:2, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:3, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:4, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:5, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:6, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:7, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:8, title: '自由比例', icon:'ScissorOutlined', select:false},
+      {id:9, title: '自由比例', icon:'ScissorOutlined', select:false}
     ]
   },
 ])
