@@ -1,4 +1,3 @@
-
 <template>
  <div style="display: flex;">
    <div style="width: 60px; height: 100% ;background:#ffffff;border: 1px solid #e4e4e4;border-radius: 10px">
@@ -10,22 +9,26 @@
      </div>
    </div>
    <a-card>
-     <scale-composition v-show="current.id === 1" style="width: 210px"></scale-composition>
-     <draw-composition v-show="current.id === 2"  style="width: 210px"></draw-composition>
-     <frame-composition v-show="current.id === 4"  style="width: 210px"></frame-composition>
-     <mark-composition v-show="current.id === 6"  style="width: 210px"></mark-composition>
-     <material-composition v-show="current.id === 5"  style="width: 210px"></material-composition>
-     <text-composition v-show="current.id === 3"  style="width: 210px"></text-composition>
+     <scale-component v-show="current.id === 1" style="width: 220px"></scale-component>
+     <draw-component v-show="current.id === 2"  style="width: 220px"></draw-component>
+     <frame-component v-show="current.id === 4"  style="width: 220px"></frame-component>
+     <mark-component v-show="current.id === 6"  style="width: 220px"></mark-component>
+     <material-component v-show="current.id === 5"  style="width: 220px"></material-component>
+     <text-component v-show="current.id === 3"  style="width: 220px"></text-component>
    </a-card>
-   <canvas-component :img-url="imgUrl" :canvas-height="canvasHeight" :canvas-width="canvasWidth" style="margin-left: 10px"></canvas-component>
+   <painting-component :img-url="imgUrl" :canvas-height="canvasHeight" :canvas-width="canvasWidth" style="margin-left: 10px"></painting-component>
  </div>
 </template>
 <script setup lang="js">
-import CanvasComponent from "~/components/process-pictures/component/CanvasComponent.vue";
 import {ref} from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
-import DrawComposition from "~/components/process-pictures/component/DrawComposition.vue";
-import MarkComposition from "~/components/process-pictures/component/MarkComposition.vue";
+import PaintingComponent from "~/components/process-pictures/component/painting/index.vue";
+import FrameComponent from "~/components/process-pictures/component/frame/index.vue";
+import ScaleComponent from "~/components/process-pictures/component/scale/index.vue";
+import DrawComponent from "~/components/process-pictures/component/draw/index.vue";
+import MarkComponent from "~/components/process-pictures/component/mark/index.vue";
+import MaterialComponent from "~/components/process-pictures/component/material/index.vue";
+import TextComponent from "~/components/process-pictures/component/text/index.vue";
 const canvasHeight = ref(window.innerHeight - 80);
 const canvasWidth = ref(window.innerWidth  - 400);
 const current = ref({});
@@ -90,6 +93,8 @@ onMounted(() => {
   window.addEventListener('resize', updateCanvasSize);
 });
 onUnmounted(() => {
+  usePsStore().FabricCanvas.value = null;
+  usePsStore().FabricImage.value = null;
   window.removeEventListener('resize', updateCanvasSize);
 });
 
