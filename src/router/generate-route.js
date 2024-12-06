@@ -20,6 +20,7 @@ function formatMenu(route, path) {
     commonUse:route.commonUse === 0?0:1,
     parentId: route.meta?.parentId,
     title: () => renderTitle(route),
+    title2:route.meta?.title,
     icon: route.meta?.icon || '',
     path: path ?? route.path,
     hideInMenu: route.meta?.hideInMenu || false,

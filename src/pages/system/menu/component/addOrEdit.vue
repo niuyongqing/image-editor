@@ -143,7 +143,9 @@ function addClassifyOk() {
         <a-form-item label="名 称" name="title" :rules="[{ required: true, message: '请输入菜单名称' }]">
           <a-input v-model:value="formData.title" />
         </a-form-item>
-
+        <a-form-item label="路由名称" name="name" :rules="[{ required: true}]">
+          <a-input v-model:value="formData.name" placeholder="不允许与其他所有路由名称相同，否则无法访问"/>
+        </a-form-item>
         <a-form-item label="分 类" name="classify" v-if="formData.classify != 3 && title != '添加一级菜单' &&  formData.parentId" :rules="[{ required: formData.type != 3, message: '请选择分类' }]">
           <div style="display: flex">
             <a-select v-model:value="formData.classify" filterable>

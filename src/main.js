@@ -17,8 +17,6 @@ import 'uno.css'
 
 import Antd from 'ant-design-vue';
 import 'ant-design-vue/dist/reset.css';
-
-
 import STable from '@surely-vue/table';
 
 const pinia = createPinia()
