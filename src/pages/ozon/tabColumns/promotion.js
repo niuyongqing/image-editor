@@ -1,0 +1,52 @@
+export default [
+  {
+    label: "活动名称",
+    prop: "title",
+    sortable: false,
+    show: true,
+    filter: false,
+  },
+  {
+    label: "店铺名称",
+    prop: "sellerId",
+    sortable: false,
+    show: true,
+    filter: false,
+  },
+  {
+    label: "参与产品数",
+    prop: "potentialProductsCount",
+    sortable: false,
+    show: true,
+    filter: false,
+  },
+  {
+    label: "活动类型",
+    prop: "actionType",
+    sortable: false,
+    show: true,
+    filter: false,
+  },
+  {
+    label: "活动时间",
+    prop: "createdAt",
+    sortable: false,
+    show: true,
+    filter: false,
+  },
+  {
+    label: "状态",
+    prop: "createdAt",
+    sortable: false,
+    show: true,
+    filter: false,
+  },
+  {
+    label: "操作",
+    prop: "option",
+    sortable: false,
+    show: true,
+    width: "100",
+    filter: false,
+  },
+];

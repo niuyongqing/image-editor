@@ -1,0 +1,40 @@
+export default [
+  {
+    label: '标题/产品ID',
+    prop: 'name',
+    sortable:false,
+    show:true,
+    width:"500",
+    filter:false,
+  },
+  {
+    label: '状态',
+    prop: 'state',
+    sortable:true,
+    show:true,
+    width:"200",
+    filter:false,
+  },
+  {
+    label: 'SKU信息',
+    prop: 'variations',
+    sortable:false,
+    show:true,
+    filter:false,
+  },{
+    label: '时间',
+    prop: 'createdAt',
+    sortable:true,
+    show:true,
+    width:"300",
+    filter:false,
+  },
+  {
+    label: '操作',
+    prop: 'option',
+    sortable:false,
+    show:true,
+    width:"150",
+    filter:false,
+  },
+]
