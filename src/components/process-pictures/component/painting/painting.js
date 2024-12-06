@@ -1,6 +1,7 @@
 import {message} from "ant-design-vue";
 import {usePsStore} from "~/stores/ps.js";
-import {Canvas, FabricImage} from "fabric";
+import {Canvas, FabricImage,Line,FabricText} from "fabric";
+
 
 export async function createCanvas(el,props) {
     const psStore = usePsStore();
@@ -36,9 +37,12 @@ export async function createCanvas(el,props) {
             top: props.canvasHeight / 2,
         });
 
-        // 将图片添加到 canvas
-        psStore.FabricCanvas.value.add(psStore.FabricImage.value);
+        // 设置底图
+        psStore.FabricCanvas.value.backgroundImage = psStore.FabricImage.value
+
+        // psStore.FabricCanvas.value.add(psStore.FabricImage.value);
     } catch (error) {
+        console.log(error)
         message.error({
             content: () => "图片加载失败，请检查图片路径是否正确",
             class: "custom-class",

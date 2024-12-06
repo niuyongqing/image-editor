@@ -30,7 +30,6 @@
           <async-icon icon="ApiOutlined" size="15px"></async-icon>
           <a-input-number :controls="false" @change="updateRectanglePositionYFunc" v-model:value="yRef" style="left: 5px" prefix="H"/>
         </div>
-
         <div style="margin-top: 5px;display: flex;flex-wrap: wrap;gap: 5px;justify-content: center">
           <a-button @click="saveCroppedImage" type="primary">应 用</a-button>
           <a-button @click="undo">取 消</a-button>
@@ -51,16 +50,15 @@ import {
   xRef,
   yRef,
   saveCroppedImage,
-  undo,
-  to1and1
+  undo, to1and1,
 } from "~/components/process-pictures/component/scale/FreeProportion";
 const selectChick = ref('RightOutlined')
 const selectNotChick = ref('DownOutlined')
 const element = ref([
   {id: 1, title: '裁剪/旋转', icon:'ScissorOutlined', select:false,
     children:[
-      {id:1, title: '自由裁剪', icon:'RadiusSettingOutlined', select:false,func:FreeProportion},
-      {id:2, title: '1X1', icon:'ScissorOutlined', select:false,func:to1and1},
+      {id:1, title: '自由裁剪', icon:'RadiusSettingOutlined', select:false,func:FreeProportion,parameter:[0,0,0,0]},
+      {id:2, title: '1X1', icon:'ScissorOutlined', select:false,func:to1and1,parameter:[100,100,100,100]},
       {id:3, title: '3X2', icon:'ScissorOutlined', select:false},
       {id:4, title: '2X3', icon:'ScissorOutlined', select:false},
       {id:5, title: '4X3', icon:'ScissorOutlined', select:false},
@@ -179,7 +177,7 @@ function selectChildren(chi,children){
   chi.select = !chi.select
   children.filter((v) => v.id !== chi.id).map((m)=>m.select = false)
   if (typeof chi.func === 'function') {
-    chi.func();
+    chi.func(...chi.parameter);
   }
 }
 

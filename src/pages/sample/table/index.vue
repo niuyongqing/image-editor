@@ -4,7 +4,7 @@
 <script setup lang="js">
 import {ref} from 'vue'
 import ProcessPictures from "~/components/process-pictures/index.vue";
-const imgUrl = ref("https://my-live-01.slatic.net/p/c2e787b98b880ae5da3013e0e717c0b2.jpg")
+const imgUrl = ref("https://www.xzerp.com/prod-api/profile/upload/2024/12/04/%E4%B8%BB%E5%9B%BE4_20241204190314A067.jpg")
 </script>
 
 

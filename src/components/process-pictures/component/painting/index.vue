@@ -30,8 +30,7 @@ onMounted(async () => {
 
 <style scoped lang="less">
 #canvasElement {
-  border: 1px solid #f30606;
-  border-radius: 10px;
+
 }
 
 </style>

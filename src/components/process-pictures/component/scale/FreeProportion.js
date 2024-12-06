@@ -12,11 +12,7 @@ const heightRef = ref(0);
 
 // 开始裁剪
 export function FreeProportion() {
-  usePsStore().FabricCanvas.value.remove(selectionRect.value);
-  xRef.value = 0
-  yRef.value = 0
-  widthRef.value = 0
-  heightRef.value = 0
+  clear()
   isDrawing.value = true;
   const canvas = usePsStore().FabricCanvas.value;
   // 监听鼠标事件来绘制矩形
@@ -26,26 +22,7 @@ export function FreeProportion() {
     const { x, y } = pointer;
     xRef.value = x;
     yRef.value = y;
-    selectionRect.value = new Rect({
-      left: x,
-      top: y,
-      width: 0,
-      height: 0,
-      fill: 'rgba(0, 0, 0, 0)', // 透明填充
-      stroke: setting.colorPrimary, // 设置主颜色
-      strokeWidth: 2, // 边框宽度
-      selectable: true, // 允许选择
-      cornerStyle: 'circle', // 控制点样式为圆形，便于进一步调整
-      cornerSize: 10, // 设置较大控制点大小以模拟长圆筒形状
-      transparentCorners: false, // 不透明的控制点
-      hasControls: true, // 启用控制点
-      lockRotation: false, // 锁定旋转
-      objectCaching: false, // 优化性能，禁用缓存
-      borderColor: setting.colorPrimary, // 边框颜色
-      cornerColor: setting.colorPrimary, // 控制点颜色
-      cornerStrokeColor: 'white', // 控制点边框颜色
-      cornerStrokeWidth: 3, // 控制点边框宽度
-    });
+    setRect()
     // 添加矩形到画布
     canvas.add(selectionRect.value);
   });
@@ -199,9 +176,27 @@ export function saveCroppedImage(){
   const originalCanvas = usePsStore().FabricCanvas.value.getElement();
   ctx.drawImage(originalCanvas,xRef.value + 5, yRef.value + 5,  widthRef.value - 10, heightRef.value - 10, 0, 0, widthRef.value - 10, heightRef.value - 10);
   const croppedDataUrl = croppedCanvas.toDataURL();
-  selectionRect.value = null;
+  clear()
   console.log('裁剪后的图片数据：', croppedDataUrl);
-  usePsStore().FabricCanvas.value.remove(selectionRect.value);
+}
+
+
+// 1比1裁剪
+export function to1and1(){
+  isDrawing.value = true;
+  const canvas = usePsStore().FabricCanvas.value;
+  clear()
+  const backgroundImage = canvas.backgroundImage;
+  console.log(backgroundImage)
+  xRef.value = 0
+  yRef.value = 0
+  widthRef.value = backgroundImage.width
+  heightRef.value = backgroundImage.height
+  setRect();
+  // 添加矩形到画布
+  canvas.add(selectionRect.value);
+  isDrawing.value = false;
+  return this;
 }
 
 /**
@@ -209,21 +204,42 @@ export function saveCroppedImage(){
  */
 export function undo() {
     const canvas = usePsStore().FabricCanvas.value;
-      if (selectionRect.value) {
-        canvas.remove(selectionRect.value);
-      }
+    if (selectionRect.value) {
+      canvas.remove(selectionRect.value);
+    }
     xRef.value = 0
     yRef.value = 0
-    // 更新画布
     canvas.renderAll();
 }
 
+function setRect(){
+  selectionRect.value = new Rect({
+    left: xRef.value,
+    top: yRef.value,
+    width: widthRef.value,
+    height: heightRef.value,
+    fill: 'rgba(0, 0, 0, 0)', // 透明填充
+    stroke: setting.colorPrimary, // 设置主颜色
+    strokeWidth: 2, // 边框宽度
+    selectable: true, // 允许选择
+    cornerStyle: 'circle', // 控制点样式为圆形，便于进一步调整
+    cornerSize: 10, // 设置较大控制点大小以模拟长圆筒形状
+    transparentCorners: false, // 不透明的控制点
+    hasControls: true, // 启用控制点
+    lockRotation: false, // 锁定旋转
+    objectCaching: false, // 优化性能，禁用缓存
+    borderColor: setting.colorPrimary, // 边框颜色
+    cornerColor: setting.colorPrimary, // 控制点颜色
+    cornerStrokeColor: 'white', // 控制点边框颜色
+    cornerStrokeWidth: 3, // 控制点边框宽度
+  });
+}
 
-// 1比1裁剪
-export function to1and1(){
-  const canvas = usePsStore().FabricCanvas.value;
-  new FreeProportion()
-  selectionRect.value.set({ width: 100, height: 100 });
-  canvas.renderAll();
-
+function clear(){
+  xRef.value = 0
+  yRef.value = 0
+  widthRef.value = 0
+  heightRef.value = 0
+  usePsStore().FabricCanvas.value.remove(selectionRect.value);
+  usePsStore().FabricCanvas.value.renderAll();
 }
