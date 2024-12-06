@@ -78,7 +78,7 @@ function commonUseFunc(type,item){
 
 // 点击菜单跳转
 function selectMenu(item) {
-  router.push({path: item.path,name: item.name})
+  router.push({path: item.path})
   onClose()
 }
 
@@ -206,7 +206,7 @@ function showMenuFunc() {
                 <div style="display: flex;align-items: center;justify-content: space-between" :id="item.id">
                   <div style="display: flex;align-items: center;">
                     <div><AsyncIcon :icon="item.icon" size="15px"/></div>
-                    <div style="margin-left: 10px">{{item.name}}</div>
+                    <div style="margin-left: 10px">{{item.title2}}</div>
                   </div>
                   <div><AsyncIcon v-if="settingMenu"  @click.stop="commonUse(item)" :style="{color: '#1677FF'}"  id="commonUse" icon="PushpinOutlined" size="15px" style="text-align: right;transform:rotate(-40deg)"/></div>
                 </div>
@@ -226,7 +226,7 @@ function showMenuFunc() {
               <div style="display: flex;align-items: center;justify-content: space-between" :id="item.id">
                 <div style="display: flex;align-items: center;">
                   <div><AsyncIcon :icon="item.icon" size="15px"/></div>
-                  <div style="margin-left: 10px">{{item.name}}</div>
+                  <div style="margin-left: 10px">{{item.title2}}</div>
                 </div>
                 <div><AsyncIcon   @click.stop="commonUseFixed(item)" :style="{color: item.commonUse !== 0?'#1677FF':'#a7a7a8'}"  id="commonUse" icon="PushpinOutlined" size="15px" style="text-align: right;transform:rotate(-40deg)"/></div>
               </div>
