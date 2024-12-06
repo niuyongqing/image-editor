@@ -14,8 +14,6 @@ import '~/router/router-guard'
 import 'ant-design-vue/dist/reset.css'
 import '~/assets/styles/reset.css'
 import 'uno.css'
-
-
 import STable from '@surely-vue/table';
 
 const pinia = createPinia()

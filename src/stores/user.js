@@ -1,4 +1,3 @@
-import router from "~/router/index.js";
 import { logoutApi } from '~@/api/common/login'
 import { message } from 'ant-design-vue';
 import { getRoleMenusApi } from '~@/api/common/menu'
