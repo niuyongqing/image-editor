@@ -137,10 +137,6 @@ function showMenuFunc() {
 
 
 }
-
-function itemFunction(item) {
-  console.log(item);
-}
 </script>
 
 <style scoped lang="less">
