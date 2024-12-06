@@ -1,6 +1,8 @@
 <template>
- <div>
-   <canvas :width="canvasWidth" :height="canvasHeight" id="canvasElement" ref="canvasElement"></canvas>
+ <div  :style="{width:canvasWidth+'px',height:canvasHeight+'px'}" >
+   <div style="justify-content: center;text-align: center">
+     <canvas id="canvasElement" ref="canvasElement" :width="canvasWidth - 100" :height="canvasHeight - 100"></canvas>
+   </div>
  </div>
 </template>
 <script lang="ts" setup>
@@ -31,4 +33,5 @@ onMounted(async () => {
   border: 1px solid #f30606;
   border-radius: 10px;
 }
+
 </style>

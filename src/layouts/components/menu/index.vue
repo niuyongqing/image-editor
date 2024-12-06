@@ -78,7 +78,7 @@ function commonUseFunc(type,item){
 
 // 点击菜单跳转
 function selectMenu(item) {
-  router.push({path: item.path,name: item.name})
+  router.push({path: item.path})
   onClose()
 }
 

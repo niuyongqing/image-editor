@@ -44,21 +44,29 @@
 // 裁剪
 import {ref} from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
-import {FreeProportion,updateRectanglePositionX,updateRectanglePositionY,xRef,yRef,saveCroppedImage,undo} from "~/components/process-pictures/component/scale/FreeProportion";
+import {
+  FreeProportion,
+  updateRectanglePositionX,
+  updateRectanglePositionY,
+  xRef,
+  yRef,
+  saveCroppedImage,
+  undo,
+  to1and1
+} from "~/components/process-pictures/component/scale/FreeProportion";
 const selectChick = ref('RightOutlined')
 const selectNotChick = ref('DownOutlined')
 const element = ref([
   {id: 1, title: '裁剪/旋转', icon:'ScissorOutlined', select:false,
     children:[
-      {id:1, title: '自由比例', icon:'RadiusSettingOutlined', select:false,func:FreeProportion},
-      {id:2, title: '自由比例', icon:'ScissorOutlined', select:false},
-      {id:3, title: '自由比例', icon:'ScissorOutlined', select:false},
-      {id:4, title: '自由比例', icon:'ScissorOutlined', select:false},
-      {id:5, title: '自由比例', icon:'ScissorOutlined', select:false},
-      {id:6, title: '自由比例', icon:'ScissorOutlined', select:false},
-      {id:7, title: '自由比例', icon:'ScissorOutlined', select:false},
-      {id:8, title: '自由比例', icon:'ScissorOutlined', select:false},
-      {id:9, title: '自由比例', icon:'ScissorOutlined', select:false}
+      {id:1, title: '自由裁剪', icon:'RadiusSettingOutlined', select:false,func:FreeProportion},
+      {id:2, title: '1X1', icon:'ScissorOutlined', select:false,func:to1and1},
+      {id:3, title: '3X2', icon:'ScissorOutlined', select:false},
+      {id:4, title: '2X3', icon:'ScissorOutlined', select:false},
+      {id:5, title: '4X3', icon:'ScissorOutlined', select:false},
+      {id:6, title: '3X4', icon:'ScissorOutlined', select:false},
+      {id:7, title: '16X9', icon:'ScissorOutlined', select:false},
+      {id:8, title: '9X16', icon:'ScissorOutlined', select:false}
     ]
   },
   {id: 2, title: '调整尺寸', icon:'RadiusSettingOutlined', select:false,
@@ -188,7 +196,7 @@ function selectChildren(chi,children){
 .card-hover:hover {
   background-color: #e0e0e0; /* 鼠标悬停时的背景色 */
 }
-/deep/.ant-input-number-prefix{
+:deep(.ant-input-number-prefix){
   color: #a7a7a8;
 }
 </style>
