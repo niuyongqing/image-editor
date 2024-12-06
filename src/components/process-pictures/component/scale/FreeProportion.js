@@ -157,12 +157,12 @@ function setRect(){
     cornerSize: 10, // 设置较大控制点大小以模拟长圆筒形状
     transparentCorners: false, // 不透明的控制点
     hasControls: true, // 启用控制点
-    lockRotation: false, // 锁定旋转
+    lockRotation: true, // 锁定旋转
     objectCaching: false, // 优化性能，禁用缓存
     borderColor: setting.colorPrimary, // 边框颜色
     cornerColor: setting.colorPrimary, // 控制点颜色
     cornerStrokeColor: 'white', // 控制点边框颜色
-    cornerStrokeWidth: 3, // 控制点边框宽度
+    cornerStrokeWidth: 10, // 控制点边框宽度
     isCropRect:true
   });
 }
@@ -176,16 +176,25 @@ export function to1and1() {
   undo();
   const backgroundImage = canvas.backgroundImage;
   if (backgroundImage) {
-    const bgWidth = backgroundImage.width;
-    const bgHeight = backgroundImage.height;
+    const scaleX = backgroundImage.scaleX;
+    const scaleY = backgroundImage.scaleY;
+    const imgWidth = backgroundImage.width * scaleX;
+    const imgHeight = backgroundImage.height * scaleY;
     const canvasCenterX = canvas.width / 2;
     const canvasCenterY = canvas.height / 2;
-    widthRef.value = bgWidth;
-    heightRef.value = bgHeight;
-    xRef.value = canvasCenterX - bgWidth / 2;
-    yRef.value = canvasCenterY - bgHeight / 2;
+    widthRef.value = imgWidth;
+    heightRef.value = imgHeight;
+    xRef.value = canvasCenterX - imgWidth / 2;
+    yRef.value = canvasCenterY - imgHeight / 2;
     setRect();
     canvas.add(selectionRect.value);
+    canvas.on('object:scaling', (event) => {
+      calculateWidthAndHeight(event,canvas)
+    });
+    canvas.on('object:modified', (event) => {
+      calculateWidthAndHeight(event,canvas)
+    });
   }
   return this;
 }
+
