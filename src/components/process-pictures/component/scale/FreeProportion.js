@@ -121,6 +121,7 @@ function updateMask(canvas) {
 
 // 计算截屏调整后的宽高
 function calculateWidthAndHeight(event,canvas) {
+
   const obj = event.target;
   const { left, top,  width, height, scaleX, scaleY } = obj;
   const realWidth = width * scaleX;
@@ -180,35 +181,19 @@ export function saveCroppedImage(){
   console.log('裁剪后的图片数据：', croppedDataUrl);
 }
 
-
-// 1比1裁剪
-export function to1and1(){
-  isDrawing.value = true;
-  const canvas = usePsStore().FabricCanvas.value;
-  clear()
-  const backgroundImage = canvas.backgroundImage;
-  console.log(backgroundImage)
-  xRef.value = 0
-  yRef.value = 0
-  widthRef.value = backgroundImage.width
-  heightRef.value = backgroundImage.height
-  setRect();
-  // 添加矩形到画布
-  canvas.add(selectionRect.value);
-  isDrawing.value = false;
-  return this;
-}
-
 /**
- * 回滚裁剪
+ * 清空画布的所有裁剪信息，还原到最原始的画布
  */
 export function undo() {
     const canvas = usePsStore().FabricCanvas.value;
-    if (selectionRect.value) {
-      canvas.remove(selectionRect.value);
-    }
+    canvas.getObjects().slice().forEach((obj) => canvas.remove(obj));
     xRef.value = 0
     yRef.value = 0
+    widthRef.value = 0
+    heightRef.value = 0
+    canvas.off('mouse:down');
+    canvas.off('mouse:move');
+    canvas.off('mouse:up');
     canvas.renderAll();
 }
 
@@ -232,9 +217,13 @@ function setRect(){
     cornerColor: setting.colorPrimary, // 控制点颜色
     cornerStrokeColor: 'white', // 控制点边框颜色
     cornerStrokeWidth: 3, // 控制点边框宽度
+    isCropRect:true
   });
 }
 
+/**
+ * 清理所有操作
+ */
 function clear(){
   xRef.value = 0
   yRef.value = 0
@@ -242,4 +231,23 @@ function clear(){
   heightRef.value = 0
   usePsStore().FabricCanvas.value.remove(selectionRect.value);
   usePsStore().FabricCanvas.value.renderAll();
+}
+
+
+
+// 1比1裁剪
+export function to1and1(){
+  isDrawing.value = true;
+  const canvas = usePsStore().FabricCanvas.value;
+  clear()
+  const backgroundImage = canvas.backgroundImage;
+  console.log(backgroundImage)
+  xRef.value = 0
+  yRef.value = 0
+  widthRef.value = backgroundImage.width
+  heightRef.value = backgroundImage.height
+  setRect();
+  // 添加矩形到画布
+  canvas.add(selectionRect.value);
+  return this;
 }
