@@ -1,7 +1,7 @@
 <template>
  <div  :style="{width:canvasWidth+'px',height:canvasHeight+'px'}" >
    <div style="justify-content: center;text-align: center">
-     <canvas id="canvasElement" ref="canvasElement" :width="canvasWidth - 100" :height="canvasHeight - 100"></canvas>
+     <canvas id="canvasElement" ref="canvasElement" :width="canvasWidth" :height="canvasHeight"></canvas>
    </div>
  </div>
 </template>

@@ -123,7 +123,7 @@ export function saveCroppedImage(){
   const originalCanvas = usePsStore().FabricCanvas.value.getElement();
   ctx.drawImage(originalCanvas,xRef.value + 5, yRef.value + 5,  widthRef.value - 10, heightRef.value - 10, 0, 0, widthRef.value - 10, heightRef.value - 10);
   const croppedDataUrl = croppedCanvas.toDataURL();
-  clear()
+  undo()
   console.log('裁剪后的图片数据：', croppedDataUrl);
 }
 
@@ -170,18 +170,22 @@ function setRect(){
 
 
 // 1比1裁剪
-export function to1and1(){
+export function to1and1() {
   isDrawing.value = true;
   const canvas = usePsStore().FabricCanvas.value;
-  clear()
+  undo();
   const backgroundImage = canvas.backgroundImage;
-  console.log(backgroundImage)
-  xRef.value = 0
-  yRef.value = 0
-  widthRef.value = backgroundImage.width
-  heightRef.value = backgroundImage.height
-  setRect();
-  // 添加矩形到画布
-  canvas.add(selectionRect.value);
+  if (backgroundImage) {
+    const bgWidth = backgroundImage.width;
+    const bgHeight = backgroundImage.height;
+    const canvasCenterX = canvas.width / 2;
+    const canvasCenterY = canvas.height / 2;
+    widthRef.value = bgWidth;
+    heightRef.value = bgHeight;
+    xRef.value = canvasCenterX - bgWidth / 2;
+    yRef.value = canvasCenterY - bgHeight / 2;
+    setRect();
+    canvas.add(selectionRect.value);
+  }
   return this;
 }

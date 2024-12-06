@@ -23,12 +23,12 @@ export async function createCanvas(el,props) {
         // 计算缩放比例
         const scaleX = props.canvasWidth / imgWidth;
         const scaleY = props.canvasHeight / imgHeight;
-        const scale = Math.min(scaleX, scaleY); // 保持比例缩放
+        const scale = Math.min(scaleX, scaleY); // 保持比例缩放,放大尺寸
 
         // 设置图片的缩放比例和居中
         psStore.FabricImage.value.set({
-            scaleX: scale,
-            scaleY: scale,
+            scaleX: 1,
+            scaleY: 1,
             selectable: false, // 禁止选择
             objectCaching: false, // 禁用缓存，提升缩放性能
             originX: "center", // 设置图片原点为中心
