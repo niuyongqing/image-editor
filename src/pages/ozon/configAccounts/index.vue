@@ -4,7 +4,7 @@
   </div>
 </template>
 
-<script setup name='configAccount'>
+<script setup name="configAccounts">
 import { ref, reactive, onMounted, computed, watchPostEffect } from "vue";
 </script>
 <style lang="less" scoped>
