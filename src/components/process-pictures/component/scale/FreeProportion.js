@@ -12,7 +12,7 @@ const heightRef = ref(0);
 
 // 开始裁剪
 export function FreeProportion() {
-  clear()
+  undo()
   isDrawing.value = true;
   const canvas = usePsStore().FabricCanvas.value;
   // 监听鼠标事件来绘制矩形
@@ -62,61 +62,7 @@ export function FreeProportion() {
   return this;
 }
 
-
-
 export { xRef,yRef }
-
-// 动态更新蒙层
-function updateMask(canvas) {
-  // 获取画布宽高
-  const canvasWidth = canvas.width;
-  const canvasHeight = canvas.height;
-
-  // 清除现有蒙层（如果存在）
-  const existingOverlay = canvas.getObjects().find(obj => obj.overlay);
-  if (existingOverlay) {
-    canvas.remove(existingOverlay);
-  }
-
-  // 创建新的蒙层
-  const overlay = new Rect({
-    left: 0,
-    top: 0,
-    width: canvasWidth,
-    height: canvasHeight,
-    fill: 'rgba(0, 0, 0, 0.5)', // 半透明黑色
-    selectable: false,
-    overlay: true, // 标记这个对象是蒙层
-  });
-
-  // 添加蒙层到画布
-  canvas.add(overlay);
-
-  // 创建裁剪框的透明区域
-  const cropBox = new Rect({
-    left: xRef.value,
-    top: yRef.value,
-    width: widthRef.value,
-    height: heightRef.value,
-    fill: 'transparent', // 裁剪框是透明的
-    selectable: false,
-    evented: false, // 禁止事件响应
-  });
-
-
-
-  // 创建一个裁剪区域并应用到蒙层上
-  overlay.clipTo = function (ctx) {
-    cropBox.render(ctx); // 通过裁剪框裁剪蒙层
-  };
-
-
-  // 添加裁剪框的透明区域
-  canvas.add(cropBox);
-  // 刷新画布
-  canvas.renderAll();
-}
-
 
 
 // 计算截屏调整后的宽高
@@ -219,18 +165,6 @@ function setRect(){
     cornerStrokeWidth: 3, // 控制点边框宽度
     isCropRect:true
   });
-}
-
-/**
- * 清理所有操作
- */
-function clear(){
-  xRef.value = 0
-  yRef.value = 0
-  widthRef.value = 0
-  heightRef.value = 0
-  usePsStore().FabricCanvas.value.remove(selectionRect.value);
-  usePsStore().FabricCanvas.value.renderAll();
 }
 
 

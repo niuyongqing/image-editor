@@ -161,7 +161,7 @@ const element = ref([
 ])
 
 function select(item) {
-  item.select = !item.select
+  item.select = true
   element.value.filter((v) => v.id !== item.id).map((m)=>m.select = false)
 }
 
@@ -174,7 +174,7 @@ function updateRectanglePositionYFunc(y){
 }
 
 function selectChildren(chi,children){
-  chi.select = !chi.select
+  chi.select = true
   children.filter((v) => v.id !== chi.id).map((m)=>m.select = false)
   if (typeof chi.func === 'function') {
     chi.func(...chi.parameter);
