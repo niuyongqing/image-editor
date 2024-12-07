@@ -24,7 +24,7 @@ import {ref} from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import PaintingComponent from "~/components/process-pictures/component/painting/index.vue";
 import FrameComponent from "~/components/process-pictures/component/frame/index.vue";
-import ScaleComponent from "~/components/process-pictures/component/scale/index.vue";
+import ScaleComponent from "~/components/process-pictures/component/adjust/index.vue";
 import DrawComponent from "~/components/process-pictures/component/draw/index.vue";
 import MarkComponent from "~/components/process-pictures/component/mark/index.vue";
 import MaterialComponent from "~/components/process-pictures/component/material/index.vue";

@@ -11,7 +11,7 @@ const widthRef = ref(0);
 const heightRef = ref(0);
 
 // 开始裁剪
-export function FreeProportion() {
+export function Cropping() {
   undo()
   isDrawing.value = true;
   const canvas = usePsStore().FabricCanvas.value;
@@ -122,11 +122,11 @@ export function undo() {
     widthRef.value = 0
     heightRef.value = 0
     const backgroundImage = canvas.backgroundImage;
-    if(backgroundImage.angle !== 0){
-      backgroundImage.set({
-        angle: 0
-      });
-    }
+    backgroundImage.set({
+      angle: 0,
+      flipX: false,  // 恢复水平翻转
+      flipY: false   // 恢复垂直翻转
+    });
     canvas.off('mouse:down');
     canvas.off('mouse:move');
     canvas.off('mouse:up');
