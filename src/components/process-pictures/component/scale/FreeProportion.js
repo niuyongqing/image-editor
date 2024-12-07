@@ -157,7 +157,7 @@ function setRect(){
     cornerSize: 10, // 设置较大控制点大小以模拟长圆筒形状
     transparentCorners: false, // 不透明的控制点
     hasControls: true, // 启用控制点
-    lockRotation: true, // 锁定旋转
+    lockRotation: false, // 锁定旋转
     objectCaching: false, // 优化性能，禁用缓存
     borderColor: setting.colorPrimary, // 边框颜色
     cornerColor: setting.colorPrimary, // 控制点颜色
@@ -167,10 +167,8 @@ function setRect(){
   });
 }
 
-
-
-// 1比1裁剪
-export function to1and1() {
+// 比例裁剪
+export function toRatio(x,y) {
   isDrawing.value = true;
   const canvas = usePsStore().FabricCanvas.value;
   undo();
@@ -178,21 +176,31 @@ export function to1and1() {
   if (backgroundImage) {
     const scaleX = backgroundImage.scaleX;
     const scaleY = backgroundImage.scaleY;
+
     const imgWidth = backgroundImage.width * scaleX;
     const imgHeight = backgroundImage.height * scaleY;
+    const aspectRatio = x / y; // 3:2比例
+    let cropWidth, cropHeight;
+    if (imgWidth / imgHeight > aspectRatio) {
+      cropHeight = imgHeight;
+      cropWidth = cropHeight * aspectRatio;
+    } else {
+      cropWidth = imgWidth;
+      cropHeight = cropWidth / aspectRatio;
+    }
     const canvasCenterX = canvas.width / 2;
     const canvasCenterY = canvas.height / 2;
-    widthRef.value = imgWidth;
-    heightRef.value = imgHeight;
-    xRef.value = canvasCenterX - imgWidth / 2;
-    yRef.value = canvasCenterY - imgHeight / 2;
+    widthRef.value = cropWidth;
+    heightRef.value = cropHeight;
+    xRef.value = canvasCenterX - cropWidth / 2;
+    yRef.value = canvasCenterY - cropHeight / 2;
     setRect();
     canvas.add(selectionRect.value);
     canvas.on('object:scaling', (event) => {
-      calculateWidthAndHeight(event,canvas)
+      calculateWidthAndHeight(event, canvas);
     });
     canvas.on('object:modified', (event) => {
-      calculateWidthAndHeight(event,canvas)
+      calculateWidthAndHeight(event, canvas);
     });
   }
   return this;
