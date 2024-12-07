@@ -14,7 +14,7 @@
           </div>
         </div>
       </a-card>
-      <div  v-show="item.select" style="border-style: dotted;border-width: 1px;border-color: #a7a7a8;margin-bottom: 5px;margin-top: -10px">
+      <div  v-show="item.id === 1 && item.select" class="border">
         <div style="display: flex; flex-wrap: wrap; gap: 5px;padding: 0;margin:5px">
           <a-card v-for="chi in item.children" :key="chi.id" :style="{backgroundColor:chi.select?'#ffffff':'#f7f8fa', cursor: 'pointer', width: '100px'}"  class="card-hover" @click="selectChildren(chi,item.children)">
             <div style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
@@ -42,11 +42,11 @@
           </a-tooltip>
           <a-tooltip>
             <template #title>垂直翻转</template>
-            <div @click="flipImage('vertical')"><svg t="1733569966535" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6379" width="25" height="25"><path d="M213.333333 554.666667H128v-85.333334h85.333333v85.333334z m632.661334-384a42.666667 42.666667 0 0 1-18.218667 34.986666l-291.328 203.904a42.666667 42.666667 0 0 1-48.896 0l-291.328-203.946666A42.666667 42.666667 0 0 1 220.672 128h582.656a42.666667 42.666667 0 0 1 42.666667 42.666667z m0 682.666666a42.666667 42.666667 0 0 1-37.717334 42.368l-4.949333 0.298667H220.672a42.666667 42.666667 0 0 1-28.629333-74.24l4.181333-3.413333 291.328-203.904a42.666667 42.666667 0 0 1 43.861333-3.029334l5.034667 3.029334 291.328 203.946666a42.666667 42.666667 0 0 1 18.218667 34.944zM384 554.666667H298.666667v-85.333334h85.333333v85.333334z m320.896-358.4H307.2L512 335.957333l192.896-139.605333zM554.666667 554.666667h-85.333334v-85.333334h85.333334v85.333334z m170.666666 0h-85.333333v-85.333334h85.333333v85.333334z m170.666667 0h-85.333333v-85.333334h85.333333v85.333334z" fill="#2c2c2c" p-id="6380"></path></svg></div>
+            <div style="cursor: pointer" @click="flipImage('vertical')"><svg t="1733569966535" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6379" width="25" height="25"><path d="M213.333333 554.666667H128v-85.333334h85.333333v85.333334z m632.661334-384a42.666667 42.666667 0 0 1-18.218667 34.986666l-291.328 203.904a42.666667 42.666667 0 0 1-48.896 0l-291.328-203.946666A42.666667 42.666667 0 0 1 220.672 128h582.656a42.666667 42.666667 0 0 1 42.666667 42.666667z m0 682.666666a42.666667 42.666667 0 0 1-37.717334 42.368l-4.949333 0.298667H220.672a42.666667 42.666667 0 0 1-28.629333-74.24l4.181333-3.413333 291.328-203.904a42.666667 42.666667 0 0 1 43.861333-3.029334l5.034667 3.029334 291.328 203.946666a42.666667 42.666667 0 0 1 18.218667 34.944zM384 554.666667H298.666667v-85.333334h85.333333v85.333334z m320.896-358.4H307.2L512 335.957333l192.896-139.605333zM554.666667 554.666667h-85.333334v-85.333334h85.333334v85.333334z m170.666666 0h-85.333333v-85.333334h85.333333v85.333334z m170.666667 0h-85.333333v-85.333334h85.333333v85.333334z" fill="#2c2c2c" p-id="6380"></path></svg></div>
           </a-tooltip>
           <a-tooltip>
             <template #title>水平翻转</template>
-            <div @click="flipImage('horizontal')"> <svg t="1733569875407" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6121" width="25" height="25"><path d="M554.666667 810.666667v85.333333h-85.333334v-85.333333h85.333334zM170.666667 178.005333a42.666667 42.666667 0 0 1 34.986666 18.218667l203.904 291.328a42.666667 42.666667 0 0 1 0 48.896l-203.946666 291.328A42.666667 42.666667 0 0 1 128 803.328V220.672a42.666667 42.666667 0 0 1 42.666667-42.666667z m682.666666 0a42.666667 42.666667 0 0 1 42.368 37.717334l0.298667 4.949333v582.656a42.666667 42.666667 0 0 1-74.24 28.629333l-3.413333-4.181333-203.904-291.328a42.666667 42.666667 0 0 1-3.029334-43.861333l3.029334-5.034667 203.946666-291.328A42.666667 42.666667 0 0 1 853.333333 178.005333zM554.666667 640v85.333333h-85.333334v-85.333333h85.333334zM196.266667 319.104V716.8L335.957333 512 196.309333 319.104zM554.666667 469.333333v85.333334h-85.333334v-85.333334h85.333334z m0-170.666666v85.333333h-85.333334V298.666667h85.333334z m0-170.666667v85.333333h-85.333334V128h85.333334z" fill="#2c2c2c" p-id="6122"></path></svg></div>
+            <div  style="cursor: pointer"  @click="flipImage('horizontal')"> <svg t="1733569875407" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6121" width="25" height="25"><path d="M554.666667 810.666667v85.333333h-85.333334v-85.333333h85.333334zM170.666667 178.005333a42.666667 42.666667 0 0 1 34.986666 18.218667l203.904 291.328a42.666667 42.666667 0 0 1 0 48.896l-203.946666 291.328A42.666667 42.666667 0 0 1 128 803.328V220.672a42.666667 42.666667 0 0 1 42.666667-42.666667z m682.666666 0a42.666667 42.666667 0 0 1 42.368 37.717334l0.298667 4.949333v582.656a42.666667 42.666667 0 0 1-74.24 28.629333l-3.413333-4.181333-203.904-291.328a42.666667 42.666667 0 0 1-3.029334-43.861333l3.029334-5.034667 203.946666-291.328A42.666667 42.666667 0 0 1 853.333333 178.005333zM554.666667 640v85.333333h-85.333334v-85.333333h85.333334zM196.266667 319.104V716.8L335.957333 512 196.309333 319.104zM554.666667 469.333333v85.333334h-85.333334v-85.333334h85.333334z m0-170.666666v85.333333h-85.333334V298.666667h85.333334z m0-170.666667v85.333333h-85.333334V128h85.333334z" fill="#2c2c2c" p-id="6122"></path></svg></div>
           </a-tooltip>
         </div>
         <div style="margin-top: 5px;display: flex;flex-wrap: wrap;gap: 5px;justify-content: center">
@@ -56,7 +56,16 @@
           <a-button @click="undo">还 原</a-button>
         </div>
       </div>
-
+      <div v-show="item.id === 2 && item.select" style="margin-bottom: 10px">
+        <div style="overflow: auto;overflow-x: hidden;height: 300px;" class="border">
+          <div style="width: 188px; height: 40px; background-color: #ebeef5; margin: 5px; border-radius: 10px" v-for="chi in item.children" :key="chi.id" :style="{ border: chi.select ? '2px solid #409eff' : 'none' }" @click="selectChildren(chi, item.children)">
+          <div style="font-size: 12px; color: #363637; display: flex; align-items: center; justify-content: space-between; height: 100%; margin-left: 5px; margin-right: 10px; cursor: pointer">
+            <span>{{ chi.title }}</span>
+            <async-icon @click.stop="addResize" v-if="chi.icon" :icon="chi.icon" size="15px"></async-icon>
+          </div>
+        </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -92,15 +101,14 @@ const element = ref([
   },
   {id: 2, title: '调整尺寸', select:false, icon:'RadiusSettingOutlined',
     children:[
-      {id:1, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:2, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:3, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:4, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:5, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:6, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:7, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:8, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:9, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
+      {id:1, title: '自定义', select:false, icon:'SettingOutlined'},
+      {id:2, title: '方形主图(800X800)', select:false,},
+      {id:3, title: 'Temu服装图(1340X1785)', select:false,},
+      {id:4, title: '方形主图(1000X1000)', select:false,},
+      {id:5, title: '竖版主图(1000X1200)', select:false,},
+      {id:6, title: 'Youtubel视频封面(1280X720)', select:false,},
+      {id:7, title: 'Pinterest帖子(750X1120)', select:false,},
+      {id:8, title: 'Facebook封面(851X315)', select:false,}
     ]
   },
   {id: 3, title: '消除笔', select:false, icon:'RadiusSettingOutlined',
@@ -206,10 +214,12 @@ function selectChildren(chi,children){
     }else {
       chi.func();
     }
-
   }
 }
 
+function addResize(){
+
+}
 
 </script>
 
@@ -225,5 +235,9 @@ function selectChildren(chi,children){
 }
 :deep(.ant-input-number-prefix){
   color: #a7a7a8;
+}
+
+.border{
+  border-style: dotted;border-width: 1px;border-color: #a7a7a8;margin-bottom: 5px;margin-top: -10px
 }
 </style>
