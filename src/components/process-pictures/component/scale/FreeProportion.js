@@ -67,7 +67,6 @@ export { xRef,yRef }
 
 // 计算截屏调整后的宽高
 function calculateWidthAndHeight(event,canvas) {
-
   const obj = event.target;
   const { left, top,  width, height, scaleX, scaleY } = obj;
   const realWidth = width * scaleX;
@@ -110,22 +109,7 @@ export function updateRectanglePositionY(newY) {
   }
 }
 
-// 保存裁剪图像
-export function saveCroppedImage(){
-  if(xRef.value === 0 && yRef.value === 0) {
-    return false;
-  }
-  if (!selectionRect.value) return;
-  const croppedCanvas = document.createElement('canvas');
-  const ctx = croppedCanvas.getContext('2d');
-  croppedCanvas.width = widthRef.value;
-  croppedCanvas.height = heightRef.value;
-  const originalCanvas = usePsStore().FabricCanvas.value.getElement();
-  ctx.drawImage(originalCanvas,xRef.value + 5, yRef.value + 5,  widthRef.value - 10, heightRef.value - 10, 0, 0, widthRef.value - 10, heightRef.value - 10);
-  const croppedDataUrl = croppedCanvas.toDataURL();
-  undo()
-  console.log('裁剪后的图片数据：', croppedDataUrl);
-}
+
 
 /**
  * 清空画布的所有裁剪信息，还原到最原始的画布
@@ -137,6 +121,12 @@ export function undo() {
     yRef.value = 0
     widthRef.value = 0
     heightRef.value = 0
+    const backgroundImage = canvas.backgroundImage;
+    if(backgroundImage.angle !== 0){
+      backgroundImage.set({
+        angle: 0
+      });
+    }
     canvas.off('mouse:down');
     canvas.off('mouse:move');
     canvas.off('mouse:up');
@@ -167,6 +157,24 @@ function setRect(){
   });
 }
 
+// 保存裁剪图像
+export function saveCroppedImage(){
+  if(xRef.value === 0 && yRef.value === 0) {
+    isDrawing.value = true;
+    calculateTheCuttingPosition(1);
+  }
+  if (!selectionRect.value) return;
+  const croppedCanvas = document.createElement('canvas');
+  const ctx = croppedCanvas.getContext('2d');
+  croppedCanvas.width = widthRef.value;
+  croppedCanvas.height = heightRef.value;
+  const originalCanvas = usePsStore().FabricCanvas.value.getElement();
+  ctx.drawImage(originalCanvas,xRef.value + 5, yRef.value + 5,  widthRef.value - 10, heightRef.value - 10, 0, 0, widthRef.value - 10, heightRef.value - 10);
+  const croppedDataUrl = croppedCanvas.toDataURL();
+  undo()
+  console.log('裁剪后的图片数据：', croppedDataUrl);
+}
+
 // 比例裁剪
 export function toRatio(x,y) {
   isDrawing.value = true;
@@ -174,28 +182,8 @@ export function toRatio(x,y) {
   undo();
   const backgroundImage = canvas.backgroundImage;
   if (backgroundImage) {
-    const scaleX = backgroundImage.scaleX;
-    const scaleY = backgroundImage.scaleY;
-
-    const imgWidth = backgroundImage.width * scaleX;
-    const imgHeight = backgroundImage.height * scaleY;
     const aspectRatio = x / y; // 3:2比例
-    let cropWidth, cropHeight;
-    if (imgWidth / imgHeight > aspectRatio) {
-      cropHeight = imgHeight;
-      cropWidth = cropHeight * aspectRatio;
-    } else {
-      cropWidth = imgWidth;
-      cropHeight = cropWidth / aspectRatio;
-    }
-    const canvasCenterX = canvas.width / 2;
-    const canvasCenterY = canvas.height / 2;
-    widthRef.value = cropWidth;
-    heightRef.value = cropHeight;
-    xRef.value = canvasCenterX - cropWidth / 2;
-    yRef.value = canvasCenterY - cropHeight / 2;
-    setRect();
-    canvas.add(selectionRect.value);
+    calculateTheCuttingPosition(aspectRatio);
     canvas.on('object:scaling', (event) => {
       calculateWidthAndHeight(event, canvas);
     });
@@ -206,3 +194,62 @@ export function toRatio(x,y) {
   return this;
 }
 
+// 计算裁剪位置
+function calculateTheCuttingPosition(aspectRatio){
+  const canvas = usePsStore().FabricCanvas.value;
+  const backgroundImage = canvas.backgroundImage;
+  const scaleX = backgroundImage.scaleX;
+  const scaleY = backgroundImage.scaleY;
+  const imgWidth = backgroundImage.width * scaleX;
+  const imgHeight = backgroundImage.height * scaleY;
+  let cropWidth, cropHeight;
+  if (imgWidth / imgHeight > aspectRatio) {
+    cropHeight = imgHeight;
+    cropWidth = cropHeight * aspectRatio;
+  } else {
+    cropWidth = imgWidth;
+    cropHeight = cropWidth / aspectRatio;
+  }
+  const canvasCenterX = canvas.width / 2;
+  const canvasCenterY = canvas.height / 2;
+  widthRef.value = cropWidth;
+  heightRef.value = cropHeight;
+  xRef.value = canvasCenterX - cropWidth / 2;
+  yRef.value = canvasCenterY - cropHeight / 2;
+  setRect();
+  canvas.add(selectionRect.value);
+}
+
+
+// 旋转
+export function rotate(degree) {
+  const canvas = usePsStore().FabricCanvas.value;
+  const backgroundImage = canvas.backgroundImage;
+  if (!backgroundImage) {
+    return;
+  }
+  let currentAngle = backgroundImage.angle || 0;
+  currentAngle += degree;
+  backgroundImage.set({
+    angle: currentAngle
+  });
+  canvas.renderAll();
+  return this;
+}
+
+// 翻转
+export function flipImage(direction) {
+  const canvas = usePsStore().FabricCanvas.value;
+  const backgroundImage = canvas.backgroundImage;
+  if (!backgroundImage) {
+    console.error('背景图像无效或未加载');
+    return;
+  }
+  if (direction === 'horizontal') {
+    backgroundImage.set({ flipX: !backgroundImage.flipX });
+  } else if (direction === 'vertical') {
+    backgroundImage.set({ flipY: !backgroundImage.flipY });
+  }
+  canvas.renderAll();
+  return this;
+}

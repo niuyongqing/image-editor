@@ -25,17 +25,35 @@
           </a-card>
         </div>
       </div>
-      <div v-show="item.select" style="margin-bottom: 10px">
-        <div style="display: inline">
+      <div v-show="item.id === 1 && item.select" style="margin-bottom: 10px">
+        <div style="display: inline;height: 50px">
           <a-input-number :controls="false" @change="updateRectanglePositionXFunc" v-model:value="xRef" style="right: 5px" prefix="W"/>
           <async-icon icon="ApiOutlined" size="15px"></async-icon>
           <a-input-number :controls="false" @change="updateRectanglePositionYFunc" v-model:value="yRef" style="left: 5px" prefix="H"/>
+        </div>
+        <div style="display: flex;gap: 30px;margin-top: 5px;justify-content: center">
+          <a-tooltip>
+            <template #title>顺时针旋转90°</template>
+            <async-icon icon="RedoOutlined" size="25px" @click="rotate(90)"></async-icon>
+          </a-tooltip>
+          <a-tooltip>
+            <template #title>逆时针旋转90°</template>
+            <async-icon icon="UndoOutlined" size="25px" @click="rotate(-90)"></async-icon>
+          </a-tooltip>
+          <a-tooltip>
+            <template #title>垂直翻转</template>
+            <div @click="flipImage('vertical')"><svg t="1733569966535" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6379" width="25" height="25"><path d="M213.333333 554.666667H128v-85.333334h85.333333v85.333334z m632.661334-384a42.666667 42.666667 0 0 1-18.218667 34.986666l-291.328 203.904a42.666667 42.666667 0 0 1-48.896 0l-291.328-203.946666A42.666667 42.666667 0 0 1 220.672 128h582.656a42.666667 42.666667 0 0 1 42.666667 42.666667z m0 682.666666a42.666667 42.666667 0 0 1-37.717334 42.368l-4.949333 0.298667H220.672a42.666667 42.666667 0 0 1-28.629333-74.24l4.181333-3.413333 291.328-203.904a42.666667 42.666667 0 0 1 43.861333-3.029334l5.034667 3.029334 291.328 203.946666a42.666667 42.666667 0 0 1 18.218667 34.944zM384 554.666667H298.666667v-85.333334h85.333333v85.333334z m320.896-358.4H307.2L512 335.957333l192.896-139.605333zM554.666667 554.666667h-85.333334v-85.333334h85.333334v85.333334z m170.666666 0h-85.333333v-85.333334h85.333333v85.333334z m170.666667 0h-85.333333v-85.333334h85.333333v85.333334z" fill="#2c2c2c" p-id="6380"></path></svg></div>
+          </a-tooltip>
+          <a-tooltip>
+            <template #title>水平翻转</template>
+            <div @click="flipImage('horizontal')"> <svg t="1733569875407" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6121" width="25" height="25"><path d="M554.666667 810.666667v85.333333h-85.333334v-85.333333h85.333334zM170.666667 178.005333a42.666667 42.666667 0 0 1 34.986666 18.218667l203.904 291.328a42.666667 42.666667 0 0 1 0 48.896l-203.946666 291.328A42.666667 42.666667 0 0 1 128 803.328V220.672a42.666667 42.666667 0 0 1 42.666667-42.666667z m682.666666 0a42.666667 42.666667 0 0 1 42.368 37.717334l0.298667 4.949333v582.656a42.666667 42.666667 0 0 1-74.24 28.629333l-3.413333-4.181333-203.904-291.328a42.666667 42.666667 0 0 1-3.029334-43.861333l3.029334-5.034667 203.946666-291.328A42.666667 42.666667 0 0 1 853.333333 178.005333zM554.666667 640v85.333333h-85.333334v-85.333333h85.333334zM196.266667 319.104V716.8L335.957333 512 196.309333 319.104zM554.666667 469.333333v85.333334h-85.333334v-85.333334h85.333334z m0-170.666666v85.333333h-85.333334V298.666667h85.333334z m0-170.666667v85.333333h-85.333334V128h85.333334z" fill="#2c2c2c" p-id="6122"></path></svg></div>
+          </a-tooltip>
         </div>
         <div style="margin-top: 5px;display: flex;flex-wrap: wrap;gap: 5px;justify-content: center">
           <a-popconfirm title="确定要应用吗？" @confirm="saveCroppedImage">
             <a-button  type="primary">应 用</a-button>
           </a-popconfirm>
-          <a-button @click="undo">取 消</a-button>
+          <a-button @click="undo">还 原</a-button>
         </div>
       </div>
     </div>
@@ -54,6 +72,7 @@ import {
   yRef,
   saveCroppedImage,
   undo, toRatio,
+  rotate, flipImage,
 } from "~/components/process-pictures/component/scale/FreeProportion";
 const selectChick = ref('RightOutlined')
 const selectNotChick = ref('DownOutlined')
@@ -165,7 +184,7 @@ const element = ref([
 ])
 
 function select(item) {
-  item.select = true
+  item.select = !item.select
   element.value.filter((v) => v.id !== item.id).map((m)=>m.select = false)
 }
 
