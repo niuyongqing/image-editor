@@ -58,10 +58,10 @@
       </div>
       <div v-show="item.id === 2 && item.select" style="margin-bottom: 10px">
         <div style="overflow: auto;overflow-x: hidden;height: 300px;" class="border">
-          <div style="width: 188px; height: 40px; background-color: #ebeef5; margin: 5px; border-radius: 10px" v-for="chi in item.children" :key="chi.id" :style="{ border: chi.select ? '2px solid #409eff' : 'none' }" @click="selectChildren(chi, item.children)">
+          <div style="width: 188px; height: 40px; background-color: #ebeef5; margin: 5px; border-radius: 10px" v-for="chi in item.children" :key="chi.id" :style="{ border: chi.select ? `2px solid ${setting.colorPrimary}` : 'none' }" @click="selectResize(chi, item.children)">
           <div style="font-size: 12px; color: #363637; display: flex; align-items: center; justify-content: space-between; height: 100%; margin-left: 5px; margin-right: 10px; cursor: pointer">
             <span>{{ chi.title }}</span>
-            <async-icon @click.stop="addResize" v-if="chi.icon" :icon="chi.icon" size="15px"></async-icon>
+            <async-icon  v-if="chi.icon" :icon="chi.icon" size="15px"></async-icon>
           </div>
         </div>
         </div>
@@ -74,6 +74,7 @@
 // 裁剪
 import {ref} from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
+import setting from "~/config/default-setting.js"
 import {
   Cropping,
   updateRectanglePositionX,
@@ -217,8 +218,14 @@ function selectChildren(chi,children){
   }
 }
 
-function addResize(){
+function selectResize(chi,children){
+  if(chi.id === 1){
+    chi.select = true
+    children.filter((v) => v.id !== chi.id).map((m)=>m.select = false)
 
+  }else {
+    selectChildren(chi,children)
+  }
 }
 
 </script>
