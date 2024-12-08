@@ -1,17 +1,18 @@
+import {uploadFile} from "~/utils/upload.js";
+
+
 /**
  * 上传临时文件
+ * @param data
  */
-export function uploadTemp(data) {
-    return usePost('/common/uploadTmp', data)
+export function uploadTmp(data) {
+    return uploadFile('/common/uploadTmp',data)
 }
 
 /**
  * 上传文件
  * @param data
- * @returns {Promise | Promise<unknown>}
  */
 export function upload(data) {
-    return usePost('/common/upload', data)
+    return uploadFile('/common/upload',data)
 }
-
-

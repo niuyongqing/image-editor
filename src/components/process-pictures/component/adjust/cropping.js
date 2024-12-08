@@ -12,17 +12,22 @@ const heightRef = ref(0);
 
 // 开始裁剪
 export function Cropping() {
-  undo()
+  undo();
   isDrawing.value = true;
   const canvas = usePsStore().FabricCanvas.value;
+
   // 监听鼠标事件来绘制矩形
   canvas.on('mouse:down', (event) => {
     if (!isDrawing.value) return;
     const pointer = canvas.getPointer(event.e);
     const { x, y } = pointer;
+
+    // 记录裁剪框的初始位置
     xRef.value = x;
     yRef.value = y;
-    setRect()
+
+    // 初始化矩形
+    setRect();
     // 添加矩形到画布
     canvas.add(selectionRect.value);
   });
@@ -33,16 +38,15 @@ export function Cropping() {
     const pointer = canvas.getPointer(event.e);
     const { x, y } = pointer;
 
-    // 更新宽高
-    const width = x - selectionRect.value.left;
-    const height = y - selectionRect.value.top;
-    xRef.value = x;
-    yRef.value = y;
+    // 更新矩形的宽高
+    const width = x - xRef.value;  // 动态计算宽度
+    const height = y - yRef.value; // 动态计算高度
     widthRef.value = width;
     heightRef.value = height;
-    // 设置矩形宽高
+
+    // 更新矩形尺寸
     selectionRect.value.set({ width, height });
-    canvas.renderAll();
+    canvas.renderAll();  // 强制重新渲染
   });
 
   // 鼠标抬起事件
@@ -52,15 +56,17 @@ export function Cropping() {
 
   // 监听对象调整大小事件
   canvas.on('object:scaling', (event) => {
-    calculateWidthAndHeight(event,canvas)
+    calculateWidthAndHeight(event,canvas);
   });
 
   // 监听对象修改事件（包括移动或缩放完成）
   canvas.on('object:modified', (event) => {
-    calculateWidthAndHeight(event,canvas)
+    calculateWidthAndHeight(event,canvas);
   });
+
   return this;
 }
+
 
 export { xRef,yRef }
 
