@@ -104,13 +104,15 @@
         </a-table>
         <a-pagination
           style="margin-top: 20px"
+          :show-total="(total) => `共 ${total} 条`"
           v-model:current="pages.pageNum"
           v-model:pageSize="pages.pageSize"
-          show-size-changer
           :total="total"
+          class="pages"
           :defaultPageSize="50"
-          :pageSizeOptions="[50,100,200]"
-          @showSizeChange="getList"
+          :showSizeChanger="true"
+          :pageSizeOptions="[50, 100, 200]"
+          @change="getList"
         />
       </div>
     </a-card>
@@ -159,8 +161,8 @@ const getAccountUserArr = ref([]);
 const total = ref(0);
 const pages = ref({
   pageNum: 1,
-  pageSize: 10
-})
+  pageSize: 50,
+});
 const columns = tableHeader;
 const userLabels = ref({
   label: "userName",
