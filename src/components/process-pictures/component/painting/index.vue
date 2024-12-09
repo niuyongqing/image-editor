@@ -1,7 +1,7 @@
 <template>
  <div  :style="{width:canvasWidth+'px',height:canvasHeight+'px'}" >
    <div style="justify-content: center;text-align: center">
-     <canvas id="canvasElement" ref="canvasElement" :width="canvasWidth - 100" :height="canvasHeight - 100"></canvas>
+     <canvas id="canvasElement" ref="canvasElement" :width="canvasWidth" :height="canvasHeight"></canvas>
    </div>
  </div>
 </template>
@@ -9,6 +9,7 @@
 
 import {ref} from 'vue'
 import {createCanvas} from './painting.js'
+import {usePsStore} from "~/stores/ps";
 
 const canvasElement = ref(null);
 
@@ -21,7 +22,12 @@ const props = defineProps({
 
 onMounted(async () => {
   if (canvasElement.value) {
-    await createCanvas(canvasElement.value, props)
+    usePsStore().Props.value = {
+      canvasWidth:props.canvasWidth,
+      canvasHeight:props.canvasHeight,
+      imgUrl:props.imgUrl,
+    };
+    await createCanvas(canvasElement.value)
   }
 });
 </script>
