@@ -5,7 +5,9 @@
         <div style="font-size: 12px; color: #363637; display: flex; align-items: center; justify-content: space-between; height: 100%; margin-left: 5px; margin-right: 10px; cursor: pointer">
           <span>{{`${chi.title}`}}{{chi.width? `(${chi.width}X${chi.height})`: ''  }}</span>
           <async-icon  v-if="chi.icon" :icon="chi.icon" size="15px"></async-icon>
-          <a-button style="color: #f5222d" type="text" @click.stop="del(chi)" v-if="chi.userId">x</a-button>
+          <a-popconfirm title="确定要删除这个自定义尺寸吗？" ok-text="Yes" cancel-text="No" @confirm="del(chi)" v-if="chi.userId">
+            <a-button style="color: #f5222d" type="text" >x</a-button>
+          </a-popconfirm>
         </div>
       </div>
     </div>
@@ -36,6 +38,7 @@ import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import {ref} from 'vue'
 import {addEliminateApi, delEliminateApi, getEliminateListApi} from "~/api/ps/eliminate.js";
 import {message} from "ant-design-vue";
+import {resize} from "~/components/process-pictures/component/adjust/cropping.js";
 const props = defineProps({item:{type:Object,required:true,default:{id: undefined, title: '', icon:'', select:undefined}},})
 const labelCol = {style: {width: '80px'}};
 const children = ref([])
@@ -50,8 +53,8 @@ function selectChildren(chi){
   chi.select = true
   children.value.filter((v) => v.id !== chi.id).map((m)=>m.select = false)
   if (typeof chi.func === 'function') {
-    if(chi.parameter){
-      chi.func(...chi.parameter);
+    if(chi.width){
+      chi.func(chi.width,chi.height);
     }else {
       chi.func();
     }
@@ -107,15 +110,20 @@ function getCustomize() {
   getEliminateListApi().then(res=>{
     children.value = [
       {id:1, title: '自定义', select:false, icon:'SettingOutlined',func:openAdd},
-      {id:2, title: `方形主图`,width:800,height:800, select:false,},
-      {id:3, title: `Temu服装图`,width:1340,height:1785, select:false,},
-      {id:4, title: `方形主图`,width:1000,height:1000, select:false,},
-      {id:5, title: `竖版主图`,width:1000,height:1200, select:false,},
-      {id:6, title: `Youtubel视频封面`,width:1280,height:720, select:false,},
-      {id:7, title: `Pinterest帖子`,width:750,height:1120, select:false,},
-      {id:8, title: `Facebook封面`,width:851,height:315, select:false,}
+      {id:2, title: `方形主图`,width:800,height:800, select:false,func:resize},
+      {id:3, title: `Temu服装图`,width:1340,height:1785, select:false,func:resize},
+      {id:4, title: `方形主图`,width:1000,height:1000, select:false,func:resize},
+      {id:5, title: `竖版主图`,width:1000,height:1200, select:false,func:resize},
+      {id:6, title: `Youtubel视频封面`,width:1280,height:720, select:false,func:resize},
+      {id:7, title: `Pinterest帖子`,width:750,height:1120, select:false,func:resize},
+      {id:8, title: `Facebook封面`,width:851,height:315, select:false,func:resize}
     ]
-    children.value.unshift(...res.data)
+    children.value.splice(1,0,...res.data)
+    children.value.forEach((v)=>{
+      if(v.id !== 1){
+        v.func = resize
+      }
+    })
   })
 }
 

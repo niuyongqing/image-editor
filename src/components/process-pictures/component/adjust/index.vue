@@ -15,7 +15,7 @@
         </div>
       </a-card>
       <cropping-template :item="item" @select="select" @select-children="selectChildren" v-if="item.id === 1"></cropping-template>
-      <eliminate-template :item="item" @select="select" @select-children="selectChildren" v-if="item.id === 2"></eliminate-template>
+      <resize-template :item="item" @select="select" @select-children="selectChildren" v-if="item.id === 2"></resize-template>
     </div>
   </div>
 </div>
@@ -25,7 +25,7 @@
 import {ref} from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import CroppingTemplate from "~/components/process-pictures/component/adjust/cropping-template.vue";
-import EliminateTemplate from "~/components/process-pictures/component/adjust/eliminate-template.vue";
+import ResizeTemplate from "~/components/process-pictures/component/adjust/resize-template.vue";
 const element = ref([
   {id: 1, title: '裁剪/旋转', icon:'ScissorOutlined', select:false},
   {id: 2, title: '调整尺寸', select:false, icon:'RadiusSettingOutlined'},

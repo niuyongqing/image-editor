@@ -274,3 +274,45 @@ export function flipImage(direction) {
   canvas.renderAll();
   return this;
 }
+
+// 根据宽高裁剪
+export function resize(width, height){
+  scale(width, height);
+  function gcd(a, b) {
+    return b === 0 ? a : gcd(b, a % b);
+  }
+  const divisor = gcd(width, height);
+  const aspectWidth = width / divisor;
+  const aspectHeight = height / divisor;
+  toRatio(aspectWidth, aspectHeight);
+}
+
+
+// 放大尺寸到比输入的更大，方便截图
+function scale(width, height){
+  const canvas = usePsStore().FabricCanvas.value;
+  const image = usePsStore().FabricImage.value;
+  const props = usePsStore().Props.value;
+  const minCanvasWidth = props.canvasWidth;
+  const minCanvasHeight = props.canvasHeight;
+  const originalWidth = image.width;
+  const originalHeight = image.height;
+  let scaleFactor = 1;
+  if (originalWidth < width || originalHeight < height) {
+    const widthScale = width / originalWidth;
+    const heightScale = height / originalHeight;
+    scaleFactor = Math.max(widthScale, heightScale);
+  }
+  image.scale(scaleFactor);
+  const newWidth = image.getScaledWidth();
+  const newHeight = image.getScaledHeight();
+  const adjustedCanvasWidth = Math.max(newWidth, minCanvasWidth);
+  const adjustedCanvasHeight = Math.max(newHeight, minCanvasHeight);
+  canvas.setWidth(adjustedCanvasWidth);
+  canvas.setHeight(adjustedCanvasHeight);
+  image.set({
+    left: (adjustedCanvasWidth ) / 2,
+    top: (adjustedCanvasHeight ) / 2
+  });
+  canvas.renderAll();
+}
