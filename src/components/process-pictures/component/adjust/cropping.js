@@ -13,7 +13,7 @@ const xRef = ref(0);
 const yRef = ref(0);
 const widthRef = ref(0);
 const heightRef = ref(0);
-
+const saveLoading = ref(false);
 // 开始裁剪
 export function Cropping() {
   undo();
@@ -72,7 +72,7 @@ export function Cropping() {
 }
 
 
-export { xRef,yRef,widthRef,heightRef }
+export { xRef,yRef,widthRef,heightRef,saveLoading }
 
 
 // 计算截屏调整后的宽高
@@ -167,6 +167,7 @@ function setRect(){
   });
 }
 
+
 // 保存裁剪图像
 export  function saveCroppedImage(){
   if(xRef.value === 0 && yRef.value === 0) {
@@ -181,11 +182,14 @@ export  function saveCroppedImage(){
   const originalCanvas = usePsStore().FabricCanvas.value.getElement();
   ctx.drawImage(originalCanvas,xRef.value + 5, yRef.value + 5,  widthRef.value - 10, heightRef.value - 10, 0, 0, widthRef.value - 10, heightRef.value - 10);
   const croppedDataUrl = croppedCanvas.toDataURL();
+  saveLoading.value = true
   uploadTmpBase64(croppedDataUrl).then(async res => {
     if (res.code === 200) {
       undo()
       usePsStore().Props.value.imgUrl = res.msg
+
       await setBackgroundImage()
+      saveLoading.value = false
     } else {
       message.error(res.msg);
     }

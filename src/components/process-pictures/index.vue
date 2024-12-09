@@ -17,12 +17,12 @@
    </div>
 
    <a-card>
-     <scale-component v-show="current.id === 1" style="width: 220px"></scale-component>
-     <draw-component v-show="current.id === 2"  style="width: 220px"></draw-component>
-     <frame-component v-show="current.id === 4"  style="width: 220px"></frame-component>
-     <mark-component v-show="current.id === 6"  style="width: 220px"></mark-component>
-     <material-component v-show="current.id === 5"  style="width: 220px"></material-component>
-     <text-component v-show="current.id === 3"  style="width: 220px"></text-component>
+     <adjust-component v-show="current.id === 1" style="width: 240px"></adjust-component>
+     <draw-component v-show="current.id === 2"  style="width: 240px"></draw-component>
+     <frame-component v-show="current.id === 4"  style="width: 240px"></frame-component>
+     <mark-component v-show="current.id === 6"  style="width: 240px"></mark-component>
+     <material-component v-show="current.id === 5"  style="width: 240px"></material-component>
+     <text-component v-show="current.id === 3"  style="width: 240px"></text-component>
    </a-card>
    <painting-component :img-url="imgUrl" :canvas-height="canvasHeight" :canvas-width="canvasWidth" style="margin-left: 10px"></painting-component>
  </div>
@@ -32,7 +32,7 @@ import {ref} from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import PaintingComponent from "~/components/process-pictures/component/painting/index.vue";
 import FrameComponent from "~/components/process-pictures/component/frame/index.vue";
-import ScaleComponent from "~/components/process-pictures/component/adjust/index.vue";
+import AdjustComponent from "~/components/process-pictures/component/adjust/index.vue";
 import DrawComponent from "~/components/process-pictures/component/draw/index.vue";
 import MarkComponent from "~/components/process-pictures/component/mark/index.vue";
 import MaterialComponent from "~/components/process-pictures/component/material/index.vue";
@@ -40,7 +40,6 @@ import TextComponent from "~/components/process-pictures/component/text/index.vu
 import {usePsStore} from "~/stores/ps.js";
 const canvasHeight = ref(window.innerHeight - 80);
 const canvasWidth = ref(window.innerWidth  - 400);
-import {xRef,yRef,widthRef,heightRef} from "~/components/process-pictures/component/adjust/cropping.js";
 
 const emit = defineEmits(['save'])
 const current = ref({});
@@ -112,19 +111,6 @@ onUnmounted(() => {
 
 function save(){
   emit('save',usePsStore().Props.value.imgUrl)
-  // const canvas = usePsStore().FabricCanvas.value;
-  // const backgroundImage = canvas.backgroundImage;
-  // if(xRef.value !== 0 ||  yRef.value !== 0 ||  widthRef.value !== 0 || heightRef.value !== 0){
-  //
-  // }
-
-  // usePsStore().FabricCanvas.value = null
-  // usePsStore().FabricImage.value = null
-  // usePsStore().Props.value = {
-  //   canvasWidth:0,
-  //   canvasHeight:0,
-  //   imgUrl:"",
-  // }
 }
 </script>
 
