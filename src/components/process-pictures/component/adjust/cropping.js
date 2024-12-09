@@ -1,11 +1,10 @@
 import {usePsStore} from "~/stores/ps.js";
 import setting from "~/config/default-setting.js"
 import {ref} from 'vue'
-import {FabricImage, Rect} from "fabric";
+import {Rect} from "fabric";
 import {uploadTmpBase64} from "~/api/common/upload.js";
 import {message} from "ant-design-vue";
 import {setBackgroundImage} from "~/components/process-pictures/component/painting/painting.js";
-// import {setBackgroundImage} from "~/components/process-pictures/component/painting/painting.js";
 
 const selectionRect = ref(null);  // 用于保存用户绘制的矩形
 // 自由比例裁剪
@@ -73,7 +72,7 @@ export function Cropping() {
 }
 
 
-export { xRef,yRef }
+export { xRef,yRef,widthRef,heightRef }
 
 
 // 计算截屏调整后的宽高

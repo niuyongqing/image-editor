@@ -40,6 +40,8 @@ import TextComponent from "~/components/process-pictures/component/text/index.vu
 import {usePsStore} from "~/stores/ps.js";
 const canvasHeight = ref(window.innerHeight - 80);
 const canvasWidth = ref(window.innerWidth  - 400);
+import {xRef,yRef,widthRef,heightRef} from "~/components/process-pictures/component/adjust/cropping.js";
+
 const emit = defineEmits(['save'])
 const current = ref({});
 const menu = ref([
@@ -110,13 +112,19 @@ onUnmounted(() => {
 
 function save(){
   emit('save',usePsStore().Props.value.imgUrl)
-  usePsStore().FabricCanvas.value = null
-  usePsStore().FabricImage.value = null
-  usePsStore().Props.value = {
-    canvasWidth:0,
-    canvasHeight:0,
-    imgUrl:"",
-  }
+  // const canvas = usePsStore().FabricCanvas.value;
+  // const backgroundImage = canvas.backgroundImage;
+  // if(xRef.value !== 0 ||  yRef.value !== 0 ||  widthRef.value !== 0 || heightRef.value !== 0){
+  //
+  // }
+
+  // usePsStore().FabricCanvas.value = null
+  // usePsStore().FabricImage.value = null
+  // usePsStore().Props.value = {
+  //   canvasWidth:0,
+  //   canvasHeight:0,
+  //   imgUrl:"",
+  // }
 }
 </script>
 
