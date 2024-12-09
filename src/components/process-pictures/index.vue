@@ -97,7 +97,6 @@ onUnmounted(() => {
   usePsStore().FabricImage.value = null;
   window.removeEventListener('resize', updateCanvasSize);
 });
-
 </script>
 
 <style scoped lang="less">

@@ -16,3 +16,12 @@ export function uploadTmp(data) {
 export function upload(data) {
     return uploadFile('/common/upload',data)
 }
+
+
+/**
+ * 上传临时文件
+ * @param data
+ */
+export function uploadTmpBase64(data) {
+    return usePost('/common/uploadBase64', data)
+}

@@ -1,7 +1,12 @@
 import {usePsStore} from "~/stores/ps.js";
 import setting from "~/config/default-setting.js"
 import {ref} from 'vue'
-import {Rect} from "fabric";
+import {FabricImage, Rect} from "fabric";
+import {uploadTmpBase64} from "~/api/common/upload.js";
+import {message} from "ant-design-vue";
+import {setBackgroundImage} from "~/components/process-pictures/component/painting/painting.js";
+// import {setBackgroundImage} from "~/components/process-pictures/component/painting/painting.js";
+
 const selectionRect = ref(null);  // 用于保存用户绘制的矩形
 // 自由比例裁剪
 const isDrawing = ref(false);
@@ -164,7 +169,7 @@ function setRect(){
 }
 
 // 保存裁剪图像
-export function saveCroppedImage(){
+export  function saveCroppedImage(){
   if(xRef.value === 0 && yRef.value === 0) {
     isDrawing.value = true;
     calculateTheCuttingPosition(1);
@@ -177,8 +182,15 @@ export function saveCroppedImage(){
   const originalCanvas = usePsStore().FabricCanvas.value.getElement();
   ctx.drawImage(originalCanvas,xRef.value + 5, yRef.value + 5,  widthRef.value - 10, heightRef.value - 10, 0, 0, widthRef.value - 10, heightRef.value - 10);
   const croppedDataUrl = croppedCanvas.toDataURL();
-  undo()
-  console.log('裁剪后的图片数据：', croppedDataUrl);
+  uploadTmpBase64(croppedDataUrl).then(async res => {
+    if (res.code === 200) {
+      undo()
+      usePsStore().Props.value.imgUrl = res.msg
+      await setBackgroundImage()
+    } else {
+      message.error(res.msg);
+    }
+  })
 }
 
 // 比例裁剪
