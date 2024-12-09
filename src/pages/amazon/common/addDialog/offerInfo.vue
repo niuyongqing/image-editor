@@ -1,7 +1,7 @@
 <template>
-<div id="AmazonBaseInfo">
+<div id="AmazonOfferInfo">
   <div class="title">
-    <span>基本信息</span>
+    <span>价格信息</span>
   </div>
   <div class="content">
     <VueForm
@@ -21,7 +21,7 @@
 import VueForm from '@/assets/library/jsonScheam_v3_ant/vue3-form-ant.esm.min.js';
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 defineOptions({
-  name: "AmazonBaseInfo"
+  name: "AmazonOfferInfo"
 })
 const props = defineProps({
   // 属性数据
@@ -43,22 +43,5 @@ defineExpose({
 })
 </script>
 <style lang="less" scoped>
-.title {
-  width: 100%;
-  height: 50px;
-  border-bottom: 1px solid #e8e8e8;
-  color: #434649;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  span {
-    font-size: 20px;
-    font-weight: 700;
-    margin-left: 15px;
-  }
-}
-.content {
-  width: 100%;
-  // height: 500px;
-}
+
 </style>

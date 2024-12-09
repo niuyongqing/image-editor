@@ -45,23 +45,5 @@ defineExpose({
 })
 </script>
 <style lang="less" scoped>
-.title {
-  width: 100%;
-  height: 50px;
-  border-bottom: 1px solid #e8e8e8;
-  color: #434649;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  span {
-    font-size: 20px;
-    font-weight: 700;
-    margin-left: 15px;
-  }
-}
-.content {
-  width: 100%;
-  // height: 500px;
-  // overflow: auto;
-}
+
 </style>

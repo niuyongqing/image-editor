@@ -1,42 +1,50 @@
 <template>
-<div id="addDialog">
-  <a-anchor
-    class="addDialog-anchor"
-    :items="[
-      {
-        key: 'part-1',
-        href: '#AmazonBaseInfo',
-        title: 'Part 1',
-      },
-      {
-        key: 'part-2',
-        href: '#AmazonAttributeInfo',
-        title: 'Part 2',
-      },
-    ]"
-  />
-  <!-- <a-button @click="toAdd" type="primary">新增 Button</a-button> -->
-  <amazonBaseInfo
-    :schema-data="baseData"
-    class="baseInfoRef"
-    ref="baseInfoRef"
-  ></amazonBaseInfo>
-  <amazonAttributeInfo
-    :schema-data="attributeData"
-    class="attributeInfoRef"
-    ref="attributeInfoRef"
-  ></amazonAttributeInfo>
-  <div class="form-footer">
-    <a-button style="margin-right: 20px">取消</a-button>
-    <a-button type="primary" @click="sure">确定</a-button>
+<div id="addDialog" class="addDialog">
+  <div class="main-content">
+    <baseInfo
+      :schema-data="baseData"
+      class="baseInfoRef"
+      ref="baseInfoRef"
+    ></baseInfo>
+    <descriptionInfo
+      :schema-data="descriptionData"
+      ref="descriptionInfoRef"
+    ></descriptionInfo>
+    <imageInfo></imageInfo>
+    <attributeInfo
+      :schema-data="attributeData"
+      class="attributeInfoRef"
+      ref="attributeInfoRef"
+    ></attributeInfo>
+    <offerInfo
+      :schema-data="offerData"
+      class="AmazonOfferInfoRef"
+      ref="AmazonOfferInfoRef"
+    ></offerInfo>
+    <div class="form-footer">
+      <a-button style="margin-right: 20px">取消</a-button>
+      <a-button type="primary" @click="sure">确定</a-button>
+    </div>
+  </div>
+  <div class="addDialog-anchor">
+    <div
+      class="addDialog-anchor-item"
+      v-for="item in anchorList"
+      :key="item.key"
+      @click="toHref(item.href)"
+    >{{ item.title }}</div>
   </div>
 </div>
 </template>
 
 <script setup>
-import amazonBaseInfo from '../common/amazonBaseInfo.vue'
+import "../js/main.less";
+import baseInfo from '@/pages/amazon/common/addDialog/baseInfo.vue'
+import descriptionInfo from '@/pages/amazon/common/addDialog/descriptionInfo.vue'
+import imageInfo from "@/pages/amazon/common/addDialog/imageInfo.vue";
 // import amazonAttributeInfo from '@/pages/amazon/common/amazonAttributeInfo.vue'
-import amazonAttributeInfo from '@/pages/amazon/common/amazonAttributeInfo.vue'
+import attributeInfo from '@/pages/amazon/common/addDialog/attributeInfo.vue'
+import offerInfo from '@/pages/amazon/common/addDialog/offerInfo.vue'
 import '@/assets/library/jsonScheam_v3_ant/style/baseForm.css'
 
 // import scheam from './TrainSets - 副本.json'
@@ -45,7 +53,28 @@ import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 defineOptions({
   name: "addDialog"
 })
-let attributeList = []
+let anchorList = [
+  {
+    key: 'AmazonBaseInfo',
+    href: '#AmazonBaseInfo',
+    title: '基本信息',
+  },
+  {
+    key: 'AmazonDescriptionInfo',
+    href: '#AmazonDescriptionInfo',
+    title: '详细信息',
+  },
+  {
+    key: 'AmazonAttributeInfo',
+    href: '#AmazonAttributeInfo',
+    title: '属性信息',
+  },
+  {
+    key: 'AmazonOfferInfo',
+    href: '#AmazonOfferInfo',
+    title: '价格信息',
+  },
+]
 
 const _attributeData = JSON.parse(JSON.stringify(scheam))
 // 获取数据
@@ -96,8 +125,8 @@ let offerList = [                 // 报价
   'Merchant Shipping Group',
   'Maximum Order Quantity'
 ]
-const attributeInfoRef = ref()
 const baseInfoRef = ref()
+const attributeInfoRef = ref()
 // console.log({attributeInfoRef});
 const baseData = ref(
   setAttributeData(productIdentityList).data
@@ -109,6 +138,14 @@ const attributeData = ref(
   getDetails()
   // setAttributeData(offerList).data
 )
+const offerData = ref(
+  setAttributeData(offerList).data
+)
+function toHref(href) {
+  document.querySelector(href).scrollIntoView({
+    behavior: 'smooth'
+  })
+}
 function sure() {
   baseInfoRef.value.formRef.validateFields().then(res => {
     console.log(res);
@@ -206,30 +243,46 @@ function handleFormItem(data, requiredList) {
 }
 </script>
 <style lang="less" scoped>
-#addDialog {
+@import "@/assets/library/jsonScheam_v3_ant/style/sechma-form.less";
+.addDialog {
   width: 1250px;
   height: 100%;
-  margin: -50px auto 0;
+  margin: 0 auto;
+  // margin: -50px auto 0;
   // position: relative;
   // border: 1px solid #848383;
   background: rgb(254, 254, 254);
   padding: 20px 60px;
-  .form-footer {
-    display: flex;
-    justify-content: flex-end;
-  }
-  ::v-deep(.ant-anchor-wrapper) {
-    // width: 130px;
-    // position: sticky;
-    // top: 20px;
-    // margin-left: 1300px
+  display: flex;
+  // display: flex;
+  .main-content {
+    .form-footer {
+      margin-top: 20px;
+      display: flex;
+      justify-content: flex-end;
+    }
+    ::v-deep(.ant-anchor-wrapper) {
+      // width: 130px;
+      // position: sticky;
+      // top: 20px;
+      // margin-left: 1300px
+    }
   }
   .addDialog-anchor {
     width: 130px;
+    height: 300px;
     position: sticky;
     top: 20px;
-    margin-left: 1300px
+    .addDialog-anchor-item {
+      width: 130px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: 600;
+      &:hover {
+        color: red;
+      }
+    }
   }
 }
-@import "@/assets/library/jsonScheam_v3_ant/style/sechma-form.less";
 </style>
