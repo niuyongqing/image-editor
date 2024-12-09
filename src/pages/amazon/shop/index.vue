@@ -1,15 +1,14 @@
 <template>
-<div id="sdgsdfgsdgfsdfs">
-  11111
-</div>
+  <tables></tables>
 </template>
 
-<script setup>
-import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-defineOptions({
-  name: "sdgsdfgsdgfsdfs"
-})
+<script setup name="shop">
+import Tables from "@/pages/amazon/shop/common/tables.vue";
+import { ref, reactive, onMounted, computed, watchPostEffect } from "vue";
+// defineOptions({
+//   name: "shop",
+// });
+
 </script>
 <style lang="less" scoped>
-
 </style>

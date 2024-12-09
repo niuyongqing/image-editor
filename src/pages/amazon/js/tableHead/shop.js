@@ -1,34 +1,26 @@
 export default [
   {
-    label: '应用名称',
-    prop: 'appName',
-    sortable:true,
-    show:true,
-    width:"180",
-    filter:false,
+    title: '店铺',
+    dataIndex: 'shopName',
+    key:"shopName",
+    align:"center"
   },
   {
-    label: '应用ID',
-    prop: 'appId',
-    sortable:true,
-    show:true,
-    filter:false,
-    width: 300
+    title: '简称',
+    dataIndex: 'simpleName',
+    key:"simpleName",
+    align:"center"
   },
   {
-    label: '区域名称',
-    prop: 'areaName',
-    sortable:true,
-    show:true,
-    width:"140",
-    filter:false,
+    title: '区域名称',
+    dataIndex: 'areaName',
+    key:"areaName",
+    align:"center"
   },
   {
-    label: '区域名称（英文）',
-    prop: 'areaEnName',
-    sortable:true,
-    show:true,
-    width:"200",
-    filter:false,
+    title: '区域名称（英文）',
+    dataIndex: 'areaEnName',
+    key:"areaEnName",
+    align:"center"
   }
 ]
