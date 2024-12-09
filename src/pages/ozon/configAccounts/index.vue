@@ -288,4 +288,9 @@ onMounted(() => {
 });
 </script>
 <style lang="less" scoped>
+:deep(.pages) {
+  .ant-pagination-options .ant-select {
+    width: 100px;
+  }
+}
 </style>
