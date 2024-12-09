@@ -1,13 +1,21 @@
 <template>
  <div style="display: flex;">
-   <div style="width: 60px; height: 100% ;background:#ffffff;border: 1px solid #e4e4e4;border-radius: 10px">
-     <div v-for="item in menu" :key="item.id"  style="width: 55px;cursor: pointer;height: 80px;border-radius: 10px" @click="check(item)">
+   <div style="width: 60px; height: 100%; background: #ffffff; border: 1px solid #e4e4e4; border-radius: 10px; display: flex; flex-direction: column;">
+     <div v-for="item in menu" :key="item.id" style="width: 55px; cursor: pointer; height: 80px; border-radius: 10px" @click="check(item)">
        <div style="margin-top: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%;">
-         <async-icon :icon="item.select?item.icon:item.iconChick" size="25px"></async-icon>
-         <div :style="{fontWeight: item.select?'bolder':''}">{{item.title}}</div>
+         <async-icon :icon="item.select ? item.icon : item.iconChick" size="25px"></async-icon>
+         <div :style="{ fontWeight: item.select ? 'bolder' : '' }">{{ item.title }}</div>
+       </div>
+     </div>
+     <div style="flex-grow: 1;"></div>
+     <div style="margin-bottom: 10px; display: flex; justify-content: center;cursor: pointer">
+       <div style="margin-top: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%;" @click="save">
+         <async-icon icon="SaveOutlined" size="25px"></async-icon>
+         <span>保存</span>
        </div>
      </div>
    </div>
+
    <a-card>
      <scale-component v-show="current.id === 1" style="width: 220px"></scale-component>
      <draw-component v-show="current.id === 2"  style="width: 220px"></draw-component>
@@ -29,8 +37,10 @@ import DrawComponent from "~/components/process-pictures/component/draw/index.vu
 import MarkComponent from "~/components/process-pictures/component/mark/index.vue";
 import MaterialComponent from "~/components/process-pictures/component/material/index.vue";
 import TextComponent from "~/components/process-pictures/component/text/index.vue";
+import {usePsStore} from "~/stores/ps.js";
 const canvasHeight = ref(window.innerHeight - 80);
 const canvasWidth = ref(window.innerWidth  - 400);
+const emit = defineEmits(['save'])
 const current = ref({});
 const menu = ref([
   {
@@ -97,6 +107,17 @@ onUnmounted(() => {
   usePsStore().FabricImage.value = null;
   window.removeEventListener('resize', updateCanvasSize);
 });
+
+function save(){
+  emit('save',usePsStore().Props.value.imgUrl)
+  usePsStore().FabricCanvas.value = null
+  usePsStore().FabricImage.value = null
+  usePsStore().Props.value = {
+    canvasWidth:0,
+    canvasHeight:0,
+    imgUrl:"",
+  }
+}
 </script>
 
 <style scoped lang="less">
