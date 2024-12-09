@@ -2,43 +2,41 @@ import {message} from "ant-design-vue";
 import {usePsStore} from "~/stores/ps.js";
 import {Canvas, FabricImage} from "fabric";
 
-export async function createCanvas(el,props) {
+
+export async function createCanvas(el) {
     const psStore = usePsStore();
     psStore.FabricCanvas.value = new Canvas(el, {
-        width: props.canvasWidth, // 初始化画布宽度
-        height: props.canvasHeight, // 初始化画布高度
+        width: psStore.Props.value.canvasWidth,
+        height: psStore.Props.value.canvasHeight,
     });
+    await setBackgroundImage()
+}
 
+export async function setBackgroundImage(){
+    const psStore = usePsStore();
     try {
-        // 异步加载图片
-        psStore.FabricImage.value = await FabricImage.fromURL(props.imgUrl, {
-            crossOrigin: "anonymous", // 处理跨域问题
+        psStore.FabricImage.value = await FabricImage.fromURL(psStore.Props.value.imgUrl, {
+            crossOrigin: "anonymous",
         });
-
-        // 获取图片原始宽高
         const imgWidth = psStore.FabricImage.value.width;
         const imgHeight = psStore.FabricImage.value.height;
-
-        // 计算缩放比例
-        const scaleX = props.canvasWidth / imgWidth;
-        const scaleY = props.canvasHeight / imgHeight;
-        const scale = Math.min(scaleX, scaleY); // 保持比例缩放
-
-        // 设置图片的缩放比例和居中
+        const scaleX = psStore.Props.value.canvasWidth / imgWidth;
+        const scaleY = psStore.Props.value.canvasHeight / imgHeight;
+        const scale = Math.min(scaleX, scaleY) * 0.9; // 保持比例缩放,放大尺寸，需要按照比例时将scaleX、scaleY设置为scale
         psStore.FabricImage.value.set({
-            scaleX: scale,
-            scaleY: scale,
-            selectable: false, // 禁止选择
-            objectCaching: false, // 禁用缓存，提升缩放性能
-            originX: "center", // 设置图片原点为中心
+            scaleX: 1,
+            scaleY: 1,
+            selectable: false,
+            objectCaching: false,
+            originX: "center",
             originY: "center",
-            left: props.canvasWidth / 2,
-            top: props.canvasHeight / 2,
+            left: psStore.Props.value.canvasWidth  / 2,
+            top: psStore.Props.value.canvasHeight / 2,
         });
-
-        // 将图片添加到 canvas
-        psStore.FabricCanvas.value.add(psStore.FabricImage.value);
+        psStore.FabricCanvas.value.backgroundImage = psStore.FabricImage.value
+        usePsStore().FabricCanvas.value.renderAll();
     } catch (error) {
+        console.log(error)
         message.error({
             content: () => "图片加载失败，请检查图片路径是否正确",
             class: "custom-class",
@@ -48,6 +46,4 @@ export async function createCanvas(el,props) {
         });
     }
 
-    usePsStore().FabricCanvas.value.renderAll();
 }
-
