@@ -8,7 +8,7 @@
             show-search
             placeholder="请选择用户"
             style="width: 200px"
-            :options="userOptions"
+            :options="getAccountUserArr"
             :filter-option="filterOption"
             :fieldNames="userLabels"
           ></a-select>
@@ -32,14 +32,36 @@
       <div>
         <a-row>
           <a-col :span="1.5" style="margin: 0 5px"
-            ><a-button type="primary">新增</a-button></a-col
+            ><a-button type="primary" @click="showAdd = true"
+              >新增</a-button
+            ></a-col
           >
           <a-col :span="1.5" style="margin: 0 5px"
-            ><a-button>修改</a-button></a-col
+            ><a-button
+              @click="showEdit = true"
+              :disabled="selectedRowKeys.length !== 1"
+              >修改</a-button
+            ></a-col
           >
-          <a-col :span="1.5" style="margin: 0 5px"
-            ><a-button type="primary" danger>删除</a-button></a-col
-          >
+          <a-col :span="1.5" style="margin: 0 5px">
+            <a-popconfirm
+              placement="top"
+              ok-text="Yes"
+              cancel-text="No"
+              @confirm="confirm"
+              :disabled="selectedRowKeys.length !== 1"
+            >
+              <template #title>
+                <p>是否确定删除？</p>
+              </template>
+              <a-button
+                type="primary"
+                danger
+                :disabled="selectedRowKeys.length !== 1"
+                >删除</a-button
+              >
+            </a-popconfirm>
+          </a-col>
         </a-row>
       </div>
       <div style="margin-top: 20px">
@@ -47,7 +69,9 @@
           :row-selection="rowSelection"
           :columns="columns"
           :data-source="tableData"
+          :rowKey="(row) => row"
           bordered
+          :pagination="false"
         >
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'userId'">
@@ -70,15 +94,39 @@
                 style="width: 100%"
                 v-model:value="record.depId"
                 :options="depOptions"
-                :fieldNames="depLabels"
+                :field-names="depLabels"
+                :disabled="true"
                 showCheckedStrategy="show_child"
               >
               </a-cascader>
             </template>
           </template>
         </a-table>
+        <a-pagination
+          style="margin-top: 20px"
+          v-model:current="pages.pageNum"
+          v-model:pageSize="pages.pageSize"
+          show-size-changer
+          :total="total"
+          :defaultPageSize="50"
+          :pageSizeOptions="[50,100,200]"
+          @showSizeChange="getList"
+        />
       </div>
     </a-card>
+    <addAccountConfig
+      :showAdd="showAdd"
+      :depOptions="depOptions"
+      :getAccountUserArr="getAccountUserArr"
+      @backAddForm="backAddForm"
+    ></addAccountConfig>
+    <editAccountConfig
+      :showEdit="showEdit"
+      :depOptions="depOptions"
+      :getAccountUserArr="getAccountUserArr"
+      @backEditForm="backEditForm"
+      :selectedRowKeys="selectedRowKeys"
+    ></editAccountConfig>
   </div>
 </template>
 
@@ -92,21 +140,31 @@ import {
 } from "@/pages/ozon/api/accountConfig";
 import { ref, reactive, onMounted, computed, watchPostEffect } from "vue";
 import tableHeader from "@/pages/ozon/tabColumns/accountConfig";
+import addAccountConfig from "@/pages/ozon/configAccounts/component/addAccountConfig.vue";
+import editAccountConfig from "@/pages/ozon/configAccounts/component/editAccountConfig.vue";
+import { message } from "ant-design-vue";
+
 const formState = reactive({
   userId: "", //用户多选ID
   depId: [], //部门多选ID
 });
-const userOptions = ref([]);
+const accountOptions = ref([]);
 const depOptions = ref([]);
 const loading = ref(false);
+const showAdd = ref(false);
+const showEdit = ref(false);
 const tableData = ref([]);
 const selectedRowKeys = ref([]);
 const getAccountUserArr = ref([]);
 const total = ref(0);
+const pages = ref({
+  pageNum: 1,
+  pageSize: 10
+})
 const columns = tableHeader;
 const userLabels = ref({
-  label: "simpleName",
-  value: "account",
+  label: "userName",
+  value: "userId",
 });
 const depLabels = ref({
   label: "deptName",
@@ -119,9 +177,18 @@ const rowSelection = {
     selectedRowKeys.value = selectedRow;
   },
 };
-const showCheckedStrategy = ref('SHOW_CHILD');
+const showCheckedStrategy = ref("SHOW_CHILD");
 const filterOption = (input, option) => {
-  return option.simpleName.indexOf(input) >= 0;
+  return option.userName.indexOf(input) >= 0;
+};
+
+const backAddForm = () => {
+  getList();
+  showAdd.value = false;
+};
+const backEditForm = () => {
+  getList();
+  showEdit.value = false;
 };
 const onSubmit = () => {
   getList();
@@ -129,15 +196,19 @@ const onSubmit = () => {
 
 const getList = () => {
   let params = {
-    pageNum: 1,
-    pageSize: 9999,
+    pageNum: pages.pageNum,
+    pageSize: pages.pageSize,
     userId: formState.userId,
     depId: formState.depId[formState.depId.length - 1],
   };
   loading.value = true;
   setAccountlist(params)
     .then((res) => {
-      tableData.value = res?.rows || [];
+      tableData.value =
+        res?.rows.map((e) => {
+          e.depId = e.depId.split(",").map((item) => Number(item));
+          return e;
+        }) || [];
       total.value = res?.total || 0;
     })
     .finally(() => {
@@ -148,7 +219,7 @@ const getList = () => {
 // 获取账号
 const getAccountList = () => {
   ozonAccount().then((res) => {
-    userOptions.value = res.data || [];
+    accountOptions.value = res.data || [];
   });
 };
 //部门列表
@@ -160,7 +231,7 @@ const getUserDep = () => {
 // 处理字段回显
 const getsimpleName = (v) => {
   let msg = "";
-  userOptions.value.forEach((value) => {
+  accountOptions.value.forEach((value) => {
     if (v == value.account) {
       msg = value.simpleName;
     }
@@ -168,10 +239,7 @@ const getsimpleName = (v) => {
   return msg;
 };
 const getAccountUserList = () => {
-  let data = {
-    userName: "",
-  };
-  getAccountUser(data).then((res) => {
+  getAccountUser({ userName: "" }).then((res) => {
     getAccountUserArr.value = res.data;
   });
 };
@@ -195,6 +263,20 @@ const hideUser = (id) => {
     });
   }
   return msg.join();
+};
+// 删除
+const confirm = () => {
+  let ids = selectedRowKeys.value.map((value) => value.id);
+  delAccount({ ids })
+    .then((res) => {
+      if (res.code == 200) {
+        message.success(res.msg);
+        selectedRowKeys.value = [];
+      }
+    })
+    .finally(() => {
+      getList();
+    });
 };
 onMounted(() => {
   getAccountList();

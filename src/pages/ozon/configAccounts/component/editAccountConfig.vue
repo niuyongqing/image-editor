@@ -1,259 +1,171 @@
 <template>
-  <div>
-    <el-dialog v-dialog-drag v-dialog-drag-width v-dialog-drag-height  title="修改" :modal-append-to-body="false" :append-to-body="false"
-               :visible.sync="dialogVisible" :close="handleClose" :before-close="handleClose" :fullscreen="fullscreen">
-      <template slot="title">
-        <div class="custom_dialog_header">
-          <span class="el_dialog_title">修改</span>
-        </div>
-      </template>
-
-
-      <el-form ref="ruleForm" :model="form" label-width="80px" :rules="rules">
-
-        <el-form-item label="平台：" prop="platform">
-          <el-select v-model="form.platform" placeholder="请选择平台" disabled>
-            <el-option label="Wish" value="Wish"></el-option>
-          </el-select>
-        </el-form-item>
-
-        <el-form-item label="用户：" prop="userId">
-          <el-select
-            style="width: 100%"
-            v-model="form.userId"
-            filterable
-            remote
-            reserve-keyword
-            placeholder="请输入用户"
-            :loading="loading"
-            multiple
-          >
-            <el-option
-              v-for="item in options"
-              :key="item.userId"
-              :label="item.userName"
-              :value="item.userId">
-            </el-option>
-          </el-select>
-        </el-form-item>
-
-        <el-form-item label="部门：" prop="depId">
-          <el-cascader
-            style="width: 100%"
-            v-model="form.depId"
+  <div id="addAccountConfigCont">
+    <a-modal
+      :open="showEdit"
+      title="新增"
+      @ok="onSubmit"
+      @cancel="cancel"
+      :keyboard="false"
+      :maskClosable="false"
+    >
+      <a-form ref="formRef" :model="formState" :rules="rules">
+        <a-form-item required label="平台：" name="platform">
+          <a-input disabled v-model:value="formState.platform" />
+        </a-form-item>
+        <a-form-item label="用户：" name="userId" required>
+          <a-select
+            v-model:value="formState.userId"
+            show-search
+            mode="multiple"
+            placeholder="请选择用户"
+            :default-active-first-option="false"
+            :show-arrow="false"
+            :not-found-content="null"
+            :options="getAccountUserArr"
+            :filter-option="filterOption"
+            :field-names="{
+              label: 'userName',
+              value: 'userId',
+            }"
+          ></a-select>
+        </a-form-item>
+        <a-form-item label="部门：" required name="depId">
+          <a-cascader
+            v-model:value="formState.depId"
             :options="depOptions"
-            :props="optionProps"
             placeholder="请选择部门"
-            clearable>
-          </el-cascader>
-        </el-form-item>
-
-        <el-form-item label="账号：" prop="account">
-          <el-select
-            style="width: 100%"
-            v-model="form.account"
-            filterable
-            remote
-            reserve-keyword
-            placeholder="请输入账号"
-            :loading="loading"
-            multiple
-          >
-            <el-option
-              v-for="item in accountOptions"
-              :key="item.account"
-              :label="item.simpleName"
-              :value="item.account">
-            </el-option>
-          </el-select>
-        </el-form-item>
-
-        <el-form-item>
-          <el-button type="primary" @click="onSubmit('ruleForm')" :loading="okType">确定</el-button>
-          <el-button @click="handleClose('ruleForm')">取消</el-button>
-        </el-form-item>
-      </el-form>
-    </el-dialog>
+            :field-names="{
+              label: 'deptName',
+              value: 'deptId',
+              children: 'children',
+            }"
+          />
+        </a-form-item>
+        <a-form-item label="账号：" name="account" required>
+          <a-select
+            v-model:value="formState.account"
+            mode="multiple"
+            placeholder="请选择账号"
+            :options="accountOptions"
+            :field-names="{
+              label: 'simpleName',
+              value: 'account',
+            }"
+          ></a-select>
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
-<script>
+<script setup name='addAccountConfig'>
+import { ref, reactive, onMounted, computed, watch } from "vue";
+import { ozonAccount, editAccount } from "@/pages/ozon/api/accountConfig";
+import { message } from "ant-design-vue";
+const props = defineProps({
+  showEdit: Boolean,
+  depOptions: Array,
+  getAccountUserArr: Array,
+  selectedRowKeys: Array,
+});
+const emit = defineEmits(["backEditForm"]);
 
-import {getAccountUser, userDep, editAccount} from "@/views/platform/ozon/api/accountConfig";
-
-export default {
-  name: 'editAccountConfig',
-  props: {
-    dialogVisible: {
-      type: Boolean,
-      default: false
+const formRef = ref();
+const formState = reactive({
+  account: [],
+  depId: [],
+  platform: "Ozon",
+  userId: [],
+});
+const accountOptions = ref([]);
+const rules = {
+  account: [
+    {
+      required: true,
+      message: "请选择账号",
+      trigger: "change",
     },
-    selectRow: {
-      type: Array,
-      default() {
-        return []
-      }
+  ],
+  depId: [
+    {
+      required: true,
+      message: "请选择部门",
+      trigger: "change",
     },
-    accountOptions: {
-      type: Array,
-      default: () => [],
+  ],
+  userId: [
+    {
+      required: true,
+      message: "请选择用户",
+      trigger: "change",
     },
-  },
-  watch: {
-    dialogVisible(val) {
-      if (val === true) {
-        this.form.platform = ''//平台
-        this.form.userId = []//用户id
-        this.form.depId = []//部门id
-        this.form.account = []//账号多选
-        this.userDep()
-        this.getAccountUser()
-
-        this.selectRow.forEach(val => {
-          this.form.platform = val.platform
-          if (val.userId.indexOf(',') !== -1) {
-            val.userId.split(',').forEach(value => {
-              this.form.userId.push(parseFloat(value))
-            })
-          } else {
-            this.form.userId.push(parseFloat(val.userId))
-          }
-
-          if (val.account.indexOf(',') !== -1) {
-            val.account.split(',').forEach(value => {
-              this.form.account.push(value)
-            })
-          } else {
-            this.form.account.push(val.account)
-          }
-
-          this.form.depId = val.depId
-        })
-
-      }
-    }
-  },
-  data() {
-    return {
-      options: [],
-      loading: false,
-      okType: false,
-      fullscreen: false,
-      optionProps: {
-        value: 'deptId',
-        label: 'deptName',
-        children: 'children',
-        checkStrictly: true,
-      },
-      depOptions: [],
-      form: {
-        platform: '',//平台
-        userId: [],//用户id
-        depId: [],//部门id
-        account: [],//账号多选
-
-      },
-      rules: {
-        platform: [{required: true, message: '请选择平台', trigger: 'change'}],
-        userId: [{required: true, message: '请选择用户', trigger: 'change'}],
-        depId: [{required: true, message: '请选择部门', trigger: 'change'}],
-        account: [{required: true, message: '请选择账号', trigger: 'change'}]
-      }
-    }
-  },
-  methods: {
-    getAccountUser() {
-      getAccountUser({userName: ''}).then(res => {
-        this.options = res.data
-      })
-    },
-    //部门列表
-    userDep() {
-      userDep().then(res => {
-        this.depOptions = res.data;
-      })
-    },
-    // 用户下拉框 方法
-    remoteMethod(query) {
-      if (query !== '') {
-        this.loading = true;
-        let data = {
-          userName: query
-        }
-        getAccountUser(data).then(res => {
-          this.loading = false;
-          this.options = res.data
-        })
-      } else {
-        this.options = [];
-      }
-    },
-    // 账号列表
-    // accountRemoteMethod(query) {
-    //   if (query !== '') {
-    //     this.loading = true;
-    //     let data = {
-    //       userName: query
-    //     }
-    //     wishAccount(data).then(res => {
-    //       this.loading = false;
-    //       this.accountOptions = res.data;
-    //     })
-    //   } else {
-    //     this.accountOptions = [];
-    //   }
-    // },
-
-    onSubmit(formName) {
-      this.$refs[formName].validate((valid) => {
-        if (valid) {
-          this.okType = true
-          let data = {
-            id: this.selectRow[0].id,
-            platform: this.form.platform,
-            userId: this.form.userId.join(),
-            account: this.form.account.join(),
-            depId: this.form.depId.length > 0 ? this.form.depId[this.form.depId.length - 1] : this.form.depId
-          }
-          editAccount(data).then(res => {
-            if (res.code == 200) {
-              this.$message.success(res.msg)
-              this.$emit("update:dialogVisible", false);
-            }
-          }).finally(() => {
-            this.okType = false
-            this.$parent.getList()
-          })
-        } else {
-          return false;
-        }
+  ],
+};
+watch(
+  () => props.selectedRowKeys,
+  (newList) => {
+    if (newList && newList.length > 0) {
+      console.log("newList", newList);
+      newList.forEach((val) => {
+        formState.depId = val.depId;
+        formState.userId = (
+          val.userId.includes(",")
+            ? val.userId.split(",").map((v) => parseFloat(v))
+            : [parseFloat(val.userId)]
+        ).flat();
+        formState.account = (
+          val.account.includes(",")
+            ? val.account.split(",").map((v) => v)
+            : [val.account]
+        ).flat();
       });
-    },
-
-    handleClose(formName) {
-      this.form.platform = ''//平台
-      this.form.userId = []//用户id
-      this.form.depId = []//部门id
-      this.form.account = []//账号多选
-      this.$refs['ruleForm'].resetFields();
-      this.$refs['ruleForm'].clearValidate();
-      this.$emit("update:dialogVisible", false);
-    },
+    }
   }
-}
+);
+
+const getAccount = () => {
+  ozonAccount().then((res) => {
+    accountOptions.value = res.data || [];
+  });
+};
+const filterOption = (input, option) => {
+  return option.userName.indexOf(input) >= 0;
+};
+const onSubmit = () => {
+  formRef.value
+    .validate()
+    .then(() => {
+      let data = {
+        id: props.selectedRowKeys[0].id,
+        platform: formState.platform,
+        userId: formState.userId.join(),
+        account: formState.account.join(),
+        depId: formState.depId,
+      };
+      editAccount(data)
+        .then((res) => {
+          if (res.code == 200) {
+            message.success(res.msg);
+            emit("backEditForm");
+          }
+        })
+        .finally(() => {
+          formRef.value.resetFields();
+        });
+    })
+    .catch((error) => {
+      message.error("必填项未填写，请填写后提交");
+    });
+};
+
+const cancel = () => {
+  formRef.value.resetFields();
+  emit("backEditForm");
+};
+
+onMounted(() => {
+  getAccount();
+});
 </script>
-
-<style lang="scss" scoped>
-.fullscreen {
-  ::v-deep .el-dialog {
-    width: 100%;
-  }
-}
-
-.no_fullscreen {
-  ::v-deep .el-dialog {
-    width: 40%;
-  }
-}
+<style lang="less" scoped>
 </style>
-
