@@ -33,3 +33,12 @@ export function getFinancesExport(data) {
         data
     })
 }
+
+// 同步财务数据
+export function syncTransaction(data) {
+    return request({
+        url: `/platform-amazon/platform/amazon/finances/sync/transaction`,
+        method: 'post',
+        data
+    })
+}

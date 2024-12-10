@@ -1,6 +1,9 @@
 <template>
-  <div id="financeCont">
-    <a-card style="margin: 20px 0">
+  <div id="financeCont" ref="financeContRef">
+    <a-card style="margin: 10px 0">
+      <!-- <a-float-button-group shape="circle">
+        <a-back-top :visibility-height="0" @click="backToTop" />
+      </a-float-button-group> -->
       <a-form
         ref="formRef"
         :model="formState"
@@ -15,7 +18,7 @@
           />
         </a-form-item>
         <a-form-item label="店铺账号：" name="checkedList">
-          <div class="setBox">
+          <div class="setBox" v-if="shopOptions.length != 0">
             <a-form-item-rest>
               <a-checkbox
                 v-model:checked="formState.checkAll"
@@ -56,11 +59,32 @@
     </a-card>
     <a-card style="height: 100vh">
       <a-row>
-        <a-col :span="1.5"
-          ><a-button type="primary" @click="exportList">导出财务数据</a-button></a-col
-        >
+        <a-col :span="1"
+          ><a-button type="primary" :loading="btnLoading" @click="exportList"
+            >导出财务数据</a-button
+          >
+        </a-col>
+        <a-col :span="1"
+          ><a-button type="primary" :loading="btnLoading" @click="asyncList"
+            >同步数据</a-button
+          >
+        </a-col>
+        <a-col :span="18"></a-col>
+        <a-col :span="4">
+          <a-pagination
+            style="text-align: right; margin-top: 10px"
+            :show-total="(total) => `共 ${paginations.total} 条`"
+            v-model:current="paginations.pageNum"
+            v-model:pageSize="paginations.pageSize"
+            :total="paginations.total"
+            class="pages"
+            :show-quick-jumper="true"
+            :showSizeChanger="true"
+            :pageSizeOptions="[50, 100, 200]"
+          />
+        </a-col>
       </a-row>
-      <div style="margin-top: 20px">
+      <div style="margin-top: 10px">
         <a-table
           bordered
           :rowKey="(record) => record"
@@ -70,20 +94,19 @@
           :pagination="false"
           :default-expand-all-rows="true"
         >
-          <!-- :scroll="{ y: tableHeight, x: '100%', virtual: true }" -->
         </a-table>
         <a-pagination
-          style="margin-top: 20px"
+          style="text-align: right; margin-top: 10px"
           :show-total="(total) => `共 ${paginations.total} 条`"
           v-model:current="paginations.pageNum"
           v-model:pageSize="paginations.pageSize"
           :total="paginations.total"
           class="pages"
-          :defaultPageSize="50"
+          :show-quick-jumper="true"
           :showSizeChanger="true"
           :pageSizeOptions="[50, 100, 200]"
         />
-          <!-- @change="changePagination" -->
+        <!-- @change="changePagination" -->
       </div>
     </a-card>
   </div>
@@ -104,9 +127,13 @@ import {
   queryShop,
   queryAreaName,
   getFinancesList,
-  getFinancesExport
+  getFinancesExport,
+  syncTransaction,
 } from "@/pages/amazon/js/api/finance";
-import tableHead from '@/pages/amazon/js/tableHead/finance'
+import tableHead from "@/pages/amazon/js/tableHead/finance";
+import download from "@/api/common/download";
+import { message } from "ant-design-vue";
+
 const labelCol = {
   style: {
     width: "80px",
@@ -115,8 +142,8 @@ const labelCol = {
 const wrapperCol = {
   span: 20,
 };
+const financeContRef = ref(null);
 const shopOptions = ref([]);
-const shopSite = ref([]);
 const countryOptions = ref([]);
 const formState = reactive({
   times: [],
@@ -131,11 +158,13 @@ const formState = reactive({
 });
 const tableData = ref([]);
 const loading = ref(false);
+const btnLoading = ref(false);
 const columns = tableHead;
 const paginations = ref({
   pageNum: 1,
   pageSize: 50,
   total: 0,
+  pageSizeOptions: [50, 100, 200],
 });
 const tableHeight = ref(0);
 const tableContainer = ref(null);
@@ -155,7 +184,6 @@ watch(
           })
         )
       );
-
       getQueryAreaName(result);
     }
   }
@@ -190,13 +218,10 @@ const onCheckAllChange = (e) => {
     checkedList: e.target.checked ? shopOptions.value.map((e) => e.value) : [],
     indeterminate: false,
   });
-  shopSite.value = e.target.checked
-    ? shopOptions.value.map((e) => e.areaEnName)
-    : [];
-  getQueryAreaName(shopSite);
 };
 
 const getList = () => {
+  loading.value = true;
   let params = {
     postedAfter: formState.endTime,
     postedBefore: formState.sTime,
@@ -205,10 +230,14 @@ const getList = () => {
     pageNum: paginations.value.pageNum,
     pageSize: paginations.value.pageSize,
   };
-  getFinancesList(params).then((res) => {
-    tableData.value = res?.rows ?? []
-    paginations.value.total = res?.total ?? 0
-  });
+  getFinancesList(params)
+    .then((res) => {
+      tableData.value = res?.rows ?? [];
+      paginations.value.total = res?.total ?? 0;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 };
 // 国家站点选择
 const onCountryCheckAllChange = (e) => {
@@ -224,7 +253,6 @@ const onCountryCheckAllChange = (e) => {
 const getShopList = () => {
   queryShop().then((res) => {
     formState.checkedList = res?.data?.map((e) => e.id);
-    shopSite.value = res?.data?.map((e) => e.areaEnName);
     shopOptions.value = res?.data?.map((item) => {
       return {
         label: item.shopName,
@@ -242,6 +270,7 @@ const getQueryAreaName = (list) => {
       return {
         label: item.countryZhName,
         value: item.marketplaceId,
+        areaEnName: item.areaEnName,
       };
     });
   });
@@ -249,17 +278,56 @@ const getQueryAreaName = (list) => {
 
 // 导出
 const exportList = () => {
+  btnLoading.value = true;
   let params = {
     postedAfter: formState.endTime,
     postedBefore: formState.sTime,
     shopId: formState.checkedList,
     markedId: formState.marketplaces,
   };
-  getFinancesExport(params).then(res => {
-    console.log('res',res);
+  getFinancesExport(params)
+    .then((res) => {
+      download.name(res.msg);
+    })
+    .finally(() => {
+      btnLoading.value = false;
+    });
+};
+
+// 同步
+const asyncList = () => {
+  if (formState.checkedList.length == 0) {
+    message.error("请选择店铺后再同步数据！");
+    return;
+  }
+  btnLoading.value = true;
+  let params = {
+    shopId: formState.checkedList,
+    postedAfter: formState.endTime,
+    postedBefore: formState.sTime,
+    markedId: formState.checkAll ? null : formState.marketplaces,
+  };
+  syncTransaction(params)
+    .then((res) => {
+      tableData.value = res?.rows ?? [];
+      paginations.value.total = res?.total ?? 0;
+    })
+    .finally(() => {
+      btnLoading.value = false;
+    });
+};
+
+// const backToTop = () => {
+//   let elements = document.getElementsByClassName('ant-layout-content');
+//   // if (financeContRef.value) {
+//   //   console.log(11);
     
-  })
-}
+//   //   financeContRef.value.scrollTop = 0;
+//   // }
+//   elements[0].scrollTop = 0
+//   console.log('elements',elements);
+  
+// };
 
 const setTableHeight = () => {
   if (tableContainer.value) {
@@ -271,8 +339,8 @@ const setTableHeight = () => {
 };
 onMounted(() => {
   getShopList();
-  // setTableHeight();
-  // window.addEventListener("resize", setTableHeight);
+  setTableHeight();
+  window.addEventListener("resize", setTableHeight);
 });
 onUnmounted(() => {
   window.removeEventListener("resize", setTableHeight);
@@ -292,9 +360,9 @@ onUnmounted(() => {
     }
   }
 }
-:deep(.pages) {
-  .ant-pagination-options .ant-select {
-    width: 100px;
-  }
-}
+// :deep(.pages) {
+//   .ant-pagination-options .ant-select {
+//     width: 100px;
+//   }
+// }
 </style>
