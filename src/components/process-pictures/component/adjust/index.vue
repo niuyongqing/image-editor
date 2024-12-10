@@ -26,6 +26,7 @@ import {ref} from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import CroppingTemplate from "~/components/process-pictures/component/adjust/cropping-template.vue";
 import ResizeTemplate from "~/components/process-pictures/component/adjust/resize-template.vue";
+import {undo} from "~/components/process-pictures/component/adjust/cropping.js";
 const element = ref([
   {id: 1, title: '裁剪/旋转', icon:'ScissorOutlined', select:false},
   {id: 2, title: '调整尺寸', select:false, icon:'RadiusSettingOutlined'},
@@ -113,6 +114,7 @@ const selectChick = ref('RightOutlined')
 const selectNotChick = ref('DownOutlined')
 
 function select(item) {
+  undo()
   item.select = !item.select
   element.value.filter((v) => v.id !== item.id).map((m)=>m.select = false)
 }

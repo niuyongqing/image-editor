@@ -14,10 +14,13 @@ const yRef = ref(0);
 const widthRef = ref(0);
 const heightRef = ref(0);
 const saveLoading = ref(false);
+const selectable = ref(true); // 编辑框是否允许调整
+
 // 开始裁剪
 export function Cropping() {
   undo();
   isDrawing.value = true;
+  selectable.value = true
   const canvas = usePsStore().FabricCanvas.value;
 
   // 监听鼠标事件来绘制矩形
@@ -137,6 +140,7 @@ export function undo() {
       flipX: false,  // 恢复水平翻转
       flipY: false   // 恢复垂直翻转
     });
+    selectable.value = true
     canvas.off('mouse:down');
     canvas.off('mouse:move');
     canvas.off('mouse:up');
@@ -152,7 +156,7 @@ function setRect(){
     fill: 'rgba(0, 0, 0, 0)', // 透明填充
     stroke: setting.colorPrimary, // 设置主颜色
     strokeWidth: 2, // 边框宽度
-    selectable: true, // 允许选择
+    selectable: selectable.value, // 允许选择
     cornerStyle: 'circle', // 控制点样式为圆形，便于进一步调整
     cornerSize: 10, // 设置较大控制点大小以模拟长圆筒形状
     transparentCorners: false, // 不透明的控制点
@@ -199,6 +203,7 @@ export  function saveCroppedImage(){
 // 比例裁剪
 export function toRatio(x,y) {
   isDrawing.value = true;
+  selectable.value = true
   const canvas = usePsStore().FabricCanvas.value;
   undo();
   const backgroundImage = canvas.backgroundImage;
@@ -277,42 +282,14 @@ export function flipImage(direction) {
 
 // 根据宽高裁剪
 export function resize(width, height){
-  scale(width, height);
   function gcd(a, b) {
     return b === 0 ? a : gcd(b, a % b);
   }
   const divisor = gcd(width, height);
   const aspectWidth = width / divisor;
   const aspectHeight = height / divisor;
+  selectable.value = false
   toRatio(aspectWidth, aspectHeight);
 }
 
 
-// 放大尺寸到比输入的更大，方便截图
-function scale(width, height){
-  const canvas = usePsStore().FabricCanvas.value;
-  const image = usePsStore().FabricImage.value;
-  const props = usePsStore().Props.value;
-  const minCanvasWidth = props.canvasWidth;
-  const minCanvasHeight = props.canvasHeight;
-  const originalWidth = image.width;
-  const originalHeight = image.height;
-  let scaleFactor = 1;
-  if (originalWidth < width || originalHeight < height) {
-    const widthScale = width / originalWidth;
-    const heightScale = height / originalHeight;
-    scaleFactor = Math.max(widthScale, heightScale);
-  }
-  image.scale(scaleFactor);
-  const newWidth = image.getScaledWidth();
-  const newHeight = image.getScaledHeight();
-  const adjustedCanvasWidth = Math.max(newWidth, minCanvasWidth);
-  const adjustedCanvasHeight = Math.max(newHeight, minCanvasHeight);
-  canvas.setWidth(adjustedCanvasWidth);
-  canvas.setHeight(adjustedCanvasHeight);
-  image.set({
-    left: (adjustedCanvasWidth ) / 2,
-    top: (adjustedCanvasHeight ) / 2
-  });
-  canvas.renderAll();
-}
