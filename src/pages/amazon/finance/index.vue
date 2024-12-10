@@ -1,6 +1,6 @@
 <template>
   <div id="financeCont">
-    <a-card style="margin-top: 20px">
+    <a-card style="margin: 20px 0">
       <a-form
         ref="formRef"
         :model="formState"
@@ -8,7 +8,11 @@
         :wrapper-col="wrapperCol"
       >
         <a-form-item label="时间筛选：" name="times">
-          <a-range-picker v-model:value="formState.times" />
+          <a-range-picker
+            format="YYYY-MM-DD"
+            v-model:value="formState.times"
+            @change="onRangeChange"
+          />
         </a-form-item>
         <a-form-item label="店铺账号：" name="checkedList">
           <div class="setBox">
@@ -49,8 +53,37 @@
           </div>
         </a-form-item>
       </a-form>
-      <div>
-        <div></div>
+    </a-card>
+    <a-card style="height: 100vh">
+      <a-row>
+        <a-col :span="1.5"
+          ><a-button type="primary" @click="exportList">导出财务数据</a-button></a-col
+        >
+      </a-row>
+      <div style="margin-top: 20px">
+        <a-table
+          bordered
+          :rowKey="(record) => record"
+          :columns="columns"
+          :data-source="tableData"
+          :loading="loading"
+          :pagination="false"
+          :default-expand-all-rows="true"
+        >
+          <!-- :scroll="{ y: tableHeight, x: '100%', virtual: true }" -->
+        </a-table>
+        <a-pagination
+          style="margin-top: 20px"
+          :show-total="(total) => `共 ${paginations.total} 条`"
+          v-model:current="paginations.pageNum"
+          v-model:pageSize="paginations.pageSize"
+          :total="paginations.total"
+          class="pages"
+          :defaultPageSize="50"
+          :showSizeChanger="true"
+          :pageSizeOptions="[50, 100, 200]"
+        />
+          <!-- @change="changePagination" -->
       </div>
     </a-card>
   </div>
@@ -58,9 +91,22 @@
 
 <script setup name='finance'>
 import dayjs from "dayjs";
-import { ref, reactive, onMounted, computed, watch, watchEffect } from "vue";
-import { queryShop, queryAreaName } from "@/pages/amazon/js/api/finance";
-
+import {
+  ref,
+  reactive,
+  onMounted,
+  computed,
+  watch,
+  watchEffect,
+  onUnmounted,
+} from "vue";
+import {
+  queryShop,
+  queryAreaName,
+  getFinancesList,
+  getFinancesExport
+} from "@/pages/amazon/js/api/finance";
+import tableHead from '@/pages/amazon/js/tableHead/finance'
 const labelCol = {
   style: {
     width: "80px",
@@ -70,9 +116,12 @@ const wrapperCol = {
   span: 20,
 };
 const shopOptions = ref([]);
+const shopSite = ref([]);
 const countryOptions = ref([]);
 const formState = reactive({
   times: [],
+  sTime: "",
+  endTime: "",
   indeterminate: true,
   checkAll: false,
   checkedList: [],
@@ -80,16 +129,38 @@ const formState = reactive({
   countryIndeterminate: true,
   marketplaces: [],
 });
+const tableData = ref([]);
+const loading = ref(false);
+const columns = tableHead;
+const paginations = ref({
+  pageNum: 1,
+  pageSize: 50,
+  total: 0,
+});
+const tableHeight = ref(0);
+const tableContainer = ref(null);
 
 // 监听formState.checkedList的变化
 watch(
   () => formState.checkedList,
   (newCheckedList) => {
     if (newCheckedList && newCheckedList.length > 0) {
-      getQueryAreaName(newCheckedList);
+      let result = Array.from(
+        new Set(
+          newCheckedList.map((item) => {
+            return shopOptions.value
+              .filter((obj) => obj.value === item)
+              .map((found) => found.areaEnName)
+              .pop();
+          })
+        )
+      );
+
+      getQueryAreaName(result);
     }
   }
 );
+
 watchEffect(() => {
   if (formState.checkedList) {
     formState.indeterminate =
@@ -105,17 +176,40 @@ watchEffect(() => {
     formState.countryCheckAll =
       formState.marketplaces.length === countryOptions.value.length;
   }
+  if (formState.checkedList?.length > 0 && formState.marketplaces?.length > 0) {
+    getList();
+  }
 });
-
+const onRangeChange = (value, dateString) => {
+  formState.sTime = dateString[0];
+  formState.endTime = dateString[1];
+};
 // 店铺选择
 const onCheckAllChange = (e) => {
   Object.assign(formState, {
     checkedList: e.target.checked ? shopOptions.value.map((e) => e.value) : [],
     indeterminate: false,
   });
-  getQueryAreaName(formState.checkedList);
+  shopSite.value = e.target.checked
+    ? shopOptions.value.map((e) => e.areaEnName)
+    : [];
+  getQueryAreaName(shopSite);
 };
 
+const getList = () => {
+  let params = {
+    postedAfter: formState.endTime,
+    postedBefore: formState.sTime,
+    shopId: formState.checkedList,
+    markedId: formState.marketplaces,
+    pageNum: paginations.value.pageNum,
+    pageSize: paginations.value.pageSize,
+  };
+  getFinancesList(params).then((res) => {
+    tableData.value = res?.rows ?? []
+    paginations.value.total = res?.total ?? 0
+  });
+};
 // 国家站点选择
 const onCountryCheckAllChange = (e) => {
   Object.assign(formState, {
@@ -129,11 +223,13 @@ const onCountryCheckAllChange = (e) => {
 // 店铺数据
 const getShopList = () => {
   queryShop().then((res) => {
-    formState.checkedList = res.data.map((e) => e.areaEnName);
-    shopOptions.value = res.data.map((item) => {
+    formState.checkedList = res?.data?.map((e) => e.id);
+    shopSite.value = res?.data?.map((e) => e.areaEnName);
+    shopOptions.value = res?.data?.map((item) => {
       return {
         label: item.shopName,
-        value: item.areaEnName,
+        value: item.id,
+        areaEnName: item.areaEnName,
       };
     });
   });
@@ -141,8 +237,8 @@ const getShopList = () => {
 // 店铺对应站点
 const getQueryAreaName = (list) => {
   queryAreaName({ areaAames: list }).then((res) => {
-    formState.marketplaces = res.data.map((e) => e.marketplaceId);
-    countryOptions.value = res.data.map((item) => {
+    formState.marketplaces = res?.data?.map((e) => e.marketplaceId);
+    countryOptions.value = res?.data?.map((item) => {
       return {
         label: item.countryZhName,
         value: item.marketplaceId,
@@ -150,8 +246,36 @@ const getQueryAreaName = (list) => {
     });
   });
 };
+
+// 导出
+const exportList = () => {
+  let params = {
+    postedAfter: formState.endTime,
+    postedBefore: formState.sTime,
+    shopId: formState.checkedList,
+    markedId: formState.marketplaces,
+  };
+  getFinancesExport(params).then(res => {
+    console.log('res',res);
+    
+  })
+}
+
+const setTableHeight = () => {
+  if (tableContainer.value) {
+    tableHeight.value =
+      window.innerHeight -
+      tableContainer.value.getBoundingClientRect().top -
+      140; // 偏移量可根据需求调整
+  }
+};
 onMounted(() => {
   getShopList();
+  // setTableHeight();
+  // window.addEventListener("resize", setTableHeight);
+});
+onUnmounted(() => {
+  window.removeEventListener("resize", setTableHeight);
 });
 </script>
 <style lang="less" scoped>
@@ -166,6 +290,11 @@ onMounted(() => {
       display: flex;
       flex-wrap: wrap;
     }
+  }
+}
+:deep(.pages) {
+  .ant-pagination-options .ant-select {
+    width: 100px;
   }
 }
 </style>

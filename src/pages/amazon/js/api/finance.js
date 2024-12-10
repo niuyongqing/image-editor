@@ -15,3 +15,21 @@ export function queryAreaName(data) {
         data
     })
 }
+
+// 获取财务数据列表
+export function getFinancesList(data) {
+    return request({
+        url: `/platform-amazon/platform/amazon/finances/list`,
+        method: 'post',
+        data
+    })
+}
+
+// 获取财务数据列表
+export function getFinancesExport(data) {
+    return request({
+        url: `/platform-amazon/platform/amazon/finances/export`,
+        method: 'post',
+        data
+    })
+}
