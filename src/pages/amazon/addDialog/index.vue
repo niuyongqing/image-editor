@@ -6,6 +6,11 @@
       class="baseInfoRef"
       ref="baseInfoRef"
     ></baseInfo>
+    <productInfo
+      :schema-data="productData"
+      class="productInfoRef"
+      ref="productInfoRef"
+    ></productInfo>
     <descriptionInfo
       :schema-data="descriptionData"
       ref="descriptionInfoRef"
@@ -40,6 +45,7 @@
 <script setup>
 import "../js/main.less";
 import baseInfo from '@/pages/amazon/common/addDialog/baseInfo.vue'
+import productInfo from "@/pages/amazon/common/addDialog/productInfo.vue";
 import descriptionInfo from '@/pages/amazon/common/addDialog/descriptionInfo.vue'
 import imageInfo from "@/pages/amazon/common/addDialog/imageInfo.vue";
 // import amazonAttributeInfo from '@/pages/amazon/common/amazonAttributeInfo.vue'
@@ -126,9 +132,13 @@ let offerList = [                 // 报价
   'Maximum Order Quantity'
 ]
 const baseInfoRef = ref()
+const productInfoRef = ref()
 const attributeInfoRef = ref()
 // console.log({attributeInfoRef});
 const baseData = ref(
+  setAttributeData(productIdentityList).data
+)
+const productData = ref(
   setAttributeData(productIdentityList).data
 )
 const descriptionData = ref(
