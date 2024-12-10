@@ -2,11 +2,12 @@
 export const DEFAULT_TABLE_COLUMN = [
   {
     title: '商品',
-    dataIndex: 'draftId',
-    key: 'draftId',
+    dataIndex: 'productId',
+    key: 'productId',
     sortable: false,
     show: true,
-    minWidth: '400',
+    ellipsis: true,
+    width: 400,
     filter: false
   },
   {
@@ -15,7 +16,7 @@ export const DEFAULT_TABLE_COLUMN = [
     key: 'productType',
     sortable: false,
     show: true,
-    minWidth: '140',
+    width: 140,
     filter: false
   },
   {
@@ -24,16 +25,35 @@ export const DEFAULT_TABLE_COLUMN = [
     key: 'skus',
     sortable: false,
     show: true,
-    minWidth: '450',
+    width: 450,
+    minWidth: 450,
+    filter: false
+  },
+  {
+    title: '状态',
+    dataIndex: 'productStatus',
+    key: 'productStatus',
+    sortable: false,
+    show: true,
+    width: 80,
     filter: false
   },
   {
     title: '创建时间',
-    dataIndex: 'saveTime',
-    key: 'saveTime',
+    dataIndex: 'create_time',
+    key: 'create_time',
     sortable: true,
     show: true,
-    minWidth: '130',
+    width: 130,
+    filter: false
+  },
+  {
+    title: '编辑时间',
+    dataIndex: 'update_time',
+    key: 'update_time',
+    sortable: true,
+    show: true,
+    width: 130,
     filter: false
   },
   {
@@ -42,7 +62,7 @@ export const DEFAULT_TABLE_COLUMN = [
     key: 'option',
     sortable: false,
     show: true,
-    minWidth: '100',
+    width: 100,
     filter: false
   }
 ]

@@ -26,13 +26,14 @@ export default {
   methods: {
     // 获取表头
     getTableHeader() {
-      settingList({ menu: this.tableCode }).then(res => {
+      this.tableHeader = this.DEFAULT_TABLE_COLUMN
+      /* settingList({ menu: this.tableCode }).then(res => {
         if (res.data && res.data.table) {
           this.tableHeader = JSON.parse(res.data.table)
         } else {
           this.tableHeader = this.DEFAULT_TABLE_COLUMN
         }
-      })
+      }) */
     },
     // 设置表头
     /* setTableHeader(isReset = false) {
@@ -63,7 +64,8 @@ export default {
         this.searchForm.order = undefined
       }
     },
-    handleSelectionChange(rows) {
+    onSelectChange (keys, rows) {
+      this.selectedRowKeys = keys
       this.selectedRows = rows
     },
     // 点击开始表格设置
