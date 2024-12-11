@@ -11,9 +11,20 @@
         :loading="loading"
         :pagination="false"
         :default-expand-all-rows="true"
-        :scroll="{ y: tableHeight, x: '100%', virtual: true }"
       >
       </a-table>
+      <a-pagination
+        style="margin-top: 10px;text-align: right"
+        :show-total="total => `共 ${total} 条`"
+        v-model:current="paginations.pageNum"
+        v-model:pageSize="paginations.pageSize"
+        :total="paginations.total"
+        class="pages"
+        :show-quick-jumper="true"
+        :showSizeChanger="true"
+        :pageSizeOptions="[50,100,200]"
+        @change="getShopList"
+      />
     </div>
     <reauthorizationDialog
       v-model:showModal.sync="showModal"
@@ -27,15 +38,17 @@ import tableHeard from "@/pages/amazon/js/tableHead/shop";
 import reauthorizationDialog from "@/pages/amazon/shop/common/reauthorizationDialog.vue";
 import { list } from "@/pages/amazon/js/api/shop";
 import { getUrl, saveCode, refreshToken } from "@/pages/amazon/js/api/shop";
-import { ref, reactive, onMounted, onUnmounted, watchPostEffect } from "vue";
+import { ref, reactive, onMounted, watchPostEffect } from "vue";
 
 const columns = tableHeard;
 const tableData = ref([]);
 const loading = ref(false);
 const showModal = ref(false);
-const tableHeight = ref(0);
-const deptTableContainer = ref(null);
-
+const paginations = reactive({
+  pageNum: 1,
+  pageSize: 50,
+  total:0
+});
 const getShopList = () => {
   loading.value = true;
   let params = {
@@ -47,6 +60,7 @@ const getShopList = () => {
   list(params)
     .then((res) => {
       tableData.value = res?.data?.rows;
+      paginations.total = res.data.total ? res.data.total : 0;
     })
     .finally(() => {
       loading.value = false;
@@ -59,21 +73,9 @@ const backShop = (id) => {
     window.location.href = res.msg;
   });
 };
-const setTableHeight = () => {
-  if (deptTableContainer.value) {
-    tableHeight.value =
-      window.innerHeight -
-      deptTableContainer.value.getBoundingClientRect().top -
-      70; // 偏移量可根据需求调整
-  }
-};
+
 onMounted(() => {
-  setTableHeight();
-  window.addEventListener('resize', setTableHeight);
   getShopList();
-});
-onUnmounted(() => {
-  window.removeEventListener('resize', setTableHeight);
 });
 </script>
 

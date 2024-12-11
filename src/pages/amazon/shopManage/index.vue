@@ -21,8 +21,8 @@
       </a-form>
     </a-card>
     <a-card style="margin-top: 20px;height:100vh">
-      <a-row style="margin-bottom: 20px">
-        <a-col :span="1.5" style="padding: 0 5px">
+      <a-row style="margin-bottom: 10px">
+        <a-col :span="1.5" style="padding: 0 10px">
           <a-button
             type="primary"
             @click="showAddModal = true"
@@ -31,7 +31,7 @@
             新增
           </a-button>
         </a-col>
-        <a-col :span="1.5" style="padding: 0 5px">
+        <a-col :span="1.5" style="padding: 0 10px">
           <a-button
             @click="showEditModal = true"
             v-has-permi="['system:platform:amazon:account:edit']"
@@ -39,7 +39,7 @@
             >修改
           </a-button>
         </a-col>
-        <a-col :span="1.5" style="padding: 0 5px">
+        <a-col :span="1.5" style="padding: 0 10px">
           <a-popconfirm
             class="popconfirm-del"
             ok-text="是"
@@ -74,18 +74,17 @@
       >
       </a-table>
       <a-pagination
-        style="margin-top: 20px"
+        style="margin-top: 20px;text-align: right"
         :show-total="total => `共 ${total} 条`"
         v-model:current="paginations.pageNum"
         v-model:pageSize="paginations.pageSize"
-        :total="total"
+        :total="paginations.total"
         class="pages"
-        :defaultPageSize="50"
+        :show-quick-jumper="true"
         :showSizeChanger="true"
         :pageSizeOptions="[50,100,200]"
-        @change="changePagination"
+        @change="getList"
       />
-      <!-- :scroll="{ y: tableHeight, x: '100%', virtual: true }" -->
     </a-card>
     <shopManageAdd
       v-model:showAddModal="showAddModal"
@@ -112,15 +111,13 @@ const formState = reactive({
   simpleName: "",
 });
 const columns = tableHead;
-const total = ref(0);
-const tableHeight = ref(0);
 const loading = ref(false);
 const showAddModal = ref(false);
 const showEditModal = ref(false);
-const deptTableContainer = ref(null);
 const paginations = reactive({
   pageNum: 1,
   pageSize: 50,
+  total:0
 });
 const selectedRowKeys = ref([]);
 const tableData = ref([]);
@@ -130,9 +127,6 @@ const onChange = (selecteds) => {
 };
 
 const onSubmit = () => {
-  getList();
-};
-const changePagination = (pageNumber) => {
   getList();
 };
 // 获取列表
@@ -147,7 +141,7 @@ const getList = () => {
   shopList(params)
     .then((res) => {
       tableData.value = res.data.rows;
-      total.value = res.data.total ? res.data.total : 0;
+      paginations.total = res.data.total ? res.data.total : 0;
     })
     .finally(() => {
       loading.value = false;
@@ -172,22 +166,9 @@ const resetForm = () => {
   formRef.value.resetFields();
   onSubmit();
 };
-const setTableHeight = () => {
-  if (deptTableContainer.value) {
-    tableHeight.value =
-      window.innerHeight -
-      deptTableContainer.value.getBoundingClientRect().top -
-      70; // 偏移量可根据需求调整
-  }
-};
+
 onMounted(() => {
-  setTableHeight();
-  window.addEventListener("resize", setTableHeight);
-  // getUserDep();
   getList();
-});
-onUnmounted(() => {
-  window.removeEventListener("resize", setTableHeight);
 });
 </script>
 <style lang="less" scoped>
