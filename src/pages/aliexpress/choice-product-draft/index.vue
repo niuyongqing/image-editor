@@ -43,7 +43,7 @@
             v-model:value="searchForm.productName"
             placeholder="商品标题"
             style="width: 200px"
-          ></a-input>
+          />
         </a-form-item>
         <a-form-item
           name="skuCode"
@@ -53,7 +53,7 @@
             v-model:value="searchForm.skuCode"
             placeholder="SKU编码"
             style="width: 200px"
-          ></a-input>
+          />
         </a-form-item>
 
         <a-form-item>
@@ -71,10 +71,7 @@
       </a-form>
     </a-card>
     <!-- TABLE 区 -->
-    <a-card
-      style="margin: 10px"
-      id="table"
-    >
+    <a-card class="m-2.5">
       <div class="btns">
         <div class="left-group">
           <a-button
@@ -101,70 +98,27 @@
             >
           </a-popconfirm>
         </div>
-        <!-- <a-space>
-          <a-button
-            v-if="!tableSettingFlag"
-            type="primary"
-            :loading="tableSettingLoading"
-            @click="startSetting"
-            >表格设置</a-button
-          >
-          <a-button
-            v-else
-            type="primary"
-            :loading="tableSettingLoading"
-            @click="setTableHeader()"
-            >保存表格设置</a-button
-          >
-          <a-popover width="800">
-            <template #content>
-              <a-row>
-                <div
-                  v-for="(item, index) in tableHeader"
-                  :key="index"
-                >
-                  <a-col
-                    :span="3"
-                    style="margin-top: 5px"
-                  >
-                    <div>{{ item.label }}</div>
-                  </a-col>
-                  <a-col
-                    :span="3"
-                    style="margin-top: 5px"
-                  >
-                    <a-switch
-                      v-model:value="item.show"
-                      style="display: block"
-                      @change="setTableHeader()"
-                    ></a-switch>
-                  </a-col>
-                </div>
-              </a-row>
-            </template>
-            <a-button type="primary">隐藏/显示列</a-button>
-          </a-popover>
-          <a-popconfirm
-            title="确定要重置当前页面表格的所有设置吗？"
-            @confirm="setTableHeader(true)"
-          >
-            <a-button
-              type="danger"
-              :loading="tableSettingLoading"
-              >重置表格设置</a-button
-            >
-          </a-popconfirm>
-        </a-space> -->
+        <a-pagination
+          size="small"
+          v-model:current="tableParams.pageNum"
+          v-model:pageSize="tableParams.pageSize"
+          :total="total"
+          :default-page-size="50"
+          show-size-changer
+          show-quick-jumper
+          :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
+          @change="onPaginationChange"
+        />
       </div>
 
       <a-table
-        :height="tableHeight"
         :loading="loading"
         :columns="displayHeader"
         :data-source="tableData"
         stripe
         ref="tableRef"
         row-key="draftId"
+        :pagination="false"
         :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }"
       >
         <template #bodyCell="{ column, record }">
@@ -273,18 +227,18 @@
           </div>
         </template>
       </a-table>
-      <!-- <Pagination
+      <a-pagination
+        size="small"
+        v-model:current="tableParams.pageNum"
+        v-model:pageSize="tableParams.pageSize"
         :total="total"
-        :page.sync="tableParams.pageNum"
-        :limit.sync="tableParams.pageSize"
-        @pagination="getList"
-      /> -->
+        :default-page-size="50"
+        show-size-changer
+        show-quick-jumper
+        :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
+        @change="onPaginationChange"
+      />
     </a-card>
-    <!-- 发布弹窗 -->
-    <!-- <PublishDialog
-      v-model:value:dialog-visible="dialogVisible"
-      @refresh="getList"
-    /> -->
   </div>
 </template>
 
@@ -299,12 +253,10 @@
   import { createApi } from '../apis/choice-product'
   import { CopyOutlined } from '@ant-design/icons-vue'
   import { message } from 'ant-design-vue'
-  // import PublishDialog from '../choiceProduct/PublishDialog.vue'
   import EmptyImg from '@/assets/images/aliexpress/empty.png'
 
   export default {
     name: 'ChoiceProductDraft',
-    // components: { PublishDialog },
     components: { CopyOutlined },
     mixins: [mixinTable],
     data() {
@@ -323,7 +275,6 @@
         },
         DEFAULT_TABLE_COLUMN,
         tableCode: 'ChoiceProductDraft',
-        tableHeight: `${window.innerHeight}` - 330,
         tableParams: {
           pageNum: 1,
           pageSize: 50
@@ -434,12 +385,6 @@
           state.isEdit = true
           state.productDetail = record
         })
-        /* this.$store.commit('aliexpress/SET_SELLER_ID', record.sellerId)
-        this.$store.commit('aliexpress/SET_IS_EDIT', true)
-        this.dialogVisible = true
-        this.$nextTick(() => {
-          this.$store.commit('aliexpress/SET_PRODUCT_DETAIL', row)
-        }) */
       },
       publish(record) {
         const params = {
@@ -487,6 +432,10 @@
     }
     .pointer {
       cursor: pointer;
+    }
+
+    .ant-pagination {
+      text-align: right;
     }
   }
 </style>

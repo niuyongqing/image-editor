@@ -43,7 +43,7 @@
             v-model:value="searchForm.productName"
             placeholder="商品标题"
             style="width: 200px"
-          ></a-input>
+          />
         </a-form-item>
         <a-form-item
           name="skuCode"
@@ -53,7 +53,7 @@
             v-model:value="searchForm.skuCode"
             placeholder="SKU编码"
             style="width: 200px"
-          ></a-input>
+          />
         </a-form-item>
         <a-form-item
           name="productStatus"
@@ -114,82 +114,39 @@
         <div class="left-group">
           <a-button
             type="primary"
-            @click="dialogVisible = true"
+            @click="goPublish"
             >发布商品</a-button
           >
           <a-button
             type="primary"
             title="选择店铺后同步"
             class="ml-[10px]"
-            :loading="syncLoading"
+            :loading="syncProgressOpen"
             :disabled="!searchForm.sellerId"
             @click="handleSyncList"
             >批量同步店铺商品</a-button
           >
         </div>
-        <!-- <a-button-group>
-          <a-button
-            v-if="!tableSettingFlag"
-            type="primary"
-            :loading="tableSettingLoading"
-            @click="startSetting"
-            >表格设置</a-button
-          >
-          <a-button
-            v-else
-            type="primary"
-            :loading="tableSettingLoading"
-            @click="setTableHeader()"
-            >保存表格设置</a-button
-          >
-          <a-popover width="800">
-            <template #content>
-              <a-row>
-                <div
-                  v-for="(item, index) in tableHeader"
-                  :key="index"
-                >
-                  <a-col
-                    :span="3"
-                    style="margin-top: 5px"
-                  >
-                    <div>{{ item.label }}</div>
-                  </a-col>
-                  <a-col
-                    :span="3"
-                    style="margin-top: 5px"
-                  >
-                    <a-switch
-                      v-model:value="item.show"
-                      style="display: block"
-                      @change="setTableHeader()"
-                    ></a-switch>
-                  </a-col>
-                </div>
-              </a-row>
-            </template>
-            <a-button type="primary">隐藏/显示列</a-button>
-          </a-popover>
-          <a-popconfirm
-            title="确定要重置当前页面表格的所有设置吗？"
-            @confirm="setTableHeader(true)"
-          >
-            <a-button
-              danger
-              :loading="tableSettingLoading"
-              >重置表格设置</a-button
-            >
-          </a-popconfirm>
-        </a-button-group> -->
+        <a-pagination
+          size="small"
+          v-model:current="tableParams.pageNum"
+          v-model:pageSize="tableParams.pageSize"
+          :total="total"
+          :default-page-size="50"
+          show-size-changer
+          show-quick-jumper
+          :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
+          @change="onPaginationChange"
+        />
       </div>
       <a-table
-        :height="tableHeight"
         :columns="displayHeader"
         :data-source="tableData"
         :loading="loading"
         stripe
         ref="tableRef"
         row-key="productId"
+        :pagination="false"
         :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }"
       >
         <template #bodyCell="{ column, record }">
@@ -341,27 +298,26 @@
           </div>
         </template>
       </a-table>
-
-      <!-- <Pagination
+      <a-pagination
+        size="small"
+        v-model:current="tableParams.pageNum"
+        v-model:pageSize="tableParams.pageSize"
         :total="total"
-        :page.sync="tableParams.pageNum"
-        :limit.sync="tableParams.pageSize"
-        @pagination="getList"
-      /> -->
+        :default-page-size="50"
+        show-size-changer
+        show-quick-jumper
+        :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
+        @change="onPaginationChange"
+      />
     </a-card>
     <!-- 同步进度条 -->
-    <!-- <SyncProgress
-      :sync-loading="syncLoading"
-      :percentage="syncPercentage"
-      target="#table"
-    /> -->
-    <!-- 发布弹窗 -->
-    <!-- <PublishDialog
-      :dialog-visible.sync="dialogVisible"
-      :query="query"
-      @refresh="getList"
-      @queryReset="query = {}"
-    /> -->
+    <a-modal
+      title="同步进度"
+      v-model:open="syncProgressOpen"
+      :footer="null"
+    >
+      <a-progress :percent="syncPercentage" />
+    </a-modal>
     <!-- 库存弹窗 -->
     <a-modal
       title="编辑库存"
@@ -386,10 +342,15 @@
           :columns="stockColumn"
           :data-source="stockTable"
           :loading="stockLoading"
+          :scroll="{ y: 800 }"
+          :pagination="{ defaultPageSize: 50, hideOnSinglePage: true }"
         >
           <template #bodyCell="{ column, record, text }">
             <template v-if="skuPropertyList.includes(column.dataIndex)">
-              <a-popover v-if="getImageUrl(record, column.dataIndex)" placement="right">
+              <a-popover
+                v-if="getImageUrl(record, column.dataIndex)"
+                placement="right"
+              >
                 <template #content>
                   <img
                     :src="getImageUrl(record, column.dataIndex)"
@@ -397,22 +358,22 @@
                   />
                 </template>
                 <a-image
-                  style="width: 56px; height: 56px; border: 1px solid #ccc;"
+                  style="width: 56px; height: 56px; border: 1px solid #ccc"
                   :src="getImageUrl(record, column.dataIndex)"
                 />
               </a-popover>
               <span class="ml-2">{{ getLabel(record, column.dataIndex) }}</span>
             </template>
             <span v-else-if="column.dataIndex === 'skuCode'">{{ text || '--' }}</span>
-            <!-- <a-input-number
+            <a-input-number
               v-else
-              v-model:value="record.skuWarehouseStockList[index - stockStartIndex - 1].sellableQuantity"
+              v-model:value="record.skuWarehouseStockList[getIndex(column.dataIndex)].sellableQuantity"
               :controls="false"
               :min="0"
               :max="999999"
               :precision="0"
-              :disabled="record.skuWarehouseStockList[index - stockStartIndex - 1].warehouseType !== 'jit_warehouse'"
-            ></a-input-number> -->
+              :disabled="record.skuWarehouseStockList[getIndex(column.dataIndex)].warehouseType !== 'jit_warehouse'"
+            />
           </template>
         </a-table>
       </div>
@@ -456,15 +417,12 @@
   import { copyText } from '@/utils'
   import { accountCache } from '../apis/account'
   import { listApi, syncListApi, syncOneApi, syncProgressApi, detailApi, queryStockApi, editStockApi, stockRuleApi, copyToDraftApi } from '../apis/choice-product'
-  // import SyncProgress from '../components/SyncProgress'
-  // import PublishDialog from './PublishDialog'
   import { CopyOutlined, InfoCircleOutlined, EditOutlined } from '@ant-design/icons-vue'
   import { message } from 'ant-design-vue'
   import EmptyImg from '@/assets/images/aliexpress/empty.png'
 
   export default {
     name: 'ChoiceProduct',
-    // components: { SyncProgress, PublishDialog },
     components: { CopyOutlined, InfoCircleOutlined, EditOutlined },
     mixins: [mixinTable],
     data() {
@@ -485,17 +443,11 @@
         },
         DEFAULT_TABLE_COLUMN,
         tableCode: 'ChoiceProduct',
-        tableHeight: `${window.innerHeight}` - 375,
-        tableParams: {
-          pageNum: 1,
-          pageSize: 50
-        },
         tableData: [],
-        total: 0,
         loading: false,
         selectedRowKeys: [],
         selectedRows: [],
-        syncLoading: false,
+        syncProgressOpen: false,
         syncPercentage: 0,
         statusOptions: [
           { label: '在线', value: 'ONLINE' },
@@ -504,7 +456,6 @@
           { label: '审核不通过', value: 'VIOLATION_QC_FAILED' },
           { label: '已下架', value: 'OFFLINE' }
         ],
-        dialogVisible: false,
         query: {},
         // 编辑库存相关
         stockDialogVisible: false, // 库存弹窗显隐
@@ -552,9 +503,6 @@
         }
 
         return list
-      },
-      variantList() {
-        return this.stockTable[0].skuWarehouseStockList.map(stockItem => stockItem.warehouseCode)
       },
       skuPropertyList() {
         return this.stockTable[0] && this.stockTable[0].skuPropertyList ? this.stockTable[0].skuPropertyList.map(property => property.skuPropertyName) : []
@@ -631,13 +579,13 @@
       },
       // 同步店铺商品
       handleSyncList() {
-        this.syncLoading = true
+        this.syncProgressOpen = true
         syncListApi({ sellerId: this.searchForm.sellerId })
           .then(res => {
             this.getSyncProgress(res.data)
           })
           .catch(e => {
-            this.syncLoading = false
+            this.syncProgressOpen = false
           })
       },
       // 同步进度条
@@ -657,7 +605,7 @@
                 }, 3 * 1000)
               } else {
                 this.syncPercentage = 0
-                this.syncLoading = false
+                this.syncProgressOpen = false
                 this.getList()
               }
             } else {
@@ -667,7 +615,7 @@
             }
           })
           .catch(e => {
-            this.syncLoading = false
+            this.syncProgressOpen = false
           })
       },
       goAliExpress(productId) {
@@ -701,7 +649,6 @@
           state.sellerId = record.sellerId
           state.isEdit = true
         })
-        this.dialogVisible = true
       },
       // 打开编辑库存弹窗
       handleEditStock(record) {
@@ -822,6 +769,10 @@
           return '--'
         }
       },
+      // 获取仓库下标
+      getIndex(dataIndex) {
+        return this.stockTable[0].skuWarehouseStockList.findIndex(item => item.warehouseCode === dataIndex)
+      },
       // 复制商品弹窗相关
       handleCheckAllChange(e) {
         this.copyTargetSellerList = this.checkAll ? this.accountList.map(item => item.sellerId) : []
@@ -858,10 +809,12 @@
           })
       },
       handleCopyDialogClose() {
-        console.log('close hehe')
         this.curRow = {}
         this.copyTargetSellerList = []
         this.copyDialogVisible = false
+      },
+      goPublish() {
+        window.open(location.origin + '/aliexpress/choice-product-publish')
       }
     }
   }
@@ -878,6 +831,10 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    .ant-pagination {
+      text-align: right;
     }
   }
 </style>
