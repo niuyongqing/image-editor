@@ -131,8 +131,14 @@ function tagDrop() {
       if (evt.clone.className.includes('uploadDom')) {
         return;
       }
-      const oldItem = imageList.value[evt.oldIndex]
-      imageList.value.splice(evt.oldIndex, 1)
+      let oldIndex = evt.oldIndex
+      let oldItem = imageList.value[oldIndex]
+      // 如果是调整最后一个位置
+      if (!oldItem) {
+        oldIndex--
+        oldItem = imageList.value[oldIndex]
+      }
+      imageList.value.splice(oldIndex, 1)
       imageList.value.splice(evt.newIndex, 0, oldItem)
       // 在组件移除后，重新渲染组件
       nextTick(() => {
