@@ -9,8 +9,8 @@ import {setBackgroundImage} from "~/components/process-pictures/component/painti
 const selectionRect = ref(null);  // 用于保存用户绘制的矩形
 // 自由比例裁剪
 const isDrawing = ref(false);
-const xRef = ref(0);
-const yRef = ref(0);
+const xRef = ref(undefined);
+const yRef = ref(undefined);
 const widthRef = ref(0);
 const heightRef = ref(0);
 const saveLoading = ref(false);
@@ -130,10 +130,11 @@ export function updateRectanglePositionY(newY) {
 export function undo() {
     const canvas = usePsStore().FabricCanvas.value;
     canvas.getObjects().slice().forEach((obj) => canvas.remove(obj));
-    xRef.value = 0
-    yRef.value = 0
+    xRef.value = undefined
+    yRef.value = undefined
     widthRef.value = 0
     heightRef.value = 0
+
     const backgroundImage = canvas.backgroundImage;
     backgroundImage.set({
       angle: 0,
@@ -172,38 +173,63 @@ function setRect(){
 }
 
 
-// 保存裁剪图像
-export  function saveCroppedImage(){
-  if(xRef.value === 0 && yRef.value === 0) {
+// 保存裁剪图像,
+// 当需要按照宽高进行裁剪结果缩放时传入需要缩放的宽高aspectWidth, aspectHeight,
+// 如果不需要则不要传参
+export function saveCroppedImage(cropWidth, cropHeight) {
+  if (xRef.value === 0 && yRef.value === 0) {
     isDrawing.value = true;
     calculateTheCuttingPosition(1);
   }
   if (!selectionRect.value) return;
+
+  // 创建一个新的 canvas 用于裁剪图像
   const croppedCanvas = document.createElement('canvas');
   const ctx = croppedCanvas.getContext('2d');
-  croppedCanvas.width = widthRef.value;
-  croppedCanvas.height = heightRef.value;
+
+  // 设置裁剪 canvas 的宽高
+  croppedCanvas.width = cropWidth || (widthRef.value - 10);  // 如果 cropWidth 未传入，使用默认裁剪宽度
+  croppedCanvas.height = cropHeight || (heightRef.value - 10); // 如果 cropHeight 未传入，使用默认裁剪高度
+
+  // 获取原始 canvas 元素
   const originalCanvas = usePsStore().FabricCanvas.value.getElement();
-  ctx.drawImage(originalCanvas,xRef.value + 5, yRef.value + 5,  widthRef.value - 10, heightRef.value - 10, 0, 0, widthRef.value - 10, heightRef.value - 10);
-  const croppedDataUrl = croppedCanvas.toDataURL();
-  saveLoading.value = true
+
+  // 使用 drawImage 从原始 canvas 中裁剪出指定区域
+  ctx.drawImage(
+      originalCanvas,                          // 原始 canvas
+      xRef.value + 5, yRef.value + 5,          // 原始裁剪区域的起始位置
+      widthRef.value - 10, heightRef.value - 10, // 原始图像的裁剪区域宽高
+      0, 0,                                    // 绘制到裁剪 canvas 的位置
+      cropWidth || (widthRef.value - 10),      // 裁剪后的宽度
+      cropHeight || (heightRef.value - 10)     // 裁剪后的高度
+  );
+
+  // 获取裁剪后的图像数据
+  const croppedDataUrl = croppedCanvas.toDataURL("image/jpg");
+
+  // 开始上传裁剪图像
+  if(croppedDataUrl === 'data:,'){
+    message.error("无效的裁剪");
+    return;
+  }
+  saveLoading.value = true;
   uploadTmpBase64(croppedDataUrl).then(async res => {
     if (res.code === 200) {
-      undo()
-      usePsStore().Props.value.imgUrl = res.msg
-
-      await setBackgroundImage()
-      saveLoading.value = false
+      undo();
+      usePsStore().Props.value.imgUrl = res.msg;
+      await setBackgroundImage();
     } else {
       message.error(res.msg);
     }
-  })
+  }).finally(()=>{
+    saveLoading.value = false;
+  });
 }
+
 
 // 比例裁剪
 export function toRatio(x,y) {
   isDrawing.value = true;
-  selectable.value = true
   const canvas = usePsStore().FabricCanvas.value;
   undo();
   const backgroundImage = canvas.backgroundImage;
@@ -291,5 +317,3 @@ export function resize(width, height){
   selectable.value = false
   toRatio(aspectWidth, aspectHeight);
 }
-
-

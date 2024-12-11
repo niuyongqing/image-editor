@@ -36,7 +36,7 @@
       </a-tooltip>
     </div>
     <div style="margin-top: 5px;display: flex;flex-wrap: wrap;gap: 5px;justify-content: center">
-      <a-popconfirm title="确定要应用吗？" @confirm="saveCroppedImage">
+      <a-popconfirm title="确定要应用吗？" @confirm="saveCroppedImage(undefined,undefined)">
         <a-button  type="primary" :loading="saveLoading">应 用</a-button>
       </a-popconfirm>
       <a-button @click="undo">还 原</a-button>

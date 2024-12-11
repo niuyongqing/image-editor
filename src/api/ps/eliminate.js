@@ -1,13 +1,18 @@
-export function getEliminateListApi() {
-    return useGet('/platform-setting/platform/setting/template/ps/eliminate/list')
+export function getCroppingListApi() {
+    return useGet('/platform-setting/platform/setting/template/ps/cropping/list')
 }
 
 
-export function addEliminateApi(data) {
-    return usePost('/platform-setting/platform/setting/template/ps/eliminate/add',data)
+export function addCroppingApi(data) {
+    return usePost('/platform-setting/platform/setting/template/ps/cropping/add',data)
 }
 
 
-export function delEliminateApi(data) {
-    return usePost('/platform-setting/platform/setting/template/ps/eliminate/del',data)
+export function delCroppingApi(data) {
+    return usePost('/platform-setting/platform/setting/template/ps/cropping/del',data)
+}
+
+
+export function editEliminateApi(data) {
+    return usePost('/xinzhan-ai/ai/image/eliminate',data)
 }

@@ -38,8 +38,8 @@ import MarkComponent from "~/components/process-pictures/component/mark/index.vu
 import MaterialComponent from "~/components/process-pictures/component/material/index.vue";
 import TextComponent from "~/components/process-pictures/component/text/index.vue";
 import {usePsStore} from "~/stores/ps.js";
-const canvasHeight = ref(window.innerHeight - 80);
-const canvasWidth = ref(window.innerWidth  - 400);
+const canvasHeight = ref(window.innerHeight - 100);
+const canvasWidth = ref(window.innerWidth  - 420);
 
 const emit = defineEmits(['save'])
 const current = ref({});

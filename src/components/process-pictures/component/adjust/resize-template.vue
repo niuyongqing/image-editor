@@ -1,15 +1,28 @@
 <template>
   <div v-show="item.select" style="margin-bottom: 20px">
     <div style="overflow: auto;overflow-x: hidden;height: 300px;" class="border">
-      <div style="width: 208px; height: 40px; background-color: #ebeef5; margin: 5px; border-radius: 10px" v-for="chi in children" :key="chi.id" :style="{ border: chi.select ? `2px solid ${setting.colorPrimary}` : 'none' }" @click="selectChildren(chi)">
-        <div style="font-size: 12px; color: #363637; display: flex; align-items: center; justify-content: space-between; height: 100%; margin-left: 5px; margin-right: 10px; cursor: pointer">
-          <span>{{`${chi.title}`}}{{chi.width? `(${chi.width}X${chi.height})`: ''  }}</span>
-          <async-icon  v-if="chi.icon" :icon="chi.icon" size="15px"></async-icon>
-          <a-popconfirm title="确定要删除这个自定义尺寸吗？" ok-text="Yes" cancel-text="No" @confirm="del(chi)" v-if="chi.userId">
-            <a-button style="color: #f5222d" type="text" >x</a-button>
-          </a-popconfirm>
+      <a-spin :spinning="loading" tip="Loading...">
+        <div style="width: 208px; height: 40px; background-color: #ebeef5; margin: 5px; border-radius: 10px" v-for="chi in children" :key="chi.id" :style="{ border: chi.select ? `2px solid ${setting.colorPrimary}` : 'none' }" @click="selectChildren(chi)">
+          <div style="font-size: 12px; color: #363637; display: flex; align-items: center; justify-content: space-between; height: 100%; margin-left: 5px; margin-right: 10px; cursor: pointer">
+            <span>{{`${chi.title}`}}{{chi.width? `(${chi.width}X${chi.height})`: ''  }}</span>
+            <async-icon  v-if="chi.icon" :icon="chi.icon" size="15px"></async-icon>
+            <a-popconfirm title="确定要删除这个自定义尺寸吗？" ok-text="Yes" cancel-text="No" @confirm="del(chi)" v-if="chi.userId">
+              <a-button style="color: #f5222d" type="text" >x</a-button>
+            </a-popconfirm>
+          </div>
         </div>
+      </a-spin>
+    </div>
+    <div style="margin-top: 5px;display: flex;flex-wrap: wrap;gap: 5px;justify-content: center">
+      <div style="display: inline;">
+        <a-input-number :controls="false" @change="updateRectanglePositionXFunc" v-model:value="xRef" style="right: 5px" prefix="W"/>
+        <async-icon icon="ApiOutlined" size="15px"></async-icon>
+        <a-input-number :controls="false" @change="updateRectanglePositionYFunc" v-model:value="yRef" style="left: 5px" prefix="H"/>
       </div>
+      <a-popconfirm title="确定要应用吗？" @confirm="saveCroppedImage(...size)">
+        <a-button  type="primary" :loading="saveLoading">应 用</a-button>
+      </a-popconfirm>
+      <a-button @click="undo">还 原</a-button>
     </div>
     <div>
       <a-modal v-model:open="open" title="添加自定义调整尺寸" :footer="null" :closable="false" >
@@ -36,20 +49,31 @@
 import setting from "~/config/default-setting.js";
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import {ref} from 'vue'
-import {addEliminateApi, delEliminateApi, getEliminateListApi} from "~/api/ps/eliminate.js";
+import {addCroppingApi, delCroppingApi, getCroppingListApi} from "~/api/ps/eliminate.js";
 import {message} from "ant-design-vue";
-import {resize} from "~/components/process-pictures/component/adjust/cropping.js";
+import {
+  resize,
+  saveCroppedImage,
+  saveLoading,
+  undo, updateRectanglePositionX, updateRectanglePositionY,
+  xRef, yRef
+} from "~/components/process-pictures/component/adjust/cropping.js";
 const props = defineProps({item:{type:Object,required:true,default:{id: undefined, title: '', icon:'', select:undefined}},})
 const labelCol = {style: {width: '80px'}};
 const children = ref([])
 const open = ref(false)
 const formData = ref({})
-
+const size = ref([])
+const loading = ref(false)
 onMounted(()=>{
-  getCustomize()
+  if(props.item.id === 2){
+    getCustomize()
+  }
 })
 
 function selectChildren(chi){
+  size.value = []
+  size.value.push(chi.width,chi.height)
   chi.select = true
   children.value.filter((v) => v.id !== chi.id).map((m)=>m.select = false)
   if (typeof chi.func === 'function') {
@@ -59,6 +83,15 @@ function selectChildren(chi){
       chi.func();
     }
   }
+}
+
+
+function updateRectanglePositionXFunc(x){
+  return  updateRectanglePositionX(x)
+}
+
+function updateRectanglePositionYFunc(y){
+  return updateRectanglePositionY(y)
 }
 
 function openAdd(){
@@ -75,7 +108,7 @@ function closeAdd() {
 
 function del(chi) {
   if(chi.userId){
-    delEliminateApi({id:chi.id}).then(res=>{
+    delCroppingApi({id:chi.id}).then(res=>{
       if(res.code === 200){
         for(let i =0;i<children.value.length;i++){
           if(chi.id === children.value[i].id){
@@ -92,7 +125,7 @@ function del(chi) {
 }
 
 function handleOk() {
-  addEliminateApi(formData.value).then(res=>{
+  addCroppingApi(formData.value).then(res=>{
     if(res.code === 200){
       children.value.splice(1,0,res.data);
       formData.value = {
@@ -107,7 +140,8 @@ function handleOk() {
 }
 
 function getCustomize() {
-  getEliminateListApi().then(res=>{
+  loading.value = true
+  getCroppingListApi().then(res=>{
     children.value = [
       {id:1, title: '自定义', select:false, icon:'SettingOutlined',func:openAdd},
       {id:2, title: `方形主图`,width:800,height:800, select:false,func:resize},
@@ -124,6 +158,10 @@ function getCustomize() {
         v.func = resize
       }
     })
+  }).finally(()=>{
+      setTimeout(()=>{
+        loading.value = false
+      },500)
   })
 }
 
