@@ -93,6 +93,8 @@ declare module 'vue' {
     CarbonMoon: typeof import('./../src/components/icons/carbon-moon.vue')['default']
     CarbonSun: typeof import('./../src/components/icons/carbon-sun.vue')['default']
     ChaseSpin: typeof import('./../src/components/base-loading/spin/chase-spin.vue')['default']
+    Color: typeof import('./../src/components/process-pictures/component/adjust/color.vue')['default']
+    ColorTemplate: typeof import('./../src/components/process-pictures/component/adjust/color-template.vue')['default']
     Cropping: typeof import('./../src/components/process-pictures/component/adjust/cropping.vue')['default']
     CroppingTemplate: typeof import('./../src/components/process-pictures/component/adjust/cropping-template.vue')['default']
     CubeSpin: typeof import('./../src/components/base-loading/spin/cube-spin.vue')['default']

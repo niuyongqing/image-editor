@@ -30,7 +30,8 @@ export function eliminate() {
             originY: "center",
         });
     }
-
+    const image = canvas.backgroundImage;
+    console.log(image)
     // 鼠标按下，开始记录路径
     canvas.on("mouse:down", function (e) {
         isMouseDown = true;
@@ -44,15 +45,14 @@ export function eliminate() {
             left: pointer.x,
             top: pointer.y,
         });
-        eraserCircle.set({
-            left: pointer.x,
-            top: pointer.y,
-        });
-        pointer.x = pointer.x.toFixed(0)
-        pointer.y = pointer.y.toFixed(0)
+
+        // todo 擦除偏移
+        pointer.x = (pointer.x - 50 ).toFixed(0)
+        pointer.y = (pointer.y - 150).toFixed(0)
         erasePath.push(pointer); // 添加初始点
         canvas.renderAll();
     });
+
 
     // 鼠标移动，记录路径
     canvas.on("mouse:move", function (e) {
@@ -62,8 +62,9 @@ export function eliminate() {
             left: pointer.x,
             top: pointer.y,
         });
-        pointer.x = pointer.x.toFixed(0)
-        pointer.y = pointer.y.toFixed(0)
+        // todo 擦除偏移
+        pointer.x = (pointer.x- 50).toFixed(0)
+        pointer.y = (pointer.y - 150).toFixed(0)
         erasePath.push(pointer); // 记录路径
         canvas.renderAll();
     });
