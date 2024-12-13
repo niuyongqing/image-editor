@@ -7,6 +7,7 @@ export const usePsStore = defineStore('ps', () => {
         canvasHeight:0,
         imgUrl:"",
     });
+
     return {
         FabricCanvas,
         FabricImage,

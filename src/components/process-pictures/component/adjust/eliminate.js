@@ -1,90 +1,107 @@
-import {usePsStore} from "~/stores/ps.js";
+import { usePsStore } from "~/stores/ps.js";
+import { ref } from "vue";
 import {Circle} from "fabric";
-import {ref} from 'vue'
+import {editEliminateApi} from "~/api/ps/eliminate.js";
+import {setBackgroundImage} from "~/components/process-pictures/component/painting/painting.js";
+import {undo} from "~/components/process-pictures/component/adjust/cropping.js";
+import {message} from "ant-design-vue"; // 使用 axios 发送请求
 
-const eraserSize = ref(50)
-const eraser = ref(null)
+const eraserSize = ref(50); // 橡皮擦大小
+let erasePath = []; // 擦除路径
+const historyImg = ref([])
 
-// 开始擦除
-export function eliminate(){
+export function eliminate() {
     const canvas = usePsStore().FabricCanvas.value;
 
-    // 开启擦除模式
-    let isErasing = false;
+    let eraserCircle; // 橡皮擦显示
+    let isMouseDown = false; // 是否按下鼠标
+
+    canvas.selection = false; // 禁用选择功能
+    canvas.defaultCursor = "none"; // 禁用鼠标样式
 
     // 创建橡皮擦工具
-    eraser.value = new Circle({
-        radius: eraserSize.value / 2,
-        fill: 'rgba(236,125,15,0.49)',
-        selectable: false,
-        evented: false
+    function createEraser() {
+        return new Circle({
+            radius: eraserSize.value / 2,
+            fill: "rgba(236,125,15,0.3)",
+            selectable: false,
+            evented: false,
+            originX: "center",
+            originY: "center",
+        });
+    }
+    const image = canvas.backgroundImage;
+    console.log(image)
+    // 鼠标按下，开始记录路径
+    canvas.on("mouse:down", function (e) {
+        isMouseDown = true;
+        erasePath = []; // 重置路径
+        const pointer = canvas.getPointer(e.e);
+        if (!eraserCircle) {
+            eraserCircle = createEraser();
+            canvas.add(eraserCircle);
+        }
+        eraserCircle.set({
+            left: pointer.x,
+            top: pointer.y,
+        });
+
+        // todo 擦除偏移
+        pointer.x = (pointer.x - 50 ).toFixed(0)
+        pointer.y = (pointer.y - 150).toFixed(0)
+        erasePath.push(pointer); // 添加初始点
+        canvas.renderAll();
     });
 
-    // 开启擦除模式
-    canvas.on('mouse:down', function(e) {
-        if (isErasing) {
-            // 获取鼠标位置并显示橡皮擦
-            const pointer = canvas.getPointer(e.e);
-            eraser.value.set({
-                left: pointer.x - eraserSize.value / 2,
-                top: pointer.y - eraserSize.value / 2
-            });
-            canvas.add(eraser.value);
-        }
+
+    // 鼠标移动，记录路径
+    canvas.on("mouse:move", function (e) {
+        if (!isMouseDown) return;
+        const pointer = canvas.getPointer(e.e);
+        eraserCircle.set({
+            left: pointer.x,
+            top: pointer.y,
+        });
+        // todo 擦除偏移
+        pointer.x = (pointer.x- 50).toFixed(0)
+        pointer.y = (pointer.y - 150).toFixed(0)
+        erasePath.push(pointer); // 记录路径
+        canvas.renderAll();
     });
 
-    // 在鼠标拖动时擦除
-    canvas.on('mouse:move', function(e) {
-        if (isErasing && e.pointer) {
-            const pointer = canvas.getPointer(e.e);
-            eraser.value.set({
-                left: pointer.x - eraserSize.value / 2,
-                top: pointer.y - eraserSize.value / 2
-            });
-
-            // 使用透明覆盖模拟擦除效果
-            const objects = canvas.getObjects();
-            objects.forEach(function(obj) {
-                if (obj !== eraser.value && obj.intersectsWithObject(eraser.value)) {
-                    // 获取擦除区域的颜色并填充
-                    const x = pointer.x;
-                    const y = pointer.y;
-                    const surroundingColor = getColorAt(x, y);
-                    // 填充擦除区域
-                    obj.set('fill', surroundingColor);  // 改变对象的填充颜色
-                }
-            });
-
-            canvas.renderAll();
+    // 鼠标抬起，发送路径到后端
+    canvas.on("mouse:up", function () {
+        if (!isMouseDown) return;
+        isMouseDown = false;
+        if(erasePath.length > 0){
+            sendErasePathToBackend(erasePath); // 调用发送函数
         }
-    });
-    canvas.on('mouse:up', function() {
-        if (isErasing) {
-            canvas.remove(eraser.value);
+        if (eraserCircle) {
+            canvas.remove(eraserCircle);
+            eraserCircle = null;
         }
-    });
-
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'e') {
-            isErasing = !isErasing;
-            if (isErasing) {
-                console.log('Eraser enabled');
-            } else {
-                console.log('Eraser disabled');
-            }
-        }
+        erasePath = []; // 清空路径
+        canvas.renderAll();
     });
 }
 
-// 获取指定位置的颜色（周围的颜色）
-function getColorAt(x, y) {
-    const canvas = usePsStore().FabricCanvas.value;
-    const pixels = canvas.contextContainer.getImageData(x, y, 1, 1).data;
-    return `rgb(${pixels[0]}, ${pixels[1]}, ${pixels[2]})`;
+// 将路径发送到后端
+function sendErasePathToBackend(path) {
+    historyImg.value.push(usePsStore().Props.value.imgUrl)
+    editEliminateApi({paths:path,eraseSize:eraserSize.value,imagePath:decodeURI(usePsStore().Props.value.imgUrl)}).then(async res => {
+        if (res.code === 200) {
+            console.log(historyImg)
+            undo();
+            usePsStore().Props.value.imgUrl = res.msg;
+            await setBackgroundImage();
+            eliminate()
+        } else {
+            message.error(res.msg);
+        }
+    })
 }
 
 // 更新橡皮擦大小
-function updateEraserSize(size) {
+export function updateEraserSize(size) {
     eraserSize.value = size;
-    eraser.value.set({ radius: eraserSize.value / 2 });
 }
