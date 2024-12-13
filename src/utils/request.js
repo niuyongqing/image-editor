@@ -37,6 +37,7 @@ function responseHandler(response) {
     if(response.data.code === 401){
        out()
     }
+    return Promise.reject('error')
     // return new Promise(resolve => setTimeout(resolve, 200))
   }
   return response.data
