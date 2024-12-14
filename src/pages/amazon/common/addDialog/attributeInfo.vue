@@ -12,6 +12,7 @@
         show: false
       }"
       @form-mounted="formMounted"
+      @change="formChange"
     ></VueForm>
   </div>
 </div>
@@ -21,7 +22,7 @@
 // import sechmaData from './sechma/TrainSets - 副本.json'
 // import sechmaData from './sechma/TrainSets.json'
 import VueForm from '@/assets/library/jsonScheam_v3_ant/vue3-form-ant.esm.min.js';
-import { ref, reactive, onMounted, computed, watchPostEffect, toRefs } from 'vue'
+import { ref, reactive, onMounted, computed, watchPostEffect, toRefs, watch } from 'vue'
 defineOptions({
   name: "AmazonAttributeInfo"
 })
@@ -31,17 +32,46 @@ const props = defineProps({
     type: Object,
     required: true,
     default: () => {}
+  },
+  attributeForm: {
+    type: Object,
+    default: () => {}
   }
-})
-let form = {};             // 取值对象
-let schemaData = props.schemaData
+});
+const emit = defineEmits(['update:attributeForm'])
+// watch(form, (val, oldVal) => {
+//   emit('update:attributeForm', val)
+// }, {
+//   deep: true
+// })
+watchPostEffect(() => {
+  schemaData.value = props.schemaData
+});
+let form = ref({});             // 取值对象
+let schemaData = ref({});
 let formRef = ref(null)
 function formMounted(ref, { formData }) {
   // console.log(ref, { formData });
   formRef.value = ref
 }
+function formChange() {
+  emit('update:attributeForm', form.value)
+}
+// 校验，暴露数据
+async function save() {
+  let obj = {
+    result: false,
+    params: form.value
+  }
+  try {
+    let res = await formRef.value.validateFields()
+    obj.result = true
+  } catch (error) {}
+  return obj
+}
 defineExpose({
-  formRef
+  formRef,
+  save
 })
 </script>
 <style lang="less" scoped>

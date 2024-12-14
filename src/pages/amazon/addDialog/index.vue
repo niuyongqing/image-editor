@@ -5,31 +5,38 @@
       :schema-data="baseData"
       class="baseInfoRef"
       ref="baseInfoRef"
+      @selectedProductType="selectedProductType"
     ></baseInfo>
-    <productInfo
-      :schema-data="productData"
-      class="productInfoRef"
-      ref="productInfoRef"
-    ></productInfo>
-    <descriptionInfo
-      :schema-data="descriptionData"
-      ref="descriptionInfoRef"
-    ></descriptionInfo>
-    <imageInfo></imageInfo>
-    <attributeInfo
-      :schema-data="attributeData"
-      class="attributeInfoRef"
-      ref="attributeInfoRef"
-    ></attributeInfo>
-    <offerInfo
-      :schema-data="offerData"
-      class="AmazonOfferInfoRef"
-      ref="AmazonOfferInfoRef"
-    ></offerInfo>
-    <div class="form-footer">
-      <a-button style="margin-right: 20px">取消</a-button>
-      <a-button type="primary" @click="sure">确定</a-button>
-    </div>
+    <a-spin :spinning="spinning">
+      <productInfo
+        :schema-data="productData"
+        v-model:productForm="productForm"
+        class="productInfoRef"
+        ref="productInfoRef"
+      ></productInfo>
+      <descriptionInfo
+        :schema-data="descriptionData"
+        v-model:descriptionForm="descriptionForm"
+        ref="descriptionInfoRef"
+      ></descriptionInfo>
+      <imageInfo></imageInfo>
+      <attributeInfo
+        :schema-data="attributeData"
+        v-model:attributeForm="attributeForm"
+        class="attributeInfoRef"
+        ref="attributeInfoRef"
+      ></attributeInfo>
+      <offerInfo
+        :schema-data="offerData"
+        v-model:offerForm="offerForm"
+        class="AmazonOfferInfoRef"
+        ref="offerInfoRef"
+      ></offerInfo>
+      <div class="form-footer">
+        <a-button style="margin-right: 20px">取消</a-button>
+        <a-button type="primary" @click="sure">确定</a-button>
+      </div>
+    </a-spin>
   </div>
   <div class="addDialog-anchor">
     <div
@@ -54,12 +61,14 @@ import offerInfo from '@/pages/amazon/common/addDialog/offerInfo.vue'
 import '@/assets/library/jsonScheam_v3_ant/style/baseForm.css'
 
 // import scheam from './TrainSets - 副本.json'
-import scheam from './TrainSets.json'
+// import scheam from './TrainSets.json'
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
+import { getJsonUrl, validateJson } from '@/pages/amazon/js/api/activeProduct'
+import axios from "axios";
 defineOptions({
   name: "addDialog"
 })
-let anchorList = [
+let anchorList = [    // 模块列表
   {
     key: 'AmazonBaseInfo',
     href: '#AmazonBaseInfo',
@@ -80,12 +89,86 @@ let anchorList = [
     href: '#AmazonOfferInfo',
     title: '价格信息',
   },
-]
+];
+const spinning = ref(false)
+let scheam = {}
+let _attributeData = {}     // 原始数据
+const jsonParams = ref({}); // 获取json链接的参数
 
-const _attributeData = JSON.parse(JSON.stringify(scheam))
+const baseInfoRef = ref()
+const productInfoRef = ref()
+const attributeInfoRef = ref()
+const descriptionInfoRef = ref()
+const offerInfoRef = ref()
+// console.log({attributeInfoRef});
+const baseData = ref()
+const productData = ref()
+const descriptionData = ref()
+const attributeData = ref()
+const offerData = ref()
+
+const finalParams = ref({});    // 收集到的全部json参数
+const productForm = ref({})
+const descriptionForm = ref({})
+const attributeForm = ref({})
+const offerForm = ref({})
+
+watchPostEffect(() => {
+  finalParams.value = {
+    ...descriptionForm.value,
+    ...productForm.value,
+    ...attributeForm.value,
+    ...offerForm.value,
+  }
+  let jsonStr = JSON.stringify(finalParams.value)
+  // validateJsonFn(jsonStr)
+})
+// 校验必填属性
+async function validateJsonFn(val) {
+  console.log({val});
+  
+  if (val === '{}') return;
+  let data = {
+    productType: jsonParams.value.productType,
+    content: finalParams.value
+  }
+  console.log({data});
+  
+  let res = await validateJson(data)
+  let final = res.data
+  let keyList = final.map(i => {
+    return i.arguments[0]
+  })
+  console.log({ keyList });
+  let arr = Object.keys(_attributeData.properties)
+  arr.forEach(key => {
+    if (!keyList.includes(key)) {
+      delete _attributeData.properties[key]
+    }
+  })
+  // 赋值
+  productData.value = setAttributeData(productIdentityList).data
+  descriptionData.value = setAttributeData(descriptionList).data
+  attributeData.value = getDetails()
+  offerData.value = setAttributeData(offerList).data
+  return final
+}
+// 选中属性
+async function selectedProductType(val) {
+  jsonParams.value = val
+  spinning.value = true
+  let urlRes = await getJsonUrl(val)
+  let url = urlRes.data || ''
+  // console.log({ url });
+  let res = await axios.get(url)
+  scheam = res.data
+  _attributeData = JSON.parse(JSON.stringify(scheam))
+  await validateJsonFn()
+  spinning.value = false
+}
 // 获取数据
 function copyData() {
-  return JSON.parse(JSON.stringify(scheam))
+  return JSON.parse(JSON.stringify(_attributeData))
 }
 // _attributeData.required.forEach(item => {
 //   delete _attributeData.properties[item]
@@ -131,43 +214,29 @@ let offerList = [                 // 报价
   'Merchant Shipping Group',
   'Maximum Order Quantity'
 ]
-const baseInfoRef = ref()
-const productInfoRef = ref()
-const attributeInfoRef = ref()
-// console.log({attributeInfoRef});
-const baseData = ref(
-  setAttributeData(productIdentityList).data
-)
-const productData = ref(
-  setAttributeData(productIdentityList).data
-)
-const descriptionData = ref(
-  setAttributeData(descriptionList).data
-)
-const attributeData = ref(
-  getDetails()
-  // setAttributeData(offerList).data
-)
-const offerData = ref(
-  setAttributeData(offerList).data
-)
+// 跳转对应模块
 function toHref(href) {
   document.querySelector(href).scrollIntoView({
     behavior: 'smooth'
   })
 }
-function sure() {
-  baseInfoRef.value.formRef.validateFields().then(res => {
-    console.log(res);
-    
-  }).catch(err => {
-    console.log(err);
-    
-  }).finally(() => {
-    console.log(333);
-    
-  });
-  
+// 校验
+async function sure() {
+  let {result:offerResult, params: offerParams} = await offerInfoRef.value.save()
+  let {result:productResult, params: productParams} = await productInfoRef.value.save()
+  let {result:attributeResult, params: attributeParams} = await attributeInfoRef.value.save()
+  let {result:descriptionResult, params: descriptionParams} = await descriptionInfoRef.value.save()
+  console.log({ offerResult, productResult, attributeResult, descriptionResult });
+  let flag = (offerResult && productResult && attributeResult && descriptionResult)
+  if (!flag) return;
+  finalParams.value = {
+    ...offerParams,
+    ...productParams,
+    ...attributeParams,
+    ...descriptionParams
+  }
+  let final = await validateJsonFn()
+  console.log({final});
 }
 // 找出对应属性
 function filterType(title, data) {
@@ -266,6 +335,7 @@ function handleFormItem(data, requiredList) {
   display: flex;
   // display: flex;
   .main-content {
+    width: 100%;
     .form-footer {
       margin-top: 20px;
       display: flex;

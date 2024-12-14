@@ -12,6 +12,7 @@
         show: false
       }"
       @form-mounted="formMounted"
+      @change="formChange"
     ></VueForm>
   </div>
 </div>
@@ -29,17 +30,44 @@ const props = defineProps({
     type: Object,
     required: true,
     default: () => {}
+  },
+  offerForm: {
+    type: Object,
+    default: () => {}
   }
-})
-let form = {};             // 取值对象
-let schemaData = props.schemaData
+});
+watchPostEffect(() => {
+  schemaData.value = props.schemaData;
+});
+const emit = defineEmits(['update:offerForm'])
+let form = ref({});             // 取值对象
+let schemaData = ref({});
 let formRef = ref(null)
 function formMounted(ref, { formData }) {
   // console.log(ref, { formData });
   formRef.value = ref
 }
+function formChange(val) {
+  emit('update:productForm', form.value)
+}
+// 校验，暴露数据
+async function save() {
+  let obj = {
+    result: false,
+    params: form.value
+  }
+  try {
+    let res = await formRef.value.validateFields()
+    obj.result = true
+  } catch (error) {
+    console.log({error});
+    
+  }
+  return obj
+}
 defineExpose({
-  formRef
+  formRef,
+  save
 })
 </script>
 <style lang="less" scoped>

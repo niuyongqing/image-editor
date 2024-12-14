@@ -35,3 +35,20 @@ export function getProductTypes(data) {
     data: data
   })
 }
+// 获取json链接
+export function getJsonUrl(data) {
+  return request({
+    url: '/platform-amazon/platform/amazon/product/type/attributes',
+    method: 'post',
+    data: data
+  })
+}
+// 校验属性
+// 获取json链接
+export function validateJson(data) {
+  return request({
+    url: '/platform-amazon/platform/amazon/product/validate',
+    method: 'post',
+    data: data
+  })
+}
