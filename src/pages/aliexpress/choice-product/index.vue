@@ -3,6 +3,57 @@
   <div class="choice-product">
     <!-- 搜索区 -->
     <a-card>
+      <a-descriptions :column="1">
+        <a-descriptions-item label="店铺账号">
+          <TiledSelect
+            v-model:value="searchForm.sellerId"
+            :options="accountList"
+            :field-names="{ label: 'simpleName', value: 'sellerId' }"
+          />
+        </a-descriptions-item>
+        <a-descriptions-item label="搜索类型">
+          <TiledSelect
+            v-model:value="searchForm.prop"
+            :options="searchPropOptions"
+            :append-all="false"
+          />
+        </a-descriptions-item>
+        <a-descriptions-item label="搜索内容">
+          <a-space>
+            <a-textarea
+              v-model:value="searchForm.content"
+              :placeholder="placeholderEnum[searchForm.prop]"
+              :auto-size="{ minRows: 1, maxRows: 5 }"
+              class="w-[400px]"
+            ></a-textarea>
+            <a-button
+              type="primary"
+              @click="search"
+              >查询</a-button
+            >
+            <a-button
+              type="link"
+              @click="isFold = !isFold"
+              >高级搜索</a-button
+            >
+          </a-space>
+        </a-descriptions-item>
+        <a-descriptions-item label="备货类型">
+          <TiledSelect
+            v-model:value="searchForm.productType"
+            :options="productTypeOptions"
+          />
+        </a-descriptions-item>
+        <a-descriptions-item label="排序类型">
+          <TiledSelectSort
+            v-model:value="searchForm.order"
+            v-model:sortType="searchForm.sortType"
+            :options="sortTypeOptions"
+          />
+        </a-descriptions-item>
+      </a-descriptions>
+    </a-card>
+    <!-- <a-card>
       <a-form
         layout="inline"
         ref="searchFormRef"
@@ -104,7 +155,7 @@
           >
         </a-form-item>
       </a-form>
-    </a-card>
+    </a-card> -->
     <!-- TABLE 区 -->
     <a-card
       style="margin: 10px"
@@ -420,16 +471,37 @@
   import { CopyOutlined, InfoCircleOutlined, EditOutlined } from '@ant-design/icons-vue'
   import { message } from 'ant-design-vue'
   import EmptyImg from '@/assets/images/aliexpress/empty.png'
+  import TiledSelect from '~/components/tiled-select/index.vue'
+  import TiledSelectSort from '~/components/tiled-select-sort/index.vue'
 
   export default {
     name: 'ChoiceProduct',
-    components: { CopyOutlined, InfoCircleOutlined, EditOutlined },
+    components: { CopyOutlined, InfoCircleOutlined, EditOutlined, TiledSelect, TiledSelectSort },
     mixins: [mixinTable],
     data() {
       return {
         store: useAliexpressChoiceProductStore(),
         EmptyImg,
         accountList: [],
+        searchPropOptions: [
+          { label: '标题', value: 'productName' },
+          { label: '商品编码', value: 'skuCode' },
+          { label: '产品ID', value: 'productIds' }
+        ],
+        placeholderEnum: {
+          productName: '标题',
+          skuCode: '商品编码',
+          productIds: '产品ID; 支持批量，举例：ID1,ID2,ID3'
+        },
+        productTypeOptions: [
+          { label: '国内履约', value: '1' },
+          { label: '海外备货', value: '2', disabled: true }
+        ],
+        sortTypeOptions: [
+          { label: '按创建时间', value: '1' },
+          { label: '按更新时间', value: '2' }
+        ],
+        isFold: true, // 高级搜索状态 折叠/展开
         searchForm: {
           sellerId: undefined,
           productIds: undefined,
@@ -439,7 +511,10 @@
           createTime: null,
           updateTime: null,
           prop: undefined,
-          order: undefined
+          content: undefined,
+          order: undefined,
+          sortType: undefined,
+          productType: undefined
         },
         DEFAULT_TABLE_COLUMN,
         tableCode: 'ChoiceProduct',
@@ -521,8 +596,6 @@
             this.accountList = res.data.accountDetail || []
             if (this.accountList.length === 0) {
               this.$alert('当前账号没有配置店铺, 请前往「账号配置」添加, 或联系管理员', '提示')
-            } else {
-              this.searchForm.sellerId = this.accountList[0].sellerId
             }
           })
           .finally(() => {
