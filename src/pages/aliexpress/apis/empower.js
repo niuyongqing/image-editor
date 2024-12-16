@@ -41,7 +41,7 @@ export function remarkApi(params) {
 
 // 前往授权
 export function shopUrlApi(params) {
-  return usePost('/platform-aliexpress/platform/aliexpress/shop/url', params)
+  return useGet('/platform-aliexpress/platform/aliexpress/shop/url', params)
 }
 
 // 修改品类
@@ -57,4 +57,14 @@ export function editForbidSaleApi(params) {
 // 修改是否自动刊登
 export function editAutoPublishApi(params) {
   return usePost('/platform-aliexpress/platform/aliexpress/shop/edit/autoPublish', params)
+}
+
+// 上传表格批量修改简称
+export function editSimpleNameBatchApi(params) {
+  return usePost('/platform-aliexpress/platform/aliexpress/shop/import-simple', params, { headers: { 'Content-Type': 'multipart/form-data' } })
+}
+
+// 上传表格批量修改仓库
+export function editMeansKeepGrainBatchApi(params) {
+  return usePost('/platform-aliexpress/platform/aliexpress/shop/import-meansKeepGrain', params, { headers: { 'Content-Type': 'multipart/form-data' } })
 }

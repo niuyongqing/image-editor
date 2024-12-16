@@ -35,11 +35,30 @@
       </a-form>
     </a-card>
     <a-card class="m-2.5 text-left">
-      <a-space class="mb-2.5">
-        <a-button type="primary">授权</a-button>
-        <a-button type="primary">批量修改简称</a-button>
-        <a-button type="primary">批量修改仓库</a-button>
-        <a-button type="primary">导出</a-button>
+      <a-space
+        v-has-permi="['system:platform:aliexpress:accredit']"
+        class="mb-2.5"
+      >
+        <a-button
+          type="primary"
+          @click="empower"
+          >授权</a-button
+        >
+        <a-button
+          type="primary"
+          @click="simpleNameModalOpen = true"
+          >批量修改简称</a-button
+        >
+        <a-button
+          type="primary"
+          @click="meansKeepGrainModalOpen = true"
+          >批量修改仓库</a-button
+        >
+        <a-button
+          type="primary"
+          @click="exportFile"
+          >导出</a-button
+        >
       </a-space>
 
       <a-table
@@ -62,16 +81,19 @@
           <template v-if="column.title === '品类'">
             <a-select
               v-model:value="record.classify"
+              v-if="hasPermi"
               allow-clear
               class="w-full"
               placeholder="请选择"
               :options="CLASSIFY_OPTIONS"
               @change="editShopTable($event, 'classify', record)"
             ></a-select>
+            <span v-else>{{ text }}</span>
           </template>
           <template v-if="column.title === '禁售属性'">
             <a-select
               v-model:value="record.forbidSale"
+              v-if="hasPermi"
               class="w-full"
               allow-clear
               mode="multiple"
@@ -81,10 +103,12 @@
               :filter-option="(input, option) => option.attributes.toLowerCase().indexOf(input.toLowerCase()) >= 0"
               @change="editShopTable($event, 'forbidSale', record)"
             ></a-select>
+            <span v-else>{{ text && text.map(id => forbidSaleOptions.find(item => item.id === id)?.attributes).join() }}</span>
           </template>
           <template v-if="column.title === '自动刊登'">
             <a-switch
               v-model:checked="record.autoPublish"
+              :disabled="!hasPermi"
               checked-value="1"
               un-checked-value="2"
               @change="editShopTable($event, 'autoPublish', record)"
@@ -93,41 +117,118 @@
           <template v-if="column.title === '仓库'">
             <a-select
               v-model:value="record.meansKeepGrain"
+              v-if="hasPermi"
               allow-clear
               class="w-full"
               placeholder="请选择"
               :options="WAREHOUSE_LIST"
               @change="edit('meansKeepGrain', record)"
             ></a-select>
+            <span v-else>{{ text && WAREHOUSE_LIST.find(item => item.value === text).label }}</span>
           </template>
           <template v-if="column.title === '简称'">
             <a-input
               v-model:value="record.simpleName"
+              v-if="hasPermi"
               placeholder="请输入"
               @blur="edit('simpleName', record)"
             />
+            <span v-else>{{ text }}</span>
           </template>
           <template v-if="column.title === '别名'">
             <a-input
               v-model:value="record.alias"
+              v-if="hasPermi"
               placeholder="请输入"
               @blur="edit('alias', record)"
             />
+            <span v-else>{{ text }}</span>
           </template>
           <template v-if="column.title === '备注'">
             <a-input
               v-model:value="record.remark"
+              v-if="hasPermi"
               placeholder="请输入"
               @blur="edit('remark', record)"
             />
+            <span v-else>{{ text }}</span>
           </template>
         </template>
       </a-table>
     </a-card>
+
+    <!-- 批量修改简称弹窗 -->
+    <a-modal
+      title="批量修改简称"
+      v-model:open="simpleNameModalOpen"
+      :confirm-loading="simpleNameConfirmLoading"
+      :after-close="handleSimpleNameModalClose"
+      @ok="simpleNameOk"
+    >
+      <div>示例:</div>
+      <div class="content">
+        <a-table
+          :columns="[{ title: '店铺ID' }, { title: '店铺简称' }]"
+          :data-source="Array.from({ length: 4 }, (_, i) => i + 1)"
+          :pagination="false"
+        >
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.title === '店铺ID'">{{ '100' + record }}</template>
+            <template v-if="column.title === '店铺简称'">{{ 'AliExpress-0' + record }}</template>
+          </template>
+        </a-table>
+        <div class="mt-4">上传文件:</div>
+        <a-upload
+          :file-list="fileList"
+          accept=".xlsx, .xlsm, .xls"
+          :before-upload="beforeUpload"
+        >
+          <a-button>
+            <UploadOutlined />
+            选择 Excel
+          </a-button>
+        </a-upload>
+      </div>
+    </a-modal>
+
+    <!-- 批量修改仓库弹窗 -->
+    <a-modal
+      title="批量修改仓库类型"
+      v-model:open="meansKeepGrainModalOpen"
+      :confirm-loading="meansKeepGrainConfirmLoading"
+      :after-close="handleMeansKeepGrainModalClose"
+      @ok="meansKeepGrainOk"
+    >
+      <div>示例:</div>
+      <div class="content">
+        <a-table
+          :columns="[{ title: '店铺ID' }, { title: '仓库类型' }]"
+          :data-source="Array.from({ length: 4 }, (_, i) => i + 1)"
+          :pagination="false"
+        >
+          <template #bodyCell="{ column, record, index }">
+            <template v-if="column.title === '店铺ID'">{{ '100' + record }}</template>
+            <template v-if="column.title === '仓库类型'">{{ ['总仓', '馨拓靓仓(配饰,服饰类)', '菲律宾本土仓', '馨拓美仓(美妆类)'][index] }}</template>
+          </template>
+        </a-table>
+        <div class="mt-4">上传文件:</div>
+        <a-upload
+          :file-list="fileList"
+          accept=".xlsx, .xlsm, .xls"
+          :before-upload="beforeUpload"
+        >
+          <a-button>
+            <UploadOutlined />
+            选择 Excel
+          </a-button>
+        </a-upload>
+      </div>
+    </a-modal>
   </div>
 </template>
 
 <script setup>
+  import { checkPermi, checkRole } from '~/utils/permission/component/permission.js'
   import {
     forbidSaleApi,
     shopListApi,
@@ -140,16 +241,39 @@
     shopUrlApi,
     editClassifyApi,
     editForbidSaleApi,
-    editAutoPublishApi
+    editAutoPublishApi,
+    editSimpleNameBatchApi,
+    editMeansKeepGrainBatchApi
   } from '../apis/empower.js'
   import { DEFAULT_TABLE_COLUMN, CLASSIFY_OPTIONS, WAREHOUSE_LIST } from './config.js'
   import dayjs from 'dayjs'
   import { message } from 'ant-design-vue'
+  import download from '@/api/common/download'
+  import { UploadOutlined } from '@ant-design/icons-vue'
+
+  // 授权后重定向到本页, 接收路由参数
+  const route = useRoute()
+  const router = useRouter()
+  const code = route.query.code
+
+  if (code) {
+    empowerApi({ code })
+      .then(res => {
+        message.success('授权成功')
+        getList()
+        router.push({ query: {} })
+      })
+      .catch(() => {
+        message.error('授权失败')
+      })
+  }
 
   onMounted(() => {
     getList()
     getForbidSale()
   })
+
+  const hasPermi = computed(() => checkPermi(['system:platform:aliexpress:accredit']) || checkRole('admin'))
 
   const searchFormRef = ref()
   const searchForm = ref({
@@ -251,7 +375,7 @@
         message.success('修改成功')
       })
       .catch(err => {
-        message.warning('失败' + err)
+        message.warning(err)
       })
   }
 
@@ -276,8 +400,93 @@
         }
       })
       .catch(err => {
-        message.warning('失败' + err)
+        message.warning(err)
         getList()
       })
+  }
+
+  /** 授权 */
+  function empower() {
+    shopUrlApi().then(res => {
+      // window.open(res.msg)
+      location.href = res.msg
+    })
+  }
+
+  /** 批量修改简称 */
+  const simpleNameModalOpen = ref(false)
+  const simpleNameConfirmLoading = ref(false)
+  const fileList = ref([])
+
+  function beforeUpload(file, list) {
+    fileList.value = list
+    return false
+  }
+
+  function handleSimpleNameModalClose() {
+    fileList.value = []
+    simpleNameModalOpen.value = false
+  }
+
+  // 确认 上传
+  function simpleNameOk() {
+    if (fileList.value.length === 0) {
+      message.warning('请上传文件')
+      return
+    }
+
+    // 手动上传
+    simpleNameConfirmLoading.value = true
+    const formData = new FormData()
+    fileList.value.forEach(file => {
+      formData.append('file', file)
+    })
+    editSimpleNameBatchApi(formData)
+      .then(res => {
+        getList()
+      })
+      .finally(() => {
+        simpleNameConfirmLoading.value = false
+      })
+    handleSimpleNameModalClose()
+  }
+
+  /** 批量修改仓库 */
+  const meansKeepGrainModalOpen = ref(false)
+  const meansKeepGrainConfirmLoading = ref(false)
+
+  function handleMeansKeepGrainModalClose() {
+    fileList.value = []
+    meansKeepGrainModalOpen.value = false
+  }
+
+  function meansKeepGrainOk() {
+    if (fileList.value.length === 0) {
+      message.warning('请上传文件')
+      return
+    }
+
+    // 手动上传
+    meansKeepGrainConfirmLoading.value = true
+    const formData = new FormData()
+    fileList.value.forEach(file => {
+      formData.append('file', file)
+    })
+    editMeansKeepGrainBatchApi(formData)
+      .then(res => {
+        getList()
+      })
+      .finally(() => {
+        meansKeepGrainConfirmLoading.value = false
+      })
+    handleMeansKeepGrainModalClose()
+  }
+
+  // 导出
+  function exportFile() {
+    exportApi().then(res => {
+      message.success('下载任务已开始！请耐心等待完成')
+      download.name(res.msg)
+    })
   }
 </script>
