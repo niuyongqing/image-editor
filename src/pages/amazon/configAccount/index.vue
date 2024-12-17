@@ -153,8 +153,6 @@ const loading = ref(false);
 const showAddModal = ref(false);
 const showEditModal = ref(false);
 const total = ref(0);
-const tableHeight = ref(0);
-const deptTableContainer = ref(null);
 const paginations = reactive({
   pageNum: 1,
   pageSize: 50,

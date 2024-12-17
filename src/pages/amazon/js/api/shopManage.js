@@ -44,3 +44,11 @@ export function shopList(data) {
     data: data
   })
 }
+
+//禁售属性
+export function meansAttribute() {
+  return request({
+    url: '/commodity-manage/commodity/means-public/forbid-sale',
+    method: 'get',
+  })
+}

@@ -1,15 +1,6 @@
 <template>
   <div>
-    <a-modal :open="props.showModal" title="授权" @ok="handleOk">
-      <template #footer>
-        <a-button key="back" @click="handleCancel">关闭</a-button>
-        <a-button
-          key="submit"
-          type="primary"
-          @click="handleOk"
-          >确定</a-button
-        >
-      </template>
+    <a-modal :open="props.showModal" title="授权" @cancel="handleCancel" @ok="handleOk">
       <a-select
         ref="select"
         v-model:value="shopVal"

@@ -4,7 +4,9 @@
       :open="props.showEditModal"
       title="新增"
       @cancel="handleCancel"
-      :footer="null"
+      @ok="onSubmit"
+      :maskClosable="false"
+      :keyboard="false"
     >
       <a-form ref="formRef" :model="formState" :rules="rules">
         <a-form-item ref="name" label="店铺：" required name="shopId">
@@ -19,22 +21,6 @@
           ></a-select>
         </a-form-item>
         <a-form-item label="用户：" required name="userId">
-          <!-- <a-select
-            ref="shopSelect"
-            v-model:value="formState.userId"
-            show-search
-            placeholder="请输入用户"
-            style="width: 400px"
-            mode="multiple"
-            :default-active-first-option="false"
-            :show-arrow="false"
-            :filter-option="false"
-            :not-found-content="null"
-            :fieldNames="userLabels"
-            :options="userOptions"
-            @search="handleSearchUser"
-            @change="handleChangeUser"
-          ></a-select> -->
           <a-select
             ref="shopSelect"
             v-model:value="formState.userId"
@@ -55,15 +41,6 @@
             :options="depOptions"
             :fieldNames="depLabels"
           ></a-cascader>
-        </a-form-item>
-
-        <a-form-item :wrapper-col="{ span: 14, offset: 4 }">
-          <a-button type="primary" :loading="okType" @click="onSubmit"
-            >确定</a-button
-          >
-          <a-button style="margin-left: 10px" @click="handleCancel"
-            >重置</a-button
-          >
         </a-form-item>
       </a-form>
     </a-modal>

@@ -106,7 +106,7 @@
       <div>
         <a-select
           ref="shopSelect"
-          style="width: 80px; margin-right: 10px"
+          style="width: 120px; margin-right: 10px"
           v-model:value="searchType"
           :options="searchList"
         ></a-select>

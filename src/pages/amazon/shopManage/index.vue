@@ -72,6 +72,38 @@
           onChange,
         }"
       >
+      <template #bodyCell="{ column, text, record }">
+          <div v-if="column.key == 'classify'">
+            <a-select
+              v-model:value="record.classify"
+              style="width: 100%"
+              :options="classifyList"
+              @change="editSimpleName(record)"
+            ></a-select>
+          </div>
+          <div v-if="column.key == 'forbidSale'">
+            <a-select
+              mode="multiple"
+              show-search
+              style="width: 100%"
+              :max-tag-count="2"
+              v-model:value="record.forbidSale"
+              :options="forbidSaleList"
+              :filter-option="filterOption"
+              @change="editSimpleName(record)"
+            ></a-select>
+          </div>
+          <div v-if="column.key == 'autoPublish'">
+            <a-switch
+              v-model:checked="record.autoPublish"
+              checked-children="开"
+              un-checked-children="关"
+              :checkedValue="1"
+              :unCheckedValue="0"
+              @change="editSimpleName(record)"
+            />
+          </div>
+        </template>
       </a-table>
       <a-pagination
         style="margin-top: 20px;text-align: right"
@@ -100,16 +132,19 @@
 
 <script setup name="shopManage">
 import { ref, reactive, onMounted, onUnmounted, watchPostEffect } from "vue";
-import { shopList, delShop } from "@/pages/amazon/js/api/shopManage.js";
+import { shopList, delShop,meansAttribute,editShop } from "@/pages/amazon/js/api/shopManage.js";
 import tableHead from "@/pages/amazon/js/tableHead/shopManage";
 import shopManageAdd from "@/pages/amazon/shopManage/common/shopManageAdd.vue";
 import shopManageEdit from "@/pages/amazon/shopManage/common/shopManageEdit.vue";
+import commodityType from "~/pages/amazon/config/commodityType.js";
 import { message } from "ant-design-vue";
 const formRef = ref();
 const formState = reactive({
   shopName: "",
   simpleName: "",
 });
+const classifyList = commodityType;
+const forbidSaleList = ref([]);
 const columns = tableHead;
 const loading = ref(false);
 const showAddModal = ref(false);
@@ -140,8 +175,11 @@ const getList = () => {
   loading.value = true;
   shopList(params)
     .then((res) => {
-      tableData.value = res.data.rows;
-      paginations.total = res.data.total ? res.data.total : 0;
+      tableData.value = res?.data?.rows.map(item =>{
+            item.forbidSale = item.forbidSale ? item.forbidSale.split(',').map((value) => { return Number(value) }) : []
+            return item
+          }) || [];
+      paginations.total = res?.data?.total ? res.data.total : 0;
     })
     .finally(() => {
       loading.value = false;
@@ -166,9 +204,48 @@ const resetForm = () => {
   formRef.value.resetFields();
   onSubmit();
 };
+// 获取品类
+const getMeansAttribute = () => {
+  meansAttribute().then((res) => {
+    forbidSaleList.value =
+      res?.data.map((item) => {
+        return {
+          label: item.attributes,
+          value: item.id,
+        };
+      }) || [];
+  });
+};
+// 修改简称、别名、备注
+const editSimpleName = (row) => {
+  console.log("row", row);
 
+  if (row.classify || row.forbidSale || row.autoPublish) {
+    const { id, classify, forbidSale, autoPublish,shopName,areaEnName,marketplaces,simpleName} = row;
+    const params = {
+      id,
+      classify,
+      forbidSale: forbidSale ? forbidSale.join(",") : "",
+      autoPublish,
+      shopName,
+      areaEnName,
+      marketplaces,
+      simpleName
+    };
+    editShop(params).then((res) => {
+      message.success(res.msg);
+    }).finally(() => {
+      getList();
+    });
+  }
+};
+
+const filterOption = (input, option) => {
+  return option.label.indexOf(input) >= 0;
+};
 onMounted(() => {
   getList();
+  getMeansAttribute();
 });
 </script>
 <style lang="less" scoped>
