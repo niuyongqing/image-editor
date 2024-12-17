@@ -18,25 +18,160 @@
             :append-all="false"
           />
         </a-descriptions-item>
-        <a-descriptions-item label="搜索内容">
-          <a-space>
-            <a-textarea
+        <a-descriptions-item
+          label="搜索内容"
+          :content-style="{ 'flex-direction': 'column' }"
+        >
+          <a-space align="start">
+            <SearchContentInput
               v-model:value="searchForm.content"
+              :hide-control="['productName'].includes(searchForm.prop)"
               :placeholder="placeholderEnum[searchForm.prop]"
-              :auto-size="{ minRows: 1, maxRows: 5 }"
-              class="w-[400px]"
-            ></a-textarea>
+            />
             <a-button
               type="primary"
               @click="search"
-              >查询</a-button
+              >搜索</a-button
             >
             <a-button
               type="link"
-              @click="isFold = !isFold"
+              @click="toggleFold"
               >高级搜索</a-button
             >
           </a-space>
+          <a-form
+            v-show="!isFold"
+            ref="extendSearchFormRef"
+            :model="extendSearchForm"
+            :label-col="{ style: { width: '130px' } }"
+            class="mt-4 p-3 bg-[--pro-ant-color-primary-bg]"
+          >
+            <a-form-item
+              name="category"
+              label="产品分类"
+            >
+              <a-cascader
+                v-model:value="extendSearchForm.category"
+                :options="[]"
+                expand-trigger="hover"
+                placeholder="请选择"
+              />
+            </a-form-item>
+            <a-form-item
+              name="reason"
+              label="审核不通过原因"
+            >
+              <a-select
+                v-model:value="extendSearchForm.reason"
+                placeholder="请选择"
+                allow-clear
+                :options="[]"
+              >
+              </a-select>
+            </a-form-item>
+            <a-form-item
+              name="withVideo"
+              label="视频筛选"
+            >
+              <a-select
+                v-model:value="extendSearchForm.withVideo"
+                placeholder="请选择"
+                allow-clear
+                :options="withVideoOpions"
+              >
+              </a-select>
+            </a-form-item>
+            <a-form-item
+              name="rules"
+              label="合规内容"
+            >
+              <a-select
+                v-model:value="extendSearchForm.rules"
+                placeholder="请选择"
+                allow-clear
+                :options="[]"
+              >
+              </a-select>
+            </a-form-item>
+            <a-form-item
+              name="gpsr"
+              label="欧盟GPSR合规标签"
+            >
+              <a-select
+                v-model:value="extendSearchForm.gpsr"
+                placeholder="请选择"
+                allow-clear
+                :options="gpsrOpions"
+              >
+              </a-select>
+            </a-form-item>
+            <a-form-item
+              name="brand"
+              label="品牌"
+            >
+              <a-select
+                v-model:value="extendSearchForm.brand"
+                placeholder="请选择"
+                allow-clear
+                :options="[]"
+              >
+              </a-select>
+            </a-form-item>
+            <a-form-item
+              name="remark"
+              label="备注"
+            >
+              <a-select
+                v-model:value="extendSearchForm.remark"
+                placeholder="请选择"
+                allow-clear
+                :options="remarkOpions"
+              >
+              </a-select>
+            </a-form-item>
+            <a-form-item
+              name="createTime"
+              label="创建时间："
+            >
+              <a-range-picker
+                v-model:value="extendSearchForm.createTime"
+                :disabled-date="cur => cur > Date.now()"
+                allow-clear
+              >
+              </a-range-picker>
+            </a-form-item>
+            <a-form-item
+              name="updateTime"
+              label="编辑时间："
+            >
+              <a-range-picker
+                v-model:value="extendSearchForm.updateTime"
+                :disabled-date="cur => cur > Date.now()"
+                allow-clear
+              >
+              </a-range-picker>
+            </a-form-item>
+
+            <a-form-item class="text-right">
+              <a-space>
+                <a-button
+                  type="link"
+                  @click="foldExtendSearch"
+                  >取消</a-button
+                >
+                <a-button
+                  type="link"
+                  @click="resetExtendSearchForm"
+                  >重置</a-button
+                >
+                <a-button
+                  type="primary"
+                  @click="extendSearch"
+                  >搜索</a-button
+                >
+              </a-space>
+            </a-form-item>
+          </a-form>
         </a-descriptions-item>
         <a-descriptions-item label="备货类型">
           <TiledSelect
@@ -53,109 +188,6 @@
         </a-descriptions-item>
       </a-descriptions>
     </a-card>
-    <!-- <a-card>
-      <a-form
-        layout="inline"
-        ref="searchFormRef"
-        :model="searchForm"
-      >
-        <a-form-item
-          name="sellerId"
-          label="店铺："
-        >
-          <a-select
-            v-model:value="searchForm.sellerId"
-            placeholder="请选择店铺"
-            show-search
-            allow-clear
-            :options="accountList"
-            :field-names="{ label: 'simpleName', value: 'sellerId' }"
-            :filter-option="filterOption"
-            style="width: 200px; text-align: left"
-          >
-          </a-select>
-        </a-form-item>
-        <a-form-item
-          name="productIds"
-          label="商品ID："
-        >
-          <a-textarea
-            v-model:value="searchForm.productIds"
-            placeholder="支持批量，举例：ID1,ID2,ID3"
-            :auto-size="{ minRows: 1, maxRows: 5 }"
-            style="width: 200px"
-          ></a-textarea>
-        </a-form-item>
-        <a-form-item
-          name="productName"
-          label="商品标题："
-        >
-          <a-input
-            v-model:value="searchForm.productName"
-            placeholder="商品标题"
-            style="width: 200px"
-          />
-        </a-form-item>
-        <a-form-item
-          name="skuCode"
-          label="SKU编码："
-        >
-          <a-input
-            v-model:value="searchForm.skuCode"
-            placeholder="SKU编码"
-            style="width: 200px"
-          />
-        </a-form-item>
-        <a-form-item
-          name="productStatus"
-          label="状态："
-        >
-          <a-select
-            v-model:value="searchForm.productStatus"
-            placeholder="请选择状态"
-            allow-clear
-            :options="statusOptions"
-            style="width: 200px; text-align: left"
-          >
-          </a-select>
-        </a-form-item>
-        <a-form-item
-          name="createTime"
-          label="创建时间："
-        >
-          <a-range-picker
-            v-model:value="searchForm.createTime"
-            :disabled-date="cur => cur > Date.now()"
-            allow-clear
-          >
-          </a-range-picker>
-        </a-form-item>
-        <a-form-item
-          name="updateTime"
-          label="编辑时间："
-        >
-          <a-range-picker
-            v-model:value="searchForm.updateTime"
-            :disabled-date="cur => cur > Date.now()"
-            allow-clear
-          >
-          </a-range-picker>
-        </a-form-item>
-
-        <a-form-item>
-          <a-button
-            type="primary"
-            @click="search"
-            >查询</a-button
-          >
-          <a-button
-            class="ml-[10px]"
-            @click="reset"
-            >重置</a-button
-          >
-        </a-form-item>
-      </a-form>
-    </a-card> -->
     <!-- TABLE 区 -->
     <a-card
       style="margin: 10px"
@@ -468,15 +500,16 @@
   import { copyText } from '@/utils'
   import { accountCache } from '../apis/account'
   import { listApi, syncListApi, syncOneApi, syncProgressApi, detailApi, queryStockApi, editStockApi, stockRuleApi, copyToDraftApi } from '../apis/choice-product'
-  import { CopyOutlined, InfoCircleOutlined, EditOutlined } from '@ant-design/icons-vue'
+  import { CopyOutlined, InfoCircleOutlined, EditOutlined, UpSquareOutlined, DownSquareOutlined } from '@ant-design/icons-vue'
   import { message } from 'ant-design-vue'
   import EmptyImg from '@/assets/images/aliexpress/empty.png'
   import TiledSelect from '~/components/tiled-select/index.vue'
   import TiledSelectSort from '~/components/tiled-select-sort/index.vue'
+  import SearchContentInput from '~/components/search-content-input/index.vue'
 
   export default {
     name: 'ChoiceProduct',
-    components: { CopyOutlined, InfoCircleOutlined, EditOutlined, TiledSelect, TiledSelectSort },
+    components: { CopyOutlined, InfoCircleOutlined, EditOutlined, UpSquareOutlined, DownSquareOutlined, TiledSelect, TiledSelectSort, SearchContentInput },
     mixins: [mixinTable],
     data() {
       return {
@@ -502,6 +535,18 @@
           { label: '按更新时间', value: '2' }
         ],
         isFold: true, // 高级搜索状态 折叠/展开
+        // 高级搜索表单
+        extendSearchForm: {
+          category: undefined,
+          reason: undefined,
+          withVideo: undefined,
+          rules: undefined,
+          gpsr: undefined,
+          brand: undefined,
+          remark: undefined,
+          createTime: null,
+          updateTime: null
+        },
         searchForm: {
           sellerId: undefined,
           productIds: undefined,
@@ -510,7 +555,7 @@
           productStatus: undefined,
           createTime: null,
           updateTime: null,
-          prop: undefined,
+          prop: 'productName',
           content: undefined,
           order: undefined,
           sortType: undefined,
@@ -530,6 +575,18 @@
           { label: '审核中', value: 'PENDING_APPROVAL' },
           { label: '审核不通过', value: 'VIOLATION_QC_FAILED' },
           { label: '已下架', value: 'OFFLINE' }
+        ],
+        withVideoOpions: [
+          { label: '有视频的产品', value: '1' },
+          { label: '无视频的产品', value: '2' }
+        ],
+        gpsrOpions: [
+          { label: '未上传', value: '1' },
+          { label: '已上传', value: '2' }
+        ],
+        remarkOpions: [
+          { label: '有备注', value: '1' },
+          { label: '无备注', value: '2' }
         ],
         query: {},
         // 编辑库存相关
@@ -583,10 +640,39 @@
         return this.stockTable[0] && this.stockTable[0].skuPropertyList ? this.stockTable[0].skuPropertyList.map(property => property.skuPropertyName) : []
       }
     },
+    watch: {
+      searchForm: {
+        handler: function () {
+          // this.getList()
+        },
+        deep: true
+      }
+    },
     mounted() {
       this.getAccountList()
     },
     methods: {
+      toggleFold() {
+        if (this.isFold) {
+          this.isFold = false
+        } else {
+          this.foldExtendSearch()
+        }
+      },
+      // 高级搜索重置
+      resetExtendSearchForm() {
+        this.$refs.extendSearchFormRef.resetFields()
+        this.extendSearchForm.createTime = null
+        this.extendSearchForm.updateTime = null
+      },
+      // 收起高级搜索
+      foldExtendSearch() {
+        this.resetExtendSearchForm()
+        this.isFold = true
+      },
+      extendSearch() {
+        console.log('ExtendSearch')
+      },
       filterOption(input, option) {
         return option.simpleName.toLowerCase().indexOf(input.toLowerCase()) >= 0
       },
@@ -895,6 +981,7 @@
 
 <style lang="less" scoped>
   .choice-product {
+    text-align: left;
     .btns {
       display: flex;
       justify-content: space-between;
