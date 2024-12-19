@@ -60,7 +60,7 @@
 
 <script setup name='addAccountConfig'>
 import { ref, reactive, onMounted, computed, watch } from "vue";
-import { ozonAccount, editAccount } from "@/pages/ozon/api/accountConfig";
+import { ozonAccount, editAccount } from "@/pages/ozon/config/api/accountConfig";
 import { message } from "ant-design-vue";
 const props = defineProps({
   showEdit: Boolean,

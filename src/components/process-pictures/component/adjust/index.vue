@@ -5,8 +5,9 @@
       <a-card class="card" style="background-color: #ebeef5;cursor: pointer;margin-bottom: 20px" @click="select(item)">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div style="text-align: left;">
-            <async-icon :icon="item.icon" size="15px"></async-icon>
-            <span style="margin-left: 5px">{{item.title}}</span>
+            <div v-if="item.icon.includes('<svg')" v-html="item.icon" style="display: inline-block; vertical-align: middle; line-height: 1;"></div>
+            <async-icon :icon="item.icon" size="15px" v-else></async-icon>
+            <span style="margin-left: 5px" :style="{color: item.select?DefaultSetting.colorPrimary:''}">{{item.title}}</span>
           </div>
           <div style="text-align: right;">
             <async-icon v-show="item.select" :icon="selectNotChick" size="15px"></async-icon>
@@ -14,219 +15,51 @@
           </div>
         </div>
       </a-card>
-      <div  v-show="item.id === 1 && item.select" class="border">
-        <div style="display: flex; flex-wrap: wrap; gap: 5px;padding: 0;margin:5px">
-          <a-card v-for="chi in item.children" :key="chi.id" :style="{backgroundColor:chi.select?'#ffffff':'#f7f8fa', cursor: 'pointer', width: '100px'}"  class="card-hover" @click="selectChildren(chi,item.children)">
-            <div style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
-              <async-icon v-if="chi.icon && !chi.icon.includes('<svg')" :icon="chi.icon" size="15px"></async-icon>
-              <div v-html="chi.icon" v-else></div>
-              <span style="font-size: 13px">{{chi.title}}</span>
-            </div>
-          </a-card>
-        </div>
-      </div>
-      <div v-show="item.id === 1 && item.select" style="margin-bottom: 10px">
-        <div style="display: inline;height: 50px">
-          <a-input-number :controls="false" @change="updateRectanglePositionXFunc" v-model:value="xRef" style="right: 5px" prefix="W"/>
-          <async-icon icon="ApiOutlined" size="15px"></async-icon>
-          <a-input-number :controls="false" @change="updateRectanglePositionYFunc" v-model:value="yRef" style="left: 5px" prefix="H"/>
-        </div>
-        <div style="display: flex;gap: 30px;margin-top: 5px;justify-content: center">
-          <a-tooltip>
-            <template #title>顺时针旋转90°</template>
-            <async-icon icon="RedoOutlined" size="25px" @click="rotate(90)"></async-icon>
-          </a-tooltip>
-          <a-tooltip>
-            <template #title>逆时针旋转90°</template>
-            <async-icon icon="UndoOutlined" size="25px" @click="rotate(-90)"></async-icon>
-          </a-tooltip>
-          <a-tooltip>
-            <template #title>垂直翻转</template>
-            <div style="cursor: pointer" @click="flipImage('vertical')"><svg t="1733569966535" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6379" width="25" height="25"><path d="M213.333333 554.666667H128v-85.333334h85.333333v85.333334z m632.661334-384a42.666667 42.666667 0 0 1-18.218667 34.986666l-291.328 203.904a42.666667 42.666667 0 0 1-48.896 0l-291.328-203.946666A42.666667 42.666667 0 0 1 220.672 128h582.656a42.666667 42.666667 0 0 1 42.666667 42.666667z m0 682.666666a42.666667 42.666667 0 0 1-37.717334 42.368l-4.949333 0.298667H220.672a42.666667 42.666667 0 0 1-28.629333-74.24l4.181333-3.413333 291.328-203.904a42.666667 42.666667 0 0 1 43.861333-3.029334l5.034667 3.029334 291.328 203.946666a42.666667 42.666667 0 0 1 18.218667 34.944zM384 554.666667H298.666667v-85.333334h85.333333v85.333334z m320.896-358.4H307.2L512 335.957333l192.896-139.605333zM554.666667 554.666667h-85.333334v-85.333334h85.333334v85.333334z m170.666666 0h-85.333333v-85.333334h85.333333v85.333334z m170.666667 0h-85.333333v-85.333334h85.333333v85.333334z" fill="#2c2c2c" p-id="6380"></path></svg></div>
-          </a-tooltip>
-          <a-tooltip>
-            <template #title>水平翻转</template>
-            <div  style="cursor: pointer"  @click="flipImage('horizontal')"> <svg t="1733569875407" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6121" width="25" height="25"><path d="M554.666667 810.666667v85.333333h-85.333334v-85.333333h85.333334zM170.666667 178.005333a42.666667 42.666667 0 0 1 34.986666 18.218667l203.904 291.328a42.666667 42.666667 0 0 1 0 48.896l-203.946666 291.328A42.666667 42.666667 0 0 1 128 803.328V220.672a42.666667 42.666667 0 0 1 42.666667-42.666667z m682.666666 0a42.666667 42.666667 0 0 1 42.368 37.717334l0.298667 4.949333v582.656a42.666667 42.666667 0 0 1-74.24 28.629333l-3.413333-4.181333-203.904-291.328a42.666667 42.666667 0 0 1-3.029334-43.861333l3.029334-5.034667 203.946666-291.328A42.666667 42.666667 0 0 1 853.333333 178.005333zM554.666667 640v85.333333h-85.333334v-85.333333h85.333334zM196.266667 319.104V716.8L335.957333 512 196.309333 319.104zM554.666667 469.333333v85.333334h-85.333334v-85.333334h85.333334z m0-170.666666v85.333333h-85.333334V298.666667h85.333334z m0-170.666667v85.333333h-85.333334V128h85.333334z" fill="#2c2c2c" p-id="6122"></path></svg></div>
-          </a-tooltip>
-        </div>
-        <div style="margin-top: 5px;display: flex;flex-wrap: wrap;gap: 5px;justify-content: center">
-          <a-popconfirm title="确定要应用吗？" @confirm="saveCroppedImage">
-            <a-button  type="primary">应 用</a-button>
-          </a-popconfirm>
-          <a-button @click="undo">还 原</a-button>
-        </div>
-      </div>
-      <div v-show="item.id === 2 && item.select" style="margin-bottom: 10px">
-        <div style="overflow: auto;overflow-x: hidden;height: 300px;" class="border">
-          <div style="width: 188px; height: 40px; background-color: #ebeef5; margin: 5px; border-radius: 10px" v-for="chi in item.children" :key="chi.id" :style="{ border: chi.select ? `2px solid ${setting.colorPrimary}` : 'none' }" @click="selectResize(chi, item.children)">
-          <div style="font-size: 12px; color: #363637; display: flex; align-items: center; justify-content: space-between; height: 100%; margin-left: 5px; margin-right: 10px; cursor: pointer">
-            <span>{{ chi.title }}</span>
-            <async-icon  v-if="chi.icon" :icon="chi.icon" size="15px"></async-icon>
-          </div>
-        </div>
-        </div>
-      </div>
+      <cropping-template :item="item" @select="select" @select-children="selectChildren" v-if="cur === 1"></cropping-template>
+      <resize-template :item="item" @select="select" @select-children="selectChildren" v-if="cur === 2"></resize-template>
+      <eliminate-template :item="item" @select="select" @select-children="selectChildren" v-if="cur === 3"></eliminate-template>
     </div>
   </div>
 </div>
 </template>
 <script lang="js" setup>
-// 裁剪
+// 调整
 import {ref} from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
-import setting from "~/config/default-setting.js"
-import {
-  Cropping,
-  updateRectanglePositionX,
-  updateRectanglePositionY,
-  xRef,
-  yRef,
-  saveCroppedImage,
-  undo, toRatio,
-  rotate, flipImage,
-} from "~/components/process-pictures/component/adjust/cropping.js";
+import CroppingTemplate from "~/components/process-pictures/component/adjust/cropping-template.vue";
+import ResizeTemplate from "~/components/process-pictures/component/adjust/resize-template.vue";
+import {undo} from "~/components/process-pictures/component/adjust/cropping.js";
+import DefaultSetting from "~/config/default-setting.js";
+const element = ref([
+  {id: 1, title: '裁剪/旋转', icon:'<svg t="1734074198972" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="22185" width="20" height="20"><path d="M600.6 842H232c-16.4 0-29.7-13.3-29.7-29.7V211.7c0-16.4 13.3-29.7 29.7-29.7h482.4c16.4 0 29.7 13.3 29.7 29.7v484L600.6 842z" fill="#68A240" p-id="22186"></path><path d="M602.9 847.5H232c-19.4 0-35.2-15.8-35.2-35.2V211.7c0-19.4 15.8-35.2 35.2-35.2h482.4c19.4 0 35.2 15.8 35.2 35.2V698L602.9 847.5zM232 187.5c-13.3 0-24.2 10.8-24.2 24.2v600.7c0 13.3 10.8 24.2 24.2 24.2h366.3l140.3-143V211.7c0-13.3-10.8-24.2-24.2-24.2H232z" fill="#333336" p-id="22187"></path><path d="M314.3 777.4h-51.1v-45.1c0-2.2 1.8-4 4-4s4 1.8 4 4v37.1h43.1c2.2 0 4 1.8 4 4s-1.8 4-4 4zM599.5 842h-11V690.2h155.6v11H599.5z" fill="#333336" p-id="22188"></path><path d="M168.5 360.5V709c0 6.1 5 11.1 11.1 11.1h348.5c10.9 0 16.4-13.2 8.7-20.9L189.4 351.8c-7.7-7.7-20.9-2.2-20.9 8.7z m75.1 155.7l131.1 131.1H243.6V516.2z" fill="#FFD632" p-id="22189"></path><path d="M528.1 725.6H179.6c-9.1 0-16.6-7.4-16.6-16.6V360.5c0-7.3 4.2-13.6 11-16.4 6.8-2.8 14.2-1.3 19.3 3.8l347.3 347.3c5.2 5.2 6.6 12.6 3.8 19.3-2.7 6.9-9 11.1-16.3 11.1zM180.9 353.7c-1.2 0-2.2 0.3-2.7 0.5-1 0.4-4.2 2.1-4.2 6.2V709c0 3.1 2.5 5.6 5.6 5.6h348.5c4.2 0 5.8-3.2 6.2-4.2 0.4-1 1.5-4.4-1.5-7.4L185.5 355.7c-1.5-1.5-3.2-2-4.6-2zM388 652.8H238.1V503L388 652.8z m-138.9-11h112.3L249.1 529.5v112.3z" fill="#333336" p-id="22190"></path><path d="M201.6 420.7h-30.5c-3 0-5.5-2.5-5.5-5.5s2.5-5.5 5.5-5.5h30.5c3 0 5.5 2.5 5.5 5.5s-2.4 5.5-5.5 5.5zM189.9 461.7h-18.8c-3 0-5.5-2.5-5.5-5.5s2.5-5.5 5.5-5.5h18.8c3 0 5.5 2.5 5.5 5.5s-2.5 5.5-5.5 5.5zM201.6 502.7h-30.5c-3 0-5.5-2.5-5.5-5.5s2.5-5.5 5.5-5.5h30.5c3 0 5.5 2.5 5.5 5.5s-2.4 5.5-5.5 5.5zM189.9 543.8h-18.8c-3 0-5.5-2.5-5.5-5.5s2.5-5.5 5.5-5.5h18.8c3 0 5.5 2.5 5.5 5.5s-2.5 5.5-5.5 5.5zM201.6 584.8h-30.5c-3 0-5.5-2.5-5.5-5.5s2.5-5.5 5.5-5.5h30.5c3 0 5.5 2.5 5.5 5.5s-2.4 5.5-5.5 5.5zM189.9 625.8h-18.8c-3 0-5.5-2.5-5.5-5.5s2.5-5.5 5.5-5.5h18.8c3 0 5.5 2.5 5.5 5.5s-2.5 5.5-5.5 5.5z" fill="#333336" p-id="22191"></path><path d="M201.6 666.9h-30.5c-3 0-5.5-2.5-5.5-5.5s2.5-5.5 5.5-5.5h30.5c3 0 5.5 2.5 5.5 5.5s-2.4 5.5-5.5 5.5z" fill="#333336" p-id="22192"></path><path d="M572.5 401.1c28 41.9 14.4 68.6 1.2 85.4-30.4 38.4-34.7 90.8 0 125.5s90.8 34.7 125.5 0c33.7-33.7 34.6-87.8 2.7-122.6L593 380.5l-20.5 20.6z m94.1 178.6c-16.7 16.7-43.8 16.7-60.5 0-16.7-16.7-16.7-43.8 0-60.5s43.8-16.7 60.5 0c16.8 16.6 16.8 43.7 0 60.5z" fill="#FFD632" p-id="22193"></path><path d="M636.4 643.4c-25.2 0-48.8-9.8-66.6-27.6-17.6-17.6-26.6-40.2-26-65.3 0.6-23.3 9.6-47.3 25.6-67.4 24.7-31.2 12.2-58.6-1.4-78.9l-2.5-3.8 27.7-27.7 112.9 112.9c34.1 37.3 32.9 94.5-2.9 130.2-18 17.8-41.6 27.6-66.8 27.6z m-56.9-241.6c30 48.2 6.4 78.1-1.5 88.1-30.8 39-31 87.6-0.4 118.2 15.7 15.7 36.6 24.4 58.9 24.4 22.2 0 43.1-8.7 58.9-24.4 31.6-31.6 32.7-82 2.6-114.9L593 388.3l-13.5 13.5z m56.9 195.9c-12.4 0-24.7-4.7-34.1-14.1-18.8-18.8-18.8-49.5 0-68.3 18.8-18.8 49.5-18.8 68.3 0 18.8 18.8 18.8 49.5 0 68.3-9.5 9.4-21.8 14.1-34.2 14.1z m0-85.6c-9.5 0-19.1 3.6-26.4 10.9-14.5 14.5-14.5 38.2 0 52.7s38.2 14.5 52.7 0 14.5-38.2 0-52.7c-7.2-7.3-16.8-10.9-26.3-10.9z" fill="#333336" p-id="22194"></path><path d="M598 375.5l108.8 108.8c34.8 31.9 88.9 31 122.6-2.7 34.7-34.7 34.7-90.8 0-125.5s-87-30.4-125.5 0c-16.7 13.2-43.5 26.8-85.4-1.2L598 375.5z m138.7 73.6c-16.7-16.7-16.7-43.8 0-60.5s43.8-16.7 60.5 0c16.7 16.7 16.7 43.8 0 60.5s-43.8 16.7-60.5 0z" fill="#FFD632" p-id="22195"></path><path d="M766.7 513.2c-22.7 0-45.5-8.2-63.6-24.8l-0.2-0.2-112.7-112.7 27.7-27.7 3.8 2.5c38.8 25.9 62.5 14.4 78.9 1.4 20.2-15.9 44.1-25 67.4-25.6 25.2-0.6 47.7 8.4 65.3 26 17.8 17.8 27.6 41.5 27.6 66.6 0 25.2-9.8 48.8-27.6 66.6-18.3 18.6-42.4 27.9-66.6 27.9z m-56-32.8c32.9 30.1 83.4 28.9 114.9-2.6 15.7-15.7 24.4-36.6 24.4-58.9 0-22.2-8.7-43.1-24.4-58.9-30.6-30.6-79.2-30.4-118.2 0.4-6.3 5-20.6 16.3-42.5 16.3-12.7 0-27.9-3.8-45.5-14.8l-13.6 13.6 104.9 104.9z m56.2-13.3c-12.4 0-24.7-4.7-34.2-14.1-18.8-18.8-18.8-49.5 0-68.3 18.8-18.8 49.5-18.8 68.3 0 18.8 18.8 18.8 49.5 0 68.3-9.3 9.4-21.7 14.1-34.1 14.1z m0-85.5c-9.6 0-19.1 3.6-26.4 10.9-14.5 14.5-14.5 38.2 0 52.7s38.2 14.5 52.7 0 14.5-38.2 0-52.7c-7.2-7.3-16.7-10.9-26.3-10.9z" fill="#333336" p-id="22196"></path><path d="M536.246493 378.736335a193 42.2 44.999 1 0 59.678771-59.680854 193 42.2 44.999 1 0-59.678771 59.680854Z" fill="#FFD632" p-id="22197"></path><path d="M693.1 494.1c-12.4 0-30.7-7.7-54.5-23-31.7-20.4-69.4-51.8-106.2-88.5-36.7-36.7-68.2-74.4-88.5-106.2-22.3-34.8-28.4-57.7-18.1-67.9 10.3-10.3 33.1-4.2 67.9 18.1 31.7 20.3 69.4 51.8 106.2 88.5 36.7 36.7 68.2 74.4 88.5 106.2 22.3 34.8 28.4 57.7 18.1 67.9-3.3 3.3-7.7 4.9-13.4 4.9z m-254-279.4c-2.6 0-4.5 0.5-5.6 1.7-2.4 2.4-2.2 8.5 0.5 16.8 3.1 9.8 9.8 22.8 19.2 37.4 19.9 31.1 50.8 68.1 87 104.3s73.2 67.1 104.3 87c14.7 9.4 27.6 16 37.4 19.2 8.3 2.6 14.4 2.8 16.8 0.5 2.4-2.4 2.2-8.5-0.5-16.8-3.1-9.8-9.8-22.8-19.2-37.4-19.9-31.1-50.8-68.1-87-104.3s-73.2-67.1-104.3-87c-14.7-9.4-27.6-16-37.4-19.2-4.4-1.5-8.2-2.2-11.2-2.2z" fill="#333336" p-id="22198"></path><path d="M560.791378 375.716354a21.5 21.5 0 1 0 30.405061-30.406122 21.5 21.5 0 1 0-30.405061 30.406122Z" fill="#68A240" p-id="22199"></path><path d="M576 387.5c-7.2 0-14-2.8-19.1-7.9-10.5-10.5-10.5-27.6 0-38.1s27.6-10.5 38.1 0c5.1 5.1 7.9 11.9 7.9 19.1 0 7.2-2.8 14-7.9 19.1-5 5-11.8 7.8-19 7.8z m0-43c-4.1 0-8.2 1.6-11.3 4.7-6.2 6.2-6.2 16.4 0 22.6 3 3 7 4.7 11.3 4.7 4.3 0 8.3-1.7 11.3-4.7s4.7-7 4.7-11.3c0-4.3-1.7-8.3-4.7-11.3-3.1-3.1-7.2-4.7-11.3-4.7z" fill="#333336" p-id="22200"></path><path d="M267.2 297.6c-2.2 0-4-1.8-4-4v-45.1h51.1c2.2 0 4 1.8 4 4s-1.8 4-4 4h-43.1v37.1c0 2.2-1.8 4-4 4zM680.4 297.6c-2.2 0-4-1.8-4-4v-37.1h-43.1c-2.2 0-4-1.8-4-4s1.8-4 4-4h51.1v45.1c0 2.2-1.8 4-4 4z" fill="#333336" p-id="22201"></path></svg>', select:false},
+  {id: 2, title: '调整尺寸', select:false, icon:'<svg t="1734074156316" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="17628" width="20" height="20"><path d="M938.666667 512c0-235.648-191.018667-426.666667-426.666667-426.666667S85.333333 276.352 85.333333 512s191.018667 426.666667 426.666667 426.666667 426.666667-191.018667 426.666667-426.666667z" fill="#F46B69" p-id="17629"></path><path d="M663.168 685.909333L341.333333 364.074667l45.226667-45.226667 321.834667 321.792-45.226667 45.226667z" fill="#FFFFFF" p-id="17630"></path><path d="M514.133333 682.666667a32 32 0 0 1 32-32H640a10.666667 10.666667 0 0 0 10.666667-10.666667v-93.866667a32 32 0 0 1 64 0V640A74.666667 74.666667 0 0 1 640 714.666667h-93.866667a32 32 0 0 1-32-32zM509.866667 341.333333a32 32 0 0 1-32 32H384a10.666667 10.666667 0 0 0-10.666667 10.666667v93.866667a32 32 0 0 1-64 0V384c0-41.216 33.450667-74.666667 74.666667-74.666667h93.866667a32 32 0 0 1 32 32z" fill="#FFFFFF" p-id="17631"></path></svg>'},
+  {id: 3, title: '消除笔', select:false, icon:'<svg t="1734074114169" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="14417" width="20" height="20"><path d="M562.85 92.74c-11.16 0-21.97 4.32-30.61 12.6L100.11 537.47c-8.28 8.28-12.6 19.45-12.6 30.61 0 198.78 161.33 360.11 360.11 360.11 11.16 0 21.97-4.32 30.61-12.6l432.13-432.13c8.28-8.28 12.6-19.45 12.6-30.61 0-198.78-161.33-360.11-360.11-360.11z" fill="#949BA6" p-id="14418"></path><path d="M817.45 198.25l-10.44 10.44c7.92 7.92 12.6 18.73 12.6 30.61 0 7.56-2.16 14.76-5.76 20.89 41.41 53.3 65.9 120.28 65.9 192.66L447.62 884.98c-158.45 0-290.25-117.04-313.3-269.36-18.37-4.68-32.41-21.61-32.41-41.77h-14.4C90.75 770.11 250.64 928.2 447.62 928.2c11.16 0 21.97-4.32 30.61-12.6l432.13-432.13c8.28-8.28 12.6-19.45 12.6-30.61 0-99.4-40.33-189.43-105.51-254.61z" fill="#717582" p-id="14419"></path><path d="M172.165 465.65l287.987-287.988 378.13 378.128-287.989 287.988z" fill="#FFC600" p-id="14420"></path><path d="M519.583 812.774l287.988-287.988 30.554 30.554-287.988 287.988z" fill="#FFA100" p-id="14421"></path><path d="M253.52 479.86c-3.6 0-7.2-1.44-10.08-4.32-5.76-5.76-5.76-14.76 0-20.53l206.7-206.7c5.76-5.76 14.76-5.76 20.53 0 5.76 5.76 5.76 14.76 0 20.53l-206.7 206.7c-2.89 2.88-6.49 4.32-10.45 4.32z" fill="#FFEEB2" p-id="14422"></path><path d="M145.13 588.25c-3.6 0-7.2-1.44-10.08-4.32-5.76-5.76-5.76-14.76 0-20.53l27.01-27.01c5.76-5.76 14.76-5.76 20.53 0 5.76 5.76 5.76 14.76 0 20.53l-27.01 27.01c-2.89 3.24-6.85 4.32-10.45 4.32zM541.61 191.77c-3.6 0-7.2-1.44-10.08-4.32-5.76-5.76-5.76-14.76 0-20.53l27.01-27.01c2.88-2.88 6.48-4.32 10.44-4.32 19.81 0.36 39.97 2.88 59.78 6.84 7.92 1.8 12.6 9.36 11.16 16.93-1.8 7.92-9.36 12.6-16.93 11.16-16.2-3.24-32.05-5.4-48.25-6.12l-22.69 22.69c-2.88 3.24-6.48 4.68-10.44 4.68zM776.76 253.35c-3.6 0-7.2-1.44-10.08-4.32-12.96-12.96-27.73-25.21-43.57-35.65-6.48-4.32-8.28-13.32-3.96-20.17 4.32-6.48 13.32-8.28 20.17-3.96a315.58 315.58 0 0 1 47.89 39.25c5.76 5.76 5.76 14.76 0 20.53-3.25 2.88-6.85 4.32-10.45 4.32z" fill="#DFE1E4" p-id="14423"></path><path d="M680.25 174.12m-14.4 0a14.4 14.4 0 1 0 28.8 0 14.4 14.4 0 1 0-28.8 0Z" fill="#DFE1E4" p-id="14424"></path><path d="M562.85 78.33c-15.48 0-29.89 6.12-40.69 16.93L90.03 527.39c-10.8 10.8-16.93 25.21-16.93 40.69 0 206.34 168.17 374.51 374.51 374.51 15.48 0 29.89-6.12 40.69-16.93l432.13-432.13c10.8-10.8 16.93-25.21 16.93-40.69 0.01-206.34-168.16-374.51-374.51-374.51z m-94.71 827.18c-5.4 5.4-12.6 8.28-20.53 8.28-190.5 0-345.71-155.21-345.71-345.71 0-7.56 2.88-14.76 8.28-20.53l61.94-61.94L529.71 843.2l-61.57 62.31z m82.11-82.47L192.66 465.45l267.56-267.56 357.59 357.59-267.56 267.56z m350.03-349.67l-61.94 61.94-357.59-357.59 61.94-61.94c5.4-5.4 12.6-8.28 20.53-8.28 190.5 0 345.71 155.21 345.71 345.71-0.37 7.2-3.25 14.4-8.65 20.16z" fill="#090418" p-id="14425"></path><path d="M345.35 455.37c-5.76-5.76-14.76-5.76-20.53 0s-5.76 14.76 0 20.53l214.99 214.99c2.88 2.88 6.48 4.32 10.08 4.32 3.6 0 7.2-1.44 10.08-4.32 5.76-5.76 5.76-14.76 0-20.53L345.35 455.37zM429.61 452.49c-5.76-5.76-14.76-5.76-20.53 0-5.76 5.76-5.76 14.76 0 20.53l133.6 133.6c2.88 2.88 6.48 4.32 10.08 4.32 3.6 0 7.2-1.44 10.08-4.32 5.76-5.76 5.76-14.76 0-20.53l-133.23-133.6zM450.14 330.05c-5.76 5.76-5.76 14.76 0 20.53l92.91 92.91c2.88 2.88 6.48 4.32 10.08 4.32 3.6 0 7.2-1.44 10.08-4.32 5.76-5.76 5.76-14.76 0-20.53l-92.91-92.91c-5.4-5.4-14.76-5.4-20.16 0zM665.12 565.56c2.88 2.88 6.48 4.32 10.08 4.32 3.6 0 7.2-1.44 10.08-4.32 5.76-5.76 5.76-14.76 0-20.53l-40.69-40.69c-5.76-5.76-14.76-5.76-20.53 0-5.76 5.76-5.76 14.76 0 20.53l41.06 40.69z" fill="#090418" p-id="14426"></path><path d="M593.82 474.09m-14.4 0a14.4 14.4 0 1 0 28.8 0 14.4 14.4 0 1 0-28.8 0Z" fill="#090418" p-id="14427"></path><path d="M420.61 814.76m-14.4 0a14.4 14.4 0 1 0 28.8 0 14.4 14.4 0 1 0-28.8 0Z" fill="#090418" p-id="14428"></path><path d="M87.51 779.47m-14.4 0a14.4 14.4 0 1 0 28.8 0 14.4 14.4 0 1 0-28.8 0Z" fill="#090418" p-id="14429"></path><path d="M120.28 826.64m-14.4 0a14.4 14.4 0 1 0 28.8 0 14.4 14.4 0 1 0-28.8 0Z" fill="#090418" p-id="14430"></path><path d="M158.81 869.14m-14.4 0a14.4 14.4 0 1 0 28.8 0 14.4 14.4 0 1 0-28.8 0Z" fill="#090418" p-id="14431"></path><path d="M838.34 636.86m-14.4 0a14.4 14.4 0 1 0 28.8 0 14.4 14.4 0 1 0-28.8 0Z" fill="#090418" p-id="14432"></path><path d="M879.03 596.17m-14.4 0a14.4 14.4 0 1 0 28.8 0 14.4 14.4 0 1 0-28.8 0Z" fill="#090418" p-id="14433"></path><path d="M787.56 667.47l-206.7 206.7c-5.76 5.76-5.76 14.76 0 20.53 2.88 2.88 6.48 4.32 10.08 4.32 3.6 0 7.2-1.44 10.08-4.32L807.73 688c5.76-5.76 5.76-14.76 0-20.53-5.76-5.76-14.77-5.76-20.17 0zM531.52 472.65c-5.76-5.76-14.76-5.76-20.53 0s-5.76 14.76 0 20.53l113.07 113.07c2.88 2.88 6.48 4.32 10.08 4.32 3.6 0 7.2-1.44 10.08-4.32 5.76-5.76 5.76-14.76 0-20.53l-112.7-113.07zM470.3 452.49c2.88 2.88 6.48 4.32 10.08 4.32s7.2-1.44 10.08-4.32c5.76-5.76 5.76-14.76 0-20.53l-61.22-61.22c-5.76-5.76-14.76-5.76-20.53 0-5.76 5.76-5.76 14.76 0 20.53l61.59 61.22z" fill="#090418" p-id="14434"></path></svg>'},
+  {id: 4, title: '色彩调节', icon:'<svg t="1734074073602" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="7476" width="20" height="20"><path d="M311.224 428.616V40.96C186.696 93.99 87.406 195.29 36.936 321.096l274.286 274.286 0.002-166.766z" fill="#AFE164" p-id="7477"></path><path d="M428.616 311.22L702.904 36.936C643.84 13.164 579.474 0 512 0c-71.314 0-139.154 14.628-200.776 40.96v387.656L428.616 311.22z" fill="#D7E664" p-id="7478"></path><path d="M983.04 311.22H595.384l117.394 117.396 274.286 274.286C1010.836 643.84 1024 579.474 1024 512c0-71.314-14.628-139.154-40.96-200.78z" fill="#FFAA64" p-id="7479"></path><path d="M712.776 595.384V983.04c124.526-53.03 223.816-154.33 274.286-280.136L712.776 428.616v166.768z" fill="#FF6469" p-id="7480"></path><path d="M595.384 712.776L321.096 987.064C380.16 1010.834 444.526 1024 512 1024c71.316 0 139.154-14.628 200.776-40.96V595.384L595.384 712.776z" fill="#C3B4FA" p-id="7481"></path><path d="M428.616 712.776H40.96c53.03 124.526 154.33 223.816 280.136 274.286l274.286-274.286H428.616z" fill="#7DD2F0" p-id="7482"></path><path d="M311.224 595.384L36.936 321.096C13.164 380.16 0 444.526 0 512c0 71.314 14.628 139.154 40.96 200.776h387.656L311.224 595.384z" fill="#7DE6C3" p-id="7483"></path><path d="M595.384 311.22H983.04C930.01 186.696 828.71 87.404 702.904 36.936L428.616 311.22h166.768z" fill="#FFE669" p-id="7484"></path></svg>', select:false},
+  {id: 5, title: '颜色叠加', icon:'<svg t="1734074044884" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6247" width="20" height="20"><path d="M700.809181 773.884759v187.072271c0 22.865013-18.708523 41.573536-41.573535 41.573535H376.551156c-22.865013 0-41.573536-18.708523-41.573536-41.573535v-187.072271" fill="#EB5252" p-id="6248"></path><path d="M334.97762 208.51146V58.856236C334.97762 35.991224 353.686143 17.2827 376.551156 17.2827h282.68449c22.865013 0 41.573536 18.708523 41.573535 41.573536V208.515781" fill="#B9ED74" p-id="6249"></path><path d="M334.97762 208.51146h365.831561v178.759291H334.97762z" fill="#FFFF00" p-id="6250"></path><path d="M334.97762 387.270751h365.831561v182.91146H334.97762z" fill="#FFBF00" p-id="6251"></path><path d="M334.97762 570.186532h365.831561v203.702548H334.97762z" fill="#FF7F00" p-id="6252"></path><path d="M517.893401 892.936641m-37.412726 0a37.412726 37.412726 0 1 0 74.825452 0 37.412726 37.412726 0 1 0-74.825452 0Z" fill="#FFFFFF" p-id="6253"></path></svg>', select:false},
+  {id: 6, title: '滤镜', icon:'<svg t="1734074225546" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="23372" width="20" height="20"><path d="M258.896999 822.251751a213.333333 213.333333 0 1 0 213.333333-369.504172 213.333333 213.333333 0 1 0-213.333333 369.504172Z" fill="#93A8FF" p-id="23373"></path><path d="M402.665751 573.672072a213.333333 213.333333 0 1 0 213.333333-369.504172 213.333333 213.333333 0 1 0-213.333333 369.504172Z" fill="#2953FF" p-id="23374"></path><path d="M550.038865 824.467915a213.333333 213.333333 0 1 0 213.333333-369.504172 213.333333 213.333333 0 1 0-213.333333 369.504172Z" fill="#FCCA1E" p-id="23375"></path></svg>', select:false},
+  {id: 7, title: '马赛克', icon:'<svg t="1734074246963" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="24532" width="20" height="20"><path d="M153.6 0m209.152 0l452.096 0q209.152 0 209.152 209.152l0 452.096q0 209.152-209.152 209.152l-452.096 0q-209.152 0-209.152-209.152l0-452.096q0-209.152 209.152-209.152Z" fill="#FFE1E1" p-id="24533"></path><path d="M0 716.8v153.6h153.6v-153.6H0z m153.6 307.2h153.6v-153.6H153.6v153.6z m460.8 0v-153.6h-153.6v153.6h153.6zM0 409.6v153.6h153.6v-153.6H0z m307.2 307.2v153.6h153.6v-153.6h-153.6z m0-153.6H153.6v153.6h153.6v-153.6z m153.6-153.6h-153.6v153.6h153.6v-153.6z m153.6 307.2v-153.6h-153.6v153.6h153.6z" fill="#F55651" p-id="24534"></path></svg>', select:false},
+  {id: 8, title: '标尺', icon:'<svg t="1734074274350" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="25626" width="20" height="20"><path d="M512 512m-414 0a414 414 0 1 0 828 0 414 414 0 1 0-828 0Z" fill="#F0C48A" p-id="25627"></path><path d="M527.4 568l-84.2 84.2h445.4s37.8 4.8 37.8-18.8-45-272.8-155-309.4c-93.6 100.2-244 244-244 244z" fill="#FD919E" p-id="25628"></path><path d="M639.8 458.6c-61.2 60.6-112.4 109.4-112.4 109.4l-84.2 84.2h278.6c2.8-103.8-53.2-167.8-82-193.6z" fill="#E8677D" p-id="25629"></path><path d="M11.8 652.4h897v124.6H11.8z" fill="#A4CFF2" p-id="25630"></path><path d="M20 724.8h883.4v52H20z" fill="#7BABF1" p-id="25631"></path><path d="M638.2 460c25.2-24.8 52-51.8 77.8-78.2-55.4-57.8-135-103.2-246.6-103.2-276.2 0-378.4 272.6-378.4 330.8 0 0-16.6 42.8 30.2 42.8 46.6 0 78.6 11.2 80.2-28.4 1.6-39.6 59-236 267.2-236 77.4 0 131.8 32 169.6 72.2zM754.2 652.4h1.2c28.8 0 51.8 7.8 64 0h-65.2z" fill="#D3E6F8" p-id="25632"></path><path d="M829.4 659.6c-6.4 0-11.8-5.2-11.8-11.8 0-197-160.4-357.4-357.4-357.4S102.8 450.8 102.8 647.8c0 6.4-5.2 11.8-11.8 11.8-6.4 0-11.8-5.2-11.8-11.8 0-210 170.8-380.8 380.8-380.8s380.8 170.8 380.8 380.8c0.2 6.4-5 11.8-11.4 11.8z" fill="#4C4372" p-id="25633"></path><path d="M720.2 659.6c-6.4 0-11.8-5.2-11.8-11.8 0-136.8-111.4-248.2-248.2-248.2S212 511 212 647.8c0 6.4-5.2 11.8-11.8 11.8s-11.8-5.2-11.8-11.8c0-149.8 121.8-271.6 271.6-271.6S731.8 498 731.8 647.8c0 6.4-5.2 11.8-11.6 11.8z" fill="#4C4372" p-id="25634"></path><path d="M908.6 788.6H11.8c-6.4 0-11.8-5.2-11.8-11.8v-124.6c0-6.4 5.2-11.8 11.8-11.8h897c6.4 0 11.8 5.2 11.8 11.8v124.6c-0.2 6.6-5.4 11.8-12 11.8zM23.4 765.2h873.6V664H23.4v101.2z" fill="#4C4372" p-id="25635"></path><path d="M147 786.2c-6.4 0-11.8-5.2-11.8-11.8v-59.8c0-6.4 5.2-11.8 11.8-11.8 6.4 0 11.8 5.2 11.8 11.8v59.8c0 6.4-5.2 11.8-11.8 11.8zM272.4 786.2c-6.4 0-11.8-5.2-11.8-11.8v-59.8c0-6.4 5.2-11.8 11.8-11.8 6.4 0 11.8 5.2 11.8 11.8v59.8c-0.2 6.4-5.4 11.8-11.8 11.8zM397.6 786.2c-6.4 0-11.8-5.2-11.8-11.8v-59.8c0-6.4 5.2-11.8 11.8-11.8 6.4 0 11.8 5.2 11.8 11.8v59.8c0 6.4-5.4 11.8-11.8 11.8zM522.8 786.2c-6.4 0-11.8-5.2-11.8-11.8v-59.8c0-6.4 5.2-11.8 11.8-11.8 6.4 0 11.8 5.2 11.8 11.8v59.8c0 6.4-5.2 11.8-11.8 11.8zM648 786.2c-6.4 0-11.8-5.2-11.8-11.8v-59.8c0-6.4 5.2-11.8 11.8-11.8 6.4 0 11.8 5.2 11.8 11.8v59.8c0 6.4-5.2 11.8-11.8 11.8zM773.4 786.2c-6.4 0-11.8-5.2-11.8-11.8v-59.8c0-6.4 5.2-11.8 11.8-11.8 6.4 0 11.8 5.2 11.8 11.8v59.8c-0.2 6.4-5.4 11.8-11.8 11.8z" fill="#4C4372" p-id="25636"></path><path d="M1012.2 664H443.2c-4.8 0-9-2.8-10.8-7.2-1.8-4.4-0.8-9.4 2.6-12.8L840 238.8c4.6-4.6 12-4.6 16.6 0 4.6 4.6 4.6 12 0 16.6L471.4 640.6h540.8c6.4 0 11.8 5.2 11.8 11.8 0 6.4-5.2 11.6-11.8 11.6z" fill="#4C4372" p-id="25637"></path><path d="M922.6 659.6c-6.4 0-11.8-5.2-11.8-11.8 0-62.4-12.4-122.8-37.2-179.4-23.8-54.8-57.8-103.6-101-145.2-4.6-4.4-4.8-12-0.4-16.6 4.4-4.6 12-4.8 16.6-0.4 45.4 43.8 81.2 95.2 106.2 152.8 26 59.6 39 123.2 39 188.8 0.4 6.4-4.8 11.8-11.4 11.8z" fill="#4C4372" p-id="25638"></path></svg>', select:false}
+])
 const selectChick = ref('RightOutlined')
 const selectNotChick = ref('DownOutlined')
-const element = ref([
-  {id: 1, title: '裁剪/旋转', icon:'ScissorOutlined', select:false,
-    children:[
-      {id:1, title: '自由', select:false,func:Cropping, icon:'<svg x="1733477465958" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5232" width="20" height="20"><path d="M832 728V250.5c0-8.5 3.4-16.6 9.4-22.6L1001 68.3c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L796.1 182.6c-6 6-14.1 9.4-22.6 9.4H296c-4.4 0-8-3.6-8-8V8c0-4.4-3.6-8-8-8h-80c-4.4 0-8 3.6-8 8v176c0 4.4-3.6 8-8 8H8c-4.4 0-8 3.6-8 8v80c0 4.4 3.6 8 8 8h176c4.4 0 8 3.6 8 8v472c0 35.3 28.7 64 64 64h472c4.4 0 8 3.6 8 8v176c0 4.4 3.6 8 8 8h80c4.4 0 8-3.6 8-8V840c0-4.4 3.6-8 8-8h176c4.4 0 8-3.6 8-8v-80c0-4.4-3.6-8-8-8H840c-4.4 0-8-3.6-8-8zM296 288h375.4c7.1 0 10.7 8.6 5.7 13.7L301.7 677.1c-5 5-13.7 1.5-13.7-5.7V296c0-4.4 3.6-8 8-8z m432 448H352.6c-7.1 0-10.7-8.6-5.7-13.7l375.4-375.4c5-5 13.7-1.5 13.7 5.7V728c0 4.4-3.6 8-8 8z" p-id="5233"></path></svg>'},
-      {id:2, title: '1X1', select:false,func:toRatio,parameter:[1,1], icon:'<svg x="1733477435776" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4152" width="20" height="20"><path d="M853.333333 170.666667v682.666666H170.666667V170.666667h682.666666m85.333334-85.333334H85.333333v853.333334h853.333334V85.333333z" fill="" p-id="4153"></path></svg>'},
-      {id:3, title: '3X2', select:false,func:toRatio,parameter:[3,2], icon:'<svg t="1733477412913" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3897" width="30" height="30"><path d="M851.626667 320.853333v381.44H172.373333V320.853333h679.253334m69.973333-69.12H102.4v521.386667h819.2V251.733333z" fill="#231815" p-id="3898"></path></svg>'},
-      {id:4, title: '2X3', select:false,func:toRatio, parameter:[2,3], icon:'<svg t="1733478303781" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="42304" width="25" height="25"><path d="M802 62L802 962 222 962l0-900 580 0zM702 862l0-700L322 162 322 862l380 0z" p-id="42305"></path></svg>'},
-      {id:5, title: '4X3', select:false,func:toRatio, parameter:[4,3], icon:'<svg t="1733478349912" class="icon" viewBox="0 0 1133 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="42604" width="25" height="25"><path d="M109.714286 164.571429v658.285714h914.285714v-658.285714h-914.285714z m-109.714286-18.285715A91.428571 91.428571 0 0 1 91.428571 54.857143h950.857143A91.428571 91.428571 0 0 1 1133.714286 146.285714v694.857143a91.428571 91.428571 0 0 1-91.428572 91.428572H91.428571A91.428571 91.428571 0 0 1 0 841.142857V146.285714z" fill="#0D0D0D" fill-opacity=".9" p-id="42605"></path></svg>'},
-      {id:6, title: '3X4', select:false,func:toRatio, parameter:[3,4], icon:'<svg t="1733478404923" class="icon" viewBox="0 0 1228 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="46374" width="25" height="25"><path d="M1075.2 51.2a102.4 102.4 0 0 1 102.4 102.4v716.8a102.4 102.4 0 0 1-102.4 102.4H153.6A102.4 102.4 0 0 1 51.2 870.4V153.6A102.4 102.4 0 0 1 153.6 51.2h921.6zM153.6 0A153.6 153.6 0 0 0 0 153.6v716.8A153.6 153.6 0 0 0 153.6 1024h921.6a153.6 153.6 0 0 0 153.6-153.6V153.6A153.6 153.6 0 0 0 1075.2 0H153.6z" p-id="46375"></path></svg>'},
-      {id:7, title: '16X9', select:false,func:toRatio, parameter:[16,9], icon:'<svg t="1733478251283" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="38775" width="20" height="20"><path d="M896 832H128a64.07 64.07 0 0 1-64-64V256a64.07 64.07 0 0 1 64-64h768a64.07 64.07 0 0 1 64 64v512a64.07 64.07 0 0 1-64 64zM128 256v512h768V256z" fill="#5C5C66" p-id="38776"></path></svg>'},
-      {id:8, title: '9X16', select:false,func:toRatio, parameter:[9,16], icon:'<svg t="1733478452763" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="49141" width="25" height="25"><path d="M222.088 32c-12.71 0-22.904 10.062-22.904 22.454l0.001 914.113c0 12.394 10.723 23.433 23.43 23.433h578.378c12.637 0 23.43-11.040 23.43-23.433l-0.001-913.138c0.002-12.322-10.791-23.429-23.429-23.429h-578.905zM246.048 944.288l-0.98-16.232 0.98-849.192 533.056 0.080v865.424l-533.056-0.080z" p-id="49142"></path></svg>'}
-    ]
-  },
-  {id: 2, title: '调整尺寸', select:false, icon:'RadiusSettingOutlined',
-    children:[
-      {id:1, title: '自定义', select:false, icon:'SettingOutlined'},
-      {id:2, title: '方形主图(800X800)', select:false,},
-      {id:3, title: 'Temu服装图(1340X1785)', select:false,},
-      {id:4, title: '方形主图(1000X1000)', select:false,},
-      {id:5, title: '竖版主图(1000X1200)', select:false,},
-      {id:6, title: 'Youtubel视频封面(1280X720)', select:false,},
-      {id:7, title: 'Pinterest帖子(750X1120)', select:false,},
-      {id:8, title: 'Facebook封面(851X315)', select:false,}
-    ]
-  },
-  {id: 3, title: '消除笔', select:false, icon:'RadiusSettingOutlined',
-    children:[
-      {id:1, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:2, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:3, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:4, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:5, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:6, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:7, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:8, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:9, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-    ]
-  },
-  {id: 4, title: '色彩调节', icon:'RadiusSettingOutlined', select:false,
-    children:[
-      {id:1, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:2, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:3, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:4, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:5, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:6, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:7, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:8, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:9, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-
-    ]
-  },
-  {id: 5, title: '颜色叠加', icon:'RadiusSettingOutlined', select:false,
-    children:[
-      {id:1, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:2, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:3, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:4, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:5, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:6, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:7, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:8, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:9, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-    ]
-  },
-  {id: 6, title: '滤镜', icon:'RadiusSettingOutlined', select:false,
-    children:[
-      {id:1, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:2, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:3, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:4, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:5, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:6, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:7, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:8, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:9, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-    ]
-  },
-  {id: 7, title: '马赛克', icon:'RadiusSettingOutlined', select:false,
-    children:[
-      {id:1, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:2, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:3, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:4, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:5, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:6, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:7, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:8, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:9, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-    ]
-  },
-  {id: 8, title: '标尺', icon:'RadiusSettingOutlined', select:false,
-    children:[
-      {id:1, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:2, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:3, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:4, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:5, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:6, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:7, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:8, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-      {id:9, title: '自由比例', select:false, icon:'RadiusSettingOutlined'},
-    ]
-  },
-])
+const cur = ref(1)
 
 function select(item) {
+  undo()
+  if(!item.select){
+    cur.value = item.id
+  }else {
+    cur.value = undefined
+  }
   item.select = !item.select
   element.value.filter((v) => v.id !== item.id).map((m)=>m.select = false)
 }
 
-function updateRectanglePositionXFunc(x){
-  updateRectanglePositionX(x)
-}
-
-function updateRectanglePositionYFunc(y){
-  updateRectanglePositionY(y)
-}
-
-function selectChildren(chi,children){
+function selectChildren(chi){
   chi.select = true
-  children.filter((v) => v.id !== chi.id).map((m)=>m.select = false)
-  if (typeof chi.func === 'function') {
-    if(chi.parameter){
-      chi.func(...chi.parameter);
-    }else {
-      chi.func();
-    }
-  }
 }
 
-function selectResize(chi,children){
-  if(chi.id === 1){
-    chi.select = true
-    children.filter((v) => v.id !== chi.id).map((m)=>m.select = false)
 
-  }else {
-    selectChildren(chi,children)
-  }
-}
 </script>
 
 

@@ -24,8 +24,8 @@ export async function setBackgroundImage(){
         const scaleY = psStore.Props.value.canvasHeight / imgHeight;
         const scale = Math.min(scaleX, scaleY) * 0.9; // 保持比例缩放,放大尺寸，需要按照比例时将scaleX、scaleY设置为scale
         psStore.FabricImage.value.set({
-            scaleX: 1,
-            scaleY: 1,
+            scaleX: scale,
+            scaleY: scale,
             selectable: false,
             objectCaching: false,
             originX: "center",
@@ -36,7 +36,6 @@ export async function setBackgroundImage(){
         psStore.FabricCanvas.value.backgroundImage = psStore.FabricImage.value
         usePsStore().FabricCanvas.value.renderAll();
     } catch (error) {
-        console.log(error)
         message.error({
             content: () => "图片加载失败，请检查图片路径是否正确",
             class: "custom-class",

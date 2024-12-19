@@ -1,7 +1,7 @@
 <template>
   <div id="configAccountCont">
     <a-card style="margin-top: 20px">
-      <a-form :model="formState" layout="inline">
+      <a-form :model="formState" layout="inline" ref="formRef">
         <a-form-item label="用户：" name="userId">
           <a-select
             v-model:value="formState.userId"
@@ -24,7 +24,7 @@
         </a-form-item>
         <a-form-item>
           <a-button type="primary" @click="onSubmit">查询</a-button>
-          <a-button style="margin-left: 10px">重置</a-button>
+          <a-button style="margin-left: 10px" @click="restForm">重置</a-button>
         </a-form-item>
       </a-form>
     </a-card>
@@ -32,13 +32,14 @@
       <div>
         <a-row>
           <a-col :span="1.5" style="margin: 0 5px"
-            ><a-button type="primary" @click="showAdd = true"
+            ><a-button type="primary" v-has-permi="['platform:ozon:account:relevance:add']" @click="showAdd = true"
               >新增</a-button
             ></a-col
           >
           <a-col :span="1.5" style="margin: 0 5px"
             ><a-button
               @click="showEdit = true"
+              v-has-permi="['platform:ozon:account:relevance:update']"
               :disabled="selectedRowKeys.length !== 1"
               >修改</a-button
             ></a-col
@@ -57,6 +58,7 @@
               <a-button
                 type="primary"
                 danger
+                v-has-permi="['platform:ozon:account:relevance:del']"
                 :disabled="selectedRowKeys.length !== 1"
                 >删除</a-button
               >
@@ -96,18 +98,17 @@
                 :options="depOptions"
                 :field-names="depLabels"
                 :disabled="true"
-                showCheckedStrategy="show_child"
               >
               </a-cascader>
             </template>
           </template>
         </a-table>
         <a-pagination
-          style="margin-top: 20px"
+          style="margin-top: 20px;text-align: right;"
           :show-total="(total) => `共 ${total} 条`"
           v-model:current="pages.pageNum"
           v-model:pageSize="pages.pageSize"
-          :total="total"
+          :total="pages.total"
           class="pages"
           :defaultPageSize="50"
           :showSizeChanger="true"
@@ -139,13 +140,14 @@ import {
   setAccountlist,
   ozonAccount,
   userDep,
-} from "@/pages/ozon/api/accountConfig";
+} from "@/pages/ozon/config/api/accountConfig";
 import { ref, reactive, onMounted, computed, watchPostEffect } from "vue";
-import tableHeader from "@/pages/ozon/tabColumns/accountConfig";
+import tableHeader from "~@/pages/ozon/config/tabColumns/accountConfig";
 import addAccountConfig from "@/pages/ozon/configAccounts/component/addAccountConfig.vue";
 import editAccountConfig from "@/pages/ozon/configAccounts/component/editAccountConfig.vue";
 import { message } from "ant-design-vue";
 
+const formRef = ref(null)
 const formState = reactive({
   userId: "", //用户多选ID
   depId: [], //部门多选ID
@@ -158,10 +160,10 @@ const showEdit = ref(false);
 const tableData = ref([]);
 const selectedRowKeys = ref([]);
 const getAccountUserArr = ref([]);
-const total = ref(0);
-const pages = ref({
+const pages = reactive({
   pageNum: 1,
   pageSize: 50,
+  total: 0
 });
 const columns = tableHeader;
 const userLabels = ref({
@@ -179,7 +181,7 @@ const rowSelection = {
     selectedRowKeys.value = selectedRow;
   },
 };
-const showCheckedStrategy = ref("SHOW_CHILD");
+
 const filterOption = (input, option) => {
   return option.userName.indexOf(input) >= 0;
 };
@@ -201,22 +203,28 @@ const getList = () => {
     pageNum: pages.pageNum,
     pageSize: pages.pageSize,
     userId: formState.userId,
-    depId: formState.depId[formState.depId.length - 1],
+    // depId: formState.depId[formState.depId.length - 1],
+    depId: formState.depId,
   };
   loading.value = true;
   setAccountlist(params)
     .then((res) => {
       tableData.value =
-        res?.rows.map((e) => {
+        res?.rows?.map((e) => {
           e.depId = e.depId.split(",").map((item) => Number(item));
           return e;
         }) || [];
-      total.value = res?.total || 0;
+        pages.total = res?.total || 0;
     })
     .finally(() => {
       loading.value = false;
     });
 };
+
+const restForm = () => {
+  formRef.value.resetFields();
+  getList();
+}
 
 // 获取账号
 const getAccountList = () => {
