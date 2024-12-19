@@ -1,28 +1,13 @@
+<!-- 全托管刊登页 -->
 <template>
-	<div class="" @click="close">
-    This is a text edited by Lynch on Earth.
+  <div class="choice-product-publish">
+    <!-- <BaseInfo ref="baseInfoRef" /> -->
+    <BaseInfo />
   </div>
 </template>
 
-<script>
-export default {
-	name: '',
-	data() {
-		return {
+<script setup lang='js'>
+  import BaseInfo from './components/BaseInfo.vue'
 
-		}
-	},
-	mounted() {
-    
-	},
-	methods: {
-    close() {
-      window.close()
-    }
-	}
-}
+  // const baseInfoRef = ref()
 </script>
-
-<style lang="scss" scoped>
-
-</style>

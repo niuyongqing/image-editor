@@ -21,7 +21,6 @@
   import { CaretDownOutlined, CaretUpOutlined } from '@ant-design/icons-vue'
 
   defineOptions({ name: 'TiledSelectSort' })
-  components: { CaretDownOutlined, CaretUpOutlined }
 
   const props = defineProps({
     // 选项数据; 必传

@@ -32,7 +32,6 @@
   import { UpSquareOutlined, DownSquareOutlined } from '@ant-design/icons-vue'
 
   defineOptions({ name: 'SearchContentInput' })
-  components: {UpSquareOutlined, DownSquareOutlined}
 
   const props = defineProps({
     // 隐藏 展开/折叠 控件; 默认不隐藏

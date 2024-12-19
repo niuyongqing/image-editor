@@ -378,4 +378,20 @@ export function copyText(text = '') {
     }
   }
 }
- 
+
+// 找给定子 Id 的所有父级 Id, 以数组形式返回(含子 Id)
+export function findParentIds(tree, id, parentIds = []) {
+  for (const node of tree) {
+    if (node.id === id) {
+      parentIds.push(id)
+      return parentIds
+    }
+    if (node.children && node.children.length > 0) {
+      const result = findParentIds(node.children, id, [...parentIds, node.id])
+      if (result.length > 0) {
+        return result
+      }
+    }
+  }
+  return []
+} 

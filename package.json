@@ -39,9 +39,11 @@
     "mt-image-editor-sdk": "^3.4.1",
     "pinia": "^2.2.2",
     "tui-image-editor": "^3.15.3",
+    "uuid": "^11.0.3",
     "vue": "^3.5.8",
     "vue-i18n": "^10.0.4",
-    "vue-router": "^4.4.5"
+    "vue-router": "^4.4.5",
+    "vuedraggable": "^2.24.3"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^2.27.3",

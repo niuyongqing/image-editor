@@ -248,7 +248,7 @@
   import mixinTable from '../mixinTable'
   import { useAliexpressChoiceProductStore } from '@/stores/aliexpress-choice-product'
   import { copyText } from '@/utils'
-  import { accountCache } from '../apis/account'
+  import { accountCacheApi } from '../apis/account'
   import { draftListApi, createBatchApi, delDraftApi } from '../apis/choice-product-draft'
   import { createApi } from '../apis/choice-product'
   import { CopyOutlined } from '@ant-design/icons-vue'
@@ -295,7 +295,7 @@
         return option.simpleName.toLowerCase().indexOf(input.toLowerCase()) >= 0
       },
       getAccountList() {
-        accountCache(true)
+        accountCacheApi(true)
           .then(res => {
             this.accountList = res.data.accountDetail || []
             if (this.accountList.length === 0) {

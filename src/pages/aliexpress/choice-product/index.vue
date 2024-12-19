@@ -53,7 +53,6 @@
               <a-cascader
                 v-model:value="extendSearchForm.category"
                 :options="[]"
-                expand-trigger="hover"
                 placeholder="请选择"
               />
             </a-form-item>
@@ -498,9 +497,9 @@
   import { useAliexpressChoiceProductStore } from '@/stores/aliexpress-choice-product'
   import dayjs from 'dayjs'
   import { copyText } from '@/utils'
-  import { accountCache } from '../apis/account'
+  import { accountCacheApi } from '../apis/account'
   import { listApi, syncListApi, syncOneApi, syncProgressApi, detailApi, queryStockApi, editStockApi, stockRuleApi, copyToDraftApi } from '../apis/choice-product'
-  import { CopyOutlined, InfoCircleOutlined, EditOutlined, UpSquareOutlined, DownSquareOutlined } from '@ant-design/icons-vue'
+  import { CopyOutlined, InfoCircleOutlined, EditOutlined } from '@ant-design/icons-vue'
   import { message } from 'ant-design-vue'
   import EmptyImg from '@/assets/images/aliexpress/empty.png'
   import TiledSelect from '~/components/tiled-select/index.vue'
@@ -509,7 +508,7 @@
 
   export default {
     name: 'ChoiceProduct',
-    components: { CopyOutlined, InfoCircleOutlined, EditOutlined, UpSquareOutlined, DownSquareOutlined, TiledSelect, TiledSelectSort, SearchContentInput },
+    components: { CopyOutlined, InfoCircleOutlined, EditOutlined },
     mixins: [mixinTable],
     data() {
       return {
@@ -677,7 +676,7 @@
         return option.simpleName.toLowerCase().indexOf(input.toLowerCase()) >= 0
       },
       getAccountList() {
-        accountCache(true)
+        accountCacheApi(true)
           .then(res => {
             this.accountList = res.data.accountDetail || []
             if (this.accountList.length === 0) {
