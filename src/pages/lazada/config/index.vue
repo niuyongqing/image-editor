@@ -1,6 +1,7 @@
 <template>
     <div>
-        <Search :depOptions="depOptions" @search="handleSearch" v-model:modelValue="searchLoading"></Search>
+        <Search :depOptions="depOptions" @search="handleSearch" v-model:modelValue="searchLoading" pageField="current">
+        </Search>
         <BaseTable ref="baseTableRef" :columns="columns" :api="getAccountlist" :init-search-param="initSearchParam"
             :row-selection="rowSelection">
             <template #leftBar>

@@ -8,8 +8,9 @@
       </a-form-item>
 
       <a-form-item :wrapper-col="$attrs.buttonItemLayout ? $attrs.buttonItemLayout : {}">
-        <slot></slot>
+        <slot name="default"></slot>
       </a-form-item>
+
     </a-form>
   </div>
 </template>
@@ -118,13 +119,11 @@ const getFieldsValue = () => {
 // 清空表单
 const clear = () => {
   Object.keys(formState).forEach(key => {
-    formState[key] = '';
+    formState[key] = undefined;
   });
 };
 // 校验
 const validate = async () => {
-  console.log('->>>', unref(formEl));
-
   return await unref(formEl)?.validate();
 };
 // 清空校验状态

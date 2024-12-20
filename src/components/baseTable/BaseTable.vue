@@ -12,8 +12,9 @@
                 <a-table v-bind="$attrs" :columns="columns" :row-key="rowKey" :data-source="tableData"
                     :loading="loading"
                     :pagination="{ ...pagination, showQuickJumper: true, ShowSizeChanger: true, showTotal: (total) => `共${total}条` }"
-                    @change="handleChange" v-model:current="pagination.current" v-model:pageSize="pagination.pageSize"
-                    ellipsis bordered :scroll="{ y: tableHeight, x: '100%', virtual: true }">
+                    @change="handleChange" v-model:current="pagination[pageField]"
+                    v-model:pageSize="pagination.pageSize" ellipsis bordered
+                    :scroll="{ y: tableHeight, x: '100%', virtual: true }">
                     <template #headerCell="{ column }">
                         <slot v-if="column.headerCell" name="headerCell" :column="column"></slot>
                     </template>
@@ -33,7 +34,7 @@ import { computed, h, nextTick, watch } from 'vue';
 import { EyeOutlined, UndoOutlined, SettingOutlined } from '@ant-design/icons-vue';
 import { useTable } from './useTable';
 import { omit } from 'lodash';
-const { columns, api, rowKey, showPagination, dropAble, initSearchParam } = defineProps({
+const { columns, api, rowKey, showPagination, dropAble, initSearchParam, pageField } = defineProps({
     columns: {
         type: Array,
         default: () => []
@@ -58,9 +59,14 @@ const { columns, api, rowKey, showPagination, dropAble, initSearchParam } = defi
     initSearchParam: {
         type: Object,
         default: () => ({})
-    }
+    },
+    // 当前页码字段名
+    pageField: {
+        type: String,
+        default: 'pageNum'
+    },
 });
-const { tableData, pagination, handleChange, loading, updatedTotalParam, setLoading, search, reload } = useTable(api, initSearchParam);
+const { tableData, pagination, handleChange, loading, updatedTotalParam, setLoading, search, reload } = useTable(api, initSearchParam, pageField);
 const tableHeight = ref(0); // 表格高度
 const tableContainer = ref(null);
 const setTableHeight = () => {

@@ -7,7 +7,14 @@ import { reactive, computed, toRefs, onMounted } from "vue";
  * @param isPageable 是否有分页(不必传，默认为true)
  * @param tableRef 当前表格的DOM(不必传，默认为“”)
  * */
-export const useTable = (apiUrl, initSearchParam = {}, isPageable = true) => {
+export const useTable = (
+  apiUrl,
+  initSearchParam = {},
+  pageField = "pageNum",
+  isPageable = true
+) => {
+  console.log("initSearchParam", initSearchParam);
+
   const state = reactive({
     loading: false, // 加载状态
     // 表格数据
@@ -17,7 +24,7 @@ export const useTable = (apiUrl, initSearchParam = {}, isPageable = true) => {
     // 分页数据
     pagination: {
       // 当前页数
-      current: 1,
+      [pageField]: 1,
       // 每页显示条数
       pageSize: 50,
       // 总条数
@@ -26,7 +33,7 @@ export const useTable = (apiUrl, initSearchParam = {}, isPageable = true) => {
     // 查询参数(只包括查询)
     searchParam: {},
     // 初始化默认的查询参数
-    initSearchParam: {},
+    initSearchParam: initSearchParam,
     // 总参数(包含分页和查询参数)
     totalParam: {},
   });
@@ -37,7 +44,7 @@ export const useTable = (apiUrl, initSearchParam = {}, isPageable = true) => {
   const pageParam = computed({
     get: () => {
       return {
-        current: state.pagination.current,
+        [pageField]: state.pagination[pageField],
         pageSize: state.pagination.pageSize,
       };
     },
@@ -106,8 +113,9 @@ export const useTable = (apiUrl, initSearchParam = {}, isPageable = true) => {
    * @description 表格数据查询
    * */
   const search = async (params) => {
-    state.pagination.current = 1;
+    state.pagination[pageField] = 1;
     state.searchParam = params || {};
+    Object.assign(state.searchParam, state.initSearchParam);
     updatedTotalParam();
     await getTableList();
   };
@@ -116,7 +124,7 @@ export const useTable = (apiUrl, initSearchParam = {}, isPageable = true) => {
    * @description 表格数据重置
    * */
   const reset = () => {
-    state.pagination.current = 1;
+    state.pagination[pageField] = 1;
     state.searchParam = {};
     // 重置搜索表单的时，如果有默认搜索参数，则重置默认的搜索参数
     Object.keys(state.initSearchParam).forEach((key) => {
@@ -130,7 +138,7 @@ export const useTable = (apiUrl, initSearchParam = {}, isPageable = true) => {
    * @param val 当前条数
    * */
   const handleSizeChange = (val) => {
-    state.pagination.current = 1;
+    state.pagination[pageField] = 1;
     state.pagination.pageSize = val;
     getTableList();
   };
@@ -140,7 +148,7 @@ export const useTable = (apiUrl, initSearchParam = {}, isPageable = true) => {
    * @param val 当前页
    * */
   const handleCurrentChange = (val) => {
-    state.pagination.current = val;
+    state.pagination[pageField] = val;
     getTableList();
   };
 
@@ -150,6 +158,7 @@ export const useTable = (apiUrl, initSearchParam = {}, isPageable = true) => {
   };
 
   onMounted(() => {
+    reset();
     getTableList();
   });
 
