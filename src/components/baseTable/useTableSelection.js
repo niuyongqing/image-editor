@@ -36,6 +36,8 @@ export const useTableSelection = () => {
   const clearSelection = () => {
     selectedRowKeys.value = undefined;
     selectedRows.value = [];
+    singleDisabled.value = true;
+    multipleDisabled.value = true;
   };
 
   return {
