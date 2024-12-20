@@ -7,7 +7,7 @@
       ref="ruleFormRef"
       :model="form"
       :label-col="{ style: { width: '180px' } }"
-      :wrapper-col="{ span: 12 }"
+      :wrapper-col="{ span: 14 }"
       :rules="rules"
     >
       <a-form-item
@@ -79,9 +79,8 @@
             ref="attributeFormRef"
             :model="attributes"
             :label-col="{ style: { width: '150px' } }"
-            :wrapper-col="{ style: { width: '150px' } }"
-            layout="inline"
-            class="mt-6"
+            :wrapper-col="{ style: { width: '186px' } }"
+            class="mt-6 flex flex-wrap"
           >
             <a-form-item
               v-for="(item, i) in attributeOptions"
@@ -519,7 +518,7 @@
                   if (item.attributeId === 400000603) {
                     const val = item.values.find(item => item.attributeValueId === 23399591357)
                     if (val) {
-                      this.attributes[item.zh] = [val]
+                      this.attributes[item.zh] = [{ label: val.name, value: val.attributeValueId, option: val }]
                     }
                   } else {
                     this.attributes[item.zh] = []
@@ -534,7 +533,7 @@
                   // 找到[中国大陆-9441741844]
                   const val = this.attributeOptions[i].values.find(item => item.attributeValueId === 9441741844)
                   if (val) {
-                    this.attributes[this.attributeOptions[i].zh] = val
+                    this.attributes[this.attributeOptions[i].zh] = { label: val.name, value: val.attributeValueId, option: val }
                     // 编辑时, 最初的渲染, 不查询下级属性, 因为详情里有数据会组成初次结构; 后续变更不拦截
                     if (this.stopHandleAttrOnce) {
                       this.stopHandleAttrOnce = false
