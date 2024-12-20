@@ -1,0 +1,62 @@
+export const columns = [
+  {
+    title: "账号Code",
+    dataIndex: "shortCode",
+    key: "shortCode",
+  },
+  {
+    title: "授权地区",
+    dataIndex: "country",
+    key: "country",
+    slot: "country",
+  },
+  {
+    title: "授权平台",
+    dataIndex: "accountPlatform",
+    key: "accountPlatform",
+  },
+
+  {
+    title: "账号",
+    dataIndex: "account",
+    key: "account",
+  },
+  {
+    title: "仓库",
+    dataIndex: "store",
+    key: "store",
+    slot: "store",
+  },
+  {
+    title: "简称",
+    dataIndex: "simpleName",
+    key: "simpleName",
+    slot: "simpleName",
+  },
+
+  {
+    title: "别名",
+    dataIndex: "alias",
+    key: "alias",
+    slot: "alias",
+  },
+  {
+    title: "备注",
+    dataIndex: "remark",
+    key: "remark",
+    slot: "remark",
+  },
+
+  {
+    title: "最后同步时间",
+    dataIndex: "updateTime",
+    key: "updateTime",
+    // slot: "account",
+  },
+  {
+    title: "首次同步时间",
+    dataIndex: "createTime",
+    key: "createTime",
+    // slot: "depId",
+  },
+];
