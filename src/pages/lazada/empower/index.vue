@@ -4,35 +4,34 @@
         <BaseTable ref="baseTableRef" :columns="columns" :api="empowerList" :init-search-param="initSearchParam" search
             :row-selection="rowSelection">
             <template #leftBar>
-                <a-button type="primary" @click="handleAdd">
+                <a-button type="primary" @click="Reauthorization" v-has-permi="[`system:platform:lazada:accredit`]"
+                    :loading="accreditLoading">
                     <template #icon>
-                        <PlusOutlined />
+                        <SettingOutlined />
                     </template>
                     授权</a-button>
-                <a-button type="primary" @click="handleEdit">
-                    <template #icon>
-                        <EditOutlined />
-                    </template>
-                    修改
-                </a-button>
-                <a-button type="primary" @click="handleDel">
-                    <template #icon>
-                        <ReloadOutlined />
-                    </template>
-                    刷新全部授权</a-button>
-                <a-button type="primary" @click="handleDel">
+
+                <a-popconfirm title="确定要全部刷新授权吗？" ok-text="是" cancel-text="否" @confirm="refreshToken">
+                    <a-button type="primary" v-has-permi="[`system:platform:lazada:accredit`]">
+                        <template #icon>
+                            <ReloadOutlined />
+                        </template>
+                        刷新全部授权</a-button>
+                </a-popconfirm>
+
+                <a-button type="primary" @click="handleBatchName" v-has-permi="[`platform:lazada:accredit`]">
                     <template #icon>
                         <CloudUploadOutlined />
                     </template>
                     批量修改简称
                 </a-button>
-                <a-button type="primary" @click="handleDel">
+                <a-button type="primary" @click="handleBatchStore" v-has-permi="[`system:platform:lazada:accredit`]">
                     <template #icon>
                         <EditOutlined />
                     </template>
                     批量修改仓库
                 </a-button>
-                <a-button type="primary" @click="handleDel">
+                <a-button type="primary" @click="handleExport" v-has-permi="[`system:platform:lazada:accredit`]">
                     <template #icon>
                         <DownloadOutlined />
                     </template>
@@ -44,39 +43,38 @@
             </template>
             <template #store="{ record }">
                 <a-select style="width: 100%;" :options="store" v-model:value="record.store"
-                    @change="handleChangeStore(record)" :disabled="checkPermiDisabled()"></a-select>
+                    @change="handleChangeStore(record)" :disabled="!accreditAuth"></a-select>
             </template>
             <template #simpleName="{ record }">
-                <a-input style="width: 100%;" v-model:value="record.simpleName"
+                <a-input v-if="isSimpleName" style="width: 100%;" v-model:value="record.simpleName"
                     @blur="handleChangeName(record)"></a-input>
+                <span v-else> {{ record.simpleName }}</span>
             </template>
             <template #alias="{ record }">
-                <a-input style="width: 100%;" v-model:value="record.alias" @blur="handleChangeAlias(record)"></a-input>
+                <a-input v-if="isAliasEdit" style="width: 100%;" v-model:value="record.alias"
+                    @blur="handleChangeAlias(record)"></a-input>
+                <span v-else> {{ record.alias }}</span>
             </template>
 
             <template #remark="{ record }">
-                <a-input style="width: 100%;" v-model:value="record.remark"
+                <a-input v-if="isRemark" style="width: 100%;" v-model:value="record.remark"
                     @blur="handleChangeRemark(record)"></a-input>
             </template>
-
-
         </BaseTable>
 
         <AddModal ref="addModalRef" @success="reload"></AddModal>
         <EditModal ref="editModalRef" @success="reload"></EditModal>
+        <!-- 批量修改简称 -->
+        <batchSimpleName ref="batchSimpleNameRef" @success="reload"></batchSimpleName>
+        <!-- 批量修改仓库 -->
+        <batchStore ref="batchStoreRef" @success="reload"></batchStore>
     </div>
 </template>
 
 <script setup>
-import { PlusOutlined, EditOutlined, ReloadOutlined, CloudUploadOutlined, DownloadOutlined } from '@ant-design/icons-vue';
+import { SettingOutlined, EditOutlined, ReloadOutlined, CloudUploadOutlined, DownloadOutlined } from '@ant-design/icons-vue';
 import { columns } from './columns';
-import {
-    empowerList,
-    editStore,
-    simpleName,
-    alias,
-    remark
-} from './api';
+import { empowerList, editStore, simpleName, alias, remark, url, refreshAllToken, exportList } from './api';
 import { findParentAndMerge } from './common';
 import AddModal from './components/addModal.vue';
 import EditModal from './components/editModal.vue';
@@ -84,14 +82,21 @@ import Search from './components/search.vue';
 import BaseTable from '@/components/baseTable/BaseTable.vue';
 import { useTableSelection } from '@/components/baseTable/useTableSelection';
 import { Modal, message } from 'ant-design-vue';
+import { checkPermi, checkRole } from '~@/utils/permission/component/permission';
+import batchSimpleName from './components/batchSimpleName.vue';// 批量修改简称
+import batchStore from './components/batchStore.vue';// 批量修改仓库
+// import downLoad from '@/api/download';
 
-const searchLoading = ref(false);
+const accreditLoading = ref(false); // 授权按钮 loading
+const refreshLoading = ref(false); // 刷新按钮 loading
 const accountUserLsit = ref([]);
 const accountOptions = ref([]);
 const depOptions = ref([]);
 const baseTableEl = useTemplateRef('baseTableRef');
 const addModalEl = useTemplateRef('addModalRef');
 const editModalEl = useTemplateRef('editModalRef');
+const batchSimpleNameEl = useTemplateRef('batchSimpleNameRef');
+const batchStoreEl = useTemplateRef('batchStoreRef');
 const { singleDisabled, rowSelection, tableRow, clearSelection } = useTableSelection()
 const initSearchParam = {
     prop: "create_time",
@@ -162,6 +167,19 @@ const countryMap = (v) => {
     return value ? value.label : '';
 };
 
+const accreditAuth = computed(() => {
+    return checkPermi(['system:platform:lazada:accredit']) || checkRole('admin');
+});
+const isSimpleName = computed(() => {
+    return checkPermi(['system:platform:lazada:simpleName']);
+});
+const isAliasEdit = computed(() => {
+    return checkPermi(['system:platform:lazada:alias']);
+});
+const isRemark = computed(() => {
+    return checkPermi(['system:platform:lazada:remark']);
+});
+
 const handleChangeStore = (record) => {
     editStore({
         store: record.store,
@@ -204,46 +222,44 @@ const reload = () => {
 // 查询
 const handleSearch = async (state) => {
     await baseTableEl.value.search(state);
-    searchLoading.value = false;
 };
 
-// 新增
-const handleAdd = () => {
-    nextTick(() => {
-        addModalEl.value.open();
-    })
-};
-// 编辑
-const handleEdit = () => {
-    nextTick(() => {
-        editModalEl.value.open(tableRow.value);
-    })
-};
-// 删除
-const handleDel = () => {
-    Modal.confirm({
-        title: '提示',
-        content: '确定删除吗？',
-        onOk: () => {
-            return new Promise((resolve, reject) => {
-                delAccount({
-                    id: tableRow.value.id
-                },).then((res) => {
-                    if (res.code === 200) {
-                        reload();
-                        resolve();
-                        message.success(res.msg);
-                    }
-                }).catch(() => {
-                    reject();
-                });
-            });
-        }
+
+// 重新授权
+const Reauthorization = () => {
+    // 获取授权链接
+    accreditLoading.value = true;
+    url().then(res => {
+        window.location.href = res.msg;
+    }).finally(() => {
+        accreditLoading.value = false;
     });
+};
 
+// 刷新全部授权
+const refreshToken = () => {
+    refreshLoading.value = true;
+    refreshAllToken().then(res => {
+        message.success(res.msg);
+        refreshLoading.value = false;
+    })
+};
+
+const handleBatchName = () => {
+    batchSimpleNameEl.value.open();
+};
+
+
+const handleBatchStore = () => {
+    batchStoreEl.value.open();
+};
+const handleExport = () => {
+    exportList().then(res => {
+        console.log('res', res);
+        // downLoad.name(res.msg, true);
+    })
 };
 
 onMounted(() => {
-
 })
 </script>
