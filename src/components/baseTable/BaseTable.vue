@@ -1,25 +1,39 @@
 <template>
     <div class="table-container">
         <a-card>
-            <div class="" ref="tableContainer">
+            <div ref="tableContainer">
                 <div class="w-full flex justify-between mb-3">
                     <div>
                         <a-space>
                             <slot name="leftBar"></slot>
                         </a-space>
                     </div>
+                    <div>
+                        <!-- 店铺商品表格右侧分页 -->
+                        <a-space>
+                            <slot name="rightBar"></slot>
+                            <a-pagination size="small" v-model:current="pagination[pageField]"
+                                v-if="showRightPagination" v-model:pageSize="pagination.pageSize"
+                                :total="pagination.total" show-size-changer show-quick-jumper
+                                :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
+                                @change="handleChange" />
+                        </a-space>
+                    </div>
                 </div>
                 <a-table v-bind="$attrs" :columns="columns" :row-key="rowKey" :data-source="tableData"
-                    :loading="loading"
-                    :pagination="{ ...pagination, showQuickJumper: true, ShowSizeChanger: true, showTotal: (total) => `共${total}条` }"
-                    @change="handleChange" v-model:current="pagination[pageField]"
+                    :loading="loading" :pagination="{
+                        ...pagination,
+                        showQuickJumper: true,
+                        showSizeChanger: true,
+                        showTotal: (total, range) => `第${range[0]}-${range[1]}条, 共${total}条`
+                    }" @change="handleChange" v-model:current="pagination[pageField]"
                     v-model:pageSize="pagination.pageSize" ellipsis bordered
                     :scroll="{ y: tableHeight, x: '100%', virtual: true }">
                     <template #headerCell="{ column }">
                         <slot v-if="column.headerCell" name="headerCell" :column="column"></slot>
                     </template>
                     <template #bodyCell="{ column, record, index }">
-                        <template v-if="column.slot && !['leftBar'].includes(column.slot)">
+                        <template v-if="column.slot && !['leftBar', 'rightBar'].includes(column.slot)">
                             <slot :name="column.slot" :record="record" :index="index"></slot>
                         </template>
                     </template>
@@ -34,7 +48,7 @@ import { computed, h, nextTick, watch } from 'vue';
 import { EyeOutlined, UndoOutlined, SettingOutlined } from '@ant-design/icons-vue';
 import { useTable } from './useTable';
 import { omit } from 'lodash';
-const { columns, api, rowKey, showPagination, dropAble, initSearchParam, pageField } = defineProps({
+const { columns, api, rowKey, dropAble, showRightPagination, initSearchParam, pageField } = defineProps({
     columns: {
         type: Array,
         default: () => []
@@ -48,9 +62,9 @@ const { columns, api, rowKey, showPagination, dropAble, initSearchParam, pageFie
         default: 'id'
     },
     // 是否显示分页
-    showPagination: {
+    showRightPagination: {
         type: Boolean,
-        default: true
+        default: false
     },
     api: {
         type: Function,
