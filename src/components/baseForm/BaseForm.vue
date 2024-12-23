@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import { Input, Select, DatePicker, Checkbox, Switch, TimePicker, Textarea, InputPassword, Cascader } from 'ant-design-vue';
+import { Input, Select, DatePicker, RangePicker, Checkbox, Switch, TimePicker, Textarea, InputPassword, Cascader } from 'ant-design-vue';
 import ApiSelect from './componetns/ApiSelect.vue';
 
 const { formList } = defineProps({
@@ -72,6 +72,7 @@ const componentMap = {
   input: Input,
   select: Select,
   date: DatePicker,
+  rangePicker: RangePicker,
   time: TimePicker,
   cascader: Cascader,
   apiSelect: ApiSelect,

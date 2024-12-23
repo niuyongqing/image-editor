@@ -3,24 +3,20 @@ import { reactive, computed, toRefs, onMounted } from "vue";
 /**
  * @description table 页面操作方法封装
  * @param apiUrl 获取表格数据 ApiUrl(必传)
- * @param initParam 获取数据初始化参数(不必传，默认为{})
- * @param isPageable 是否有分页(不必传，默认为true)
- * @param tableRef 当前表格的DOM(不必传，默认为“”)
+ * @param initParam 获取数据初始化参数
+ * @param isPageable 是否有分页
  * */
 export const useTable = (
   apiUrl,
   initSearchParam = {},
   pageField = "pageNum",
-  isPageable = true
+  isPageable = true,
+  immediate = true
 ) => {
-  console.log("initSearchParam", initSearchParam);
-
   const state = reactive({
-    loading: false, // 加载状态
+    loading: false,
     // 表格数据
     tableData: [],
-    // 是否展开更多搜索框
-    searchShow: false,
     // 分页数据
     pagination: {
       // 当前页数
@@ -30,16 +26,14 @@ export const useTable = (
       // 总条数
       total: 0,
     },
-    // 查询参数(只包括查询)
-    searchParam: {},
-    // 初始化默认的查询参数
-    initSearchParam: initSearchParam,
-    // 总参数(包含分页和查询参数)
-    totalParam: {},
+    searchParam: {}, // 查询参数(只包括查询)
+    initSearchParam: initSearchParam, // 初始化默认的查询参数
+    immediate: immediate, // 是否立即执行
+    totalParam: {}, // 总参数(包含分页和查询参数)
   });
 
   /**
-   * @description 分页查询数据(只包括分页和表格字段排序,其他排序方式可自行配置)
+   * @description 分页查询数据
    * */
   const pageParam = computed({
     get: () => {
@@ -65,17 +59,20 @@ export const useTable = (
     // 更新查询参数
     setLoading(true);
     updatedTotalParam();
-    apiUrl(state.totalParam)
-      .then((res) => {
-        if (res.code === 200) {
-          state.tableData = res.rows;
-          const { total } = res;
-          state.pagination.total = total;
-        }
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    return new Promise((resolve, reject) => {
+      apiUrl(state.totalParam)
+        .then((res) => {
+          if (res.code === 200) {
+            state.tableData = res.rows || [];
+            const { total } = res;
+            state.pagination.total = total;
+            resolve(res);
+          }
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    });
   };
 
   /**
@@ -130,7 +127,7 @@ export const useTable = (
     Object.keys(state.initSearchParam).forEach((key) => {
       state.searchParam[key] = state.initSearchParam[key];
     });
-    getTableList();
+    immediate && getTableList();
   };
 
   /**
@@ -159,7 +156,6 @@ export const useTable = (
 
   onMounted(() => {
     reset();
-    getTableList();
   });
 
   return {

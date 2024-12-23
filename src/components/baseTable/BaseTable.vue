@@ -79,8 +79,12 @@ const { columns, api, rowKey, dropAble, showRightPagination, initSearchParam, pa
         type: String,
         default: 'pageNum'
     },
+    immediate: {
+        type: Boolean,
+        default: true
+    }
 });
-const { tableData, pagination, handleChange, loading, updatedTotalParam, setLoading, search, reload } = useTable(api, initSearchParam, pageField);
+const { tableData, pagination, loading, handleChange, getTableList, updatedTotalParam, setLoading, search, reload } = useTable(api, initSearchParam, pageField);
 const tableHeight = ref(0); // 表格高度
 const tableContainer = ref(null);
 const setTableHeight = () => {
@@ -100,8 +104,9 @@ onUnmounted(() => {
 defineExpose({
     tableData,
     pagination,
-    handleChange,
     loading,
+    handleChange,
+    getTableList,
     updatedTotalParam,
     setLoading,
     search,

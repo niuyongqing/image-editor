@@ -26,34 +26,6 @@ export function lazadaAccount(params) {
     params
   );
 }
-
-// 新增
-export function addAccount(params) {
-  return usePost(
-    "/platform-lazada/platform/lazada/setting/account/relevance/user/add",
-    params
-  );
-}
-
-// 编辑
-export function editAccount(params) {
-  return usePost(
-    "/platform-lazada/platform/lazada/setting/account/relevance/user/edit",
-    params
-  );
-}
-
-// 删除
-export function delAccount(params) {
-  return usePost(
-    "/platform-lazada/platform/lazada/setting/account/relevance/user/del",
-    params
-  );
-}
-
-/**
- * ------------------------------------------------------------------------------------------------
- */
 // 列表
 export function empowerList(params) {
   return usePost("/platform-lazada/platform/lazada/empower/list", params);

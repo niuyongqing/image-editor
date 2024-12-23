@@ -10,7 +10,7 @@
                     </a-table>
                 </a-form-item>
                 <a-form-item label="文件" name="simpleName" rules="required">
-                    <a-upload style="display: inline-block;margin-left: 10px" :action="uploadFileUrl" ref="uploadRef"
+                    <a-upload style="display: inline-block; margin-left: 10px" :action="uploadFileUrl" ref="uploadRef"
                         :before-upload="beforeUpload" :headers="headers" accept=".xlsx, .xlsm, .xls" :maxCount="1"
                         :fileList="fileList" @change="change">
                         <a-button type="primary">

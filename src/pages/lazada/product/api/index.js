@@ -1,6 +1,9 @@
 export function getList(params) {
-  return usePost(
-    "/platform-lazada/platform/lazada/setting/account/relevance/user/user",
-    params
+  return usePost("/platform-lazada/platform/lazada/product/list", params);
+}
+
+export function accountCache() {
+  return useGet(
+    "/platform-lazada/platform/lazada/setting/account/relevance/user/cache"
   );
 }
