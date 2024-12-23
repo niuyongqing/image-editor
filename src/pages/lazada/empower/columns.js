@@ -10,10 +10,30 @@ export const columns = [
     key: "country",
     slot: "country",
   },
+
   {
     title: "授权平台",
     dataIndex: "accountPlatform",
     key: "accountPlatform",
+  },
+
+  {
+    title: "品类",
+    dataIndex: "classify",
+    key: "classify",
+    slot: "classify",
+  },
+  {
+    title: "禁售属性",
+    dataIndex: "forbidSale",
+    key: "forbidSale",
+    slot: "forbidSale",
+  },
+  {
+    title: "自动刊登",
+    dataIndex: "autoPublish",
+    key: "autoPublish",
+    slot: "autoPublish",
   },
 
   {

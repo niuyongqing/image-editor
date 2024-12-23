@@ -12,7 +12,8 @@
                     授权</a-button>
 
                 <a-popconfirm title="确定要全部刷新授权吗？" ok-text="是" cancel-text="否" @confirm="refreshToken">
-                    <a-button type="primary" v-has-permi="[`system:platform:lazada:accredit`]">
+                    <a-button type="primary" v-has-permi="[`system:platform:lazada:accredit`]"
+                        :loading="refreshLoading">
                         <template #icon>
                             <ReloadOutlined />
                         </template>
@@ -31,7 +32,8 @@
                     </template>
                     批量修改仓库
                 </a-button>
-                <a-button type="primary" @click="handleExport" v-has-permi="[`system:platform:lazada:accredit`]">
+                <a-button type="primary" :loading="exportLoading" @click="handleExport"
+                    v-has-permi="[`system:platform:lazada:accredit`]">
                     <template #icon>
                         <DownloadOutlined />
                     </template>
@@ -60,6 +62,26 @@
                 <a-input v-if="isRemark" style="width: 100%;" v-model:value="record.remark"
                     @blur="handleChangeRemark(record)"></a-input>
             </template>
+
+            <template #classify="{ record }">
+                <a-select v-model:value="record.classify" v-if="accreditAuth" allow-clear class="w-full"
+                    placeholder="请选择品类" :options="classifyOptions" @change="classifyChange(record)"></a-select>
+                <span v-else>{{ record.classify }}</span>
+            </template>
+            <template #forbidSale="{ record }">
+                <a-select v-model:value="record.forbidSale" v-if="accreditAuth" class="w-full" allow-clear
+                    mode="multiple" placeholder="请选择禁售属性" :options="forbidSaleOptions"
+                    :field-names="{ label: 'attributes', value: 'id' }"
+                    :filter-option="(input, option) => option.attributes.toLowerCase().indexOf(input.toLowerCase()) >= 0"
+                    @change="forbidSaleChange(record)"></a-select>
+                <span v-else>{{ text && text.map(id => forbidSaleOptions.find(item => item.id ===
+                    id)?.attributes).join() }}</span>
+            </template>
+
+            <template #autoPublish="{ record }">
+                <a-switch v-model:checked="record.autoPublish" :disabled="!accreditAuth" checked-value="1"
+                    un-checked-value="2" @change="autoPublishChange(record)" />
+            </template>
         </BaseTable>
 
         <AddModal ref="addModalRef" @success="reload"></AddModal>
@@ -74,7 +96,7 @@
 <script setup>
 import { SettingOutlined, EditOutlined, ReloadOutlined, CloudUploadOutlined, DownloadOutlined } from '@ant-design/icons-vue';
 import { columns } from './columns';
-import { empowerList, editStore, simpleName, alias, remark, url, refreshAllToken, exportList } from './api';
+import { empowerList, editStore, simpleName, alias, remark, url, refreshAllToken, exportList, accredit } from './api';
 import { findParentAndMerge } from './common';
 import AddModal from './components/addModal.vue';
 import EditModal from './components/editModal.vue';
@@ -85,10 +107,15 @@ import { Modal, message } from 'ant-design-vue';
 import { checkPermi, checkRole } from '~@/utils/permission/component/permission';
 import batchSimpleName from './components/batchSimpleName.vue';// 批量修改简称
 import batchStore from './components/batchStore.vue';// 批量修改仓库
-// import downLoad from '@/api/download';
+import downLoad from '@/api/common/download';
+const route = useRoute()
+const router = useRouter();
+const code = route.query.code;
 
 const accreditLoading = ref(false); // 授权按钮 loading
 const refreshLoading = ref(false); // 刷新按钮 loading
+const exportLoading = ref(false); // 导出按钮 loading
+
 const accountUserLsit = ref([]);
 const accountOptions = ref([]);
 const depOptions = ref([]);
@@ -159,6 +186,38 @@ const store = [
         "label": "泰国本土仓",
     },
 ];
+const classifyOptions = [
+    { value: '01', label: '饰品配件' },
+    { value: '02', label: '服饰配饰' },
+    { value: '03', label: '家居' },
+    { value: '04', label: '3C' },
+    { value: '05', label: '文具办公' },
+    { value: '06', label: '美妆个护' },
+    { value: '07', label: '汽摩配' },
+    { value: '08', label: '户外运动' },
+    { value: '09', label: '母婴玩具' },
+    { value: '10', label: '宠物' },
+    { value: '99', label: '其他' }
+]
+
+
+//  授权
+if (code) {
+    accredit({
+        code: code,
+        country: area[0].value
+    })
+        .then(res => {
+            message.success('授权成功')
+            reload()
+            router.push({ query: {} })
+        })
+        .catch(() => {
+            message.error('授权失败')
+        })
+};
+
+
 
 const countryMap = (v) => {
     const value = area.find(item => {
@@ -212,7 +271,26 @@ const handleChangeRemark = (record) => {
             message.success(res.msg);
         }
     })
-}
+};
+//  品类
+const classifyChange = (value) => {
+};
+const forbidSaleChange = (value) => {
+};
+const autoPublishChange = (value) => {
+    // const params = {
+    //     account: record.account,
+    //     sellerId: record.userId,
+    //     [prop]: val
+    // }
+    // apiEnum[prop](params)
+    //     .then(_ => {
+    //         message.success('修改成功')
+    //     })
+    //     .catch(err => {
+    //         message.warning(err)
+    //     })
+};
 
 //  重新刷新
 const reload = () => {
@@ -248,18 +326,17 @@ const refreshToken = () => {
 const handleBatchName = () => {
     batchSimpleNameEl.value.open();
 };
-
-
 const handleBatchStore = () => {
     batchStoreEl.value.open();
 };
+// 导出
 const handleExport = () => {
+    exportLoading.value = true;
     exportList().then(res => {
-        console.log('res', res);
-        // downLoad.name(res.msg, true);
+        message.success('下载任务已开始！请耐心等待完成')
+        downLoad.name(res.msg, true);
+    }).finally(() => {
+        exportLoading.value = false;
     })
 };
-
-onMounted(() => {
-})
 </script>
