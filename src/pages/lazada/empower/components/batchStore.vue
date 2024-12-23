@@ -28,7 +28,6 @@
 <script setup>
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { CloudUploadOutlined } from '@ant-design/icons-vue';
-import { uploadSmallName } from '../api';
 import { message } from 'ant-design-vue';
 import axios from 'axios';
 const dataSource = [{

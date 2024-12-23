@@ -83,9 +83,6 @@
                     un-checked-value="2" @change="autoPublishChange(record)" />
             </template>
         </BaseTable>
-
-        <AddModal ref="addModalRef" @success="reload"></AddModal>
-        <EditModal ref="editModalRef" @success="reload"></EditModal>
         <!-- 批量修改简称 -->
         <batchSimpleName ref="batchSimpleNameRef" @success="reload"></batchSimpleName>
         <!-- 批量修改仓库 -->
@@ -98,8 +95,6 @@ import { SettingOutlined, EditOutlined, ReloadOutlined, CloudUploadOutlined, Dow
 import { columns } from './columns';
 import { empowerList, editStore, simpleName, alias, remark, url, refreshAllToken, exportList, accredit } from './api';
 import { findParentAndMerge } from './common';
-import AddModal from './components/addModal.vue';
-import EditModal from './components/editModal.vue';
 import Search from './components/search.vue';
 import BaseTable from '@/components/baseTable/BaseTable.vue';
 import { useTableSelection } from '@/components/baseTable/useTableSelection';
@@ -116,12 +111,12 @@ const accreditLoading = ref(false); // 授权按钮 loading
 const refreshLoading = ref(false); // 刷新按钮 loading
 const exportLoading = ref(false); // 导出按钮 loading
 
+const forbidSaleOptions = ref([]); // 禁售属性
+
 const accountUserLsit = ref([]);
 const accountOptions = ref([]);
 const depOptions = ref([]);
 const baseTableEl = useTemplateRef('baseTableRef');
-const addModalEl = useTemplateRef('addModalRef');
-const editModalEl = useTemplateRef('editModalRef');
 const batchSimpleNameEl = useTemplateRef('batchSimpleNameRef');
 const batchStoreEl = useTemplateRef('batchStoreRef');
 const { singleDisabled, rowSelection, tableRow, clearSelection } = useTableSelection()

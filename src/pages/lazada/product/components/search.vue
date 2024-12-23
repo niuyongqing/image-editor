@@ -17,7 +17,6 @@
 
 <script setup>
 import { useReseReactive } from '@/composables/reset';
-import { getAccountUser, getUserDep } from '../api'
 import BaseForm from '@/components/baseForm/BaseForm.vue';
 
 const { area } = defineProps({

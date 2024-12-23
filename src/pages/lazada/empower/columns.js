@@ -71,12 +71,10 @@ export const columns = [
     title: "最后同步时间",
     dataIndex: "updateTime",
     key: "updateTime",
-    // slot: "account",
   },
   {
     title: "首次同步时间",
     dataIndex: "createTime",
     key: "createTime",
-    // slot: "depId",
   },
 ];

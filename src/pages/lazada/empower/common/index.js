@@ -15,8 +15,6 @@ export function findParentAndMerge(deptId, list) {
       return false; // 没有找到目标部门
     })(department.children);
   });
-
-  console.log("parentId", parentId);
   if (parentId) {
     return [parentId, deptId];
   } else {
