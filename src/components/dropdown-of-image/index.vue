@@ -15,6 +15,7 @@
     <a-modal
       title="添加图片"
       v-model:open="imgLocalAndBankDialogVisible"
+      width="36%"
       :after-close="imgLocalAndBankDialogClose"
       @ok="imgLocalAndBankDialogConfirm"
     >
@@ -31,133 +32,133 @@
             class="img"
             :src="img.url"
           ></a-image>
-          <i
-            class="a-icon-circle-close undo-checked"
+          <CloseCircleOutlined
+            class="undo-checked"
             @click="undoChecked(img)"
-          ></i>
+          />
         </div>
       </div>
-      <a-tabs
-        v-model:activeKey="activeTab"
-        @change="tabChange"
-      >
-        <a-tab-pane
-          label="上传图片"
-          name="1"
+      <!-- 包一层 a-form-item-rest 是阻止 form 的收集, 避免控制台弹出报错 -->
+      <a-form-item-rest>
+        <a-tabs
+          v-model:activeKey="activeTab"
+          @change="tabChange"
         >
-          <div>
-            <!-- <span>上传到分组：</span>
-            <a-select v-model="groupId">
-              <a-option
-                v-for="item in imgGroupList"
-                :key="item.groupId"
-                :label="item.groupName"
-                :value="item.groupId"
-              ></a-option>
-            </a-select> -->
-            <a-upload-dragger
-              :multiple="limit > 1"
-              :action="uploadImageUrl"
-              :show-file-list="false"
-              :limit="limit"
-              accept=".jpg,.jpeg,.png"
-              :headers="headers"
-              :before-upload="beforeUpload"
-              :on-success="onSuccess"
-            >
-              <CloudUploadOutlined />
-              <div class="a-upload-text">将文件拖到此处，或 <em>点击上传</em></div>
-              <div class="a-upload-hint">只能上传 .jpg,.jpeg,.png, 大小必须小于 5.0MB</div>
-              <div class="a-upload-hint">支持图片批量上传, 最多支持 6 张图片</div>
-            </a-upload-dragger>
-          </div>
-        </a-tab-pane>
-        <a-tab-pane
-          label="选择图片"
-          name="2"
-        >
-          <div class="img-bank">
-            <div class="group">
-              <div
-                :class="['group-item', item.groupId === curGroup && 'cur-group']"
-                v-for="item in displayImgGroupList"
-                :key="item.groupId"
-                @click="handleGroupChange(item)"
+          <a-tab-pane
+            tab="上传图片"
+            key="1"
+          >
+            <div>
+              <a-upload-dragger
+                :multiple="limit > 1"
+                :action="uploadImageUrl"
+                :show-upload-list="false"
+                :max-count="limit"
+                accept=".jpg,.jpeg,.png"
+                :headers="headers"
+                :before-upload="beforeUpload"
+                @change="handleUploadChange"
               >
-                {{ item.groupName }}
-              </div>
+                <CloudUploadOutlined />
+                <div class="a-upload-text">将文件拖到此处，或 <em>点击上传</em></div>
+                <div class="a-upload-hint">只能上传 .jpg,.jpeg,.png, 大小必须小于 5.0MB</div>
+                <div class="a-upload-hint">支持图片批量上传, 最多支持 6 张图片</div>
+              </a-upload-dragger>
             </div>
-            <div
-              class="img-list"
-              v-loading="loading"
-            >
-              <div class="img-wrap">
+          </a-tab-pane>
+          <a-tab-pane
+            tab="选择图片"
+            key="2"
+          >
+            <div class="img-bank">
+              <div class="group">
                 <div
-                  class="img"
-                  v-for="(img, i) in imgList"
-                  :key="i"
+                  :class="['group-item', item.groupId === curGroup && 'cur-group']"
+                  v-for="item in displayImgGroupList"
+                  :key="item.groupId"
+                  @click="handleGroupChange(item)"
                 >
-                  <a-image
-                    fit="contain"
-                    class="img"
-                    :src="img.url"
-                  ></a-image>
-                  <div class="info">
-                    <div>{{ img.width }} x {{ img.height }}</div>
-                    <div>{{ (img.fileSize / 1024).toFixed(2) }} KB</div>
-                  </div>
-                  <i
-                    v-if="img.isCheck"
-                    class="a-icon-circle-check is-checked"
-                  ></i>
-                  <div
-                    class="img-modal"
-                    @click="handleCheck(img)"
-                  >
-                    <span class="check-text">{{ img.isCheck ? '点击取消' : '点击选中' }}</span>
-                  </div>
+                  {{ item.groupName }}
                 </div>
               </div>
-              <a-pagination
-                v-model:current="pagination.currentPage"
-                :page-size-options="[24, 60, 120]"
-                :page-size="pagination.pageSize"
-                show-quick-jumper
-                :total="total"
-                @change="paginationChange"
+              <div
+                class="img-list"
+                v-loading="loading"
               >
-              </a-pagination>
+                <div class="img-wrap">
+                  <div
+                    class="img"
+                    v-for="(img, i) in imgList"
+                    :key="i"
+                  >
+                    <a-image
+                      class="img"
+                      :src="img.url"
+                    ></a-image>
+                    <div class="info">
+                      <div>{{ img.width }} x {{ img.height }}</div>
+                      <div>{{ (img.fileSize / 1024).toFixed(2) }} KB</div>
+                    </div>
+                    <CheckCircleOutlined
+                      v-if="img.isCheck"
+                      class="is-checked"
+                    />
+                    <div
+                      class="img-modal"
+                      @click="handleCheck(img)"
+                    >
+                      <span class="check-text">{{ img.isCheck ? '点击取消' : '点击选中' }}</span>
+                    </div>
+                  </div>
+                </div>
+                <a-pagination
+                  v-model:current="pagination.currentPage"
+                  v-model:pageSize="pagination.pageSize"
+                  :page-size-options="[24, 60, 120]"
+                  show-size-changer
+                  show-quick-jumper
+                  :total="total"
+                  :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
+                  @change="paginationChange"
+                />
+              </div>
             </div>
-          </div>
-        </a-tab-pane>
-      </a-tabs>
+          </a-tab-pane>
+        </a-tabs>
+      </a-form-item-rest>
     </a-modal>
     <!-- 网络图片弹窗 -->
     <a-modal
       title="网络图片"
       v-model:open="imgFromNetDialogVisible"
+      width="30%"
       :after-close="imgFromNetDialogClose"
       :confirm-loading="loadingOfImgUrlFromNet"
       @ok="imgFromNetDialogConfirm"
     >
-      <a-input
-        type="textarea"
-        :autosize="{ minRows: 6, maxRows: 8 }"
-        placeholder="请填写图片URL地址, 多个地址用回车换行"
-        v-model="imgUrlFromNet"
-      >
-      </a-input>
+      <a-form-item-rest>
+        <a-textarea
+          v-model:value="imgUrlFromNet"
+          :auto-size="{ minRows: 6, maxRows: 8 }"
+          placeholder="请填写图片URL地址, 多个地址用回车换行"
+          allow-clear
+        >
+        </a-textarea>
+      </a-form-item-rest>
     </a-modal>
   </div>
 </template>
 
 <script>
   import { useAuthorization } from '~/composables/authorization'
-  import { uploadImgFromNetApi, getImagePaginationApi, syncImagePaginationApi } from '@/api/platformApi/aliexpress/media'
-  import { CloudUploadOutlined } from '@ant-design/icons-vue'
+  import { uploadImgFromNetApi, getImagePaginationApi, syncImagePaginationApi } from '@/pages/aliexpress/apis/media'
+  import { CloudUploadOutlined, CloseCircleOutlined, CheckCircleOutlined } from '@ant-design/icons-vue'
+  import { message } from 'ant-design-vue'
+  import { get } from 'lodash'
 
   export default {
     name: 'DropdownOfImage',
+    components: { CloudUploadOutlined, CloseCircleOutlined, CheckCircleOutlined },
     props: {
       account: {
         type: String,
@@ -221,11 +222,11 @@
       // 选择下拉指令
       handleCommand({ key }) {
         if (!this.account) {
-          this.$alert('请先选择店铺', { type: 'warning' })
+          message.warning('请先选择店铺')
           return
         }
         if (this.parentImgList.length >= this.limit) {
-          this.$alert(`图片最多选用 ${this.limit} 张`, { type: 'warning' })
+          message.warning(`图片最多选用 ${this.limit} 张`)
           return
         }
 
@@ -316,7 +317,7 @@
       },
       imgLocalAndBankDialogConfirm() {
         if (this.imgCheckedList.length + this.parentImgList.length > this.limit) {
-          this.$alert(`图片最多选用 ${this.limit} 张`, { type: 'warning' })
+          message.warning(`图片最多选用 ${this.limit} 张`)
           return
         }
 
@@ -326,9 +327,7 @@
       // 图片上传处理
       beforeUpload(file) {
         if (file.size / 1024 / 1024 > 5) {
-          this.$alert('文件过大, 图片上传失败！', '错误提示', {
-            type: 'error'
-          })
+          message.warning('文件过大, 上传失败')
           return false
         }
         // this.fileName = file.originalFilename
@@ -336,20 +335,29 @@
         //   resolve()
         // })
       },
-      onSuccess(res) {
-        if (res.code === 200) {
-          const imgInfo = {
-            fileName: res.fileName,
-            originalFilename: res.originalFilename,
-            url: '/prod-api' + res.url.replaceAll('#', '%23'),
-            width: 0,
-            height: 0
+      handleUploadChange({ file }) {
+        if (file.status === 'done') {
+          const res = file.response
+          if (res.code === 200) {
+            const imgInfo = {
+              fileName: res.fileName,
+              originalFilename: res.originalFilename,
+              url: '/prod-api' + res.url.replaceAll('#', '%23')
+            }
+            this.getImgSize(imgInfo)
+            this.imgCheckedList.push(imgInfo)
+          } else {
+            message.warning(res.msg)
           }
-          this.imgCheckedList.push(imgInfo)
-        } else {
-          this.$alert(res.msg, '上传失败', {
-            type: 'warning'
-          })
+        }
+      },
+      // 获取图片的原始宽高
+      getImgSize(img) {
+        const image = new Image()
+        image.src = img.url
+        image.onload = () => {
+          img.width = image.width
+          img.height = image.height
         }
       },
       handleCheck(img) {
@@ -382,7 +390,7 @@
         if (this.imgUrlFromNet) {
           const rawImgList = this.imgUrlFromNet.trim().split('\n')
           if (rawImgList.length + this.parentImgList.length > this.limit) {
-            this.$alert(`图片最多选用 ${this.limit} 张`, { type: 'warning' })
+            message.warning(`图片最多选用 ${this.limit} 张`)
             return
           }
 
@@ -391,13 +399,16 @@
             .then(res => {
               if (res && res.code === 200) {
                 const imgData = res.data.map(item => {
-                  return {
+                  const imgInfo = {
                     fileName: item.fileName,
                     originalFilename: item.originalFilename,
                     url: '/prod-api' + item.url.replaceAll('#', '%23'),
                     width: 0,
                     height: 0
                   }
+                  this.getImgSize(imgInfo)
+
+                  return imgInfo
                 })
 
                 this.$emit('submit', imgData)
@@ -408,136 +419,132 @@
               this.imgFromNetDialogClose()
             })
         } else {
-          this.$alert('请填写图片URL地址', { type: 'warning' })
+          message.warning('请填写图片URL地址')
         }
       }
     }
   }
 </script>
 
-<style lang="scss" scoped>
-  .dropdown-of-image {
-    .a-dialog__wrapper {
-      position: fixed;
-      top: 20vh;
-    }
-    ::v-deep .a-upload {
-      width: 100%;
-      margin-top: 12px;
-      .a-upload-dragger {
-        width: 100%;
-        height: 458px;
+<style lang="less" scoped>
+  ::v-deep .ant-upload-drag {
+    height: 524px;
+  }
+
+  ::v-deep .ant-upload .ant-upload-btn {
+    padding-top: 188px;
+  }
+
+  .btn-sync {
+    position: absolute;
+    right: 20px;
+    z-index: 1;
+  }
+
+  .img-checked {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e4e7ed;
+    display: flex;
+    flex-wrap: wrap;
+    // overflow-x: auto;
+    .img {
+      width: 50px;
+      height: 50px;
+      margin-right: 12px;
+      margin-bottom: 12px;
+      position: relative;
+      .undo-checked {
+        position: absolute;
+        top: -7px;
+        right: -7px;
+        cursor: pointer;
+        color: rgba(255, 0, 0, 0.7);
+        font-size: 20px;
+        font-weight: bold;
       }
     }
-
-    .a-icon-upload {
-      margin-top: 140px;
-    }
-
-    .btn-sync {
-      position: absolute;
-      right: 20px;
-      z-index: 1;
-    }
-
-    .img-checked {
-      margin-bottom: 20px;
-      border-bottom: 1px solid #e4e7ed;
-      display: flex;
-      flex-wrap: wrap;
-      // overflow-x: auto;
-      .img {
-        width: 50px;
-        height: 50px;
-        margin-right: 12px;
-        margin-bottom: 12px;
-        position: relative;
-        .undo-checked {
-          position: absolute;
-          top: -7px;
-          right: -7px;
-          cursor: pointer;
-          color: rgba(255, 0, 0, 0.7);
-          font-size: 20px;
-          font-weight: bold;
-        }
-      }
-    }
-    .img-bank {
-      display: flex;
-      .group {
-        flex: none;
-        padding: 8px 0;
-        width: 150px;
-        overflow: auto;
-        &-item {
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          margin: 4px 0;
-          cursor: pointer;
-          &:hover {
-            background-color: #f0f1f5;
-          }
-        }
-        .cur-group {
+  }
+  .img-bank {
+    display: flex;
+    .group {
+      flex: none;
+      padding: 8px 0;
+      width: 150px;
+      overflow: auto;
+      &-item {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        margin: 4px 0;
+        cursor: pointer;
+        &:hover {
           background-color: #f0f1f5;
         }
       }
-      .img-list {
-        flex: 1;
-        padding: 8px;
-        .img-wrap {
-          display: flex;
-          flex-wrap: wrap;
-          height: 484px;
-          overflow: auto;
-          .img {
-            width: 100px;
-            height: 100px;
-            margin: 0 12px 12px 0;
-            position: relative;
-            user-select: none;
-            .info {
-              position: absolute;
-              bottom: 0;
-              left: 0;
-              background-color: rgba(5, 5, 5, 0.3);
-              width: 100%;
-              padding: 0 4px;
-              // height: 24px;
-              // display: flex;
-              // justify-content: space-between;
-              width: 100%;
-              font-size: 12px;
-              color: #fff;
-            }
-            .is-checked {
-              position: absolute;
-              top: 0;
-              right: 0;
-              color: rgba(0, 255, 0, 0.7);
-              font-size: 20px;
-              font-weight: bold;
-            }
-            .img-modal {
-              opacity: 0;
-              width: 100%;
-              height: 100%;
-              position: absolute;
-              top: 0;
-              left: 0;
-              text-align: center;
-              line-height: 100px;
-              color: #fff;
-              background-color: rgba(5, 5, 5, 0.2);
-              cursor: pointer;
-              &:hover {
-                opacity: 1;
-              }
+      .cur-group {
+        background-color: #f0f1f5;
+      }
+    }
+    .img-list {
+      flex: 1;
+      padding: 8px;
+      .img-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        height: 484px;
+        overflow: auto;
+        .img {
+          width: 100px;
+          height: 100px;
+          margin: 0 12px 12px 0;
+          position: relative;
+          user-select: none;
+          .info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            background-color: rgba(5, 5, 5, 0.3);
+            width: 100%;
+            padding: 0 4px;
+            // height: 24px;
+            // display: flex;
+            // justify-content: space-between;
+            width: 100%;
+            font-size: 12px;
+            color: #fff;
+          }
+          .is-checked {
+            position: absolute;
+            top: 0;
+            right: 0;
+            color: rgba(0, 255, 0, 0.7);
+            font-size: 20px;
+            font-weight: bold;
+          }
+          .img-modal {
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            text-align: center;
+            line-height: 100px;
+            color: #fff;
+            background-color: rgba(5, 5, 5, 0.2);
+            cursor: pointer;
+            &:hover {
+              opacity: 1;
             }
           }
         }
+      }
+    }
+
+    ::v-deep .ant-pagination-options {
+      width: 200px;
+      .ant-select.ant-select-in-form-item {
+        width: 45%;
       }
     }
   }

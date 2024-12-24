@@ -1,5 +1,5 @@
 /** 图片、视频等媒体资源相关 */
-// 获取图片银行信息, 总量/使用量
+// 以 URL 方式上传图片
 export function uploadImgFromNetApi(params) {
   return usePost('/platform-aliexpress/platform/aliexpress/file/upload/image-url', params)
 }

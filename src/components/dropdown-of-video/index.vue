@@ -14,7 +14,6 @@
             :show-upload-list="false"
             :disabled="!sellerId"
             :before-upload="beforeUpload"
-            :on-success="onSuccess"
           >
             <a-menu-item
               key="local"
@@ -57,15 +56,9 @@
               ></a-image>
               <div class="info">
                 <span>{{ durationFormat(video.duration) }}</span>
-                <i
-                  class="a-icon-video-play btn-video-play"
-                  @click="videoPlay(video)"
-                ></i>
+                <PlayCircleOutlined class="btn-video-play" @click="videoPlay(video)" />
               </div>
-              <i
-                v-if="video.isCheck"
-                class="a-icon-circle-check is-checked"
-              ></i>
+              <CheckCircleOutlined v-if="video.isCheck" class="is-checked" />
               <div
                 class="video-modal"
                 @click="handleCheck(video)"
@@ -106,11 +99,15 @@
 
 <script>
   import { useAuthorization } from '~/composables/authorization'
-  import { getVideoListApi } from '@/api/platformApi/aliexpress/media'
-  import { after } from 'lodash'
+  import { getVideoListApi } from '@/pages/aliexpress/apis/media'
+  import { PlayCircleOutlined, CheckCircleOutlined } from '@ant-design/icons-vue'
 
   export default {
     name: 'DropdownOfVideo',
+    components: {
+      PlayCircleOutlined,
+      CheckCircleOutlined
+    },
     props: {
       sellerId: {
         type: String,
@@ -255,7 +252,7 @@
   }
 </script>
 
-<style lang="scss" scoped>
+<style lang="less" scoped>
   .dropdown-of-video {
     .btn-sync {
       position: absolute;

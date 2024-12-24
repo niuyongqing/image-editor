@@ -1,7 +1,7 @@
 <template>
   <a-card
     title="基本信息"
-    class="mb-4 text-left"
+    class="mb-4"
   >
     <a-form
       ref="ruleFormRef"
@@ -21,7 +21,7 @@
           allow-clear
           :options="accounts"
           :field-names="{ label: 'simpleName', value: 'sellerId' }"
-          :filter-option="(input, option) => option.simpleName.toLowerCase().indexOf(input.toLowerCase()) >= 0"
+          option-filter-prop="simpleName"
           @change="handleAccountChange"
         >
         </a-select>
@@ -118,12 +118,9 @@
                   show-search
                   label-in-value
                   placeholder="请选择"
-                  :filter-option="(input, option) => option.name.toLowerCase().indexOf(input.toLowerCase()) >= 0"
+                  option-filter-prop="name"
                   @change="val => handleAttrChange(val, i)"
                 >
-                  <template #tagRender="{ label }">
-                    <span>{{ label }}</span>
-                  </template>
                 </a-select>
                 <!-- 可自定义填写内容 -->
                 <a-select
@@ -131,12 +128,13 @@
                   v-model:value="attributes[item.zh]"
                   :options="item.values"
                   :field-names="{ label: 'name', value: 'attributeValueId' }"
+                  :ref="`selectRef${item.zh}`"
                   mode="tags"
                   show-search
                   label-in-value
                   placeholder="输入或选择;回车确认输入值"
-                  :filter-option="(input, option) => option.name.toLowerCase().indexOf(input.toLowerCase()) >= 0"
-                  @select="(val, option) => select(val, option, attributes[item.zh], i)"
+                  option-filter-prop="name"
+                  @select="(val, option) => select(val, option, item.zh, i)"
                 >
                   <template #tagRender="{ label }">
                     <span>{{ label }}</span>
@@ -175,7 +173,7 @@
                 mode="multiple"
                 show-search
                 label-in-value
-                :filter-option="(input, option) => option.name.toLowerCase().indexOf(input.toLowerCase()) >= 0"
+                option-filter-prop="name"
                 placeholder="请选择"
               >
               </a-select>
@@ -506,8 +504,11 @@
                   item.zh = JSON.parse(item.names).zh
                   item.en = JSON.parse(item.names).en
                   item.values.forEach(value => {
-                    value.name = JSON.parse(value.names).zh + '(' + JSON.parse(value.names).en + ')'
-                    value.en = JSON.parse(value.names).en
+                    const names = JSON.parse(value.names)
+                    value.name = names.zh + '(' + names.en + ')'
+                    value.en = names.en
+                    // 删除空属性 attributes; 它会导致控制台出一堆警告
+                    delete value.attributes
                   })
                 })
 
@@ -553,15 +554,16 @@
         })
       },
       // 属性选择变化
-      select(val, option, item, i) {
+      select(val, option, key, i) {
         if (Object.keys(option).length === 0) {
           // 自定义输入内容
-          item = [{ label: val, value: val }]
+          this.attributes[key] = [{ label: val.value, value: val.value }]
         } else {
-          item = [option]
+          this.attributes[key] = [{ label: val.label, value: val.value, option }]
         }
+        this.$refs[`selectRef${key}`][0].blur()
 
-        this.handleAttrChange(item, i)
+        this.handleAttrChange(this.attributes[key], i)
       },
       // hasSubAttr为true时, 代表有子属性; 主要是为了在产地选中国大陆后, 显示省份, 且默认选浙江省
       handleAttrChange(val, i, isEdit = false) {
@@ -653,9 +655,13 @@
       // 向上级提交数据
       emitData({ isDraft = false }) {
         let ruleFormValid = true
-        this.$refs.ruleFormRef.validate(val => (ruleFormValid = val))
+        this.$refs.ruleFormRef.validate().catch(err => {
+          ruleFormValid = false
+        })
         let attrValid = true
-        this.$refs.attributeFormRef.validate(val => (attrValid = val))
+        this.$refs.attributeFormRef.validate().catch(err => {
+          attrValid = false
+        })
         // 自定义属性
         const hasEmpty = this.cusAttribute.some(item => !item.label || !item.value)
         if (hasEmpty) {

@@ -1,99 +1,92 @@
 <template>
-  <a-card
-    header="图片信息"
-    shadow="hover"
-    class="image-info mb-16"
-  >
-    <div
-      slot="header"
-      class="clearfix"
-    >
-      <span>图片信息<span style="color: #9fa0a2">（编辑图片时请先选择店铺）</span></span>
-      <span style="float: right; padding: 3px 0; color: #99999a">
-        媒体空间容量
-        <span v-if="sellerId"> ({{ usedSize }} / {{ capacitySize }} GB) </span>
-        <span
-          v-else
-          style="color: #0b56fa"
-          >（选择店铺后显示）</span
-        >
-      </span>
-      <span style="float: right; padding: 3px 0; color: #99999a; margin-right: 10px">
-        <a-select
-          v-model="watermarkId"
-          placeholder="请选择水印"
-          clearable
-          :disabled="!checkedImgList.length"
-          :loading="imgEditLoading"
-          @change="selectWaterMark"
-        >
-          <a-option
-            v-for="item in watermarkOptions"
-            :key="item.id"
-            :label="item.title"
-            :value="item.id"
+  <a-card class="image-info mb-16">
+    <template #title>
+      <div>
+        <span>图片信息<span style="color: #9fa0a2">（编辑图片时请先选择店铺）</span></span>
+        <span style="float: right; padding: 3px 0; color: #99999a">
+          媒体空间容量
+          <span v-if="sellerId"> ({{ usedSize }} / {{ capacitySize }} GB) </span>
+          <span
+            v-else
+            style="color: #0b56fa"
+            >（选择店铺后显示）</span
           >
-            <div>
-              <span>{{ item.title }} </span>
-              <a-image
-                v-if="item.type === 1"
-                fit="contain"
-                :src="item.content"
-                style="width: 20px; height: 20px; position: relative; top: 4px"
-              ></a-image>
-              <span v-else>({{ item.content }})</span>
-            </div>
-          </a-option>
-        </a-select>
-      </span>
-      <span style="float: right; padding: 3px 0; color: #99999a; margin-right: 10px">
-        <a-input-number
-          v-model="cropWidth"
-          placeholder="宽"
-          controls-position="right"
-          :disabled="!checkedImgList.length"
-          :controls="false"
-        ></a-input-number>
-        X
-        <a-input-number
-          v-model="cropHeight"
-          placeholder="高"
-          controls-position="right"
-          :disabled="!checkedImgList.length"
-          :controls="false"
-        ></a-input-number>
-        <a-button
-          :disabled="!checkedImgList.length"
-          :loading="imgEditLoading"
-          @click="handleCrop"
-          >修改尺寸</a-button
-        >
-      </span>
-    </div>
+        </span>
+        <span style="float: right; padding: 3px 0; color: #99999a; margin-right: 10px">
+          <a-select
+            v-model:value="watermarkId"
+            placeholder="请选择水印"
+            allow-clear
+            :disabled="!checkedImgList.length"
+            :loading="imgEditLoading"
+            class="w-40"
+            @change="selectWaterMark"
+          >
+            <a-select-option
+              v-for="item in watermarkOptions"
+              :key="item.id"
+              :label="item.title"
+              :value="item.id"
+            >
+              <div>
+                <span>{{ item.title }} </span>
+                <a-image
+                  v-if="item.type === 1"
+                  :src="item.content"
+                  style="width: 20px; height: 20px; margin-left: 4px"
+                ></a-image>
+                <span
+                  v-else
+                  class="ml-1"
+                  >({{ item.content }})</span
+                >
+              </div>
+            </a-select-option>
+          </a-select>
+        </span>
+        <span style="float: right; padding: 3px 0; color: #99999a; margin-right: 10px">
+          <a-input-number
+            v-model:value="cropWidth"
+            placeholder="宽"
+            :disabled="!checkedImgList.length"
+            :controls="false"
+          ></a-input-number>
+          X
+          <a-input-number
+            v-model:value="cropHeight"
+            placeholder="高"
+            :disabled="!checkedImgList.length"
+            :controls="false"
+          ></a-input-number>
+          <a-button
+            :disabled="!checkedImgList.length"
+            :loading="imgEditLoading"
+            @click="handleCrop"
+            >修改尺寸</a-button
+          >
+        </span>
+      </div>
+    </template>
     <a-form
       ref="form"
       :model="form"
       :rules="rules"
-      label-width="180px"
+      :label-col="{ style: { width: '180px' } }"
     >
       <a-form-item
-        label="产品图片："
-        prop="productImages"
+        label="产品图片"
+        name="productImages"
       >
         <div>
           <div style="color: #9fa0a2">
             点击图片拖动，即可调整图片顺序！「图片最多选用
-            <span style="color: #ff0a37; font-weight: bolder; font-size: 20px">6</span>
+            <span style="color: #ff0a37; font-weight: bolder; font-size: 16px">6</span>
             张，已经选用了
-            <span style="color: #07793a; font-weight: bold; font-size: 18px">{{ form.productImages.length }}</span>
+            <span style="color: #07793a; font-weight: bold; font-size: 16px">{{ form.productImages.length }}</span>
             张」
           </div>
           <div>
-            <a-tag
-              type="success"
-              effect="dark"
-              >！说明</a-tag
-            >
+            <a-tag color="success">！说明</a-tag>
             <span style="color: #9fa0a2; margin-left: 10px">图片格式只能为jpg、jpeg、png，图片比例支持1:1（像素≥800*800）或3:4（像素≥750*1000），单个图片大小不超过5M。</span>
           </div>
         </div>
@@ -105,71 +98,65 @@
           @submit="imgData => fillImgData(imgData, 'productImages')"
         >
           <a-button
-            type="text"
-            size="medium"
+            type="link"
+            size="middle"
             >选择图片<i class="el-icon-arrow-down el-icon--right"></i
           ></a-button>
         </DropdownOfImage>
         <div class="product-image">
-          <Draggable
-            v-if="form.productImages.length"
-            v-model="form.productImages"
-            group="productImages"
-            animation="200"
-            class="image-list"
-          >
-            <div
-              v-for="item in form.productImages"
-              :key="item.url"
-              class="image-list-item"
+          <a-form-item-rest v-if="form.productImages.length">
+            <Draggable
+              v-model="form.productImages"
+              item-key="url"
+              group="productImages"
+              animation="200"
+              class="image-list"
             >
-              <a-image
-                fit="contain"
-                :ref="`image_${item.url}`"
-                :src="item.url"
-                :preview-src-list="form.productImages.map(item => item.url)"
-                @load="getImageSize(item)"
-              ></a-image>
-              <div class="image-info">
-                <span>{{ item.width }} x {{ item.height }}</span>
-                <div>
-                  <a-checkbox
-                    v-model="item.checked"
-                    style="margin-right: 8px"
-                  ></a-checkbox>
-                  <a-button
-                    type="text"
-                    size="medium"
-                    icon="el-icon-delete"
-                    @click="removeChosenImage(item.url, 'productImages')"
-                  ></a-button>
+              <template #item="{ element: item }">
+                <div class="image-list-item">
+                  <a-image
+                    :ref="`image_${item.url}`"
+                    :src="item.url"
+                    :preview-src-list="form.productImages.map(item => item.url)"
+                  ></a-image>
+                  <div class="image-info">
+                    <span>{{ item.width }} x {{ item.height }}</span>
+                    <div>
+                      <a-checkbox
+                        v-model:checked="item.checked"
+                        style="margin-right: 8px"
+                      ></a-checkbox>
+                      <a-button
+                        type="link"
+                        danger
+                        size="middle"
+                        @click="removeChosenImage(item.url, 'productImages')"
+                        ><DeleteOutlined
+                      /></a-button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </Draggable>
+              </template>
+            </Draggable>
+          </a-form-item-rest>
           <div
             v-else
             class="image-empty"
           >
-            <a-empty description="暂无图片">
-              <i
-                class="el-icon-picture-outline empty-icon"
-                slot="image"
-              ></i>
-            </a-empty>
+            <a-empty
+              :image="simpleImage"
+              class="mt-[56px]"
+              description="暂无图片"
+            />
           </div>
         </div>
       </a-form-item>
       <a-form-item
-        label="营销图片："
-        prop="marketImages"
+        label="营销图片"
+        name="marketImages"
       >
         <div>
-          <a-tag
-            type="success"
-            effect="dark"
-            >！说明</a-tag
-          >
+          <a-tag color="success">！说明</a-tag>
           <span style="color: #9fa0a2"> 1、图片格式只能为jpg、jpeg、png，图片比例支持1:1（像素≥800*800）或3:4（像素≥750*1000），单个图片大小不超过5M。 </span>
           <br />
           <span style="margin-left: 53px; color: #9fa0a2">2、6合1发布不支持设置营销图</span>
@@ -186,20 +173,18 @@
                 class="image-list-item"
               >
                 <a-image
-                  fit="contain"
                   :ref="`image_${item.url}`"
                   :src="item.url"
                   :preview-src-list="form.marketImage1.map(item => item.url)"
-                  @load="getImageSize(item)"
                 ></a-image>
                 <div class="image-info">
                   <span>{{ item.width }} x {{ item.height }}</span>
                   <a-button
-                    type="text"
-                    size="medium"
-                    icon="el-icon-delete"
+                    type="link"
+                    size="middle"
                     @click="removeChosenImage(item.url, 'marketImage1')"
-                  ></a-button>
+                    ><DeleteOutlined
+                  /></a-button>
                 </div>
               </div>
             </div>
@@ -211,12 +196,11 @@
               @submit="imgData => fillImgData(imgData, 'marketImage1')"
             >
               <div class="image-empty">
-                <a-empty description="1:1 白底图">
-                  <i
-                    class="el-icon-picture-outline empty-icon"
-                    slot="image"
-                  ></i>
-                </a-empty>
+                <a-empty
+                  :image="simpleImage"
+                  description="1:1 白底图"
+                  class="mt-[56px]"
+                />
               </div>
             </DropdownOfImage>
           </div>
@@ -233,20 +217,18 @@
                 style="height: 238px"
               >
                 <a-image
-                  fit="contain"
                   :ref="`image_${item.url}`"
                   :src="item.url"
                   :preview-src-list="form.marketImage2.map(item => item.url)"
-                  @load="getImageSize(item)"
                 ></a-image>
                 <div class="image-info">
                   <span>{{ item.width }} x {{ item.height }}</span>
                   <a-button
-                    type="text"
-                    size="medium"
-                    icon="el-icon-delete"
+                    type="link"
+                    size="middle"
                     @click="removeChosenImage(item.url, 'marketImage2')"
-                  ></a-button>
+                    ><DeleteOutlined
+                  /></a-button>
                 </div>
               </div>
             </div>
@@ -262,19 +244,15 @@
                 style="height: 238px"
               >
                 <a-empty
+                  :image="simpleImage"
+                  class="pt-[60px]"
                   description="3:4 场景图"
-                  style="padding-top: 66px"
-                >
-                  <i
-                    class="el-icon-picture-outline empty-icon"
-                    slot="image"
-                  ></i>
-                </a-empty>
+                />
               </div>
             </DropdownOfImage>
           </div>
           <a-button
-            type="text"
+            type="link"
             style="margin-left: 8px"
             :loading="generateMarketImageLoading"
             @click="generateMarketImage"
@@ -283,16 +261,12 @@
         </div>
       </a-form-item>
       <a-form-item
-        label="产品视频："
-        v-loading="uploadVideoLoading"
+        label="产品视频"
+        :loading="uploadVideoLoading"
         element-loading-text="视频上传中，请稍等！"
       >
         <div>
-          <a-tag
-            type="success"
-            effect="dark"
-            >！说明</a-tag
-          >
+          <a-tag color="success">！说明</a-tag>
           <span style="color: #9fa0a2"> 最小尺寸：480x480像素。最大视频长度：60秒。最大文件大小：100M。支持的格式：mp4。新视频可能需要长达36小时才能获得批准 </span>
           <br />
           <span style="color: #9fa0a2"> 封面图尺寸：330px X 330px ~ 2000px X 2000px</span>
@@ -311,8 +285,8 @@
               <div class="image-info">
                 <span></span>
                 <a-button
-                  type="text"
-                  size="medium"
+                  type="link"
+                  size="middle"
                   icon="el-icon-delete"
                   @click="removeVideo"
                 ></a-button>
@@ -325,12 +299,11 @@
             @submit="fillVideoData"
           >
             <div class="image-empty">
-              <a-empty description="视频">
-                <i
-                  class="el-icon-picture-outline empty-icon"
-                  slot="image"
-                ></i>
-              </a-empty>
+              <a-empty
+                :image="simpleImage"
+                description="视频"
+                class="mt-[56px]"
+              />
             </div>
           </DropdownOfVideo>
         </div>
@@ -340,39 +313,43 @@
 </template>
 
 <script>
-  import DropdownOfImage from '@/components/OnlinePublish/AliExpressAssembly/DropdownOfImage'
-  import DropdownOfVideo from '@/components/OnlinePublish/AliExpressAssembly/DropdownOfVideo'
+  import DropdownOfImage from '@/components/dropdown-of-image/index.vue'
+  import DropdownOfVideo from '@/components/dropdown-of-video/index.vue'
   import Draggable from 'vuedraggable'
-  import { videoQuota, listGroup, uploadImgFromNet } from '@/api/platformApi/aliexpress/media'
-  import { cropImg, watermark, watermarkList } from '@/api/PlatformTemplate/watermarkTemplateApi'
-  import { mapState } from 'vuex'
+  import { videoQuotaApi, listGroupApi, uploadImgFromNetApi } from '../../apis/media'
+  import { scaleApi, watermarkApi, watermarkListApi } from '@/api/common/water-mark'
+  import { DeleteOutlined } from '@ant-design/icons-vue'
+  import { Empty } from 'ant-design-vue'
+  import { useAliexpressChoiceProductStore } from '@/stores/aliexpress-choice-product'
 
   export default {
     name: 'ImageInfo',
-    // components: { DropdownOfImage, DropdownOfVideo, Draggable },
+    components: { Draggable, DeleteOutlined },
     data() {
       // 主图校验
-      const validMainImages = (rule, images, callback) => {
+      const validMainImages = (rule, images) => {
         if (!images.length) {
-          callback(new Error('请上传产品图片'))
+          return Promise.reject('请上传产品图片')
         } else if (images.length > 6) {
-          callback(new Error('最多上传 6 张图片'))
+          return Promise.reject('最多上传 6 张图片')
         } else {
-          callback()
+          return Promise.resolve()
         }
       }
       // 营销图校验
-      const validMarketImages = (rule, images, callback) => {
+      const validMarketImages = (rule, images) => {
         if (!this.form.marketImage1.length || !this.form.marketImage2.length) {
-          callback(new Error('请上传营销图片'))
+          return Promise.reject('请上传营销图片')
         } else {
-          callback()
+          return Promise.resolve()
         }
       }
       return {
+        store: useAliexpressChoiceProductStore(),
+        simpleImage: Empty.PRESENTED_IMAGE_SIMPLE,
         mediaBankInfo: {},
         watermarkOptions: [],
-        watermarkId: '',
+        watermarkId: undefined,
         form: {
           productImages: [],
           marketImage1: [], // 1:1 白底图
@@ -380,8 +357,8 @@
           video: {}
         },
         rules: {
-          productImages: { validator: validMainImages, required: true, trigger: 'change' },
-          marketImages: { validator: validMarketImages, required: true, trigger: 'change' }
+          productImages: { validator: validMainImages, required: true, trigger: 'blur' },
+          marketImages: { validator: validMarketImages, required: true, trigger: 'blur' }
         },
         imgGroupList: [],
         cropWidth: 800,
@@ -392,7 +369,12 @@
       }
     },
     computed: {
-      ...mapState('aliexpress', ['sellerId', 'productDetail']),
+      sellerId() {
+        return this.store.sellerId
+      },
+      productDetail() {
+        return this.store.productDetail
+      },
       usedSize() {
         return this.mediaBankInfo.useage ? (parseFloat(this.mediaBankInfo.useage) / 1024 / 1024 / 1024).toFixed(2) : '--'
       },
@@ -459,26 +441,21 @@
     methods: {
       getMediaBankInfo() {
         this.mediaBankInfo = {}
-        videoQuota({ sellerId: this.sellerId }).then(res => {
+        videoQuotaApi({ sellerId: this.sellerId }).then(res => {
           if (res && res.code === 200) {
             this.mediaBankInfo = res.data.result || {}
           }
         })
       },
       getImgGroup() {
-        listGroup({ sellerId: this.sellerId }).then(res => {
+        listGroupApi({ sellerId: this.sellerId }).then(res => {
           if (res && res.code === 200) {
             this.imgGroupList = res.data.result.photoBankImageGroupList || []
           }
         })
       },
-      // 获取图片尺寸信息
-      getImageSize(item) {
-        item.width = this.$refs[`image_${item.url}`][0].imageWidth
-        item.height = this.$refs[`image_${item.url}`][0].imageHeight
-      },
       getWatermark() {
-        watermarkList().then(res => {
+        watermarkListApi().then(res => {
           this.watermarkOptions = res.data || []
         })
       },
@@ -502,7 +479,7 @@
         if (imgLocalList.length) {
           const p1 = new Promise(resolve => {
             const imagePathList = imgLocalList.map(img => img.url.replace('/prod-api', ''))
-            watermark({
+            watermarkApi({
               id: this.watermarkId,
               imagePathList
             })
@@ -526,13 +503,13 @@
         if (imgRemoteList.length) {
           const p2 = new Promise(resolve => {
             const imgUrls = imgRemoteList.map(img => img.url).join(',')
-            uploadImgFromNet({ imgUrls }).then(res => {
+            uploadImgFromNetApi({ imgUrls }).then(res => {
               const imagePathList = res.data.map(item => ({
                 fileName: item.fileName, // 与图片 url 原名并不完全相等, 包含该字符串
                 originalFilename: item.originalFilename,
                 url: item.url
               }))
-              watermark({
+              watermarkApi({
                 id: this.watermarkId,
                 imagePathList: imagePathList.map(item => item.url.replaceAll('#', '%23'))
               })
@@ -564,7 +541,7 @@
 
         Promise.all(promiseList).then(_ => {
           this.form.productImages.forEach(item => {
-            this.$set(item, 'checked', false)
+            item.checked = false
           })
           this.watermarkId = ''
           this.imgEditLoading = false
@@ -590,7 +567,7 @@
         if (imgLocalList.length) {
           const p1 = new Promise(resolve => {
             const imagePathList = imgLocalList.map(img => img.url.replace('/prod-api', ''))
-            cropImg({
+            scaleApi({
               newWidth: this.cropWidth,
               newHeight: this.cropHeight,
               imagePathList,
@@ -616,13 +593,13 @@
         if (imgRemoteList.length) {
           const p2 = new Promise(resolve => {
             const imgUrls = imgRemoteList.map(img => img.url).join(',')
-            uploadImgFromNet({ imgUrls }).then(res => {
+            uploadImgFromNetApi({ imgUrls }).then(res => {
               const imagePathList = res.data.map(item => ({
                 fileName: item.fileName, // 与图片 url 原名并不完全相等, 包含该字符串
                 originalFilename: item.originalFilename,
                 url: item.url
               }))
-              cropImg({
+              scaleApi({
                 newWidth: this.cropWidth,
                 newHeight: this.cropHeight,
                 imagePathList: imagePathList.map(item => item.url.replaceAll('#', '%23')),
@@ -656,7 +633,7 @@
 
         Promise.all(promiseList).then(_ => {
           this.form.productImages.forEach(item => {
-            this.$set(item, 'checked', false)
+            item.checked = false
           })
           this.cropWidth = 800
           this.cropHeight = 800
@@ -707,13 +684,13 @@
           if (this.form.productImages[0].url.includes('/prod-api')) {
             imagePathList.push(this.form.productImages[0].url.replace('/prod-api', ''))
           } else {
-            await uploadImgFromNet({ imgUrls: this.form.productImages[0].url }).then(res => {
+            await uploadImgFromNetApi({ imgUrls: this.form.productImages[0].url }).then(res => {
               res.data.forEach(item => {
                 imagePathList.push(item.url.replaceAll('#', '%23'))
               })
             })
           }
-          cropImg({
+          scaleApi({
             newWidth,
             newHeight,
             imagePathList,
@@ -753,7 +730,9 @@
           this.$refs.form.clearValidate()
         } else {
           let valid = true
-          this.$refs.form.validate(val => (valid = val))
+          this.$refs.form.validate().catch(() => {
+            valid = false
+          })
           if (!valid) return
         }
 
@@ -792,7 +771,7 @@
   }
 </script>
 
-<style lang="scss" scoped>
+<style lang="less" scoped>
   .image-info {
     .image-list {
       display: flex;
