@@ -4,9 +4,9 @@
             <div ref="tableContainer">
                 <div class="w-full flex justify-between mb-3">
                     <div>
-                        <a-space>
-                            <slot name="leftBar"></slot>
-                        </a-space>
+
+                        <slot name="leftBar"></slot>
+
                     </div>
                     <div>
                         <!-- 店铺商品表格右侧分页 -->

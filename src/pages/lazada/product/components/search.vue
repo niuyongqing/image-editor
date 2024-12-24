@@ -5,9 +5,9 @@
                 <a-form-item label="店铺账号:">
                     <div class="flex flex-wrap gap-10px">
                         <a-button v-for="(item) in shortCodes" :key="item.shortCode"
-                            :type="item.shortCode === formState.currrentShortCode ? 'primary' : 'text'"
-                            @click="changeShortCode(item)">
-
+                            :type="item.shortCode === formState.shortCode ? 'primary' : 'text'"
+                            @click="changeShortCode(item.shortCode)">
+                            {{ item.simpleName }}
                         </a-button>
                     </div>
                 </a-form-item>
@@ -21,7 +21,7 @@
 
                 <a-form-item label="搜索内容：">
                     <div>
-                        <div class="flex ">
+                        <div class="flex">
                             <a-input v-model:value="formState.searchContent" placeholder="请输入搜索内容" style="width: 480px"
                                 v-show="currentSearchType === 'title'" />
                             <a-textarea v-model:value="formState.sku" placeholder="多个SKU间隔用逗号隔开，最多支持200个"
@@ -159,10 +159,11 @@ const formState = reactive({
 // 显示高级搜索
 const showAdvanceSearch = () => {
     visible.value = !visible.value;
-    console.log('showAdvanceSearch ->>>>>>>>>>')
 };
-const changeShortCode = () => {
-
+const changeShortCode = (value) => {
+    formState.shortCode = value;
+    console.log('value ->>>', formState.shortCode);
+    submit();
 };
 const changeSearchType = (item) => {
     currentSearchType.value = item.value;
@@ -184,7 +185,7 @@ const changeSortType = (item) => {
     formState.sort = item.sort;
 };
 const submit = () => {
-    emits('search', state);
+    emits('search', formState);
 };
 const handleReset = () => {
     reset();

@@ -115,6 +115,8 @@ const submit = () => {
             if (res.data.code == 200) {
                 message.success(res.data.msg);
                 emits('success')
+            } else {
+                message.error(res.data.msg);
             }
         }).finally(() => {
             submitBtnLoading.value = false;

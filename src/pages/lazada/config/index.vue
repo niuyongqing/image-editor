@@ -10,13 +10,14 @@
                         <PlusOutlined />
                     </template>
                     新增</a-button>
-                <a-button type="primary" @click="handleEdit" :disabled="singleDisabled">
+                <a-button type="primary" @click="handleEdit" :disabled="singleDisabled" style="margin-left: 10px;">
                     <template #icon>
                         <EditOutlined />
                     </template>
                     修改
                 </a-button>
-                <a-button type="primary" danger @click="handleDel" :disabled="singleDisabled">
+                <a-button type="primary" danger @click="handleDel" :disabled="singleDisabled"
+                    style="margin-left: 10px;">
                     <template #icon>
                         <DeleteOutlined />
                     </template>

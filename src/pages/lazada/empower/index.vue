@@ -12,28 +12,30 @@
                     授权</a-button>
 
                 <a-popconfirm title="确定要全部刷新授权吗？" ok-text="是" cancel-text="否" @confirm="refreshToken">
-                    <a-button type="primary" v-has-permi="[`system:platform:lazada:accredit`]"
-                        :loading="refreshLoading">
+                    <a-button type="primary" v-has-permi="[`system:platform:lazada:accredit`]" :loading="refreshLoading"
+                        style="margin-left: 10px;">
                         <template #icon>
                             <ReloadOutlined />
                         </template>
                         刷新全部授权</a-button>
                 </a-popconfirm>
 
-                <a-button type="primary" @click="handleBatchName" v-has-permi="[`platform:lazada:accredit`]">
+                <a-button type="primary" @click="handleBatchName" v-has-permi="[`platform:lazada:accredit`]"
+                    style="margin-left: 10px;">
                     <template #icon>
                         <CloudUploadOutlined />
                     </template>
                     批量修改简称
                 </a-button>
-                <a-button type="primary" @click="handleBatchStore" v-has-permi="[`system:platform:lazada:accredit`]">
+                <a-button type="primary" @click="handleBatchStore" v-has-permi="[`system:platform:lazada:accredit`]"
+                    style="margin-left: 10px;">
                     <template #icon>
                         <EditOutlined />
                     </template>
                     批量修改仓库
                 </a-button>
                 <a-button type="primary" :loading="exportLoading" @click="handleExport"
-                    v-has-permi="[`system:platform:lazada:accredit`]">
+                    v-has-permi="[`system:platform:lazada:accredit`]" style="margin-left: 10px;">
                     <template #icon>
                         <DownloadOutlined />
                     </template>

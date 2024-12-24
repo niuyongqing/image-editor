@@ -12,7 +12,7 @@ export const columns = [
     dataIndex: "attrs",
     key: "attrs",
     slot: "attrs",
-    width: 230,
+    width: 500,
   },
 
   {
@@ -20,33 +20,44 @@ export const columns = [
     dataIndex: "skus",
     key: "skus",
     slot: "skus",
-    width: 200,
   },
 
   {
     title: "价格",
-    dataIndex: "shortCode",
-    key: "shortCode",
+    dataIndex: "price",
+    key: "price",
+    slot: "price",
   },
 
   {
     title: "促销价",
-    dataIndex: "shortCode",
-    key: "shortCode",
+    dataIndex: "special_price",
+    key: "special_price",
+    slot: "special_price",
   },
-  {
-    title: "不含邮价格",
-    dataIndex: "shortCode",
-    key: "shortCode",
-  },
+  // {
+  //   title: "不含邮价格",
+  //   dataIndex: "shortCode",
+  //   key: "shortCode",
+  // },
   {
     title: "库存",
-    dataIndex: "shortCode",
-    key: "shortCode",
+    dataIndex: "quantity",
+    key: "quantity",
+    slot: "quantity",
+  },
+  {
+    title: "时间",
+    dataIndex: "date",
+    key: "date",
+    slot: "date",
+    width: 200,
   },
   {
     title: "操作",
-    dataIndex: "shortCode",
-    key: "shortCode",
+    dataIndex: "action",
+    key: "action",
+    slot: "action",
+    width: 120,
   },
 ];
