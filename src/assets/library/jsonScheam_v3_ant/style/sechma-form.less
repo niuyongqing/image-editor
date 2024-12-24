@@ -1,0 +1,128 @@
+
+.sechma-form {
+  // width: 40%;
+}
+::v-deep(.fieldItem) {
+  .fieldGroupWrap_title {
+    text-align: left;
+  }
+  .fieldGroupWrap_des {
+    text-align: left;
+  }
+  .fieldGroupWrap_box {
+    // margin-left: 20px;
+    .arrayOrderList {
+      // display: flex;
+      .arrayOrderListContent {
+        // width: calc(100% - 300px);
+        // flex: 1;
+        .arrayOrderList_item {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          margin: 0 15px 5px;
+          border-bottom: #999999 1px dashed;
+          &:last-child {
+            border-bottom: transparent 1px dashed;
+          }
+          .arrayListItem_operateTool {
+            // margin-bottom: 10px;
+          }
+          .arrayListItem_content {
+            // flex: 1;
+            padding: 10px 0 0;
+            // margin: 0 auto;
+            // box-shadow: 0 -1px 0 0 rgba(0,0,0,0.05);
+          }
+        }
+      }
+      .arrayOrderList_bottomAddBtn {
+        // width: 300px;
+        // display: flex;
+        // align-items: center;
+        .bottomAddBtn {
+          width: auto;
+          height: auto;
+          padding: 0;
+          border: 0px;
+        }
+      }
+    }
+    .appendCombining_box {
+      display: flex;
+      // flex-direction: row-reverse;
+      background: transparent;
+      .validateWidget {
+        display: none;
+      }
+    }
+    .ant-form-item.genFormItem {
+      margin-bottom: 10px;
+      .ant-form-item-row {
+        display: flex;
+        flex-direction: row;
+        .ant-form-item-label {
+          width: 200px;
+          height: auto;
+          // display: flex;
+          // align-items: center;
+          word-break:break-all;
+          word-wrap:break-word;
+          text-align: right;
+          line-height: unset;
+          padding-bottom: 0;
+          label {
+            height: auto;
+          }
+        }
+        .ant-form-item-control {
+          // flex: 1;
+          // width: calc(100% - 400px);
+          width: unset;
+          min-width: 200px;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          justify-content: center;
+          margin-left: 15px;
+          .ant-form-item-control-input {
+            // width: 140px;
+            width: 100%;
+            .ant-form-item-control-input-content {
+              display: flex;
+              text-align: left;
+            }
+          }
+          .ant-input-number {
+            width: 200px;
+          }
+        }
+      }
+    }
+    .Custom_Options {
+      display: flex;
+      align-items: center;
+      margin: 0;
+      .ant-form-item-label {
+        display: none;
+      }
+      .ant-form-item-control {
+        .ant-form-item-control-input {
+          width: 140px !important;
+        }
+      }
+    }
+    div[class*="marketplace_id"] {
+      display: none;
+    }
+    div[class*="language_tag"] {
+      display: none;
+    }
+    p[class*="fieldGroupWrap_des"] {
+      display: none;
+    }
+    div[class*="genFromWidget_des"] {
+      display: none;
+    }
+  }
+}

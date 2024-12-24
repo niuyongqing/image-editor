@@ -7,9 +7,11 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    AAffix: typeof import('ant-design-vue/es')['Affix']
     AAlert: typeof import('ant-design-vue/es')['Alert']
     AApp: typeof import('ant-design-vue/es')['App']
     AAvatar: typeof import('ant-design-vue/es')['Avatar']
+    ABackTop: typeof import('ant-design-vue/es')['BackTop']
     AButton: typeof import('ant-design-vue/es')['Button']
     ACard: typeof import('ant-design-vue/es')['Card']
     ACascader: typeof import('ant-design-vue/es')['Cascader']
@@ -23,6 +25,8 @@ declare module 'vue' {
     Adjust: typeof import('./../src/components/process-pictures/component/adjust/index.vue')['default']
     ADrawer: typeof import('ant-design-vue/es')['Drawer']
     ADropdown: typeof import('ant-design-vue/es')['Dropdown']
+    AFloatButton: typeof import('ant-design-vue/es')['FloatButton']
+    AFloatButtonGroup: typeof import('ant-design-vue/es')['FloatButtonGroup']
     AForm: typeof import('ant-design-vue/es')['Form']
     AFormItem: typeof import('ant-design-vue/es')['FormItem']
     AInput: typeof import('ant-design-vue/es')['Input']
@@ -67,6 +71,7 @@ declare module 'vue' {
     CarbonMoon: typeof import('./../src/components/icons/carbon-moon.vue')['default']
     CarbonSun: typeof import('./../src/components/icons/carbon-sun.vue')['default']
     ChaseSpin: typeof import('./../src/components/base-loading/spin/chase-spin.vue')['default']
+    CroppingTemplate: typeof import('./../src/components/process-pictures/component/adjust/cropping-template.vue')['default']
     CubeSpin: typeof import('./../src/components/base-loading/spin/cube-spin.vue')['default']
     DotSpin: typeof import('./../src/components/base-loading/spin/dot-spin.vue')['default']
     Draw: typeof import('./../src/components/process-pictures/component/draw/index.vue')['default']
