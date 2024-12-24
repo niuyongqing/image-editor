@@ -100,32 +100,8 @@
                 </a-form-item>
             </a-form>
         </a-modal>
-        <a-modal :width="'30%'" title="批量修改简称" :open="editnameType" :keyboard="false" :maskClosable="false"
-            @ok="uploadEditName" @cancel="editnameType = false">
-            <a-descriptions :column="1">
-                <a-descriptions-item label="示范EXCEL">
-                    <a-table :data-source="editWarehouseTypeTableData" :pagination="false" :columns="editNameColumns"
-                        style="width: 100%" bordered>
-                    </a-table>
-                </a-descriptions-item>
-                <br />
-                <a-descriptions-item label="文件">
-                    <a-upload style="display: inline-block; margin-left: 10px" :action="uploadFileUrl"
-                        :on-error="handleUploadError" ref="upload" :headers="headers"
-                        :on-success="handleUploadShortCodeSuccess" accept=".xlsx, .xlsm, .xls" :auto-upload="false"
-                        :limit="1" :file-list="fileList">
-                        <a-button type="primary">选择EXCEL</a-button>
-                    </a-upload>
-                </a-descriptions-item>
-            </a-descriptions>
-            <!-- <span slot="footer" class="dialog-footer">
-                <el-button @click="
-                    editnameType = false;
-                fileList = [];
-                " :loading="loading">取 消</el-button>
-                <el-button @click="uploadEditName" type="primary">确 定</el-button>
-            </span> -->
-        </a-modal>
+        
+        <simpleNameModal :editnameType="editnameType" @handelClose="handelClose"></simpleNameModal>
 
         <!--    批量修改仓库弹框-->
         <a-modal title="批量修改仓库" :width="'30%'" :open="editWarehouseVisible" @ok="uploadWarehouse"
@@ -138,17 +114,12 @@
                 </a-descriptions-item>
                 <a-descriptions-item label="上传">
                     <a-upload style="display: inline-block; margin-left: 10px" :action="uploadFileUrl2"
-                        :on-error="handleUploadError" :on-success="handleUploadSuccess" ref="fileUploadWarehouseType"
-                        :headers="headers" accept=".xlsx, .xlsm, .xls" :limit="1" :file-list="fileList"
-                        :auto-upload="false">
+                        @change="handleUploadSuccess" ref="fileUploadWarehouseType" :headers="headers"
+                        accept=".xlsx, .xlsm, .xls" :limit="1" :file-list="fileList" :auto-upload="false">
                         <a-button type="primary">选择EXCEL</a-button>
                     </a-upload>
                 </a-descriptions-item>
             </a-descriptions>
-            <!-- <span slot="footer" class="dialog-footer">
-        <el-button @click="noUpload">取 消</el-button>
-        <el-button @click="okUpload" type="primary">确 定</el-button>
-      </span> -->
         </a-modal>
     </div>
 </template>
@@ -156,11 +127,12 @@
 <script setup name='empower'>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { list, meansAttribute, simpleNames, exportList, add } from "../config/api/empower";
-import tableHead from "../config/tabColumns/empower";
-import commodityType from "../config/commDic/commodityType";
 import { message } from 'ant-design-vue';
 import { checkPermi, checkRole } from "~/utils/permission/component/permission";
+import tableHead from "../config/tabColumns/empower";
+import commodityType from "../config/commDic/commodityType";
 import download from "~/api/common/download";
+import simpleNameModal from './comm/simpleNameModal.vue';
 
 const formRef = ref(null)
 const ruleFm = ref(null)
@@ -221,55 +193,15 @@ const fileList = ref([]);
 const dialogTableVisible = ref(false);
 const editnameType = ref(false);
 const editWarehouseVisible = ref(false);
-// const uploadFileUrl2 =
-//     process.env.VUE_APP_BASE_API +
-//     "/platform-ozon/platform/ozon/shop/import/store"
-const editWarehouseTypeTableData = [
-    {
-        id: "SGLUDXFX",
-        type: "总仓",
-        simpleName: "Ozon-01",
-    },
-    {
-        id: "PH7S3AAIT7",
-        type: "馨拓靓仓(配饰,服饰类)",
-        simpleName: "Lazada-02",
-    },
-    {
-        id: "VN33W6PCLA",
-        type: "菲律宾本土仓",
-        simpleName: "Ozon-03",
-    },
-    {
-        id: "TH1JHP5KFZ",
-        type: "馨拓美仓(美妆类)",
-        simpleName: "Ozon-04",
-    },
-    {
-        id: "MY4N9VN6K5",
-        type: "馨拓美仓(3C类)",
-        simpleName: "Ozon-05",
-    },
-    {
-        id: "ID67XMZSDR",
-        type: "馨拓美仓(汽摩配类)",
-        simpleName: "Ozon-06",
-    },
-]
-const editNameColumns = [
-    {
-        title: '账号Code',
-        dataIndex: 'id',
-        key: 'id',
-        align: "center"
-    },
-    {
-        title: '简称',
-        dataIndex: 'simpleName',
-        key: 'simpleName',
-        align: "center"
-    },
-]
+const headers = {
+    Authorization: "Bearer " + useAuthorization().value,
+}
+const uploadFileUrl = import.meta.env.VITE_APP_BASE_API + "/platform-ozon/platform/ozon/shop/import/simplename"
+const uploadFileUrl2 =
+    import.meta.env.VITE_APP_BASE_API +
+    "/platform-ozon/platform/ozon/shop/import/store"
+
+
 const editWarehouseColumns = [
     {
         title: '账号Code',
@@ -329,7 +261,9 @@ const getList = () => {
         pages.total = res?.total ?? 0;
     })
 }
-
+const handelClose = () => {
+    editnameType.value = false
+}
 const onSearch = () => {
     getList();
 }
@@ -400,25 +334,32 @@ const exportInfo = () => {
     })
 }
 
-const uploadEditName = () => {
-    console.log('upload', upload.value);
 
-}
 
 const uploadWarehouse = () => {
 
 }
-// 上传失败
-const handleUploadError = (err) => {
-    message.error("上传文件失败，请重试");
-}
+
+const beforeUpload = file => {
+  fileList.value = [...(fileList.value || []), file];
+  return false;
+};
 
 // 上传修改简称
 const handleUploadShortCodeSuccess = (res, file) => {
+    console.log('s',res, file);
     editnameType.value = false;
-    if (res.code === 200) {
-        message.success("操作成功！");
+    if (res.file.status === 'done') {
+        message.success(`${res.file.name} file uploaded successfully`);
+    } else if (res.file.status === 'error') {
+        message.error(`${res.file.name} file upload failed.`);
     }
+    
+    // if (res.code === 200) {
+    //     message.success("操作成功！");
+    // } else {
+    //     message.error("操作失败！");
+    // }
     getList();
     editnameType.value = false;
     upload.value.handleRemove(file);

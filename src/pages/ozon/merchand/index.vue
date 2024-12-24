@@ -103,7 +103,6 @@ const handlerChange = (dates, dateStrings) => {
 }
 
 const syncOrder = () => {
-    console.log("searchData", formData);
     if (!formData.month && !formData.year) {
         message.error("请先选择时间后同步！");
         return;
