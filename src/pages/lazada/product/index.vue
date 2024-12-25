@@ -83,7 +83,7 @@
                             </div>
                         </div>
                     </div>
-                    <div v-if="record.skus.length > 3" class="w-full flex flex-end flex-end more">
+                    <div v-if="record.skus.length > 5" class="w-full flex flex-end flex-end more">
                         <a-button type="link" @click="record.show = !record.show">{{ !record.show ? '展开' : '收起' }}
                         </a-button>
                     </div>
@@ -131,7 +131,6 @@
                             </template>
                         </a-dropdown>
                     </div>
-
                 </div>
             </template>
         </BaseTable>

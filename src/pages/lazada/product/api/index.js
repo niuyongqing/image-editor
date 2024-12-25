@@ -13,3 +13,19 @@ export function categoryTree(params) {
     params
   );
 }
+//  品牌列表
+export function getBrandList(params) {
+  return usePost(
+    "/platform-lazada/platform/lazada/attribute/category/brand",
+    params
+  );
+}
+
+// 产品图片上传
+export function uploadImage(params, headers) {
+  return usePost(
+    "/platform-lazada/platform/lazada/file/upload/main-image",
+    params,
+    { headers }
+  );
+}

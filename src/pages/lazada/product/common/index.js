@@ -23,6 +23,8 @@ export function findParentAndMerge(deptId, list) {
     return [deptId];
   }
 }
+
+//  时间戳转时间
 export function timestampToDateTime(timestamp) {
   if (timestamp == null || timestamp == "") {
     return "无";
@@ -37,4 +39,25 @@ export function timestampToDateTime(timestamp) {
   return (
     year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + second
   );
+}
+
+// 品牌按照brandId去重
+export function uniqueByBrandId(array) {
+  const map = new Map();
+  array.forEach((item) => {
+    if (!map.has(item.brandId)) {
+      map.set(item.brandId, item);
+    }
+  });
+  return Array.from(map.values());
+}
+
+//  图片转base64
+function getBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (error) => reject(error);
+  });
 }
