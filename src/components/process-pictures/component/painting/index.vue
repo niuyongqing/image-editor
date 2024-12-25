@@ -5,7 +5,7 @@
    </div>
  </div>
 </template>
-<script lang="ts" setup>
+<script lang="js" setup>
 
 import {ref} from 'vue'
 import {createCanvas} from './painting.js'
@@ -35,8 +35,6 @@ onMounted(async () => {
 
 
 <style scoped lang="less">
-#canvasElement {
 
-}
 
 </style>

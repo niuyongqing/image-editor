@@ -28,7 +28,7 @@
     </a-card>
   </a-modal>
 </template>
-<script setup lang="ts">
+<script setup lang="js">
 import {ref} from "vue";
 import { message } from 'ant-design-vue';
 import {addRoleApi,getRoleByIdApi,editRoleApi} from "~/api/common/role";

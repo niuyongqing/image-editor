@@ -1,7 +1,7 @@
 <template>
 
 </template>
-<script lang="ts" setup>
+<script lang="js" setup>
 
 
 
