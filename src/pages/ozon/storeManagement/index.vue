@@ -1,22 +1,29 @@
 <template>
     <div id="storeManagementCont">
         <a-card style="margin-top: 10px">
-            <a-form :layout="'inline'" ref="ruleForm" :model="formData" class="form-padding">
+            <a-form ref="ruleForm" :label-col="labelCol" :model="formData" class="form-padding">
                 <a-form-item name="account" label="店铺：">
-                    <a-select v-model:value="formData.account" style="width: 200px" :options="shopAccount">
-                    </a-select>
+                    <!-- <a-select v-model:value="formData.account" style="width: 200px" :options="shopAccount">
+                    </a-select> -->
+                    <selectComm :options="shopAccount" style="margin-left: 10px" :fieldObj="shopObj" @backSelectAll="shopSelectAll"
+                        @backSelectItem="shopSelectItem"></selectComm>
                 </a-form-item>
                 <a-form-item name="name" label="仓库名称：">
-                    <a-input v-model:value="formData.name" placeholder="仓库名称"></a-input>
+                    <a-input v-model:value="formData.name" placeholder="仓库名称"
+                        style="width: 200px;display: flex;margin-left: 10px;"></a-input>
                 </a-form-item>
                 <a-form-item name="status" label="仓库状态：">
-                    <a-select v-model:value="formData.status" style="width: 200px" :options="storeOptions"
+                    <!-- <a-select v-model:value="formData.status" style="width: 200px" :options="storeOptions"
                         placeholder="请选择">
-                    </a-select>
+                    </a-select> -->
+                    <selectComm style="margin-left: 10px" :options="storeOptions" :fieldObj="statusObj"
+                        @backSelectAll="statusSelectAll" @backSelectItem="statusSelectItem"></selectComm>
                 </a-form-item>
                 <a-form-item>
-                    <a-button type="primary" @click="onSubmit()">查询</a-button>
-                    <a-button style="margin-left: 10px;" @click="resetForm('ruleForm')">重置</a-button>
+                    <div style="width: 200px;display: flex;margin-left: 80px;">
+                        <a-button type="primary" @click="onSubmit()">查询</a-button>
+                        <a-button style="margin-left: 10px;" @click="resetForm('ruleForm')">重置</a-button>
+                    </div>
                 </a-form-item>
             </a-form>
         </a-card>
@@ -65,6 +72,11 @@ const formData = reactive({
     status: "",
     account: "",
 })
+const labelCol = {
+    style: {
+        width: '70px',
+    },
+};
 const shopAccount = ref([])
 const storeOptions = storeStatus
 const loading = ref(false)
@@ -79,7 +91,14 @@ const paginations = reactive({
     pageSize: 50,
     total: 0
 })
-
+const shopObj = {
+    fieldKey: "value",
+    fieldLabel: "label",
+}
+const statusObj = {
+    fieldKey: "value",
+    fieldLabel: "label",
+}
 const edit = (row) => {
     showOpen.value = true
     tabRow.value = row
@@ -90,6 +109,27 @@ const backClose = () => {
 const getChineseLabelByValue = (targetValue) => {
     return storeOptions.find(item => item.value === targetValue)?.label || "";
 }
+
+const shopSelectAll = () => {
+    formData.account = ""
+    getList();
+}
+const shopSelectItem = (val) => {
+    formData.account = val
+    getList();
+}
+
+
+// 状态全选和单选
+const statusSelectAll = () => {
+    formState.status = ""
+    getList();
+}
+const statusSelectItem = (val) => {
+    formState.status = val
+    getList();
+}
+
 // 店铺数据
 const getAccount = () => {
     accountCache().then((res) => {

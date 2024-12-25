@@ -21,7 +21,7 @@
             <a-row style="margin: 10px">
                 <a-col :span="1.5">
                     <a-button type="primary" @click="syncOrder" :loading="syncLoading"
-                        v-has-permi="[`system:platform:ozon:pro duct:sell:sync`]">同步财务数据</a-button>
+                        v-has-permi="[`system:platform:ozon:product:sell:sync`]">同步财务数据</a-button>
                 </a-col>
                 <a-col :span="1.5">
                     <a-button type="primary" style="margin-left: 10px" @click="toExport" :loading="exportLoading"

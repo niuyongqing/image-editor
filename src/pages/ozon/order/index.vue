@@ -1,29 +1,39 @@
 <template>
     <div id="orderCont">
         <a-card style="margin-top: 20px">
-            <a-form :model="formState" layout="inline" ref="formRef">
+            <a-tabs v-model:activeKey="activeKey" type="card" @change="handleTabchange">
+                <a-tab-pane :key="1" tab="120天内订单"></a-tab-pane>
+                <a-tab-pane :key="2" tab="历史订单"></a-tab-pane>
+            </a-tabs>
+            <a-form :model="formState" ref="formRef" :label-col="labelCol">
                 <a-form-item label="店铺：">
-                    <a-select v-model:value="formState.account" style="width: 200px" :options="shopAccount">
-                    </a-select>
+                    <!-- <a-select v-model:value="formState.account" style="width: 200px" :options="shopAccount">
+                    </a-select> -->
+                    <selectComm style="margin-left: 10px" :options="shopAccount" :fieldObj="shopObj"
+                        @backSelectAll="selectAll" @backSelectItem="selectItem"></selectComm>
                 </a-form-item>
                 <a-form-item label="订单号：">
-                    <a-input></a-input>
+                    <a-input v-model:value="formState.orderId" style="width: 200px;display: flex;margin-left: 10px;"></a-input>
                 </a-form-item>
                 <a-form-item label="货件编号：">
-                    <a-input></a-input>
+                    <a-input v-model:value="formState.postingNumber" style="width: 200px;display: flex;margin-left: 10px;"></a-input>
                 </a-form-item>
                 <a-form-item label="订单状态：">
-                    <a-select v-model:value="formState.status" style="width: 200px" :options="statusList"
+                    <!-- <a-select v-model:value="formState.status" style="width: 200px" :options="statusList"
                         placeholder="请选择">
-                    </a-select>
+                    </a-select> -->
+                    <selectComm style="margin-left: 10px" :options="statusList" :fieldObj="staObj"
+                        @backSelectAll="statusSelectAll" @backSelectItem="statusSelectItem"></selectComm>
                 </a-form-item>
                 <a-form-item label="订单时间：">
-                    <a-range-picker :format="'YYYY-MM-DD MM:HH:ss'" v-model:value="formState.time"
+                    <a-range-picker :format="'YYYY-MM-DD MM:HH:ss'" style="width: 300px;display: flex;margin-left: 10px;" v-model:value="formState.time"
                         @change="handlerChange" />
                 </a-form-item>
                 <a-form-item>
-                    <a-button type="primary" @click="onSubmit">查询</a-button>
-                    <a-button style="margin-left: 10px" @click="restForm">重置</a-button>
+                    <div style="width: 200px;display: flex;margin-left: 80px;">
+                        <a-button type="primary" @click="onSubmit">查询</a-button>
+                        <a-button style="margin-left: 10px" @click="restForm">重置</a-button>
+                    </div>
                 </a-form-item>
             </a-form>
         </a-card>
@@ -71,7 +81,7 @@
                 </template>
             </a-table>
             <a-pagination style="margin-top: 20px;text-align: right;" :show-total="(total) => `共 ${total} 条`"
-                :total="paginations.total" v-model:current="paginations.pageNum" v-model:pageSize="paginations.pageSize"
+                :total="paginations.total" show-quick-jumper v-model:current="paginations.pageNum" v-model:pageSize="paginations.pageSize"
                 :defaultPageSize="50" :showSizeChanger="true" @change="getList"
                 :pageSizeOptions="[50, 100, 200]"></a-pagination>
         </a-card>
@@ -80,6 +90,7 @@
 
 <script setup name='order'>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
+import selectComm from "~/components/select-unwrap/selectComm.vue";
 import { accountCache } from "../config/api/product";
 import tableHead from "../config/tabColumns/order"
 import { orderStatus } from "../config/commDic/defDic"
@@ -90,13 +101,18 @@ import { message } from 'ant-design-vue';
 const formRef = ref(null)
 const formState = reactive({
     orderId: "",
-    account: null,
+    account: "",
     status: "",
     time: [],
     startDate: "",
     endDate: "",
     postingNumber: ""
 })
+const labelCol = {
+  style: {
+    width: '70px',
+  },
+};
 const statusObj = {
     awaiting_registration: "等待注册",
     acceptance_in_progress: "正在验收",
@@ -112,6 +128,15 @@ const statusObj = {
     not_accepted: "分拣中心未接受",
     sent_by_seller: "由卖家发送",
 }
+const shopObj = ref({
+    fieldKey: "value",
+    fieldLabel: "label",
+});
+const staObj = ref({
+    fieldKey: "value",
+    fieldLabel: "label",
+});
+const activeKey = ref(1); // 默认120天内订单
 const statusList = orderStatus
 const percentage = ref(0)
 const shopAccount = ref([])
@@ -126,6 +151,31 @@ const paginations = reactive({
     total: 0
 })
 
+// 店铺全选和单选
+const selectAll = () => {
+    formState.account = ""
+    getList();
+}
+const selectItem = (val) => {
+    formState.account = val
+    getList();
+}
+// tab切换
+const handleTabchange = (activeKey) => {
+    getList()
+}
+
+// 状态全选和单选
+const statusSelectAll = () => {
+    formState.status = ""
+    getList();
+}
+const statusSelectItem = (val) => {
+    formState.status = val
+    getList();
+}
+
+
 // 店铺数据
 const getAccount = () => {
     accountCache().then((res) => {
@@ -136,7 +186,7 @@ const getAccount = () => {
                     value: item.account
                 }
             }) ?? [];
-            formState.account = shopAccount.value[0].value
+            // formState.account = shopAccount.value[0].value
             getList()
         }
     });

@@ -17,3 +17,12 @@ export function detail(data) {
     data: data,
   });
 }
+
+// 同步促销活动
+export function syncActivity(data) {
+  return request({
+    url: "/platform-ozon/platform/ozon/activity/sync",
+    method: "get",
+    data: data,
+  });
+}
