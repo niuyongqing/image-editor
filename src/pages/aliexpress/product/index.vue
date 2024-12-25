@@ -1,57 +1,15 @@
 <template>
-  <a-form
-    :model="formState"
-    name="basic"
-    :label-col="{ span: 2 }"
-    :wrapper-col="{ span: 16 }"
-    autocomplete="off"
-    class="text-left"
-    @finish="onFinish"
-    @finishFailed="onFinishFailed"
-  >
-    <a-form-item label="Activity zone" name="region">
-      <a-select v-model:value="formState.region" label-in-value placeholder="please select your zone">
-        <a-select-option value="shanghai">Zone one</a-select-option>
-        <a-select-option value="beijing">Zone two</a-select-option>
-      </a-select>
-    </a-form-item>
-    <a-form-item
-      label="Username"
-      name="username2"
-      :rules="[{ required: true, message: 'Please input your username!' }]"
-    >
-      <a-input v-model:value="formState.username2" />
-    </a-form-item>
-
-    <a-form-item
-      label="Password"
-      name="password"
-      :rules="[{ required: true, message: 'Please input your password!' }]"
-    >
-      <a-input-password v-model:value="formState.password" />
-    </a-form-item>
-
-    <a-form-item name="remember" :wrapper-col="{ offset: 8, span: 16 }">
-      <a-checkbox v-model:checked="formState.remember">Remember me</a-checkbox>
-    </a-form-item>
-
-    <a-form-item :wrapper-col="{ offset: 8, span: 16 }">
-      <a-button type="primary" html-type="submit">Submit</a-button>
-    </a-form-item>
-  </a-form>
+  <a-textarea v-model:value="value" ref="textareaRef" placeholder="Basic usage" :rows="4" />
 </template>
 <script setup>
-import { reactive } from 'vue';
-const formState = reactive({
-  // region: [],
-  // username: '',
-  // password: '',
-  remember: true,
-});
-const onFinish = values => {
-  console.log('Success:', values);
-};
-const onFinishFailed = errorInfo => {
-  console.log('Failed:', errorInfo);
-};
+import { ref } from 'vue';
+  const value = ref('');
+  const textareaRef = ref();
+  setTimeout(() => {
+    textareaRef.value.focus();
+  }, 1000);
+  nextTick(() => {
+    console.log(textareaRef.value);
+  });
+  // console.log(textareaRef.value);
 </script>

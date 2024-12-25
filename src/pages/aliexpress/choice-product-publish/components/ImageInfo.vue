@@ -181,6 +181,7 @@
                   <span>{{ item.width }} x {{ item.height }}</span>
                   <a-button
                     type="link"
+                    danger
                     size="middle"
                     @click="removeChosenImage(item.url, 'marketImage1')"
                     ><DeleteOutlined
@@ -225,6 +226,7 @@
                   <span>{{ item.width }} x {{ item.height }}</span>
                   <a-button
                     type="link"
+                    danger
                     size="middle"
                     @click="removeChosenImage(item.url, 'marketImage2')"
                     ><DeleteOutlined
@@ -279,17 +281,18 @@
           >
             <div class="image-list-item">
               <a-image
-                fit="contain"
                 :src="form.video.posterUrl"
+                :preview="false"
               ></a-image>
               <div class="image-info">
                 <span></span>
                 <a-button
                   type="link"
+                  danger
                   size="middle"
-                  icon="el-icon-delete"
                   @click="removeVideo"
-                ></a-button>
+                  ><DeleteOutlined
+                /></a-button>
               </div>
             </div>
           </div>
@@ -319,6 +322,7 @@
   import { videoQuotaApi, listGroupApi, uploadImgFromNetApi } from '../../apis/media'
   import { scaleApi, watermarkApi, watermarkListApi } from '@/api/common/water-mark'
   import { DeleteOutlined } from '@ant-design/icons-vue'
+  import { message, Modal } from 'ant-design-vue'
   import { Empty } from 'ant-design-vue'
   import { useAliexpressChoiceProductStore } from '@/stores/aliexpress-choice-product'
 
@@ -461,10 +465,9 @@
       },
       selectWaterMark() {
         if (this.checkedImgList.length === 0) {
-          this.$alert('选择水印！', '错误提示', {
-            confirmButtonText: '确定',
-            message: '打水印前请选择需要打水印的文件！',
-            type: 'error'
+          Modal.error({
+            title: '错误提示',
+            content: '请选择需要添加水印的图片'
           })
 
           return
@@ -549,10 +552,9 @@
       },
       handleCrop() {
         if (this.checkedImgList.length === 0) {
-          this.$alert('修改尺寸图片！', '错误提示', {
-            confirmButtonText: '确定',
-            message: '请选择需要修改尺寸的图片！',
-            type: 'error'
+          Modal.error({
+            title: '错误提示',
+            content: '请选择需要修改尺寸的图片'
           })
 
           return
@@ -643,11 +645,11 @@
       // 根据主题一键生成营销图片
       async generateMarketImage() {
         if (this.form.marketImage1.length !== 0 && this.form.marketImage2.length !== 0) {
-          this.$message.warning('已有营销图, 无需生成')
+          message.warning('已有营销图, 无需生成')
           return
         }
         if (this.form.productImages.length === 0) {
-          this.$message.warning('产品图片为空')
+          message.warning('产品图片为空')
           return
         }
 

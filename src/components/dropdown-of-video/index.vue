@@ -4,7 +4,7 @@
     <a-dropdown :loading="uploadVideoLoading">
       <slot></slot>
       <template #overlay>
-        <a-menu>
+        <a-menu @click="handleCommand">
           <a-upload
             accept=".mp4,.wmv,.avi,.mpg,.flv,.mov,.3gp"
             :action="uploadVideoUrl"
@@ -14,10 +14,11 @@
             :show-upload-list="false"
             :disabled="!sellerId"
             :before-upload="beforeUpload"
+            @change="handleUploadChange"
           >
             <a-menu-item
               key="local"
-              class="w-[132px] text-left"
+              class="w-[170px]"
               >本地上传</a-menu-item
             >
           </a-upload>
@@ -29,6 +30,7 @@
     <a-modal
       title="选择视频"
       v-model:open="videoBankDialogVisible"
+      width="40%"
       :after-close="videoBankDialogClose"
       @ok="videoBankDialogConfirm"
     >
@@ -46,19 +48,26 @@
         >
           <div class="video-wrap">
             <div
-              class="video"
+              class="video-item"
               v-for="(video, i) in videoList"
               :key="i"
             >
               <a-image
-                class="video"
                 :src="video.coverUrl"
+                width="100px"
+                height="100px"
               ></a-image>
               <div class="info">
                 <span>{{ durationFormat(video.duration) }}</span>
-                <PlayCircleOutlined class="btn-video-play" @click="videoPlay(video)" />
+                <PlayCircleOutlined
+                  class="btn-video-play"
+                  @click="videoPlay(video)"
+                />
               </div>
-              <CheckCircleOutlined v-if="video.isCheck" class="is-checked" />
+              <CheckCircleOutlined
+                v-if="video.isCheck"
+                class="is-checked"
+              />
               <div
                 class="video-modal"
                 @click="handleCheck(video)"
@@ -69,13 +78,14 @@
           </div>
           <a-pagination
             v-model:current="pagination.currentPage"
+            v-model:pageSize="pagination.pageSize"
             :page-size-options="[24, 60, 120]"
-            :page-size="pagination.pageSize"
+            show-size-changer
             show-quick-jumper
             :total="total"
+            :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
             @change="paginationChange"
-          >
-          </a-pagination>
+          />
         </div>
       </div>
     </a-modal>
@@ -85,6 +95,7 @@
       v-model:open="previewVideoDialogVisible"
       centered
       destroy-on-close
+      :footer="null"
     >
       <video
         :src="previewVideoUrl"
@@ -101,6 +112,7 @@
   import { useAuthorization } from '~/composables/authorization'
   import { getVideoListApi } from '@/pages/aliexpress/apis/media'
   import { PlayCircleOutlined, CheckCircleOutlined } from '@ant-design/icons-vue'
+  import { message, Modal } from 'ant-design-vue'
 
   export default {
     name: 'DropdownOfVideo',
@@ -141,44 +153,49 @@
     },
     methods: {
       // 选择下拉指令
-      handleCommand(command) {
+      handleCommand({ key }) {
         if (!this.sellerId) {
-          this.$message.warning('请先选择店铺')
+          message.warning('请先选择店铺')
           return
         }
 
-        if (command === 'videoBank') {
+        if (key === 'videoBank') {
           this.videoBankDialogVisible = true
         }
       },
       beforeUpload(file) {
         if (!this.sellerId) {
-          this.$message.warning('请先选择店铺')
+          message.warning('请先选择店铺')
           return false
         }
         if (file.size / 1024 / 1024 > 500) {
-          this.$alert('文件过大, 视频上传失败！', '错误提示', {
-            type: 'error'
+          Modal.error({
+            title: '错误提示',
+            content: '文件过大, 视频上传失败！'
           })
           return false
         }
 
         this.uploadVideoLoading = true
       },
-      onSuccess(res) {
-        this.uploadVideoLoading = false
-        if (res.code === 200) {
-          const videoData = {
-            ...res.data,
-            mediaId: res.data.storeName,
-            mediaType: res.data.fileFormat,
-            posterUrl: res.data.coverUrl
+      handleUploadChange({ file }) {
+        if (file.status === 'done') {
+          this.uploadVideoLoading = false
+          const res = file.response
+          if (res.code === 200) {
+            const videoData = {
+              ...res.data,
+              mediaId: res.data.storeName,
+              mediaType: res.data.fileFormat,
+              posterUrl: res.data.coverUrl
+            }
+            this.$emit('submit', videoData)
+          } else {
+            Modal.error({
+              title: '错误提示',
+              content: res.msg
+            })
           }
-          this.$emit('submit', videoData)
-        } else {
-          this.$alert(res.msg, '上传失败', {
-            type: 'warning'
-          })
         }
       },
       getVideoBankList() {
@@ -253,73 +270,78 @@
 </script>
 
 <style lang="less" scoped>
-  .dropdown-of-video {
-    .btn-sync {
-      position: absolute;
-      right: 20px;
-      z-index: 1;
-    }
+  .btn-sync {
+    position: absolute;
+    right: 20px;
+    z-index: 1;
+  }
 
-    .video-bank {
-      .video-list {
-        flex: 1;
-        padding: 8px;
-        .video-wrap {
-          display: flex;
-          flex-wrap: wrap;
-          height: 472px;
-          overflow: auto;
-          .video {
-            width: 100px;
-            height: 100px;
-            margin: 0 12px 12px 0;
-            position: relative;
-            user-select: none;
-            .info {
-              position: absolute;
-              bottom: 0;
-              left: 0;
-              background-color: rgba(5, 5, 5, 0.3);
-              width: 100%;
-              padding: 0 4px;
-              width: 100%;
-              font-size: 12px;
-              color: #fff;
-              z-index: 1;
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              .btn-video-play {
-                cursor: pointer;
-                font-size: 20px;
-              }
-            }
-            .is-checked {
-              position: absolute;
-              top: 0;
-              right: 0;
-              color: rgba(0, 255, 0, 0.7);
-              font-size: 20px;
-              font-weight: bold;
-            }
-            .video-modal {
-              opacity: 0;
-              width: 100%;
-              height: 72px;
-              position: absolute;
-              top: 0;
-              left: 0;
-              text-align: center;
-              line-height: 100px;
-              color: #fff;
-              background-color: rgba(5, 5, 5, 0.2);
+  .video-bank {
+    .video-list {
+      flex: 1;
+      padding: 8px;
+      .video-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        height: 472px;
+        overflow: auto;
+        .video-item {
+          width: 100px;
+          height: 100px;
+          margin: 0 12px 12px 0;
+          position: relative;
+          user-select: none;
+          .info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            background-color: rgba(5, 5, 5, 0.3);
+            width: 100%;
+            padding: 0 4px;
+            width: 100%;
+            font-size: 12px;
+            color: #fff;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            .btn-video-play {
               cursor: pointer;
-              &:hover {
-                opacity: 1;
-              }
+              font-size: 20px;
+            }
+          }
+          .is-checked {
+            position: absolute;
+            top: 0;
+            right: 0;
+            color: rgba(0, 255, 0, 0.7);
+            font-size: 20px;
+            font-weight: bold;
+          }
+          .video-modal {
+            opacity: 0;
+            width: 100%;
+            height: 80px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            text-align: center;
+            line-height: 100px;
+            color: #fff;
+            background-color: rgba(5, 5, 5, 0.2);
+            cursor: pointer;
+            &:hover {
+              opacity: 1;
             }
           }
         }
+      }
+    }
+
+    ::v-deep .ant-pagination-options {
+      width: 200px;
+      .ant-select.ant-select-in-form-item {
+        width: 45%;
       }
     }
   }

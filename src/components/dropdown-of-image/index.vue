@@ -140,6 +140,7 @@
         <a-textarea
           v-model:value="imgUrlFromNet"
           :auto-size="{ minRows: 6, maxRows: 8 }"
+          ref="imgUrlFromNetRef"
           placeholder="请填写图片URL地址, 多个地址用回车换行"
           allow-clear
         >
@@ -236,6 +237,9 @@
           this.imgSpaceDialogVisible = true
         } else if (key === 'imgFromNet') {
           this.imgFromNetDialogVisible = true
+          this.$nextTick(() => {
+            this.$refs.imgUrlFromNetRef.focus()
+          })
         } else if (key === 'imgBank') {
           this.activeTab = '2'
           this.shadowTab = '2'
@@ -399,19 +403,28 @@
             .then(res => {
               if (res && res.code === 200) {
                 const imgData = res.data.map(item => {
-                  const imgInfo = {
+                  return {
                     fileName: item.fileName,
                     originalFilename: item.originalFilename,
-                    url: '/prod-api' + item.url.replaceAll('#', '%23'),
-                    width: 0,
-                    height: 0
+                    url: '/prod-api' + item.url.replaceAll('#', '%23')
                   }
-                  this.getImgSize(imgInfo)
-
-                  return imgInfo
                 })
 
-                this.$emit('submit', imgData)
+                const promiseList = imgData.map(item => {
+                  return new Promise(resolve => {
+                    const image = new Image()
+                    image.src = item.url
+                    image.onload = () => {
+                      item.width = image.width
+                      item.height = image.height
+                      resolve()
+                    }
+                  })
+                })
+
+                Promise.all(promiseList).then(() => {
+                  this.$emit('submit', imgData)
+                })
               }
             })
             .finally(() => {

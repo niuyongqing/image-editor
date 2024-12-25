@@ -2,7 +2,7 @@
 <template>
   <div class="choice-product-publish text-left">
     <BaseInfo ref="baseInfoRef" />
-    <ImageInfo ref="ImageInfoRef" />
+    <ImageInfo ref="imageInfoRef" />
   </div>
 </template>
 
