@@ -1,5 +1,5 @@
 <template>
-  <a-card class="image-info mb-16">
+  <a-card class="image-info mb-4">
     <template #title>
       <div>
         <span>图片信息<span style="color: #9fa0a2">（编辑图片时请先选择店铺）</span></span>
@@ -34,7 +34,7 @@
                   v-if="item.type === 1"
                   :src="item.content"
                   style="width: 20px; height: 20px; margin-left: 4px"
-                ></a-image>
+                />
                 <span
                   v-else
                   class="ml-1"
@@ -118,7 +118,7 @@
                     :ref="`image_${item.url}`"
                     :src="item.url"
                     :preview-src-list="form.productImages.map(item => item.url)"
-                  ></a-image>
+                  />
                   <div class="image-info">
                     <span>{{ item.width }} x {{ item.height }}</span>
                     <div>
@@ -176,7 +176,7 @@
                   :ref="`image_${item.url}`"
                   :src="item.url"
                   :preview-src-list="form.marketImage1.map(item => item.url)"
-                ></a-image>
+                />
                 <div class="image-info">
                   <span>{{ item.width }} x {{ item.height }}</span>
                   <a-button
@@ -221,7 +221,7 @@
                   :ref="`image_${item.url}`"
                   :src="item.url"
                   :preview-src-list="form.marketImage2.map(item => item.url)"
-                ></a-image>
+                />
                 <div class="image-info">
                   <span>{{ item.width }} x {{ item.height }}</span>
                   <a-button
@@ -283,7 +283,7 @@
               <a-image
                 :src="form.video.posterUrl"
                 :preview="false"
-              ></a-image>
+              />
               <div class="image-info">
                 <span></span>
                 <a-button

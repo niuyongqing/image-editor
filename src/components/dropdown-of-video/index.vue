@@ -56,7 +56,7 @@
                 :src="video.coverUrl"
                 width="100px"
                 height="100px"
-              ></a-image>
+              />
               <div class="info">
                 <span>{{ durationFormat(video.duration) }}</span>
                 <PlayCircleOutlined

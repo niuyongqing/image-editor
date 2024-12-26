@@ -31,7 +31,7 @@
           <a-image
             class="img"
             :src="img.url"
-          ></a-image>
+          />
           <CloseCircleOutlined
             class="undo-checked"
             @click="undoChecked(img)"
@@ -94,7 +94,7 @@
                     <a-image
                       class="img"
                       :src="img.url"
-                    ></a-image>
+                    />
                     <div class="info">
                       <div>{{ img.width }} x {{ img.height }}</div>
                       <div>{{ (img.fileSize / 1024).toFixed(2) }} KB</div>
