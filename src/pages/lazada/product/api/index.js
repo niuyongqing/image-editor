@@ -29,3 +29,10 @@ export function uploadImage(params, headers) {
     { headers }
   );
 }
+// 获取分类类型属性
+export function categoryAttributesApi(params) {
+  return usePost(
+    "/platform-lazada/platform/lazada/attribute/category/attributes",
+    params
+  );
+}

@@ -7,7 +7,8 @@
                 选择图片
             </a-button>
         </a-upload>
-        <div flex items-center mt-15px>
+
+        <div flex items-center mt-15px v-if="showRightTool">
             <a-dropdown>
                 <a-button type="link" link style="width: 90px; height: 31px;">
                     普通水印
@@ -44,8 +45,12 @@
             </a-button> -->
         </div>
     </div>
+    <div>
+        <slot></slot>
+    </div>
+
     <div flex flex-wrap>
-        <draggable v-model="fileList" @end="handleDragEnd" tag="div" class="flex">
+        <draggable v-if="fileList.length > 0" v-model="fileList" @end="handleDragEnd" tag="div" class="flex">
             <template #item="{ element }">
                 <a-card ml-10px p-0px rounded-none class="file-card" hoverable>
                     <div :key="element.uid">
@@ -68,9 +73,13 @@
                         </div>
                     </div>
                 </a-card>
-
             </template>
         </draggable>
+        <!-- 暂无图片 -->
+        <div class="empty-img" v-else>
+            <img src="@/assets/images/kong.png" alt="" />
+        </div>
+
         <a-modal v-model:open="previewVisible" :footer="null">
             <template #title>
                 <div flex justify-between>
@@ -113,6 +122,11 @@ const props = defineProps({
             return true
         }
     },
+    //  
+    showRightTool: {
+        type: Boolean,
+        default: true
+    }
 });
 const bacthEditImgSizeEl = useTemplateRef('BacthEditImgSizeRef');
 const attrs = useAttrs();
@@ -286,5 +300,19 @@ const handleDragEnd = (event) => {
     color: #fff;
     font-size: 14px;
     padding: 5px;
+}
+
+.empty-img {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+        width: 100%;
+        height: 100%;
+        border: 1px solid #ccc;
+    }
 }
 </style>

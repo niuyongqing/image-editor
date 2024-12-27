@@ -5,7 +5,6 @@
             <template #title>
                 <div text-left> 基本信息 </div>
             </template>
-
             <a-form :model="state" :label-col="{ style: { width: '80px' } }" style="margin-left: 100px;" ref="formRef"
                 scrollToFirstError>
                 <a-form-item label="店铺: " name="shortCode"
@@ -17,7 +16,9 @@
                 </a-form-item>
                 <a-form-item label="分类:" name="primaryCategory" :rules="[{ required: true, message: '请选择分类' }]">
                     <a-cascader class="flex w-full justify-start" v-model:value="state.primaryCategory"
-                        :options="primaryCategoryOptions" placeholder="请先选择店铺" allowClear />
+                        :options="primaryCategoryOptions" placeholder="请先选择店铺" allowClear
+                        :fieldNames="{ label: 'name', value: 'category_id', children: 'children' }"
+                        @change="changePrimaryCategory" />
                 </a-form-item>
             </a-form>
         </a-card>
@@ -27,12 +28,15 @@
 <script setup>
 import { DownOutlined } from "@ant-design/icons-vue";
 import { useReseReactive } from '@/composables/reset';
-import { accountCache, categoryTree } from '@/pages/lazada/product/api';
+import { accountCache, categoryTree, categoryAttributesApi } from '@/pages/lazada/product/api';
 import EventBus from "~/utils/event-bus";
-import { before } from "lodash";
+import { useLadazaAttrs } from "@/stores/lazadaAttrs";
+
+const { state: lazadaAttrsState, setShortCode, setLazadaAttrs, setLoading } = useLadazaAttrs();
 const shortCodes = ref([]); // 店铺列表
 const formEl = useTemplateRef('formRef');
 const primaryCategoryOptions = ref([]); // 分类列表
+const attributes = ref([]); // 分类 属性列表
 const { state } = useReseReactive({
     shortCode: undefined,
     primaryCategory: undefined,
@@ -53,13 +57,36 @@ async function getCategorys() {
     const categoryTreeRes = await categoryTree({ shortCode: state.shortCode });
     if (categoryTreeRes.code === 200) {
         primaryCategoryOptions.value = categoryTreeRes.data || [];
-        console.log('   primaryCategoryOptions.value ', primaryCategoryOptions.value);
     };
+};
+
+// 获取分类属性
+async function getAttributes() {
+    console.log('getAttributes', state.primaryCategory.length);
+    if (!state.primaryCategory.length) return;
+    setLoading(true);
+    categoryAttributesApi({
+        shortCode: state.shortCode,
+        primaryCategoryId: state.primaryCategory[state.primaryCategory.length - 1]
+    }).then((res) => {
+        if (res.code === 200) {
+            attributes.value = res.data || [];
+            setLazadaAttrs(attributes.value);
+        }
+    })
 };
 
 const changeShortCode = (value) => {
     getCategorys();
+    setShortCode(value);
+    state.primaryCategory = undefined;
+    setLazadaAttrs([])
     EventBus.emit('shortCodeEmit', value);
+};
+
+const changePrimaryCategory = (value) => {
+    console.log('changePrimaryCategory', value);
+    getAttributes(value)
 };
 
 // 分类校验
@@ -85,12 +112,16 @@ defineExpose({
 
 onMounted(() => {
     getShortCodes();
-    validateCodeRule()
+    validateCodeRule();
 });
 </script>
 
 <style lang="less" scoped>
 :deep(.ant-form-item-explain-error) {
+    text-align: left;
+}
+
+:deep(.ant-select-selector) {
     text-align: left;
 }
 </style>

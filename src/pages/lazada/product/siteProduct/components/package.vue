@@ -30,11 +30,20 @@ import EventBus from "~/utils/event-bus";
 import { message } from "ant-design-vue";
 const shortCode = ref('');
 const formEl = useTemplateRef('formRef');
+const { state: lazadaAttrsState } = useLadazaAttrs();
 const { state } = useReseReactive({
-    taxClass: undefined, // 税
+    taxClass: 'default', // 税
     packageContent: '',
 });
-const taxClassOptions = ref([]); // 税列表
+// 税列表
+const taxClassOptions = computed(() => {
+    return lazadaAttrsState.taxOptions.map(item => {
+        return {
+            label: item.en_name,
+            value: item.en_name
+        }
+    })
+});
 // 校验
 const validateForm = async () => {
     return new Promise((resolve, reject) => {
