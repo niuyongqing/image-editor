@@ -25,7 +25,7 @@
                     </div>
                 </a-form-item>
             </a-form>
-
+            {{ selectThemeList }}
             <a-card v-for="(item, index) in selectThemeList" :key="item.name" class="mt-10px">
                 <template #title>
                     <div flex>
@@ -35,8 +35,20 @@
                 <template #extra>
                     <a-button @click="handleRemove(item, index)" type="link"> 移除 </a-button>
                 </template>
-                <a-checkbox-group v-model:value="state.oneCheckedList" :options="oneCheckedOptions">
+                <a-checkbox-group v-model:value="item.checkedList" :options="checkOptions(item.options)">
                 </a-checkbox-group>
+
+                <a-form :label-col="{ style: { width: '80px' } }" :wrapperCol="{ span: 9 }" mt-15px>
+                    <a-form-item label="其他：">
+                        <div flex gap-10px>
+                            <a-input v-model:value="item.otherValue" placeholder="请输入其他选项" />
+                            <a-button @click="handleAddOther(item)" type="primary" :disabled="!item.otherValue"> 添加
+                            </a-button>
+                        </div>
+
+                    </a-form-item>
+                </a-form>
+
             </a-card>
 
         </a-card>
@@ -101,7 +113,19 @@ const addVariant = () => {
 // 移除选中的变种主题
 const handleRemove = (item, index) => {
     selectThemeList.value.splice(index, 1);
-}
+};
+
+const checkOptions = (options) => {
+    console.log('options', options);
+
+    return options.map((item) => {
+        return item.en_name
+    });
+};
+
+const handleAddOther = (item) => {
+    if (!item.otherValue) return;
+};
 
 const submit = () => {
     if (!customTheme.value) return;
@@ -129,5 +153,11 @@ const submit = () => {
 .required {
     color: red;
     margin-right: 4px;
+}
+
+:deep(.ant-checkbox-group) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-gap: 10px;
 }
 </style>
