@@ -9,6 +9,7 @@ import {
   setupAccessDirective,
   setupLoadingDirective,
 } from './directive/index.js'
+import quillFullScreen from './directive/quill-full-screen.js'
 import router from '~/router'
 import '~/router/router-guard'
 import 'ant-design-vue/dist/reset.css'
@@ -27,6 +28,7 @@ async function start() {
   app.directive('has-role', hasRole)
   app.directive('checkPermi', checkPermi)
   app.directive('checkRole', checkRole)
+  app.directive('quillFullScreen', quillFullScreen)
   app.use(STable);
   app.mount('#app')
   app.config.performance = true

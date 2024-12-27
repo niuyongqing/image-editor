@@ -5,6 +5,7 @@
     <ImageInfo ref="imageInfoRef" />
     <SKUInfo ref="SKUInfoRef" />
     <ChoiceInfo ref="choiceInfoRef" />
+    <Description ref="description" />
   </div>
 </template>
 
@@ -13,9 +14,11 @@
   import ImageInfo from './components/ImageInfo.vue'
   import SKUInfo from './components/SKUInfo.vue'
   import ChoiceInfo from './components/ChoiceInfo.vue'
+  import Description from './components/Description.vue'
 
   const baseInfoRef = ref()
   const imageInfoRef = ref()
   const SKUInfoRef = ref()
   const choiceInfoRef = ref()
+  const description = ref()
 </script>

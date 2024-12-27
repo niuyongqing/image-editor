@@ -155,7 +155,6 @@
   import { uploadImgFromNetApi, getImagePaginationApi, syncImagePaginationApi } from '@/pages/aliexpress/apis/media'
   import { CloudUploadOutlined, CloseCircleOutlined, CheckCircleOutlined } from '@ant-design/icons-vue'
   import { message } from 'ant-design-vue'
-  import { get } from 'lodash'
 
   export default {
     name: 'DropdownOfImage',
