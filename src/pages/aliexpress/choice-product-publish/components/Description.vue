@@ -147,7 +147,9 @@
           this.$refs.form.clearValidate()
         } else {
           let valid = true
-          this.$refs.form.validate(val => (valid = val))
+          this.$refs.form.validate().catch(() => {
+            valid = false
+          })
           if (!valid) return
         }
 

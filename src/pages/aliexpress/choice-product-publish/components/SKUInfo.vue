@@ -482,9 +482,13 @@
           this.$refs.SKUAttributesForm.clearValidate()
         } else {
           let valid = true
-          this.$refs.form.validate(val => (valid = val))
+          this.$refs.form.validate().catch(() => {
+            valid = false
+          })
           let SKUAttrValid = true
-          this.$refs.SKUAttributesForm.validate(val => (SKUAttrValid = val))
+          this.$refs.SKUAttributesForm.validate().catch(() => {
+            SKUAttrValid = false
+          })
           if (!valid || !SKUAttrValid) return
         }
 

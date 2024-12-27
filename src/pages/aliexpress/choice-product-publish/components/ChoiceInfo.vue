@@ -432,6 +432,7 @@
   import { queryWarehouseCodeApi } from '../../apis/choice-product'
   import { useAliexpressChoiceProductStore } from '@/stores/aliexpress-choice-product'
   import { InfoCircleOutlined } from '@ant-design/icons-vue'
+  import { message } from 'ant-design-vue'
 
   export default {
     name: 'ChoiceInfo',
@@ -807,20 +808,20 @@
           }
           for (const key in requiredEnum) {
             if (this.choiceProductData.some(item => item[key] === '' || item[key] === undefined)) {
-              this.$message.warning(`请填写: ${requiredEnum[key]}`)
+              message.warning(`请填写: ${requiredEnum[key]}`)
               return
             }
           }
           // 库存
           const hasSellableQuantityEmpty = this.choiceProductData.some(item => item.warehouseList.some(warehouse => warehouse.sellableQuantity === undefined))
           if (hasSellableQuantityEmpty) {
-            this.$message.warning(`请填写: 库存`)
+            message.warning(`请填写: 库存`)
             return
           }
           // 特殊商品类型 特殊判断
           if (this.specialTypeRequired) {
             if (this.choiceProductData.some(item => item.specialProductTypeList.length === 0)) {
-              this.$message.warning('请填写: 特殊商品类型')
+              message.warning('请填写: 特殊商品类型')
               return
             }
           }

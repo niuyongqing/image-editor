@@ -463,7 +463,7 @@
         }
 
         this.store.$patch(state => {
-          state.category = this.form.category
+          state.categoryId = this.form.category
         })
         return new Promise(resolve => {
           // 发送至其他信息(欧盟责任人)
