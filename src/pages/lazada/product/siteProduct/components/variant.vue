@@ -24,6 +24,7 @@
                     </div>
                 </a-form-item>
             </a-form>
+            <!-- {{ selectThemeList }} -->
             <a-card v-for="(item, index) in selectThemeList" :key="item.name" class="mt-10px">
                 <template #title>
                     <div flex items-center>
@@ -45,9 +46,18 @@
                                 <CloseOutlined />
                             </a-button>
                         </div>
+
+                        <div>
+                            <a-button type="link" @click="swap(item, index)" v-if="index === 1">
+                                <SwapOutlined />
+                            </a-button>
+                        </div>
                     </div>
                 </template>
                 <template #extra>
+                    <a-button @click="move(item, index)" type="link" v-if="index === 1">
+                        <HomeOutlined /> 设为变种主题1
+                    </a-button>
                     <a-button @click="handleRemove(item, index)" type="link"> 移除 </a-button>
                 </template>
 
@@ -59,11 +69,26 @@
                 </div>
                 <a-checkbox-group v-model:value="item.checkedList"
                     :style="item.options.length > 15 ? { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gridGap: '10px' } : { display: 'flex', flexWrap: 'wrap', gap: '10px' }">
-                    <a-checkbox v-for="option in item.options" :key="option.en_name" :value="option.en_name">{{
-                        option.en_name }}
-                        <a-button type="link" v-if="!option.id">
-                            <EditOutlined />
-                        </a-button>
+                    <a-checkbox v-for="option in item.options" :key="option.en_name" :value="option.en_name">
+                        <div class="flex">
+                            <span v-if="!option.isEdit"> {{ option.en_name }} </span>
+                            <div v-if="!option.id" class="flex">
+                                <a-button type="link" v-if="!option.isEdit" @click="editOptionName(option)">
+                                    <EditOutlined />
+                                </a-button>
+
+                                <div v-else>
+                                    <a-input v-model:value="optionName" placeholder="请输入变种主题" style="width: 80px;"
+                                        ref="themeLabelRef" />
+                                    <a-button type="link" @click="saveOptionName(option)">
+                                        <SaveOutlined />
+                                    </a-button>
+                                    <a-button type="link" @click="closeOptionName(option)">
+                                        <CloseOutlined />
+                                    </a-button>
+                                </div>
+                            </div>
+                        </div>
                     </a-checkbox>
                 </a-checkbox-group>
 
@@ -93,22 +118,22 @@
 </template>
 
 <script setup>
-import { PlusCircleOutlined, EditOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons-vue';
+import { PlusCircleOutlined, EditOutlined, SaveOutlined, CloseOutlined, HomeOutlined, SwapOutlined } from '@ant-design/icons-vue';
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 import BaseModal from '@/components/baseModal/BaseModal.vue';
-import { message } from 'ant-design-vue';
+import { message, Modal } from 'ant-design-vue';
 // defineProps({});
-const { state: lazadaAttrsState } = useLadazaAttrs();
+const { state: lazadaAttrsState, setSelectTheme } = useLadazaAttrs();
 const baseModalEl = useTemplateRef('baseModalRef');
 const modalMethods = ref({});
 const selectThemeList = ref([]); // 选择的变种主题列表
 const themeLabel = ref(''); // 变种主题名称
+const optionName = ref(''); // options label 名称
 const themeLabelEl = useTemplateRef('themeLabelRef');
 const { state, reset } = useReseReactive({
     oneCheckedList: undefined,
     twoCheckedList: undefined,
 });
-
 const register = (methods) => {
     modalMethods.value = methods;
 };
@@ -131,6 +156,7 @@ const disabledTheme = (item) => {
 
 const handleSelectTheme = (item) => {
     selectThemeList.value.push({ ...item, checkedList: [], isEdit: false, searchValue: '' });
+    setSelectTheme(selectThemeList.value);
 };
 // 添加自定义属性
 const addVariant = () => {
@@ -142,9 +168,12 @@ const handleRemove = (item, index) => {
     if (!item.id) {
         lazadaAttrsState.skuAttrs.splice(index, 1);
     }
+    setSelectTheme(selectThemeList.value);
 };
 
 const editSkuLabel = (item) => {
+    console.log('item', item);
+
     item.isEdit = true;
     themeLabel.value = item.label;
 };
@@ -174,6 +203,18 @@ const checkOptions = (options) => {
         return item.en_name
     });
 };
+const editOptionName = (option) => {
+    optionName.value = option.en_name;
+    option.isEdit = true;
+};
+const saveOptionName = (option) => {
+    option.isEdit = false;
+    setSelectTheme(selectThemeList.value);
+};
+
+const closeOptionName = (option) => {
+    option.isEdit = false;
+};
 
 const handleAddOther = (item) => {
     if (!item.otherValue) return;
@@ -184,15 +225,47 @@ const handleAddOther = (item) => {
             en_name: item.otherValue,
             name: item.otherValue
         });
-        item.skuOptions.push({
-            en_name: item.otherValue,
-            name: item.otherValue
-        });
+        // item.skuOptions.push({
+        //     en_name: item.otherValue,
+        //     name: item.otherValue
+        // });
         item.checkedList.push(item.otherValue);
+        setSelectTheme(selectThemeList.value);
     };
     item.otherValue = '';
 };
 
+//  设为变种主题1
+const move = (item) => {
+    console.log('item', item);
+    Modal.confirm({
+        title: '提示',
+        content: `确定将${item.label}设为变种主题1吗？`,
+        okText: '确定',
+        cancelText: '取消',
+        onOk() {
+            selectThemeList.value = [item, selectThemeList.value[0]]
+            setSelectTheme(selectThemeList.value);
+        },
+    })
+};
+
+//  交换
+const swap = () => {
+    // closeSkuLabel();
+    // selectThemeList.value 第一项的label/name和第二项的label/name交换
+    const firstLabel = selectThemeList.value[0].label;
+    const secondLabel = selectThemeList.value[1].label;
+    const firstName = selectThemeList.value[0].name;
+    const secondName = selectThemeList.value[1].name;
+
+    selectThemeList.value[0].label = secondLabel;
+    selectThemeList.value[1].label = firstLabel;
+    selectThemeList.value[0].name = secondName;
+    selectThemeList.value[1].name = firstName;
+
+    setSelectTheme(selectThemeList.value);
+};
 const submit = () => {
     if (!customTheme.value) return;
     const findItem = lazadaAttrsState.skuAttrs.find((item) => {

@@ -6,6 +6,7 @@ import { defineStore } from "pinia";
 export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
   const state = reactive({
     shortCode: "", // 店铺
+    selectTheme: [], // 选中的变种主题
     attributes: [], // 所有属性
     productClassifyAtrrs: [], // 产品分类属性
     requiredAttrs: [], //  必填属性
@@ -15,13 +16,16 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
     taxOptions: [], // 税率属性
     loading: false, // 加载状态
   });
-
   const setShortCode = (shortCode = "") => {
     state.shortCode = shortCode;
   };
   const setLoading = (loading) => {
     state.loading = loading;
   };
+  const setSelectTheme = (list) => {
+    state.selectTheme = list;
+  };
+
   const setLazadaAttrs = (attributes = []) => {
     state.attributes = attributes;
     state.productClassifyAtrrs = attributes.filter((item) => {
@@ -75,10 +79,25 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
     setLoading(false);
   };
 
+  // 重置
+  const reset = () => {
+    state.shortCode = "";
+    state.selectTheme = [];
+    state.attributes = [];
+    state.productClassifyAtrrs = [];
+    state.requiredAttrs = [];
+    state.skuAttrs = [];
+    state.warrantyTypeList = [];
+    state.warrantyList = [];
+    state.taxOptions = [];
+    state.loading = false;
+  };
   return {
     state,
+    setSelectTheme,
     setLoading,
     setShortCode,
     setLazadaAttrs,
+    reset,
   };
 });
