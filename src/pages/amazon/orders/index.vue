@@ -95,7 +95,7 @@
             <template v-if="column.key === 'logisticsmode'">
               <span></span>
             </template>
-            <template v-if="column.key === 'status'">
+            <template v-if="column.key === 'orderStatus'">
               <span></span>
             </template>
             <!-- <template v-if="column.key === 'typeStatus'">
@@ -104,10 +104,14 @@
           </template>
           <template #expandedRowRender="{ record }">
             <a-row>
-              <a-col :span="3" style="margin-right:50px; ">{{ record.description }}</a-col>
-              <a-col :span="3">{{ record.amount }}</a-col>
+              <a-col :span="3" style="margin-right:50px; ">
+                <div class="flex flex-col">
+                  <span>{{ record.sku }}</span><span>{{ record.currency }}:{{ record.itemPrice }}</span>
+                </div>
+              </a-col>
+              <a-col :span="3">{{ record.totaMmoney }}</a-col>
               <a-col :span="3">{{ record.district }}</a-col>
-              <a-col :span="3">{{ record.orderNumber }}</a-col>
+              <a-col :span="3">{{ record.amazonOrderId }}</a-col>
               <a-col :span="3">
                 <div>
                   <div>{{ record.sTime }}</div>
@@ -344,8 +348,8 @@ const columns = [
   },
   {
     title: "状态",
-    dataIndex: "status",
-    key: "status",
+    dataIndex: "orderStatus",
+    key: "orderStatus",
   },
   {
     title: "操作",
@@ -360,11 +364,14 @@ const data = [
     name: "XMBH0RFN52667",
     age: 32,
     address: "New York No. 1 Lake Park",
+    currency:"USD",
+    itemPrice:"1.99",
+    sku:"zjsad/*1",
     description:
       "这里是商品信息",
-    amount: "EUR 2.99",
+    totaMmoney: "EUR 2.99",
     district: "Marijana Subjak 「克罗地亚」",
-    orderNumber: "303-3004939-9140321",
+    amazonOrderId: "303-3004939-9140321",
     time: "买家指定： Standard",
     sTime: "下单：2017-07-25 04:30",
     fTime: "发货：2017-07-27 05:59",
@@ -379,6 +386,9 @@ const data = [
     name: "XMBH0RFN67432",
     age: 42,
     address: "London No. 1 Lake Park",
+    currency:"EUR",
+    itemPrice:"1.99",
+    sku:"zjsad/*2",
     description:
       "My name is Jim Green, I am 42 years old, living in London No. 1 Lake Park.",
     amount: "EUR 2.49",
@@ -396,6 +406,9 @@ const data = [
     name: "XMBH0RFP17429",
     age: 32,
     address: "Sidney No. 1 Lake Park",
+    currency:"USD",
+    itemPrice:"1.99",
+    sku:"zjsad/*3",
     description:
       "My name is Joe Black, I am 32 years old, living in Sidney No. 1 Lake Park.",
     amount: "USD 5",
