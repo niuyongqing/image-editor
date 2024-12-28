@@ -107,6 +107,7 @@ import { DownOutlined, SettingOutlined } from "@ant-design/icons-vue";
 import WarehouseSetting from './warehouseSetting.vue'; // 仓库管理
 const router = useRouter()
 const warehouseSettingEl = useTemplateRef('warehouseSettingRef');
+const { state: lazadaAttrsState, setShortCode, setLazadaAttrs, setLoading } = useLadazaAttrs();
 const handleEdit = () => {
 
 };
@@ -132,6 +133,9 @@ const cretateGlobalProduct = () => {
 
 // 创建站点产品
 const createSiteProduct = () => {
+    setShortCode('');
+    setLazadaAttrs([]);
+    setLoading(false);
     window.open('/lazada/siteProduct', '_blank');
 };
 //  同步所有产品

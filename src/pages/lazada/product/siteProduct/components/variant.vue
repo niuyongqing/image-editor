@@ -5,14 +5,13 @@
                 <div text-left> 变种参数 </div>
             </template>
             <a-form>
-                <!-- {{ lazadaAttrsState.skuAttrs }} -->
                 <a-form-item label="变种主题:">
                     <div>
                         <div class="flex items-center gap-12px">
-                            <a-button type="link" v-for="item in lazadaAttrsState.skuAttrs" :key="item.id"
+                            <a-button type="link" v-for="item in lazadaAttrsState.skuAttrs" :key="item.name"
                                 :disabled="disabledTheme(item)" @click="handleSelectTheme(item)">
-                                <PlusCircleOutlined style="color: #108ee9; font-size: 14px" />
-                                <span style="color: #108ee9;"> {{ item.label }} </span>
+                                <PlusCircleOutlined style="font-size: 14px" />
+                                <span> {{ item.label }} </span>
                             </a-button>
                             <a-button @click="addVariant" type="primary"
                                 :disabled="lazadaAttrsState.skuAttrs.length >= 2"> 添加自定义属性
@@ -25,32 +24,61 @@
                     </div>
                 </a-form-item>
             </a-form>
-            <!-- {{ selectThemeList }} -->
             <a-card v-for="(item, index) in selectThemeList" :key="item.name" class="mt-10px">
                 <template #title>
-                    <div flex>
-                        {{ item.label }}
+                    <div flex items-center>
+                        <div> 变种主题 {{ index + 1 }} ：<span v-if="item.is_mandatory === 1" class="required"> * </span>
+                        </div>
+                        <div v-if="!item.isEdit">
+                            <span> {{ item.label }} </span>
+                            <a-button type="link" @click="editSkuLabel(item)">
+                                <EditOutlined />
+                            </a-button>
+                        </div>
+                        <div v-else flex items-center>
+                            <a-input v-model:value="themeLabel" placeholder="请输入变种主题" style="width: 120px;"
+                                ref="themeLabelRef" />
+                            <a-button type="link" @click="saveSkuLabel(item)">
+                                <SaveOutlined />
+                            </a-button>
+                            <a-button type="link" @click="closeSkuLabel(item)">
+                                <CloseOutlined />
+                            </a-button>
+                        </div>
                     </div>
                 </template>
                 <template #extra>
                     <a-button @click="handleRemove(item, index)" type="link"> 移除 </a-button>
                 </template>
-                <a-checkbox-group v-model:value="item.checkedList" :options="checkOptions(item.options)">
+
+                <!-- 搜索框 -->
+                <div flex justify-end mb-10px v-if="item.id">
+                    <a-input-search v-model:value="item.searchValue" placeholder="请输入搜索内容" style="width: 200px;"
+                        @search="changeSearch(item, $event)">
+                    </a-input-search>
+                </div>
+                <a-checkbox-group v-model:value="item.checkedList"
+                    :style="item.options.length > 15 ? { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gridGap: '10px' } : { display: 'flex', flexWrap: 'wrap', gap: '10px' }">
+                    <a-checkbox v-for="option in item.options" :key="option.en_name" :value="option.en_name">{{
+                        option.en_name }}
+                        <a-button type="link" v-if="!option.id">
+                            <EditOutlined />
+                        </a-button>
+                    </a-checkbox>
                 </a-checkbox-group>
 
                 <a-form :label-col="{ style: { width: '80px' } }" :wrapperCol="{ span: 9 }" mt-15px>
                     <a-form-item label="其他：">
                         <div flex gap-10px>
                             <a-input v-model:value="item.otherValue" placeholder="请输入其他选项" />
-                            <a-button @click="handleAddOther(item)" type="primary" :disabled="!item.otherValue"> 添加
+                            <a-button @click="handleAddOther(item)" type="primary" :disabled="!item.otherValue">
+                                添加
                             </a-button>
                         </div>
-
                     </a-form-item>
                 </a-form>
-
+                <template #tabBarExtraContent></template>
             </a-card>
-
         </a-card>
 
         <!-- 添加自定义属性弹窗 -->
@@ -65,7 +93,7 @@
 </template>
 
 <script setup>
-import { PlusCircleOutlined } from '@ant-design/icons-vue';
+import { PlusCircleOutlined, EditOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons-vue';
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { message } from 'ant-design-vue';
@@ -74,19 +102,17 @@ const { state: lazadaAttrsState } = useLadazaAttrs();
 const baseModalEl = useTemplateRef('baseModalRef');
 const modalMethods = ref({});
 const selectThemeList = ref([]); // 选择的变种主题列表
-
+const themeLabel = ref(''); // 变种主题名称
+const themeLabelEl = useTemplateRef('themeLabelRef');
 const { state, reset } = useReseReactive({
     oneCheckedList: undefined,
     twoCheckedList: undefined,
 });
 
-
-
 const register = (methods) => {
     modalMethods.value = methods;
 };
 const customTheme = ref('');
-
 const themeList = ref([]);// 主题列表theme
 
 const disabledTheme = (item) => {
@@ -94,8 +120,8 @@ const disabledTheme = (item) => {
         return true
     };
 
-    const findItem = selectThemeList.value.find((item) => {
-        return item.label === item.label
+    const findItem = selectThemeList.value.find((themeItem) => {
+        return item.label === themeItem.label
     });
     if (findItem) {
         return true
@@ -104,7 +130,7 @@ const disabledTheme = (item) => {
 }
 
 const handleSelectTheme = (item) => {
-    selectThemeList.value.push(item);
+    selectThemeList.value.push({ ...item, checkedList: [], isEdit: false, searchValue: '' });
 };
 // 添加自定义属性
 const addVariant = () => {
@@ -113,11 +139,37 @@ const addVariant = () => {
 // 移除选中的变种主题
 const handleRemove = (item, index) => {
     selectThemeList.value.splice(index, 1);
+    if (!item.id) {
+        lazadaAttrsState.skuAttrs.splice(index, 1);
+    }
+};
+
+const editSkuLabel = (item) => {
+    item.isEdit = true;
+    themeLabel.value = item.label;
+};
+//  保存sku-label
+const saveSkuLabel = (item) => {
+    item.isEdit = false;
+    item.label = themeLabel.value;
+};
+
+//  关闭 sku-label
+const closeSkuLabel = (item) => {
+    item.isEdit = false;
+};
+
+const changeSearch = (item, evtValue) => {
+    if (!evtValue) {
+        item.options = item.skuOptions;
+    };
+    item.options = item.options.filter((option) => {
+        //  不计较大小写
+        return option.en_name.toLowerCase().includes(evtValue.toLowerCase())
+    })
 };
 
 const checkOptions = (options) => {
-    console.log('options', options);
-
     return options.map((item) => {
         return item.en_name
     });
@@ -125,6 +177,20 @@ const checkOptions = (options) => {
 
 const handleAddOther = (item) => {
     if (!item.otherValue) return;
+    if (item.checkedList.includes(item.otherValue)) {
+        message.warning('该属性已存在');
+    } else {
+        item.options.push({
+            en_name: item.otherValue,
+            name: item.otherValue
+        });
+        item.skuOptions.push({
+            en_name: item.otherValue,
+            name: item.otherValue
+        });
+        item.checkedList.push(item.otherValue);
+    };
+    item.otherValue = '';
 };
 
 const submit = () => {
@@ -144,6 +210,16 @@ const submit = () => {
         input_type: 'multiEnumInput',
         options: []
     });
+
+    selectThemeList.value.push({
+        label: customTheme.value,
+        name: customTheme.value,
+        options: [],
+        checkedList: [],
+        otherValue: '',
+        searchValue: ''
+    });
+    customTheme.value = '';
     modalMethods.value.closeModal();
 }
 
@@ -151,13 +227,7 @@ const submit = () => {
 
 <style lang="less" scoped>
 .required {
-    color: red;
-    margin-right: 4px;
-}
-
-:deep(.ant-checkbox-group) {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    grid-gap: 10px;
+    color: #ff4d4f;
+    padding-right: 4px;
 }
 </style>

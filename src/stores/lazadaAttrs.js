@@ -40,9 +40,17 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
       );
     });
     state.requiredAttrs = attributes.filter((attr) => attr.is_mandatory === 1);
-    state.skuAttrs = attributes.filter((attr) => {
+
+    const skuAttrs = attributes.filter((attr) => {
       return attr.attribute_type === "sku" && attr.is_sale_prop === 1;
     });
+    skuAttrs.forEach((skuAttr) => {
+      skuAttr.checkedList = [];
+      skuAttr.isEdit = false;
+      skuAttr.skuOptions = skuAttr.options || [];
+    });
+    state.skuAttrs = skuAttrs;
+
     const warrantyType = attributes.find((attr) => {
       return attr.name === "warranty_type";
     });
