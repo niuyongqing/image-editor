@@ -18,8 +18,6 @@
                         </div>
                     </template>
                     <!-- 主题2 -->
-
-
                     <template v-if="column.dataIndex === 'stock'">
                         <div> <span class="required"> * </span> {{ title }} </div>
                         <div> ( <a-button type="link" @click="generateSKU(column)"> 批量 </a-button> ) </div>
