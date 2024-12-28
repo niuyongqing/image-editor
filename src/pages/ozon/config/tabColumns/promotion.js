@@ -10,6 +10,11 @@ export default [
     align:"center",
   },
   {
+    title: "状态",
+    dataIndex: "state",
+    align:"center",
+  },
+  {
     title: "参与产品数",
     dataIndex: "potentialProductsCount",
     align:"center",
@@ -24,11 +29,7 @@ export default [
     dataIndex: "createdAt",
     align:"center",
   },
-  {
-    title: "状态",
-    dataIndex: "createdAt",
-    align:"center",
-  },
+  
   {
     title: "操作",
     dataIndex: "option",

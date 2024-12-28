@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="js">
 import {ref} from 'vue'
 import EventBus from "~/utils/event-bus";
 const canvas = ref(null);

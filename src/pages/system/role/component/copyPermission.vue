@@ -23,7 +23,7 @@
     </a-form>
   </a-modal>
 </template>
-<script setup lang="ts">
+<script setup lang="js">
 import {ref} from 'vue'
 import useDebounce from "~/utils/useDebounce";
 import { getSearchRoleListApi,copyPermission} from '~/api/common/role'

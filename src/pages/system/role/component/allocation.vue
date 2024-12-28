@@ -23,7 +23,7 @@
     </a-form>
   </a-modal>
 </template>
-<script setup lang="ts">
+<script setup lang="js">
 import {ref} from 'vue'
 const loading = ref(false)
 const props = defineProps({
