@@ -114,4 +114,132 @@ const tradStatus = [
         label: "其他",
     },
 ]
-export { orderStatus, storeStatus, tradStatus }
+
+//店铺商品 
+const tabDicList = [
+    {
+        label: "全部",
+        name: " ",
+        code: "all",
+        value: "0",
+    },
+    {
+        label: "在售",
+        name: "在售",
+        code: "insale",
+        value: "0",
+    },
+    {
+        label: "平台审核",
+        name: "平台审核",
+        code: "inreview",
+        value: "0",
+    },
+    {
+        label: "准备出售",
+        name: "准备出售",
+        code: "toSupply",
+        value: "0",
+    },
+    {
+        label: "审核不通过",
+        name: "审核不通过",
+        code: "notPass",
+        value: "0",
+    },
+    {
+        label: "已归档",
+        name: "已归档",
+        code: "archived",
+        value: "0",
+    },
+]
+
+// 商品-描述
+const attrList = [
+    {
+      title:"搜索属性为产品属性的重要属性，有助于买家通过筛选找到产品",
+      list:[
+        {
+          sock:"30分",
+          disc:"填写超过70%的属性"
+        },
+        {
+          sock:"22.5分",
+          disc:"填写超过50%的属性"
+        },
+        {
+          sock:"15分",
+          disc:"填写2个或更多属性"
+        },
+        {
+          sock:"0分",
+          disc:"填写2个以下属性"
+        }
+      ]
+    },
+    {
+      title:"其他属性为产品属性的附加属性，有助于买家了解更多有关产品的信息",
+      list:[
+        {
+          sock:"20分",
+          disc:"填写超过50%的属性"
+        },
+        {
+          sock:"12.5分",
+          disc:"填写2个或更多属性"
+        },
+        {
+          sock:"0分",
+          disc:"填写2个以下属性"
+        }
+      ]
+    },
+    {
+      title:"超过500个字符信息的描述有助于买家了解更多有关产品的信息并提高信任度",
+      list:[
+        {
+          sock:"20分",
+          disc:"填写富内容"
+        },
+        {
+          sock:"10分",
+          disc:"填写超过500个字符的描述"
+        },
+        {
+          sock:"5分",
+          disc:"填写超过100个字符的描述"
+        },
+        {
+          sock:"0分",
+          disc:"填写低于100个字符的描述"
+        }
+      ]
+    }, 
+    {
+      title:"图片和视频有助于买家从查看产品并对其外观产生完整的印象",
+      list:[
+        {
+          sock:"25分",
+          disc:"添加视频封面+视频+3张图片"
+        },
+        {
+          sock:"+12.5分",
+          disc:"添加视频封面"
+        },
+        {
+          sock:"+7.5分",
+          disc:"添加视频"
+        },
+        {
+          sock:"+5分",
+          disc:"添加3个图片或更多"
+        },
+        {
+          sock:"0分",
+          disc:"添加少于3个图片"
+        }
+      ]
+    }
+  ]
+export { orderStatus, storeStatus, tradStatus, tabDicList, attrList}
