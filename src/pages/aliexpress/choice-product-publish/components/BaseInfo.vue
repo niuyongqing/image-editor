@@ -90,25 +90,6 @@
               :name="item.zh"
             >
               <!-- supportEnumInput 当前属性是否支持自定义枚举类型属性值(通过filterable来控制能否输入) -->
-              <!-- <a-select
-                v-if="item.attributeShowTypeValue === 'list_box'"
-                v-model:value="attributes[item.zh]"
-                filterable
-                value-key="attributeValueId"
-                default-first-option
-                :allow-create="item.supportEnumInput"
-                :placeholder="item.supportEnumInput ? '输入或选择;回车确认输入值' : '请选择'"
-                @change="val => handleAttrChange(val, i)"
-              >
-                <a-option
-                  v-for="option in item.values"
-                  :key="option.attributeValueId"
-                  :label="option.name"
-                  :value="option"
-                >
-                </a-option>
-              </a-select> -->
-
               <template v-if="item.attributeShowTypeValue === 'list_box'">
                 <a-select
                   v-if="!item.supportEnumInput"
@@ -116,6 +97,7 @@
                   :options="item.values"
                   :field-names="{ label: 'name', value: 'attributeValueId' }"
                   show-search
+                  allow-clear
                   label-in-value
                   placeholder="请选择"
                   option-filter-prop="name"
@@ -131,10 +113,11 @@
                   :ref="`selectRef${item.zh}`"
                   mode="tags"
                   show-search
+                  allow-clear
                   label-in-value
                   placeholder="输入或选择;回车确认输入值"
                   option-filter-prop="name"
-                  @select="(val, option) => select(val, option, item.zh, i)"
+                  @select="(val, option) => supportEnumInputSelect(val, option, item.zh, i)"
                 >
                   <template #tagRender="{ label }">
                     <span>{{ label }}</span>
@@ -172,6 +155,7 @@
                 :field-names="{ label: 'name', value: 'attributeValueId' }"
                 mode="multiple"
                 show-search
+                allow-clear
                 label-in-value
                 option-filter-prop="name"
                 placeholder="请选择"
@@ -554,10 +538,10 @@
         })
       },
       // 属性选择变化
-      select(val, option, key, i) {
+      supportEnumInputSelect(val, option, key, i) {
         if (Object.keys(option).length === 0) {
           // 自定义输入内容
-          this.attributes[key] = [{ label: val.value, value: val.value }]
+          this.attributes[key] = [{ label: val.value, value: undefined }]
         } else {
           this.attributes[key] = [{ label: val.label, value: val.value, option }]
         }
@@ -567,6 +551,7 @@
       },
       // hasSubAttr为true时, 代表有子属性; 主要是为了在产地选中国大陆后, 显示省份, 且默认选浙江省
       handleAttrChange(val, i, isEdit = false) {
+        if (!val) return
         // 如果存在过下级属性, 先删除该属性
         if (this.attributeOptions[i].attributeId in this.parentAndSubAttrCache) {
           this.attributeOptions = this.attributeOptions.filter(item => !this.parentAndSubAttrCache[this.attributeOptions[i].attributeId].includes(item.zh))
@@ -653,13 +638,13 @@
         this.cusAttribute = this.cusAttribute.filter(item => item.id !== id)
       },
       // 向上级提交数据
-      emitData({ isDraft = false }) {
+      async emitData({ isDraft = false }) {
         let ruleFormValid = true
-        this.$refs.ruleFormRef.validate().catch(err => {
+        await this.$refs.ruleFormRef.validate().catch(err => {
           ruleFormValid = false
         })
         let attrValid = true
-        this.$refs.attributeFormRef.validate().catch(err => {
+        await this.$refs.attributeFormRef.validate().catch(err => {
           attrValid = false
         })
         // 自定义属性
@@ -696,8 +681,8 @@
               productPropertyList.push({
                 attrName: key,
                 attrNameId: tempObj.attributeId,
-                attrValue: this.attributes[key].name,
-                attrValueId: this.attributes[key].attributeValueId
+                attrValue: this.attributes[key].label,
+                attrValueId: this.attributes[key].value
               })
               break
             case 'Array':
@@ -706,8 +691,8 @@
                 productPropertyList.push({
                   attrName: key,
                   attrNameId: tempObj.attributeId,
-                  attrValue: val.name || val, // 值为: 选择的属性(Object) || 自定义(String)
-                  attrValueId: val.attributeValueId
+                  attrValue: val.label, // 原写法值为: 选择的属性(Object) || 自定义(String)
+                  attrValueId: val.value
                 })
               })
               break

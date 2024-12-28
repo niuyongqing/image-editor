@@ -58,7 +58,11 @@
               :label="item.label"
               :required="item.required"
             >
-              <a-tag color="success" class="mb-1">！说明</a-tag>
+              <a-tag
+                color="success"
+                class="mb-1"
+                >！说明</a-tag
+              >
               <span class="gray"> {{ item.tips }}</span>
               <template v-if="item.type === 'image'">
                 <div
@@ -254,10 +258,10 @@
       remove(i) {
         this.qualificationList[i].value = ''
       },
-      emitData({ isDraft = false }) {
+      async emitData({ isDraft = false }) {
         if (!isDraft) {
           let valid = true
-          this.$refs.form.validate().catch(() => {
+          await this.$refs.form.validate().catch(() => {
             valid = false
           })
           // 校验是否有必填的资质信息未填写

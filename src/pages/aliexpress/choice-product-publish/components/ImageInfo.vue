@@ -104,41 +104,42 @@
           ></a-button>
         </DropdownOfImage>
         <div class="product-image">
-          <a-form-item-rest v-if="form.productImages.length">
-            <Draggable
-              v-model="form.productImages"
-              item-key="url"
-              group="productImages"
-              animation="200"
-              class="image-list"
-            >
-              <template #item="{ element: item }">
-                <div class="image-list-item">
-                  <a-image
-                    :ref="`image_${item.url}`"
-                    :src="item.url"
-                    :preview-src-list="form.productImages.map(item => item.url)"
-                  />
-                  <div class="image-info">
-                    <span>{{ item.width }} x {{ item.height }}</span>
-                    <div>
+          <Draggable
+            v-if="form.productImages.length"
+            v-model="form.productImages"
+            item-key="url"
+            group="productImages"
+            animation="200"
+            class="image-list"
+          >
+            <template #item="{ element: item }">
+              <div class="image-list-item">
+                <a-image
+                  :ref="`image_${item.url}`"
+                  :src="item.url"
+                  :preview-src-list="form.productImages.map(item => item.url)"
+                />
+                <div class="image-info">
+                  <span>{{ item.width }} x {{ item.height }}</span>
+                  <div>
+                    <a-form-item-rest>
                       <a-checkbox
                         v-model:checked="item.checked"
                         style="margin-right: 8px"
                       ></a-checkbox>
-                      <a-button
-                        type="link"
-                        danger
-                        size="middle"
-                        @click="removeChosenImage(item.url, 'productImages')"
-                        ><DeleteOutlined
-                      /></a-button>
-                    </div>
+                    </a-form-item-rest>
+                    <a-button
+                      type="link"
+                      danger
+                      size="middle"
+                      @click="removeChosenImage(item.url, 'productImages')"
+                      ><DeleteOutlined
+                    /></a-button>
                   </div>
                 </div>
-              </template>
-            </Draggable>
-          </a-form-item-rest>
+              </div>
+            </template>
+          </Draggable>
           <div
             v-else
             class="image-empty"
@@ -361,8 +362,8 @@
           video: {}
         },
         rules: {
-          productImages: { validator: validMainImages, required: true, trigger: 'blur' },
-          marketImages: { validator: validMarketImages, required: true, trigger: 'blur' }
+          productImages: { validator: validMainImages, required: true },
+          marketImages: { validator: validMarketImages, required: true }
         },
         imgGroupList: [],
         cropWidth: 800,
@@ -709,12 +710,15 @@
             })
             .finally(() => {
               this.generateMarketImageLoading = false
+              this.$refs.form.validateFields(['marketImages'])
             })
         }
       },
       // 填充图片数据
       fillImgData(imgData, keyCode) {
         this.form[keyCode].push(...imgData)
+        const field = keyCode === 'productImages' ? 'productImages' : 'marketImages'
+        this.$refs.form.validateFields([field])
       },
       // 填充视频数据
       fillVideoData(videoData) {
@@ -727,12 +731,12 @@
         this.form.video = {}
       },
       // 向上级提交数据
-      emitData({ isDraft = false }) {
+      async emitData({ isDraft = false }) {
         if (isDraft) {
           this.$refs.form.clearValidate()
         } else {
           let valid = true
-          this.$refs.form.validate().catch(() => {
+          await this.$refs.form.validate().catch(() => {
             valid = false
           })
           if (!valid) return

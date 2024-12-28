@@ -142,12 +142,12 @@
           }
         })
       },
-      emitData({ isDraft = false }) {
+      async emitData({ isDraft = false }) {
         if (isDraft) {
           this.$refs.form.clearValidate()
         } else {
           let valid = true
-          this.$refs.form.validate().catch(() => {
+          await this.$refs.form.validate().catch(() => {
             valid = false
           })
           if (!valid) return

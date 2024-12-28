@@ -158,10 +158,13 @@
                     class="w-100 h-100"
                   />
                 </template>
-                <a-image
-                  class="attr-img"
-                  :src="getImageUrl(record, column.dataIndex)"
-                />
+                <div class="attr-img">
+                  <a-image
+                    width="56px"
+                    height="56px"
+                    :src="getImageUrl(record, column.dataIndex)"
+                  />
+                </div>
               </a-popover>
               <span>{{ getLabel(record, column.dataIndex) }}</span>
             </template>
@@ -351,10 +354,13 @@
                     class="w-100 h-100"
                   />
                 </template>
-                <a-image
-                  class="attr-img"
-                  :src="getImageUrl(record, column.dataIndex)"
-                />
+                <div class="attr-img">
+                  <a-image
+                    width="56px"
+                    height="56px"
+                    :src="getImageUrl(record, column.dataIndex)"
+                  />
+                </div>
               </a-popover>
               <span>{{ getLabel(record, column.dataIndex) }}</span>
             </template>
@@ -722,7 +728,7 @@
       getLabel(record, prop) {
         const attr = record.skuPropertyList.find(item => item.skuPropertyName === prop)
         if (attr) {
-          return attr.propertyValueDefinitionName ? `${attr.skuPropertyValue} (${attr.propertyValueDefinitionName})` : attr.skuPropertyValue
+          return attr.propertyValueDefinitionName ? `${attr.skuPropertyValueName} (${attr.propertyValueDefinitionName})` : attr.skuPropertyValueName
         } else {
           return '--'
         }
@@ -854,7 +860,7 @@
         }
       },
       // 向上级提交数据
-      emitData({ isDraft = false }) {
+     emitData({ isDraft = false }) {
         return this.generateCommonParams(true)
       }
     }

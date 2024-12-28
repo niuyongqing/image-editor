@@ -196,7 +196,7 @@
         <div class="left-group">
           <a-button
             type="primary"
-            @click="goPublish"
+            @click="goPublish()"
             >发布商品</a-button
           >
           <a-button
@@ -971,8 +971,12 @@
         this.copyTargetSellerList = []
         this.copyDialogVisible = false
       },
-      goPublish() {
-        window.open(location.origin + '/aliexpress/choice-product-publish')
+      goPublish(record) {
+        let query = ''
+        if (record) {
+          query = `?sellerId=${record.sellerId}&productId=${record.productId}`
+        }
+        window.open(location.origin + '/aliexpress/choice-product-publish' + query)
       }
     }
   }

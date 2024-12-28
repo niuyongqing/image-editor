@@ -165,7 +165,7 @@
           >
             <template #bodyCell="{ column, record }">
               <template v-if="column.title === item.zh">
-                <span>{{ record.skuPropertyValue }}</span>
+                <span>{{ record.skuPropertyValueName }}</span>
               </template>
               <template v-if="column.title === '自定义名称'">
                 <a-input
@@ -178,7 +178,7 @@
                   v-if="record.skuImage"
                   class="image"
                 >
-                  <a-image :src="record.skuImage"/>
+                  <a-image :src="record.skuImage" width="60px" height="60px" />
                   <div class="image-info">
                     <a-button
                       type="link"
@@ -303,7 +303,8 @@
                     this.SKUAttributesCache[item.en].push({
                       label: item.zh,
                       skuPropertyName: item.en,
-                      skuPropertyValue: val.zh,
+                      skuPropertyValueName: val.zh,
+                      skuPropertyValue: val.en,
                       propertyValueDefinitionName: obj.propertyValueDefinitionName,
                       skuImage: obj.skuImage,
                       skuPropertyId: item.attributeId, // 属性id
@@ -391,7 +392,8 @@
             this.SKUAttributesCache[item.en].push({
               label: item.zh,
               skuPropertyName: item.en,
-              skuPropertyValue: val.zh,
+              skuPropertyValueName: val.zh,
+              skuPropertyValue: val.en,
               propertyValueDefinitionName: '',
               skuImage: '',
               skuPropertyId: item.attributeId, // 属性id
@@ -437,7 +439,7 @@
                 const uniqueId = curOptions.map(({ skuPropertyId, propertyValueId }) => `${skuPropertyId}:${propertyValueId}`).join(';')
                 const attrObj = {}
                 curOptions.forEach(attr => {
-                  attrObj[attr.skuPropertyName] = attr.propertyValueDefinitionName ? `${attr.skuPropertyValue}(${attr.propertyValueDefinitionName})` : attr.skuPropertyValue
+                  attrObj[attr.skuPropertyName] = attr.propertyValueDefinitionName ? `${attr.skuPropertyValueName}(${attr.propertyValueDefinitionName})` : attr.skuPropertyValueName
                 })
                 SKUList.push({
                   SKUKey,
@@ -465,7 +467,7 @@
         this.SKUTableData.forEach(item => {
           const i = item.skuPropertyList.findIndex(property => property.skuPropertyId === record.skuPropertyId)
           if (i > -1) {
-            item[record.skuPropertyName] = record.propertyValueDefinitionName ? `${record.skuPropertyValue}(${record.propertyValueDefinitionName})` : record.skuPropertyValue
+            item[record.skuPropertyName] = record.propertyValueDefinitionName ? `${record.skuPropertyValueName}(${record.propertyValueDefinitionName})` : record.skuPropertyValueName
           }
         })
       },
@@ -476,17 +478,17 @@
       remove(record) {
         record.skuImage = ''
       },
-      emitData({ isDraft = false }) {
+      async emitData({ isDraft = false }) {
         if (isDraft) {
           this.$refs.form.clearValidate()
           this.$refs.SKUAttributesForm.clearValidate()
         } else {
           let valid = true
-          this.$refs.form.validate().catch(() => {
+          await this.$refs.form.validate().catch(err => {
             valid = false
           })
           let SKUAttrValid = true
-          this.$refs.SKUAttributesForm.validate().catch(() => {
+          await this.$refs.SKUAttributesForm.validate().catch(() => {
             SKUAttrValid = false
           })
           if (!valid || !SKUAttrValid) return
@@ -543,16 +545,6 @@
           color: #f56c6c;
         }
       }
-      .a-image {
-        height: 100%;
-      }
-    }
-    .attr-img {
-      width: 56px;
-      height: 56px;
-      border: 1px solid #ccc;
-      margin-right: 8px;
-      vertical-align: middle;
     }
   }
 </style>
