@@ -36,3 +36,12 @@ export function categoryAttributesApi(params) {
     params
   );
 }
+
+// 富文本 图片上传
+export function marketImageLazada(params, headers) {
+  return usePost(
+    "/platform-lazada/platform/lazada/file/upload/market-image-lazada",
+    params,
+    { headers }
+  );
+}

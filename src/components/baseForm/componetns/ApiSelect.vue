@@ -61,7 +61,6 @@ async function fetch() {
     try {
         // loading.value = true;
         const res = await api(params);
-        console.log('res ->>', res);
         if (Array.isArray(res)) {
             options.value = res;
             return;
@@ -76,5 +75,3 @@ async function fetch() {
     }
 }
 </script>
-
-<style lang="scss" scoped></style>

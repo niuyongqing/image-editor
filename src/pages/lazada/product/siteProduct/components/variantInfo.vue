@@ -5,6 +5,7 @@
                 <div text-left> 变种信息 </div>
             </template>
 
+            {{ tableData }}
             <a-table :columns="columns" :data-source="tableData" bordered :pagination="false">
                 <template #headerCell="{ title, column }">
                     <template v-if="column.dataIndex === 'sellerSKU'">
@@ -42,7 +43,7 @@
                 </template>
 
 
-                <template #bodyCell="{ record, column }">
+                <template #bodyCell="{ record, index, column }">
                     <!-- {{ text }} -{{ record }}- {{ index }} -{{ column }} -->
                     <template v-if="column.dataIndex === 'sellerSKU'">
                         <div> sellerSKU {{ record.sellerSKU }}
@@ -74,10 +75,14 @@
                     </template>
 
                     <template v-if="column.dataIndex === 'action'">
-                        <div> action </div>
+                        <div> <a-button type="link" @click="delRow(index)"> 移除 </a-button> </div>
                     </template>
                 </template>
             </a-table>
+
+            <div flex color="#a0a3a6" mt-10px>
+                <p> [共 <span color="#000"> {{ tableData.length }} </span> 个变种] </p>
+            </div>
         </a-card>
     </div>
 </template>
@@ -86,7 +91,9 @@
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { message } from 'ant-design-vue';
-const { state: lazadaAttrsState } = useLadazaAttrs();
+import EventBus from "~/utils/event-bus";
+
+const { state: lazadaAttrsState, setSkuTable } = useLadazaAttrs();
 
 const theme = reactive({
     themeOne: [],
@@ -94,8 +101,6 @@ const theme = reactive({
 }); // 主题
 const tableData = ref([]);
 const { selectTheme, skuAttrs, } = toRefs(lazadaAttrsState);
-
-
 const columns = computed(() => {
     const themeColumns = selectTheme.value.map((item) => {
         return {
@@ -105,8 +110,6 @@ const columns = computed(() => {
             align: 'center',
         }
     });
-    console.log('skuAttrs', skuAttrs.value);
-
     let baseColumns = [];
     function getColumns() {
         if (selectTheme.value.length > 0) {
@@ -141,6 +144,7 @@ const columns = computed(() => {
                     title: '操作',
                     dataIndex: 'action',
                     align: 'center',
+                    width: '120px'
                 },
             ];
         } else {
@@ -174,13 +178,12 @@ const columns = computed(() => {
                     title: '操作',
                     dataIndex: 'action',
                     align: 'center',
+                    width: '120px'
                 },
             ];
         }
     };
     getColumns();
-    console.log('baseColumns', baseColumns);
-
     return [
         ...baseColumns,
     ];
@@ -188,7 +191,7 @@ const columns = computed(() => {
 
 const generateTable = () => {
     // 一种变体组合
-    if (selectTheme.value.length === 1) {
+    if (selectTheme.value.length === 1 || !selectTheme.value[1]?.name) {
         const list = theme.themeOne
         const name = selectTheme.value[0].name;
         let transData = list.map((item) => {
@@ -215,40 +218,45 @@ const generateTable = () => {
                 [nameTwo]: Two
             }))
         );
-
-        console.log('list', list);
         tableData.value = list.map((item, index) => {
             return {
+                ...tableData.value[index],
                 ...item,
-                ...tableData.value[index]
             }
         })
     }
-}
-
-
-
-watch(() => lazadaAttrsState.selectTheme, (newVal) => {
-    console.log('newVal', newVal);
-    if (!newVal.length) return;
-    theme.themeOne = newVal[0].checkedList || [];
-    if (newVal.length > 1) {
-        theme.themeTwo = newVal[1].checkedList || [];
-    };
-    generateTable()
-}, {
-    immediate: true,
-    deep: true
-});
+};
 watch(() => lazadaAttrsState.shortCode, () => {
     tableData.value = [];
 }, { deep: true });
+watch(() => tableData.value, (newVal) => {
+    setSkuTable(newVal);
+}, { deep: true });
+
 // 一键生成
 const generateSKU = (column) => {
 
 };
+//  批量
+// 移除SKU
+const delRow = (index) => {
+    tableData.value.splice(index, 1);
+    EventBus.emit('delRow', tableData.value);
+};
 
-
+onMounted(() => {
+    EventBus.on('changeCheckedList', () => {
+        if (!lazadaAttrsState.selectTheme.length) return;
+        theme.themeOne = lazadaAttrsState.selectTheme[0].checkedList || [];
+        if (lazadaAttrsState.selectTheme.length > 1) {
+            theme.themeTwo = lazadaAttrsState.selectTheme[1].checkedList || [];
+        };
+        generateTable();
+    });
+});
+onUnmounted(() => {
+    EventBus.off('changeCheckedList');
+});
 </script>
 
 <style lang="less" scoped>

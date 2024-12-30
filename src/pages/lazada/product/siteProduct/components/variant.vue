@@ -13,7 +13,7 @@
                                 <PlusCircleOutlined style="font-size: 14px" />
                                 <span> {{ item.label }} </span>
                             </a-button>
-                            <a-button @click="addVariant" type="primary"
+                            <a-button @click="addVariant" type="primary" @keyup.enter="addVariant"
                                 :disabled="lazadaAttrsState.skuAttrs.length >= 2"> 添加自定义属性
                             </a-button>
                         </div>
@@ -24,7 +24,6 @@
                     </div>
                 </a-form-item>
             </a-form>
-            <!-- {{ selectThemeList }} -->
             <a-card v-for="(item, index) in selectThemeList" :key="item.name" class="mt-10px">
                 <template #title>
                     <div flex items-center>
@@ -67,7 +66,7 @@
                         @search="changeSearch(item, $event)">
                     </a-input-search>
                 </div>
-                <a-checkbox-group v-model:value="item.checkedList"
+                <a-checkbox-group v-model:value="item.checkedList" @change="changeCheckedList(item)"
                     :style="item.options.length > 15 ? { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gridGap: '10px' } : { display: 'flex', flexWrap: 'wrap', gap: '10px' }">
                     <a-checkbox v-for="option in item.options" :key="option.en_name" :value="option.en_name">
                         <div class="flex">
@@ -96,7 +95,8 @@
                     <a-form-item label="其他：">
                         <div flex gap-10px>
                             <a-input v-model:value="item.otherValue" placeholder="请输入其他选项" />
-                            <a-button @click="handleAddOther(item)" type="primary" :disabled="!item.otherValue">
+                            <a-button @click="handleAddOther(item)" @keyup.enter="handleAddOther(item)" type="primary"
+                                :disabled="!item.otherValue">
                                 添加
                             </a-button>
                         </div>
@@ -122,8 +122,9 @@ import { PlusCircleOutlined, EditOutlined, SaveOutlined, CloseOutlined, HomeOutl
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { message, Modal } from 'ant-design-vue';
+import EventBus from "~/utils/event-bus";
 // defineProps({});
-const { state: lazadaAttrsState, setSelectTheme } = useLadazaAttrs();
+const { state: lazadaAttrsState, setSelectTheme, setSkuTable } = useLadazaAttrs();
 const baseModalEl = useTemplateRef('baseModalRef');
 const modalMethods = ref({});
 const selectThemeList = ref([]); // 选择的变种主题列表
@@ -173,7 +174,6 @@ const handleRemove = (item, index) => {
 
 const editSkuLabel = (item) => {
     console.log('item', item);
-
     item.isEdit = true;
     themeLabel.value = item.label;
 };
@@ -233,6 +233,8 @@ const handleAddOther = (item) => {
         setSelectTheme(selectThemeList.value);
     };
     item.otherValue = '';
+
+    changeCheckedList(item);
 };
 
 //  设为变种主题1
@@ -266,14 +268,18 @@ const swap = () => {
 
     setSelectTheme(selectThemeList.value);
 };
-
+// 选中的变种主题
+const changeCheckedList = (item) => {
+    EventBus.emit('changeCheckedList')
+};
 
 watch(() => lazadaAttrsState.primaryCategory, (newVal) => {
     selectThemeList.value = []
 }, {
     deep: true,
     immediate: true
-})
+});
+
 
 const submit = () => {
     if (!customTheme.value) return;
@@ -303,8 +309,45 @@ const submit = () => {
     });
     customTheme.value = '';
     modalMethods.value.closeModal();
-}
+};
 
+
+onMounted(() => {
+    EventBus.on('delRow', (tableData) => {
+        if (selectThemeList.value.length === 0) return;
+        //  1种主题
+        if (selectThemeList.value.length === 1) {
+            let checkedList = selectThemeList.value[0].checkedList;
+            const name = selectThemeList.value[0].name;
+            const oneThemeList = tableData.map((item) => {
+                return item[name]
+            });
+            if (JSON.stringify(selectThemeList.value[0].checkedList) !== JSON.stringify(oneThemeList)) {
+                selectThemeList.value[0].checkedList = oneThemeList;
+            };
+        };
+        //  2种主题
+        if (selectThemeList.value.length === 2) {
+            let checkedList = selectThemeList.value[0].checkedList;
+            const name = selectThemeList.value[0].name;
+            const oneThemeList = tableData.map((item) => {
+                return item[name]
+            });
+            selectThemeList.value[0].checkedList = oneThemeList;
+            let checkedList2 = selectThemeList.value[1].checkedList;
+            const name2 = selectThemeList.value[1].name;
+            const oneThemeList2 = tableData.map((item) => {
+                return item[name2]
+            });
+            selectThemeList.value[1].checkedList = oneThemeList2;
+        };
+
+    });
+});
+
+onUnmounted(() => {
+    EventBus.off('delRow');
+});
 </script>
 
 <style lang="less" scoped>

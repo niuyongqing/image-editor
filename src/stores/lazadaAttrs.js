@@ -14,7 +14,8 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
     skuAttrs: [], //  SKU属性
     warrantyTypeList: [], //  质保类型属性
     warrantyList: [], //   质保时长属性
-    taxOptions: [], // 税率属性
+    taxOptions: [], // 税率属性、
+    skuTable: [], // sku表格数据
     loading: false, // 加载状态
   });
   const setShortCode = (shortCode = "") => {
@@ -28,6 +29,11 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
   };
   const setSelectTheme = (list) => {
     state.selectTheme = list;
+  };
+
+  const setSkuTable = (skuTable = []) => {
+    state.skuTable = skuTable;
+    console.log("skuTable", state.skuTable);
   };
 
   const setLazadaAttrs = (attributes = []) => {
@@ -86,6 +92,7 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
   // 重置
   const reset = () => {
     state.shortCode = "";
+    state.primaryCategory = [];
     state.selectTheme = [];
     state.attributes = [];
     state.productClassifyAtrrs = [];
@@ -94,6 +101,7 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
     state.warrantyTypeList = [];
     state.warrantyList = [];
     state.taxOptions = [];
+    state.skuTable = [];
     state.loading = false;
   };
   return {
@@ -102,6 +110,7 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
     setPrimaryCategory,
     setSelectTheme,
     setLoading,
+    setSkuTable,
     setLazadaAttrs,
     reset,
   };

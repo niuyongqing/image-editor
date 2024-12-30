@@ -7,7 +7,7 @@
                 <slot name="modalFooter"></slot>
                 <a-button key="back" @click="closeModal" v-if="showCancelBtn">取消</a-button>
                 <a-button key="submit" type="primary" :loading="submitBtnLoading" @click="handleSubmit"
-                    v-if="showSaveBtn">确定</a-button>
+                    @keyup.enter="handleAddOther(item)" v-if="showSaveBtn">确定</a-button>
             </template>
         </a-modal>
     </div>
