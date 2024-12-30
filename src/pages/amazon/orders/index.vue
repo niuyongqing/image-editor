@@ -28,8 +28,8 @@
             </div>
             <div style="display: flex; margin-bottom: 24px">
               <span style="margin-right: 10px; white-space: nowrap">国家区域：</span>
-              <selectComm v-if="areaList.length > 0" :options="areaList" :fieldObj="areaObj" @backSelectAll="areaSelectAll"
-                @backSelectItem="areaSelectItem"></selectComm>
+              <selectComm v-if="areaList.length > 0" :options="areaList" :fieldObj="areaObj"
+                @backSelectAll="areaSelectAll" @backSelectItem="areaSelectItem"></selectComm>
             </div>
             <div style="display: flex">
               <span style="margin-right: 10px; white-space: nowrap">物流方式：</span>
@@ -105,8 +105,23 @@
           <template #expandedRowRender="{ record }">
             <a-row>
               <a-col :span="3" style="margin-right:50px; ">
-                <div class="flex flex-col">
-                  <span>{{ record.sku }}</span><span>{{ record.currency }}:{{ record.itemPrice }}</span>
+                <div class="flex">
+                  <div>
+                    <a-popover placement="right">
+                      <template #content>
+                        <div>
+                          <AsyncIcon icon="SearchOutlined"></AsyncIcon>
+                          <span style="color: #a0a3a6;">找货源</span>
+                          <a-button @click="toJump" style="margin:0 0 10px 10px;">1688</a-button>
+                        </div>
+                        <img style="width: 100px;height: 100px;" :src="record.pImg" alt="">
+                      </template>
+                      <img style="width: 50px;height: 50px;" :src="record.pImg" alt="">
+                    </a-popover>
+                  </div>
+                  <div class="flex flex-col ml-[10px]">
+                    <span>{{ record.sku }}</span><span>{{ record.currency }}:{{ record.itemPrice }}</span>
+                  </div>
                 </div>
               </a-col>
               <a-col :span="3">{{ record.totaMmoney }}</a-col>
@@ -133,7 +148,8 @@
           :pageSizeOptions="[50, 100, 200]" />
       </div>
     </a-card>
-    <exportModal v-model:openExModal="openExModal" @backRefresh="backRefresh" :isTimes="isTimes" :selectedRowKeys="selectedRowKeys" :exportWay="exportWay" :incomingForm="formState"></exportModal>
+    <exportModal v-model:openExModal="openExModal" @backRefresh="backRefresh" :isTimes="isTimes"
+      :selectedRowKeys="selectedRowKeys" :exportWay="exportWay" :incomingForm="formState"></exportModal>
     <detailsModal v-model:openDetailsModal="openDetailsModal"></detailsModal>
     <a-modal :open="asyncOrderModal" @ok="handleOk" title="同步时间选择" @cancel="asyncOrderModal = false" :width="'20%'"
       :maskClosable="false" :keyboard="false">
@@ -310,8 +326,8 @@ const materialflowType = ref([
 
 const selectedRowKeys = ref([]);
 const onChange = (selecteds) => {
-  console.log('selecteds',selecteds);
-  
+  console.log('selecteds', selecteds);
+
   selectedRowKeys.value = selecteds;
 };
 const columns = [
@@ -364,9 +380,10 @@ const data = [
     name: "XMBH0RFN52667",
     age: 32,
     address: "New York No. 1 Lake Park",
-    currency:"USD",
-    itemPrice:"1.99",
-    sku:"zjsad/*1",
+    currency: "USD",
+    itemPrice: "1.99",
+    sku: "zjsad/*1",
+    pImg: "https://www.xzerp.com/file/wish/upload/2024-12-25/2024/12/25/3_20241225105710A001.jpg",
     description:
       "这里是商品信息",
     totaMmoney: "EUR 2.99",
@@ -386,9 +403,10 @@ const data = [
     name: "XMBH0RFN67432",
     age: 42,
     address: "London No. 1 Lake Park",
-    currency:"EUR",
-    itemPrice:"1.99",
-    sku:"zjsad/*2",
+    currency: "EUR",
+    itemPrice: "1.99",
+    pImg: "https://www.xzerp.com/file/wish/upload/2024-12-25/2024/12/25/3_20241225105710A001.jpg",
+    sku: "zjsad/*2",
     description:
       "My name is Jim Green, I am 42 years old, living in London No. 1 Lake Park.",
     amount: "EUR 2.49",
@@ -406,9 +424,10 @@ const data = [
     name: "XMBH0RFP17429",
     age: 32,
     address: "Sidney No. 1 Lake Park",
-    currency:"USD",
-    itemPrice:"1.99",
-    sku:"zjsad/*3",
+    currency: "USD",
+    itemPrice: "1.99",
+    pImg: "https://www.xzerp.com/file/wish/upload/2024-12-25/2024/12/25/3_20241225105710A001.jpg",
+    sku: "zjsad/*3",
     description:
       "My name is Joe Black, I am 32 years old, living in Sidney No. 1 Lake Park.",
     amount: "USD 5",
@@ -448,6 +467,11 @@ const selectItem = (index, item) => {
 };
 
 
+const toJump = () => {
+  const url = 'https://air.1688.com/app/1688-global/main-site-channel/landing-page.html';
+  window.open(url, "_blank");
+}
+
 // 订单状态全选和单选
 const orderSelectAll = () => {
   console.log("1");
@@ -481,7 +505,7 @@ const storChange = (val) => {
   val.type = val.type === "top" ? "bottom" : "top";
   active.value = val;
   sortObj.sortField = val.sortField
-  sortObj.sortType = val.type === "top" ? "ASC" : "DESC" 
+  sortObj.sortType = val.type === "top" ? "ASC" : "DESC"
   queryList();
 };
 
@@ -531,7 +555,7 @@ const handleTabchange = (activeKey) => {
 }
 
 //导出后刷新页面（防止表格选中后，没法清空）
-const backRefresh= () => {
+const backRefresh = () => {
   queryList()
 }
 
