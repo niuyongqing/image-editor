@@ -98,7 +98,7 @@ export function generateTreeRoutes(menus) {
   }
   const routeData = [
     {
-      path: '/setting',
+      path: '/platform/setting',
       component: () => import('~/pages/account/settings.vue'),
       meta: {
         title: '个人设置',
@@ -211,7 +211,7 @@ function flatRoutes(routes, parentName, parentComps = []) {
 export function generateFlatRoutes(routes) {
   const flatRoutesList = flatRoutes(routes)
   const parentRoute = {
-    path: '/',
+    path: '/platform/',
     redirect: ROOT_ROUTE_REDIRECT_PATH,
     name: 'ROOT_EMPTY_PATH',
     // component: getRouterModule('RouteView'),

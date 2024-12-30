@@ -1,14 +1,14 @@
 const Layout = () => import('~/layouts/index.vue')
 export default [
   {
-    path: '/login',
+    path: '/platform/login',
     component: () => import('~/pages/common/login.vue'),
     meta: {
       title: '登录',
     },
   },
   {
-    path: '/401',
+    path: '/platform/401',
     name: 'Error401',
     component: () => import('~/pages/exception/401.vue'),
     meta: {
@@ -16,19 +16,19 @@ export default [
     },
   },
   {
-    path: '/common',
+    path: '/platform/common',
     name: 'LayoutBasicRedirect',
     component: Layout,
-    redirect: '/common/redirect',
+    redirect: '/platform/common/redirect',
     children: [
       {
-        path: '/common/redirect',
+        path: '/platform/common/redirect',
         component: () => import('~/pages/common/route-view.vue'),
         name: 'CommonRedirect',
-        redirect: '/redirect',
+        redirect: '/platform/redirect',
         children: [
           {
-            path: '/redirect/:path(.*)',
+            path: '/platform/redirect/:path(.*)',
             name: 'RedirectPath',
             component: () => import('~/pages/common/redirect.vue'),
           },
@@ -37,7 +37,7 @@ export default [
     ],
   },
   {
-    path: '/:pathMatch(.*)',
+    path: '/platform/:pathMatch(.*)',
     meta: {
       title: '找不到页面',
     },

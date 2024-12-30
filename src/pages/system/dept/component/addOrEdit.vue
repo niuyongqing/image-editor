@@ -35,7 +35,7 @@
   </a-modal>
 </template>
 
-<script lang="ts" setup>
+<script lang="js" setup>
 import {ref} from 'vue'
 import {addDept, editDept} from "~/api/common/dept";
 import {message} from "ant-design-vue";

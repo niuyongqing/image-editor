@@ -27,7 +27,7 @@ const { t } = useI18n()
             <span class="flex items-center">
               <a-avatar :size="20" class="mr-2">
                 <template #icon>
-                  <img src="/160x160.ico" alt="">
+                  <img src="/platform/160x160.ico" alt="">
                 </template>
               </a-avatar>
               <span style="color: rgb(22, 119, 255);">
