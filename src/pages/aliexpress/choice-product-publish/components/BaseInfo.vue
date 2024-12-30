@@ -220,8 +220,8 @@
 </template>
 
 <script>
-  import { getProductClassificationApi, resultByPostCateIdAndPathApi, getResultByPostCateIdAndPathApi } from '../../apis/product-publish'
-  import { accountCacheApi } from '../../apis/account'
+  import { getProductClassificationApi, resultByPostCateIdAndPathApi, getResultByPostCateIdAndPathApi } from '../../apis/product'
+  import { accountCacheApi } from '../../apis/common'
   import { queryChannelApi } from '../../apis/choice-product'
   import { InfoCircleOutlined, PlusOutlined, UpOutlined, DownOutlined } from '@ant-design/icons-vue'
   import { message } from 'ant-design-vue'

@@ -107,7 +107,7 @@
           show-size-changer
           show-quick-jumper
           :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
-          @change="onPaginationChange"
+          @change="getList"
         />
       </div>
 
@@ -236,7 +236,7 @@
         show-size-changer
         show-quick-jumper
         :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
-        @change="onPaginationChange"
+        @change="getList"
       />
     </a-card>
   </div>
@@ -245,10 +245,9 @@
 <script>
   import dayjs from 'dayjs'
   import { DEFAULT_TABLE_COLUMN } from './config'
-  import mixinTable from '../mixinTable'
   import { useAliexpressChoiceProductStore } from '@/stores/aliexpress-choice-product'
   import { copyText } from '@/utils'
-  import { accountCacheApi } from '../apis/account'
+  import { accountCacheApi } from '../apis/common'
   import { draftListApi, createBatchApi, delDraftApi } from '../apis/choice-product-draft'
   import { createApi } from '../apis/choice-product'
   import { CopyOutlined } from '@ant-design/icons-vue'
@@ -258,7 +257,6 @@
   export default {
     name: 'ChoiceProductDraft',
     components: { CopyOutlined },
-    mixins: [mixinTable],
     data() {
       return {
         dayjs,
@@ -274,6 +272,7 @@
           order: undefined
         },
         DEFAULT_TABLE_COLUMN,
+        tableHeader: [],
         tableCode: 'ChoiceProductDraft',
         tableParams: {
           pageNum: 1,
@@ -287,10 +286,24 @@
         delLoading: false
       }
     },
+    computed: {
+      displayHeader() {
+        return this.tableHeader.filter(column => column.show)
+      }
+    },
     mounted() {
+      this.getTableHeader()
       this.getAccountList()
     },
     methods: {
+      // 获取表头
+      getTableHeader() {
+        this.tableHeader = this.DEFAULT_TABLE_COLUMN
+      },
+      onSelectChange(keys, rows) {
+        this.selectedRowKeys = keys
+        this.selectedRows = rows
+      },
       filterOption(input, option) {
         return option.simpleName.toLowerCase().indexOf(input.toLowerCase()) >= 0
       },

@@ -6,6 +6,7 @@
       v-if="isFold"
       class="w-[400px]"
       :placeholder="placeholder"
+      allow-clear
       @blur="blur"
     >
       <template #prefix v-if="!hideControl">

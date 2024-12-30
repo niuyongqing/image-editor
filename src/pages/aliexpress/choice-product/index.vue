@@ -1,19 +1,19 @@
 <!-- 全托管 列表 -->
 <template>
-  <div class="choice-product">
+  <div class="text-left">
     <!-- 搜索区 -->
     <a-card>
       <a-descriptions :column="1">
         <a-descriptions-item label="店铺账号">
           <TiledSelect
-            v-model:value="searchForm.sellerId"
+            v-model:value="watchedSearchForm.sellerId"
             :options="accountList"
             :field-names="{ label: 'simpleName', value: 'sellerId' }"
           />
         </a-descriptions-item>
         <a-descriptions-item label="搜索类型">
           <TiledSelect
-            v-model:value="searchForm.prop"
+            v-model:value="lazySearchForm.searchKey"
             :options="searchPropOptions"
             :append-all="false"
           />
@@ -24,9 +24,9 @@
         >
           <a-space align="start">
             <SearchContentInput
-              v-model:value="searchForm.content"
-              :hide-control="['productName'].includes(searchForm.prop)"
-              :placeholder="placeholderEnum[searchForm.prop]"
+              v-model:value="lazySearchForm.searchValue"
+              :hide-control="['productName'].includes(lazySearchForm.searchKey)"
+              :placeholder="placeholderEnum[lazySearchForm.searchKey]"
             />
             <a-button
               type="primary"
@@ -42,86 +42,52 @@
           <a-form
             v-show="!isFold"
             ref="extendSearchFormRef"
-            :model="extendSearchForm"
+            :model="lazySearchForm"
             :label-col="{ style: { width: '130px' } }"
             class="mt-4 p-3 bg-[--pro-ant-color-primary-bg]"
           >
-            <a-form-item
+            <!-- <a-form-item
               name="category"
               label="产品分类"
             >
               <a-cascader
-                v-model:value="extendSearchForm.category"
+                v-model:value="lazySearchForm.category"
                 :options="[]"
+                :field-names="{ value: 'id' }"
+                show-search
                 placeholder="请选择"
               />
-            </a-form-item>
+            </a-form-item> -->
             <a-form-item
-              name="reason"
+              name="auditFailureType"
               label="审核不通过原因"
             >
               <a-select
-                v-model:value="extendSearchForm.reason"
+                v-model:value="lazySearchForm.auditFailureType"
                 placeholder="请选择"
                 allow-clear
-                :options="[]"
+                :options="auditFailureTypeOptions"
               >
               </a-select>
             </a-form-item>
-            <a-form-item
-              name="withVideo"
-              label="视频筛选"
-            >
-              <a-select
-                v-model:value="extendSearchForm.withVideo"
-                placeholder="请选择"
-                allow-clear
-                :options="withVideoOpions"
-              >
-              </a-select>
-            </a-form-item>
-            <a-form-item
-              name="rules"
-              label="合规内容"
-            >
-              <a-select
-                v-model:value="extendSearchForm.rules"
-                placeholder="请选择"
-                allow-clear
-                :options="[]"
-              >
-              </a-select>
-            </a-form-item>
-            <a-form-item
-              name="gpsr"
-              label="欧盟GPSR合规标签"
-            >
-              <a-select
-                v-model:value="extendSearchForm.gpsr"
-                placeholder="请选择"
-                allow-clear
-                :options="gpsrOpions"
-              >
-              </a-select>
-            </a-form-item>
-            <a-form-item
+            <!-- <a-form-item
               name="brand"
               label="品牌"
             >
               <a-select
-                v-model:value="extendSearchForm.brand"
+                v-model:value="lazySearchForm.brand"
                 placeholder="请选择"
                 allow-clear
                 :options="[]"
               >
               </a-select>
-            </a-form-item>
+            </a-form-item> -->
             <a-form-item
-              name="remark"
-              label="备注"
+              name="commentType"
+              label="有无备注"
             >
               <a-select
-                v-model:value="extendSearchForm.remark"
+                v-model:value="lazySearchForm.commentType"
                 placeholder="请选择"
                 allow-clear
                 :options="remarkOpions"
@@ -129,11 +95,22 @@
               </a-select>
             </a-form-item>
             <a-form-item
+              v-if="lazySearchForm.commentType === '1'"
+              name="commentContent"
+              label="备注内容"
+            >
+              <a-input
+                v-model:value="lazySearchForm.commentContent"
+                allow-clear
+                placeholder="请输入"
+              />
+            </a-form-item>
+            <a-form-item
               name="createTime"
               label="创建时间："
             >
               <a-range-picker
-                v-model:value="extendSearchForm.createTime"
+                v-model:value="lazySearchForm.createTime"
                 :disabled-date="cur => cur > Date.now()"
                 allow-clear
               >
@@ -144,14 +121,14 @@
               label="编辑时间："
             >
               <a-range-picker
-                v-model:value="extendSearchForm.updateTime"
+                v-model:value="lazySearchForm.updateTime"
                 :disabled-date="cur => cur > Date.now()"
                 allow-clear
               >
               </a-range-picker>
             </a-form-item>
 
-            <a-form-item class="text-right">
+            <a-form-item class="text-right mb-0">
               <a-space>
                 <a-button
                   type="link"
@@ -165,7 +142,7 @@
                 >
                 <a-button
                   type="primary"
-                  @click="extendSearch"
+                  @click="search"
                   >搜索</a-button
                 >
               </a-space>
@@ -174,43 +151,49 @@
         </a-descriptions-item>
         <a-descriptions-item label="备货类型">
           <TiledSelect
-            v-model:value="searchForm.productType"
+            v-model:value="watchedSearchForm.productType"
             :options="productTypeOptions"
           />
         </a-descriptions-item>
         <a-descriptions-item label="排序类型">
           <TiledSelectSort
-            v-model:value="searchForm.order"
-            v-model:sortType="searchForm.sortType"
+            v-model:value="watchedSearchForm.prop"
+            v-model:sortType="watchedSearchForm.order"
             :options="sortTypeOptions"
           />
         </a-descriptions-item>
       </a-descriptions>
     </a-card>
+    <a-space class="my-4">
+      <a-button
+        type="primary"
+        @click="goPublish()"
+        >发布商品</a-button
+      >
+      <a-button
+        type="primary"
+        title="选择店铺后同步"
+        class="ml-2.5"
+        :loading="syncProgressOpen"
+        :disabled="!watchedSearchForm.sellerId"
+        @click="handleSyncList"
+        >批量同步店铺商品</a-button
+      >
+    </a-space>
     <!-- TABLE 区 -->
-    <a-card
-      style="margin: 10px"
-      id="table"
-    >
-      <div class="btns">
-        <div class="left-group">
-          <a-button
-            type="primary"
-            @click="goPublish()"
-            >发布商品</a-button
-          >
-          <a-button
-            type="primary"
-            title="选择店铺后同步"
-            class="ml-[10px]"
-            :loading="syncProgressOpen"
-            :disabled="!searchForm.sellerId"
-            @click="handleSyncList"
-            >批量同步店铺商品</a-button
-          >
-        </div>
+    <a-card>
+      <div class="flex justify-between items-center">
+        <a-tabs
+          v-model:activeKey="watchedSearchForm.productStatus"
+          :animated="false"
+        >
+          <a-tab-pane
+            v-for="item in statusTabs"
+            :key="item.value"
+            :tab="`${item.label}(${statusCountEnum[item.value]})`"
+          ></a-tab-pane>
+        </a-tabs>
         <a-pagination
-          size="small"
           v-model:current="tableParams.pageNum"
           v-model:pageSize="tableParams.pageSize"
           :total="total"
@@ -218,7 +201,7 @@
           show-size-changer
           show-quick-jumper
           :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
-          @change="onPaginationChange"
+          @change="getList"
         />
       </div>
       <a-table
@@ -260,7 +243,7 @@
               <div style="margin-left: 10px; width: 90%">
                 <a-tooltip :title="record.title">
                   <div
-                    class="text-overflow cursor-pointer"
+                    class="truncate cursor-pointer"
                     @click="goAliExpress(record.productId)"
                   >
                     {{ record.title }}
@@ -356,7 +339,7 @@
             <a-button
               type="text"
               style="color: #0b56fa"
-              @click.stop="edit(record)"
+              @click.stop="goPublish(record)"
               >编辑</a-button
             >
             <a-button
@@ -381,15 +364,15 @@
         </template>
       </a-table>
       <a-pagination
-        size="small"
         v-model:current="tableParams.pageNum"
         v-model:pageSize="tableParams.pageSize"
+        class="text-right"
         :total="total"
         :default-page-size="50"
         show-size-changer
         show-quick-jumper
         :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
-        @change="onPaginationChange"
+        @change="getList"
       />
     </a-card>
     <!-- 同步进度条 -->
@@ -493,11 +476,10 @@
 
 <script>
   import { DEFAULT_TABLE_COLUMN } from './config'
-  import mixinTable from '../mixinTable'
   import { useAliexpressChoiceProductStore } from '@/stores/aliexpress-choice-product'
   import dayjs from 'dayjs'
   import { copyText } from '@/utils'
-  import { accountCacheApi } from '../apis/account'
+  import { accountCacheApi } from '../apis/common'
   import { listApi, syncListApi, syncOneApi, syncProgressApi, detailApi, queryStockApi, editStockApi, stockRuleApi, copyToDraftApi } from '../apis/choice-product'
   import { CopyOutlined, InfoCircleOutlined, EditOutlined } from '@ant-design/icons-vue'
   import { message } from 'ant-design-vue'
@@ -509,7 +491,6 @@
   export default {
     name: 'ChoiceProduct',
     components: { CopyOutlined, InfoCircleOutlined, EditOutlined },
-    mixins: [mixinTable],
     data() {
       return {
         store: useAliexpressChoiceProductStore(),
@@ -530,36 +511,36 @@
           { label: '海外备货', value: '2', disabled: true }
         ],
         sortTypeOptions: [
-          { label: '按创建时间', value: '1' },
-          { label: '按更新时间', value: '2' }
+          { label: '按创建时间', value: 'create_time' },
+          { label: '按更新时间', value: 'update_time' }
         ],
         isFold: true, // 高级搜索状态 折叠/展开
-        // 高级搜索表单
-        extendSearchForm: {
-          category: undefined,
-          reason: undefined,
-          withVideo: undefined,
-          rules: undefined,
-          gpsr: undefined,
+        // 被 watch 监听的搜索表单; 外层, 点击即可搜索
+        watchedSearchForm: {
+          sellerId: undefined,
+          prop: 'create_time',
+          order: 'desc',
+          productType: undefined,
+          productStatus: 'ONLINE'
+        },
+        // 高级搜索表单; 需点击'搜索'按钮再执行搜索动作
+        lazySearchForm: {
+          searchKey: 'productName',
+          searchValue: undefined,
+          // category: undefined,
+          auditFailureType: undefined,
           brand: undefined,
-          remark: undefined,
+          commentType: undefined,
+          commentContent: undefined,
           createTime: null,
           updateTime: null
         },
-        searchForm: {
-          sellerId: undefined,
-          productIds: undefined,
-          productName: undefined,
-          skuCode: undefined,
-          productStatus: undefined,
-          createTime: null,
-          updateTime: null,
-          prop: 'productName',
-          content: undefined,
-          order: undefined,
-          sortType: undefined,
-          productType: undefined
+        tableParams: {
+          pageNum: 1,
+          pageSize: 50
         },
+        total: 0,
+        tableHeader: [],
         DEFAULT_TABLE_COLUMN,
         tableCode: 'ChoiceProduct',
         tableData: [],
@@ -568,17 +549,32 @@
         selectedRows: [],
         syncProgressOpen: false,
         syncPercentage: 0,
-        statusOptions: [
+        auditFailureTypeOptions: [
+          { label: '商品基础信息审核', value: 'audit_sub_status_basic' },
+          { label: '商品供应价格审核', value: 'audit_sub_status_supply_price' },
+          { label: '商品CRO审核', value: 'audit_sub_status_cro' },
+          { label: '商品资质审核', value: 'audit_sub_status_qf' },
+          { label: '商品零售价审核', value: 'audit_sub_status_sale_price' },
+          { label: '商品上架审核', value: 'up_shelf_product' },
+          { label: '商品下架审核', value: 'down_shelf_product' },
+          { label: '商品删除审核', value: 'delete_product' },
+          { label: '商品审核通过', value: 'audit_approve' },
+          { label: '商品审核拒绝', value: 'audit_reject' }
+        ],
+        statusTabs: [
           { label: '在线', value: 'ONLINE' },
           { label: '待上架', value: 'PENDING_LAUNCH' },
           { label: '审核中', value: 'PENDING_APPROVAL' },
           { label: '审核不通过', value: 'VIOLATION_QC_FAILED' },
           { label: '已下架', value: 'OFFLINE' }
         ],
-        withVideoOpions: [
-          { label: '有视频的产品', value: '1' },
-          { label: '无视频的产品', value: '2' }
-        ],
+        statusCountEnum: {
+          ONLINE: 0,
+          PENDING_LAUNCH: 0,
+          PENDING_APPROVAL: 0,
+          VIOLATION_QC_FAILED: 0,
+          OFFLINE: 0
+        },
         gpsrOpions: [
           { label: '未上传', value: '1' },
           { label: '已上传', value: '2' }
@@ -587,7 +583,6 @@
           { label: '有备注', value: '1' },
           { label: '无备注', value: '2' }
         ],
-        query: {},
         // 编辑库存相关
         stockDialogVisible: false, // 库存弹窗显隐
         curRow: {},
@@ -604,6 +599,9 @@
       }
     },
     computed: {
+      displayHeader() {
+        return this.tableHeader.filter(column => column.show)
+      },
       stockColumn() {
         const list = []
         if (this.stockTable[0]) {
@@ -640,17 +638,26 @@
       }
     },
     watch: {
-      searchForm: {
+      watchedSearchForm: {
         handler: function () {
-          // this.getList()
+          this.search()
         },
         deep: true
       }
     },
     mounted() {
+      this.getTableHeader()
       this.getAccountList()
     },
     methods: {
+      // 获取表头
+      getTableHeader() {
+        this.tableHeader = this.DEFAULT_TABLE_COLUMN
+      },
+      onSelectChange(keys, rows) {
+        this.selectedRowKeys = keys
+        this.selectedRows = rows
+      },
       toggleFold() {
         if (this.isFold) {
           this.isFold = false
@@ -661,16 +668,13 @@
       // 高级搜索重置
       resetExtendSearchForm() {
         this.$refs.extendSearchFormRef.resetFields()
-        this.extendSearchForm.createTime = null
-        this.extendSearchForm.updateTime = null
+        this.lazySearchForm.createTime = null
+        this.lazySearchForm.updateTime = null
       },
       // 收起高级搜索
       foldExtendSearch() {
         this.resetExtendSearchForm()
         this.isFold = true
-      },
-      extendSearch() {
-        console.log('ExtendSearch')
       },
       filterOption(input, option) {
         return option.simpleName.toLowerCase().indexOf(input.toLowerCase()) >= 0
@@ -690,15 +694,19 @@
       getList() {
         this.loading = true
         const params = {
-          ...this.searchForm,
+          ...this.watchedSearchForm,
+          ...this.lazySearchForm,
+          [this.lazySearchForm.searchKey]: this.lazySearchForm.searchValue,
           ...this.tableParams,
-          createAfter: this.searchForm.createTime ? dayjs(this.searchForm.createTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
-          createBefore: this.searchForm.createTime ? dayjs(this.searchForm.createTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
-          updateAfter: this.searchForm.updateTime ? dayjs(this.searchForm.updateTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
-          updateBefore: this.searchForm.updateTime ? dayjs(this.searchForm.updateTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined
+          createAfter: this.lazySearchForm.createTime ? dayjs(this.lazySearchForm.createTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+          createBefore: this.lazySearchForm.createTime ? dayjs(this.lazySearchForm.createTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+          updateAfter: this.lazySearchForm.updateTime ? dayjs(this.lazySearchForm.updateTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+          updateBefore: this.lazySearchForm.updateTime ? dayjs(this.lazySearchForm.updateTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined
         }
         delete params.createTime
         delete params.updateTime
+        delete params.searchKey
+        delete params.searchValue
 
         listApi(params)
           .then(res => {
@@ -720,10 +728,9 @@
       },
       reset() {
         this.$refs.searchFormRef.resetFields()
-        this.searchForm.createTime = null
-        this.searchForm.updateTime = null
-        this.tableParams.pageNum = 1
-        this.getList()
+        this.watchedSearchForm.createTime = null
+        this.watchedSearchForm.updateTime = null
+        this.search()
       },
       handleSyncOne(record) {
         const params = {
@@ -738,7 +745,7 @@
       // 同步店铺商品
       handleSyncList() {
         this.syncProgressOpen = true
-        syncListApi({ sellerId: this.searchForm.sellerId })
+        syncListApi({ sellerId: this.watchedSearchForm.sellerId })
           .then(res => {
             this.getSyncProgress(res.data)
           })
@@ -749,7 +756,7 @@
       // 同步进度条
       getSyncProgress(progressToken) {
         const params = {
-          sellerId: this.searchForm.sellerId,
+          sellerId: this.watchedSearchForm.sellerId,
           progressToken
         }
         syncProgressApi(params)
@@ -794,19 +801,6 @@
       },
       displayedSkus(record) {
         return record.SKUExpand ? record.searchSkuInfoList : record.searchSkuInfoList.slice(0, 3)
-      },
-      edit(record) {
-        const query = {
-          sellerId: record.sellerId,
-          productId: record.productId
-        }
-        this.query = query
-        // this.$store.commit('aliexpress/SET_SELLER_ID', record.sellerId)
-        // this.$store.commit('aliexpress/SET_IS_EDIT', true)
-        this.store.$patch(state => {
-          state.sellerId = record.sellerId
-          state.isEdit = true
-        })
       },
       // 打开编辑库存弹窗
       handleEditStock(record) {
@@ -976,28 +970,8 @@
         if (record) {
           query = `?sellerId=${record.sellerId}&productId=${record.productId}`
         }
-        window.open(location.origin + '/aliexpress/choice-product-publish' + query)
+        window.open(location.origin + '/platform/aliexpress/choice-product-publish' + query)
       }
     }
   }
 </script>
-
-<style lang="less" scoped>
-  .choice-product {
-    text-align: left;
-    .btns {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-    .text-overflow {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .ant-pagination {
-      text-align: right;
-    }
-  }
-</style>

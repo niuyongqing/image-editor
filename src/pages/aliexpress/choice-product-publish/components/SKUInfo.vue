@@ -541,9 +541,6 @@
         justify-content: space-between;
         align-items: center;
         padding-left: 40px;
-        ::v-deep .a-icon-delete {
-          color: #f56c6c;
-        }
       }
     }
   }

@@ -119,7 +119,7 @@
                   :src="item.url"
                   :preview-src-list="form.productImages.map(item => item.url)"
                 />
-                <div class="image-info">
+                <div class="image-wrap">
                   <span>{{ item.width }} x {{ item.height }}</span>
                   <div>
                     <a-form-item-rest>
@@ -178,7 +178,7 @@
                   :src="item.url"
                   :preview-src-list="form.marketImage1.map(item => item.url)"
                 />
-                <div class="image-info">
+                <div class="image-wrap">
                   <span>{{ item.width }} x {{ item.height }}</span>
                   <a-button
                     type="link"
@@ -223,7 +223,7 @@
                   :src="item.url"
                   :preview-src-list="form.marketImage2.map(item => item.url)"
                 />
-                <div class="image-info">
+                <div class="image-wrap">
                   <span>{{ item.width }} x {{ item.height }}</span>
                   <a-button
                     type="link"
@@ -285,7 +285,7 @@
                 :src="form.video.posterUrl"
                 :preview="false"
               />
-              <div class="image-info">
+              <div class="image-wrap">
                 <span></span>
                 <a-button
                   type="link"
@@ -789,7 +789,7 @@
         position: relative;
         overflow: hidden;
       }
-      .image-info {
+      .image-wrap {
         position: absolute;
         bottom: 0;
         left: 0;
@@ -800,9 +800,6 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        ::v-deep .el-icon-delete {
-          color: #f56c6c;
-        }
       }
     }
     .image-empty {

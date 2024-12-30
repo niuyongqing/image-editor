@@ -1,38 +1,40 @@
 <!-- 全托管刊登页 -->
 <template>
   <div class="choice-product-publish text-left">
-    <a-space class="mb-3 pr-4 w-full justify-end">
-      <a-button
-        :loading="saveDraftLoading"
-        @click="saveDraft"
-        >保存草稿</a-button
-      >
-      <a-button
-        type="primary"
-        :loading="saveLoading"
-        @click="submit"
-        >提交</a-button
-      >
-    </a-space>
-    <BaseInfo ref="baseInfoRef" />
-    <ImageInfo ref="imageInfoRef" />
-    <SKUInfo ref="SKUInfoRef" />
-    <ChoiceInfo ref="choiceInfoRef" />
-    <Description ref="descriptionRef" />
-    <Others ref="othersRef" />
-    <a-space class="mt-3 pr-4 w-full justify-end">
-      <a-button
-        :loading="saveDraftLoading"
-        @click="saveDraft"
-        >保存草稿</a-button
-      >
-      <a-button
-        type="primary"
-        :loading="saveLoading"
-        @click="submit"
-        >提交</a-button
-      >
-    </a-space>
+    <a-spin :spinning="queryDetailLoading">
+      <a-space class="mb-3 pr-4 w-full justify-end">
+        <a-button
+          :loading="saveDraftLoading"
+          @click="saveDraft"
+          >保存草稿</a-button
+        >
+        <a-button
+          type="primary"
+          :loading="saveLoading"
+          @click="submit"
+          >提交</a-button
+        >
+      </a-space>
+      <BaseInfo ref="baseInfoRef" />
+      <ImageInfo ref="imageInfoRef" />
+      <SKUInfo ref="SKUInfoRef" />
+      <ChoiceInfo ref="choiceInfoRef" />
+      <Description ref="descriptionRef" />
+      <Others ref="othersRef" />
+      <a-space class="mt-3 pr-4 w-full justify-end">
+        <a-button
+          :loading="saveDraftLoading"
+          @click="saveDraft"
+          >保存草稿</a-button
+        >
+        <a-button
+          type="primary"
+          :loading="saveLoading"
+          @click="submit"
+          >提交</a-button
+        >
+      </a-space>
+    </a-spin>
   </div>
 </template>
 
@@ -45,6 +47,7 @@
   import Others from './components/Others.vue'
 
   import { createApi, detailApi, editApi, saveDraftApi } from '../apis/choice-product'
+  import { useAliexpressChoiceProductStore } from '~@/stores/aliexpress-choice-product'
   import { Modal, message } from 'ant-design-vue'
 
   // 页面卸载前弹窗提醒
@@ -59,7 +62,28 @@
     e.returnValue = ''
   } */
 
+  /** 编辑; 获取数据 */
   const query = useRoute().query
+  const queryDetailLoading = ref(false)
+  getDetail()
+
+  function getDetail() {
+    if (Object.keys(query).length === 0) return
+
+    queryDetailLoading.value = true
+    detailApi(query)
+      .then(res => {
+        const productDetail = res.data || {}
+        const store = useAliexpressChoiceProductStore()
+        store.$patch(state => {
+          state.sellerId = query.sellerId
+          state.productDetail = productDetail
+        })
+      })
+      .finally(() => {
+        queryDetailLoading.value = false
+      })
+  }
 
   const baseInfoRef = ref()
   const imageInfoRef = ref()
