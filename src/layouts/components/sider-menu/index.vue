@@ -51,7 +51,7 @@ const showLogo = computed(() => {
 })
 
 const gotoSetting = () =>{
-  router.push("/setting")
+  router.push("/platform/setting")
 }
 
 async function out(){

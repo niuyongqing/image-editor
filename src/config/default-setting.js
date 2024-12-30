@@ -1,7 +1,7 @@
 export default {
   "title":"馨站ERP",
   "theme":"inverted",
-  "logo":"/160x160.ico",
+  "logo":"/platform/160x160.ico",
   "collapsed":true,
   "drawerVisible":false,
   "colorPrimary":"#1677FF",
