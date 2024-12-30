@@ -81,8 +81,8 @@ const getPromotionProdList = () => {
                 }) || [];
             activeInfo = { ...activeInfo, title, sellerId, dateStart };
             paginations.total = res?.data?.total || 0;
-            this.shopId = res?.data.sellerId || "";
-            this.activityId = res?.data.id;
+            shopId.value = res?.data.sellerId || "";
+            activityId.value = res?.data.id;
         })
         .finally(() => {
             addProdLoading.value = false;

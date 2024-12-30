@@ -24,13 +24,13 @@
                 :disabled="selectList.length == 0">批量移除</a-button>
             <a-button type="primary" v-has-permi="[`platform:ozon:activity:save:product`]" @click="save()"
                 :disabled="selectList.length == 0">批量保存</a-button>
-            <a-table :data="tableData" border stripe ref="promotionTable" v-loading="addProdLoading"
+            <a-table :data="tableData" bordered stripe ref="promotionTable" v-loading="addProdLoading"
                 @selection-change="checkbox" style="width: 100%; margin-top: 10px">
                 <a-table-column type="selection" align="center" width="55">
                 </a-table-column>
                 <a-table-column align="center" v-for="(item, index) in dropCol" :key="`col_${index}`"
                     :prop="dropCol[index].prop" :label="item.label" :fixed="item.fixed" :width="item.width">
-                    <template slot="header" slot-scope="{ column }">
+                    <template>
                         <div v-if="item.prop === 'otherPorm'">
                             <span>{{ column.label }}</span>
                             <a-tooltip class="item" effect="dark"
@@ -42,7 +42,7 @@
                         <span v-else>{{ column.label }}</span>
                     </template>
 
-                    <template slot-scope="{ row }">
+                    <template>
                         <div v-if="item.prop === 'imageUrl'">
                             <!-- <div>{{ row.imageUrl }}</div> -->
                             <img style="width: 70px; height: 70px" v-if="row.imageUrl" :src="row.imageUrl.split(',')[0]"
