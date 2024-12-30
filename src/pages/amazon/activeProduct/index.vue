@@ -13,7 +13,7 @@ defineOptions({
 const router = useRouter()
 const toAdd = () => {
   // router.push('/amazon/activeProduct/add')
-  window.open('/amazon/activeProduct/add')
+  window.open('/platform/amazon/activeProduct/add')
 }
 </script>
 <style lang="less" scoped>

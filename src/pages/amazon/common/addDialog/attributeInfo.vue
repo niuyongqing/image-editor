@@ -5,6 +5,7 @@
   </div>
   <div class="content">
     <VueForm
+      v-if="schemaData.$id"
       v-model="form"
       :schema="schemaData"
       class="sechma-form"
@@ -22,7 +23,7 @@
 // import sechmaData from './sechma/TrainSets - 副本.json'
 // import sechmaData from './sechma/TrainSets.json'
 import VueForm from '@/assets/library/jsonScheam_v3_ant/vue3-form-ant.esm.min.js';
-import { ref, reactive, onMounted, computed, watchPostEffect, toRefs, watch } from 'vue'
+import { ref, reactive, onMounted, computed, watchPostEffect, toRefs, watch, nextTick } from 'vue'
 defineOptions({
   name: "AmazonAttributeInfo"
 })
@@ -33,29 +34,54 @@ const props = defineProps({
     required: true,
     default: () => {}
   },
-  attributeForm: {
+  modelForm: {
     type: Object,
     default: () => {}
   }
 });
-const emit = defineEmits(['update:attributeForm'])
+const emit = defineEmits(['update:modelForm', 'formMounted', 'formValueChange'])
 // watch(form, (val, oldVal) => {
-//   emit('update:attributeForm', val)
+//   emit('update:modelForm', val)
 // }, {
 //   deep: true
 // })
-watchPostEffect(() => {
-  schemaData.value = props.schemaData
-});
 let form = ref({});             // 取值对象
 let schemaData = ref({});
-let formRef = ref(null)
+let formRef = ref(null);
+let isComplete = ref(false);     // 是否加载完成
+watchPostEffect(() => {
+  schemaData.value = props.schemaData
+  isComplete.value = false
+  console.log('数据变更');
+  
+});
+// form加载完成触发
 function formMounted(ref, { formData }) {
-  // console.log(ref, { formData });
-  formRef.value = ref
+  formRef.value = ref;
+  isComplete.value = true;
+  console.log('jiazaiwancheng');
+  
+  emit('formMounted', 'attribute');
+  // nextTick(() => {
+  //   setTimeout(() => {
+  //   }, 2000);
+  // })
 }
+let timeout = null
 function formChange() {
-  emit('update:attributeForm', form.value)
+  console.log('值变更', isComplete.value);
+  if (!isComplete.value) return;
+  if (timeout) {
+    clearTimeout(timeout)
+  }
+  timeout = setTimeout(() => {
+    console.log(JSON.parse(JSON.stringify(form.value)), 'sdgsdg');
+    emit('update:modelForm', form.value)
+    // emit('formValueChange', 'attribute')
+    nextTick(() => {
+      emit('formValueChange', 'attribute')
+    })
+  }, 500);
 }
 // 校验，暴露数据
 async function save() {
@@ -69,9 +95,19 @@ async function save() {
   } catch (error) {}
   return obj
 }
+// 更新值
+function updateForm(val) {
+  Object.keys(form.value).forEach(item => {
+    if (val[item]) {
+      form.value[item] = val[item]
+    }
+  })
+}
 defineExpose({
   formRef,
-  save
+  save,
+  isComplete,
+  updateForm
 })
 </script>
 <style lang="less" scoped>

@@ -7,28 +7,44 @@
       ref="baseInfoRef"
       @selectedProductType="selectedProductType"
     ></baseInfo>
-    <a-spin :spinning="spinning">
+    <a-spin :spinning="!!spinning">
       <productInfo
-        :schema-data="productData"
-        v-model:productForm="productForm"
+        v-if="formData.product.$id"
+        :key="formData.product.$_key"
+        :schema-data="formData.product"
+        v-model:modelForm="form.product"
+        @formMounted="formMounted"
+        @formValueChange="formValueChange"
         class="productInfoRef"
         ref="productInfoRef"
       ></productInfo>
       <descriptionInfo
-        :schema-data="descriptionData"
-        v-model:descriptionForm="descriptionForm"
+        v-if="formData.description.$id"
+        :key="formData.description.$_key"
+        :schema-data="formData.description"
+        v-model:modelForm="form.description"
+        @formMounted="formMounted"
+        @formValueChange="formValueChange"
         ref="descriptionInfoRef"
       ></descriptionInfo>
       <imageInfo></imageInfo>
       <attributeInfo
-        :schema-data="attributeData"
-        v-model:attributeForm="attributeForm"
+        v-if="formData.attribute.$id"
+        :key="formData.attribute.$_key"
+        :schema-data="formData.attribute"
+        v-model:modelForm="form.attribute"
+        @formMounted="formMounted"
+        @formValueChange="formValueChange"
         class="attributeInfoRef"
         ref="attributeInfoRef"
       ></attributeInfo>
       <offerInfo
-        :schema-data="offerData"
-        v-model:offerForm="offerForm"
+        v-if="formData.offer.$id"
+        :key="formData.offer.$_key"
+        :schema-data="formData.offer"
+        v-model:modelForm="form.offer"
+        @formMounted="formMounted"
+        @formValueChange="formValueChange"
         class="AmazonOfferInfoRef"
         ref="offerInfoRef"
       ></offerInfo>
@@ -62,11 +78,53 @@ import '@/assets/library/jsonScheam_v3_ant/style/baseForm.css'
 
 // import scheam from './TrainSets - 副本.json'
 // import scheam from './TrainSets.json'
-import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
+import { ref, reactive, onMounted, computed, watchPostEffect, getCurrentInstance, nextTick } from 'vue'
 import { getJsonUrl, validateJson } from '@/pages/amazon/js/api/activeProduct'
 import axios from "axios";
+// 判断对象是否相等
+class ObjectUtils{
+  getDataType(data) {
+    const temp = Object.prototype.toString.call(data);
+    const type = temp.match(/\b\w+\b/g);
+    return (type.length < 2) ? 'Undefined' : type[1];
+  }
+  iterable(data){
+    return ['Object', 'Array'].includes(this.getDataType(data));
+  }
+  isObjectChangedSimple(source, comparison){
+    const _source = JSON.stringify(source)
+    const _comparison = JSON.stringify({...source,...comparison})
+    return _source !== _comparison
+  }
+  isObjectChanged(source, comparison) {
+    if (!this.iterable(source)) {
+      throw new Error(`source should be a Object or Array , but got ${this.getDataType(source)}`);
+    }
+    if (this.getDataType(source) !== this.getDataType(comparison)) {
+      return true;
+    }
+    const sourceKeys = Object.keys(source);
+    const comparisonKeys = Object.keys({...source, ...comparison});
+    if (sourceKeys.length !== comparisonKeys.length) {
+      return true;
+    }
+    return comparisonKeys.some(key => {
+      if (this.iterable(source[key])) {
+        return this.isObjectChanged(source[key], comparison[key]);
+      } else {
+        return source[key] !== comparison[key];
+      }
+    });
+  }
+}
+
 defineOptions({
-  name: "addDialog"
+  name: "addDialog",
+});
+let _this = null; // 当前的vue实例
+onMounted(() => {
+  let { proxy } = getCurrentInstance()
+  _this = proxy
 })
 let anchorList = [    // 模块列表
   {
@@ -90,9 +148,9 @@ let anchorList = [    // 模块列表
     title: '价格信息',
   },
 ];
-const spinning = ref(false)
-let scheam = {}
-let _attributeData = {}     // 原始数据
+const spinning = ref(0)       // 是否加载完成
+const scheam = ref({})
+const _attributeData = ref({})     // 原始数据
 const jsonParams = ref({}); // 获取json链接的参数
 
 const baseInfoRef = ref()
@@ -101,57 +159,189 @@ const attributeInfoRef = ref()
 const descriptionInfoRef = ref()
 const offerInfoRef = ref()
 // console.log({attributeInfoRef});
-const baseData = ref()
-const productData = ref()
-const descriptionData = ref()
-const attributeData = ref()
-const offerData = ref()
+const baseData = ref({})
+// const productData = ref({})
+// const descriptionData = ref({})
+// const attributeData = ref({})
+// const offerData = ref({})
 
 const finalParams = ref({});    // 收集到的全部json参数
-const productForm = ref({})
-const descriptionForm = ref({})
-const attributeForm = ref({})
-const offerForm = ref({})
+// const productForm = ref({})
+// const descriptionForm = ref({})
+// const attributeForm = ref({})
+// const offerForm = ref({})
+const formData = reactive({ // 用于生成表单的数据
+  product: {},
+  description: {},
+  attribute: {},
+  offer: {},
+})
+const form = reactive({     // 实时表单数据
+  product: {},
+  description: {},
+  attribute: {},
+  offer: {},
+});
+const formValue = reactive({     // 表单更新之前的数据，用于回填
+  product: {},
+  description: {},
+  attribute: {},
+  offer: {},
+}) 
 
 watchPostEffect(() => {
-  finalParams.value = {
-    ...descriptionForm.value,
-    ...productForm.value,
-    ...attributeForm.value,
-    ...offerForm.value,
-  }
-  let jsonStr = JSON.stringify(finalParams.value)
-  // validateJsonFn(jsonStr)
-})
-// 校验必填属性
-async function validateJsonFn(val) {
-  console.log({val});
+  // finalParams.value = {
+  //   ...descriptionForm.value,
+  //   ...productForm.value,
+  //   ...attributeForm.value,
+  //   ...offerForm.value,
+  // };
+  // console.log(spinning.value);
   
-  if (val === '{}') return;
+  // if (!spinning.value && spinning.value !== 0) {
+  //   console.log(123);
+    
+  //   // validateJsonFn();
+  // }
+});
+// 表单的值发生改变
+function formValueChange(type) {
+  finalParams.value = {
+    ...form.product,
+    ...form.description,
+    ...form.attribute,
+    ...form.offer,
+  };
+  console.log(spinning.value);
+  
+  if (!spinning.value && spinning.value !== 0) {
+    // console.log({_this});
+    attributeChangeValidate(type);
+  }
+}
+// form加载完成触发
+function formMounted(type) {
+  if (productInfoRef.value.isComplete && attributeInfoRef.value.isComplete && descriptionInfoRef.value.isComplete && offerInfoRef.value.isComplete) {
+    spinning.value = false
+  }
+  console.log('表单完成加载', {formValue, type});
+  // return;
+  let keys = Object.keys(formValue[type])
+  if (keys.length < 1) return;
+  // 表单回填
+  _this.$refs[`${type}InfoRef`].updateForm(formValue[type])
+  
+  // if (productInfoRef.value.isComplete) {
+  //   spinning.value = false
+  // }
+};
+// 属性变更校验
+async function attributeChangeValidate(val) {
+  // console.log({val});
   let data = {
     productType: jsonParams.value.productType,
     content: finalParams.value
   }
-  console.log({data});
-  
-  let res = await validateJson(data)
-  let final = res.data
-  let keyList = final.map(i => {
-    return i.arguments[0]
-  })
-  console.log({ keyList });
-  let arr = Object.keys(_attributeData.properties)
-  arr.forEach(key => {
-    if (!keyList.includes(key)) {
-      delete _attributeData.properties[key]
+  try {
+    let res = await validateJson(data)
+    let final = res.data
+    // let keyList = final.map(i => {
+    //   return i.arguments[0]
+    // })
+    // console.log({ keyList }, _attributeData.value.properties);
+    let arr = Object.keys(_attributeData.value.properties)
+    let add = []    // 新增字段
+    let del = []    // 删除字段
+    final.forEach(item => {
+      if (item.type === 'required') {
+        let key = item.arguments[0]
+        if (scheam.value.properties[key] && !arr.includes(key)) {
+          add.push(key)
+        }
+      } else if (item.type === 'not') {
+        let key = item.path.split('.')[1]
+        if (key.includes('[')) {
+          key = key.split('[')[0]
+        }
+        if (scheam.value.properties[key] && arr.includes(key)) {
+          del.push(key)
+        }
+      }
+    })
+    // keyList.forEach(key => {
+    //   if (scheam.value.properties[key] && !arr.includes(key)) {
+    //     add.push(key)
+    //   }
+    // })
+    console.log({add, del});
+    
+    if (add.length > 0 || del.length > 0) {
+      // console.log({add}, _this);
+      formValue[val] = form[val]
+      let addScheam = JSON.parse(JSON.stringify(scheam.value))
+      Object.keys(addScheam.properties).forEach(key => {
+        if (!add.includes(key)) {
+          delete addScheam.properties[key]
+        }
+        if (del.includes(key)) {
+          delete formData[val].properties[key]
+        }
+      })
+      let $_key = createRandom()
+      formData[val].$_key = $_key
+      formData[val].properties = {
+        ...formData[val].properties,
+        ...addScheam.properties
+      }
     }
-  })
-  // 赋值
-  productData.value = setAttributeData(productIdentityList).data
-  descriptionData.value = setAttributeData(descriptionList).data
-  attributeData.value = getDetails()
-  offerData.value = setAttributeData(offerList).data
-  return final
+    // 更新属性
+    Object.keys(formData).forEach(item => {
+      _attributeData.value.properties = {
+        ..._attributeData.value.properties,
+        ...formData[item].properties
+      }
+    })
+    // _attributeData.value.properties = {
+    //   ...productData.value.properties,
+    //   ...descriptionData.value.properties,
+    //   ...attributeData.value.properties,
+    //   ...offerData.value.properties,
+    // }
+    
+    return final
+  } catch (error) {
+    console.log(error);
+    spinning.value = false
+  }
+}
+// 校验必填属性
+async function validateJsonFn() {
+  let data = {
+    productType: jsonParams.value.productType,
+    content: finalParams.value
+  }
+  try {
+    let res = await validateJson(data)
+    let final = res.data
+    let keyList = final.map(i => {
+      return i.arguments[0]
+    })
+    // console.log({ keyList }, _attributeData.value.properties);
+    let arr = Object.keys(_attributeData.value.properties)
+    arr.forEach(key => {
+      if (!keyList.includes(key)) {
+        delete _attributeData.value.properties[key]
+      }
+    })
+    formData.product = setAttributeData(productIdentityList).data
+    formData.description = setAttributeData(descriptionList).data
+    formData.attribute = getDetails()
+    formData.offer = setAttributeData(offerList).data
+    return final
+  } catch (error) {
+    console.log(error);
+    spinning.value = false
+  }
 }
 // 选中属性
 async function selectedProductType(val) {
@@ -161,29 +351,28 @@ async function selectedProductType(val) {
   let url = urlRes.data || ''
   // console.log({ url });
   let res = await axios.get(url)
-  scheam = res.data
-  _attributeData = JSON.parse(JSON.stringify(scheam))
+  scheam.value = res.data
+  _attributeData.value = JSON.parse(JSON.stringify(scheam.value))
+  formData.product = {}
+  formData.description = {}
+  formData.attribute = {}
+  formData.offer = {}
+  finalParams.value = {}
+
+  formData.product = {}
+  formData.description = {}
+  formData.attribute = {}
+  formData.offer = {}
   await validateJsonFn()
-  spinning.value = false
+  // spinning.value = false
 }
 // 获取数据
 function copyData() {
-  return JSON.parse(JSON.stringify(_attributeData))
+  return JSON.parse(JSON.stringify(_attributeData.value))
 }
-// _attributeData.required.forEach(item => {
-//   delete _attributeData.properties[item]
-// });
 let productIdentity = {}
 let description = {}
 let offer = {}
-// Object.keys(_attributeData.properties).forEach(key => {
-//   // 清除图片属性 通过key判断
-//   let delList = ['product_image_locator', 'offer_image_locator']
-//   let flag = delList.some(i => key.includes(i))
-//   if (flag) {
-//     delete _attributeData.properties[key]
-//   }
-// })
 let productIdentityList = [       // 产品表示  名称 品牌等
   'Item Name',
   'Product Type',
@@ -227,6 +416,7 @@ async function sure() {
   let {result:attributeResult, params: attributeParams} = await attributeInfoRef.value.save()
   let {result:descriptionResult, params: descriptionParams} = await descriptionInfoRef.value.save()
   console.log({ offerResult, productResult, attributeResult, descriptionResult });
+  // let flag = productResult
   let flag = (offerResult && productResult && attributeResult && descriptionResult)
   if (!flag) return;
   finalParams.value = {
@@ -235,12 +425,18 @@ async function sure() {
     ...attributeParams,
     ...descriptionParams
   }
-  let final = await validateJsonFn()
+  let data = {
+    productType: jsonParams.value.productType,
+    content: finalParams.value
+  }
+  let final = await validateJson(data)
   console.log({final});
 }
 // 找出对应属性
 function filterType(title, data) {
+  
   let list = data.filter(item => {
+    // console.log({title}, item.title);
     if (item.title === title) {
       return item.title === title
     } else if (item.children && item.children.length > 0) {
@@ -279,8 +475,9 @@ function getDetails() {
 // 提取属性
 function setAttributeData(arr) {
   let data = copyData()
-  let obj = {}  // 收集属性
-  let _data = handleFormItem(copyData().properties, [])   // 将属性转换成数组
+  let obj = {};  // 收集属性
+  // debugger
+  let _data = handleFormItem(copyData().properties, []);   // 将属性转换成数组
   let propertiesList = []   // 收集属性字段
   let list = arr.map(item => {
     return filterType(item, _data)
@@ -296,12 +493,18 @@ function setAttributeData(arr) {
   propertiesList.forEach(item => {
     obj[item] = data.properties[item]
   })
+  // console.log({obj});
+  
   data.properties = obj
+  data.$_key = createRandom()
   return {data, propertiesList}
+}
+// 生成一个随机数
+function createRandom() {
+  return Math.floor(Math.random() * 100000000) + ''
 }
 // 处理数据，使其变成数组结构
 function handleFormItem(data, requiredList) {
-  // console.log(11);
   let list = []
   for (const key in data) {
     if (Object.prototype.hasOwnProperty.call(data, key)) {
