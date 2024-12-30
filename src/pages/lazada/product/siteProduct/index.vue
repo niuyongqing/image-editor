@@ -38,6 +38,7 @@
         <ImageInfo ref="imageInfoRef"></ImageInfo>
         <Variant ref="variantRef"></Variant>
         <VariantInfo ref="variantInfoRef"></VariantInfo>
+        <VariantImage ref="variantImageRef"></VariantImage>
         <Description ref="descriptionRef"></Description>
 
         <div w-full flex justify-end mt-10px>
@@ -77,6 +78,7 @@ import ProductInfo from './components/productInfo.vue';
 import ImageInfo from './components/imageInfo.vue';
 import VariantInfo from './components/variantInfo.vue';
 import Variant from './components/variant.vue';
+import VariantImage from './components/variantImage.vue';
 import Description from './components/description.vue';
 
 const baseInfoEl = useTemplateRef('baseInfoRef');
@@ -85,6 +87,7 @@ const packageEl = useTemplateRef('packageRef');
 const imageInfoEl = useTemplateRef('imageInfoRef');
 const variantEl = useTemplateRef('variantRef');
 const variantInfoEl = useTemplateRef('variantInfoRef');
+const variantImageEl = useTemplateRef('variantImageRef');
 const descriptionEl = useTemplateRef('descriptionRef');
 
 // 引用现有产品

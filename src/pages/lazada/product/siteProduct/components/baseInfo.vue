@@ -62,7 +62,6 @@ async function getCategorys() {
 
 // 获取分类属性
 async function getAttributes() {
-    console.log('getAttributes', state.primaryCategory.length);
     if (!state.primaryCategory.length) return;
     setLoading(true);
     categoryAttributesApi({

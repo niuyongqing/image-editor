@@ -89,6 +89,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SelectLang: typeof import('./../src/components/select-lang/index.vue')['default']
+    SkuDragUpload: typeof import('./../src/components/skuDragUpload/index.vue')['default']
     Text: typeof import('./../src/components/process-pictures/component/text/index.vue')['default']
     TokenProvider: typeof import('./../src/components/token-provider/index.vue')['default']
     UserAvatar: typeof import('./../src/components/user-avatar/index.vue')['default']

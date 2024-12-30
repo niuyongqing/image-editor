@@ -4,8 +4,6 @@
             <template #title>
                 <div text-left> 变种信息 </div>
             </template>
-
-            {{ tableData }}
             <a-table :columns="columns" :data-source="tableData" bordered :pagination="false">
                 <template #headerCell="{ title, column }">
                     <template v-if="column.dataIndex === 'sellerSKU'">
@@ -202,6 +200,7 @@ const generateTable = () => {
         tableData.value = transData.map((item, index) => {
             return {
                 ...item,
+                fileList: [],
                 ...tableData.value[index]
             }
         })
@@ -221,6 +220,7 @@ const generateTable = () => {
         tableData.value = list.map((item, index) => {
             return {
                 ...tableData.value[index],
+                fileList: [],
                 ...item,
             }
         })
