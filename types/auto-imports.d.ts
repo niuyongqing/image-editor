@@ -211,6 +211,7 @@ declare global {
   const useInterval: typeof import('@vueuse/core')['useInterval']
   const useIntervalFn: typeof import('@vueuse/core')['useIntervalFn']
   const useKeyModifier: typeof import('@vueuse/core')['useKeyModifier']
+  const useLadazaAttrs: typeof import('../src/stores/lazadaAttrs.js')['useLadazaAttrs']
   const useLastChanged: typeof import('@vueuse/core')['useLastChanged']
   const useLayoutMenu: typeof import('../src/stores/layout-menu.js')['useLayoutMenu']
   const useLink: typeof import('vue-router')['useLink']
