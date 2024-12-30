@@ -266,6 +266,15 @@ const swap = () => {
 
     setSelectTheme(selectThemeList.value);
 };
+
+
+watch(() => lazadaAttrsState.primaryCategory, (newVal) => {
+    selectThemeList.value = []
+}, {
+    deep: true,
+    immediate: true
+})
+
 const submit = () => {
     if (!customTheme.value) return;
     const findItem = lazadaAttrsState.skuAttrs.find((item) => {

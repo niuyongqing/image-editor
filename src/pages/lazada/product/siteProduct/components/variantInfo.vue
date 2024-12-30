@@ -28,11 +28,11 @@
                         <div> ( <a-button type="link" @click="generateSKU(column)"> 批量 </a-button> ) </div>
                     </template>
                     <template v-if="column.dataIndex === 'specialPrice'">
-                        <div> <span class="required"> * </span> {{ title }} </div>
+                        <div> {{ title }} </div>
                         <div> ( <a-button type="link" @click="generateSKU(column)"> 批量 </a-button> ) </div>
                     </template>
                     <template v-if="column.dataIndex === 'specialDate'">
-                        <div> <span class="required"> * </span> {{ title }} </div>
+                        <div> {{ title }} </div>
                         <div> ( <a-button type="link" @click="generateSKU(column)"> 批量 </a-button> ) </div>
                     </template>
 
@@ -45,32 +45,32 @@
                 <template #bodyCell="{ record, column }">
                     <!-- {{ text }} -{{ record }}- {{ index }} -{{ column }} -->
                     <template v-if="column.dataIndex === 'sellerSKU'">
-                        <div> sellerSKU {{ record.sellerSKU }} 11
-                            <a-input v-model:value="record.sellerSKU" placeholder="请输入" />
+                        <div> sellerSKU {{ record.sellerSKU }}
+                            <a-input v-model:value="record.sellerSKU" placeholder="请输入SKU" />
                         </div>
                     </template>
 
                     <template v-if="column.dataIndex === 'stock'">
                         <div> stock: {{ record.stock }} </div>
                         <a-input-number :controls="false" :precision="0" v-model:value="record.stock"
-                            placeholder="请输入" />
+                            placeholder="请输入库存" style="width: 80%;" />
                     </template>
 
                     <template v-if="column.dataIndex === 'price'">
                         <div> price: {{ record.price }} </div>
                         <a-input-number :controls="false" :precision="0" v-model:value="record.price"
-                            placeholder="请输入" />
+                            placeholder="请输入价格" style="width: 80%;" />
                     </template>
 
                     <template v-if="column.dataIndex === 'specialPrice'">
                         <div> specialPrice: {{ record.specialPrice }} </div>
                         <a-input-number :controls="false" :precision="0" v-model:value="record.specialPrice"
-                            placeholder="请输入" />
+                            placeholder="请输入促销价" style="width: 80%;" />
                     </template>
 
                     <template v-if="column.dataIndex === 'specialDate'">
                         <div> specialDate: {{ record.specialDate }} </div>
-                        <a-range-picker v-model:value="record.specialDate" />
+                        <a-range-picker v-model:value="record.specialDate" style="width: 80%;" />
                     </template>
 
                     <template v-if="column.dataIndex === 'action'">
@@ -95,6 +95,7 @@ const theme = reactive({
 const tableData = ref([]);
 const { selectTheme, skuAttrs, } = toRefs(lazadaAttrsState);
 
+
 const columns = computed(() => {
     const themeColumns = selectTheme.value.map((item) => {
         return {
@@ -104,6 +105,8 @@ const columns = computed(() => {
             align: 'center',
         }
     });
+    console.log('skuAttrs', skuAttrs.value);
+
     let baseColumns = [];
     function getColumns() {
         if (selectTheme.value.length > 0) {
@@ -221,8 +224,6 @@ const generateTable = () => {
             }
         })
     }
-
-
 }
 
 
@@ -231,39 +232,17 @@ watch(() => lazadaAttrsState.selectTheme, (newVal) => {
     console.log('newVal', newVal);
     if (!newVal.length) return;
     theme.themeOne = newVal[0].checkedList || [];
-    // const nameOne = newVal[0].name;
-    console.log('theme.themeOne ->>>>', theme.themeOne);;
-
-    // tableData.value = [{
-    //     sellerSKU: '',
-    //     stock: null,
-    //     price: null,
-    //     specialPrice: null,
-    //     specialDate: null,
-    //     name: '',
-    //     [nameOne]: '',
-    // }];
-
     if (newVal.length > 1) {
         theme.themeTwo = newVal[1].checkedList || [];
-        // const nameTwo = newVal[1].name;
-        // tableData.value = [{
-        //     sellerSKU: '',
-        //     stock: null,
-        //     price: null,
-        //     specialPrice: null,
-        //     specialDate: null,
-        //     name: '',
-        //     [nameOne]: '',
-        //     [nameTwo]: ''
-        // }];
     };
     generateTable()
 }, {
     immediate: true,
     deep: true
 });
-
+watch(() => lazadaAttrsState.shortCode, () => {
+    tableData.value = [];
+}, { deep: true });
 // 一键生成
 const generateSKU = (column) => {
 

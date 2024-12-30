@@ -3,12 +3,12 @@
         <!-- 图片信息 -->
         <a-card :bordered="true" style="margin: 0 auto; border-radius: 0px">
             <template #title>
-                <div text-left> 图片信息 </div>
+                <div text-left @click="tab"> 图片信息 </div>
             </template>
             <a-form :model="form" :label-col="{ style: { width: '80px' } }" style="margin-left: 100px;" ref="formRef"
                 scrollToFirstError>
                 <a-form-item label="产品图片:" name="fileList" :rules="fileListRules">
-                    <DragUpload :actionUrl="actionUrl" v-model:modelValue="form.fileList" :maxCount="8"
+                    <DragUpload :actionUrl="actionUrl" v-model:file-list="form.fileList" :maxCount="8"
                         :showUploadList="false" accept=".jpg,.png" :api="uploadImage" :apiParams="apiParams">
                         <template #default>
                             <div flex flex-col w-full justify-start mb-4px text-left>
@@ -27,7 +27,7 @@
                 </a-form-item>
 
                 <a-form-item label="营销图:" name="promotionWhite">
-                    <DragUpload :actionUrl="actionUrl" v-model:modelValue="form.promotionWhite" :maxCount="1"
+                    <DragUpload :actionUrl="actionUrl" v-model:file-list="form.promotionWhite" :maxCount="1"
                         :showUploadList="false" accept=".jpg,.png" :api="uploadImage" :apiParams="apiParams"
                         :showRightTool="false">
                         <template #default>
@@ -131,7 +131,6 @@ import { debounce } from "lodash-es";
 import { message } from "ant-design-vue";
 import DragUpload from '@/components/dragUpload/index.vue';
 import { saveAs } from 'file-saver';
-
 const videoEl = useTemplateRef('videoRef');
 const shortCode = ref('');
 const apiParams = ref({});

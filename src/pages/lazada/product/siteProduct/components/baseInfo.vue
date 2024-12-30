@@ -17,7 +17,7 @@
                 <a-form-item label="分类:" name="primaryCategory" :rules="[{ required: true, message: '请选择分类' }]">
                     <a-cascader class="flex w-full justify-start" v-model:value="state.primaryCategory"
                         :options="primaryCategoryOptions" placeholder="请先选择店铺" allowClear
-                        :fieldNames="{ label: 'name', value: 'category_id', children: 'children' }"
+                        :fieldNames="{ label: 'name', value: 'categoryId', children: 'children' }"
                         @change="changePrimaryCategory" />
                 </a-form-item>
             </a-form>
@@ -32,7 +32,7 @@ import { accountCache, categoryTree, categoryAttributesApi } from '@/pages/lazad
 import EventBus from "~/utils/event-bus";
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 
-const { state: lazadaAttrsState, setShortCode, setLazadaAttrs, setLoading } = useLadazaAttrs();
+const { state: lazadaAttrsState, setShortCode, setPrimaryCategory, setLazadaAttrs, setLoading } = useLadazaAttrs();
 const shortCodes = ref([]); // 店铺列表
 const formEl = useTemplateRef('formRef');
 const primaryCategoryOptions = ref([]); // 分类列表
@@ -86,6 +86,7 @@ const changeShortCode = (value) => {
 
 const changePrimaryCategory = (value) => {
     console.log('changePrimaryCategory', value);
+    setPrimaryCategory(value);
     getAttributes(value)
 };
 

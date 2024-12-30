@@ -1,96 +1,98 @@
 <template>
-    <div flex justify-between w-full>
-        <a-upload name="file" :customRequest="customRequest" :before-upload="beforeUpload" :headers="headers"
-            :accept="getProps.accept" :action="getProps.actionUrl" :showUploadList="false">
-            <a-button type="primary" v-if="fileList.length <= getProps.maxCount" style="width: 90px; height: 31px;">
-                <UploadOutlined></UploadOutlined>
-                选择图片
-            </a-button>
-        </a-upload>
+    <div w-full>
+        <div flex justify-between w-full>
+            <a-upload name="file" :customRequest="customRequest" :before-upload="beforeUpload" :headers="headers"
+                :accept="getProps.accept" :action="getProps.actionUrl" :showUploadList="false">
+                <a-button type="primary" v-if="fileList.length <= getProps.maxCount" style="width: 90px; height: 31px;">
+                    <UploadOutlined></UploadOutlined>
+                    选择图片
+                </a-button>
+            </a-upload>
 
-        <div flex items-center mt-15px v-if="showRightTool">
-            <a-dropdown>
-                <a-button type="link" link style="width: 90px; height: 31px;">
-                    普通水印
-                    <DownOutlined />
-                </a-button>
-                <template #overlay>
-                    <a-menu>
-                        <a-menu-item v-for="item in 3" :key="item" @click="watermark(item)">
-                            普通水印{{ item }}
-                        </a-menu-item>
-                    </a-menu>
-                </template>
-            </a-dropdown>
-            <span pl-10px>|</span>
-            <a-dropdown>
-                <a-button type="link" style="width: 90px; height: 31px; margin-left: 10px;">
-                    编辑图片
-                    <DownOutlined />
-                </a-button>
-                <template #overlay>
-                    <a-menu>
-                        <a-menu-item @click="handleEditImagesSize">
-                            批量修改图片尺寸
-                        </a-menu-item>
-                        <a-menu-item @click="clearAllImages">
-                            清空图片
-                        </a-menu-item>
-                    </a-menu>
-                </template>
-            </a-dropdown>
-            <!-- <a-button type="link" link style="height: 31px; margin-left: 10px;" @click="downloadAllImages">
+            <div flex items-center mt-15px v-if="showRightTool">
+                <a-dropdown>
+                    <a-button type="link" link style="width: 90px; height: 31px;">
+                        普通水印
+                        <DownOutlined />
+                    </a-button>
+                    <template #overlay>
+                        <a-menu>
+                            <a-menu-item v-for="item in 3" :key="item" @click="watermark(item)">
+                                普通水印{{ item }}
+                            </a-menu-item>
+                        </a-menu>
+                    </template>
+                </a-dropdown>
+                <span pl-10px>|</span>
+                <a-dropdown>
+                    <a-button type="link" style="width: 90px; height: 31px; margin-left: 10px;">
+                        编辑图片
+                        <DownOutlined />
+                    </a-button>
+                    <template #overlay>
+                        <a-menu>
+                            <a-menu-item @click="handleEditImagesSize">
+                                批量修改图片尺寸
+                            </a-menu-item>
+                            <a-menu-item @click="clearAllImages">
+                                清空图片
+                            </a-menu-item>
+                        </a-menu>
+                    </template>
+                </a-dropdown>
+                <!-- <a-button type="link" link style="height: 31px; margin-left: 10px;" @click="downloadAllImages">
                 <DownloadOutlined />
                 导出全部图片
             </a-button> -->
+            </div>
         </div>
-    </div>
-    <div>
-        <slot></slot>
-    </div>
-
-    <div flex flex-wrap>
-        <draggable v-if="fileList.length > 0" v-model="fileList" @end="handleDragEnd" tag="div" class="flex">
-            <template #item="{ element }">
-                <a-card ml-10px p-0px rounded-none class="file-card" hoverable>
-                    <div :key="element.uid">
-                        <div class="file-item">
-                            <div v-if="element.loading" w-120px h-120px flex items-center justify-center>
-                                <loading-outlined></loading-outlined>
-                            </div>
-                            <div v-else class="file-img">
-                                <img :src="element.url" alt="" class="file-img" @load="handleImageLoad(element, $event)"
-                                    @click="handlePreview(element)" />
-                                <div class="image-mask"> {{ element.height }} X {{ element.width }} </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div w-full>
-                        <div flex justify-end w-full>
-                            <a-button type="text" color="#428bca" @click="handleRemove(element)">
-                                <DeleteOutlined />
-                            </a-button>
-                        </div>
-                    </div>
-                </a-card>
-            </template>
-        </draggable>
-        <!-- 暂无图片 -->
-        <div class="empty-img" v-else>
-            <img src="@/assets/images/kong.png" alt="" />
+        <div>
+            <slot></slot>
         </div>
 
-        <a-modal v-model:open="previewVisible" :footer="null">
-            <template #title>
-                <div flex justify-between>
-                    <span>图片预览</span>
-                </div>
-                <img :src="previewImage" alt="" style="width: 100%" />
-            </template>
-        </a-modal>
+        <div flex flex-wrap>
+            <draggable v-if="fileList.length > 0" v-model="fileList" @end="handleDragEnd" tag="div" class="flex">
+                <template #item="{ element }">
+                    <a-card ml-10px p-0px rounded-none class="file-card" hoverable>
+                        <div :key="element.uid">
+                            <div class="file-item">
+                                <div v-if="element.loading" w-120px h-120px flex items-center justify-center>
+                                    <loading-outlined></loading-outlined>
+                                </div>
+                                <div v-else class="file-img">
+                                    <img :src="element.url" alt="" class="file-img"
+                                        @load="handleImageLoad(element, $event)" @click="handlePreview(element)" />
+                                    <div class="image-mask"> {{ element.height }} X {{ element.width }} </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div w-full>
+                            <div flex justify-end w-full>
+                                <a-button type="text" color="#428bca" @click="handleRemove(element)">
+                                    <DeleteOutlined />
+                                </a-button>
+                            </div>
+                        </div>
+                    </a-card>
+                </template>
+            </draggable>
+            <!-- 暂无图片 -->
+            <div class="empty-img" v-else>
+                <img src="@/assets/images/kong.png" alt="" />
+            </div>
+
+            <a-modal v-model:open="previewVisible" :footer="null">
+                <template #title>
+                    <div flex justify-between>
+                        <span>图片预览</span>
+                    </div>
+                    <img :src="previewImage" alt="" style="width: 100%" />
+                </template>
+            </a-modal>
+        </div>
+        <!-- 批量修改图片尺寸弹窗 -->
+        <BacthEditImgSize ref="BacthEditImgSizeRef" :fileList="fileList" />
     </div>
-    <!-- 批量修改图片尺寸弹窗 -->
-    <BacthEditImgSize ref="BacthEditImgSizeRef" :fileList="fileList" />
 </template>
 
 <script setup>
@@ -130,7 +132,7 @@ const props = defineProps({
 });
 const bacthEditImgSizeEl = useTemplateRef('BacthEditImgSizeRef');
 const attrs = useAttrs();
-const fileList = defineModel([]); // 图片列表
+const fileList = defineModel('file-list'); // 图片列表
 const previewVisible = ref(false);
 const previewImage = ref('');
 const headers = computed(() => {
@@ -159,9 +161,9 @@ const customRequest = (options) => {
         if (res.code === 200) {
             fileList.value.push({
                 ...res,
+                uid: res.url,
                 name: res.originalFilename,
                 url: import.meta.env.VITE_APP_BASE_API + res.url,
-
             });
         }
     })
@@ -174,7 +176,7 @@ const handlePreview = (file) => {
 
 const handleRemove = (file) => {
     const index = fileList.value.indexOf(file);
-    const newFileList = fileList.value.slice();
+    const newFileList = fileList.value;
     newFileList.splice(index, 1);
     fileList.value = newFileList;
 };

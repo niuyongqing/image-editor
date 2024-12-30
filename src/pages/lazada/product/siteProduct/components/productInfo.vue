@@ -48,7 +48,7 @@
 
                 <a-form-item label="属性: " v-show="lazadaAttrsState.attributes.length > 0">
                     <a-card v-loading="lazadaAttrsState.loading" class="attrs-card">
-                        <a-form :model="form">
+                        <a-form :model="productAtrrsform">
                             <a-form-item v-for="item in sortAttrs(lazadaAttrsState.productClassifyAtrrs)"
                                 :key="item.name"
                                 :rules="[{ required: item.is_mandatory === 1, message: item.is_mandatory === 1 ? '必填项，请填写' : '' }]"
@@ -132,8 +132,9 @@ import EventBus from "~/utils/event-bus";
 import { debounce } from "lodash-es";
 import { message } from "ant-design-vue";
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
-const { state: lazadaAttrsState, } = useLadazaAttrs();
 
+const { state: lazadaAttrsState, } = useLadazaAttrs();
+const productAtrrsform = reactive({})//  产品属性表单
 const isExpand = ref(false); // 展开收起
 const attributesLoading = ref(false);
 const shortCode = ref('');
@@ -184,7 +185,6 @@ const sortAttrs = (attrs) => {
         })
     }
 };
-
 const hazmat = (options) => {
     const list = options.map((item) => {
         return item.name;
