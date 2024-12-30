@@ -59,7 +59,7 @@
   </a-modal>
 </div>
 </template>
-<script setup lang="ts">
+<script setup lang="js">
 import {ref} from "vue";
 import {getUserApi, editUserApi, addUserApi, getInfoApi} from '~/api/common/user'
 import {message} from "ant-design-vue";

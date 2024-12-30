@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="js">
 import {ref} from 'vue'
 import { useUserStore } from '~/stores/user'
 import * as Icons from '@ant-design/icons-vue';

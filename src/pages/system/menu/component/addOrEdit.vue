@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="js">
 import {ref} from "vue";
 import * as Icons from '@ant-design/icons-vue';
 import {addMenuApi, updateMenuApi, selectById, selectMenuClassify,addMenuClassify} from '~/api/common/menu.js'
