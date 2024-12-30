@@ -366,7 +366,7 @@
       <a-pagination
         v-model:current="tableParams.pageNum"
         v-model:pageSize="tableParams.pageSize"
-        class="text-right"
+        class="text-right mt-3"
         :total="total"
         :default-page-size="50"
         show-size-changer
@@ -575,10 +575,6 @@
           VIOLATION_QC_FAILED: 0,
           OFFLINE: 0
         },
-        gpsrOpions: [
-          { label: '未上传', value: '1' },
-          { label: '已上传', value: '2' }
-        ],
         remarkOpions: [
           { label: '有备注', value: '1' },
           { label: '无备注', value: '2' }
@@ -676,9 +672,6 @@
         this.resetExtendSearchForm()
         this.isFold = true
       },
-      filterOption(input, option) {
-        return option.simpleName.toLowerCase().indexOf(input.toLowerCase()) >= 0
-      },
       getAccountList() {
         accountCacheApi(true)
           .then(res => {
@@ -693,6 +686,10 @@
       },
       getList() {
         this.loading = true
+        // 重置选择的数据
+        this.selectedRowKeys = []
+        this.selectedRows = []
+
         const params = {
           ...this.watchedSearchForm,
           ...this.lazySearchForm,
@@ -785,9 +782,6 @@
       },
       goAliExpress(productId) {
         window.open(`https://vi.aliexpress.com/item/${productId}.html`)
-      },
-      handleDblClick(record) {
-        this.goAliExpress(record.productId)
       },
       // 复制产品ID到剪贴板
       copyId(id) {

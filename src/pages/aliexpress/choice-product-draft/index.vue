@@ -1,115 +1,195 @@
 <!-- 待发布全托管 列表 -->
 <template>
-  <div class="choice-product-draft">
+  <div class="text-left">
     <!-- 搜索区 -->
     <a-card>
-      <a-form
-        layout="inline"
-        ref="searchFormRef"
-        :model="searchForm"
-      >
-        <a-form-item
-          name="sellerId"
-          label="店铺："
-        >
-          <a-select
-            v-model:value="searchForm.sellerId"
-            placeholder="请选择店铺"
-            show-search
-            allow-clear
+      <a-descriptions :column="1">
+        <a-descriptions-item label="店铺账号">
+          <TiledSelect
+            v-model:value="watchedSearchForm.sellerId"
             :options="accountList"
             :field-names="{ label: 'simpleName', value: 'sellerId' }"
-            :filter-option="filterOption"
-            style="width: 200px; text-align: left"
-          >
-          </a-select>
-        </a-form-item>
-        <a-form-item
-          name="draftId"
-          label="草稿ID："
-        >
-          <a-textarea
-            v-model:value="searchForm.draftId"
-            placeholder="支持批量，举例：ID1,ID2,ID3"
-            :auto-size="{ minRows: 1, maxRows: 5 }"
-            style="width: 200px"
-          ></a-textarea>
-        </a-form-item>
-        <a-form-item
-          name="productName"
-          label="商品标题："
-        >
-          <a-input
-            v-model:value="searchForm.productName"
-            placeholder="商品标题"
-            style="width: 200px"
           />
-        </a-form-item>
-        <a-form-item
-          name="skuCode"
-          label="SKU编码："
-        >
-          <a-input
-            v-model:value="searchForm.skuCode"
-            placeholder="SKU编码"
-            style="width: 200px"
+        </a-descriptions-item>
+        <a-descriptions-item label="搜索类型">
+          <TiledSelect
+            v-model:value="lazySearchForm.searchKey"
+            :options="searchPropOptions"
+            :append-all="false"
           />
-        </a-form-item>
-
-        <a-form-item>
-          <a-button
-            type="primary"
-            @click="search"
-            >查询</a-button
-          >
-          <a-button
-            class="ml-[10px]"
-            @click="reset"
-            >重置</a-button
-          >
-        </a-form-item>
-      </a-form>
-    </a-card>
-    <!-- TABLE 区 -->
-    <a-card class="m-2.5">
-      <div class="btns">
-        <div class="left-group">
-          <a-button
-            type="primary"
-            title="勾选商品后批量操作"
-            :disabled="selectedRows.length === 0"
-            @click="batchPublish"
-            >批量发布</a-button
-          >
-          <a-popconfirm
-            okText="好的"
-            cancelText="不用了"
-            title="确定删除吗？"
-            @confirm="del"
-          >
+        </a-descriptions-item>
+        <a-descriptions-item
+          label="搜索内容"
+          :content-style="{ 'flex-direction': 'column' }"
+        >
+          <a-space align="start">
+            <SearchContentInput
+              v-model:value="lazySearchForm.searchValue"
+              :hide-control="['productName'].includes(lazySearchForm.searchKey)"
+              :placeholder="placeholderEnum[lazySearchForm.searchKey]"
+            />
             <a-button
               type="primary"
-              danger
-              class="ml-[10px]"
-              title="勾选商品后批量操作"
-              :disabled="selectedRows.length === 0"
-              :loading="delLoading"
-              >批量删除</a-button
+              @click="search"
+              >搜索</a-button
             >
-          </a-popconfirm>
-        </div>
-        <a-pagination
-          size="small"
-          v-model:current="tableParams.pageNum"
-          v-model:pageSize="tableParams.pageSize"
-          :total="total"
-          :default-page-size="50"
-          show-size-changer
-          show-quick-jumper
-          :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
-          @change="getList"
-        />
-      </div>
+            <a-button
+              type="link"
+              @click="toggleFold"
+              >高级搜索</a-button
+            >
+          </a-space>
+          <a-form
+            v-show="!isFold"
+            ref="extendSearchFormRef"
+            :model="lazySearchForm"
+            :label-col="{ style: { width: '130px' } }"
+            class="mt-4 p-3 bg-[--pro-ant-color-primary-bg]"
+          >
+            <!-- <a-form-item
+              name="category"
+              label="产品分类"
+            >
+              <a-cascader
+                v-model:value="lazySearchForm.category"
+                :options="[]"
+                :field-names="{ value: 'id' }"
+                show-search
+                placeholder="请选择"
+              />
+            </a-form-item> -->
+            <!-- <a-form-item
+              name="brand"
+              label="品牌"
+            >
+              <a-select
+                v-model:value="lazySearchForm.brand"
+                placeholder="请选择"
+                allow-clear
+                :options="[]"
+              >
+              </a-select>
+            </a-form-item> -->
+            <a-form-item
+              name="commentType"
+              label="有无备注"
+            >
+              <a-select
+                v-model:value="lazySearchForm.commentType"
+                placeholder="请选择"
+                allow-clear
+                :options="remarkOpions"
+              >
+              </a-select>
+            </a-form-item>
+            <a-form-item
+              v-if="lazySearchForm.commentType === '1'"
+              name="commentContent"
+              label="备注内容"
+            >
+              <a-input
+                v-model:value="lazySearchForm.commentContent"
+                allow-clear
+                placeholder="请输入"
+              />
+            </a-form-item>
+            <a-form-item
+              name="createTime"
+              label="创建时间："
+            >
+              <a-range-picker
+                v-model:value="lazySearchForm.createTime"
+                :disabled-date="cur => cur > Date.now()"
+                allow-clear
+              >
+              </a-range-picker>
+            </a-form-item>
+            <a-form-item
+              name="updateTime"
+              label="编辑时间："
+            >
+              <a-range-picker
+                v-model:value="lazySearchForm.updateTime"
+                :disabled-date="cur => cur > Date.now()"
+                allow-clear
+              >
+              </a-range-picker>
+            </a-form-item>
+
+            <a-form-item class="text-right mb-0">
+              <a-space>
+                <a-button
+                  type="link"
+                  @click="foldExtendSearch"
+                  >取消</a-button
+                >
+                <a-button
+                  type="link"
+                  @click="resetExtendSearchForm"
+                  >重置</a-button
+                >
+                <a-button
+                  type="primary"
+                  @click="search"
+                  >搜索</a-button
+                >
+              </a-space>
+            </a-form-item>
+          </a-form>
+        </a-descriptions-item>
+        <a-descriptions-item label="备货类型">
+          <TiledSelect
+            v-model:value="watchedSearchForm.productType"
+            :options="productTypeOptions"
+          />
+        </a-descriptions-item>
+        <a-descriptions-item label="排序类型">
+          <TiledSelectSort
+            v-model:value="watchedSearchForm.prop"
+            v-model:sortType="watchedSearchForm.order"
+            :options="sortTypeOptions"
+          />
+        </a-descriptions-item>
+      </a-descriptions>
+    </a-card>
+    <a-space class="my-4">
+      <a-button
+        type="primary"
+        title="勾选商品后批量操作"
+        :disabled="selectedRows.length === 0"
+        @click="batchPublish"
+        >批量发布</a-button
+      >
+      <a-popconfirm
+        okText="好的"
+        cancelText="不用了"
+        title="确定删除吗？"
+        @confirm="del"
+      >
+        <a-button
+          type="primary"
+          danger
+          class="ml-[10px]"
+          title="勾选商品后批量操作"
+          :disabled="selectedRows.length === 0"
+          :loading="delLoading"
+          >批量删除</a-button
+        >
+      </a-popconfirm>
+    </a-space>
+    <!-- TABLE 区 -->
+    <a-card>
+      <a-pagination
+        v-model:current="tableParams.pageNum"
+        v-model:pageSize="tableParams.pageSize"
+        :total="total"
+        class="text-right mb-3"
+        :default-page-size="50"
+        show-size-changer
+        show-quick-jumper
+        :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
+        @change="getList"
+      />
 
       <a-table
         :loading="loading"
@@ -119,7 +199,7 @@
         ref="tableRef"
         row-key="draftId"
         :pagination="false"
-        :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }"
+        :row-selection="{ selectedRowKeys, onChange: onSelectChange }"
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'draftId'">
@@ -228,9 +308,9 @@
         </template>
       </a-table>
       <a-pagination
-        size="small"
         v-model:current="tableParams.pageNum"
         v-model:pageSize="tableParams.pageSize"
+        class="text-right mt-3"
         :total="total"
         :default-page-size="50"
         show-size-changer
@@ -263,14 +343,49 @@
         store: useAliexpressChoiceProductStore(),
         EmptyImg,
         accountList: [],
-        searchForm: {
+        // 被 watch 监听的搜索表单; 外层, 点击即可搜索
+        watchedSearchForm: {
           sellerId: undefined,
-          draftId: undefined,
-          productName: undefined,
-          skuCode: undefined,
-          prop: undefined,
-          order: undefined
+          prop: 'create_time',
+          order: 'desc',
+          productType: undefined,
+          productStatus: 'ONLINE'
         },
+        isFold: true,
+        // 高级搜索表单; 需点击'搜索'按钮再执行搜索动作
+        lazySearchForm: {
+          searchKey: 'productName',
+          searchValue: undefined,
+          // category: undefined,
+          auditFailureType: undefined,
+          brand: undefined,
+          commentType: undefined,
+          commentContent: undefined,
+          createTime: null,
+          updateTime: null
+        },
+        searchPropOptions: [
+          { label: '标题', value: 'productName' },
+          { label: '商品编码', value: 'skuCode' },
+          { label: '草稿ID', value: 'draftId' }
+        ],
+        placeholderEnum: {
+          productName: '标题',
+          skuCode: '商品编码',
+          draftId: '草稿ID; 支持批量，举例：ID1,ID2,ID3'
+        },
+        remarkOpions: [
+          { label: '有备注', value: '1' },
+          { label: '无备注', value: '2' }
+        ],
+        productTypeOptions: [
+          { label: '国内履约', value: '1' },
+          { label: '海外备货', value: '2', disabled: true }
+        ],
+        sortTypeOptions: [
+          { label: '按创建时间', value: 'create_time' },
+          { label: '按更新时间', value: 'update_time' }
+        ],
         DEFAULT_TABLE_COLUMN,
         tableHeader: [],
         tableCode: 'ChoiceProductDraft',
@@ -291,6 +406,14 @@
         return this.tableHeader.filter(column => column.show)
       }
     },
+    watch: {
+      watchedSearchForm: {
+        handler: function () {
+          this.search()
+        },
+        deep: true
+      }
+    },
     mounted() {
       this.getTableHeader()
       this.getAccountList()
@@ -304,17 +427,12 @@
         this.selectedRowKeys = keys
         this.selectedRows = rows
       },
-      filterOption(input, option) {
-        return option.simpleName.toLowerCase().indexOf(input.toLowerCase()) >= 0
-      },
       getAccountList() {
         accountCacheApi(true)
           .then(res => {
             this.accountList = res.data.accountDetail || []
             if (this.accountList.length === 0) {
               message.error('当前账号没有配置店铺, 请前往「账号配置」添加, 或联系管理员')
-            } else {
-              this.searchForm.sellerId = this.accountList[0].sellerId
             }
           })
           .finally(() => {
@@ -328,9 +446,19 @@
         this.selectedRows = []
 
         const params = {
-          ...this.searchForm,
-          ...this.tableParams
+          ...this.watchedSearchForm,
+          ...this.lazySearchForm,
+          [this.lazySearchForm.searchKey]: this.lazySearchForm.searchValue,
+          ...this.tableParams,
+          createAfter: this.lazySearchForm.createTime ? dayjs(this.lazySearchForm.createTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+          createBefore: this.lazySearchForm.createTime ? dayjs(this.lazySearchForm.createTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+          updateAfter: this.lazySearchForm.updateTime ? dayjs(this.lazySearchForm.updateTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+          updateBefore: this.lazySearchForm.updateTime ? dayjs(this.lazySearchForm.updateTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined
         }
+        delete params.createTime
+        delete params.updateTime
+        delete params.searchKey
+        delete params.searchValue
 
         draftListApi(params)
           .then(res => {
@@ -344,6 +472,24 @@
           .finally(() => {
             this.loading = false
           })
+      },
+      toggleFold() {
+        if (this.isFold) {
+          this.isFold = false
+        } else {
+          this.foldExtendSearch()
+        }
+      },
+      // 高级搜索重置
+      resetExtendSearchForm() {
+        this.$refs.extendSearchFormRef.resetFields()
+        this.lazySearchForm.createTime = null
+        this.lazySearchForm.updateTime = null
+      },
+      // 收起高级搜索
+      foldExtendSearch() {
+        this.resetExtendSearchForm()
+        this.isFold = true
       },
       search() {
         this.tableParams.pageNum = 1
@@ -426,29 +572,14 @@
           .finally(() => {
             this.delLoading = false
           })
+      },
+      goPublish(record) {
+        let query = ''
+        if (record) {
+          query = `?sellerId=${record.sellerId}&productId=${record.productId}`
+        }
+        window.open(location.origin + '/platform/aliexpress/choice-product-publish' + query)
       }
     }
   }
 </script>
-
-<style lang="less" scoped>
-  .choice-product-draft {
-    .btns {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-    .text-overflow {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .pointer {
-      cursor: pointer;
-    }
-
-    .ant-pagination {
-      text-align: right;
-    }
-  }
-</style>
