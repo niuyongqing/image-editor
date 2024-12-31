@@ -11,13 +11,19 @@
           label="别名: "
           name="alias"
         >
-          <a-input v-model:value="searchForm.alias" />
+          <a-input
+            v-model:value="searchForm.alias"
+            placeholder="请输入"
+          />
         </a-form-item>
         <a-form-item
           label="简称: "
           name="simpleName"
         >
-          <a-input v-model:value="searchForm.simpleName" />
+          <a-input
+            v-model:value="searchForm.simpleName"
+            placeholder="请输入"
+          />
         </a-form-item>
 
         <a-form-item>
@@ -113,6 +119,29 @@
               un-checked-value="2"
               @change="editShopTable($event, 'autoPublish', record)"
             />
+          </template>
+          <template v-if="column.title === '是否推送库存'">
+            <a-switch
+              v-model:checked="record.isPushStock"
+              :disabled="!hasPermi"
+              checked-value="1"
+              un-checked-value="0"
+              @change="editStockPush(record)"
+            />
+          </template>
+          <template v-if="column.title === '库存推送比例'">
+            <a-input-number
+              v-model:value="record.stockPushRatio"
+              v-if="hasPermi"
+              :precision="0"
+              :min="1"
+              :max="100"
+              :controls="false"
+              placeholder="1 ~ 100"
+              :disabled="record.isPushStock !== '1'"
+              @blur="editStockPush(record)"
+            />
+            <span v-else>{{ text || '--' }}</span>
           </template>
           <template v-if="column.title === '仓库'">
             <a-select
@@ -243,7 +272,8 @@
     editForbidSaleApi,
     editAutoPublishApi,
     editSimpleNameBatchApi,
-    editMeansKeepGrainBatchApi
+    editMeansKeepGrainBatchApi,
+    editStockPushApi
   } from '../apis/empower.js'
   import { DEFAULT_TABLE_COLUMN, CLASSIFY_OPTIONS, WAREHOUSE_LIST } from './config.js'
   import dayjs from 'dayjs'
@@ -398,6 +428,24 @@
         } else {
           console.log('error')
         }
+      })
+      .catch(err => {
+        message.warning(err)
+        getList()
+      })
+  }
+
+  // 修改推送库存
+  function editStockPush(record) {
+    const params = {
+      account: record.account,
+      sellerId: record.userId,
+      isPushStock: record.isPushStock,
+      stockPushRatio: record.stockPushRatio
+    }
+    editStockPushApi(params)
+      .then(res => {
+        message.success('修改成功')
       })
       .catch(err => {
         message.warning(err)

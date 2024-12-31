@@ -147,20 +147,18 @@
                 >
               </a-radio-group>
               <!-- 高关注化学物质(check_box)选项太多了, 用多选下拉框替代 -->
-              <!-- TODO: item.supportEnumInput -->
               <a-select
                 v-else-if="item.attributeShowTypeValue === 'check_box'"
                 v-model:value="attributes[item.zh]"
                 :options="item.values"
                 :field-names="{ label: 'name', value: 'attributeValueId' }"
-                mode="multiple"
+                :mode="item.supportEnumInput ? 'tags' : 'multiple'"
                 show-search
                 allow-clear
                 label-in-value
+                placeholder="输入或选择;回车确认输入值"
                 option-filter-prop="name"
-                placeholder="请选择"
-              >
-              </a-select>
+              />
               <a-input
                 v-else
                 v-model:value="item.attributeShowTypeValue"
@@ -319,9 +317,24 @@
                 case 'list_box':
                   const target = option.values.find(val => val.attributeValueId == root[attrNameId][0].attrValueId)
                   if (target) {
-                    attributesObj[option.zh] = target
+                    // 如果 supportEnumInput 为 true, 则设置 mode = tags, 值为 Array
+                    attributesObj[option.zh] = option.supportEnumInput
+                      ? [
+                          {
+                            label: target.name,
+                            value: target.attributeValueId,
+                            key: target.attributeValueId,
+                            option: target
+                          }
+                        ]
+                      : {
+                          label: target.name,
+                          value: target.attributeValueId,
+                          key: target.attributeValueId,
+                          option: target
+                        }
                   } else {
-                    attributesObj[option.zh] = root[attrNameId][0].attrValue
+                    attributesObj[option.zh] = option.supportEnumInput ? [{ label: root[attrNameId][0].attrValue, value: undefined }] : { label: root[attrNameId][0].attrValue, value: undefined }
                   }
                   break
 
@@ -329,9 +342,14 @@
                   attributesObj[option.zh] = root[attrNameId].map(item => {
                     const target = option.values.find(val => val.attributeValueId == item.attrValueId)
                     if (target) {
-                      return target
+                      return {
+                        label: target.name,
+                        value: target.attributeValueId,
+                        key: target.attributeValueId,
+                        option: target
+                      }
                     } else {
-                      return item.attrValue
+                      return { label: item.attrValue, value: undefined }
                     }
                   })
                   break
@@ -340,7 +358,7 @@
                 case 'input_int':
                 case 'radio':
                 default:
-                  attributesObj[option.zh] = root[attrNameId][0].attrValue
+                  attributesObj[option.zh] = { label: root[attrNameId][0].attrValue, value: undefined }
                   break
               }
             } else {
@@ -348,7 +366,9 @@
               attributesObj[attrNameId] = {
                 attributeValueId: Number(root[attrNameId][0].attrValueId),
                 name: root[attrNameId][0].attrName,
-                en: root[attrNameId][0].attrValue
+                en: root[attrNameId][0].attrValue,
+                label: root[attrNameId][0].attrName,
+                value: root[attrNameId][0].attrValue
               }
             }
           }
@@ -362,9 +382,6 @@
             }
           }
           this.attributes = attributesObj
-          // 数据填充完后, 让父组件再缓存一下数据
-          // this.$bus.$emit('cacheAfterDetailFill')
-
           // 自定义属性
           const cusAttributeList = detail.productPropertyList.filter(item => item.attrNameId === -1)
           cusAttributeList.forEach(item => {

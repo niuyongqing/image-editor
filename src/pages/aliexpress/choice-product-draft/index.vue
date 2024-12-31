@@ -266,6 +266,7 @@
                 <a-divider type="vertical" />
                 库存：<span style="color: #9e9f9e">{{ SKUStock(SKU) }}</span>
               </a-row>
+              <a-divider class="my-3" />
             </div>
             <div v-if="record.productSkuList.length > 3">
               <a-button
@@ -325,7 +326,6 @@
 <script>
   import dayjs from 'dayjs'
   import { DEFAULT_TABLE_COLUMN } from './config'
-  import { useAliexpressChoiceProductStore } from '@/stores/aliexpress-choice-product'
   import { copyText } from '@/utils'
   import { accountCacheApi } from '../apis/common'
   import { draftListApi, createBatchApi, delDraftApi } from '../apis/choice-product-draft'
@@ -340,7 +340,6 @@
     data() {
       return {
         dayjs,
-        store: useAliexpressChoiceProductStore(),
         EmptyImg,
         accountList: [],
         // 被 watch 监听的搜索表单; 外层, 点击即可搜索
@@ -539,11 +538,8 @@
         })
       },
       edit(record) {
-        this.store.$patch(state => {
-          state.sellerId = record.sellerId
-          state.isEdit = true
-          state.productDetail = record
-        })
+        const query = `?draftId=${record.draftId}`
+        window.open(location.origin + '/platform/aliexpress/choice-product-publish' + query)
       },
       publish(record) {
         const params = {
