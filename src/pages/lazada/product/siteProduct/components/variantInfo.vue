@@ -108,6 +108,7 @@
         <SpecialDateModal ref="specialDateModalRef" @success="specialDateSuccess"></SpecialDateModal>
         <WeightModal ref="weightModalRef" @success="weightSuccess"></WeightModal>
         <PackageModal ref="packageModalRef" @success="packageSuccess"></PackageModal>
+
     </div>
 </template>
 
@@ -488,6 +489,8 @@ const delRow = (index) => {
     tableData.value.splice(index, 1);
     EventBus.emit('delRow', tableData.value);
 };
+
+
 
 onMounted(() => {
     EventBus.on('changeCheckedList', () => {

@@ -17,7 +17,7 @@
                     </a-button>
                     <template #overlay>
                         <a-menu>
-                            <a-menu-item @click="syncProduct">
+                            <a-menu-item @click="selectNowProduct">
                                 引用现有产品
                             </a-menu-item>
                         </a-menu>
@@ -50,7 +50,7 @@
                     </a-button>
                     <template #overlay>
                         <a-menu>
-                            <a-menu-item @click="syncProduct">
+                            <a-menu-item @click="selectNowProduct">
                                 引用现有产品
                             </a-menu-item>
                         </a-menu>
@@ -65,9 +65,10 @@
                 </a-button>
             </div>
         </div>
-
     </div>
 
+    <!-- 选择资料库产品 弹窗 -->
+    <SelectProduct ref="selectProductRef" @save="handleSave"> </SelectProduct>
 </template>
 
 <script setup>
@@ -80,6 +81,7 @@ import VariantInfo from './components/variantInfo.vue';
 import Variant from './components/variant.vue';
 import VariantImage from './components/variantImage.vue';
 import Description from './components/description.vue';
+import SelectProduct from '@/components/selectProduct/index.vue';
 
 const baseInfoEl = useTemplateRef('baseInfoRef');
 const productInfoEl = useTemplateRef('productInfoRef');
@@ -89,10 +91,11 @@ const variantEl = useTemplateRef('variantRef');
 const variantInfoEl = useTemplateRef('variantInfoRef');
 const variantImageEl = useTemplateRef('variantImageRef');
 const descriptionEl = useTemplateRef('descriptionRef');
+const selectProductEl = useTemplateRef('selectProductRef');// 选择资料库产品 弹窗
 
 // 引用现有产品
-const syncProduct = () => {
-
+const selectNowProduct = () => {
+    selectProductEl.value.openModal();
 };
 
 //  验证校验
@@ -114,6 +117,12 @@ const validateAll = async () => {
     //     return;
     // }
 };
+
+
+//  使用资料库产品
+const handleSave = (product) => {
+    console.log('product', product);
+}
 
 // 保存
 const save = () => {

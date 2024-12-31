@@ -37,7 +37,7 @@
             </template>
             <template #depId="{ record }">
                 <a-cascader :value="findParentAndMerge(record.depId, depOptions)" :options="depOptions" :disabled="true"
-                    :fieldNames="{ label: 'deptName', value: 'deptId' }" clearable>
+                    :fieldNames="{ label: 'deptName', value: 'deptId' }" :allowClear="true">
                 </a-cascader>
             </template>
         </BaseTable>
