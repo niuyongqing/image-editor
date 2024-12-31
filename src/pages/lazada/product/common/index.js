@@ -61,3 +61,6 @@ export function getBase64(file) {
     reader.onerror = (error) => reject(error);
   });
 }
+
+//  获取水印
+export function getWatermarkList() {}

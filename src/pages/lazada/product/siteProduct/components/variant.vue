@@ -123,7 +123,7 @@ import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { message, Modal } from 'ant-design-vue';
 import EventBus from "~/utils/event-bus";
-// defineProps({});
+
 const { state: lazadaAttrsState, setSelectTheme, setSkuTable } = useLadazaAttrs();
 const baseModalEl = useTemplateRef('baseModalRef');
 const modalMethods = ref({});
@@ -131,7 +131,7 @@ const selectThemeList = ref([]); // 选择的变种主题列表
 const themeLabel = ref(''); // 变种主题名称
 const optionName = ref(''); // options label 名称
 const themeLabelEl = useTemplateRef('themeLabelRef');
-const { state, reset } = useReseReactive({
+const { state, reset } = useResetReactive({
     oneCheckedList: undefined,
     twoCheckedList: undefined,
 });
@@ -156,9 +156,16 @@ const disabledTheme = (item) => {
 }
 
 const handleSelectTheme = (item) => {
-    selectThemeList.value.push({ ...item, checkedList: [], isEdit: false, searchValue: '' });
+    selectThemeList.value.push({
+        ...item,
+        options: item.options ? item.options : [],
+        checkedList: [],
+        isEdit: false,
+        searchValue: ''
+    });
     setSelectTheme(selectThemeList.value);
 };
+
 // 添加自定义属性
 const addVariant = () => {
     modalMethods.value.openModal();
@@ -173,7 +180,6 @@ const handleRemove = (item, index) => {
 };
 
 const editSkuLabel = (item) => {
-    console.log('item', item);
     item.isEdit = true;
     themeLabel.value = item.label;
 };

@@ -124,7 +124,7 @@
 
 <script setup>
 import { DownOutlined, DownloadOutlined, UploadOutlined, PlusOutlined, DeleteOutlined } from "@ant-design/icons-vue";
-import { useReseReactive } from '@/composables/reset';
+import { useResetReactive } from '@/composables/reset';
 import { accountCache, categoryTree, getBrandList, uploadImage } from '@/pages/lazada/product/api';
 import EventBus from "~/utils/event-bus";
 import { debounce } from "lodash-es";
@@ -136,7 +136,7 @@ const shortCode = ref('');
 const apiParams = ref({});
 const formEl = useTemplateRef('formRef');
 const primaryCategoryOptions = ref([]); // 分类列表
-const { state } = useReseReactive({
+const { state } = useResetReactive({
     title: undefined,
     brandId: '',
 });

@@ -66,7 +66,7 @@
 <script setup>
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { DeleteOutlined, CheckOutlined } from '@ant-design/icons-vue';
-import { useReseReactive } from '@/composables/reset';
+import { useResetReactive } from '@/composables/reset';
 const props = defineProps({
   shortCode: {
     type: String,
@@ -78,7 +78,7 @@ const props = defineProps({
   }
 });
 
-const { state, reset } = useReseReactive({
+const { state, reset } = useResetReactive({
   imgW: undefined,
   imgH: undefined,
 });

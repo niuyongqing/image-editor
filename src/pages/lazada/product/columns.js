@@ -4,7 +4,7 @@ export const columns = [
     dataIndex: "Images",
     key: "Images",
     slot: "Images",
-    width: 80,
+    width: 90,
   },
 
   {

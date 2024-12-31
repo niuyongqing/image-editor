@@ -126,7 +126,7 @@
 
 <script setup>
 import { DownOutlined } from "@ant-design/icons-vue";
-import { useReseReactive } from '@/composables/reset';
+import { useResetReactive } from '@/composables/reset';
 import { accountCache, categoryTree, getBrandList } from '@/pages/lazada/product/api';
 import EventBus from "~/utils/event-bus";
 import { debounce } from "lodash-es";
@@ -141,7 +141,7 @@ const shortCode = ref('');
 const shortCodes = ref([]); // 店铺列表
 const formEl = useTemplateRef('formRef');
 const primaryCategoryOptions = ref([]); // 分类列表
-const { state } = useReseReactive({
+const { state } = useResetReactive({
     title: undefined,
     brandId: '',
     warranty_type: undefined,
@@ -181,7 +181,7 @@ const sortAttrs = (attrs) => {
         return list
     } else {
         return list.filter(item => {
-            return item.is_mandatory === 1
+            return item.is_mandatory === 1 || item.advanced.is_key_prop === 1
         })
     }
 };

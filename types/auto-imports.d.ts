@@ -261,7 +261,7 @@ declare global {
   const useQueryBreakpoints: typeof import('../src/composables/query-breakpoints.js')['useQueryBreakpoints']
   const useRafFn: typeof import('@vueuse/core')['useRafFn']
   const useRefHistory: typeof import('@vueuse/core')['useRefHistory']
-  const useReseReactive: typeof import('../src/composables/reset.js')['useReseReactive']
+  const useResetReactive: typeof import('../src/composables/reset.js')['useResetReactive']
   const useResizeObserver: typeof import('@vueuse/core')['useResizeObserver']
   const useRoute: typeof import('vue-router')['useRoute']
   const useRouter: typeof import('vue-router')['useRouter']

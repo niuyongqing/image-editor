@@ -15,10 +15,18 @@
                     </a-select>
                 </a-form-item>
                 <a-form-item label="分类:" name="primaryCategory" :rules="[{ required: true, message: '请选择分类' }]">
+
                     <a-cascader class="flex w-full justify-start" v-model:value="state.primaryCategory"
                         :options="primaryCategoryOptions" placeholder="请先选择店铺" allowClear
                         :fieldNames="{ label: 'name', value: 'categoryId', children: 'children' }"
-                        @change="changePrimaryCategory" />
+                        @change="changePrimaryCategory">
+                        <template #notFoundContent>
+                            <div w-full h-300px flex items-center justify-center m-auto>
+                                <a-spin :spinning="true" tip="正在加载中..." m-auto>
+                                </a-spin>
+                            </div>
+                        </template>
+                    </a-cascader>
                 </a-form-item>
             </a-form>
         </a-card>
@@ -27,7 +35,7 @@
 
 <script setup>
 import { DownOutlined } from "@ant-design/icons-vue";
-import { useReseReactive } from '@/composables/reset';
+import { useResetReactive } from '@/composables/reset';
 import { accountCache, categoryTree, categoryAttributesApi } from '@/pages/lazada/product/api';
 import EventBus from "~/utils/event-bus";
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
@@ -35,9 +43,10 @@ import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 const { state: lazadaAttrsState, setShortCode, setPrimaryCategory, setLazadaAttrs, setLoading } = useLadazaAttrs();
 const shortCodes = ref([]); // 店铺列表
 const formEl = useTemplateRef('formRef');
+const primaryCategoryLoading = ref(false);
 const primaryCategoryOptions = ref([]); // 分类列表
 const attributes = ref([]); // 分类 属性列表
-const { state } = useReseReactive({
+const { state } = useResetReactive({
     shortCode: undefined,
     primaryCategory: undefined,
 });
@@ -54,8 +63,10 @@ async function getShortCodes() {
 };
 
 async function getCategorys() {
+    primaryCategoryLoading.value = true;
     const categoryTreeRes = await categoryTree({ shortCode: state.shortCode });
     if (categoryTreeRes.code === 200) {
+        primaryCategoryLoading.value = false;
         primaryCategoryOptions.value = categoryTreeRes.data || [];
     };
 };

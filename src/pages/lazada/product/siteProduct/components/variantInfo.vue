@@ -8,7 +8,7 @@
                 <template #headerCell="{ title, column }">
                     <template v-if="column.dataIndex === 'sellerSKU'">
                         <div> <span class="required"> * </span> {{ title }} </div>
-                        <div> ( <a-button type="link" @click="generateSKU(column)"> 一键生成 </a-button> ) </div>
+                        <div> ( <a-button type="link" @click="generateSKU()"> 一键生成 </a-button> ) </div>
                     </template>
                     <!-- 主题1 -->
                     <template v-for="item in selectTheme" :key="item.name">
@@ -16,27 +16,30 @@
                             {{ title }}
                         </div>
                     </template>
-                    <!-- 主题2 -->
                     <template v-if="column.dataIndex === 'stock'">
                         <div> <span class="required"> * </span> {{ title }} </div>
-                        <div> ( <a-button type="link" @click="generateSKU(column)"> 批量 </a-button> ) </div>
+                        <div> ( <a-button type="link" @click="batchStock()"> 批量 </a-button> ) </div>
                     </template>
 
                     <template v-if="column.dataIndex === 'price'">
                         <div> <span class="required"> * </span> {{ title }} </div>
-                        <div> ( <a-button type="link" @click="generateSKU(column)"> 批量 </a-button> ) </div>
+                        <div> ( <a-button type="link" @click="batchPrice()"> 批量 </a-button> ) </div>
                     </template>
                     <template v-if="column.dataIndex === 'specialPrice'">
                         <div> {{ title }} </div>
-                        <div> ( <a-button type="link" @click="generateSKU(column)"> 批量 </a-button> ) </div>
+                        <div> ( <a-button type="link" @click="batchSpecialPrice()"> 批量 </a-button> ) </div>
                     </template>
                     <template v-if="column.dataIndex === 'specialDate'">
                         <div> {{ title }} </div>
-                        <div> ( <a-button type="link" @click="generateSKU(column)"> 批量 </a-button> ) </div>
+                        <div> ( <a-button type="link" @click="batchSpecialDate()"> 批量 </a-button> ) </div>
                     </template>
-
-                    <template v-if="column.dataIndex === 'name'">
-                        <div> {{ title }} </div>
+                    <template v-if="column.dataIndex === 'package_weight'">
+                        <div> <span v-if="weightRequired" class="required"> * </span> {{ title }} </div>
+                        <div> ( <a-button type="link" @click="batchWeight()"> 批量 </a-button> ) </div>
+                    </template>
+                    <template v-if="column.dataIndex === 'package'">
+                        <div> <span v-if="packageRequired" class="required"> * </span> {{ title }} </div>
+                        <div> ( <a-button type="link" @click="batchPackage()"> 批量 </a-button> ) </div>
                     </template>
                 </template>
 
@@ -51,25 +54,40 @@
 
                     <template v-if="column.dataIndex === 'stock'">
                         <div> stock: {{ record.stock }} </div>
-                        <a-input-number :controls="false" :precision="0" v-model:value="record.stock"
+                        <a-input-number :controls="false" :precision="0" :min="0" v-model:value="record.stock"
                             placeholder="请输入库存" style="width: 80%;" />
                     </template>
 
                     <template v-if="column.dataIndex === 'price'">
                         <div> price: {{ record.price }} </div>
-                        <a-input-number :controls="false" :precision="0" v-model:value="record.price"
+                        <a-input-number :controls="false" :precision="2" :min="0.01" v-model:value="record.price"
                             placeholder="请输入价格" style="width: 80%;" />
                     </template>
 
                     <template v-if="column.dataIndex === 'specialPrice'">
                         <div> specialPrice: {{ record.specialPrice }} </div>
-                        <a-input-number :controls="false" :precision="0" v-model:value="record.specialPrice"
-                            placeholder="请输入促销价" style="width: 80%;" />
+                        <a-input-number :controls="false" :precision="0" v-model:value="record.specialPrice" :min="0.01"
+                            :max="record.price" placeholder="请输入促销价" style="width: 80%;" />
                     </template>
 
                     <template v-if="column.dataIndex === 'specialDate'">
                         <div> specialDate: {{ record.specialDate }} </div>
-                        <a-range-picker v-model:value="record.specialDate" style="width: 80%;" />
+                        <a-range-picker v-model:value="record.specialDate" :format="dateFormat" style="width: 80%;" />
+                    </template>
+                    <template v-if="column.dataIndex === 'package_weight'">
+                        <div> package_weight: {{ record.packageWeight }} </div>
+                        <a-input-number :controls="false" :precision="0" v-model:value="record.packageWeight"
+                            :min="0.001" :max="20" placeholder="请输入重量" style="width: 80%;" />
+                    </template>
+
+                    <template v-if="column.dataIndex === 'package'">
+                        <div> package: </div>
+                        <a-input-number v-model:value="record.packageLength" :min="0.01" :max="110" :precision="2"
+                            placeholder="长"></a-input-number>
+                        <a-input-number v-model:value="record.packageWidth" :min="0.01" :max="110" :precision="2"
+                            placeholder="宽"></a-input-number>
+                        <a-input-number v-model:value="record.packageHeight" :min="0.01" :max="110" :precision="2"
+                            placeholder="高"></a-input-number>
                     </template>
 
                     <template v-if="column.dataIndex === 'action'">
@@ -82,6 +100,14 @@
                 <p> [共 <span color="#000"> {{ tableData.length }} </span> 个变种] </p>
             </div>
         </a-card>
+
+        <GenerateModal ref="generateModalRef" @success="success"></GenerateModal>
+        <StockModal ref="stockModalRef" @success="stockSuccess"></StockModal>
+        <PriceModal ref="priceModalRef" @success="priceSuccess"></PriceModal>
+        <SpecialPriceModal ref="specialPriceModalRef" @success="specialPriceSuccess"></SpecialPriceModal>
+        <SpecialDateModal ref="specialDateModalRef" @success="specialDateSuccess"></SpecialDateModal>
+        <WeightModal ref="weightModalRef" @success="weightSuccess"></WeightModal>
+        <PackageModal ref="packageModalRef" @success="packageSuccess"></PackageModal>
     </div>
 </template>
 
@@ -90,16 +116,99 @@ import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { message } from 'ant-design-vue';
 import EventBus from "~/utils/event-bus";
+import GenerateModal from './batchModal/generateModal.vue';
+import StockModal from './batchModal/stockModal.vue';
+import PriceModal from './batchModal/priceModal.vue';
+import SpecialPriceModal from './batchModal/specialPriceModal.vue';
+import SpecialDateModal from './batchModal/specialDateModal.vue';
+import WeightModal from './batchModal/weightModal.vue';
+import PackageModal from "./batchModal/packageModal.vue";
 
 const { state: lazadaAttrsState, setSkuTable } = useLadazaAttrs();
+const skus = ref([]); // 属性中所有的 SKU
 
 const theme = reactive({
     themeOne: [],
     themeTwo: [],
-}); // 主题
+});
+const generateModalEl = useTemplateRef('generateModalRef'); // 批量生成弹窗
+const stockModalEl = useTemplateRef('stockModalRef'); // 批量库存弹窗
+const priceModalEl = useTemplateRef('priceModalRef');
+const specialPriceModalEl = useTemplateRef('specialPriceModalRef'); // 批量促销价格弹窗
+const specialDateModalEl = useTemplateRef('specialDateModalRef');
+const weightModalEl = useTemplateRef('weightModalRef');
+const packageModalEl = useTemplateRef('packageModalRef');
+
 const tableData = ref([]);
-const { selectTheme, skuAttrs, } = toRefs(lazadaAttrsState);
+const { selectTheme, skuAttrs, attributes } = toRefs(lazadaAttrsState);
+
+let baseColumns = [
+    {
+        title: 'SKU',
+        dataIndex: 'sellerSKU',
+        align: 'center',
+    },
+    {
+        title: '库存',
+        dataIndex: 'stock',
+        align: 'center',
+    },
+    {
+        title: '价格',
+        dataIndex: 'price',
+        align: 'center',
+    },
+    {
+        title: '促销价',
+        dataIndex: 'specialPrice',
+        align: 'center',
+    },
+    {
+        title: '促销时间',
+        dataIndex: 'specialDate',
+        align: 'center',
+    },
+    {
+        title: '操作',
+        dataIndex: 'action',
+        align: 'center',
+        width: '120px'
+    },
+];
+
 const columns = computed(() => {
+    const names = selectTheme.value.map((item) => {
+        return item.name
+    });
+
+    // 是否包含重量 包装重量范围需在0.001-20之间 ---  包装尺寸范围需在0.01-110之间
+    const isWeight = attributes.value.some(item => item.name === 'package_weight');
+    const isHeight = attributes.value.some(item => item.name === 'package_height');
+    const isWidth = attributes.value.some(item => item.name === 'package_width');
+    const isLength = attributes.value.some(item => item.name === 'package_length');
+
+    const skusType = attributes.value.filter(item => item.attribute_type === 'sku');
+    skus.value = skusType;
+    const weightColumns = () => {
+        return isWeight ? [
+            {
+                title: '重量（kg）',
+                dataIndex: 'package_weight',
+                align: 'center',
+            },
+        ] : []
+    };
+
+    const packageColumns = () => {
+        return isHeight && isWidth && isLength ? [
+            {
+                title: '尺寸（cm）',
+                dataIndex: 'package',
+                align: 'center',
+            },
+        ] : []
+    };
+
     const themeColumns = selectTheme.value.map((item) => {
         return {
             title: item.label,
@@ -138,6 +247,8 @@ const columns = computed(() => {
                     dataIndex: 'specialDate',
                     align: 'center',
                 },
+                ...weightColumns(),
+                ...packageColumns(),
                 {
                     title: '操作',
                     dataIndex: 'action',
@@ -146,45 +257,23 @@ const columns = computed(() => {
                 },
             ];
         } else {
-            return baseColumns = [
-                {
-                    title: 'SKU',
-                    dataIndex: 'sellerSKU',
-                    align: 'center',
-                },
-                {
-                    title: '库存',
-                    dataIndex: 'stock',
-                    align: 'center',
-                },
-                {
-                    title: '价格',
-                    dataIndex: 'price',
-                    align: 'center',
-                },
-                {
-                    title: '促销价',
-                    dataIndex: 'specialPrice',
-                    align: 'center',
-                },
-                {
-                    title: '促销时间',
-                    dataIndex: 'specialDate',
-                    align: 'center',
-                },
-                {
-                    title: '操作',
-                    dataIndex: 'action',
-                    align: 'center',
-                    width: '120px'
-                },
-            ];
+            return baseColumns
         }
     };
     getColumns();
     return [
         ...baseColumns,
     ];
+});
+
+const weightRequired = computed(() => {
+    return attributes.value.some(item => item.name === 'package_weight')
+});
+const packageRequired = computed(() => {
+    const isHeight = attributes.value.some(item => item.name === 'package_height');
+    const isWidth = attributes.value.some(item => item.name === 'package_width');
+    const isLength = attributes.value.some(item => item.name === 'package_length');
+    return isHeight && isWidth && isLength
 });
 
 const generateTable = () => {
@@ -235,9 +324,165 @@ watch(() => tableData.value, (newVal) => {
 
 // 一键生成
 const generateSKU = (column) => {
-
+    generateModalEl.value.open()
 };
 //  批量
+const success = (formData) => {
+    const nameOne = lazadaAttrsState.selectTheme[0].name;
+    let nameTwo = '';
+    if (lazadaAttrsState.selectTheme.length === 2) {
+        nameTwo = lazadaAttrsState.selectTheme[1].name ?? '';
+    }
+    tableData.value.forEach((item) => {
+        item.sellerSKU = formData.prefix + '-' + item[nameOne] + '-' + `${nameTwo ? item[nameTwo] : ''}` + '-' + formData.suffix;
+    })
+};
+//  批量修改库存
+const batchStock = () => {
+    stockModalEl.value.open()
+};
+
+const stockSuccess = (evt) => {
+    const setRuleNum = evt.setRuleNum ?? 0;
+    tableData.value.forEach((item) => {
+        if (evt.radio === 1) {
+            item.stock = evt.setNum;
+        } else if (evt.radio === 2) {
+            const currentStock = Number(item.stock ?? 0);
+            switch (evt.stockRule) {
+                case 1:
+                    item.stock = currentStock + setRuleNum;
+                    break;
+                case 2:
+                    item.stock = currentStock - setRuleNum;
+                    break;
+                case 3:
+                    item.stock = currentStock * setRuleNum;
+                    break;
+                default:
+                    break;
+            }
+        }
+    });
+};
+//  批量修改价格
+const batchPrice = (evt) => {
+    priceModalEl.value.open()
+};
+const priceSuccess = (evt) => {
+    const setRuleNum = evt.setRuleNum ?? 0;
+
+    tableData.value.forEach((item) => {
+        if (evt.radio === 1) {
+            item.price = evt.setNum;
+        } else if (evt.radio === 2) {
+            const currentPrice = Number(item.price ?? 0);
+            switch (evt.stockRule) {
+                case 1:
+                    item.price = currentPrice + setRuleNum;
+                    break;
+                case 2:
+                    item.price = currentPrice - setRuleNum;
+                    break;
+                case 3:
+                    item.price = currentPrice * setRuleNum;
+                    break;
+                case 4:
+                    item.price = currentPrice / setRuleNum;
+                    break;
+                default:
+                    break;
+            }
+        }
+    });
+};
+// 批量修改促销价
+const batchSpecialPrice = () => {
+    specialPriceModalEl.value.open();
+};
+const specialPriceSuccess = (evt) => {
+    const setRuleNum = evt.setRuleNum ?? 0;
+
+    tableData.value.forEach((item) => {
+        if (evt.radio === 1) {
+            item.specialPrice = evt.setNum;
+        } else if (evt.radio === 2) {
+            const currentPrice = Number(item.specialPrice ?? 0);
+            switch (evt.stockRule) {
+                case 1:
+                    item.specialPrice = currentPrice + setRuleNum;
+                    break;
+                case 2:
+                    item.specialPrice = currentPrice - setRuleNum;
+                    break;
+                case 3:
+                    item.specialPrice = currentPrice * setRuleNum;
+                    break;
+                case 4:
+                    item.specialPrice = currentPrice / setRuleNum;
+                    break;
+                default:
+                    break;
+            }
+        }
+    });
+};
+
+// 批量修改促销时间
+const batchSpecialDate = () => {
+    specialDateModalEl.value.open();
+}
+
+// 批量重修过尺寸
+const specialDateSuccess = (evt) => {
+    tableData.value.forEach((item) => {
+        item.specialDate = evt
+    })
+};
+
+const batchWeight = () => {
+    weightModalEl.value.open();
+};
+
+const weightSuccess = (evt) => {
+    const setRuleNum = evt.setRuleNum ?? 0;
+
+    tableData.value.forEach((item) => {
+        if (evt.radio === 1) {
+            item.packageWeight = evt.setNum;
+        } else if (evt.radio === 2) {
+            const currentWeight = Number(item.packageWeight ?? 0);
+            switch (evt.stockRule) {
+                case 1:
+                    item.packageWeight = currentWeight + setRuleNum;
+                    break;
+                case 2:
+                    item.packageWeight = currentWeight - setRuleNum;
+                    break;
+                case 3:
+                    item.packageWeight = currentWeight * setRuleNum;
+                    break;
+                case 4:
+                    item.packageWeight = currentWeight / setRuleNum;
+                    break;
+                default:
+                    break;
+            }
+        }
+    });
+};
+
+const batchPackage = () => {
+    packageModalEl.value.open();
+};
+const packageSuccess = (evt) => {
+    tableData.value.forEach((item) => {
+        item.packageLength = evt.packageLength;
+        item.packageWidth = evt.packageWidth;
+        item.packageHeight = evt.packageHeight;
+    })
+};
+
 // 移除SKU
 const delRow = (index) => {
     tableData.value.splice(index, 1);

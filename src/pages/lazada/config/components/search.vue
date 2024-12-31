@@ -28,7 +28,7 @@
 </template>
 
 <script setup>
-import { useReseReactive } from '@/composables/reset';
+import { useResetReactive } from '@/composables/reset';
 import { getAccountUser, getUserDep } from '../api'
 import { debounce } from 'lodash-es';
 const { depOptions } = defineProps({
@@ -43,7 +43,7 @@ const userIdSelction = reactive({
     data: [],
     searchLoading: false
 });
-const { state, reset } = useReseReactive({
+const { state, reset } = useResetReactive({
     userId: undefined,
     platform: undefined
 });

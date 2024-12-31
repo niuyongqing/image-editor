@@ -32,7 +32,7 @@
 
                                     </template>
                                     <template #skuInfo>
-                                        {{ `【${index}/8】图片 ` }}
+                                        {{ `【${item.fileList.length}/8】图片 ` }}
                                     </template>
                                 </SkuDragUpload>
                             </div>

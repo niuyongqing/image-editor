@@ -84,10 +84,10 @@
 </template>
 
 <script setup>
-import { useReseReactive } from '@/composables/reset';
+import { useResetReactive } from '@/composables/reset';
 import dayjs from 'dayjs';
 const dateFormat = 'YYYY/MM/DD';
-const { state, reset } = useReseReactive({
+const { state, reset } = useResetReactive({
     site: undefined,
     price: undefined,
     priceEnd: undefined,

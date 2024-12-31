@@ -6,7 +6,7 @@ function defaultClone(value) {
   return _.cloneDeep(value);
 }
 // 可以重置的reactive
-export function useReseReactive(value) {
+export function useResetReactive(value) {
   const state = reactive(defaultClone(value));
   const reset = () => {
     Object.keys(state).forEach((key) => delete state[key]);

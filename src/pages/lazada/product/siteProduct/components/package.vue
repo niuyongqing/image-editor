@@ -24,14 +24,14 @@
 
 <script setup>
 import { DownOutlined } from "@ant-design/icons-vue";
-import { useReseReactive } from '@/composables/reset';
+import { useResetReactive } from '@/composables/reset';
 import { accountCache, categoryTree, getBrandList } from '@/pages/lazada/product/api';
 import EventBus from "~/utils/event-bus";
 import { message } from "ant-design-vue";
 const shortCode = ref('');
 const formEl = useTemplateRef('formRef');
 const { state: lazadaAttrsState } = useLadazaAttrs();
-const { state } = useReseReactive({
+const { state } = useResetReactive({
     taxClass: 'default', // 税
     packageContent: '',
 });
