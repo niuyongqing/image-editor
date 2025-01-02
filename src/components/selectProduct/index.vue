@@ -112,7 +112,6 @@ const handleCancel = () => {
 
 // 搜索
 const handleSearch = (formData) => {
-    console.log('formData ->>>', formData);
     baseTablEl.value.search(formData);
 };
 
@@ -230,12 +229,6 @@ const sheepProhibition1 = (row) => {
 
     return tag;
 };
-// 分页、排序、筛选变化时触发
-const handleTableChange = (pagination, filters, sorter, { action, currentDataSource }) => {
-    console.log('pagination ->>>', pagination, filters, sorter, { action, currentDataSource });
-
-};
-
 
 defineExpose({ openModal });
 
