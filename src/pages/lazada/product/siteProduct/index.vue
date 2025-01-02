@@ -81,6 +81,7 @@ import Variant from './components/variant.vue';
 import VariantImage from './components/variantImage.vue';
 import Description from './components/description.vue';
 import SelectProduct from '@/components/selectProduct/index.vue';
+import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 
 const baseInfoEl = useTemplateRef('baseInfoRef');
 const productInfoEl = useTemplateRef('productInfoRef');
@@ -92,6 +93,7 @@ const variantImageEl = useTemplateRef('variantImageRef');
 const descriptionEl = useTemplateRef('descriptionRef');
 const selectProductEl = useTemplateRef('selectProductRef');// 选择资料库产品 弹窗
 
+const { setProduct } = useLadazaAttrs();
 const product = ref({});
 // 引用现有产品
 const selectNowProduct = () => {
@@ -120,10 +122,10 @@ const validateAll = async () => {
 
 
 //  使用资料库产品
-const handleSelect = (product) => {
-    console.log('product', product);
-    product.value = product;
-}
+const handleSelect = (productData) => {
+    product.value = productData;
+    setProduct(productData);
+};
 
 // 保存
 const save = () => {

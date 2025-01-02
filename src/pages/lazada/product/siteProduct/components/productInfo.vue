@@ -143,7 +143,7 @@ const formEl = useTemplateRef('formRef');
 const primaryCategoryOptions = ref([]); // 分类列表
 const { state } = useResetReactive({
     title: undefined,
-    brandId: '',
+    brandId: undefined,
     warranty_type: undefined,
     warranty: undefined,
 });
@@ -205,19 +205,30 @@ const validateForm = async () => {
 defineExpose({
     validateForm
 });
+//  产品资料库回显
+watch(() => lazadaAttrsState.product, (newValue) => {
+    if (newValue && JSON.stringify(newValue) !== '{}') {
+        console.log('newValue', newValue);
+        state.title = newValue.tradeName; // 产品标题
+
+        //lazada 资料库数据回显 to do ...
+    }
+});
 
 onMounted(() => {
     EventBus.on('shortCodeEmit', (code) => {
         console.log('接受到的shortCode -->>', code);
         shortCode.value = code;
+        brandIdSelction.brandId = undefined;
         getBrandList({ brandName: '', shortCode: code }).then(res => {
             if (res.code === 200) {
                 brandIdSelction.data = res.data || [];
                 //  品牌设置默认 No Brand
                 const brandItem = brandIdSelction.data.find((item) => {
-                    return item.nameEn === item.brandId
+                    return item.nameEn === 'No Brand'
                 });
-                brandIdSelction.brandId = brandItem ? brandItem.brandId : '';
+                brandIdSelction.brandId = brandItem ? brandItem.brandId : undefined;
+                state.brandId = brandIdSelction.brandId;
             }
         }).finally(() => {
             brandIdSelction.searchLoading = false;

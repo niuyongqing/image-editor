@@ -61,6 +61,28 @@ export function getBase64(file) {
     reader.onerror = (error) => reject(error);
   });
 }
+// 获取树形结构所有节点的key
+function getChildrenKeys(nodeKe, list) {
+  const keys = [];
+  const treeData = list || unref(treeDataRef);
+  const { key: keyField, children: childrenField } = unref(getFieldNames);
+  if (!childrenField || !keyField) return keys;
+  for (let index = 0; index < treeData.length; index++) {
+    const node = treeData[index];
+    const children = node[childrenField];
+    if (nodeKey === node[keyField]) {
+      keys.push(node[keyField]);
+      if (children && children.length) {
+        keys.push(...getAllKeys(children));
+      }
+    } else {
+      if (children && children.length) {
+        keys.push(...getChildrenKeys(nodeKey, children));
+      }
+    }
+  }
+  return keys;
+}
 
 //  获取水印
 export function getWatermarkList() {}

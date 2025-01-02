@@ -15,10 +15,9 @@
                     </a-select>
                 </a-form-item>
                 <a-form-item label="分类:" name="primaryCategory" :rules="[{ required: true, message: '请选择分类' }]">
-
                     <a-cascader class="flex w-full justify-start" v-model:value="state.primaryCategory"
                         :options="primaryCategoryOptions" placeholder="请先选择店铺" allowClear
-                        :fieldNames="{ label: 'name', value: 'categoryId', children: 'children' }"
+                        :fieldNames="{ label: 'name2', value: 'categoryId', children: 'children' }"
                         @change="changePrimaryCategory">
                         <template #notFoundContent>
                             <div w-full h-300px flex items-center justify-center m-auto>
@@ -67,7 +66,20 @@ async function getCategorys() {
     const categoryTreeRes = await categoryTree({ shortCode: state.shortCode });
     if (categoryTreeRes.code === 200) {
         primaryCategoryLoading.value = false;
-        primaryCategoryOptions.value = categoryTreeRes.data || [];
+        const data = categoryTreeRes.data || [];
+        function treeToArr(arr) {
+            arr.forEach(item => {
+                item.name2 = item.name + ' ( ' + item.translateName + ' )'
+                if (item.children && item.children.length > 0) {
+                    treeToArr(item.children)
+                }
+                if (!item.children || item.children.length === 0) {
+                    delete item.children
+                }
+            })
+            return arr
+        };
+        primaryCategoryOptions.value = treeToArr(data)
     };
 };
 
@@ -103,8 +115,8 @@ const changePrimaryCategory = (value) => {
 // 分类校验
 async function validateCodeRule() {
     return await formEl.value.validateFields(['primaryCategory']);
-
 };
+
 // 表单校验
 async function validateForm() {
     return new Promise((resolve, reject) => {

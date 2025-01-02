@@ -17,6 +17,7 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
     taxOptions: [], // 税率属性、
     skuTable: [], // sku表格数据
     loading: false, // 加载状态
+    product: {}, // 选择资料库产品信息
   });
   const setShortCode = (shortCode = "") => {
     state.shortCode = shortCode;
@@ -33,7 +34,6 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
 
   const setSkuTable = (skuTable = []) => {
     state.skuTable = skuTable;
-    console.log("skuTable", state.skuTable);
   };
 
   const setLazadaAttrs = (attributes = []) => {
@@ -89,6 +89,10 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
     setLoading(false);
   };
 
+  const setProduct = (data = {}) => {
+    state.product = data;
+  };
+
   // 重置
   const reset = () => {
     state.shortCode = "";
@@ -103,6 +107,7 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
     state.taxOptions = [];
     state.skuTable = [];
     state.loading = false;
+    state.product = {};
   };
   return {
     state,
@@ -112,6 +117,7 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
     setLoading,
     setSkuTable,
     setLazadaAttrs,
+    setProduct,
     reset,
   };
 });
