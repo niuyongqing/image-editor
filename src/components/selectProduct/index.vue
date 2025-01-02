@@ -94,8 +94,9 @@ import { useSelectProduct } from './useSelectProduct';
 import devAttributableMarketRevert from "@/utils/devAttributableMarketRevert";
 const { forbidSaleList } = useSelectProduct();
 const initSearchParam = { order: "", prop: "" };
-
 const baseTablEl = useTemplateRef('baseTableRef');
+const emits = defineEmits(['select']);
+
 const visible = ref(true);
 const openModal = () => {
     visible.value = true;
@@ -117,7 +118,8 @@ const handleSearch = (formData) => {
 
 
 const handleSelect = (record) => {
-    console.log('record ->>>', record);
+    emits('select', record);
+    visible.value = false;
 };
 
 const artMainImageSrc = (record) => {
