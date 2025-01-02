@@ -97,7 +97,7 @@ const initSearchParam = { order: "", prop: "" };
 const baseTablEl = useTemplateRef('baseTableRef');
 const emits = defineEmits(['select']);
 
-const visible = ref(true);
+const visible = ref(false);
 const openModal = () => {
     visible.value = true;
 };

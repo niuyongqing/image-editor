@@ -65,8 +65,8 @@
                 </a-button>
             </div>
         </div>
-    <!-- 选择资料库产品 弹窗 -->
-    <SelectProduct ref="selectProductRef" @save="handleSave"> </SelectProduct>
+        <!-- 选择资料库产品 弹窗 -->
+        <SelectProduct ref="selectProductRef" @select="handleSelect"> </SelectProduct>
     </div>
 </template>
 
@@ -92,6 +92,7 @@ const variantImageEl = useTemplateRef('variantImageRef');
 const descriptionEl = useTemplateRef('descriptionRef');
 const selectProductEl = useTemplateRef('selectProductRef');// 选择资料库产品 弹窗
 
+const product = ref({});
 // 引用现有产品
 const selectNowProduct = () => {
     selectProductEl.value.openModal();
@@ -119,8 +120,9 @@ const validateAll = async () => {
 
 
 //  使用资料库产品
-const handleSave = (product) => {
+const handleSelect = (product) => {
     console.log('product', product);
+    product.value = product;
 }
 
 // 保存
