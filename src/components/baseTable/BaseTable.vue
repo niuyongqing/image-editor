@@ -16,7 +16,7 @@
                                 v-if="showRightPagination" v-model:pageSize="pagination.pageSize"
                                 :total="pagination.total" show-size-changer show-quick-jumper
                                 :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
-                                @change="handleChange" />
+                                @change="handleChangePagination" />
                         </a-space>
                     </div>
                 </div>
@@ -26,9 +26,8 @@
                         showQuickJumper: true,
                         showSizeChanger: true,
                         showTotal: (total, range) => `第${range[0]}-${range[1]}条, 共${total}条`
-                    }" @change="handleChange" v-model:current="pagination[pageField]"
-                    v-model:pageSize="pagination.pageSize" ellipsis bordered
-                    :scroll="{ y: tableHeight, x: '100%', virtual: true }">
+                    }" v-model:current="pagination[pageField]" v-model:pageSize="pagination.pageSize" ellipsis bordered
+                    :scroll="{ y: tableHeight, x: '100%', virtual: true }" @change="handleChange">
                     <template #headerCell="{ column }">
                         <slot v-if="column.headerCell" name="headerCell" :column="column"></slot>
                     </template>
@@ -48,7 +47,7 @@ import { computed, h, nextTick, watch } from 'vue';
 import { EyeOutlined, UndoOutlined, SettingOutlined } from '@ant-design/icons-vue';
 import { useTable } from './useTable';
 import { omit } from 'lodash';
-const { columns, api, rowKey, dropAble, showRightPagination, initSearchParam, pageField } = defineProps({
+const { columns, api, rowKey, dropAble, showRightPagination, initSearchParam, pageField, tableHeightOffset } = defineProps({
     columns: {
         type: Array,
         default: () => []
@@ -82,14 +81,19 @@ const { columns, api, rowKey, dropAble, showRightPagination, initSearchParam, pa
     immediate: {
         type: Boolean,
         default: true
+    },
+    // 表格高度偏移量
+    tableHeightOffset: {
+        type: Number,
+        default: 70
     }
 });
-const { tableData, pagination, loading, handleChange, getTableList, updatedTotalParam, setLoading, search, reload } = useTable(api, initSearchParam, pageField);
+const { tableData, pagination, loading, handleChange, getTableList, updatedTotalParam, setLoading, search, reload, handleChangePagination } = useTable(api, initSearchParam, pageField);
 const tableHeight = ref(0); // 表格高度
 const tableContainer = ref(null);
 const setTableHeight = () => {
     if (tableContainer.value) {
-        tableHeight.value = window.innerHeight - tableContainer.value.getBoundingClientRect().top - 70; // 偏移量可根据需求调整
+        tableHeight.value = window.innerHeight - tableContainer.value.getBoundingClientRect().top - tableHeightOffset; // 偏移量可根据需求调整
     }
 };
 onMounted(() => {

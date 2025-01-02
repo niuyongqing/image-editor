@@ -1,20 +1,22 @@
 import commodityTypeList from "@/utils/commodityType";
-import { storeStatus } from "@/utils/devStatusSelect";
+import { storeStatus, meansKeepGrains } from "@/utils/devStatusSelect";
 import sheepProhibitionSelect from "@/utils/sheepProhibitionSelect";
-//  获取禁售属性
-function forbidSaleApi() {
-  return useGet("/commodity-manage/commodity/means-public/forbid-sale");
-}
-
+import devAttributableMarketRevertSelect from "@/utils/devAttributableMarketRevertSelect";
+import { forbidSaleApi } from "@/api/common/selectProduct";
 export const useSelectProduct = () => {
-  console.log("commodityTypeList", commodityTypeList);
-
   const forbidSaleList = ref([]);
 
+  // 获取禁售属性
   function getForbidSale() {
     forbidSaleApi().then((res) => {
       if (res.code === 200) {
-        forbidSaleList.value = res.data || [];
+        const data = res.data || [];
+        forbidSaleList.value = data.map((item) => {
+          return {
+            ...item,
+            disabled: false,
+          };
+        });
       }
     });
   }
@@ -27,7 +29,8 @@ export const useSelectProduct = () => {
     commodityTypeList,
     storeStatus,
     sheepProhibitionSelect,
-
     forbidSaleList,
+    meansKeepGrains,
+    devAttributableMarketRevertSelect,
   };
 };

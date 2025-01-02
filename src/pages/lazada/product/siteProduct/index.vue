@@ -65,10 +65,9 @@
                 </a-button>
             </div>
         </div>
-    </div>
-
     <!-- 选择资料库产品 弹窗 -->
     <SelectProduct ref="selectProductRef" @save="handleSave"> </SelectProduct>
+    </div>
 </template>
 
 <script setup>

@@ -59,6 +59,8 @@ export const useTable = (
     // 更新查询参数
     setLoading(true);
     updatedTotalParam();
+    console.log("state.totalParam", state.totalParam);
+
     return new Promise((resolve, reject) => {
       apiUrl(state.totalParam)
         .then((res) => {
@@ -82,13 +84,7 @@ export const useTable = (
     state.totalParam = {};
     let nowSearchParam = {};
     for (let key in state.searchParam) {
-      if (
-        state.searchParam[key] ||
-        state.searchParam[key] === false ||
-        state.searchParam[key] === 0
-      ) {
-        nowSearchParam[key] = state.searchParam[key];
-      }
+      nowSearchParam[key] = state.searchParam[key];
     }
     Object.assign(
       state.totalParam,
@@ -98,11 +94,25 @@ export const useTable = (
   };
 
   /**
-   * @description 更新分页信息
-   * @param resPageable 后台返回的分页数据
+   * @description 分页、排序、筛选变化时触发
    * */
-  const handleChange = (resPageable) => {
-    Object.assign(state.pagination, resPageable);
+  const handleChange = (pagination, filters, sorter) => {
+    state.pagination[pageField] = pagination.current;
+    state.pagination.pageSize = pagination.pageSize;
+    if (sorter && JSON.stringify(sorter) !== "{}") {
+      state.searchParam["prop"] = sorter.column["sortField"] ?? ""; // 排序字段
+      state.searchParam["order"] =
+        sorter.order === "ascend" ? "ascending" : "descending"; // 排序字段
+    }
+    getTableList();
+  };
+
+  /**
+   * @description 分页改变时触发
+   *  */
+  const handleChangePagination = (page, pageSize) => {
+    state.pagination[pageField] = page;
+    state.pagination.pageSize = pageSize;
     getTableList();
   };
 
@@ -170,5 +180,6 @@ export const useTable = (
     reload,
     handleSizeChange,
     handleCurrentChange,
+    handleChangePagination,
   };
 };
