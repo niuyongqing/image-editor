@@ -32,7 +32,7 @@
       default: () => ({ label: 'label', value: 'value' })
     }
   })
-  const emits = defineEmits(['update:value'])
+  const emits = defineEmits(['update:value', 'change'])
 
   // 渲染的选项数据
   const optionList = computed(() => props.appendAll ? [{ [props.fieldNames.label]: '全部', [props.fieldNames.value]: undefined }, ...props.options] : props.options)
@@ -42,5 +42,6 @@
   function change(i) {
     curIndex.value = i
     emits('update:value', optionList.value[i][props.fieldNames.value])
+    emits('change', optionList.value[i][props.fieldNames.value])
   }
 </script>

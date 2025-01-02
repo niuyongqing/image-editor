@@ -52,3 +52,13 @@ export function validateJson(data) {
     data: data
   })
 }
+
+// table接口
+// 获取商品列表
+export function getList(data) {
+  let params = getParamsFn(data)
+  return request({
+    url: '/platform-amazon/platform/amazon/product/list' + params,
+    method: 'get',
+  })
+}
