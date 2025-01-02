@@ -49,7 +49,7 @@ async function out() {
     message.success('退出登录成功', 3)
     router
       .push({
-        path: '/login'
+        path: '/platform/login'
       })
       .then(() => {
         useMultiTab().clear()
