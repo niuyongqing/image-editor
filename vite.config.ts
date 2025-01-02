@@ -93,6 +93,7 @@ export default ({ mode }: ConfigEnv): UserConfig => {
     },
     server: {
       port: 80,
+      open: true,
       proxy: {
         ...proxyObj,
         [env.VITE_APP_BASE_API]: {

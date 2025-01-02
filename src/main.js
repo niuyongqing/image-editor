@@ -9,11 +9,15 @@ import {
   setupAccessDirective,
   setupLoadingDirective,
 } from './directive/index.js'
+import quillFullScreen from './directive/quill-full-screen.js'
 import router from '~/router'
 import '~/router/router-guard'
 import 'ant-design-vue/dist/reset.css'
 import '~/assets/styles/reset.css'
 import 'uno.css'
+
+import Antd from 'ant-design-vue';
+import 'ant-design-vue/dist/reset.css';
 import STable from '@surely-vue/table';
 
 const pinia = createPinia()
@@ -27,7 +31,9 @@ async function start() {
   app.directive('has-role', hasRole)
   app.directive('checkPermi', checkPermi)
   app.directive('checkRole', checkRole)
+  app.directive('quillFullScreen', quillFullScreen)
   app.use(STable);
+  app.use(Antd)
   app.mount('#app')
   app.config.performance = true
   app.config.errorHandler = (err, vm, info) => {

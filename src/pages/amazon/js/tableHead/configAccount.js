@@ -1,0 +1,41 @@
+export default [
+  {
+    title: '用户',
+    dataIndex: 'userName',
+    key: 'userName',
+    align:"center",
+    sortable:false,
+    show:true,
+    width:'380',
+    filter:false,
+  },
+  {
+    title: '平台',
+    dataIndex: 'platform',
+    key: 'platform',
+    align:"center",
+    sortable:false,
+    width:'280',
+    show:true,
+    filter:false,
+  },
+  {
+    title: '店铺',
+    dataIndex: 'shopName',
+    key: 'shopName',
+    align:"center",
+    sortable:false,
+    show:true,
+    filter:false,
+  },
+  {
+    title: '部门信息',
+    dataIndex: 'depId',
+    key: 'depId',
+    align:"center",
+    sortable:false,
+    width:'280',
+    show:true,
+    filter:false,
+  }
+]
