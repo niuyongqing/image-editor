@@ -3,14 +3,14 @@ import router from '~/router'
 import { useMetaTitle } from '~/composables/meta-title'
 import { setRouteEmitter } from '~@/utils/route-listener'
 
-const allowList = ['/login', '/error', '/401', '/404', '/403']
-const loginPath = '/login'
+const allowList = ['/platform/login', '/platform/error', '/platform/401', '/platform/404', '/platform/403']
+const loginPath = '/platform/login'
 router.beforeEach(async (to, _, next) => {
   setRouteEmitter(to)
   const userStore = useUserStore()
   const token = useAuthorization()
   if (!token.value) {
-    if (!allowList.includes(to.path) && !to.path.startsWith('/redirect')) {
+    if (!allowList.includes(to.path) && !to.path.startsWith('/platform/redirect')) {
       next({
         path: loginPath,
         query: {
@@ -21,7 +21,7 @@ router.beforeEach(async (to, _, next) => {
     }
   }
   else {
-    if (!userStore.userInfo && !allowList.includes(to.path) && !to.path.startsWith('/redirect')) {
+    if (!userStore.userInfo && !allowList.includes(to.path) && !to.path.startsWith('/platform/redirect')) {
       try {
         await userStore.getUserInfo()
         if (userStore.userInfo === undefined) {
@@ -45,7 +45,7 @@ router.beforeEach(async (to, _, next) => {
       catch (e) {
         if (e instanceof AxiosError && e?.response?.status === 500) {
           next({
-            path: '/401',
+            path: '/platform/401',
           })
         }
       }
@@ -53,7 +53,7 @@ router.beforeEach(async (to, _, next) => {
     else {
       if (to.path === loginPath) {
         next({
-          path: '/',
+          path: '/platform/',
         })
         return
       }

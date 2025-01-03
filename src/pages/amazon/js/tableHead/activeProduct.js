@@ -1,0 +1,41 @@
+export default [
+  {
+    title: '图片/标题',
+    dataIndex: 'info',
+    key: 'info',
+    align:"center",
+    sortable:false,
+    show:true,
+    width:'380',
+    filter:false,
+  },
+  {
+    title: 'SKU信息',
+    dataIndex: 'sku',
+    key: 'platform',
+    align:"center",
+    sortable:false,
+    width:'280',
+    show:true,
+    filter:false,
+  },
+  {
+    title: '状态',
+    dataIndex: 'state',
+    key: 'state',
+    align:"center",
+    sortable:false,
+    show:true,
+    filter:false,
+  },
+  {
+    title: '库存/价格',
+    dataIndex: 'price',
+    key: 'price',
+    align:"center",
+    sortable:false,
+    width:'280',
+    show:true,
+    filter:false,
+  }
+]

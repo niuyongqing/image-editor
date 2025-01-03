@@ -108,7 +108,7 @@ async function submit() {
         <div class="ant-pro-form-login-top">
           <div class="ant-pro-form-login-header">
             <span class="ant-pro-form-login-logo">
-              <img src="/160x160.ico">
+              <img src="/platform/160x160.ico">
             </span>
             <span class="ant-pro-form-login-title">
               Xin Zhan

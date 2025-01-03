@@ -51,7 +51,7 @@ const showLogo = computed(() => {
 })
 
 const gotoSetting = () =>{
-  router.push("/setting")
+  router.push("/platform/setting")
 }
 
 async function out(){
@@ -63,7 +63,7 @@ async function out(){
     hide()
     message.success('退出登录成功', 3)
     router.push({
-      path: '/login',
+      path: '/platform/login',
     }).then(() => {
       multiTabStore.clear()
       layoutMenuStore.clear()

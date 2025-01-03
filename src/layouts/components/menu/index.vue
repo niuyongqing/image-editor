@@ -186,8 +186,8 @@ function showMenuFunc() {
         @select="handleMenuSelect"
     >
       <template v-for="item in selectedMenus">
-          <div v-if="!item.hideInMenu">
-            <div :class="['menu', { hovered: data.id? item.id === data.id:false }]" @mouseenter="() => mouseEnter(item)">
+          <div v-if="!item.hideInMenu" :key="item.id">
+            <div :class="['menu', { hovered: data.id? item.id === data.id:false }]" @click="() => mouseEnter(item)">
               <AsyncIcon :icon="item.icon" style="height: 45px;display: flex;justify-content: center;align-items: center;" size="20px"/>
               <div style="width: 100%;height: 20px;display: flex;align-items: flex-start;justify-content: center;">{{ renderTitle(item.title) }}</div>
             </div>
