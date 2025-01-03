@@ -84,5 +84,13 @@ function getChildrenKeys(nodeKe, list) {
   return keys;
 }
 
+//  去除重复
+export function unique(key, list) {
+  let uni1 = list.map((item) => [item[key], item]);
+  let uni2 = new Map(uni1);
+  let uni3 = Array.from(uni2.values());
+  return uni3;
+}
+
 //  获取水印
 export function getWatermarkList() {}

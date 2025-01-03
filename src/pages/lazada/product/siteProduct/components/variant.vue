@@ -24,6 +24,7 @@
                     </div>
                 </a-form-item>
             </a-form>
+            {{ selectThemeList }}
             <a-card v-for="(item, index) in selectThemeList" :key="item.name" class="mt-10px">
                 <template #title>
                     <div flex items-center>
@@ -123,8 +124,9 @@ import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { message, Modal } from 'ant-design-vue';
 import EventBus from "~/utils/event-bus";
-
-const { state: lazadaAttrsState, setSelectTheme, setSkuTable } = useLadazaAttrs();
+import { skuList } from '@/pages/lazada/product/api';
+import { unique } from '@/pages/lazada/product/common';
+const { state: lazadaAttrsState, setSelectTheme, setSkuTable, setProductSkus } = useLadazaAttrs();
 const baseModalEl = useTemplateRef('baseModalRef');
 const modalMethods = ref({});
 const selectThemeList = ref([]); // 选择的变种主题列表
@@ -239,7 +241,6 @@ const handleAddOther = (item) => {
         setSelectTheme(selectThemeList.value);
     };
     item.otherValue = '';
-
     changeCheckedList(item);
 };
 
@@ -285,8 +286,6 @@ watch(() => lazadaAttrsState.primaryCategory, (newVal) => {
     deep: true,
     immediate: true
 });
-
-
 const submit = () => {
     if (!customTheme.value) return;
     const findItem = lazadaAttrsState.skuAttrs.find((item) => {
@@ -316,7 +315,6 @@ const submit = () => {
     customTheme.value = '';
     modalMethods.value.closeModal();
 };
-
 
 onMounted(() => {
     EventBus.on('delRow', (tableData) => {
@@ -349,6 +347,67 @@ onMounted(() => {
         };
 
     });
+});
+
+
+
+//  产品资料库回显
+watch(() => lazadaAttrsState.product, (newValue) => {
+    if (newValue && JSON.stringify(newValue) !== '{}') {
+        skuList({ id: newValue.commodityId }).then((res) => {
+            const data = res.data || [];
+            const skus = data.map((item) => {
+                const detail = JSON.parse(item.detail);
+                return {
+                    ...item,
+                    detail: detail,
+                };
+            });
+            console.log('skus', skus);
+            setProductSkus(skus); // 设置产品sku
+            let detailAttrs = skus.map((item) => {
+                return {
+                    en_name: item.detail.attr,
+                    name: item.detail.attr
+                }
+            });
+            const colorFamilyItem = lazadaAttrsState.skuAttrs.find((item) => item.name === "color_family");
+            if (colorFamilyItem) {
+                const list = [...colorFamilyItem.options, ...detailAttrs];
+                const uni3 = unique('en_name', list); // 去重
+                colorFamilyItem.options = uni3;
+                colorFamilyItem.skuOptions = uni3;
+                colorFamilyItem.checkedList = detailAttrs.map((item) => item.en_name);
+                selectThemeList.value = [colorFamilyItem]; // 更新selectThemeList
+
+            } else {
+                if (lazadaAttrsState.skuAttrs.length) {
+                    const list = [...colorFamilyItem.options, ...detailAttrs];
+                    const uni3 = unique('en_name', list); // 去重
+                    lazadaAttrsState.skuAttrs[0].options = uni3;
+                    lazadaAttrsState.skuAttrs[0].skuOptions = uni3;
+                    lazadaAttrsState.skuAttrs[0].checkedList = detailAttrs.map((item) => item.en_name);
+
+                    selectThemeList.value = [lazadaAttrsState.skuAttrs[0]]; // 更新selectThemeList
+                } else {
+                    lazadaAttrsState.skuAttrs = [{
+                        label: 'color_family',
+                        name: 'color_family',
+                        is_mandatory: 0,
+                        input_type: 'multiEnumInput',
+                        options: [...detailAttrs],
+                        skuOptions: [...detailAttrs],
+                        checkedList: detailAttrs.map((item) => item.en_name),
+                        isEdit: false,
+                        searchValue: ''
+                    }];
+                    selectThemeList.value = lazadaAttrsState.skuAttrs; // 更新selectThemeList
+                }
+            }
+
+            setSelectTheme(selectThemeList.value); // 设置选择主题
+        });
+    }
 });
 
 onUnmounted(() => {

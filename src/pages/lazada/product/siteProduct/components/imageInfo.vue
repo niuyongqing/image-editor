@@ -5,6 +5,7 @@
             <template #title>
                 <div text-left @click="tab"> 图片信息 </div>
             </template>
+
             <a-form :model="form" :label-col="{ style: { width: '80px' } }" style="margin-left: 100px;" ref="formRef"
                 scrollToFirstError>
                 <a-form-item label="产品图片:" name="fileList" :rules="fileListRules">
@@ -23,7 +24,6 @@
                             </div>
                         </template>
                     </DragUpload>
-
                 </a-form-item>
 
                 <a-form-item label="营销图:" name="promotionWhite">
@@ -57,42 +57,39 @@
                         </p>
                         <div class="flex flex-col w-full justify-start">
                             <div class="flex  w-full justify-start">
-                                <a-upload name="file" :customRequest="customRequestVideo"
-                                    :before-upload="videoBeforeUpload" :headers="headers" accept="video/*"
-                                    :action="actionUrlVideo" :showUploadList="false" :file-list="[]" :maxCount="1"
-                                    :disabled="form.video.url ? true : false">
-                                    <a-button v-if="form.video.url === ''" style=" width: 120px; height: 140px;">
+                                <a-upload name="file" :customRequest="customRequestImg" :before-upload="urlBeforeUpload"
+                                    :headers="headers" accept=".jpg,.png" :action="actionUrl" :showUploadList="false"
+                                    :file-list="videoImageFile" :maxCount="1" :disabled="form.video.img ? true : false">
+                                    <a-button v-if="form.video.img === ''" style="width: 120px; height: 140px;">
                                         <plus-outlined></plus-outlined>
-                                        <p> 上传视频 </p>
+                                        <p> 封面图 </p>
                                     </a-button>
-                                    <div v-else class="productVideoIcon">
-                                        <img src="@/assets/images/productVideoIcon.png" alt="" />
-                                        <div flex justify-end class="del-icon">
-                                            <span @click="videoPreview">播放</span>
-                                            <DeleteOutlined @click="videoDelete">
+                                    <div v-else class="videoImgIcon">
+                                        <a-image :width="120" :src="form.video.img" />
+                                        <div flex justify-end class="del-icon" @click="videoImgDelete">
+                                            <DeleteOutlined>
                                             </DeleteOutlined>
                                         </div>
                                     </div>
                                 </a-upload>
-
                                 <a-form-item-rest>
-                                    <a-upload name="file" :customRequest="customRequestImg"
-                                        :before-upload="urlBeforeUpload" :headers="headers" accept="video/*"
-                                        :action="actionUrl" :showUploadList="false" style="margin-left: 15px;"
-                                        :file-list="[]" :maxCount="1">
-                                        <a-button v-if="form.video.url === ''" style="width: 120px; height: 140px;">
+                                    <a-upload name="file" :customRequest="customRequestVideo"
+                                        :before-upload="videoBeforeUpload" :headers="headers" accept="video/*"
+                                        :action="actionUrlVideo" :showUploadList="false" :file-list="videoFile"
+                                        :maxCount="1" :disabled="form.video.url ? true : false"
+                                        style="margin-left: 15px;">
+                                        <a-button v-if="!form.video.url" style=" width: 120px; height: 140px;">
                                             <plus-outlined></plus-outlined>
-                                            <p> 封面图 </p>
+                                            <p> 上传视频 </p>
                                         </a-button>
-
                                         <div v-else class="productVideoIcon">
                                             <img src="@/assets/images/productVideoIcon.png" alt="" />
                                             <div flex justify-end class="del-icon">
-                                                <DeleteOutlined>
+                                                <span @click="videoPreview">播放</span>
+                                                <DeleteOutlined @click="videoDelete">
                                                 </DeleteOutlined>
                                             </div>
                                         </div>
-
                                     </a-upload>
                                 </a-form-item-rest>
                             </div>
@@ -109,15 +106,18 @@
         </a-card>
 
         <!-- 视频预览 -->
-        <a-modal v-model:open="videoPreviewVisible" :footer="null">
+        <a-modal v-model:open="videoPreviewVisible" :footer="null" width="600px">
             <template #title>
                 <div flex justify-between>
                     <span>视频预览</span>
                 </div>
-                <video controls class="video-file" ref="videoRef">
+            </template>
+            <div flex justify-center>
+                <video controls class="video-file" ref="videoRef" style="width: 400px; height: 400px;">
                     <source :src="form.video.url" type="video/mp4">
                 </video>
-            </template>
+            </div>
+
         </a-modal>
     </div>
 </template>
@@ -125,17 +125,22 @@
 <script setup>
 import { DownOutlined, DownloadOutlined, UploadOutlined, PlusOutlined, DeleteOutlined } from "@ant-design/icons-vue";
 import { useResetReactive } from '@/composables/reset';
-import { accountCache, categoryTree, getBrandList, uploadImage } from '@/pages/lazada/product/api';
+import { accountCache, categoryTree, getBrandList, uploadImage, videoImageUpload, videoUpload } from '@/pages/lazada/product/api';
 import EventBus from "~/utils/event-bus";
 import { debounce } from "lodash-es";
 import { message } from "ant-design-vue";
 import DragUpload from '@/components/dragUpload/index.vue';
 import { saveAs } from 'file-saver';
+
+const { state: lazadaAttrsState } = useLadazaAttrs();
 const videoEl = useTemplateRef('videoRef');
 const shortCode = ref('');
 const apiParams = ref({});
 const formEl = useTemplateRef('formRef');
 const primaryCategoryOptions = ref([]); // 分类列表
+const videoImageFile = ref([]); // 视频封面
+const videoFile = ref([]); // 视频
+
 const { state } = useResetReactive({
     title: undefined,
     brandId: '',
@@ -180,6 +185,12 @@ const headers = computed(() => {
 const videoPreviewVisible = ref(false); // 视频预览
 // 视频上传校验
 const videoBeforeUpload = (file) => {
+    if (!file) return;
+    // coverUrl
+    if (videoImageFile.value.length === 0) {
+        message.error('请先上传封面图');
+        return false;
+    }
     const isMp4 = file.type === 'video/mp4';
     if (!isMp4) {
         message.error('上传视频只能是 MP4 格式!');
@@ -195,9 +206,13 @@ const videoBeforeUpload = (file) => {
 };
 // 封面上传校验
 const urlBeforeUpload = (file) => {
+    if (!lazadaAttrsState.shortCode) {
+        message.error('请先选择店铺');
+        return false;
+    }
     const isImage = file.type.startsWith('image/');
     if (!isImage) {
-        message.error('上传封面图只能是图格式!');
+        message.error('上传封面图只能是图片格式!');
         return false;
     };
     // if (width < 330 || height < 330 || width > 2000 || height > 2000) {
@@ -206,34 +221,55 @@ const urlBeforeUpload = (file) => {
     // }
     return true;
 };
-
-const customRequest = (options) => {
+// 自定义上传封面图
+const customRequestImg = (options) => {
     if (!options.file) return;
     const formData = new FormData();
+    formData.append('shortCode', lazadaAttrsState.shortCode);
     formData.append('file', options.file);
-    uploadImage(formData, options.headers).then(res => {
+    videoImageUpload(formData, options.headers).then(res => {
         if (res.code === 200) {
-            // form.video.img =  import.meta.env.VITE_APP_BASE_API +  + res.data.url;
+            form.video.img = res.url;
+            videoImageFile.value = [{
+                url: res.url,
+                name: res.originalFilename
+            }];
         }
     })
 };
-
+// 删除封面图
+const videoImgDelete = () => {
+    form.video.img = '';
+    videoImageFile.value = [];
+};
 
 // 视频上传
 const customRequestVideo = (options) => {
-    console.log('-》》》》', options);
-
     if (!options.file) return;
+    if (!videoImageFile.value.length) {
+        message.error('请先上传封面图');
+        return;
+    };
+    const formData = new FormData();
+    formData.append('shortCode', lazadaAttrsState.shortCode);
+    formData.append('file', options.file);
+    formData.append('coverUrl', videoImageFile.value[0].url);
+    videoUpload(formData, options.headers).then(res => {
+        if (res.code === 200) {
+            videoFile.value = [{
+                url: res.url,
+                videoId: res.videoId,
+                coverUrl: res.url,
+            }];
+            form.video.url = res.url;
+        }
+    })
 };
 // 删除视频
 const videoDelete = (file) => {
-    console.log('->>.');
     form.video.url = '';
 };
-// 自定义上传封面图
-const customRequestImg = () => {
 
-};
 const handleCancel = () => {
     previewVisible.value = false;
     previewTitle.value = '';
@@ -274,8 +310,25 @@ const validateForm = async () => {
         })
     })
 };
-defineExpose({
-    validateForm
+//  产品资料库回显
+watch(() => lazadaAttrsState.product, (newValue) => {
+    if (newValue && JSON.stringify(newValue) !== '{}') {
+        const artMainImage = JSON.parse(newValue.artMainImage) || [];       // 主图
+        const artAssistantImage = JSON.parse(newValue.artAssistantImage) || [];        // 副图
+        const imgs = [...artMainImage, ...artAssistantImage];
+        // 不能超过8张 取前8张
+        if (imgs.length > 8) {
+            imgs.length = 8;
+        };
+        form.fileList = imgs.map((item, index) => {
+            return {
+                uid: index,
+                name: item.name,
+                status: 'done',
+                url: item.url
+            }
+        });
+    }
 });
 
 onMounted(() => {
@@ -284,6 +337,10 @@ onMounted(() => {
         shortCode.value = code;
         apiParams.value = { shortCode: code }
     });
+});
+
+defineExpose({
+    validateForm
 });
 </script>
 
@@ -303,6 +360,31 @@ onMounted(() => {
     width: 178px;
     height: 178px;
     display: block;
+}
+
+.videoImgIcon {
+    width: 120px;
+    height: 140px;
+    border: 1px solid #cccccc;
+    border-radius: 5px;
+
+    img {
+        width: 100%;
+        height: 115px;
+    }
+
+    .del-icon {
+        border-top: 1px solid #cccccc;
+        display: flex;
+        padding: 0px 5px;
+        align-items: center;
+        color: #428bca;
+
+        span {
+            cursor: pointer;
+        }
+
+    }
 }
 
 .productVideoIcon {

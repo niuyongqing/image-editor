@@ -134,6 +134,7 @@
                 </div>
             </template>
         </BaseTable>
+        <RemarkModal ref="remarkModalRef"></RemarkModal>
     </div>
 </template>
 
@@ -141,20 +142,22 @@
 import { SettingOutlined, EditOutlined, ReloadOutlined, CloudUploadOutlined, DownloadOutlined, DownOutlined } from '@ant-design/icons-vue';
 import { columns } from './columns';
 import { getList, accountCache } from './api';
-import Search from './components/search.vue';
-import TableAction from './components/tableAction.vue';
-import BaseTable from '@/components/baseTable/BaseTable.vue';
 import { useTableSelection } from '@/components/baseTable/useTableSelection';
 import { message } from 'ant-design-vue';
 import { checkPermi, checkRole } from '~@/utils/permission/component/permission';
 import { useClipboard } from '@v-c/utils';
 import { timestampToDateTime } from './common';
-const { copy } = useClipboard();
+import Search from './components/search.vue';
+import TableAction from './components/tableAction.vue';
+import BaseTable from '@/components/baseTable/BaseTable.vue';
+import RemarkModal from './components/remarkModal.vue';
 
+const { copy } = useClipboard();
 const searchFormState = ref({});
 const tableData = ref([]);
 const shortCodes = ref([]);
 const baseTableEl = useTemplateRef('baseTableRef');
+const remarkModalEl = useTemplateRef('remarkModalRef');
 const { singleDisabled, rowSelection, tableRow, clearSelection } = useTableSelection()
 const initSearchParam = {
     prop: "created_time",
@@ -256,7 +259,8 @@ const handleCopyProduct = (record) => {
 };
 //   添加备注
 const handleRemark = (record) => {
-    console.log('record', record);
+    console.log('record', record, remarkModalEl.value);
+    // remarkModalEl.value.open(record);
 };
 
 // const 

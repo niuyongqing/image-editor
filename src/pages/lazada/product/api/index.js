@@ -45,3 +45,22 @@ export function marketImageLazada(params, headers) {
     { headers }
   );
 }
+// 视频的封面图 上传
+export function videoImageUpload(params, headers) {
+  return usePost(
+    "/platform-lazada/platform/lazada/file/upload/video-image",
+    params,
+    { headers }
+  );
+}
+// 视频 上传
+export function videoUpload(params, headers) {
+  return usePost("/platform-lazada/platform/lazada/file/upload/video", params, {
+    headers,
+  });
+}
+
+// sku列表
+export function skuList(data) {
+  return usePost("/commodity-manage/commodity/store/sku/list", data);
+}

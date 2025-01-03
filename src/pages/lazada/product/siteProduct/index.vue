@@ -11,7 +11,8 @@
             </div>
             <div class="flex gap-12px">
                 <a-dropdown>
-                    <a-button type="primary" style="width: 90px; height: 31px;">
+                    <a-button type="primary" style="width: 90px; height: 31px;"
+                        :disabled="lazadaAttrsState.primaryCategory.length ? false : true">
                         引用产品
                         <DownOutlined />
                     </a-button>
@@ -93,7 +94,7 @@ const variantImageEl = useTemplateRef('variantImageRef');
 const descriptionEl = useTemplateRef('descriptionRef');
 const selectProductEl = useTemplateRef('selectProductRef');// 选择资料库产品 弹窗
 
-const { setProduct } = useLadazaAttrs();
+const { state: lazadaAttrsState, setProduct } = useLadazaAttrs();
 const product = ref({});
 // 引用现有产品
 const selectNowProduct = () => {

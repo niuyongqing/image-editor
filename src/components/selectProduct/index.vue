@@ -7,7 +7,7 @@
             <BaseTable ref="baseTableRef" :columns="columns" :api="storeList" :init-search-param="initSearchParam"
                 :tableHeightOffset="150">
                 <template #action="{ record }">
-                    <a-button @click="handleSelect(record)" type="link">选择</a-button>
+                    <a-button @click="handleSelect(record)" type="link">选中</a-button>
                 </template>
 
                 <template #artMainImage="{ record }">
@@ -209,7 +209,6 @@ const meansKeepGrainTag1 = (row) => {
     return meansKeepGrainTag(row)
 };
 const getAttrName = (key) => {
-    console.log('forbidSaleList', forbidSaleList.value);
     let Aname1
     let Aname2;
     if (forbidSaleList.value.length > 0) {

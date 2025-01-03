@@ -18,6 +18,7 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
     skuTable: [], // sku表格数据
     loading: false, // 加载状态
     product: {}, // 选择资料库产品信息
+    productSkus: [], // 选中资料库中产品sku列表
   });
   const setShortCode = (shortCode = "") => {
     state.shortCode = shortCode;
@@ -93,6 +94,10 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
     state.product = data;
   };
 
+  const setProductSkus = (productSkus = []) => {
+    state.productSkus = productSkus;
+  };
+
   // 重置
   const reset = () => {
     state.shortCode = "";
@@ -119,5 +124,6 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
     setLazadaAttrs,
     setProduct,
     reset,
+    setProductSkus,
   };
 });

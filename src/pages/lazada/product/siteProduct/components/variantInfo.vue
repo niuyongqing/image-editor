@@ -45,7 +45,6 @@
 
 
                 <template #bodyCell="{ record, index, column }">
-                    <!-- {{ text }} -{{ record }}- {{ index }} -{{ column }} -->
                     <template v-if="column.dataIndex === 'sellerSKU'">
                         <div> sellerSKU {{ record.sellerSKU }}
                             <a-input v-model:value="record.sellerSKU" placeholder="请输入SKU" />
@@ -309,8 +308,8 @@ const generateTable = () => {
         );
         tableData.value = list.map((item, index) => {
             return {
+                fileList: [],// to do...
                 ...tableData.value[index],
-                fileList: [],
                 ...item,
             }
         })
@@ -319,9 +318,36 @@ const generateTable = () => {
 watch(() => lazadaAttrsState.shortCode, () => {
     tableData.value = [];
 }, { deep: true });
+
+//  产品资料库回显
+watch(() => lazadaAttrsState.productSkus, (newValue) => {
+    console.log('lazadaAttrsState.productSkus', lazadaAttrsState.product);
+    const artSkuImage = lazadaAttrsState.product.artSkuImage ? JSON.parse(lazadaAttrsState.product.artSkuImage) : [];
+    console.log('artSkuImage', artSkuImage);
+    tableData.value = newValue.map((item, index) => {
+        return {
+            sellerSKU: item.skuNumber,
+            stock: item.puYuanNumber ? parseInt(item.puYuanNumber) : 0,
+            price: item.detail.cost ? parseFloat(item.detail.cost) : 0,
+            specialPrice: undefined,
+            specialDate: undefined,
+            packageLength: '',
+            packageWidth: '',
+            packageHeight: '',
+            packageWeight: item.detail.weight ? (parseFloat(item.detail.weight) / 1000) < 0.001 ? 0.001 : (parseFloat(item.detail.weight) / 1000).toFixed(3) : 0,
+            fileList: artSkuImage[index] ? [artSkuImage[index]] : [],
+            [selectTheme.value[0].name]: item.detail.attr,
+        }
+    });
+
+}, {
+    deep: true
+});
+
 watch(() => tableData.value, (newVal) => {
     setSkuTable(newVal);
 }, { deep: true });
+
 
 // 一键生成
 const generateSKU = (column) => {
@@ -489,7 +515,6 @@ const delRow = (index) => {
     tableData.value.splice(index, 1);
     EventBus.emit('delRow', tableData.value);
 };
-
 
 
 onMounted(() => {
