@@ -27,6 +27,7 @@
               v-model:value="lazySearchForm.searchValue"
               :hide-control="['productName'].includes(lazySearchForm.searchKey)"
               :placeholder="placeholderEnum[lazySearchForm.searchKey]"
+              @enter="search"
             />
             <a-button
               type="primary"

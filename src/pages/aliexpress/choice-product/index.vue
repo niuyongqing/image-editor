@@ -27,6 +27,7 @@
               v-model:value="lazySearchForm.searchValue"
               :hide-control="['productName'].includes(lazySearchForm.searchKey)"
               :placeholder="placeholderEnum[lazySearchForm.searchKey]"
+              @enter="search"
             />
             <a-button
               type="primary"
@@ -504,8 +505,8 @@
         ],
         placeholderEnum: {
           productName: '标题',
-          skuCode: '商品编码',
-          productIds: '产品ID; 支持批量，举例：ID1,ID2,ID3'
+          skuCode: '商品编码, 多个SKU间用英文逗号隔开',
+          productIds: '产品ID, 多个ID间用英文逗号隔开'
         },
         productTypeOptions: [
           { label: '国内履约', value: '1' },
@@ -678,7 +679,7 @@
           .then(res => {
             this.accountList = res.data.accountDetail || []
             if (this.accountList.length === 0) {
-              this.$alert('当前账号没有配置店铺, 请前往「账号配置」添加, 或联系管理员', '提示')
+              message.error('当前账号没有配置店铺, 请前往「账号配置」添加, 或联系管理员')
             }
           })
           .finally(() => {
