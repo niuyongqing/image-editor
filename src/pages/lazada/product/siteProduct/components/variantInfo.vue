@@ -473,7 +473,6 @@ const batchWeight = () => {
 
 const weightSuccess = (evt) => {
     const setRuleNum = evt.setRuleNum ?? 0;
-
     tableData.value.forEach((item) => {
         if (evt.radio === 1) {
             item.packageWeight = evt.setNum;
@@ -515,7 +514,6 @@ const delRow = (index) => {
     tableData.value.splice(index, 1);
     EventBus.emit('delRow', tableData.value);
 };
-
 
 onMounted(() => {
     EventBus.on('changeCheckedList', () => {

@@ -35,12 +35,18 @@
                     <div v-html="sortArrey(record.skuList)"></div>
                 </template>
                 <template #meansRelated="{ record }">
-                    <div v-for="(item, index) in meansRelated(record.meansRelated)" :key="index">
-                        {{ item.sku }}
+                    <div v-if="record.meansRelated && JSON.parse(record.meansRelated).length > 0">
+                        <div v-for="(item, index) in meansRelated(record.meansRelated)" :key="index">
+                            <span>
+                                {{ item.sku }}
+                            </span>
+                        </div>
                     </div>
+                    <div v-else> </div>
                 </template>
 
                 <template #status="{ record }">
+                    <span v-if="record.status == 0">-</span>
                     <a-tag v-if="record.status == 1" color="success">已完成</a-tag>
                     <a-tag v-if="record.status == 2" color="warning">已下架</a-tag>
                     <a-tag v-if="record.status == 3" color="error">重拍中</a-tag>
@@ -54,7 +60,7 @@
                 <template #meansKeepGrain="{ record }">
                     <a-tag v-for="tag in meansKeepGrainMap(record.meansKeepGrain)" :key="tag.key" color="processing">{{
                         tag.label
-                        }}</a-tag>
+                    }}</a-tag>
                 </template>
 
                 <template #completeTime="{ record }">
@@ -72,9 +78,9 @@
                 </template>
 
                 <template #meansForbidSite="{ record }">
-                    <a-tag v-for="tag in record.meansForbidSite.split(',')" :key="tag" color="red">{{
+                    <a-tag v-for="tag in meansForbidSiteSplit(record.meansForbidSite)" :key="tag" color="red">{{
                         tagMap(tag)
-                        }}</a-tag>
+                    }}</a-tag>
                 </template>
 
                 <template #meansRemark="{ record }">
@@ -175,10 +181,7 @@ const devAttributableMarket = (record) => {
 };
 // 还原关联商品
 const meansRelated = (meansRelated) => {
-    if (meansRelated) {
-        return JSON.parse(meansRelated);
-    }
-    return '-'
+    return meansRelated ? JSON.parse(meansRelated) : []
 };
 const meansStatusTag1 = (record) => {
     if (record == '' || record == null) {
@@ -235,7 +238,12 @@ const sheepProhibition1 = (row) => {
 
     return tag;
 };
-
+const meansForbidSiteSplit = (list) => {
+    if (list) {
+        return list.split(',');
+    }
+    return [];
+};
 const tagMap = (code) => {
     const tasStatus = {
         "01": "印尼",

@@ -51,6 +51,7 @@ export const columns = [
     title: "同款产品",
     dataIndex: "meansRelated",
     key: "meansRelated",
+    slot: "meansRelated",
     sorter: true,
     sortField: "means_related", // 排序字段
     align: "center",

@@ -349,8 +349,6 @@ onMounted(() => {
     });
 });
 
-
-
 //  产品资料库回显
 watch(() => lazadaAttrsState.product, (newValue) => {
     if (newValue && JSON.stringify(newValue) !== '{}') {
