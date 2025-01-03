@@ -29,6 +29,8 @@
     "@surely-vue/table": "^4.3.13",
     "@v-c/utils": "^0.0.26",
     "@vueuse/core": "^10.11.1",
+    "@wangeditor/editor": "^5.1.23",
+    "@wangeditor/editor-for-vue": "^5.1.12",
     "ant-design-vue": "^4.2.5",
     "antdv-pro": "file:",
     "axios": "^1.7.7",
