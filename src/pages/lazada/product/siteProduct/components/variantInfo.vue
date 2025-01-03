@@ -334,7 +334,7 @@ watch(() => lazadaAttrsState.productSkus, (newValue) => {
             packageLength: '',
             packageWidth: '',
             packageHeight: '',
-            packageWeight: item.detail.weight ? (parseFloat(item.detail.weight) / 1000) < 0.001 ? 0.001 : (parseFloat(item.detail.weight) / 1000).toFixed(3) : 0,
+            packageWeight: item.detail.weight,
             fileList: artSkuImage[index] ? [artSkuImage[index]] : [],
             [selectTheme.value[0].name]: item.detail.attr,
         }

@@ -5,7 +5,7 @@
         <TableAction></TableAction>
 
         <BaseTable ref="baseTableRef" :columns="columns" :api="getList" :init-search-param="initSearchParam" search
-            :row-selection="rowSelection" show-right-pagination>
+            :row-selection="rowSelection" show-right-pagination rowKey="itemId">
             <template #leftBar>
                 <div class="flex">
                     <div v-for="btn in buttons" :key="btn.id" class="ml-10px"
