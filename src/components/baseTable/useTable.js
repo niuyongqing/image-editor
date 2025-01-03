@@ -99,7 +99,7 @@ export const useTable = (
   const handleChange = (pagination, filters, sorter) => {
     state.pagination[pageField] = pagination.current;
     state.pagination.pageSize = pagination.pageSize;
-    if (sorter && JSON.stringify(sorter) !== "{}") {
+    if (sorter && JSON.stringify(sorter) !== "{}" && sorter.column) {
       state.searchParam["prop"] = sorter.column["sortField"] ?? ""; // 排序字段
       state.searchParam["order"] =
         sorter.order === "ascend" ? "ascending" : "descending"; // 排序字段

@@ -24,7 +24,6 @@
                     </div>
                 </a-form-item>
             </a-form>
-            {{ selectThemeList }}
             <a-card v-for="(item, index) in selectThemeList" :key="item.name" class="mt-10px">
                 <template #title>
                     <div flex items-center>

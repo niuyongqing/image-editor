@@ -60,7 +60,7 @@
                 <template #meansKeepGrain="{ record }">
                     <a-tag v-for="tag in meansKeepGrainMap(record.meansKeepGrain)" :key="tag.key" color="processing">{{
                         tag.label
-                    }}</a-tag>
+                        }}</a-tag>
                 </template>
 
                 <template #completeTime="{ record }">
@@ -80,7 +80,7 @@
                 <template #meansForbidSite="{ record }">
                     <a-tag v-for="tag in meansForbidSiteSplit(record.meansForbidSite)" :key="tag" color="red">{{
                         tagMap(tag)
-                    }}</a-tag>
+                        }}</a-tag>
                 </template>
 
                 <template #meansRemark="{ record }">
@@ -268,7 +268,8 @@ const tagMap = (code) => {
 
 const meansKeepGrainMap = (list) => {
     const tagList = [];
-    list.split(',').forEach((v) => {
+    const listSplit = list ? list.split(',') : [];
+    listSplit.forEach((v) => {
         switch (v) {
             case '0':
             case '总仓':
