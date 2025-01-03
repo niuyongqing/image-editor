@@ -23,9 +23,5 @@ export default function (row) {
       } catch (e) {}
     });
   });
-  return (
-    '<span class="el-tag el-tag--success el-tag--mini el-tag--dark el-tag--light">' +
-    classifyTag.join(" / ") +
-    "</span>"
-  );
+  return classifyTag.join(" / ");
 }

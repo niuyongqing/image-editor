@@ -1,39 +1,41 @@
 /**
  * 虾皮禁售标签
  */
-export default function(e) {
+export default function (e) {
   switch (e) {
     case "01":
-      return '<span class="el-tag el-tag--mini el-tag--danger">印尼</span> '
+      return '<a-tag color="red">印尼</a-tag>';
     case "02":
-      return '<span class="el-tag el-tag--mini el-tag--danger">菲律宾</span> '
+      return '<a-tag color="red">菲律宾</a-tag>';
     case "03":
-      return '<span class="el-tag el-tag--mini el-tag--danger">新加坡</span> '
+      return '<a-tag color="red">新加坡</a-tag>';
     case "04":
-      return '<span class="el-tag el-tag--mini el-tag--danger">泰国</span> '
+      return '<a-tag color="red">泰国</a-tag>';
     case "05":
-      return '<span class="el-tag el-tag--mini el-tag--danger">马来西亚</span> '
+      return '<a-tag color="red">马来西亚</a-tag>';
     case "06":
-      return '<span class="el-tag el-tag--mini el-tag--danger">越南</span> '
+      return '<a-tag color="red">越南</a-tag>';
     case "07":
-      return '<span class="el-tag el-tag--mini el-tag--danger">台湾</span> '
+      return '<a-tag color="red">台湾</a-tag>';
     case "08":
-      return '<span class="el-tag el-tag--mini el-tag--danger">巴西</span> '
+      return '<a-tag color="red">巴西</a-tag>';
     case "09":
-      return '<span class="el-tag el-tag--mini el-tag--danger">墨西哥</span> '
+      return '<a-tag color="red">墨西哥</a-tag>';
     case "10":
-      return '<span class="el-tag el-tag--mini el-tag--danger">智利</span>'
+      return '<a-tag color="red">智利</a-tag>';
     case "11":
-      return '<span class="el-tag el-tag--mini el-tag--danger">哥伦比亚</span> '
+      return '<a-tag color="red">哥伦比亚</a-tag>';
     case "12":
-      return '<span class="el-tag el-tag--mini el-tag--danger">波兰</span> '
+      return '<a-tag color="red">波兰</a-tag>';
     case "13":
-      return '<span class="el-tag el-tag--mini el-tag--danger">法国</span> '
+      return '<a-tag color="red">法国</a-tag>';
     case "14":
-      return '<span class="el-tag el-tag--mini el-tag--danger">西班牙</span> '
+      return '<a-tag color="red">西班牙</a-tag>';
     case "99":
-      return '<span class="el-tag el-tag--mini el-tag--danger">全站点</span> '
+      return '<a-tag color="red">全站点</a-tag>';
     case "00":
-      return '<span class="el-tag el-tag--mini el-tag--success">无</span> '
+      return '<a-tag color="green">无</a-tag>';
+    default:
+      return "";
   }
 }

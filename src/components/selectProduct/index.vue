@@ -41,15 +41,20 @@
                 </template>
 
                 <template #status="{ record }">
-                    <span v-html="meansStatusTag1(record.status)"></span>
+                    <a-tag v-if="record.status == 1" color="success">已完成</a-tag>
+                    <a-tag v-if="record.status == 2" color="warning">已下架</a-tag>
+                    <a-tag v-if="record.status == 3" color="error">重拍中</a-tag>
+                    <a-tag v-if="record.status == 4" color="default">待拍照</a-tag>
                 </template>
 
                 <template #classify="{ record }">
-                    <div v-html="classify(record.classify)"></div>
+                    <a-tag color="success">{{ classify(record.classify) }}</a-tag>
                 </template>
 
                 <template #meansKeepGrain="{ record }">
-                    <span v-html="meansKeepGrainTag1(record.meansKeepGrain)"></span>
+                    <a-tag v-for="tag in meansKeepGrainMap(record.meansKeepGrain)" :key="tag.key" color="processing">{{
+                        tag.label
+                        }}</a-tag>
                 </template>
 
                 <template #completeTime="{ record }">
@@ -67,7 +72,9 @@
                 </template>
 
                 <template #meansForbidSite="{ record }">
-                    <span v-html="sheepProhibition1(record.meansForbidSite)"></span>
+                    <a-tag v-for="tag in record.meansForbidSite.split(',')" :key="tag" color="red">{{
+                        tagMap(tag)
+                        }}</a-tag>
                 </template>
 
                 <template #meansRemark="{ record }">
@@ -197,7 +204,7 @@ const devProhibitPlatform = (record) => {
 
 const meansKeepGrainTag1 = (row) => {
     if (row == '' || row == null) {
-        return '-'
+        return ''
     }
     return meansKeepGrainTag(row)
 };
@@ -229,6 +236,63 @@ const sheepProhibition1 = (row) => {
 
     return tag;
 };
+
+const tagMap = (code) => {
+    const tasStatus = {
+        "01": "印尼",
+        "02": "菲律宾",
+        "03": "新加坡",
+        "04": "泰国",
+        "05": "马来西亚",
+        "06": "越南",
+        "07": "台湾",
+        "08": "巴西",
+        "09": "墨西哥",
+        "10": "智利",
+        "11": "哥伦比亚",
+        "12": "波兰",
+        "13": "法国",
+        "14": "西班牙",
+        "99": "全站点",
+        "00": "无",
+    };
+    return tasStatus[code] || '';
+};
+
+const meansKeepGrainMap = (list) => {
+    const tagList = [];
+    list.split(',').forEach((v) => {
+        switch (v) {
+            case '0':
+            case '总仓':
+                tagList.push({ key: v, label: '总仓' });
+                break;
+            case '1':
+            case '馨拓靓仓':
+                tagList.push({ key: v, label: '馨拓靓仓' });
+                break;
+            case '2':
+            case 'PH海外仓':
+                tagList.push({ key: v, label: 'PH海外仓' });
+                break;
+            case '3':
+            case '馨拓美仓':
+                tagList.push({ key: v, label: '馨拓美仓' });
+                break;
+            case '4':
+            case 'TH海外仓':
+                tagList.push({ key: v, label: 'TH海外仓' });
+                break;
+            case '5':
+            case '亚马逊仓':
+                tagList.push({ key: v, label: '亚马逊仓' });
+                break;
+            default:
+                break;
+        }
+    });
+    return tagList;
+}
 
 defineExpose({ openModal });
 

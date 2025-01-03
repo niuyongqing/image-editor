@@ -11,7 +11,7 @@ export default function (row) {
     row.forEach((x) => {
       if (x == v.value) {
         devProhibitPlatformTag +=
-          '<span class="el-tag el-tag--danger el-tag--mini el-tag--dark el-tag--light" style="margin-top: 5px">' +
+          '<span class="ant-tag ant-tag-has-color" style="border-radius: 5px; color: #fff; padding:2px; background-color: #f56c6c">' +
           v.label +
           "</span> ";
       }
