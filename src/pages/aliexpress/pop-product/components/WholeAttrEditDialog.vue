@@ -3,10 +3,11 @@
   <a-modal
     title="修改属性"
     :open="dialogVisible"
-    width="40%"
+    width="45%"
     destroy-on-close
-    :after-close="handleClose"
-    @confirm="handleConfirm"
+    :confirm-loading="submitLoading"
+    @cancel="handleClose"
+    @ok="handleConfirm"
   >
     <div class="whole-attr-edit-dialog">
       <div :class="['left', isAttrExpand && 'expand']">
@@ -19,9 +20,10 @@
             <a-checkbox
               v-model:checked="group.checkAll"
               :indeterminate="group.isIndeterminate"
-              @change="val => handleCheckAllChange(val, i)"
+              @change="e => handleCheckAllChange(e, i)"
               >{{ group.title }}</a-checkbox
             >
+            <br />
             <a-checkbox-group
               v-model:value="group.checkedList"
               class="ml-2"
@@ -62,17 +64,11 @@
               <a-form-item label="结尾添加">
                 <a-input v-model:value="titleForm.padEnd"></a-input>
               </a-form-item>
-              <div style="display: flex">
-                <a-form-item
-                  label="标题中的"
-                  style="flex: 50%"
-                >
+              <div class="replace-item">
+                <a-form-item label="标题中的">
                   <a-input v-model:value="titleForm.textOld"></a-input>
                 </a-form-item>
-                <a-form-item
-                  label="替换为"
-                  style="flex: 50%"
-                >
+                <a-form-item label="替换为">
                   <a-input v-model:value="titleForm.textNew"></a-input>
                 </a-form-item>
               </div>
@@ -127,17 +123,20 @@
                       v-for="item in countries"
                       :key="item.areaCode"
                       :value="item.areaCode"
-                      >{{ item.areaName }}</a-checkbox
                     >
+                      <span class="inline-block w-30 align-middle truncate">{{ item.areaName }}</span>
+                    </a-checkbox>
                   </a-checkbox-group>
                   <a-table
                     :data-source="nationalQuoteTable"
                     :columns="nationalQuoteColumns"
                     bordered
+                    :pagination="false"
+                    :scroll="{ x: true }"
                   >
-                    <template #bodyCell="{ record }">
+                    <template #bodyCell="{ record, column }">
                       <a-input-number
-                        v-model:value="record[item.prop]"
+                        v-model:value="record[column.dataIndex]"
                         :min="-50"
                         :max="9999"
                         :precision="2"
@@ -174,7 +173,7 @@
                 :key="seller.sellerId"
                 :label="seller.simpleName || '--'"
                 :title="seller.simpleName || '--'"
-                class=""
+                class="truncate"
               >
                 <a-select
                   v-model:value="freightTemplateForm[seller.sellerId]"
@@ -198,6 +197,7 @@
 
   export default {
     name: 'WholeAttrEditDialog',
+    components: { DoubleLeftOutlined, DoubleRightOutlined },
     props: {
       dialogVisible: {
         type: Boolean,
@@ -299,8 +299,9 @@
       nationalQuoteColumns() {
         const cols = this.checkedCountries.map(country => {
           return {
-            label: country.areaName,
-            prop: country.areaCode
+            title: country.areaName,
+            dataIndex: country.areaCode,
+            width: 120
           }
         })
 
@@ -390,11 +391,10 @@
         }
       }
     },
-    mounted() {},
     methods: {
       // 属性分组全选
-      handleCheckAllChange(val, i) {
-        this.attrGroupList[i].checkedList = val ? this.attrGroupList[i].attrList.map(attr => attr.value) : []
+      handleCheckAllChange(e, i) {
+        this.attrGroupList[i].checkedList = e.target.checked ? this.attrGroupList[i].attrList.map(attr => attr.value) : []
         this.attrGroupList[i].isIndeterminate = false
       },
       // 属性勾选变动
@@ -410,8 +410,8 @@
           this.countries = res.data || []
         })
       },
-      handleCountriesCheckAllChange(val) {
-        this.checkedCountryList = val ? this.countries.map(item => item.areaCode) : []
+      handleCountriesCheckAllChange(e) {
+        this.checkedCountryList = e.target.checked ? this.countries.map(item => item.areaCode) : []
         this.countriesIsIndeterminate = false
       },
       handleCountriesCheckChange(value) {
@@ -571,7 +571,7 @@
           }
 
           this.submitLoading = false
-          // this.$bus.$emit('refresh')
+          this.$emit('refresh')
         })
         this.handleClose()
       }
@@ -608,6 +608,7 @@
         position: absolute;
         top: 49%;
         font-size: 22px;
+        line-height: 1;
         transition: left 0.6s;
         background-color: #fff;
       }
@@ -618,7 +619,16 @@
         left: 272px;
       }
       &-inner {
-        margin-left: 12px;
+        margin-left: 16px;
+        .ant-card {
+          margin-bottom: 12px;
+        }
+        .replace-item {
+          display: flex;
+          .ant-form-item {
+            flex: 50%;
+          }
+        }
       }
     }
   }

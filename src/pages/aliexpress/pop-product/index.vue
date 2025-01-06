@@ -619,14 +619,15 @@
       @priceAndStockDialogClose="handlePriceAndStockDialogClose"
     />
     <!-- 全属性修改弹窗 -->
-    <!-- <WholeAttrEditDialog
+    <WholeAttrEditDialog
       v-if="wholeAttrEditDialogVisible"
       :dialog-visible="wholeAttrEditDialogVisible"
       :command="command"
-      :accounts="accounts"
+      :accounts="accountList"
       :selected-rows="selectedRows"
+      @refresh="getList"
       @dialogClose="handleWholeAttrEditDialogClose"
-    /> -->
+    />
     <!-- 备注弹窗 -->
     <a-modal
       title="添加备注"
@@ -1170,8 +1171,8 @@
         this.curRow = {}
         this.editPriceAndStockDialogVisible = false
       },
-      handleCommand(command) {
-        this.command = command
+      handleCommand({ key }) {
+        this.command = key
         this.wholeAttrEditDialogVisible = true
       },
       // 关闭全属性修改弹窗
