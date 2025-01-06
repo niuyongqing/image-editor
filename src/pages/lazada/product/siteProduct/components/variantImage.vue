@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="mt-10px" v-show="lazadaAttrsState.skuAttrs.length > 0">
+        <div class="mt-10px" v-show="lazadaAttrsState.skuAttrs.length > 0" id="skuTable">
             <a-card :bordered="true" style="margin: 0 auto; border-radius: 0px">
                 <template #title>
                     <div text-left> 变种图片 </div>
@@ -37,7 +37,6 @@
                                 </SkuDragUpload>
                             </div>
 
-
                         </a-form-item>
                     </a-form>
                 </div>
@@ -49,7 +48,7 @@
 <script setup>
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 import { uploadImage } from '@/pages/lazada/product/api';
-
+import { message } from 'ant-design-vue';
 const { waterList } = defineProps({
     waterList: {
         type: Array,
@@ -77,6 +76,31 @@ const variantInfoTwo = (item) => {
     const name = lazadaAttrsState.selectTheme[1].name;
     return name + '：' + item[name]
 };
+// 校验
+const validateForm = async () => {
+    return new Promise((resolve, reject) => {
+        if (lazadaAttrsState.skuTable.length === 0) {
+            message.warning('变种图片不能为空');
+            document.querySelector('#skuTable')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            reject(false);
+            return
+        };
+        for (let index = 0; index < lazadaAttrsState.skuTable.length; index++) {
+            const item = lazadaAttrsState.skuTable[index];
+            if (!item.fileList.length) {
+                message.warning(`第${index + 1}行图片不能为空`);
+                document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                reject(false)
+                return false;
+            };
+        };
+        resolve(true)
+    })
+};
+
+defineExpose({
+    validateForm
+})
 </script>
 
 <style lang="scss" scoped></style>

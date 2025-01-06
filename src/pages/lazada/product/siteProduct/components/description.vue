@@ -117,9 +117,7 @@ const form = reactive({
 });
 
 watch(() => lazadaAttrsState.product, (newVal) => {
-    console.log('product', newVal);
     if (newVal && JSON.stringify(newVal) !== '{}') {
-
         const richTextList = lazadaAttrsState.attributes.filter((item) => {
             return item.input_type === "richText" && item.is_mandatory === 1;
         });
@@ -127,12 +125,13 @@ watch(() => lazadaAttrsState.product, (newVal) => {
             console.log('item', item);
             form[item.item] = '<ul><li></li><ul>';
         });
-
         form.description = newVal.meansEnglishDescription;
         form.shortDescription = '<ul><li></li><ul>';
-        console.log('form ->>>', form);
-
     }
+});
+
+defineExpose({
+    form
 });
 
 onMounted(() => {

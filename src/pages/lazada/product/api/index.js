@@ -69,3 +69,8 @@ export function skuList(data) {
 export function watermarkList(params) {
   return useGet("/platform-setting/platform/setting/template/watermark/list");
 }
+
+// lazada 添加站点商品
+export function lazadaAdd(data) {
+  return usePost("/platform-lazada/platform/lazada/product/add", data);
+}

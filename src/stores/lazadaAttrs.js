@@ -113,6 +113,7 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
     state.skuTable = [];
     state.loading = false;
     state.product = {};
+    state.productSkus = [];
   };
   return {
     state,

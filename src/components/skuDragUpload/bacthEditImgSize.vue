@@ -11,13 +11,6 @@
             <a-input-number placeholder="高度" v-model:value="state.imgH" addon-after="px" :controls="false"
               :precision="0"></a-input-number>
           </a-form-item>
-          <a-form-item label="选择水印:">
-            <a-select v-model:value="state.watermark" placeholder="请选择水印" style="width: 120px;">
-              <a-select-option v-for="item in watermarkList" :key="item.value" :value="item.value">
-                {{ item.label }}
-              </a-select-option>
-            </a-select>
-          </a-form-item>
         </a-form>
       </div>
 
@@ -61,6 +54,8 @@
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { DeleteOutlined, CheckOutlined } from '@ant-design/icons-vue';
 import { useResetReactive } from '@/composables/reset';
+import { message } from "ant-design-vue";
+
 const props = defineProps({
   shortCode: {
     type: String,
@@ -110,7 +105,10 @@ const handleRemove = (element) => {
 // 点击选中
 const check = (element) => {
   element.checked = !element.checked;
-}
+  const isAllChecked = fileList.value.every(item => item.checked);
+  checkedAll.value = isAllChecked;
+};
+
 defineExpose({
   showModal
 })

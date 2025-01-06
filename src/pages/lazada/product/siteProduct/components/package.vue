@@ -56,17 +56,9 @@ const validateForm = async () => {
     })
 };
 defineExpose({
+    state,
     validateForm
 });
-
-onMounted(() => {
-
-});
-onBeforeUnmount(() => {
-
-});
-
-
 </script>
 
 <style lang="less" scoped>

@@ -45,14 +45,13 @@
                         :options="lazadaAttrsState.warrantyList" :field-names="{ label: 'en_name', value: 'en_name' }">
                     </a-select>
                 </a-form-item>
-
+                <!-- :rules="[{ required: item.is_mandatory === 1, trigger: ['blur'], message: item.is_mandatory === 1 ? '必填项，请填写' : '' }]" -->
                 <a-form-item label="属性: " v-show="lazadaAttrsState.attributes.length > 0">
                     <a-card v-loading="lazadaAttrsState.loading" class="attrs-card">
-                        <a-form :model="productAtrrsform">
+                        <a-form :model="productAtrrsform" ref="attrsFormRef" scrollToFirstError>
                             <a-form-item v-for="item in sortAttrs(lazadaAttrsState.productClassifyAtrrs)"
-                                :key="item.name"
-                                :rules="[{ required: item.is_mandatory === 1, message: item.is_mandatory === 1 ? '必填项，请填写' : '' }]"
-                                :label="item.label" :labelCol="{ span: 3 }" :wrapperCol="{ span: 21 }">
+                                :key="item.name" :name="item.name" :rules="itemRules(item)" :label="item.label"
+                                :labelCol="{ span: 3 }" :wrapperCol="{ span: 21 }">
 
                                 <!-- is_key_prop： 1 时，表示当前属性是项目的 key 属性 -->
                                 <div flex>
@@ -60,49 +59,53 @@
                                         KEY
                                     </a-tag>
 
-                                    <a-input v-if="item.input_type === 'text'" v-model:value="item.value"
-                                        placeholder=""></a-input>
+                                    <a-input v-if="item.input_type === 'text'" v-model:value="item.value" placeholder=""
+                                        allowClear></a-input>
 
                                     <!--  enuminput： 单选和可自定义输入; -->
                                     <a-select v-if="item.input_type === 'enumInput'" v-model:value="item.value"
                                         :field-names="{ label: 'en_name', value: 'en_name' }" placeholder="请选择"
-                                        :options="item.options || []"></a-select>
+                                        :options="item.options || []" allowClear @change="changeValue(item)"></a-select>
 
                                     <!-- 仅支持数字输入 -->
                                     <a-input-number v-if="item.input_type === 'numeric'" v-model:value="item.value"
-                                        style="width: 100%" placeholder=""></a-input-number>
+                                        allowClear style="width: 100%" placeholder=""
+                                        @change="changeValue(item)"></a-input-number>
 
                                     <!-- singleselect 单选不可自定义 -->
                                     <a-select v-if="item.input_type === 'singleSelect'" v-model:value="item.value"
                                         :field-names="{ label: 'en_name', value: 'en_name' }" placeholder="请选择"
-                                        :options="item.options || []"></a-select>
+                                        :options="item.options || []" allowClear @change="changeValue(item)"></a-select>
 
                                     <!-- 多选：多选不可自定义（逗号用于分隔多个选项）; -->
                                     <a-select v-if="item.input_type === 'multiSelect' && item.name != 'Hazmat'"
                                         v-model:value="item.value" mode="multiple" placeholder="请选择"
                                         :options="item.options || []"
-                                        :field-names="{ label: 'en_name', value: 'en_name' }"></a-select>
+                                        :field-names="{ label: 'en_name', value: 'en_name' }" allowClear
+                                        @change="changeValue(item)"></a-select>
 
                                     <!-- date 仅支持日期输入-->
-                                    <a-date-picker v-if="item.input_type === 'date'" v-model:value="item.value" />
+                                    <a-date-picker v-if="item.input_type === 'date'" v-model:value="item.value"
+                                        allowClear />
 
                                     <!-- multiEnumInput -->
                                     <a-select v-if="item.input_type === 'multiEnumInput' && item.name != 'Hazmat'"
                                         v-model:value="item.value" mode="multiple" placeholder="请选择"
                                         :options="item.options || []"
-                                        :field-names="{ label: 'en_name', value: 'en_name' }"></a-select>
+                                        :field-names="{ label: 'en_name', value: 'en_name' }" allowClear
+                                        @change="changeValue(item)"></a-select>
 
                                     <!-- richText 富文本-->
                                     <div v-if="item.input_type === 'richText'"> 富文本 </div>
 
                                     <!-- img 仅支持输入 Lazada 图片链接-->
                                     <a-input v-if="item.input_type === 'imgimg'" v-model:value="item.value"
-                                        placeholder=""></a-input>
+                                        placeholder="" allowClear @change="changeValue(item)"></a-input>
 
                                     <!-- 危险品 -->
                                     <a-checkbox-group v-if="item.name === 'Hazmat'" v-model:value="item.value"
-                                        style="display: flex;" mode="multiple"
-                                        :options="hazmat(item.options) || []"></a-checkbox-group>
+                                        style="display: flex;" mode="multiple" :options="hazmat(item.options) || []"
+                                        @change="changeValue(item)"></a-checkbox-group>
                                 </div>
                             </a-form-item>
                         </a-form>
@@ -134,12 +137,13 @@ import { message } from "ant-design-vue";
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 
 const { state: lazadaAttrsState, } = useLadazaAttrs();
-const productAtrrsform = reactive({})//  产品属性表单
+
 const isExpand = ref(false); // 展开收起
 const attributesLoading = ref(false);
 const shortCode = ref('');
 const shortCodes = ref([]); // 店铺列表
 const formEl = useTemplateRef('formRef');
+const attrsFormEl = useTemplateRef('attrsFormRef');
 const primaryCategoryOptions = ref([]); // 分类列表
 const { state } = useResetReactive({
     title: undefined,
@@ -151,6 +155,16 @@ const brandIdSelction = reactive({
     data: [],
     searchLoading: false
 });
+//  产品属性表单
+const productAtrrsform = reactive({});
+const itemRules = (item) => {
+    return [{ required: item.is_mandatory === 1, trigger: ['change'], message: item.is_mandatory === 1 ? '必填项，请填写' : '' }]
+};
+
+const changeValue = (item) => {
+    productAtrrsform[item.name] = item.value; // 更新表单数据
+};
+
 const search = debounce((value) => {
     if (!value) return;
     if (!shortCode.value) {
@@ -195,16 +209,19 @@ const hazmat = (options) => {
 const validateForm = async () => {
     return new Promise((resolve, reject) => {
         formEl.value.validate().then(() => {
-            resolve(true);
+            attrsFormEl.value.validate().then(() => {
+                resolve(true);
+            }).catch(() => {
+                document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                reject(false);
+            })
         }).catch(() => {
             document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             reject(false);
         })
-    })
+    });
 };
-defineExpose({
-    validateForm
-});
+
 //  产品资料库回显
 watch(() => lazadaAttrsState.product, (newValue) => {
     if (newValue && JSON.stringify(newValue) !== '{}') {
@@ -213,6 +230,11 @@ watch(() => lazadaAttrsState.product, (newValue) => {
 
         //lazada 资料库数据回显 to do ...
     }
+});
+
+defineExpose({
+    state,
+    validateForm
 });
 
 onMounted(() => {

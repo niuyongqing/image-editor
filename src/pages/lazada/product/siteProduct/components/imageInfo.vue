@@ -149,11 +149,6 @@ const formEl = useTemplateRef('formRef');
 const primaryCategoryOptions = ref([]); // 分类列表
 const videoImageFile = ref([]); // 视频封面
 const videoFile = ref([]); // 视频
-
-const { state } = useResetReactive({
-    title: undefined,
-    brandId: '',
-});
 const form = reactive({
     // 产品图片
     fileList: [],
@@ -349,6 +344,7 @@ onMounted(() => {
 });
 
 defineExpose({
+    form,
     validateForm
 });
 </script>

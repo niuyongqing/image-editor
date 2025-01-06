@@ -107,7 +107,6 @@ const changeShortCode = (value) => {
 };
 
 const changePrimaryCategory = (value) => {
-    console.log('changePrimaryCategory', value);
     setPrimaryCategory(value);
     getAttributes(value)
 };
@@ -130,6 +129,7 @@ async function validateForm() {
 }
 
 defineExpose({
+    state,
     validateForm
 });
 

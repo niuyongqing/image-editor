@@ -4,7 +4,7 @@
             <template #title>
                 <div text-left> 变种信息 </div>
             </template>
-            <a-table :columns="columns" :data-source="tableData" bordered :pagination="false">
+            <a-table :columns="columns" :data-source="tableData" bordered :pagination="false" id="tableId">
                 <template #headerCell="{ title, column }">
                     <template v-if="column.dataIndex === 'sellerSKU'">
                         <div> <span class="required"> * </span> {{ title }} </div>
@@ -42,8 +42,6 @@
                         <div> ( <a-button type="link" @click="batchPackage()"> 批量 </a-button> ) </div>
                     </template>
                 </template>
-
-
                 <template #bodyCell="{ record, index, column }">
                     <template v-if="column.dataIndex === 'sellerSKU'">
                         <div> sellerSKU {{ record.sellerSKU }}
@@ -308,7 +306,7 @@ const generateTable = () => {
         );
         tableData.value = list.map((item, index) => {
             return {
-                fileList: [],// to do...
+                fileList: [],
                 ...tableData.value[index],
                 ...item,
             }
@@ -321,9 +319,7 @@ watch(() => lazadaAttrsState.shortCode, () => {
 
 //  产品资料库回显
 watch(() => lazadaAttrsState.productSkus, (newValue) => {
-    console.log('lazadaAttrsState.productSkus', lazadaAttrsState.product);
     const artSkuImage = lazadaAttrsState.product.artSkuImage ? JSON.parse(lazadaAttrsState.product.artSkuImage) : [];
-    console.log('artSkuImage', artSkuImage);
     tableData.value = newValue.map((item, index) => {
         return {
             sellerSKU: item.skuNumber,
@@ -514,6 +510,56 @@ const delRow = (index) => {
     tableData.value.splice(index, 1);
     EventBus.emit('delRow', tableData.value);
 };
+
+const validateForm = () => {
+    return new Promise((resolve, reject) => {
+        if (tableData.value.length === 0) {
+            message.warning('变种参数不能为空');
+            document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            reject(false);
+            return
+        };
+        for (let index = 0; index < tableData.value.length; index++) {
+            const item = tableData.value[index];
+            if (!item.sellerSKU) {
+                message.warning(`第${index + 1}行SKU不能为空`);
+                document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                reject(false)
+                return false;
+            };
+            if (!item.stock) {
+                message.warning(`第${index + 1}行库存不能为空`);
+                document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                reject(false)
+                return false;
+            };
+            if (!item.price) {
+                message.warning(`第${index + 1}行价格不能为空`);
+                document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                reject(false)
+                return false;
+            };
+            if (weightRequired.value && !item.packageWeight) {
+                message.warning(`第${index + 1}行重量不能为空`);
+                document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                reject(false)
+                return false;
+            };
+            if (packageRequired.value && (!item.packageLength || !item.packageWidth || !item.packageHeight)) {
+                message.warning(`第${index + 1}行包装尺寸不能为空`);
+                document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                reject(false);
+                return false;
+            }
+            resolve(true)
+        }
+    })
+};
+
+defineExpose({
+    tableData,
+    validateForm
+});
 
 onMounted(() => {
     EventBus.on('changeCheckedList', () => {
