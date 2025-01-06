@@ -85,7 +85,7 @@ async function submit() {
       description: '欢迎回来！',
       duration: 3,
     })
-    const redirect = getQueryParam('redirect', '/')
+    const redirect = getQueryParam('redirect', '/platform/')
     await router.push({
       path: redirect,
       replace: true,

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://schemas.amazon.com/selling-partners/definitions/product-types/meta-schema/v1",
+  "$schema": "https://schemas.amazon.com/selling-partners/definitions/product-types/meta-schema/v1/#/$defs/language_tag",
   "$id": "https://schemas.amazon.com/selling-partners/definitions/product-types/schema/v1/TOY_VEHICLE_SET",
   "$comment": "Amazon product type definition for TOY_VEHICLE_SET product type",
   "$defs": {
@@ -18383,3 +18383,4 @@
     }
   ]
 }
+
