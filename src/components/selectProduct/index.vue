@@ -67,14 +67,29 @@
                     {{ record.completeTime }}
                 </template>
 
+
+                <template #phSelectionTime="{ record }">
+                    {{ record.selectionTime ? record.selectionTime : record.completeTime }}
+                </template>
+
+
                 <template #devProhibitPlatform="{ record }">
                     <div v-html="devProhibitPlatform(record.devProhibitPlatform)"></div>
                 </template>
-
+                <template #tortType="{ record }">
+                    <div>
+                        <a-tag type="primary" danger v-if="record.tortType ? record.tortType.includes('1') : false"
+                            effect="dark" style="margin-right: 5px">速卖通微侵权
+                        </a-tag>
+                        <a-tag type="primary" danger v-if="record.tortType ? record.tortType.includes('2') : false"
+                            effect="dark">Shopee微侵权
+                        </a-tag>
+                    </div>
+                </template>
                 <template #meansForbidAttribute="{ record }">
-                    {{ record.meansForbidAttribute }}
-                    <!-- <div v-for="(item, index) in record.meansForbidAttribute" :key="index" style="margin-right: 5px;">{{
-                        getAttrName(item) }}</div> -->
+                    <a-tag type="success" v-for="(item, index) in meansForbidAttribute(record.meansForbidAttribute)"
+                        :key="index" style="margin-right: 5px;">{{
+                            getAttrName(item) }}</a-tag>
                 </template>
 
                 <template #meansForbidSite="{ record }">
@@ -105,7 +120,7 @@ import sheepProhibitionSelect from "@/utils/sheepProhibitionSelect";
 import sheepProhibition from "@/utils/sheepProhibition";
 import { useSelectProduct } from './useSelectProduct';
 import devAttributableMarketRevert from "@/utils/devAttributableMarketRevert";
-const { forbidSaleList } = useSelectProduct();
+const { userInfo, forbidSaleList } = useSelectProduct();
 const initSearchParam = { order: "", prop: "" };
 const baseTablEl = useTemplateRef('baseTableRef');
 const emits = defineEmits(['select']);
@@ -128,6 +143,23 @@ const handleSearch = (formData) => {
     baseTablEl.value.search(formData);
 };
 
+function admin() {
+    // return this.$auth.hasRole("admin");
+    const super_admin = "admin";
+    // 获取 Pinia store 实例
+    const userStore = useUserStore()
+    const roles = userStore.roles
+    if (roles && Array.isArray(roles) && roles.length > 0) {
+        const roleFlag = 'admin'
+
+        const hasRole = roles.some(role => {
+            return super_admin === role || roleFlag.includes(role)
+        })
+
+        return hasRole
+    }
+    return false
+};
 
 const handleSelect = (record) => {
     emits('select', record);
@@ -171,7 +203,10 @@ const sortArrey = (e) => {
     }
     return str
 };
-
+// 侵权类型
+const tortTypePer = () => {
+    return userInfo.value.aliexpressTort == 1 || userInfo.value.shopeeTort == 1;
+};
 // 市场方向
 const devAttributableMarket = (record) => {
     if (record == '' || record == null) {
@@ -211,7 +246,13 @@ const meansKeepGrainTag1 = (row) => {
     }
     return meansKeepGrainTag(row)
 };
+const meansForbidAttribute = (str) => {
+    return str ? str.split(',') : []
+};
+
 const getAttrName = (key) => {
+    console.log('key ->>>', key);
+
     let Aname1
     let Aname2;
     if (forbidSaleList.value.length > 0) {
@@ -223,7 +264,9 @@ const getAttrName = (key) => {
         } else {
             Aname2 = ''
         }
-    }
+    };
+    console.log('Aname2', Aname2);
+
     return Aname2
 };
 
@@ -303,6 +346,11 @@ const meansKeepGrainMap = (list) => {
 }
 
 defineExpose({ openModal });
+
+// 
+onMounted(() => {
+
+})
 
 </script>
 
