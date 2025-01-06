@@ -64,3 +64,8 @@ export function videoUpload(params, headers) {
 export function skuList(data) {
   return usePost("/commodity-manage/commodity/store/sku/list", data);
 }
+
+// 水印列表
+export function watermarkList(params) {
+  return useGet("/platform-setting/platform/setting/template/watermark/list");
+}

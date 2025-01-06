@@ -251,8 +251,6 @@ const meansForbidAttribute = (str) => {
 };
 
 const getAttrName = (key) => {
-    console.log('key ->>>', key);
-
     let Aname1
     let Aname2;
     if (forbidSaleList.value.length > 0) {
@@ -265,8 +263,6 @@ const getAttrName = (key) => {
             Aname2 = ''
         }
     };
-    console.log('Aname2', Aname2);
-
     return Aname2
 };
 

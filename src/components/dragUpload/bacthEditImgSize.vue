@@ -1,7 +1,6 @@
 <template>
   <div>
-    <BaseModal @register="register" @close="cancel" title="批量修改图片尺寸" width="1000px">
-
+    <BaseModal @register="register" @close="cancel" title="批量修改图片尺寸" width="1000px" @submit="submit">
       <div>
         <a-form layout="inline" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }" labelAlign="">
           <a-form-item label="宽度:">
@@ -13,29 +12,19 @@
             <a-input-number placeholder="高度" v-model:value="state.imgH" addon-after="px" :controls="false"
               :precision="0"></a-input-number>
           </a-form-item>
-
-
-          <a-form-item label="选择水印:">
-            <a-select v-model:value="state.watermark" placeholder="请选择水印" style="width: 120px;">
-              <a-select-option v-for="item in watermarkList" :key="item.value" :value="item.value">
-                {{ item.label }}
-              </a-select-option>
-            </a-select>
-          </a-form-item>
         </a-form>
-
       </div>
 
       <div mt-10px>
         <a-form-item-rest label="选择水印:">
           <a-checkbox v-model:checked="checkedAll" @change="handleCheckAllChange"> 选择全部</a-checkbox>
         </a-form-item-rest>
-
       </div>
+
       <div class="flex flex-wrap  mt-10px">
         <a-card v-for="element in fileList" :key="element.uid" ml-10px p-0px rounded-none class="file-card" hoverable
           style="width: 125px;">
-          <div :key="element.uid">
+          <div :key="element.url">
             <div class="file-item">
               <div class="file-img">
                 <img :src="element.url" alt="" class="file-img" />
@@ -67,20 +56,23 @@
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { DeleteOutlined, CheckOutlined } from '@ant-design/icons-vue';
 import { useResetReactive } from '@/composables/reset';
+import { scaleApi, watermarkApi } from '@/api/common/water-mark.js';
+import { message } from "ant-design-vue";
+
 const props = defineProps({
   shortCode: {
     type: String,
     default: ""
   },
-  watermarkList: {
+  waterList: {
     type: Array,
     default: () => []
   }
 });
 
 const { state, reset } = useResetReactive({
-  imgW: undefined,
-  imgH: undefined,
+  imgW: 800,
+  imgH: 800,
 });
 
 const fileList = ref([]); // 图片列表
@@ -110,13 +102,56 @@ const cancel = () => {
 };
 
 const handleRemove = (element) => {
-  fileList.value = fileList.value.filter(item => item.uid !== element.uid);
+  fileList.value = fileList.value.filter(item => item.url !== element.url);
 }
 
 // 点击选中
 const check = (element) => {
   element.checked = !element.checked;
-}
+  const isAllChecked = fileList.value.every(item => item.checked);
+  checkedAll.value = isAllChecked;
+
+};
+
+//  点击确定
+const submit = async () => {
+  if (!state.imgW || !state.imgH) {
+    message.error('请选择图片宽高');
+    return
+  }
+  const checkedList = fileList.value.filter(item => item.checked);
+  if (checkedList.length === 0) {
+    message.error('请选择图片');
+    return
+  };
+  const imagePathList = checkedList.map((item) => {
+    return item.url
+  });
+  const scaleRes = await scaleApi({
+    imagePathList: imagePathList,
+    newWidth: state.imgW,
+    newHeight: state.imgH,
+  });
+  if (scaleRes.code === 200) {
+    const data = scaleRes.data || [];
+    data.forEach((item) => {
+      fileList.value.forEach(v => {
+        if (item.originalFilename === v.url) {
+          v.url = item.fileName
+          v.name = item.newFileName
+          v.checked = false
+          v.width = state.imgW
+          v.height = state.imgH
+        }
+      })
+    })
+  };
+
+  checkedAll.value = false;
+  modalMethods.value.closeModal();
+};
+
+
 defineExpose({
   showModal
 })

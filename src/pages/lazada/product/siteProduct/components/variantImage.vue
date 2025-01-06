@@ -10,8 +10,8 @@
                         <a-form-item label="变种图片:">
                             <div class="flex flex-wrap" v-for="(item, index) in lazadaAttrsState.skuTable" :key="index">
                                 <SkuDragUpload :actionUrl="actionUrl" v-model:file-list="item.fileList" :maxCount="8"
-                                    :showUploadList="false" accept=".jpg,.png" :api="uploadImage"
-                                    :apiParams="apiParams">
+                                    :showUploadList="false" accept=".jpg,.png" :api="uploadImage" :apiParams="apiParams"
+                                    :waterList="waterList">
                                     <template #default>
                                         <div flex flex-col w-full justify-start mb-4px text-left>
                                             <p>
@@ -49,6 +49,13 @@
 <script setup>
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 import { uploadImage } from '@/pages/lazada/product/api';
+
+const { waterList } = defineProps({
+    waterList: {
+        type: Array,
+        default: () => []
+    }
+})
 
 const { state: lazadaAttrsState, setSkuTable } = useLadazaAttrs();
 const actionUrl = import.meta.env.VITE_APP_BASE_API + '/platform-lazada/platform/lazada/file/upload/main-image';

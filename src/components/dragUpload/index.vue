@@ -8,7 +8,6 @@
                     选择图片
                 </a-button>
             </a-upload>
-
             <div flex items-center mt-15px v-if="showRightTool">
                 <a-dropdown>
                     <a-button type="link" link style="width: 90px; height: 31px;">
@@ -17,8 +16,8 @@
                     </a-button>
                     <template #overlay>
                         <a-menu>
-                            <a-menu-item v-for="item in 3" :key="item" @click="watermark(item)">
-                                普通水印{{ item }}
+                            <a-menu-item v-for="item in waterList" :key="item.id" @click="watermark(item)">
+                                {{ item.title }}
                             </a-menu-item>
                         </a-menu>
                     </template>
@@ -91,7 +90,7 @@
             </a-modal>
         </div>
         <!-- 批量修改图片尺寸弹窗 -->
-        <BacthEditImgSize ref="BacthEditImgSizeRef" :fileList="fileList" />
+        <BacthEditImgSize ref="BacthEditImgSizeRef" :fileList="fileList" :waterList="waterList" />
     </div>
 </template>
 
@@ -102,8 +101,14 @@ import { useAuthorization } from '~/composables/authorization'
 import { getBase64 } from '@/pages/lazada/product/common'
 import BaseModal from '@/components/baseModal/BaseModal.vue'
 import BacthEditImgSize from './bacthEditImgSize.vue';
-
+import { message } from "ant-design-vue";
+import { watermarkApi } from '@/api/common/water-mark.js';
 const props = defineProps({
+    //  水印列表
+    waterList: {
+        type: Array,
+        required: true
+    },
     actionUrl: {
         type: String,
         default: ''
@@ -230,6 +235,35 @@ const clearAllImages = () => {
 const handleDragEnd = (event) => {
     console.log('拖拽结束', event);
 };
+
+// 点击水印
+const watermark = async (item) => {
+    //  添加水印
+    const imagePathList = fileList.value.map((item) => {
+        return item.url
+    });
+    if (!imagePathList.length) {
+        message.error('请先上传图片');
+        return
+    }
+    const waterRes = await watermarkApi({
+        imagePathList: imagePathList,
+        id: item.id,
+    });
+    if (waterRes.code === 200) {
+        const data = waterRes.data || [];
+        data.forEach((item) => {
+            fileList.value.forEach(v => {
+                if (item.originalFilename === v.url) {
+                    v.url = item.url
+                    v.name = item.newFileName
+                    v.checked = false
+                }
+            })
+        })
+    }
+};
+
 </script>
 
 <style scoped lang="less">

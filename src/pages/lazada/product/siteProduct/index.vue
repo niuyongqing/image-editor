@@ -36,10 +36,10 @@
         <BaseInfo ref="baseInfoRef"></BaseInfo>
         <ProductInfo ref="productInfoRef"></ProductInfo>
         <Package ref="packageRef"></Package>
-        <ImageInfo ref="imageInfoRef"></ImageInfo>
+        <ImageInfo ref="imageInfoRef" :waterList="waterList"></ImageInfo>
         <Variant ref="variantRef"></Variant>
         <VariantInfo ref="variantInfoRef"></VariantInfo>
-        <VariantImage ref="variantImageRef"></VariantImage>
+        <VariantImage ref="variantImageRef" :waterList="waterList"></VariantImage>
         <Description ref="descriptionRef"></Description>
 
         <div w-full flex justify-end mt-10px>
@@ -83,7 +83,9 @@ import VariantImage from './components/variantImage.vue';
 import Description from './components/description.vue';
 import SelectProduct from '@/components/selectProduct/index.vue';
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
+import { watermarkList } from '@/pages/lazada/product/api';
 
+const waterList = ref([]); // 水印列表
 const baseInfoEl = useTemplateRef('baseInfoRef');
 const productInfoEl = useTemplateRef('productInfoRef');
 const packageEl = useTemplateRef('packageRef');
@@ -139,6 +141,19 @@ const publish = () => {
         console.log('校验通过');
     })
 };
+
+// 获取水印
+const getWatermark = () => {
+    watermarkList().then((res) => {
+        if (res.code === 200) {
+            waterList.value = res.data || [];
+        }
+    });
+};
+onMounted(() => {
+    getWatermark()
+})
+
 </script>
 
 <style lang="less" scoped></style>

@@ -10,7 +10,8 @@
                 scrollToFirstError>
                 <a-form-item label="产品图片:" name="fileList" :rules="fileListRules">
                     <DragUpload :actionUrl="actionUrl" v-model:file-list="form.fileList" :maxCount="8"
-                        :showUploadList="false" accept=".jpg,.png" :api="uploadImage" :apiParams="apiParams">
+                        :showUploadList="false" accept=".jpg,.png" :api="uploadImage" :apiParams="apiParams"
+                        :waterList="waterList">
                         <template #default>
                             <div flex flex-col w-full justify-start mb-4px text-left>
                                 <p class="text-#999 mb-1px"> 点击图片拖动，即可调整图片顺序！「图片最多选用 <span class="text-#EC4339">
@@ -29,7 +30,7 @@
                 <a-form-item label="营销图:" name="promotionWhite">
                     <DragUpload :actionUrl="actionUrl" v-model:file-list="form.promotionWhite" :maxCount="1"
                         :showUploadList="false" accept=".jpg,.png" :api="uploadImage" :apiParams="apiParams"
-                        :showRightTool="false">
+                        :showRightTool="false" :waterList="waterList">
                         <template #default>
                             <div flex flex-col w-full justify-start mt-15px text-left mb-5px>
                                 <div flex>
@@ -131,6 +132,14 @@ import { debounce } from "lodash-es";
 import { message } from "ant-design-vue";
 import DragUpload from '@/components/dragUpload/index.vue';
 import { saveAs } from 'file-saver';
+
+
+const { waterList } = defineProps({
+    waterList: {
+        type: Array,
+        default: () => []
+    }
+})
 
 const { state: lazadaAttrsState } = useLadazaAttrs();
 const videoEl = useTemplateRef('videoRef');
