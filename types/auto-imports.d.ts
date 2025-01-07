@@ -128,6 +128,7 @@ declare global {
   const useAccess: typeof import('../src/composables/access.js')['useAccess']
   const useActiveElement: typeof import('@vueuse/core')['useActiveElement']
   const useAliexpressChoiceProductStore: typeof import('../src/stores/aliexpress-choice-product.js')['useAliexpressChoiceProductStore']
+  const useAliexpressPopProductStore: typeof import('../src/stores/aliexpress-pop-product.js')['useAliexpressPopProductStore']
   const useAnimate: typeof import('@vueuse/core')['useAnimate']
   const useAntdToken: typeof import('../src/composables/antd-token.js')['useAntdToken']
   const useAppStore: typeof import('../src/stores/app.js')['useAppStore']
