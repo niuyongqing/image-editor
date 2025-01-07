@@ -68,3 +68,8 @@ export function editSimpleNameBatchApi(params) {
 export function editMeansKeepGrainBatchApi(params) {
   return usePost('/platform-aliexpress/platform/aliexpress/shop/import-meansKeepGrain', params, { headers: { 'Content-Type': 'multipart/form-data' } })
 }
+
+// 修改推送库存
+export function editStockPushApi(params) {
+  return usePost('/platform-aliexpress/platform/aliexpress/shop/edit/stockPush', params)
+}

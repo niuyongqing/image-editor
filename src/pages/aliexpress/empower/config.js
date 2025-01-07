@@ -25,6 +25,14 @@ export const DEFAULT_TABLE_COLUMN = [
     dataIndex: 'autoPublish'
   },
   {
+    title: '是否推送库存',
+    dataIndex: 'isPushStock'
+  },
+  {
+    title: '库存推送比例',
+    dataIndex: 'stockPushRatio'
+  },
+  {
     title: '仓库',
     dataIndex: 'meansKeepGrain'
   },
