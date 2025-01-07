@@ -122,7 +122,7 @@ export const useTable = (
   const search = async (params) => {
     state.pagination[pageField] = 1;
     state.searchParam = params || {};
-    Object.assign(state.searchParam, state.initSearchParam);
+    Object.assign(state.initSearchParam, state.searchParam);
     updatedTotalParam();
     await getTableList();
   };

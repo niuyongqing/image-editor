@@ -129,13 +129,13 @@ const warehouseSetting = () => {
 // 创建“六合一产品”
 const cretateGlobalProduct = () => {
     reset();
-    window.open('/platform/lazada/gobalProduct', '_blank');
+    window.open('/platform/lazada/gobalProduct/add', '_blank');
 };
 
 // 创建站点产品
 const createSiteProduct = () => {
     reset();
-    window.open('/platform/lazada/siteProduct', '_blank');
+    window.open('/platform/lazada/siteProduct/add', '_blank');
 };
 //  同步所有产品
 const syncProduct = () => { }
