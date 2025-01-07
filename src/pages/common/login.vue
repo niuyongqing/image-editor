@@ -119,7 +119,7 @@ onBeforeUnmount(() => {
         >
           <div class="flex-end">
             <span class="ant-pro-form-login-logo">
-              <img w-full h-full object-cover src="/platform/160x160.ico">
+              <img w-full h-full object-cover src="/160x160.ico">
             </span>
             <span class="ant-pro-form-login-title">
               Xin Zhan
