@@ -146,10 +146,8 @@
 
 <script setup>
 import BaseModal from '@/components/baseModal/BaseModal.vue';
-import { addAccount } from '../api';
 import { message } from "ant-design-vue";
 import { getNoFeePriceApi, productUpgrade } from '@/pages/lazada/globalplus/api';
-
 const columns = [
     {
         title: '商家SKU',
@@ -231,16 +229,15 @@ const submit = async () => {
     submitBtnLoading.value = true;
     productUpgrade(data).then(res => {
         if (res.data === true) {
-            // this.$alert('升级成功', '升级', { type: 'success' });
-            // this.$bus.$emit('globalplusList');
-            // this.handleClose()
+            message.success('升级成功');
+            emits('success');
+            modalMethods.value.closeModal();
         }
         else {
-            // this.$alert('升级失败', '升级', { type: 'error' });
+            message.success('升级失败');
         }
     }).finally(() => {
         submitBtnLoading.value = false;
-
     })
 };
 

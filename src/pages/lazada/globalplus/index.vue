@@ -7,7 +7,8 @@
             :row-selection="rowSelection" :tableHeightOffset="150">
             <template #leftBar>
                 <a-space>
-                    <a-button type="primary" @click="handleUpdateGp" :disabled="singleDisabled">
+                    <a-button type="primary" @click="handleUpdateGp" :disabled="singleDisabled"
+                        v-has-permi="['platform:lazada:gp:product:upgrade']">
                         <template #icon>
                             <PlusOutlined />
                         </template>
@@ -21,12 +22,21 @@
                         Excel升级GP商品
                     </a-button>
 
-                    <a-button type="primary" @click="handleAdd">
+                    <a-button type="primary" @click="handleSyncUpdate"
+                        v-has-permi="['platform:lazada:gp:product:sync']">
                         <template #icon>
                             <UndoOutlined />
                         </template>
                         同步可升级GP商品
                     </a-button>
+
+                    <a-button type="primary" @click="logIndexUpgradeGP" v-has-permi="['platform:lazada:log:page']">
+                        <template #icon>
+                            <UndoOutlined />
+                        </template>
+                        日志
+                    </a-button>
+
                 </a-space>
             </template>
             <template #skus="{ record }">
@@ -51,22 +61,24 @@
         </BaseTable>
         <UpgradeGP ref="upgradeGPRef" @success="reload"></UpgradeGP>
         <ExcelUpgradeGP ref="ExcelUpgradeGPRef" @success="reload"></ExcelUpgradeGP>
-        <AddModal ref="addModalRef" @success="reload"></AddModal>
+        <SyncProductGP ref="syncProductGPRef" :account="account" @success="reload"></SyncProductGP>
+        <LogIndexUpgradeGP ref="logIndexUpgradeGPRef"></LogIndexUpgradeGP>
     </div>
 </template>
 
 <script setup>
 import { PlusOutlined, FilterOutlined, UndoOutlined } from '@ant-design/icons-vue';
 import { columns, skuColumns, innerColumns } from './columns';
-import { GlobalpPlusList } from './api';
-import UpgradeGP from './components/upgradeGP.vue';
-import ExcelUpgradeGP from './components/excelUpgradeGP.vue';
 import { useTableSelection } from '@/components/baseTable/useTableSelection';
 import { Modal, message } from 'ant-design-vue';
-import { accountCache } from '@/pages/lazada/product/api'
-import AddModal from './components/addModal.vue';
+import { accountCache } from '@/pages/lazada/product/api';
+import { GlobalpPlusList } from './api';
 import Search from './components/search.vue';
 import BaseTable from '@/components/baseTable/BaseTable.vue';
+import UpgradeGP from './components/upgradeGP.vue';
+import ExcelUpgradeGP from './components/excelUpgradeGP.vue';
+import SyncProductGP from './components/syncProductGP.vue';
+import LogIndexUpgradeGP from './components/logIndexUpgradeGP.vue';
 
 const initSearchParam = {
     prop: 'create_time',
@@ -78,7 +90,9 @@ const searchLoading = ref(false);
 const addModalEl = useTemplateRef('addModalRef');
 const baseTableEl = useTemplateRef('baseTableRef');
 const upgradeGPEl = useTemplateRef('upgradeGPRef');
-const ExcelUpgradeGPEl = useTemplateRef('ExcelUpgradeGPRef');
+const excelUpgradeGPEl = useTemplateRef('ExcelUpgradeGPRef');
+const syncProductGPEl = useTemplateRef('syncProductGPRef');
+const logIndexUpgradeGPEl = useTemplateRef('logIndexUpgradeGPRef');
 const { singleDisabled, rowSelection, tableRow, clearSelection } = useTableSelection()
 
 function displayedSkus(row) {
@@ -105,11 +119,16 @@ const handleUpdateGp = () => {
     upgradeGPEl.value.open(tableRow.value);
 };
 
-// 新增
-const handleAdd = () => {
-    nextTick(() => {
-        addModalEl.value.open();
-    })
+// Excel 升级
+const handleExcelUpdate = () => {
+    excelUpgradeGPEl.value.open();
+};
+// 同步升级
+const handleSyncUpdate = () => {
+    syncProductGPEl.value.open();
+};
+const logIndexUpgradeGP = () => {
+    logIndexUpgradeGPEl.value.open();
 };
 
 function getAccount() {

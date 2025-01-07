@@ -1,56 +1,3 @@
-//  获取用户
-export function getAccountUser(params) {
-  return usePost(
-    "/platform-lazada/platform/lazada/setting/account/relevance/user/user",
-    params
-  );
-}
-//  获取部门
-export function getUserDep() {
-  return usePost(
-    "/platform-lazada/platform/lazada/setting/account/relevance/user/dep"
-  );
-}
-//  获取账号列表
-export function getAccountlist(params) {
-  return usePost(
-    "/platform-lazada/platform/lazada/setting/account/relevance/user/list",
-    params
-  );
-}
-
-// 获取平台
-export function lazadaAccount(params) {
-  return usePost(
-    "/platform-lazada/platform/lazada/setting/account/relevance/user/lazada-account",
-    params
-  );
-}
-
-// 新增
-export function addAccount(params) {
-  return usePost(
-    "/platform-lazada/platform/lazada/setting/account/relevance/user/add",
-    params
-  );
-}
-
-// 编辑
-export function editAccount(params) {
-  return usePost(
-    "/platform-lazada/platform/lazada/setting/account/relevance/user/edit",
-    params
-  );
-}
-
-// 删除
-export function delAccount(params) {
-  return usePost(
-    "/platform-lazada/platform/lazada/setting/account/relevance/user/del",
-    params
-  );
-}
-// ------------------------------------------------
 export function GlobalpPlusList(params) {
   return usePost("/platform-lazada/platform/lazada/gp/product/page", params);
 }
@@ -65,5 +12,32 @@ export function productUpgrade(params) {
   return usePost(
     `/platform-lazada/platform/lazada/gp/product/product/upgrade`,
     params
+  );
+}
+
+//导出可以升级的商品Excel
+export function exportExcelGP(params) {
+  return usePost(
+    `/platform-lazada/platform/lazada/gp/product/exportExcel`,
+    params
+  );
+}
+//上传excel 日志表格
+export function GPPage(params) {
+  return usePost(`/platform-lazada/lazada/task/page`, params);
+}
+//上传excel 日志表格 详情
+export function logGPPage(params) {
+  return usePost(`/platform-lazada/platform/lazada/log/page`, params);
+}
+//上传excel 日志表格 详情
+export function syncProductGPPropress(data) {
+  return useGet(`/platform-lazada/progress/redis/progress/${data}`);
+}
+
+//同步指定店铺的可升级GP的商品数据
+export function syncProductGP(shortCode, type) {
+  return useGet(
+    `/platform-lazada/platform/lazada/gp/product/syncProduct/${shortCode}/${type}`
   );
 }
