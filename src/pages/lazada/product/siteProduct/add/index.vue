@@ -112,31 +112,30 @@ const selectNowProduct = () => {
 
 //  验证校验
 const validateAll = async () => {
-
-    // const baseInfoForm = await baseInfoEl.value.validateForm();
-    // if (!baseInfoForm) {
-    //     return;
-    // }
-    // const productInfoForm = await productInfoEl.value.validateForm();
-    // if (!productInfoForm) {
-    //     return;
-    // }
-    // const packageForm = await packageEl.value.validateForm();
-    // if (!packageForm) {
-    //     return;
-    // }
-    // const imageInfoForm = await imageInfoEl.value.validateForm();
-    // if (!imageInfoForm) {
-    //     return;
-    // }
-    // const variationForm = await variantInfoEl.value.validateForm();
-    // if (!variationForm) {
-    //     return;
-    // }
-    // const variantImage = await variantImageEl.value.validateForm();
-    // if (!variantImage) {
-    //     return;
-    // };
+    const baseInfoForm = await baseInfoEl.value.validateForm();
+    if (!baseInfoForm) {
+        return;
+    }
+    const productInfoForm = await productInfoEl.value.validateForm();
+    if (!productInfoForm) {
+        return;
+    }
+    const packageForm = await packageEl.value.validateForm();
+    if (!packageForm) {
+        return;
+    }
+    const imageInfoForm = await imageInfoEl.value.validateForm();
+    if (!imageInfoForm) {
+        return;
+    }
+    const variationForm = await variantInfoEl.value.validateForm();
+    if (!variationForm) {
+        return;
+    }
+    const variantImage = await variantImageEl.value.validateForm();
+    if (!variantImage) {
+        return;
+    };
     const form = await descriptionEl.value.form;
 
     const baseInfoState = baseInfoEl.value.state;

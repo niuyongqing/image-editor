@@ -105,6 +105,8 @@
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { DownOutlined, SettingOutlined } from "@ant-design/icons-vue";
 import WarehouseSetting from './warehouseSetting.vue'; // 仓库管理
+import { useLadazaAttrs } from "@/stores/lazadaAttrs";
+
 const router = useRouter()
 const warehouseSettingEl = useTemplateRef('warehouseSettingRef');
 const { state: lazadaAttrsState, setShortCode, setLazadaAttrs, setLoading, reset } = useLadazaAttrs();
