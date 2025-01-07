@@ -56,9 +56,75 @@ export function validateJson(data) {
 // table接口
 // 获取商品列表
 export function getList(data) {
-  let params = getParamsFn(data)
   return request({
-    url: '/platform-amazon/platform/amazon/product/list' + params,
-    method: 'get',
+    url: '/platform-amazon/platform/amazon/product/list',
+    method: 'post',
+    data: data
+  })
+}
+// 删除商品
+export function del(data) {
+  return request({
+    url: '/platform-amazon/platform/amazon/product/del',
+    method: 'post',
+    data: data
+  })
+}
+// 同步商品
+export function sync(data) {
+  return request({
+    url: '/platform-amazon/platform/amazon/product/sync',
+    method: 'post',
+    data: data
+  })
+}
+
+// 批量更新接口
+// 批量修改库存
+export function quantityEdit(data) {
+  return request({
+    url: '/platform-amazon/platform/amazon/product/batch/edit/quantity',
+    method: 'post',
+    data: data
+  })
+}
+// 批量修改价格
+export function ourPriceEdit(data) {
+  return request({
+    url: '/platform-amazon/platform/amazon/product/batch/edit/ourPrice',
+    method: 'post',
+    data: data
+  })
+}
+// 批量修改促销价格
+// export function quantityEdit(data) {
+//   return request({
+//     url: '/platform-amazon/platform/amazon/product/batch/edit/ourPrice',
+//     method: 'post',
+//     data: data
+//   })
+// }
+// 批量修改List Price
+export function listPriceEdit(data) {
+  return request({
+    url: '/platform-amazon/platform/amazon/product/batch/edit/listPrice',
+    method: 'post',
+    data: data
+  })
+}
+// 批量修改商品标题
+export function nameEdit(data) {
+  return request({
+    url: '/platform-amazon/platform/amazon/product/batch/edit/item/name',
+    method: 'post',
+    data: data
+  })
+}
+// 批量修改商品主图
+export function imageEdit(data) {
+  return request({
+    url: '/platform-amazon/platform/amazon/product/batch/edit/main/image',
+    method: 'post',
+    data: data
   })
 }
