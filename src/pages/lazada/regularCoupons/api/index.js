@@ -27,7 +27,7 @@ export function updateLazadaProduct(data) {
 }
 
 //同步店铺优惠券
-export function syncLazadaShopVoucher(data) {
+export function syncLazadaShopVoucherApi(data) {
   return usePost(
     `/platform-lazada/platform/lazada/seller/voucher/one/seller/sync`,
     data

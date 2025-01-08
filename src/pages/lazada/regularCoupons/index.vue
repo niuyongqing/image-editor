@@ -18,11 +18,12 @@
                         <SettingOutlined /> 管理商品
                     </a-button>
 
-                    <a-button type="primary" @click="activate" :disabled="multipleDisabled">
+                    <a-button type="primary" @click="activate" :disabled="multipleDisabled" :loading="activateLoading">
                         <CheckOutlined /> 激活
                     </a-button>
 
-                    <a-button type="primary" @click="deactivateVoucher" :disabled="multipleDisabled">
+                    <a-button type="primary" @click="deactivateVoucher" :disabled="multipleDisabled"
+                        :loading="deactivateVoucherLoading">
                         <StopOutlined />
                         暂停
                     </a-button>
@@ -53,13 +54,14 @@
         <AddVoucher ref="addVoucherRef" @success="reload" />
         <EditVoucher ref="editVoucherRef" @success="reload" />
         <ViewVoucher ref="viewVoucherRef" @success="reload" />
+        <ManageProduct ref="manageProductRef" @success="reload" />
     </div>
 </template>
 
 <script setup>
 import { PlusCircleOutlined, EditOutlined, EyeOutlined, SettingOutlined, CheckOutlined, StopOutlined, ReloadOutlined, CloudSyncOutlined } from '@ant-design/icons-vue';
 import BaseTable from '@/components/baseTable/BaseTable.vue';
-import { getList, accountCache, activateVoucher } from './api';
+import { getList, accountCache, activateVoucher, syncLazadaShopVoucherApi } from './api';
 import { columns } from './columns';
 import { useTableSelection } from '@/components/baseTable/useTableSelection';
 import Search from './components/search.vue';
@@ -67,6 +69,8 @@ import { Timedata } from '~@/pages/lazada/regularCoupons/common/util.js';
 import AddVoucher from './components/addVoucher.vue';
 import EditVoucher from './components/editVoucher.vue';
 import ViewVoucher from './components/viewVoucher.vue';
+import ManageProduct from './components/manageProduct.vue';
+import { message } from 'ant-design-vue';
 
 const initSearchParam = {
     prop: "create_time",
@@ -77,6 +81,11 @@ const baseTableEl = useTemplateRef('baseTableRef');
 const addVoucherEl = useTemplateRef('addVoucherRef');
 const editVoucherEl = useTemplateRef('editVoucherRef');
 const viewVoucherEl = useTemplateRef('viewVoucherRef');
+const manageProductEl = useTemplateRef('manageProductRef');
+
+const syncLoading = ref(false);// 同步 loading
+const activateLoading = ref(false);// 激活loading
+const deactivateVoucherLoading = ref(false);// 暂停loading
 
 const account = ref([]);
 // 查询
@@ -104,7 +113,9 @@ const handleView = () => {
 };
 
 //  管理商品
-const settingProduct = () => { };
+const settingProduct = () => {
+    manageProductEl.value.open();
+};
 
 // 激活
 const activate = () => { };
@@ -113,10 +124,49 @@ const activate = () => { };
 const deactivateVoucher = () => { };
 
 // 同步优惠卷
-const syncLazadaVoucher = () => { };
+const syncLazadaVoucher = () => {
+    this.syncLoading = true
+    let voucherIds = this.$refs.tables.selection.map((item) => {
+        return item.id
+    })
+    let data = {
+        shortCode: this.shortCode,
+        voucherIds: voucherIds.join()
+    }
+    syncLazadaVoucher(data).then(res => {
+        if (res.code === 200) {
+            this.$alert(res.msg, '成功', { confirmButtonText: '确定', type: 'success', callback: action => { } });
+        }
+        else {
+            this.$alert(res.msg, '失败', { confirmButtonText: '确定', type: 'error', callback: action => { } });
+        }
+    }).finally(() => {
+        this.syncLoading = false
+        this.$bus.$emit('searchRegularCouponsInfo');
+    })
+
+
+};
 
 // 同步店铺优惠卷
-const syncLazadaShopVoucher = () => { };
+const syncLazadaShopVoucher = () => {
+    BaseTableEl.value.setLoading(true);
+
+    let data = {
+        shortCode: tableRow.value.shortCode
+    }
+    syncLazadaShopVoucherApi(data).then(res => {
+        if (res.code === 200) {
+            message.success('同步成功');
+        }
+        else {
+            message.success('同步失败');
+        }
+    }).finally(() => {
+        BaseTableEl.value.reload();
+    })
+
+};
 
 
 onMounted(async () => {
