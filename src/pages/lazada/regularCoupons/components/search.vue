@@ -2,16 +2,20 @@
     <div>
         <a-card>
             <a-form ref="baseFormRef" layout="inline" :formList="formList" :label-col="{ style: { width: '80px' } }"
-                :wrapper-col="{ style: { width: '200px' } }" labelAlign="left">
+                :wrapper-col="{ style: { width: '220px' } }" labelAlign="left">
                 <a-form-item label="店铺：">
-                    <a-select style="width: 200px" v-model:value="state.shortCode" placeholder="请选择店铺">
-                        <a-select-option v-for="item in account" :key="item.value" :value="item.value">
-                            {{ item.label }}
+                    <a-select style="width: 220px" v-model:value="state.shortCode" placeholder="请选择店铺">
+                        <a-select-option v-for="item in account" :key="item.shortCode" :value="item.shortCode"
+                            :field-names="{ label: 'simpleName', value: 'shortCode' }">
+                            <div flex justify-between>
+                                <div> {{ item.simpleName }} </div>
+                                <div style="color: rgb(132, 146, 166)"> {{ item.country }} </div>
+                            </div>
                         </a-select-option>
                     </a-select>
                 </a-form-item>
                 <a-form-item label="优惠卷名称：">
-                    <a-input style="width: 200px" placeholder="请输入优惠卷名称" v-model:value="state.voucherName" />
+                    <a-input style="width: 220px" placeholder="请输入优惠卷名称" v-model:value="state.voucherName" />
                 </a-form-item>
                 <a-form-item label="优惠券状态：">
                     <a-select v-model:value="state.status" placeholder="请选择优惠券状态">
@@ -39,6 +43,7 @@
 import { useResetReactive } from '@/composables/reset';
 import BaseForm from '@/components/baseForm/BaseForm.vue';
 
+const shortCode = ref('');
 const { state, reset } = useResetReactive({
     shortCode: undefined,
     voucherName: '',
@@ -56,6 +61,7 @@ const baseFormEl = useTemplateRef('baseFormRef')
 watch(() => account, (val) => {
     if (val && val.length > 0) {
         state.shortCode = val[0]?.shortCode;
+        shortCode.value = val[0]?.shortCode;
         emits('search', { shortCode: state.shortCode });
     } else {
         state.shortCode = undefined
@@ -63,13 +69,24 @@ watch(() => account, (val) => {
 });
 
 const submit = () => {
-    const values = baseFormEl.value.getFieldsValue();
-    emits('search', values);
+    emits('search', {
+        shortCode: state.shortCode,
+        voucherName: state.voucherName,
+        status: state.status,
+        periodStartTimeEnd: state.periodStartTime.length > 0 ? state.periodStartTime[1] : undefined,
+        periodStartTimeStart: state.periodStartTime.length > 0 ? state.periodStartTime[0] : undefined
+    });
 };
 const handleReset = () => {
-    baseFormEl.value.clear();
-    const values = baseFormEl.value.getFieldsValue();
-    emits('search', values);
+    reset();
+    state.shortCode = shortCode.value;
+    emits('search', {
+        shortCode: shortCode.value,
+        voucherName: '',
+        status: undefined,
+        periodStartTimeEnd: undefined,
+        periodStartTimeStart: undefined
+    });
 };
 const emits = defineEmits(['search'])
 

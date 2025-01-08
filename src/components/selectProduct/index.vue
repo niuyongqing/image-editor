@@ -60,7 +60,7 @@
                 <template #meansKeepGrain="{ record }">
                     <a-tag v-for="tag in meansKeepGrainMap(record.meansKeepGrain)" :key="tag.key" color="processing">{{
                         tag.label
-                        }}</a-tag>
+                    }}</a-tag>
                 </template>
 
                 <template #completeTime="{ record }">
@@ -95,12 +95,13 @@
                 <template #meansForbidSite="{ record }">
                     <a-tag v-for="tag in meansForbidSiteSplit(record.meansForbidSite)" :key="tag" color="red">{{
                         tagMap(tag)
-                        }}</a-tag>
+                    }}</a-tag>
                 </template>
 
                 <template #meansRemark="{ record }">
-                    <div style="width: 100%;text-overflow: ellipsis;overflow: hidden;white-space: nowrap;text-align: center;padding: 0 8px;"
-                        v-if="record.meansRemark"><span v-html="record.meansRemark.replace(/<[^>]+>/g, '')"></span>
+                    <div style="width: 100%;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;text-align: center;padding: 0 8px;"
+                        v-if="record.meansRemark">
+                        <span v-html="record.meansRemark.replace(/<[^>]+>/g, '')"></span>
                     </div>
                 </template>
             </BaseTable>

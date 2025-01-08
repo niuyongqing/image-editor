@@ -221,6 +221,7 @@ export const columns = [
     title: "备注",
     dataIndex: "meansRemark",
     key: "meansRemark",
+    slot: "meansRemark",
     sortField: "means_remark",
     width: 120,
     sorter: true,

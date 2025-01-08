@@ -23,11 +23,11 @@
                 <a-table v-bind="$attrs" :columns="columns" :row-key="rowKey" :data-source="tableData"
                     :loading="loading" :pagination="{
                         ...pagination,
+                        current: pagination[pageField],
                         showQuickJumper: true,
                         showSizeChanger: true,
                         showTotal: (total, range) => `第${range[0]}-${range[1]}条, 共${total}条`
-                    }" v-model:current="pagination[pageField]" v-model:pageSize="pagination.pageSize" ellipsis bordered
-                    :scroll="{ y: tableHeight, x: '100%', virtual: true }" @change="handleChange">
+                    }" ellipsis bordered :scroll="{ y: tableHeight, x: '100%', virtual: true }" @change="handleChange">
                     <template #headerCell="{ column }">
                         <slot v-if="column.headerCell" name="headerCell" :column="column"></slot>
                     </template>

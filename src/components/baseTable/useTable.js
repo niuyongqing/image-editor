@@ -57,8 +57,6 @@ export const useTable = (
     // 更新查询参数
     setLoading(true);
     updatedTotalParam();
-    console.log("state.totalParam", state.totalParam);
-
     return new Promise((resolve, reject) => {
       apiUrl(state.totalParam)
         .then((res) => {
@@ -107,6 +105,9 @@ export const useTable = (
   const handleChangePagination = (page, pageSize) => {
     state.pagination[pageField] = page;
     state.pagination.pageSize = pageSize;
+    console.log("page, pageSize", page, pageSize);
+    console.log("state", state);
+
     getTableList();
   };
 
@@ -116,7 +117,7 @@ export const useTable = (
   const search = async (params) => {
     state.pagination[pageField] = 1;
     state.searchParam = params || {};
-    Object.assign(state.initSearchParam, state.searchParam);
+    Object.assign(state.searchParam, state.initSearchParam);
     updatedTotalParam();
     await getTableList();
   };

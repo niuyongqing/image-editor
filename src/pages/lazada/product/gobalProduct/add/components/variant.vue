@@ -118,7 +118,7 @@
 </template>
 
 <script setup>
-import { PlusCircleOutlined, EditOutlined, SaveOutlined, CloseOutlined, HomeOutlined, SwapOutlined } from '@ant-design/icons-vue';;
+import { PlusCircleOutlined, EditOutlined, SaveOutlined, CloseOutlined, HomeOutlined, SwapOutlined } from '@ant-design/icons-vue';
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { message, Modal } from 'ant-design-vue';
 import EventBus from "~/utils/event-bus";
