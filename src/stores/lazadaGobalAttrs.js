@@ -1,5 +1,5 @@
 /**
- * lazada 全球分类属性列表
+ * lazada 全球商品分类属性列表
  */
 import { defineStore } from "pinia";
 

@@ -5,7 +5,7 @@
         <TableAction></TableAction>
 
         <BaseTable ref="baseTableRef" :columns="columns" :api="getList" :init-search-param="initSearchParam" search
-            :row-selection="rowSelection" show-right-pagination rowKey="itemId">
+            :row-selection="rowSelection" show-right-pagination rowKey="id">
             <template #leftBar>
                 <div class="flex">
                     <div v-for="btn in buttons" :key="btn.id" class="ml-10px"
@@ -28,7 +28,7 @@
                         <template #title>
                             <span>复制</span>
                         </template>
-                        <span @click="copyText(record.itemId)"> {{ record.itemId }} </span>
+                        <span @click="copyText(record.id)"> {{ record.id }} </span>
                     </a-tooltip>
                 </p>
                 <p style="color: rgb(153, 153, 153)"> 「{{ shopSimpleName(record) }}」 </p>
@@ -57,7 +57,7 @@
                                 <template #title>
                                     <span>复制</span>
                                 </template>
-                                <span @click="copyText(item.price)"> {{ item.price }} </span>
+                                <span @click="copyText(item.retail_price)"> {{ item.retail_price }} </span>
                             </a-tooltip>
                         </div>
                     </div>
@@ -68,7 +68,7 @@
                 <div class="pb-30px">
                     <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
                         <div>
-                            <span @click="copyText(item.special_price)"> {{ item.special_price }} </span>
+                            <span @click="copyText(item.sales_price)"> {{ item.sales_price }} </span>
                         </div>
                     </div>
                 </div>
@@ -93,17 +93,18 @@
                 <div>
                     <p class="date"> 创建： </p>
                     <p>
-                        {{ timestampToDateTime(record.createdTime) }}
+                        {{ timestampToDateTime(record.createTime) }}
                     </p>
                     <p class="date"> 更新: </p>
                     <p>
-                        {{ timestampToDateTime(record.updatedTime) }}
+                        {{ timestampToDateTime(record.updateTime) }}
                     </p>
                 </div>
             </template>
             <template #action="{ record }">
                 <div>
                     <div> <a-button type="link" @click="handleEdit(record)"> 编辑 </a-button> </div>
+                    <div> <a-button type="link" @click="handleEdit(record)"> 发布 </a-button> </div>
                     <div class="pl-2">
                         <a-dropdown>
                             <a class="ant-dropdown-link">
@@ -112,20 +113,8 @@
                             </a>
                             <template #overlay>
                                 <a-menu>
-                                    <a-menu-item @click="handleSync(record)">
-                                        同步
-                                    </a-menu-item>
-                                    <a-menu-item @click="handleProduct(record)">
-                                        复制为“六合一产品”
-                                    </a-menu-item>
-                                    <a-menu-item @click="handleCopyProduct(record)">
-                                        复制为“站点产品”
-                                    </a-menu-item>
                                     <a-menu-item @click="handleRemark(record)">
                                         添加备注
-                                    </a-menu-item>
-                                    <a-menu-item @click="handleDeactivated(record)">
-                                        下架产品
                                     </a-menu-item>
                                 </a-menu>
                             </template>
@@ -162,7 +151,9 @@ const { singleDisabled, rowSelection, tableRow, clearSelection } = useTableSelec
 const initSearchParam = {
     prop: "created_time",
     order: "desc",
-    shortCode: 'TH1JHXJEGO'
+    shortCodes: [],
+    name: '',
+    sku: ''
 };
 const buttons = ref([{
     id: 1,
@@ -203,7 +194,7 @@ const isRemark = computed(() => {
 
 const imageSrc = (record) => {
     if (record.images) {
-        return JSON.parse(record.images)[0];
+        return JSON.parse(record.images).image[0];
     };
     return ''
 };
@@ -212,6 +203,8 @@ const shopSimpleName = (record) => {
     const findItem = shortCodes.value.find((item) => {
         return item.shortCode === record.shortCode
     });
+    console.log('shortCode', findItem);
+
     return findItem ? findItem.simpleName : ''
 };
 // 复制
@@ -245,10 +238,7 @@ const handleBtnClick = (btn) => {
     active.value = btn.id;
     // handleSearch({ ...initSearchParam, ... searchFormState.value, status: btn.id });
 };
-//  同步
-const handleSync = (record) => {
-    console.log('record', record);
-};
+
 //   复制为“六合一产品”
 const handleProduct = (record) => {
     console.log('record', record);

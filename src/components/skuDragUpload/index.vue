@@ -103,7 +103,7 @@
             </a-modal>
         </div>
         <!-- 批量修改图片尺寸弹窗 -->
-        <BacthEditImgSize ref="BacthEditImgSizeRef" :fileList="fileList" />
+        <BacthSkuEditImg ref="BacthEditImgSizeRef" :fileList="fileList" />
     </div>
 </template>
 
@@ -113,7 +113,7 @@ import { UploadOutlined, DownOutlined, DownloadOutlined, DeleteOutlined, Loading
 import { useAuthorization } from '~/composables/authorization'
 import { getBase64 } from '@/pages/lazada/product/common'
 import BaseModal from '@/components/baseModal/BaseModal.vue'
-import BacthEditImgSize from './bacthEditImgSize.vue';
+import BacthSkuEditImg from './bacthSkuEditImg.vue';
 import { message } from "ant-design-vue";
 import { scaleApi, watermarkApi } from '@/api/common/water-mark.js';
 const props = defineProps({

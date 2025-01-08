@@ -217,6 +217,7 @@ declare global {
   const useLastChanged: typeof import('@vueuse/core')['useLastChanged']
   const useLayoutMenu: typeof import('../src/stores/layout-menu.js')['useLayoutMenu']
   const useLazadaGobalAttrs: typeof import('../src/stores/lazadaGobalAttrs.js')['useLazadaGobalAttrs']
+  const useLazadaWaitPublish: typeof import('../src/stores/lazadaWaitPublish.js')['useLazadaWaitPublish']
   const useLink: typeof import('vue-router')['useLink']
   const useLoading: typeof import('../src/composables/base-loading.js')['useLoading']
   const useLoadingCheck: typeof import('../src/composables/loading.js')['useLoadingCheck']
