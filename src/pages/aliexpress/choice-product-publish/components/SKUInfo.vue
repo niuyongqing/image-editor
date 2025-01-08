@@ -178,8 +178,12 @@
                   v-if="record.skuImage"
                   class="image"
                 >
-                  <a-image :src="record.skuImage" width="60px" height="60px" />
-                  <div class="image-info">
+                  <a-image
+                    :src="record.skuImage"
+                    width="60px"
+                    height="60px"
+                  />
+                  <div class="image-panel">
                     <a-button
                       type="link"
                       danger
@@ -529,21 +533,15 @@
       height: 60px;
       border-radius: 4px;
       position: relative;
-      .image-info {
+      .image-panel {
         position: absolute;
         bottom: 0;
         left: 0;
         width: 100%;
         background-color: rgba(5, 5, 5, 0.3);
-        padding: 0 4px;
-        color: #fff;
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end;
         align-items: center;
-        padding-left: 40px;
-        ::v-deep .a-icon-delete {
-          color: #f56c6c;
-        }
       }
     }
   }

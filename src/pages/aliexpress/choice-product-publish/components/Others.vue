@@ -109,7 +109,7 @@
 <script>
   import DropdownOfImage from '@/components/dropdown-of-image/index.vue'
   import { listGroupApi } from '../../apis/media'
-  import { syncEuPersonListApi, euPersonListApi, manufactureListApi, qualificationsApi } from '../../apis/product-publish'
+  import { syncEuPersonListApi, euPersonListApi, manufactureListApi, qualificationsApi } from '../../apis/product'
   import { useAliexpressChoiceProductStore } from '~@/stores/aliexpress-choice-product'
   import { Modal } from 'ant-design-vue'
   import { InfoCircleOutlined, DeleteOutlined } from '@ant-design/icons-vue'

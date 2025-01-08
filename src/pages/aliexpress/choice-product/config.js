@@ -4,66 +4,52 @@ export const DEFAULT_TABLE_COLUMN = [
     title: '商品',
     dataIndex: 'productId',
     key: 'productId',
-    sortable: false,
     show: true,
     ellipsis: true,
-    width: 400,
-    filter: false
+    width: 400
   },
   {
     title: '备货类型',
     dataIndex: 'productType',
     key: 'productType',
-    sortable: false,
     show: true,
-    width: 140,
-    filter: false
+    width: 140
   },
   {
     title: 'SKU信息',
     dataIndex: 'skus',
     key: 'skus',
-    sortable: false,
     show: true,
     width: 450,
-    minWidth: 450,
-    filter: false
+    minWidth: 450
   },
   {
     title: '状态',
     dataIndex: 'productStatus',
     key: 'productStatus',
-    sortable: false,
     show: true,
-    width: 80,
-    filter: false
+    width: 80
   },
   {
     title: '创建时间',
     dataIndex: 'create_time',
     key: 'create_time',
-    sortable: true,
     show: true,
-    width: 130,
-    filter: false
+    width: 130
   },
   {
     title: '编辑时间',
     dataIndex: 'update_time',
     key: 'update_time',
-    sortable: true,
     show: true,
-    width: 130,
-    filter: false
+    width: 130
   },
   {
     title: '操作',
     dataIndex: 'option',
     key: 'option',
-    sortable: false,
     show: true,
-    width: 100,
-    filter: false
+    width: 100
   }
 ]
 

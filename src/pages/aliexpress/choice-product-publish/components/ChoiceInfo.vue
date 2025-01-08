@@ -591,7 +591,7 @@
                   packageLength: prevSKUMap[item.SKUKey].packageLength,
                   packageWidth: prevSKUMap[item.SKUKey].packageWidth,
                   packageHeight: prevSKUMap[item.SKUKey].packageHeight,
-                  specialProductTypeList: prevSKUMap[item.SKUKey].specialProductTypeList
+                  specialProductTypeList: prevSKUMap[item.SKUKey].specialProductTypeList || []
                 }
               } else {
                 SKUTableData[i] = {
@@ -633,7 +633,7 @@
                 item.scItemCode = SKUData.scItemInfoDto.scItemCode
                 item.scItemBarCode = SKUData.scItemInfoDto.scItemBarCode
                 item.originalBox = SKUData.scItemInfoDto.originalBox
-                item.specialProductTypeList = SKUData.scItemInfoDto.specialProductTypeList
+                item.specialProductTypeList = SKUData.scItemInfoDto.specialProductTypeList || []
               }
             })
             this.isEditAssign = false
@@ -660,7 +660,7 @@
             this.choiceProductData[0].scItemCode = SKUData.scItemInfoDto.scItemCode
             this.choiceProductData[0].scItemBarCode = SKUData.scItemInfoDto.scItemBarCode
             this.choiceProductData[0].originalBox = SKUData.scItemInfoDto.originalBox
-            this.choiceProductData[0].specialProductTypeList = SKUData.scItemInfoDto.specialProductTypeList
+            this.choiceProductData[0].specialProductTypeList = SKUData.scItemInfoDto.specialProductTypeList || []
           }
           this.isEditAssign = true
           this.isAllowAssign = false
@@ -860,7 +860,7 @@
         }
       },
       // 向上级提交数据
-     emitData({ isDraft = false }) {
+      emitData({ isDraft = false }) {
         return this.generateCommonParams(true)
       }
     }

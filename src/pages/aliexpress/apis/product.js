@@ -1,4 +1,4 @@
-/** 刊登相关 */
+/** 普通商品、半托管和刊登相关 */
 // 普通商品列表
 export function productListApi(params) {
   return usePost('/platform-aliexpress/platform/aliexpress/general/product/list', params)
@@ -117,16 +117,6 @@ export function editProductApi(params) {
 // 区域数据
 export function areaListApi(params) {
   return usePost('/platform-aliexpress/platform/aliexpress/template/getAreaList', params)
-}
-
-// 全量产品分组
-export function getAllProductGroupsApi(params) {
-  return usePost('/platform-aliexpress/platform/aliexpress/template/getAllProductGroups', params)
-}
-
-// 全量运费模版
-export function getAllFreightTemplateApi(params) {
-  return usePost('/platform-aliexpress/platform/aliexpress/template/getFreightTemplateList', params)
 }
 
 // 商品详情

@@ -1,67 +1,68 @@
 <template>
 <div id="addDialog" class="addDialog">
-  <div class="main-content">
-    <baseInfo
-      :schema-data="baseData"
-      class="baseInfoRef"
-      ref="baseInfoRef"
-      @selectedProductType="selectedProductType"
-    ></baseInfo>
-    <a-spin :spinning="!!spinning">
-      <productInfo
-        v-if="formData.product.$id"
-        :key="formData.product.$_key"
-        :schema-data="formData.product"
-        v-model:modelForm="form.product"
-        @formMounted="formMounted"
-        @formValueChange="formValueChange"
-        class="productInfoRef"
-        ref="productInfoRef"
-      ></productInfo>
-      <descriptionInfo
-        v-if="formData.description.$id"
-        :key="formData.description.$_key"
-        :schema-data="formData.description"
-        v-model:modelForm="form.description"
-        @formMounted="formMounted"
-        @formValueChange="formValueChange"
-        ref="descriptionInfoRef"
-      ></descriptionInfo>
-      <imageInfo></imageInfo>
-      <attributeInfo
-        v-if="formData.attribute.$id"
-        :key="formData.attribute.$_key"
-        :schema-data="formData.attribute"
-        v-model:modelForm="form.attribute"
-        @formMounted="formMounted"
-        @formValueChange="formValueChange"
-        class="attributeInfoRef"
-        ref="attributeInfoRef"
-      ></attributeInfo>
-      <offerInfo
-        v-if="formData.offer.$id"
-        :key="formData.offer.$_key"
-        :schema-data="formData.offer"
-        v-model:modelForm="form.offer"
-        @formMounted="formMounted"
-        @formValueChange="formValueChange"
-        class="AmazonOfferInfoRef"
-        ref="offerInfoRef"
-      ></offerInfo>
-      <div class="form-footer">
-        <a-button style="margin-right: 20px">取消</a-button>
-        <a-button type="primary" @click="sure">确定</a-button>
-      </div>
-    </a-spin>
-  </div>
-  <div class="addDialog-anchor">
-    <div
-      class="addDialog-anchor-item"
-      v-for="item in anchorList"
-      :key="item.key"
-      @click="toHref(item.href)"
-    >{{ item.title }}</div>
-  </div>
+  <json-schema :json="scheam"></json-schema>
+<!--  <div class="main-content">-->
+<!--    <baseInfo-->
+<!--      :schema-data="baseData"-->
+<!--      class="baseInfoRef"-->
+<!--      ref="baseInfoRef"-->
+<!--      @selectedProductType="selectedProductType"-->
+<!--    ></baseInfo>-->
+<!--    <a-spin :spinning="!!spinning">-->
+<!--      <productInfo-->
+<!--        v-if="formData.product.$id"-->
+<!--        :key="formData.product.$_key"-->
+<!--        :schema-data="formData.product"-->
+<!--        v-model:modelForm="form.product"-->
+<!--        @formMounted="formMounted"-->
+<!--        @formValueChange="formValueChange"-->
+<!--        class="productInfoRef"-->
+<!--        ref="productInfoRef"-->
+<!--      ></productInfo>-->
+<!--      <descriptionInfo-->
+<!--        v-if="formData.description.$id"-->
+<!--        :key="formData.description.$_key"-->
+<!--        :schema-data="formData.description"-->
+<!--        v-model:modelForm="form.description"-->
+<!--        @formMounted="formMounted"-->
+<!--        @formValueChange="formValueChange"-->
+<!--        ref="descriptionInfoRef"-->
+<!--      ></descriptionInfo>-->
+<!--      <imageInfo></imageInfo>-->
+<!--      <attributeInfo-->
+<!--        v-if="formData.attribute.$id"-->
+<!--        :key="formData.attribute.$_key"-->
+<!--        :schema-data="formData.attribute"-->
+<!--        v-model:modelForm="form.attribute"-->
+<!--        @formMounted="formMounted"-->
+<!--        @formValueChange="formValueChange"-->
+<!--        class="attributeInfoRef"-->
+<!--        ref="attributeInfoRef"-->
+<!--      ></attributeInfo>-->
+<!--      <offerInfo-->
+<!--        v-if="formData.offer.$id"-->
+<!--        :key="formData.offer.$_key"-->
+<!--        :schema-data="formData.offer"-->
+<!--        v-model:modelForm="form.offer"-->
+<!--        @formMounted="formMounted"-->
+<!--        @formValueChange="formValueChange"-->
+<!--        class="AmazonOfferInfoRef"-->
+<!--        ref="offerInfoRef"-->
+<!--      ></offerInfo>-->
+<!--      <div class="form-footer">-->
+<!--        <a-button style="margin-right: 20px">取消</a-button>-->
+<!--        <a-button type="primary" @click="sure">确定</a-button>-->
+<!--      </div>-->
+<!--    </a-spin>-->
+<!--  </div>-->
+<!--  <div class="addDialog-anchor">-->
+<!--    <div-->
+<!--      class="addDialog-anchor-item"-->
+<!--      v-for="item in anchorList"-->
+<!--      :key="item.key"-->
+<!--      @click="toHref(item.href)"-->
+<!--    >{{ item.title }}</div>-->
+<!--  </div>-->
 </div>
 </template>
 
@@ -75,9 +76,9 @@ import imageInfo from "@/pages/amazon/common/addDialog/imageInfo.vue";
 import attributeInfo from '@/pages/amazon/common/addDialog/attributeInfo.vue'
 import offerInfo from '@/pages/amazon/common/addDialog/offerInfo.vue'
 import '@/assets/library/jsonScheam_v3_ant/style/baseForm.css'
-
+import JsonSchema from '@/components/json-schema/index.vue'
 // import scheam from './TrainSets - 副本.json'
-// import scheam from './TrainSets.json'
+import scheam from './TrainSets.json'
 import { ref, reactive, onMounted, computed, watchPostEffect, getCurrentInstance, nextTick } from 'vue'
 import { getJsonUrl, validateJson } from '@/pages/amazon/js/api/activeProduct'
 import axios from "axios";
@@ -149,7 +150,7 @@ let anchorList = [    // 模块列表
   },
 ];
 const spinning = ref(0)       // 是否加载完成
-const scheam = ref({})
+// const scheam = ref({})
 const _attributeData = ref({})     // 原始数据
 const jsonParams = ref({}); // 获取json链接的参数
 

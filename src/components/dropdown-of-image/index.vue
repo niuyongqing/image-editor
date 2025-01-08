@@ -439,11 +439,11 @@
 </script>
 
 <style lang="less" scoped>
-  ::v-deep .ant-upload-drag {
+  :deep(.ant-upload-drag) {
     height: 524px;
   }
 
-  ::v-deep .ant-upload .ant-upload-btn {
+  :deep(.ant-upload .ant-upload-btn) {
     padding-top: 188px;
   }
 
@@ -553,7 +553,7 @@
       }
     }
 
-    ::v-deep .ant-pagination-options {
+    :deep(.ant-pagination-options) {
       width: 200px;
       .ant-select.ant-select-in-form-item {
         width: 45%;
