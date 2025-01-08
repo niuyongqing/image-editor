@@ -48,36 +48,6 @@
                         </a-button>
                     </div>
                 </a-form-item>
-
-                <!-- <a-form-item label="Global Plus：">
-                    <div class="flex flex-wrap gap-10px">
-                        <a-button v-for="(item) in globalPlusList" :key="item.value"
-                            :type="item.value === formState.globalPlus ? 'primary' : 'text'"
-                            @click="changeGlobalPlus(item)">
-                            {{ item.label }}
-                        </a-button>
-                    </div>
-                </a-form-item> -->
-                <!-- <a-form-item label="排序类型：">
-                    <div class="flex flex-wrap gap-10px">
-                        <a-button v-for="(item) in sortTypeList" :key="item.value"
-                            :type="item.value === formState.sortType ? 'primary' : 'text'"
-                            @click="changeSortType(item)">
-                            {{ item.label }}
-                            <template v-if="item.value === formState.sortType">
-                                <CaretUpOutlined v-if="formState.sort === 'asc'" />
-                                <CaretDownOutlined v-if="formState.sort === 'desc'" />
-                            </template>
-</a-button>
-<a-tooltip placement="top">
-    <template #title>
-                                <span>按照产品变种的最小库存排序</span>
-                            </template>
-    <QuestionCircleOutlined />
-</a-tooltip>
-
-</div>
-</a-form-item> -->
             </a-form>
         </a-card>
     </div>

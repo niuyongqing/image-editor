@@ -203,8 +203,6 @@ const shopSimpleName = (record) => {
     const findItem = shortCodes.value.find((item) => {
         return item.shortCode === record.shortCode
     });
-    console.log('shortCode', findItem);
-
     return findItem ? findItem.simpleName : ''
 };
 // 复制
@@ -228,7 +226,7 @@ const handleSearch = async (state) => {
 };
 //  编辑
 const handleEdit = () => {
-
+    window.open('/platform/lazada/waitPublish/edit', '_blank');
 };
 const handleReset = () => {
     baseTableEl.value.reset();

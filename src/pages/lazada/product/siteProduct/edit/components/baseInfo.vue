@@ -103,7 +103,7 @@ const changeShortCode = (value) => {
     setShortCode(value);
     state.primaryCategory = undefined;
     setLazadaAttrs([])
-    EventBus.emit('shortCodeEmit', value);
+    EventBus.emit('siteEditShortCodeEmit', value);
 };
 
 const changePrimaryCategory = (value) => {

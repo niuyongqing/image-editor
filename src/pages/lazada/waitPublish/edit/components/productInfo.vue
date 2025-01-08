@@ -134,9 +134,9 @@ import { accountCache, categoryTree, getBrandList } from '@/pages/lazada/product
 import EventBus from "~/utils/event-bus";
 import { debounce } from "lodash-es";
 import { message } from "ant-design-vue";
-import { useLadazaAttrs } from "@/stores/lazadaAttrs";
+import { useLazadaWaitPublish } from "@/stores/lazadaWaitPublish";
 
-const { state: lazadaAttrsState, } = useLadazaAttrs();
+const { state: lazadaAttrsState, } = useLazadaWaitPublish();
 
 const isExpand = ref(false); // 展开收起
 const attributesLoading = ref(false);
@@ -238,7 +238,7 @@ defineExpose({
 });
 
 onMounted(() => {
-    EventBus.on('siteEditShortCodeEmit', (code) => {
+    EventBus.on('waitPublishShortCodeEmit', (code) => {
         console.log('接受到的shortCode -->>', code);
         shortCode.value = code;
         brandIdSelction.brandId = undefined;
@@ -247,7 +247,7 @@ onMounted(() => {
                 brandIdSelction.data = res.data || [];
                 //  品牌设置默认 No Brand
                 const brandItem = brandIdSelction.data.find((item) => {
-                    return item.nameEn === 'OEM'
+                    return item.nameEn === 'No Brand'
                 });
                 brandIdSelction.brandId = brandItem ? brandItem.brandId : undefined;
                 state.brandId = brandIdSelction.brandId;
@@ -259,7 +259,7 @@ onMounted(() => {
     });
 });
 onBeforeUnmount(() => {
-    EventBus.off('siteEditShortCodeEmit')
+    EventBus.off('waitPublishShortCodeEmit')
 });
 </script>
 

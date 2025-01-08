@@ -76,7 +76,6 @@
 
                 <a-button type="primary" style="height: 32px;  margin-left: 10px;">
                     同步产品
-                    <DownOutlined />
                 </a-button>
             </div>
         </div>

@@ -250,7 +250,7 @@ defineExpose({
 });
 
 onMounted(() => {
-    EventBus.on('shortCodeEmit', (code) => {
+    EventBus.on('gobalAddShortCodeEmit', (code) => {
         console.log('接受到的shortCode -->>', code);
         shortCode.value = code;
         brandIdSelction.brandId = undefined;
@@ -259,7 +259,7 @@ onMounted(() => {
                 brandIdSelction.data = res.data || [];
                 //  品牌设置默认 No Brand
                 const brandItem = brandIdSelction.data.find((item) => {
-                    return item.nameEn === 'No Brand'
+                    return item.nameEn === 'OEM'
                 });
                 brandIdSelction.brandId = brandItem ? brandItem.brandId : undefined;
                 state.brandId = brandIdSelction.brandId;
@@ -271,7 +271,7 @@ onMounted(() => {
     });
 });
 onBeforeUnmount(() => {
-    EventBus.off('shortCodeEmit')
+    EventBus.off('gobalAddShortCodeEmit')
 });
 </script>
 
