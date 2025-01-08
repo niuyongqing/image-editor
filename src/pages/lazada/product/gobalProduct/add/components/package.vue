@@ -13,6 +13,27 @@
                         :options="taxClassOptions" style="width: 150px;">
                     </a-select>
                 </a-form-item>
+                <a-form-item label="包装重量: " name="packageWeight"
+                    :rules="[{ required: true, message: '请输入包装重量', trigger: ['change'] }]">
+                    <div class="flex">
+                        <a-input-number placeholder="请输入包装重量" v-model:value="state.packageWeight" :precision="2"
+                            addon-after="Kg" :controls="false"></a-input-number>
+                    </div>
+                </a-form-item>
+                <a-form-item label="包装尺寸: " name="package" :rules="packageRules">
+                    <div class="flex gap-10px items-center">
+
+                        <a-input-number placeholder="长" v-model:value="state.packageLength" addon-after="cm"
+                            :precision="2" :controls="false"></a-input-number>
+
+                        <a-input-number placeholder="宽" v-model:value="state.packageWidth" addon-after="cm"
+                            :precision="2" :controls="false"></a-input-number>
+
+                        <a-input-number placeholder="高" v-model:value="state.packageHeight" addon-after="cm"
+                            :precision="2" :controls="false"></a-input-number>
+                    </div>
+                </a-form-item>
+
                 <a-form-item label="包装内容:" name="packageContent">
                     <a-textarea v-model:value="state.packageContent" placeholder="请输入包装内容" allow-clear showCount
                         :maxlength="1000" />
@@ -36,7 +57,12 @@ const { state: lazadaAttrsState } = useLazadaGobalAttrs();
 const { state } = useResetReactive({
     taxClass: 'default', // 税
     packageContent: '',
+    packageWeight: undefined,
+    packageLength: undefined,
+    packageWidth: undefined,
+    packageHeight: undefined,
 });
+
 // 税列表
 const taxClassOptions = computed(() => {
     return lazadaAttrsState.taxOptions.map(item => {
@@ -46,6 +72,17 @@ const taxClassOptions = computed(() => {
         }
     })
 });
+
+const packageRules = [{
+    required: true,
+    validator: (rule, value) => {
+        if (!state.packageLength || !state.packageWidth || !state.packageHeight) {
+            return Promise.reject('请输入包装尺寸');
+        }
+        return Promise.resolve();
+    },
+}]
+
 // 校验
 const validateForm = async () => {
     return new Promise((resolve, reject) => {

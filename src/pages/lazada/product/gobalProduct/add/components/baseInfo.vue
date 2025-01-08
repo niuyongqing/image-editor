@@ -233,7 +233,7 @@ onMounted(() => {
 
 .tag-bottom {
     color: #ec4339;
-    font-size: 16px;
+    font-size: 14px;
 }
 
 :deep(.ant-form-item-explain-error) {

@@ -29,12 +29,13 @@
                         <span class="text-#999"> 请选择下拉提示框品牌或者填写Lazada后台已有品牌，如无品牌则填写OEM。 </span>
                     </div>
                 </a-form-item>
-                <a-form-item label="型号: " name="model" v-show="lazadaAttrsState.attributes.length > 0">
-                    <a-input show-count :maxlength="255" v-model:value="state.model" placeholder="" allowClear
-                        class="flex  justify-start">
+                <a-form-item label="型号: " name="model" v-show="lazadaAttrsState.attributes.length > 0"
+                    :rules="[{ required: true, message: '请输入型号', trigger: ['change'] }]">
+                    <a-input v-model:value="state.model" placeholder="" allowClear class="flex  justify-start">
                     </a-input>
                 </a-form-item>
-                <a-form-item label="质保类型: " name="warranty_type" v-show="lazadaAttrsState.attributes.length > 0">
+                <a-form-item label="质保类型: " name="warranty_type" v-show="lazadaAttrsState.attributes.length > 0"
+                    :rules="[{ required: true, message: '请选择质保类型', trigger: ['change'] }]">
                     <a-select v-model:value="state.warranty_type" placeholder="" allowClear class="flex justify-start"
                         :options="lazadaAttrsState.warrantyTypeList"
                         :field-names="{ label: 'en_name', value: 'en_name' }">
@@ -45,14 +46,13 @@
                         :options="lazadaAttrsState.warrantyList" :field-names="{ label: 'en_name', value: 'en_name' }">
                     </a-select>
                 </a-form-item>
-                <!-- :rules="[{ required: item.is_mandatory === 1, trigger: ['blur'], message: item.is_mandatory === 1 ? '必填项，请填写' : '' }]" -->
+
                 <a-form-item label="属性: " v-show="lazadaAttrsState.attributes.length > 0">
                     <a-card v-loading="lazadaAttrsState.loading" class="attrs-card">
                         <a-form :model="productAtrrsform" ref="attrsFormRef" scrollToFirstError>
                             <a-form-item v-for="item in sortAttrs(lazadaAttrsState.productClassifyAtrrs)"
                                 :key="item.name" :name="item.name" :rules="itemRules(item)" :label="item.label"
                                 :labelCol="{ span: 3 }" :wrapperCol="{ span: 21 }">
-
                                 <!-- is_key_prop： 1 时，表示当前属性是项目的 key 属性 -->
                                 <div flex>
                                     <a-tag color="#6288F4" v-if="item.advanced && item.advanced.is_key_prop === 1">
@@ -183,7 +183,10 @@ const search = debounce((value) => {
 }, 200);
 
 const sortAttrs = (attrs) => {
-    const list = attrs.sort((a, b) => {
+    const attrsFilter = attrs.filter(item => {
+        return item.label
+    });
+    const list = attrsFilter.sort((a, b) => {
         if (a.is_mandatory !== 0 && b.is_mandatory === 0) return -1;
         if (b.is_mandatory !== 0 && a.is_mandatory === 0) return 1;
         if (a.advanced.is_key_prop === 1 && b.advanced.is_key_prop === 0) return -1;
@@ -221,12 +224,22 @@ const validateForm = async () => {
     });
 };
 
+// 清除校验
+const clearValidate = () => {
+    formEl.value.clearValidate();
+    attrsFormEl.value.clearValidate();
+};
+
+watch(() => lazadaAttrsState.loading, (newValue) => {
+    clearValidate();
+})
+
 //  产品资料库回显
 watch(() => lazadaAttrsState.product, (newValue) => {
     if (newValue && JSON.stringify(newValue) !== '{}') {
         console.log('newValue', newValue);
+        clearValidate();
         state.title = newValue.tradeName; // 产品标题
-
         //lazada 资料库数据回显 to do ...
     }
 });

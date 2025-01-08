@@ -30,8 +30,7 @@
                     </div>
                 </a-form-item>
                 <a-form-item label="型号: " name="model" v-show="lazadaAttrsState.attributes.length > 0">
-                    <a-input show-count :maxlength="255" v-model:value="state.model" placeholder="" allowClear
-                        class="flex  justify-start">
+                    <a-input v-model:value="state.model" placeholder="" allowClear class="flex  justify-start">
                     </a-input>
                 </a-form-item>
                 <a-form-item label="质保类型: " name="warranty_type" v-show="lazadaAttrsState.attributes.length > 0">
@@ -45,7 +44,7 @@
                         :options="lazadaAttrsState.warrantyList" :field-names="{ label: 'en_name', value: 'en_name' }">
                     </a-select>
                 </a-form-item>
-                <!-- :rules="[{ required: item.is_mandatory === 1, trigger: ['blur'], message: item.is_mandatory === 1 ? '必填项，请填写' : '' }]" -->
+
                 <a-form-item label="属性: " v-show="lazadaAttrsState.attributes.length > 0">
                     <a-card v-loading="lazadaAttrsState.loading" class="attrs-card">
                         <a-form :model="productAtrrsform" ref="attrsFormRef" scrollToFirstError>
@@ -184,7 +183,10 @@ const search = debounce((value) => {
 }, 200);
 
 const sortAttrs = (attrs) => {
-    const list = attrs.sort((a, b) => {
+    const attrsFilter = attrs.filter(item => {
+        return item.label
+    });
+    const list = attrsFilter.sort((a, b) => {
         if (a.is_mandatory !== 0 && b.is_mandatory === 0) return -1;
         if (b.is_mandatory !== 0 && a.is_mandatory === 0) return 1;
         if (a.advanced.is_key_prop === 1 && b.advanced.is_key_prop === 0) return -1;
@@ -221,6 +223,16 @@ const validateForm = async () => {
         })
     });
 };
+// 清除校验
+const clearValidate = () => {
+    formEl.value.clearValidate();
+    attrsFormEl.value.clearValidate();
+};
+
+watch(() => lazadaAttrsState.loading, (newValue) => {
+    clearValidate();
+})
+
 
 //  产品资料库回显
 watch(() => lazadaAttrsState.product, (newValue) => {
