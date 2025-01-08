@@ -136,10 +136,6 @@ function download() { // 下载图片到本体
   }
 }
 
-watchEffect(()=>{
-  authorization.value = window.localStorage.getItem("Authorization");
-})
-
 const beforeUpload = (file) =>{
   const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
   if (!isJpgOrPng) {
