@@ -14,6 +14,7 @@ export function useCookieStorage(key, defaultValue, options = {}) {
 
     // 监听 cookieValue 的变化，并更新到 Cookie
     watch(cookieValue, (newValue) => {
+        console.log(newValue)
         setCookie(key, newValue, options);
     });
 
@@ -25,7 +26,7 @@ export function useCookieStorage(key, defaultValue, options = {}) {
  * @param {string} key 键名
  * @returns {string|null} 返回 Cookie 的值
  */
-function getCookie(key) {
+export function getCookie(key) {
     const match = document.cookie.match(new RegExp(`(^| )${key}=([^;]+)`));
     return match ? decodeURIComponent(match[2]) : null;
 }
