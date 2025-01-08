@@ -27,10 +27,11 @@
                         <StopOutlined />
                         暂停
                     </a-button>
-                    <a-button type="primary" @click="syncLazadaVoucher" :disabled="multipleDisabled">
+                    <a-button type="primary" @click="syncLazadaVoucher" :disabled="multipleDisabled"
+                        :loading="syncLoading">
                         <ReloadOutlined /> 同步优惠卷
                     </a-button>
-                    <a-button type="primary" @click="syncLazadaShopVoucher">
+                    <a-button type="primary" @click="syncLazadaShopVoucher" :loading="syncLazadaShopLoading">
                         <CloudSyncOutlined /> 同步店铺优惠卷
                     </a-button>
                 </a-space>
@@ -61,7 +62,7 @@
 <script setup>
 import { PlusCircleOutlined, EditOutlined, EyeOutlined, SettingOutlined, CheckOutlined, StopOutlined, ReloadOutlined, CloudSyncOutlined } from '@ant-design/icons-vue';
 import BaseTable from '@/components/baseTable/BaseTable.vue';
-import { getList, accountCache, activateVoucher, syncLazadaShopVoucherApi } from './api';
+import { getList, accountCache, activateVoucher, syncLazadaShopVoucherApi, syncLazadaVoucherApi } from './api';
 import { columns } from './columns';
 import { useTableSelection } from '@/components/baseTable/useTableSelection';
 import Search from './components/search.vue';
@@ -76,7 +77,7 @@ const initSearchParam = {
     prop: "create_time",
     order: "desc"
 };
-const { singleDisabled, multipleDisabled, rowSelection, tableRow, clearSelection } = useTableSelection();
+const { singleDisabled, multipleDisabled, rowSelection, selectedRowKeys, tableRow, clearSelection } = useTableSelection();
 const baseTableEl = useTemplateRef('baseTableRef');
 const addVoucherEl = useTemplateRef('addVoucherRef');
 const editVoucherEl = useTemplateRef('editVoucherRef');
@@ -86,7 +87,9 @@ const manageProductEl = useTemplateRef('manageProductRef');
 const syncLoading = ref(false);// 同步 loading
 const activateLoading = ref(false);// 激活loading
 const deactivateVoucherLoading = ref(false);// 暂停loading
+const syncLazadaShopLoading = ref(false);// 同步店铺loading
 
+const shortCode = ref('');
 const account = ref([]);
 // 查询
 const handleSearch = async (state) => {
@@ -118,34 +121,59 @@ const settingProduct = () => {
 };
 
 // 激活
-const activate = () => { };
+const activate = () => {
+    let activateVoucherList = [];
+    selectedRowKeys.value.forEach((item) => {
+        let obj = {}
+        obj.voucherId = item.id
+        obj.voucherType = item.voucherType
+        activateVoucherList.push(obj)
+    })
+    let data = {
+        shortCode: shortCode.value,
+        activateVoucherList: activateVoucherList
+    }
+    activateVoucherLoading.value = true
+    activateVoucher(data).then(res => {
+        if (res.code === 200) {
+            message.success('激活成功');
+            clearSelection();
+            BaseTableEl.value.reload();
+        }
+        else {
+            message.error('激活失败');
+        }
+    }).finally(() => {
+        activateVoucherLoading.value = false
+    })
+};
 
 // 暂停
 const deactivateVoucher = () => { };
 
 // 同步优惠卷
 const syncLazadaVoucher = () => {
-    this.syncLoading = true
-    let voucherIds = this.$refs.tables.selection.map((item) => {
-        return item.id
-    })
+    syncLoading.value = true
+    // let voucherIds = this.$refs.tables.selection.map((item) => {
+    //     return item.id
+    // })
     let data = {
-        shortCode: this.shortCode,
-        voucherIds: voucherIds.join()
+        shortCode: shortCode.value,
+        voucherIds: selectedRows.value.join()
     }
-    syncLazadaVoucher(data).then(res => {
+    syncLazadaVoucherApi(data).then(res => {
         if (res.code === 200) {
-            this.$alert(res.msg, '成功', { confirmButtonText: '确定', type: 'success', callback: action => { } });
+            message.success('同步成功');
+            clearSelection();
+            BaseTableEl.value.reload();
         }
         else {
-            this.$alert(res.msg, '失败', { confirmButtonText: '确定', type: 'error', callback: action => { } });
+            message.error('同步失败');
         }
     }).finally(() => {
-        this.syncLoading = false
-        this.$bus.$emit('searchRegularCouponsInfo');
+        syncLoading.value = false;
+
     })
-
-
 };
 
 // 同步店铺优惠卷
@@ -153,7 +181,7 @@ const syncLazadaShopVoucher = () => {
     BaseTableEl.value.setLoading(true);
 
     let data = {
-        shortCode: tableRow.value.shortCode
+        shortCode: shortCode.value
     }
     syncLazadaShopVoucherApi(data).then(res => {
         if (res.code === 200) {
@@ -177,6 +205,7 @@ onMounted(async () => {
             codes.push(...accountCacheRes.data.accountDetail[resKey])
         };
         account.value = codes;
+        shortCode.value = codes[0].shortCode;
     };
 });
 

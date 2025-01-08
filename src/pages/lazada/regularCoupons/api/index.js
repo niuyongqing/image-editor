@@ -26,6 +26,14 @@ export function updateLazadaProduct(data) {
   );
 }
 
+//同步选中的优惠券
+export function syncLazadaVoucherApi(data) {
+  return usePost(
+    `/platform-lazada/platform/lazada/seller/voucher/selected/sync`,
+    data
+  );
+}
+
 //同步店铺优惠券
 export function syncLazadaShopVoucherApi(data) {
   return usePost(

@@ -4,7 +4,7 @@
 
         <TableAction></TableAction>
 
-        <BaseTable ref="baseTableRef" :columns="columns" :api="getList" :init-search-param="initSearchParam" search
+        <BaseTable ref="baseTableRef" :columns="columns" :api="getList" :init-search-param="initSearchParam"
             :row-selection="rowSelection" show-right-pagination rowKey="id">
             <template #leftBar>
                 <div class="flex">
