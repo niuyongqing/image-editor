@@ -100,13 +100,12 @@ export default ({ mode }: ConfigEnv): UserConfig => {
       },
     },
     server: {
-      port: 180,
+      port: 80,
       open: true,
       proxy: {
         ...proxyObj,
         [env.VITE_APP_BASE_API]: {
-          // target: env.VITE_APP_BASE_URL,
-          target: `http://10.93.90.40:8080`,
+          target: env.VITE_APP_BASE_URL,
           changeOrigin: true,
           rewrite: (path) =>
             path.replace(new RegExp(`^${env.VITE_APP_BASE_API}`), ""),
