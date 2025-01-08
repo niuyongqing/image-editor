@@ -4,13 +4,11 @@ import { reactive, computed, toRefs, onMounted } from "vue";
  * @description table 页面操作方法封装
  * @param apiUrl 获取表格数据 ApiUrl(必传)
  * @param initParam 获取数据初始化参数
- * @param isPageable 是否有分页
  * */
 export const useTable = (
   apiUrl,
   initSearchParam = {},
   pageField = "pageNum",
-  isPageable = true,
   immediate = true
 ) => {
   const state = reactive({
@@ -86,11 +84,7 @@ export const useTable = (
     for (let key in state.searchParam) {
       nowSearchParam[key] = state.searchParam[key];
     }
-    Object.assign(
-      state.totalParam,
-      nowSearchParam,
-      isPageable ? pageParam.value : {}
-    );
+    Object.assign(state.totalParam, nowSearchParam, pageParam.value);
   };
 
   /**

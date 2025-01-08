@@ -47,7 +47,7 @@ import { computed, h, nextTick, watch } from 'vue';
 import { EyeOutlined, UndoOutlined, SettingOutlined } from '@ant-design/icons-vue';
 import { useTable } from './useTable';
 import { omit } from 'lodash';
-const { columns, api, rowKey, dropAble, showRightPagination, initSearchParam, pageField, tableHeightOffset } = defineProps({
+const { columns, api, rowKey, dropAble, showRightPagination, initSearchParam, pageField, immediate, tableHeightOffset } = defineProps({
     columns: {
         type: Array,
         default: () => []
@@ -88,7 +88,7 @@ const { columns, api, rowKey, dropAble, showRightPagination, initSearchParam, pa
         default: 70
     }
 });
-const { tableData, pagination, loading, handleChange, getTableList, updatedTotalParam, setLoading, search, reload, handleChangePagination } = useTable(api, initSearchParam, pageField);
+const { tableData, pagination, loading, handleChange, getTableList, updatedTotalParam, setLoading, search, reload, handleChangePagination } = useTable(api, initSearchParam, pageField, immediate);
 const tableHeight = ref(0); // 表格高度
 const tableContainer = ref(null);
 const setTableHeight = () => {
