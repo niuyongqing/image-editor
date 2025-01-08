@@ -1,2 +1,3 @@
-export const STORAGE_AUTHORIZE_KEY = 'Authorization'
-export const useAuthorization = createGlobalState(() => useStorage(STORAGE_AUTHORIZE_KEY, null))
+
+export const STORAGE_AUTHORIZE_KEY = 'Admin-Token'
+export const useAuthorization = createGlobalState(() => useCookieStorage(STORAGE_AUTHORIZE_KEY, null))
