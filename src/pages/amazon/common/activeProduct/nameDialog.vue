@@ -1,8 +1,8 @@
 <template>
-<div id="quantityDialog" class="quantityDialog">
+<div id="nameDialog" class="nameDialog">
   <a-modal 
     v-model:open="props.open" 
-    :title="'批量修改库存'" 
+    :title="'批量修改标题'" 
     @ok="handleOk"
     :closable="false"
   >
@@ -14,13 +14,13 @@
     >
       <a-form-item 
         label=""
-        name="num"
-        :rules="[{ required: true, message: '请填写数字！' }]"
+        name="name"
+        :rules="[{ required: true, message: '请输入标题！' }]"
       >
-        <a-input-number 
-          style="width: 200px"
-          v-model:value="batchData.form.num" 
-          :min="0"
+        <a-textarea  
+          v-model:value="batchData.form.name" 
+          placeholder="请输入" 
+          :rows="2"
         />
       </a-form-item>
     </a-form>
@@ -34,9 +34,9 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-import { quantityEdit } from '../../js/api/activeProduct';
+import { nameEdit } from '../../js/api/activeProduct';
 defineOptions({
-  name: "quantityDialog"
+  name: "nameDialog"
 });
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:open', 'editDone'])
@@ -51,37 +51,43 @@ const props = defineProps({
 const batchData = reactive({
   loading: false,
   form: {
-    num: '',
+    name: '',
   }
 });
+// watch(() => props.open, (newVal) => {
+//   console.log({newVal});
+//   if (newVal) {
+//     batchData.form.num = item.name || ''
+//   }
+// })
 
 // 弹窗保存
 async function handleOk() {
   // console.log(_this.$refs.batchForm);
   try {
     let res = await _this.$refs.batchForm.validateFields()
-    updateQuantity()
+    updateName()
   } catch (error) {
     console.log(error);
   };
 }
 // 更新库存
-async function updateQuantity() {
-  let editQuantityItems = props.rows.map(item => {
+async function updateName() {
+  let editListItemNameItems = props.rows.map(item => {
     let obj = {
       "asin": item.asin,
       "shopId": item.shopId,
       "marketId": item.marketId,
       "skuName": item.skuName,
-      "quantity": item.quantity,
       "patches": [
         {
           "op": "replace",
-          "path": "/attributes/fulfillment_availability",
+          "path": "/attributes/item_name",
           "value": [
             {
-              "fulfillment_channel_code": "DEFAULT",
-              "quantity": batchData.form.num
+              "marketplace_id": "ATVPDKIKX0DER",
+              "value": batchData.form.name,
+              "language_tag": "en_US"
             }
           ]
         }
@@ -91,7 +97,7 @@ async function updateQuantity() {
   })
   batchData.loading = true
   try {
-    await quantityEdit({ editQuantityItems })
+    await nameEdit({ editListItemNameItems })
     emit('editDone')
     handleCancel()
   } catch (error) {

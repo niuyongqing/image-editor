@@ -1,8 +1,8 @@
 <template>
-<div id="quantityDialog" class="quantityDialog">
+<div id="ourPriceDialog" class="ourPriceDialog">
   <a-modal 
     v-model:open="props.open" 
-    :title="'批量修改库存'" 
+    :title="'批量修改价格'" 
     @ok="handleOk"
     :closable="false"
   >
@@ -19,8 +19,9 @@
       >
         <a-input-number 
           style="width: 200px"
-          v-model:value="batchData.form.num" 
+          :step="0.01" 
           :min="0"
+          v-model:value="batchData.form.num" 
         />
       </a-form-item>
     </a-form>
@@ -34,10 +35,8 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-import { quantityEdit } from '../../js/api/activeProduct';
-defineOptions({
-  name: "quantityDialog"
-});
+import { ourPriceEdit } from '../../js/api/activeProduct';
+defineOptions({ name: "ourPriceDialog" });
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:open', 'editDone'])
 const props = defineProps({
@@ -54,34 +53,49 @@ const batchData = reactive({
     num: '',
   }
 });
+// watch(() => props.open, (newVal) => {
+//   console.log({newVal});
+//   if (newVal) {
+//     batchData.form.num = item.ourPrice || ''
+//   }
+// })
 
 // 弹窗保存
 async function handleOk() {
   // console.log(_this.$refs.batchForm);
   try {
     let res = await _this.$refs.batchForm.validateFields()
-    updateQuantity()
+    updateOurPrice()
   } catch (error) {
     console.log(error);
   };
 }
 // 更新库存
-async function updateQuantity() {
-  let editQuantityItems = props.rows.map(item => {
+async function updateOurPrice() {
+  let editOurPriceItems = props.rows.map(item => {
     let obj = {
       "asin": item.asin,
       "shopId": item.shopId,
       "marketId": item.marketId,
       "skuName": item.skuName,
-      "quantity": item.quantity,
+      "ourPrice": item.ourPrice,
       "patches": [
         {
           "op": "replace",
-          "path": "/attributes/fulfillment_availability",
+          "path": "/attributes/purchasable_offer",
           "value": [
             {
-              "fulfillment_channel_code": "DEFAULT",
-              "quantity": batchData.form.num
+              "marketplace_id": "ATVPDKIKX0DER",
+              "currency": "USD",
+              "our_price": [
+                {
+                  "schedule": [
+                    {
+                      "value_with_tax": batchData.form.num
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -91,7 +105,7 @@ async function updateQuantity() {
   })
   batchData.loading = true
   try {
-    await quantityEdit({ editQuantityItems })
+    await ourPriceEdit({ editOurPriceItems })
     emit('editDone')
     handleCancel()
   } catch (error) {

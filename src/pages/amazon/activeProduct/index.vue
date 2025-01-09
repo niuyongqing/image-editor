@@ -165,6 +165,7 @@
           <a-button
             type="primary" 
             @click.prevent
+            :disabled="tableInfo.selectedRows.length < 1"
           >批量操作商品</a-button>
           <!-- <a class="ant-dropdown-link">
             Hover me, Click menu item
@@ -272,27 +273,31 @@
       @change="onPaginationChange"
     />
   </a-card>
-  <a-modal v-model:open="batchData.open" :title="batchData.actionItem.label" @ok="handleOk">
-    <a-form
-      layout="horizontal"
-      :model="batchData.form"
-      style="max-width: 600px"
-      ref="batchForm"
-    >
-      <a-form-item 
-        label=""
-        name="num"
-        :rules="[{ required: true, message: '请填写数字！' }]"
-      >
-        <a-input-number id="inputNumber" v-model:value="batchData.form.num" />
-      </a-form-item>
-    </a-form>
-    <template #footer>
-      <a-button key="back" @click="handleCancel">取消</a-button>
-      <a-button key="submit" type="primary" :loading="batchData.loading" @click="handleOk">确定</a-button>
-    </template>
-  </a-modal>
-  <quantity-dialog v-model:open="batchData.modal.quantity.open" :rows="batchData.modal.quantity.rows"></quantity-dialog>
+  <quantity-dialog 
+    v-model:open="batchData.modal.quantity.open" 
+    :rows="batchData.modal.quantity.rows"
+    @editDone="editDone"
+  ></quantity-dialog>
+  <ourPrice-dialog 
+    v-model:open="batchData.modal.ourPrice.open" 
+    :rows="batchData.modal.ourPrice.rows"
+    @editDone="editDone"
+  ></ourPrice-dialog>
+  <listPrice-dialog 
+    v-model:open="batchData.modal.listPrice.open" 
+    :rows="batchData.modal.listPrice.rows"
+    @editDone="editDone"
+  ></listPrice-dialog>
+  <name-dialog 
+    v-model:open="batchData.modal.name.open" 
+    :rows="batchData.modal.name.rows"
+    @editDone="editDone"
+  ></name-dialog>
+  <image-dialog 
+    v-model:open="batchData.modal.image.open" 
+    :rows="batchData.modal.image.rows"
+    @editDone="editDone"
+  ></image-dialog>
 </div>
 </template>
 
@@ -302,13 +307,19 @@ import { useRouter, useRoute } from 'vue-router'
 import { getShopList, getMarketList, getList } from '../js/api/activeProduct';
 
 import activeProduct from '../js/tableHead/activeProduct';
+
 import quantityDialog from '../common/activeProduct/quantityDialog.vue';
+import ourPriceDialog from '../common/activeProduct/ourPriceDialog.vue';
+import listPriceDialog from '../common/activeProduct/listPriceDialog.vue';
+import nameDialog from '../common/activeProduct/nameDialog.vue';
+import imageDialog from '../common/activeProduct/imageDialog.vue';
 
 defineOptions({
   name: "activeProduct"
 })
 // 获取当前实例
 const { proxy: _this } = getCurrentInstance()
+console.log({_this});
 onMounted(async () => {
   try {
     let res = await getShopList()
@@ -485,18 +496,15 @@ const batchData = reactive({
       label: '批量修改ListPrice',
     },
     {
-      key: 'listPrice',
-      label: '批量修改ListPrice',
+      key: 'name',
+      label: '批量修改标题',
       rows: [],
     },
     {
       key: 'image',
       label: '批量修改图片',
     }
-  ],
-  form: {
-    num: ''
-  }
+  ]
 });
 const router = useRouter;
 function toAdd() {
@@ -511,51 +519,10 @@ function onClickBatch({ key }) {
   batchData.modal[key].open = true
   batchData.modal[key].rows = tableInfo.selectedRows
 }
-// function openModal() {
-//   batchData.open = true
-// }
-// // 弹窗保存
-// async function handleOk() {
-//   _this.$refs.batchForm
-//   console.log(_this.$refs.batchForm);
-//   try {
-//     let res = await _this.$refs.batchForm.validateFields()
-//     console.log({res});
-//   } catch (error) {
-//     console.log(error);
-    
-//   }
-//   return;
-//   batchData.loading = true
-//   setTimeout(() => {
-//     batchData.open = false
-//     batchData.loading = false
-//   }, 2000);
-// }
-// // 关闭弹窗
-// function handleCancel() {
-//   batchData.open = false
-//   batchData.loading = false
-// }
-// 批量修改库存
-function quantityBatch(num) {
-
-}
-// 批量修改价格
-function ourPriceBatch(num) {
-
-}
-// 批量修改listPrice
-function listPriceBatch() {
-
-}
-// 批量修改标题
-function nameBatch() {
-
-}
-// 批量修改图片
-function imageBatch() {
-
+// 批量操作完成
+function editDone() {
+  tableInfo.selectedRows = []
+  tableInfo.selectedRowKeys = []
 }
 // 站点变更
 function marketChange(val) {
