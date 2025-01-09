@@ -523,11 +523,6 @@
       background: linear-gradient(45deg, transparent 0, transparent 49.5%, #ec4339 49.5%, #ec4339 50.5%, transparent 50.5%, transparent 100%);
     }
 
-    .a-table {
-      width: fit-content;
-      max-width: 100%;
-    }
-
     .image {
       width: 60px;
       height: 60px;

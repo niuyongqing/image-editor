@@ -201,6 +201,7 @@
         row-key="draftId"
         :pagination="false"
         :row-selection="{ selectedRowKeys, onChange: onSelectChange }"
+        :scroll="{ x: 'max-content' }"
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'draftId'">

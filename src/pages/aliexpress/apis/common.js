@@ -13,3 +13,8 @@ export function getAllFreightTemplateApi(params) {
 export function accountCacheApi(isChoice) {
   return useGet(`/platform-aliexpress/platform/aliexpress/setting/account/relevance/user/cache${isChoice ? '?isChoice=true' : ''}`)
 }
+
+// 查询商家信息
+export function getSellerInfoApi(params) {
+  return usePost('/platform-aliexpress/platform/aliexpress/semiCustodial/product/getSellerInfo', params)
+}

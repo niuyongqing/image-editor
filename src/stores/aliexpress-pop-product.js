@@ -3,9 +3,11 @@ export const useAliexpressPopProductStore = defineStore('aliexpressPopProductSto
   state: () => {
     return {
       sellerId: '',
+      currencyCode: '', // 货币代码
       categoryId: '',
       SKUList: [],
       SKUTableData: [],
+      SKUAttributesCache: {}, // SKU 属性缓存
       productDetail: {} // 产品详情
     }
   }

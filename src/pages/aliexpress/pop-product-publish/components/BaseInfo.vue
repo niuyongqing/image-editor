@@ -26,25 +26,6 @@
         >
         </a-select>
       </a-form-item>
-      <a-form-item name="productType">
-        <template #label>
-          <span class="mr-1">备货类型</span>
-          <a-popover overlayClassName="w-[380px]">
-            <template #content>
-              <span
-                >1、国内履约：即时补货模式 (JIT) 商品备货在商家仓库，消费者下单后，商家需在指定时间内快速发货至指定速卖通全托管官方仓。<br />2、海外备仓模式:商家备货到速卖通全托管指定的海外仓模式。消费者下单后，速卖通全托管海外仓直接发货。</span
-              >
-            </template>
-            <InfoCircleOutlined
-          /></a-popover>
-        </template>
-        <a-select
-          v-model:value="form.productType"
-          placeholder="请选择备货类型"
-          :options="productTypeOptions"
-        >
-        </a-select>
-      </a-form-item>
       <a-form-item
         label="产品标题"
         name="name"
@@ -219,13 +200,13 @@
 
 <script>
   import { getProductClassificationApi, resultByPostCateIdAndPathApi, getResultByPostCateIdAndPathApi } from '../../apis/product'
-  import { accountCacheApi } from '../../apis/common'
+  import { accountCacheApi, getSellerInfoApi } from '../../apis/common'
   import { queryChannelApi } from '../../apis/choice-product'
   import { InfoCircleOutlined, PlusOutlined, UpOutlined, DownOutlined } from '@ant-design/icons-vue'
   import { message } from 'ant-design-vue'
   import { v4 as uuidv4 } from 'uuid'
   import { cloneDeep } from 'lodash'
-  import { useAliexpressChoiceProductStore } from '@/stores/aliexpress-choice-product'
+  import { useAliexpressPopProductStore } from '@/stores/aliexpress-pop-product'
   import { findParentIds } from '@/utils/index'
 
   export default {
@@ -233,16 +214,11 @@
     components: { InfoCircleOutlined, PlusOutlined, UpOutlined, DownOutlined },
     data() {
       return {
-        store: useAliexpressChoiceProductStore(),
+        store: useAliexpressPopProductStore(),
         accounts: [],
-        productTypeOptions: [
-          { label: '国内履约', value: '1' },
-          { label: '海外备货', value: '2', disabled: true }
-        ],
         options: [],
         form: {
           sellerId: undefined,
-          productType: '1',
           name: '',
           category: undefined,
           categoryIdList: [] // 存放产品分类双向绑定的数据
@@ -252,11 +228,6 @@
         attributes: {}, // 产品属性, 收集值
         rules: {
           sellerId: {
-            required: true,
-            message: '必填项，请填写',
-            trigger: 'change'
-          },
-          productType: {
             required: true,
             message: '必填项，请填写',
             trigger: 'change'
@@ -292,13 +263,12 @@
           // 赋值
           this.form.sellerId = this.store.sellerId
           this.handleAccountChange()
-          this.form.productType = detail.productExtDto.productType
-          this.form.name = detail.productInfoDto.subjectList.find(item => item.locale === 'en_US').value
-          this.form.category = String(detail.productInfoDto.categoryId)
+          this.form.name = detail.subjectList.find(item => item.locale === 'en_US').value
+          this.form.category = String(detail.categoryId)
           await this.getAttributes()
 
           // 与品类绑定的属性
-          const attributeList = detail.productPropertyList.filter(item => item.attrNameId && item.attrNameId !== -1)
+          const attributeList = detail.aeopAeProductPropertys.filter(item => item.attrNameId && item.attrNameId !== -1)
           // 整合先
           const root = {}
           attributeList.forEach(item => {
@@ -308,7 +278,7 @@
               root[item.attrNameId] = [item]
             }
           })
-          // 因要判断是否还有下级属性(hasSubAttr), 不能直接赋 productPropertyList 的值; 从 attributeOptions 里取
+          // 因要判断是否还有下级属性(hasSubAttr), 不能直接赋 aeopAeProductPropertys 的值; 从 attributeOptions 里取
           const attributesObj = {}
           for (const attrNameId in root) {
             const option = this.attributeOptions.find(option => option.attributeId == attrNameId)
@@ -383,7 +353,7 @@
           }
           this.attributes = attributesObj
           // 自定义属性
-          const cusAttributeList = detail.productPropertyList.filter(item => item.attrNameId === -1)
+          const cusAttributeList = detail.aeopAeProductPropertys.filter(item => item.attrNameId === -1)
           cusAttributeList.forEach(item => {
             this.cusAttribute.push({
               id: uuidv4(),
@@ -399,7 +369,7 @@
     },
     methods: {
       getAccounts() {
-        accountCacheApi(true).then(res => {
+        accountCacheApi().then(res => {
           this.accounts = res.data.accountDetail || []
         })
       },
@@ -440,7 +410,7 @@
         this.store.$patch(state => {
           state.sellerId = this.form.sellerId
         })
-        this.getChannelInfo()
+        this.getSellerInfo()
         this.form.category = ''
         this.form.categoryIdList = []
         this.options = []
@@ -449,12 +419,13 @@
         this.attributeOptions = []
       },
       // 获取商家信息
-      getChannelInfo() {
-        queryChannelApi(this.form.sellerId).then(res => {
+      getSellerInfo() {
+        getSellerInfoApi({ sellerId: this.form.sellerId }).then(res => {
+          this.currencyCode = res.data.profile.quotationCurrency
+          // 传到 区域调价
           this.store.$patch(state => {
-            state.channelInfo = res.data
+            state.currencyCode = this.currencyCode
           })
-          this.currencyCode = res.data.channelCurrency
         })
       },
       // 选完分类后获取属性
@@ -661,7 +632,7 @@
         this.cusAttribute = this.cusAttribute.filter(item => item.id !== id)
       },
       // 向上级提交数据
-      async emitData({ isDraft = false }) {
+      async emitData({ looseValidate = false }) {
         let ruleFormValid = true
         await this.$refs.ruleFormRef.validate().catch(err => {
           ruleFormValid = false
@@ -682,26 +653,20 @@
         if (Object.keys(this.productDetail).length === 0) {
           subjectList = [{ locale: 'en_US', value: this.form.name }]
         } else {
-          subjectList = cloneDeep(this.productDetail.productInfoDto.subjectList)
+          subjectList = cloneDeep(this.productDetail.subjectList)
           subjectList.forEach(item => {
             if (item.locale === 'en_US') {
               item.value = this.form.name
             }
           })
         }
-        const productInfoDto = {
-          locale: 'en_US',
-          categoryId: this.form.category,
-          currencyCode: this.currencyCode,
-          subjectList
-        }
 
-        const productPropertyList = []
+        const aeopAeProductPropertys = []
         for (const key in this.attributes) {
           const tempObj = this.attributeOptions.find(item => item.zh === key)
           switch (Object.prototype.toString.call(this.attributes[key]).slice(8, -1)) {
             case 'Object':
-              productPropertyList.push({
+              aeopAeProductPropertys.push({
                 attrName: key,
                 attrNameId: tempObj.attributeId,
                 attrValue: this.attributes[key].label,
@@ -711,7 +676,7 @@
             case 'Array':
               // 一个属性多个选中值的情况，以多个该对象存放
               this.attributes[key].forEach(val => {
-                productPropertyList.push({
+                aeopAeProductPropertys.push({
                   attrName: key,
                   attrNameId: tempObj.attributeId,
                   attrValue: val.label, // 原写法值为: 选择的属性(Object) || 自定义(String)
@@ -721,7 +686,7 @@
               break
             case 'String':
             default:
-              productPropertyList.push({
+              aeopAeProductPropertys.push({
                 attrName: key,
                 attrNameId: tempObj.attributeId,
                 attrValue: this.attributes[key]
@@ -737,13 +702,14 @@
           }
         })
 
-        productPropertyList.push(...result)
+        aeopAeProductPropertys.push(...result)
         // 产品标题local默认为英文; 分类必须传叶子类目
         return {
           sellerId: this.form.sellerId,
-          productType: this.form.productType,
-          productInfoDto,
-          productPropertyList
+          locale: 'en_US',
+          subjectList,
+          categoryId: this.form.category,
+          aeopAeProductPropertys
         }
       }
     }

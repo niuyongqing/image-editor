@@ -75,6 +75,7 @@
         bordered
         row-key="sellerId"
         :pagination="{ defaultPageSize: 50, hideOnSinglePage: true }"
+        :scroll="{ x: 'max-content' }"
       >
         <template #bodyCell="{ column, record, text }">
           <template v-if="column.title === '过期时间'">
