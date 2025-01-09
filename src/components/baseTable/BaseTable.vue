@@ -27,7 +27,8 @@
                         showQuickJumper: true,
                         showSizeChanger: true,
                         showTotal: (total, range) => `第${range[0]}-${range[1]}条, 共${total}条`
-                    }" ellipsis bordered :scroll="{ y: tableHeight, x: '100%', virtual: true }" @change="handleChange">
+                    }" ellipsis bordered :scroll="{ y: tableHeight, x: scrollX ? scrollX : '100%', virtual: true }"
+                    @change="handleChange">
                     <template #headerCell="{ column }">
                         <slot v-if="column.headerCell" name="headerCell" :column="column"></slot>
                     </template>
@@ -86,6 +87,10 @@ const { columns, api, rowKey, dropAble, showRightPagination, initSearchParam, pa
     tableHeightOffset: {
         type: Number,
         default: 70
+    },
+    scrollX: {
+        type: Number,
+        default: 0
     }
 });
 const { tableData, pagination, loading, handleChange, getTableList, updatedTotalParam, setLoading, search, reload, handleChangePagination } = useTable(api, initSearchParam, pageField, immediate);

@@ -4,7 +4,7 @@
             <a-form ref="baseFormRef" layout="inline" :formList="formList" :label-col="{ style: { width: '80px' } }"
                 :wrapper-col="{ style: { width: '220px' } }" labelAlign="left">
                 <a-form-item label="店铺：">
-                    <a-select style="width: 220px" v-model:value="state.shortCode" placeholder="请选择店铺">
+                    <a-select style="width: 220px" v-model:value="state.shortCode" placeholder="请选择店铺" allow-clear>
                         <a-select-option v-for="item in account" :key="item.shortCode" :value="item.shortCode"
                             :field-names="{ label: 'simpleName', value: 'shortCode' }">
                             <div flex justify-between>
@@ -14,21 +14,19 @@
                         </a-select-option>
                     </a-select>
                 </a-form-item>
-                <a-form-item label="优惠卷名称：">
-                    <a-input style="width: 220px" placeholder="请输入优惠卷名称" v-model:value="state.voucherName"
-                        allow-clear />
-                </a-form-item>
-                <a-form-item label="优惠券状态：">
-                    <a-select v-model:value="state.status" placeholder="请选择优惠券状态" allow-clear>
+                <a-form-item label="状态：">
+                    <a-select v-model:value="state.status" placeholder="请选择状态" allow-clear>
                         <a-select-option value="NOT_START">未开始</a-select-option>
                         <a-select-option value="ONGOING">进行中</a-select-option>
                         <a-select-option value="SUSPEND">暂停</a-select-option>
                         <a-select-option value="FINISH">已过期</a-select-option>
                     </a-select>
                 </a-form-item>
-                <a-form-item label="优惠券时间：">
-                    <a-range-picker style="width: 210px" v-model:value="state.periodStartTime"
-                        value-format="YYYY-MM-DD HH:mm:ss" format="YYYY-MM-DD HH:mm:ss" allow-clear />
+                <a-form-item label="活动名称：">
+                    <a-input style="width: 220px" placeholder="请输入" v-model:value="state.name" allow-clear />
+                </a-form-item>
+                <a-form-item label="活动ID:">
+                    <a-input style="width: 220px" placeholder="多个活动ID用逗号隔开" v-model:value="state.ids" allow-clear />
                 </a-form-item>
                 <a-form-item label="">
                     <a-button type="primary" @click="submit">查询</a-button>
@@ -47,9 +45,9 @@ import BaseForm from '@/components/baseForm/BaseForm.vue';
 const shortCode = ref('');
 const { state, reset } = useResetReactive({
     shortCode: undefined,
-    voucherName: '',
+    name: '',
     status: undefined,
-    periodStartTime: [],
+    ids: ''
 });
 const { account } = defineProps({
     account: {
@@ -72,10 +70,9 @@ watch(() => account, (val) => {
 const submit = () => {
     emits('search', {
         shortCode: state.shortCode,
-        voucherName: state.voucherName,
         status: state.status,
-        periodStartTimeEnd: state.periodStartTime.length > 0 ? state.periodStartTime[1] : undefined,
-        periodStartTimeStart: state.periodStartTime.length > 0 ? state.periodStartTime[0] : undefined
+        name: state.name,
+        ids: state.ids
     });
 };
 const handleReset = () => {
