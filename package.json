@@ -38,6 +38,7 @@
     "dayjs": "^1.11.13",
     "fabric": "^6.5.1",
     "file-saver": "^2.0.5",
+    "js-cookie": "^3.0.5",
     "lodash-es": "^4.17.21",
     "mitt": "^3.0.1",
     "mt-image-editor-sdk": "^3.4.1",
