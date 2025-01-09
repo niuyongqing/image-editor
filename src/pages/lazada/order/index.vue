@@ -9,7 +9,8 @@
                         <SyncOutlined />
                         同步数据
                     </a-button>
-                    <a-button type="primary" v-has-permi="['platform:lazada:order:export']" @click="orderDownload">
+                    <a-button type="primary" v-has-permi="['platform:lazada:order:export']" @click="orderDownload"
+                        :loading="orderDownloadLoading">
                         <CloudDownloadOutlined /> 导出
                     </a-button>
                 </a-space>
@@ -127,9 +128,8 @@ const syncLazada = () => {
 
 const orderDownload = () => {
     const searchData = searchEl.value.formData;
-    console.log('searchData', searchData);
     if (!searchData.time.length) {
-        message.error("下单不能为空");
+        message.error("下单时间不能为空");
         return
     };
     if (!searchData.county) {
