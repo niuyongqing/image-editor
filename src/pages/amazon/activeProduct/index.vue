@@ -19,6 +19,7 @@
           :options="options.marketList"
           :append-all="false"
           :field-names="{ label: 'countryZhName', value: 'marketId' }"
+          @change="marketChange"
         />
       </a-descriptions-item>
       <a-descriptions-item label="搜索类型">
@@ -143,18 +144,63 @@
           type="primary"
           @click="toAdd"
         >发布商品</a-button>
+        <!-- <a-button
+          type="primary"
+          @click="toAdd"
+        >删除商品</a-button> -->
       </div>
-      <a-pagination
+      <!-- <a-pagination
         size="small"
         v-model:current="tableInfo.params.pageNum"
         v-model:pageSize="tableInfo.params.pageSize"
-        :total="total"
+        :total="tableInfo.total"
         :default-page-size="50"
         show-size-changer
         show-quick-jumper
         :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
         @change="onPaginationChange"
-      />
+      /> -->
+      <div class="right-group">
+        <a-dropdown :trigger="['click']">
+          <a-button
+            type="primary" 
+            @click.prevent
+            :disabled="tableInfo.selectedRows.length < 1"
+          >批量操作商品</a-button>
+          <!-- <a class="ant-dropdown-link">
+            Hover me, Click menu item
+            <DownOutlined />
+          </a> -->
+          <template #overlay>
+            <a-menu @click="onClickBatch">
+              <a-menu-item 
+                v-for="item in batchData.itemList"
+                :key="item.key"
+              >{{ item.label }}</a-menu-item>
+            </a-menu>
+          </template>
+        </a-dropdown>
+        <a-dropdown :trigger="['click']">
+          <a-button
+            type="primary" 
+            @click.prevent
+          >批量操作SKU</a-button>
+          <!-- <a class="ant-dropdown-link">
+            Hover me, Click menu item
+            <DownOutlined />
+          </a> -->
+          <template #overlay>
+            <a-menu @click="onClickBatch">
+              <a-menu-item key="quantity">批量修改库存</a-menu-item>
+              <a-menu-item key="ourPrice">批量修改价格</a-menu-item>
+              <!-- <a-menu-item key="2">批量修改促销价格</a-menu-item> -->
+              <a-menu-item key="listPrice">批量修改ListPrice</a-menu-item>
+              <a-menu-item key="name">批量修改标题</a-menu-item>
+              <a-menu-item key="image">批量修改图片</a-menu-item>
+            </a-menu>
+          </template>
+        </a-dropdown>
+      </div>
     </div>
     <a-table
       :columns="displayHeader"
@@ -162,13 +208,57 @@
       :loading="tableInfo.loading"
       stripe
       ref="tableRef"
-      row-key="productId"
+      :scroll="{ y: 850 }"
+      :row-key="record => record.key"
       :pagination="false"
       :row-selection="{ selectedRowKeys: tableInfo.selectedRowKeys, onChange: onSelectChange }"
     >
       <template #bodyCell="{ column, record }">
-        {{ column, record }}
-        
+        <!-- <button @click="columnFn(column, record)">fsdfasdfas</button> -->
+        <template v-if="column.key === 'options'">
+          <div class="options-btns">
+            <a-popconfirm
+              title="是否删除商品?"
+              ok-text="是"
+              cancel-text="否"
+              @confirm="delProduact(record)"
+            >
+              <a-button type="text" danger>删除</a-button>
+            </a-popconfirm>
+          </div>
+        </template>
+      </template>
+      <template #expandedRowRender="{ record }">
+        <a-table 
+          :columns="displayHeader" 
+          :data-source="tableInfo.childData[record.key].data" 
+          :pagination="false"
+          :ref="record.key"
+          :row-key="record => record.key"
+          :row-selection="{ 
+            selectedRowKeys: tableInfo.childData[record.key].selectedRowKeys, 
+            onChange: (keys, rows) => onChildSelectChange(keys, rows, record.key) 
+          }"
+        >
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'state'">
+              <span>
+                <a-badge status="success" />
+                Finished
+              </span>
+            </template>
+            <template v-else-if="column.key === 'options'">
+              <a-popconfirm
+                title="是否删除商品sku?"
+                ok-text="是"
+                cancel-text="否"
+                @confirm="delSku(record)"
+              >
+                <a-button type="text" danger>删除</a-button>
+              </a-popconfirm>
+            </template>
+          </template>
+        </a-table>
       </template>
     </a-table>
     <a-pagination
@@ -183,6 +273,31 @@
       @change="onPaginationChange"
     />
   </a-card>
+  <quantity-dialog 
+    v-model:open="batchData.modal.quantity.open" 
+    :rows="batchData.modal.quantity.rows"
+    @editDone="editDone"
+  ></quantity-dialog>
+  <ourPrice-dialog 
+    v-model:open="batchData.modal.ourPrice.open" 
+    :rows="batchData.modal.ourPrice.rows"
+    @editDone="editDone"
+  ></ourPrice-dialog>
+  <listPrice-dialog 
+    v-model:open="batchData.modal.listPrice.open" 
+    :rows="batchData.modal.listPrice.rows"
+    @editDone="editDone"
+  ></listPrice-dialog>
+  <name-dialog 
+    v-model:open="batchData.modal.name.open" 
+    :rows="batchData.modal.name.rows"
+    @editDone="editDone"
+  ></name-dialog>
+  <image-dialog 
+    v-model:open="batchData.modal.image.open" 
+    :rows="batchData.modal.image.rows"
+    @editDone="editDone"
+  ></image-dialog>
 </div>
 </template>
 
@@ -190,13 +305,21 @@
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { getShopList, getMarketList, getList } from '../js/api/activeProduct';
+
 import activeProduct from '../js/tableHead/activeProduct';
+
+import quantityDialog from '../common/activeProduct/quantityDialog.vue';
+import ourPriceDialog from '../common/activeProduct/ourPriceDialog.vue';
+import listPriceDialog from '../common/activeProduct/listPriceDialog.vue';
+import nameDialog from '../common/activeProduct/nameDialog.vue';
+import imageDialog from '../common/activeProduct/imageDialog.vue';
 
 defineOptions({
   name: "activeProduct"
 })
 // 获取当前实例
 const { proxy: _this } = getCurrentInstance()
+console.log({_this});
 onMounted(async () => {
   try {
     let res = await getShopList()
@@ -207,12 +330,14 @@ onMounted(async () => {
     console.log(error)
   }
 })
+// 表头
 const displayHeader = computed(() => {
   return tableInfo.head.filter(column => column.show)
 })
 const tableInfo = reactive({
   head: activeProduct,
   data: [],
+  childData: {},
   total: 0,
   tableSettingFlag: false, // 表格设置状态 Boolean
   tableSettingLoading: false,
@@ -223,11 +348,15 @@ const tableInfo = reactive({
   loading: false,
   selectedRowKeys: [],
   selectedRows: [],
+  allSelectedRows: []         // 全部勾选的行
 })
 // 获取站点列表
 function shopChange(id) {
   getMarketList(id).then(res => {
     options.marketList = res.data
+    if (res.data.length > 0) {
+      marketChange(res.data[0].marketId)
+    }
   })
 }
 const options = reactive({
@@ -325,16 +454,90 @@ const extendSearchForm = reactive({ // 高级搜索表单
   remark: undefined,
   createTime: null,
   updateTime: null
-}) 
-const router = useRouter()
+});
+// 批量修改的数据
+const batchData = reactive({
+  open: false,
+  loading: false,
+  actionItem: {},
+  modal: {
+    quantity: {
+      open: false,
+      rows: [],
+    },
+    ourPrice: {
+      open: false,
+      rows: [],
+    },
+    listPrice: {
+      open: false,
+      rows: [],
+    },
+    name: {
+      open: false,
+      rows: [],
+    },
+    image: {
+      open: false,
+      rows: [],
+    },
+  },
+  itemList: [
+    {
+      key: 'quantity',
+      label: '批量修改库存',
+    },
+    {
+      key: 'ourPrice',
+      label: '批量修改价格',
+    },
+    {
+      key: 'listPrice',
+      label: '批量修改ListPrice',
+    },
+    {
+      key: 'name',
+      label: '批量修改标题',
+      rows: [],
+    },
+    {
+      key: 'image',
+      label: '批量修改图片',
+    }
+  ]
+});
+const router = useRouter;
 function toAdd() {
   // router.push('/amazon/activeProduct/add')
   window.open('/platform/amazon/activeProduct/add')
 }
-function search() {
-  getList()
+// 批量操作
+function onClickBatch({ key }) {
+  console.log({ key });
+  // batchData.actionItem = batchData.itemList.find(i => i.key === key)
+  // openModal()
+  batchData.modal[key].open = true
+  batchData.modal[key].rows = tableInfo.selectedRows
 }
-function toggleFold() {
+// 批量操作完成
+function editDone() {
+  tableInfo.selectedRows = []
+  tableInfo.selectedRowKeys = []
+}
+// 站点变更
+function marketChange(val) {
+  searchForm.marketId = val
+  search()
+}
+function search() {
+  tableInfo.params.pageNum = 1
+  getListFn()
+}
+// 高级搜索
+function extendSearch() {
+
+}
+function toggleFold() { 
   if (isFold.value) {
     isFold.value = false
   } else {
@@ -343,7 +546,7 @@ function toggleFold() {
 }
 // 高级搜索重置
 function resetExtendSearchForm() {
-  console.log(_this.$refs);
+  // console.log(_this.$refs);
   
   _this.$refs.extendSearchFormRef.resetFields()
   // this.extendSearchForm.createTime = null
@@ -354,12 +557,64 @@ function foldExtendSearch() {
   resetExtendSearchForm()
   isFold.value = true
 }
-function onSelectChange (keys, rows) {
+// 勾选表格行
+function onSelectChange(keys, rows) {
+  console.log({keys, rows});
+  
+  let old = tableInfo.selectedRowKeys
+  let changeKey = []
+  let flag = keys.length > old.length
+  let arr = flag ? keys : old
+  let contrast = flag ? old : keys
+  // 找出差别
+  arr.forEach(item => {
+    if (!contrast.includes(item)) {
+      changeKey.push(item)
+    }
+  })
+
+  // changeKey.forEach(item => {
+  //   if (!tableInfo.childData[item].data) return;
+  //   if (flag) {
+  //     tableInfo.childData[item].selectedRowKeys = tableInfo.childData[item].data.map(i => i.key)
+  //     tableInfo.childData[item].selectedRows = tableInfo.childData[item].data.map(i => i)
+  //   } else {
+  //     tableInfo.childData[item].selectedRowKeys = []
+  //     tableInfo.childData[item].selectedRows = []
+  //   }
+  // })
   tableInfo.selectedRowKeys = keys
   tableInfo.selectedRows = rows
 }
+// 子表勾选
+function onChildSelectChange(keys, rows, parentKey) {
+  console.log(keys, rows, parentKey);
+  tableInfo.childData[parentKey].selectedRowKeys = keys
+  tableInfo.childData[parentKey].selectedRows = rows
+  // if (keys.length === 0) {
+  //   tableInfo.selectedRowKeys = tableInfo.selectedRowKeys.filter(i => i !== parentKey)
+  // } else if (keys.length > 0) {
+  //   if (!tableInfo.selectedRowKeys.includes(parentKey)) {
+  //     tableInfo.selectedRowKeys.push(parentKey)
+  //   }
+  // }
+}
+// 翻页变化
 function onPaginationChange() {
   getListFn()
+}
+function columnFn(a, b) {
+  console.log({a,b});
+  
+}
+// 删除商品
+function delProduact(row) {
+  console.log({row});
+  
+}
+// 删除单个sku
+function delSku(row) {
+
 }
 function getListFn() {
   let params = {
@@ -367,9 +622,48 @@ function getListFn() {
     ...tableInfo.params
   }
   getList(params).then(res => {
-    tableInfo.data = res.data.rows
-    tableInfo.total = res.data.total
+    let rows = res.data.rows
+    if (res.data.rows.length > 0) {
+      for (let index = 0; index < 10; index++) {
+        let i = {...rows[1]}
+        rows.push(i)
+      }
+      rows.forEach(item => {
+        let key = createRandom()
+        item.key = key
+        for (let index = 0; index < 3; index++) {
+          if (item.amazonProducts) {
+            let i = {...item.amazonProducts[0]}
+            item.amazonProducts.push(i)
+          }
+        }
+        if (item.amazonProducts && item.amazonProducts.length > 0) {
+          item.amazonProducts.forEach(i => {
+            let k = createRandom()
+            i.key = k
+            i.parentKey = key
+          })
+        }
+        let obj = {
+          selectedRowKeys: [],
+          selectedRows: [],
+          data: item.amazonProducts
+        }
+        tableInfo.childData[key] = obj
+      });
+      tableInfo.data = res.data.rows
+      tableInfo.total = res.data.total
+      // tableInfo.data.forEach((item, index) => {
+      //   if (index < 2) {
+      //     tableInfo.selectedRowKeys.push(item.key)
+      //   }
+      // })
+    }
   })
+}
+// 生成一个随机数
+function createRandom() {
+  return Math.floor(Math.random() * 10000000000) + ''
 }
 </script>
 <style lang="less" scoped>
@@ -379,6 +673,9 @@ function getListFn() {
     display: flex;
     justify-content: space-between;
     margin-bottom: 10px;
+    .ant-btn {
+      margin-right: 10px;
+    }
   }
   .text-overflow {
     overflow: hidden;
