@@ -1,8 +1,8 @@
 <template>
     <div>
         <Search :area="area" @search="handleSearch"></Search>
-        <BaseTable ref="baseTableRef" :columns="columns" :api="empowerList" :init-search-param="initSearchParam" search
-            :row-selection="rowSelection">
+        <BaseTable ref="baseTableRef" :columns="columns" :api="empowerList" :init-search-param="initSearchParam" 
+            :row-selection="rowSelection" row-key="userId">
             <template #leftBar>
                 <a-button type="primary" @click="Reauthorization" v-has-permi="[`system:platform:lazada:accredit`]"
                     :loading="accreditLoading">
