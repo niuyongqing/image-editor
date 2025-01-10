@@ -63,7 +63,7 @@ export function deactivateVoucher(data) {
   );
 }
 //优惠券中的商品列表
-export function selectedProductList(data) {
+export function selectedProductListApi(data) {
   return usePost(
     `/platform-lazada/platform/lazada/seller/voucher/product/list`,
     data

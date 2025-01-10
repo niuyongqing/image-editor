@@ -14,7 +14,8 @@
                     <a-button type="primary" @click="handleView" :disabled="singleDisabled">
                         <EyeOutlined /> 查看
                     </a-button>
-                    <a-button type="primary" @click="settingProduct" :disabled="singleDisabled">
+                    <a-button type="primary" @click="settingProduct" :disabled="singleDisabled"
+                        :loading="selectedProductListLoading">
                         <SettingOutlined /> 管理商品
                     </a-button>
 
@@ -62,7 +63,7 @@
 <script setup>
 import { PlusCircleOutlined, EditOutlined, EyeOutlined, SettingOutlined, CheckOutlined, StopOutlined, ReloadOutlined, CloudSyncOutlined } from '@ant-design/icons-vue';
 import BaseTable from '@/components/baseTable/BaseTable.vue';
-import { getList, activateVoucher, syncLazadaShopVoucherApi, syncLazadaVoucherApi, lazadaSellerVoucherUserAccount, deactivateVoucher } from './api';
+import { getList, activateVoucher, syncLazadaShopVoucherApi, syncLazadaVoucherApi, lazadaSellerVoucherUserAccount, deactivateVoucher, selectedProductListApi } from './api';
 import { columns } from './columns';
 import { useTableSelection } from '@/components/baseTable/useTableSelection';
 import Search from './components/search.vue';
@@ -88,6 +89,7 @@ const syncLoading = ref(false);// 同步 loading
 const activateLoading = ref(false);// 激活loading
 const deactivateVoucherLoading = ref(false);// 暂停loading
 const syncLazadaShopLoading = ref(false);// 同步店铺loading
+const selectedProductListLoading = ref(false);// 管理商品loading
 
 const shortCode = ref('');
 const account = ref([]);
@@ -119,9 +121,107 @@ const handleView = () => {
     viewVoucherEl.value.open(row);
 };
 
+//优惠券中的商品列表
+const selectedProductList = (shortCode, voucherId) => {
+    let data = {
+        shortCode: shortCode,
+        voucherId: voucherId,
+    }
+    selectedProductListApi(data).then(res => {
+        if (res.code === 200) {
+            console.log('{ shortCode: shortCode, voucherId: voucherId, selectionProductList: res.rows }', {
+                "shortCode": "PH7S3OFG2Z",
+                "voucherId": "900000043940069",
+                selectionProductList: [
+                    {
+                        "shortCode": "PH7S3OFG2Z",
+                        "itemId": "3594728915",
+                        "itemName": "Universal Car SRS Airbag Simulator Fault Codes Diagnostic Tools Auto Simulator Emulator Resistor Car Safety Accessories",
+                        "images": "[\"https://my-live-02.slatic.net/p/c2924a4eb577a76bb8d6a45ffd03e765.jpg\",\"https://my-live-02.slatic.net/p/948ee26f13dc462efb16202802bdd75d.jpg\",\"https://my-live-02.slatic.net/p/176e55e4054bd18d1d99f00f46260d69.jpg\",\"https://my-live-02.slatic.net/p/a49655061a2f722e48c4119a8177ccc2.jpg\",\"https://my-live-02.slatic.net/p/691e84d0ed0158c1247b505a8a57c19c.jpg\",\"https://my-live-02.slatic.net/p/a9faf35ef16621ca5f3376b145748a0f.jpg\",\"https://my-live-02.slatic.net/p/bbee2bde93b3a9e35e379d76da50adec.jpg\",\"https://my-live-02.slatic.net/p/4702fee46262af536891dedd311669f6.jpg\"]",
+                        "minRetailPrice": 99,
+                        "maxRetailPrice": 432,
+                        "minPrice": 57,
+                        "maxPrice": 250,
+                        "totalStock": 29868,
+                        "skus": [
+                            {
+                                "skuId": "18621662845",
+                                "sellerSku": "K6577*10",
+                                "retailPrice": 432,
+                                "salePrice": 250,
+                                "stock": 9929,
+                                "isSelect": true
+                            },
+                            {
+                                "skuId": "18621662844",
+                                "sellerSku": "K6577*5",
+                                "retailPrice": 238,
+                                "salePrice": 138,
+                                "stock": 9954,
+                                "isSelect": true
+                            },
+                            {
+                                "skuId": "18621662843",
+                                "sellerSku": "K6577/",
+                                "retailPrice": 99,
+                                "salePrice": 57,
+                                "stock": 9985,
+                                "isSelect": true
+                            }
+                        ]
+                    },
+                    {
+                        "shortCode": "PH7S3OFG2Z",
+                        "itemId": "4721858481",
+                        "itemName": "10pcs/pack Car Glass Cleaning Wipes Car Window Windshield Rearview Mirror Degreasing Wipes Car Interior Cleaning Tools",
+                        "images": "[\"https://my-live-01.slatic.net/p/d52467f4d7544922ea01a39325a3d60b.jpg\",\"https://my-live-01.slatic.net/p/b0d1d586feab7b487a1db3849f7f7e23.jpg\",\"https://my-live-01.slatic.net/p/b7aca841995d957b17fed42582e553cc.jpg\",\"https://my-live-01.slatic.net/p/4a3047c4bcaf5fe6b2eb469979a32c99.jpg\",\"https://my-live-01.slatic.net/p/6c140e4d1dc24aa92c524df19f3d52a2.jpg\",\"https://my-live-01.slatic.net/p/cab22537598d2a0f5d58dd5a370871a5.jpg\",\"https://my-live-01.slatic.net/p/03124050d1be947e2b4a02944c123156.jpg\",\"https://my-live-01.slatic.net/p/04911c1e0ceb0df98159ceff886f1ed8.jpg\"]",
+                        "minRetailPrice": 75,
+                        "maxRetailPrice": 140,
+                        "minPrice": 39,
+                        "maxPrice": 77,
+                        "totalStock": 19944,
+                        "skus": [
+                            {
+                                "skuId": "27313599782",
+                                "sellerSku": "T0156A0//",
+                                "retailPrice": 75,
+                                "salePrice": 39,
+                                "stock": 9961,
+                                "isSelect": true
+                            },
+                            {
+                                "skuId": "27313599783",
+                                "sellerSku": "T0156A0*2",
+                                "retailPrice": 140,
+                                "salePrice": 77,
+                                "stock": 9983,
+                                "isSelect": true
+                            }
+                        ]
+                    }
+                ]
+            });
+
+            manageProductEl.value.open({ shortCode: shortCode, voucherId: voucherId, selectionProductList: res.rows });
+        }
+        else {
+            message.error(res.msg);
+        }
+    }).finally(() => {
+        selectedProductListLoading.value = false;
+    })
+};
+
 //  管理商品
 const settingProduct = () => {
-    manageProductEl.value.open();
+    selectedProductListLoading.value = true
+    if ((selectedRows.value[0].status === 'NOT_START' && selectedRows.value[0].apply === 'SPECIFIC_PRODUCTS') || (selectedRows.value[0].status === 'ONGOING' && selectedRows.value[0].apply === 'SPECIFIC_PRODUCTS')) {
+        selectedProductList(selectedRows.value[0].shortCode, selectedRows.value[0].id)
+    }
+    else {
+        message.error('该优惠券状态不可管理商品！');
+        selectedProductListLoading.value = false
+    }
 };
 
 // 激活
@@ -147,6 +247,7 @@ const activate = () => {
             message.error('激活失败');
         }
     }).finally(() => {
+        clearSelection();
         activateLoading.value = false
     })
 };
@@ -173,6 +274,7 @@ const deactivate = () => {
             message.error('暂停成功');
         }
     }).finally(() => {
+        clearSelection();
         deactivateVoucherLoading.value = false;
         baseTableEl.value.reload();
     })
@@ -207,7 +309,6 @@ const syncLazadaVoucher = () => {
 // 同步店铺优惠卷
 const syncLazadaShopVoucher = () => {
     baseTableEl.value.setLoading(true);
-
     let data = {
         shortCode: searchData.value.shortCode,
     }
@@ -221,11 +322,16 @@ const syncLazadaShopVoucher = () => {
     }).finally(() => {
         baseTableEl.value.reload();
     })
-
 };
 
 
 onMounted(async () => {
+
+    manageProductEl.value.open({
+        "shortCode": "PH7S3OFG2Z",
+        "voucherId": "900000043940069"
+    });
+
     const accountCacheRes = await lazadaSellerVoucherUserAccount();
     if (accountCacheRes.code === 200) {
         let codes = [];
@@ -235,6 +341,9 @@ onMounted(async () => {
         account.value = codes;
         shortCode.value = codes[0].shortCode || '';
     };
+
+
+
 });
 
 </script>
