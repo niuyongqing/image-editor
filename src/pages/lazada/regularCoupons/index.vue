@@ -22,7 +22,7 @@
                         <CheckOutlined /> 激活
                     </a-button>
 
-                    <a-button type="primary" @click="deactivateVoucher" :disabled="multipleDisabled"
+                    <a-button type="primary" @click="deactivate" :disabled="multipleDisabled"
                         :loading="deactivateVoucherLoading">
                         <StopOutlined />
                         暂停
@@ -46,23 +46,23 @@
                 <a-tag v-if="record.status == 'NOT_START'" color="blue">未开始</a-tag>
                 <a-tag v-if="record.status == 'ONGOING'" color="green">进行中</a-tag>
                 <a-tag v-if="record.status == 'SUSPEND'" color="red">暂停</a-tag>
-                <a-tag v-if="rorecordw.status == 'FINISH'" color="orange">已过期</a-tag>
+                <a-tag v-if="record.status == 'FINISH'" color="orange">已过期</a-tag>
             </template>
             <template #syncTime="{ record }">
                 <div>{{ Timedata(parseFloat(record.syncTime) * 1000) }}</div>
             </template>
         </BaseTable>
-        <AddVoucher ref="addVoucherRef" @success="reload" />
-        <EditVoucher ref="editVoucherRef" @success="reload" />
+        <AddVoucher ref="addVoucherRef" @success="reload" :shortCode="shortCode" />
+        <EditVoucher ref="editVoucherRef" @success="reload" :shortCode="shortCode" />
         <ViewVoucher ref="viewVoucherRef" @success="reload" />
-        <ManageProduct ref="manageProductRef" @success="reload" />
+        <ManageProduct ref="manageProductRef" @success="reload" :shortCode="shortCode" />
     </div>
 </template>
 
 <script setup>
 import { PlusCircleOutlined, EditOutlined, EyeOutlined, SettingOutlined, CheckOutlined, StopOutlined, ReloadOutlined, CloudSyncOutlined } from '@ant-design/icons-vue';
 import BaseTable from '@/components/baseTable/BaseTable.vue';
-import { getList, accountCache, activateVoucher, syncLazadaShopVoucherApi, syncLazadaVoucherApi } from './api';
+import { getList, activateVoucher, syncLazadaShopVoucherApi, syncLazadaVoucherApi, lazadaSellerVoucherUserAccount, deactivateVoucher } from './api';
 import { columns } from './columns';
 import { useTableSelection } from '@/components/baseTable/useTableSelection';
 import Search from './components/search.vue';
@@ -71,13 +71,13 @@ import AddVoucher from './components/addVoucher.vue';
 import EditVoucher from './components/editVoucher.vue';
 import ViewVoucher from './components/viewVoucher.vue';
 import ManageProduct from './components/manageProduct.vue';
-import { message } from 'ant-design-vue';
+import { message, Modal } from 'ant-design-vue';
 
 const initSearchParam = {
     prop: "create_time",
     order: "desc"
 };
-const { singleDisabled, multipleDisabled, rowSelection, selectedRowKeys, tableRow, clearSelection } = useTableSelection();
+const { singleDisabled, multipleDisabled, rowSelection, selectedRowKeys, selectedRows, tableRow, clearSelection } = useTableSelection();
 const baseTableEl = useTemplateRef('baseTableRef');
 const addVoucherEl = useTemplateRef('addVoucherRef');
 const editVoucherEl = useTemplateRef('editVoucherRef');
@@ -91,8 +91,10 @@ const syncLazadaShopLoading = ref(false);// 同步店铺loading
 
 const shortCode = ref('');
 const account = ref([]);
+const searchData = ref({});
 // 查询
 const handleSearch = async (state) => {
+    searchData.value = state;
     await baseTableEl.value.search(state);
 };
 
@@ -107,12 +109,14 @@ const handleAdd = () => {
 
 // 编辑
 const handleEdit = () => {
-    editVoucherEl.value.open();
+    const row = selectedRows.value[0] || {};
+    editVoucherEl.value.open(row);
 };
 
 // 查看
 const handleView = () => {
-    viewVoucherEl.value.open();
+    const row = selectedRows.value[0] || {};
+    viewVoucherEl.value.open(row);
 };
 
 //  管理商品
@@ -122,50 +126,74 @@ const settingProduct = () => {
 
 // 激活
 const activate = () => {
-    let activateVoucherList = [];
-    selectedRowKeys.value.forEach((item) => {
-        let obj = {}
-        obj.voucherId = item.id
-        obj.voucherType = item.voucherType
-        activateVoucherList.push(obj)
+    const activateVoucherList = selectedRows.value.map((item) => {
+        return {
+            voucherId: item.id,
+            voucherType: item.voucherType
+        }
     })
     let data = {
-        shortCode: shortCode.value,
+        shortCode: searchData.value.shortCode,
         activateVoucherList: activateVoucherList
     }
-    activateVoucherLoading.value = true
+    activateLoading.value = true
     activateVoucher(data).then(res => {
         if (res.code === 200) {
             message.success('激活成功');
             clearSelection();
-            BaseTableEl.value.reload();
+            baseTableEl.value.reload();
         }
         else {
             message.error('激活失败');
         }
     }).finally(() => {
-        activateVoucherLoading.value = false
+        activateLoading.value = false
     })
 };
 
 // 暂停
-const deactivateVoucher = () => { };
+const deactivate = () => {
+    const activateVoucherList = selectedRows.value.map((item) => {
+        return {
+            voucherId: item.id,
+            voucherType: item.voucherType
+        }
+    })
+
+    let data = {
+        shortCode: searchData.value.shortCode,
+        activateVoucherList: activateVoucherList
+    }
+    deactivateVoucherLoading.value = true
+    deactivateVoucher(data).then(res => {
+        if (res.code === 200) {
+            message.success('暂停成功');
+        }
+        else {
+            message.error('暂停成功');
+        }
+    }).finally(() => {
+        deactivateVoucherLoading.value = false;
+        baseTableEl.value.reload();
+    })
+
+};
 
 // 同步优惠卷
 const syncLazadaVoucher = () => {
+    const ids = selectedRows.value.map((item) => {
+        return item.id
+    })
     syncLoading.value = true
-    // let voucherIds = this.$refs.tables.selection.map((item) => {
-    //     return item.id
-    // })
     let data = {
-        shortCode: shortCode.value,
-        voucherIds: selectedRows.value.join()
+        shortCode: searchData.value.shortCode,
+        voucherIds: ids.join(',')
     }
     syncLazadaVoucherApi(data).then(res => {
         if (res.code === 200) {
             message.success('同步成功');
             clearSelection();
-            BaseTableEl.value.reload();
+            baseTableEl.value.reload();
         }
         else {
             message.error('同步失败');
@@ -178,10 +206,10 @@ const syncLazadaVoucher = () => {
 
 // 同步店铺优惠卷
 const syncLazadaShopVoucher = () => {
-    BaseTableEl.value.setLoading(true);
+    baseTableEl.value.setLoading(true);
 
     let data = {
-        shortCode: shortCode.value
+        shortCode: searchData.value.shortCode,
     }
     syncLazadaShopVoucherApi(data).then(res => {
         if (res.code === 200) {
@@ -191,21 +219,21 @@ const syncLazadaShopVoucher = () => {
             message.success('同步失败');
         }
     }).finally(() => {
-        BaseTableEl.value.reload();
+        baseTableEl.value.reload();
     })
 
 };
 
 
 onMounted(async () => {
-    const accountCacheRes = await accountCache();
+    const accountCacheRes = await lazadaSellerVoucherUserAccount();
     if (accountCacheRes.code === 200) {
         let codes = [];
         for (const resKey in accountCacheRes.data.accountDetail) {
             codes.push(...accountCacheRes.data.accountDetail[resKey])
         };
         account.value = codes;
-        shortCode.value = codes[0].shortCode;
+        shortCode.value = codes[0].shortCode || '';
     };
 });
 

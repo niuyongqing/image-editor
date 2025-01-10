@@ -1,13 +1,20 @@
-export function accountCache() {
+//常规优惠券  获取自己权限下的店铺列表    默认是第一个店铺
+export function lazadaSellerVoucherUserAccount() {
   return useGet(
     "/platform-lazada/platform/lazada/setting/account/relevance/user/cache"
   );
 }
+// 常规优惠券列表
 export function getList(params) {
   return usePost(
     "/platform-lazada/platform/lazada/seller/voucher/list",
     params
   );
+}
+
+//新增常规优惠券
+export function addLazadaProduct(params) {
+  return usePost("/platform-lazada/platform/lazada/seller/voucher/add", params);
 }
 
 //新增优惠活动 （基本信息）
@@ -51,7 +58,7 @@ export function activateVoucher(data) {
 //暂停优惠活动
 export function deactivateVoucher(data) {
   return usePost(
-    `/platform-lazada/platform/lazada/seller/voucher/deactivat`,
+    `/platform-lazada/platform/lazada/seller/voucher/deactivate`,
     data
   );
 }

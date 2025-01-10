@@ -43,41 +43,66 @@ import BaseProgess from '~@/components/baseProgess/BaseProgess.vue';
 const importDate = ref(undefined);
 const dialogVisible = ref(false);
 const loading = ref(false);
+const percent = ref(0);
 const progessOpen = ref(false);
-
+const timer = ref(null);
 const emits = defineEmits(['success']);
-
-
 const schedule = async (e) => {
     try {
         // 调用异步函数并获取结果
         let computeCount = await computeFinanceCheckList(e);
         let percentageRes = parseInt(computeCount.msg);
-        this.percentageRes = percentageRes;
-        if (this.percentageRes == 100) {
+        percent.value = percentageRes;
+        if (percent.value == 100) {
             // 成功时弹出提示框并发送事件
-            // await this.$alert('计算成功', '计算', { type: 'success' });
-            // this.$bus.$emit('financialDataVerificationList');
-            this.close()
+            Modal.confirm({
+                title: '计算',
+                content: '计算成功',
+                onOk: () => {
+                    emits('success');
+                    handleClose();
+                },
+                onCancel: () => {
+                    handleClose();
+                },
+            })
+            close()
         }
-        else if (this.percentageRes == null) {
-            // await this.$alert('计算尚未完成，请稍后再试', '计算', { type: 'info' });
-            // this.close()
+        else if (percent.value == null) {
+            Modal.confirm({
+                title: '计算',
+                content: '计算成功',
+                onOk: () => {
+                    emits('success');
+                    handleClose();
+                },
+                onCancel: () => {
+                    handleClose();
+                },
+            })
         }
         else {
-            setTimeout(async () => {
-                await this.schedule(e);
+            timer.value = setTimeout(async () => {
+                await schedule(e);
             }, 40000)
         }
     } catch (error) {
-        // await this.$alert('计算过程中出现错误：' + error.message, '计算', { type: 'error' });
-        // this.close()
+        Modal.confirm({
+            title: '计算',
+            content: `计算过程中出现错误:${error.message}`,
+            onOk: () => {
+                emits('success');
+                handleClose();
+            },
+            onCancel: () => {
+                handleClose();
+            },
+        })
+        handleClose();
     }
 };
 
 const onSubmit = () => {
-    progessOpen.value = true;
-
     if (!importDate.value) {
         message.error('请选择同步月份');
         return;
@@ -86,22 +111,16 @@ const onSubmit = () => {
     const params = {
         month: importDate.value.format('YYYYMM')
     }
-    console.log(params)
-    computeFinanceCheckList(params.month)
-        .then((res) => {
-            if (res.code === 200) {
-                const data = res.data || {};
-                // progessOpen.value = true;
-            }
-        }).finally(() => {
-            handleClose();
-        })
+    console.log(params);
+    progessOpen.value = true;
+    schedule(params.month);
 };
 
 const handleClose = () => {
-    dialogVisible.value = false;
     loading.value = false;
     importDate.value = undefined;
+    timer.value && clearTimeout(timer.value);//清除定时器
+    dialogVisible.value = false;
 };
 const open = () => {
     dialogVisible.value = true;

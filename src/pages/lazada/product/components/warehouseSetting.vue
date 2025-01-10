@@ -1,7 +1,7 @@
 <template>
     <div>
         <!-- 仓库管理 -->
-        <BaseModal title="仓库管理" @close="cancel" width="600px" @register="register" showCancelBtn :showSaveBtn="false">
+        <BaseModal title="仓库管理" width="600px" @register="register" showCancelBtn :showSaveBtn="false">
             <a-table :columns="columns" :data-source="data" :pagination="false" row-key="id"></a-table>
         </BaseModal>
     </div>
@@ -34,6 +34,7 @@ const register = (modal) => {
 const open = () => {
     modelMethods.value.openModal();
 };
+
 
 defineExpose({
     open,

@@ -34,7 +34,7 @@ const register = (modal) => {
 const open = () => {
     modelMethods.value.openModal();
 };
-
+const cancel = () => { }
 defineExpose({
     open,
 })

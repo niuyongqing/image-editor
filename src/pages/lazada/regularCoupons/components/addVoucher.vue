@@ -1,7 +1,8 @@
 <template>
     <div>
         <!-- 创建优惠券 -->
-        <BaseModal @register="register" title="创建优惠券" @submit="submit" width="800px" :submit-btn-loading="loading">
+        <BaseModal @register="register" title="创建优惠券" @submit="submit" width="1100px" :submit-btn-loading="loading"
+            @close="close">
             <a-card bordered>
                 <template #title>
                     <div class="clearfix">
@@ -18,15 +19,15 @@
                             <a-input v-model:value="formData.voucherName" allowClear placeholder="请输入活动名称" />
                         </a-form-item>
 
-                        <a-form-item label="优惠券使用时间：" name="periodStartTime"
+                        <a-form-item label="优惠券使用时间：" name="periodStartTime" showTime
                             :rules="[{ required: true, message: '请选择时间', trigger: 'change' }]">
-                            <a-range-picker style="width: 50%" v-model:value="formData.periodStartTime" showTime
+                            <a-range-picker style="width: 80%" v-model:value="formData.periodStartTime"
                                 format="YYYY-MM-DD HH:mm:ss" />
                         </a-form-item>
 
                         <a-form-item label="券领取开始时间：" name="collectStart">
-                            <a-date-picker style="width: 50%" v-model:value="formData.collectStart" showTime
-                                format="YYYY-MM-DD HH:mm:ss" placeholder="券领取开始时间" />
+                            <a-date-picker style="width: 80%" v-model:value="formData.collectStart"
+                                format="YYYY-MM-DD HH:mm:ss" showTime placeholder="券领取开始时间" />
                         </a-form-item>
 
                         <a-form-item label="优惠券适用于：" name="apply"
@@ -48,13 +49,13 @@
                         <a-form-item label="当订单金额大于等于：" name="orderPrice"
                             :rules="[{ required: true, message: '请输入', trigger: 'blur' }]"
                             v-if="formData.voucherDiscountType === 'MONEY_VALUE_OFF'">
-                            <a-input-number v-model:value="formData.orderPrice" style="width: 50%" />
+                            <a-input-number v-model:value="formData.orderPrice" style="width: 80%" />
                         </a-form-item>
 
                         <a-form-item label="优惠为：" name="orderPreferential"
                             v-if="formData.voucherDiscountType === 'MONEY_VALUE_OFF'"
                             :rules="[{ required: true, message: '请输入', trigger: 'blur' }]">
-                            <a-input-number v-model:value="formData.orderPreferential" style="width: 50%"
+                            <a-input-number v-model:value="formData.orderPreferential" style="width: 80%"
                                 @change="changeOrderPreferential" />
                             <span style="color: orange; margin-left: 10px; font-style: oblique">{{ formData.orderMessage
                                 }}</span>
@@ -63,7 +64,7 @@
                         <a-form-item label="优惠券发放总张数：" name="orderCouponCount"
                             v-if="formData.voucherDiscountType === 'MONEY_VALUE_OFF'"
                             :rules="[{ required: true, message: '请输入', trigger: 'blur' }]">
-                            <a-input-number v-model:value="formData.orderCouponCount" style="width: 50%" />
+                            <a-input-number v-model:value="formData.orderCouponCount" style="width: 80%" />
                         </a-form-item>
 
                         <a-form-item label="单个买家领取张数限制：" name="orderNumberLimit"
@@ -77,21 +78,21 @@
                         <a-form-item label="当订单金额大于等于：" name="discountPrice"
                             :rules="[{ required: true, message: '请输入', trigger: 'blur' }]"
                             v-if="formData.voucherDiscountType === 'PERCENTAGE_DISCOUNT_OFF'">
-                            <a-input-number v-model:value="formData.discountPrice" style="width: 50%" />
+                            <a-input-number v-model:value="formData.discountPrice" style="width: 80%" />
                         </a-form-item>
 
                         <a-form-item label="优惠为：" name="discountPreferential"
                             v-if="formData.voucherDiscountType === 'PERCENTAGE_DISCOUNT_OFF'"
                             :rules="[{ required: true, message: '请输入', trigger: 'blur' }]">
                             <a-input-number v-model:value="formData.discountPreferential" :min="1" :max="50"
-                                style="width: 50%" @change="changeDiscountPreferential" />
+                                style="width: 80%" @change="changeDiscountPreferential" />
                             <span style="color: #9e9f9e; margin-left: 10px">% OFF</span>
                             <span style="color: orange; font-style: oblique">{{ formData.discountMessage }}</span>
                         </a-form-item>
 
                         <a-form-item label="单笔订单优惠上限：" name="discountUpperLimit"
                             v-if="formData.voucherDiscountType === 'PERCENTAGE_DISCOUNT_OFF'">
-                            <a-input-number v-model:value="formData.discountUpperLimit" style="width: 50%"
+                            <a-input-number v-model:value="formData.discountUpperLimit" style="width: 80%"
                                 @change="changeDiscountUpperLimit" />
                             <span style="color: orange; font-style: oblique; margin-left: 10px">{{
                                 formData.discountUpperLimitMessage
@@ -101,17 +102,18 @@
                         <a-form-item label="优惠券发放总张数：" name="discountCouponCount"
                             v-if="formData.voucherDiscountType === 'PERCENTAGE_DISCOUNT_OFF'"
                             :rules="[{ required: true, message: '请输入', trigger: 'blur' }]">
-                            <a-input-number v-model:value="formData.discountCouponCount" style="width: 50%" />
+                            <a-input-number v-model:value="formData.discountCouponCount" style="width: 80%" />
                         </a-form-item>
 
                         <a-form-item label="单个买家领取张数限制：" name="discountNumberLimit"
                             v-if="formData.voucherDiscountType === 'PERCENTAGE_DISCOUNT_OFF'"
                             :rules="[{ required: true, message: '请输入', trigger: 'blur' }]">
                             <a-input-number v-model:value="formData.discountNumberLimit" :min="1" :max="50"
-                                style="width: 50%" />
+                                style="width: 80%" />
                         </a-form-item>
                     </a-form>
                 </div>
+                <template #cover></template>
             </a-card>
 
         </BaseModal>
@@ -123,9 +125,15 @@ import BaseModal from "@/components/baseModal/BaseModal.vue";
 import { DownOutlined } from '@ant-design/icons-vue';
 import { useResetReactive } from '@/composables/reset';
 import { message } from "ant-design-vue";
-import { addLazadaProductVoucher } from '@/pages/lazada/regularCoupons/api';
+import { addLazadaProduct } from '@/pages/lazada/regularCoupons/api';
 
-const shortCode = ref('');
+const { shortCode } = defineProps({
+    shortCode: {
+        type: String,
+        default: ''
+    }
+});
+
 const loading = ref(false);
 const { state: formData, reset } = useResetReactive({
     voucherName: '',
@@ -231,22 +239,20 @@ const dateTimeStr = (date1Str, date2Str) => {
     }
 };
 
-
 // 打开
 const open = () => {
+    reset();
     modalMethods.value.openModal();
-
 };
 // 关闭
 const close = () => {
     reset();
-    modalMethods.value.closeModal();
+    ruleFormEl.value.resetFields();
 };
 
 // 提交
 const submit = () => {
     ruleFormEl.value.validate().then(() => {
-        loading.value = true
         if (!dateTimeStr(formData.collectStart, formData.periodStartTime[0])) {
             message.error('券领取时间应该在使用时间之前')
             return false
@@ -256,27 +262,27 @@ const submit = () => {
         if (formData.voucherDiscountType == 'MONEY_VALUE_OFF') {
             data.voucherType = 'COLLECTIBLE_VOUCHER'
             data.displayArea = 'REGULAR_CHANNEL'
-            data.shortCode = this.shortCode
-            data.voucherName = this.formData.voucherName
-            data.collectStart = this.formData.collectStart
-            data.periodStartTime = this.formData.periodStartTime[0]
-            data.periodEndTime = this.formData.periodStartTime[1]
-            data.apply = this.formData.apply
-            data.voucherDiscountType = this.formData.voucherDiscountType
-            data.criteriaOverMoney = this.formData.orderPrice.toString()
-            data.offeringMoneyValueOff = this.formData.orderPreferential.toString()
-            data.issued = this.formData.orderCouponCount.toString()
-            data.limit = this.formData.orderNumberLimit.toString()
+            data.shortCode = shortCode
+            data.voucherName = formData.voucherName
+            data.collectStart = formData.collectStart.format('YYYY-MM-DD HH:mm:ss')
+            data.periodStartTime = formData.periodStartTime[0].format('YYYY-MM-DD HH:mm:ss')
+            data.periodEndTime = formData.periodStartTime[1].format('YYYY-MM-DD HH:mm:ss')
+            data.apply = formData.apply
+            data.voucherDiscountType = formData.voucherDiscountType
+            data.criteriaOverMoney = formData.orderPrice.toString()
+            data.offeringMoneyValueOff = formData.orderPreferential.toString()
+            data.issued = formData.orderCouponCount.toString()
+            data.limit = formData.orderNumberLimit.toString()
         }
         //折扣
-        if (this.formData.voucherDiscountType == 'PERCENTAGE_DISCOUNT_OFF') {
+        if (formData.voucherDiscountType == 'PERCENTAGE_DISCOUNT_OFF') {
             data.voucherType = 'COLLECTIBLE_VOUCHER'
             data.displayArea = 'REGULAR_CHANNEL'
-            data.shortCode = this.shortCode
+            data.shortCode = shortCode
             data.voucherName = formData.voucherName
-            data.collectStart = formData.collectStart
-            data.periodStartTime = formData.periodStartTime[0]
-            data.periodEndTime = formData.periodStartTime[1]
+            data.collectStart = formData.collectStart.format('YYYY-MM-DD HH:mm:ss')
+            data.periodStartTime = formData.periodStartTime[0].format('YYYY-MM-DD HH:mm:ss')
+            data.periodEndTime = formData.periodStartTime[1].format('YYYY-MM-DD HH:mm:ss')
             data.apply = formData.apply
             data.voucherDiscountType = formData.voucherDiscountType
             data.criteriaOverMoney = formData.discountPrice.toString()
@@ -285,11 +291,11 @@ const submit = () => {
             data.issued = formData.discountCouponCount.toString()
             data.limit = formData.discountNumberLimit.toString()
         }
-
+        loading.value = true;
         addLazadaProduct(data).then(res => {
             if (res.code === 200) {
                 //如果 选择的是部分商品  打开商品列表
-                if (this.formData.apply !== 'ENTIRE_STORE') {
+                if (formData.apply !== 'ENTIRE_STORE') {
                     close()
                     //  刷新
                     emits('success')
@@ -311,7 +317,6 @@ const submit = () => {
     })
 
 };
-
 const emits = defineEmits(['success']);
 
 defineExpose({

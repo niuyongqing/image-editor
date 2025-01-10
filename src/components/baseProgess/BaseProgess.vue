@@ -16,11 +16,7 @@ const status = ref('active');
 const setStatus = (value) => {
     status.value = value;
 };
-
 defineExpose({
     setStatus
 })
-
 </script>
-
-<style lang="less" scoped></style>
