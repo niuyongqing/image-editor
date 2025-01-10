@@ -6,38 +6,45 @@
         :rules="rules"
         ref="form"
         :label-col="{ style: { width: '180px' } }"
+        :wrapper-col="{ span: 14 }"
       >
         <a-form-item
           label="运费模板："
           name="freightTemplateId"
         >
-          <a-select
-            v-model:value="form.freightTemplateId"
-            :options="freightOptions"
-            :field-names="{ label: 'templateName', value: 'templateId' }"
-          />
-          <a-button
-            type="link"
-            class="ml-3"
-            @click="syncFreightTemplateList"
-            >同步</a-button
-          >
+          <div class="flex">
+            <a-select
+              v-model:value="form.freightTemplateId"
+              :options="freightOptions"
+              :field-names="{ label: 'templateName', value: 'templateId' }"
+              placeholder="请选择"
+            />
+            <a-button
+              type="link"
+              class="ml-3"
+              @click="syncFreightTemplateList"
+              >同步</a-button
+            >
+          </div>
         </a-form-item>
         <a-form-item
           label="服务模板："
           name="promiseTemplateId"
         >
-          <a-select
-            v-model:value="form.promiseTemplateId"
-            :options="serviceOptions"
-            :field-names="{ label: 'name', value: 'id' }"
-          />
-          <a-button
-            type="link"
-            class="ml-3"
-            @click="syncServiceTemplateList"
-            >同步</a-button
-          >
+          <div class="flex">
+            <a-select
+              v-model:value="form.promiseTemplateId"
+              :options="serviceOptions"
+              :field-names="{ label: 'name', value: 'id' }"
+              placeholder="请选择"
+            />
+            <a-button
+              type="link"
+              class="ml-3"
+              @click="syncServiceTemplateList"
+              >同步</a-button
+            >
+          </div>
         </a-form-item>
       </a-form>
     </a-card>
@@ -54,7 +61,6 @@
     data() {
       return {
         store: useAliexpressPopProductStore(),
-        account: '',
         form: {
           freightTemplateId: undefined,
           promiseTemplateId: undefined
@@ -64,38 +70,42 @@
           promiseTemplateId: [{ required: true, message: '请选择服务模板', trigger: 'change' }]
         },
         freightOptions: [],
-        serviceOptions: []
+        serviceOptions: [],
+        stopOnce: false
       }
     },
     computed: {
+      sellerId() {
+        return this.store.sellerId
+      },
       productDetail() {
         return this.store.productDetail
       }
     },
     watch: {
+      sellerId: {
+        handler: function () {
+          this.form.freightTemplateId = undefined
+          this.form.promiseTemplateId = undefined
+          this.getFreightTemplateList()
+          this.getServiceTemplateList()
+        }
+      },
       productDetail: {
         handler: function (detail) {
           if (Object.keys(detail).length === 0) return
 
           this.form.freightTemplateId = detail.freightTemplateId
           this.form.promiseTemplateId = detail.promiseTemplateId
+          this.stopOnce = true
         },
         immediate: true
       }
     },
-    mounted() {
-      /* this.$bus.$on('accountChange', ({ account, isEdit }) => {
-        this.account = account
-        this.form.freightTemplateId = undefined
-        this.form.promiseTemplateId = undefined
-        this.getFreightTemplateList()
-        this.getServiceTemplateList(isEdit)
-      }) */
-    },
     methods: {
       getFreightTemplateList() {
         // 获取运费模版
-        getListFreightTemplateApi({ channelSellerId: this.account }).then(res => {
+        getListFreightTemplateApi({ channelSellerId: this.sellerId }).then(res => {
           if (res && res.code === 200) {
             this.freightOptions = res.data || []
           }
@@ -103,7 +113,7 @@
       },
       // 同步运费
       syncFreightTemplateList() {
-        syncGetListFreightTemplateApi({ channelSellerId: this.account }).then(res => {
+        syncGetListFreightTemplateApi({ channelSellerId: this.sellerId }).then(res => {
           if (res && res.code === 200) {
             this.getFreightTemplateList()
             message.success('运费模版同步成功')
@@ -111,30 +121,34 @@
         })
       },
       // 获取服务模版
-      getServiceTemplateList(isEdit = false) {
-        queryPromiseTemplateByIdApi({ sellerId: this.account, templateId: '-1' }).then(res => {
+      getServiceTemplateList() {
+        queryPromiseTemplateByIdApi({ sellerId: this.sellerId, templateId: '-1' }).then(res => {
           if (res && res.code === 200) {
             this.serviceOptions = res.data || []
-            if (!isEdit) {
+            if (!this.stopOnce) {
               // 设默认值 'Service Template for New Sellers'
               const target = this.serviceOptions.find(item => item.id === 0)
               target && (this.form.promiseTemplateId = target.id)
+            } else {
+              this.stopOnce = false
             }
           }
         })
       },
       // 同步服务
       syncServiceTemplateList() {
-        syncPromiseTemplateByIdApi({ sellerId: this.account, templateId: '-1' }).then(res => {
+        syncPromiseTemplateByIdApi({ sellerId: this.sellerId, templateId: '-1' }).then(res => {
           if (res && res.code === 200) {
             this.getServiceTemplateList()
             message.success('服务模版同步成功')
           }
         })
       },
-      emitData({ looseValidate = false }) {
+      async emitData({ looseValidate = false }) {
         let valid = true
-        this.$refs.form.validate(val => (valid = val))
+        await this.$refs.form.validate().catch(err => {
+          valid = false
+        })
         if (!valid) return
 
         return this.form

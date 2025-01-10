@@ -123,10 +123,10 @@
         imgGroupList: [],
         form: {
           msrEuId: undefined,
-          manufacturerId: undefined,
-          isMsrEuIdFromDetail: false,
-          isManufacturerIdFromDetail: false
+          manufacturerId: undefined
         },
+        isMsrEuIdFromDetail: false,
+        isManufacturerIdFromDetail: false,
         // 资质信息
         qualificationList: [],
         EUResponsibleOptions: [],

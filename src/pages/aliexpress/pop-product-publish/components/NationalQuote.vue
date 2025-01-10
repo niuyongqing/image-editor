@@ -1,9 +1,7 @@
 <template>
   <div class="national-quote">
     <a-card title="区域调价信息">
-      <a-form
-        :label-col="{ style: { width: '180px' } }"
-      >
+      <a-form :label-col="{ style: { width: '180px' } }">
         <a-form-item label="调价方式：">
           <div class="mb-3 w-[63%]">
             <a-select
@@ -69,8 +67,8 @@
                 </template>
               </template>
 
-              <template #bodyCell="{ text, column, record }">
-                <template v-if="SKUProps.includes(column.key)">{{ text }}</template>
+              <template #bodyCell="{ column, record }">
+                <template v-if="SKUProps.includes(column.key)">{{ record[column.key] }}</template>
                 <template v-else-if="column.key === 'batchFillRow'">
                   <a-popover>
                     <template #content>
@@ -192,26 +190,26 @@
       }
     },
     watch: {
-      SKUAttributesCache: {
-        handler: function () {
-          if (this.SKUTableData.length) {
-            this.SKUCols = this.SKUTableData[0].aeopSKUProperty.map(SKU => {
+      SKUTableData: {
+        handler: function (SKUTableData) {
+          if (SKUTableData.length) {
+            this.SKUCols = SKUTableData[0].aeopSKUProperty.map(SKU => {
               return {
                 title: SKU.label,
-                key: SKU.code
+                key: SKU.code,
+                width: 80
               }
             })
             // SKU数据当骨架, 融合已填写数据
-            this.regionalPriceTable = this.SKUTableData.map(item => {
+            this.regionalPriceTable = SKUTableData.map(item => {
               const cacheObj = this.regionalPriceTable.find(el => el.SKUKey === item.SKUKey)
-              const res = cacheObj || item
-
+              const row = { ...item }
               this.checkedCountries.forEach(country => {
-                item[country.areaCode] = undefined
-                item[`${country.areaCode}Price`] = undefined
+                row[country.areaCode] = cacheObj && cacheObj[country.areaCode]
+                row[`${country.areaCode}Price`] = cacheObj && cacheObj[country.areaCode]
               })
 
-              return res
+              return row
             })
           } else {
             this.SKUCols = []
@@ -243,7 +241,8 @@
             })
             this.isEdit = false
           }
-        }
+        },
+        deep: true
       },
       checkList: {
         handler: function (newVal, oldVal) {

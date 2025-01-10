@@ -6,16 +6,29 @@
         ref="form"
         :rules="rules"
         :label-col="{ style: { width: '180px' } }"
+        :wrapper-col="{ span: 14 }"
       >
-        <a-form-item v-if="!(isEdit && productDetail.productId && !form.isSemiCustodial)" label="半托管服务">
-          <a-checkbox v-model:checked="form.isSemiCustodial" :disabled="productDetail.productId && isEdit">参与</a-checkbox>
+        <a-form-item
+          v-if="!(isEdit && productDetail.productId && !form.isSemiCustodial)"
+          label="半托管服务"
+        >
+          <a-checkbox
+            v-model:checked="form.isSemiCustodial"
+            :disabled="productDetail.productId && isEdit"
+            >参与</a-checkbox
+          >
         </a-form-item>
-        <a-form-item label="产品分组" name="groupIds">
+        <a-form-item
+          label="产品分组"
+          name="groupIdList"
+        >
           <a-cascader
-            v-model:value="form.groupIds"
+            v-model:value="form.groupIdList"
             :options="groupOptions"
             multiple
             :fieldNames="{ label: 'groupName', value: 'groupId', children: 'childGroupList' }"
+            show-checked-strategy="SHOW_CHILD"
+            placeholder="请选择"
           />
         </a-form-item>
         <a-form-item>
@@ -121,10 +134,27 @@
 <script>
   import DropdownOfImage from '@/components/dropdown-of-image/index.vue'
   import { listGroupApi } from '../../apis/media'
-  import { syncEuPersonListApi, euPersonListApi, manufactureListApi, qualificationsApi } from '../../apis/product'
+  import { syncEuPersonListApi, getProductGroupsApi, euPersonListApi, manufactureListApi, qualificationsApi } from '../../apis/product'
   import { useAliexpressPopProductStore } from '~@/stores/aliexpress-pop-product'
-  import { Modal } from 'ant-design-vue'
+  import { Modal, Cascader } from 'ant-design-vue'
   import { InfoCircleOutlined, DeleteOutlined } from '@ant-design/icons-vue'
+
+  // 找给定子 Id 的所有父级 Id, 以数组形式返回(含子 Id)
+  function findParentIds(tree, id, parentIds = []) {
+    for (const node of tree) {
+      if (node.groupId === id) {
+        parentIds.push(id)
+        return parentIds
+      }
+      if (node.childGroupList && node.childGroupList.length > 0) {
+        const result = findParentIds(node.childGroupList, id, [...parentIds, node.groupId])
+        if (result.length > 0) {
+          return result
+        }
+      }
+    }
+    return []
+  }
 
   export default {
     name: 'Others',
@@ -139,20 +169,23 @@
       }
       return {
         store: useAliexpressPopProductStore(),
+        Cascader,
         imgGroupList: [],
         form: {
           isSemiCustodial: false,
           groupIds: [],
+          groupIdList: [],
           msrEuId: undefined,
-          manufacturerId: undefined,
-          isMsrEuIdFromDetail: false,
-          isManufacturerIdFromDetail: false
+          manufacturerId: undefined
         },
+        isMsrEuIdFromDetail: false,
+        isManufacturerIdFromDetail: false,
         rules: {
-          groupIds: { validator: validGroup, trigger: 'change' }
+          groupIdList: { validator: validGroup, trigger: 'change' }
         },
         // 资质信息
         qualificationList: [],
+        groupOptions: [],
         EUResponsibleOptions: [],
         manufacturerOptions: []
       }
@@ -167,41 +200,30 @@
       categoryId() {
         return this.store.categoryId
       },
-      channelInfo() {
-        return this.store.channelInfo
-      },
       productDetail() {
         return this.store.productDetail
       },
       params() {
         return {
-          sellerId: this.channelInfo.sellerId,
-          channel: this.channelInfo.channel,
-          channelSellerId: this.channelInfo.channelSellerId
+          sellerId: this.sellerId,
+          channel: 'AE_GLOBAL',
+          channelSellerId: this.sellerId
         }
       }
     },
     watch: {
-      channelInfo: function (channelInfo) {
-        !this.isMsrEuIdFromDetail && (this.form.msrEuId = undefined)
-        !this.isManufacturerIdFromDetail && (this.form.manufacturerId = undefined)
-        if (!channelInfo.sellerId) return
-
-        this.getImgGroup()
-        this.getManufacturerOptions()
-
-        // 编辑时, channelInfo 回来得晚, 获取欧盟责任人和资质的数据从这里触发
-        if (this.categoryId) {
-          this.syncEuPersonList()
-          this.getQualification()
+      sellerId: {
+        handler: function () {
+          this.form.manufacturerId = undefined
+          this.form.groupIds = []
+          this.getImgGroup()
+          this.getProductGroups()
+          this.getManufacturerOptions()
         }
       },
-      categoryId: function (categoryId) {
-        !this.isMsrEuIdFromDetail && (this.form.msrEuId = undefined)
-        this.qualificationList = []
-        this.EUResponsibleOptions = []
-
-        if (categoryId && this.channelInfo.sellerId) {
+      categoryId: {
+        handler: function () {
+          this.form.msrEuId = undefined
           // 同步/获取 欧盟责任人
           this.syncEuPersonList()
           // 获取资质信息
@@ -224,8 +246,18 @@
     methods: {
       getImgGroup() {
         listGroupApi({ sellerId: this.sellerId }).then(res => {
-          if (res && res.code === 200) {
-            this.imgGroupList = res.data.result.photoBankImageGroupList || []
+          this.imgGroupList = res.data.result.photoBankImageGroupList || []
+        })
+      },
+      getProductGroups() {
+        getProductGroupsApi({ channelSellerId: this.sellerId }).then(res => {
+          this.groupOptions = res.data.result.targetList || []
+          if (this.form.groupIds.length === 0) {
+            this.form.groupIdList = []
+          } else {
+            this.form.groupIdList = this.form.groupIds.map(groupId => {
+              return findParentIds(this.groupOptions, groupId)
+            })
           }
         })
       },
@@ -233,16 +265,14 @@
         syncEuPersonListApi({ ...this.params, categoryId: this.categoryId }).finally(() => this.getEuPersonList())
       },
       getEuPersonList() {
-        euPersonListApi({ channelSellerId: this.channelInfo.channelSellerId, categoryId: this.categoryId }).then(res => {
-          if (res && res.code === 200) {
-            this.EUResponsibleOptions = res.data || []
-            if (!this.isMsrEuIdFromDetail) {
-              // 设默认值 'APEX ES SPECIALISTS,S.L.'
-              const target = this.EUResponsibleOptions.find(item => item.name === 'APEX ES SPECIALISTS,S.L.')
-              target && (this.form.msrEuId = target.msrEuId)
-            } else {
-              this.isMsrEuIdFromDetail = false
-            }
+        euPersonListApi({ channelSellerId: this.sellerId, categoryId: this.categoryId }).then(res => {
+          this.EUResponsibleOptions = res.data || []
+          if (!this.isMsrEuIdFromDetail) {
+            // 设默认值 'APEX ES SPECIALISTS,S.L.'
+            const target = this.EUResponsibleOptions.find(item => item.name === 'APEX ES SPECIALISTS,S.L.')
+            target && (this.form.msrEuId = target.msrEuId)
+          } else {
+            this.isMsrEuIdFromDetail = false
           }
         })
       },
@@ -262,19 +292,17 @@
       // 资质信息
       getQualification() {
         this.qualificationList = []
-        qualificationsApi({ channelSellerId: this.channelInfo.sellerId, categoryId: this.categoryId }).then(res => {
-          if (res && res.code === 200) {
-            this.qualificationList = res.data.qualificationModuleLists || []
+        qualificationsApi({ channelSellerId: this.sellerId, categoryId: this.categoryId }).then(res => {
+          this.qualificationList = res.data.qualificationModuleLists || []
+          this.qualificationList.forEach(item => {
+            item.value = ''
+          })
+          // 如果是编辑
+          if (this.isEdit) {
             this.qualificationList.forEach(item => {
-              item.value = ''
+              const obj = this.productDetail.productExtDto.aeopQualificationStructList.find(ele => ele.key === item.key)
+              obj && (item.value = obj.value)
             })
-            // 如果是编辑
-            if (this.isEdit) {
-              this.qualificationList.forEach(item => {
-                const obj = this.productDetail.productExtDto.aeopQualificationStructList.find(ele => ele.key === item.key)
-                obj && (item.value = obj.value)
-              })
-            }
           }
         })
       },
@@ -296,6 +324,10 @@
           if (!valid || qualificationValid) return
         }
 
+        const groupIds = this.form.groupIdList.map(item => {
+          return item[item.length - 1]
+        })
+
         const aeopQualificationStructList = this.qualificationList.map(item => {
           return {
             key: item.key,
@@ -306,8 +338,8 @@
 
         return {
           isSemiCustodial: this.form.isSemiCustodial,
-          groupIds: this.form.groupIds, // 草稿用
-          groupId: this.form.groupIds.join(','), // 速卖通后台用
+          groupIds, // 草稿用
+          groupId: groupIds.join(','), // 速卖通后台用
           msrEuId: this.form.msrEuId,
           manufacturerId: this.form.manufacturerId,
           aeopQualificationStructList

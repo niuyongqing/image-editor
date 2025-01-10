@@ -27,11 +27,11 @@
         >
       </a-space>
       <BaseInfo ref="baseInfoRef" />
-      <ImageInfo ref="imageInfoRef" />
+      <!-- <ImageInfo ref="imageInfoRef" />
       <PriceAndStock ref="priceAndStockRef" />
-      <NationalQuote ref="nationalQuoteRef" />
-      <!-- <Description ref="descriptionRef" />
-      <PackageInfo ref="packageInfoRef" />
+      <NationalQuote ref="nationalQuoteRef" /> -->
+      <Description ref="descriptionRef" />
+      <!-- <PackageInfo ref="packageInfoRef" />
       <TemplateInfo ref="templateInfoRef" />
       <Others ref="othersRef" /> -->
       <a-space class="mt-3 pr-4 w-full justify-end">
@@ -68,7 +68,7 @@
   import PriceAndStock from './components/PriceAndStock.vue'
   import NationalQuote from './components/NationalQuote.vue'
   import PackageInfo from './components/PackageInfo.vue'
-  import TemplateInfo from './components/PackageInfo.vue'
+  import TemplateInfo from './components/TemplateInfo.vue'
   import Description from './components/Description.vue'
   import Others from './components/Others.vue'
 
@@ -233,22 +233,21 @@
   const submitLoading = ref(false)
   async function submit() {
     // 基本信息
-    // const baseInfo = await baseInfoRef.value.emitData({ looseValidate: false })
+    /* const baseInfo = await baseInfoRef.value.emitData({ looseValidate: false })
     // 图片信息
-    // const imageInfo = await imageInfoRef.value.emitData({ looseValidate: false })
+    const imageInfo = await imageInfoRef.value.emitData({ looseValidate: false })
     // 价格和库存
     const priceAndStock = await priceAndStockRef.value.emitData({ looseValidate: false })
-    console.log('priceAndStock', priceAndStock)
     // 区域调价
-    const nationalQuote = await nationalQuoteRef.value.emitData({ looseValidate: false })
-    console.log('nationalQuote', nationalQuote)
-    return
+    const nationalQuote = await nationalQuoteRef.value.emitData({ looseValidate: false }) */
     // 描述信息
     const description = await descriptionRef.value.emitData({ looseValidate: false })
+    console.log('description', description)
+    return
     // 包装信息
-    const packageInfo = await packageInfoRef.value.emitData({ looseValidate })
+    const packageInfo = await packageInfoRef.value.emitData({ looseValidate: false })
     // 模版信息
-    const templateInfo = await templateInfoRef.value.emitData({ looseValidate })
+    const templateInfo = await templateInfoRef.value.emitData({ looseValidate: false })
     // 其他信息
     const others = await othersRef.value.emitData({ looseValidate: false })
 

@@ -173,12 +173,14 @@
       }
     },
     methods: {
-      emitData({ looseValidate = false }) {
+      async emitData({ looseValidate = false }) {
         if (looseValidate) {
           this.$refs.form.clearValidate()
         } else {
           let valid = true
-          this.$refs.form.validate(val => (valid = val))
+          await this.$refs.form.validate().catch(err => {
+            valid = false
+          })
           if (!valid) return
         }
 

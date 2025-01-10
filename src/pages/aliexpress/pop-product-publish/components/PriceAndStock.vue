@@ -1,6 +1,9 @@
 <template>
   <div class="price-and-stock">
-    <a-card title="价格与库存" class="mb-4">
+    <a-card
+      title="价格与库存"
+      class="mb-4"
+    >
       <a-form
         :model="form"
         :rules="rules"
@@ -216,7 +219,7 @@
                 <template v-if="column.title === '自定义名称'">
                   <a-input
                     v-model:value="record.propertyValueDefinitionName"
-                    @change="setCustomizedName(record)"
+                    @blur="setCustomizedName(record)"
                   ></a-input>
                 </template>
                 <template v-if="column.title === '自定义图片'">
@@ -287,7 +290,10 @@
             label="商品编码"
             name="skuCode"
           >
-            <a-input v-model:value="form.skuCode" class="w-30"></a-input>
+            <a-input
+              v-model:value="form.skuCode"
+              class="w-30"
+            ></a-input>
           </a-form-item>
         </template>
       </a-form>
@@ -546,8 +552,8 @@
           } else {
             // 在没有 SKU 属性时, 手动触发一下区域调价更新
             this.store.$patch(state => {
-              state.SKUTableData = this.SKUTableData
               state.SKUAttributesCache = this.SKUAttributesCache
+              state.SKUTableData = this.SKUTableData
             })
           }
           this.SKUAttributeList = SKUList
@@ -716,8 +722,8 @@
         }
         // 发送至区域调价
         this.store.$patch(state => {
-          state.SKUTableData = this.SKUTableData
           state.SKUAttributesCache = this.SKUAttributesCache
+          state.SKUTableData = this.SKUTableData
         })
       },
 
@@ -739,11 +745,6 @@
           if (i > -1) {
             item[record.code] = record.propertyValueDefinitionName ? `${record.value}(${record.propertyValueDefinitionName})` : record.value
           }
-        })
-        // 发送至区域调价
-        this.store.$patch(state => {
-          state.SKUTableData = this.SKUTableData
-          state.SKUAttributesCache = this.SKUAttributesCache
         })
       },
       // 图片
@@ -795,15 +796,19 @@
           })
         }
       },
-      emitData({ looseValidate = false }) {
+      async emitData({ looseValidate = false }) {
         if (looseValidate) {
           this.$refs.form.clearValidate()
           this.$refs.SKUAttributesForm.clearValidate()
         } else {
           let valid = true
-          this.$refs.form.validate(val => (valid = val))
+          await this.$refs.form.validate().catch(err => {
+            valid = false
+          })
           let SKUAttrValid = true
-          this.$refs.SKUAttributesForm.validate(val => (SKUAttrValid = val))
+          this.$refs.SKUAttributesForm.validate().catch(err => {
+            SKUAttrValid = false
+          })
           if (!valid || !SKUAttrValid) return
         }
 
