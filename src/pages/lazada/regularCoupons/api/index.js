@@ -69,3 +69,11 @@ export function selectedProductListApi(data) {
     data
   );
 }
+
+//可选择的商品列表
+export function lazadaProductList(data) {
+  return usePost(
+    `/platform-lazada/platform/lazada/product/voucher/select/product/list`,
+    data
+  );
+}

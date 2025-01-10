@@ -5,7 +5,7 @@
             <a-card>
                 <div class="clearfix" style="margin-bottom: 16px;">
                     <span style="float: left;">
-                        <a-button type="primary" @click="selectProduct">选择商品</a-button>
+                        <a-button type="primary" @click="selectProduct">商品列表信息</a-button>
                     </span>
                     <div style="float: right; margin-right: 10px;">
                         <a-input-group compact style="width: 650px;">
@@ -26,41 +26,18 @@
             </a-card>
 
             <a-card>
-                <a-table :columns="columns" :row-selection="rowSelection"
-                    :data-source="tableData.slice((pagination.currentPage - 1) * pagination.pageSize, pagination.currentPage * pagination.pageSize)"
-                    row-key="itemId" :scroll="{ y: 800 }">
-
-
-                    <template #bodyCell="{ column, record }">
-                        <template v-if="column.dataIndex === 'name'">
-                            <span>{{ record.itemId }}</span>
-                        </template>
-                        <template v-if="column.dataIndex === 'minRetailPrice'">
-                            <span>{{ record.name }}</span>
-                        </template>
-                        <template v-if="column.dataIndex === 'minPrice'">
-                            <span>{{ record.minRetailPrice }}</span>
-                        </template>
-                        <template v-if="column.dataIndex === 'totalStock'">
-                            <span>{{ record.minRetailPrice }}</span>
-                        </template>
-
-                        <template v-if="column.dataIndex === 'action'">
-                            <span>{{ record.minRetailPrice }}</span>
-                        </template>
-                    </template>
-
-                </a-table>
+                <BaseTable :columns="columns" :data="tableData" :api="lazadaProductList" rowKey="itemId"></BaseTable>
             </a-card>
         </BaseModal>
     </div>
 </template>
 
 <script setup>
+import BaseTable from '@/components/baseTable/BaseTable.vue';
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { SearchOutlined, ReloadOutlined } from '@ant-design/icons-vue';
 import { useTableSelection } from '@/components/baseTable/useTableSelection';
-
+import { lazadaProductList } from '@/pages/lazada/regularCoupons/api';
 const columns = [
     {
         title: 'ID',
