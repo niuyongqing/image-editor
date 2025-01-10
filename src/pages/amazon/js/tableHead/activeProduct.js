@@ -37,5 +37,15 @@ export default [
     width:'280',
     show:true,
     filter:false,
+  },
+  {
+    title: '操作',
+    dataIndex: 'options',
+    key: 'options',
+    align:"center",
+    sortable:false,
+    width:'280',
+    show:true,
+    filter:false,
   }
-]
+];
