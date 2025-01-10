@@ -17,7 +17,7 @@ async function requestHandler(config) {
   if (import.meta.env.DEV && import.meta.env.VITE_APP_BASE_API_DEV && import.meta.env.VITE_APP_BASE_URL_DEV && config.customDev) config.baseURL = import.meta.env.VITE_APP_BASE_API_DEV
 
   const token = useAuthorization()
-  if (token.value && config.token !== false) config.headers.set(STORAGE_AUTHORIZE_KEY, token.value)
+  if (token.value && config.token !== false) config.headers.set('Authorization', `Bearer ${token.value}`)
   const { locale } = useI18nLocale()
   config.headers.set('Accept-Language', locale.value ?? 'zh-CN')
   if (config.loading) axiosLoading.addLoading()
@@ -49,7 +49,7 @@ async function out() {
     message.success('退出登录成功', 3)
     router
       .push({
-        path: '/login'
+        path: '/platform/login'
       })
       .then(() => {
         useMultiTab().clear()

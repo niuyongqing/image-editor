@@ -11,6 +11,30 @@
      </div>
      <div style="flex-grow: 1;"></div>
      <div style="margin-bottom: 10px; display: flex; justify-content: center;cursor: pointer">
+
+       <a-upload
+           v-model:file-list="fileList"
+           accept=".jpg,.png"
+           :headers="{Authorization: `Bearer ${authorization}`}"
+           :show-upload-list="false"
+           action="/prod-api/common/uploadTmp"
+           :before-upload="beforeUpload"
+           @change="handleChange"
+       >
+         <div style="margin-top: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%;">
+           <div v-html="selectIcon"></div>
+           <span>重选</span>
+         </div>
+       </a-upload>
+     </div>
+     <div style="margin-bottom: 10px; display: flex; justify-content: center;cursor: pointer">
+
+       <div style="margin-top: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%;" @click="download">
+         <div v-html="downloadIcon"></div>
+         <span>下载</span>
+       </div>
+     </div>
+     <div style="margin-bottom: 10px; display: flex; justify-content: center;cursor: pointer">
        <div style="margin-top: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%;" @click="save">
          <div v-html="saveIcon"></div>
          <span>保存</span>
@@ -26,7 +50,7 @@
      <material-component v-show="current.id === 5"  style="width: 240px"></material-component>
      <text-component v-show="current.id === 3"  style="width: 240px"></text-component>
    </a-card>
-   <painting-component :img-url="imgUrl" :canvas-height="canvasHeight" :canvas-width="canvasWidth" style="margin-left: 10px"></painting-component>
+   <painting-component :img-url="url" :canvas-height="canvasHeight" :canvas-width="canvasWidth" style="margin-left: 10px"></painting-component>
  </div>
 </template>
 <script setup lang="js">
@@ -40,11 +64,19 @@ import MaterialComponent from "~/components/process-pictures/component/material/
 import TextComponent from "~/components/process-pictures/component/text/index.vue";
 import DefaultSetting from "~/config/default-setting.js";
 import {usePsStore} from "~/stores/ps.js";
+import {message} from "ant-design-vue";
+import {setBackgroundImage} from "~/components/process-pictures/component/painting/painting.js";
+import {useAuthorization} from "~/composables/authorization.js";
 const canvasHeight = ref(window.innerHeight - 100);
+const authorization = useAuthorization().value
 const canvasWidth = ref(window.innerWidth  - 420);
 const saveIcon = ref('<svg t="1734075384829" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="57909" width="25" height="25"><path d="M834.136 146H189.864c-25.416 0-46.016 25.272-46.016 56.464v588.624L223.648 880h610.488c25.416 0 46.016-25.272 46.016-56.464V202.464c0-31.192-20.608-56.464-46.016-56.464z" fill="#3678BF" p-id="57910"></path><path d="M172 207.216h40.664V264H172z" fill="#707272" p-id="57911"></path><path d="M174 230.952h36.664v30.76H174z" fill="#A5A5A5" p-id="57912"></path><path d="M258 356.768v157.048c0 14.456 8.64 26.176 19.28 26.176h501.432c10.656 0 19.288-11.728 19.288-26.176V356.768h-540zM782.008 866.36V660.344c0-18.96-7.856-34.344-17.536-34.344H308.456c-9.688 0-17.544 15.384-17.544 34.344v206.016h491.096z" fill="#245B8E" p-id="57913"></path><path d="M680 866.36V668.912c0-18.168-6.128-32.912-13.656-32.912H311.232c-7.544 0-13.664 14.744-13.664 32.912v197.448H680z" fill="#EAEAEA" p-id="57914"></path><path d="M436.416 818V677.432c0-12.936-1.624-23.432-3.608-23.432H338.992c-1.992 0-3.608 10.496-3.608 23.432v140.568h101.032z" fill="#A5A5A5" p-id="57915"></path><path d="M432.808 654h-22.392v137.336h-75.032v26.664h101.032V677.432c0-12.936-1.616-23.432-3.608-23.432z" fill="#878787" p-id="57916"></path><path d="M296.576 364.768V489.36c0 17.192 17.256 31.16 38.56 31.16h385.72c21.296 0 38.568-13.96 38.568-31.16V364.768H296.576z" fill="#EAEAEA" p-id="57917"></path><path d="M258 153.552v224.944c0 20.712 8.64 37.504 19.28 37.504h501.432c10.656 0 19.288-16.792 19.288-37.504V153.552h-540z" fill="#245B8E" p-id="57918"></path><path d="M296.568 153.552v256.344c0 35.384 17.256 64.096 38.56 64.096h385.712c21.304 0 38.576-28.712 38.576-64.096V153.552H296.568z" fill="#EAEAEA" p-id="57919"></path><path d="M324 249.496h408v6.72h-408zM320.912 299.216h408v6.72h-408zM320.912 348.936h408v6.72h-408zM320.912 398.664h408v6.72h-408zM320.912 448.384h408v6.72h-408z" fill="#ACB8BC" p-id="57920"></path></svg>')
+const selectIcon = ref('<svg t="1736242218336" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5096" width="20" height="20"><path d="M942.4 330.4c24.8 57.6 37.6 118.4 37.6 181.6 0 63.2-12.8 124-37.6 181.6s-58.4 107.2-100 149.6c-42.4 41.6-92 75.2-149.6 100-57.6 24.8-118.4 36.8-181.6 36.8-69.6 0-136-14.4-199.2-44-63.2-29.6-116.8-71.2-160.8-124.8-3.2-4-4-8.8-4-13.6 0-4.8 1.6-8.8 4.8-12.8l83.2-84c4-4 8.8-5.6 15.2-5.6 6.4 0.8 11.2 3.2 14.4 7.2 29.6 38.4 65.6 68.8 108.8 89.6s88.8 31.2 136.8 31.2c42.4 0 82.4-8 120.8-24.8 38.4-16 72-38.4 99.2-66.4 28-28 50.4-61.6 67.2-99.2 16-38.4 24.8-78.4 24.8-120.8s-8-82.4-24.8-120.8c-16.8-38.4-38.4-71.2-67.2-99.2-28-28-61.6-50.4-99.2-66.4-38.4-16-78.4-24.8-120.8-24.8-40 0-78.4 7.2-114.4 21.6s-68.8 35.2-97.6 61.6L381.6 368c12.8 12 15.2 26.4 8.8 41.6-7.2 16-19.2 24-36 24H83.2c-10.4 0-20-4-27.2-11.2s-11.2-16.8-11.2-27.2V121.6c0-16.8 8-28.8 24-36 16-7.2 29.6-4 42.4 8.8l79.2 78.4c43.2-40.8 92.8-72.8 148.8-95.2 56-22.4 113.6-33.6 173.6-33.6 63.2 0 124 12.8 181.6 37.6 57.6 24.8 107.2 58.4 149.6 100 40.8 41.6 73.6 91.2 98.4 148.8z" fill="#005E9B" p-id="5097"></path></svg>')
+const downloadIcon = ref('<svg t="1736242375660" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="10345" width="25" height="25"><path d="M858 472v335.13a24.36 24.36 0 0 1-24.33 24.33H190.38a24.36 24.36 0 0 1-24.33-24.33V472a24.36 24.36 0 0 1 24.33-24.32h48.86a97.56 97.56 0 0 0 21.19 105.51L419.3 712a131.14 131.14 0 0 0 185.4 0l158.81-158.76a97.57 97.57 0 0 0 21.25-105.56h48.86A24.36 24.36 0 0 1 858 472z" fill="#142E4F" p-id="10346"></path><path d="M725.3 515L566.49 673.78a77.13 77.13 0 0 1-109 0L298.7 515a43.34 43.34 0 0 1 0-61.19 40.31 40.31 0 0 1 7.9-6.16 43 43 0 0 1 45.45 0 39.67 39.67 0 0 1 7.84 6.16l49.41 49.4V230.38a38 38 0 0 1 37.84-37.84h129.72a38 38 0 0 1 37.84 37.84v272.86l49.41-49.4a39.67 39.67 0 0 1 7.84-6.16 43 43 0 0 1 45.45 0 40.31 40.31 0 0 1 7.9 6.16 43.34 43.34 0 0 1 0 61.16z" fill="#FF9600" p-id="10347"></path></svg>')
 const emit = defineEmits(['save'])
 const current = ref({});
+const url = ref("")
+const loading = ref(false);
 const menu = ref([
   {
     id:1,
@@ -89,6 +121,54 @@ const menu = ref([
     select:false
   }
 ])
+
+const fileList = ref([])
+
+function download() { // 下载图片到本体
+  if(usePsStore().Props.value.imgUrl){
+    let a = document.createElement("a"); //创建一个a元素
+    a.href = usePsStore().Props.value.imgUrl;    //a元素图片地址
+    let split = usePsStore().Props.value.imgUrl.split("/");
+    a.download = split[split.length - 1]; //图片名
+    a.click();
+  }else {
+    message.error("请先上传图片")
+  }
+}
+
+const beforeUpload = (file) =>{
+  const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
+  if (!isJpgOrPng) {
+    message.error('请上传JPG、PNG格式的图片!');
+  }
+  const isLt10M = file.size / 1024 / 1024 < 10;
+  if (!isLt10M) {
+    message.error('图片大小允许超过10M');
+  }
+  return isJpgOrPng && isLt10M;
+}
+
+const handleChange = async info => {
+  if (info.file.status === 'uploading') {
+    loading.value = true;
+    return;
+  }
+  if (info.file.status === 'done') {
+    if (info.file.response.code === 200) {
+      url.value = '/prod-api' + info.file.response.fileName;
+      loading.value = false;
+      const canvas = usePsStore().FabricCanvas.value;
+      usePsStore().Props.value.imgUrl = url.value
+      await setBackgroundImage();
+      canvas.renderAll();
+    }
+  }
+  if (info.file.status === 'error') {
+    loading.value = false;
+    message.error('upload error');
+  }
+}
+
 function check(item) {
   current.value = item;
   item.select = true
@@ -97,6 +177,13 @@ function check(item) {
 const props =  defineProps({
   imgUrl:{type:String,required:true},
 })
+
+watch(() => props.imgUrl, (newValue) => {
+  url.value = newValue;
+    },
+    { immediate: true }
+);
+
 const updateCanvasSize = () => {
   canvasHeight.value = window.innerHeight - 200;
   canvasWidth.value = window.innerWidth - 300;

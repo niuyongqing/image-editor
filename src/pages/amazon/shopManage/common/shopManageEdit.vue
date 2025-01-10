@@ -1,0 +1,193 @@
+<template>
+  <div id="shopManageEdit">
+    <a-modal
+      v-model:open="props.showEditModal"
+      title="修改"
+      @cancel="handleCancel"
+      :footer="null"
+      :width="600"
+    >
+      <a-form
+        ref="formRef"
+        :model="formState"
+        :rules="rules"
+        :label-col="labelCol"
+        :wrapper-col="wrapperCol"
+      >
+        <a-form-item ref="name" label="区域：" required name="areaEnName">
+          <a-select
+            ref="shopSelect"
+            v-model:value="formState.areaEnName"
+            placeholder="请选择店铺"
+            :options="areaList"
+            :fieldNames="areaLabels"
+            allowClear
+            @change="changeArea"
+          ></a-select>
+        </a-form-item>
+        <a-form-item label="站点：" required name="marketplaces">
+          <a-checkbox-group
+            v-model:value="formState.marketplaces"
+            name="checkboxgroup"
+            :options="marketList"
+          />
+        </a-form-item>
+        <a-form-item label="店铺名称：" required name="shopName">
+          <a-input
+            v-model:value="formState.shopName"
+            placeholder="请输入内容"
+          ></a-input>
+        </a-form-item>
+        <a-form-item label="简称：" required name="simpleName">
+          <a-input
+            v-model:value="formState.simpleName"
+            placeholder="请输入内容"
+          ></a-input>
+        </a-form-item>
+        <a-form-item :wrapper-col="{ span: 14, offset: 4 }">
+          <a-button type="primary" :loading="okType" @click="onSubmit"
+            >确定</a-button
+          >
+          <a-button style="margin-left: 10px" @click="handleCancel"
+            >重置</a-button
+          >
+        </a-form-item>
+      </a-form>
+    </a-modal>
+  </div>
+</template>
+
+<script setup name='shopManageEdit'>
+import { ref, reactive, onMounted, watch } from "vue";
+import { getAreaList, getMarketList } from "@/pages/amazon/js/api/shop";
+import { editShop } from "@/pages/amazon/js/api/shopManage";
+import { message } from "ant-design-vue";
+const props = defineProps({
+  showEditModal: Boolean,
+  selectedRowKeys: Array,
+  getList: Function,
+});
+// 使用defineEmits获取emit函数
+const emit = defineEmits(["update:showEditModal"]);
+watch(
+  () => props.showEditModal,
+  (val) => {
+    if (val) {
+      getAreaListFn();
+    }
+  }
+);
+
+const formRef = ref();
+const formState = reactive({
+  shopName: "",
+  areaEnName: "",
+  simpleName: "",
+  marketplaces: [],
+});
+const rules = {
+  areaEnName: [{ required: true, message: "请选择区域", trigger: "change" }],
+  marketplaces: [
+    { required: true, message: "请选择站点", trigger: ["change", "blur"] },
+  ],
+  shopName: [{ required: true, message: "请输入店铺名称", trigger: "blur" }],
+  simpleName: [{ required: true, message: "请输入简称", trigger: "blur" }],
+};
+const labelCol = {
+  style: {
+    width: "80px",
+  },
+};
+const wrapperCol = {
+  span: 20,
+};
+
+const areaList = ref([]);
+const areaLabels = ref({
+  label: "areaName",
+  value: "areaEnName",
+});
+const marketList = ref([]);
+const okType = ref(false);
+
+// 获取区域数据
+const getAreaListFn = () => {
+  getAreaList().then((res) => {
+    areaList.value = res.data;
+    // formState.areaEnName = res.data[0].areaEnName;
+    if (props.selectedRowKeys.length > 0) {
+      let row = props.selectedRowKeys[0];
+      formState.shopName = row.shopName,
+      formState.areaEnName = row.areaEnName,
+      formState.simpleName = row.simpleName,
+      formState.marketplaces = row.marketplaces
+          .split(",")
+          .map((i) => Number(i)),
+        getMarketListFn(row.areaEnName);
+    }
+  });
+};
+// 切换区域
+const changeArea = (val) => {
+  console.log("val;", val);
+
+  marketList.value = [];
+  formState.marketplaces = [];
+  getMarketListFn(val);
+};
+// 获取站点
+const getMarketListFn = (val) => {
+  let params = {
+    areaEnName: val,
+  };
+  getMarketList(params).then((res) => {
+    marketList.value = res.data.map((item) => {
+      return {
+        label: item.countryZhName,
+        value: item.id,
+      };
+    });
+  });
+};
+
+const onSubmit = () => {
+  formRef.value
+    .validate()
+    .then(() => {
+      okType.value = true;
+      let params = {
+        id: props.selectedRowKeys[0].id,
+        shopName: formState.shopName,
+        areaEnName: formState.areaEnName,
+        simpleName: formState.simpleName,
+        marketplaces: formState.marketplaces.join(),
+      };
+      console.log("params", params);
+      editShop(params)
+        .then((res) => {
+          if (res.code == 200) {
+            message.success(res.msg);
+            // this.$emit("update:dialogVisible", false);
+          }
+        })
+        .finally(() => {
+          handleCancel();
+          props.getList();
+          okType.value = false;
+        });
+    })
+    .catch((error) => {
+      console.log("error", error);
+    });
+};
+
+const handleCancel = () => {
+  emit("update:showEditModal", false);
+  formRef.value.resetFields();
+};
+onMounted(() => {
+  getAreaListFn();
+});
+</script>
+<style lang="less" scoped>
+</style>

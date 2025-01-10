@@ -3,7 +3,7 @@ import { saveAs } from 'file-saver'
 import errorCode from '~/utils/errorCode'
 import {message} from "ant-design-vue";
 
-const baseURL = import.meta.env.VITE_APP_BASE_API ?? '/'
+const baseURL = import.meta.env.VITE_APP_BASE_API ?? '/platform/'
 
 async function blobValidate(data) {
     try {
