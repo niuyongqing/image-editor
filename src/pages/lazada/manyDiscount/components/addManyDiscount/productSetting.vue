@@ -1,6 +1,6 @@
 <template>
   <div>
-    <a-card bordered={false}>
+    <a-card bordered>
       <template #title>
         <div class="clearfix">
           <span>产品设置</span>
@@ -9,8 +9,7 @@
           </span>
         </div>
       </template>
-      <a-form :model="formData" :rules="rules" ref="formData" label-col="{ span: 6 }" wrapper-col="{ span: 14 }"
-        class="demo-ruleForm" style="height: auto">
+      <a-form :model="formData" :rules="rules" ref="formData" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }">
         <a-form-item label="适用范围：" name="apply">
           <a-radio-group v-model:value="formData.apply">
             <a-radio value="ENTIRE_STORE" v-if="!applyDisable">全店产品</a-radio>
@@ -27,6 +26,7 @@
 </template>
 
 <script setup>
+import EventBus from "~/utils/event-bus";
 const applyDisable = ref(false);
 const formData = ref({
   apply: 'ENTIRE_STORE',
@@ -65,5 +65,3 @@ const baseValidate = async () => {
   return await validatePromise(this.$refs.formData);
 };
 </script>
-
-<style lang="scss" scoped></style>

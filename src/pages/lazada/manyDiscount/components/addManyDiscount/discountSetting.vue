@@ -1,6 +1,6 @@
 <template>
   <div>
-    <a-card bordered={false}>
+    <a-card bordered>
       <template #title>
         <div class="clearfix">
           <span>优惠设置</span>
@@ -9,7 +9,7 @@
           </span>
         </div>
       </template>
-      <a-form :model="formData" ref="formRef" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }" style="height: auto">
+      <a-form :model="formData" ref="formRef" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }">
         <a-form-item label="" name="name">
           <a-radio-group v-model:value="formData.Type">
             <a-radio value="fullDiscount" @change="changeType('fullDiscount')">满减/打折</a-radio>

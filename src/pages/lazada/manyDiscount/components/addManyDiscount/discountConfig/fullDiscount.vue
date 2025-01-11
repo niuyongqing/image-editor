@@ -1,7 +1,6 @@
 <template>
   <div>
-    <a-form :model="formData" ref="ruleForm" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }" class="demo-ruleForm"
-      style="height: auto">
+    <a-form :model="formData" ref="ruleForm" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }">
       <a-form-item label="" name="discountType">
         <a-radio-group v-model:value="formData.discountType" @change="changeDiscountType">
           <a-radio value="money">减钱</a-radio>
@@ -17,23 +16,27 @@
       </a-form-item>
 
       <a-form-item label="优惠门槛" name="criteriaType">
-        <a-tooltip title="当买家达到订单件数门槛，即可享受优惠">
-          <a-radio value="QUANTITY" v-model:value="formData.criteriaType">满件</a-radio>
-        </a-tooltip>
-        <a-tooltip title="当买家达到订单金额门槛，即可享受优惠">
-          <a-radio value="AMOUNT" v-model:value="formData.criteriaType">订单金额达到门槛</a-radio>
-        </a-tooltip>
+        <a-radio-group v-model:value="formData.criteriaType" @change="changeStackable">
+          <a-tooltip title="当买家达到订单件数门槛，即可享受优惠">
+            <a-radio value="QUANTITY">满件</a-radio>
+          </a-tooltip>
+          <a-tooltip title="当买家达到订单金额门槛，即可享受优惠">
+            <a-radio value="AMOUNT">订单金额达到门槛</a-radio>
+          </a-tooltip>
+        </a-radio-group>
       </a-form-item>
 
       <!-- 满件 减钱 -->
       <div v-if="formData.discountType === 'money'">
         <a-form-item v-for="(item, index) in fullDiscountArr" :key="index">
-          <a-card bordered={false}>
+          <a-card bordered>
             <template #title>
               <div style="display: flex; justify-content: space-between">
                 <span>梯度 {{ index + 1 }}</span>
-                <a-button type="danger" icon="delete" @click="delGradient(index)"
-                  v-if="fullDiscountArr.length > 1 && fullDiscountArr"></a-button>
+                <a-button type="primary" danger @click="delGradient(index)"
+                  v-if="fullDiscountArr.length > 1 && fullDiscountArr">
+                  <DeleteOutlined />
+                </a-button>
               </div>
             </template>
 
@@ -97,8 +100,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
 
+import {
+  DeleteOutlined
+} from '@ant-design/icons-vue';
 const formData = ref({
   discountType: 'money',
   stackable: true,
