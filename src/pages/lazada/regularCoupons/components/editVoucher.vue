@@ -21,18 +21,18 @@
 
                         <a-form-item label="优惠券使用时间：" name="periodStartTime"
                             :rules="[{ required: true, message: '请选择时间', trigger: 'change' }]">
-                            <a-range-picker style="width: 80%" v-model:value="formData.periodStartTime" showTime
+                            <a-range-picker style="width: 80%" v-model:value="formData.periodStartTime" show-time
                                 format="YYYY-MM-DD HH:mm:ss" />
                         </a-form-item>
 
                         <a-form-item label="券领取开始时间：" name="collectStart">
-                            <a-date-picker style="width: 80%" v-model:value="formData.collectStart" showTime
+                            <a-date-picker style="width: 80%" v-model:value="formData.collectStart" show-time
                                 format="YYYY-MM-DD HH:mm:ss" placeholder="券领取开始时间" />
                         </a-form-item>
 
                         <a-form-item label="优惠券适用于：" name="apply"
                             :rules="[{ required: true, message: '请选择', trigger: 'change' }]">
-                            <a-radio-group v-model:value="formData.apply">
+                            <a-radio-group v-model:value="formData.apply" :disabled="true">
                                 <a-radio value="ENTIRE_STORE">全店商品</a-radio>
                                 <a-radio value="SPECIFIC_PRODUCTS">部分商品</a-radio>
                             </a-radio-group>
@@ -96,7 +96,7 @@
                                 @change="changeDiscountUpperLimit" />
                             <span style="color: orange; font-style: oblique; margin-left: 10px">{{
                                 formData.discountUpperLimitMessage
-                                }}</span>
+                            }}</span>
                         </a-form-item>
 
                         <a-form-item label="优惠券发放总张数：" name="discountCouponCount"
@@ -115,6 +115,8 @@
                 </div>
             </a-card>
         </BaseModal>
+        <!-- 商品列表弹窗 -->
+        <ManageProduct ref="manageProductRef" @success="manageProductSuccess" :shortCode="formData.shortCode" />
     </div>
 </template>
 
@@ -123,8 +125,9 @@ import BaseModal from "@/components/baseModal/BaseModal.vue";
 import { DownOutlined } from '@ant-design/icons-vue';
 import { useResetReactive } from '@/composables/reset';
 import { message } from "ant-design-vue";
-import { updateLazadaProduct } from '@/pages/lazada/regularCoupons/api';
+import { updateLazadaProduct, selectedProductListApi } from '@/pages/lazada/regularCoupons/api';
 import dayjs from 'dayjs';
+import ManageProduct from './manageProduct.vue';
 
 const { shortCode } = defineProps({
     shortCode: {
@@ -134,7 +137,11 @@ const { shortCode } = defineProps({
 });
 
 const loading = ref(false);
+const manageProductEl = useTemplateRef('manageProductRef');// 打开商品列表弹窗
+
 const { state: formData, reset } = useResetReactive({
+    voucherId: '',
+    shortCode: '',
     voucherName: '',
     periodStartTime: [],
     collectStart: '', //券领取开始时间
@@ -241,13 +248,15 @@ const dateTimeStr = (date1Str, date2Str) => {
 
 // 打开
 const open = (e) => {
+    console.log('e', e);
     if (e) {
         formData.voucherId = e.id
         formData.status = e.status
         formData.voucherName = e.voucherName
+        formData.shortCode = e.shortCode
         formData.periodStartTime = [dayjs(parseFloat(e.periodStartTime)), dayjs(parseFloat(e.periodEndTime))];
         formData.collectStart = dayjs(parseFloat(e.collectStart))
-        formData.apply = e.apply
+        formData.apply = e.apply === 'SPECIFIC_PRODUCTS' ? 'SPECIFIC_PRODUCTS' : 'ENTIRE_STORE'
         formData.voucherDiscountType = e.voucherDiscountType
 
         //满减
@@ -271,7 +280,31 @@ const open = (e) => {
 };
 // 关闭
 const close = () => {
-    reset();
+    // reset();
+};
+
+
+const selectedProductList = () => {
+    let data = {
+        shortCode: formData.shortCode,
+        voucherId: formData.voucherId,
+    }
+    selectedProductListApi(data).then(res => {
+        if (res.code === 200) {
+            manageProductEl.value.open({ shortCode: formData.shortCode, voucherId: formData.voucherId, selectionProductList: res.rows });
+        }
+        else {
+            Modal.confirm({
+                title: '提示',
+                content: res.msg,
+                okText: '确定',
+                cancelText: '取消',
+                cancelButtonProps: { style: { display: 'none' } }
+            })
+        }
+    }).finally(() => {
+        loading.value = false
+    })
 };
 
 // 提交
@@ -285,29 +318,31 @@ const submit = () => {
         let data = {};
         //满减
         if (formData.voucherDiscountType == 'MONEY_VALUE_OFF') {
+            data.voucherId = formData.voucherId
             data.voucherType = 'COLLECTIBLE_VOUCHER'
             data.displayArea = 'REGULAR_CHANNEL'
-            data.shortCode = this.shortCode
-            data.voucherName = this.formData.voucherName
-            data.collectStart = this.formData.collectStart
-            data.periodStartTime = this.formData.periodStartTime[0]
-            data.periodEndTime = this.formData.periodStartTime[1]
-            data.apply = this.formData.apply
-            data.voucherDiscountType = this.formData.voucherDiscountType
-            data.criteriaOverMoney = this.formData.orderPrice.toString()
-            data.offeringMoneyValueOff = this.formData.orderPreferential.toString()
-            data.issued = this.formData.orderCouponCount.toString()
-            data.limit = this.formData.orderNumberLimit.toString()
+            data.shortCode = formData.shortCode
+            data.voucherName = formData.voucherName
+            data.collectStart = formData.collectStart.format('YYYY-MM-DD HH:mm:ss')
+            data.periodStartTime = formData.periodStartTime[0].format('YYYY-MM-DD HH:mm:ss')
+            data.periodEndTime = formData.periodStartTime[1].format('YYYY-MM-DD HH:mm:ss')
+            data.apply = formData.apply
+            data.voucherDiscountType = formData.voucherDiscountType
+            data.criteriaOverMoney = formData.orderPrice.toString()
+            data.offeringMoneyValueOff = formData.orderPreferential.toString()
+            data.issued = formData.orderCouponCount.toString()
+            data.limit = formData.orderNumberLimit.toString()
         }
         //折扣
-        if (this.formData.voucherDiscountType == 'PERCENTAGE_DISCOUNT_OFF') {
+        if (formData.voucherDiscountType == 'PERCENTAGE_DISCOUNT_OFF') {
+            data.voucherId = formData.voucherId
             data.voucherType = 'COLLECTIBLE_VOUCHER'
             data.displayArea = 'REGULAR_CHANNEL'
-            data.shortCode = this.shortCode
+            data.shortCode = formData.shortCode
             data.voucherName = formData.voucherName
-            data.collectStart = formData.collectStart
-            data.periodStartTime = formData.periodStartTime[0]
-            data.periodEndTime = formData.periodStartTime[1]
+            data.collectStart = formData.collectStart.format('YYYY-MM-DD HH:mm:ss')
+            data.periodStartTime = formData.periodStartTime[0].format('YYYY-MM-DD HH:mm:ss')
+            data.periodEndTime = formData.periodStartTime[1].format('YYYY-MM-DD HH:mm:ss')
             data.apply = formData.apply
             data.voucherDiscountType = formData.voucherDiscountType
             data.criteriaOverMoney = formData.discountPrice.toString()
@@ -320,10 +355,9 @@ const submit = () => {
         updateLazadaProduct(data).then(res => {
             if (res.code === 200) {
                 //如果 选择的是部分商品  打开商品列表
-                if (this.formData.apply !== 'ENTIRE_STORE') {
-                    close()
-                    //  刷新
-                    emits('success')
+                if (formData.apply !== 'ENTIRE_STORE') {
+                    selectedProductList()
+                    modalMethods.value.closeModal()
                 }
                 else {
                     message.success('添加成功');
@@ -343,6 +377,9 @@ const submit = () => {
 
 };
 
+const manageProductSuccess = () => {
+    emits('success')
+};
 const emits = defineEmits(['success']);
 
 defineExpose({

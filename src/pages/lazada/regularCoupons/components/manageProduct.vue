@@ -163,6 +163,8 @@ const sumbit = () => {
         voucherId: voucherIdNumber.value,
         productSkuIdList: selectSkusArr
     }
+    console.log('data', data);
+
     submitBtnLoading.value = true
     addLazadaProductVoucher(data).then(res => {
         if (res.code === 200) {
@@ -202,14 +204,16 @@ const cancel = () => {
     shortCodeNumber.value = '';
 }
 const open = (rows) => {
+    console.log('rows', rows);
+
     loading.value = true
     voucherIdNumber.value = rows.voucherId
     shortCodeNumber.value = rows.shortCode
     // if (rows.selectionProductList) {
     //     // this.$bus.$emit('detailSelectionProductList', e.selectionProductList)
     // }
-    tableData.value = rows.selectionProductList
-    oldTableData.value = rows.selectionProductList
+    tableData.value = rows.selectionProductList ?? []
+    oldTableData.value = rows.selectionProductList ?? []
     modelMethods.value.openModal();
 };
 
