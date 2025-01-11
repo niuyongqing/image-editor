@@ -1,7 +1,8 @@
 <template>
     <div>
         <!-- 管理商品 -->
-        <BaseModal title="管理商品" @close="cancel" width="60%" @register="register" showCancelBtn :showSaveBtn="false">
+        <BaseModal title="管理商品" @close="cancel" width="1000px" :submit-btn-loading="submitBtnLoading"
+            :showCancelBtn="true" :showSaveBtn="true" @submit="sumbit" @register="register">
             <a-card>
                 <div class="clearfix" style="margin-bottom: 16px;">
                     <span style="float: left;">
@@ -9,7 +10,7 @@
                     </span>
                     <div style="float: right; margin-right: 10px;">
                         <a-input-group compact style="width: 650px;">
-                            <a-select v-model:value="searchForm.selectionValue" placeholder="请选择" style="width: 150px;">
+                            <a-select v-model:value="searchForm.selectionValue" placeholder="请选择" style="width: 120px;">
                                 <a-select-option value="itemName">产品名称</a-select-option>
                                 <a-select-option value="itemId">产品ID</a-select-option>
                             </a-select>
@@ -62,8 +63,11 @@
 
                 </a-table>
             </a-card>
-            <ProductList ref="productListRef"></ProductList>
-            <ManageProduct ref="manageProductRef"></ManageProduct>
+
+            <!-- 选择商品弹窗 -->
+            <ProductList ref="productListRef" @success="productListSuccess"></ProductList>
+            <!-- 管理sku 弹窗 -->
+            <ProductItemSku ref="productItemSkuRef"></ProductItemSku>
         </BaseModal>
     </div>
 </template>
@@ -74,6 +78,10 @@ import { SearchOutlined, ReloadOutlined } from '@ant-design/icons-vue';
 import { useTableSelection } from '@/components/baseTable/useTableSelection';
 import ManageProduct from './manageProduct.vue';
 import ProductList from './productList.vue';
+import ProductItemSku from './productItemSku.vue';
+import { addLazadaProductVoucher } from "@/pages/lazada/regularCoupons/api";
+import { Modal } from 'ant-design-vue';
+
 const columns = [
     {
         title: 'ID',
@@ -97,11 +105,12 @@ const columns = [
         dataIndex: 'action',
     },
 ];
+const emits = defineEmits(['success']);
 
 const { rowSelection, selectedRowKeys, selectedRows, clearSelection } = useTableSelection();
-
+const submitBtnLoading = ref(false);
 const searchForm = reactive({
-    selectionValue: undefined,
+    selectionValue: 'itemName',
     inputValue: ''
 });
 const { state: pagination, reset } = useResetReactive({
@@ -116,22 +125,82 @@ const tableData = ref([]);
 const oldTableData = ref([]);
 const manageProductEl = useTemplateRef('manageProductRef');
 const productListEl = useTemplateRef('productListRef');
+const productItemSkuEl = useTemplateRef('productItemSkuRef');
 
-const modelMethods = ref();
+const modelMethods = ref({});
 const register = (modal) => {
     modelMethods.value = modal;
 };
 
 //  选择商品
 const selectProduct = () => {
-    productListEl.value.open();
+    productListEl.value.open(shortCodeNumber.value, tableData.value);
 };
 
 // 管理SKU
 const configSku = (record) => {
-    manageProductRef.value.open(record)
+    productItemSkuEl.value.open(record)
 };
 
+const productListSuccess = (list) => {
+    tableData.value = [...tableData.value, ...list]
+};
+
+const delTable = (index) => {
+    tableData.value.splice(index, 1)
+};
+
+// 确定提交
+const sumbit = () => {
+    let skus = [] //所有商品的SKU
+    tableData.value.forEach((v) => {
+        skus = skus.concat(v.skus)
+    })
+    let selectSkus = skus.filter((v) => { return v.isSelect === true }) //选中的商品SKU
+    let selectSkusArr = selectSkus.map((v) => { return v.skuId })
+    let data = {
+        shortCode: shortCodeNumber.value,
+        voucherId: voucherIdNumber.value,
+        productSkuIdList: selectSkusArr
+    }
+    submitBtnLoading.value = true
+    addLazadaProductVoucher(data).then(res => {
+        if (res.code === 200) {
+            Modal.confirm({
+                title: '提示',
+                content: '成功',
+                onOk: () => {
+                    modelMethods.value.closeModal();
+                    emits('success')
+                },
+                // 隐藏取消按钮
+                okText: '确定',
+                cancelButtonProps: { style: { display: 'none' } }
+            })
+        }
+        else {
+            Modal.confirm({
+                title: '提示',
+                content: '失败',
+                onOk: () => {
+                    modelMethods.value.closeModal();
+                },
+                // 隐藏取消按钮
+                okText: '确定',
+                cancelButtonProps: { style: { display: 'none' } }
+            })
+        }
+    }).finally(() => {
+        submitBtnLoading.value = false
+        cancel()
+    })
+};
+
+const cancel = () => {
+    oldTableData.value = [];
+    voucherIdNumber.value = '';
+    shortCodeNumber.value = '';
+}
 const open = (rows) => {
     loading.value = true
     voucherIdNumber.value = rows.voucherId
@@ -143,13 +212,8 @@ const open = (rows) => {
     oldTableData.value = rows.selectionProductList
     modelMethods.value.openModal();
 };
-const cancel = () => { }
+
 defineExpose({
     open,
 })
-
-
-
 </script>
-
-<style lang="less" scoped></style>

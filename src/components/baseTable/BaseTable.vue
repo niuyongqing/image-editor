@@ -93,7 +93,7 @@ const { columns, api, rowKey, dropAble, showRightPagination, initSearchParam, pa
         default: 0
     }
 });
-const { tableData, pagination, loading, handleChange, getTableList, updatedTotalParam, setLoading, search, reload, handleChangePagination } = useTable(api, initSearchParam, pageField, immediate);
+const { tableData, pagination, loading, handleChange, getTableList, updatedTotalParam, setLoading, search, reload, handleChangePagination, setTableData } = useTable(api, initSearchParam, pageField, immediate);
 const tableHeight = ref(0); // 表格高度
 const tableContainer = ref(null);
 const setTableHeight = () => {
@@ -119,6 +119,7 @@ defineExpose({
     updatedTotalParam,
     setLoading,
     search,
-    reload
+    reload,
+    setTableData, // 设置表格数据
 });
 </script>

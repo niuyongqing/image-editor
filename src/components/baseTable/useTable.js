@@ -49,6 +49,10 @@ export const useTable = (
   const setLoading = (loading) => {
     state.loading = loading;
   };
+  //  设置表格数据
+  const setTableData = (tableData) => {
+    state.tableData = tableData;
+  };
 
   /**
    * @description 获取表格数据
@@ -173,6 +177,7 @@ export const useTable = (
     search,
     reset,
     reload,
+    setTableData,
     handleSizeChange,
     handleCurrentChange,
     handleChangePagination,
