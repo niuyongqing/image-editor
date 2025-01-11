@@ -44,6 +44,7 @@
 </template>
 
 <script setup>
+import { PlusCircleOutlined, CheckOutlined, StopOutlined, CloudSyncOutlined } from '@ant-design/icons-vue';
 import BaseTable from '@/components/baseTable/BaseTable.vue';
 import { columns } from './columns';
 import {

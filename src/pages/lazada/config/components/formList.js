@@ -93,6 +93,8 @@ export const useFormList = () => {
         name: "account",
         label: "账号",
         rules: [{ required: true, message: "请选择账号" }],
+        slot: "account",
+        style: { display: "flex" },
         componentProps: {
           mode: "multiple",
           fieldNames: { label: "simpleName", value: "shortCode" },
@@ -111,6 +113,7 @@ export const useFormList = () => {
   return {
     formList,
     depOptions,
+    lazadaAccountOptions,
     getAccountUserList,
     getLazadaAccount,
     getUserDepList,

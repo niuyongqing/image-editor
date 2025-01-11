@@ -129,7 +129,6 @@ const selectedProductList = (shortCode, voucherId) => {
     }
     selectedProductListApi(data).then(res => {
         if (res.code === 200) {
-
             manageProductEl.value.open({ shortCode: shortCode, voucherId: voucherId, selectionProductList: res.rows });
         }
         else {

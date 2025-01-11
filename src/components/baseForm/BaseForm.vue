@@ -3,14 +3,15 @@
     <a-form :model="formState" name="basic" v-bind="$attrs" autocomplete="off" @finish="onFinish"
       @finishFailed="onFinishFailed" ref="formRef">
       <a-form-item :label="item.label" :name="item.name" :rules="item.rules" v-for="item in formList" :key="item.id">
-        <component :is="componentType(item.type)" :placeholder="placeholderValue(item)" v-bind="item.componentProps"
-          v-model:value="formState[item.name]" allow-clear />
+        <div :style="item.style">
+          <component :is="componentType(item.type)" :placeholder="placeholderValue(item)" v-bind="item.componentProps"
+            v-model:value="formState[item.name]" allow-clear />
+          <slot v-if="item.slot" :name="item.slot"></slot>
+        </div>
       </a-form-item>
-
       <a-form-item :wrapper-col="$attrs.buttonItemLayout ? $attrs.buttonItemLayout : {}">
         <slot name="default"></slot>
       </a-form-item>
-
     </a-form>
   </div>
 </template>

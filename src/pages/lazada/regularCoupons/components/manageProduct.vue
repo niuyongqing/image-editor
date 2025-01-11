@@ -29,29 +29,41 @@
                 <a-table :columns="columns" :row-selection="rowSelection"
                     :data-source="tableData.slice((pagination.currentPage - 1) * pagination.pageSize, pagination.currentPage * pagination.pageSize)"
                     row-key="itemId" :scroll="{ y: 800 }">
-
-
-                    <template #bodyCell="{ column, record }">
+                    <template #bodyCell="{ column, record, index }">
                         <template v-if="column.dataIndex === 'name'">
-                            <span>{{ record.itemId }}</span>
+                            <a-popover placement="right" trigger="hover">
+                                <template #content>
+                                    <img :src="JSON.parse(record.images)" style="height: 400px; width: 400px;" alt="" />
+                                </template>
+                                <a-image style="width: 56px; height: 56px; border: 1px solid #ccc;"
+                                    :src="JSON.parse(record.images)[0]" :preview-src-list="JSON.parse(record.images)">
+                                    <template #placeholder>
+                                        <div class="image-slot">加载中<span class="dot">...</span></div>
+                                    </template>
+                                    <template #error>
+                                        <div class="image-slot"><i class="anticon anticon-picture"></i></div>
+                                    </template>
+                                </a-image>
+                            </a-popover>
                         </template>
                         <template v-if="column.dataIndex === 'minRetailPrice'">
-                            <span>{{ record.name }}</span>
+                            <div>RM{{ record.minRetailPrice }} ~ RM{{ record.maxRetailPrice }}</div>
                         </template>
                         <template v-if="column.dataIndex === 'minPrice'">
-                            <span>{{ record.minRetailPrice }}</span>
+                            <div>RM{{ record.minPrice }} ~ RM{{ record.maxPrice }}</div>
                         </template>
-                        <template v-if="column.dataIndex === 'totalStock'">
-                            <span>{{ record.minRetailPrice }}</span>
-                        </template>
-
                         <template v-if="column.dataIndex === 'action'">
-                            <span>{{ record.minRetailPrice }}</span>
+                            <a-space>
+                                <a-button type="primary" @click="configSku(record)">管理SKU</a-button>
+                                <a-button type="primary" danger @click="delTable(index)">删除</a-button>
+                            </a-space>
                         </template>
                     </template>
 
                 </a-table>
             </a-card>
+            <ProductList ref="productListRef"></ProductList>
+            <ManageProduct ref="manageProductRef"></ManageProduct>
         </BaseModal>
     </div>
 </template>
@@ -60,7 +72,8 @@
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { SearchOutlined, ReloadOutlined } from '@ant-design/icons-vue';
 import { useTableSelection } from '@/components/baseTable/useTableSelection';
-
+import ManageProduct from './manageProduct.vue';
+import ProductList from './productList.vue';
 const columns = [
     {
         title: 'ID',
@@ -96,14 +109,13 @@ const { state: pagination, reset } = useResetReactive({
     pageSize: 50,
     total: 0,
 })
-
-
 const loading = ref(false);
 const voucherIdNumber = ref('');
 const shortCodeNumber = ref('');
 const tableData = ref([]);
 const oldTableData = ref([]);
-
+const manageProductEl = useTemplateRef('manageProductRef');
+const productListEl = useTemplateRef('productListRef');
 
 const modelMethods = ref();
 const register = (modal) => {
@@ -111,7 +123,14 @@ const register = (modal) => {
 };
 
 //  选择商品
-const selectProduct = () => { }
+const selectProduct = () => {
+    productListEl.value.open();
+};
+
+// 管理SKU
+const configSku = (record) => {
+    manageProductRef.value.open(record)
+};
 
 const open = (rows) => {
     loading.value = true

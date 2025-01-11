@@ -3,7 +3,11 @@
         <BaseModal title="编辑" @register="register" @close="cancel" @submit="submit"
             :submitBtnLoading="submitBtnLoading">
             <BaseForm ref="baseFormRef" :formList="formList" :label-col="{ style: { width: '80px' } }"
-                :wrapper-col="{ style: { width: '200px' } }" labelAlign="left"></BaseForm>
+                :wrapper-col="{ style: { width: '200px' } }" labelAlign="left">
+                <template #account>
+                    <a-button type="primary" @click="selectAll">{{ isAll ? '取消全选' : '全选' }}</a-button>
+                </template>
+            </BaseForm>
         </BaseModal>
     </div>
 </template>
@@ -15,9 +19,11 @@ import { useFormList } from './formList';
 import { editAccount } from '../api';
 import { message } from "ant-design-vue";
 import { findParentAndMerge } from '../common';
+
+const isAll = ref(false);
 const baseFormEl = useTemplateRef('baseFormRef')
-const modalMethods = ref();
-const { formList, depOptions, getAccountUserList } = useFormList()
+const modalMethods = ref({});
+const { formList, depOptions, lazadaAccountOptions, getAccountUserList } = useFormList()
 const submitBtnLoading = ref(false);
 const register = (methods) => {
     modalMethods.value = methods
@@ -49,6 +55,16 @@ const open = (row) => {
 const cancel = (data) => {
     baseFormEl.value.reset()
 };
+
+const selectAll = () => {
+    isAll.value = !isAll.value;
+    if (isAll.value) {
+        baseFormEl.value.setFieldValue('account', lazadaAccountOptions.value.map(item => item.shortCode))
+    } else {
+        baseFormEl.value.setFieldValue('account', [])
+    }
+};
+
 const submit = async () => {
     await baseFormEl.value.validate();
     submitBtnLoading.value = true;

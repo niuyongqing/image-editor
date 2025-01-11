@@ -1,7 +1,7 @@
 <template>
     <div>
-        <!-- 管理商品 -->
-        <BaseModal title="管理商品" @close="cancel" width="60%" @register="register" showCancelBtn :showSaveBtn="false">
+        <!-- 商品列表 -->
+        <BaseModal title="商品列表" @close="cancel" width="60%" @register="register" showCancelBtn :showSaveBtn="false">
             <a-card>
                 <div class="clearfix" style="margin-bottom: 16px;">
                     <span style="float: left;">
@@ -26,7 +26,8 @@
             </a-card>
 
             <a-card>
-                <BaseTable :columns="columns" :data="tableData" :api="lazadaProductList" rowKey="itemId"></BaseTable>
+                <BaseTable ref="baseTableRef" :columns="columns" :api="lazadaProductList" rowKey="itemId"
+                    :immediate="false"></BaseTable>
             </a-card>
         </BaseModal>
     </div>
@@ -38,6 +39,7 @@ import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { SearchOutlined, ReloadOutlined } from '@ant-design/icons-vue';
 import { useTableSelection } from '@/components/baseTable/useTableSelection';
 import { lazadaProductList } from '@/pages/lazada/regularCoupons/api';
+
 const columns = [
     {
         title: 'ID',
@@ -56,10 +58,6 @@ const columns = [
         title: '当前库存',
         dataIndex: 'totalStock',
     },
-    {
-        title: '操作',
-        dataIndex: 'action',
-    },
 ];
 
 const { rowSelection, selectedRowKeys, selectedRows, clearSelection } = useTableSelection();
@@ -72,15 +70,10 @@ const { state: pagination, reset } = useResetReactive({
     currentPage: 1,
     pageSize: 50,
     total: 0,
-})
-
-
+});
 const loading = ref(false);
-const voucherIdNumber = ref('');
-const shortCodeNumber = ref('');
-const tableData = ref([]);
-const oldTableData = ref([]);
-
+const rowsData = ref({});
+const baseTableEl = useTemplateRef('baseTableRef');
 
 const modelMethods = ref();
 const register = (modal) => {
@@ -92,22 +85,24 @@ const selectProduct = () => { }
 
 const open = (rows) => {
     loading.value = true
-    voucherIdNumber.value = rows.voucherId
-    shortCodeNumber.value = rows.shortCode
-    // if (rows.selectionProductList) {
-    //     // this.$bus.$emit('detailSelectionProductList', e.selectionProductList)
-    // }
-    tableData.value = rows.selectionProductList
-    oldTableData.value = rows.selectionProductList
+    console.log('ProductList ->>>>>>>>>>>', rows);
+    let itemId = rows.map(v => { return v.itemId })
+    let data = {
+        shortCode: shortCode,
+        notInItemIdList: itemId
+    };
+    rowsData.value = data
     modelMethods.value.openModal();
+    nextTick(() => {
+        console.log('nextTick');
+        baseTableEl.value.search(data);
+    })
+
 };
 const cancel = () => { }
 defineExpose({
     open,
 })
-
-
-
 </script>
 
 <style lang="less" scoped></style>
