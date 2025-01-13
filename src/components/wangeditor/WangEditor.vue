@@ -102,7 +102,6 @@ const props = defineProps({
 
 });
 
-const mode = "default";
 const editorRef = shallowRef(); // 编辑器实例(页面多编辑下,需要处理，仅适用于单编辑)
 const valueHtml = defineModel();//  HTML内容
 // 判断内容是否为空
@@ -113,6 +112,11 @@ const isEmptyEditor = () => {
 // 设置编辑器内容
 const setValueHtml = (acceptHtml) => {
     editorRef.value.setHtml(unref(acceptHtml));
+}
+
+// 设置编辑器内容(非 wangEditor 生成的内容)
+const setDangerousHtml = dangerousHtml => {
+  editorRef.value.dangerouslyInsertHtml(dangerousHtml)
 }
 
 // 获取编辑器内容
@@ -136,6 +140,7 @@ const unDisableEditor = () => {
 defineExpose({
     isEmptyEditor,
     setValueHtml,
+    setDangerousHtml,
     getValueHtml,
     cleatEditorValue,
     disableEditor,

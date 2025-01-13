@@ -18,3 +18,8 @@ export function accountCacheApi(isChoice) {
 export function getSellerInfoApi(params) {
   return usePost('/platform-aliexpress/platform/aliexpress/semiCustodial/product/getSellerInfo', params)
 }
+
+// 上传图片到图片银行
+export function uploadImageForSdkApi(params) {
+  return usePost('/platform-aliexpress/platform/aliexpress/file/imageBank/uploadImageForSdk', params, { headers: { 'Content-Type': 'multipart/form-data' } })
+}

@@ -27,13 +27,13 @@
         >
       </a-space>
       <BaseInfo ref="baseInfoRef" />
-      <!-- <ImageInfo ref="imageInfoRef" />
+      <ImageInfo ref="imageInfoRef" />
       <PriceAndStock ref="priceAndStockRef" />
-      <NationalQuote ref="nationalQuoteRef" /> -->
+      <NationalQuote ref="nationalQuoteRef" />
       <Description ref="descriptionRef" />
-      <!-- <PackageInfo ref="packageInfoRef" />
+      <PackageInfo ref="packageInfoRef" />
       <TemplateInfo ref="templateInfoRef" />
-      <Others ref="othersRef" /> -->
+      <Others ref="othersRef" />
       <a-space class="mt-3 pr-4 w-full justify-end">
         <!-- 正式的商品编辑, 不显示保存到草稿 -->
         <!-- 有草稿ID则显示 -->
@@ -233,17 +233,15 @@
   const submitLoading = ref(false)
   async function submit() {
     // 基本信息
-    /* const baseInfo = await baseInfoRef.value.emitData({ looseValidate: false })
+    const baseInfo = await baseInfoRef.value.emitData({ looseValidate: false })
     // 图片信息
     const imageInfo = await imageInfoRef.value.emitData({ looseValidate: false })
     // 价格和库存
     const priceAndStock = await priceAndStockRef.value.emitData({ looseValidate: false })
     // 区域调价
-    const nationalQuote = await nationalQuoteRef.value.emitData({ looseValidate: false }) */
+    const nationalQuote = await nationalQuoteRef.value.emitData({ looseValidate: false })
     // 描述信息
     const description = await descriptionRef.value.emitData({ looseValidate: false })
-    console.log('description', description)
-    return
     // 包装信息
     const packageInfo = await packageInfoRef.value.emitData({ looseValidate: false })
     // 模版信息
@@ -275,6 +273,8 @@
       ...templateInfo,
       ...others
     }
+    console.log('params', params);
+    return
 
     submitLoading.value = true
     const requestApi = productDetail.value.productId ? editProductApi : addProductApi
