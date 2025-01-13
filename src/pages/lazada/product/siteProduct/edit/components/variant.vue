@@ -125,6 +125,14 @@ import { message, Modal } from 'ant-design-vue';
 import EventBus from "~/utils/event-bus";
 import { skuList } from '@/pages/lazada/product/api';
 import { unique } from '@/pages/lazada/product/common';
+
+const { detailData } = defineProps({
+    detailData: {
+        type: Object,
+        default: () => ({})
+    }
+})
+
 const { state: lazadaAttrsState, setSelectTheme, setSkuTable, setProductSkus } = useLadazaAttrs();
 const baseModalEl = useTemplateRef('baseModalRef');
 const modalMethods = ref({});
@@ -141,6 +149,8 @@ const register = (methods) => {
 };
 const customTheme = ref('');
 const themeList = ref([]);// 主题列表theme
+
+
 
 const disabledTheme = (item) => {
     if (selectThemeList.value.length >= 2) {

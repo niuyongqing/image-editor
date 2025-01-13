@@ -44,6 +44,7 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
         item.input_type !== "richText" &&
         item.attribute_type !== "sku" &&
         ![
+          "name",
           "video",
           "promotion_whitebkg_image",
           "brand",
@@ -55,7 +56,6 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
       );
     });
     state.requiredAttrs = attributes.filter((attr) => attr.is_mandatory === 1);
-
     const skuAttrs = attributes.filter((attr) => {
       return attr.attribute_type === "sku" && attr.is_sale_prop === 1;
     });
@@ -88,6 +88,16 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
     }
 
     setLoading(false);
+  };
+
+  const setProductClassifyAtrrs = (attributes = {}) => {
+    state.productClassifyAtrrs.forEach((attr) => {
+      for (const key in attributes) {
+        if (attr.name === key) {
+          attr.value = attributes[key];
+        }
+      }
+    });
   };
 
   const setProduct = (data = {}) => {
@@ -126,5 +136,6 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
     setProduct,
     reset,
     setProductSkus,
+    setProductClassifyAtrrs,
   };
 });

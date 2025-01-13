@@ -117,7 +117,6 @@
                     <source :src="form.video.url" type="video/mp4">
                 </video>
             </div>
-
         </a-modal>
     </div>
 </template>
@@ -165,23 +164,33 @@ const form = reactive({
     ]
 });
 
-
-
 //  编辑回显
 watch(() => {
     return detailData
 }, async (newVal) => {
-    console.log('detailData', newVal);
-    const images = newVal.images ? JSON.parse(newVal.images) : [];  // 产品图片
-    console.log('images', images);
-
+    const images = newVal.images ? JSON.parse(newVal.images) : [];
+    // 产品图片
     form.fileList = images.map(item => {
         return {
             url: item,
             uid: item,
             name: item
         }
-    })
+    });
+    // 营销图
+    form.promotionWhite = newVal.attributes.promotion_whitebkg_image ? [
+        {
+            url: newVal.attributes.promotion_whitebkg_image,
+            uid: newVal.attributes.promotion_whitebkg_image,
+            name: newVal.attributes.promotion_whitebkg_image
+        }
+    ] : []
+    // 视频
+    if (newVal.attributes.video) {
+        form.video.url = newVal.attributes.videoId;
+        form.video.img = newVal.attributes.cover_url;
+        form.video.img = newVal.attributes.title;
+    }
 }, {
     deep: true
 });

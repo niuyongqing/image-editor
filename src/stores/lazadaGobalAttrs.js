@@ -44,6 +44,7 @@ export const useLazadaGobalAttrs = defineStore("lazadaGobalAttrs", () => {
         item.input_type !== "richText" &&
         item.attribute_type !== "sku" &&
         ![
+          "name",
           "video",
           "promotion_whitebkg_image",
           "brand",
@@ -88,6 +89,16 @@ export const useLazadaGobalAttrs = defineStore("lazadaGobalAttrs", () => {
     }
 
     setLoading(false);
+  };
+
+  const setProductClassifyAtrrs = (attributes = {}) => {
+    state.productClassifyAtrrs.forEach((attr) => {
+      for (const key in attributes) {
+        if (attr.name === key) {
+          attr.value = attributes[key];
+        }
+      }
+    });
   };
 
   const setProduct = (data = {}) => {

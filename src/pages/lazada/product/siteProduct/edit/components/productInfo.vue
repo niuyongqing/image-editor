@@ -45,7 +45,7 @@
                         :options="lazadaAttrsState.warrantyList" :field-names="{ label: 'en_name', value: 'en_name' }">
                     </a-select>
                 </a-form-item>
-                <!-- :rules="[{ required: item.is_mandatory === 1, trigger: ['blur'], message: item.is_mandatory === 1 ? '必填项，请填写' : '' }]" -->
+
                 <a-form-item label="属性: " v-show="lazadaAttrsState.attributes.length > 0">
                     <a-card v-loading="lazadaAttrsState.loading" class="attrs-card">
                         <a-form :model="productAtrrsform" ref="attrsFormRef" scrollToFirstError>
@@ -154,6 +154,7 @@ const primaryCategoryOptions = ref([]); // 分类列表
 const { state } = useResetReactive({
     title: undefined,
     brandId: undefined,
+    model: undefined,
     warranty_type: undefined,
     warranty: undefined,
 });
@@ -180,7 +181,9 @@ watch(() => {
     }).finally(() => {
         brandIdSelction.searchLoading = false;
     });
-
+    state.model = newVal.attributes.model;
+    state.warranty_type = newVal.attributes.warranty_type;
+    state.warranty = newVal.attributes.warranty;
 }, {
     deep: true
 });

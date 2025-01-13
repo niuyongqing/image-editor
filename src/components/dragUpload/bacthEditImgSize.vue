@@ -41,7 +41,8 @@
           </div>
           <div w-full>
             <div flex justify-between w-full>
-              <a-checkbox v-model:checked="element.checked" v-if="!element.url.includes('http')"></a-checkbox>
+              <a-checkbox v-model:checked="element.checked" v-if="!element.url.includes('http')"
+                @change="check(element, $event)"></a-checkbox>
               <div></div>
               <!-- <a-button type="text" color="#428bca" @click="handleRemove(element)">
                 <DeleteOutlined />
@@ -87,7 +88,9 @@ const checkedAll = ref(false);
 
 const handleCheckAllChange = (e) => {
   fileList.value.forEach(item => {
-    item.checked = checkedAll.value
+    if (!item.url.includes('http')) {
+      item.checked = checkedAll.value
+    }
   })
 };
 
@@ -108,11 +111,12 @@ const handleRemove = (element) => {
 }
 
 // 点击选中
-const check = (element) => {
-  element.checked = !element.checked;
-  const isAllChecked = fileList.value.every(item => item.checked);
+const check = (element, value) => {
+  const list = fileList.value.filter((item) => {
+    return !item.url.includes('http')
+  });
+  const isAllChecked = list.every(item => item.checked);
   checkedAll.value = isAllChecked;
-
 };
 
 //  点击确定

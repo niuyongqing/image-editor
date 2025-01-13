@@ -112,7 +112,9 @@ const isEmptyEditor = () => {
 
 // 设置编辑器内容
 const setValueHtml = (acceptHtml) => {
-    editorRef.value.setHtml(unref(acceptHtml));
+    nextTick(() => {
+        editorRef.value.setHtml(unref(acceptHtml));
+    })
 }
 
 // 获取编辑器内容
