@@ -1,68 +1,67 @@
 <template>
 <div id="addDialog" class="addDialog">
-  <json-schema :json="scheam"></json-schema>
-<!--  <div class="main-content">-->
-<!--    <baseInfo-->
-<!--      :schema-data="baseData"-->
-<!--      class="baseInfoRef"-->
-<!--      ref="baseInfoRef"-->
-<!--      @selectedProductType="selectedProductType"-->
-<!--    ></baseInfo>-->
-<!--    <a-spin :spinning="!!spinning">-->
-<!--      <productInfo-->
-<!--        v-if="formData.product.$id"-->
-<!--        :key="formData.product.$_key"-->
-<!--        :schema-data="formData.product"-->
-<!--        v-model:modelForm="form.product"-->
-<!--        @formMounted="formMounted"-->
-<!--        @formValueChange="formValueChange"-->
-<!--        class="productInfoRef"-->
-<!--        ref="productInfoRef"-->
-<!--      ></productInfo>-->
-<!--      <descriptionInfo-->
-<!--        v-if="formData.description.$id"-->
-<!--        :key="formData.description.$_key"-->
-<!--        :schema-data="formData.description"-->
-<!--        v-model:modelForm="form.description"-->
-<!--        @formMounted="formMounted"-->
-<!--        @formValueChange="formValueChange"-->
-<!--        ref="descriptionInfoRef"-->
-<!--      ></descriptionInfo>-->
-<!--      <imageInfo></imageInfo>-->
-<!--      <attributeInfo-->
-<!--        v-if="formData.attribute.$id"-->
-<!--        :key="formData.attribute.$_key"-->
-<!--        :schema-data="formData.attribute"-->
-<!--        v-model:modelForm="form.attribute"-->
-<!--        @formMounted="formMounted"-->
-<!--        @formValueChange="formValueChange"-->
-<!--        class="attributeInfoRef"-->
-<!--        ref="attributeInfoRef"-->
-<!--      ></attributeInfo>-->
-<!--      <offerInfo-->
-<!--        v-if="formData.offer.$id"-->
-<!--        :key="formData.offer.$_key"-->
-<!--        :schema-data="formData.offer"-->
-<!--        v-model:modelForm="form.offer"-->
-<!--        @formMounted="formMounted"-->
-<!--        @formValueChange="formValueChange"-->
-<!--        class="AmazonOfferInfoRef"-->
-<!--        ref="offerInfoRef"-->
-<!--      ></offerInfo>-->
-<!--      <div class="form-footer">-->
-<!--        <a-button style="margin-right: 20px">取消</a-button>-->
-<!--        <a-button type="primary" @click="sure">确定</a-button>-->
-<!--      </div>-->
-<!--    </a-spin>-->
-<!--  </div>-->
-<!--  <div class="addDialog-anchor">-->
-<!--    <div-->
-<!--      class="addDialog-anchor-item"-->
-<!--      v-for="item in anchorList"-->
-<!--      :key="item.key"-->
-<!--      @click="toHref(item.href)"-->
-<!--    >{{ item.title }}</div>-->
-<!--  </div>-->
+  <div class="main-content">
+    <baseInfo
+      :schema-data="baseData"
+      class="baseInfoRef"
+      ref="baseInfoRef"
+      @selectedProductType="selectedProductType"
+    ></baseInfo>
+    <a-spin :spinning="!!spinning">
+      <productInfo
+        v-if="formData.product.$id"
+        :key="formData.product.$_key"
+        :schema-data="formData.product"
+        v-model:modelForm="form.product"
+        @formMounted="formMounted"
+        @formValueChange="formValueChange"
+        class="productInfoRef"
+        ref="productInfoRef"
+      ></productInfo>
+      <descriptionInfo
+        v-if="formData.description.$id"
+        :key="formData.description.$_key"
+        :schema-data="formData.description"
+        v-model:modelForm="form.description"
+        @formMounted="formMounted"
+        @formValueChange="formValueChange"
+        ref="descriptionInfoRef"
+      ></descriptionInfo>
+      <imageInfo></imageInfo>
+      <attributeInfo
+        v-if="formData.attribute.$id"
+        :key="formData.attribute.$_key"
+        :schema-data="formData.attribute"
+        v-model:modelForm="form.attribute"
+        @formMounted="formMounted"
+        @formValueChange="formValueChange"
+        class="attributeInfoRef"
+        ref="attributeInfoRef"
+      ></attributeInfo>
+      <offerInfo
+        v-if="formData.offer.$id"
+        :key="formData.offer.$_key"
+        :schema-data="formData.offer"
+        v-model:modelForm="form.offer"
+        @formMounted="formMounted"
+        @formValueChange="formValueChange"
+        class="AmazonOfferInfoRef"
+        ref="offerInfoRef"
+      ></offerInfo>
+      <div class="form-footer">
+        <a-button style="margin-right: 20px">取消</a-button>
+        <a-button type="primary" @click="sure">确定</a-button>
+      </div>
+    </a-spin>
+  </div>
+  <div class="addDialog-anchor">
+    <div
+      class="addDialog-anchor-item"
+      v-for="item in anchorList"
+      :key="item.key"
+      @click="toHref(item.href)"
+    >{{ item.title }}</div>
+  </div>
 </div>
 </template>
 
