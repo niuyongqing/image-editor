@@ -1,4 +1,4 @@
-<!-- 普通商品 列表 -->
+<!-- 数据认领 列表 -->
 <template>
   <div class="text-left">
     <!-- 搜索区 -->
@@ -279,6 +279,12 @@
             </a-form-item>
           </a-form>
         </a-descriptions-item>
+        <a-descriptions-item label="产品状态">
+          <TiledSelect
+            v-model:value="watchedSearchForm.productStatus"
+            :options="PRODUCT_STATUS_OPTIONS"
+          />
+        </a-descriptions-item>
         <a-descriptions-item label="排序类型">
           <TiledSelectSort
             v-model:value="watchedSearchForm.prop"
@@ -291,91 +297,21 @@
     <a-space class="my-4">
       <a-button
         type="primary"
-        @click="goPublish()"
-        >发布商品</a-button
-      >
-      <a-dropdown :disabled="selectedRows.length === 0">
-        <a-button type="primary">快捷操作 <DownOutlined /></a-button>
-        <template #overlay>
-          <a-menu @click="handleCommand">
-            <a-menu-item disabled>产品信息</a-menu-item>
-            <a-menu-divider />
-            <a-menu-item key="title">批量修改标题</a-menu-item>
-            <a-menu-divider />
-            <a-menu-item disabled>变种信息</a-menu-item>
-            <a-menu-divider />
-            <a-menu-item key="nationalQuote">批量修改区域调价</a-menu-item>
-            <a-menu-divider />
-            <a-menu-item disabled>模版信息</a-menu-item>
-            <a-menu-divider />
-            <a-menu-item key="freightTemplate">批量改运费模版</a-menu-item>
-            <a-menu-divider />
-            <a-menu-item key="ALL">全属性修改</a-menu-item>
-          </a-menu>
-        </template>
-      </a-dropdown>
-      <a-popconfirm
-        title="确定下架吗？"
-        @confirm="deactivate"
-      >
-        <a-button
-          type="primary"
-          title="勾选商品后批量操作"
-          :disabled="selectedRows.length === 0"
-          :loading="deactivateLoading"
-          >批量下架</a-button
-        >
-      </a-popconfirm>
-      <a-popconfirm
-        title="确定上架吗？"
-        @confirm="activate"
-      >
-        <a-button
-          type="primary"
-          title="勾选商品后批量操作"
-          :disabled="selectedRows.length === 0"
-          :loading="activateLoading"
-          >批量上架</a-button
-        >
-      </a-popconfirm>
-      <a-button
-        type="primary"
-        title="勾选商品后批量操作"
+        title="勾选产品后操作"
         :disabled="selectedRows.length === 0"
-        @click="noteDialogVisible = true"
-        >批量添加备注</a-button
+        @click="handleClaim"
+        >批量认领</a-button
       >
-      <a-button
-        type="primary"
-        title="选择店铺后同步"
-        :loading="syncProgressOpen"
-        :disabled="!watchedSearchForm.sellerId"
-        @click="handleSyncList"
-        >批量同步店铺商品</a-button
-      >
-      <a-popconfirm
-        title="确定删除吗？"
-        @confirm="del"
-      >
-        <a-button
-          type="primary"
-          danger
-          title="勾选商品后批量操作"
-          :disabled="selectedRows.length === 0"
-          :loading="delLoading"
-          >批量删除</a-button
-        >
-      </a-popconfirm>
     </a-space>
     <!-- TABLE 区 -->
     <a-card>
       <div class="flex justify-between items-center">
         <a-tabs
-          v-model:activeKey="watchedSearchForm.productStatus"
+          v-model:activeKey="watchedSearchForm.claimedStatus"
           :animated="false"
         >
           <a-tab-pane
-            v-for="item in PRODUCT_STATUS_TABS"
+            v-for="item in TAB_OPTIONS"
             :key="item.value"
             :tab="`${item.label}(${STATUS_COUNT_ENUM[item.value]})`"
           ></a-tab-pane>
@@ -471,11 +407,6 @@
             v-if="column.key === 'skus'"
             style="text-align: left"
           >
-            <EditOutlined
-              title="修改价格和库存"
-              class="text-[#1677ff] float-right"
-              @click="editPriceAndStock(record)"
-            />
             <div
               v-for="(SKU, index) in displayedSkus(record)"
               :key="index"
@@ -533,61 +464,10 @@
           </div>
           <div v-if="column.key === 'option'">
             <a-button
-              type="text"
-              style="color: #0b56fa"
-              @click.stop="goPublish(record)"
-              >编辑</a-button
+              type="link"
+              @click="copy(record)"
+              >认领</a-button
             >
-            <a-button
-              type="text"
-              style="color: #67c23a"
-              @click.stop="handleSyncOne(record)"
-              >同步</a-button
-            >
-            <a-button
-              @click.stop="copy(record)"
-              type="text"
-              style="color: #0d9888"
-              >复制</a-button
-            >
-            <a-popconfirm
-              v-if="record.productStatusType === 'onSelling'"
-              title="下架吗?"
-              @confirm="deactivate(record)"
-            >
-              <a-button
-                type="text"
-                style="color: #e6a23c"
-                >下架</a-button
-              >
-            </a-popconfirm>
-            <a-popconfirm
-              v-if="record.productStatusType === 'offline'"
-              title="上架吗?"
-              @confirm="activate(record)"
-            >
-              <a-button
-                type="text"
-                style="color: #e6a23c"
-                >上架</a-button
-              >
-            </a-popconfirm>
-            <a-button
-              type="text"
-              style="color: #4ca8ec"
-              @click="addNote(record)"
-              >备注</a-button
-            >
-            <a-popconfirm
-              title="删除吗?"
-              @confirm="del(record)"
-            >
-              <a-button
-                type="text"
-                style="color: red"
-                >删除</a-button
-              >
-            </a-popconfirm>
           </div>
         </template>
       </a-table>
@@ -603,46 +483,6 @@
         @change="getList"
       />
     </a-card>
-    <!-- 同步进度条 -->
-    <a-modal
-      title="同步进度"
-      v-model:open="syncProgressOpen"
-      :footer="null"
-    >
-      <a-progress :percent="syncPercentage" />
-    </a-modal>
-    <!-- 修改价格和库存弹窗 -->
-    <PriceAndStockDialog
-      :dialog-visible="editPriceAndStockDialogVisible"
-      :raw-data="curRow"
-      @refresh="getList"
-      @priceAndStockDialogClose="handlePriceAndStockDialogClose"
-    />
-    <!-- 全属性修改弹窗 -->
-    <WholeAttrEditDialog
-      v-if="wholeAttrEditDialogVisible"
-      :dialog-visible="wholeAttrEditDialogVisible"
-      :command="command"
-      :accounts="accountList"
-      :selected-rows="selectedRows"
-      @refresh="getList"
-      @dialogClose="handleWholeAttrEditDialogClose"
-    />
-    <!-- 备注弹窗 -->
-    <a-modal
-      title="添加备注"
-      v-model:open="noteDialogVisible"
-      width="30%"
-      :after-close="handleNoteDialogClose"
-      :confirm-loading="noteLoading"
-      @ok="noteConfirm"
-    >
-      <a-textarea
-        v-model:value="note"
-        :rows="4"
-        placeholder="请输入备注内容"
-      />
-    </a-modal>
     <!-- 复制弹窗 -->
     <a-modal
       title="选择店铺"
@@ -671,33 +511,29 @@
           <span class="inline-block w-30 align-middle truncate">{{ item.simpleName }}</span>
         </a-checkbox>
       </a-checkbox-group>
-      <p class="mt-4 text-gray">提示: 不同店铺下的产品分类、模板信息、产品分组等信息可能不同, 复制后请注意调整</p>
+      <p class="mt-4 text-gray">提示: 不同店铺下的产品分类、模板信息、产品分组等信息可能不同, 认领后请注意调整</p>
     </a-modal>
   </div>
 </template>
 
 <script>
-  import { DEFAULT_TABLE_COLUMN, PRODUCT_STATUS_TABS, SHELVE_KIND_OPTIONS, SORT_TYPE_OPTIONS } from './config'
-  import { useAliexpressPopProductStore } from '@/stores/aliexpress-pop-product'
+  import { DEFAULT_TABLE_COLUMN, PRODUCT_STATUS_OPTIONS, TAB_OPTIONS, SHELVE_KIND_OPTIONS, SORT_TYPE_OPTIONS } from './config'
   import dayjs from 'dayjs'
   import { copyText } from '@/utils'
   import { accountCacheApi, getAllFreightTemplateApi, getAllProductGroupsApi } from '../apis/common'
-  import { productListApi, syncOneApi, syncListApi, syncProgressApi, deleteProductApi, productsOffShelfApi, productsShelvesApi, copyProductApi, addNotesApi, productDetailApi } from '../apis/product'
-  import { DownOutlined, CopyOutlined, InfoCircleOutlined, EditOutlined } from '@ant-design/icons-vue'
+  import { productListApi, copyProductApi } from '../apis/product'
+  import { DownOutlined, CopyOutlined, InfoCircleOutlined } from '@ant-design/icons-vue'
   import { message } from 'ant-design-vue'
   import EmptyImg from '@/assets/images/aliexpress/empty.png'
   import TiledSelect from '~/components/tiled-select/index.vue'
   import TiledSelectSort from '~/components/tiled-select-sort/index.vue'
   import SearchContentInput from '~/components/search-content-input/index.vue'
-  import PriceAndStockDialog from './components/PriceAndStockDialog.vue'
-  import WholeAttrEditDialog from './components/WholeAttrEditDialog.vue'
 
   export default {
     name: 'PopProduct',
-    components: { DownOutlined, CopyOutlined, InfoCircleOutlined, EditOutlined, PriceAndStockDialog, WholeAttrEditDialog },
+    components: { DownOutlined, CopyOutlined, InfoCircleOutlined },
     data() {
       return {
-        store: useAliexpressPopProductStore(),
         EmptyImg,
         accountList: [],
         isFold: true, // 高级搜索状态 折叠/展开
@@ -707,7 +543,7 @@
           prop: 'gmt_modified_time',
           order: 'desc',
           productType: undefined,
-          productStatus: 'ONLINE'
+          claimedStatus: 'all'
         },
         // 高级搜索表单; 需点击'搜索'按钮再执行搜索动作
         lazySearchForm: {
@@ -730,7 +566,8 @@
           commentType: undefined,
           commentContent: undefined,
           createTime: null,
-          updateTime: null
+          updateTime: null,
+          productStatus: 'ONLINE'
         },
         tableParams: {
           pageNum: 1,
@@ -744,10 +581,9 @@
         loading: false,
         selectedRowKeys: [],
         selectedRows: [],
-        syncProgressOpen: false,
-        syncPercentage: 0,
         SHELVE_KIND_OPTIONS,
-        PRODUCT_STATUS_TABS,
+        PRODUCT_STATUS_OPTIONS,
+        TAB_OPTIONS,
         SEARCH_PROP_OPTIONS: [
           { label: '标题', value: 'title' },
           { label: '商品编码', value: 'sku' },
@@ -759,13 +595,9 @@
           productId: '产品ID, 多个ID间用英文逗号隔开'
         },
         STATUS_COUNT_ENUM: {
-          onSelling: 0,
-          offline: 0,
-          auditing: 0,
-          editingRequired: 0,
-          service_delete: 0,
-          service_deleted: 0,
-          deleted: 0
+          all: 0,
+          unclaimed: 0,
+          claimed: 0
         },
         allFreightOptions: [],
         REMARK_OPTIONS: [
@@ -789,19 +621,8 @@
         groupLoading: false,
         allGroupOptions: [],
         allFreightOptions: [],
-        deactivateLoading: false,
-        activateLoading: false,
-        delLoading: false,
-        note: '',
-        noteDialogVisible: false,
-        noteLoading: false,
         curRow: {}, // 当前点击的行
-        syncLoading: false,
         selectedRows: [],
-        syncPercentage: 0,
-        editPriceAndStockDialogVisible: false, // 修改价格和库存显隐
-        wholeAttrEditDialogVisible: false, // 全属性修改弹窗显隐
-        command: '', // 批量操作指令
         // 复制产品相关
         copyDialogVisible: false,
         checkAll: false,
@@ -974,106 +795,10 @@
         this.watchedSearchForm.updateTime = null
         this.search()
       },
-      handleSyncOne(record) {
-        const params = {
-          sellerId: record.sellerId,
-          productId: record.productId
-        }
-        syncOneApi(params).then(res => {
-          message.success(res.msg)
-          this.getList()
-        })
-      },
-      // 下架
-      deactivate(record) {
-        let params
-        if (record) {
-          params = [{ sellerId: record.sellerId, productId: record.productId }]
-        } else {
-          params = this.selectedRows.map(item => {
-            return {
-              sellerId: item.sellerId,
-              productId: item.productId
-            }
-          })
-        }
-        this.deactivateLoading = true
-        productsOffShelfApi({ products: params })
-          .then(res => {
-            this.getList()
-          })
-          .finally(() => {
-            this.deactivateLoading = false
-          })
-      },
-      // 上架
-      activate(record) {
-        let params
-        if (record) {
-          params = [{ sellerId: record.sellerId, productId: record.productId }]
-        } else {
-          params = this.selectedRows.map(item => {
-            return {
-              sellerId: item.sellerId,
-              productId: item.productId
-            }
-          })
-        }
-        this.activateLoading = true
-        productsShelvesApi({ products: params })
-          .then(res => {
-            this.getList()
-          })
-          .finally(() => {
-            this.activateLoading = false
-          })
-      },
-      // 同步店铺商品
-      handleSyncList() {
-        this.syncProgressOpen = true
-        syncListApi({ sellerId: this.watchedSearchForm.sellerId })
-          .then(res => {
-            this.getSyncProgress(res.data)
-          })
-          .catch(e => {
-            this.syncProgressOpen = false
-          })
-      },
-      // 同步进度条
-      getSyncProgress(progressToken) {
-        const params = {
-          sellerId: this.watchedSearchForm.sellerId,
-          progressToken
-        }
-        syncProgressApi(params)
-          .then(res => {
-            if (res.data) {
-              const resList = res.data.split(':')
-              if (resList[0] === 'undone') {
-                this.syncPercentage = Number(((resList[2] / resList[1]) * 100).toFixed())
-                setTimeout(() => {
-                  this.getSyncProgress(progressToken)
-                }, 3 * 1000)
-              } else {
-                this.syncPercentage = 0
-                this.syncProgressOpen = false
-                this.getList()
-              }
-            } else {
-              setTimeout(() => {
-                this.getSyncProgress(progressToken)
-              }, 2 * 1000)
-            }
-          })
-          .catch(e => {
-            this.syncProgressOpen = false
-          })
-      },
+      // 批量认领
+      handleClaim() {},
       getTitle(record) {
         return record.subjectList.filter(item => item.locale === record.locale)[0].value
-      },
-      goAliExpress(productId) {
-        window.open(`https://vi.aliexpress.com/item/${productId}.html`)
       },
       // 复制产品ID到剪贴板
       copyId(id) {
@@ -1105,80 +830,6 @@
         } else {
           return '--'
         }
-      },
-      /** 备注 */
-      addNote(record) {
-        this.curRow = record
-        this.note = record.notes
-        this.noteDialogVisible = true
-      },
-      noteConfirm() {
-        this.noteLoading = true
-        let params
-        if (Object.keys(this.curRow).length !== 0) {
-          params = [{ sellerId: this.curRow.sellerId, productId: this.curRow.productId, notes: this.note }]
-        } else {
-          params = this.selectedRows.map(item => {
-            return {
-              sellerId: item.sellerId,
-              productId: item.productId,
-              notes: this.note
-            }
-          })
-        }
-        addNotesApi(params)
-          .then(res => {
-            this.getList()
-            this.handleNoteDialogClose()
-          })
-          .finally(() => {
-            this.noteLoading = false
-          })
-      },
-      handleNoteDialogClose() {
-        this.curRow = {}
-        this.note = ''
-        this.noteDialogVisible = false
-      },
-      del(record) {
-        let params
-        if (record) {
-          params = [{ sellerId: record.sellerId, productId: record.productId }]
-        } else {
-          params = this.selectedRows.map(item => {
-            return {
-              sellerId: item.sellerId,
-              productId: item.productId
-            }
-          })
-        }
-        this.delLoading = true
-        deleteProductApi({ products: params })
-          .then(res => {
-            this.getList()
-          })
-          .finally(() => {
-            this.delLoading = false
-          })
-      },
-      // 修改 SKU 价格和库存相关
-      editPriceAndStock(row) {
-        this.curRow = row
-        this.editPriceAndStockDialogVisible = true
-      },
-      // 关闭修改价格和库存弹窗
-      handlePriceAndStockDialogClose() {
-        this.curRow = {}
-        this.editPriceAndStockDialogVisible = false
-      },
-      handleCommand({ key }) {
-        this.command = key
-        this.wholeAttrEditDialogVisible = true
-      },
-      // 关闭全属性修改弹窗
-      handleWholeAttrEditDialogClose() {
-        this.command = ''
-        this.wholeAttrEditDialogVisible = false
       },
       // 复制商品弹窗相关
       handleCheckAllChange(e) {
@@ -1219,13 +870,6 @@
         this.curRow = {}
         this.copyTargetSellerList = []
         this.copyDialogVisible = false
-      },
-      goPublish(record) {
-        let query = ''
-        if (record) {
-          query = `?sellerId=${record.sellerId}&productId=${record.productId}`
-        }
-        window.open(location.origin + '/platform/aliexpress/pop-product-publish' + query)
       }
     }
   }
