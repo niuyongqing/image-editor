@@ -75,9 +75,9 @@ import imageInfo from "@/pages/amazon/common/addDialog/imageInfo.vue";
 import attributeInfo from '@/pages/amazon/common/addDialog/attributeInfo.vue'
 import offerInfo from '@/pages/amazon/common/addDialog/offerInfo.vue'
 import '@/assets/library/jsonScheam_v3_ant/style/baseForm.css'
-
+import JsonSchema from '@/components/json-schema/index.vue'
 // import scheam from './TrainSets - 副本.json'
-// import scheam from './TrainSets.json'
+import scheam from './TrainSets.json'
 import { ref, reactive, onMounted, computed, watchPostEffect, getCurrentInstance, nextTick } from 'vue'
 import { getJsonUrl, validateJson } from '@/pages/amazon/js/api/activeProduct'
 import axios from "axios";
@@ -149,7 +149,7 @@ let anchorList = [    // 模块列表
   },
 ];
 const spinning = ref(0)       // 是否加载完成
-const scheam = ref({})
+// const scheam = ref({})
 const _attributeData = ref({})     // 原始数据
 const jsonParams = ref({}); // 获取json链接的参数
 

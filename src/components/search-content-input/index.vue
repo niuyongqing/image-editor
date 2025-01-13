@@ -6,7 +6,9 @@
       v-if="isFold"
       class="w-[400px]"
       :placeholder="placeholder"
+      allow-clear
       @blur="blur"
+      @keyup.enter="enter"
     >
       <template #prefix v-if="!hideControl">
         <DownSquareOutlined class="color-[--pro-ant-color-primary-text]" @click="isFold = !isFold" />
@@ -44,7 +46,7 @@
       default: '请输入'
     }
   })
-  const emits = defineEmits(['update:value'])
+  const emits = defineEmits(['update:value', 'enter'])
 
   const isFold = ref(true)
   const content = ref('')
@@ -69,5 +71,11 @@
     // 统一以逗号分隔的形式返回值
     const value = isFold.value ? content.value : content.value.replaceAll('\n', ',')
     emits('update:value', value)
+  }
+
+  // 回车键触发
+  function enter() {
+    blur()
+    emits('enter')
   }
 </script>

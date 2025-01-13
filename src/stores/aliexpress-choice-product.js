@@ -1,3 +1,4 @@
+// 速卖通-全托管
 export const useAliexpressChoiceProductStore = defineStore('aliexpressChoiceProductStore', {
   state: () => {
     return {

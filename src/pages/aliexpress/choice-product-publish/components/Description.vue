@@ -11,14 +11,14 @@
         name="webDetail"
       >
         <span class="text-[#a0a3a6]">详细描述一般包含产品功能属性、产品细节图片、支付物流、售后服务、公司实力等内容。</span>
-        <QuillEditor
+        <!-- <QuillEditor
           v-model:value="form.webDetail"
           ref="webEditor"
           multiple
           accept=".jpg,.jpeg,.png"
           :extra-data="{ sellerId }"
           :upload-url="uploadImageUrl"
-        />
+        /> -->
       </a-form-item>
       <a-form-item label="APP端描述">
         <a-popover>
@@ -32,14 +32,14 @@
           @click="cloneWebDetail"
           >根据PC端描述生成</a-button
         >
-        <QuillEditor
+        <!-- <QuillEditor
           v-model:value="form.mobileDetail"
           ref="mobileEditor"
           multiple
           accept=".jpg,.jpeg,.png"
           :extra-data="{ sellerId }"
           :upload-url="uploadImageUrl"
-        />
+        /> -->
       </a-form-item>
     </a-form>
   </a-card>
@@ -66,8 +66,8 @@
         store: useAliexpressChoiceProductStore(),
         uploadImageUrl: import.meta.env.VITE_APP_BASE_API_DEV + '/platform-aliexpress/platform/aliexpress/file/imageBank/uploadImageForSdk',
         form: {
-          webDetail: '',
-          mobileDetail: ''
+          webDetail: 'This is a text edited by Lynch on Earth.',
+          mobileDetail: 'This is a text edited by Lynch on Earth.'
         },
         rules: {
           webDetail: { validator: validWebDetail, required: true, trigger: 'change' }

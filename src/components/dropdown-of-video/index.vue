@@ -338,7 +338,7 @@
       }
     }
 
-    ::v-deep .ant-pagination-options {
+    :deep(.ant-pagination-options) {
       width: 200px;
       .ant-select.ant-select-in-form-item {
         width: 45%;

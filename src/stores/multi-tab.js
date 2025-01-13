@@ -1,6 +1,6 @@
 import router from '~@/router'
 
-const allowList = ['/login', '/404', '/403']
+const allowList = ['/platform/login', '/platform/404', '/platform/403']
 export const useMultiTab = defineStore('multi-tab', () => {
   const list = ref([])
   const activeKey = shallowRef()
@@ -11,9 +11,9 @@ export const useMultiTab = defineStore('multi-tab', () => {
   const addItem = (route) => {
     if (!route)
       return
-    if (route.path.startsWith('/redirect') || route.path.startsWith('/common'))
+    if (route.path.startsWith('/platform/redirect') || route.path.startsWith('/platform/common'))
       return
-    if (route.path === '/')
+    if (route.path === '/platform/')
       return
     if (allowList.includes(route.path))
       return
@@ -73,7 +73,7 @@ export const useMultiTab = defineStore('multi-tab', () => {
       cacheList.value = cacheList.value.filter(name => name !== item.name)
       item.loading = true
       refreshItem.value = item
-      router.replace(`/redirect/${encodeURIComponent(item.fullPath)}`)
+      router.replace(`/platform/redirect/${encodeURIComponent(item.fullPath)}`)
     }
   }
   const switchTab = (key) => {

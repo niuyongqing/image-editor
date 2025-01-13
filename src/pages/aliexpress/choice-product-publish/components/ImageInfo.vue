@@ -119,7 +119,7 @@
                   :src="item.url"
                   :preview-src-list="form.productImages.map(item => item.url)"
                 />
-                <div class="image-info">
+                <div class="image-wrap">
                   <span>{{ item.width }} x {{ item.height }}</span>
                   <div>
                     <a-form-item-rest>
@@ -178,7 +178,7 @@
                   :src="item.url"
                   :preview-src-list="form.marketImage1.map(item => item.url)"
                 />
-                <div class="image-info">
+                <div class="image-wrap">
                   <span>{{ item.width }} x {{ item.height }}</span>
                   <a-button
                     type="link"
@@ -223,7 +223,7 @@
                   :src="item.url"
                   :preview-src-list="form.marketImage2.map(item => item.url)"
                 />
-                <div class="image-info">
+                <div class="image-wrap">
                   <span>{{ item.width }} x {{ item.height }}</span>
                   <a-button
                     type="link"
@@ -285,7 +285,7 @@
                 :src="form.video.posterUrl"
                 :preview="false"
               />
-              <div class="image-info">
+              <div class="image-wrap">
                 <span></span>
                 <a-button
                   type="link"
@@ -405,30 +405,47 @@
         if (Object.keys(detail).length === 0) return
 
         // 产品主图
-        this.form.productImages = detail.multimedia.mainImageList.map(url => {
-          return {
-            url,
-            width: 0,
-            height: 0
-          }
+        const promiseList1 = detail.multimedia.mainImageList.map(url => {
+          return new Promise(resolve => {
+            const image = new Image()
+            image.src = url
+            image.onload = () => {
+              resolve({
+                url,
+                width: image.width,
+                height: image.height
+              })
+            }
+          })
+        })
+        Promise.all(promiseList1).then(list => {
+          this.form.productImages = list
         })
         // 营销图 1:1
         const marketImage1 = detail.multimedia.marketImageList && detail.multimedia.marketImageList.find(item => item.imageType === 2)
         if (marketImage1) {
-          this.form.marketImage1.push({
-            url: marketImage1.url,
-            width: 0,
-            height: 0
-          })
+          const image = new Image()
+          image.src = marketImage1.url
+          image.onload = () => {
+            this.form.marketImage1.push({
+              url: marketImage1.url,
+              width: image.width,
+              height: image.height
+            })
+          }
         }
         // 营销图 3:4
         const marketImage2 = detail.multimedia.marketImageList && detail.multimedia.marketImageList.find(item => item.imageType === 1)
         if (marketImage2) {
-          this.form.marketImage2.push({
-            url: marketImage2.url,
-            width: 0,
-            height: 0
-          })
+          const image = new Image()
+          image.src = marketImage2.url
+          image.onload = () => {
+            this.form.marketImage2.push({
+              url: marketImage2.url,
+              width: image.width,
+              height: image.height
+            })
+          }
         }
         // 视频媒体
         if (detail.multimedia.videoList && detail.multimedia.videoList.length) {
@@ -581,8 +598,17 @@
                 list.forEach(item => {
                   const i = this.form.productImages.findIndex(el => el.fileName === item.originalFilename)
                   if (i > -1) {
-                    this.form.productImages[i].url = item.url
-                    this.form.productImages[i].fileName = item.fileName.replace('/prod-api', '')
+                    const image = new Image()
+                    image.src = item.url
+                    image.onload = () => {
+                      const info = {
+                        url: item.url,
+                        fileName: item.fileName.replace('/prod-api', ''),
+                        width: image.width,
+                        height: image.height
+                      }
+                      this.form.productImages[i] = info
+                    }
                   }
                 })
               })
@@ -620,8 +646,17 @@
                         return imagePathList[i1].originalFilename.includes(elName)
                       })
                       if (i2 > -1) {
-                        this.form.productImages[i2].url = item.url
-                        this.form.productImages[i2].fileName = item.fileName.replace('/prod-api', '')
+                        const image = new Image()
+                        image.src = item.url
+                        image.onload = () => {
+                          const info = {
+                            url: item.url,
+                            fileName: item.fileName.replace('/prod-api', ''),
+                            width: image.width,
+                            height: image.height
+                          }
+                          this.form.productImages[i2] = info
+                        }
                       }
                     }
                   })
@@ -701,16 +736,20 @@
           })
             .then(res => {
               const list = res.data || []
-              this.form.marketImage2.push({
-                url: list[0].url,
-                fileName: list[0].fileName.replace('/prod-api', ''),
-                width: 0,
-                height: 0
-              })
+              const image = new Image()
+              image.src = list[0].url
+              image.onload = () => {
+                this.form.marketImage2.push({
+                  url: list[0].url,
+                  fileName: list[0].fileName.replace('/prod-api', ''),
+                  width: image.width,
+                  height: image.height
+                })
+              }
             })
             .finally(() => {
               this.generateMarketImageLoading = false
-              this.$refs.form.validateFields(['marketImages'])
+              this.$refs.form.clearValidate(['marketImages'])
             })
         }
       },
@@ -789,7 +828,7 @@
         position: relative;
         overflow: hidden;
       }
-      .image-info {
+      .image-wrap {
         position: absolute;
         bottom: 0;
         left: 0;
@@ -800,9 +839,6 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        ::v-deep .el-icon-delete {
-          color: #f56c6c;
-        }
       }
     }
     .image-empty {
