@@ -85,8 +85,8 @@ async function updateOurPrice() {
           "path": "/attributes/purchasable_offer",
           "value": [
             {
-              "marketplace_id": "ATVPDKIKX0DER",
-              "currency": "USD",
+              "marketplace_id": item.marketId,
+              "currency": item.currency,
               "our_price": [
                 {
                   "schedule": [

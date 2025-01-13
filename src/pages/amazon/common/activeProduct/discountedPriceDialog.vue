@@ -1,8 +1,8 @@
 <template>
-<div id="listPriceDialog" class="listPriceDialog">
+<div id="discountedPriceDialog" class="discountedPriceDialog">
   <a-modal 
     v-model:open="props.open" 
-    :title="'批量修改listPrice'" 
+    :title="'批量修改价格'" 
     @ok="handleOk"
     :closable="false"
   >
@@ -35,10 +35,8 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-import { listPriceEdit } from '../../js/api/activeProduct';
-defineOptions({
-  name: "listPriceDialog"
-});
+import { discountedPriceEdit } from '../../js/api/activeProduct';
+defineOptions({ name: "discountedPriceDialog" });
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:open', 'editDone'])
 const props = defineProps({
@@ -67,29 +65,37 @@ async function handleOk() {
   // console.log(_this.$refs.batchForm);
   try {
     let res = await _this.$refs.batchForm.validateFields()
-    updateListPrice()
+    updateOurPrice()
   } catch (error) {
     console.log(error);
   };
 }
 // 更新库存
-async function updateListPrice() {
-  let editListPriceItems = props.rows.map(item => {
+async function updateOurPrice() {
+  let editDiscountedPriceItems = props.rows.map(item => {
     let obj = {
       "asin": item.asin,
       "shopId": item.shopId,
       "marketId": item.marketId,
       "skuName": item.skuName,
-      "listPrice": item.listPrice,
+      "discountedPrice": item.discountedPrice,
       "patches": [
         {
           "op": "replace",
-          "path": "/attributes/list_price",
+          "path": "/attributes/purchasable_offer",
           "value": [
             {
-              "value": batchData.form.num,
+              "marketplace_id": item.marketId,
               "currency": item.currency,
-              "marketplace_id": item.attribute.list_price[0].marketplace_id
+              "our_price": [
+                {
+                  "schedule": [
+                    {
+                      "value_with_tax": batchData.form.num
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -99,7 +105,7 @@ async function updateListPrice() {
   })
   batchData.loading = true
   try {
-    await listPriceEdit({ editListPriceItems })
+    await discountedPriceEdit({ editDiscountedPriceItems })
     emit('editDone')
     handleCancel()
   } catch (error) {

@@ -1,4 +1,56 @@
-export default [
+export const parentHead = [
+  {
+    title: '状态',
+    dataIndex: 'type',
+    key: 'type',
+    align:"center",
+    sortable:false,
+    show: true,
+    width: 200,
+    filter:false,
+  },
+  {
+    title: '商品详情',
+    dataIndex: 'info',
+    key: 'info',
+    align:"center",
+    sortable:false,
+    show:true,
+    // width:'380',
+    filter:false,
+  },
+  // {
+  //   title: 'SKU信息',
+  //   dataIndex: 'sku',
+  //   key: 'platform',
+  //   align:"center",
+  //   sortable:false,
+  //   width:'280',
+  //   show:true,
+  //   filter:false,
+  // },
+  // {
+  //   title: '库存/价格',
+  //   dataIndex: 'price',
+  //   key: 'price',
+  //   align:"center",
+  //   sortable:false,
+  //   // width:'280',
+  //   show:true,
+  //   filter:false,
+  // },
+  // {
+  //   title: '操作',
+  //   dataIndex: 'options',
+  //   key: 'options',
+  //   align:"center",
+  //   sortable:false,
+  //   width:'280',
+  //   show:true,
+  //   filter:false,
+  // }
+];
+export const childHead = [
   {
     title: '图片/标题',
     dataIndex: 'info',
@@ -6,19 +58,19 @@ export default [
     align:"center",
     sortable:false,
     show:true,
-    width:'380',
+    width:500,
     filter:false,
   },
-  {
-    title: 'SKU信息',
-    dataIndex: 'sku',
-    key: 'platform',
-    align:"center",
-    sortable:false,
-    width:'280',
-    show:true,
-    filter:false,
-  },
+  // {2
+  //   title: 'SKU信息',
+  //   dataIndex: 'sku',
+  //   key: 'platform',
+  //   align:"center",
+  //   sortable:false,
+  //   width:'280',
+  //   show:true,
+  //   filter:false,
+  // },
   {
     title: '状态',
     dataIndex: 'state',
@@ -29,9 +81,19 @@ export default [
     filter:false,
   },
   {
-    title: '库存/价格',
-    dataIndex: 'price',
-    key: 'price',
+    title: '库存',
+    dataIndex: 'quality',
+    key: 'quality',
+    align:"center",
+    sortable:false,
+    width:'280',
+    show:true,
+    filter:false,
+  },
+  {
+    title: '价格',
+    dataIndex: 'ourPrice',
+    key: 'ourPrice',
     align:"center",
     sortable:false,
     width:'280',
@@ -48,4 +110,4 @@ export default [
     show:true,
     filter:false,
   }
-];
+]

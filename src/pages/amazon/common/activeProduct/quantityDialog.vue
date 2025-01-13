@@ -80,8 +80,9 @@ async function updateQuantity() {
           "path": "/attributes/fulfillment_availability",
           "value": [
             {
-              "fulfillment_channel_code": "DEFAULT",
-              "quantity": batchData.form.num
+              "fulfillment_channel_code": item.attribute.fulfillment_availability[0].fulfillment_channel_code,
+              "quantity": batchData.form.num,
+              // "marketplace_id": item.marketId
             }
           ]
         }
