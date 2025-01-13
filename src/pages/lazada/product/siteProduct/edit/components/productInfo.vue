@@ -136,8 +136,14 @@ import { debounce } from "lodash-es";
 import { message } from "ant-design-vue";
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 
-const { state: lazadaAttrsState, } = useLadazaAttrs();
+const { detailData } = defineProps({
+    detailData: {
+        type: Object,
+        default: () => ({})
+    }
+});
 
+const { state: lazadaAttrsState, } = useLadazaAttrs();
 const isExpand = ref(false); // 展开收起
 const attributesLoading = ref(false);
 const shortCode = ref('');
@@ -157,6 +163,28 @@ const brandIdSelction = reactive({
 });
 //  产品属性表单
 const productAtrrsform = reactive({});
+//  编辑回显
+watch(() => {
+    return detailData
+}, async (newVal) => {
+    state.title = newVal.attributes.name;
+    getBrandList({ brandName: newVal.attributes.brand, shortCode: newVal.shortCode }).then(res => {
+        if (res.code === 200) {
+            brandIdSelction.data = res.data || [];
+            //  品牌设置默认 No Brand
+            const brandItem = brandIdSelction.data.find((item) => {
+                return item.nameEn === newVal.attributes.brand
+            });
+            state.brandId = brandItem ? brandItem.brandId : undefined;
+        }
+    }).finally(() => {
+        brandIdSelction.searchLoading = false;
+    });
+
+}, {
+    deep: true
+});
+
 const itemRules = (item) => {
     return [{ required: item.is_mandatory === 1, trigger: ['change'], message: item.is_mandatory === 1 ? '必填项，请填写' : '' }]
 };
@@ -241,20 +269,20 @@ onMounted(() => {
     EventBus.on('siteEditShortCodeEmit', (code) => {
         console.log('接受到的shortCode -->>', code);
         shortCode.value = code;
-        brandIdSelction.brandId = undefined;
-        getBrandList({ brandName: '', shortCode: code }).then(res => {
-            if (res.code === 200) {
-                brandIdSelction.data = res.data || [];
-                //  品牌设置默认 No Brand
-                const brandItem = brandIdSelction.data.find((item) => {
-                    return item.nameEn === 'OEM'
-                });
-                brandIdSelction.brandId = brandItem ? brandItem.brandId : undefined;
-                state.brandId = brandIdSelction.brandId;
-            }
-        }).finally(() => {
-            brandIdSelction.searchLoading = false;
-        });
+        // brandIdSelction.brandId = undefined;
+        // getBrandList({ brandName: '', shortCode: code }).then(res => {
+        //     if (res.code === 200) {
+        //         brandIdSelction.data = res.data || [];
+        //         //  品牌设置默认 No Brand
+        //         const brandItem = brandIdSelction.data.find((item) => {
+        //             return item.nameEn === 'OEM'
+        //         });
+        //         brandIdSelction.brandId = brandItem ? brandItem.brandId : undefined;
+        //         state.brandId = brandIdSelction.brandId;
+        //     }
+        // }).finally(() => {
+        //     brandIdSelction.searchLoading = false;
+        // });                                
 
     });
 });

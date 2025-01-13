@@ -5,7 +5,6 @@
             <template #title>
                 <div text-left @click="tab"> 图片信息 </div>
             </template>
-
             <a-form :model="form" :label-col="{ style: { width: '80px' } }" style="margin-left: 100px;" ref="formRef"
                 scrollToFirstError>
                 <a-form-item label="产品图片:" name="fileList" :rules="fileListRules">
@@ -133,11 +132,14 @@ import { message } from "ant-design-vue";
 import DragUpload from '@/components/dragUpload/index.vue';
 import { saveAs } from 'file-saver';
 
-
-const { waterList } = defineProps({
+const { waterList, detailData } = defineProps({
     waterList: {
         type: Array,
         default: () => []
+    },
+    detailData: {
+        type: Object,
+        default: () => ({})
     }
 })
 
@@ -162,6 +164,29 @@ const form = reactive({
 
     ]
 });
+
+
+
+//  编辑回显
+watch(() => {
+    return detailData
+}, async (newVal) => {
+    console.log('detailData', newVal);
+    const images = newVal.images ? JSON.parse(newVal.images) : [];  // 产品图片
+    console.log('images', images);
+
+    form.fileList = images.map(item => {
+        return {
+            url: item,
+            uid: item,
+            name: item
+        }
+    })
+}, {
+    deep: true
+});
+
+
 const fileListRules = computed(() => {
     return [
         {

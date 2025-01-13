@@ -33,14 +33,14 @@
                 </a-button>
             </div>
         </div>
-        <BaseInfo ref="baseInfoRef"></BaseInfo>
-        <ProductInfo ref="productInfoRef"></ProductInfo>
-        <Package ref="packageRef"></Package>
-        <ImageInfo ref="imageInfoRef" :waterList="waterList"></ImageInfo>
-        <Variant ref="variantRef"></Variant>
-        <VariantInfo ref="variantInfoRef"></VariantInfo>
-        <VariantImage ref="variantImageRef" :waterList="waterList"></VariantImage>
-        <Description ref="descriptionRef"></Description>
+        <BaseInfo ref="baseInfoRef" :detailData="detailData"></BaseInfo>
+        <ProductInfo ref="productInfoRef" :detailData="detailData"></ProductInfo>
+        <Package ref="packageRef" :detailData="detailData"></Package>
+        <ImageInfo ref="imageInfoRef" :waterList="waterList" :detailData="detailData"></ImageInfo>
+        <Variant ref="variantRef" :detailData="detailData"></Variant>
+        <VariantInfo ref="variantInfoRef" :detailData="detailData"></VariantInfo>
+        <VariantImage ref="variantImageRef" :waterList="waterList" :detailData="detailData"></VariantImage>
+        <Description ref="descriptionRef" :detailData="detailData"></Description>
 
         <div w-full flex justify-end mt-10px>
             <div class="flex gap-12px">
@@ -75,20 +75,22 @@
 
 <script setup>
 import { DownOutlined } from '@ant-design/icons-vue';
-import BaseInfo from './add/components/baseInfo.vue';
-import Package from './add/components/package.vue';
-import ProductInfo from './add/components/productInfo.vue';
-import ImageInfo from './add/components/imageInfo.vue';
-import VariantInfo from './add/components/variantInfo.vue';
-import Variant from './add/components/variant.vue';
-import VariantImage from './add/components/variantImage.vue';
-import Description from './add/components/description.vue';
+import BaseInfo from './components/baseInfo.vue';
+import Package from './components/package.vue';
+import ProductInfo from './components/productInfo.vue';
+import ImageInfo from './components/imageInfo.vue';
+import VariantInfo from './components/variantInfo.vue';
+import Variant from './components/variant.vue';
+import VariantImage from './components/variantImage.vue';
+import Description from './components/description.vue';
 import SelectProduct from '@/components/selectProduct/index.vue';
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
-import { watermarkList, lazadaAdd } from '@/pages/lazada/product/api';
+import { watermarkList, lazadaAdd, lazadaProductDetail } from '@/pages/lazada/product/api';
 import AddSuccessModal from './components/batchModal/addSuccessModal.vue';
 import dayjs from 'dayjs';
 
+const route = useRoute();
+const detailData = ref({}); // 产品详情数据
 const saveLoading = ref(false);
 const publishLoading = ref(false);
 const waterList = ref([]); // 水印列表
@@ -112,31 +114,30 @@ const selectNowProduct = () => {
 
 //  验证校验
 const validateAll = async () => {
-
-    // const baseInfoForm = await baseInfoEl.value.validateForm();
-    // if (!baseInfoForm) {
-    //     return;
-    // }
-    // const productInfoForm = await productInfoEl.value.validateForm();
-    // if (!productInfoForm) {
-    //     return;
-    // }
-    // const packageForm = await packageEl.value.validateForm();
-    // if (!packageForm) {
-    //     return;
-    // }
-    // const imageInfoForm = await imageInfoEl.value.validateForm();
-    // if (!imageInfoForm) {
-    //     return;
-    // }
-    // const variationForm = await variantInfoEl.value.validateForm();
-    // if (!variationForm) {
-    //     return;
-    // }
-    // const variantImage = await variantImageEl.value.validateForm();
-    // if (!variantImage) {
-    //     return;
-    // };
+    const baseInfoForm = await baseInfoEl.value.validateForm();
+    if (!baseInfoForm) {
+        return;
+    }
+    const productInfoForm = await productInfoEl.value.validateForm();
+    if (!productInfoForm) {
+        return;
+    }
+    const packageForm = await packageEl.value.validateForm();
+    if (!packageForm) {
+        return;
+    }
+    const imageInfoForm = await imageInfoEl.value.validateForm();
+    if (!imageInfoForm) {
+        return;
+    }
+    const variationForm = await variantInfoEl.value.validateForm();
+    if (!variationForm) {
+        return;
+    }
+    const variantImage = await variantImageEl.value.validateForm();
+    if (!variantImage) {
+        return;
+    };
     const form = await descriptionEl.value.form;
 
     const baseInfoState = baseInfoEl.value.state;
@@ -279,8 +280,22 @@ const getWatermark = () => {
         }
     });
 };
+// 获取产品
+const getProductDetail = () => {
+    const params = {
+        itemId: route.query.itemId
+    };
+    if (!params.itemId) return;
+    lazadaProductDetail(params)
+        .then((res) => {
+            if (res.code === 200) {
+                detailData.value = res.data || {};
+            }
+        });
+};
 
 onMounted(() => {
+    getProductDetail();
     getWatermark()
 });
 </script>
