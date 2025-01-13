@@ -162,7 +162,7 @@ const { singleDisabled, rowSelection, tableRow, clearSelection } = useTableSelec
 const initSearchParam = {
     prop: "created_time",
     order: "desc",
-    shortCode: 'TH1JHXJEGO'
+    shortCode: 'PH7S6NKMYI'
 };
 const buttons = ref([{
     id: 1,

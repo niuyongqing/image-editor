@@ -27,7 +27,7 @@
                             <a-textarea v-model:value="formState.sku" placeholder="多个SKU间隔用逗号隔开，最多支持200个"
                                 style="width: 480px" v-show="currentSearchType === 'sku'"
                                 :auto-size="{ minRows: 1, maxRows: 5 }" />
-                            <a-textarea v-model:value="formState.product" placeholder="多个SKU间隔用逗号隔开，最多支持200个"
+                            <a-textarea v-model:value="formState.product" placeholder="多个产品ID间隔用逗号隔开，最多支持200个"
                                 style="width: 480px" v-show="currentSearchType === 'productId'"
                                 :auto-size="{ minRows: 1, maxRows: 5 }" />
                             <a-button class="ml-10px" type="primary" @click="submit">搜索</a-button>
@@ -162,7 +162,6 @@ const showAdvanceSearch = () => {
 };
 const changeShortCode = (value) => {
     formState.shortCode = value;
-    console.log('value ->>>', formState.shortCode);
     submit();
 };
 const changeSearchType = (item) => {
@@ -193,9 +192,4 @@ const handleReset = () => {
 };
 const emits = defineEmits(['search']);
 
-
-
-
 </script>
-
-<style lang="less" scoped></style>

@@ -356,6 +356,11 @@ onMounted(() => {
         };
 
     });
+
+    EventBus.on('siteEditSelectThemeEmit', (list) => {
+        selectThemeList.value = list;
+    })
+
 });
 
 //  产品资料库回显

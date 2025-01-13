@@ -82,13 +82,21 @@ watch(() => {
     setProductClassifyAtrrs(newVal.attributes); // 回显详情的分类属性值
     const skus = newVal.skus || [];
     const keys = Object.keys(skus[0].saleProp);
-    console.log('keys->>', keys, lazadaAttrsState.skuAttrs);
+    let values = []
+    skus.forEach((item) => {
+        const vals = Object.values(item.saleProp);
+        console.log('vals ->>>>>>>', vals);
+        values.push(...vals);
+    })
+    console.log('values', values);
+    // const values = Object.values(skus[0].saleProp);
+    console.log('keys->>', keys, values);
     const selectThemeList = lazadaAttrsState.skuAttrs.filter((item) => {
         return keys.includes(item.name)
     });
     console.log('selectThemeList->>', selectThemeList);
     setSelectTheme(selectThemeList);
-
+    EventBus.emit('siteEditSelectThemeEmit', selectThemeList);
 }, {
     deep: true
 });
