@@ -1,7 +1,7 @@
 <template>
-<div id="simpleNameModalCont">
-    <a-modal :width="'30%'" title="批量修改简称" :open="editnameType" :keyboard="false" :maskClosable="false"
-            @ok="uploadEditName" @cancel="handelCancel">
+    <div id="simpleNameModalCont">
+        <a-modal :width="'30%'" title="批量修改简称" :open="editnameType" :keyboard="false" :maskClosable="false"
+            @ok="handelCancel" @cancel="handelCancel">
             <a-descriptions :column="1">
                 <a-descriptions-item label="示范EXCEL">
                     <a-table :data-source="editWarehouseTypeTableData" :pagination="false" :columns="editNameColumns"
@@ -11,27 +11,32 @@
                 <br />
                 <a-descriptions-item label="文件">
                     <!-- :action="uploadFileUrl" -->
-                    <a-upload style="display: inline-block; margin-left: 10px"  ref="upload"
-                        :headers="headers" :before-upload="beforeUpload" @change="handleUploadShortCodeSuccess" accept=".xlsx, .xlsm, .xls"
-                        :maxCount="1" v-model:file-list="fileList">
+                    <a-upload style="display: inline-block; margin-left: 10px" 
+                        ref="upload" :headers="headers"
+                        :action="uploadFileUrl" 
+                        :before-upload="beforeUpload" 
+                        @change="handleUploadSuccess"
+                        accept=".xlsx, .xlsm, .xls"
+                        :maxCount="1" 
+                        v-model:file-list="upFileList">
                         <a-button type="primary">选择EXCEL</a-button>
                     </a-upload>
                 </a-descriptions-item>
             </a-descriptions>
         </a-modal>
-</div>
+    </div>
 </template>
 
 <script setup name='simpleNameModal'>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-
+import { message } from "ant-design-vue";
 const props = defineProps({
     editnameType: Boolean,
 });
 const emit = defineEmits(["handelClose"]);
-const fileList = ref([]);
+const upFileList = ref([]);
 const headers = {
-    Authorization: "Bearer " + useAuthorization().value,
+    Authorization: useAuthorization().value,
 }
 const uploadFileUrl = import.meta.env.VITE_APP_BASE_API + "/platform-ozon/platform/ozon/shop/import/simplename"
 const editWarehouseTypeTableData = [
@@ -81,31 +86,25 @@ const editNameColumns = [
     },
 ]
 
-const beforeUpload = file => {
-  fileList.value = [...(fileList.value || []), file];
-  return false;
+const beforeUpload = (file, fileList) => {
+    console.log('file, fileList', file, fileList);
+    upFileList.value = fileList.value;
 };
 
 // 上传修改简称
-const handleUploadShortCodeSuccess = (res, file) => {
-    console.log('s',res, file);
+const handleUploadSuccess = (res, file) => {
+    console.log('s', res, file);
     if (res.file.status === 'done') {
         message.success("上传成功！");
-        emit("handelClose")
-        upload.value.handleRemove(file);
+        // upFileList.value = []
     } else if (res.file.status === 'error') {
         message.error("上传有误，请重新上传");
     }
-    
-}
-const uploadEditName = () => {
-    console.log('upload', upload.value);
 
 }
 const handelCancel = () => {
+    upFileList.value = []
     emit("handelClose")
 }
 </script>
-<style lang="less" scoped>
-
-</style>
+<style lang="less" scoped></style>

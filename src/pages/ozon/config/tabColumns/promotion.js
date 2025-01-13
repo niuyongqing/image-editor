@@ -16,7 +16,7 @@ export default [
   },
   {
     title: "参与产品数",
-    dataIndex: "potentialProductsCount",
+    dataIndex: "participatingProductsCount",
     align:"center",
   },
   {

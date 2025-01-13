@@ -13,7 +13,7 @@
                 </a-form-item>
                 <a-form-item>
                     <a-button type="primary" @click="onSearch">查询</a-button>
-                    <a-button style="margin-left: 10px" @click="restForm">重置</a-button>
+                    <a-button class="ml-2.5" @click="restForm">重置</a-button>
                 </a-form-item>
             </a-form>
         </a-card>
@@ -100,12 +100,12 @@
                 </a-form-item>
             </a-form>
         </a-modal>
-        
+
         <simpleNameModal :editnameType="editnameType" @handelClose="handelClose"></simpleNameModal>
 
         <!--    批量修改仓库弹框-->
-        <a-modal title="批量修改仓库" :width="'30%'" :open="editWarehouseVisible" @ok="uploadWarehouse"
-            @cancel="editWarehouseVisible = false" :keyboard="false" :maskClosable="false">
+        <a-modal title="批量修改仓库" :width="'30%'" :open="editWarehouseVisible" @ok="handelCancel"
+            @cancel="handelCancel" :keyboard="false" :maskClosable="false">
             <a-descriptions :column="1">
                 <a-descriptions-item label="示例">
                     <a-table :data-source="editWarehouseTypeTableData" style="width: 100%" bordered :pagination="false"
@@ -113,9 +113,9 @@
                     </a-table>
                 </a-descriptions-item>
                 <a-descriptions-item label="上传">
-                    <a-upload style="display: inline-block; margin-left: 10px" :action="uploadFileUrl2"
+                    <a-upload style="display: inline-block; margin-left: 10px" :action="uploadFileUrl"
                         @change="handleUploadSuccess" ref="fileUploadWarehouseType" :headers="headers"
-                        accept=".xlsx, .xlsm, .xls" :limit="1" :file-list="fileList" :auto-upload="false">
+                        accept=".xlsx, .xlsm, .xls" :maxCount="1" v-model:file-list="storeFileList">
                         <a-button type="primary">选择EXCEL</a-button>
                     </a-upload>
                 </a-descriptions-item>
@@ -189,18 +189,16 @@ const columns = tableHead;
 const tableData = ref([]);
 const classifyList = ref([]);
 const forbidSaleList = ref([]);
-const fileList = ref([]);
+const storeFileList = ref([]);
 const dialogTableVisible = ref(false);
 const editnameType = ref(false);
 const editWarehouseVisible = ref(false);
 const headers = {
-    Authorization: "Bearer " + useAuthorization().value,
+    Authorization: useAuthorization().value,
 }
-const uploadFileUrl = import.meta.env.VITE_APP_BASE_API + "/platform-ozon/platform/ozon/shop/import/simplename"
-const uploadFileUrl2 =
+const uploadFileUrl =
     import.meta.env.VITE_APP_BASE_API +
     "/platform-ozon/platform/ozon/shop/import/store"
-
 
 const editWarehouseColumns = [
     {
@@ -215,6 +213,38 @@ const editWarehouseColumns = [
         key: 'type',
         align: "center"
     }
+]
+const editWarehouseTypeTableData = [
+    {
+        id: "SGLUDXFX",
+        type: "总仓",
+        simpleName: "Ozon-01",
+    },
+    {
+        id: "PH7S3AAIT7",
+        type: "馨拓靓仓(配饰,服饰类)",
+        simpleName: "Lazada-02",
+    },
+    {
+        id: "VN33W6PCLA",
+        type: "菲律宾本土仓",
+        simpleName: "Ozon-03",
+    },
+    {
+        id: "TH1JHP5KFZ",
+        type: "馨拓美仓(美妆类)",
+        simpleName: "Ozon-04",
+    },
+    {
+        id: "MY4N9VN6K5",
+        type: "馨拓美仓(3C类)",
+        simpleName: "Ozon-05",
+    },
+    {
+        id: "ID67XMZSDR",
+        type: "馨拓美仓(汽摩配类)",
+        simpleName: "Ozon-06",
+    },
 ]
 const rules = {
     account: [
@@ -263,6 +293,7 @@ const getList = () => {
 }
 const handelClose = () => {
     editnameType.value = false
+    getList();
 }
 const onSearch = () => {
     getList();
@@ -335,36 +366,24 @@ const exportInfo = () => {
 }
 
 
-
-const uploadWarehouse = () => {
-
-}
-
 const beforeUpload = file => {
-  fileList.value = [...(fileList.value || []), file];
-  return false;
+    storeFileList.value = fileList.value;
 };
 
 // 上传修改简称
-const handleUploadShortCodeSuccess = (res, file) => {
-    console.log('s',res, file);
-    editnameType.value = false;
+const handleUploadSuccess = (res, file) => {
+    console.log('s', res, file);
     if (res.file.status === 'done') {
-        message.success(`${res.file.name} file uploaded successfully`);
+        message.success("上传成功！");
     } else if (res.file.status === 'error') {
-        message.error(`${res.file.name} file upload failed.`);
+        message.error("上传有误，请重新上传");
     }
-    
-    // if (res.code === 200) {
-    //     message.success("操作成功！");
-    // } else {
-    //     message.error("操作失败！");
-    // }
-    getList();
-    editnameType.value = false;
-    upload.value.handleRemove(file);
 }
-
+const handelCancel = () => {
+    storeFileList.value = []
+    editWarehouseVisible.value = false
+    getList();
+}
 onMounted(() => {
     getList();
     getMeansAttribute();

@@ -1,7 +1,7 @@
 <template>
     <div id="promotionCont">
         <a-card style="margin-top: 0; padding: 0">
-            <a-form ref="ruleForm" :layout="'inline'" :model="formState" class="form-padding">
+            <a-form ref="formRef" :layout="'inline'" :model="formState" class="form-padding">
                 <a-form-item label="店铺：">
                     <a-select v-model:value="formState.account" style="width: 200px" :options="shopAccount">
                     </a-select>
@@ -37,7 +37,7 @@
                     </template>
                     <template v-if="column.dataIndex === 'option'">
                         <a-button v-if="record.state !== '2'" type="text" v-has-permi="[`platform:ozon:activity:list`]"
-                            @click="mActivity(row)">管理活动</a-button>
+                            @click="mActivity(record)">管理活动</a-button>
                         <a-button @click.stop="syncOne(record)" type="text"
                             v-has-permi="[`platform:ozon:activity:sync:action:product`]"
                             style="color: #67c23a; margin-left: 10px" v-if="record.state !== '2'">同步</a-button>
@@ -49,8 +49,7 @@
                 v-model:pageSize="paginations.pageSize" :defaultPageSize="50" :showSizeChanger="true" @change="getList"
                 :pageSizeOptions="[50, 100, 200]"></a-pagination>
         </a-card>
-        <addPromotionModal :editnameType="editnameType" :activeRow="activeRow" @handelClose="editnameType = false">
-        </addPromotionModal>
+        <progressBar :showOpen="showOpen" :percentage="percentage" @handleProgressBarClose="showOpen = false"></progressBar>
     </div>
 </template>
 
@@ -59,20 +58,21 @@ import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { accountCache } from "../config/api/product";
 import tableHead from "../config/tabColumns/promotion"
 import { syncActivity, list, syncOneProduct } from "../config/api/promotion"
-import addPromotionModal from './comm/addPromotionModal.vue';
 import { message } from 'ant-design-vue';
+import progressBar from "../config/component/progressBar/index.vue"
+
 const formState = reactive({
     account: "",
     title: ""
 })
+const formRef = ref(null)
 const shopAccount = ref([])
-const shortCode = ref("")
 const tableData = ref([])
 const columns = tableHead
 const loading = ref(false)
 const syncLoading = ref(false)
-const editnameType = ref(false)
-const activeRow = ref({})
+const showOpen = ref(false)
+const percentage = ref(0)
 const paginations = reactive({
     pageNum: 1,
     pageSize: 50,
@@ -101,15 +101,14 @@ const getAccount = () => {
 }
 const onSubmit = () => { getList() }
 
-const restForm = () => {
+const resetForm = () => {
     formRef.value.resetFields();
-    formState.account = shopAccount.value[0].account ?? "";
+    formState.account = shopAccount.value[0].value ?? "";
     getList();
 }
 
 const mActivity = (row) => {
-    editnameType.value = true
-    activeRow.value = row
+    window.open("activityList" + `?id=${row.id}&account=${row.sellerId}`, '_blank');
 }
 
 const syncOne = (row) => {
@@ -125,6 +124,7 @@ const syncOrder = () => {
 
     //   dialogTableVisible.value = true;
     syncLoading.value = true;
+    showOpen.value = true
     let params = {
         startDate: formState.startDate,
         endDate: formState.endDate,

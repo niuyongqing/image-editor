@@ -7,10 +7,10 @@
                         :options="shopAccount"></a-select>
                 </a-form-item>
                 <a-form-item label="状态：">
-                    <a-select v-model:value="formData.type" style="width: 200px" :options="typeList"></a-select>
+                    <a-select v-model:value="formData.type" valueFormat="YYYY-MM-DD HH:mm:ss" style="width: 200px" :options="typeList"></a-select>
                 </a-form-item>
                 <a-form-item label="时间：" name="times">
-                    <a-range-picker v-model:value="formData.times" style="width: 300px" @change="handlerChange">
+                    <a-range-picker v-model:value="formData.times" valueFormat="YYYY-MM-DD HH:mm:ss" style="width: 300px" @change="handlerChange">
                     </a-range-picker>
                 </a-form-item>
                 <a-form-item>
@@ -68,6 +68,7 @@ import tableHead from "../config/tabColumns/transacList"
 import { accountCache } from "../config/api/product"
 import { transactionList, syncTransaction, exportTransaction } from "../config/api/financial";
 import { tradStatus } from "../config/commDic/defDic"
+import { message } from "ant-design-vue";
 const ruleForm = ref(null)
 const formData = reactive({
     order: "desc",
@@ -92,10 +93,9 @@ const paginations = reactive({
 })
 const handlerChange = (dates, dateStrings) => {
     //开始结束时间
-    if (formData.times !== null && formData.times.length > 0) {
-        let parts = dateStrings.split("-");
-        formData.from = parts[0];
-        formData.to = parts[1];
+    if (formData.times !== null && formData.times.length > 0) {    
+        formData.from = dates[0];
+        formData.to = dates[1];
     } else {
         formData.from = "";
         formData.to = "";
@@ -126,7 +126,7 @@ const syncOrder = () => {
     let params = {
         account,
         to,
-        year,
+        from,
     };
     syncLoading.value = true;
     syncTransaction(params)

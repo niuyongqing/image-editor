@@ -1,6 +1,6 @@
 <template>
-    <a-modal :open="showOpen" :maskClosable="false" :width="'40%'" :keyboard="false" title="查看物流方式" @ok="handleCancel"
-        @cancel="handleCancel">
+    <a-modal :open="showOpen" :maskClosable="false" :width="'40%'" 
+    :keyboard="false" title="查看物流方式" @ok="handleCancel" @cancel="handleCancel">
         <!-- :columns="columns" -->
         <a-table :data-source="tableData" :columns="columns" bordered style="width: 100%">
             <template #bodyCell="{ column, record }">

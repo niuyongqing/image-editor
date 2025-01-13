@@ -117,10 +117,13 @@ const syncOrder = () => {
     syncProductSell(params)
         .then((res) => {
             message.success("同步成功！");
-            getList()
         })
         .finally(() => {
             syncLoading.value = false;
+            formData.month = ""
+            formData.year = ""
+            formData.times = ""
+            getList()
         });
 }
 const toExport = () => {
