@@ -131,8 +131,7 @@ const { detailData } = defineProps({
         type: Object,
         default: () => ({})
     }
-})
-
+});
 const { state: lazadaAttrsState, setSelectTheme, setSkuTable, setProductSkus } = useLadazaAttrs();
 const baseModalEl = useTemplateRef('baseModalRef');
 const modalMethods = ref({});
@@ -149,9 +148,6 @@ const register = (methods) => {
 };
 const customTheme = ref('');
 const themeList = ref([]);// 主题列表theme
-
-
-
 const disabledTheme = (item) => {
     if (selectThemeList.value.length >= 2) {
         return true
@@ -356,11 +352,11 @@ onMounted(() => {
         };
 
     });
-
     EventBus.on('siteEditSelectThemeEmit', (list) => {
+        console.log('list ->>>>>>', list);
+
         selectThemeList.value = list;
     })
-
 });
 
 //  产品资料库回显

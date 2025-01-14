@@ -43,7 +43,9 @@ import { useResetReactive } from '@/composables/reset';
 import { accountCache, categoryTree, categoryAttributesApi } from '@/pages/lazada/product/api';
 import EventBus from "~/utils/event-bus";
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
-import { findCategoryPath } from '@/pages/lazada/product/common'
+import { findCategoryPath } from '@/pages/lazada/product/common';
+import { unique } from '@/pages/lazada/product/common';
+
 const { detailData } = defineProps({
     detailData: {
         type: Object,
@@ -89,21 +91,62 @@ watch(() => {
     setProductClassifyAtrrs(newVal.attributes); // 回显详情的分类属性值
     const skus = newVal.skus || [];
     const keys = Object.keys(skus[0].saleProp);
-    let values = []
+    let values = [];
     skus.forEach((item) => {
         const vals = Object.values(item.saleProp);
-        console.log('vals ->>>>>>>', vals);
         values.push(...vals);
-    })
-    console.log('values', values);
-    // const values = Object.values(skus[0].saleProp);
-    console.log('keys->>', keys, values);
+    });
+
+    const saleProps = skus.map((item) => {
+        return item.saleProp;
+    });
     const selectThemeList = lazadaAttrsState.skuAttrs.filter((item) => {
         return keys.includes(item.name)
     });
-    console.log('selectThemeList->>', selectThemeList);
-    setSelectTheme(selectThemeList);
-    EventBus.emit('siteEditSelectThemeEmit', selectThemeList);
+    const result = saleProps.reduce((acc, item) => {
+        Object.keys(item).forEach(key => {
+            if (!acc[key]) {
+                acc[key] = new Set();
+            }
+            acc[key].add(item[key]);
+        });
+        return acc;
+    }, {});
+
+    const formattedResult = Object.keys(result).reduce((acc, key) => {
+        acc[key] = Array.from(result[key]);
+        return acc;
+    }, {});
+    const resultData = keys.map(key => {
+        const findItem = selectThemeList.find(item => item.name === key);
+        let options = [];
+        if (findItem) {
+            const has = findItem.options.find((option) => {
+                return formattedResult[key].includes(option.en_name)
+            });
+            if (!has) {
+                findItem.options = findItem.options.concat(formattedResult[key].map((keyItem) => ({ name: keyItem, en_name: keyItem })));
+                options = findItem.options;
+            } else {
+                options = findItem.options
+            }
+        } else {
+            options = (formattedResult[key].map((keyItem) => ({ name: keyItem, en_name: keyItem })) || [])
+        }
+
+        const optionsUnique = unique('en_name', options); // 去重
+        return {
+            name: findItem ? findItem.name : key,
+            label: findItem ? findItem.label : key,
+            is_mandatory: findItem ? findItem.is_mandatory : 0,
+            input_type: findItem ? findItem.input_type : 'multiEnumInput',
+            checkedList: formattedResult[key] || [],
+            attribute_type: findItem ? findItem.attribute_type : 'sku',
+            options: optionsUnique,
+            skuOptions: optionsUnique
+        }
+    });
+    EventBus.emit('siteEditSelectThemeEmit', resultData);
 }, {
     deep: true
 });
@@ -118,7 +161,6 @@ async function getShortCodes() {
         shortCodes.value = codes
     };
 };
-
 async function getCategorys() {
     primaryCategoryLoading.value = true;
     const categoryTreeRes = await categoryTree({ shortCode: state.shortCode });

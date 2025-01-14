@@ -42,14 +42,14 @@
                 <a-input-number v-model:value="maxValue" placeholder="" style="width: 170px"
                     @change="changeMaxValue"></a-input-number>
             </a-form-item>
-
+            <!-- 
             <a-form-item label="预售:">
                 <a-select @change="change" v-model:value="state.classify" placeholder="请先选择站点" style="width: 352px"
                     allowClear>
                     <a-select-option value="1">已开启预售</a-select-option>
                     <a-select-option value="2">未开启预售</a-select-option>
                 </a-select>
-            </a-form-item>
+            </a-form-item> -->
 
             <a-form-item label="备注:">
                 <a-select v-model:value="state.stockType" allowClear @change="change">

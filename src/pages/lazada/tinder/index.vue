@@ -215,8 +215,6 @@ const handleBtnClick = (btn) => {
 const syncSuccess = (record) => {
     reload();
 };
-
-// const 
 onMounted(async () => {
     const accountCacheRes = await accountCache();
     if (accountCacheRes.code === 200) {
