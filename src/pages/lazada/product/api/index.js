@@ -79,3 +79,7 @@ export function lazadaAdd(data) {
 export function lazadaProductDetail(data) {
   return usePost("/platform-lazada/platform/lazada/product/detail", data);
 }
+// videoUrl
+export function lazadaVideoUrl(data) {
+  return usePost("/platform-lazada/platform/lazada/file/video/url", data);
+}

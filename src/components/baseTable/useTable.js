@@ -1,5 +1,5 @@
 import { reactive, computed, toRefs, onMounted } from "vue";
-
+import { get } from "lodash-es";
 /**
  * @description table 页面操作方法封装
  * @param apiUrl 获取表格数据 ApiUrl(必传)
@@ -9,7 +9,8 @@ export const useTable = (
   apiUrl,
   initSearchParam = {},
   pageField = "pageNum",
-  immediate = true
+  immediate = true,
+  resultField = "rows"
 ) => {
   const state = reactive({
     loading: false,
@@ -29,7 +30,7 @@ export const useTable = (
     immediate: immediate, // 是否立即执行
     totalParam: {}, // 总参数(包含分页和查询参数)
   });
-
+  const resData = ref({}); //  接口返回的数据
   /**
    * @description 分页查询数据
    * */
@@ -65,10 +66,11 @@ export const useTable = (
       apiUrl(state.totalParam)
         .then((res) => {
           if (res.code === 200) {
-            state.tableData = res.rows || [];
+            state.tableData = get(res, resultField) || [];
             const { total } = res;
             state.pagination.total = total;
             resolve(res);
+            resData.value = res;
           }
         })
         .finally(() => {
@@ -169,6 +171,7 @@ export const useTable = (
 
   return {
     ...toRefs(state),
+    resData,
     setLoading,
     handleChange,
     getTableList,

@@ -4,15 +4,15 @@
         <Search :shortCodes="shortCodes" @search="handleSearch"></Search>
         <TableAction @success="syncSuccess"></TableAction>
 
-        <BaseTable ref="baseTableRef" :columns="columns" :api="getList" :init-search-param="initSearchParam" search
-            :row-selection="rowSelection" show-right-pagination rowKey="itemId">
+        <BaseTable ref="baseTableRef" :columns="columns" :api="getList" :init-search-param="initSearchParam"
+            :row-selection="rowSelection" show-right-pagination rowKey="itemId" resultField="rows[0].productList">
             <template #leftBar>
                 <div class="flex">
                     <div v-for="btn in buttons" :key="btn.id" class="ml-10px"
                         :class="[active === btn.id ? 'active' : '']">
-                        <a-button type="link" :color="active === btn.id ? '#428bca' : '#737679'"
+                        <a-button type="link" :color="active === btn.status ? '#428bca' : '#737679'"
                             @click="handleBtnClick(btn)">{{
-                                `${btn.name}(${btn.count})`
+                                `${btnName(btn.name)}(${btn.count})`
                             }}</a-button>
                     </div>
                 </div>
@@ -126,6 +126,7 @@ import TableAction from './components/tableAction.vue';
 import BaseTable from '@/components/baseTable/BaseTable.vue';
 import ClaimModal from './components/claimModal.vue';
 
+const active = ref('ALL');
 const { copy } = useClipboard();
 const currentTask = ref(0);
 const searchFormState = ref({});
@@ -138,24 +139,37 @@ const { singleDisabled, rowSelection, tableRow, clearSelection } = useTableSelec
 const initSearchParam = {
     prop: "created_time",
     order: "desc",
-    shortCode: 'TH1JHXJEGO'
 };
-const buttons = ref([{
-    id: 1,
-    name: '全部',
-    count: 0,
-},
-{
-    id: 2,
-    name: '认领',
-    count: 0,
-}, {
-    id: 3,
-    name: '已认领',
-    count: 0,
-}]);
-const active = ref(1);
-
+const nameMap = {
+    'ALL': '全部',
+    'Active': '在线',
+    'InActive': '平台下架',
+    'Suspended': '暂停',
+    'Deleted': '删除',
+};
+const buttons = computed(() => {
+    const resdata = baseTableEl.value?.resData ?? {};
+    let state = [];
+    if (resdata.rows) {
+        state = resdata.rows[0].state ?? [];
+    }
+    const list = state.map((item, index) => {
+        return {
+            id: index,
+            status: item.status,
+            name: item.status,
+            count: item.count,
+        }
+    });
+    const sortedList = list.sort((a, b) => {
+        const order = Object.keys(nameMap);
+        return order.indexOf(a.status) - order.indexOf(b.status);
+    });
+    return sortedList;
+});
+const btnName = (name) => {
+    return nameMap[name] || name;
+};
 const imageSrc = (record) => {
     if (record.images) {
         return JSON.parse(record.images)[0];
@@ -192,12 +206,10 @@ const handleSearch = async (state) => {
 const handleClaim = () => {
     claimModalEl.value.open();
 };
-// const handleReset = () => {
-//     baseTableEl.value.reset();
-// };
 
 const handleBtnClick = (btn) => {
-    active.value = btn.id;
+    active.value = btn.status;
+    handleSearch({ ...initSearchParam, ...searchFormState.value, status: btn.status === 'ALL' ? '' : btn.status });
 };
 //  同步
 const syncSuccess = (record) => {

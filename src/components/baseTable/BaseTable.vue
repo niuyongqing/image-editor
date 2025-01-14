@@ -48,7 +48,7 @@ import { computed, h, nextTick, watch } from 'vue';
 import { EyeOutlined, UndoOutlined, SettingOutlined } from '@ant-design/icons-vue';
 import { useTable } from './useTable';
 import { omit } from 'lodash';
-const { columns, api, rowKey, dropAble, showRightPagination, initSearchParam, pageField, immediate, tableHeightOffset } = defineProps({
+const { columns, api, rowKey, dropAble, showRightPagination, initSearchParam, resultField, pageField, immediate, tableHeightOffset } = defineProps({
     columns: {
         type: Array,
         default: () => []
@@ -75,6 +75,11 @@ const { columns, api, rowKey, dropAble, showRightPagination, initSearchParam, pa
         default: () => ({})
     },
     // 当前页码字段名
+    resultField: {
+        type: String,
+        default: 'rows'
+    },
+    // 当前页码字段名
     pageField: {
         type: String,
         default: 'pageNum'
@@ -93,7 +98,7 @@ const { columns, api, rowKey, dropAble, showRightPagination, initSearchParam, pa
         default: 0
     }
 });
-const { tableData, pagination, loading, handleChange, getTableList, updatedTotalParam, setLoading, search, reload, handleChangePagination, setTableData } = useTable(api, initSearchParam, pageField, immediate);
+const { tableData, resData, pagination, loading, handleChange, getTableList, updatedTotalParam, setLoading, search, reload, handleChangePagination, setTableData } = useTable(api, initSearchParam, pageField, immediate, resultField);
 const tableHeight = ref(0); // 表格高度
 const tableContainer = ref(null);
 const setTableHeight = () => {
@@ -112,6 +117,7 @@ onUnmounted(() => {
 
 defineExpose({
     tableData,
+    resData,
     pagination,
     loading,
     handleChange,
