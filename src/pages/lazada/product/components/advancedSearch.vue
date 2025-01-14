@@ -4,7 +4,7 @@
         <a-form :label-col="{ style: { width: '140px' } }" labelAlign="right">
             <a-form-item label="站点:">
                 <a-select v-model:value="state.site" placeholder="请选择站点" style="width: 352px" :options="siteOptions"
-                    @change="change" allowClear>
+                    @change="changeSite" allowClear>
                 </a-select>
             </a-form-item>
             <a-form-item label="产品分类:">
@@ -89,6 +89,7 @@
 <script setup>
 import { useResetReactive } from '@/composables/reset';
 import dayjs from 'dayjs';
+import { lazadaCategoryTree } from '@/pages/lazada/product/api';
 
 const dateFormat = 'YYYY/MM/DD';
 const type = ref(1); //默认库存
@@ -183,7 +184,15 @@ const getParams = () => {
         createBefore: state.createBefore,
     };
     return params;
-}
+};
+
+const changeSite = (value) => {
+    lazadaCategoryTree({ shortCode: value }).then((res) => {
+        console.log('res =->>', res);
+    })
+    change();
+};
+
 
 const change = () => {
     const params = getParams()

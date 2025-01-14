@@ -146,6 +146,8 @@ watch(() => {
             skuOptions: optionsUnique
         }
     });
+
+    setSelectTheme(resultData)
     EventBus.emit('siteEditSelectThemeEmit', resultData);
 }, {
     deep: true

@@ -49,6 +49,7 @@
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 import { uploadImage } from '@/pages/lazada/product/api';
 import { message } from 'ant-design-vue';
+import SkuDragUpload from '@/components/skuDragUpload/index.vue';
 const { waterList } = defineProps({
     waterList: {
         type: Array,

@@ -353,8 +353,6 @@ onMounted(() => {
 
     });
     EventBus.on('siteEditSelectThemeEmit', (list) => {
-        console.log('list ->>>>>>', list);
-
         selectThemeList.value = list;
     })
 });

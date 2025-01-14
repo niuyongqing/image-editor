@@ -85,7 +85,9 @@ const checkedAll = ref(false);
 
 const handleCheckAllChange = (e) => {
   fileList.value.forEach(item => {
-    item.checked = checkedAll.value
+    if (!item.url.includes('http')) {
+      item.checked = checkedAll.value
+    }
   })
 };
 
