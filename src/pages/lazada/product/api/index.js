@@ -85,5 +85,8 @@ export function lazadaVideoUrl(data) {
 }
 // 根据站点获取分类
 export function lazadaCategoryTree(data) {
-  return usePost("/platform/lazada/attribute/category/tree", data);
+  return usePost(
+    "/platform-lazada/platform/lazada/attribute/category/tree",
+    data
+  );
 }

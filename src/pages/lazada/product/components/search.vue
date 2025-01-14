@@ -34,7 +34,7 @@
                             <a-button type="link" @click="showAdvanceSearch">高级搜索</a-button>
                         </div>
                         <div class="flex w-600px  mt-10px" style="background-color: rgb(245, 245, 245);">
-                            <AdvancedSearch v-model="visible" @change="advancedSearchChange"
+                            <AdvancedSearch :shortCodes="shortCodes" v-model="visible" @change="advancedSearchChange"
                                 @submit="advancedSearchSubmit"></AdvancedSearch>
                         </div>
                     </div>

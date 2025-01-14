@@ -8,9 +8,20 @@
                 </a-select>
             </a-form-item>
             <a-form-item label="产品分类:">
-                <a-select v-model:value="state.classify" placeholder="请先选择站点" style="width: 352px"
-                    :options="classifyOptions" allowClear @change="change">
-                </a-select>
+                <a-cascader :showSearch="showSearchConfig" class="flex w-full justify-start" style="width: 352px"
+                    v-model:value="state.primaryCategory" :options="primaryCategoryOptions" placeholder="请先选择站点"
+                    allowClear :fieldNames="{ label: 'name2', value: 'categoryId', children: 'children' }"
+                    @change="changePrimaryCategory">
+                    <template #notFoundContent>
+                        <div v-if="primaryCategoryOptions.length === 0">
+                            暂无数据
+                        </div>
+                        <div w-full h-300px flex items-center justify-center m-auto v-else>
+                            <a-spin :spinning="true" tip="正在加载中..." m-auto>
+                            </a-spin>
+                        </div>
+                    </template>
+                </a-cascader>
             </a-form-item>
 
             <a-form-item label="价格:">
@@ -91,6 +102,17 @@ import { useResetReactive } from '@/composables/reset';
 import dayjs from 'dayjs';
 import { lazadaCategoryTree } from '@/pages/lazada/product/api';
 
+const { shortCodes = [] } = defineProps({
+    shortCodes: {
+        type: Array
+    }
+});
+const showSearchConfig = {
+    filter: (inputValue, path) => {
+        return path.some(option => option.name2.toLowerCase().includes(inputValue.toLowerCase()));
+    }
+};
+const primaryCategoryOptions = ref([]); // 分类列表
 const dateFormat = 'YYYY/MM/DD';
 const type = ref(1); //默认库存
 const minValue = ref(undefined);
@@ -187,8 +209,29 @@ const getParams = () => {
 };
 
 const changeSite = (value) => {
-    lazadaCategoryTree({ shortCode: value }).then((res) => {
-        console.log('res =->>', res);
+    const findItem = shortCodes.find((item) => {
+        return item.country === value
+    })
+    if (!findItem) return;
+    lazadaCategoryTree({ shortCode: findItem.shortCode }).then((categoryTreeRes) => {
+        if (categoryTreeRes.code === 200) {
+            // primaryCategoryLoading.value = false;
+            const data = categoryTreeRes.data || [];
+            function treeToArr(arr) {
+                arr.forEach(item => {
+                    item.name2 = item.name + ' ( ' + item.translateName + ' )'
+                    if (item.children && item.children.length > 0) {
+                        treeToArr(item.children)
+                    }
+                    if (!item.children || item.children.length === 0) {
+                        delete item.children
+                    }
+                })
+                return arr
+            };
+            primaryCategoryOptions.value = treeToArr(data)
+        };
+
     })
     change();
 };

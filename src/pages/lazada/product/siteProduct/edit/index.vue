@@ -11,26 +11,8 @@
                 </div>
             </div>
             <div class="flex gap-12px">
-                <a-dropdown>
-                    <a-button type="primary" style="width: 90px; height: 31px;"
-                        :disabled="lazadaAttrsState.primaryCategory.length ? false : true">
-                        引用产品
-                        <DownOutlined />
-                    </a-button>
-                    <template #overlay>
-                        <a-menu>
-                            <a-menu-item @click="selectNowProduct">
-                                引用现有产品
-                            </a-menu-item>
-                        </a-menu>
-                    </template>
-                </a-dropdown>
                 <a-button type="primary" style=" height: 32px;" @click="save" :loading="saveLoading">
-                    保存
-                </a-button>
-
-                <a-button type="primary" style="height: 32px;" @click="publish" :loading="publishLoading">
-                    发布
+                    更新到lazada
                 </a-button>
             </div>
         </div>
@@ -45,25 +27,8 @@
 
         <div w-full flex justify-end mt-10px>
             <div class="flex gap-12px">
-                <a-dropdown>
-                    <a-button type="primary" style="width: 90px; height: 31px;">
-                        引用产品
-                        <DownOutlined />
-                    </a-button>
-                    <template #overlay>
-                        <a-menu>
-                            <a-menu-item @click="selectNowProduct">
-                                引用现有产品
-                            </a-menu-item>
-                        </a-menu>
-                    </template>
-                </a-dropdown>
-                <a-button type="primary" style="height: 32px;" @click="save" :loading="saveLoading">
-                    保存
-                </a-button>
-
-                <a-button type="primary" style="height: 32px;" @click="publish" :loading="publishLoading">
-                    发布
+                <a-button type="primary" style=" height: 32px;" @click="save" :loading="saveLoading">
+                    更新到lazada
                 </a-button>
             </div>
         </div>
@@ -250,9 +215,10 @@ const handleSelect = (productData) => {
     setProduct(productData);
 };
 
-// 保存
+// 更新到lazada 
 const save = () => {
-    validateAll();
+    const data = validateAll();
+    console.log('data', data);
     // publishLoading.value = true;
     // lazadaAdd(res).then(res => {
     //     addSuccessModalEl.value.open();
@@ -261,17 +227,6 @@ const save = () => {
     // })
 };
 
-// 发布
-const publish = () => {
-    validateAll()
-    console.log('校验通过');
-    // publishLoading.value = true;
-    // lazadaAdd(res).then(res => {
-    //     addSuccessModalEl.value.open();
-    // }).finally(() => {
-    //     publishLoading.value = false;
-    // })
-};
 
 // 获取水印
 const getWatermark = () => {
