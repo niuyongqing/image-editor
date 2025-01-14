@@ -50,7 +50,7 @@ const register = (modal) => {
 const open = () => {
     modelMethods.value.openModal();
 };
-
+const cancel = () => { };
 const submit = () => {
     console.log('submit');
 };

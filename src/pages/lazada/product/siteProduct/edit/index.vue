@@ -5,7 +5,8 @@
                 <div>
                     <a-breadcrumb separator=">">
                         <a-breadcrumb-item>Lazada</a-breadcrumb-item>
-                        <a-breadcrumb-item>创建产品</a-breadcrumb-item>
+                        <a-breadcrumb-item>在线产品</a-breadcrumb-item>
+                        <a-breadcrumb-item>编辑</a-breadcrumb-item>
                     </a-breadcrumb>
                 </div>
             </div>

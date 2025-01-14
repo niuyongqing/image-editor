@@ -27,14 +27,15 @@
                             <a-textarea v-model:value="formState.sku" placeholder="多个SKU间隔用逗号隔开，最多支持200个"
                                 style="width: 480px" v-show="currentSearchType === 'sku'"
                                 :auto-size="{ minRows: 1, maxRows: 5 }" />
-                            <a-textarea v-model:value="formState.product" placeholder="多个产品ID间隔用逗号隔开，最多支持200个"
-                                style="width: 480px" v-show="currentSearchType === 'productId'"
+                            <a-textarea v-model:value="formState.itemId" placeholder="多个产品ID间隔用逗号隔开，最多支持200个"
+                                style="width: 480px" v-show="currentSearchType === 'itemId'"
                                 :auto-size="{ minRows: 1, maxRows: 5 }" />
                             <a-button class="ml-10px" type="primary" @click="submit">搜索</a-button>
                             <a-button type="link" @click="showAdvanceSearch">高级搜索</a-button>
                         </div>
                         <div class="flex w-600px  mt-10px" style="background-color: rgb(245, 245, 245);">
-                            <AdvancedSearch v-model="visible"></AdvancedSearch>
+                            <AdvancedSearch v-model="visible" @change="advancedSearchChange"
+                                @submit="advancedSearchSubmit"></AdvancedSearch>
                         </div>
                     </div>
                 </a-form-item>
@@ -99,17 +100,17 @@ const searchTypeList = [{
     value: 'sku'
 }, {
     label: '产品ID',
-    value: 'productId'
+    value: 'itemId'
 }];
 const publishList = [{
     label: '全部',
-    value: ''
+    value: '0'
 }, {
-    label: '已发布',
-    value: 'published'
+    label: '六合一',
+    value: '1'
 }, {
-    label: '未发布',
-    value: 'unpublished'
+    label: '站点',
+    value: '2'
 }];
 const globalPlusList = [{
     label: '全部',
@@ -126,22 +127,22 @@ const globalPlusList = [{
 }];
 const sortTypeList = [{
     label: '按创建时间',
-    value: 'create_time',
+    value: 'created_time',
     sort: 'asc' // asc 升序； desc 降序
 },
 {
     label: '按更新时间',
-    value: 'update_time',
+    value: 'updated_time',
     sort: 'asc'
 },
 {
     label: '按库存量',
-    value: 'sales',
+    value: 'total_quantity',
     sort: 'desc'
 },
 {
     label: '按变种库存量',
-    value: 'price',
+    value: 'variantQuantity',
     sort: 'desc'
 }]
 const currentSearchType = ref('title');
@@ -149,26 +150,32 @@ const visible = ref(false);
 const formState = reactive({
     shortCode: '', // 店铺账号：
     searchContent: '', // 搜索内容
-    publishType: '', // 刊登类型
+    publishType: '0', // 刊登类型
     globalPlus: '',// Global Plus
-    sortType: 'create_time',// 排序类型
+    sortType: 'created_time',// 排序类型
     sort: 'asc', // asc 升序； desc 降序
     sku: '',
-    productId: ''
+    itemId: ''
 });
+
+const searchParams = reactive({
+
+})
 // 显示高级搜索
 const showAdvanceSearch = () => {
     visible.value = !visible.value;
 };
 const changeShortCode = (value) => {
     formState.shortCode = value;
+    console.log('value ->>>', value);
+
     submit();
 };
 const changeSearchType = (item) => {
     currentSearchType.value = item.value;
     formState.searchContent = '';
     formState.sku = '';
-    formState.productId = '';
+    formState.itemId = '';
 };
 
 const changePublishType = (item) => {
@@ -183,9 +190,50 @@ const changeSortType = (item) => {
     item.sort = item.sort === 'asc' ? 'desc' : 'asc';
     formState.sort = item.sort;
 };
-const submit = () => {
-    emits('search', formState);
+
+// 获取所有参数
+function getParams() {
+    const params = {
+        shortCode: formState.shortCode,
+        // searchContent: formState.searchContent, 标题
+        sku: formState.sku,
+        itemId: formState.itemId,
+        publishType: formState.publishType,
+        prop: formState.sortType, // 排序字段
+        order: formState.sort, // 排序方式
+        minPrice: searchParams.minPrice, //  //起始价格
+        maxPrice: searchParams.maxPrice, //结束价格
+        minSpecialPrice: searchParams.minSpecialPrice, //  //起始特价
+        maxSpecialPrice: searchParams.maxSpecialPrice, //  //结束促销价格
+        "minInventoryQuantity": searchParams.minInventoryQuantity, //起始库存数量
+        "maxInventoryQuantity": searchParams.maxInventoryQuantity, //结束库存数量
+        "minVariantQuantity": searchParams.minVariantQuantity, // 起始变种库存数量
+        "maxVariantQuantity": searchParams.maxVariantQuantity, //结束变种库存数量
+        "createAfter": searchParams.createAfter, //创建开始时间 
+        "createBefore": searchParams.createAfter,  //创建结束时间 
+        "updateAfter": searchParams.updateAfter,//修改开始时间
+        "updateBefore": searchParams.updateBefore, //修改结束时间
+    };
+    return params;
 };
+
+const submit = () => {
+    const params = getParams();
+    emits('search', params);
+};
+
+// 高级搜索
+const advancedSearchChange = (evt) => {
+    Object.assign(searchParams, evt);
+}
+
+// 高级搜索
+const advancedSearchSubmit = (evt) => {
+    Object.assign(searchParams, evt);
+    const params = getParams();
+    emits('search', params);
+}
+
 const handleReset = () => {
     reset();
     emits('search', state);

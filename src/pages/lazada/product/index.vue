@@ -52,7 +52,7 @@
             <template #price="{ record }">
                 <div class="pb-30px">
                     <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
-                        <div>
+                        <div v-if="item.price">
                             <a-tooltip placement="top">
                                 <template #title>
                                     <span>复制</span>
@@ -60,6 +60,7 @@
                                 <span @click="copyText(item.price)"> {{ item.price }} </span>
                             </a-tooltip>
                         </div>
+                        <div v-else> - </div>
                     </div>
                 </div>
             </template>
@@ -67,9 +68,10 @@
             <template #special_price="{ record }">
                 <div class="pb-30px">
                     <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
-                        <div>
+                        <div v-if="item.special_price">
                             <span @click="copyText(item.special_price)"> {{ item.special_price }} </span>
                         </div>
+                        <div v-else> - </div>
                     </div>
                 </div>
             </template>
@@ -162,7 +164,6 @@ const { singleDisabled, rowSelection, tableRow, clearSelection } = useTableSelec
 const initSearchParam = {
     prop: "created_time",
     order: "desc",
-    shortCode: 'PH7S6NKMYI'
 };
 const buttons = ref([{
     id: 1,
@@ -287,8 +288,7 @@ onMounted(async () => {
 <style scoped lang="less">
 .record-sku-container {
     width: 100%;
-    // height: 145px;
-    // background: red;
+
 }
 
 .record-sku {

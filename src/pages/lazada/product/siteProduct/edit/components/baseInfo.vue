@@ -17,12 +17,15 @@
                 </a-form-item>
                 <a-form-item label="分类:" name="primaryCategory" :rules="[{ required: true, message: '请选择分类' }]"
                     v-loading="loading">
-                    <a-cascader class="flex w-full justify-start" v-model:value="state.primaryCategory"
-                        :options="primaryCategoryOptions" placeholder="请先选择店铺" allowClear
-                        :fieldNames="{ label: 'name2', value: 'categoryId', children: 'children' }"
+                    <a-cascader :showSearch="showSearchConfig" class="flex w-full justify-start"
+                        v-model:value="state.primaryCategory" :options="primaryCategoryOptions" placeholder="请先选择店铺"
+                        allowClear :fieldNames="{ label: 'name2', value: 'categoryId', children: 'children' }"
                         @change="changePrimaryCategory" :disabled="state.primaryCategory ? true : false">
                         <template #notFoundContent>
-                            <div w-full h-300px flex items-center justify-center m-auto>
+                            <div v-if="primaryCategoryOptions.length === 0">
+                                暂无数据
+                            </div>
+                            <div w-full h-300px flex items-center justify-center m-auto v-else>
                                 <a-spin :spinning="true" tip="正在加载中..." m-auto>
                                 </a-spin>
                             </div>
@@ -63,7 +66,11 @@ const { state } = useResetReactive({
     shortCode: undefined,
     primaryCategory: undefined,
 });
-
+const showSearchConfig = {
+    filter: (inputValue, path) => {
+        return path.some(option => option.name2.toLowerCase().includes(inputValue.toLowerCase()));
+    }
+};
 //  编辑回显
 watch(() => {
     return detailData
