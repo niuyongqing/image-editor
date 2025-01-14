@@ -214,7 +214,6 @@
     watch: {
       sellerId: {
         handler: function () {
-          this.form.manufacturerId = undefined
           this.form.groupIds = []
           this.getImgGroup()
           this.getProductGroups()
@@ -223,7 +222,6 @@
       },
       categoryId: {
         handler: function () {
-          this.form.msrEuId = undefined
           // 同步/获取 欧盟责任人
           this.syncEuPersonList()
           // 获取资质信息
@@ -236,9 +234,9 @@
 
           this.form.groupIds = detail.groupIds || []
           this.form.isSemiCustodial = detail.isSemiCustodial
-          this.form.msrEuId = detail.productExtDto.msrEuId
+          this.form.msrEuId = detail.msrEuId ? Number(detail.msrEuId) : detail.msrEuId
           this.isMsrEuIdFromDetail = true
-          this.form.manufacturerId = detail.productExtDto.manufacturerId
+          this.form.manufacturerId = detail.manufacturerId ? Number(detail.manufacturerId) : detail.manufacturerId
           this.isManufacturerIdFromDetail = true
         }
       }
@@ -268,6 +266,7 @@
         euPersonListApi({ channelSellerId: this.sellerId, categoryId: this.categoryId }).then(res => {
           this.EUResponsibleOptions = res.data || []
           if (!this.isMsrEuIdFromDetail) {
+            this.form.msrEuId = undefined
             // 设默认值 'APEX ES SPECIALISTS,S.L.'
             const target = this.EUResponsibleOptions.find(item => item.name === 'APEX ES SPECIALISTS,S.L.')
             target && (this.form.msrEuId = target.msrEuId)
@@ -281,6 +280,7 @@
         manufactureListApi(this.params).then(res => {
           this.manufacturerOptions = res.data || []
           if (!this.isManufacturerIdFromDetail) {
+            this.form.manufacturerId = undefined
             // 设默认值 'Yiwu Xinzhan Technology Co.Ltd.' 这个名字会有拼写错误, 不一致的情况
             const target = this.manufacturerOptions.find(item => item.name.includes('Yiwu Xinzhan'))
             target && (this.form.manufacturerId = target.id)
@@ -300,7 +300,7 @@
           // 如果是编辑
           if (this.isEdit) {
             this.qualificationList.forEach(item => {
-              const obj = this.productDetail.productExtDto.aeopQualificationStructList.find(ele => ele.key === item.key)
+              const obj = this.productDetail.aeopQualificationStructList.find(ele => ele.key === item.key)
               obj && (item.value = obj.value)
             })
           }

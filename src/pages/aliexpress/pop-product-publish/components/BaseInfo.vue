@@ -328,7 +328,7 @@
                 case 'input_int':
                 case 'radio':
                 default:
-                  attributesObj[option.zh] = { label: root[attrNameId][0].attrValue, value: undefined }
+                  attributesObj[option.zh] = root[attrNameId][0].attrValue
                   break
               }
             } else {

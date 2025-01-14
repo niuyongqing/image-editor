@@ -543,7 +543,7 @@
                 // item.extParam = SKUData.extParam
                 // item.grossWeight = SKUData.grossWeight
               } else {
-                Modal.warning('SKU 数据匹配失败, 请联系IT部检查')
+                Modal.warning({ title: 'SKU 数据匹配失败, 请联系IT部检查' })
               }
             })
 

@@ -81,6 +81,7 @@
         .then(res => {
           const productDetail = res.rows[0] || {}
           store.$patch(state => {
+            state.isEdit = true
             state.sellerId = productDetail.sellerId
             state.productDetail = productDetail
           })
@@ -94,6 +95,7 @@
         .then(res => {
           const productDetail = res.data || {}
           store.$patch(state => {
+            state.isEdit = true
             state.sellerId = query.sellerId
             state.productDetail = productDetail
           })

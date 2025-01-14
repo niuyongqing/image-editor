@@ -26,6 +26,7 @@
           >编辑半托管信息</a-button
         >
       </a-space>
+
       <BaseInfo ref="baseInfoRef" />
       <ImageInfo ref="imageInfoRef" />
       <PriceAndStock ref="priceAndStockRef" />
@@ -34,6 +35,7 @@
       <PackageInfo ref="packageInfoRef" />
       <TemplateInfo ref="templateInfoRef" />
       <Others ref="othersRef" />
+
       <a-space class="mt-3 pr-4 w-full justify-end">
         <!-- 正式的商品编辑, 不显示保存到草稿 -->
         <!-- 有草稿ID则显示 -->
@@ -73,6 +75,7 @@
   import Others from './components/Others.vue'
 
   import { addProductApi, productDetailApi, editProductApi, saveProductDraftsApi, editProductDraftsApi, popOneSubmitApi } from '../apis/product'
+  import { getProductDraftsApi } from '../apis/pop-product-draft'
   import { useAliexpressPopProductStore } from '~@/stores/aliexpress-pop-product'
   import { Modal, message } from 'ant-design-vue'
 
@@ -102,19 +105,30 @@
     const store = useAliexpressPopProductStore()
     if (query.draftId) {
       // 草稿
-      /* draftId = query.draftId
-      draftListApi(query)
+      getProductDraftsApi({ uuid: query.draftId })
         .then(res => {
-          const detail = res.rows[0] || {}
-          productDetail.value = detail
-          store.$patch(state => {
-            state.sellerId = detail.sellerId
-            state.productDetail = detail
-          })
+          if (res.data) {
+            const detail = {
+              ...res.data,
+              ...res.data.result
+            }
+            detail.aeopAeProductSKUs.forEach(item => {
+              item.aeopSKUPropertyList = item.aeopSKUProperty
+            })
+            delete productDetail.result
+            productDetail.value = detail
+            store.$patch(state => {
+              state.isEdit = true
+              state.sellerId = detail.sellerId
+              state.productDetail = detail
+            })
+          } else {
+            Modal.warning({ title: '商品详情查询失败' })
+          }
         })
         .finally(() => {
           queryDetailLoading.value = false
-        }) */
+        })
     } else {
       // 速卖通平台产品
       productDetailApi(query)
@@ -122,6 +136,7 @@
           const detail = res.data || {}
           productDetail.value = detail
           store.$patch(state => {
+            state.isEdit = true
             state.sellerId = query.sellerId
             state.productDetail = detail
           })
@@ -132,7 +147,7 @@
     }
   }
 
-  const isSemiCustodial = ref(false)
+  const isSemiCustodial = computed(() => useAliexpressPopProductStore().isSemiCustodial)
 
   const baseInfoRef = ref()
   const imageInfoRef = ref()
@@ -199,7 +214,7 @@
     }
 
     const submitLoading = ref(true)
-    const saveDraftApi = looseValidate ? (productDetail.valuedraftsId ? editProductDraftsApi : saveProductDraftsApi) : popOneSubmitApi
+    const saveDraftApi = looseValidate ? (productDetail.value.draftsId ? editProductDraftsApi : saveProductDraftsApi) : popOneSubmitApi
     saveDraftApi(params)
       .then(res => {
         if (looseValidate) {
@@ -257,7 +272,7 @@
     }
     // 选择半托管则区域调价只能直接报价
     if (isSemiCustodial.value && nationalQuote.aeopNationalQuoteConfiguration.configurationType !== 'absolute') {
-      Modal.warning('半托管商品区域定价的定价方式仅支持直接报价，如果你在商品编辑时使用了调整比例或其他方式进行价格设置，请调整为直接报价。')
+      Modal.warning({ title: '半托管商品区域定价的定价方式仅支持直接报价，如果你在商品编辑时使用了调整比例或其他方式进行价格设置，请调整为直接报价。' })
 
       return
     }
@@ -273,8 +288,6 @@
       ...templateInfo,
       ...others
     }
-    console.log('params', params);
-    return
 
     submitLoading.value = true
     const requestApi = productDetail.value.productId ? editProductApi : addProductApi

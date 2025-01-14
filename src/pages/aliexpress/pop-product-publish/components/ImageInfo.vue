@@ -405,7 +405,8 @@
         if (Object.keys(detail).length === 0) return
 
         // 产品主图
-        const promiseList1 = detail.multimedia.mainImageList.map(url => {
+        const mainImageList = detail.imageURLs ? detail.imageURLs.split(';') : []
+        const promiseList1 = mainImageList.map(url => {
           return new Promise(resolve => {
             const image = new Image()
             image.src = url
@@ -422,7 +423,7 @@
           this.form.productImages = list
         })
         // 营销图 1:1
-        const marketImage1 = detail.multimedia.marketImageList && detail.multimedia.marketImageList.find(item => item.imageType === 2)
+        const marketImage1 = detail.marketImages && detail.marketImages.find(item => item.imageType === 2)
         if (marketImage1) {
           const image = new Image()
           image.src = marketImage1.url
@@ -435,7 +436,7 @@
           }
         }
         // 营销图 3:4
-        const marketImage2 = detail.multimedia.marketImageList && detail.multimedia.marketImageList.find(item => item.imageType === 1)
+        const marketImage2 = detail.marketImages && detail.marketImages.find(item => item.imageType === 1)
         if (marketImage2) {
           const image = new Image()
           image.src = marketImage2.url
@@ -448,18 +449,17 @@
           }
         }
         // 视频媒体
-        if (detail.multimedia.videoList && detail.multimedia.videoList.length) {
+        if (detail.aeopAEMultimedia && detail.aeopAEMultimedia.length) {
           this.form.video = {
-            mediaId: detail.multimedia.videoList[0]?.mediaId,
-            mediaType: detail.multimedia.videoList[0]?.mediaType,
-            posterUrl: detail.multimedia.videoList[0]?.posterUrl
+            mediaId: detail.aeopAEMultimedia?.aeopAEVideos[0]?.mediaId,
+            mediaType: detail.aeopAEMultimedia?.aeopAEVideos[0]?.mediaType,
+            posterUrl: detail.aeopAEMultimedia?.aeopAEVideos[0]?.posterUrl
           }
         }
       }
     },
     mounted() {
-      // FIXME:
-      // this.getWatermark()
+      this.getWatermark()
     },
     methods: {
       getMediaBankInfo() {

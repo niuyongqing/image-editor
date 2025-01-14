@@ -231,7 +231,7 @@
                   if (tableItem) {
                     tableItem[item.shiptoCountry] = item.absoluteQuoteMap[key]
                   } else {
-                    Modal.warning('区域调价数据匹配失败, 请联系IT部检查')
+                    Modal.warning({ title: '区域调价数据匹配失败, 请联系IT部检查' })
                   }
                 } else {
                   // key 为空, 即无 SKU 属性
