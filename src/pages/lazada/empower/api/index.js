@@ -58,3 +58,22 @@ export function remark(params) {
 export function url(params) {
   return usePost("/platform-lazada/platform/lazada/empower/url", params);
 }
+export function loginCheck(params) {
+  return usePost(
+    "/platform-lazada/platform/lazada/empower/login/power/check",
+    params
+  );
+}
+
+export function loginPowerVerify(params) {
+  return usePost(
+    "/platform-lazada/platform/lazada/empower/login/power/verify",
+    params
+  );
+}
+export function lazadaLoginView(data) {
+  return usePost(
+    "/platform-lazada/platform/lazada/empower/login/code/view",
+    data
+  );
+}

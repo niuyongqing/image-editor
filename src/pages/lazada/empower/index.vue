@@ -1,7 +1,7 @@
 <template>
     <div>
         <Search :area="area" @search="handleSearch"></Search>
-        <BaseTable ref="baseTableRef" :columns="columns" :api="empowerList" :init-search-param="initSearchParam" 
+        <BaseTable ref="baseTableRef" :columns="columns" :api="empowerList" :init-search-param="initSearchParam"
             :row-selection="rowSelection" row-key="userId">
             <template #leftBar>
                 <a-button type="primary" @click="Reauthorization" v-has-permi="[`system:platform:lazada:accredit`]"
@@ -10,7 +10,6 @@
                         <SettingOutlined />
                     </template>
                     授权</a-button>
-
                 <a-popconfirm title="确定要全部刷新授权吗？" ok-text="是" cancel-text="否" @confirm="refreshToken">
                     <a-button type="primary" v-has-permi="[`system:platform:lazada:accredit`]" :loading="refreshLoading"
                         style="margin-left: 10px;">
@@ -19,7 +18,6 @@
                         </template>
                         刷新全部授权</a-button>
                 </a-popconfirm>
-
                 <a-button type="primary" @click="handleBatchName" v-has-permi="[`platform:lazada:accredit`]"
                     style="margin-left: 10px;">
                     <template #icon>
@@ -41,6 +39,27 @@
                     </template>
                     导出
                 </a-button>
+                <a-button type="primary" :loading="exportLoading" @click="lookLazadaInfo"
+                    v-has-permi="[`system:platform:lazada:accredit`]" style="margin-left: 10px;">
+                    <template #icon>
+                        <EyeOutlined />
+                    </template>
+                    查看店铺登录密码
+                </a-button>
+                <a-button type="primary" :loading="exportLoading" @click="handleExport"
+                    v-has-permi="[`system:platform:lazada:accredit`]" style="margin-left: 10px;">
+                    <template #icon>
+                        <EditOutlined />
+                    </template>
+                    修改店铺登录密码
+                </a-button>
+                <a-button type="primary" :loading="exportLoading" @click="handleExport"
+                    v-has-permi="[`system:platform:lazada:accredit`]" style="margin-left: 10px;">
+                    <template #icon>
+                        <EditOutlined />
+                    </template>
+                    批量修改店铺密码
+                </a-button>
             </template>
             <template #country="{ record }">
                 <span> {{ countryMap(record.country) }} </span>
@@ -59,12 +78,16 @@
                     @blur="handleChangeAlias(record)"></a-input>
                 <span v-else> {{ record.alias }}</span>
             </template>
-
+            <template #isFillPassword="{ record }">
+                <div flex justify-center items-center>
+                    <a-tag v-if="record.isFillPassword == 0" color="warning">未填充</a-tag>
+                    <a-tag v-if="record.isFillPassword == 1" color="success">已填充</a-tag>
+                </div>
+            </template>
             <template #remark="{ record }">
                 <a-input v-if="isRemark" style="width: 100%;" v-model:value="record.remark"
                     @blur="handleChangeRemark(record)"></a-input>
             </template>
-
             <template #classify="{ record }">
                 <a-select v-model:value="record.classify" v-if="accreditAuth" allow-clear class="w-full"
                     placeholder="请选择品类" :options="classifyOptions" @change="classifyChange(record)"></a-select>
@@ -81,19 +104,22 @@
             </template>
 
             <template #autoPublish="{ record }">
-                <a-switch v-model:checked="record.autoPublish" :disabled="!accreditAuth" checked-value="1"
-                    un-checked-value="2" @change="autoPublishChange(record)" />
+                <div flex justify-center items-center>
+                    <a-switch v-model:checked="record.autoPublish" :disabled="!accreditAuth" checked-value="1"
+                        un-checked-value="2" @change="autoPublishChange(record)" />
+                </div>
             </template>
         </BaseTable>
         <!-- 批量修改简称 -->
         <batchSimpleName ref="batchSimpleNameRef" @success="reload"></batchSimpleName>
         <!-- 批量修改仓库 -->
         <batchStore ref="batchStoreRef" @success="reload"></batchStore>
+        <ErpValidModal ref="erpValidModalRef" @success="reload"></ErpValidModal>
     </div>
 </template>
 
 <script setup>
-import { SettingOutlined, EditOutlined, ReloadOutlined, CloudUploadOutlined, DownloadOutlined } from '@ant-design/icons-vue';
+import { SettingOutlined, EditOutlined, ReloadOutlined, CloudUploadOutlined, DownloadOutlined, EyeOutlined } from '@ant-design/icons-vue';
 import { columns } from './columns';
 import { empowerList, editStore, simpleName, alias, remark, url, refreshAllToken, exportList, accredit } from './api';
 import { findParentAndMerge } from './common';
@@ -104,7 +130,10 @@ import { Modal, message } from 'ant-design-vue';
 import { checkPermi, checkRole } from '~@/utils/permission/component/permission';
 import batchSimpleName from './components/batchSimpleName.vue';// 批量修改简称
 import batchStore from './components/batchStore.vue';// 批量修改仓库
+import ErpValidModal from './components/erpValidModal.vue';
 import downLoad from '@/api/common/download';
+import { loginCheck } from '@/pages/lazada/empower/api/index.js';
+
 const route = useRoute()
 const router = useRouter();
 const code = route.query.code;
@@ -114,13 +143,13 @@ const refreshLoading = ref(false); // 刷新按钮 loading
 const exportLoading = ref(false); // 导出按钮 loading
 
 const forbidSaleOptions = ref([]); // 禁售属性
-
 const accountUserLsit = ref([]);
 const accountOptions = ref([]);
 const depOptions = ref([]);
 const baseTableEl = useTemplateRef('baseTableRef');
 const batchSimpleNameEl = useTemplateRef('batchSimpleNameRef');
 const batchStoreEl = useTemplateRef('batchStoreRef');
+const erpValidModalEl = useTemplateRef('erpValidModalRef');
 const { singleDisabled, rowSelection, tableRow, clearSelection } = useTableSelection()
 const initSearchParam = {
     prop: "create_time",
@@ -195,9 +224,7 @@ const classifyOptions = [
     { value: '09', label: '母婴玩具' },
     { value: '10', label: '宠物' },
     { value: '99', label: '其他' }
-]
-
-
+];
 //  授权
 if (code) {
     accredit({
@@ -213,8 +240,6 @@ if (code) {
             message.error('授权失败')
         })
 };
-
-
 
 const countryMap = (v) => {
     const value = area.find(item => {
@@ -289,6 +314,14 @@ const autoPublishChange = (value) => {
     //     })
 };
 
+//查看账号密码邮箱
+const lookLazadaInfo = async () => {
+    const res = await loginCheck();
+    if (!res.data) {
+        erpValidModalEl.value.open();
+    }
+};
+
 //  重新刷新
 const reload = () => {
     baseTableEl.value.reload();
@@ -336,4 +369,6 @@ const handleExport = () => {
         exportLoading.value = false;
     })
 };
+
+
 </script>
