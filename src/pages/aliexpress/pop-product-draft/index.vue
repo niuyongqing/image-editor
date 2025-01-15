@@ -330,7 +330,7 @@
               </a-popover>
               <div style="margin-left: 10px; width: 90%">
                 <a-tooltip :title="getTitle(record)">
-                  <div class="truncate cursor-pointer">
+                  <div class="truncate">
                     {{ getTitle(record) }}
                   </div>
                 </a-tooltip>
@@ -513,7 +513,7 @@
         PLACEHOLDER_ENUM: {
           title: '标题',
           sku: '商品编码, 多个SKU间用英文逗号隔开',
-          draftId: '草稿ID, 多个ID间用英文逗号隔开'
+          draftsId: '草稿ID, 多个ID间用英文逗号隔开'
         },
         allFreightOptions: [],
         VIDEO_OPTIONS: [

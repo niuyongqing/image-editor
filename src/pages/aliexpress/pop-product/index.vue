@@ -584,7 +584,7 @@
             >
               <a-button
                 type="text"
-                style="color: red"
+                danger
                 >删除</a-button
               >
             </a-popconfirm>
@@ -707,7 +707,7 @@
           prop: 'gmt_modified_time',
           order: 'desc',
           productType: undefined,
-          productStatus: 'ONLINE'
+          productStatus: 'onSelling'
         },
         // 高级搜索表单; 需点击'搜索'按钮再执行搜索动作
         lazySearchForm: {

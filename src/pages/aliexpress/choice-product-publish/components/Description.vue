@@ -5,6 +5,7 @@
       :model="form"
       :rules="rules"
       :label-col="{ style: { width: '180px' } }"
+      :wrapper-col="{ span: 14 }"
     >
       <a-form-item
         label="PC端描述"
