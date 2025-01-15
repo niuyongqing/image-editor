@@ -39,7 +39,7 @@
                             <a-checkbox-group v-model:value="state.ventures" @change="checkedCitiesChange">
                                 <a-checkbox v-for="item in globalArea" :value="item.value" :key="item.value">{{
                                     item.label
-                                }}</a-checkbox>
+                                    }}</a-checkbox>
                             </a-checkbox-group>
                         </div>
                     </div>
@@ -114,7 +114,6 @@ const showSearchConfig = {
     }
 };
 const handleCheckAllChange = (value) => {
-    console.log('value', value);
     if (checkAll.value) {
         state.ventures = globalArea.map(v => v.value)
     } else {
@@ -123,7 +122,6 @@ const handleCheckAllChange = (value) => {
 };
 
 const checkedCitiesChange = (value) => {
-    console.log('value checkedCitiesChange', value);
     if (value.length === globalArea.length) {
         checkAll.value = true
     } else {
@@ -176,6 +174,7 @@ async function getAttributes() {
         if (res.code === 200) {
             attributes.value = res.data || [];
             setLazadaAttrs(attributes.value);
+            EventBus.emit('gobalAddAttrsEmit');
         }
     })
 };

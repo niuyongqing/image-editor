@@ -1,9 +1,7 @@
 <template>
     <div>
         <Search :shortCodes="shortCodes" @search="handleSearch"></Search>
-
-        <TableAction @success="reload"></TableAction>
-
+        <TableAction @success="reload" :selectedRows="selectedRows"></TableAction>
         <BaseTable ref="baseTableRef" :columns="columns" :api="getList" :init-search-param="initSearchParam"
             :row-selection="rowSelection" show-right-pagination rowKey="itemId" resultField="rows[0].productList">
             <template #leftBar>
@@ -16,7 +14,6 @@
                             }}</a-button>
                     </div>
                 </div>
-
             </template>
             <template #Images="{ record }">
                 <a-image v-if="imageSrc(record)" :src="imageSrc(record)" :width="70"></a-image>
@@ -39,7 +36,6 @@
                                 <span>已升级Plus升级产品</span>
                             </template>
                             <a-tag>Plus</a-tag>
-                            <!-- <span> Plus </span> -->
                         </a-tooltip>
                     </div>
                 </div>
@@ -63,15 +59,12 @@
             <template #price="{ record }">
                 <div class="pb-30px">
                     <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
-                        <div v-if="item.price">
-                            <a-tooltip placement="top">
-                                <template #title>
-                                    <span>复制</span>
-                                </template>
-                                <span @click="copyText(item.price)"> {{ item.price }} </span>
-                            </a-tooltip>
+                        <div class="sku-price" @mouseenter="mouseEnterPrice(item)" @mouseleave="mouseLeavePrice(item)">
+                            <span>{{ item.price ? item.price : '-' }} </span>
+                            <span pl-20px v-if="item.editPrice">
+                                <EditOutlined @click="editPrice(record, item)" />
+                            </span>
                         </div>
-                        <div v-else> - </div>
                     </div>
                 </div>
             </template>
@@ -79,10 +72,12 @@
             <template #special_price="{ record }">
                 <div class="pb-30px">
                     <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
-                        <div v-if="item.special_price">
-                            <span @click="copyText(item.special_price)"> {{ item.special_price }} </span>
+                        <div @mouseenter="mouseEnterSpecialPrice(item)" @mouseleave="mouseLeaveSpecialPrice(item)">
+                            <span> {{ item.special_price ? item.special_price : '-' }} </span>
+                            <span pl-20px v-if="item.editSpecialPrice">
+                                <EditOutlined @click="editSpecialPrice(record, item)" />
+                            </span>
                         </div>
-                        <div v-else> - </div>
                     </div>
                 </div>
             </template>
@@ -91,8 +86,11 @@
                 <div class="relative pb-30px">
                     <div class="record-sku-container">
                         <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
-                            <div>
-                                <span @click="copyText(item.quantity)"> {{ item.quantity }} </span>
+                            <div @mouseenter="mouseEnterQuantity(item)" @mouseleave="mouseLeaveQuantity(item)">
+                                <span> {{ item.quantity ? item.quantity : '-' }} </span>
+                                <span pl-20px v-if="item.editQuantity">
+                                    <EditOutlined @click="editQuantity(record, item)" />
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -147,7 +145,10 @@
                 </div>
             </template>
         </BaseTable>
-        <RemarkModal ref="remarkModalRef"></RemarkModal>
+        <RemarkModal ref="remarkModalRef" @success="reload"></RemarkModal>
+        <PriceModal ref="priceModalRef" @success="reload"></PriceModal>
+        <StockModal ref="stockModalRef" @success="reload"></StockModal>
+        <SpecialPriceModal ref="specialPriceModalRef" @success="reload"></SpecialPriceModal>
     </div>
 </template>
 
@@ -164,6 +165,9 @@ import Search from './components/search.vue';
 import TableAction from './components/tableAction.vue';
 import BaseTable from '@/components/baseTable/BaseTable.vue';
 import RemarkModal from '@/pages/lazada/product/components/remarkModal.vue';
+import PriceModal from '@/pages/lazada/product/siteProduct/add/components/batchModal/priceModal.vue';
+import StockModal from '@/pages/lazada/product/siteProduct/add/components/batchModal/stockModal.vue';
+import SpecialPriceModal from '@/pages/lazada/product/siteProduct/add/components/batchModal/specialPriceModal.vue';
 
 const { copy } = useClipboard();
 const active = ref('ALL')
@@ -171,13 +175,15 @@ const searchFormState = ref({});
 const tableData = ref([]);
 const shortCodes = ref([]);
 const baseTableEl = useTemplateRef('baseTableRef');
+const priceModalEl = useTemplateRef('priceModalRef');
 const remarkModalEl = useTemplateRef('remarkModalRef');
-const { singleDisabled, rowSelection, tableRow, clearSelection } = useTableSelection()
+const stockModalEl = useTemplateRef('stockModalRef');
+const specialPriceModalEl = useTemplateRef('specialPriceModalRef');
+const { singleDisabled, rowSelection, tableRow, selectedRows, clearSelection } = useTableSelection()
 const initSearchParam = {
     prop: "created_time",
     order: "desc",
 };
-
 const nameMap = {
     'ALL': '全部',
     'Active': '在线',
@@ -208,7 +214,6 @@ const buttons = computed(() => {
 const btnName = (name) => {
     return nameMap[name] || name;
 };
-
 const accreditAuth = computed(() => {
     return checkPermi(['system:platform:lazada:accredit']) || checkRole('admin');
 });
@@ -221,14 +226,12 @@ const isAliasEdit = computed(() => {
 const isRemark = computed(() => {
     return checkPermi(['system:platform:lazada:remark']);
 });
-
 const imageSrc = (record) => {
     if (record.images) {
         return JSON.parse(record.images)[0];
     };
     return ''
 };
-
 const shopSimpleName = (record) => {
     const findItem = shortCodes.value.find((item) => {
         return item.shortCode === record.shortCode
@@ -243,7 +246,6 @@ const copyText = (text) => {
 const displayedSkus = (record) => {
     return record.show ? record.skus : record.skus.slice(0, 5);
 };
-
 //  重新刷新
 const reload = () => {
     baseTableEl.value.reload();
@@ -259,11 +261,9 @@ const handleEdit = (record) => {
     const { itemId } = record;
     window.open(`/platform/lazada/siteProduct/edit?itemId=${itemId}`, '_blank');
 };
-
 const handleReset = () => {
     baseTableEl.value.reset();
 };
-
 const handleBtnClick = (btn) => {
     active.value = btn.status;
     handleSearch({ ...initSearchParam, ...searchFormState.value, status: btn.status === 'ALL' ? '' : btn.status });
@@ -292,7 +292,6 @@ const handleRemark = (record) => {
     console.log('record', record, remarkModalEl.value);
     remarkModalEl.value.open(record);
 };
-
 //  下架
 const handleDeactivated = (record) => {
     Modal.confirm({
@@ -308,6 +307,40 @@ const handleDeactivated = (record) => {
             }
         },
     })
+};
+
+const mouseEnterPrice = (item) => {
+    if (!item.price) return;
+    item.editPrice = true;
+};
+const mouseLeavePrice = (item) => {
+    item.editPrice = false;
+}
+const mouseEnterSpecialPrice = (item) => {
+    if (!item.special_price) return;
+    item.editSpecialPrice = true;
+};
+const mouseLeaveSpecialPrice = (item) => {
+    item.editSpecialPrice = false;
+}
+const mouseEnterQuantity = (item) => {
+    if (!item.quantity) return;
+    item.editQuantity = true;
+};
+const mouseLeaveQuantity = (item) => {
+    item.editQuantity = false;
+};
+
+const editPrice = (item) => {
+    priceModalEl.value.open(item);
+};
+
+const editSpecialPrice = (item) => {
+    specialPriceModalEl.value.open(item);
+};
+
+const editQuantity = (item) => {
+    stockModalEl.value.open(item);
 };
 
 onMounted(async () => {

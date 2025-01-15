@@ -267,8 +267,25 @@ onMounted(() => {
         }).finally(() => {
             brandIdSelction.searchLoading = false;
         });
-
     });
+
+    EventBus.on('gobalAddAttrsEmit', () => {
+        //  根据分类回显属性 to do ...
+        const obj = { "number_of_pieces": "6 and up", "zal_present": "Yes", "delivery_option_economy": "No", "Hazmat": "None", "delivery_option_express": "Yes" };
+        lazadaAttrsState.productClassifyAtrrs.forEach((item) => {
+            for (let key in obj) {
+                if (item.name === key) {
+                    // 多选数据转为数组
+                    if (item.input_type.includes('multi')) {
+                        item.value = obj[key] ? obj[key].split(',') : [];
+                    } else {
+                        item.value = obj[key]
+                    }
+                }
+            }
+        })
+    });
+
 });
 onBeforeUnmount(() => {
     EventBus.off('gobalAddShortCodeEmit')

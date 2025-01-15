@@ -44,7 +44,7 @@
                         :options="lazadaAttrsState.warrantyList" :field-names="{ label: 'en_name', value: 'en_name' }">
                     </a-select>
                 </a-form-item>
-
+                {{ productAtrrsform }}
                 <a-form-item label="属性: " v-show="lazadaAttrsState.attributes.length > 0">
                     <a-card v-loading="lazadaAttrsState.loading" class="attrs-card">
                         <a-form :model="productAtrrsform" ref="attrsFormRef" scrollToFirstError>
@@ -95,7 +95,7 @@
                                         @change="changeValue(item)"></a-select>
 
                                     <!-- richText 富文本-->
-                                    <div v-if="item.input_type === 'richText'"> 富文本 </div>
+                                    <div v-if="item.input_type === 'richText'"> </div>
 
                                     <!-- img 仅支持输入 Lazada 图片链接-->
                                     <a-input v-if="item.input_type === 'imgimg'" v-model:value="item.value"
@@ -251,7 +251,6 @@ defineExpose({
 
 onMounted(() => {
     EventBus.on('siteAddShortCodeEmit', (code) => {
-        console.log('接受到的shortCode -->>', code);
         shortCode.value = code;
         brandIdSelction.brandId = undefined;
         getBrandList({ brandName: '', shortCode: code }).then(res => {
@@ -259,7 +258,7 @@ onMounted(() => {
                 brandIdSelction.data = res.data || [];
                 //  品牌设置默认 No Brand
                 const brandItem = brandIdSelction.data.find((item) => {
-                    return item.nameEn === 'OEM'
+                    return item.nameEn === 'No Brand'
                 });
                 brandIdSelction.brandId = brandItem ? brandItem.brandId : undefined;
                 state.brandId = brandIdSelction.brandId;
@@ -267,11 +266,28 @@ onMounted(() => {
         }).finally(() => {
             brandIdSelction.searchLoading = false;
         });
+    });
 
+    EventBus.on('siteAddAttrsEmit', () => {
+        //  根据分类回显属性 to do ...
+        const obj = { "number_of_pieces": "6 and up", "zal_present": "Yes", "delivery_option_economy": "No", "Hazmat": "None", "delivery_option_express": "Yes" };
+        lazadaAttrsState.productClassifyAtrrs.forEach((item) => {
+            for (let key in obj) {
+                if (item.name === key) {
+                    // 多选数据转为数组
+                    if (item.input_type.includes('multi')) {
+                        item.value = obj[key] ? obj[key].split(',') : [];
+                    } else {
+                        item.value = obj[key]
+                    }
+                }
+            }
+        })
     });
 });
 onBeforeUnmount(() => {
-    EventBus.off('siteAddShortCodeEmit')
+    EventBus.off('siteAddShortCodeEmit');
+    EventBus.off('siteAddAttrsEmit');
 });
 </script>
 

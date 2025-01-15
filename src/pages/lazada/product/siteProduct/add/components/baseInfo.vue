@@ -98,6 +98,7 @@ async function getAttributes() {
         if (res.code === 200) {
             attributes.value = res.data || [];
             setLazadaAttrs(attributes.value);
+            EventBus.emit('siteAddAttrsEmit');
         }
     })
 };
@@ -112,7 +113,7 @@ const changeShortCode = (value) => {
 
 const changePrimaryCategory = (value) => {
     setPrimaryCategory(value);
-    getAttributes(value)
+    getAttributes(value);
 };
 
 // 分类校验
@@ -130,7 +131,7 @@ async function validateForm() {
             reject(false);
         })
     })
-}
+};
 
 defineExpose({
     state,
