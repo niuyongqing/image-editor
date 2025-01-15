@@ -111,9 +111,6 @@ export const useTable = (
   const handleChangePagination = (page, pageSize) => {
     state.pagination[pageField] = page;
     state.pagination.pageSize = pageSize;
-    console.log("page, pageSize", page, pageSize);
-    console.log("state", state);
-
     getTableList();
   };
 
@@ -123,7 +120,10 @@ export const useTable = (
   const search = async (params) => {
     state.pagination[pageField] = 1;
     state.searchParam = params || {};
-    Object.assign(state.searchParam, state.initSearchParam);
+    state.searchParam = {
+      ...state.initSearchParam,
+      ...state.searchParam,
+    };
     updatedTotalParam();
     await getTableList();
   };

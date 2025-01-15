@@ -168,7 +168,6 @@ const showAdvanceSearch = () => {
 const changeShortCode = (value) => {
     formState.shortCode = value;
     console.log('value ->>>', value);
-
     submit();
 };
 const changeSearchType = (item) => {
@@ -180,15 +179,18 @@ const changeSearchType = (item) => {
 
 const changePublishType = (item) => {
     formState.publishType = item.value;
+    submit();
 };
 const changeGlobalPlus = (item) => {
     formState.globalPlus = item.value;
+    submit();
 };
 
 const changeSortType = (item) => {
     formState.sortType = item.value;
     item.sort = item.sort === 'asc' ? 'desc' : 'asc';
     formState.sort = item.sort;
+    submit();
 };
 
 // 获取所有参数

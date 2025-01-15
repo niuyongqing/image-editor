@@ -251,7 +251,6 @@ const handleRemark = (record) => {
     // remarkModalEl.value.open(record);
 };
 
-// const 
 onMounted(async () => {
     const accountCacheRes = await accountCache();
     if (accountCacheRes.code === 200) {
@@ -273,8 +272,6 @@ onMounted(async () => {
 <style scoped lang="less">
 .record-sku-container {
     width: 100%;
-    // height: 145px;
-    // background: red;
 }
 
 .record-sku {

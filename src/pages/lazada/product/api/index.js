@@ -90,3 +90,14 @@ export function lazadaCategoryTree(data) {
     data
   );
 }
+// 同步
+export function syncOne(data) {
+  return usePost("/platform-lazada/platform/lazada/product/sync-one", data);
+}
+// 同步所有店铺商品
+export function syncAll() {
+  return useGet("/platform-lazada/platform/lazada/product/sync-all");
+}
+export function deactivate(data) {
+  return usePost("/platform-lazada/platform/lazada/product/deactivate", data);
+}

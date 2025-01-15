@@ -2,7 +2,7 @@
     <div>
         <Search :shortCodes="shortCodes" @search="handleSearch"></Search>
 
-        <TableAction></TableAction>
+        <TableAction @success="reload"></TableAction>
 
         <BaseTable ref="baseTableRef" :columns="columns" :api="getList" :init-search-param="initSearchParam"
             :row-selection="rowSelection" show-right-pagination rowKey="itemId" resultField="rows[0].productList">
@@ -31,7 +31,18 @@
                         <span @click="copyText(record.itemId)"> {{ record.itemId }} </span>
                     </a-tooltip>
                 </p>
-                <p style="color: rgb(153, 153, 153)"> 「{{ shopSimpleName(record) }}」 </p>
+                <div flex>
+                    <p style="color: rgb(153, 153, 153)"> 「{{ shopSimpleName(record) }}」 </p>
+                    <div class="isGobal" v-if="record.bizSupplement && record.bizSupplement.globalPlusProductStatus">
+                        <a-tooltip placement="top">
+                            <template #title>
+                                <span>已升级Plus升级产品</span>
+                            </template>
+                            <a-tag>Plus</a-tag>
+                            <!-- <span> Plus </span> -->
+                        </a-tooltip>
+                    </div>
+                </div>
             </template>
 
             <template #skus="{ record }">
@@ -143,16 +154,16 @@
 <script setup>
 import { SettingOutlined, EditOutlined, ReloadOutlined, CloudUploadOutlined, DownloadOutlined, DownOutlined } from '@ant-design/icons-vue';
 import { columns } from './columns';
-import { getList, accountCache } from './api';
+import { getList, accountCache, syncOne } from './api';
 import { useTableSelection } from '@/components/baseTable/useTableSelection';
-import { message } from 'ant-design-vue';
+import { message, Modal } from 'ant-design-vue';
 import { checkPermi, checkRole } from '~@/utils/permission/component/permission';
 import { useClipboard } from '@v-c/utils';
 import { timestampToDateTime } from './common';
 import Search from './components/search.vue';
 import TableAction from './components/tableAction.vue';
 import BaseTable from '@/components/baseTable/BaseTable.vue';
-import RemarkModal from './components/remarkModal.vue';
+import RemarkModal from '@/pages/lazada/product/components/remarkModal.vue';
 
 const { copy } = useClipboard();
 const active = ref('ALL')
@@ -259,7 +270,14 @@ const handleBtnClick = (btn) => {
 };
 //  同步
 const handleSync = (record) => {
-    console.log('record', record);
+    syncOne({ shortCode: record.shortCode, itemId: record.itemId }).then((res) => {
+        if (res.code === 200) {
+            message.success('同步成功');
+            reload();
+        } else {
+            message.error(res.msg);
+        }
+    })
 };
 //   复制为“六合一产品”
 const handleProduct = (record) => {
@@ -272,8 +290,26 @@ const handleCopyProduct = (record) => {
 //   添加备注
 const handleRemark = (record) => {
     console.log('record', record, remarkModalEl.value);
-    // remarkModalEl.value.open(record);
+    remarkModalEl.value.open(record);
 };
+
+//  下架
+const handleDeactivated = (record) => {
+    Modal.confirm({
+        title: '下架',
+        content: '是否确认下架？',
+        onOk: async () => {
+            const res = await deactivated({ itemId: record.itemId });
+            if (res.code === 200) {
+                message.success('下架成功');
+                reload();
+            } else {
+                message.error(res.msg);
+            }
+        },
+    })
+};
+
 onMounted(async () => {
     const accountCacheRes = await accountCache();
     if (accountCacheRes.code === 200) {

@@ -106,7 +106,10 @@ import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { DownOutlined, SettingOutlined } from "@ant-design/icons-vue";
 import WarehouseSetting from './warehouseSetting.vue'; // 仓库管理
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
+import { syncAll } from '@/pages/lazada/product/api';
+import { message } from 'ant-design-vue';
 
+const emits = defineEmits(['success'])
 const router = useRouter()
 const warehouseSettingEl = useTemplateRef('warehouseSettingRef');
 const { state: lazadaAttrsState, setShortCode, setLazadaAttrs, setLoading, reset } = useLadazaAttrs();
@@ -140,7 +143,14 @@ const createSiteProduct = () => {
     window.open('/platform/lazada/siteProduct/add', '_blank');
 };
 //  同步所有产品
-const syncProduct = () => { }
+const syncProduct = () => {
+    syncAll().then(res => {
+        console.log(res);
+        message.success('同步成功');
+        emits('success');
+    });
+
+}
 
 //  同步选中产品
 const syncSelectProduct = () => {
