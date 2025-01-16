@@ -1,7 +1,7 @@
 <template>
     <div>
         <Search :shortCodes="shortCodes" @search="handleSearch"></Search>
-        <TableAction></TableAction>
+        <TableAction @success="reload" :selectedRows="selectedRows"></TableAction>
         <BaseTable ref="baseTableRef" :columns="columns" :api="getList" :init-search-param="initSearchParam"
             :row-selection="rowSelection" show-right-pagination rowKey="id">
             <template #leftBar>
@@ -14,7 +14,6 @@
                             }}</a-button>
                     </div>
                 </div>
-
             </template>
             <template #Images="{ record }">
                 <a-image v-if="imageSrc(record)" :src="imageSrc(record)" :width="70"></a-image>
@@ -140,7 +139,7 @@ const tableData = ref([]);
 const shortCodes = ref([]);
 const baseTableEl = useTemplateRef('baseTableRef');
 const remarkModalEl = useTemplateRef('remarkModalRef');
-const { singleDisabled, rowSelection, tableRow, clearSelection } = useTableSelection()
+const { singleDisabled, rowSelection, tableRow, selectedRows, clearSelection } = useTableSelection()
 const initSearchParam = {
     prop: "created_time",
     order: "desc",

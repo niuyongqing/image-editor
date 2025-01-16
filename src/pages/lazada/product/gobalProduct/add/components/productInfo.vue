@@ -251,7 +251,6 @@ defineExpose({
 
 onMounted(() => {
     EventBus.on('gobalAddShortCodeEmit', (code) => {
-        console.log('接受到的shortCode -->>', code);
         shortCode.value = code;
         brandIdSelction.brandId = undefined;
         getBrandList({ brandName: '', shortCode: code }).then(res => {

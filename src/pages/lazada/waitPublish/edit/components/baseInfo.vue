@@ -25,10 +25,24 @@
                 scrollToFirstError>
                 <a-form-item label="店铺: " name="shortCode"
                     :rules="[{ required: true, message: '请选择店铺', trigger: ['change'] }]">
-                    <a-select class="flex w-full justify-start" v-model:value="state.shortCode" placeholder="请选择店铺"
-                        @change="changeShortCode" allowClear :options="shortCodes"
-                        :fieldNames="{ label: 'simpleName', value: 'shortCode' }" style="width: 250px;">
-                    </a-select>
+                    <div flex>
+                        <a-select class="flex w-full justify-start" v-model:value="state.shortCode" placeholder="请选择店铺"
+                            @change="changeShortCode" allowClear :options="shortCodes"
+                            :fieldNames="{ label: 'simpleName', value: 'shortCode' }" style="width: 250px;">
+                        </a-select>
+                        <div flex ml-10px>
+                            <span> 同步发布到其他站点： </span>
+                            <a-checkbox style="margin-right: 10px" v-model:checked="checkAll"
+                                @change="handleCheckAllChange">
+                                全部
+                            </a-checkbox>
+                            <a-checkbox-group v-model:value="state.ventures" @change="checkedCitiesChange">
+                                <a-checkbox v-for="item in globalArea" :value="item.value" :key="item.value">
+                                    {{ item.label }}
+                                </a-checkbox>
+                            </a-checkbox-group>
+                        </div>
+                    </div>
                 </a-form-item>
                 <a-form-item label="分类:" name="primaryCategory" :rules="[{ required: true, message: '请选择分类' }]"
                     v-loading="loading">
@@ -38,8 +52,7 @@
                         @change="changePrimaryCategory">
                         <template #notFoundContent>
                             <div w-full h-300px flex items-center justify-center m-auto>
-                                <a-spin :spinning="true" tip="正在加载中..." m-auto>
-                                </a-spin>
+                                <a-spin :spinning="true" tip="正在加载中..." m-auto />
                             </div>
                         </template>
                     </a-cascader>
@@ -64,6 +77,33 @@ const { detailData } = defineProps({
     }
 });
 
+const checkAll = ref(false);
+const globalArea = [{
+    label: "印度尼西亚",
+    value: "ID"
+},
+{
+    label: "菲律宾",
+    value: "PH"
+},
+{
+    label: "新加坡",
+    value: "SG"
+},
+{
+    label: "泰国",
+    value: "TH"
+},
+{
+    label: "越南",
+    value: "VN"
+},
+
+{
+    label: "马来西亚",
+    value: "MY"
+}];
+
 const { state: lazadaAttrsState, setShortCode,
     setPrimaryCategory, setLazadaAttrs, setLoading,
     setProductClassifyAtrrs,
@@ -77,10 +117,27 @@ const attributes = ref([]); // 分类 属性列表
 const { state } = useResetReactive({
     shortCode: undefined,
     primaryCategory: undefined,
+    ventures: [],
 });
 const showSearchConfig = {
     filter: (inputValue, path) => {
         return path.some(option => option.name2.toLowerCase().includes(inputValue.toLowerCase()));
+    }
+};
+
+const handleCheckAllChange = (value) => {
+    if (checkAll.value) {
+        state.ventures = globalArea.map(v => v.value)
+    } else {
+        state.ventures = []
+    }
+};
+
+const checkedCitiesChange = (value) => {
+    if (value.length === globalArea.length) {
+        checkAll.value = true
+    } else {
+        checkAll.value = false
     }
 };
 
@@ -90,9 +147,13 @@ watch(() => {
 }, async (newVal) => {
     loading.value = true;
     state.shortCode = newVal.shortCode;
+    state.ventures = newVal.ventures.venture || [];
+    checkAll.value = state.ventures.length === globalArea.length;
     EventBus.emit('waitPublishShortCodeEmit', state.shortCode);
     setShortCode(state.shortCode);
     await getCategorys();
+    console.log('primaryCategoryOptions.value', primaryCategoryOptions.value);
+
     const data = findCategoryPath(primaryCategoryOptions.value, newVal.primaryCategory);
     state.primaryCategory = data || [];
     validateCodeRule();

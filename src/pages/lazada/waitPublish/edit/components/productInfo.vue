@@ -96,7 +96,7 @@
                                         @change="changeValue(item)"></a-select>
 
                                     <!-- richText 富文本-->
-                                    <div v-if="item.input_type === 'richText'"> 富文本 </div>
+                                    <div v-if="item.input_type === 'richText'"> </div>
 
                                     <!-- img 仅支持输入 Lazada 图片链接-->
                                     <a-input v-if="item.input_type === 'imgimg'" v-model:value="item.value"
@@ -118,10 +118,8 @@
                                 : '+ 展开'
                                 }}</a-button>
                         </div>
-
                     </a-card>
                 </a-form-item>
-
             </a-form>
         </a-card>
     </div>
@@ -170,7 +168,7 @@ watch(() => {
 }, async (newVal) => {
     state.title = newVal.attributes.name;
     getBrandList({
-        brandName: newVal.attributes.brand_id,
+        brandName: newVal.attributes.brand_id ?? '',
         shortCode: newVal.shortCode
     }).then(res => {
         if (res.code === 200) {
