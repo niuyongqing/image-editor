@@ -316,4 +316,116 @@ const dataMove = [
     value: "0",
   },
 ]
-export { orderStatus, storeStatus, tradStatus, tabDicList, attrList,productBatchPrice,dataMove }
+
+// 数据采集
+const dataGathe = [
+  {
+    account: "1688",
+    simpleName: "1688"
+  },
+  {
+    account: "smt",
+    simpleName: "速卖通"
+  },
+  {
+    account: "shopee",
+    simpleName: "Shopee"
+  },
+  {
+    account: "lazada",
+    simpleName: "Lazada"
+  },
+  {
+    account: "amazon",
+    simpleName: "Amazon"
+  },
+  {
+    account: "temu",
+    simpleName: "Temu"
+  },
+  {
+    account: "ozon",
+    simpleName: "Ozon"
+  },
+  {
+    account: "shein",
+    simpleName: "SHEIN"
+  },
+  {
+    account: "tb",
+    simpleName: "淘宝"
+  },
+  {
+    account: "tm",
+    simpleName: "天猫"
+  },
+  {
+    account: "pdd",
+    simpleName: "拼多多"
+  },
+  {
+    account: "jd",
+    simpleName: "京东"
+  },
+  {
+    account: "ywg",
+    simpleName: "义乌购"
+  },
+  {
+    account: "wish",
+    simpleName: "Wish"
+  },
+  {
+    account: "eBay",
+    simpleName: "eBay"
+  },
+  {
+    account: "joom",
+    simpleName: "joom"
+  },
+  {
+    account: "mercado",
+    simpleName: "Mercado"
+  },
+  {
+    account: "coupang",
+    simpleName: "Coupang"
+  },
+  {
+    account: "etsy",
+    simpleName: "Etsy"
+  },
+  {
+    account: "al",
+    simpleName: "阿里巴巴国际站"
+  },
+  {
+    account: "dh",
+    simpleName: "敦煌网"
+  },
+  {
+    account: "daraz",
+    simpleName: "Daraz"
+  },
+  {
+    account: "walmart",
+    simpleName: "Walmart"
+  },
+  {
+    account: "tiktok",
+    simpleName: "Tiktok"
+  },
+  {
+    account: "fruugo",
+    simpleName: "Fruugo"
+  },
+  {
+    account: "wildnerries",
+    simpleName: "Wildnerries"
+  },
+  {
+    account: "miravia",
+    simpleName: "Miravia"
+  }
+]
+export { orderStatus, storeStatus, tradStatus, tabDicList, attrList,productBatchPrice,dataMove,dataGathe }

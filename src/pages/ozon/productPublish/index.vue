@@ -27,9 +27,13 @@ D<template>
             <ozon-new-variant-info ref="ozonNewVariantInfo" id="ozonNewVariantInfo" :product="product" :storeOption="storeOption"
                 :watermark="watermark" :attributes="attributes"></ozon-new-variant-info>
             <br />
+            <div class="flex justify-end mr-5">
+                <a-button>保存</a-button>
+                <a-button type="primary" class="ml-2.5" @click="onSubmit">发布</a-button>
+            </div>
         </div>
         <div style="position: fixed;top: 16%;right: 4%;">
-            <a-anchor class="absolute mr-50" :affix="false" :items=anchorList></a-anchor>
+            <a-anchor class="absolute mr-50" @change="onChange" :affix="false" :items=anchorList></a-anchor>
         </div>
     </div>
 </template>
@@ -68,6 +72,9 @@ const anchorList = [
         title: 'sku',
     }
 ]
+const onChange = link => {
+  console.log('Anchor:OnChange', link);
+};
 const categoryAttributesLoading = ref(false)
 // 资料库点击
 const selectProduct = () => { }

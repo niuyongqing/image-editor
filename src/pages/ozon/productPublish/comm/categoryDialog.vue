@@ -43,6 +43,8 @@ const submit = () => {
     message.error("请先选则分类")
     return
   }
+  console.log('categoryId',categoryId.value);
+  
   emit("getAttributesID", categoryId.value);
   handleClose()
 }

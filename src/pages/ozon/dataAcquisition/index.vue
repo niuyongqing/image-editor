@@ -32,7 +32,7 @@
           <div class="fBox flex align-start ml-[10px]">
             <a-button @click="productSelectTypes(item.prop)" class="mr-[10px]"
               :type="item.prop === prodActives ? 'primary' : ''" v-for="(item, index) in productType" :key="index">{{
-              item.label }}</a-button>
+                item.label }}</a-button>
           </div>
         </a-form-item>
         <a-form-item label="排序方式：">
@@ -423,7 +423,7 @@
               <div v-if="column.dataIndex === 'option'">
                 <a-row :gutter="3">
                   <a-col :span="6">
-                    <a-button type="text">认领</a-button>
+                    <a-button type="text" @click="copyProductVis = true">认领</a-button>
                   </a-col>
                 </a-row>
               </div>
@@ -437,6 +437,9 @@
         class="pages" :show-quick-jumper="true" @change="getList" :showSizeChanger="true"
         :pageSizeOptions="[50, 100, 200]" />
     </a-card>
+    <!-- 复制 -->
+    <copyProduct :copyProductVis="copyProductVis" @handleCopyProductClose="handleCopyProductClose">
+    </copyProduct>
   </div>
 </template>
 
@@ -449,7 +452,7 @@ import {
 } from '../config/api/product';
 import tableHead from "../config/tabColumns/product"
 import { dataMove, attrList, tabDicList } from "../config/commDic/defDic"
-
+import copyProduct from "./comm/copyProduct.vue";
 const paginations = reactive({
   pageNum: 1,
   pageSize: 50,
@@ -503,6 +506,7 @@ const minPriceVisible = ref(false)
 const editPriceVisible = ref(false)
 const singleVisible = ref(false)
 const priceVisible = ref(false)
+const copyProductVis = ref(false)
 const errorColumns = [
   {
     title: "错误字段",
@@ -764,6 +768,9 @@ const timestampToDateTime = (timestamp) => {
   return timestamp;
 }
 
+const handleCopyProductClose = () =>{
+  copyProductVis.value = false
+}
 
 
 onMounted(() => {

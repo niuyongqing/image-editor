@@ -57,7 +57,7 @@ export function categoryAttributes(data) {
   return request({
     url: '/platform-ozon/platform/ozon/attribute/category/attributes',
     method: 'post',
-    data:data
+    data: data
   })
 }
 
@@ -66,150 +66,150 @@ export function attributesValues(data) {
   return request({
     url: '/platform-ozon//platform/ozon/attribute/category/attributes/values',
     method: 'post',
-    data:data
+    data: data
   })
 }
 
 // 获取品牌
-export function categoryBrand(data){
+export function categoryBrand(data) {
   return request({
     url: '/platform-wish/platform/wish/attribute/category/brand',
     method: 'post',
-    data:data
+    data: data
   })
 }
 
 // 视频接口
-export function videoQuota(data){
+export function videoQuota(data) {
   return request({
     url: '/platform-lazada/platform/lazada/file/video/quota',
     method: 'post',
-    data:data
+    data: data
   })
 }
 
 // 新增产品
-export function add(data){
+export function add(data) {
   return request({
     url: '/platform-ozon/platform/ozon/product/add',
     method: 'post',
-    data:data
+    data: data
   })
 }
 
 // 删除产品
-export function del(data){
+export function del(data) {
   return request({
     url: '/platform-ozon/platform/ozon/product/del',
     method: 'post',
-    data:data
+    data: data
   })
 }
 
 // 获取第三方返回的仓库
-export function getWarehouses(data){
+export function getWarehouses(data) {
   return request({
     url: '/platform-wish/platform/wish/warehouse/info',
     method: 'post',
-    data:data
+    data: data
   })
 }
 
 // 批量修改库存
-export function updateStock(data){
+export function updateStock(data) {
   return request({
     url: '/platform-ozon/platform/ozon/product/batch/updateStock',
     method: 'post',
-    data:data
+    data: data
   })
 }
 
 // 同步当前产品
-export function syncOneProduct(data){
+export function syncOneProduct(data) {
   return request({
     url: '/platform-ozon/platform/ozon/product/syncOneProduct',
     method: 'post',
-    data:data
+    data: data
   })
 }
 
 // 同步所有产品
-export function syncShopProductAll(data){
+export function syncShopProductAll(data) {
   return request({
     url: '/platform-ozon/platform/ozon/product/sync-all',
     method: 'post',
-    data:data
+    data: data
   })
 }
 
-export function syncShopProduct(data){
+export function syncShopProduct(data) {
   return request({
     url: '/platform-ozon/platform/ozon/product/syncShopProduct',
     method: 'post',
-    data:data
+    data: data
   })
 }
 
 // 下架产品
-export function batchArchive(data){
+export function batchArchive(data) {
   return request({
     url: '/platform-ozon/platform/ozon/product/batch/archive',
     method: 'post',
-    data:data
+    data: data
   })
 }
 
 // 修改备注
-export function remark(data){
+export function remark(data) {
   return request({
     url: '/platform-ozon/platform/ozon/product/remark',
     method: 'post',
-    data:data
+    data: data
   })
 }
 
 // 修改备注
-export function unarchive(data){
+export function unarchive(data) {
   return request({
     url: '/platform-ozon/platform/ozon/product/batch/unarchive',
     method: 'post',
-    data:data
+    data: data
   })
 }
 
 // 查询产品详情
-export function getDetail(data){
+export function getDetail(data) {
   return request({
     url: '/platform-ozon/platform/ozon/product/detail',
     method: 'post',
-    data:data
+    data: data
   })
 }
 
 // 复制
-export function copyList(data){
+export function copyList(data) {
   return request({
     url: '/platform-ozon/platform/ozon/product/copy',
     method: 'post',
-    data:data
+    data: data
   })
 }
 
 // 修改价格
-export function updatePrices(data){
+export function updatePrices(data) {
   return request({
     url: '/platform-ozon/platform/ozon/product/batch/updatePrices',
     method: 'post',
-    data:data
+    data: data
   })
 }
 
 // 批量下载图片
-export function downloadImgs(data){
+export function downloadImgs(data) {
   return request({
     url: '/platform-ozon/platform/ozon/file/download/img',
     method: 'post',
-    data:data,
+    data: data,
     responseType: 'blob',
     headers: {
       'Content-Type': 'application/json; application/octet-stream'
@@ -218,29 +218,37 @@ export function downloadImgs(data){
 }
 
 // 同步历史分类
-export function syncHistoryCategory(data){
+export function syncHistoryCategory(data) {
   return request({
     url: '/platform-ozon/platform/ozon/attribute/syncHistoryCategory',
     method: 'post',
-    data:data
+    data: data
   })
 }
 
 // 合并产品列表
-export function mergeList(data){
+export function mergeList(data) {
   return request({
     url: '/platform-ozon/platform/ozon/product/merge/list',
     method: 'post',
-    data:data
+    data: data
   })
 }
 
 
 // 获取修改仓库数据的列表
-export function productWarehouse(data){
+export function productWarehouse(data) {
   return request({
     url: '/platform-ozon//platform/ozon/product/warehouse',
     method: 'post',
-    data:data
+    data: data
+  })
+}
+
+// 进度条接口
+export function asyncProgress(data) {
+  return request({
+    url: "/platform-ozon/platform/ozon/product/progressBar?uuid=" + data,
+    method: 'get',
   })
 }

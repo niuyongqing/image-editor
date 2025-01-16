@@ -216,6 +216,8 @@ const getAttributesID = (ids) => {
         label: ids.label,
         value: ids.value
     };
+    console.log('form',form.categoryId);
+    
     emit("getAttributes", form.shortCode, form.categoryId);
 }
 // 历史分类
@@ -461,7 +463,7 @@ watch(() => props.attributesCache, (val) => {
                     label: "",
                     value: ""
                 };
-                item.options = item?.options?.map(item => {
+                item.options = item?.options?.map(item => {    
                     return {
                         ...item,
                         label: item.value,

@@ -1,7 +1,7 @@
 <template>
     <div id="productCont" :loding="loading">
         <a-card class="mt-2.5">
-            <a-form ref="ruleForm2" :model="formData" class="form-padding">
+            <a-form ref="ruleForm" :model="formData" class="form-padding">
                 <a-form-item label="店铺账号：">
                     <selectComm style="margin-left: 10px" :options="shopAccount" :fieldObj="shopObj"
                         @backSelectAll="selectAll" @backSelectItem="selectItem"></selectComm>
@@ -17,15 +17,59 @@
                     <div class="searchs flex">
                         <div class="searchInputs flex align-start ml-[10px]">
                             <a-input v-if="actives == 1" style="width: 400px;" v-model:value="formData.name"
-                                placeholder="请输入标题查询" clearable @clear="onSubmit"></a-input>
-                            <a-input v-if="actives == 2" style="width: 400px;" v-model:value="formData.sku" clearable
+                                placeholder="请输入标题查询" allowClear @clear="onSubmit"></a-input>
+                            <a-input v-if="actives == 2" style="width: 400px;" v-model:value="formData.sku" allowClear
                                 @clear="onSubmit" placeholder="请输入SKU查询,多个SKU间用逗号隔开，最多支持200个"></a-input>
-                            <a-input v-if="actives == 3" style="width: 400px;" clearable
+                            <a-input v-if="actives == 3" style="width: 400px;" allowClear
                                 v-model:value="formData.offerId" @clear="onSubmit"
                                 placeholder="请输入产品ID查询,多个ID间用逗号隔开，最多支持200个"></a-input>
                         </div>
                         <a-button type="primary" class="ml-[10px]" @click="onSubmit(true)">查询</a-button>
+                        <a-button type="link" class="ml-[10px]" @click="advancedType = !advancedType">高级搜索</a-button>
                     </div>
+                </a-form-item>
+                <a-form-item v-if="advancedType">
+                    <a-form :model="advancedForm" ref="formRef" class="text-left w-133 ml-20 py-5"
+                        style="background-color: rgb(245, 245, 245);" :labelAlign="'right'" :labelCol="{ span: 7 }">
+                        <a-form-item label="售价：">
+                            <a-input style="width: 150px;" v-model:value="advancedForm.minPrice" allowClear></a-input>
+                            <span class="mx-2.5">-</span>
+                            <a-input style="width: 150px;" v-model:value="advancedForm.maxPrice" allowClear></a-input>
+                        </a-form-item>
+                        <a-form-item label="原价：">
+                            <a-input style="width: 150px;" v-model:value="advancedForm.minOldPrice"
+                                allowClear></a-input>
+                            <span class="mx-2.5">-</span>
+                            <a-input style="width: 150px;" v-model:value="advancedForm.maxOldPrice"
+                                allowClear></a-input>
+                        </a-form-item>
+                        <a-form-item label="总库存：">
+                            <a-input style="width: 150px;" v-model:value="advancedForm.minStock" allowClear></a-input>
+                            <span class="mx-2.5">-</span>
+                            <a-input style="width: 150px;" v-model:value="advancedForm.maxStock" allowClear></a-input>
+                        </a-form-item>
+                        <a-form-item label="备注：">
+                            <a-select ref="select" v-model:value="advancedForm.isRemark" style="width: 150px">
+                                <a-select-option value="1">有备注</a-select-option>
+                                <a-select-option value="0">无备注</a-select-option>
+                            </a-select>
+                        </a-form-item>
+                        <a-form-item>
+                            <a-select ref="select" v-model:value="advancedForm.timeSort" class="ml-6.5"
+                                style="width: 120px">
+                                <a-select-option value="update_time">更新时间</a-select-option>
+                                <a-select-option value="created_time">创建时间</a-select-option>
+                            </a-select>
+                            <a-range-picker class="ml-2.5" style="width: 320px;" v-model:value="advancedForm.time" />
+                        </a-form-item>
+                        <a-form-item>
+                            <div class="text-right mr-15">
+                                <a-button type="link" @click="resetForm(1)">取消</a-button>
+                                <a-button type="link" class="mx-2.5" @click="resetForm">重置</a-button>
+                                <a-button type="primary">搜索</a-button>
+                            </div>
+                        </a-form-item>
+                    </a-form>
                 </a-form-item>
                 <a-form-item label="排序方式：">
                     <div class="flex align-start">
@@ -194,7 +238,7 @@
                             <div v-if="column.dataIndex === 'state'">
                                 <a-tag :bordered="false" color="processing" v-if="record.state === '平台审核'">{{
                                     record.state
-                                }}</a-tag>
+                                    }}</a-tag>
                                 <a-tag :bordered="false" color="success" v-if="record.state === '在售'">{{ record.state
                                     }}</a-tag>
                                 <a-tag :bordered="false" color="warning" v-if="record.state === '审核不通过'">{{ record.state
@@ -211,7 +255,7 @@
                                         <a-divider type="vertical"></a-divider>
                                         促销活动价：<span style="color: #1677ff">{{
                                             record.marketingPrice ? record.marketingPrice : "暂未参加活动"
-                                        }}</span>
+                                            }}</span>
                                         <a-divider type="vertical"></a-divider>
                                         库存：
                                         <a-tooltip style="margin-right: 10px" effect="dark" placement="top"
@@ -226,7 +270,7 @@
                                         </a-tooltip>
                                         <span v-else style="color: #1677ff; margin-right: 10px">{{
                                             record.stock
-                                        }}</span>
+                                            }}</span>
                                         <AsyncIcon style="cursor: pointer; color: #1677ff" icon="EditOutlined" v-if="
                                             record.state != '审核不通过' && record.state != '已归档'
                                         " @click="editStock(record)"></AsyncIcon>
@@ -311,7 +355,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[0].score
-                                                                    }}分</span>
+                                                                        }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -354,7 +398,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[1].score
-                                                                    }}分</span>
+                                                                        }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -397,7 +441,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[2].score
-                                                                    }}分</span>
+                                                                        }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -440,7 +484,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[3].score
-                                                                    }}分</span>
+                                                                        }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -457,7 +501,7 @@
                                                     </template>
                                                     <span style="margin-left: 10px;color: #1677ff;cursor: pointer;">{{
                                                         record.productsScore[0].rating
-                                                    }}分</span>
+                                                        }}分</span>
                                                 </a-popover>
                                             </div>
                                             <span v-else>{{ 0.0 }}分</span>
@@ -497,12 +541,12 @@
                                 <div>
                                     创建时间：<span style="color: #9e9f9e">{{
                                         timestampToDateTime(record.createdTime)
-                                    }}</span>
+                                        }}</span>
                                 </div>
                                 <div>
                                     更新时间：<span style="color: #9e9f9e">{{
                                         timestampToDateTime(record.updatedTime)
-                                    }}</span>
+                                        }}</span>
                                 </div>
                             </div>
                             <div v-if="column.dataIndex === 'option'">
@@ -559,20 +603,23 @@
         <editQuantity :editQuantityVis="editQuantityVis" :editStockList="editStockList" :selectOzonId="selectOzonId"
             @backCloseQuantity="backCloseQuantity"></editQuantity>
         <!-- 进度条 -->
-        <progressBar :showOpen="showOpen" @handleProgressBarClose="showOpen = false" :percentage="percentage">
+        <progressBar :showOpen="showOpen" @handleProgressBarClose="handleProgressBarClose" :percentage="percentage">
         </progressBar>
         <!-- 复制 -->
-        <copyProduct :copyProductVis="copyProductVis" :copyList="copyList" @handleCopyProductClose="handleCopyProductClose"></copyProduct>
+        <copyProduct :copyProductVis="copyProductVis" :copyList="copyList"
+            @handleCopyProductClose="handleCopyProductClose">
+        </copyProduct>
         <!-- 已合并 -->
-        <productList @handleProductListClose="handleProductListClose" :childList="childList" :prodListVisible="prodListVisible"></productList>
+        <productList @handleProductListClose="handleProductListClose" :childList="childList"
+            :prodListVisible="prodListVisible">
+        </productList>
     </div>
 </template>
 
 <script setup name='product'>
-import { accountCache } from "../config/api/product";
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import {
-    list, batchArchive, syncOneProduct, syncHistoryCategory, mergeList,
+    accountCache, list, batchArchive, syncOneProduct, syncHistoryCategory, mergeList, asyncProgress,
     updatePrices, productWarehouse, del, syncShopProductAll, syncShopProduct
 } from '../config/api/product';
 import { warehouseList } from "../config/api/storeManagement"
@@ -586,6 +633,7 @@ import progressBar from "../config/component/progressBar/index.vue"
 import productList from "./comm/productList.vue";
 import copyProduct from "./comm/copyProduct.vue";
 const OzonProduct = ref(null)
+const formRef = ref(null)
 const formData = reactive({
     offerId: "",
     account: "",
@@ -600,9 +648,21 @@ const paginations = reactive({
     pageSize: 50,
     total: 0,
 });
+const advancedForm = reactive({
+    minPrice: "",
+    maxPrice: "",
+    minOldPrice: "",
+    maxOldPrice: "",
+    minStock: null,
+    maxStock: null,
+    isRemark: "",
+    timeSort: "update_time",
+    time: []
+})
 const dropCol = tableHead
 const tabList = tabDicList
 const discLists = attrList
+const advancedType = ref(false)
 const loading = ref(false)
 const allChecked = ref(false)
 const syncLoading = ref(false)
@@ -617,6 +677,7 @@ const editQuantityVis = ref(false)
 const showOpen = ref(false)
 const prodListVisible = ref(false)
 const copyProductVis = ref(false)
+const interval = ref(null)
 const percentage = ref(0)
 const defType = ref([])
 const itemId = ref()
@@ -749,6 +810,24 @@ const selectTypes = (index) => {
             break;
     }
 }
+
+// 高级搜索重置
+const resetForm = (type = 0) => {
+    formData.sku = "";
+    formData.offerId = "";
+    formData.name = "";
+    advancedForm.minPrice = ""
+    advancedForm.maxPrice = ""
+    advancedForm.minOldPrice = ""
+    advancedForm.maxOldPrice = ""
+    advancedForm.minStock = null
+    advancedForm.maxStock = null
+    advancedForm.isRemark = ""
+    advancedForm.timeSort = "update_time"
+    advancedForm.time = []
+    advancedType.value = type == 1 ? false : true
+}
+
 
 // 排序方式
 const storChange = (val) => {
@@ -1138,9 +1217,9 @@ const add = () => {
     window.open("productPublish", '_blank');
 }
 const edit = (row = {}) => {
-    let newRow = Object.keys(row).length != 0 ? row  : selectedRows.value[0];
-    console.log('newRow',newRow);
-    
+    let newRow = Object.keys(row).length != 0 ? row : selectedRows.value[0];
+    console.log('newRow', newRow);
+
     window.open("editProductPublish" + `?id=${newRow.id}&account=${newRow.account}`, '_blank');
 }
 const sync = () => {
@@ -1149,19 +1228,28 @@ const sync = () => {
     if (formData.account == null || formData.account == "") {
         syncShopProductAll()
             .then((res) => {
-                percentage.value = 100;
+                interval.value = setInterval(() => {
+                    asyncProgress(res.msg).then(res => {
+                        percentage.value = parseInt(res.data);
+                        if (res.data >= 100) {
+                            clearInterval(interval.value)
+                        }
+                    })
+                }, 5000);
             })
-            .catch(() => {
-                percentage.value = 0;
-            })
-            .finally(() => {
-                syncLoading.value = false;
-                showOpen.value = false;
-                getList();
-                setTimeout(() => {
-                    percentage.value = 0;
-                }, 300);
-            });
+        //     .catch(() => {
+        //         percentage.value = 0;
+        //     })
+        //     .finally(() => {
+        //         syncLoading.value = false;
+        //         showOpen.value = false;
+        //         getList();
+        //         setTimeout(() => {
+        //             percentage.value = 0;
+        //         }, 300);
+        //     });
+
+
     } else {
         syncShopProduct({ account: formData.account })
             .then((res) => {
@@ -1180,6 +1268,12 @@ const sync = () => {
             });
     }
 }
+
+const handleProgressBarClose = () => {
+    showOpen.value = false;
+    getList();
+}
+
 const syncOne = (record = {}) => {
     let id = [];
     let obj = {};

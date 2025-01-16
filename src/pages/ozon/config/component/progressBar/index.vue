@@ -1,7 +1,7 @@
 <template>
     <div id="progressBarCont">
         <a-modal :open="showOpen" :footer="null" :maskClosable="false" :width="'40%'" :keyboard="false">
-            <a-progress class="m-5" style="width: 900px;" :percent="percent" :stroke-width="20" />
+            <a-progress class="m-5" style="width: 900px;" :percent="percentage" :stroke-width="20" />
         </a-modal>
     </div>
 </template>
@@ -15,23 +15,20 @@ const props = defineProps({
 });
 const emit = defineEmits(["handleProgressBarClose"]);
 // 模拟进度增加
-let timer;
-const percent = ref(0)
-console.log('props',props.percentage);
+// let timer;
+// const percent = ref(0)
+// console.log('props',props.percentage);
 watch(() => props.percentage, val => {
-    timer = setInterval(() => {
-        if (props.percentage < 100) {
-            percent.value += 10;
-        } else {
-            clearInterval(timer);
-            handleCancel(); 
-        }
-    }, 1000);
+    if (props.percentage >= 100) {
+        handleCancel(); 
+    }
+    // timer = setInterval(() => {
+    // }, 1000);
 },{ immediate: true })
 
 const handleCancel = () => {
     emit("handleProgressBarClose")
-    percent.value = 0
+    // percent.value = 0
 }
 </script>
 <style lang="less" scoped></style>

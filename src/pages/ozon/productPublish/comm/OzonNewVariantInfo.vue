@@ -1,6 +1,6 @@
 <template>
     <div id="OzonNewVariantInfoCont">
-        <a-card title="SKU信息" class="text-left">
+        <a-card title="SKU信息" class="text-left" :loading="categoryAttributesLoading">
             <a-card title="变种属性" class="text-left mx-50">
                 <div>
                     <span>变种主题：</span>
@@ -39,11 +39,11 @@
                                     <div v-if="record.selectType == 'multSelect'" class="w-4/5">
                                         <a-select v-model:value="record.modelValue" class="w-full"
                                             optionFilterProp="label" allowClear mode="multiple" placeholder="请选择"
-                                            labelInValue @change="pushValue(index, items)">
-                                            <a-select-option v-for="items in record.details" :key="items.id"
+                                            labelInValue @change="pushValue(index, items)" :options="record.details">
+                                            <!-- <a-select-option v-for="items in record.details" :key="items.id"
                                                 :label="items.label" :value="items">{{ items.label
                                                 }}
-                                            </a-select-option>
+                                            </a-select-option> -->
                                         </a-select>
                                     </div>
                                     <!-- 输入框 -->
@@ -123,10 +123,11 @@
                             <a-input v-model:value="record.sellerSKU"></a-input>
                         </template>
                         <template v-if="column.dataIndex === 'price'">
-                            <a-input-number style="width: 80%" v-model:value="record.price"></a-input-number>
+                            <a-input-number style="width: 80%" :min="0" v-model:value="record.price"></a-input-number>
                         </template>
                         <template v-if="column.dataIndex === 'oldPrice'">
-                            <a-input-number style="width: 80%" v-model:value="record.oldPrice"></a-input-number>
+                            <a-input-number style="width: 80%" :min="0"
+                                v-model:value="record.oldPrice"></a-input-number>
                         </template>
                         <template v-if="column.dataIndex === 'quantity'">
                             <AsyncIcon icon="EditOutlined" @click="batchStock"></AsyncIcon>
@@ -135,28 +136,28 @@
                             <div>
                                 <div style="display: flex">
                                     长度：
-                                    <a-input-number controls-position="right" style="width: 80%"
+                                    <a-input-number controls-position="right" :min="0" style="width: 80%"
                                         v-model:value="record.packageLength" placeholder="长度">
                                         <template #addonAfter>mm</template>
                                     </a-input-number>
                                 </div>
                                 <div style="display: flex; margin-top: 5px">
                                     宽度：
-                                    <a-input-number controls-position="right" style="width: 80%"
+                                    <a-input-number controls-position="right" :min="0" style="width: 80%"
                                         v-model:value="record.packageWidth" placeholder="宽度">
                                         <template #addonAfter>mm</template>
                                     </a-input-number>
                                 </div>
                                 <div style="display: flex; margin-top: 5px">
                                     高度：
-                                    <a-input-number controls-position="right" style="width: 80%"
+                                    <a-input-number controls-position="right" :min="0" style="width: 80%"
                                         v-model:value="record.packageHeight" placeholder="高度">
                                         <template #addonAfter>mm</template>
                                     </a-input-number>
                                 </div>
                                 <div style="display: flex; margin-top: 5px">
                                     重量：
-                                    <a-input-number controls-position="right" style="width: 80%"
+                                    <a-input-number controls-position="right" :min="0" style="width: 80%"
                                         v-model:value="record.packageWeight" placeholder="重量"
                                         @blur="handleInput(record.packageWeight, record)">
                                         <template #addonAfter>g</template>
@@ -173,6 +174,63 @@
                         </template>
                     </template>
                 </a-table>
+            </a-card>
+            <a-card title="变种图片" class="text-left mx-50 mt-5">
+                <template #extra>
+                    <div style="padding: 3px 0;color: #99999a;" class="mr-2.5 float-right">
+                        <a-select v-model:value="watermarkValue" class="w-50" placeholder="请选择水印"
+                            @change="selectWaterMark">
+                            <a-select-option v-for="wa in watermark" :key="wa.id" :label="wa.title" :value="wa.id">
+                                <div>
+                                    <span>{{ wa.title }} </span>
+                                    <a-image v-if="wa.type === 1" :src="wa.content"
+                                        style="width: 20px; height: 20px; margin-top: -10px"></a-image>
+                                    <span v-else>{{ wa.content }}</span>
+                                </div>
+                            </a-select-option>
+                        </a-select>
+                    </div>
+                    <span style="padding: 3px 0;color: #99999a;" class="mr-2.5 float-right">
+                        <a-input-number v-model:value="cropWidth" placeholder="宽" controls-position="right"
+                            :controls="false"></a-input-number>
+                        X
+                        <a-input-number v-model:value="cropHeight" placeholder="高" controls-position="right"
+                            :controls="false"></a-input-number>
+                        <a-button @click="crop">裁剪</a-button>
+                    </span>
+                </template>
+                <div>
+                    <a-tag color="warning">！说明</a-tag>
+                    <span style="color: #9fa0a2">
+                        第一张图片默认为主图，点击图片拖动，即可调整图片顺序！
+                        单张不超过2M，只支持jpg、.png、.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3：4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)</span>
+                </div>
+                <div class="mt-5">
+                    <div v-for="item in tableData" :key="item.id">
+                        <div v-if="tableData.length > 0">
+                            <a-card class="mb-2.5 ml-2.5">
+                                <div v-if="imgHeaderList.length > 0">
+                                    <div v-for="(e, i) in imgHeaderList" :key="i">
+                                        <div>
+                                            <span>{{ e.label }}:</span><span>{{ item[e.label] }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div v-if="item && item.detail">
+                                    {{ item.detail.attr }}
+                                </div>
+                                <span v-if="item.imageUrl">
+                                    {{ item.imageUrl.length }}/15</span>
+                                <!-- <drag-file-upload :qiniuUploadForm="{ type: 0 }" :limitation="15" @checkImg="(images) => {
+                                        checkImg(images, item);
+                                    }
+                                    " @allList="imageUpload($event, item)" :allList="item.imageUrl" ref="imageList"
+                                    :is-check="true" accept=".jpg,.jpeg,.png"
+                                    :upload-url="uploadUrl"></drag-file-upload> -->
+                            </a-card>
+                        </div>
+                    </div>
+                </div>
             </a-card>
         </a-card>
         <EditProdQuantity :editQuantityVis="editQuantityVis"></EditProdQuantity>
@@ -198,6 +256,10 @@ const requiredList = ref([]) //必填变种主题
 const attributeList = ref([]) //变种主题卡片
 const colorAttributeList = ref([]) //带颜色名称的变种主题卡片
 const tableData = ref([])
+const watermark = ref([])
+const watermarkValue = ref("")
+const cropWidth = ref(800)
+const cropHeight = ref(800)
 const editQuantityVis = ref(false)
 const headerList = ref([
     {
@@ -259,253 +321,210 @@ const isConform = ref(false)
 // 处理数据格式
 const processDataFormat = (list = []) => {
     console.log('list', list, isConform.value);
-
-    let specialAttributeList = [
-        {
-            dataIndex: '颜色名称(Название цвета)',
-            title: '颜色名称(Название цвета)',
-            selectType: "input",
-            show: false,
-            id: 10097
-        },
-        {
-            dataIndex: 'options',
-            title: '操作',
-        }
-    ]
-    let newAttributeList = []
-    let attrObj = {}
     let newHeaderList = []
-    let dataItem = {}
+    const isHave = checkData(list);
+    console.log('isHave', isHave);
 
-    newHeaderList = list.map((item) => ({
-        selectType: item.selectType,
-        dataIndex: item.name,
-        // dataIndex: item.id === 10097 ? 'secondName' : item.name,
-        title: item.name,
-        type: 2,
-        id: item.id,
-        show: true,
-        align: 'center'
-    }));
+    if (isHave) {
+        const prodColor = list.find(item => item.id === 10096)
+        const newList = list.filter(
+            (obj) => !(obj.id === 10097)
+        );
+        console.log('newList', newList);
 
-
-    const insertIndex = headerList.value.length - 6;
-    newHeaderList.forEach(item => {
-        headerList.value.splice(insertIndex, 0, item);
-    })
-
-    if (isConform.value) {
-        newHeaderList = [...newHeaderList, ...specialAttributeList]
-        dataItem = {
-            details: list[0]?.options?.map(item => {
-                return {
-                    ...item,
-                    label: item.value,
-                    value: item.id
-                }
-            }),
-            isRequired: list[0].isRequired,
-            categoryDependent: list[0].categoryDependent,
-            isCollection: list[0].isCollection,
-            id: list[0].id,
-            name: list[0].name,
-            selectType: list[0].selectType,
-            modelValue: list[0].selectType === "input"
-                ? ""
-                : list[0].selectType === "multSelect"
-                    ? []
-                    : undefined,
-            secondName: '颜色名称(Название цвета)',
-            '颜色名称(Название цвета)': '颜色名称(Название цвета)',
-            secondId: 10097,
-            secondModelValue: ""
-        }
-    } else {
-        newHeaderList.push({
-            dataIndex: 'options',
-            title: '操作',
+        newHeaderList = newList.map(item => {
+            return {
+                title: item.name,
+                tableColumns: item.id === 10096 ? [
+                    {
+                        selectType: item.selectType,
+                        dataIndex: item.name,
+                        title: item.name,
+                        type: 2,
+                        id: item.id,
+                        show: true,
+                        align: 'center',
+                        width: 900
+                    },
+                    {
+                        dataIndex: '颜色名称(Название цвета)',
+                        title: '颜色名称(Название цвета)',
+                        selectType: "input",
+                        show: true,
+                        type: 2,
+                        align: 'center',
+                        id: 10097
+                    },
+                    {
+                        dataIndex: 'options',
+                        title: '操作',
+                        fixed: 'right',
+                        width: 200
+                    }
+                ] : [
+                    {
+                        selectType: item.selectType,
+                        dataIndex: item.name,
+                        title: item.name,
+                        type: 2,
+                        id: item.id,
+                        show: true,
+                        align: 'center',
+                        width: 900
+                    },
+                    {
+                        dataIndex: 'options',
+                        title: '操作',
+                        fixed: 'right',
+                        width: 200
+                    }
+                ],
+                isRequired: item.isRequired,
+                id: item.id,
+                name: item.name,
+                isRequired: item.isRequired,
+                categoryDependent: item.categoryDependent,
+                isCollection: item.isCollection,
+                selectType: item.selectType,
+                details: item.options,
+                tableData: item.id === 10096 ? [
+                    {
+                        details: item.options?.map(item => {
+                            return {
+                                ...item,
+                                label: item.value,
+                                value: item.id
+                            }
+                        }),
+                        isRequired: item.isRequired,
+                        categoryDependent: item.categoryDependent,
+                        isCollection: item.isCollection,
+                        id: item.id,
+                        name: item.name,
+                        selectType: item.selectType,
+                        modelValue: item.selectType === "input"
+                            ? ""
+                            : item.selectType === "multSelect"
+                                ? []
+                                : undefined,
+                        secondName: '颜色名称(Название цвета)',
+                        '颜色名称(Название цвета)': '颜色名称(Название цвета)',
+                        secondId: 10097,
+                        secondModelValue: ""
+                    }
+                ] : [
+                    {
+                        details: item.options?.map(item => {
+                            return {
+                                ...item,
+                                label: item.value,
+                                value: item.id
+                            }
+                        }),
+                        isRequired: item.isRequired,
+                        categoryDependent: item.categoryDependent,
+                        isCollection: item.isCollection,
+                        id: item.id,
+                        name: item.name,
+                        selectType: item.selectType,
+                        modelValue: item.selectType === "input"
+                            ? ""
+                            : item.selectType === "multSelect"
+                                ? []
+                                : undefined,
+                    }
+                ]
+            }
         })
-        dataItem = {
-            details: list[0]?.options?.map(item => {
-                return {
-                    ...item,
-                    label: item.value,
-                    value: item.id
-                }
-            }),
-            isRequired: list[0].isRequired,
-            categoryDependent: list[0].categoryDependent,
-            isCollection: list[0].isCollection,
-            id: list[0].id,
-            name: list[0].name,
-            selectType: list[0].selectType,
-            modelValue: list[0].selectType === "input"
-                ? ""
-                : list[0].selectType === "multSelect"
-                    ? []
-                    : undefined,
-        }
+    } else {
+        newHeaderList = list.map(item => {
+            return {
+                title: item.name,
+                tableColumns: [
+                    {
+                        selectType: item.selectType,
+                        dataIndex: item.name,
+                        title: item.name,
+                        type: 2,
+                        id: item.id,
+                        show: true,
+                        align: 'center',
+                        width: 900
+                    },
+                    {
+                        dataIndex: 'options',
+                        title: '操作',
+                        fixed: 'right',
+                        width: 200
+                    }
+                ],
+                isRequired: item.isRequired,
+                id: item.id,
+                name: item.name,
+                isRequired: item.isRequired,
+                categoryDependent: item.categoryDependent,
+                isCollection: item.isCollection,
+                selectType: item.selectType,
+                details: item.options,
+                tableData: [
+                    {
+                        details: item.options?.map(item => {
+                            return {
+                                ...item,
+                                label: item.value,
+                                value: item.id
+                            }
+                        }),
+                        isRequired: item.isRequired,
+                        categoryDependent: item.categoryDependent,
+                        isCollection: item.isCollection,
+                        id: item.id,
+                        name: item.name,
+                        selectType: item.selectType,
+                        modelValue: item.selectType === "input"
+                            ? ""
+                            : item.selectType === "multSelect"
+                                ? []
+                                : undefined,
+                    }
+                ]
+            }
+        })
     }
-    attrObj = {
-        title: list[0]?.name,
-        tableColumns: newHeaderList,
-        isRequired: list[0]?.isRequired,
-        id: list[0].id,
-        name: list[0].name,
-        isRequired: list[0].isRequired,
-        categoryDependent: list[0].categoryDependent,
-        isCollection: list[0].isCollection,
-        selectType: list[0].selectType,
-        details: list[0].options,
-        tableData: [dataItem]
-    }
-    // if (isConform.value) {
-    //     attrObj = {
-    //         title: list[0]?.name,
-    //         tableColumns: [
-    //             {
-    //                 dataIndex: list[0]?.name,
-    //                 title: list[0]?.name,
-    //                 width: 1200
-    //             },
-    //             {
-    //                 dataIndex: 'secondName',
-    //                 title: list[1]?.name,
-    //                 width: 400
-    //             },
-    //             {
-    //                 dataIndex: 'options',
-    //                 title: '操作',
-    //             }
-    //         ],
-    //         isRequired: list[0]?.isRequired,
-    //         id: list[0].id,
-    //         name: list[0].name,
-    //         isRequired: list[0].isRequired,
-    //         categoryDependent: list[0].categoryDependent,
-    //         isCollection: list[0].isCollection,
-    //         selectType: list[0].selectType,
-    //         details: list[0].options,
-    //         tableData: [
-    //             {
-    //                 details: list[0]?.options?.map(item => {
-    //                     return {
-    //                         ...item,
-    //                         label: item.value,
-    //                         value: item.id
-    //                     }
-    //                 }),
-    //                 isRequired: list[0].isRequired,
-    //                 categoryDependent: list[0].categoryDependent,
-    //                 isCollection: list[0].isCollection,
-    //                 id: list[0].id,
-    //                 name: list[0].name,
-    //                 selectType: list[0].selectType,
-    //                 modelValue: [],
-    //                 secondName: list[1]?.name,
-    //                 secondId: list[1]?.id,
-    //                 secondModelValue: undefined
-    //             }
-    //         ]
-    //     }
-    //     newHeaderList = list.map((item) => ({
-    //         dataIndex: item.name,
-    //         title: item.name,
-    //         selectType: item.selectType,
-    //         type: 2,
-    //         options: item.options,
-    //         show: true,
-    //         align: 'center'
-    //     }));
-
-    //     newHeaderList.forEach(item => {
-    //         headerList.value.unshift(item)
-    //     })
-    //     const index1 = 0;
-    //     const index2 = 1;
-
-    //     // 利用解构赋值进行交换
-    //     [headerList.value[index1], headerList.value[index2]] = [headerList.value[index2], headerList.value[index1]];
-    //     console.log('**////888', headerList.value);
-
-    // } else {
-    //     newHeaderList = list.map((item) => ({
-    //         dataIndex: item.name,
-    //         title: item.name,
-    //         selectType: item.selectType,
-    //         type: 2,
-    //         options: item.options,
-    //         show: true,
-    //         align: 'center',
-    //     }));
-    //     const insertIndex = headerList.value.length - 6;
-    //     newHeaderList.forEach(item => {
-    //         // 使用 splice 方法插入数据
-    //         headerList.value.splice(insertIndex, 0, item);
-    //     })
-
-    //     newHeaderList.push({
-    //         dataIndex: 'options',
-    //         title: '操作',
-    //     })
-    //     console.log('newHeaderList',newHeaderList);
-
-    //     attrObj = {
-    //         title: list[0]?.name,
-    //         tableColumns: newHeaderList,
-    //         id: list[0].id,
-    //         name: list[0].name,
-    //         isRequired: list[0].isRequired,
-    //         categoryDependent: list[0].categoryDependent,
-    //         isCollection: list[0].isCollection,
-    //         selectType: list[0].selectType,
-    //         details: list[0].options,
-    //         tableData: list?.map(item => {
-    //             let inputValue =
-    //                 item.selectType === "input"
-    //                     ? ""
-    //                     : item.selectType === "multSelect"
-    //                         ? []
-    //                         : undefined;
-    //             return {
-    //                 type: item.type,
-    //                 details: item?.options?.map(item => {
-    //                     return {
-    //                         ...item,
-    //                         label: item.value,
-    //                         value: item.id
-    //                     }
-    //                 }),
-    //                 isRequired: item.isRequired,
-    //                 categoryDependent: item.categoryDependent,
-    //                 isCollection: item.isCollection,
-    //                 id: item.id,
-    //                 name: item.name,
-    //                 selectType: item.selectType,
-    //                 modelValue: inputValue,
-    //             }
-    //         })
-    //     }
-    // }
-    console.log('attrObj', attrObj);
-
-    attributeList.value.push(attrObj)
-    // 检查数组中对象的 id 属性是否存在 10096
-    const indexOfColor = headerList.value.findIndex(item => item.id === 10096);
-    console.log('/*', indexOfColor !== -1 && isConform.value);
-    const indexOfColorName = headerList.value.findIndex(item => item.id === 10097);
-    if (indexOfColor !== -1 && isConform.value && indexOfColorName !== -1) {
-        headerList.value.splice(indexOfColor+1, 0, {
-            dataIndex: "颜色名称(Название цвета)",
-            id: 10097,
-            selectType: "input",
+    console.log('headerList1', headerList.value);
+    const insertIndex = headerList.value.length - 6;
+    for (let i = list.length - 1; i >= 0; i--) {
+        // reversedArray.push(originalArray[i]);
+        headerList.value.splice(insertIndex, 0, {
+            dataIndex: list[i].name,
+            id: list[i].id,
+            title: list[i].name,
             show: true,
-            title: "颜色名称(Название цвета)",
             align: 'center'
         });
-
+        imgHeaderList.value.push({
+            title: list[i].name
+        })
     }
+
+    console.log('headerList2', headerList.value, tableData.value);
+
+    attributeList.value = [...attributeList.value, ...newHeaderList]
+    // 检查数组中对象的 id 属性是否存在 10096
+    // const indexOfColor = headerList.value.findIndex(item => item.id === 10096);
+    // console.log('/*', indexOfColor !== -1 && isConform.value);
+    // const indexOfColorName = headerList.value.findIndex(item => item.id === 10097);
+    // if (indexOfColor !== -1 && isConform.value && indexOfColorName !== -1) {
+    //     headerList.value.splice(indexOfColor + 1, 0, {
+    //         dataIndex: "颜色名称(Название цвета)",
+    //         id: 10097,
+    //         selectType: "input",
+    //         show: true,
+    //         title: "颜色名称(Название цвета)",
+    //         align: 'center'
+    //     });
+
+    // }
     console.log('attributeList', attributeList.value, headerList.value);
 
 
@@ -514,7 +533,28 @@ const processDataFormat = (list = []) => {
 // 手动添加多个变种主题
 const enterVariantType = (item) => {
     let arr = [];
-    arr.push(item);
+    console.log('item', item);
+    if (isConform.value && item.id === 10096) {
+        arr = [
+            {
+                ...item
+            },
+            {
+                selectType: "input",
+                id: 10097,
+                isAspect: true,
+                isCollection: false,
+                isRequired: false,
+                name: "颜色名称(Название цвета)",
+                isAspect: true,
+                isCollection: false,
+                isRequired: false,
+            }
+        ]
+    } else {
+        arr.push(item);
+    }
+    // arr.push(item);
     // isConform.value = false
     processDataFormat(arr);
     for (let i = 0; i < themeBtns.value.length; i++) {
@@ -551,7 +591,7 @@ const addItem = (item, row) => {
     let ele = {}
     if (isConform.value && item.id === 10096) {
         ele = {
-            id: Date.now(),
+            id: item.id,
             name: item.name,
             modelValue: item.selectType === 'multSelect' ? [] : undefined,
             selectType: item.selectType,
@@ -574,25 +614,14 @@ const addItem = (item, row) => {
     row.tableData.push(ele)
 }
 
-
-const specialAddItem = (item) => {
-    let ele = {
-        id: Date.now(),
-        name: item.name,
-        modelValue: [],
-        selectType: item.selectType,
-        secondName: item.secondName,
-        secondId: item.secondId,
-        secondModelValue: undefined
-    };
-    // this.$set(item.inputList, item.inputList.length, ele);
-    item.inputList.push(ele)
-}
-
 // 移除多个属性操作
 const removeItem = (item, index, row) => {
-    console.log('removeItem', item, index, row);
-    row.tableData.splice(index, 1);
+    console.log('removeItem', item, row);
+    if (item.id === 10096) {
+        row.tableData.splice(index, 1);
+    } else {
+        row.tableData = row.tableData.filter(el => el.id !== item.id);
+    }
     tableData.value.splice(index, 1);
 }
 
@@ -612,7 +641,6 @@ const pushValue = (index, item) => {
         newTableData[i].sellerSKU = tableData.value[i].sellerSKU;
         newTableData[i].price = tableData.value[i].price;
         newTableData[i].oldPrice = tableData.value[i].oldPrice;
-        newTableData[i].imageUrl = tableData.value[i].imageUrl;
         newTableData[i].colorImg = tableData.value[i].colorImg;
         newTableData[i].quantity = tableData.value[i].quantity;
         newTableData[i].warehouseName = tableData.value[i].warehouseName;
@@ -757,6 +785,8 @@ const changeHeade = () => {
 }
 
 const handleInput = (packageWeight, row) => {
+    console.log('111', packageWeight);
+
     row.packageWeight = packageWeight.split(".")[0];
 }
 
@@ -838,52 +868,239 @@ const batchPackLength = () => {
 defineExpose({
     tableData,
 })
+// 排序商品颜色
+const reorderArray = (arr) => {
+    const hasProdColor = arr.some(item => item.id === 10096);
+    const hasColor = arr.some(item => item.id === 10097);
+    if (hasProdColor && hasColor) {
+        const item = arr.find(item => item.id === 10096);
+        arr = arr.filter(item => item.id !== 10096);
+        arr.unshift(item);
+    }
+    return arr;
+}
 
+
+// 选择水印
+const selectWaterMark = () => {
+    let res = [];
+    for (let i = 0; i < this.tableData.length; i++) {
+        for (let j = 0; j < this.tableData[i].imageUrl.length; j++) {
+            if (this.tableData[i].imageUrl[j].checkede) {
+                res.push(this.tableData[i].imageUrl[j].url);
+            }
+        }
+    }
+    if (res.length === 0) {
+        this.$alert("选择水印！", "错误提示", {
+            confirmButtonText: "确定",
+            message: "打水印前请选择需要打水印的文件！",
+            type: "error",
+        });
+        return;
+    }
+    watermark({ id: this.watermarkValue, imagePathList: res })
+        .then((res) => {
+            res.data.forEach((value) => {
+                for (let i = 0; i < this.tableData.length; i++) {
+                    for (let j = 0; j < this.tableData[i].imageUrl.length; j++) {
+                        if (
+                            this.tableData[i].imageUrl[j].url === value.originalFilename
+                        ) {
+                            this.tableData[i].imageUrl[j].url = value.fileName;
+                            this.tableData[i].imageUrl[j].name = value.newFileName;
+                            this.tableData[i].imageUrl[j].checkede = false;
+                        }
+                    }
+                }
+            });
+        })
+        .finally(() => {
+            this.watermarkValue = "";
+            ++this.refreshKey;
+        });
+}
+const crop = () => {
+    let res = [];
+
+    for (let i = 0; i < this.tableData.length; i++) {
+        for (let j = 0; j < this.tableData[i].imageUrl.length; j++) {
+            if (this.tableData[i].imageUrl[j].checkede) {
+                res.push(this.tableData[i].imageUrl[j].url);
+            }
+        }
+    }
+    if (res.length === 0) {
+        this.$alert("选择水印！", "错误提示", {
+            confirmButtonText: "确定",
+            message: "打水印前请选择需要打水印的文件！",
+            type: "error",
+        });
+        return;
+    }
+    cropImg({
+        newWidth: this.cropWidth,
+        newHeight: this.cropHeight,
+        imagePathList: res,
+    })
+        .then((res) => {
+            res.data.forEach((value) => {
+                for (let i = 0; i < this.tableData.length; i++) {
+                    for (let j = 0; j < this.tableData[i].imageUrl.length; j++) {
+                        if (
+                            this.tableData[i].imageUrl[j].url === value.originalFilename
+                        ) {
+                            this.tableData[i].imageUrl[j].url = value.fileName;
+                            this.tableData[i].imageUrl[j].name = value.newFileName;
+                            this.tableData[i].imageUrl[j].checkede = false;
+                            this.tableData[i].imageUrl[j].width = this.cropWidth;
+                            this.tableData[i].imageUrl[j].height = this.cropHeight;
+                        }
+                    }
+                }
+            });
+        })
+        .finally(() => {
+            this.watermarkValue = "";
+            ++this.refreshKey;
+        });
+}
+
+
+// 获取水印列表
+const getWatermark = () => {
+    watermarkList().then((res) => {
+        watermark.value = res.data;
+    });
+}
 
 watch(() => props.attributes, val => {
     if (val) {
         themeBtns.value = [];
         requiredList.value = [];
         attributeList.value = [];
+        tableData.value = [];
+        headerList.value = [
+            {
+                dataIndex: 'sellerSKU',
+                title: 'SKU',
+                show: true,
+                align: 'center'
+            },
+            {
+                dataIndex: 'price',
+                title: '售价',
+                show: true,
+                align: 'center'
+            },
+            {
+                dataIndex: 'oldPrice',
+                title: '原价',
+                show: true,
+                align: 'center'
+            },
+            {
+                dataIndex: 'quantity',
+                title: '库存',
+                show: true,
+                align: 'center'
+            },
+            {
+                dataIndex: 'packageLength',
+                title: '尺寸',
+                show: true,
+                align: 'center'
+            },
+            {
+                dataIndex: 'options',
+                title: '操作',
+                show: true,
+                align: 'center'
+            }
+        ]
         // 提取变种主题
         let arr = props.attributes.filter((obj) => obj.isAspect);
         isConform.value = checkData(arr);
         console.log("arr", arr, isConform.value);
+        const requiredItem = arr.some(item => item.isRequired === true);
+        console.log('requiredItem', requiredItem);
 
-        themeBtns.value = arr.filter(
-            (obj) => !(obj.isRequired || obj.id === 10097)
-        )
-        // 过滤必填项的变种主题
-        requiredList.value = arr.filter(
-            (obj) => obj.isRequired && obj.isCollection
-        )
+        if (requiredItem) {
+            if (isConform.value) {
+                requiredList.value = arr.filter(
+                    (obj) => obj.isRequired || obj.id == 10097
+                );
+                themeBtns.value = arr.filter(
+                    (obj) => !(obj.isRequired || obj.id === 10097)
+                )
+                requiredList.value = reorderArray(requiredList.value)
+            } else {
+                requiredList.value = arr.filter((obj) => obj.isRequired);
+            }
+        } else {
+            if (isConform.value) {
+                themeBtns.value = arr.filter(
+                    (obj) => !(obj.isRequired || obj.id === 10097)
+                )
+
+            } else {
+                themeBtns.value = arr.filter((obj) => !obj.isRequired)
+            }
+        }
 
 
+        // themeBtns.value = arr.filter(
+        //     (obj) => !(obj.isRequired || obj.id === 10097)
+        // )
+        // // 过滤必填项的变种主题
+        // requiredList.value = arr.filter(
+        //     (obj) => obj.isRequired && obj.isCollection
+        // )
+
+        console.log('themeBtns', themeBtns.value);
         console.log('requiredList', requiredList.value);
 
         if (requiredList.value.length != 0) {
             processDataFormat(requiredList.value);
         }
-        if (requiredList.value.length == 0 && themeBtns.value.length == 0) {
-            tableData.value.push({
-                // skuTitle: "",
-                sellerSKU: "",
-                price: "",
-                oldPrice: "",
-                quantity: undefined,
-                warehouseId: undefined,
-                warehouseName: "",
-                packageLength: undefined,
-                packageWidth: undefined,
-                packageHeight: undefined,
-                packageWeight: undefined,
-                imageUrl: [],
-                colorImg: [],
-                id: Math.random().toString(36).substring(2, 10),
-            });
-        }
+        // if (requiredList.value.length == 0 && themeBtns.value.length == 0) {
+        //     tableData.value.push({
+        //         skuTitle: "",
+        //         sellerSKU: "",
+        //         price: "",
+        //         oldPrice: "",
+        //         quantity: undefined,
+        //         warehouseId: undefined,
+        //         warehouseName: "",
+        //         packageLength: undefined,
+        //         packageWidth: undefined,
+        //         packageHeight: undefined,
+        //         packageWeight: undefined,
+        //         colorImg: [],
+        //         id: Math.random().toString(36).substring(2, 10),
+        //     });
+        // }
+        tableData.value.push({
+            skuTitle: "",
+            sellerSKU: "",
+            price: "",
+            oldPrice: "",
+            quantity: undefined,
+            warehouseId: undefined,
+            warehouseName: "",
+            packageLength: undefined,
+            packageWidth: undefined,
+            packageHeight: undefined,
+            packageWeight: undefined,
+            imageUrl: [],
+            colorImg: [],
+            id: Math.random().toString(36).substring(2, 10),
+        });
     }
 
+})
+onMounted(() => {
+    // getWatermark()
 })
 </script>
 <style lang="less" scoped></style>
