@@ -77,3 +77,19 @@ export function lazadaLoginView(data) {
     data
   );
 }
+export function lazadaLoginEdit(data) {
+  return usePost(
+    "/platform-lazada/platform/lazada/empower/login/code/edit",
+    data
+  );
+}
+// 上传修改店铺密码excel
+export function uploadBatchPasswordExcel(data, headers) {
+  return usePost(
+    "/platform-lazada/platform/lazada/empower/login/code/batch/edit",
+    data,
+    {
+      headers,
+    }
+  );
+}

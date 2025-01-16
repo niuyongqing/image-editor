@@ -39,22 +39,22 @@
                     </template>
                     导出
                 </a-button>
-                <a-button type="primary" :loading="exportLoading" @click="lookLazadaInfo"
-                    v-has-permi="[`system:platform:lazada:accredit`]" style="margin-left: 10px;">
+                <a-button type="primary" @click="lookLazadaInfo" :disabled="singleDisabled"
+                    v-has-permi="[`system:platform:lazada:login:edit`]" style="margin-left: 10px;">
                     <template #icon>
                         <EyeOutlined />
                     </template>
                     查看店铺登录密码
                 </a-button>
-                <a-button type="primary" :loading="exportLoading" @click="handleExport"
-                    v-has-permi="[`system:platform:lazada:accredit`]" style="margin-left: 10px;">
+                <a-button type="primary" @click="handleEdit" :disabled="singleDisabled"
+                    v-has-permi="[`system:platform:lazada:login:edit`]" style="margin-left: 10px;">
                     <template #icon>
                         <EditOutlined />
                     </template>
                     修改店铺登录密码
                 </a-button>
-                <a-button type="primary" :loading="exportLoading" @click="handleExport"
-                    v-has-permi="[`system:platform:lazada:accredit`]" style="margin-left: 10px;">
+                <a-button type="primary" @click="handleBatchEdit" :disabled="multipleDisabled"
+                    v-has-permi="[`system:platform:lazada:login:edit`]" style="margin-left: 10px;">
                     <template #icon>
                         <EditOutlined />
                     </template>
@@ -114,7 +114,10 @@
         <batchSimpleName ref="batchSimpleNameRef" @success="reload"></batchSimpleName>
         <!-- 批量修改仓库 -->
         <batchStore ref="batchStoreRef" @success="reload"></batchStore>
-        <ErpValidModal ref="erpValidModalRef" @success="reload"></ErpValidModal>
+        <ErpValidModal ref="erpValidModalRef" @success="erpValidSuccess"></ErpValidModal>
+        <ViewLazadaInfo ref="viewLazadaInfoRef" @success="reload"></ViewLazadaInfo>
+        <EditLazadaInfo ref="editLazadaInfoRef" @success="reload"></EditLazadaInfo>
+        <BatchEditLazadaInfo ref="bacthLazadaInfoRef" @success="reload"></BatchEditLazadaInfo>
     </div>
 </template>
 
@@ -133,6 +136,9 @@ import batchStore from './components/batchStore.vue';// 批量修改仓库
 import ErpValidModal from './components/erpValidModal.vue';
 import downLoad from '@/api/common/download';
 import { loginCheck } from '@/pages/lazada/empower/api/index.js';
+import ViewLazadaInfo from './components/viewLazadaInfo.vue';
+import EditLazadaInfo from './components/editLazadaInfo.vue';
+import BatchEditLazadaInfo from './components/batchEditLazadaInfo.vue';
 
 const route = useRoute()
 const router = useRouter();
@@ -150,7 +156,11 @@ const baseTableEl = useTemplateRef('baseTableRef');
 const batchSimpleNameEl = useTemplateRef('batchSimpleNameRef');
 const batchStoreEl = useTemplateRef('batchStoreRef');
 const erpValidModalEl = useTemplateRef('erpValidModalRef');
-const { singleDisabled, rowSelection, tableRow, clearSelection } = useTableSelection()
+const viewLazadaInfoEl = useTemplateRef('viewLazadaInfoRef');
+const editLazadaInfoEl = useTemplateRef('editLazadaInfoRef');
+const bacthLazadaInfoEl = useTemplateRef('bacthLazadaInfoRef');
+
+const { singleDisabled, multipleDisabled, rowSelection, tableRow, selectedRowKeys, selectedRows, clearSelection } = useTableSelection()
 const initSearchParam = {
     prop: "create_time",
     order: "desc"
@@ -316,10 +326,36 @@ const autoPublishChange = (value) => {
 
 //查看账号密码邮箱
 const lookLazadaInfo = async () => {
-    const res = await loginCheck();
-    if (!res.data) {
+    let loginCheckRes = await loginCheck();
+    if (loginCheckRes.data === false) {
         erpValidModalEl.value.open();
+        return false;
+    } else {
+        const flag = erpValidSuccess();
+        const shortCode = selectedRows.value[0].shortCode;
+        viewLazadaInfoEl.value.open(shortCode);
     }
+};
+const handleEdit = async () => {
+    let loginCheckRes = await loginCheck();
+    if (loginCheckRes.data === false) {
+        erpValidModalEl.value.open();
+        return false;
+    } else {
+        const flag = erpValidSuccess();
+        if (flag) {
+            const shortCode = selectedRows.value[0].shortCode;
+            editLazadaInfoEl.value.open(shortCode);
+        }
+    }
+};
+
+const erpValidSuccess = () => {
+    if (selectedRowKeys.value.length !== 1) {
+        message.error('请选择一个店铺查看');
+        return false
+    }
+    return true;
 };
 
 //  重新刷新
@@ -331,8 +367,6 @@ const reload = () => {
 const handleSearch = async (state) => {
     await baseTableEl.value.search(state);
 };
-
-
 // 重新授权
 const Reauthorization = () => {
     // 获取授权链接
@@ -370,5 +404,18 @@ const handleExport = () => {
     })
 };
 
-
+// 批量修改店铺密码
+const handleBatchEdit = async () => {
+    // 
+    let loginCheckRes = await loginCheck();
+    if (loginCheckRes.data === false) {
+        erpValidModalEl.value.open();
+        return false;
+    } else {
+        const flag = erpValidSuccess();
+        if (flag) {
+            bacthLazadaInfoEl.value.open();
+        }
+    }
+};
 </script>
