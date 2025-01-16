@@ -29,6 +29,8 @@
     "@surely-vue/table": "^4.3.13",
     "@v-c/utils": "^0.0.26",
     "@vueuse/core": "^10.11.1",
+    "@wangeditor/editor": "^5.1.23",
+    "@wangeditor/editor-for-vue": "^5.1.12",
     "ant-design-vue": "^4.2.5",
     "antdv-pro": "file:",
     "axios": "^1.7.7",
@@ -36,15 +38,18 @@
     "dayjs": "^1.11.13",
     "fabric": "^6.5.1",
     "file-saver": "^2.0.5",
+    "js-cookie": "^3.0.5",
     "lodash-es": "^4.17.21",
     "mitt": "^3.0.1",
     "mt-image-editor-sdk": "^3.4.1",
     "pinia": "^2.2.2",
     "sortablejs": "^1.15.6",
     "tui-image-editor": "^3.15.3",
+    "uuid": "^11.0.3",
     "vue": "^3.5.8",
     "vue-i18n": "^10.0.4",
-    "vue-router": "^4.4.5"
+    "vue-router": "^4.4.5",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^2.27.3",

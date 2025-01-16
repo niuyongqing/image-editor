@@ -85,7 +85,7 @@ async function submit() {
       description: '欢迎回来！',
       duration: 3,
     })
-    const redirect = getQueryParam('redirect', '/')
+    const redirect = getQueryParam('redirect', '/platform/')
     await router.push({
       path: redirect,
       replace: true,
@@ -119,7 +119,7 @@ onBeforeUnmount(() => {
         >
           <div class="flex-end">
             <span class="ant-pro-form-login-logo">
-              <img w-full h-full object-cover src="/platform/160x160.ico">
+              <img w-full h-full object-cover src="/160x160.ico">
             </span>
             <span class="ant-pro-form-login-title">
               Xin Zhan

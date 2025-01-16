@@ -177,6 +177,8 @@ function setRect(){
 // 当需要按照宽高进行裁剪结果缩放时传入需要缩放的宽高aspectWidth, aspectHeight,
 // 如果不需要则不要传参
 export function saveCroppedImage(cropWidth, cropHeight) {
+  cropWidth = cropWidth + 10
+  cropHeight = cropHeight + 10
   if (xRef.value === 0 && yRef.value === 0) {
     isDrawing.value = true;
     calculateTheCuttingPosition(1);

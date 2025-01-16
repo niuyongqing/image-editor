@@ -30,6 +30,8 @@ onMounted(async () => {
     await createCanvas(canvasElement.value)
   }
 });
+
+
 </script>
 
 
