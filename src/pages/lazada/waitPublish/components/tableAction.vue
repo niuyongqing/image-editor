@@ -106,9 +106,7 @@ const warehouseSettingEl = useTemplateRef('warehouseSettingRef');
 const priceModalEl = useTemplateRef('priceModalRef');
 const stockModalEl = useTemplateRef('stockModalRef');
 const specialPriceModalEl = useTemplateRef('specialPriceModalRef');
-
 const { state: lazadaAttrsState, setShortCode, setLazadaAttrs, setLoading, reset } = useLadazaAttrs();
-
 
 // 仓库管理
 const warehouseSetting = () => {

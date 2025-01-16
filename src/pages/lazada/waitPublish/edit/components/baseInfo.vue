@@ -145,7 +145,7 @@ const checkedCitiesChange = (value) => {
 watch(() => {
     return detailData
 }, async (newVal) => {
-    loading.value = true;
+    // loading.value = true;
     state.shortCode = newVal.shortCode;
     state.ventures = newVal.ventures.venture || [];
     checkAll.value = state.ventures.length === globalArea.length;
@@ -256,7 +256,9 @@ async function getCategorys() {
             return arr
         };
         primaryCategoryOptions.value = treeToArr(data)
-    };
+    } else {
+        loading.value = false;
+    }
 };
 
 // 获取分类属性
