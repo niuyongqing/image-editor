@@ -202,15 +202,14 @@ async function getCategorys() {
 async function getAttributes() {
     if (!state.primaryCategory.length) return;
     setLoading(true);
-    categoryAttributesApi({
+    const res = await categoryAttributesApi({
         shortCode: state.shortCode,
         primaryCategoryId: state.primaryCategory[state.primaryCategory.length - 1]
-    }).then((res) => {
-        if (res.code === 200) {
-            attributes.value = res.data || [];
-            setLazadaAttrs(attributes.value);
-        }
-    })
+    });
+    if (res.code === 200) {
+        attributes.value = res.data || [];
+        setLazadaAttrs(attributes.value);
+    };
 };
 
 const changeShortCode = (value) => {

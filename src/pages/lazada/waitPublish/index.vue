@@ -51,12 +51,7 @@
                 <div class="pb-30px">
                     <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
                         <div>
-                            <a-tooltip placement="top">
-                                <template #title>
-                                    <span>复制</span>
-                                </template>
-                                <span @click="copyText(item.retail_price)"> {{ item.retail_price }} </span>
-                            </a-tooltip>
+                            <span> {{ item.retail_price ? item.retail_price : '-' }} </span>
                         </div>
                     </div>
                 </div>
@@ -66,7 +61,7 @@
                 <div class="pb-30px">
                     <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
                         <div>
-                            <span @click="copyText(item.sales_price)"> {{ item.sales_price }} </span>
+                            <span> {{ item.sales_price ? item.sales_price : '-' }} </span>
                         </div>
                     </div>
                 </div>
@@ -77,7 +72,7 @@
                     <div class="record-sku-container">
                         <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
                             <div>
-                                <span @click="copyText(item.quantity)"> {{ item.quantity }} </span>
+                                <span> {{ item.quantity ? item.quantity : '-' }} </span>
                             </div>
                         </div>
                     </div>

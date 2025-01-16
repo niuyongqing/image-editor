@@ -45,13 +45,13 @@
                         :options="lazadaAttrsState.warrantyList" :field-names="{ label: 'en_name', value: 'en_name' }">
                     </a-select>
                 </a-form-item>
-                <!-- :rules="[{ required: item.is_mandatory === 1, trigger: ['blur'], message: item.is_mandatory === 1 ? '必填项，请填写' : '' }]" -->
+
                 <a-form-item label="属性: " v-show="lazadaAttrsState.attributes.length > 0">
                     <a-card v-loading="lazadaAttrsState.loading" class="attrs-card">
                         <a-form :model="productAtrrsform" ref="attrsFormRef" scrollToFirstError>
                             <a-form-item v-for="item in sortAttrs(lazadaAttrsState.productClassifyAtrrs)"
                                 :key="item.name" :name="item.name" :rules="itemRules(item)" :label="item.label"
-                                :labelCol="{ span: 3 }" :wrapperCol="{ span: 21 }">
+                                :labelCol="{ span: 4 }" :wrapperCol="{ span: 20 }">
 
                                 <!-- is_key_prop： 1 时，表示当前属性是项目的 key 属性 -->
                                 <div flex>

@@ -126,7 +126,7 @@
 <script setup>
 import { DownOutlined, DownloadOutlined, UploadOutlined, PlusOutlined, DeleteOutlined } from "@ant-design/icons-vue";
 import { useResetReactive } from '@/composables/reset';
-import { accountCache, categoryTree, getBrandList, uploadImage, videoImageUpload, videoUpload } from '@/pages/lazada/product/api';
+import { accountCache, categoryTree, uploadImage, videoImageUpload, videoUpload, lazadaVideoUrl } from '@/pages/lazada/product/api';
 import EventBus from "~/utils/event-bus";
 import { debounce } from "lodash-es";
 import { message } from "ant-design-vue";
@@ -134,10 +134,14 @@ import DragUpload from '@/components/dragUpload/index.vue';
 import { saveAs } from 'file-saver';
 import { useLazadaWaitPublish } from "@/stores/lazadaWaitPublish";
 
-const { waterList } = defineProps({
+const { waterList, detailData } = defineProps({
     waterList: {
         type: Array,
         default: () => []
+    },
+    detailData: {
+        type: Object,
+        default: () => ({})
     }
 })
 
@@ -162,6 +166,43 @@ const form = reactive({
 
     ]
 });
+
+//  编辑回显
+watch(() => {
+    return detailData
+}, async (newVal) => {
+    const images = newVal.images ? JSON.parse(newVal.images) : {};
+    const imageList = images.image ? JSON.parse(images.image) : [];
+    // 产品图片
+    form.fileList = imageList.map(item => {
+        return {
+            url: item,
+            uid: item,
+            name: item
+        }
+    });
+    // 营销图
+    form.promotionWhite = newVal.attributes.promotion_whitebkg_image ? [
+        {
+            url: newVal.attributes.promotion_whitebkg_image,
+            uid: newVal.attributes.promotion_whitebkg_image,
+            name: newVal.attributes.promotion_whitebkg_image
+        }
+    ] : []
+    // 视频
+    if (newVal.attributes.video) {
+        lazadaVideoUrl({ shortCode: lazadaAttrsState.shortCode, videoId: newVal.attributes.video })
+            .then((res) => {
+                //  to do ...
+                form.video.img = res.msg;
+                form.video.img = images[0]
+            })
+        // form.video.title = newVal.attributes.title;
+    }
+}, {
+    deep: true
+});
+
 const fileListRules = computed(() => {
     return [
         {
@@ -190,7 +231,6 @@ const videoPreviewVisible = ref(false); // 视频预览
 // 视频上传校验
 const videoBeforeUpload = (file) => {
     if (!file) return;
-    // coverUrl
     if (videoImageFile.value.length === 0) {
         message.error('请先上传封面图');
         return false;

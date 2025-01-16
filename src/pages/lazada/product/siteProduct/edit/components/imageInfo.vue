@@ -124,7 +124,7 @@
 <script setup>
 import { DownOutlined, DownloadOutlined, UploadOutlined, PlusOutlined, DeleteOutlined } from "@ant-design/icons-vue";
 import { useResetReactive } from '@/composables/reset';
-import { accountCache, categoryTree, getBrandList, uploadImage, videoImageUpload, videoUpload,lazadaVideoUrl } from '@/pages/lazada/product/api';
+import { accountCache, categoryTree, uploadImage, videoImageUpload, videoUpload, lazadaVideoUrl } from '@/pages/lazada/product/api';
 import EventBus from "~/utils/event-bus";
 import { debounce } from "lodash-es";
 import { message } from "ant-design-vue";
@@ -187,12 +187,12 @@ watch(() => {
     ] : []
     // 视频
     if (newVal.attributes.video) {
-        lazadaVideoUrl({shortCode: lazadaAttrsState.shortCode, videoId: newVal.attributes.video })
-        .then((res)=> {
-            //  to do ...
-            form.video.img = res.msg;
-            form.video.img = images[0]
-        })
+        lazadaVideoUrl({ shortCode: lazadaAttrsState.shortCode, videoId: newVal.attributes.video })
+            .then((res) => {
+                //  to do ...
+                form.video.img = res.msg;
+                form.video.img = images[0]
+            })
         // form.video.title = newVal.attributes.title;
     }
 }, {

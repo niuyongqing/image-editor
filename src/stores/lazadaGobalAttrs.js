@@ -95,7 +95,12 @@ export const useLazadaGobalAttrs = defineStore("lazadaGobalAttrs", () => {
     state.productClassifyAtrrs.forEach((attr) => {
       for (const key in attributes) {
         if (attr.name === key) {
-          attr.value = attributes[key];
+          // 多选数据转为数组
+          if (attr.input_type.includes("multi")) {
+            attr.value = obj[key] ? obj[key].split(",") : [];
+          } else {
+            attr.value = obj[key];
+          }
         }
       }
     });
