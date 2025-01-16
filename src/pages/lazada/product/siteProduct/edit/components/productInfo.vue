@@ -172,7 +172,7 @@ watch(() => {
     getBrandList({ brandName: newVal.attributes.brand, shortCode: newVal.shortCode }).then(res => {
         if (res.code === 200) {
             brandIdSelction.data = res.data || [];
-            //  品牌设置默认 No Brand
+            //  品牌回显
             const brandItem = brandIdSelction.data.find((item) => {
                 return item.nameEn === newVal.attributes.brand
             });

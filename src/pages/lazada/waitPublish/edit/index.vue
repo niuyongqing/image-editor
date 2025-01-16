@@ -36,14 +36,16 @@
                         </a-button>
                     </div>
                 </div>
-                <BaseInfo id="baseInfo" ref="baseInfoRef"></BaseInfo>
-                <ProductInfo id="productInfo" ref="productInfoRef"></ProductInfo>
-                <Package id="package" ref="packageRef"></Package>
-                <ImageInfo id="imageInfo" ref="imageInfoRef" :waterList="waterList"></ImageInfo>
-                <Variant id="variant" ref="variantRef"></Variant>
-                <VariantInfo id="variantInfo" ref="variantInfoRef"></VariantInfo>
-                <VariantImage id="variantImage" ref="variantImageRef" :waterList="waterList"></VariantImage>
-                <Description id="description" ref="descriptionRef"></Description>
+                <BaseInfo id="baseInfo" ref="baseInfoRef" :detailData="detailData"></BaseInfo>
+                <ProductInfo id="productInfo" ref="productInfoRef" :detailData="detailData"></ProductInfo>
+                <Package id="package" ref="packageRef" :detailData="detailData"></Package>
+                <ImageInfo id="imageInfo" ref="imageInfoRef" :waterList="waterList" :detailData="detailData">
+                </ImageInfo>
+                <Variant id="variant" ref="variantRef" :detailData="detailData"></Variant>
+                <VariantInfo id="variantInfo" ref="variantInfoRef" :detailData="detailData"></VariantInfo>
+                <VariantImage id="variantImage" ref="variantImageRef" :waterList="waterList" :detailData="detailData">
+                </VariantImage>
+                <Description id="description" ref="descriptionRef" :detailData="detailData"></Description>
 
                 <div w-full flex justify-end mt-10px>
                     <div class="flex gap-12px">
@@ -127,11 +129,13 @@ import Variant from './components/variant.vue';
 import VariantImage from './components/variantImage.vue';
 import Description from './components/description.vue';
 import SelectProduct from '@/components/selectProduct/index.vue';
-import { useLadazaAttrs } from "@/stores/lazadaAttrs";
-import { watermarkList, lazadaAdd } from '@/pages/lazada/product/api';
 import AddSuccessModal from './components/batchModal/addSuccessModal.vue';
 import dayjs from 'dayjs';
-
+import { useLadazaAttrs } from "@/stores/lazadaAttrs";
+import { watermarkList, lazadaAdd, } from '@/pages/lazada/product/api';
+import { lazadaWaitProductDetail } from '@/pages/lazada/waitPublish/api'
+const route = useRoute();
+const detailData = ref({}); // 产品详情数据
 const saveLoading = ref(false);
 const publishLoading = ref(false);
 const waterList = ref([]); // 水印列表
@@ -334,6 +338,21 @@ const getWatermark = () => {
         }
     });
 };
+
+// 获取产品
+const getProductDetail = () => {
+    const params = {
+        id: route.query.id
+    };
+    if (!params.id) return;
+    lazadaWaitProductDetail(params)
+        .then((res) => {
+            if (res.code === 200) {
+                detailData.value = res.data || {};
+            }
+        });
+};
+
 const scrollTo = (id) => {
     const element = document.getElementById(id);
     if (element) {
@@ -341,6 +360,7 @@ const scrollTo = (id) => {
     }
 };
 onMounted(() => {
+    getProductDetail();
     getWatermark()
 });
 </script>

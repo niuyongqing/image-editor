@@ -136,8 +136,14 @@ import { debounce } from "lodash-es";
 import { message } from "ant-design-vue";
 import { useLazadaWaitPublish } from "@/stores/lazadaWaitPublish";
 
-const { state: lazadaAttrsState, } = useLazadaWaitPublish();
+const { detailData } = defineProps({
+    detailData: {
+        type: Object,
+        default: () => ({})
+    }
+});
 
+const { state: lazadaAttrsState, } = useLazadaWaitPublish();
 const isExpand = ref(false); // 展开收起
 const attributesLoading = ref(false);
 const shortCode = ref('');
@@ -157,6 +163,35 @@ const brandIdSelction = reactive({
 });
 //  产品属性表单
 const productAtrrsform = reactive({});
+
+//  编辑回显
+watch(() => {
+    return detailData
+}, async (newVal) => {
+    state.title = newVal.attributes.name;
+    getBrandList({
+        brandName: newVal.attributes.brand_id,
+        shortCode: newVal.shortCode
+    }).then(res => {
+        if (res.code === 200) {
+            brandIdSelction.data = res.data || [];
+            //  品牌回显
+            const brandItem = brandIdSelction.data.find((item) => {
+                return item.nameEn === newVal.attributes.brand_id
+            });
+            state.brandId = brandItem ? brandItem.brandId : undefined;
+        }
+    }).finally(() => {
+        brandIdSelction.searchLoading = false;
+    });
+
+    state.model = newVal.attributes.model;
+    state.warranty_type = newVal.attributes.warranty_type;
+    state.warranty = newVal.attributes.warranty;
+}, {
+    deep: true
+});
+
 const itemRules = (item) => {
     return [{ required: item.is_mandatory === 1, trigger: ['change'], message: item.is_mandatory === 1 ? '必填项，请填写' : '' }]
 };

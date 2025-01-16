@@ -94,8 +94,8 @@ import VariantImage from './components/variantImage.vue';
 import Description from './components/description.vue';
 import SelectProduct from '@/components/selectProduct/index.vue';
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
-import { watermarkList, lazadaAdd, lazadaProductDetail } from '@/pages/lazada/product/api';
 import AddSuccessModal from './components/batchModal/addSuccessModal.vue';
+import { watermarkList, lazadaAdd, lazadaProductDetail } from '@/pages/lazada/product/api';
 import dayjs from 'dayjs';
 
 const route = useRoute();

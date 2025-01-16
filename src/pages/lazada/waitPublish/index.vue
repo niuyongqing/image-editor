@@ -1,9 +1,7 @@
 <template>
     <div>
         <Search :shortCodes="shortCodes" @search="handleSearch"></Search>
-
         <TableAction></TableAction>
-
         <BaseTable ref="baseTableRef" :columns="columns" :api="getList" :init-search-param="initSearchParam"
             :row-selection="rowSelection" show-right-pagination rowKey="id">
             <template #leftBar>
@@ -225,8 +223,8 @@ const handleSearch = async (state) => {
     await baseTableEl.value.search(state);
 };
 //  编辑
-const handleEdit = () => {
-    window.open('/platform/lazada/waitPublish/edit', '_blank');
+const handleEdit = (record) => {
+    window.open(`/platform/lazada/waitPublish/edit?id=${record.id}`, '_blank');
 };
 const handleReset = () => {
     baseTableEl.value.reset();

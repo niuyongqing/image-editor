@@ -86,8 +86,17 @@ export const useLazadaWaitPublish = defineStore("lazadaWaitPublish", () => {
     if (taxOptions) {
       state.taxOptions = taxOptions.options || [];
     }
-
     setLoading(false);
+  };
+
+  const setProductClassifyAtrrs = (attributes = {}) => {
+    state.productClassifyAtrrs.forEach((attr) => {
+      for (const key in attributes) {
+        if (attr.name === key) {
+          attr.value = attributes[key];
+        }
+      }
+    });
   };
 
   const setProduct = (data = {}) => {
@@ -126,5 +135,6 @@ export const useLazadaWaitPublish = defineStore("lazadaWaitPublish", () => {
     setProduct,
     reset,
     setProductSkus,
+    setProductClassifyAtrrs,
   };
 });

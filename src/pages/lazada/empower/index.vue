@@ -424,7 +424,6 @@ const handleExport = () => {
 
 // 批量修改店铺密码
 const handleBatchEdit = async () => {
-    // 
     let loginCheckRes = await loginCheck();
     if (loginCheckRes.data === false) {
         erpValidModalEl.value.open();
