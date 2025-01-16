@@ -17,7 +17,6 @@ import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { InputPassword, message } from 'ant-design-vue';
 import { loginPowerVerify } from '@/pages/lazada/empower/api';
 import { Modal } from 'ant-design-vue';
-
 const emits = defineEmits(['success']);
 const form = reactive({
     password: ''

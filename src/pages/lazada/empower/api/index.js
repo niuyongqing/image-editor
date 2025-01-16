@@ -93,3 +93,11 @@ export function uploadBatchPasswordExcel(data, headers) {
     }
   );
 }
+// 修改品类, 禁用属性, 自动刊登
+export function updateShop(data) {
+  return usePost("/platform-lazada/platform/lazada/empower/update/shop", data);
+}
+// //禁售属性
+export function meansAttribute() {
+  return useGet("/commodity-manage/commodity/means-public/forbid-sale");
+}

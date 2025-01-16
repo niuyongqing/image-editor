@@ -94,11 +94,11 @@
                 <span v-else>{{ record.classify }}</span>
             </template>
             <template #forbidSale="{ record }">
-                <a-select v-model:value="record.forbidSale" v-if="accreditAuth" class="w-full" allow-clear
+                <a-select :value="recordForbidSale(record.forbidSale)" v-if="accreditAuth" class="w-full" allow-clear
                     mode="multiple" placeholder="请选择禁售属性" :options="forbidSaleOptions"
                     :field-names="{ label: 'attributes', value: 'id' }"
                     :filter-option="(input, option) => option.attributes.toLowerCase().indexOf(input.toLowerCase()) >= 0"
-                    @change="forbidSaleChange(record)"></a-select>
+                    @change="forbidSaleChange(record, $event)"></a-select>
                 <span v-else>{{ text && text.map(id => forbidSaleOptions.find(item => item.id ===
                     id)?.attributes).join() }}</span>
             </template>
@@ -124,21 +124,21 @@
 <script setup>
 import { SettingOutlined, EditOutlined, ReloadOutlined, CloudUploadOutlined, DownloadOutlined, EyeOutlined } from '@ant-design/icons-vue';
 import { columns } from './columns';
-import { empowerList, editStore, simpleName, alias, remark, url, refreshAllToken, exportList, accredit } from './api';
+import { empowerList, editStore, simpleName, alias, remark, url, refreshAllToken, exportList, accredit, meansAttribute } from './api';
+import { loginCheck, updateShop } from '@/pages/lazada/empower/api/index.js';
 import { findParentAndMerge } from './common';
 import Search from './components/search.vue';
 import BaseTable from '@/components/baseTable/BaseTable.vue';
 import { useTableSelection } from '@/components/baseTable/useTableSelection';
 import { Modal, message } from 'ant-design-vue';
 import { checkPermi, checkRole } from '~@/utils/permission/component/permission';
-import batchSimpleName from './components/batchSimpleName.vue';// 批量修改简称
-import batchStore from './components/batchStore.vue';// 批量修改仓库
 import ErpValidModal from './components/erpValidModal.vue';
 import downLoad from '@/api/common/download';
-import { loginCheck } from '@/pages/lazada/empower/api/index.js';
 import ViewLazadaInfo from './components/viewLazadaInfo.vue';
 import EditLazadaInfo from './components/editLazadaInfo.vue';
 import BatchEditLazadaInfo from './components/batchEditLazadaInfo.vue';
+import batchSimpleName from './components/batchSimpleName.vue';// 批量修改简称
+import batchStore from './components/batchStore.vue';// 批量修改仓库
 
 const route = useRoute()
 const router = useRouter();
@@ -305,23 +305,41 @@ const handleChangeRemark = (record) => {
     })
 };
 //  品类
-const classifyChange = (value) => {
+const classifyChange = (record) => {
+    console.log('record -》》》', record);
+    updateShop({
+        shortCode: record.shortCode,
+        classify: record.classify
+    }).then((res) => {
+        if (res.code === 200) {
+            message.success('修改成功')
+        }
+    })
 };
-const forbidSaleChange = (value) => {
+const recordForbidSale = (value) => {
+    return value ? value.split(',').map((item) => Number(item)) : [];
 };
-const autoPublishChange = (value) => {
-    // const params = {
-    //     account: record.account,
-    //     sellerId: record.userId,
-    //     [prop]: val
-    // }
-    // apiEnum[prop](params)
-    //     .then(_ => {
-    //         message.success('修改成功')
-    //     })
-    //     .catch(err => {
-    //         message.warning(err)
-    //     })
+
+const forbidSaleChange = (record, val) => {
+    updateShop({
+        shortCode: record.shortCode,
+        forbidSale: val && val.length ? val.filter(Boolean).join(',') : ''
+    }).then((res) => {
+        if (res.code === 200) {
+            message.success('修改成功');
+            reload()
+        }
+    })
+};
+const autoPublishChange = (record) => {
+    updateShop({
+        shortCode: record.shortCode,
+        autoPublish: record.autoPublish
+    }).then((res) => {
+        if (res.code === 200) {
+            message.success('修改成功')
+        }
+    })
 };
 
 //查看账号密码邮箱
@@ -418,4 +436,25 @@ const handleBatchEdit = async () => {
         }
     }
 };
+
+// 获取品类
+function getMeansAttribute() {
+    meansAttribute().then((res) => {
+        const data = res?.data || [];
+        const list = data.map((item) => {
+            return {
+                "id": item.id,
+                "attributes": item.attributes,
+                "example": item.example,
+                "site": item.site,
+                "sort": item.sort,
+                "key": item.key,
+            }
+        })
+        forbidSaleOptions.value = list;
+    });
+};
+onMounted(() => {
+    getMeansAttribute();
+})
 </script>

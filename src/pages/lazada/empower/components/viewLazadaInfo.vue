@@ -67,6 +67,7 @@ const handleClose = () => {
         loginPassword: '',
         emailCode: '',
     };
+    modalMethods.value.closeModal()
 };
 
 const open = (shortCode) => {
