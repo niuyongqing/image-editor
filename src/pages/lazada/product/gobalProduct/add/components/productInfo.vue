@@ -52,7 +52,7 @@
                         <a-form :model="productAtrrsform" ref="attrsFormRef" scrollToFirstError>
                             <a-form-item v-for="item in sortAttrs(lazadaAttrsState.productClassifyAtrrs)"
                                 :key="item.name" :name="item.name" :rules="itemRules(item)" :label="item.label"
-                                :labelCol="{ span: 3 }" :wrapperCol="{ span: 21 }">
+                                :labelCol="{ span: 4 }" :wrapperCol="{ span: 20 }">
                                 <!-- is_key_prop： 1 时，表示当前属性是项目的 key 属性 -->
                                 <div flex>
                                     <a-tag color="#6288F4" v-if="item.advanced && item.advanced.is_key_prop === 1">

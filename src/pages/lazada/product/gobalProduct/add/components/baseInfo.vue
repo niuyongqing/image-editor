@@ -39,11 +39,10 @@
                             <a-checkbox-group v-model:value="state.ventures" @change="checkedCitiesChange">
                                 <a-checkbox v-for="item in globalArea" :value="item.value" :key="item.value">{{
                                     item.label
-                                }}</a-checkbox>
+                                    }}</a-checkbox>
                             </a-checkbox-group>
                         </div>
                     </div>
-
                 </a-form-item>
                 <a-form-item label="分类:" name="primaryCategory" :rules="[{ required: true, message: '请选择分类' }]">
                     <a-cascader :showSearch="showSearchConfig" class="flex w-full justify-start"
