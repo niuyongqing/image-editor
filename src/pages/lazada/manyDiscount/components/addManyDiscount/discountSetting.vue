@@ -70,8 +70,14 @@ const changeType = (type) => {
   }
 };
 
+const clear = () => {
+  discountConfigEl.value.clearValidate()
+};
+
 defineExpose({
   formData,
+  reset,
+  clear,
   getDiscountConfigData,
   getSampleGiveawayData,
   getFixedPriceData,

@@ -2,7 +2,7 @@
     <div>
         <Search :account="account" @search="handleSearch"></Search>
         <BaseTable ref="baseTableRef" :columns="columns" :api="lazadaFlexicomboList" :immediate="false"
-            :init-search-param="initSearchParam">
+            :init-search-param="initSearchParam" :row-selection="rowSelection" row-key="id">
             <template #leftBar>
                 <a-space>
                     <a-button type="primary" @click="handleAdd">
@@ -29,7 +29,7 @@
                 <a-tag v-if="record.status == 'NOT_START'" color="blue">未开始</a-tag>
                 <a-tag v-if="record.status == 'ONGOING'" color="green">进行中</a-tag>
                 <a-tag v-if="record.status == 'SUSPEND'" color="red">暂停</a-tag>
-                <a-tag v-if="rorecordw.status == 'FINISH'" color="orange">已过期</a-tag>
+                <a-tag v-if="record.status == 'FINISH'" color="orange">已过期</a-tag>
             </template>
             <template #apply="{ record }">
                 <div v-if="record.apply === 'ENTIRE_SHOP'">全店商品</div>
@@ -39,7 +39,7 @@
                 <div>{{ Timedata(parseFloat(record.syncTime) * 1000) }}</div>
             </template>
         </BaseTable>
-        <AddManyDiscount ref="addManyDiscountRef"></AddManyDiscount>
+        <AddManyDiscount :shortCode="shortCode" ref="addManyDiscountRef"></AddManyDiscount>
     </div>
 </template>
 
@@ -58,6 +58,7 @@ import Search from './components/search.vue';
 import { Timedata } from '~@/pages/lazada/manyDiscount/common/util.js';
 import { useTableSelection } from '@/components/baseTable/useTableSelection';
 import AddManyDiscount from './components/addManyDiscount/index.vue';
+import { message } from 'ant-design-vue';
 
 const { singleDisabled, multipleDisabled, rowSelection, selectedRowKeys, tableRow, clearSelection } = useTableSelection();
 const shortCode = ref('');
@@ -79,27 +80,24 @@ const handleSearch = async (state) => {
 
 const reload = async (state) => {
     await baseTableEl.value.reload();
+    clearSelection();
 };
 
 const handleAdd = () => {
     addManyDiscountEl.value.open();
 };
 const activate = () => {
-    let activateVoucherList = []
-    selectedRowKeys.forEach((item) => {
-        activateVoucherList.push(item.id)
-    })
     let data = {
-        shortCode: this.shortCode,
-        flexiComboId: activateVoucherList.join()
+        shortCode: shortCode.value,
+        ids: selectedRowKeys.value.join()
     }
     activateLoading.value = true
     flexiComboActivateVoucher(data).then(res => {
         if (res.code === 200) {
-            message.success(res.message)
+            message.success(res.msg)
         }
         else {
-            message.error(res.message)
+            message.error(res.msg)
         }
     }).finally(() => {
         activateLoading.value = false
@@ -107,21 +105,17 @@ const activate = () => {
     })
 };
 const deactivateVoucher = () => {
-    let activateVoucherList = []
-    selectedRowKeys.forEach((item) => {
-        activateVoucherList.push(item.id)
-    })
     let data = {
-        shortCode: this.shortCode,
-        flexiComboId: activateVoucherList.join()
+        shortCode: shortCode.value,
+        ids: selectedRowKeys.value.join()
     }
     deactivateVoucherLoading.value = true
     flexiComboDeactivateVoucher(data).then(res => {
         if (res.code === 200) {
-            message.success(res.message)
+            message.success(res.msg)
         }
         else {
-            message.error(res.message)
+            message.error(res.msg)
         }
     }).finally(() => {
         deactivateVoucherLoading.value = false
@@ -135,10 +129,10 @@ const syncLazadaShopVoucher = () => {
     }
     syncLazadaShopFlexiVoucher(data).then(res => {
         if (res.code === 200) {
-            message.success(res.message)
+            message.success(res.msg)
         }
         else {
-            message.error(res.message)
+            message.error(res.msg)
         }
     }).finally(() => {
         syncLazadaShopLoading.value = false
@@ -157,8 +151,6 @@ onMounted(async () => {
         shortCode.value = codes[0].shortCode;
     };
 });
-
-
 </script>
 
 <style scoped></style>

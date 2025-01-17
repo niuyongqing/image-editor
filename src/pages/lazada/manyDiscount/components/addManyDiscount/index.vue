@@ -1,6 +1,7 @@
 <template>
     <div>
-        <BaseModal @register="register" title="创建优惠券" @submit="submit" width="1000px" :submit-btn-loading="loading">
+        <BaseModal @register="register" title="创建优惠券" @close="closeModal" @submit="submit" width="1000px"
+            :submit-btn-loading="loading">
             <BaseInfo ref="baseInfoRef"></BaseInfo>
             <DiscountSetting ref="discountSettingRef" style="margin-top: 10px"></DiscountSetting>
             <ProductSetting ref="productSettingRef" style="margin-top: 10px"></ProductSetting>
@@ -199,6 +200,12 @@ const open = () => {
 
 const close = () => {
     modalMethods.value.closeModal();
+};
+
+const closeModal = () => {
+    baseInfoEl.value.clearValid();
+    discountSettingEl.value.clear()
+    discountSettingEl.value.reset();
 }
 
 defineExpose({

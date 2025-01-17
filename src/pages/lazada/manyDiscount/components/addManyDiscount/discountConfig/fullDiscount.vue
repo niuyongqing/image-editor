@@ -139,12 +139,18 @@ const delGradient = (index) => {
   }
 };
 
+const clearValidate = () => {
+  formData.value = {
+    discountType: 'money',
+    stackable: true,
+    criteriaType: 'QUANTITY',
+  };
+  fullDiscountArr.value = [{ criteriaValue: '1', discountValue: '2', disable: false }];
+}
+
 defineExpose({
   formData,
   fullDiscountArr,
-  changeStackable,
-  changeDiscountType,
-  addGradient,
-  delGradient,
+  clearValidate,
 })
 </script>

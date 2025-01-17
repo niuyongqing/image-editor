@@ -45,11 +45,14 @@ const baseValidate = async () => {
     return await validatePromise(formEl.value);
 };
 
+const clearValid = () => {
+    formEl.value.resetFields();
+}
+
 defineExpose({
     formData,
     baseValidate,
+    clearValid,
 });
 
 </script>
-
-<style lang="scss" scoped></style>

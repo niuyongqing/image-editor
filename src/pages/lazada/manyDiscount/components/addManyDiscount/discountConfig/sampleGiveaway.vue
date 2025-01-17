@@ -130,6 +130,7 @@ onMounted(() => {
 });
 
 const addGift = (index) => {
+  console.log('steepness.value[index]', steepness.value[index]);
   EventBus.emit('GiftList', steepness.value[index].sampleArr, index);
 };
 
