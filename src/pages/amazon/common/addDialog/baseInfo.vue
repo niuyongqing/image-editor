@@ -188,7 +188,7 @@ defineExpose({
 <style lang="less" scoped>
 #AmazonBaseInfo {
   .content {
-    box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 0 3px 1px rgba(0, 0, 0, 0.1);
+    // box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 0 3px 1px rgba(0, 0, 0, 0.1);
     padding: 10px 15px 5px;
     ::v-deep(.ant-form-item-row) {
       .ant-form-item-label {

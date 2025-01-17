@@ -38,6 +38,9 @@
         class="attributeInfoRef"
         ref="attributeInfoRef"
       ></attributeInfo>
+      <variationInfo 
+        :variation-theme-data="variationThemeData"
+      ></variationInfo>
       <offerInfo
         v-if="formData.offer.$id"
         :key="formData.offer.$_key"
@@ -71,18 +74,19 @@ import baseInfo from '@/pages/amazon/common/addDialog/baseInfo.vue'
 import productInfo from "@/pages/amazon/common/addDialog/productInfo.vue";
 import descriptionInfo from '@/pages/amazon/common/addDialog/descriptionInfo.vue'
 import imageInfo from "@/pages/amazon/common/addDialog/imageInfo.vue";
+import variationInfo from "@/pages/amazon/common/addDialog/variationInfo.vue";
 // import amazonAttributeInfo from '@/pages/amazon/common/amazonAttributeInfo.vue'
 import attributeInfo from '@/pages/amazon/common/addDialog/attributeInfo.vue'
 import offerInfo from '@/pages/amazon/common/addDialog/offerInfo.vue'
 import '@/assets/library/jsonScheam_v3_ant/style/baseForm.css'
-import JsonSchema from '@/components/json-schema/index.vue'
+
 // import scheam from './TrainSets - 副本.json'
-import scheam from './TrainSets.json'
+import TrainSets from './TrainSets.json'
 import { ref, reactive, onMounted, computed, watchPostEffect, getCurrentInstance, nextTick } from 'vue'
 import { getJsonUrl, validateJson } from '@/pages/amazon/js/api/activeProduct'
 import axios from "axios";
 // 判断对象是否相等
-class ObjectUtils{
+class ObjectUtils {
   getDataType(data) {
     const temp = Object.prototype.toString.call(data);
     const type = temp.match(/\b\w+\b/g);
@@ -121,10 +125,9 @@ class ObjectUtils{
 defineOptions({
   name: "addDialog",
 });
-let _this = null; // 当前的vue实例
+const { proxy: _this } = getCurrentInstance()// 当前的vue实例
 onMounted(() => {
-  let { proxy } = getCurrentInstance()
-  _this = proxy
+  // variationTheme()
 })
 let anchorList = [    // 模块列表
   {
@@ -148,8 +151,43 @@ let anchorList = [    // 模块列表
     title: '价格信息',
   },
 ];
+let productIdentity = {}
+let description = {}
+let offer = {}
+let productIdentityList = [       // 产品表示  名称 品牌等
+  'Item Name',
+  'Product Type',
+  'Item Type Keyword',
+  'Brand Name',
+  'External Product ID',
+]
+let descriptionList = [           // 产品描述
+  'Product Description',
+  'Bullet Point',
+  'Images',
+]
+let offerList = [                 // 报价
+  'Quantity',
+  'Handling Time',
+  'Restock Date',
+  'Minimum Advertised Price',
+  'Your Price',
+  'Sale Price',
+  'Sale Start Date',
+  'Sale End Date',
+  'Offering Release Date',
+  'Offering Condition Type',
+  'Offer Condition Note',
+  'List Price',
+  'Product Tax Code',
+  'Merchant Release Date',
+  'Merchant Shipping Group',
+  'Maximum Order Quantity'
+]
+let variationThemeList = [];           // 变种主题
+
 const spinning = ref(0)       // 是否加载完成
-// const scheam = ref({})
+const scheam = ref({})
 const _attributeData = ref({})     // 原始数据
 const jsonParams = ref({}); // 获取json链接的参数
 
@@ -188,6 +226,11 @@ const formValue = reactive({     // 表单更新之前的数据，用于回填
   attribute: {},
   offer: {},
 }) 
+const variationThemeData = reactive({     // 变种属性
+  data: {},             // 变种数据
+  theme: [],            // 变种
+  themeAttribute: [],   // 变种标题
+})
 
 watchPostEffect(() => {
   // finalParams.value = {
@@ -212,7 +255,7 @@ function formValueChange(type) {
     ...form.attribute,
     ...form.offer,
   };
-  console.log(spinning.value);
+  // console.log(spinning.value);
   
   if (!spinning.value && spinning.value !== 0) {
     // console.log({_this});
@@ -224,7 +267,7 @@ function formMounted(type) {
   if (productInfoRef.value.isComplete && attributeInfoRef.value.isComplete && descriptionInfoRef.value.isComplete && offerInfoRef.value.isComplete) {
     spinning.value = false
   }
-  console.log('表单完成加载', {formValue, type});
+  // console.log('表单完成加载', {formValue, type});
   // return;
   let keys = Object.keys(formValue[type])
   if (keys.length < 1) return;
@@ -273,7 +316,7 @@ async function attributeChangeValidate(val) {
     //     add.push(key)
     //   }
     // })
-    console.log({add, del});
+    // console.log({add, del});
     
     if (add.length > 0 || del.length > 0) {
       // console.log({add}, _this);
@@ -347,11 +390,11 @@ async function validateJsonFn() {
 async function selectedProductType(val) {
   jsonParams.value = val
   spinning.value = true
-  let urlRes = await getJsonUrl(val)
-  let url = urlRes.data || ''
-  // console.log({ url });
-  let res = await axios.get(url)
-  scheam.value = res.data
+  // let urlRes = await getJsonUrl(val)
+  // let url = urlRes.data || ''
+  // let res = await axios.get(url)
+  // scheam.value = res.data
+  scheam.value = TrainSets
   _attributeData.value = JSON.parse(JSON.stringify(scheam.value))
   formData.product = {}
   formData.description = {}
@@ -363,46 +406,48 @@ async function selectedProductType(val) {
   formData.description = {}
   formData.attribute = {}
   formData.offer = {}
+  variationThemeFn()
   await validateJsonFn()
   // spinning.value = false
 }
+// 找出变种主题
+function variationThemeFn() {
+  let properties = TrainSets.properties
+  // let properties = scheam.value.properties
+  let list = handleFormItem(properties, []);   // 将属性转换成数组
+  if (properties.variation_theme) {
+    let variationList = properties.variation_theme.items.properties.name.enum
+    // 获取主题列表
+    let theme = variationList.map(item => {
+      let l = item.toLowerCase().split('/');
+      return {
+        label: item,
+        value: l
+      }
+    })
+    let themeAttribute = []     // 变种主题属性
+    theme = theme.filter(item => {    // 变种主题
+      return item.value.every(i => {
+        if (properties[i]) {
+          themeAttribute.push(i)
+        }
+        return properties[i]
+      })
+    })
+    themeAttribute = [...new Set(themeAttribute)]
+    variationThemeList = themeAttribute.map(i => properties[i].title)
+    let { data } = setAttributeData(variationThemeList)
+    // console.log({ theme, themeAttribute, data });
+    variationThemeData.data = data.properties
+    variationThemeData.theme = theme
+    variationThemeData.themeAttribute = themeAttribute
+  }
+}
 // 获取数据
 function copyData() {
-  return JSON.parse(JSON.stringify(_attributeData.value))
+  return JSON.parse(JSON.stringify(scheam.value))
+  // return JSON.parse(JSON.stringify(_attributeData.value))
 }
-let productIdentity = {}
-let description = {}
-let offer = {}
-let productIdentityList = [       // 产品表示  名称 品牌等
-  'Item Name',
-  'Product Type',
-  'Item Type Keyword',
-  'Brand Name',
-  'External Product ID',
-]
-let descriptionList = [           // 产品描述
-  'Product Description',
-  'Bullet Point',
-  'Images',
-]
-let offerList = [                 // 报价
-  'Quantity',
-  'Handling Time',
-  'Restock Date',
-  'Minimum Advertised Price',
-  'Your Price',
-  'Sale Price',
-  'Sale Start Date',
-  'Sale End Date',
-  'Offering Release Date',
-  'Offering Condition Type',
-  'Offer Condition Note',
-  'List Price',
-  'Product Tax Code',
-  'Merchant Release Date',
-  'Merchant Shipping Group',
-  'Maximum Order Quantity'
-]
 // 跳转对应模块
 function toHref(href) {
   document.querySelector(href).scrollIntoView({
@@ -415,7 +460,7 @@ async function sure() {
   let {result:productResult, params: productParams} = await productInfoRef.value.save()
   let {result:attributeResult, params: attributeParams} = await attributeInfoRef.value.save()
   let {result:descriptionResult, params: descriptionParams} = await descriptionInfoRef.value.save()
-  console.log({ offerResult, productResult, attributeResult, descriptionResult });
+  // console.log({ offerResult, productResult, attributeResult, descriptionResult });
   // let flag = productResult
   let flag = (offerResult && productResult && attributeResult && descriptionResult)
   if (!flag) return;
@@ -430,7 +475,7 @@ async function sure() {
     content: finalParams.value
   }
   let final = await validateJson(data)
-  console.log({final});
+  // console.log({final});
 }
 // 找出对应属性
 function filterType(title, data) {
@@ -454,7 +499,8 @@ function getDetails() {
   let titleList = [
     ...productIdentityList,
     ...descriptionList,
-    ...offerList
+    ...offerList,
+    ...variationThemeList
   ]
   // 获取其余属性
   let propertiesList = setAttributeData(titleList).propertiesList

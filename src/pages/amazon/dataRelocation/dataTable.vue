@@ -134,7 +134,7 @@
   <a-card>
     <div class="btns">
       <div class="left-group">
-        <a-button type="primary">发布商品</a-button>
+        <a-button type="primary">批量认领</a-button>
       </div>
       <div class="right-group">
         
@@ -232,7 +232,7 @@
                 cancel-text="否"
                 @confirm="delSku(record)"
               >
-                <a-button type="text" danger>删除</a-button>
+                <a-button type="text" danger>认领</a-button>
               </a-popconfirm>
             </template>
           </template>
