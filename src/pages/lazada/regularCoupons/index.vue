@@ -102,6 +102,7 @@ const handleSearch = async (state) => {
 
 const reload = async (state) => {
     await baseTableEl.value.reload();
+    clearSelection();
 };
 
 // 新增
@@ -112,7 +113,11 @@ const handleAdd = () => {
 // 编辑
 const handleEdit = () => {
     const row = selectedRows.value[0] || {};
-    editVoucherEl.value.open(row);
+    if (row.status === 'NOT_START' || row.status === 'ONGOING') {
+        editVoucherEl.value.open(row);
+    } else {
+        message.error('该优惠券状态不可编辑！');
+    }
 };
 
 // 查看

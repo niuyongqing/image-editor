@@ -27,9 +27,9 @@
                 {{ hideUser(record.userId) }}
             </template>
             <template #account="{ record }">
-                <div class="flex">
+                <div class="flex flex-wrap">
                     <div v-for="(item, index) in accountRow(record.account)" :key="index">
-                        <a-tag color="#108ee9" style="margin-right: 5px" v-if="getsimpleName(item)">{{
+                        <a-tag color="#108ee9" style="margin-right: 5px; margin-top: 5px;" v-if="getsimpleName(item)">{{
                             getsimpleName(item) }}
                         </a-tag>
                     </div>

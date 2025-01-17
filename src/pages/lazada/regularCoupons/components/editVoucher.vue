@@ -27,13 +27,14 @@
 
                         <a-form-item label="券领取开始时间：" name="collectStart">
                             <a-date-picker style="width: 80%" v-model:value="formData.collectStart" show-time
+                                :disabled="formData.status === 'NOT_START' || formData.status === 'ONGOING'"
                                 format="YYYY-MM-DD HH:mm:ss" placeholder="券领取开始时间" />
                         </a-form-item>
 
                         <a-form-item label="优惠券适用于：" name="apply"
                             :rules="[{ required: true, message: '请选择', trigger: 'change' }]">
                             <a-radio-group v-model:value="formData.apply" :disabled="true">
-                                <a-radio value="ENTIRE_STORE">全店商品</a-radio>
+                                <a-radio value="ENTIRE_SHOP">全店商品</a-radio>
                                 <a-radio value="SPECIFIC_PRODUCTS">部分商品</a-radio>
                             </a-radio-group>
                         </a-form-item>
@@ -96,7 +97,7 @@
                                 @change="changeDiscountUpperLimit" />
                             <span style="color: orange; font-style: oblique; margin-left: 10px">{{
                                 formData.discountUpperLimitMessage
-                            }}</span>
+                                }}</span>
                         </a-form-item>
 
                         <a-form-item label="优惠券发放总张数：" name="discountCouponCount"
@@ -145,7 +146,7 @@ const { state: formData, reset } = useResetReactive({
     voucherName: '',
     periodStartTime: [],
     collectStart: '', //券领取开始时间
-    apply: 'ENTIRE_STORE',//优惠券适用于
+    apply: 'ENTIRE_SHOP',//优惠券适用于
     voucherDiscountType: 'MONEY_VALUE_OFF',//优惠设置
 
     // 满减字段
@@ -256,7 +257,7 @@ const open = (e) => {
         formData.shortCode = e.shortCode
         formData.periodStartTime = [dayjs(parseFloat(e.periodStartTime)), dayjs(parseFloat(e.periodEndTime))];
         formData.collectStart = dayjs(parseFloat(e.collectStart))
-        formData.apply = e.apply === 'SPECIFIC_PRODUCTS' ? 'SPECIFIC_PRODUCTS' : 'ENTIRE_STORE'
+        formData.apply = e.apply === 'SPECIFIC_PRODUCTS' ? 'SPECIFIC_PRODUCTS' : 'ENTIRE_SHOP'
         formData.voucherDiscountType = e.voucherDiscountType
 
         //满减
@@ -355,7 +356,7 @@ const submit = () => {
         updateLazadaProduct(data).then(res => {
             if (res.code === 200) {
                 //如果 选择的是部分商品  打开商品列表
-                if (formData.apply !== 'ENTIRE_STORE') {
+                if (formData.apply !== 'ENTIRE_SHOP') {
                     selectedProductList()
                     modalMethods.value.closeModal()
                 }

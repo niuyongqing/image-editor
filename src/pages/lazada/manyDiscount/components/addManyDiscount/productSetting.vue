@@ -12,7 +12,7 @@
       <a-form :model="formData" :rules="rules" ref="formData" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }">
         <a-form-item label="适用范围：" name="apply">
           <a-radio-group v-model:value="formData.apply">
-            <a-radio value="ENTIRE_STORE" v-if="!applyDisable">全店产品</a-radio>
+            <a-radio value="ENTIRE_SHOP" v-if="!applyDisable">全店产品</a-radio>
             <a-radio value="SPECIFIC_PRODUCTS">部分商品（请在提交活动后选择商品）</a-radio>
           </a-radio-group>
         </a-form-item>
@@ -29,7 +29,7 @@
 import EventBus from "~/utils/event-bus";
 const applyDisable = ref(false);
 const formData = ref({
-  apply: 'ENTIRE_STORE',
+  apply: 'ENTIRE_SHOP',
   orderUsedNumbers: undefined,
 });
 
@@ -47,7 +47,7 @@ onMounted(() => {
 
   EventBus.on('changeTypeFalse', () => {
     applyDisable.value = false;
-    formData.value.apply = 'ENTIRE_STORE';
+    formData.value.apply = 'ENTIRE_SHOP';
   });
 });
 

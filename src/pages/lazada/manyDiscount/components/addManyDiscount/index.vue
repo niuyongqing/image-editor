@@ -67,7 +67,7 @@ const submit = async () => {
 
         //当 apply = ENTIRE_STORE时，productSkuIdList = null
         //当 apply = SPECIFIC_PRODUCTS 时，productSkuIdList 有值
-        if (productSetting.apply === 'ENTIRE_STORE') {
+        if (productSetting.apply === 'ENTIRE_SHOP') {
             data.productSkuIdList = null
         }
     }
@@ -108,7 +108,7 @@ const submit = async () => {
         data.giftSkus = giftSkus
         //当 apply = ENTIRE_STORE时，productSkuIdList = null
         //当 apply = SPECIFIC_PRODUCTS 时，productSkuIdList 有值
-        if (productSetting.apply === 'ENTIRE_STORE') {
+        if (productSetting.apply === 'ENTIRE_SHOP') {
             data.productSkuIdList = null
         }
     }
@@ -150,7 +150,7 @@ const submit = async () => {
 
         //当 apply = ENTIRE_STORE时，productSkuIdList = null
         //当 apply = SPECIFIC_PRODUCTS 时，productSkuIdList 有值
-        if (productSetting.apply === 'ENTIRE_STORE') {
+        if (productSetting.apply === 'ENTIRE_SHOP') {
             data.productSkuIdList = null
         }
     }
@@ -174,7 +174,7 @@ const submit = async () => {
     addLazadaFlexicomboProduct(data).then(res => {
         if (res.code === 200) {
             //如果 选择的是部分商品  打开商品列表
-            if (productSetting.apply !== 'ENTIRE_STORE') {
+            if (productSetting.apply !== 'ENTIRE_SHOP') {
                 close()
                 emits('success', { shortCode: this.shortCode, voucherId: res.msg })            // 刷新
             }
