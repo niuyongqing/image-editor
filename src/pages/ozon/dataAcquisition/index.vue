@@ -838,4 +838,11 @@ onMounted(() => {
     border-bottom: none;
   }
 }
+
+:deep(.fixedTable) {
+    height: 38px;
+    table {
+        height: 38px;
+    }
+}
 </style>
