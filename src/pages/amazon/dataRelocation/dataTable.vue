@@ -1,7 +1,5 @@
 <template>
-<div id="activeProduct" class="activeProduct">
-  <!-- <a-button @click="toAdd" type="primary">新增 Button</a-button> -->
-  <!-- 搜索区 -->
+<div id="dataRelocationTable" class="dataRelocationTable">
   <a-card>
     <a-descriptions :column="1">
       <a-descriptions-item label="店铺账号">
@@ -133,64 +131,16 @@
       </a-descriptions-item>
     </a-descriptions>
   </a-card>
-  <!-- TABLE 区 -->
-  <a-card
-    style="margin: 10px"
-    id="table"
-  >
+  <a-card>
     <div class="btns">
       <div class="left-group">
-        <a-button type="primary" @click="toAdd">发布商品</a-button>
-        <a-button type="primary" @click="syncFn">同步商品</a-button>
-        <a-upload
-          v-model:file-list="options.fileList"
-          :show-upload-list="false"
-          name="file"
-          :action="options.uploadTemplateUrl"
-          :headers="options.headers"
-          @change="uploadTemplateFn"
-        >
-          <a-button type="primary">导入更新价格和库存</a-button>
-        </a-upload>
-        <a-button type="primary" @click="downloadTemplateFn">下载导入模板</a-button>
-        <a-popconfirm
-          title="是否删除勾选的sku?"
-          ok-text="是"
-          cancel-text="否"
-          @confirm="batchDel"
-        >
-          <a-button type="primary" danger :disabled="tableInfo.selectedRows.length < 1">批量删除</a-button>
-        </a-popconfirm>
+        <a-button type="primary">批量认领</a-button>
       </div>
-      <!-- <a-pagination
-        size="small"
-        v-model:current="tableInfo.params.pageNum"
-        v-model:pageSize="tableInfo.params.pageSize"
-        :total="tableInfo.total"
-        :default-page-size="50"
-        show-size-changer
-        show-quick-jumper
-        :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
-        @change="onPaginationChange"
-      /> -->
       <div class="right-group">
-        <a-dropdown :trigger="['click']">
-          <a-button
-            type="primary" 
-            @click.prevent
-            :disabled="tableInfo.selectedRows.length < 1"
-          >批量操作</a-button>
-          <template #overlay>
-            <a-menu @click="onClickBatch">
-              <a-menu-item 
-                v-for="item in batchData.itemList"
-                :key="item.key"
-              >{{ item.label }}</a-menu-item>
-            </a-menu>
-          </template>
-        </a-dropdown>
+        
       </div>
     </div>
+    <a-menu @click="menuClick" v-model:selectedKeys="current" mode="horizontal" :items="items" />
     <a-table
       :columns="displayHeader"
       :data-source="tableInfo.data"
@@ -282,7 +232,7 @@
                 cancel-text="否"
                 @confirm="delSku(record)"
               >
-                <a-button type="text" danger>删除</a-button>
+                <a-button type="text" danger>认领</a-button>
               </a-popconfirm>
             </template>
           </template>
@@ -301,65 +251,17 @@
       @change="onPaginationChange"
     />
   </a-card>
-  <a-modal 
-    v-model:open="modalInfo.sync.open" 
-    title="同步商品" 
-    :footer="false"
-    :closable="false"
-    :keyboard="false"
-    :maskClosable="false"
-  >
-    <div>{{ modalInfo.sync.str || '正在同步……' }}</div>
-  </a-modal>
-
-  <quantity-dialog 
-    v-model:open="batchData.modal.quantity.open" 
-    :rows="batchData.modal.quantity.rows"
-    @editDone="editDone"
-  ></quantity-dialog>
-  <ourPrice-dialog 
-    v-model:open="batchData.modal.ourPrice.open" 
-    :rows="batchData.modal.ourPrice.rows"
-    @editDone="editDone"
-  ></ourPrice-dialog>
-  <listPrice-dialog 
-    v-model:open="batchData.modal.listPrice.open" 
-    :rows="batchData.modal.listPrice.rows"
-    @editDone="editDone"
-  ></listPrice-dialog>
-  <discountedPriceDialog 
-    v-model:open="batchData.modal.discountedPrice.open" 
-    :rows="batchData.modal.discountedPrice.rows"
-    @editDone="editDone"
-  ></discountedPriceDialog>
-  <image-dialog 
-    v-model:open="batchData.modal.image.open" 
-    :rows="batchData.modal.image.rows"
-    @editDone="editDone"
-  ></image-dialog>
 </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
 import { getShopList, getMarketList, getList, sync, syncProportion, del, uploadTemplate, downloadTemplate } from '../js/api/activeProduct';
 import download from '~@/api/common/download';
-
-import { parentHead, childHead } from '../js/tableHead/activeProduct';
-
-import quantityDialog from '../common/activeProduct/quantityDialog.vue';
-import ourPriceDialog from '../common/activeProduct/ourPriceDialog.vue';
-import listPriceDialog from '../common/activeProduct/listPriceDialog.vue';
-import discountedPriceDialog from '../common/activeProduct/discountedPriceDialog.vue';
-import imageDialog from '../common/activeProduct/imageDialog.vue';
-
 import { message } from 'ant-design-vue';
 
-defineOptions({
-  name: "activeProduct"
-})
-// 获取当前实例
+import { parentHead, childHead } from '../js/tableHead/activeProduct';
+defineOptions({ name: "dataRelocationTable" })
 const { proxy: _this } = getCurrentInstance()
 // console.log({_this});
 onMounted(async () => {
@@ -372,6 +274,24 @@ onMounted(async () => {
     console.log(error)
   }
 })
+const current = ref(['all']);
+const items = ref([
+  {
+    key: 'all',
+    label: '全部',
+    title: '全部',
+  },
+  {
+    key: '1',
+    label: '未认领',
+    title: '未认领',
+  },
+  {
+    key: '2',
+    label: '已认领',
+    title: '已认领',
+  }
+])
 // 表头
 const displayHeader = computed(() => {
   return tableInfo.head.filter(column => column.show)
@@ -395,12 +315,6 @@ const tableInfo = reactive({
   selectedRowKeys: [],
   selectedRows: [],
 });
-const modalInfo = reactive({
-  sync: {
-    open: false,
-    str: ''         // 展示字段
-  }
-})
 // 获取站点列表
 function shopChange(id) {
   getMarketList(id).then(res => {
@@ -487,6 +401,10 @@ const placeholderEnum = reactive({
   HDSDFHDFHDSF: '商品关键字',
   JFASFSDFSD: 'upc/EAN',
 })
+// 切换表格
+function menuClick({ item, key, keyPath }) {
+  console.log({item, key, keyPath})
+}
 // 搜索条件
 const searchForm = reactive({
   shopId: '',     // 店铺ID
@@ -511,144 +429,6 @@ const extendSearchForm = reactive({ // 高级搜索表单
   createTime: null,
   updateTime: null
 });
-// 批量修改的数据
-const batchData = reactive({
-  open: false,
-  loading: false,
-  actionItem: {},
-  modal: {
-    quantity: {
-      open: false,
-      rows: [],
-    },
-    ourPrice: {
-      open: false,
-      rows: [],
-    },
-    listPrice: {
-      open: false,
-      rows: [],
-    },
-    discountedPrice: {
-      open: false,
-      rows: [],
-    },
-    image: {
-      open: false,
-      rows: [],
-    },
-  },
-  itemList: [
-    {
-      key: 'quantity',
-      label: '批量修改库存',
-    },
-    {
-      key: 'ourPrice',
-      label: '批量修改价格',
-    },
-    {
-      key: 'listPrice',
-      label: '批量修改ListPrice',
-    },
-    {
-      key: 'discountedPrice',
-      label: '批量修改促销价格',
-    },
-    {
-      key: 'image',
-      label: '批量修改主图/标题',
-    }
-  ]
-});
-const router = useRouter;
-function toAdd() {
-  // router.push('/amazon/activeProduct/add')
-  window.open('/platform/amazon/activeProduct/add')
-}
-// 同步商品
-async function syncFn() {
-  modalInfo.sync.open = true
-  let marketplaceId = options.marketList.find(i => i.marketId === searchForm.marketId).marketplaceId
-  let params = {
-    "shopId": searchForm.shopId,
-    "marketIds":[marketplaceId]
-  }
-  try {
-    let res = await sync(params)
-    syncProportionFn(searchForm.shopId)
-  } catch (error) {
-    modalInfo.sync.open = false
-  }
-}
-// 获取同步进度
-async function syncProportionFn(shopId) {
-  let str = ''
-  try {
-    let res = await syncProportion({ shopId })
-    modalInfo.sync.str = res.data
-  } catch (error) {
-    message.error('同步失败，请稍后重试！', 3);
-    modalInfo.sync.open = false
-    console.log(error)
-  }
-  if (modalInfo.sync.str !== 'finish') {
-    setTimeout(() => {
-      syncProportionFn(shopId)
-    }, 5000);
-  } else {
-    modalInfo.sync.open = false
-    search()
-  }
-}
-function uploadTemplateFn(info) {
-  if (info.file.status !== 'uploading') {
-    console.log(info.file, info.fileList);
-  }
-  if (info.file.status === 'done') {
-    message.success(`${info.file.name} file uploaded successfully`);
-  } else if (info.file.status === 'error') {
-    message.error(`${info.file.name} file upload failed.`);
-  }
-}
-async function downloadTemplateFn() {
-  let url = import.meta.env.VITE_APP_BASE_API + '/platform-amazon/platform/amazon/product/download/template'
-  const response = await fetch(url, {
-    headers: {
-      'Authorization': 'Bearer ' + useAuthorization().value,
-    },
-  });
-  const blob = await response.blob();
-  const allBlob = new Blob([blob], { type: "application/octet-stream" });
-  const bolbUrl = window.URL.createObjectURL(allBlob);
-  const a = document.createElement("a");
-  a.href = bolbUrl;
-  a.download = 'import_product_price_stock_amazon.xlsx';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => {
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(bolbUrl);
-  }, 0);
-}
-// 批量操作
-function onClickBatch({ key }) {
-  batchData.modal[key].open = true
-  batchData.modal[key].rows = tableInfo.selectedRows
-}
-// 批量操作完成
-function editDone() {
-  tableInfo.selectedRows = []
-  for (const key in tableInfo.childData) {
-    if (Object.prototype.hasOwnProperty.call(tableInfo.childData, key)) {
-      if (tableInfo.childData[key].selectedRowKeys.length > 0) {
-        tableInfo.childData[key].selectedRowKeys = []
-        tableInfo.childData[key].selectedRows = []
-      }
-    }
-  }
-  search()
-}
 // 站点变更
 function marketChange(val) {
   searchForm.marketId = val
@@ -773,7 +553,8 @@ function createRandom() {
 }
 </script>
 <style lang="less" scoped>
-.activeProduct {
+.dataRelocationTable {
+  
   text-align: left;
   .btns {
     display: flex;

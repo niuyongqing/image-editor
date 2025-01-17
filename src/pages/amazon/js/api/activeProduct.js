@@ -78,6 +78,29 @@ export function sync(data) {
     data: data
   })
 }
+// 同步商品
+export function syncProportion(data) {
+  let params = getParamsFn(data)
+  return request({
+    url: '/platform-amazon/platform/amazon/product/sync/proportion' + params,
+    method: 'get',
+  })
+}
+// 下载模板
+export function downloadTemplate() {
+  return request({
+    url: '/platform-amazon/platform/amazon/product/download/template',
+    method: 'get'
+  })
+}
+// 上传模板
+export function uploadTemplate(data) {
+  return request({
+    url: '/platform-amazon/platform/amazon/product/export/batch/edit',
+    method: 'post',
+    data: data
+  })
+}
 
 // 批量更新接口
 // 批量修改库存
@@ -97,13 +120,13 @@ export function ourPriceEdit(data) {
   })
 }
 // 批量修改促销价格
-// export function quantityEdit(data) {
-//   return request({
-//     url: '/platform-amazon/platform/amazon/product/batch/edit/ourPrice',
-//     method: 'post',
-//     data: data
-//   })
-// }
+export function discountedPriceEdit(data) {
+  return request({
+    url: '/platform-amazon/platform/amazon/product/batch/edit/discountedPrice',
+    method: 'post',
+    data: data
+  })
+}
 // 批量修改List Price
 export function listPriceEdit(data) {
   return request({
