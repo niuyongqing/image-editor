@@ -578,15 +578,20 @@
           // 删除该项缓存
           delete this.parentAndSubAttrCache[this.attributeOptions[i].attributeId]
         }
+        // 代码调用时, val 内没 option; 手动选择时调用, 原始值放在 val 的 option 中;
+        const attrInfo = {
+          ...val,
+          ...val.option
+        }
         // 该属性有下级属性, 插入新数据
-        if (val.hasSubAttr) {
+        if (attrInfo.hasSubAttr) {
           setTimeout(() => {
             this.loading = true
           }, 0)
           const params = {
             channelSellerId: this.form.sellerId,
             param1: this.form.category, // 叶子类目id
-            param2: `${this.attributeOptions[i].attributeId}=${val.attributeValueId}`
+            param2: `${this.attributeOptions[i].attributeId}=${attrInfo.attributeValueId}`
           }
           getResultByPostCateIdAndPathApi(params)
             .then(res => {
@@ -599,6 +604,7 @@
                   item.en = JSON.parse(item.names).en
                   item.values.forEach(value => {
                     value.name = JSON.parse(value.names).zh + '(' + JSON.parse(value.names).en + ')'
+                    delete value.attributes
                   })
                 })
                 // 收集下级属性
@@ -609,7 +615,7 @@
                   const PROVINCE = '中国省份'
                   const showProvince = attributeList.some(item => item.zh === PROVINCE)
                   if (showProvince) {
-                    this.attributes[PROVINCE] = { attributeValueId: 100015203, name: '浙江(Zhejiang)', en: 'Zhejiang' }
+                    this.attributes[PROVINCE] = { value: 100015203, label: '浙江(Zhejiang)', en: 'Zhejiang', option: { attributeValueId: 100015203, name: '浙江(Zhejiang)', en: 'Zhejiang' } }
                   }
                 } else {
                   attributeList.forEach(item => {

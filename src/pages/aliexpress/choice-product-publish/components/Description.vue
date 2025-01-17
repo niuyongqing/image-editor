@@ -5,20 +5,20 @@
       :model="form"
       :rules="rules"
       :label-col="{ style: { width: '180px' } }"
+      :wrapper-col="{ span: 14 }"
     >
       <a-form-item
         label="PC端描述"
         name="webDetail"
       >
         <span class="text-[#a0a3a6]">详细描述一般包含产品功能属性、产品细节图片、支付物流、售后服务、公司实力等内容。</span>
-        <!-- <QuillEditor
-          v-model:value="form.webDetail"
-          ref="webEditor"
-          multiple
-          accept=".jpg,.jpeg,.png"
-          :extra-data="{ sellerId }"
-          :upload-url="uploadImageUrl"
-        /> -->
+        <WangEditor
+          v-model="form.webDetail"
+          ref="webDetailRef"
+          :toolbar-config="toolbarConfig"
+          :editor-config="editorConfig"
+          :height="500"
+        />
       </a-form-item>
       <a-form-item label="APP端描述">
         <a-popover>
@@ -32,23 +32,22 @@
           @click="cloneWebDetail"
           >根据PC端描述生成</a-button
         >
-        <!-- <QuillEditor
-          v-model:value="form.mobileDetail"
-          ref="mobileEditor"
-          multiple
-          accept=".jpg,.jpeg,.png"
-          :extra-data="{ sellerId }"
-          :upload-url="uploadImageUrl"
-        /> -->
+        <WangEditor
+          v-model="form.mobileDetail"
+          ref="mobileDetailRef"
+          :toolbar-config="toolbarConfig"
+          :editor-config="editorConfig"
+          :height="500"
+        />
       </a-form-item>
     </a-form>
   </a-card>
 </template>
 
 <script>
-  import QuillEditor from '@/components/quill-editor/index.vue'
   import { InfoCircleOutlined } from '@ant-design/icons-vue'
   import { useAliexpressChoiceProductStore } from '~@/stores/aliexpress-choice-product'
+  import { uploadImageForSdkApi } from '../../apis/common'
   import { message, Modal } from 'ant-design-vue'
 
   export default {
@@ -66,18 +65,44 @@
         store: useAliexpressChoiceProductStore(),
         uploadImageUrl: import.meta.env.VITE_APP_BASE_API_DEV + '/platform-aliexpress/platform/aliexpress/file/imageBank/uploadImageForSdk',
         form: {
-          webDetail: 'This is a text edited by Lynch on Earth.',
-          mobileDetail: 'This is a text edited by Lynch on Earth.'
+          webDetail: '',
+          mobileDetail: ''
         },
         rules: {
           webDetail: { validator: validWebDetail, required: true, trigger: 'change' }
+        },
+        // 工具栏配置
+        toolbarConfig: {},
+        // 编辑器配置
+        editorConfig: {
+          placeholder: '请输入内容...',
+          MENU_CONF: {
+            uploadImage: {
+              maxFileSize: 10 * 1024 * 1024, // 10M
+              // 选择文件时的类型限制，默认为 ['image/*'] 。如不想限制，则设置为 []
+              allowedFileTypes: ['image/*'],
+              customUpload(file, insertFn) {
+                if (!useAliexpressPopProductStore().sellerId) {
+                  message.warning('请先选择店铺')
+
+                  return
+                }
+
+                const formData = new FormData()
+                formData.append('file', file)
+                formData.append('sellerId', useAliexpressPopProductStore().sellerId)
+                formData.append('fileName', file.name)
+                uploadImageForSdkApi(formData).then(res => {
+                  insertFn(res.data.result.photobankUrl)
+                  message.success('上传成功')
+                })
+              }
+            }
+          }
         }
       }
     },
     computed: {
-      sellerId() {
-        return this.store.sellerId
-      },
       productDetail() {
         return this.store.productDetail
       }

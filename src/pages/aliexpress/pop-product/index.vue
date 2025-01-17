@@ -348,7 +348,6 @@
       <a-button
         type="primary"
         title="选择店铺后同步"
-        class="ml-2.5"
         :loading="syncProgressOpen"
         :disabled="!watchedSearchForm.sellerId"
         @click="handleSyncList"
@@ -401,6 +400,7 @@
         row-key="productId"
         :pagination="false"
         :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }"
+        :scroll="{ x: 'max-content' }"
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'productId'">
@@ -584,7 +584,7 @@
             >
               <a-button
                 type="text"
-                style="color: red"
+                danger
                 >删除</a-button
               >
             </a-popconfirm>
@@ -707,7 +707,7 @@
           prop: 'gmt_modified_time',
           order: 'desc',
           productType: undefined,
-          productStatus: 'ONLINE'
+          productStatus: 'onSelling'
         },
         // 高级搜索表单; 需点击'搜索'按钮再执行搜索动作
         lazySearchForm: {

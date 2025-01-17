@@ -86,18 +86,17 @@
         }"
       >
       </a-table>
-      <!-- :scroll="{ y: tableHeight, x: '100%', virtual: true }" -->
       <a-pagination
-        style="margin-top: 20px"
-        :show-total="(total) => `共 ${total} 条`"
+        style="margin-top: 10px;text-align: right"
+        :show-total="total => `共 ${total} 条`"
         v-model:current="paginations.pageNum"
         v-model:pageSize="paginations.pageSize"
-        :total="total"
+        :total="paginations.total"
         class="pages"
-        :defaultPageSize="50"
+        :show-quick-jumper="true"
         :showSizeChanger="true"
-        :pageSizeOptions="[50, 100, 200]"
-        @change="changePagination"
+        :pageSizeOptions="[50,100,200]"
+        @change="getList"
       />
     </a-card>
     <addAccountConfig
@@ -154,15 +153,13 @@ const loading = ref(false);
 const showAddModal = ref(false);
 const showEditModal = ref(false);
 const total = ref(0);
-const tableHeight = ref(0);
-const deptTableContainer = ref(null);
 const paginations = reactive({
   pageNum: 1,
   pageSize: 50,
+  total:0
 });
 const selectedRowKeys = ref([]);
 const onChange = (selecteds) => {
-  console.log("selectedRows: ", selecteds);
   selectedRowKeys.value = selecteds;
 };
 const changePagination = (pageNumber) => {
@@ -222,7 +219,7 @@ const getList = () => {
   accountList(params)
     .then((res) => {
       tableData.value = res?.data?.rows;
-      total.value = res.data.total ? res.data.total : 0;
+      paginations.total = res.data.total ? res.data.total : 0;
     })
     .finally(() => {
       loading.value = false;
@@ -232,8 +229,6 @@ const getList = () => {
 // 删除
 const del = () => {
   let id = selectedRowKeys.value[0].id;
-  console.log("id", id);
-
   delAccount(id)
     .then((res) => {
       if (res.code == 200) {
@@ -245,22 +240,11 @@ const del = () => {
       getList();
     });
 };
-const setTableHeight = () => {
-  if (deptTableContainer.value) {
-    tableHeight.value =
-      window.innerHeight -
-      deptTableContainer.value.getBoundingClientRect().top -
-      70; // 偏移量可根据需求调整
-  }
-};
+
 onMounted(() => {
-  setTableHeight();
-  window.addEventListener("resize", setTableHeight);
+  
   getUserDep();
   getList();
-});
-onUnmounted(() => {
-  window.removeEventListener("resize", setTableHeight);
 });
 </script>
 <style lang="less" scoped>

@@ -10,6 +10,27 @@ export default [
     filter:false,
   },
   {
+    title: '品类',
+    key: 'classify',
+    dataIndex: 'classify',
+    align:"center",
+    width: 300
+  },
+  {
+    title: '禁售属性',
+    key: 'forbidSale',
+    dataIndex: 'forbidSale',
+    align:"center",
+    width: 300
+  },
+  {
+    title: '是否自动刊登',
+    key: 'autoPublish',
+    dataIndex: 'autoPublish',
+    align:"center",
+    width: 200
+  },
+  {
     title: '简称',
     dataIndex: 'simpleName',
     key:"simpleName",
