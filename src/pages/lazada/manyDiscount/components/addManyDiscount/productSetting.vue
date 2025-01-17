@@ -9,7 +9,7 @@
           </span>
         </div>
       </template>
-      <a-form :model="formData" :rules="rules" ref="formData" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }">
+      <a-form :model="formData" :rules="rules" ref="formRef" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }">
         <a-form-item label="适用范围：" name="apply">
           <a-radio-group v-model:value="formData.apply">
             <a-radio value="ENTIRE_SHOP" v-if="!applyDisable">全店产品</a-radio>
@@ -28,6 +28,7 @@
 <script setup>
 import EventBus from "~/utils/event-bus";
 const applyDisable = ref(false);
+const formEl = useTemplateRef('formRef');
 const formData = ref({
   apply: 'ENTIRE_SHOP',
   orderUsedNumbers: undefined,
@@ -53,15 +54,14 @@ onMounted(() => {
 
 const baseValidate = async () => {
   const validatePromise = (formRef) =>
-    new Promise((resolve) => {
-      formRef.validate((valid) => {
-        if (!valid) {
-          resolve(false); // 校验失败
-        } else {
-          resolve(true); // 校验成功
-        }
-      });
+    new Promise(async (resolve) => {
+      const res = await formRef.validate();
+      resolve(res)
     });
-  return await validatePromise(this.$refs.formData);
+  return await validatePromise(formEl.value);
 };
+defineExpose({
+  formData,
+  baseValidate
+})
 </script>

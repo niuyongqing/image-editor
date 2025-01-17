@@ -44,22 +44,22 @@ const { state: formData, reset } = useResetReactive({
 const discountConfigEl = useTemplateRef('discountConfigRef')
 
 const getDiscountConfigData = () => {
-  formData.value.discountData = discountConfigEl.value.formData;
-  formData.value.fullDiscountArr = discountConfigEl.value.fullDiscountArr;
+  formData.discountData = discountConfigEl.value.formData;
+  formData.fullDiscountArr = discountConfigEl.value.fullDiscountArr;
 };
 
 const getSampleGiveawayData = () => {
-  formData.value.discountData = discountConfigEl.value.formData;
-  formData.value.fullDiscountArr = discountConfigEl.value.steepness;
+  formData.discountData = discountConfigEl.value.formData;
+  formData.fullDiscountArr = discountConfigEl.value.steepness;
 };
 
 const getComboDiscountData = () => {
-  formData.value.discountData = discountConfigEl.value.formData;
-  formData.value.fullDiscountArr = discountConfigEl.value.steepness;
+  formData.discountData = discountConfigEl.value.formData;
+  formData.fullDiscountArr = discountConfigEl.value.steepness;
 };
 
 const getFixedPriceData = () => {
-  formData.value.discountData = discountConfigEl.value.formData;
+  formData.discountData = discountConfigEl.value.formData;
 };
 
 const changeType = (type) => {
@@ -69,6 +69,13 @@ const changeType = (type) => {
     EventBus.emit('changeTypeFalse');
   }
 };
+
+defineExpose({
+  formData,
+  getDiscountConfigData,
+  getSampleGiveawayData,
+  getFixedPriceData,
+})
 
 </script>
 

@@ -100,10 +100,8 @@
 </template>
 
 <script setup>
+import { DeleteOutlined } from '@ant-design/icons-vue';
 
-import {
-  DeleteOutlined
-} from '@ant-design/icons-vue';
 const formData = ref({
   discountType: 'money',
   stackable: true,
@@ -140,6 +138,13 @@ const delGradient = (index) => {
     fullDiscountArr.value[0].disable = false;
   }
 };
-</script>
 
-<style lang="less" scoped></style>
+defineExpose({
+  formData,
+  fullDiscountArr,
+  changeStackable,
+  changeDiscountType,
+  addGradient,
+  delGradient,
+})
+</script>

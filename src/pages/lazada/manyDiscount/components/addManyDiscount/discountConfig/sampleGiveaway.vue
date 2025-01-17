@@ -146,6 +146,10 @@ const delSampleArrRow = (cardIndex, index) => {
 const delGradient = (index) => {
   steepness.value.pop();
 };
-</script>
 
-<style lang="scss" scoped></style>
+defineExpose({
+  formData,
+  steepness,
+  addGiftCard,
+})
+</script>

@@ -281,7 +281,7 @@ const open = (e) => {
 };
 // 关闭
 const close = () => {
-    // reset();
+    reset();
 };
 
 
@@ -361,7 +361,7 @@ const submit = () => {
                     modalMethods.value.closeModal()
                 }
                 else {
-                    message.success('添加成功');
+                    message.success('编辑成功');
                     emits('success')
                     close()
                 }
@@ -371,6 +371,7 @@ const submit = () => {
             }
 
         }).finally(() => {
+            modalMethods.value.closeModal();
             loading.value = false
         })
 

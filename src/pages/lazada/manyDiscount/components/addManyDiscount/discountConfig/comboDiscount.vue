@@ -147,6 +147,12 @@ const delGradient = (index) => {
   steepness.value.pop();
 };
 
+defineExpose({
+  formData,
+  steepness,
+  reset
+})
+
 onMounted(() => {
   // 选择完赠品列表 的数据
   EventBus.on('selectionGift', (e) => {

@@ -20,6 +20,9 @@ const { state: formData, reset } = useResetReactive({
   criteriaValue: '',
   discountValue: '',
 });
-</script>
 
-<style lang="scss" scoped></style>
+defineExpose({
+  formData
+})
+
+</script>

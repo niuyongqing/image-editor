@@ -14,6 +14,7 @@ import BaseInfo from './baseInfo.vue';
 import DiscountSetting from './discountSetting.vue';
 import ProductSetting from './productSetting.vue';
 import { message } from 'ant-design-vue';
+import { addLazadaFlexicomboProduct } from '@/pages/lazada/manyDiscount/api';
 
 const { shortCode } = defineProps({
     shortCode: {
@@ -31,14 +32,14 @@ const register = (modal) => {
 }
 
 const submit = async () => {
-    let discountSetting = discountSettingEl.value.formData //优惠设置 所有数据
-    let baseInfo = baseInfoEl.value.formData  //基本信息 所有数据
-    let productSetting = productSetting.value.formData  //产品设置  所有数据
+    let discountSetting = discountSettingEl.value.formData; //优惠设置 所有数据
+    let baseInfo = baseInfoEl.value.formData;  //基本信息 所有数据
+    let productSetting = productSettingEl.value.formData;  //产品设置  所有数据
     const baseInfoRes = baseInfoEl.value.baseValidate();
     if (!baseInfoRes) {
         return
     }
-    const productSettingRes = await productSetting.value.baseValidate();
+    const productSettingRes = await productSettingEl.value.baseValidate();
     if (!productSettingRes) {
         return
     }
@@ -48,8 +49,8 @@ const submit = async () => {
         discountSettingEl.value.getDiscountConfigData()
         data.shortCode = shortCode //店铺code
         data.name = baseInfo.name //优惠券名称
-        data.startTime = baseInfo.time[0]  //开始时间
-        data.endTime = baseInfo.time[1]  //结束时间
+        data.startTime = baseInfo.time[0].format('YYYY-MM-DD HH:mm:ss');  //开始时间
+        data.endTime = baseInfo.time[1].format('YYYY-MM-DD HH:mm:ss');  //结束时间
         data.apply = productSetting.apply  //适用范围
         data.orderNumbers = productSetting.orderUsedNumbers  //订单总数
         data.discountType = discountSetting.discountData.discountType //优惠类型
@@ -77,8 +78,8 @@ const submit = async () => {
         discountSetting.value.getSampleGiveawayData()
         data.shortCode = shortCode //店铺code
         data.name = baseInfo.name //优惠券名称
-        data.startTime = baseInfo.time[0]  //开始时间
-        data.endTime = baseInfo.time[1]  //结束时间
+        data.startTime = baseInfo.time[0].format('YYYY-MM-DD HH:mm:ss');  //开始时间
+        data.endTime = baseInfo.time[1].format('YYYY-MM-DD HH:mm:ss');  //结束时间
         data.apply = productSetting.apply  //适用范围
         data.orderNumbers = productSetting.orderUsedNumbers  //订单总数
         data.discountType = discountSetting.discountData.discountType //优惠类型
@@ -118,8 +119,8 @@ const submit = async () => {
         discountSetting.value.getComboDiscountData()
         data.shortCode = this.shortCode //店铺code
         data.name = baseInfo.name //优惠券名称
-        data.startTime = baseInfo.time[0]  //开始时间
-        data.endTime = baseInfo.time[1]  //结束时间
+        data.startTime = baseInfo.time[0].format('YYYY-MM-DD HH:mm:ss')  //开始时间
+        data.endTime = baseInfo.time[1].format('YYYY-MM-DD HH:mm:ss')  //结束时间
         data.apply = productSetting.apply  //适用范围
         data.orderNumbers = productSetting.orderUsedNumbers  //订单总数
         data.discountType = discountSetting.discountData.discountType //优惠类型
@@ -176,7 +177,7 @@ const submit = async () => {
             //如果 选择的是部分商品  打开商品列表
             if (productSetting.apply !== 'ENTIRE_SHOP') {
                 close()
-                emits('success', { shortCode: this.shortCode, voucherId: res.msg })            // 刷新
+                emits('success', { shortCode: shortCode, voucherId: res.msg })            // 刷新
             }
             else {
                 message.success('创建成功')
