@@ -212,7 +212,7 @@
                                 <div v-if="imgHeaderList.length > 0">
                                     <div v-for="(e, i) in imgHeaderList" :key="i">
                                         <div>
-                                            <span>{{ e.label }}:</span><span>{{ item[e.label] }}</span>
+                                            <span>{{ e.title }}:</span><span>{{ item[e.title] }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -227,6 +227,7 @@
                                     " @allList="imageUpload($event, item)" :allList="item.imageUrl" ref="imageList"
                                     :is-check="true" accept=".jpg,.jpeg,.png"
                                     :upload-url="uploadUrl"></drag-file-upload> -->
+                                    <!-- <dragUpload></dragUpload> -->
                             </a-card>
                         </div>
                     </div>
@@ -242,7 +243,7 @@ import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { message } from "ant-design-vue";
 import EditProdQuantity from './EditProdQuantity.vue';
-
+import dragUpload from './dragUpload.vue';
 const props = defineProps({
     categoryAttributesLoading: Boolean,
     storeOption: Array,
