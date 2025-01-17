@@ -79,6 +79,7 @@
         </div>
     </div>
     <WarehouseSetting ref="warehouseSettingRef" />
+    <RemarkModal ref="remarkModalRef"></RemarkModal>
     <PriceModal ref="priceModalRef" @success="priceSuccess"></PriceModal>
     <StockModal ref="stockModalRef" @success="stockSuccess"></StockModal>
     <SpecialPriceModal ref="specialPriceModalRef" @success="specialPriceSuccess"></SpecialPriceModal>
@@ -89,6 +90,7 @@ import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { DownOutlined, SettingOutlined } from "@ant-design/icons-vue";
 import WarehouseSetting from './warehouseSetting.vue'; // 仓库管理
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
+import RemarkModal from './batchModal/remarkModal.vue';
 import PriceModal from './batchModal/priceModal.vue';
 import SpecialPriceModal from './batchModal/specialPriceModal.vue';
 import StockModal from './batchModal/stockModal.vue';
@@ -101,7 +103,8 @@ const { selectedRows } = defineProps({
     }
 });
 
-const router = useRouter()
+const router = useRouter();
+const remarkModalEl = useTemplateRef('remarkModalRef');
 const warehouseSettingEl = useTemplateRef('warehouseSettingRef');
 const priceModalEl = useTemplateRef('priceModalRef');
 const stockModalEl = useTemplateRef('stockModalRef');
@@ -127,10 +130,20 @@ const createSiteProduct = () => {
 
 const handleEdit = () => { };
 const handleGobalPlus = () => { };
-const handleRemark = () => { };
-const handleBatchPrice = () => { };
-const handleStock = () => { };
-const handleSpecialPrice = () => { };
+
+const handleRemark = () => {
+    remarkModalEl.value.open();
+};
+
+const handleBatchPrice = () => {
+    priceModalEl.value.open();
+};
+const handleStock = () => {
+    stockModalEl.value.open();
+};
+const handleSpecialPrice = () => {
+    specialPriceModalEl.value.open();
+};
 
 // 批量发布
 const handlePublish = () => { };
