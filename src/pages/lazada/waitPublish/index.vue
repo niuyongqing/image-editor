@@ -1,9 +1,7 @@
 <template>
     <div>
         <Search :shortCodes="shortCodes" @search="handleSearch"></Search>
-
-        <TableAction></TableAction>
-
+        <TableAction @success="reload" :selectedRows="selectedRows"></TableAction>
         <BaseTable ref="baseTableRef" :columns="columns" :api="getList" :init-search-param="initSearchParam"
             :row-selection="rowSelection" show-right-pagination rowKey="id">
             <template #leftBar>
@@ -16,7 +14,6 @@
                             }}</a-button>
                     </div>
                 </div>
-
             </template>
             <template #Images="{ record }">
                 <a-image v-if="imageSrc(record)" :src="imageSrc(record)" :width="70"></a-image>
@@ -53,12 +50,7 @@
                 <div class="pb-30px">
                     <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
                         <div>
-                            <a-tooltip placement="top">
-                                <template #title>
-                                    <span>复制</span>
-                                </template>
-                                <span @click="copyText(item.retail_price)"> {{ item.retail_price }} </span>
-                            </a-tooltip>
+                            <span> {{ item.retail_price ? item.retail_price : '-' }} </span>
                         </div>
                     </div>
                 </div>
@@ -68,7 +60,7 @@
                 <div class="pb-30px">
                     <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
                         <div>
-                            <span @click="copyText(item.sales_price)"> {{ item.sales_price }} </span>
+                            <span> {{ item.sales_price ? item.sales_price : '-' }} </span>
                         </div>
                     </div>
                 </div>
@@ -79,7 +71,7 @@
                     <div class="record-sku-container">
                         <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
                             <div>
-                                <span @click="copyText(item.quantity)"> {{ item.quantity }} </span>
+                                <span> {{ item.quantity ? item.quantity : '-' }} </span>
                             </div>
                         </div>
                     </div>
@@ -147,7 +139,7 @@ const tableData = ref([]);
 const shortCodes = ref([]);
 const baseTableEl = useTemplateRef('baseTableRef');
 const remarkModalEl = useTemplateRef('remarkModalRef');
-const { singleDisabled, rowSelection, tableRow, clearSelection } = useTableSelection()
+const { singleDisabled, rowSelection, tableRow, selectedRows, clearSelection } = useTableSelection()
 const initSearchParam = {
     prop: "created_time",
     order: "desc",
@@ -225,8 +217,8 @@ const handleSearch = async (state) => {
     await baseTableEl.value.search(state);
 };
 //  编辑
-const handleEdit = () => {
-    window.open('/platform/lazada/waitPublish/edit', '_blank');
+const handleEdit = (record) => {
+    window.open(`/platform/lazada/waitPublish/edit?id=${record.id}`, '_blank');
 };
 const handleReset = () => {
     baseTableEl.value.reset();
@@ -251,7 +243,6 @@ const handleRemark = (record) => {
     // remarkModalEl.value.open(record);
 };
 
-// const 
 onMounted(async () => {
     const accountCacheRes = await accountCache();
     if (accountCacheRes.code === 200) {
@@ -273,8 +264,6 @@ onMounted(async () => {
 <style scoped lang="less">
 .record-sku-container {
     width: 100%;
-    // height: 145px;
-    // background: red;
 }
 
 .record-sku {

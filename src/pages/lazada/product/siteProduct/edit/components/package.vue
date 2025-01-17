@@ -28,6 +28,14 @@ import { useResetReactive } from '@/composables/reset';
 import { accountCache, categoryTree, getBrandList } from '@/pages/lazada/product/api';
 import EventBus from "~/utils/event-bus";
 import { message } from "ant-design-vue";
+
+const { detailData } = defineProps({
+    detailData: {
+        type: Object,
+        default: () => ({})
+    }
+});
+
 const shortCode = ref('');
 const formEl = useTemplateRef('formRef');
 const { state: lazadaAttrsState } = useLadazaAttrs();
@@ -35,6 +43,21 @@ const { state } = useResetReactive({
     taxClass: 'default', // 税
     packageContent: '',
 });
+
+//  编辑回显
+watch(() => {
+    return detailData
+}, async (newVal) => {
+    state.taxClass = newVal.attributes.taxClass ?? 'default';
+    if (newVal.skus && newVal.skus.length > 0) {
+        state.packageContent = newVal.skus[0]?.package_content ?? '';
+    } else {
+        state.packageContent = ''
+    }
+}, {
+    deep: true
+});
+
 // 税列表
 const taxClassOptions = computed(() => {
     return lazadaAttrsState.taxOptions.map(item => {

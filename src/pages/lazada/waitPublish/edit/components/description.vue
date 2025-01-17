@@ -36,13 +36,18 @@
 import { message } from 'ant-design-vue';
 import { marketImageLazada } from '@/pages/lazada/product/api';
 import { useLazadaWaitPublish } from "@/stores/lazadaWaitPublish";
+const { detailData } = defineProps({
+    detailData: {
+        type: Object,
+        default: () => ({})
+    }
+});
 const { state: lazadaAttrsState, } = useLazadaWaitPublish();
 const valueHtml = ref('');
 const productEditorEl = useTemplateRef('productEditorRef');
 const codeEditorEl = useTemplateRef('codeEditorRef');
 const descriptionLoading = ref(false);
 const loading = ref(false);
-
 const actionUrl = import.meta.env.VITE_APP_BASE_API + '/platform-lazada/platform/lazada/file/upload/market-image-lazada';
 const headers = computed(() => {
     return {
@@ -50,7 +55,6 @@ const headers = computed(() => {
         Authorization: 'Bearer ' + useAuthorization().value
     }
 });
-
 const editorConfig = {
     placeholder: "请输入内容...",
     MENU_CONF: {
@@ -80,7 +84,6 @@ const editorConfig = {
         },
     },
 };
-
 const codeEditorConfig = {
     placeholder: "请输入内容...",
     MENU_CONF: {
@@ -110,10 +113,18 @@ const codeEditorConfig = {
         },
     },
 };
-
 const form = reactive({
     description: '',
     shortDescription: '',
+});
+//  编辑回显
+watch(() => {
+    return detailData
+}, async (newVal) => {
+    form.description = newVal.attributes.description ? newVal.attributes.description : newVal.attributes.description_en;
+    form.shortDescription = newVal.attributes.description ? newVal.attributes.description : newVal.attributes.short_description_en;
+}, {
+    deep: true
 });
 
 watch(() => lazadaAttrsState.product, (newVal) => {
@@ -122,22 +133,14 @@ watch(() => lazadaAttrsState.product, (newVal) => {
             return item.input_type === "richText" && item.is_mandatory === 1;
         });
         richTextList.forEach((item) => {
-            console.log('item', item);
             form[item.item] = '<ul><li></li><ul>';
         });
         form.description = newVal.meansEnglishDescription;
         form.shortDescription = '<ul><li></li><ul>';
     }
 });
-
 defineExpose({
     form
-});
-
-onMounted(() => {
-    nextTick(() => {
-        console.log('editorEl', productEditorEl.value, codeEditorEl.value);
-    });
 });
 </script>
 

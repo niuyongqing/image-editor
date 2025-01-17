@@ -75,3 +75,8 @@ export function watermarkList(params) {
 export function lazadaAdd(data) {
   return usePost("/platform-lazada/platform/lazada/product/add", data);
 }
+
+// 详情
+export function lazadaWaitProductDetail(data) {
+  return usePost("/platform-lazada/platform/lazada/wait/product/detail", data);
+}

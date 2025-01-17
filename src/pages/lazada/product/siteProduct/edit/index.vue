@@ -1,69 +1,78 @@
 <template>
     <div w-full>
-        <div w-full flex justify-between m-auto>
-            <div>
-                <div>
-                    <a-breadcrumb separator=">">
-                        <a-breadcrumb-item>Lazada</a-breadcrumb-item>
-                        <a-breadcrumb-item>创建产品</a-breadcrumb-item>
-                    </a-breadcrumb>
+        <div flex>
+            <div flex-1>
+                <div w-full flex justify-between m-auto>
+                    <div>
+                        <div>
+                            <a-breadcrumb separator=">">
+                                <a-breadcrumb-item>Lazada</a-breadcrumb-item>
+                                <a-breadcrumb-item>在线产品</a-breadcrumb-item>
+                                <a-breadcrumb-item>编辑</a-breadcrumb-item>
+                            </a-breadcrumb>
+                        </div>
+                    </div>
+                    <div class="flex gap-12px">
+                        <a-button type="primary" style=" height: 32px;" @click="save" :loading="saveLoading">
+                            更新到lazada
+                        </a-button>
+                    </div>
+                </div>
+                <BaseInfo id="baseInfo" ref="baseInfoRef" :detailData="detailData"></BaseInfo>
+                <ProductInfo id="productInfo" ref="productInfoRef" :detailData="detailData"></ProductInfo>
+                <Package id="package" ref="packageRef" :detailData="detailData"></Package>
+                <ImageInfo id="imageInfo" ref="imageInfoRef" :waterList="waterList" :detailData="detailData">
+                </ImageInfo>
+                <Variant id="variant" ref="variantRef" :detailData="detailData"></Variant>
+                <VariantInfo id="variantInfo" ref="variantInfoRef" :detailData="detailData"></VariantInfo>
+                <VariantImage id="variantImage" ref="variantImageRef" :waterList="waterList" :detailData="detailData">
+                </VariantImage>
+                <Description id="description" ref="descriptionRef" :detailData="detailData"></Description>
+                <div w-full flex justify-end mt-10px>
+                    <div class="flex gap-12px">
+                        <a-button type="primary" style=" height: 32px;" @click="save" :loading="saveLoading">
+                            更新到lazada
+                        </a-button>
+                    </div>
                 </div>
             </div>
-            <div class="flex gap-12px">
-                <a-dropdown>
-                    <a-button type="primary" style="width: 90px; height: 31px;"
-                        :disabled="lazadaAttrsState.primaryCategory.length ? false : true">
-                        引用产品
-                        <DownOutlined />
-                    </a-button>
-                    <template #overlay>
-                        <a-menu>
-                            <a-menu-item @click="selectNowProduct">
-                                引用现有产品
-                            </a-menu-item>
-                        </a-menu>
-                    </template>
-                </a-dropdown>
-                <a-button type="primary" style=" height: 32px;" @click="save" :loading="saveLoading">
-                    保存
-                </a-button>
-
-                <a-button type="primary" style="height: 32px;" @click="publish" :loading="publishLoading">
-                    发布
-                </a-button>
-            </div>
-        </div>
-        <BaseInfo ref="baseInfoRef"></BaseInfo>
-        <ProductInfo ref="productInfoRef"></ProductInfo>
-        <Package ref="packageRef"></Package>
-        <ImageInfo ref="imageInfoRef" :waterList="waterList"></ImageInfo>
-        <Variant ref="variantRef"></Variant>
-        <VariantInfo ref="variantInfoRef"></VariantInfo>
-        <VariantImage ref="variantImageRef" :waterList="waterList"></VariantImage>
-        <Description ref="descriptionRef"></Description>
-
-        <div w-full flex justify-end mt-10px>
-            <div class="flex gap-12px">
-                <a-dropdown>
-                    <a-button type="primary" style="width: 90px; height: 31px;">
-                        引用产品
-                        <DownOutlined />
-                    </a-button>
-                    <template #overlay>
-                        <a-menu>
-                            <a-menu-item @click="selectNowProduct">
-                                引用现有产品
-                            </a-menu-item>
-                        </a-menu>
-                    </template>
-                </a-dropdown>
-                <a-button type="primary" style="height: 32px;" @click="save" :loading="saveLoading">
-                    保存
-                </a-button>
-
-                <a-button type="primary" style="height: 32px;" @click="publish" :loading="publishLoading">
-                    发布
-                </a-button>
+            <div>
+                <div w-150px mt-10px h-full px-20px>
+                    <div h-full>
+                        <a-timeline pending="" :reverse="false">
+                            <a-timeline-item>
+                                <a-button type="link" :color="baseInfoValid ? '#1677ff' : '#ec4339'"
+                                    @click="scrollTo('baseInfo')">基本信息 </a-button>
+                            </a-timeline-item>
+                            <a-timeline-item> <a-button type="link" :color="productInfoValid ? '#1677ff' : '#ec4339'"
+                                    @click="scrollTo('productInfo')">产品信息
+                                </a-button>
+                            </a-timeline-item>
+                            <a-timeline-item> <a-button type="link" :color="packageValid ? '#1677ff' : '#ec4339'"
+                                    @click="scrollTo('package')">包装信息
+                                </a-button>
+                            </a-timeline-item>
+                            <a-timeline-item> <a-button type="link" :color="imageInfoValid ? '#1677ff' : '#ec4339'"
+                                    @click="scrollTo('imageInfo')">图片信息
+                                </a-button>
+                            </a-timeline-item>
+                            <a-timeline-item>
+                                <a-button type="link" :color="variationValid ? '#1677ff' : '#ec4339'"
+                                    @click="scrollTo('variantInfo')">变种参数
+                                </a-button>
+                            </a-timeline-item>
+                            <a-timeline-item>
+                                <a-button type="link" :color="variantImageValid ? '#1677ff' : '#ec4339'"
+                                    @click="scrollTo('variantImage')">变种图片
+                                </a-button>
+                            </a-timeline-item>
+                            <a-timeline-item>
+                                <a-button type="link" @click="scrollTo('description')">描述信息
+                                </a-button>
+                            </a-timeline-item>
+                        </a-timeline>
+                    </div>
+                </div>
             </div>
         </div>
         <!-- 选择资料库产品 弹窗 -->
@@ -75,20 +84,22 @@
 
 <script setup>
 import { DownOutlined } from '@ant-design/icons-vue';
-import BaseInfo from './add/components/baseInfo.vue';
-import Package from './add/components/package.vue';
-import ProductInfo from './add/components/productInfo.vue';
-import ImageInfo from './add/components/imageInfo.vue';
-import VariantInfo from './add/components/variantInfo.vue';
-import Variant from './add/components/variant.vue';
-import VariantImage from './add/components/variantImage.vue';
-import Description from './add/components/description.vue';
+import BaseInfo from './components/baseInfo.vue';
+import Package from './components/package.vue';
+import ProductInfo from './components/productInfo.vue';
+import ImageInfo from './components/imageInfo.vue';
+import VariantInfo from './components/variantInfo.vue';
+import Variant from './components/variant.vue';
+import VariantImage from './components/variantImage.vue';
+import Description from './components/description.vue';
 import SelectProduct from '@/components/selectProduct/index.vue';
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
-import { watermarkList, lazadaAdd } from '@/pages/lazada/product/api';
 import AddSuccessModal from './components/batchModal/addSuccessModal.vue';
+import { watermarkList, lazadaAdd, lazadaProductDetail } from '@/pages/lazada/product/api';
 import dayjs from 'dayjs';
 
+const route = useRoute();
+const detailData = ref({}); // 产品详情数据
 const saveLoading = ref(false);
 const publishLoading = ref(false);
 const waterList = ref([]); // 水印列表
@@ -102,6 +113,13 @@ const variantImageEl = useTemplateRef('variantImageRef');
 const descriptionEl = useTemplateRef('descriptionRef');
 const selectProductEl = useTemplateRef('selectProductRef');// 选择资料库产品 弹窗
 const addSuccessModalEl = useTemplateRef('addSuccessModalRef');// 发布成功弹窗
+// 校验状态
+const baseInfoValid = ref(true);
+const productInfoValid = ref(true);
+const packageValid = ref(true);
+const imageInfoValid = ref(true);
+const variationValid = ref(true);
+const variantImageValid = ref(true);
 
 const { state: lazadaAttrsState, setProduct } = useLadazaAttrs();
 const product = ref({});
@@ -112,31 +130,36 @@ const selectNowProduct = () => {
 
 //  验证校验
 const validateAll = async () => {
-
-    // const baseInfoForm = await baseInfoEl.value.validateForm();
-    // if (!baseInfoForm) {
-    //     return;
-    // }
-    // const productInfoForm = await productInfoEl.value.validateForm();
-    // if (!productInfoForm) {
-    //     return;
-    // }
-    // const packageForm = await packageEl.value.validateForm();
-    // if (!packageForm) {
-    //     return;
-    // }
-    // const imageInfoForm = await imageInfoEl.value.validateForm();
-    // if (!imageInfoForm) {
-    //     return;
-    // }
-    // const variationForm = await variantInfoEl.value.validateForm();
-    // if (!variationForm) {
-    //     return;
-    // }
-    // const variantImage = await variantImageEl.value.validateForm();
-    // if (!variantImage) {
-    //     return;
-    // };
+    const baseInfoForm = await baseInfoEl.value.validateForm();
+    baseInfoValid.value = baseInfoForm;
+    if (!baseInfoForm) {
+        return;
+    }
+    const productInfoForm = await productInfoEl.value.validateForm();
+    productInfoValid.value = productInfoForm;
+    if (!productInfoForm) {
+        return;
+    }
+    const packageForm = await packageEl.value.validateForm();
+    packageValid.value = packageValid;
+    if (!packageForm) {
+        return;
+    }
+    const imageInfoForm = await imageInfoEl.value.validateForm();
+    packageValid.value = imageInfoForm;
+    if (!imageInfoForm) {
+        return;
+    }
+    const variationForm = await variantInfoEl.value.validateForm();
+    variationValid.value = variationForm;
+    if (!variationForm) {
+        return;
+    }
+    const variantImage = await variantImageEl.value.validateForm();
+    variantImageValid.value = variantImage;
+    if (!variantImage) {
+        return;
+    };
     const form = await descriptionEl.value.form;
 
     const baseInfoState = baseInfoEl.value.state;
@@ -248,9 +271,10 @@ const handleSelect = (productData) => {
     setProduct(productData);
 };
 
-// 保存
+// 更新到lazada 
 const save = () => {
-    validateAll();
+    const data = validateAll();
+    console.log('data', data);
     // publishLoading.value = true;
     // lazadaAdd(res).then(res => {
     //     addSuccessModalEl.value.open();
@@ -259,17 +283,6 @@ const save = () => {
     // })
 };
 
-// 发布
-const publish = () => {
-    validateAll()
-    console.log('校验通过');
-    // publishLoading.value = true;
-    // lazadaAdd(res).then(res => {
-    //     addSuccessModalEl.value.open();
-    // }).finally(() => {
-    //     publishLoading.value = false;
-    // })
-};
 
 // 获取水印
 const getWatermark = () => {
@@ -279,8 +292,29 @@ const getWatermark = () => {
         }
     });
 };
+// 获取产品
+const getProductDetail = () => {
+    const params = {
+        itemId: route.query.itemId
+    };
+    if (!params.itemId) return;
+    lazadaProductDetail(params)
+        .then((res) => {
+            if (res.code === 200) {
+                detailData.value = res.data || {};
+            }
+        });
+};
+
+const scrollTo = (id) => {
+    const element = document.getElementById(id);
+    if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+    }
+};
 
 onMounted(() => {
+    getProductDetail();
     getWatermark()
 });
 </script>

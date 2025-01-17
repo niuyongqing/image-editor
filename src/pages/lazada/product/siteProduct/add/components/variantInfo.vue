@@ -105,7 +105,6 @@
         <SpecialDateModal ref="specialDateModalRef" @success="specialDateSuccess"></SpecialDateModal>
         <WeightModal ref="weightModalRef" @success="weightSuccess"></WeightModal>
         <PackageModal ref="packageModalRef" @success="packageSuccess"></PackageModal>
-
     </div>
 </template>
 

@@ -1,0 +1,76 @@
+export function getList(params) {
+  return usePost("/platform-lazada/platform/lazada/product/list", params);
+}
+
+export function accountCache() {
+  return useGet(
+    "/platform-lazada/platform/lazada/setting/account/relevance/user/cache"
+  );
+}
+export function categoryTree(params) {
+  return usePost(
+    "/platform-lazada/platform/lazada/attribute/category/tree",
+    params
+  );
+}
+//  品牌列表
+export function getBrandList(params) {
+  return usePost(
+    "/platform-lazada/platform/lazada/attribute/category/brand",
+    params
+  );
+}
+
+// 产品图片上传
+export function uploadImage(params, headers) {
+  return usePost(
+    "/platform-lazada/platform/lazada/file/upload/main-image",
+    params,
+    { headers }
+  );
+}
+// 获取分类类型属性
+export function categoryAttributesApi(params) {
+  return usePost(
+    "/platform-lazada/platform/lazada/attribute/category/attributes",
+    params
+  );
+}
+
+// 富文本 图片上传
+export function marketImageLazada(params, headers) {
+  return usePost(
+    "/platform-lazada/platform/lazada/file/upload/market-image-lazada",
+    params,
+    { headers }
+  );
+}
+// 视频的封面图 上传
+export function videoImageUpload(params, headers) {
+  return usePost(
+    "/platform-lazada/platform/lazada/file/upload/video-image",
+    params,
+    { headers }
+  );
+}
+// 视频 上传
+export function videoUpload(params, headers) {
+  return usePost("/platform-lazada/platform/lazada/file/upload/video", params, {
+    headers,
+  });
+}
+
+// sku列表
+export function skuList(data) {
+  return usePost("/commodity-manage/commodity/store/sku/list", data);
+}
+
+// 水印列表
+export function watermarkList(params) {
+  return useGet("/platform-setting/platform/setting/template/watermark/list");
+}
+
+// lazada 添加站点商品
+export function lazadaAdd(data) {
+  return usePost("/platform-lazada/platform/lazada/product/add", data);
+}

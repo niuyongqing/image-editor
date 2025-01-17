@@ -1,7 +1,6 @@
 <template>
   <div>
-    <a-form :model="formData" ref="formData" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }" class="demo-ruleForm"
-      style="height: auto">
+    <a-form :model="formData" ref="formData" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }">
       <a-form-item label="" name="discountType">
         <a-radio-group v-model:value="formData.discountType">
           <a-radio value="discountWithGift">折扣 & 赠品</a-radio>
@@ -32,7 +31,7 @@
       </a-form-item>
 
       <div v-for="(item, i) in steepness" :key="i">
-        <a-card bordered={false}>
+        <a-card bordered>
           <template #title>
             <div style="display: flex; justify-content: space-between">
               <span>梯度 {{ i + 1 }}</span>

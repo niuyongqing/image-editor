@@ -1,0 +1,254 @@
+import request from "@/utils/request";
+// 待发布
+export function list(data) {
+  return request({
+    url: "/platform-ozon/platform/ozon/product/list",
+    method: "post",
+    data: data,
+  });
+}
+
+// 店铺列表
+export function accountCache() {
+  return request({
+    url: `/platform-ozon/platform/ozon/setting/account/relevance/user/cache`,
+    method: "post",
+  });
+}
+
+// 店铺分类
+export function categoryTree(data) {
+  return request({
+    url: "/platform-ozon/platform/ozon/attribute/category/tree",
+    method: "post",
+    data: data,
+  });
+}
+
+// 历史分类
+export function historyCategory(data) {
+  return request({
+    url: "/platform-ozon/platform/ozon/attribute/history/category",
+    method: "post",
+    data: data,
+  });
+}
+
+// 保存历史分类
+export function addHistoryCategory(data) {
+  return request({
+    url: "/platform-ozon/platform/ozon/attribute/add/historyCategory",
+    method: "post",
+    data: data,
+  });
+}
+
+// 历史属性
+export function historyAttribute(data) {
+  return request({
+    url: "/platform-ozon/platform/ozon/attribute/historyAttribute",
+    method: "post",
+    data: data,
+  });
+}
+
+// 获取属性
+export function categoryAttributes(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/attribute/category/attributes',
+    method: 'post',
+    data: data
+  })
+}
+
+// 获取变种主题中的下拉值
+export function attributesValues(data) {
+  return request({
+    url: '/platform-ozon//platform/ozon/attribute/category/attributes/values',
+    method: 'post',
+    data: data
+  })
+}
+
+// 获取品牌
+export function categoryBrand(data) {
+  return request({
+    url: '/platform-wish/platform/wish/attribute/category/brand',
+    method: 'post',
+    data: data
+  })
+}
+
+// 视频接口
+export function videoQuota(data) {
+  return request({
+    url: '/platform-lazada/platform/lazada/file/video/quota',
+    method: 'post',
+    data: data
+  })
+}
+
+// 新增产品
+export function add(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/product/add',
+    method: 'post',
+    data: data
+  })
+}
+
+// 删除产品
+export function del(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/product/del',
+    method: 'post',
+    data: data
+  })
+}
+
+// 获取第三方返回的仓库
+export function getWarehouses(data) {
+  return request({
+    url: '/platform-wish/platform/wish/warehouse/info',
+    method: 'post',
+    data: data
+  })
+}
+
+// 批量修改库存
+export function updateStock(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/product/batch/updateStock',
+    method: 'post',
+    data: data
+  })
+}
+
+// 同步当前产品
+export function syncOneProduct(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/product/syncOneProduct',
+    method: 'post',
+    data: data
+  })
+}
+
+// 同步所有产品
+export function syncShopProductAll(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/product/sync-all',
+    method: 'post',
+    data: data
+  })
+}
+
+export function syncShopProduct(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/product/syncShopProduct',
+    method: 'post',
+    data: data
+  })
+}
+
+// 下架产品
+export function batchArchive(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/product/batch/archive',
+    method: 'post',
+    data: data
+  })
+}
+
+// 修改备注
+export function remark(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/product/remark',
+    method: 'post',
+    data: data
+  })
+}
+
+// 修改备注
+export function unarchive(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/product/batch/unarchive',
+    method: 'post',
+    data: data
+  })
+}
+
+// 查询产品详情
+export function getDetail(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/product/detail',
+    method: 'post',
+    data: data
+  })
+}
+
+// 复制
+export function copyList(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/product/copy',
+    method: 'post',
+    data: data
+  })
+}
+
+// 修改价格
+export function updatePrices(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/product/batch/updatePrices',
+    method: 'post',
+    data: data
+  })
+}
+
+// 批量下载图片
+export function downloadImgs(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/file/download/img',
+    method: 'post',
+    data: data,
+    responseType: 'blob',
+    headers: {
+      'Content-Type': 'application/json; application/octet-stream'
+    }
+  })
+}
+
+// 同步历史分类
+export function syncHistoryCategory(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/attribute/syncHistoryCategory',
+    method: 'post',
+    data: data
+  })
+}
+
+// 合并产品列表
+export function mergeList(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/product/merge/list',
+    method: 'post',
+    data: data
+  })
+}
+
+
+// 获取修改仓库数据的列表
+export function productWarehouse(data) {
+  return request({
+    url: '/platform-ozon//platform/ozon/product/warehouse',
+    method: 'post',
+    data: data
+  })
+}
+
+// 进度条接口
+export function asyncProgress(data) {
+  return request({
+    url: "/platform-ozon/platform/ozon/product/progressBar?uuid=" + data,
+    method: 'get',
+  })
+}

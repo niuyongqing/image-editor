@@ -34,7 +34,7 @@
 
         <!-- 同步信息 -->
         <a-modal v-model:open="syncInfoVisible" title="同步信息" :maskClosable="false" width="600px">
-            <a-card style="margin-right: 5px; overflow-y: auto" bordered={false}>
+            <a-card style="margin-right: 5px; overflow-y: auto" bordered>
                 <a-descriptions title="同步信息">
                     <a-descriptions-item label="数据月份">{{ syncObj.month }}</a-descriptions-item>
                     <a-descriptions-item label="同步状态">

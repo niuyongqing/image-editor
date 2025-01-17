@@ -1,7 +1,7 @@
 <template>
     <div>
         <a-card>
-            <a-form ref="baseFormRef" layout="inline" :formList="formList" :label-col="{ style: { width: '80px' } }"
+            <a-form ref="baseFormRef" layout="inline" :label-col="{ style: { width: '80px' } }"
                 :wrapper-col="{ style: { width: '220px' } }" labelAlign="left">
                 <a-form-item label="店铺：">
                     <a-select style="width: 220px" v-model:value="state.shortCode" placeholder="请选择店铺" allow-clear>

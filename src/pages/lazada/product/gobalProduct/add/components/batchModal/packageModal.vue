@@ -1,5 +1,5 @@
 <template>
-    <a-modal v-model:open="dialogVisible" title="修改价格" width="500px" @cancel="cancel">
+    <a-modal v-model:open="dialogVisible" title="修改包装尺寸" width="500px" @cancel="cancel">
         <a-form :model="form" :label-col="{ span: 2 }" :wrapper-col="{ span: 20 }">
             <a-form-item label="长">
                 <a-input-number v-model:value="form.packageLength" :min="0.01" :max="110" :precision="2" width="100%"

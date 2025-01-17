@@ -1,8 +1,7 @@
 <template>
   <div>
-    <a-form :model="formData" ref="formData" label-col="{ span: 6 }" wrapper-col="{ span: 14 }" class="demo-ruleForm"
-      style="height: auto">
-      <a-form-item label="" name="discountType">
+    <a-form :model="formData" ref="formData" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }">
+      <a-form-item label="" name=" discountType">
         <a-radio-group v-model:value="formData.discountType">
           <a-radio value="freeGift">赠品</a-radio>
           <a-radio value="freeSample" disabled>样品</a-radio>
@@ -31,7 +30,7 @@
 
       <!-- 订单金额达到门槛时 梯度 -->
       <div v-for="(item, i) in steepness" :key="i">
-        <a-card bordered={false}>
+        <a-card bordered>
           <template #title>
             <div style="display: flex; justify-content: space-between">
               <span>梯度 {{ i + 1 }}</span>

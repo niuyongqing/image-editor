@@ -86,8 +86,22 @@ export const useLazadaWaitPublish = defineStore("lazadaWaitPublish", () => {
     if (taxOptions) {
       state.taxOptions = taxOptions.options || [];
     }
-
     setLoading(false);
+  };
+
+  const setProductClassifyAtrrs = (attributes = {}) => {
+    state.productClassifyAtrrs.forEach((attr) => {
+      for (const key in attributes) {
+        if (attr.name === key) {
+          // 多选数据转为数组
+          if (attr.input_type.includes("multi")) {
+            attr.value = attributes[key] ? attributes[key].split(",") : [];
+          } else {
+            attr.value = attributes[key];
+          }
+        }
+      }
+    });
   };
 
   const setProduct = (data = {}) => {
@@ -126,5 +140,6 @@ export const useLazadaWaitPublish = defineStore("lazadaWaitPublish", () => {
     setProduct,
     reset,
     setProductSkus,
+    setProductClassifyAtrrs,
   };
 });

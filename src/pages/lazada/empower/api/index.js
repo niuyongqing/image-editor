@@ -58,3 +58,46 @@ export function remark(params) {
 export function url(params) {
   return usePost("/platform-lazada/platform/lazada/empower/url", params);
 }
+export function loginCheck(params) {
+  return usePost(
+    "/platform-lazada/platform/lazada/empower/login/power/check",
+    params
+  );
+}
+
+export function loginPowerVerify(params) {
+  return usePost(
+    "/platform-lazada/platform/lazada/empower/login/power/verify",
+    params
+  );
+}
+export function lazadaLoginView(data) {
+  return usePost(
+    "/platform-lazada/platform/lazada/empower/login/code/view",
+    data
+  );
+}
+export function lazadaLoginEdit(data) {
+  return usePost(
+    "/platform-lazada/platform/lazada/empower/login/code/edit",
+    data
+  );
+}
+// 上传修改店铺密码excel
+export function uploadBatchPasswordExcel(data, headers) {
+  return usePost(
+    "/platform-lazada/platform/lazada/empower/login/code/batch/edit",
+    data,
+    {
+      headers,
+    }
+  );
+}
+// 修改品类, 禁用属性, 自动刊登
+export function updateShop(data) {
+  return usePost("/platform-lazada/platform/lazada/empower/update/shop", data);
+}
+// //禁售属性
+export function meansAttribute() {
+  return useGet("/commodity-manage/commodity/means-public/forbid-sale");
+}

@@ -22,28 +22,31 @@
       </div>
 
       <div class="flex flex-wrap  mt-10px">
-        <a-card v-for="element in fileList" :key="element.uid" ml-10px p-0px rounded-none class="file-card" hoverable
-          style="width: 125px;">
+        <a-card v-for="element in fileList" :key="element.uid" mb-10px ml-10px p-0px rounded-none class="file-card"
+          hoverable style="width: 125px;">
           <div :key="element.url">
             <div class="file-item">
               <div class="file-img">
-                <img :src="element.url" alt="" class="file-img" />
+                <a-image :src="element.url" alt="" class="file-img" />
                 <div class="image-mask"> {{ element.height }} X {{ element.width }} </div>
 
                 <div class="image-check" v-if="element.checked">
                   <CheckOutlined style="color: #00B903;font-size: 20px; font-weight: bold;" />
                 </div>
-                <div class="image-tooltip" @click="check(element)">
+                <!-- <div class="image-tooltip" @click="check(element)">
                   点击{{ element.checked ? '取消' : '选中' }}
-                </div>
+                </div> -->
               </div>
             </div>
           </div>
           <div w-full>
-            <div flex justify-end w-full>
-              <a-button type="text" color="#428bca" @click="handleRemove(element)">
+            <div flex justify-between w-full>
+              <a-checkbox v-model:checked="element.checked" v-if="!element.url.includes('http')"
+                @change="check(element, $event)"></a-checkbox>
+              <div></div>
+              <!-- <a-button type="text" color="#428bca" @click="handleRemove(element)">
                 <DeleteOutlined />
-              </a-button>
+              </a-button> -->
             </div>
           </div>
           <template #tabBarExtraContent></template>
@@ -85,7 +88,9 @@ const checkedAll = ref(false);
 
 const handleCheckAllChange = (e) => {
   fileList.value.forEach(item => {
-    item.checked = checkedAll.value
+    if (!item.url.includes('http')) {
+      item.checked = checkedAll.value
+    }
   })
 };
 
@@ -106,11 +111,12 @@ const handleRemove = (element) => {
 }
 
 // 点击选中
-const check = (element) => {
-  element.checked = !element.checked;
-  const isAllChecked = fileList.value.every(item => item.checked);
+const check = (element, value) => {
+  const list = fileList.value.filter((item) => {
+    return !item.url.includes('http')
+  });
+  const isAllChecked = list.every(item => item.checked);
   checkedAll.value = isAllChecked;
-
 };
 
 //  点击确定

@@ -1,6 +1,6 @@
 <template>
     <div>
-        <BaseModal @register="register" title="创建优惠券" @submit="submit" width="60%" :submit-btn-loading="loading">
+        <BaseModal @register="register" title="创建优惠券" @submit="submit" width="1000px" :submit-btn-loading="loading">
             <BaseInfo ref="baseInfoRef"></BaseInfo>
             <DiscountSetting ref="discountSettingRef" style="margin-top: 10px"></DiscountSetting>
             <ProductSetting ref="productSettingRef" style="margin-top: 10px"></ProductSetting>
@@ -12,7 +12,7 @@
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import BaseInfo from './baseInfo.vue';
 import DiscountSetting from './discountSetting.vue';
-// import ProductSetting from './productSetting.vue';
+import ProductSetting from './productSetting.vue';
 import { message } from 'ant-design-vue';
 
 const { shortCode } = defineProps({

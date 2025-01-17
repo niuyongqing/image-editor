@@ -68,3 +68,11 @@ export function list(data) {
     data: data,
   })
 }
+
+// 获取授权失败列表
+export function failAuthList() {
+  return request({
+    url: '/platform-amazon/platform/amazon/auth/fail/auth',
+    method: 'get',
+  })
+}
