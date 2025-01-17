@@ -1,6 +1,6 @@
 <template>
   <div>
-    <a-form :model="formData" ref="formData" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }">
+    <a-form :model="formData" ref="formRef" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }">
       <a-form-item label="" name=" discountType">
         <a-radio-group v-model:value="formData.discountType">
           <a-radio value="freeGift">赠品</a-radio>
@@ -11,7 +11,6 @@
       <a-form-item>
         <span style="color: #00000073; font-size: 12px">邮费全部由卖家承担。</span>
       </a-form-item>
-
       <a-form-item label="优惠上不封顶" name="stackable">
         <a-radio-group v-model:value="formData.stackable">
           <a-radio :value="true">是</a-radio>
@@ -49,7 +48,7 @@
             <a-form-item>
               <template #label><span>赠品/样品</span></template>
               <span style="color: gray; font-size: 13px">卖家将负责礼品和样品的邮费</span>
-              <a-button type="primary" style="margin-left: 10px" @click="addGift(index)">增加赠品/样品</a-button>
+              <a-button type="primary" style="margin-left: 10px" @click="addGift(i)">增加赠品/样品</a-button>
             </a-form-item>
             <a-form-item>
               <a-alert type="warning" message="在活动过程中删除赠品/样品会导致买家下单失败，请谨慎操作" show-icon />
@@ -81,19 +80,22 @@
         <br />
       </div>
     </a-form>
+    <GiftList ref="giftListRef"></GiftList>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import EventBus from "~/utils/event-bus";
-
+import GiftList from '@/pages/lazada/manyDiscount/components/addManyDiscount/giftList.vue';
+const value = ref(1);
 const formData = ref({
   discountType: 'freeGift',
   stackable: true,
   criteriaType: 'QUANTITY',
 });
-
+const giftListEl = useTemplateRef('giftListRef');
+const formEl = useTemplateRef('formRef');
 const steepness = ref([{ criteriaValue: '1', giftBuyLimitValue: '1', sampleArr: [] }]);
 const columns = [{
   dataIndex: 'sellerSku',
@@ -120,18 +122,13 @@ const columns = [{
   title: 'Include',
   align: 'center'
 }]
-onMounted(() => {
-  // 选择完赠品列表 的数据
-  EventBus.on('selectionGift', (e) => {
-    if (e) {
-      steepness.value[e.index].sampleArr = e.selectionGiftData;
-    }
-  });
-});
+
 
 const addGift = (index) => {
-  console.log('steepness.value[index]', steepness.value[index]);
+  console.log('steepness.value[index]', index, steepness.value[index]);
   EventBus.emit('GiftList', steepness.value[index].sampleArr, index);
+  giftListEl.value.open();
+
 };
 
 const addGiftCard = () => {
@@ -147,10 +144,27 @@ const delSampleArrRow = (cardIndex, index) => {
 const delGradient = (index) => {
   steepness.value.pop();
 };
+const clearValidate = () => {
+  formData.value = {
+    discountType: 'freeGift',
+    stackable: true,
+    criteriaType: 'QUANTITY',
+  };
+  steepness.value = [{ criteriaValue: '1', giftBuyLimitValue: '1', sampleArr: [] }];
+}
 
 defineExpose({
   formData,
   steepness,
   addGiftCard,
-})
+  clearValidate,
+});
+onMounted(() => {
+  // 选择完赠品列表 的数据
+  EventBus.on('selectionGift', (e) => {
+    if (e) {
+      steepness.value[e.index].sampleArr = e.selectionGiftData;
+    }
+  });
+});
 </script>

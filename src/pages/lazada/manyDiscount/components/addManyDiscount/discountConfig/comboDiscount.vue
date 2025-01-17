@@ -147,9 +147,20 @@ const delGradient = (index) => {
   steepness.value.pop();
 };
 
+
+const clearValidate = () => {
+  formData.value = {
+    discountType: 'discountWithGift',
+    stackable: true,
+    criteriaType: 'QUANTITY',
+  };
+  steepness.value = [{ criteriaValue: '1', giftBuyLimitValue: '1', disable: false, sampleArr: [] }];
+}
+
 defineExpose({
   formData,
   steepness,
+  clearValidate,
   reset
 })
 
