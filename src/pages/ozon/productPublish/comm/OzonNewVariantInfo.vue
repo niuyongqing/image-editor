@@ -190,13 +190,13 @@
                             </a-select-option>
                         </a-select>
                     </div>
-                    <span style="padding: 3px 0;color: #99999a;" class="mr-2.5 float-right">
+                    <span style="padding: 3px 0;color: #99999a;" class="mr-5 float-right">
                         <a-input-number v-model:value="cropWidth" placeholder="宽" controls-position="right"
                             :controls="false"></a-input-number>
                         X
                         <a-input-number v-model:value="cropHeight" placeholder="高" controls-position="right"
                             :controls="false"></a-input-number>
-                        <a-button @click="crop">裁剪</a-button>
+                        <a-button @click="crop" class="ml-2.5">裁剪</a-button>
                     </span>
                 </template>
                 <div>
