@@ -88,8 +88,8 @@ async function updateListPrice() {
           "value": [
             {
               "value": batchData.form.num,
-              "currency": "USD",
-              "marketplace_id": "ATVPDKIKX0DER"
+              "currency": item.currency,
+              "marketplace_id": item.attribute.list_price[0].marketplace_id
             }
           ]
         }

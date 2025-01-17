@@ -140,14 +140,27 @@
   >
     <div class="btns">
       <div class="left-group">
-        <a-button
-          type="primary"
-          @click="toAdd"
-        >发布商品</a-button>
-        <!-- <a-button
-          type="primary"
-          @click="toAdd"
-        >删除商品</a-button> -->
+        <a-button type="primary" @click="toAdd">发布商品</a-button>
+        <a-button type="primary" @click="syncFn">同步商品</a-button>
+        <a-upload
+          v-model:file-list="options.fileList"
+          :show-upload-list="false"
+          name="file"
+          :action="options.uploadTemplateUrl"
+          :headers="options.headers"
+          @change="uploadTemplateFn"
+        >
+          <a-button type="primary">导入更新价格和库存</a-button>
+        </a-upload>
+        <a-button type="primary" @click="downloadTemplateFn">下载导入模板</a-button>
+        <a-popconfirm
+          title="是否删除勾选的sku?"
+          ok-text="是"
+          cancel-text="否"
+          @confirm="batchDel"
+        >
+          <a-button type="primary" danger :disabled="tableInfo.selectedRows.length < 1">批量删除</a-button>
+        </a-popconfirm>
       </div>
       <!-- <a-pagination
         size="small"
@@ -166,37 +179,13 @@
             type="primary" 
             @click.prevent
             :disabled="tableInfo.selectedRows.length < 1"
-          >批量操作商品</a-button>
-          <!-- <a class="ant-dropdown-link">
-            Hover me, Click menu item
-            <DownOutlined />
-          </a> -->
+          >批量操作</a-button>
           <template #overlay>
             <a-menu @click="onClickBatch">
               <a-menu-item 
                 v-for="item in batchData.itemList"
                 :key="item.key"
               >{{ item.label }}</a-menu-item>
-            </a-menu>
-          </template>
-        </a-dropdown>
-        <a-dropdown :trigger="['click']">
-          <a-button
-            type="primary" 
-            @click.prevent
-          >批量操作SKU</a-button>
-          <!-- <a class="ant-dropdown-link">
-            Hover me, Click menu item
-            <DownOutlined />
-          </a> -->
-          <template #overlay>
-            <a-menu @click="onClickBatch">
-              <a-menu-item key="quantity">批量修改库存</a-menu-item>
-              <a-menu-item key="ourPrice">批量修改价格</a-menu-item>
-              <!-- <a-menu-item key="2">批量修改促销价格</a-menu-item> -->
-              <a-menu-item key="listPrice">批量修改ListPrice</a-menu-item>
-              <a-menu-item key="name">批量修改标题</a-menu-item>
-              <a-menu-item key="image">批量修改图片</a-menu-item>
             </a-menu>
           </template>
         </a-dropdown>
@@ -211,41 +200,80 @@
       :scroll="{ y: 850 }"
       :row-key="record => record.key"
       :pagination="false"
-      :row-selection="{ selectedRowKeys: tableInfo.selectedRowKeys, onChange: onSelectChange }"
     >
       <template #bodyCell="{ column, record }">
         <!-- <button @click="columnFn(column, record)">fsdfasdfas</button> -->
-        <template v-if="column.key === 'options'">
-          <div class="options-btns">
-            <a-popconfirm
-              title="是否删除商品?"
-              ok-text="是"
-              cancel-text="否"
-              @confirm="delProduact(record)"
-            >
-              <a-button type="text" danger>删除</a-button>
-            </a-popconfirm>
+        <template v-if="column.key === 'type'">
+          <div>变体：{{ record.amazonProducts.length }}</div>
+        </template>
+        <template v-if="column.key === 'info'">
+          <div class="column-info">
+            <!-- <div class="info-name">
+              变体系列：<span>{{  }}</span>
+            </div> -->
+            <div class="info-text">
+              <div class="info-asin">
+                <span class="info-text-label">Parent ASIN：</span>
+                {{ record.parentAsin }}
+              </div>
+              <div class="info-sku">
+                <span class="info-text-label">父 SKU：</span>
+                {{ record.parentSKu }}
+              </div>
+            </div>
           </div>
         </template>
       </template>
       <template #expandedRowRender="{ record }">
         <a-table 
-          :columns="displayHeader" 
-          :data-source="tableInfo.childData[record.key].data" 
+          :columns="displayChildHead" 
+          :data-source="record.amazonProducts" 
           :pagination="false"
           :ref="record.key"
           :row-key="record => record.key"
           :row-selection="{ 
-            selectedRowKeys: tableInfo.childData[record.key].selectedRowKeys, 
+            selectedRowKeys: tableInfo.childData[record.key]?.selectedRowKeys, 
             onChange: (keys, rows) => onChildSelectChange(keys, rows, record.key) 
           }"
         >
           <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'info'">
+              <div class="column-info">
+                <div class="info-image">
+                  <a-image
+                    :width="100"
+                    :src="record.attribute.main_product_image_locator[0].media_location"
+                  >
+                    <template #placeholder>
+                      <a-image
+                        :src="record.attribute.main_product_image_locator[0].media_location"
+                        :width="200"
+                        :preview="false"
+                      />
+                    </template>
+                  </a-image>
+                </div>
+                <div class="info-text">
+                  <div class="info-name">
+                    <span class="info-text-label">标题：</span>  
+                    {{ record.itemName }}
+                  </div>
+                  <div class="info-asin"> 
+                    <span class="info-text-label">ASIN：</span> 
+                    {{ record.asin }}
+                  </div>
+                  <div class="info-sku">                    
+                    <span class="info-text-label">SKU：</span> 
+                    {{ record.sku }}
+                  </div>
+                </div>
+              </div>
+            </template>
             <template v-if="column.key === 'state'">
-              <span>
-                <a-badge status="success" />
-                Finished
-              </span>
+              <span>{{ record.status }}</span>
+            </template>
+            <template v-if="column.key === 'ourPrice'">
+              <span> {{ record.ourPrice }}_{{ record.currency }} </span>
             </template>
             <template v-else-if="column.key === 'options'">
               <a-popconfirm
@@ -273,6 +301,17 @@
       @change="onPaginationChange"
     />
   </a-card>
+  <a-modal 
+    v-model:open="modalInfo.sync.open" 
+    title="同步商品" 
+    :footer="false"
+    :closable="false"
+    :keyboard="false"
+    :maskClosable="false"
+  >
+    <div>{{ modalInfo.sync.str || '正在同步……' }}</div>
+  </a-modal>
+
   <quantity-dialog 
     v-model:open="batchData.modal.quantity.open" 
     :rows="batchData.modal.quantity.rows"
@@ -288,11 +327,11 @@
     :rows="batchData.modal.listPrice.rows"
     @editDone="editDone"
   ></listPrice-dialog>
-  <name-dialog 
-    v-model:open="batchData.modal.name.open" 
-    :rows="batchData.modal.name.rows"
+  <discountedPriceDialog 
+    v-model:open="batchData.modal.discountedPrice.open" 
+    :rows="batchData.modal.discountedPrice.rows"
     @editDone="editDone"
-  ></name-dialog>
+  ></discountedPriceDialog>
   <image-dialog 
     v-model:open="batchData.modal.image.open" 
     :rows="batchData.modal.image.rows"
@@ -304,22 +343,25 @@
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { getShopList, getMarketList, getList } from '../js/api/activeProduct';
+import { getShopList, getMarketList, getList, sync, syncProportion, del, uploadTemplate, downloadTemplate } from '../js/api/activeProduct';
+import download from '~@/api/common/download';
 
-import activeProduct from '../js/tableHead/activeProduct';
+import { parentHead, childHead } from '../js/tableHead/activeProduct';
 
 import quantityDialog from '../common/activeProduct/quantityDialog.vue';
 import ourPriceDialog from '../common/activeProduct/ourPriceDialog.vue';
 import listPriceDialog from '../common/activeProduct/listPriceDialog.vue';
-import nameDialog from '../common/activeProduct/nameDialog.vue';
+import discountedPriceDialog from '../common/activeProduct/discountedPriceDialog.vue';
 import imageDialog from '../common/activeProduct/imageDialog.vue';
+
+import { message } from 'ant-design-vue';
 
 defineOptions({
   name: "activeProduct"
 })
 // 获取当前实例
 const { proxy: _this } = getCurrentInstance()
-console.log({_this});
+// console.log({_this});
 onMounted(async () => {
   try {
     let res = await getShopList()
@@ -334,8 +376,12 @@ onMounted(async () => {
 const displayHeader = computed(() => {
   return tableInfo.head.filter(column => column.show)
 })
+const displayChildHead = computed(() => {
+  return tableInfo.childHead.filter(i => i.show)
+})
 const tableInfo = reactive({
-  head: activeProduct,
+  head: parentHead,
+  childHead: childHead,
   data: [],
   childData: {},
   total: 0,
@@ -348,7 +394,12 @@ const tableInfo = reactive({
   loading: false,
   selectedRowKeys: [],
   selectedRows: [],
-  allSelectedRows: []         // 全部勾选的行
+});
+const modalInfo = reactive({
+  sync: {
+    open: false,
+    str: ''         // 展示字段
+  }
 })
 // 获取站点列表
 function shopChange(id) {
@@ -421,7 +472,12 @@ const options = reactive({
       label: '可售',
       code: 'rytczsfdsfgdg'
     }
-  ]
+  ],
+  fileList: [],
+  uploadTemplateUrl: import.meta.env.VITE_APP_BASE_API + '/platform-amazon/platform/amazon/product/export/batch/edit',
+  headers: {
+    'Authorization': 'Bearer ' + useAuthorization().value,
+  }
 })
 const placeholderEnum = reactive({
   sdfsdvfsd: '所有',
@@ -473,7 +529,7 @@ const batchData = reactive({
       open: false,
       rows: [],
     },
-    name: {
+    discountedPrice: {
       open: false,
       rows: [],
     },
@@ -496,13 +552,12 @@ const batchData = reactive({
       label: '批量修改ListPrice',
     },
     {
-      key: 'name',
-      label: '批量修改标题',
-      rows: [],
+      key: 'discountedPrice',
+      label: '批量修改促销价格',
     },
     {
       key: 'image',
-      label: '批量修改图片',
+      label: '批量修改主图/标题',
     }
   ]
 });
@@ -511,18 +566,88 @@ function toAdd() {
   // router.push('/amazon/activeProduct/add')
   window.open('/platform/amazon/activeProduct/add')
 }
+// 同步商品
+async function syncFn() {
+  modalInfo.sync.open = true
+  let marketplaceId = options.marketList.find(i => i.marketId === searchForm.marketId).marketplaceId
+  let params = {
+    "shopId": searchForm.shopId,
+    "marketIds":[marketplaceId]
+  }
+  try {
+    let res = await sync(params)
+    syncProportionFn(searchForm.shopId)
+  } catch (error) {
+    modalInfo.sync.open = false
+  }
+}
+// 获取同步进度
+async function syncProportionFn(shopId) {
+  let str = ''
+  try {
+    let res = await syncProportion({ shopId })
+    modalInfo.sync.str = res.data
+  } catch (error) {
+    message.error('同步失败，请稍后重试！', 3);
+    modalInfo.sync.open = false
+    console.log(error)
+  }
+  if (modalInfo.sync.str !== 'finish') {
+    setTimeout(() => {
+      syncProportionFn(shopId)
+    }, 5000);
+  } else {
+    modalInfo.sync.open = false
+    search()
+  }
+}
+function uploadTemplateFn(info) {
+  if (info.file.status !== 'uploading') {
+    console.log(info.file, info.fileList);
+  }
+  if (info.file.status === 'done') {
+    message.success(`${info.file.name} file uploaded successfully`);
+  } else if (info.file.status === 'error') {
+    message.error(`${info.file.name} file upload failed.`);
+  }
+}
+async function downloadTemplateFn() {
+  let url = import.meta.env.VITE_APP_BASE_API + '/platform-amazon/platform/amazon/product/download/template'
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': 'Bearer ' + useAuthorization().value,
+    },
+  });
+  const blob = await response.blob();
+  const allBlob = new Blob([blob], { type: "application/octet-stream" });
+  const bolbUrl = window.URL.createObjectURL(allBlob);
+  const a = document.createElement("a");
+  a.href = bolbUrl;
+  a.download = 'import_product_price_stock_amazon.xlsx';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(bolbUrl);
+  }, 0);
+}
 // 批量操作
 function onClickBatch({ key }) {
-  console.log({ key });
-  // batchData.actionItem = batchData.itemList.find(i => i.key === key)
-  // openModal()
   batchData.modal[key].open = true
   batchData.modal[key].rows = tableInfo.selectedRows
 }
 // 批量操作完成
 function editDone() {
   tableInfo.selectedRows = []
-  tableInfo.selectedRowKeys = []
+  for (const key in tableInfo.childData) {
+    if (Object.prototype.hasOwnProperty.call(tableInfo.childData, key)) {
+      if (tableInfo.childData[key].selectedRowKeys.length > 0) {
+        tableInfo.childData[key].selectedRowKeys = []
+        tableInfo.childData[key].selectedRows = []
+      }
+    }
+  }
+  search()
 }
 // 站点变更
 function marketChange(val) {
@@ -557,86 +682,72 @@ function foldExtendSearch() {
   resetExtendSearchForm()
   isFold.value = true
 }
-// 勾选表格行
-function onSelectChange(keys, rows) {
-  console.log({keys, rows});
-  
-  let old = tableInfo.selectedRowKeys
-  let changeKey = []
-  let flag = keys.length > old.length
-  let arr = flag ? keys : old
-  let contrast = flag ? old : keys
-  // 找出差别
-  arr.forEach(item => {
-    if (!contrast.includes(item)) {
-      changeKey.push(item)
-    }
-  })
-
-  // changeKey.forEach(item => {
-  //   if (!tableInfo.childData[item].data) return;
-  //   if (flag) {
-  //     tableInfo.childData[item].selectedRowKeys = tableInfo.childData[item].data.map(i => i.key)
-  //     tableInfo.childData[item].selectedRows = tableInfo.childData[item].data.map(i => i)
-  //   } else {
-  //     tableInfo.childData[item].selectedRowKeys = []
-  //     tableInfo.childData[item].selectedRows = []
-  //   }
-  // })
-  tableInfo.selectedRowKeys = keys
-  tableInfo.selectedRows = rows
-}
 // 子表勾选
 function onChildSelectChange(keys, rows, parentKey) {
-  console.log(keys, rows, parentKey);
+  // console.log(keys, rows, parentKey);
   tableInfo.childData[parentKey].selectedRowKeys = keys
   tableInfo.childData[parentKey].selectedRows = rows
-  // if (keys.length === 0) {
-  //   tableInfo.selectedRowKeys = tableInfo.selectedRowKeys.filter(i => i !== parentKey)
-  // } else if (keys.length > 0) {
-  //   if (!tableInfo.selectedRowKeys.includes(parentKey)) {
-  //     tableInfo.selectedRowKeys.push(parentKey)
-  //   }
-  // }
+  tableInfo.selectedRows = []
+  tableInfo.selectedRowKeys = []
+  for (const key in tableInfo.childData) {
+    if (Object.prototype.hasOwnProperty.call(tableInfo.childData, key)) {
+      if (tableInfo.childData[key].selectedRowKeys.length > 0) {
+        tableInfo.selectedRows = [...tableInfo.selectedRows, ...tableInfo.childData[key].selectedRows]
+        tableInfo.selectedRowKeys = [...tableInfo.selectedRowKeys, ...tableInfo.childData[key].selectedRowKeys]
+      }
+    }
+  }
 }
 // 翻页变化
 function onPaginationChange() {
   getListFn()
 }
-function columnFn(a, b) {
-  console.log({a,b});
-  
-}
 // 删除商品
-function delProduact(row) {
-  console.log({row});
-  
+async function batchDel() {
+  for (let index = 0; index < tableInfo.selectedRows.length; index++) {
+    const item = tableInfo.selectedRows[index];
+    let params = {
+      "sku": item.sku,
+      "shopId": item.shopId,
+      "marketplaceIds": item.marketId
+    }
+    try {
+      await del(params)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+  search()
 }
 // 删除单个sku
-function delSku(row) {
-
+async function delSku(row) {
+  let params = {
+    "sku": row.sku,
+    "shopId": row.shopId,
+    "marketplaceIds": row.marketId
+  }
+  try {
+    await del(params)
+    search()
+  } catch (error) {
+    console.log(error)
+  }
 }
 function getListFn() {
   let params = {
     ...searchForm,
     ...tableInfo.params
   }
+  tableInfo.childData = {}
+  tableInfo.selectedRows = []
+  tableInfo.selectedRowKeys = []
   getList(params).then(res => {
     let rows = res.data.rows
     if (res.data.rows.length > 0) {
-      for (let index = 0; index < 10; index++) {
-        let i = {...rows[1]}
-        rows.push(i)
-      }
       rows.forEach(item => {
         let key = createRandom()
         item.key = key
-        for (let index = 0; index < 3; index++) {
-          if (item.amazonProducts) {
-            let i = {...item.amazonProducts[0]}
-            item.amazonProducts.push(i)
-          }
-        }
+        item.amazonProducts = item.amazonProducts || []
         if (item.amazonProducts && item.amazonProducts.length > 0) {
           item.amazonProducts.forEach(i => {
             let k = createRandom()
@@ -647,17 +758,12 @@ function getListFn() {
         let obj = {
           selectedRowKeys: [],
           selectedRows: [],
-          data: item.amazonProducts
+          // data: item.amazonProducts || []
         }
         tableInfo.childData[key] = obj
       });
       tableInfo.data = res.data.rows
       tableInfo.total = res.data.total
-      // tableInfo.data.forEach((item, index) => {
-      //   if (index < 2) {
-      //     tableInfo.selectedRowKeys.push(item.key)
-      //   }
-      // })
     }
   })
 }
@@ -682,9 +788,17 @@ function createRandom() {
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-
   .ant-pagination {
     text-align: right;
+  }
+  .column-info {
+    text-align: left;
+    display: flex;
+    .info-text-label {
+      display: inline-block;
+      min-width: 60px;
+      text-align: right;
+    }
   }
 }
 </style>

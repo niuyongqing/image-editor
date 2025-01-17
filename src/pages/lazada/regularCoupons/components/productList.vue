@@ -1,15 +1,16 @@
 <template>
     <div>
         <!-- 商品列表 -->
-        <BaseModal title="商品列表" @close="cancel" width="60%" @register="register" showCancelBtn :showSaveBtn="false">
+        <BaseModal title="商品列表" @close="cancel" width="1200px" @register="register" showCancelBtn :showSaveBtn="true"
+            @submit="submit">
             <a-card>
                 <div class="clearfix" style="margin-bottom: 16px;">
                     <span style="float: left;">
-                        <a-button type="primary" @click="selectProduct">商品列表信息</a-button>
+                        <span>商品列表信息</span>
                     </span>
                     <div style="float: right; margin-right: 10px;">
                         <a-input-group compact style="width: 650px;">
-                            <a-select v-model:value="searchForm.selectionValue" placeholder="请选择" style="width: 150px;">
+                            <a-select v-model:value="searchForm.selectionValue" placeholder="请选择" style="width: 120px;">
                                 <a-select-option value="itemName">产品名称</a-select-option>
                                 <a-select-option value="itemId">产品ID</a-select-option>
                             </a-select>
@@ -23,11 +24,33 @@
                         </a-input-group>
                     </div>
                 </div>
+                <template #actions></template>
             </a-card>
 
             <a-card>
                 <BaseTable ref="baseTableRef" :columns="columns" :api="lazadaProductList" rowKey="itemId"
-                    :immediate="false"></BaseTable>
+                    :immediate="false" :table-height-offset="300" :row-selection="rowSelection">
+                    <template #name="{ record }">
+                        <a-popover placement="right" trigger="hover">
+                            <template #content>
+                                <img :src="JSON.parse(record.images)" style="height: 400px; width: 400px;" alt="" />
+                            </template>
+                            <div flex gap-5px>
+                                <a-image style="width: 56px; height: 56px; border: 1px solid #ccc;"
+                                    :src="JSON.parse(record.images)[0]" :preview-src-list="JSON.parse(record.images)">
+                                    <template #placeholder>
+                                        <div class="image-slot">加载中<span class="dot">...</span></div>
+                                    </template>
+                                    <template #error>
+                                        <div class="image-slot"><i class="anticon anticon-picture"></i></div>
+                                    </template>
+                                </a-image>
+                                <span>{{ record.itemName }}</span>
+                            </div>
+                        </a-popover>
+                    </template>
+
+                </BaseTable>
             </a-card>
         </BaseModal>
     </div>
@@ -47,6 +70,8 @@ const columns = [
     }, {
         title: '产品名称',
         dataIndex: 'name',
+        slot: 'name',
+        width: 500
     },
     {
         title: '零售价格',
@@ -59,11 +84,11 @@ const columns = [
         dataIndex: 'totalStock',
     },
 ];
-
+const emits = defineEmits(['success']);
 const { rowSelection, selectedRowKeys, selectedRows, clearSelection } = useTableSelection();
 
 const searchForm = reactive({
-    selectionValue: undefined,
+    selectionValue: 'itemName',
     inputValue: ''
 });
 const { state: pagination, reset } = useResetReactive({
@@ -74,18 +99,41 @@ const { state: pagination, reset } = useResetReactive({
 const loading = ref(false);
 const rowsData = ref({});
 const baseTableEl = useTemplateRef('baseTableRef');
-
+const oldTableData = ref([]);
 const modelMethods = ref();
 const register = (modal) => {
     modelMethods.value = modal;
 };
 
-//  选择商品
-const selectProduct = () => { }
+const searchTable = () => {
+    if (searchForm.selectionValue === 'itemName') {
+        const tableData = oldTableData.value.filter((v) => { return v.itemName === searchForm.inputValue })
+        pagination.total = tableData.length;
+        baseTableEl.value.setTableData(tableData);
+    }
+    if (searchForm.selectionValue === 'itemId') {
+        const tableData = oldTableData.value.filter((v) => { return v.itemId === searchForm.inputValue });
+        pagination.total = tableData.length;
+        baseTableEl.value.setTableData(tableData);
+    }
+};
 
-const open = (rows) => {
+const refrechTable = () => {
+    searchForm.selectionValue = 'itemName';
+    searchForm.inputValue = '';
+    pagination.currentPage = 1;
+    pagination.pageSize = 50;
+    pagination.total = oldTableData.value.length;
+    baseTableEl.value.setTableData(oldTableData.value);
+};
+
+const submit = () => {
+    emits('success', selectedRows.value);
+    modelMethods.value.closeModal();
+};
+
+const open = (shortCode, rows) => {
     loading.value = true
-    console.log('ProductList ->>>>>>>>>>>', rows);
     let itemId = rows.map(v => { return v.itemId })
     let data = {
         shortCode: shortCode,
@@ -93,13 +141,18 @@ const open = (rows) => {
     };
     rowsData.value = data
     modelMethods.value.openModal();
-    nextTick(() => {
-        console.log('nextTick');
-        baseTableEl.value.search(data);
+    nextTick(async () => {
+        await baseTableEl.value.search(data);
+        const tableData = await baseTableEl.value.tableData;
+        oldTableData.value = tableData || [];
     })
 
 };
-const cancel = () => { }
+const cancel = () => {
+    clearSelection();
+    searchForm.selectionValue = 'itemName';
+    searchForm.inputValue = '';
+}
 defineExpose({
     open,
 })

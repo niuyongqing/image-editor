@@ -22,7 +22,7 @@
                         <a-form-item label="优惠券使用时间：" name="periodStartTime"
                             :rules="[{ required: true, message: '请选择时间', trigger: 'change' }]">
                             <a-range-picker style="width: 80%" v-model:value="formData.periodStartTime" showTime
-                                format="YYYY-MM-DD HH:mm:ss" />
+                                format="YYYY-MM-DD 00:00:00" />
                         </a-form-item>
 
                         <a-form-item label="券领取开始时间：" name="collectStart">
@@ -96,7 +96,7 @@
                                 @change="changeDiscountUpperLimit" />
                             <span style="color: orange; font-style: oblique; margin-left: 10px">{{
                                 formData.discountUpperLimitMessage
-                                }}</span>
+                            }}</span>
                         </a-form-item>
 
                         <a-form-item label="优惠券发放总张数：" name="discountCouponCount"

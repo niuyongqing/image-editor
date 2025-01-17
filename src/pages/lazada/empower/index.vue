@@ -1,7 +1,7 @@
 <template>
     <div>
         <Search :area="area" @search="handleSearch"></Search>
-        <BaseTable ref="baseTableRef" :columns="columns" :api="empowerList" :init-search-param="initSearchParam" 
+        <BaseTable ref="baseTableRef" :columns="columns" :api="empowerList" :init-search-param="initSearchParam"
             :row-selection="rowSelection" row-key="userId">
             <template #leftBar>
                 <a-button type="primary" @click="Reauthorization" v-has-permi="[`system:platform:lazada:accredit`]"
@@ -10,7 +10,6 @@
                         <SettingOutlined />
                     </template>
                     授权</a-button>
-
                 <a-popconfirm title="确定要全部刷新授权吗？" ok-text="是" cancel-text="否" @confirm="refreshToken">
                     <a-button type="primary" v-has-permi="[`system:platform:lazada:accredit`]" :loading="refreshLoading"
                         style="margin-left: 10px;">
@@ -19,7 +18,6 @@
                         </template>
                         刷新全部授权</a-button>
                 </a-popconfirm>
-
                 <a-button type="primary" @click="handleBatchName" v-has-permi="[`platform:lazada:accredit`]"
                     style="margin-left: 10px;">
                     <template #icon>
@@ -41,6 +39,27 @@
                     </template>
                     导出
                 </a-button>
+                <a-button type="primary" @click="lookLazadaInfo" :disabled="singleDisabled"
+                    v-has-permi="[`system:platform:lazada:login:edit`]" style="margin-left: 10px;">
+                    <template #icon>
+                        <EyeOutlined />
+                    </template>
+                    查看店铺登录密码
+                </a-button>
+                <a-button type="primary" @click="handleEdit" :disabled="singleDisabled"
+                    v-has-permi="[`system:platform:lazada:login:edit`]" style="margin-left: 10px;">
+                    <template #icon>
+                        <EditOutlined />
+                    </template>
+                    修改店铺登录密码
+                </a-button>
+                <a-button type="primary" @click="handleBatchEdit" :disabled="multipleDisabled"
+                    v-has-permi="[`system:platform:lazada:login:edit`]" style="margin-left: 10px;">
+                    <template #icon>
+                        <EditOutlined />
+                    </template>
+                    批量修改店铺密码
+                </a-button>
             </template>
             <template #country="{ record }">
                 <span> {{ countryMap(record.country) }} </span>
@@ -59,52 +78,68 @@
                     @blur="handleChangeAlias(record)"></a-input>
                 <span v-else> {{ record.alias }}</span>
             </template>
-
+            <template #isFillPassword="{ record }">
+                <div flex justify-center items-center>
+                    <a-tag v-if="record.isFillPassword == 0" color="warning">未填充</a-tag>
+                    <a-tag v-if="record.isFillPassword == 1" color="success">已填充</a-tag>
+                </div>
+            </template>
             <template #remark="{ record }">
                 <a-input v-if="isRemark" style="width: 100%;" v-model:value="record.remark"
                     @blur="handleChangeRemark(record)"></a-input>
             </template>
-
             <template #classify="{ record }">
                 <a-select v-model:value="record.classify" v-if="accreditAuth" allow-clear class="w-full"
                     placeholder="请选择品类" :options="classifyOptions" @change="classifyChange(record)"></a-select>
                 <span v-else>{{ record.classify }}</span>
             </template>
             <template #forbidSale="{ record }">
-                <a-select v-model:value="record.forbidSale" v-if="accreditAuth" class="w-full" allow-clear
+                <a-select :value="recordForbidSale(record.forbidSale)" v-if="accreditAuth" class="w-full" allow-clear
                     mode="multiple" placeholder="请选择禁售属性" :options="forbidSaleOptions"
                     :field-names="{ label: 'attributes', value: 'id' }"
                     :filter-option="(input, option) => option.attributes.toLowerCase().indexOf(input.toLowerCase()) >= 0"
-                    @change="forbidSaleChange(record)"></a-select>
+                    @change="forbidSaleChange(record, $event)"></a-select>
                 <span v-else>{{ text && text.map(id => forbidSaleOptions.find(item => item.id ===
                     id)?.attributes).join() }}</span>
             </template>
 
             <template #autoPublish="{ record }">
-                <a-switch v-model:checked="record.autoPublish" :disabled="!accreditAuth" checked-value="1"
-                    un-checked-value="2" @change="autoPublishChange(record)" />
+                <div flex justify-center items-center>
+                    <a-switch v-model:checked="record.autoPublish" :disabled="!accreditAuth" checked-value="1"
+                        un-checked-value="2" @change="autoPublishChange(record)" />
+                </div>
             </template>
         </BaseTable>
         <!-- 批量修改简称 -->
         <batchSimpleName ref="batchSimpleNameRef" @success="reload"></batchSimpleName>
         <!-- 批量修改仓库 -->
         <batchStore ref="batchStoreRef" @success="reload"></batchStore>
+        <ErpValidModal ref="erpValidModalRef" @success="erpValidSuccess"></ErpValidModal>
+        <ViewLazadaInfo ref="viewLazadaInfoRef" @success="reload"></ViewLazadaInfo>
+        <EditLazadaInfo ref="editLazadaInfoRef" @success="reload"></EditLazadaInfo>
+        <BatchEditLazadaInfo ref="bacthLazadaInfoRef" @success="reload"></BatchEditLazadaInfo>
     </div>
 </template>
 
 <script setup>
-import { SettingOutlined, EditOutlined, ReloadOutlined, CloudUploadOutlined, DownloadOutlined } from '@ant-design/icons-vue';
+import { SettingOutlined, EditOutlined, ReloadOutlined, CloudUploadOutlined, DownloadOutlined, EyeOutlined } from '@ant-design/icons-vue';
 import { columns } from './columns';
-import { empowerList, editStore, simpleName, alias, remark, url, refreshAllToken, exportList, accredit } from './api';
+import { empowerList, editStore, simpleName, alias, remark, url, refreshAllToken, exportList, accredit, meansAttribute } from './api';
+import { loginCheck, updateShop } from '@/pages/lazada/empower/api/index.js';
 import { findParentAndMerge } from './common';
 import Search from './components/search.vue';
 import BaseTable from '@/components/baseTable/BaseTable.vue';
 import { useTableSelection } from '@/components/baseTable/useTableSelection';
 import { Modal, message } from 'ant-design-vue';
 import { checkPermi, checkRole } from '~@/utils/permission/component/permission';
+import ErpValidModal from './components/erpValidModal.vue';
+import downLoad from '@/api/common/download';
+import ViewLazadaInfo from './components/viewLazadaInfo.vue';
+import EditLazadaInfo from './components/editLazadaInfo.vue';
+import BatchEditLazadaInfo from './components/batchEditLazadaInfo.vue';
 import batchSimpleName from './components/batchSimpleName.vue';// 批量修改简称
 import batchStore from './components/batchStore.vue';// 批量修改仓库
-import downLoad from '@/api/common/download';
+
 const route = useRoute()
 const router = useRouter();
 const code = route.query.code;
@@ -114,14 +149,18 @@ const refreshLoading = ref(false); // 刷新按钮 loading
 const exportLoading = ref(false); // 导出按钮 loading
 
 const forbidSaleOptions = ref([]); // 禁售属性
-
 const accountUserLsit = ref([]);
 const accountOptions = ref([]);
 const depOptions = ref([]);
 const baseTableEl = useTemplateRef('baseTableRef');
 const batchSimpleNameEl = useTemplateRef('batchSimpleNameRef');
 const batchStoreEl = useTemplateRef('batchStoreRef');
-const { singleDisabled, rowSelection, tableRow, clearSelection } = useTableSelection()
+const erpValidModalEl = useTemplateRef('erpValidModalRef');
+const viewLazadaInfoEl = useTemplateRef('viewLazadaInfoRef');
+const editLazadaInfoEl = useTemplateRef('editLazadaInfoRef');
+const bacthLazadaInfoEl = useTemplateRef('bacthLazadaInfoRef');
+
+const { singleDisabled, multipleDisabled, rowSelection, tableRow, selectedRowKeys, selectedRows, clearSelection } = useTableSelection()
 const initSearchParam = {
     prop: "create_time",
     order: "desc"
@@ -195,9 +234,7 @@ const classifyOptions = [
     { value: '09', label: '母婴玩具' },
     { value: '10', label: '宠物' },
     { value: '99', label: '其他' }
-]
-
-
+];
 //  授权
 if (code) {
     accredit({
@@ -213,8 +250,6 @@ if (code) {
             message.error('授权失败')
         })
 };
-
-
 
 const countryMap = (v) => {
     const value = area.find(item => {
@@ -270,23 +305,75 @@ const handleChangeRemark = (record) => {
     })
 };
 //  品类
-const classifyChange = (value) => {
+const classifyChange = (record) => {
+    console.log('record -》》》', record);
+    updateShop({
+        shortCode: record.shortCode,
+        classify: record.classify
+    }).then((res) => {
+        if (res.code === 200) {
+            message.success('修改成功')
+        }
+    })
 };
-const forbidSaleChange = (value) => {
+const recordForbidSale = (value) => {
+    return value ? value.split(',').map((item) => Number(item)) : [];
 };
-const autoPublishChange = (value) => {
-    // const params = {
-    //     account: record.account,
-    //     sellerId: record.userId,
-    //     [prop]: val
-    // }
-    // apiEnum[prop](params)
-    //     .then(_ => {
-    //         message.success('修改成功')
-    //     })
-    //     .catch(err => {
-    //         message.warning(err)
-    //     })
+
+const forbidSaleChange = (record, val) => {
+    updateShop({
+        shortCode: record.shortCode,
+        forbidSale: val && val.length ? val.filter(Boolean).join(',') : ''
+    }).then((res) => {
+        if (res.code === 200) {
+            message.success('修改成功');
+            reload()
+        }
+    })
+};
+const autoPublishChange = (record) => {
+    updateShop({
+        shortCode: record.shortCode,
+        autoPublish: record.autoPublish
+    }).then((res) => {
+        if (res.code === 200) {
+            message.success('修改成功')
+        }
+    })
+};
+
+//查看账号密码邮箱
+const lookLazadaInfo = async () => {
+    let loginCheckRes = await loginCheck();
+    if (loginCheckRes.data === false) {
+        erpValidModalEl.value.open();
+        return false;
+    } else {
+        const flag = erpValidSuccess();
+        const shortCode = selectedRows.value[0].shortCode;
+        viewLazadaInfoEl.value.open(shortCode);
+    }
+};
+const handleEdit = async () => {
+    let loginCheckRes = await loginCheck();
+    if (loginCheckRes.data === false) {
+        erpValidModalEl.value.open();
+        return false;
+    } else {
+        const flag = erpValidSuccess();
+        if (flag) {
+            const shortCode = selectedRows.value[0].shortCode;
+            editLazadaInfoEl.value.open(shortCode);
+        }
+    }
+};
+
+const erpValidSuccess = () => {
+    if (selectedRowKeys.value.length !== 1) {
+        message.error('请选择一个店铺查看');
+        return false
+    }
+    return true;
 };
 
 //  重新刷新
@@ -298,8 +385,6 @@ const reload = () => {
 const handleSearch = async (state) => {
     await baseTableEl.value.search(state);
 };
-
-
 // 重新授权
 const Reauthorization = () => {
     // 获取授权链接
@@ -336,4 +421,39 @@ const handleExport = () => {
         exportLoading.value = false;
     })
 };
+
+// 批量修改店铺密码
+const handleBatchEdit = async () => {
+    let loginCheckRes = await loginCheck();
+    if (loginCheckRes.data === false) {
+        erpValidModalEl.value.open();
+        return false;
+    } else {
+        const flag = erpValidSuccess();
+        if (flag) {
+            bacthLazadaInfoEl.value.open();
+        }
+    }
+};
+
+// 获取品类
+function getMeansAttribute() {
+    meansAttribute().then((res) => {
+        const data = res?.data || [];
+        const list = data.map((item) => {
+            return {
+                "id": item.id,
+                "attributes": item.attributes,
+                "example": item.example,
+                "site": item.site,
+                "sort": item.sort,
+                "key": item.key,
+            }
+        })
+        forbidSaleOptions.value = list;
+    });
+};
+onMounted(() => {
+    getMeansAttribute();
+})
 </script>

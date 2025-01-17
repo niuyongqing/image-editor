@@ -5,7 +5,6 @@
             <template #title>
                 <div text-left @click="tab"> 图片信息 </div>
             </template>
-
             <a-form :model="form" :label-col="{ style: { width: '80px' } }" style="margin-left: 100px;" ref="formRef"
                 scrollToFirstError>
                 <a-form-item label="产品图片:" name="fileList" :rules="fileListRules">
@@ -118,7 +117,6 @@
                     <source :src="form.video.url" type="video/mp4">
                 </video>
             </div>
-
         </a-modal>
     </div>
 </template>
@@ -126,18 +124,21 @@
 <script setup>
 import { DownOutlined, DownloadOutlined, UploadOutlined, PlusOutlined, DeleteOutlined } from "@ant-design/icons-vue";
 import { useResetReactive } from '@/composables/reset';
-import { accountCache, categoryTree, getBrandList, uploadImage, videoImageUpload, videoUpload } from '@/pages/lazada/product/api';
+import { accountCache, categoryTree, uploadImage, videoImageUpload, videoUpload, lazadaVideoUrl } from '@/pages/lazada/product/api';
 import EventBus from "~/utils/event-bus";
 import { debounce } from "lodash-es";
 import { message } from "ant-design-vue";
 import DragUpload from '@/components/dragUpload/index.vue';
 import { saveAs } from 'file-saver';
 
-
-const { waterList } = defineProps({
+const { waterList, detailData } = defineProps({
     waterList: {
         type: Array,
         default: () => []
+    },
+    detailData: {
+        type: Object,
+        default: () => ({})
     }
 })
 
@@ -162,6 +163,43 @@ const form = reactive({
 
     ]
 });
+
+//  编辑回显
+watch(() => {
+    return detailData
+}, async (newVal) => {
+    const images = newVal.images ? JSON.parse(newVal.images) : [];
+    // 产品图片
+    form.fileList = images.map(item => {
+        return {
+            url: item,
+            uid: item,
+            name: item
+        }
+    });
+    // 营销图
+    form.promotionWhite = newVal.attributes.promotion_whitebkg_image ? [
+        {
+            url: newVal.attributes.promotion_whitebkg_image,
+            uid: newVal.attributes.promotion_whitebkg_image,
+            name: newVal.attributes.promotion_whitebkg_image
+        }
+    ] : []
+    // 视频
+    if (newVal.attributes.video) {
+        lazadaVideoUrl({ shortCode: lazadaAttrsState.shortCode, videoId: newVal.attributes.video })
+            .then((res) => {
+                //  to do ...
+                form.video.img = res.msg;
+                form.video.img = images[0]
+            })
+        // form.video.title = newVal.attributes.title;
+    }
+}, {
+    deep: true
+});
+
+
 const fileListRules = computed(() => {
     return [
         {

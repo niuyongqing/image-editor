@@ -61,28 +61,6 @@ export function getBase64(file) {
     reader.onerror = (error) => reject(error);
   });
 }
-// 获取树形结构所有节点的key
-function getChildrenKeys(nodeKe, list) {
-  const keys = [];
-  const treeData = list || unref(treeDataRef);
-  const { key: keyField, children: childrenField } = unref(getFieldNames);
-  if (!childrenField || !keyField) return keys;
-  for (let index = 0; index < treeData.length; index++) {
-    const node = treeData[index];
-    const children = node[childrenField];
-    if (nodeKey === node[keyField]) {
-      keys.push(node[keyField]);
-      if (children && children.length) {
-        keys.push(...getAllKeys(children));
-      }
-    } else {
-      if (children && children.length) {
-        keys.push(...getChildrenKeys(nodeKey, children));
-      }
-    }
-  }
-  return keys;
-}
 
 //  去除重复
 export function unique(key, list) {
@@ -92,5 +70,33 @@ export function unique(key, list) {
   return uni3;
 }
 
-//  获取水印
-export function getWatermarkList() {}
+// 根据categoryId 获取分类 树形结构所有节点的keys
+export function findCategoryPath(data, targetId) {
+  let path = [];
+  function search(categories, currentPath) {
+    for (let category of categories) {
+      let newPath = [...currentPath, category.categoryId];
+      if (category.categoryId === targetId) {
+        path = newPath;
+        return true;
+      }
+      if (category.children && search(category.children, newPath)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  search(data, []);
+  return path;
+}
+//  取出图片名称
+export function extractedFileName(filePath) {
+  if (!filePath) {
+    return "";
+  }
+  if (filePath.includes("http")) return "";
+  const regex = /\/([^\/]+)$/;
+  const match = filePath.match(regex);
+  return match ? match[1] : "";
+}

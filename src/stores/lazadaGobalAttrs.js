@@ -44,6 +44,7 @@ export const useLazadaGobalAttrs = defineStore("lazadaGobalAttrs", () => {
         item.input_type !== "richText" &&
         item.attribute_type !== "sku" &&
         ![
+          "name",
           "video",
           "promotion_whitebkg_image",
           "brand",
@@ -88,6 +89,21 @@ export const useLazadaGobalAttrs = defineStore("lazadaGobalAttrs", () => {
     }
 
     setLoading(false);
+  };
+
+  const setProductClassifyAtrrs = (attributes = {}) => {
+    state.productClassifyAtrrs.forEach((attr) => {
+      for (const key in attributes) {
+        if (attr.name === key) {
+          // 多选数据转为数组
+          if (attr.input_type.includes("multi")) {
+            attr.value = obj[key] ? obj[key].split(",") : [];
+          } else {
+            attr.value = obj[key];
+          }
+        }
+      }
+    });
   };
 
   const setProduct = (data = {}) => {

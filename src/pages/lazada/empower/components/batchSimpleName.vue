@@ -6,7 +6,6 @@
                 labelAlign="left">
                 <a-form-item label="示范EXCEL" name="simpleName" rules="required">
                     <a-table :dataSource="dataSource" :columns="columns" bordered :pagination="false">
-
                     </a-table>
                 </a-form-item>
                 <a-form-item label="文件" name="simpleName" rules="required">
@@ -73,7 +72,7 @@ const columns = [
 const submitBtnLoading = ref(false);// 提交按钮loading
 const uploadFileUrl = import.meta.env.VITE_APP_BASE_API + '/platform-lazada/platform/lazada/empower/import-simple';
 const fileList = ref([]);
-const hearers = computed(() => {
+const headers = computed(() => {
     return {
         'Content-Type': 'multipart/form-data',
         Authorization: 'Bearer ' + useAuthorization().value
@@ -109,7 +108,7 @@ const submit = () => {
     formData.append('file', fileList.value[0].originFileObj);
 
     axios.post(uploadFileUrl, formData, {
-        headers: hearers.value,
+        headers: headers.value,
     })
         .then((res) => {
             if (res.data.code == 200) {

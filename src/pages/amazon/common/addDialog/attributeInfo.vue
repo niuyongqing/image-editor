@@ -3,7 +3,7 @@
   <div class="title">
     <span>属性信息</span>
   </div>
-  <div class="content">
+  <div class="content" style="overflow-y: auto; max-height: 500px;">
     <VueForm
       v-if="schemaData.$id"
       v-model="form"

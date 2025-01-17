@@ -45,13 +45,13 @@
                         :options="lazadaAttrsState.warrantyList" :field-names="{ label: 'en_name', value: 'en_name' }">
                     </a-select>
                 </a-form-item>
-                <!-- :rules="[{ required: item.is_mandatory === 1, trigger: ['blur'], message: item.is_mandatory === 1 ? '必填项，请填写' : '' }]" -->
+
                 <a-form-item label="属性: " v-show="lazadaAttrsState.attributes.length > 0">
                     <a-card v-loading="lazadaAttrsState.loading" class="attrs-card">
                         <a-form :model="productAtrrsform" ref="attrsFormRef" scrollToFirstError>
                             <a-form-item v-for="item in sortAttrs(lazadaAttrsState.productClassifyAtrrs)"
                                 :key="item.name" :name="item.name" :rules="itemRules(item)" :label="item.label"
-                                :labelCol="{ span: 3 }" :wrapperCol="{ span: 21 }">
+                                :labelCol="{ span: 4 }" :wrapperCol="{ span: 20 }">
 
                                 <!-- is_key_prop： 1 时，表示当前属性是项目的 key 属性 -->
                                 <div flex>
@@ -96,7 +96,7 @@
                                         @change="changeValue(item)"></a-select>
 
                                     <!-- richText 富文本-->
-                                    <div v-if="item.input_type === 'richText'"> 富文本 </div>
+                                    <div v-if="item.input_type === 'richText'"> </div>
 
                                     <!-- img 仅支持输入 Lazada 图片链接-->
                                     <a-input v-if="item.input_type === 'imgimg'" v-model:value="item.value"
@@ -118,10 +118,8 @@
                                 : '+ 展开'
                                 }}</a-button>
                         </div>
-
                     </a-card>
                 </a-form-item>
-
             </a-form>
         </a-card>
     </div>
@@ -136,8 +134,14 @@ import { debounce } from "lodash-es";
 import { message } from "ant-design-vue";
 import { useLazadaWaitPublish } from "@/stores/lazadaWaitPublish";
 
-const { state: lazadaAttrsState, } = useLazadaWaitPublish();
+const { detailData } = defineProps({
+    detailData: {
+        type: Object,
+        default: () => ({})
+    }
+});
 
+const { state: lazadaAttrsState, } = useLazadaWaitPublish();
 const isExpand = ref(false); // 展开收起
 const attributesLoading = ref(false);
 const shortCode = ref('');
@@ -157,6 +161,35 @@ const brandIdSelction = reactive({
 });
 //  产品属性表单
 const productAtrrsform = reactive({});
+
+//  编辑回显
+watch(() => {
+    return detailData
+}, async (newVal) => {
+    state.title = newVal.attributes.name;
+    getBrandList({
+        brandName: newVal.attributes.brand_id ?? '',
+        shortCode: newVal.shortCode
+    }).then(res => {
+        if (res.code === 200) {
+            brandIdSelction.data = res.data || [];
+            //  品牌回显
+            const brandItem = brandIdSelction.data.find((item) => {
+                return item.nameEn === newVal.attributes.brand_id
+            });
+            state.brandId = brandItem ? brandItem.brandId : undefined;
+        }
+    }).finally(() => {
+        brandIdSelction.searchLoading = false;
+    });
+
+    state.model = newVal.attributes.model;
+    state.warranty_type = newVal.attributes.warranty_type;
+    state.warranty = newVal.attributes.warranty;
+}, {
+    deep: true
+});
+
 const itemRules = (item) => {
     return [{ required: item.is_mandatory === 1, trigger: ['change'], message: item.is_mandatory === 1 ? '必填项，请填写' : '' }]
 };

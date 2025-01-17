@@ -21,12 +21,12 @@
 
                         <a-form-item label="优惠券使用时间：" name="periodStartTime" showTime
                             :rules="[{ required: true, message: '请选择时间', trigger: 'change' }]">
-                            <a-range-picker style="width: 80%" v-model:value="formData.periodStartTime"
+                            <a-range-picker style="width: 80%" v-model:value="formData.periodStartTime" show-time
                                 format="YYYY-MM-DD HH:mm:ss" />
                         </a-form-item>
 
                         <a-form-item label="券领取开始时间：" name="collectStart">
-                            <a-date-picker style="width: 80%" v-model:value="formData.collectStart"
+                            <a-date-picker style="width: 80%" v-model:value="formData.collectStart" show-time
                                 format="YYYY-MM-DD HH:mm:ss" showTime placeholder="券领取开始时间" />
                         </a-form-item>
 
@@ -96,7 +96,7 @@
                                 @change="changeDiscountUpperLimit" />
                             <span style="color: orange; font-style: oblique; margin-left: 10px">{{
                                 formData.discountUpperLimitMessage
-                            }}</span>
+                                }}</span>
                         </a-form-item>
 
                         <a-form-item label="优惠券发放总张数：" name="discountCouponCount"
@@ -113,10 +113,11 @@
                         </a-form-item>
                     </a-form>
                 </div>
-                <template #cover></template>
             </a-card>
-
         </BaseModal>
+
+        <!-- 商品列表弹窗 -->
+        <ManageProduct ref="manageProductRef" @success="manageProductSuccess" :shortCode="shortCode" />
     </div>
 </template>
 
@@ -126,6 +127,7 @@ import { DownOutlined } from '@ant-design/icons-vue';
 import { useResetReactive } from '@/composables/reset';
 import { message } from "ant-design-vue";
 import { addLazadaProduct } from '@/pages/lazada/regularCoupons/api';
+import ManageProduct from './manageProduct.vue';
 
 const { shortCode } = defineProps({
     shortCode: {
@@ -133,6 +135,8 @@ const { shortCode } = defineProps({
         default: ''
     }
 });
+
+const manageProductEl = useTemplateRef('manageProductRef');// 打开商品列表弹窗
 
 const loading = ref(false);
 const { state: formData, reset } = useResetReactive({
@@ -296,9 +300,8 @@ const submit = () => {
             if (res.code === 200) {
                 //如果 选择的是部分商品  打开商品列表
                 if (formData.apply !== 'ENTIRE_STORE') {
-                    close()
-                    //  刷新
-                    emits('success')
+                    manageProductEl.value.open({ shortCode: shortCode, voucherId: res.data.id });
+                    modalMethods.value.closeModal()
                 }
                 else {
                     message.success('添加成功');
@@ -313,9 +316,11 @@ const submit = () => {
         }).finally(() => {
             loading.value = false
         })
-
     })
+};
 
+const manageProductSuccess = () => {
+    emits('success')
 };
 const emits = defineEmits(['success']);
 

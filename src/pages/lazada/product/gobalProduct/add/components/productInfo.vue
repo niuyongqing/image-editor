@@ -52,7 +52,7 @@
                         <a-form :model="productAtrrsform" ref="attrsFormRef" scrollToFirstError>
                             <a-form-item v-for="item in sortAttrs(lazadaAttrsState.productClassifyAtrrs)"
                                 :key="item.name" :name="item.name" :rules="itemRules(item)" :label="item.label"
-                                :labelCol="{ span: 3 }" :wrapperCol="{ span: 21 }">
+                                :labelCol="{ span: 4 }" :wrapperCol="{ span: 20 }">
                                 <!-- is_key_prop： 1 时，表示当前属性是项目的 key 属性 -->
                                 <div flex>
                                     <a-tag color="#6288F4" v-if="item.advanced && item.advanced.is_key_prop === 1">
@@ -251,7 +251,6 @@ defineExpose({
 
 onMounted(() => {
     EventBus.on('gobalAddShortCodeEmit', (code) => {
-        console.log('接受到的shortCode -->>', code);
         shortCode.value = code;
         brandIdSelction.brandId = undefined;
         getBrandList({ brandName: '', shortCode: code }).then(res => {
@@ -267,8 +266,25 @@ onMounted(() => {
         }).finally(() => {
             brandIdSelction.searchLoading = false;
         });
-
     });
+
+    EventBus.on('gobalAddAttrsEmit', () => {
+        //  根据分类回显属性 to do ...
+        const obj = { "number_of_pieces": "6 and up", "zal_present": "Yes", "delivery_option_economy": "No", "Hazmat": "None", "delivery_option_express": "Yes" };
+        lazadaAttrsState.productClassifyAtrrs.forEach((item) => {
+            for (let key in obj) {
+                if (item.name === key) {
+                    // 多选数据转为数组
+                    if (item.input_type.includes('multi')) {
+                        item.value = obj[key] ? obj[key].split(',') : [];
+                    } else {
+                        item.value = obj[key]
+                    }
+                }
+            }
+        })
+    });
+
 });
 onBeforeUnmount(() => {
     EventBus.off('gobalAddShortCodeEmit')

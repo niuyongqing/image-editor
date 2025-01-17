@@ -46,7 +46,6 @@ const register = (methods) => {
 // 打开
 const open = () => {
     modalMethods.value.openModal();
-
 };
 // 关闭
 const close = () => {
@@ -64,6 +63,10 @@ const createProduct = () => {
 const createProductKeep = () => {
     modalMethods.value.closeModal();
 };
+
+const submit = () => {
+
+}
 
 defineExpose({
     open,

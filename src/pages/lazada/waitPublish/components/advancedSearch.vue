@@ -94,10 +94,7 @@ const { state, reset } = useResetReactive({
     promotionalPrices: undefined,
     promotionalPricesEnd: undefined,
     stockType: '1',
-    date: [
-        // dayjs('2015/01/01', dateFormat),
-        // dayjs('2015/01/01', dateFormat),
-    ]
+    date: []
 });
 
 const siteOptions = [

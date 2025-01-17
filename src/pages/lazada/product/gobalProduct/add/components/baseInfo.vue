@@ -43,12 +43,11 @@
                             </a-checkbox-group>
                         </div>
                     </div>
-
                 </a-form-item>
                 <a-form-item label="分类:" name="primaryCategory" :rules="[{ required: true, message: '请选择分类' }]">
-                    <a-cascader class="flex w-full justify-start" v-model:value="state.primaryCategory"
-                        :options="primaryCategoryOptions" placeholder="请先选择店铺" allowClear
-                        :fieldNames="{ label: 'name2', value: 'categoryId', children: 'children' }"
+                    <a-cascader :showSearch="showSearchConfig" class="flex w-full justify-start"
+                        v-model:value="state.primaryCategory" :options="primaryCategoryOptions" placeholder="请先选择店铺"
+                        allowClear :fieldNames="{ label: 'name2', value: 'categoryId', children: 'children' }"
                         @change="changePrimaryCategory">
                         <template #notFoundContent>
                             <div w-full h-300px flex items-center justify-center m-auto>
@@ -96,8 +95,7 @@ const globalArea = [{
 {
     label: "马来西亚",
     value: "MY"
-},
-];
+}];
 const shortCodes = ref([]); // 店铺列表
 const formEl = useTemplateRef('formRef');
 const primaryCategoryLoading = ref(false);
@@ -108,9 +106,12 @@ const { state } = useResetReactive({
     primaryCategory: undefined,
     ventures: [],
 });
-
+const showSearchConfig = {
+    filter: (inputValue, path) => {
+        return path.some(option => option.name2.toLowerCase().includes(inputValue.toLowerCase()));
+    }
+};
 const handleCheckAllChange = (value) => {
-    console.log('value', value);
     if (checkAll.value) {
         state.ventures = globalArea.map(v => v.value)
     } else {
@@ -119,7 +120,6 @@ const handleCheckAllChange = (value) => {
 };
 
 const checkedCitiesChange = (value) => {
-    console.log('value checkedCitiesChange', value);
     if (value.length === globalArea.length) {
         checkAll.value = true
     } else {
@@ -172,6 +172,7 @@ async function getAttributes() {
         if (res.code === 200) {
             attributes.value = res.data || [];
             setLazadaAttrs(attributes.value);
+            EventBus.emit('gobalAddAttrsEmit');
         }
     })
 };

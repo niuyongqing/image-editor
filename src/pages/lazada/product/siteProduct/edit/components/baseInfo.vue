@@ -11,16 +11,21 @@
                     :rules="[{ required: true, message: '请选择店铺', trigger: ['change'] }]">
                     <a-select class="flex w-full justify-start" v-model:value="state.shortCode" placeholder="请选择店铺"
                         @change="changeShortCode" allowClear :options="shortCodes"
-                        :fieldNames="{ label: 'simpleName', value: 'shortCode' }" style="width: 250px;">
+                        :fieldNames="{ label: 'simpleName', value: 'shortCode' }" style="width: 250px;"
+                        :disabled="state.shortCode ? true : false">
                     </a-select>
                 </a-form-item>
-                <a-form-item label="分类:" name="primaryCategory" :rules="[{ required: true, message: '请选择分类' }]">
-                    <a-cascader class="flex w-full justify-start" v-model:value="state.primaryCategory"
-                        :options="primaryCategoryOptions" placeholder="请先选择店铺" allowClear
-                        :fieldNames="{ label: 'name2', value: 'categoryId', children: 'children' }"
-                        @change="changePrimaryCategory">
+                <a-form-item label="分类:" name="primaryCategory" :rules="[{ required: true, message: '请选择分类' }]"
+                    v-loading="loading">
+                    <a-cascader :showSearch="showSearchConfig" class="flex w-full justify-start"
+                        v-model:value="state.primaryCategory" :options="primaryCategoryOptions" placeholder="请先选择店铺"
+                        allowClear :fieldNames="{ label: 'name2', value: 'categoryId', children: 'children' }"
+                        @change="changePrimaryCategory" :disabled="state.primaryCategory ? true : false">
                         <template #notFoundContent>
-                            <div w-full h-300px flex items-center justify-center m-auto>
+                            <div v-if="primaryCategoryOptions.length === 0">
+                                暂无数据
+                            </div>
+                            <div w-full h-300px flex items-center justify-center m-auto v-else>
                                 <a-spin :spinning="true" tip="正在加载中..." m-auto>
                                 </a-spin>
                             </div>
@@ -38,8 +43,22 @@ import { useResetReactive } from '@/composables/reset';
 import { accountCache, categoryTree, categoryAttributesApi } from '@/pages/lazada/product/api';
 import EventBus from "~/utils/event-bus";
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
+import { findCategoryPath } from '@/pages/lazada/product/common';
+import { unique } from '@/pages/lazada/product/common';
 
-const { state: lazadaAttrsState, setShortCode, setPrimaryCategory, setLazadaAttrs, setLoading } = useLadazaAttrs();
+const { detailData } = defineProps({
+    detailData: {
+        type: Object,
+        default: () => ({})
+    }
+});
+const {
+    state: lazadaAttrsState, setShortCode, setPrimaryCategory,
+    setLazadaAttrs, setLoading, setProductClassifyAtrrs,
+    setSelectTheme
+} = useLadazaAttrs();
+
+const loading = ref(false);
 const shortCodes = ref([]); // 店铺列表
 const formEl = useTemplateRef('formRef');
 const primaryCategoryLoading = ref(false);
@@ -48,6 +67,90 @@ const attributes = ref([]); // 分类 属性列表
 const { state } = useResetReactive({
     shortCode: undefined,
     primaryCategory: undefined,
+});
+const showSearchConfig = {
+    filter: (inputValue, path) => {
+        return path.some(option => option.name2.toLowerCase().includes(inputValue.toLowerCase()));
+    }
+};
+//  编辑回显
+watch(() => {
+    return detailData
+}, async (newVal) => {
+    loading.value = true;
+    state.shortCode = newVal.shortCode;
+    EventBus.emit('siteEditShortCodeEmit', state.shortCode);
+    setShortCode(state.shortCode);
+    await getCategorys();
+    const data = findCategoryPath(primaryCategoryOptions.value, newVal.primaryCategory);
+    state.primaryCategory = data || [];
+    validateCodeRule();
+    setPrimaryCategory(state.primaryCategory);
+    loading.value = false;
+    await getAttributes();
+    setProductClassifyAtrrs(newVal.attributes); // 回显详情的分类属性值
+    const skus = newVal.skus || [];
+    const keys = Object.keys(skus[0].saleProp);
+    let values = [];
+    skus.forEach((item) => {
+        const vals = Object.values(item.saleProp);
+        values.push(...vals);
+    });
+
+    const saleProps = skus.map((item) => {
+        return item.saleProp;
+    });
+    const selectThemeList = lazadaAttrsState.skuAttrs.filter((item) => {
+        return keys.includes(item.name)
+    });
+    const result = saleProps.reduce((acc, item) => {
+        Object.keys(item).forEach(key => {
+            if (!acc[key]) {
+                acc[key] = new Set();
+            }
+            acc[key].add(item[key]);
+        });
+        return acc;
+    }, {});
+
+    const formattedResult = Object.keys(result).reduce((acc, key) => {
+        acc[key] = Array.from(result[key]);
+        return acc;
+    }, {});
+    const resultData = keys.map(key => {
+        const findItem = selectThemeList.find(item => item.name === key);
+        let options = [];
+        if (findItem) {
+            const has = findItem.options.find((option) => {
+                return formattedResult[key].includes(option.en_name)
+            });
+            if (!has) {
+                findItem.options = findItem.options.concat(formattedResult[key].map((keyItem) => ({ name: keyItem, en_name: keyItem })));
+                options = findItem.options;
+            } else {
+                options = findItem.options
+            }
+        } else {
+            options = (formattedResult[key].map((keyItem) => ({ name: keyItem, en_name: keyItem })) || [])
+        }
+
+        const optionsUnique = unique('en_name', options); // 去重
+        return {
+            name: findItem ? findItem.name : key,
+            label: findItem ? findItem.label : key,
+            is_mandatory: findItem ? findItem.is_mandatory : 0,
+            input_type: findItem ? findItem.input_type : 'multiEnumInput',
+            checkedList: formattedResult[key] || [],
+            attribute_type: findItem ? findItem.attribute_type : 'sku',
+            options: optionsUnique,
+            skuOptions: optionsUnique
+        }
+    });
+
+    setSelectTheme(resultData)
+    EventBus.emit('siteEditSelectThemeEmit', resultData);
+}, {
+    deep: true
 });
 
 async function getShortCodes() {
@@ -60,7 +163,6 @@ async function getShortCodes() {
         shortCodes.value = codes
     };
 };
-
 async function getCategorys() {
     primaryCategoryLoading.value = true;
     const categoryTreeRes = await categoryTree({ shortCode: state.shortCode });
@@ -87,15 +189,14 @@ async function getCategorys() {
 async function getAttributes() {
     if (!state.primaryCategory.length) return;
     setLoading(true);
-    categoryAttributesApi({
+    const res = await categoryAttributesApi({
         shortCode: state.shortCode,
         primaryCategoryId: state.primaryCategory[state.primaryCategory.length - 1]
-    }).then((res) => {
-        if (res.code === 200) {
-            attributes.value = res.data || [];
-            setLazadaAttrs(attributes.value);
-        }
-    })
+    });
+    if (res.code === 200) {
+        attributes.value = res.data || [];
+        setLazadaAttrs(attributes.value);
+    };
 };
 
 const changeShortCode = (value) => {
@@ -135,7 +236,7 @@ defineExpose({
 
 onMounted(() => {
     getShortCodes();
-    validateCodeRule();
+
 });
 </script>
 

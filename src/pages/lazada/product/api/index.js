@@ -74,3 +74,30 @@ export function watermarkList(params) {
 export function lazadaAdd(data) {
   return usePost("/platform-lazada/platform/lazada/product/add", data);
 }
+
+// lazada 商品详情
+export function lazadaProductDetail(data) {
+  return usePost("/platform-lazada/platform/lazada/product/detail", data);
+}
+// videoUrl
+export function lazadaVideoUrl(data) {
+  return usePost("/platform-lazada/platform/lazada/file/video/url", data);
+}
+// 根据站点获取分类
+export function lazadaCategoryTree(data) {
+  return usePost(
+    "/platform-lazada/platform/lazada/attribute/category/tree",
+    data
+  );
+}
+// 同步
+export function syncOne(data) {
+  return usePost("/platform-lazada/platform/lazada/product/sync-one", data);
+}
+// 同步所有店铺商品
+export function syncAll() {
+  return useGet("/platform-lazada/platform/lazada/product/sync-all");
+}
+export function deactivate(data) {
+  return usePost("/platform-lazada/platform/lazada/product/deactivate", data);
+}

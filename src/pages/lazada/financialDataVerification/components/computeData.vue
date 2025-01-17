@@ -31,7 +31,8 @@
                 <a-button type="primary" @click="onSubmit" :loading="loading">确 定</a-button>
             </template>
         </a-modal>
-        <BaseProgess ref="baseProgessRef" v-model:percent="percent" v-model:open="progessOpen"></BaseProgess>
+        <BaseProgess ref="baseProgessRef" v-model:percent="percent" v-model:open="progessOpen" :showSaveBtn="false"
+            :showCancelBtn="false"></BaseProgess>
     </div>
 </template>
 

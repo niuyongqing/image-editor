@@ -36,12 +36,25 @@
 import { message } from 'ant-design-vue';
 import { marketImageLazada } from '@/pages/lazada/product/api';
 
+const { detailData } = defineProps({
+    detailData: {
+        type: Object,
+        default: () => ({})
+    }
+});
+
 const { state: lazadaAttrsState, } = useLadazaAttrs();
 const valueHtml = ref('');
 const productEditorEl = useTemplateRef('productEditorRef');
 const codeEditorEl = useTemplateRef('codeEditorRef');
 const descriptionLoading = ref(false);
 const loading = ref(false);
+const form = reactive({
+    description: '',
+    description_en: '',
+    shortDescription: '',
+    short_description_en: ''
+});
 
 const actionUrl = import.meta.env.VITE_APP_BASE_API + '/platform-lazada/platform/lazada/file/upload/market-image-lazada';
 const headers = computed(() => {
@@ -49,6 +62,16 @@ const headers = computed(() => {
         'Content-Type': 'multipart/form-data',
         Authorization: 'Bearer ' + useAuthorization().value
     }
+});
+
+//  编辑回显
+watch(() => {
+    return detailData
+}, async (newVal) => {
+    form.description = newVal.attributes.description_en;
+    form.shortDescription = newVal.attributes.short_description_en;
+}, {
+    deep: true
 });
 
 const editorConfig = {
@@ -111,10 +134,6 @@ const codeEditorConfig = {
     },
 };
 
-const form = reactive({
-    description: '',
-    shortDescription: '',
-});
 
 watch(() => lazadaAttrsState.product, (newVal) => {
     if (newVal && JSON.stringify(newVal) !== '{}') {
@@ -135,9 +154,9 @@ defineExpose({
 });
 
 onMounted(() => {
-    nextTick(() => {
-        console.log('editorEl', productEditorEl.value, codeEditorEl.value);
-    });
+    // nextTick(() => {
+    //     console.log('editorEl', productEditorEl.value, codeEditorEl.value);
+    // });
 });
 </script>
 

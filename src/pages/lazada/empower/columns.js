@@ -34,12 +34,20 @@ export const columns = [
     dataIndex: "autoPublish",
     key: "autoPublish",
     slot: "autoPublish",
+    align: "center",
   },
 
   {
     title: "账号",
     dataIndex: "account",
     key: "account",
+  },
+
+  {
+    title: "是否填充账号密码",
+    dataIndex: "isFillPassword",
+    key: "isFillPassword",
+    slot: "isFillPassword",
   },
   {
     title: "仓库",

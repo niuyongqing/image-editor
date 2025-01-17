@@ -251,11 +251,11 @@ const handleDragEnd = (event) => {
 // 点击水印
 const watermark = async (item) => {
     //  添加水印
-    const imagePathList = fileList.value.map((item) => {
+    const imagePathList = fileList.value.filter((file) => !file.url.includes('http')).map((item) => {
         return item.url
     });
     if (!imagePathList.length) {
-        message.error('请先上传图片');
+        message.error('请先本地上传图片');
         return
     }
     const waterRes = await watermarkApi({
