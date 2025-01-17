@@ -107,7 +107,7 @@ const setTableHeight = () => {
     }
 };
 onMounted(() => {
-    setTableHeight();
+    // setTableHeight();
     window.addEventListener('resize', setTableHeight);
 
 })
