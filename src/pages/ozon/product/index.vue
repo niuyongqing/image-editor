@@ -174,7 +174,7 @@
                 <div class="topHeader">
                     <a-checkbox style="margin-right: 90px;" v-model:checked="allChecked"
                         @change="allChangeBox"></a-checkbox>
-                    <a-table style="width: 100%;" class="fixedTable" :columns="dropCol">
+                    <a-table style="width: 100%;height: 38px;" class="fixedTable" :columns="dropCol">
                     </a-table>
                 </div>
                 <div v-if="selectedRows.length != 0" class="h-7.5 pl-5 lh-7.5 text-left"
