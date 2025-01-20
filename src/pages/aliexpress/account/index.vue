@@ -83,6 +83,7 @@
               v-for="account in record.account.split(',')"
               :key="account"
               color="green"
+              class="mb-2"
               >{{ getSimpleName(account) }}</a-tag
             >
           </template>

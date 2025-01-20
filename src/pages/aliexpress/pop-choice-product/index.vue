@@ -350,6 +350,7 @@
         selectedRows: [],
         syncProgressOpen: false,
         syncLoading: false,
+        syncPercentage: 0,
         editStockDialogVisible: false, // 修改库存弹窗显隐
         curRow: {}
       }
@@ -517,7 +518,7 @@
               } else {
                 this.syncPercentage = 0
                 this.syncProgressOpen = false
-                this.getList()
+                this.search()
               }
             } else {
               setTimeout(() => {

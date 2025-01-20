@@ -277,32 +277,32 @@
               <p>SKU属性：{{ SKU.variation }}</p>
               <a-row>
                 SKU编码：<span style="color: #9e9f9e">{{ SKU.sellerSku }}</span>
-                <a-divider type="vertical"/>
+                <a-divider type="vertical" />
                 货品条码：<span style="color: #9e9f9e">{{ SKU.productSkuScItemInfoDto.scItemBarCode || '--' }}</span>
-                <a-divider type="vertical"/>
+                <a-divider type="vertical" />
                 货品ID：<span style="color: #9e9f9e">{{ SKU.productSkuScItemInfoDto.scItemId || '--' }}</span>
                 <template v-if="SKU.productSkuScItemInfoDto.unbindRefuseReason">
-                  <a-divider type="vertical"/>
+                  <a-divider type="vertical" />
                   解绑拒绝原因：<span style="color: #fd7159ff">{{ SKU.productSkuScItemInfoDto.unbindRefuseReason }}</span>
                 </template>
               </a-row>
               <a-row>
                 <template v-if="SKU.skuAuditStatus === null || SKU.skuAuditStatus === '1'">
                   <a-tag color="green">审核通过</a-tag>
-                  <a-divider type="vertical"/>
+                  <a-divider type="vertical" />
                   供货价：<span style="color: #9e9f9e">{{ SKU.supplyPrice }}</span>
                 </template>
                 <template v-else>
                   <a-tag color="red">审核不通过</a-tag>
-                  <a-divider type="vertical"/>
+                  <a-divider type="vertical" />
                   建议供货价：<span style="color: #9e9f9e">{{ SKU.suggestPrice || '--' }}</span>
-                  <a-divider type="vertical"/>
+                  <a-divider type="vertical" />
                   建议标签：<span style="color: #9e9f9e">{{ SKU.suggestNote || '--' }}</span>
                 </template>
-                <a-divider type="vertical"/>
+                <a-divider type="vertical" />
                 库存：<span style="color: #9e9f9e">{{ SKU.skuStock }}</span>
               </a-row>
-              <a-divider class="my-3"/>
+              <a-divider class="my-3" />
             </div>
             <div v-if="record.searchSkuInfoList.length > 3">
               <a-button
@@ -332,11 +332,16 @@
             <a-tag v-else-if="record.productStatus === 'OFFLINE'">已下架</a-tag>
             <span v-else>--</span>
           </div>
-          <div v-if="column.key === 'create_time'">
-            <span>{{ record.createdTime || '--' }}</span>
-          </div>
-          <div v-if="column.key === 'update_time'">
-            <span>{{ record.modifiedTime || '--' }}</span>
+          <div v-if="column.key === 'time'">
+            <div>
+              创建时间: <span class="text-gray">{{ record.createdTime || '--' }}</span>
+            </div>
+            <div>
+              编辑时间: <span class="text-gray">{{ record.modifiedTime || '--' }}</span>
+            </div>
+            <div>
+              同步时间: <span class="text-gray">{{ record.syncTime || '--' }}</span>
+            </div>
           </div>
           <div v-if="column.key === 'option'">
             <a-button
@@ -771,7 +776,7 @@
               } else {
                 this.syncPercentage = 0
                 this.syncProgressOpen = false
-                this.getList()
+                this.search()
               }
             } else {
               setTimeout(() => {

@@ -530,6 +530,9 @@
             <div>
               编辑时间: <span class="text-gray">{{ record.gmtModified || '--' }}</span>
             </div>
+            <div>
+              同步时间: <span class="text-gray">{{ record.syncTime || '--' }}</span>
+            </div>
           </div>
           <div v-if="column.key === 'option'">
             <a-button
@@ -798,7 +801,6 @@
         curRow: {}, // 当前点击的行
         syncLoading: false,
         selectedRows: [],
-        syncPercentage: 0,
         editPriceAndStockDialogVisible: false, // 修改价格和库存显隐
         wholeAttrEditDialogVisible: false, // 全属性修改弹窗显隐
         command: '', // 批量操作指令
@@ -1057,7 +1059,7 @@
               } else {
                 this.syncPercentage = 0
                 this.syncProgressOpen = false
-                this.getList()
+                this.search()
               }
             } else {
               setTimeout(() => {
