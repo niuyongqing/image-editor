@@ -102,14 +102,9 @@
             </template>
             <template #date="{ record }">
                 <div>
-                    <p class="date"> 创建： </p>
-                    <p>
-                        {{ timestampToDateTime(record.createdTime) }}
-                    </p>
-                    <p class="date"> 更新: </p>
-                    <p>
-                        {{ timestampToDateTime(record.updatedTime) }}
-                    </p>
+                    <p class="date"> 创建：<span text-black> {{ timestampToDateTime(record.createdTime) }} </span> </p>
+                    <p class="date"> 更新: <span text-black> {{ timestampToDateTime(record.updatedTime) }} </span> </p>
+                    <p class="date"> 同步: <span text-black> {{ timestampToDateTime(record.syncTime) }} </span> </p>
                 </div>
             </template>
             <template #action="{ record }">
@@ -374,6 +369,7 @@ onMounted(async () => {
 
 .date {
     color: #999;
+    margin-bottom: 4px;
 }
 
 .more {

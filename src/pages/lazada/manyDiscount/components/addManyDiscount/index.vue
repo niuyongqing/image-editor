@@ -3,7 +3,7 @@
         <BaseModal @register="register" title="创建优惠券" @close="closeModal" @submit="submit" width="1000px"
             :submit-btn-loading="loading">
             <BaseInfo ref="baseInfoRef"></BaseInfo>
-            <DiscountSetting ref="discountSettingRef" style="margin-top: 10px"></DiscountSetting>
+            <DiscountSetting :shortCode="shortCode" ref="discountSettingRef" style="margin-top: 10px"></DiscountSetting>
             <ProductSetting ref="productSettingRef" style="margin-top: 10px"></ProductSetting>
         </BaseModal>
     </div>
@@ -23,6 +23,7 @@ const { shortCode } = defineProps({
         default: ''
     }
 })
+const emits = defineEmits(['success'])
 const baseInfoEl = useTemplateRef('baseInfoRef');
 const discountSettingEl = useTemplateRef('discountSettingRef');
 const productSettingEl = useTemplateRef('productSettingRef');
@@ -69,14 +70,14 @@ const submit = async () => {
 
         //当 apply = ENTIRE_STORE时，productSkuIdList = null
         //当 apply = SPECIFIC_PRODUCTS 时，productSkuIdList 有值
-        if (productSetting.apply === 'ENTIRE_SHOP') {
+        if (productSetting.apply === 'ENTIRE_STORE') {
             data.productSkuIdList = null
         }
     }
 
     //优惠设置 为 小样/赠品时
     if (discountSetting.Type === 'sampleGiveaway') {
-        discountSetting.value.getSampleGiveawayData()
+        discountSettingEl.value.getSampleGiveawayData()
         data.shortCode = shortCode //店铺code
         data.name = baseInfo.name //优惠券名称
         data.startTime = baseInfo.time[0].format('YYYY-MM-DD HH:mm:ss');  //开始时间
@@ -110,15 +111,15 @@ const submit = async () => {
         data.giftSkus = giftSkus
         //当 apply = ENTIRE_STORE时，productSkuIdList = null
         //当 apply = SPECIFIC_PRODUCTS 时，productSkuIdList 有值
-        if (productSetting.apply === 'ENTIRE_SHOP') {
+        if (productSetting.apply === 'ENTIRE_STORE') {
             data.productSkuIdList = null
         }
     }
 
     //组合优惠
     if (discountSetting.Type === 'comboDiscount') {
-        discountSetting.value.getComboDiscountData()
-        data.shortCode = this.shortCode //店铺code
+        discountSettingEl.value.getComboDiscountData()
+        data.shortCode = shortCode //店铺code
         data.name = baseInfo.name //优惠券名称
         data.startTime = baseInfo.time[0].format('YYYY-MM-DD HH:mm:ss')  //开始时间
         data.endTime = baseInfo.time[1].format('YYYY-MM-DD HH:mm:ss')  //结束时间
@@ -152,7 +153,7 @@ const submit = async () => {
 
         //当 apply = ENTIRE_STORE时，productSkuIdList = null
         //当 apply = SPECIFIC_PRODUCTS 时，productSkuIdList 有值
-        if (productSetting.apply === 'ENTIRE_SHOP') {
+        if (productSetting.apply === 'ENTIRE_STORE') {
             data.productSkuIdList = null
         }
     }
@@ -176,7 +177,7 @@ const submit = async () => {
     addLazadaFlexicomboProduct(data).then(res => {
         if (res.code === 200) {
             //如果 选择的是部分商品  打开商品列表
-            if (productSetting.apply !== 'ENTIRE_SHOP') {
+            if (productSetting.apply !== 'ENTIRE_STORE') {
                 close()
                 emits('success', { shortCode: shortCode, voucherId: res.msg })            // 刷新
             }
@@ -190,7 +191,8 @@ const submit = async () => {
             message.error(res.msg)
         }
     }).finally(() => {
-        loading.value = false
+        loading.value = false;
+        modalMethods.value.closeModal();
     })
 }
 

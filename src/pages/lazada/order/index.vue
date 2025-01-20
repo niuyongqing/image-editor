@@ -2,7 +2,7 @@
     <div>
         <Search @search="handleSearch" :shop="shop" ref="searchRef"></Search>
         <BaseTable ref="baseTableRef" :columns="columns" :api="orderList" :immediate="true"
-            :init-search-param="initSearchParam" :scrollX="3000">
+            :init-search-param="initSearchParam" :scroll="{ x: 4000 }">
             <template #leftBar>
                 <a-space>
                     <a-button type="primary" v-has-permi="['platform:lazada:order:sync']" @click="syncLazada">

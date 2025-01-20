@@ -1,11 +1,11 @@
 <template>
     <a-modal v-model:open="visible" title="选择资料库产品" :footer="null" :width="'95vw'" :zIndex="1000"
-        :style="{ top: 0, padding: 0, height: '100vh' }" :bodyStyle="{ height: 'calc(100vh - 55px)', overflow: 'auto' }"
-        :maskClosable="false" :destroyOnClose="true">
+        :style="{ top: '10px', padding: 0, height: '100vh' }"
+        :bodyStyle="{ height: 'calc(100vh - 100px)', overflow: 'auto' }" :maskClosable="false" :destroyOnClose="true">
         <div class="modal-content">
             <Search @search="handleSearch"></Search>
             <BaseTable ref="baseTableRef" :columns="columns" :api="storeList" :init-search-param="initSearchParam"
-                :tableHeightOffset="150">
+                :scroll="{ y: 'calc(100vh - 390px)', x: '3200px' }">
                 <template #action="{ record }">
                     <a-button @click="handleSelect(record)" type="link">选中</a-button>
                 </template>

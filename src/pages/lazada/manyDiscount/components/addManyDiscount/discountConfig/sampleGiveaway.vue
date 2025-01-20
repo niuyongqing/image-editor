@@ -17,7 +17,7 @@
           <a-radio :value="false">否</a-radio>
         </a-radio-group>
       </a-form-item>
-
+      {{ formData.criteriaType }}
       <a-form-item label="优惠门槛" name="criteriaType">
         <a-tooltip title="当买家达到订单件数门槛，即可享受优惠">
           <a-radio value="QUANTITY" v-model:value="formData.criteriaType">满件</a-radio>
@@ -33,7 +33,9 @@
           <template #title>
             <div style="display: flex; justify-content: space-between">
               <span>梯度 {{ i + 1 }}</span>
-              <a-button type="danger" icon="delete" @click="delGradient(i)" v-if="steepness.length > 1"></a-button>
+              <a-button type="danger" @click="delGradient(i)" v-if="steepness.length > 1">
+                <DeleteOutlined></DeleteOutlined>
+              </a-button>
             </div>
           </template>
 
@@ -60,13 +62,13 @@
               <a-table :dataSource="item.sampleArr" rowKey="itemId" :pagination="false" :columns="columns">
                 <template #bodyCell="{ column, index }">
                   <template v-if="column.dataIndex === 'Include'">
-                    <a-button type="primary" danger @click="delSampleArrRow(i, index)"
-                      :disabled="item.disable"></a-button>
+                    <a-button type="primary" danger @click="delSampleArrRow(i, index)" :disabled="item.disable">
+                      <DeleteOutlined></DeleteOutlined>
+                    </a-button>
                   </template>
                 </template>
               </a-table>
             </a-form-item>
-
             <a-form-item>
               <span>帮助卖家选择</span>
               <a-input-number v-model:value="item.giftBuyLimitValue" :min="1" :max="item.sampleArr.length"
@@ -80,7 +82,7 @@
         <br />
       </div>
     </a-form>
-    <GiftList ref="giftListRef"></GiftList>
+    <GiftList ref="giftListRef" :short-code="shortCode"></GiftList>
   </div>
 </template>
 
@@ -88,6 +90,14 @@
 import { ref, onMounted } from 'vue';
 import EventBus from "~/utils/event-bus";
 import GiftList from '@/pages/lazada/manyDiscount/components/addManyDiscount/giftList.vue';
+import { DeleteOutlined } from '@ant-design/icons-vue';
+defineProps({
+  shortCode: {
+    type: String,
+    default: ''
+  },
+})
+
 const value = ref(1);
 const formData = ref({
   discountType: 'freeGift',
@@ -113,7 +123,7 @@ const columns = [{
   key: 'salePrice',
   align: 'center'
 }, {
-  dataIndex: 'Stock',
+  dataIndex: 'stock',
   title: 'Stock',
   align: 'center'
 },
@@ -125,8 +135,10 @@ const columns = [{
 
 
 const addGift = (index) => {
-  console.log('steepness.value[index]', index, steepness.value[index]);
-  EventBus.emit('GiftList', steepness.value[index].sampleArr, index);
+  EventBus.emit('GiftList', {
+    sampleArr: steepness.value[index].sampleArr,
+    index: index,
+  });
   giftListEl.value.open();
 
 };

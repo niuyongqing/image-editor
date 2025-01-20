@@ -19,10 +19,11 @@
           </a-radio-group>
         </a-form-item>
       </a-form>
-
       <full-discount v-if="formData.Type === 'fullDiscount'" ref="discountConfigRef"></full-discount>
-      <sample-giveaway v-if="formData.Type === 'sampleGiveaway'" ref="discountConfigRef"></sample-giveaway>
-      <combo-discount v-if="formData.Type === 'comboDiscount'" ref="discountConfigRef"></combo-discount>
+      <sample-giveaway v-if="formData.Type === 'sampleGiveaway'" ref="discountConfigRef"
+        :shortCode="shortCode"></sample-giveaway>
+      <combo-discount v-if="formData.Type === 'comboDiscount'" ref="discountConfigRef"
+        :shortCode="shortCode"></combo-discount>
       <fixed-price v-if="formData.Type === 'fixedPrice'" ref="discountConfigRef"></fixed-price>
     </a-card>
   </div>
@@ -34,6 +35,13 @@ import fullDiscount from './discountConfig/fullDiscount.vue';
 import sampleGiveaway from './discountConfig/sampleGiveaway.vue';
 import comboDiscount from './discountConfig/comboDiscount.vue';
 import fixedPrice from './discountConfig/fixedPrice.vue';
+
+defineProps({
+  shortCode: {
+    type: String,
+    default: ''
+  }
+})
 
 const { state: formData, reset } = useResetReactive({
   Type: 'fullDiscount',

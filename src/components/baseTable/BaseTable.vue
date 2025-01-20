@@ -20,6 +20,7 @@
                         </a-space>
                     </div>
                 </div>
+                <!-- :scroll="{ y: tableHeight, x: scrollX ? scrollX : '100%', virtual: true }" -->
                 <a-table v-bind="$attrs" :columns="columns" :row-key="rowKey" :data-source="tableData"
                     :loading="loading" :pagination="{
                         ...pagination,
@@ -27,8 +28,7 @@
                         showQuickJumper: true,
                         showSizeChanger: true,
                         showTotal: (total, range) => `第${range[0]}-${range[1]}条, 共${total}条`
-                    }" ellipsis bordered :scroll="{ y: tableHeight, x: scrollX ? scrollX : '100%', virtual: true }"
-                    @change="handleChange">
+                    }" ellipsis bordered @change="handleChange">
                     <template #headerCell="{ column }">
                         <slot v-if="column.headerCell" name="headerCell" :column="column"></slot>
                     </template>
@@ -89,30 +89,33 @@ const { columns, api, rowKey, dropAble, showRightPagination, initSearchParam, re
         default: true
     },
     // 表格高度偏移量
-    tableHeightOffset: {
-        type: Number,
-        default: 70
-    },
-    scrollX: {
-        type: Number,
-        default: 0
-    }
+    // tableHeightOffset: {
+    //     type: Number,
+    //     default: 70
+    // },
+    // tableHeight: {
+
+    // },
+    // scrollX: {
+    //     type: Number,
+    //     default: 0
+    // }
 });
 const { tableData, resData, pagination, loading, handleChange, getTableList, updatedTotalParam, setLoading, search, reload, handleChangePagination, setTableData } = useTable(api, initSearchParam, pageField, immediate, resultField);
-const tableHeight = ref(0); // 表格高度
-const tableContainer = ref(null);
-const setTableHeight = () => {
-    if (tableContainer.value) {
-        tableHeight.value = window.innerHeight - tableContainer.value.getBoundingClientRect().top - tableHeightOffset; // 偏移量可根据需求调整
-    }
-};
+// const tableHeight = ref(0); // 表格高度
+// const tableContainer = ref(null);
+// const setTableHeight = () => {
+//     if (tableContainer.value) {
+//         tableHeight.value = window.innerHeight - tableContainer.value.getBoundingClientRect().top - tableHeightOffset; // 偏移量可根据需求调整
+//     }
+// };
 onMounted(() => {
     // setTableHeight();
-    window.addEventListener('resize', setTableHeight);
+    // window.addEventListener('resize', setTableHeight);
 
 })
 onUnmounted(() => {
-    window.removeEventListener('resize', setTableHeight);
+    // window.removeEventListener('resize', setTableHeight);
 });
 
 defineExpose({

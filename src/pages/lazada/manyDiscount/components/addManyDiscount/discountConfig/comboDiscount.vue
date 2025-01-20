@@ -35,7 +35,9 @@
           <template #title>
             <div style="display: flex; justify-content: space-between">
               <span>梯度 {{ i + 1 }}</span>
-              <a-button type="danger" icon="delete" @click="delGradient(i)" v-if="steepness.length > 1"></a-button>
+              <a-button type="danger" @click="delGradient(i)" v-if="steepness.length > 1">
+                <DeleteOutlined></DeleteOutlined>
+              </a-button>
             </div>
           </template>
 
@@ -57,7 +59,7 @@
             <a-form-item>
               <template #label><span>赠品/样品</span></template>
               <span style="color: gray; font-size: 13px">卖家将负责礼品和样品的邮费</span>
-              <a-button type="primary" style="margin-left: 10px" @click="addGift(index)"
+              <a-button type="primary" style="margin-left: 10px" @click="addGift(i)"
                 :disabled="item.disable">增加赠品/样品</a-button>
             </a-form-item>
             <a-form-item>
@@ -70,8 +72,9 @@
               <a-table :dataSource="item.sampleArr" rowKey="itemId" :pagination="false" :columns="columns">
                 <template #bodyCell="{ column, index }">
                   <template v-if="column.dataIndex === 'Include'">
-                    <a-button type="primary" danger @click="delSampleArrRow(i, index)"
-                      :disabled="item.disable"></a-button>
+                    <a-button type="primary" danger @click="delSampleArrRow(i, index)" :disabled="item.disable">
+                      <DeleteOutlined></DeleteOutlined>
+                    </a-button>
                   </template>
                 </template>
               </a-table>
@@ -90,12 +93,21 @@
     </a-form>
     <a-button type="primary" v-if="!formData.stackable && steepness.length !== 3" @click="addGiftCard"
       style="margin-top: 10px">增加梯度</a-button>
+    <GiftList ref="giftListRef" :short-code="shortCode"></GiftList>
   </div>
 </template>
 
 <script setup>
 import EventBus from "~/utils/event-bus";
 import { useResetReactive } from '@/composables/reset';
+import GiftList from '@/pages/lazada/manyDiscount/components/addManyDiscount/giftList.vue';
+import { DeleteOutlined } from '@ant-design/icons-vue';
+defineProps({
+  shortCode: {
+    type: String,
+    default: ''
+  },
+});
 
 const columns = [{
   dataIndex: 'sellerSku',
@@ -113,7 +125,7 @@ const columns = [{
   key: 'salePrice',
   align: 'center'
 }, {
-  dataIndex: 'Stock',
+  dataIndex: 'stock',
   title: 'Stock',
   align: 'center'
 },
@@ -131,7 +143,11 @@ const { state: formData, reset } = useResetReactive({
 
 const steepness = ref([{ criteriaValue: '1', giftBuyLimitValue: '1', disable: false, sampleArr: [] }]);
 const addGift = (index) => {
-  EventBus.emit('GiftList', steepness.value[index].sampleArr, index);
+  console.log('index ->>>>>>', index, steepness.value[index]);
+  EventBus.emit('GiftList', {
+    sampleArr: steepness.value[index].sampleArr,
+    index: index,
+  });
 };
 
 const delSampleArrRow = (cardIndex, index) => {

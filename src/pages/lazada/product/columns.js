@@ -51,7 +51,7 @@ export const columns = [
     dataIndex: "date",
     key: "date",
     slot: "date",
-    width: 200,
+    width: 300,
   },
   {
     title: "操作",

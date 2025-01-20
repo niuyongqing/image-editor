@@ -1,6 +1,6 @@
 <template>
     <div>
-        <Search :account="account" @search="handleSearch"></Search>
+        <Search :account="account" @search="handleSearch" :shortCode="searchParams.shortCode" />
         <BaseTable ref="baseTableRef" :columns="columns" :api="lazadaFlexicomboList" :immediate="false"
             :init-search-param="initSearchParam" :row-selection="rowSelection" row-key="id">
             <template #leftBar>
@@ -32,14 +32,15 @@
                 <a-tag v-if="record.status == 'FINISH'" color="orange">已过期</a-tag>
             </template>
             <template #apply="{ record }">
-                <div v-if="record.apply === 'ENTIRE_SHOP'">全店商品</div>
+                <div v-if="record.apply === 'ENTIRE_STORE'">全店商品</div>
                 <div v-if="record.apply === 'SPECIFIC_PRODUCTS'">部分商品</div>
             </template>
             <template #syncTime="{ record }">
                 <div>{{ Timedata(parseFloat(record.syncTime) * 1000) }}</div>
             </template>
         </BaseTable>
-        <AddManyDiscount :shortCode="shortCode" ref="addManyDiscountRef"></AddManyDiscount>
+        <AddManyDiscount :shortCode="searchParams.shortCode" ref="addManyDiscountRef" @success="reload">
+        </AddManyDiscount>
     </div>
 </template>
 
@@ -68,13 +69,14 @@ const deactivateVoucherLoading = ref(false); //暂停loading
 const syncLazadaShopLoading = ref(false); // 同步loading
 const baseTableEl = useTemplateRef('baseTableRef');
 const addManyDiscountEl = useTemplateRef('addManyDiscountRef');
-
+const searchParams = ref({}); //搜索条件
 const initSearchParam = {
     prop: 'create_time',
     order: 'desc'
 };
 // 查询
 const handleSearch = async (state) => {
+    searchParams.value = state;
     await baseTableEl.value.search(state);
 };
 
@@ -88,7 +90,7 @@ const handleAdd = () => {
 };
 const activate = () => {
     let data = {
-        shortCode: shortCode.value,
+        shortCode: searchParams.value.shortCode,
         ids: selectedRowKeys.value.join()
     }
     activateLoading.value = true
@@ -106,7 +108,7 @@ const activate = () => {
 };
 const deactivateVoucher = () => {
     let data = {
-        shortCode: shortCode.value,
+        shortCode: searchParams.value.shortCode,
         ids: selectedRowKeys.value.join()
     }
     deactivateVoucherLoading.value = true
@@ -148,7 +150,6 @@ onMounted(async () => {
             codes.push(...accountCacheRes.data.accountDetail[resKey])
         };
         account.value = codes;
-        shortCode.value = codes[0].shortCode;
     };
 });
 </script>
