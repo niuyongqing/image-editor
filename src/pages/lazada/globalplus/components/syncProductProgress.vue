@@ -1,7 +1,9 @@
 <template>
   <div>
-    <a-modal v-model:open="dialogVisible" :maskClosable="false" width="30%" @cancel="close">
-      <a-progress type="circle" :percent="percentageRes" :stroke-width="26" stroke-color="#f56c6c" />
+    <a-modal v-model:open="dialogVisible" :maskClosable="false" width="30%" @cancel="close" :footer="null">
+      <div flex justify-center items-center>
+        <a-progress type="circle" :percent="percentageRes" :stroke-width="20" stroke-color="#f56c6c" />
+      </div>
     </a-modal>
   </div>
 </template>

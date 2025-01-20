@@ -35,7 +35,7 @@
             </a-card>
         </BaseModal>
         <!-- 进度条 -->
-        <syncProductProgress v-model:open="openProgress" v-model:percent="percent"></syncProductProgress>
+        <syncProductProgress ref="syncProductProgressRef"></syncProductProgress>
     </div>
 </template>
 
@@ -53,7 +53,7 @@ const { account } = defineProps({
 });
 const openProgress = ref(false);
 const percent = ref(0);
-
+const syncProductProgressEl = useTemplateRef('syncProductProgressRef');
 const formEl = useTemplateRef('formRef');
 const rowData = ref({
     skus: []
@@ -73,6 +73,9 @@ const open = (row) => {
 };
 const cancel = (data) => {
     submitBtnLoading.value = false;
+    formData.shortCode = undefined;
+    formData.type = undefined;
+    formEl.value.resetFields();
 };
 const submit = async () => {
     formEl.value.validate().then(async () => {
@@ -80,6 +83,7 @@ const submit = async () => {
         syncProductGP(formData.shortCode, formData.type).then(res => {
             if (res.code === 200) {
                 modalMethods.value.closeModal();
+                syncProductProgressEl.value.open(res.msg);
             }
         }).catch(() => {
             message.error('同步失败')

@@ -127,7 +127,7 @@ const deactivateVoucher = () => {
 const syncLazadaShopVoucher = () => {
     syncLazadaShopLoading.value = true
     let data = {
-        shortCode: shortCode.value
+        shortCode: searchParams.value.shortCode
     }
     syncLazadaShopFlexiVoucher(data).then(res => {
         if (res.code === 200) {
