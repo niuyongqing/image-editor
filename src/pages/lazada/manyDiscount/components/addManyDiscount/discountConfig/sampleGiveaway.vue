@@ -17,14 +17,16 @@
           <a-radio :value="false">否</a-radio>
         </a-radio-group>
       </a-form-item>
-      {{ formData.criteriaType }}
+
       <a-form-item label="优惠门槛" name="criteriaType">
-        <a-tooltip title="当买家达到订单件数门槛，即可享受优惠">
-          <a-radio value="QUANTITY" v-model:value="formData.criteriaType">满件</a-radio>
-        </a-tooltip>
-        <a-tooltip title="当买家达到订单金额门槛，即可享受优惠">
-          <a-radio value="AMOUNT" v-model:value="formData.criteriaType">订单金额达到门槛</a-radio>
-        </a-tooltip>
+        <a-radio-group v-model:value="formData.criteriaType">
+          <a-tooltip title="当买家达到订单件数门槛，即可享受优惠">
+            <a-radio value="QUANTITY">满件</a-radio>
+          </a-tooltip>
+          <a-tooltip title="当买家达到订单金额门槛，即可享受优惠">
+            <a-radio value="AMOUNT">订单金额达到门槛</a-radio>
+          </a-tooltip>
+        </a-radio-group>
       </a-form-item>
 
       <!-- 订单金额达到门槛时 梯度 -->

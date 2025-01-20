@@ -89,6 +89,7 @@ defineExpose({
   getDiscountConfigData,
   getSampleGiveawayData,
   getFixedPriceData,
+  getComboDiscountData,
 })
 
 </script>

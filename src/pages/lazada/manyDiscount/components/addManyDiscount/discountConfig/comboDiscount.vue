@@ -1,6 +1,6 @@
 <template>
   <div>
-    <a-form :model="formData" ref="formData" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }">
+    <a-form :model="formData" ref="formRef" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }">
       <a-form-item label="" name="discountType">
         <a-radio-group v-model:value="formData.discountType">
           <a-radio value="discountWithGift">折扣 & 赠品</a-radio>
@@ -22,12 +22,14 @@
       </a-form-item>
 
       <a-form-item label="优惠门槛" name="criteriaType">
-        <a-tooltip title="当买家达到订单件数门槛，即可享受优惠">
-          <a-radio value="QUANTITY" v-model:value="formData.criteriaType">满件</a-radio>
-        </a-tooltip>
-        <a-tooltip title="当买家达到订单金额门槛，即可享受优惠">
-          <a-radio value="AMOUNT" v-model:value="formData.criteriaType">订单金额达到门槛</a-radio>
-        </a-tooltip>
+        <a-radio-group v-model:value="formData.criteriaType">
+          <a-tooltip title="当买家达到订单件数门槛，即可享受优惠">
+            <a-radio value="QUANTITY">满件</a-radio>
+          </a-tooltip>
+          <a-tooltip title="当买家达到订单金额门槛，即可享受优惠">
+            <a-radio value="AMOUNT">订单金额达到门槛</a-radio>
+          </a-tooltip>
+        </a-radio-group>
       </a-form-item>
 
       <div v-for="(item, i) in steepness" :key="i">
