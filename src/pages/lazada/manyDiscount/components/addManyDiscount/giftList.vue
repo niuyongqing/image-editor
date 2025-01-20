@@ -149,9 +149,7 @@ const searchForm = ref({
 });
 const { rowSelection } = useTableSelection();
 onMounted(() => {
-
     EventBus.on('GiftList', (evt) => {
-        console.log('---');
         const sampleArr = evt.sampleArr;
         const idx = evt.index;
         index.value = idx;
@@ -159,7 +157,6 @@ onMounted(() => {
         loading.value = true;
         getLazadaProductList();
         modalMethods.value.openModal();
-        // dialogVisible.value = true;
     });
 });
 

@@ -87,9 +87,7 @@ const submit = async () => {
         data.discountType = discountSetting.discountData.discountType //优惠类型
         data.stackable = discountSetting.discountData.stackable //优惠尚不封顶
         data.criteriaType = discountSetting.discountData.criteriaType //优惠门槛
-        console.log('discountSetting.sampleGiveawayArr ->>>>>>>>', discountSetting.sampleGiveawayArr);
-
-        let fullDiscountArr = discountSetting.fullDiscountArr
+        let fullDiscountArr = discountSetting.fullDiscountArr;
         let criteriaValue = []
         let giftBuyLimitValue = []
         let sampleArr = []
@@ -102,15 +100,20 @@ const submit = async () => {
         data.criteriaValue = criteriaValue
         data.giftBuyLimitValue = giftBuyLimitValue
         data.discountValue = []
-        // sampleArr.forEach((value,index) => {
-        //   let obj = {}
-        //   obj.productId = value.productId
-        //   obj.skuId = value.skuId
-        //   // obj.tier = index + 1
-        //   giftSkus.push(obj)
-        // })
-        data.giftSkus = [{ productId: '2189761209', skuId: '12523940831' }, { productId: '2189761209', skuId: '12523940832' }]
-        // data.giftSkus = giftSkus
+        sampleArr.forEach((value, index) => {
+            let obj = {}
+            obj.productId = value.productId
+            obj.skuId = value.skuId
+            // obj.tier = index + 1
+            giftSkus.push(obj)
+        })
+        // data.giftSkus = [{ productId: '2189761209', skuId: '12523940831' }, { productId: '2189761209', skuId: '12523940832' }];
+        data.sampleSkus = sampleArr.map((item) => {
+            return { productId: item.productId, skuId: item.skuId, tier: 1 }
+        });
+        data.giftSkus = sampleArr.map((item) => {
+            return { productId: item.productId, skuId: item.skuId }
+        })
         //当 apply = ENTIRE_STORE时，productSkuIdList = null
         //当 apply = SPECIFIC_PRODUCTS 时，productSkuIdList 有值
         if (productSetting.apply === 'ENTIRE_STORE') {
@@ -131,18 +134,22 @@ const submit = async () => {
         data.stackable = discountSetting.discountData.stackable //优惠尚不封顶
         data.criteriaType = discountSetting.discountData.criteriaType //优惠门槛
         let fullDiscountArr = discountSetting.fullDiscountArr
-        let criteriaValue = []
+        let criteriaValue = [];
+        let discountValue = []
         let giftBuyLimitValue = []
         let sampleArr = []
         let giftSkus = []
         fullDiscountArr.forEach(value => {
+            console.log('value -->>', value);
+
             criteriaValue.push(value.criteriaValue.toString())
+            discountValue.push(value.discountValue.toString())
             giftBuyLimitValue.push(value.giftBuyLimitValue.toString())
             sampleArr.push(...value.sampleArr)
         })
         data.criteriaValue = criteriaValue
         data.giftBuyLimitValue = giftBuyLimitValue
-        data.discountValue = []
+        data.discountValue = discountValue
         sampleArr.forEach((value, index) => {
             let obj = {}
             obj.productId = value.productId
@@ -150,7 +157,6 @@ const submit = async () => {
             // obj.tier = index + 1
             giftSkus.push(obj)
         })
-        // data.giftSkus = [{ productId: '2189761209', skuId: '12523940831' }, { productId: '2189761209', skuId: '12523940832' }]
         data.giftSkus = giftSkus
         //当 apply = ENTIRE_STORE时，productSkuIdList = null
         //当 apply = SPECIFIC_PRODUCTS 时，productSkuIdList 有值

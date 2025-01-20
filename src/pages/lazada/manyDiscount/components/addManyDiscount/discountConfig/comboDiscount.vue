@@ -104,6 +104,8 @@ import EventBus from "~/utils/event-bus";
 import { useResetReactive } from '@/composables/reset';
 import GiftList from '@/pages/lazada/manyDiscount/components/addManyDiscount/giftList.vue';
 import { DeleteOutlined } from '@ant-design/icons-vue';
+import { message } from 'ant-design-vue';
+
 defineProps({
   shortCode: {
     type: String,
@@ -143,9 +145,11 @@ const { state: formData, reset } = useResetReactive({
   criteriaType: 'QUANTITY',
 });
 
-const steepness = ref([{ criteriaValue: '1', giftBuyLimitValue: '1', disable: false, sampleArr: [] }]);
+const steepness = ref([{
+  criteriaValue: '1', giftBuyLimitValue: '1', disable: false, sampleArr: [], discountValue: 1,
+  tier: 1
+}]);
 const addGift = (index) => {
-  console.log('index ->>>>>>', index, steepness.value[index]);
   EventBus.emit('GiftList', {
     sampleArr: steepness.value[index].sampleArr,
     index: index,
@@ -157,12 +161,31 @@ const delSampleArrRow = (cardIndex, index) => {
 };
 
 const addGiftCard = () => {
-  steepness.value.push({ criteriaValue: '1', giftBuyLimitValue: '1', disable: false, sampleArr: [] });
-  steepness.value[steepness.value.length - 2].disable = true;
+  const steepnessLen = steepness.value.length;
+  const steepnessLast = steepness.value[steepnessLen - 1];
+  console.log('steepnessLast', steepnessLast);
+
+  if (steepnessLast.criteriaValue && steepnessLast.giftBuyLimitValue && steepnessLast.discountValue && steepnessLast.sampleArr.length) {
+    steepness.value.push({
+      criteriaValue: steepnessLast.criteriaValue + 1,
+      giftBuyLimitValue: steepnessLast.giftBuyLimitValue + 1,
+      disable: false,
+      sampleArr: [],
+      discountValue: steepnessLast.discountValue + 1,
+      tier: steepnessLast.tier + 1
+    });
+    steepness.value[steepnessLen - 1].disable = true;
+  } else {
+    message.warning('请输入完整的数据');
+  }
 };
 
 const delGradient = (index) => {
   steepness.value.pop();
+  // 上一个梯度的值不禁用
+  if (index > 0) {
+    steepness.value[index - 1].disable = false;
+  }
 };
 
 
@@ -191,5 +214,3 @@ onMounted(() => {
   });
 });
 </script>
-
-<style lang="scss" scoped></style>

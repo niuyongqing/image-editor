@@ -27,6 +27,7 @@ export const columns = [
     dataIndex: "price",
     key: "price",
     slot: "price",
+    width: 200,
   },
 
   {
@@ -34,6 +35,7 @@ export const columns = [
     dataIndex: "special_price",
     key: "special_price",
     slot: "special_price",
+    width: 200,
   },
   // {
   //   title: "不含邮价格",
@@ -45,6 +47,7 @@ export const columns = [
     dataIndex: "quantity",
     key: "quantity",
     slot: "quantity",
+    width: 200,
   },
   {
     title: "时间",

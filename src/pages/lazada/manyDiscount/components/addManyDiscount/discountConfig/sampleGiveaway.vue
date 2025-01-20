@@ -108,7 +108,7 @@ const formData = ref({
 });
 const giftListEl = useTemplateRef('giftListRef');
 const formEl = useTemplateRef('formRef');
-const steepness = ref([{ criteriaValue: '1', giftBuyLimitValue: '1', sampleArr: [] }]);
+const steepness = ref([{ criteriaValue: 1, giftBuyLimitValue: 1, sampleArr: [] }]);
 const columns = [{
   dataIndex: 'sellerSku',
   title: 'Sku Info',
@@ -146,7 +146,7 @@ const addGift = (index) => {
 };
 
 const addGiftCard = () => {
-  steepness.value.push({ criteriaValue: '1', giftBuyLimitValue: '1', sampleArr: [] });
+  steepness.value.push({ criteriaValue: 1, giftBuyLimitValue: 1, sampleArr: [] });
 };
 
 // 删除 梯度中的 赠品/样品列表
@@ -164,7 +164,7 @@ const clearValidate = () => {
     stackable: true,
     criteriaType: 'QUANTITY',
   };
-  steepness.value = [{ criteriaValue: '1', giftBuyLimitValue: '1', sampleArr: [] }];
+  steepness.value = [{ criteriaValue: 1, giftBuyLimitValue: 1, sampleArr: [] }];
 }
 
 defineExpose({
@@ -177,6 +177,7 @@ onMounted(() => {
   // 选择完赠品列表 的数据
   EventBus.on('selectionGift', (e) => {
     if (e) {
+      console.log(' steepness.value[e.index] ', steepness.value[e.index]);
       steepness.value[e.index].sampleArr = e.selectionGiftData;
     }
   });

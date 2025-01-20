@@ -1,5 +1,5 @@
 export function getList(params) {
-  return usePost("/platform-lazada/platform/lazada/product/list", params);
+  return usePost("/platform-lazada/platform/lazada/product/listNew", params);
 }
 
 export function accountCache() {
