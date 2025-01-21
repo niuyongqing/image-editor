@@ -70,7 +70,7 @@
 
                     <template v-if="column && column.dataIndex === 'specialDate'">
                         <div> specialDate: {{ record.specialDate }} </div>
-                        <a-range-picker v-model:value="record.specialDate" :format="dateFormat" style="width: 80%;" />
+                        <a-range-picker v-model:value="record.specialDate" format="YYYY-MM-DD" style="width: 80%;" />
                     </template>
                     <template v-if="column && column.dataIndex === 'package_weight'">
                         <div> package_weight: {{ record.packageWeight }} </div>

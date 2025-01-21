@@ -122,7 +122,6 @@ watch(() => {
         let options = [];
         if (findItem) {
             let itemOptions = findItem?.options ?? [];
-
             const has = itemOptions.find((option) => {
                 return formattedResult[key] === option.en_name
             });
