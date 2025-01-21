@@ -121,20 +121,21 @@ watch(() => {
         const findItem = selectThemeList.find(item => item.name === key);
         let options = [];
         if (findItem) {
-            const has = findItem.options.find((option) => {
+            let itemOptions = findItem?.options ?? [];
+
+            const has = itemOptions.find((option) => {
                 return formattedResult[key] === option.en_name
-                // return formattedResult[key].includes(option.en_name)
             });
             if (!has) {
-                findItem.options = findItem.options.concat(formattedResult[key].map((keyItem) => ({ name: keyItem, en_name: keyItem })));
-                options = findItem.options;
+                findItem.options = itemOptions.concat(formattedResult[key].map((keyItem) => ({ name: keyItem, en_name: keyItem })));
+                itemOptions = findItem.options;
+                options = itemOptions;
             } else {
-                options = findItem.options
+                options = itemOptions;
             }
         } else {
             options = (formattedResult[key].map((keyItem) => ({ name: keyItem, en_name: keyItem })) || [])
         }
-
         const optionsUnique = unique('en_name', options); // 去重
         return {
             name: findItem ? findItem.name : key,

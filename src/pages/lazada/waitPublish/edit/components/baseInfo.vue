@@ -154,7 +154,6 @@ watch(() => {
     EventBus.emit('waitPublishShortCodeEmit', state.shortCode);
     setShortCode(state.shortCode);
     await getCategorys();
-    console.log('primaryCategoryOptions.value ->>>>>>>', primaryCategoryOptions.value);
     const data = findCategoryPath(primaryCategoryOptions.value, newVal.primaryCategory);
     state.primaryCategory = data || [];
     validateCodeRule();
@@ -169,17 +168,12 @@ watch(() => {
         const vals = Object.values(item.saleProp);
         values.push(...vals);
     });
-
     const saleProps = skus.map((item) => {
         return item.saleProp;
     });
-    console.log('lazadaAttrsState.skuAttrs', lazadaAttrsState.skuAttrs);
-
     const selectThemeList = lazadaAttrsState.skuAttrs.filter((item) => {
         return keys.includes(item.name)
     });
-    console.log('selectThemeList', selectThemeList);
-
     const result = saleProps.reduce((acc, item) => {
         Object.keys(item).forEach(key => {
             if (!acc[key]) {
@@ -195,19 +189,20 @@ watch(() => {
         return acc;
     }, {});
     const resultData = keys.map(key => {
-        console.log('keys', keys);
-
         const findItem = selectThemeList.find(item => item.name === key);
         let options = [];
         if (findItem) {
-            const has = findItem.options.find((option) => {
+            let itemOptions = findItem?.options ?? [];
+
+            const has = itemOptions.find((option) => {
                 return formattedResult[key] === option.en_name
             });
             if (!has) {
-                findItem.options = findItem.options.concat(formattedResult[key].map((keyItem) => ({ name: keyItem, en_name: keyItem })));
-                options = findItem.options;
+                findItem.options = itemOptions.concat(formattedResult[key].map((keyItem) => ({ name: keyItem, en_name: keyItem })));
+                itemOptions = findItem.options;
+                options = itemOptions;
             } else {
-                options = findItem.options
+                options = itemOptions;
             }
         } else {
             options = (formattedResult[key].map((keyItem) => ({ name: keyItem, en_name: keyItem })) || [])

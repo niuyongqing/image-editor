@@ -172,7 +172,11 @@ watch(() => {
     return detailData
 }, async (newVal) => {
     const images = newVal.images ? JSON.parse(newVal.images) : {};
-    const imageList = images.image ? images.image : [];
+    let imageList = images.image ? images.image : [];
+    const isarr = Array.isArray(imageList);
+    if (!isarr) {
+        imageList = JSON.parse(imageList);
+    }
     // 产品图片
     form.fileList = imageList.map(item => {
         return {

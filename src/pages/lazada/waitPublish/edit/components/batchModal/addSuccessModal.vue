@@ -66,6 +66,10 @@ const createProductKeep = () => {
     modalMethods.value.closeModal();
 };
 
+const submit = () => {
+
+};
+
 defineExpose({
     open,
 })

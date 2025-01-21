@@ -68,7 +68,7 @@
 
                     <template v-if="column && column.dataIndex === 'specialDate'">
                         <div> specialDate: {{ record.specialDate }} </div>
-                        <a-range-picker v-model:value="record.specialDate" :format="dateFormat" style="width: 80%;" />
+                        <a-range-picker v-model:value="record.specialDate" style="width: 80%;" />
                     </template>
                     <template v-if="column && column.dataIndex === 'package_weight'">
                         <div> package_weight: {{ record.packageWeight }} </div>
@@ -326,13 +326,21 @@ watch(() => {
     return detailData
 }, async (newVal) => {
     const skus = newVal.skus || [];
+    console.log('skus ------------------->>', skus);
     tableData.value = skus.map((item) => {
-        const images = item.images.image || [];
+        // const images = item?.images?.image || [];
+        // const images2 = item.Images || [];
+        let images = [];
+        if (item.Images) {
+            images = item.Images || []
+        } else {
+            images = item?.images?.image || []
+        }
         return {
             ...item,
             sellerSKU: item.SellerSku,
             stock: item.quantity,
-            price: item.price,
+            price: item.retail_price,
             specialPrice: item.special_price,
             specialDate: [dayjs(item.special_to_time), dayjs(item.special_from_time)],
             packageWeight: item.package_weight,
@@ -349,6 +357,8 @@ watch(() => {
             })
         }
     });
+    console.log(' tableData.value ->>', tableData.value);
+
 }, {
     deep: true
 });

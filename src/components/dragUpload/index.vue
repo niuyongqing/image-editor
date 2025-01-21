@@ -66,7 +66,12 @@
                             </div>
                         </div>
                         <div w-full>
-                            <div flex justify-end w-full>
+                            <div flex justify-between w-full>
+                                <div>
+                                    <!-- <a-button type="text" color="#428bca" @click="navSample(element)">
+                                        <EditOutlined />
+                                    </a-button> -->
+                                </div>
                                 <a-button type="text" color="#428bca" @click="handleRemove(element)">
                                     <DeleteOutlined />
                                 </a-button>
@@ -96,13 +101,14 @@
 
 <script setup>
 import draggable from 'vuedraggable';
-import { UploadOutlined, DownOutlined, DownloadOutlined, DeleteOutlined, LoadingOutlined } from '@ant-design/icons-vue';
+import { UploadOutlined, DownOutlined, DownloadOutlined, DeleteOutlined, LoadingOutlined, EditOutlined } from '@ant-design/icons-vue';
 import { useAuthorization } from '~/composables/authorization'
 import { getBase64 } from '@/pages/lazada/product/common'
 import BaseModal from '@/components/baseModal/BaseModal.vue'
 import BacthEditImgSize from './bacthEditImgSize.vue';
 import { message } from "ant-design-vue";
 import { watermarkApi } from '@/api/common/water-mark.js';
+import router from '~@/router';
 const props = defineProps({
     //  水印列表
     waterList: {
@@ -235,6 +241,13 @@ const clearAllImages = () => {
 const handleDragEnd = (event) => {
     console.log('拖拽结束', event);
 };
+// 跳转到在线P图
+// const navSample = (element) => {
+//     console.log('跳转到在线P图', element);
+//     message.error('暂未开放在线P图功能');
+//     return;
+//     router.push({ path: '/platform/dev/sample/table', query: { url: element.url } });
+// }
 
 // 点击水印
 const watermark = async (item) => {
