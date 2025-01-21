@@ -216,9 +216,11 @@ const editOptionName = (option) => {
 };
 const saveOptionName = (option, item) => {
     option.isEdit = false;
-    option.name = optionName.value;
-    option.en_name = optionName.value;
-    item.checkedList.push(optionName.value);
+    if (optionName.value != option.en_name) {
+        option.name = optionName.value;
+        option.en_name = optionName.value;
+        item.checkedList.push(optionName.value);
+    };
     setSelectTheme(selectThemeList.value);
 };
 

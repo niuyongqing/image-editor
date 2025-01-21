@@ -79,7 +79,7 @@
                                 <div v-else>
                                     <a-input v-model:value="optionName" placeholder="请输入变种主题" style="width: 80px;"
                                         ref="themeLabelRef" />
-                                    <a-button type="link" @click="saveOptionName(option)">
+                                    <a-button type="link" @click="saveOptionName(option, item)">
                                         <SaveOutlined />
                                     </a-button>
                                     <a-button type="link" @click="closeOptionName(option)">
@@ -220,8 +220,14 @@ const editOptionName = (option) => {
     optionName.value = option.en_name;
     option.isEdit = true;
 };
-const saveOptionName = (option) => {
+const saveOptionName = (option, item) => {
     option.isEdit = false;
+    if (optionName.value != option.en_name) {
+        option.name = optionName.value;
+        option.en_name = optionName.value;
+        item.checkedList.push(optionName.value);
+        changeCheckedList(item);
+    };
     setSelectTheme(selectThemeList.value);
 };
 
