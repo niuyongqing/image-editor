@@ -83,7 +83,45 @@
       </a-tabs>
 
       <a-table :data-source="tableData" style="width: 100%;" bordered :columns="columns" :pagination="false"
-        ref="OzonProduct" :row-selection="rowSelection" :rowKey="(row) => row"></a-table>
+        ref="OzonProduct" :row-selection="rowSelection" :rowKey="(row) => row">
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.dataIndex == 'imageURLs'">
+            <a-image :width="100" :src="record.imageURLs.split(';')[0]" />
+          </template>
+          <template v-if="column.dataIndex == 'subjectList'">
+            <span>{{ record.subjectList[0].value }}</span>
+          </template>
+          <template v-if="column.dataIndex == 'detailSourceList'">
+            <span></span>
+          </template>
+          <template v-if="column.dataIndex == 'aeopAeProductSKUs'">
+            <div v-for="(SKU, index) in displayedSkus(record)" :key="index">
+              <span>{{ SKU.aeopSKUPropertyList && SKU.aeopSKUPropertyList[0].propertyValueDefinitionName }}</span>
+              <a-divider type="vertical" />
+              SKU编码： <span style="color: #9e9f9e">{{ SKU.skuCode }}</span>
+              <a-divider type="vertical" />
+              零售价：<span style="color: #9e9f9e">{{ SKU.skuPrice }}</span>
+              <a-divider type="vertical" />
+              库存：<span style="color: #9e9f9e">{{ SKU.ipmSkuStock }}</span>
+              <a-divider class="my-3" />
+            </div>
+            <div v-if="record.aeopAeProductSKUs.length > 3">
+              <a-button type="link" @click="record.SKUExpand = !record.SKUExpand">共{{ record.aeopAeProductSKUs.length
+                }}条SKU，{{ !record.SKUExpand ? '展开' : '收起' }}</a-button>
+            </div>
+          </template>
+          <template v-if="column.dataIndex === 'time'">
+            <div>
+              <div>
+                创建时间: <span class="text-gray">{{ record.gmtCreate || '--' }}</span>
+              </div>
+              <div>
+                编辑时间: <span class="text-gray">{{ record.gmtModified || '--' }}</span>
+              </div>
+            </div>
+          </template>
+        </template>
+      </a-table>
       <a-pagination style="margin-top: 20px;text-align: right;" :show-total="(total) => `共 ${total} 条`"
         v-model:current="pages.pageNum" v-model:pageSize="pages.pageSize" :total="pages.total" class="pages"
         :defaultPageSize="50" :showSizeChanger="true" :pageSizeOptions="[50, 100, 200]" />
@@ -98,6 +136,8 @@
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { dataGathe } from "../../ozon/config/commDic/defDic"
+import { productListApi } from "~/pages/aliexpress/apis/product"
+
 const items = ref([
   {
     title: '数据采集',
@@ -155,7 +195,7 @@ const pages = reactive({
   total: 0
 });
 const dataUrl = ref("")
-const isShowSearch = ref(false) 
+const isShowSearch = ref(false)
 const showTeps = ref(false)
 const tableData = ref([])
 const selectedRowKeys = ref([])
@@ -163,27 +203,27 @@ const shopAccount = dataGathe
 const columns = [
   {
     title: '图片',
-    dataIndex: 'img',
+    dataIndex: 'imageURLs',
     align: "center",
     width: 200,
   },
   {
     title: '标题',
-    dataIndex: 'title',
+    dataIndex: 'subjectList',
     align: "center",
     width: 400,
   },
   {
     title: '描述',
-    dataIndex: 'description',
+    dataIndex: 'detailSourceList',
     align: "center",
-    width: 200,
+    width: 100,
   },
   {
     title: '售价(USD)',
-    dataIndex: 'price',
+    dataIndex: 'aeopAeProductSKUs',
     align: "center",
-    width: 200,
+    width: 300,
   },
   {
     title: '责任人',
@@ -193,7 +233,7 @@ const columns = [
   },
   {
     title: '创建时间',
-    dataIndex: 'createTime',
+    dataIndex: 'time',
     align: "center",
     width: 150,
   },
@@ -271,6 +311,9 @@ const selectItem = (val) => {
   formData.account = val
 
 }
+const displayedSkus = (record) => {
+  return record.SKUExpand ? record.aeopAeProductSKUs : record.aeopAeProductSKUs.slice(0, 3)
+}
 
 // 采集时间
 const selectTimeAll = () => {
@@ -304,5 +347,20 @@ const rowSelection = {
     selectedRowKeys.value = selectedRow;
   },
 };
+
+const handleOk = () => { }
+const getList = () => {
+  productListApi({
+    pageNum: pages.pageNum,
+    pageSize: pages.pageSize,
+  }).then(res => {
+    console.log(res);
+    tableData.value = res.rows ?? []
+    pages.total = res.total ?? 0
+  })
+}
+onMounted(() => {
+  getList()
+})
 </script>
 <style lang="less" scoped></style>
