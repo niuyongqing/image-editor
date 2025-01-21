@@ -30,6 +30,7 @@ const modelMethods = ref();
 const register = (modal) => {
     modelMethods.value = modal;
 };
+const cancel = () => { };
 
 const open = () => {
     modelMethods.value.openModal();

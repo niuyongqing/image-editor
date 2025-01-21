@@ -106,7 +106,7 @@ const globalArea = [{
 
 const { state: lazadaAttrsState, setShortCode,
     setPrimaryCategory, setLazadaAttrs, setLoading,
-    setProductClassifyAtrrs,
+    setProductClassifyAtrrs, setSelectTheme
 } = useLazadaWaitPublish();
 const loading = ref(false);
 const shortCodes = ref([]); // 店铺列表
@@ -145,6 +145,8 @@ const checkedCitiesChange = (value) => {
 watch(() => {
     return detailData
 }, async (newVal) => {
+    console.log('newVal ->>', newVal);
+
     // loading.value = true;
     state.shortCode = newVal.shortCode;
     state.ventures = newVal.ventures.venture || [];
@@ -152,8 +154,7 @@ watch(() => {
     EventBus.emit('waitPublishShortCodeEmit', state.shortCode);
     setShortCode(state.shortCode);
     await getCategorys();
-    console.log('primaryCategoryOptions.value', primaryCategoryOptions.value);
-
+    console.log('primaryCategoryOptions.value ->>>>>>>', primaryCategoryOptions.value);
     const data = findCategoryPath(primaryCategoryOptions.value, newVal.primaryCategory);
     state.primaryCategory = data || [];
     validateCodeRule();
@@ -161,66 +162,72 @@ watch(() => {
     loading.value = false;
     await getAttributes();
     setProductClassifyAtrrs(newVal.attributes); // 回显详情的分类属性值
-    // const skus = newVal.skus || [];
-    // const keys = Object.keys(skus[0].saleProp);
-    // let values = [];
-    // skus.forEach((item) => {
-    //     const vals = Object.values(item.saleProp);
-    //     values.push(...vals);
-    // });
+    const skus = newVal.skus || [];
+    const keys = Object.keys(skus[0].saleProp);
+    let values = [];
+    skus.forEach((item) => {
+        const vals = Object.values(item.saleProp);
+        values.push(...vals);
+    });
 
-    // const saleProps = skus.map((item) => {
-    //     return item.saleProp;
-    // });
-    // const selectThemeList = lazadaAttrsState.skuAttrs.filter((item) => {
-    //     return keys.includes(item.name)
-    // });
-    // const result = saleProps.reduce((acc, item) => {
-    //     Object.keys(item).forEach(key => {
-    //         if (!acc[key]) {
-    //             acc[key] = new Set();
-    //         }
-    //         acc[key].add(item[key]);
-    //     });
-    //     return acc;
-    // }, {});
+    const saleProps = skus.map((item) => {
+        return item.saleProp;
+    });
+    console.log('lazadaAttrsState.skuAttrs', lazadaAttrsState.skuAttrs);
 
-    // const formattedResult = Object.keys(result).reduce((acc, key) => {
-    //     acc[key] = Array.from(result[key]);
-    //     return acc;
-    // }, {});
-    // const resultData = keys.map(key => {
-    //     const findItem = selectThemeList.find(item => item.name === key);
-    //     let options = [];
-    //     if (findItem) {
-    //         const has = findItem.options.find((option) => {
-    //             return formattedResult[key].includes(option.en_name)
-    //         });
-    //         if (!has) {
-    //             findItem.options = findItem.options.concat(formattedResult[key].map((keyItem) => ({ name: keyItem, en_name: keyItem })));
-    //             options = findItem.options;
-    //         } else {
-    //             options = findItem.options
-    //         }
-    //     } else {
-    //         options = (formattedResult[key].map((keyItem) => ({ name: keyItem, en_name: keyItem })) || [])
-    //     }
+    const selectThemeList = lazadaAttrsState.skuAttrs.filter((item) => {
+        return keys.includes(item.name)
+    });
+    console.log('selectThemeList', selectThemeList);
 
-    //     const optionsUnique = unique('en_name', options); // 去重
-    //     return {
-    //         name: findItem ? findItem.name : key,
-    //         label: findItem ? findItem.label : key,
-    //         is_mandatory: findItem ? findItem.is_mandatory : 0,
-    //         input_type: findItem ? findItem.input_type : 'multiEnumInput',
-    //         checkedList: formattedResult[key] || [],
-    //         attribute_type: findItem ? findItem.attribute_type : 'sku',
-    //         options: optionsUnique,
-    //         skuOptions: optionsUnique
-    //     }
-    // });
+    const result = saleProps.reduce((acc, item) => {
+        Object.keys(item).forEach(key => {
+            if (!acc[key]) {
+                acc[key] = new Set();
+            }
+            acc[key].add(item[key]);
+        });
+        return acc;
+    }, {});
 
-    // setSelectTheme(resultData)
-    // EventBus.emit('siteEditSelectThemeEmit', resultData);
+    const formattedResult = Object.keys(result).reduce((acc, key) => {
+        acc[key] = Array.from(result[key]);
+        return acc;
+    }, {});
+    const resultData = keys.map(key => {
+        console.log('keys', keys);
+
+        const findItem = selectThemeList.find(item => item.name === key);
+        let options = [];
+        if (findItem) {
+            const has = findItem.options.find((option) => {
+                return formattedResult[key] === option.en_name
+            });
+            if (!has) {
+                findItem.options = findItem.options.concat(formattedResult[key].map((keyItem) => ({ name: keyItem, en_name: keyItem })));
+                options = findItem.options;
+            } else {
+                options = findItem.options
+            }
+        } else {
+            options = (formattedResult[key].map((keyItem) => ({ name: keyItem, en_name: keyItem })) || [])
+        }
+
+        const optionsUnique = unique('en_name', options); // 去重
+        return {
+            name: findItem ? findItem.name : key,
+            label: findItem ? findItem.label : key,
+            is_mandatory: findItem ? findItem.is_mandatory : 0,
+            input_type: findItem ? findItem.input_type : 'multiEnumInput',
+            checkedList: formattedResult[key] || [],
+            attribute_type: findItem ? findItem.attribute_type : 'sku',
+            options: optionsUnique,
+            skuOptions: optionsUnique
+        }
+    });
+    console.log('resultData', resultData);
+    setSelectTheme(resultData)
+    EventBus.emit('waitEditSelectThemeEmit', resultData);
 }, {
     deep: true
 });
@@ -271,6 +278,8 @@ async function getAttributes() {
     });
     if (res.code === 200) {
         attributes.value = res.data || [];
+        console.log('attributes', attributes.value);
+
         setLazadaAttrs(attributes.value);
     };
 };

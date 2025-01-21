@@ -97,9 +97,9 @@ export const useLazadaGobalAttrs = defineStore("lazadaGobalAttrs", () => {
         if (attr.name === key) {
           // 多选数据转为数组
           if (attr.input_type.includes("multi")) {
-            attr.value = obj[key] ? obj[key].split(",") : [];
+            attr.value = attributes[key] ? attributes[key].split(",") : [];
           } else {
-            attr.value = obj[key];
+            attr.value = attributes[key];
           }
         }
       }

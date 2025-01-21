@@ -103,6 +103,7 @@
                     </a-form-item>
                 </a-form>
                 <template #tabBarExtraContent></template>
+                <template #cover></template>
             </a-card>
         </a-card>
 
@@ -345,8 +346,12 @@ onMounted(() => {
             });
             selectThemeList.value[1].checkedList = oneThemeList2;
         };
-
     });
+    EventBus.on('waitEditSelectThemeEmit', (list) => {
+        console.log('list ->>>>>>>>', list);
+
+        selectThemeList.value = list;
+    })
 });
 
 //  产品资料库回显

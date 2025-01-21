@@ -240,7 +240,7 @@ const handleCopyProduct = (record) => {
 //   添加备注
 const handleRemark = (record) => {
     console.log('record', record, remarkModalEl.value);
-    // remarkModalEl.value.open(record);
+    remarkModalEl.value.open(record);
 };
 
 onMounted(async () => {

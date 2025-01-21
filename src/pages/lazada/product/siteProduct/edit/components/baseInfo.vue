@@ -122,7 +122,8 @@ watch(() => {
         let options = [];
         if (findItem) {
             const has = findItem.options.find((option) => {
-                return formattedResult[key].includes(option.en_name)
+                return formattedResult[key] === option.en_name
+                // return formattedResult[key].includes(option.en_name)
             });
             if (!has) {
                 findItem.options = findItem.options.concat(formattedResult[key].map((keyItem) => ({ name: keyItem, en_name: keyItem })));
@@ -146,7 +147,6 @@ watch(() => {
             skuOptions: optionsUnique
         }
     });
-
     setSelectTheme(resultData)
     EventBus.emit('siteEditSelectThemeEmit', resultData);
 }, {

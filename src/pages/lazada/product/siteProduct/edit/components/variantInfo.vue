@@ -123,7 +123,6 @@ import SpecialDateModal from './batchModal/specialDateModal.vue';
 import WeightModal from './batchModal/weightModal.vue';
 import PackageModal from "./batchModal/packageModal.vue";
 import dayjs from 'dayjs';
-import { P } from "@antv/g2plot";
 
 const { detailData } = defineProps({
     detailData: {

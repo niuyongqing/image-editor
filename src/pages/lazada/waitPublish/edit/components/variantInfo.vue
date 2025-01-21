@@ -6,78 +6,77 @@
             </template>
             <a-table :columns="columns" :data-source="tableData" bordered :pagination="false" id="tableId">
                 <template #headerCell="{ title, column }">
-                    <template v-if="column.dataIndex === 'sellerSKU'">
+                    <template v-if="column && column.dataIndex === 'sellerSKU'">
                         <div> <span class="required"> * </span> {{ title }} </div>
                         <div> ( <a-button type="link" @click="generateSKU()"> 一键生成 </a-button> ) </div>
                     </template>
-                    <!-- 主题1 -->
                     <template v-for="item in selectTheme" :key="item.name">
                         <div v-if="item.name === column.dataIndex">
                             {{ title }}
                         </div>
                     </template>
-                    <template v-if="column.dataIndex === 'stock'">
+                    <template v-if="column && column.dataIndex === 'stock'">
                         <div> <span class="required"> * </span> {{ title }} </div>
                         <div> ( <a-button type="link" @click="batchStock()"> 批量 </a-button> ) </div>
                     </template>
 
-                    <template v-if="column.dataIndex === 'price'">
+                    <template v-if="column && column.dataIndex === 'price'">
                         <div> <span class="required"> * </span> {{ title }} </div>
                         <div> ( <a-button type="link" @click="batchPrice()"> 批量 </a-button> ) </div>
                     </template>
-                    <template v-if="column.dataIndex === 'specialPrice'">
+                    <template v-if="column && column.dataIndex === 'specialPrice'">
                         <div> {{ title }} </div>
                         <div> ( <a-button type="link" @click="batchSpecialPrice()"> 批量 </a-button> ) </div>
                     </template>
-                    <template v-if="column.dataIndex === 'specialDate'">
+                    <template v-if="column && column.dataIndex === 'specialDate'">
                         <div> {{ title }} </div>
                         <div> ( <a-button type="link" @click="batchSpecialDate()"> 批量 </a-button> ) </div>
                     </template>
-                    <template v-if="column.dataIndex === 'package_weight'">
+                    <template v-if="column && column.dataIndex === 'package_weight'">
                         <div> <span v-if="weightRequired" class="required"> * </span> {{ title }} </div>
                         <div> ( <a-button type="link" @click="batchWeight()"> 批量 </a-button> ) </div>
                     </template>
-                    <template v-if="column.dataIndex === 'package'">
+                    <template v-if="column && column.dataIndex === 'package'">
                         <div> <span v-if="packageRequired" class="required"> * </span> {{ title }} </div>
                         <div> ( <a-button type="link" @click="batchPackage()"> 批量 </a-button> ) </div>
                     </template>
                 </template>
                 <template #bodyCell="{ record, index, column }">
-                    <template v-if="column.dataIndex === 'sellerSKU'">
+                    <template v-if="column && column.dataIndex === 'sellerSKU'">
                         <div> sellerSKU {{ record.sellerSKU }}
                             <a-input v-model:value="record.sellerSKU" placeholder="请输入SKU" />
                         </div>
                     </template>
 
-                    <template v-if="column.dataIndex === 'stock'">
+                    <template v-if="column && column.dataIndex === 'stock'">
                         <div> stock: {{ record.stock }} </div>
                         <a-input-number :controls="false" :precision="0" :min="0" v-model:value="record.stock"
                             placeholder="请输入库存" style="width: 80%;" />
                     </template>
 
-                    <template v-if="column.dataIndex === 'price'">
+                    <template v-if="column && column.dataIndex === 'price'">
                         <div> price: {{ record.price }} </div>
                         <a-input-number :controls="false" :precision="2" :min="0.01" v-model:value="record.price"
                             placeholder="请输入价格" style="width: 80%;" />
                     </template>
 
-                    <template v-if="column.dataIndex === 'specialPrice'">
+                    <template v-if="column && column.dataIndex === 'specialPrice'">
                         <div> specialPrice: {{ record.specialPrice }} </div>
                         <a-input-number :controls="false" :precision="0" v-model:value="record.specialPrice" :min="0.01"
                             :max="record.price" placeholder="请输入促销价" style="width: 80%;" />
                     </template>
 
-                    <template v-if="column.dataIndex === 'specialDate'">
+                    <template v-if="column && column.dataIndex === 'specialDate'">
                         <div> specialDate: {{ record.specialDate }} </div>
                         <a-range-picker v-model:value="record.specialDate" :format="dateFormat" style="width: 80%;" />
                     </template>
-                    <template v-if="column.dataIndex === 'package_weight'">
+                    <template v-if="column && column.dataIndex === 'package_weight'">
                         <div> package_weight: {{ record.packageWeight }} </div>
                         <a-input-number :controls="false" :precision="0" v-model:value="record.packageWeight"
                             :min="0.001" :max="20" placeholder="请输入重量" style="width: 80%;" />
                     </template>
 
-                    <template v-if="column.dataIndex === 'package'">
+                    <template v-if="column && column.dataIndex === 'package'">
                         <div> package: </div>
                         <a-input-number v-model:value="record.packageLength" :min="0.01" :max="110" :precision="2"
                             placeholder="长"></a-input-number>
@@ -87,7 +86,7 @@
                             placeholder="高"></a-input-number>
                     </template>
 
-                    <template v-if="column.dataIndex === 'action'">
+                    <template v-if="column && column.dataIndex === 'action'">
                         <div> <a-button type="link" @click="delRow(index)"> 移除 </a-button> </div>
                     </template>
                 </template>
@@ -121,6 +120,14 @@ import SpecialPriceModal from './batchModal/specialPriceModal.vue';
 import SpecialDateModal from './batchModal/specialDateModal.vue';
 import WeightModal from './batchModal/weightModal.vue';
 import PackageModal from "./batchModal/packageModal.vue";
+import dayjs from 'dayjs';
+
+const { detailData } = defineProps({
+    detailData: {
+        type: Object,
+        default: () => ({})
+    }
+});
 
 const { state: lazadaAttrsState, setSkuTable } = useLazadaWaitPublish();
 const skus = ref([]); // 属性中所有的 SKU
@@ -313,6 +320,39 @@ const generateTable = () => {
         })
     }
 };
+
+//  编辑回显
+watch(() => {
+    return detailData
+}, async (newVal) => {
+    const skus = newVal.skus || [];
+    tableData.value = skus.map((item) => {
+        const images = item.images.image || [];
+        return {
+            ...item,
+            sellerSKU: item.SellerSku,
+            stock: item.quantity,
+            price: item.price,
+            specialPrice: item.special_price,
+            specialDate: [dayjs(item.special_to_time), dayjs(item.special_from_time)],
+            packageWeight: item.package_weight,
+            packageHeight: item.package_weight,
+            packageLength: item.package_length,
+            packageWidth: item.package_width,
+            fileList: images.map((img) => {
+                return {
+                    "fileName": img,
+                    url: img,
+                    originalFilename: img,
+                    name: img,
+                }
+            })
+        }
+    });
+}, {
+    deep: true
+});
+
 watch(() => lazadaAttrsState.shortCode, () => {
     tableData.value = [];
 }, { deep: true });
@@ -335,7 +375,6 @@ watch(() => lazadaAttrsState.productSkus, (newValue) => {
             [selectTheme.value[0].name]: item.detail.attr,
         }
     });
-
 }, {
     deep: true
 });

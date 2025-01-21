@@ -13,7 +13,7 @@
                         </div>
                     </div>
                     <div class="flex gap-12px">
-                        <a-dropdown>
+                        <!-- <a-dropdown>
                             <a-button type="primary" style="width: 90px; height: 31px;"
                                 :disabled="lazadaAttrsState.primaryCategory.length ? false : true">
                                 引用产品
@@ -26,13 +26,16 @@
                                     </a-menu-item>
                                 </a-menu>
                             </template>
-                        </a-dropdown>
-                        <a-button type="primary" style=" height: 32px;" @click="save" :loading="saveLoading">
-                            保存
-                        </a-button>
+</a-dropdown>
+<a-button type="primary" style=" height: 32px;" @click="save" :loading="saveLoading">
+    保存
+</a-button>
 
+<a-button type="primary" style="height: 32px;" @click="publish" :loading="publishLoading">
+    发布
+</a-button>-->
                         <a-button type="primary" style="height: 32px;" @click="publish" :loading="publishLoading">
-                            发布
+                            更新到Lazada
                         </a-button>
                     </div>
                 </div>
@@ -49,7 +52,7 @@
 
                 <div w-full flex justify-end mt-10px>
                     <div class="flex gap-12px">
-                        <a-dropdown>
+                        <!-- <a-dropdown>
                             <a-button type="primary" style="width: 90px; height: 31px;">
                                 引用产品
                                 <DownOutlined />
@@ -64,10 +67,10 @@
                         </a-dropdown>
                         <a-button type="primary" style="height: 32px;" @click="save" :loading="saveLoading">
                             保存
-                        </a-button>
+                        </a-button> -->
 
                         <a-button type="primary" style="height: 32px;" @click="publish" :loading="publishLoading">
-                            发布
+                            更新到Lazada
                         </a-button>
                     </div>
                 </div>
@@ -133,7 +136,8 @@ import AddSuccessModal from './components/batchModal/addSuccessModal.vue';
 import dayjs from 'dayjs';
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 import { watermarkList, lazadaAdd, } from '@/pages/lazada/product/api';
-import { lazadaWaitProductDetail } from '@/pages/lazada/waitPublish/api'
+import { lazadaWaitProductDetail } from '@/pages/lazada/waitPublish/api';
+
 const route = useRoute();
 const detailData = ref({}); // 产品详情数据
 const saveLoading = ref(false);

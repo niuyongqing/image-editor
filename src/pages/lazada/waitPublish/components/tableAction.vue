@@ -102,6 +102,7 @@ const { selectedRows } = defineProps({
         default: () => []
     }
 });
+const emits = defineEmits(['success']);
 
 const router = useRouter();
 const remarkModalEl = useTemplateRef('remarkModalRef');
