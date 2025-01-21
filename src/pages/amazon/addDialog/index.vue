@@ -27,7 +27,7 @@
         @formValueChange="formValueChange"
         ref="descriptionInfoRef"
       ></descriptionInfo>
-      <imageInfo></imageInfo>
+      <!-- <imageInfo></imageInfo> -->
       <attributeInfo
         v-if="formData.attribute.$id"
         :key="formData.attribute.$_key"
@@ -389,7 +389,7 @@ async function validateJsonFn() {
 // 选中属性
 async function selectedProductType(val) {
   jsonParams.value = val
-  spinning.value = true
+  // spinning.value = true
   // let urlRes = await getJsonUrl(val)
   // let url = urlRes.data || ''
   // let res = await axios.get(url)
@@ -407,7 +407,7 @@ async function selectedProductType(val) {
   formData.attribute = {}
   formData.offer = {}
   variationThemeFn()
-  await validateJsonFn()
+  // await validateJsonFn()
   // spinning.value = false
 }
 // 找出变种主题
@@ -584,7 +584,7 @@ function handleFormItem(data, requiredList) {
   display: flex;
   // display: flex;
   .main-content {
-    width: 100%;
+    width: calc(100% - 100px);
     .form-footer {
       margin-top: 20px;
       display: flex;
