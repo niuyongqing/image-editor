@@ -616,7 +616,7 @@
     </div>
 </template>
 
-<script setup name='product'>
+<script setup lang="js">
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import {
     accountCache, list, batchArchive, syncOneProduct, syncHistoryCategory, mergeList, asyncProgress,
