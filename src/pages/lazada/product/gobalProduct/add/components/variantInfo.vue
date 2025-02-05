@@ -113,13 +113,13 @@
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { message } from 'ant-design-vue';
 import EventBus from "~/utils/event-bus";
-import GenerateModal from './batchModal/generateModal.vue';
-import StockModal from './batchModal/stockModal.vue';
-import PriceModal from './batchModal/priceModal.vue';
-import SpecialPriceModal from './batchModal/specialPriceModal.vue';
-import SpecialDateModal from './batchModal/specialDateModal.vue';
-import WeightModal from './batchModal/weightModal.vue';
-import PackageModal from "./batchModal/packageModal.vue";
+import GenerateModal from '../../batchModal/generateModal.vue';
+import StockModal from '../../batchModal/stockModal.vue';
+import PriceModal from '../../batchModal/priceModal.vue';
+import SpecialPriceModal from '../../batchModal/specialPriceModal.vue';
+import SpecialDateModal from '../../batchModal/specialDateModal.vue';
+import WeightModal from '../../batchModal/weightModal.vue';
+import PackageModal from "../../batchModal/packageModal.vue";
 
 const { state: lazadaAttrsState, setSkuTable } = useLazadaGobalAttrs();
 const skus = ref([]); // 属性中所有的 SKU

@@ -132,10 +132,10 @@ import WarehouseSetting from './warehouseSetting.vue'; // 仓库管理
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 import { syncAll } from '@/pages/lazada/product/api';
 import { message, Modal } from 'ant-design-vue';
-import PriceModal from '@/pages/lazada/product/siteProduct/add/components/batchModal/priceModal.vue';
+import PriceModal from '@/pages/lazada/product/siteProduct//batchModal/priceModal.vue';
 import RemarkModal from './remarkModal.vue';
-import StockModal from '@/pages/lazada/product/siteProduct/add/components/batchModal/stockModal.vue';
-import SpecialPriceModal from '@/pages/lazada/product/siteProduct/add/components/batchModal/specialPriceModal.vue';
+import StockModal from '@/pages/lazada/product/siteProduct/batchModal/stockModal.vue';
+import SpecialPriceModal from '@/pages/lazada/product/siteProduct/batchModal/specialPriceModal.vue';
 
 const { selectedRows } = defineProps({
     //  表格选中的数据

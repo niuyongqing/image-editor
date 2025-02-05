@@ -129,7 +129,7 @@ import Description from './components/description.vue';
 import SelectProduct from '@/components/selectProduct/index.vue';
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 import { watermarkList, lazadaAdd } from '@/pages/lazada/product/api';
-import AddSuccessModal from './components/batchModal/addSuccessModal.vue';
+import AddSuccessModal from '../batchModal/addSuccessModal.vue';
 import dayjs from 'dayjs';
 
 const saveLoading = ref(false);

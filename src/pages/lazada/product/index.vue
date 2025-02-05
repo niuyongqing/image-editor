@@ -160,9 +160,9 @@ import Search from './components/search.vue';
 import TableAction from './components/tableAction.vue';
 import BaseTable from '@/components/baseTable/BaseTable.vue';
 import RemarkModal from '@/pages/lazada/product/components/remarkModal.vue';
-import PriceModal from '@/pages/lazada/product/siteProduct/add/components/batchModal/priceModal.vue';
-import StockModal from '@/pages/lazada/product/siteProduct/add/components/batchModal/stockModal.vue';
-import SpecialPriceModal from '@/pages/lazada/product/siteProduct/add/components/batchModal/specialPriceModal.vue';
+import PriceModal from './siteProduct/batchModal/priceModal.vue';
+import StockModal from './siteProduct/batchModal/stockModal.vue';
+import SpecialPriceModal from './siteProduct/batchModal/specialPriceModal.vue';
 
 const { copy } = useClipboard();
 const active = ref('ALL')
