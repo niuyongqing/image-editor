@@ -95,7 +95,7 @@ import Description from './components/description.vue';
 import SelectProduct from '@/components/selectProduct/index.vue';
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 import AddSuccessModal from './components/batchModal/addSuccessModal.vue';
-import { watermarkList, lazadaAdd, lazadaProductDetail } from '@/pages/lazada/product/api';
+import { watermarkList, lazadaEdit, lazadaProductDetail } from '@/pages/lazada/product/api';
 import dayjs from 'dayjs';
 
 const route = useRoute();
@@ -190,7 +190,7 @@ const validateAll = async () => {
 
     const imageInfoState = imageInfoEl.value.form;
     const images = imageInfoState.fileList.map((item) => item.url);// 产品图片
-    const promotion_whitebkg_image = imageInfoState.promotionWhite.length > 0 ? imageInfoState.promotionWhite[0].url : '';// 营销图
+    const promotion_whitebkg_image = imageInfoState.promotionWhite.length > 0 ? [imageInfoState.promotionWhite[0].url] : [];// 营销图
     const video = imageInfoState.video.url;// 产品视频
     const cover_url = imageInfoState.video.img; // 视频封面图 
     // to do... 视频标题
@@ -199,7 +199,7 @@ const validateAll = async () => {
     let variations = {};
     console.log('lazadaAttrsState.selectTheme', lazadaAttrsState.selectTheme);
     lazadaAttrsState.selectTheme.forEach((item, index) => {
-        variations['variation' + index] = {
+        variations['variation' + (index + 1)] = {
             // 在这里添加你需要的属性和值
             name: item.name,
             hasImage: true,
@@ -210,58 +210,85 @@ const validateAll = async () => {
         };
     });
     // SKU数据组装
+    console.log('lazadaAttrsState.skuTable', lazadaAttrsState.skuTable);
     const skus = lazadaAttrsState.skuTable.map((item, index) => {
         if (lazadaAttrsState.selectTheme.length === 1) {
             return {
-                "packageHeight": item.packageHeight,
-                "packageLength": item.packageLength,
-                "packageWeight": item.packageWeight,
-                "packageWidth": item.packageWidth,
+                taxClass,
+                skuId: item.SkuId,
+                status: item.Status,
+                "packageHeight": Number(item.packageHeight),
+                "packageLength": Number(item.packageLength),
+                "packageWeight": Number(item.packageWeight),
+                "packageWidth": Number(item.packageWidth),
                 "packageContent": packageContent,
-                "price": item.price,
-                "quantity": item.quantity,
-                "sellerSku": item.sellerSku,
-                "specialFromDate": item.specialFromDate ? dayjs(item.specialFromDate).format('YYYY-MM-DD hh:mm:ss') : '',
-                "specialToDate": item.specialToDate ? dayjs(item.specialToDate).format('YYYY-MM-DD hh:mm:ss') : '',
-                "specialPrice": item.specialPrice ? dayjs(item.specialPrice).format('YYYY-MM-DD hh:mm:ss') : '',
+                "price": Number(item.price),
+                "quantity": item.stock,
+                "sellerSku": item.sellerSKU,
+                "specialFromDate": item.specialDate ? dayjs(item.specialDate[0]).format('YYYY-MM-DD HH:mm:ss') : '',
+                "specialToDate": item.specialDate ? dayjs(item.specialDate[1]).format('YYYY-MM-DD HH:mm:ss') : '',
+                "specialPrice": Number(item.specialPrice),
                 "saleProp": {
                     [lazadaAttrsState.selectTheme[0].name]: item[lazadaAttrsState.selectTheme[0].name],
                 },
                 "images": {
-                    "imageList": item.fileList.map((item) => item.url)
+                    "image": item.fileList.map((item) => item.url)
                 }
             }
         } else if (lazadaAttrsState.selectTheme.length === 2) {
             return {
-                "packageHeight": item.packageHeight,
-                "packageLength": item.packageLength,
-                "packageWeight": item.packageWeight,
-                "packageWidth": item.packageWidth,
+                taxClass,
+                skuId: item.SkuId,
+                status: item.Status,
+                "packageHeight": Number(item.packageHeight),
+                "packageLength": Number(item.packageLength),
+                "packageWeight": Number(item.packageWeight),
+                "packageWidth": Number(item.packageWidth),
                 "packageContent": packageContent,
-                "price": item.price,
-                "quantity": item.quantity,
-                "sellerSku": item.sellerSku,
-                "specialFromDate": item.specialFromDate ? dayjs(item.specialFromDate).format('YYYY-MM-DD hh:mm:ss') : '',
-                "specialToDate": item.specialToDate ? dayjs(item.specialToDate).format('YYYY-MM-DD hh:mm:ss') : '',
-                "specialPrice": item.specialPrice ? dayjs(item.specialPrice).format('YYYY-MM-DD hh:mm:ss') : '',
+                "price": Number(item.price),
+                "quantity": item.stock,
+                "sellerSku": item.sellerSKU,
+                "specialFromDate": item.specialDate ? dayjs(item.specialDate[0]).format('YYYY-MM-DD HH:mm:ss') : '',
+                "specialToDate": item.specialDate ? dayjs(item.specialDate[1]).format('YYYY-MM-DD HH:mm:ss') : '',
+                "specialPrice": Number(item.specialPrice),
                 "saleProp": {
                     [lazadaAttrsState.selectTheme[0].name]: item[lazadaAttrsState.selectTheme[0].name],
                     [lazadaAttrsState.selectTheme[1].name]: item[lazadaAttrsState.selectTheme[1].name],
                 },
                 "images": {
-                    "imageList": item.fileList.map((item) => item.url)
+                    "image": item.fileList.map((item) => item.url)
                 }
             }
         }
-
     });
     const attributes = {
-        ...attrsForm,
-        ...form
+        itemId: detailData.value.itemId,
+        "productType": "0", // 0 普通卖家店铺, 1 半托管店铺, 2 全托管店铺
+        attributes: {
+            model,
+            name: title,
+            brand_id,
+            brandId,
+            warranty_type,
+            warranty,
+            ...attrsForm, // 产品属性
+            promotion_whitebkg_image,// 营销图
+            ...form, // 描述信息
+        },
+        shortCode,
+        primaryCategory,
+        // warranty_type,
+        // warranty,
+        // taxClass,
+        // packageContent,
+        images: { image: images },// 产品图片
+        // video,// 产品视频
+        variation: variations,
+        skus: {
+            sku: skus
+        },
     };
-
     return attributes
-
 };
 
 
@@ -272,15 +299,18 @@ const handleSelect = (productData) => {
 };
 
 // 更新到lazada 
-const save = () => {
-    const data = validateAll();
-    console.log('data', data);
-    // publishLoading.value = true;
-    // lazadaAdd(res).then(res => {
-    //     addSuccessModalEl.value.open();
-    // }).finally(() => {
-    //     publishLoading.value = false;
-    // })
+const save = async () => {
+    const addParams = await validateAll();
+    console.log('data', addParams);
+    if (!addParams) {
+        return;
+    };
+    publishLoading.value = true;
+    lazadaEdit(addParams).then(res => {
+        addSuccessModalEl.value.open();
+    }).finally(() => {
+        publishLoading.value = false;
+    })
 };
 
 

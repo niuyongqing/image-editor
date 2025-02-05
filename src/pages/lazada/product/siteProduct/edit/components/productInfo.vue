@@ -45,14 +45,12 @@
                         :options="lazadaAttrsState.warrantyList" :field-names="{ label: 'en_name', value: 'en_name' }">
                     </a-select>
                 </a-form-item>
-
                 <a-form-item label="属性: " v-show="lazadaAttrsState.attributes.length > 0">
                     <a-card v-loading="lazadaAttrsState.loading" class="attrs-card">
                         <a-form :model="productAtrrsform" ref="attrsFormRef" scrollToFirstError>
                             <a-form-item v-for="item in sortAttrs(lazadaAttrsState.productClassifyAtrrs)"
                                 :key="item.name" :name="item.name" :rules="itemRules(item)" :label="item.label"
                                 :labelCol="{ span: 4 }" :wrapperCol="{ span: 20 }">
-
                                 <!-- is_key_prop： 1 时，表示当前属性是项目的 key 属性 -->
                                 <div flex>
                                     <a-tag color="#6288F4" v-if="item.advanced && item.advanced.is_key_prop === 1">
@@ -96,11 +94,11 @@
                                         @change="changeValue(item)"></a-select>
 
                                     <!-- richText 富文本-->
-                                    <div v-if="item.input_type === 'richText'"> 富文本 </div>
+                                    <div v-if="item.input_type === 'richText'"> </div>
 
                                     <!-- img 仅支持输入 Lazada 图片链接-->
-                                    <a-input v-if="item.input_type === 'imgimg'" v-model:value="item.value"
-                                        placeholder="" allowClear @change="changeValue(item)"></a-input>
+                                    <a-input v-if="item.input_type === 'img'" v-model:value="item.value" placeholder=""
+                                        allowClear @change="changeValue(item)"></a-input>
 
                                     <!-- 危险品 -->
                                     <a-checkbox-group v-if="item.name === 'Hazmat'" v-model:value="item.value"
@@ -221,6 +219,11 @@ const sortAttrs = (attrs) => {
         if (a.advanced.is_key_prop === 1 && b.advanced.is_key_prop === 0) return -1;
         return 0;
     });
+    const obj = list.reduce((acc, cur) => {
+        acc[cur.name] = cur.value;
+        return acc;
+    }, {});
+    Object.assign(productAtrrsform, obj); // 更新表单数据
     // 如果是展开
     if (isExpand.value) {
         return list
@@ -229,6 +232,7 @@ const sortAttrs = (attrs) => {
             return item.is_mandatory === 1 || item.advanced.is_key_prop === 1
         })
     }
+
 };
 const hazmat = (options) => {
     const list = options.map((item) => {
@@ -242,11 +246,13 @@ const validateForm = async () => {
         formEl.value.validate().then(() => {
             attrsFormEl.value.validate().then(() => {
                 resolve(true);
-            }).catch(() => {
+            }).catch((err) => {
+                console.log('err', err);
+
                 document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 reject(false);
             })
-        }).catch(() => {
+        }).catch((err) => {
             document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             reject(false);
         })

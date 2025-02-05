@@ -21,7 +21,7 @@
                 </a-form-item>
                 <a-form-item label="短描述">
                     <div v-loading="loading">
-                        <WangEditor v-model="form.shortDescription" :height="500" ref="codeEditorRef"
+                        <WangEditor v-model="form.short_description" :height="500" ref="codeEditorRef"
                             :editorConfig="codeEditorConfig">
                         </WangEditor>
                     </div>
@@ -113,7 +113,7 @@ const codeEditorConfig = {
 
 const form = reactive({
     description: '',
-    shortDescription: '',
+    short_description: '',
 });
 
 watch(() => lazadaAttrsState.product, (newVal) => {
@@ -126,7 +126,7 @@ watch(() => lazadaAttrsState.product, (newVal) => {
             form[item.item] = '<ul><li></li><ul>';
         });
         form.description = newVal.meansEnglishDescription;
-        form.shortDescription = '<ul><li></li><ul>';
+        form.short_description = '<ul><li></li><ul>';
     }
 });
 

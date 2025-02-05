@@ -21,7 +21,7 @@
                 </a-form-item>
                 <a-form-item label="短描述">
                     <div v-loading="loading">
-                        <WangEditor v-model="form.shortDescription" :height="500" ref="codeEditorRef"
+                        <WangEditor v-model="form.short_description" :height="500" ref="codeEditorRef"
                             :editorConfig="codeEditorConfig">
                         </WangEditor>
                     </div>
@@ -52,7 +52,7 @@ const loading = ref(false);
 const form = reactive({
     description: '',
     description_en: '',
-    shortDescription: '',
+    short_description: '',
     short_description_en: ''
 });
 
@@ -68,8 +68,9 @@ const headers = computed(() => {
 watch(() => {
     return detailData
 }, async (newVal) => {
-    form.description = newVal.attributes.description_en;
-    form.shortDescription = newVal.attributes.short_description_en;
+    const attributes = newVal.attributes ?? {};
+    form.description = attributes.description ? attributes.description : newVal.attributes.description_en;
+    form.short_description = attributes.short_description ? attributes.short_description : newVal.attributes.short_description_en;
 }, {
     deep: true
 });
@@ -145,18 +146,12 @@ watch(() => lazadaAttrsState.product, (newVal) => {
             form[item.item] = '<ul><li></li><ul>';
         });
         form.description = newVal.meansEnglishDescription;
-        form.shortDescription = '<ul><li></li><ul>';
+        form.short_description = '<ul><li></li><ul>';
     }
 });
 
 defineExpose({
     form
-});
-
-onMounted(() => {
-    // nextTick(() => {
-    //     console.log('editorEl', productEditorEl.value, codeEditorEl.value);
-    // });
 });
 </script>
 

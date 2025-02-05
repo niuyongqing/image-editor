@@ -48,6 +48,14 @@
                 <a-form-item label="属性: " v-show="lazadaAttrsState.attributes.length > 0">
                     <a-card v-loading="lazadaAttrsState.loading" class="attrs-card">
                         <a-form :model="productAtrrsform" ref="attrsFormRef" scrollToFirstError>
+                            <a-form-item>
+                                <div flex items-center gap-8px ml-20px>
+                                    <a-switch v-model:checked="disableAttributeAutoFill" checked-children="开"
+                                        un-checked-children="关" />
+                                    <span style="color: #9fa0a2">自动填充</span>
+                                </div>
+                            </a-form-item>
+
                             <a-form-item v-for="item in sortAttrs(lazadaAttrsState.productClassifyAtrrs)"
                                 :key="item.name" :name="item.name" :rules="itemRules(item)" :label="item.label"
                                 :labelCol="{ span: 4 }" :wrapperCol="{ span: 20 }">
@@ -98,8 +106,8 @@
                                     <div v-if="item.input_type === 'richText'"> </div>
 
                                     <!-- img 仅支持输入 Lazada 图片链接-->
-                                    <a-input v-if="item.input_type === 'imgimg'" v-model:value="item.value"
-                                        placeholder="" allowClear @change="changeValue(item)"></a-input>
+                                    <a-input v-if="item.input_type === 'img'" v-model:value="item.value" placeholder=""
+                                        allowClear @change="changeValue(item)"></a-input>
 
                                     <!-- 危险品 -->
                                     <a-checkbox-group v-if="item.name === 'Hazmat'" v-model:value="item.value"
@@ -136,7 +144,7 @@ import { message } from "ant-design-vue";
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 
 const { state: lazadaAttrsState, } = useLadazaAttrs();
-
+const disableAttributeAutoFill = ref(true); // 自动填充
 const isExpand = ref(false); // 展开收起
 const attributesLoading = ref(false);
 const shortCode = ref('');
@@ -239,8 +247,8 @@ watch(() => lazadaAttrsState.product, (newValue) => {
     if (newValue && JSON.stringify(newValue) !== '{}') {
         console.log('newValue', newValue);
         state.title = newValue.tradeName; // 产品标题
-
-        //lazada 资料库数据回显 to do ...
+        // lazada 资料库数据回显 to do ...
+        if (!disableAttributeAutoFill.value) return;
     }
 });
 
@@ -270,6 +278,7 @@ onMounted(() => {
 
     EventBus.on('siteAddAttrsEmit', () => {
         //  根据分类回显属性 to do ...
+        if (!disableAttributeAutoFill.value) return;
         const obj = { "number_of_pieces": "6 and up", "zal_present": "Yes", "delivery_option_economy": "No", "Hazmat": "None", "delivery_option_express": "Yes" };
         lazadaAttrsState.productClassifyAtrrs.forEach((item) => {
             for (let key in obj) {

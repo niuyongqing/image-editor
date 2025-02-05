@@ -99,8 +99,8 @@
                                     <div v-if="item.input_type === 'richText'"> 富文本 </div>
 
                                     <!-- img 仅支持输入 Lazada 图片链接-->
-                                    <a-input v-if="item.input_type === 'imgimg'" v-model:value="item.value"
-                                        placeholder="" allowClear @change="changeValue(item)"></a-input>
+                                    <a-input v-if="item.input_type === 'img'" v-model:value="item.value" placeholder=""
+                                        allowClear @change="changeValue(item)"></a-input>
 
                                     <!-- 危险品 -->
                                     <a-checkbox-group v-if="item.name === 'Hazmat'" v-model:value="item.value"

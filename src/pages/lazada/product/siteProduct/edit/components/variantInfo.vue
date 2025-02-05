@@ -335,7 +335,7 @@ watch(() => {
             stock: item.quantity,
             price: item.price,
             specialPrice: item.special_price,
-            specialDate: [dayjs(item.special_to_time), dayjs(item.special_from_time)],
+            specialDate: [dayjs(item.special_from_time), dayjs(item.special_to_time)],
             packageWeight: item.package_weight,
             packageHeight: item.package_weight,
             packageLength: item.package_length,
