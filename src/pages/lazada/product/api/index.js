@@ -102,6 +102,15 @@ export function syncOne(data) {
 export function syncAll() {
   return useGet("/platform-lazada/platform/lazada/product/sync-all");
 }
+// 下架
 export function deactivate(data) {
   return usePost("/platform-lazada/platform/lazada/product/deactivate", data);
+}
+//
+// 获取已填充好值的分类属性列表
+export function hasValueAttributes(data) {
+  return usePost(
+    "/platform-lazada/platform/lazada/attribute/category/hasValueAttributes",
+    data
+  );
 }

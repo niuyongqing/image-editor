@@ -35,12 +35,12 @@
                         </a-button>
                     </div>
                 </div>
-                <BaseInfo id="baseInfo" ref="baseInfoRef"></BaseInfo>
+                <BaseInfo id="baseInfo" ref="baseInfoRef" :isHalfway="isHalfway"></BaseInfo>
                 <ProductInfo id="productInfo" ref="productInfoRef"></ProductInfo>
                 <Package id="package" ref="packageRef"></Package>
                 <ImageInfo id="imageInfo" ref="imageInfoRef" :waterList="waterList"></ImageInfo>
                 <Variant id="variant" ref="variantRef"></Variant>
-                <VariantInfo id="variantInfo" ref="variantInfoRef"></VariantInfo>
+                <VariantInfo id="variantInfo" ref="variantInfoRef" :isHalfway="isHalfway"></VariantInfo>
                 <VariantImage id="variantImage" ref="variantImageRef" :waterList="waterList"></VariantImage>
                 <Description id="description" ref="descriptionRef"></Description>
 
@@ -132,6 +132,8 @@ import { watermarkList, lazadaAdd } from '@/pages/lazada/product/api';
 import AddSuccessModal from '../batchModal/addSuccessModal.vue';
 import dayjs from 'dayjs';
 
+const route = useRoute();
+const isHalfway = ref(false); // 是否是半托管产品
 const saveLoading = ref(false);
 const publishLoading = ref(false);
 const waterList = ref([]); // 水印列表
@@ -243,56 +245,45 @@ const validateAll = async () => {
     });
     // SKU数据组装
     console.log('lazadaAttrsState.skuTable', lazadaAttrsState.skuTable);
+    const skus = lazadaAttrsState.skuTable.map((item) => {
+        // 共同的基础属性  
+        const baseProperties = {
+            taxClass: taxClass,
+            packageHeight: item.packageHeight,
+            packageLength: item.packageLength,
+            packageWeight: Number(item.packageWeight),
+            packageWidth: item.packageWidth,
+            packageContent: packageContent,
+            price: item.price,
+            quantity: item.stock,
+            sellerSku: item.sellerSKU,
+            supply_price: item.supply_price,
+            images: {
+                image: item.fileList.map((img) => img.url)
+            }
+        };
 
-    const skus = lazadaAttrsState.skuTable.map((item, index) => {
-        if (lazadaAttrsState.selectTheme.length === 1) {
-            return {
-                taxClass: taxClass,
-                "packageHeight": item.packageHeight,
-                "packageLength": item.packageLength,
-                "packageWeight": Number(item.packageWeight),
-                "packageWidth": item.packageWidth,
-                "packageContent": packageContent,
-                "price": item.price,
-                "quantity": item.stock,
-                "sellerSku": item.sellerSKU,
-                "specialFromDate": item.specialDate ? dayjs(item.specialDate[0]).format('YYYY-MM-DD HH:mm:ss') : '',
-                "specialToDate": item.specialDate ? dayjs(item.specialDate[1]).format('YYYY-MM-DD HH:mm:ss') : '',
-                "specialPrice": item.specialPrice,
-                "saleProp": {
-                    [lazadaAttrsState.selectTheme[0].name]: item[lazadaAttrsState.selectTheme[0].name],
-                },
-                "images": {
-                    "image": item.fileList.map((item) => item.url)
-                }
-            }
-        } else if (lazadaAttrsState.selectTheme.length === 2) {
-            return {
-                taxClass: taxClass,
-                "packageHeight": item.packageHeight,
-                "packageLength": item.packageLength,
-                "packageWeight": item.packageWeight,
-                "packageWidth": item.packageWidth,
-                "packageContent": packageContent,
-                "price": item.price,
-                "quantity": item.stock,
-                "sellerSku": item.sellerSKU,
-                "specialFromDate": item.specialDate ? dayjs(item.specialDate[0]).format('YYYY-MM-DD HH:mm:ss') : '',
-                "specialToDate": item.specialDate ? dayjs(item.specialDate[1]).format('YYYY-MM-DD HH:mm:ss') : '',
-                "specialPrice": item.specialPrice,
-                "saleProp": {
-                    [lazadaAttrsState.selectTheme[0].name]: item[lazadaAttrsState.selectTheme[0].name],
-                    [lazadaAttrsState.selectTheme[1].name]: item[lazadaAttrsState.selectTheme[1].name],
-                },
-                "images": {
-                    "image": item.fileList.map((item) => item.url)
-                }
-            }
-        }
+        // 动态生成 saleProp  
+        const saleProp = lazadaAttrsState.selectTheme.reduce((acc, theme) => {
+            acc[theme.name] = item[theme.name];
+            return acc;
+        }, {});
+
+        // 处理特殊日期和价格  
+        const specialDateProps = !isHalfway.value ? {
+            specialFromDate: item.specialDate ? dayjs(item.specialDate[0]).format('YYYY-MM-DD HH:mm:ss') : '',
+            specialToDate: item.specialDate ? dayjs(item.specialDate[1]).format('YYYY-MM-DD HH:mm:ss') : '',
+            specialPrice: item.specialPrice
+        } : {};
+
+        return {
+            ...baseProperties,
+            saleProp,
+            ...specialDateProps
+        };
     });
-
     const attributes = {
-        "productType": "0", // 0 普通卖家店铺, 1 半托管店铺, 2 全托管店铺
+        "productType": isHalfway.value ? "1" : "0", // 0 普通卖家店铺, 1 半托管店铺, 2 全托管店铺
         attributes: {
             model,
             name: title,
@@ -306,11 +297,6 @@ const validateAll = async () => {
         },
         shortCode,
         primaryCategory,
-
-        warranty_type,
-        warranty,
-        taxClass,
-        packageContent,
         images: { image: images },// 产品图片
         // video,// 产品视频
         variation: variations,
@@ -375,8 +361,15 @@ const scrollTo = (id) => {
         element.scrollIntoView({ behavior: 'smooth' });
     }
 };
+
+
+
 onMounted(() => {
-    getWatermark()
+    getWatermark();
+    const type = route.query.type || '';
+    if (type === 'halfway') {
+        isHalfway.value = true;
+    }
 });
 </script>
 

@@ -54,7 +54,10 @@
                     <SettingOutlined />
                     仓库管理
                 </a-button>
-
+                <a-button @click="addHalfway" type="primary" style="height: 32px; margin-left: 10px; ">
+                    <PlusOutlined />
+                    新增半托管商品
+                </a-button>
                 <a-dropdown>
 
                     <a-button type="primary" style="height: 32px ; margin-left: 10px;">
@@ -127,8 +130,8 @@
 
 <script setup>
 import BaseModal from '@/components/baseModal/BaseModal.vue';
-import { DownOutlined, SettingOutlined } from "@ant-design/icons-vue";
-import WarehouseSetting from './warehouseSetting.vue'; // 仓库管理
+import { DownOutlined, SettingOutlined, PlusOutlined } from "@ant-design/icons-vue";
+import WarehouseSetting from './warehouseSetting.vue';
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 import { syncAll } from '@/pages/lazada/product/api';
 import { message, Modal } from 'ant-design-vue';
@@ -193,7 +196,11 @@ const handleBatchSpecialPrice = () => {
 const warehouseSetting = () => {
     warehouseSettingEl.value.open();
 };
-
+// 创建半托管产品
+const addHalfway = () => {
+    // router.push('/platform/lazada/siteProduct/add?type=halfway');
+    window.open('/platform/lazada/siteProduct/add?type=halfway', '_blank');
+};
 // 创建“六合一产品”
 const cretateGlobalProduct = () => {
     reset();

@@ -21,6 +21,11 @@
                         <div> ( <a-button type="link" @click="batchStock()"> 批量 </a-button> ) </div>
                     </template>
 
+                    <template v-if="column.dataIndex === 'supply_price'">
+                        <div> <span class="required"> * </span> {{ title }} </div>
+                        <div> ( <a-button type="link" @click="batchPrice()"> 批量 </a-button> ) </div>
+                    </template>
+
                     <template v-if="column.dataIndex === 'price'">
                         <div> <span class="required"> * </span> {{ title }} </div>
                         <div> ( <a-button type="link" @click="batchPrice()"> 批量 </a-button> ) </div>
@@ -48,11 +53,16 @@
                             <a-input v-model:value="record.sellerSKU" placeholder="请输入SKU" />
                         </div>
                     </template>
-
                     <template v-if="column.dataIndex === 'stock'">
                         <div> stock: {{ record.stock }} </div>
                         <a-input-number :controls="false" :precision="0" :min="0" v-model:value="record.stock"
                             placeholder="请输入库存" style="width: 80%;" />
+                    </template>
+
+                    <template v-if="column.dataIndex === 'supply_price'">
+                        <div> supply_price: {{ record.supply_price }} </div>
+                        <a-input-number :controls="false" :precision="0" :min="0" v-model:value="record.supply_price"
+                            placeholder="请输入价格" style="width: 80%;" />
                     </template>
 
                     <template v-if="column.dataIndex === 'price'">
@@ -121,6 +131,14 @@ import SpecialDateModal from '../../batchModal/specialDateModal.vue';
 import WeightModal from '../../batchModal/weightModal.vue';
 import PackageModal from "../../batchModal/packageModal.vue";
 
+// 是否半托管新增
+const { isHalfway } = defineProps({
+    isHalfway: {
+        type: Boolean,
+        default: false,
+    },
+})
+
 const { state: lazadaAttrsState, setSkuTable } = useLadazaAttrs();
 const skus = ref([]); // 属性中所有的 SKU
 
@@ -148,21 +166,6 @@ let baseColumns = [
     {
         title: '库存',
         dataIndex: 'stock',
-        align: 'center',
-    },
-    {
-        title: '价格',
-        dataIndex: 'price',
-        align: 'center',
-    },
-    {
-        title: '促销价',
-        dataIndex: 'specialPrice',
-        align: 'center',
-    },
-    {
-        title: '促销时间',
-        dataIndex: 'specialDate',
         align: 'center',
     },
     {
@@ -217,42 +220,72 @@ const columns = computed(() => {
     let baseColumns = [];
     function getColumns() {
         if (selectTheme.value.length > 0) {
-            return baseColumns = [
-                {
-                    title: 'SKU',
-                    dataIndex: 'sellerSKU',
-                    align: 'center',
-                },
-                ...themeColumns,
-                {
-                    title: '库存',
-                    dataIndex: 'stock',
-                    align: 'center',
-                },
-                {
-                    title: '价格',
-                    dataIndex: 'price',
-                    align: 'center',
-                },
-                {
-                    title: '促销价',
-                    dataIndex: 'specialPrice',
-                    align: 'center',
-                },
-                {
-                    title: '促销时间',
-                    dataIndex: 'specialDate',
-                    align: 'center',
-                },
-                ...weightColumns(),
-                ...packageColumns(),
-                {
-                    title: '操作',
-                    dataIndex: 'action',
-                    align: 'center',
-                    width: '120px'
-                },
-            ];
+            if (isHalfway) {
+                return baseColumns = [
+                    {
+                        title: 'SKU',
+                        dataIndex: 'sellerSKU',
+                        align: 'center',
+                    },
+                    ...themeColumns,
+
+                    {
+                        title: '价格',
+                        dataIndex: 'supply_price',
+                        align: 'center',
+                    },
+                    {
+                        title: '库存',
+                        dataIndex: 'stock',
+                        align: 'center',
+                    },
+                    ...weightColumns(),
+                    ...packageColumns(),
+                    {
+                        title: '操作',
+                        dataIndex: 'action',
+                        align: 'center',
+                        width: '120px'
+                    },
+                ];
+            } else {
+                return baseColumns = [
+                    {
+                        title: 'SKU',
+                        dataIndex: 'sellerSKU',
+                        align: 'center',
+                    },
+                    ...themeColumns,
+                    {
+                        title: '库存',
+                        dataIndex: 'stock',
+                        align: 'center',
+                    },
+                    {
+                        title: '价格',
+                        dataIndex: 'price',
+                        align: 'center',
+                    },
+                    {
+                        title: '促销价',
+                        dataIndex: 'specialPrice',
+                        align: 'center',
+                    },
+                    {
+                        title: '促销时间',
+                        dataIndex: 'specialDate',
+                        align: 'center',
+                    },
+                    ...weightColumns(),
+                    ...packageColumns(),
+                    {
+                        title: '操作',
+                        dataIndex: 'action',
+                        align: 'center',
+                        width: '120px'
+                    },
+                ];
+            }
         } else {
             return baseColumns
         }
@@ -396,21 +429,21 @@ const priceSuccess = (evt) => {
 
     tableData.value.forEach((item) => {
         if (evt.radio === 1) {
-            item.price = evt.setNum;
+            item[isHalfway ? 'supply_price' : 'price'] = evt.setNum;
         } else if (evt.radio === 2) {
-            const currentPrice = Number(item.price ?? 0);
+            const currentPrice = Number(item[isHalfway ? 'supply_price' : 'price'] ?? 0);
             switch (evt.stockRule) {
                 case 1:
-                    item.price = currentPrice + setRuleNum;
+                    item[isHalfway ? 'supply_price' : 'price'] = currentPrice + setRuleNum;
                     break;
                 case 2:
-                    item.price = currentPrice - setRuleNum;
+                    item[isHalfway ? 'supply_price' : 'price'] = currentPrice - setRuleNum;
                     break;
                 case 3:
-                    item.price = currentPrice * setRuleNum;
+                    item[isHalfway ? 'supply_price' : 'price'] = currentPrice * setRuleNum;
                     break;
                 case 4:
-                    item.price = currentPrice / setRuleNum;
+                    item[isHalfway ? 'supply_price' : 'price'] = currentPrice / setRuleNum;
                     break;
                 default:
                     break;

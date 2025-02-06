@@ -39,6 +39,13 @@ import { accountCache, categoryTree, categoryAttributesApi } from '@/pages/lazad
 import EventBus from "~/utils/event-bus";
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 
+// 是否半托管新增
+const { isHalfway } = defineProps({
+    isHalfway: {
+        type: Boolean,
+        default: false,
+    },
+});
 const { state: lazadaAttrsState, setShortCode, setPrimaryCategory, setLazadaAttrs, setLoading } = useLadazaAttrs();
 const shortCodes = ref([]); // 店铺列表
 const formEl = useTemplateRef('formRef');
@@ -61,7 +68,13 @@ async function getShortCodes() {
         for (const resKey in accountCacheRes.data.accountDetail) {
             codes.push(...accountCacheRes.data.accountDetail[resKey])
         };
-        shortCodes.value = codes
+        const OrdinaryShops = codes.filter((item) => {
+            return item.shopModeType === 0
+        });
+        const halfwayShops = codes.filter((item) => {
+            return item.shopModeType === 1
+        });
+        shortCodes.value = isHalfway ? halfwayShops : OrdinaryShops;
     };
 };
 

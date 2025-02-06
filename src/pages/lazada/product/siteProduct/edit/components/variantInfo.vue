@@ -128,7 +128,11 @@ const { detailData } = defineProps({
     detailData: {
         type: Object,
         default: () => ({})
-    }
+    },
+    isHalfway: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const { state: lazadaAttrsState, setSkuTable } = useLadazaAttrs();

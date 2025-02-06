@@ -1,7 +1,7 @@
 <template>
     <div>
-        <BaseModal title="编辑" @register="register" @close="cancel" @submit="submit"
-            :submitBtnLoading="submitBtnLoading">
+        <BaseModal title="编辑" @register="register" @close="cancel" @submit="submit" :submitBtnLoading="submitBtnLoading"
+            width="1400px">
             <BaseForm ref="baseFormRef" :formList="formList" :label-col="{ style: { width: '80px' } }"
                 :wrapper-col="{ style: { width: '200px' } }" labelAlign="left">
                 <template #account>
@@ -77,14 +77,16 @@ const submit = async () => {
         userId: values.userId.join(','),
         account: values.account.join(',')
     };
-    editAccount(params).then((res) => {
-        if (res.code == 200) {
-            modalMethods.value.closeModal()
-            message.success(res.msg);
-            emits('success');
+    editAccount(params)
+        .then((res) => {
+            if (res.code == 200) {
+                modalMethods.value.closeModal()
+                message.success(res.msg);
+                emits('success');
+            }
+        }).finally(() => {
             submitBtnLoading.value = false;
-        }
-    })
+        })
 };
 
 const emits = defineEmits(['success']);

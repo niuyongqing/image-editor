@@ -137,7 +137,7 @@
 <script setup>
 import { DownOutlined } from "@ant-design/icons-vue";
 import { useResetReactive } from '@/composables/reset';
-import { accountCache, categoryTree, getBrandList } from '@/pages/lazada/product/api';
+import { accountCache, categoryTree, getBrandList, hasValueAttributes } from '@/pages/lazada/product/api';
 import EventBus from "~/utils/event-bus";
 import { debounce } from "lodash-es";
 import { message } from "ant-design-vue";
@@ -247,8 +247,29 @@ watch(() => lazadaAttrsState.product, (newValue) => {
     if (newValue && JSON.stringify(newValue) !== '{}') {
         console.log('newValue', newValue);
         state.title = newValue.tradeName; // 产品标题
-        // lazada 资料库数据回显 to do ...
+        // lazada 资料库数据回显
         if (!disableAttributeAutoFill.value) return;
+        hasValueAttributes({
+            "shortCode": shortCode.value,
+            "primaryCategoryId": lazadaAttrsState.primaryCategory[lazadaAttrsState.primaryCategory.length - 1],
+        }).then(res => {
+            if (res.code === 200) {
+                const obj = res.data || {};
+                lazadaAttrsState.productClassifyAtrrs.forEach((item) => {
+                    for (let key in obj) {
+                        if (item.name === key) {
+                            // 多选数据转为数组
+                            if (item.input_type.includes('multi')) {
+                                item.value = obj[key] ? obj[key].split(',') : [];
+                            } else {
+                                item.value = obj[key]
+                            }
+                        }
+                    }
+                })
+
+            }
+        });
     }
 });
 
@@ -277,21 +298,29 @@ onMounted(() => {
     });
 
     EventBus.on('siteAddAttrsEmit', () => {
-        //  根据分类回显属性 to do ...
+        //  根据分类回显属性 
         if (!disableAttributeAutoFill.value) return;
-        const obj = { "number_of_pieces": "6 and up", "zal_present": "Yes", "delivery_option_economy": "No", "Hazmat": "None", "delivery_option_express": "Yes" };
-        lazadaAttrsState.productClassifyAtrrs.forEach((item) => {
-            for (let key in obj) {
-                if (item.name === key) {
-                    // 多选数据转为数组
-                    if (item.input_type.includes('multi')) {
-                        item.value = obj[key] ? obj[key].split(',') : [];
-                    } else {
-                        item.value = obj[key]
+        hasValueAttributes({
+            "shortCode": shortCode.value,
+            "primaryCategoryId": lazadaAttrsState.primaryCategory[lazadaAttrsState.primaryCategory.length - 1],
+        }).then(res => {
+            if (res.code === 200) {
+                console.log('res', res);
+                const obj = res.data || {};
+                lazadaAttrsState.productClassifyAtrrs.forEach((item) => {
+                    for (let key in obj) {
+                        if (item.name === key) {
+                            // 多选数据转为数组
+                            if (item.input_type.includes('multi')) {
+                                item.value = obj[key] ? obj[key].split(',') : [];
+                            } else {
+                                item.value = obj[key]
+                            }
+                        }
                     }
-                }
+                })
             }
-        })
+        });
     });
 });
 onBeforeUnmount(() => {

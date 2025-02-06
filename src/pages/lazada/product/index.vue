@@ -102,7 +102,7 @@
             </template>
             <template #date="{ record }">
                 <div>
-                    <p class="date"> 创建：<span text-black> {{ timestampToDateTime(record.createdTime) }} </span> </p>
+                    <p class="date"> 创建: <span text-black> {{ timestampToDateTime(record.createdTime) }} </span> </p>
                     <p class="date"> 更新: <span text-black> {{ timestampToDateTime(record.updatedTime) }} </span> </p>
                     <p class="date"> 同步: <span text-black> {{ timestampToDateTime(record.syncTime) }} </span> </p>
                 </div>
@@ -150,7 +150,7 @@
 <script setup>
 import { SettingOutlined, EditOutlined, ReloadOutlined, CloudUploadOutlined, DownloadOutlined, DownOutlined } from '@ant-design/icons-vue';
 import { columns } from './columns';
-import { getList, accountCache, syncOne } from './api';
+import { getList, accountCache, syncOne, deactivate } from './api';
 import { useTableSelection } from '@/components/baseTable/useTableSelection';
 import { message, Modal } from 'ant-design-vue';
 import { checkPermi, checkRole } from '~@/utils/permission/component/permission';
@@ -253,7 +253,7 @@ const handleSearch = async (state) => {
 };
 //  编辑
 const handleEdit = (record) => {
-    const { itemId } = record;
+    const { itemId, productType } = record;
     window.open(`/platform/lazada/siteProduct/edit?itemId=${itemId}`, '_blank');
 };
 const handleReset = () => {
@@ -265,14 +265,17 @@ const handleBtnClick = (btn) => {
 };
 //  同步
 const handleSync = (record) => {
-    syncOne({ shortCode: record.shortCode, itemId: record.itemId }).then((res) => {
-        if (res.code === 200) {
-            message.success('同步成功');
-            reload();
-        } else {
-            message.error(res.msg);
-        }
-    })
+    baseTableEl.value.setLoading(true);
+    syncOne({ shortCode: record.shortCode, itemId: record.itemId })
+        .then((res) => {
+            if (res.code === 200) {
+                message.success('同步成功');
+                reload();
+            } else {
+                message.error(res.msg);
+                baseTableEl.value.setLoading(false);
+            }
+        })
 };
 //   复制为“六合一产品”
 const handleProduct = (record) => {
@@ -289,16 +292,23 @@ const handleRemark = (record) => {
 };
 //  下架
 const handleDeactivated = (record) => {
+    if (record.status === 'InActive') {
+        message.info('该产品已下架');
+        return;
+    }
     Modal.confirm({
         title: '下架',
         content: '是否确认下架？',
+        confirmLoading: true,
         onOk: async () => {
-            const res = await deactivated({ itemId: record.itemId });
+            baseTableEl.value.setLoading(true);
+            const res = await deactivate({ itemId: record.itemId });
             if (res.code === 200) {
                 message.success('下架成功');
                 reload();
             } else {
                 message.error(res.msg);
+                baseTableEl.value.setLoading(false);
             }
         },
     })

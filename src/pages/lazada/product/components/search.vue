@@ -22,7 +22,7 @@
                 <a-form-item label="搜索内容：">
                     <div>
                         <div class="flex">
-                            <a-input v-model:value="formState.searchContent" placeholder="请输入搜索内容" style="width: 480px"
+                            <a-input v-model:value="formState.name" placeholder="请输入标题搜索" style="width: 480px"
                                 v-show="currentSearchType === 'title'" />
                             <a-textarea v-model:value="formState.sku" placeholder="多个SKU间隔用逗号隔开，最多支持200个"
                                 style="width: 480px" v-show="currentSearchType === 'sku'"
@@ -149,7 +149,7 @@ const currentSearchType = ref('title');
 const visible = ref(false);
 const formState = reactive({
     shortCode: '', // 店铺账号：
-    searchContent: '', // 搜索内容
+    name: '', // 搜索内容
     publishType: '0', // 刊登类型
     globalPlus: '',// Global Plus
     sortType: 'created_time',// 排序类型
@@ -172,7 +172,7 @@ const changeShortCode = (value) => {
 };
 const changeSearchType = (item) => {
     currentSearchType.value = item.value;
-    formState.searchContent = '';
+    formState.name = '';
     formState.sku = '';
     formState.itemId = '';
 };
@@ -197,7 +197,7 @@ const changeSortType = (item) => {
 function getParams() {
     const params = {
         shortCode: formState.shortCode,
-        // searchContent: formState.searchContent, 标题
+        name: formState.name, // 标题
         sku: formState.sku,
         itemId: formState.itemId,
         publishType: formState.publishType,
