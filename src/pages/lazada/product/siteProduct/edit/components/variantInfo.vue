@@ -75,7 +75,7 @@
                     <template v-if="column && column.dataIndex === 'specialPrice'">
                         <div> specialPrice: {{ record.specialPrice }} </div>
                         <a-input-number :controls="false" :precision="0" v-model:value="record.specialPrice" :min="0.01"
-                            :max="record.price" placeholder="请输入促销价" style="width: 80%;" />
+                            :max="record.price" placeholder="请输入促销价" style="width: 80%;" disabled />
                     </template>
 
                     <template v-if="column && column.dataIndex === 'specialDate'">

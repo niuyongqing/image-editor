@@ -128,7 +128,7 @@ import VariantImage from './components/variantImage.vue';
 import Description from './components/description.vue';
 import SelectProduct from '@/components/selectProduct/index.vue';
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
-import { watermarkList, lazadaAdd } from '@/pages/lazada/product/api';
+import { watermarkList, lazadaAdd, saveProduct } from '@/pages/lazada/product/api';
 import AddSuccessModal from '../batchModal/addSuccessModal.vue';
 import dayjs from 'dayjs';
 
@@ -216,19 +216,16 @@ const validateAll = async () => {
             Reflect.set(attrsForm, item.name, item.value);
         }
     });
-    console.log('attrsForm', attrsForm);
-
     const packageState = packageEl.value.state;
     const taxClass = packageState.taxClass;// 税
     const packageContent = packageState.packageContent;// 包裹内容
 
     const imageInfoState = imageInfoEl.value.form;
     const images = imageInfoState.fileList.map((item) => item.url);// 产品图片
-    const promotion_whitebkg_image = imageInfoState.promotionWhite.length > 0 ? imageInfoState.promotionWhite[0].url : '';// 营销图
+    const promotion_whitebkg_image = imageInfoState.promotionWhite.length > 0 ? [imageInfoState.promotionWhite[0].url] : [];// 营销图
     const video = imageInfoState.video.url;// 产品视频
     const cover_url = imageInfoState.video.img; // 视频封面图 
     // to do... 视频标题
-
     const tableData = variantInfoEl.value.tableData;
     let variations = {};
     console.log('lazadaAttrsState.selectTheme', lazadaAttrsState.selectTheme);
@@ -244,7 +241,6 @@ const validateAll = async () => {
         };
     });
     // SKU数据组装
-    console.log('lazadaAttrsState.skuTable', lazadaAttrsState.skuTable);
     const skus = lazadaAttrsState.skuTable.map((item) => {
         // 共同的基础属性  
         const baseProperties = {
@@ -262,7 +258,6 @@ const validateAll = async () => {
                 image: item.fileList.map((img) => img.url)
             }
         };
-
         // 动态生成 saleProp  
         const saleProp = lazadaAttrsState.selectTheme.reduce((acc, theme) => {
             acc[theme.name] = item[theme.name];
@@ -304,11 +299,8 @@ const validateAll = async () => {
             sku: skus
         },
     };
-
     return attributes
-
 };
-
 
 //  使用资料库产品
 const handleSelect = (productData) => {
@@ -323,13 +315,12 @@ const save = async () => {
     if (!addParams) {
         return;
     };
-
-    // publishLoading.value = true;
-    // lazadaAdd(addParams).then(res => {
-    //     addSuccessModalEl.value.open();
-    // }).finally(() => {
-    //     publishLoading.value = false;
-    // })
+    saveLoading.value = true;
+    saveProduct(addParams).then(res => {
+        addSuccessModalEl.value.open();
+    }).finally(() => {
+        saveLoading.value = false;
+    })
 };
 
 // 发布

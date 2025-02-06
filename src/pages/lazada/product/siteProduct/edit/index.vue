@@ -184,7 +184,6 @@ const validateAll = async () => {
             Reflect.set(attrsForm, item.name, item.value);
         }
     });
-    console.log('attrsForm', attrsForm);
 
     const packageState = packageEl.value.state;
     const taxClass = packageState.taxClass;// 税
@@ -213,57 +212,49 @@ const validateAll = async () => {
     });
     // SKU数据组装
     console.log('lazadaAttrsState.skuTable', lazadaAttrsState.skuTable);
-    const skus = lazadaAttrsState.skuTable.map((item, index) => {
-        if (lazadaAttrsState.selectTheme.length === 1) {
-            return {
-                taxClass,
-                skuId: item.SkuId,
-                status: item.Status,
-                "packageHeight": Number(item.packageHeight),
-                "packageLength": Number(item.packageLength),
-                "packageWeight": Number(item.packageWeight),
-                "packageWidth": Number(item.packageWidth),
-                "packageContent": packageContent,
-                "price": Number(item.price),
-                "quantity": item.stock,
-                "sellerSku": item.sellerSKU,
-                "specialFromDate": item.specialDate ? dayjs(item.specialDate[0]).format('YYYY-MM-DD HH:mm:ss') : '',
-                "specialToDate": item.specialDate ? dayjs(item.specialDate[1]).format('YYYY-MM-DD HH:mm:ss') : '',
-                "specialPrice": Number(item.specialPrice),
-                "saleProp": {
-                    [lazadaAttrsState.selectTheme[0].name]: item[lazadaAttrsState.selectTheme[0].name],
-                },
-                "images": {
-                    "image": item.fileList.map((item) => item.url)
-                }
+    // SKU数据组装
+    const skus = lazadaAttrsState.skuTable.map((item) => {
+        // 共同的基础属性  
+        const baseProperties = {
+            taxClass: taxClass,
+            skuId: item.SkuId,
+            packageHeight: item.packageHeight,
+            packageLength: item.packageLength,
+            packageWeight: Number(item.packageWeight),
+            packageWidth: item.packageWidth,
+            packageContent: packageContent,
+            price: item.price,
+            quantity: item.stock,
+            sellerSku: item.sellerSKU,
+            supplyPrice: String(item.supplyPrice),
+            images: {
+                image: item.fileList.map((img) => img.url)
             }
-        } else if (lazadaAttrsState.selectTheme.length === 2) {
-            return {
-                taxClass,
-                skuId: item.SkuId,
-                status: item.Status,
-                "packageHeight": Number(item.packageHeight),
-                "packageLength": Number(item.packageLength),
-                "packageWeight": Number(item.packageWeight),
-                "packageWidth": Number(item.packageWidth),
-                "packageContent": packageContent,
-                "price": Number(item.price),
-                "quantity": item.stock,
-                "sellerSku": item.sellerSKU,
-                "specialFromDate": item.specialDate ? dayjs(item.specialDate[0]).format('YYYY-MM-DD HH:mm:ss') : '',
-                "specialToDate": item.specialDate ? dayjs(item.specialDate[1]).format('YYYY-MM-DD HH:mm:ss') : '',
-                "specialPrice": Number(item.specialPrice),
-                "saleProp": {
-                    [lazadaAttrsState.selectTheme[0].name]: item[lazadaAttrsState.selectTheme[0].name],
-                    [lazadaAttrsState.selectTheme[1].name]: item[lazadaAttrsState.selectTheme[1].name],
-                },
-                "images": {
-                    "image": item.fileList.map((item) => item.url)
-                }
-            }
-        }
+        };
+        // 动态生成 saleProp  
+        const saleProp = lazadaAttrsState.selectTheme.reduce((acc, theme) => {
+            acc[theme.name] = item[theme.name];
+            return acc;
+        }, {});
+
+        // 处理特殊日期和价格  
+        const specialDateProps = !isHalfway.value ? {
+            specialFromDate: item.specialDate ? dayjs(item.specialDate[0]).format('YYYY-MM-DD HH:mm:ss') : '',
+            specialToDate: item.specialDate ? dayjs(item.specialDate[1]).format('YYYY-MM-DD HH:mm:ss') : '',
+            specialPrice: item.specialPrice
+        } : {};
+
+        return {
+            ...baseProperties,
+            saleProp,
+            ...specialDateProps
+        };
     });
+    const associatedSkus = skus.map((item) => {
+        return item.skuId
+    }).filter(Boolean);
     const attributes = {
+        associatedSku: associatedSkus[0],
         itemId: detailData.value.itemId,
         "productType": isHalfway.value ? 1 : 0, // 0 普通卖家店铺, 1 半托管店铺, 2 全托管店铺
         attributes: {
