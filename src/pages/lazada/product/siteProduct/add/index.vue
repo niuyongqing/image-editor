@@ -257,7 +257,7 @@ const validateAll = async () => {
             price: item.price,
             quantity: item.stock,
             sellerSku: item.sellerSKU,
-            supply_price: item.supply_price,
+            supplyPrice: item.supplyPrice,
             images: {
                 image: item.fileList.map((img) => img.url)
             }

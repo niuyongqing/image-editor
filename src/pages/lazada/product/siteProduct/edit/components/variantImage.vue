@@ -1,6 +1,7 @@
 <template>
     <div>
-        <div class="mt-10px" v-show="lazadaAttrsState.skuAttrs.length > 0" id="skuTable">
+        <!-- v-show="lazadaAttrsState.skuAttrs.length > 0" -->
+        <div class="mt-10px" id="skuTable">
             <a-card :bordered="true" style="margin: 0 auto; border-radius: 0px">
                 <template #title>
                     <div text-left> 变种图片 </div>

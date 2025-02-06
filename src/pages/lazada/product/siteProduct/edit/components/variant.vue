@@ -1,5 +1,6 @@
 <template>
-    <div class="mt-10px" v-show="lazadaAttrsState.skuAttrs.length > 0">
+    <!-- v-show="lazadaAttrsState.skuAttrs.length > 0" -->
+    <div class="mt-10px">
         <a-card :bordered="true" style="margin: 0 auto; border-radius: 0px">
             <template #title>
                 <div text-left> 变种参数 </div>
@@ -8,11 +9,21 @@
                 <a-form-item label="变种主题:">
                     <div>
                         <div class="flex items-center gap-12px">
-                            <a-button type="link" v-for="item in lazadaAttrsState.skuAttrs" :key="item.name"
-                                :disabled="disabledTheme(item)" @click="handleSelectTheme(item)">
-                                <PlusCircleOutlined style="font-size: 14px" />
-                                <span> {{ item.label }} </span>
-                            </a-button>
+                            <template v-if="lazadaAttrsState.skuAttrs.length">
+                                <a-button type="link" v-for="item in lazadaAttrsState.skuAttrs" :key="item.name"
+                                    :disabled="disabledTheme(item)" @click="handleSelectTheme(item)">
+                                    <PlusCircleOutlined style="font-size: 14px" />
+                                    <span> {{ item.label }} </span>
+                                </a-button>
+                            </template>
+                            <template v-else>
+                                <a-button type="link" v-for="item in selectThemeList" :key="item.name"
+                                    :disabled="disabledTheme(item)" @click="handleSelectTheme(item)">
+                                    <PlusCircleOutlined style="font-size: 14px" />
+                                    <span> {{ item.label }} </span>
+                                </a-button>
+                            </template>
+
                             <a-button @click="addVariant" type="primary" @keyup.enter="addVariant"
                                 :disabled="lazadaAttrsState.skuAttrs.length >= 2"> 添加自定义属性
                             </a-button>

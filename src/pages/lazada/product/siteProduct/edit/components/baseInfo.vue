@@ -55,7 +55,7 @@ const { detailData } = defineProps({
 const {
     state: lazadaAttrsState, setShortCode, setPrimaryCategory,
     setLazadaAttrs, setLoading, setProductClassifyAtrrs,
-    setSelectTheme
+    setSelectTheme, setSkuAttrs
 } = useLadazaAttrs();
 
 const loading = ref(false);

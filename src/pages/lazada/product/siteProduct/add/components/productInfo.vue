@@ -239,8 +239,7 @@ const clearValidate = () => {
 
 watch(() => lazadaAttrsState.loading, (newValue) => {
     clearValidate();
-})
-
+});
 
 //  产品资料库回显
 watch(() => lazadaAttrsState.product, (newValue) => {
@@ -267,7 +266,6 @@ watch(() => lazadaAttrsState.product, (newValue) => {
                         }
                     }
                 })
-
             }
         });
     }

@@ -24,7 +24,8 @@
                 <ImageInfo id="imageInfo" ref="imageInfoRef" :waterList="waterList" :detailData="detailData">
                 </ImageInfo>
                 <Variant id="variant" ref="variantRef" :detailData="detailData"></Variant>
-                <VariantInfo id="variantInfo" ref="variantInfoRef" :detailData="detailData"></VariantInfo>
+                <VariantInfo id="variantInfo" ref="variantInfoRef" :detailData="detailData" :isHalfway="isHalfway">
+                </VariantInfo>
                 <VariantImage id="variantImage" ref="variantImageRef" :waterList="waterList" :detailData="detailData">
                 </VariantImage>
                 <Description id="description" ref="descriptionRef" :detailData="detailData"></Description>
@@ -99,6 +100,7 @@ import { watermarkList, lazadaEdit, lazadaProductDetail } from '@/pages/lazada/p
 import dayjs from 'dayjs';
 
 const route = useRoute();
+const isHalfway = ref(false); // 是否半托管
 const detailData = ref({}); // 产品详情数据
 const saveLoading = ref(false);
 const publishLoading = ref(false);
@@ -197,7 +199,7 @@ const validateAll = async () => {
 
     const tableData = variantInfoEl.value.tableData;
     let variations = {};
-    console.log('lazadaAttrsState.selectTheme', lazadaAttrsState.selectTheme);
+    console.log('lazadaAttrsState.selectTheme ->>>', lazadaAttrsState.selectTheme);
     lazadaAttrsState.selectTheme.forEach((item, index) => {
         variations['variation' + (index + 1)] = {
             // 在这里添加你需要的属性和值
@@ -263,7 +265,7 @@ const validateAll = async () => {
     });
     const attributes = {
         itemId: detailData.value.itemId,
-        "productType": "0", // 0 普通卖家店铺, 1 半托管店铺, 2 全托管店铺
+        "productType": isHalfway.value ? 1 : 0, // 0 普通卖家店铺, 1 半托管店铺, 2 全托管店铺
         attributes: {
             model,
             name: title,
@@ -277,10 +279,6 @@ const validateAll = async () => {
         },
         shortCode,
         primaryCategory,
-        // warranty_type,
-        // warranty,
-        // taxClass,
-        // packageContent,
         images: { image: images },// 产品图片
         // video,// 产品视频
         variation: variations,
@@ -324,6 +322,8 @@ const getWatermark = () => {
 };
 // 获取产品
 const getProductDetail = () => {
+    const productType = route.query.productType;
+    isHalfway.value = productType === '1';
     const params = {
         itemId: route.query.itemId
     };

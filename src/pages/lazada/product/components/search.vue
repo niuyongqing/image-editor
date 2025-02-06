@@ -153,7 +153,7 @@ const formState = reactive({
     publishType: '0', // 刊登类型
     globalPlus: '',// Global Plus
     sortType: 'created_time',// 排序类型
-    sort: 'asc', // asc 升序； desc 降序
+    sort: 'desc', // asc 升序； desc 降序
     sku: '',
     itemId: ''
 });

@@ -36,7 +36,9 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
   const setSkuTable = (skuTable = []) => {
     state.skuTable = skuTable;
   };
-
+  const setSkuAttrs = (skuAttrs = []) => {
+    state.skuAttrs = skuAttrs;
+  };
   const setLazadaAttrs = (attributes = []) => {
     state.attributes = attributes;
     state.productClassifyAtrrs = attributes.filter((item) => {
@@ -129,6 +131,7 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
     state.loading = false;
     state.product = {};
     state.productSkus = [];
+    state.skuAttrs = [];
   };
   return {
     state,
@@ -137,6 +140,7 @@ export const useLadazaAttrs = defineStore("lazadaAttrs", () => {
     setSelectTheme,
     setLoading,
     setSkuTable,
+    setSkuAttrs,
     setLazadaAttrs,
     setProduct,
     reset,

@@ -254,7 +254,7 @@ const handleSearch = async (state) => {
 //  编辑
 const handleEdit = (record) => {
     const { itemId, productType } = record;
-    window.open(`/platform/lazada/siteProduct/edit?itemId=${itemId}`, '_blank');
+    window.open(`/platform/lazada/siteProduct/edit?itemId=${itemId}&productType=${productType}`, '_blank');
 };
 const handleReset = () => {
     baseTableEl.value.reset();

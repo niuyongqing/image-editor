@@ -56,7 +56,7 @@
                     <a-card ml-10px p-0px rounded-none class="file-card" hoverable>
                         <div :key="element.uid">
                             <div class="file-item">
-                                <div v-if="element.loading" w-120px h-120px flex items-center justify-center>
+                                <div v-if="element.loading" w-160px h-160px flex items-center justify-center>
                                     <loading-outlined></loading-outlined>
                                 </div>
                                 <div v-else class="file-img">
@@ -286,8 +286,8 @@ const watermark = async (item) => {
 }
 
 .custom-upload .ant-upload {
-    width: 120px;
-    height: 120px;
+    width: 160px;
+    height: 160px;
     margin: 0 auto;
 }
 
@@ -297,8 +297,8 @@ const watermark = async (item) => {
 }
 
 .file-img {
-    width: 120px;
-    height: 120px;
+    width: 160px;
+    height: 160px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -321,7 +321,7 @@ const watermark = async (item) => {
 }
 
 :deep(.ant-card-body) {
-    width: 120px;
+    width: 160px;
 }
 
 .delete-icon,
@@ -342,7 +342,7 @@ const watermark = async (item) => {
     position: absolute;
     bottom: 0px;
     left: 0;
-    width: 120px;
+    width: 160px;
     height: 20px;
     background-color: rgba(0, 0, 0, .2);
     display: flex;
@@ -353,8 +353,8 @@ const watermark = async (item) => {
 }
 
 .empty-img {
-    width: 120px;
-    height: 120px;
+    width: 160px;
+    height: 160px;
     display: flex;
     align-items: center;
     justify-content: center;
