@@ -231,13 +231,16 @@ onMounted(async () => {
         for (const resKey in accountCacheRes.data.accountDetail) {
             codes.push(...accountCacheRes.data.accountDetail[resKey])
         };
+        const fullyCodes = codes.filter((item) => {
+            return item.shopModeType === 2
+        });
         shortCodes.value = [
             {
                 "shortCode": "",
                 "simpleName": "全部",
             },
-            ...codes
-        ]
+            ...fullyCodes
+        ];
     };
 });
 </script>
