@@ -40,6 +40,7 @@
       ></attributeInfo>
       <variationInfo 
         :variation-theme-data="variationThemeData"
+        ref="variationInfoRef"
       ></variationInfo>
       <offerInfo
         v-if="formData.offer.$id"
@@ -414,7 +415,7 @@ async function selectedProductType(val) {
 function variationThemeFn() {
   let properties = TrainSets.properties
   // let properties = scheam.value.properties
-  let list = handleFormItem(properties, []);   // 将属性转换成数组
+  // let list = handleFormItem(properties, []);   // 将属性转换成数组
   if (properties.variation_theme) {
     let variationList = properties.variation_theme.items.properties.name.enum
     // 获取主题列表
@@ -435,7 +436,8 @@ function variationThemeFn() {
       })
     })
     themeAttribute = [...new Set(themeAttribute)]
-    variationThemeList = themeAttribute.map(i => properties[i].title)
+    variationThemeList = themeAttribute.map(i => properties[i].title);
+    variationThemeList = [...variationThemeList, 'Offering Condition Type'] // Offering Condition Type 是物品状况选项，为变种必填项
     let { data } = setAttributeData(variationThemeList)
     // console.log({ theme, themeAttribute, data });
     variationThemeData.data = data.properties
@@ -456,6 +458,8 @@ function toHref(href) {
 }
 // 校验
 async function sure() {
+  _this.$refs.variationInfoRef.validateVariationInfo()
+  return;
   let {result:offerResult, params: offerParams} = await offerInfoRef.value.save()
   let {result:productResult, params: productParams} = await productInfoRef.value.save()
   let {result:attributeResult, params: attributeParams} = await attributeInfoRef.value.save()
@@ -573,7 +577,7 @@ function handleFormItem(data, requiredList) {
 <style lang="less" scoped>
 @import "@/assets/library/jsonScheam_v3_ant/style/sechma-form.less";
 .addDialog {
-  width: 1250px;
+  width: 80%;
   height: 100%;
   margin: 0 auto;
   // margin: -50px auto 0;

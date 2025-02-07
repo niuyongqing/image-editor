@@ -6,6 +6,8 @@
   <div class="content">
     <a-form 
       :model="formState" 
+      :label-col="{ span: 3 }"
+      labelWrap
     >
       <a-form-item
         label="变种主题："
@@ -66,23 +68,252 @@
       stripe
       class="variation-table"
       ref="tableRef"
-      :scroll="{ y: 200 }"
+      :scroll="{ y: 500 }"
       :row-key="record => record.key"
       :pagination="false"
     >
+      <template #headerCell="{ column }">
+        <div>
+          <span
+            style="color: red; margin-right: 4px;"
+            v-if="['SKU', 'conditionType', 'ourPrice', 'quality'].includes(column.dataIndex)"
+          >*</span>
+          <span v-if="column.dataIndex !== 'MPN'">
+            {{ column.title }}
+          </span>
+        </div>
+        <div v-if="column.key === 'SKU'">
+          (
+            <a-button @click="sukHeaderDialog(column, 'foundation')" type="link" >一键生成</a-button>
+            ·
+            <a-button @click="sukHeaderDialog(column, 'senior')" type="link">高级</a-button>
+          )
+        </div>
+        <div v-if="column.dataIndex === 'MPN'">
+          <div>
+            <div style="display: flex; justify-content: center;">
+              <!-- <span style="color: red; margin-right: 4px;">*</span> -->
+              <a-select
+                ref="select"
+                v-model:value="column.key"
+                style="width: 100px"
+                @change="val => MPNChange(val, column.select)"
+              >
+                <a-select-option
+                  v-for="i in column.select" 
+                  :value="i"
+                  :key="i"
+                > {{ i }} </a-select-option>
+              </a-select>
+              <a-tooltip>
+                <template #title>
+                  UPC需填写12位数的数字<br/>
+                  EAN需填写13位数的数字<br/>
+                  GTIN需填写12/13/14位数的数字<br/>
+                  不同变种sku对应UPC/EAN/GTIN不可重复使用
+                </template>
+                <QuestionCircleOutlined style="margin-left: 6px;" />
+              </a-tooltip>
+            </div>
+          </div>
+        </div>
+        <div v-if="column.key === 'SKUTitle'">
+          (
+            <a-button @click="sukHeaderDialog(column, 'foundation')" type="link" >一键生成</a-button>
+            ·
+            <a-button @click="sukHeaderDialog(column, 'senior')" type="link">高级</a-button>
+          )
+        </div>
+        <div v-if="column.key === 'conditionType'">
+          (
+            <a-button @click="sukHeaderDialog(column, 'senior')" type="link">批量</a-button>
+          )
+        </div>
+        <div v-if="column.key === 'describe'">
+          (
+            <a-button @click="sukHeaderDialog(column, 'senior')" type="link">批量</a-button>
+          )
+        </div>
+        <div v-if="column.key === 'ourPrice'">
+          (
+            <a-button @click="sukHeaderDialog(column, 'senior')" type="link">批量</a-button>
+          )
+        </div>
+        <div v-if="column.key === 'quality'">
+          (
+            <a-button @click="sukHeaderDialog(column, 'senior')" type="link">批量</a-button>
+          )
+        </div>
+        <div v-if="column.key === 'discountedPrice'">
+          (
+            <a-button @click="sukHeaderDialog(column, 'senior')" type="link">批量</a-button>
+          )
+        </div>
+        <div v-if="column.key === 'discountedTime'">
+          (
+            <a-button @click="sukHeaderDialog(column, 'senior')" type="link">批量</a-button>
+          )
+        </div>
+      </template>
       <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'type'">
-          <div>变体：{{ record.amazonProducts.length }}</div>
+        <template v-if="variationHeaders.map(i => i.key).includes(column.key)">
+          <div>{{ record[column.key].label }}</div>
+        </template>
+        <template v-if="column.key === 'SKU'">
+          <div>
+            <a-form :model="record" :ref="`${record.rowId}_${column.key}`">
+              <a-form-item
+                :name="column.key"
+                :rules="[{ required: true, message: '请输入SKU' }]"
+              >
+                <a-input v-model:value="record[column.key]" />
+              </a-form-item>
+            </a-form>
+          </div>
+        </template>
+        <template v-if="column.dataIndex === 'MPN'">
+          <div>
+            <a-form :model="record" :ref="`${record.rowId}_${column.key}`">
+              <a-form-item
+                :name="column.key"
+                :rules="[{ required: true, message: `请输入${column.key}` }]"
+              >
+                <a-input v-model:value="record[column.key]" />
+              </a-form-item>
+            </a-form>
+          </div>
+        </template>
+        <template v-if="column.key === 'SKUTitle'">
+          <div>
+            <a-input v-model:value="record[column.key]" />
+            <div style="height: 24px;"></div>
+          </div>
+        </template>
+        <template v-if="column.key === 'conditionType'">
+          <div>
+            <a-form :model="record" :ref="`${record.rowId}_${column.key}`">
+              <a-form-item
+                :name="column.key"
+                :rules="[{ required: true, message: '请选择物品状况' }]"
+              >
+                <a-select
+                  v-model:value="record[column.key]"
+                  showSearch
+                >
+                  <a-select-option 
+                    :value="item.value"
+                    :key="item.label"
+                    v-for="item in conditionType"
+                  >{{ item.label }}</a-select-option>
+                </a-select>
+              </a-form-item>
+            </a-form>
+          </div>
+        </template>
+        <template v-if="column.key === 'describe'">
+          <div>
+            <a-input v-model:value="record[column.key]" />
+            <div style="height: 24px;"></div>
+          </div>
+        </template>
+        <template v-if="['quality','ourPrice'].includes(column.key)">
+          <div>
+            <a-form :model="record" :ref="`${record.rowId}_${column.key}`">
+              <a-form-item
+                :name="column.key"
+                :rules="[{ required: true, message: `请输入${column.title}` }]"
+              >
+                <a-input-number style="width: 110px;" :min="1" v-model:value="record[column.key]" />
+                <a-dropdown :trigger="['click']">
+                  <ExportOutlined style="margin-left: 6px;" />
+                  <template #overlay>
+                    <a-menu>
+                      <a-menu-item>
+                        <div class="dropdown-item" @click="shareData(record, '', column.key, 'all')">
+                          {{ `应用到全部` }}
+                        </div>
+                      </a-menu-item>
+                      <a-menu-item 
+                        v-for="(dropdownItem, index) in variationHeaders"
+                        :key="index + dropdownItem.key" 
+                      >
+                        <div class="dropdown-item" @click="shareData(record, dropdownItem.key, column.key, 'identical')">
+                          {{ `应用到所有 ${record[dropdownItem.key].label} ` }}
+                        </div>
+                      </a-menu-item>
+                    </a-menu>
+                  </template>
+                </a-dropdown>
+              </a-form-item>
+            </a-form>
+          </div>
+        </template>
+        <!-- <template v-if="column.key === 'quality'">
+          <div>
+            <a-form :model="record" :ref="`${record.rowId}_${column.key}`">
+              <a-form-item
+                :name="column.key"
+                :rules="[{ required: true, message: '请输入数量' }]"
+              >
+                <a-input-number style="width: 110px;" :min="1" v-model:value="record[column.key]" />
+              </a-form-item>
+            </a-form>
+          </div>
+        </template> -->
+        <template v-if="column.key === 'discountedPrice'">
+          <div>
+            <a-input-number style="width: 110px;" :min="1" v-model:value="record[column.key]" />
+            <a-dropdown :trigger="['click']">
+              <ExportOutlined style="margin-left: 6px;" />
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item>
+                    <div class="dropdown-item" @click="shareData(record, '', column.key, 'all')">
+                      {{ `应用到全部` }}
+                    </div>
+                  </a-menu-item>
+                  <a-menu-item 
+                    v-for="(dropdownItem, index) in variationHeaders"
+                    :key="index + dropdownItem.key" 
+                  >
+                    <div class="dropdown-item" @click="shareData(record, dropdownItem.key, column.key, 'identical')">
+                      {{ `应用到所有 ${record[dropdownItem.key].label} ` }}
+                    </div>
+                  </a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
+            <div style="height: 24px;"></div>
+          </div>
+        </template>
+        <template v-if="column.key === 'discountedTime'">
+          <div>
+            <a-range-picker v-model:value="record[column.key]" />
+            <div style="height: 24px;"></div>
+          </div>
+        </template>
+        <template v-if="column.key === 'options'">
+          <div>
+            <a-button @click="delRow(record)" danger type="text">删除</a-button>
+            <div style="height: 24px;"></div>
+          </div>
         </template>
       </template>
     </a-table>
   </div>
+  <skuEdit 
+    v-model:open="modalInfo.skuEdit.open"
+    :suk-dialog-data="modalInfo.skuEdit.data"
+    @editDone="editDone"
+    @sukGenerate="sukGenerate"
+  ></skuEdit>
 </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-import { EditOutlined, UndoOutlined, CheckOutlined } from '@ant-design/icons-vue';
+import { EditOutlined, UndoOutlined, CheckOutlined, QuestionCircleOutlined, ExportOutlined } from '@ant-design/icons-vue';
+import skuEdit from './modal/skuEdit.vue';
 defineOptions({ name: "variationInfo" })
 const { proxy: _this } = getCurrentInstance();
 const props = defineProps({
@@ -102,7 +333,8 @@ const formState = reactive({
   variationList: [],
   tableData: []
 })
-const variationHeaders = ref([]) // 变种主题表头
+const conditionType = ref([])     // 变种信息物品状况列表
+const variationHeaders = ref([])  // 变种主题表头
 const headers = [ // 固定表头
   {
     title: 'SKU',
@@ -112,7 +344,8 @@ const headers = [ // 固定表头
     sortable:false,
     show: true,
     width: 200,
-    filter:false,
+    filter: false,
+    valueType: 'string',
   },
   {
     title: 'MPN',
@@ -123,6 +356,19 @@ const headers = [ // 固定表头
     show: true,
     width: 200,
     filter:false,
+    valueType: 'string',
+    select: ['MPN','EAN','GTIN','UPC']
+  },
+  {
+    title: 'SKU标题',
+    dataIndex: 'SKUTitle',
+    key: 'SKUTitle',
+    align:"center",
+    sortable:false,
+    show: true,
+    width: 300,
+    filter: false,
+    valueType: 'string',
   },
   {
     title: '物品状况',
@@ -133,6 +379,7 @@ const headers = [ // 固定表头
     show: true,
     width: 200,
     filter:false,
+    valueType: 'string',
   },
   {
     title: '物品描述',
@@ -143,6 +390,7 @@ const headers = [ // 固定表头
     show: true,
     width: 200,
     filter:false,
+    valueType: 'string',
   },
   {
     title: '价格',
@@ -151,8 +399,9 @@ const headers = [ // 固定表头
     align:"center",
     sortable:false,
     show: true,
-    width: 200,
+    width: 160,
     filter:false,
+    valueType: 'number',
   },
   {
     title: '数量',
@@ -161,8 +410,9 @@ const headers = [ // 固定表头
     align:"center",
     sortable:false,
     show: true,
-    width: 200,
+    width: 160,
     filter:false,
+    valueType: 'number',
   },
   {
     title: '促销价',
@@ -171,8 +421,9 @@ const headers = [ // 固定表头
     align:"center",
     sortable:false,
     show: true,
-    width: 200,
+    width: 160,
     filter:false,
+    valueType: 'number',
   },
   {
     title: '促销时间',
@@ -181,8 +432,9 @@ const headers = [ // 固定表头
     align:"center",
     sortable:false,
     show: true,
-    width: 200,
+    width: 240,
     filter:false,
+    valueType: 'array',
   },
   {
     title: '操作',
@@ -191,12 +443,37 @@ const headers = [ // 固定表头
     align:"center",
     sortable:false,
     show: true,
-    width: 200,
+    width: 80,
     filter:false,
+    fixed: 'right',
   }
 ];
+const modalInfo = reactive({
+  skuEdit: {
+    open: false,
+    data: {
+      show: false,
+      headerList: [],           // 表头
+      type: 'foundation',       // foundation: 一键生成 senior: 高级
+      variantInfo: [],           // 变种信息
+      prop: '',
+    },
+  }
+})
+// 展示的表头
 const resultHeader = computed(() => {
   return [...variationHeaders.value, ...headers]
+})
+onMounted(() => {
+  // 创建变种信息物品状况列表
+  if (props.variationThemeData.data.condition_type) {
+    conditionType.value = props.variationThemeData.data.condition_type.items.properties.value.enumNames.map((i, index) => {
+      return {
+        label: i, 
+        value: props.variationThemeData.data.condition_type.items.properties.value.enum[index]
+      }
+    })
+  }
 })
 // 切换变种主题
 function themeChange(val) {
@@ -205,11 +482,12 @@ function themeChange(val) {
   value.forEach(item => {
     obj[item] = props.variationThemeData.data[item]
   })
+  formState.tableData = []
   setVariation(obj, value)
 }
 // 创建变种
 function setVariation(data, val) {
-  console.log({ val, data });
+  // console.log({ val, data });
   let list = val.map(i => {
     let item = data[i]
     let obj = {
@@ -245,7 +523,7 @@ function setVariation(data, val) {
       align:"center",
       sortable:false,
       show: true,
-      width: 200,
+      width: 150,
       filter:false,
     }
   })
@@ -306,7 +584,7 @@ function iconClick(type, themeItem, variationItem) {
 }
 // 变种属性勾选
 function checkboxChage(themeItem, variationItem) {
-  console.log({themeItem, variationItem});
+  // console.log({themeItem, variationItem});
   if (themeItem.checked) {
     variationItem.params.push(themeItem)
   } else if (!themeItem.checked) {
@@ -318,7 +596,6 @@ function checkboxChage(themeItem, variationItem) {
 }
 // 生成变种信息
 function creatVariationInfo(e, val, variationItem) {
-  let keys = headers.map(i => i.key)
   if (!e) {
     // 取消点选属性，删除变种信息
     if (variationItem.params.length > 0) {
@@ -336,8 +613,12 @@ function creatVariationInfo(e, val, variationItem) {
   if (formState.tableData.length < 1) {
     let obj = {}
     obj[variationItem.id] = {...val}
-    keys.forEach(item => {
-      obj[item] = ''
+    headers.forEach(item => {
+      if (item.valueType === 'array') {
+        obj[item.key] = []
+      } else {
+        obj[item.key] = ''
+      }
     })
     formState.tableData.push(obj)
   } else {
@@ -370,22 +651,98 @@ function creatVariationInfo(e, val, variationItem) {
       })
       list.forEach(item => {
         item[variationItem.id] = {...val}
-        keys.forEach(key => {
-          item[key] = ''
+        headers.forEach(head => {
+          if (head.valueType === 'array') {
+            item[head.key] = []
+          } else {
+            item[head.key] = ''
+          }
         })
       })
       // 将创建的信息添加到数据中
       formState.tableData = [...formState.tableData,...list]
-      formState.tableData.forEach((item, ind) => {
-        item.rowId = ind
-      })
     }
+  }
+  formState.tableData.forEach((item, ind) => {
+    if (!item.rowId) {
+      item.rowId = 'sku_info_' + createRandom()
+    }
+  })
+}
+// 删除变种信息
+function delRow(row) {
+  let index = formState.tableData.findIndex(i => i.rowId === row.rowId)
+  formState.tableData.splice(index, 1)
+  Object.keys(row).forEach(item => {
+    if (formState.variationList.some(i => i.id === item)) {
+      if (!formState.tableData.some(i => i[item].key === row[item].key)) {
+        let variant = formState.variationList.find(i => i.id === item)
+        variant.params = variant.params.filter(i => i.key !== row[item].key)
+        variant.values.forEach(val => {
+          if (val.key === row[item].key) {
+            val.checked = false
+          }
+        })
+      }
+    }
+  })
+}
+// 校验必填项
+async function validateVariationInfo() {
+  let infoKeys = Object.keys(_this.$refs).filter(i => i.includes('sku_info_'))
+  for (const item of infoKeys) {
+    _this.$refs[item].validateFields()
   }
 }
 // 生成一个随机数
 function createRandom() {
   return Math.floor(Math.random() * 100000000000) + ''
 }
+// 表头复选框变化
+function MPNChange(val, select) {
+  // console.log({val});
+  // 删除之前的选项，给新选项赋值
+  formState.tableData.forEach(item => {
+    Object.keys(item).forEach(key => {
+      if (select.includes(key)) {
+        let str = item[key]
+        delete item[key]
+        item[val] = str
+      }
+    })
+  })
+  _this.$forceUpdate()
+}
+function shareData(row, target, val, type) {
+  formState.tableData.forEach(item => {
+    if (type === 'all') {
+      item[val] = row[val]
+    } else if (type === 'identical' && item[target].key === row[target].key) {
+      item[val] = row[val]
+    }
+  })
+}
+// suk表头弹窗
+function sukHeaderDialog(column, type) {
+  // console.log({column, type});
+  modalInfo.skuEdit.open = true
+  modalInfo.skuEdit.data = {
+    headerList: variationHeaders.value,           // 表头
+    type: type,       // foundation: 一键生成 senior: 高级
+    variantInfo: formState.tableData,           // 变种信息
+    prop: column.key,
+  }
+}
+// 弹窗确认关闭
+function editDone(key) {
+  modalInfo[key].open = false
+}
+function sukGenerate(data) {
+  data && (formState.tableData = data)
+}
+defineExpose({
+  validateVariationInfo
+})
 </script>
 <style lang="less" scoped>
 .variationInfo {
