@@ -95,7 +95,7 @@
   const query = useRoute().query
   const queryDetailLoading = ref(false)
   const productDetail = ref({})
-  let draftId = undefined
+  let draftsId = undefined
   getDetail()
 
   function getDetail() {
@@ -103,9 +103,9 @@
 
     queryDetailLoading.value = true
     const store = useAliexpressPopProductStore()
-    if (query.draftId) {
+    if (query.draftsId) {
       // 草稿
-      getProductDraftsApi({ uuid: query.draftId })
+      getProductDraftsApi({ uuid: query.draftsId })
         .then(res => {
           if (res.data) {
             const detail = {

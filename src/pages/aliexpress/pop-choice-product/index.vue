@@ -210,14 +210,14 @@
               v-if="curTab === '1'"
               type="text"
               style="color: #0b56fa"
-              @click="edit(record, { isEdit: true })"
+              @click="goPublish(record, { isEdit: true })"
               >编辑</a-button
             >
             <a-button
               v-if="curTab === '2'"
               type="text"
               style="color: #0b56fa"
-              @click="edit(record, { isEdit: false })"
+              @click="goPublish(record, { isEdit: false })"
               >加入</a-button
             >
             <a-button
@@ -580,13 +580,12 @@
       goAliExpress(productId) {
         window.open(`https://vi.aliexpress.com/item/${productId}.html`)
       },
-      edit(record, { isEdit = true }) {},
-      goPublish(record) {
+      goPublish(record, { isEdit = true }) {
         let query = ''
         if (record) {
-          query = `?sellerId=${record.sellerId}&productId=${record.productId}`
+          query = `?sellerId=${record.sellerId}&productId=${record.productId}&isEdit=${isEdit}`
         }
-        window.open(location.origin + '/platform/aliexpress/choice-product-publish' + query)
+        window.open(location.origin + '/platform/aliexpress/pop-choice-product-publish' + query)
       }
     }
   }

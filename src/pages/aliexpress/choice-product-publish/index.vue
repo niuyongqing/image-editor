@@ -12,15 +12,17 @@
           type="primary"
           :loading="saveLoading"
           @click="submit"
-          >提交</a-button
+          >提 交</a-button
         >
       </a-space>
+
       <BaseInfo ref="baseInfoRef" />
       <ImageInfo ref="imageInfoRef" />
       <SKUInfo ref="SKUInfoRef" />
       <ChoiceInfo ref="choiceInfoRef" />
       <Description ref="descriptionRef" />
       <Others ref="othersRef" />
+      
       <a-space class="mt-3 pr-4 w-full justify-end">
         <a-button
           :loading="saveLoading"
