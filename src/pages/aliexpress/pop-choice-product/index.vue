@@ -207,14 +207,14 @@
           </div>
           <div v-if="column.key === 'option'">
             <a-button
-              v-if="curTab === '1'"
+              v-if="activeTab === '1'"
               type="text"
               style="color: #0b56fa"
               @click="goPublish(record, { isEdit: true })"
               >编辑</a-button
             >
             <a-button
-              v-if="curTab === '2'"
+              v-if="activeTab === '2'"
               type="text"
               style="color: #0b56fa"
               @click="goPublish(record, { isEdit: false })"
@@ -227,7 +227,7 @@
               >同步</a-button
             >
             <a-popconfirm
-              v-if="curTab === '1'"
+              v-if="activeTab === '1'"
               title="删除吗?"
               @confirm="del(record)"
             >
@@ -334,7 +334,6 @@
           { label: '可加入', value: '2' }
         ],
         activeTab: '1', // '1'-已加入; '2'-可加入;
-        curTab: '1',
         requestApi: listApi,
         DEFAULT_TABLE_COLUMN,
         tableHeader: [],
@@ -374,13 +373,10 @@
     },
     methods: {
       tabChange() {
-        if (this.activeTab === this.curTab) return
-
-        this.curTab = this.activeTab
         this.tableParams.pageNum = 1
         this.requestApi = this.activeTab === '1' ? listApi : waitPublishListApi
         this.getList()
-      },
+      }, 
       // 获取表头
       getTableHeader() {
         this.tableHeader = this.DEFAULT_TABLE_COLUMN
@@ -423,7 +419,7 @@
               item.SKUExpand = false
               item.images = item.imageURLs ? item.imageURLs.split(';') : ''
               // 将[已加入]列表数据格式转换成[可加入]格式
-              if (this.curTab === '1') {
+              if (this.activeTab === '1') {
                 const popChoiceProduct = item.result.popChoiceProduct || {}
 
                 // SKU info
@@ -483,7 +479,7 @@
           sellerId: record.sellerId,
           productId: record.productId
         }
-        const requestApi = this.curTab === '1' ? syncOneApi : syncWaitPublishOneApi
+        const requestApi = this.activeTab === '1' ? syncOneApi : syncWaitPublishOneApi
         requestApi(params).then(res => {
           message.success(res.msg)
           this.getList()

@@ -216,6 +216,7 @@
               v-model:value="record[column.dataIndex]"
               :options="originalBoxOption"
               placeholder="请选择"
+              class="w-20"
             >
             </a-select>
             <a-input-number

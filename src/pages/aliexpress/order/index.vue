@@ -61,12 +61,24 @@
               />
             </a-form-item>
             <a-form-item
+              name="queryHistoryOrder"
+              label="订单类型"
+            >
+              <a-radio-group
+                v-model:value="lazySearchForm.queryHistoryOrder"
+                @change="() => (lazySearchForm.createTime = null)"
+              >
+                <a-radio :value="false">120天内订单</a-radio>
+                <a-radio :value="true">历史订单</a-radio>
+              </a-radio-group>
+            </a-form-item>
+            <a-form-item
               name="createTime"
               label="创建时间"
             >
               <a-range-picker
                 v-model:value="lazySearchForm.createTime"
-                :disabled-date="cur => cur > Date.now()"
+                :disabled-date="disabledDate"
                 allow-clear
               >
               </a-range-picker>
@@ -113,7 +125,7 @@
         :disabled="!lazySearchForm.createTime"
         :loading="syncLoading"
         @click="sync"
-        >同步数据</a-button
+        >{{ lazySearchForm.queryHistoryOrder ? '同步历史数据' : '同步数据' }}</a-button
       >
       <a-button
         type="primary"
@@ -259,7 +271,7 @@
   import { copyText } from '@/utils'
   import download from '@/api/common/download'
   import { accountCacheApi } from '../apis/common'
-  import { orderListApi, orderExportApi, orderSyncApi, syncProgressApi } from '../apis/order'
+  import { orderListApi, orderExportApi, orderSyncApi, orderSyncHistoryApi, syncProgressApi } from '../apis/order'
   import { DEFAULT_TABLE_COLUMN, STATUS_OPTIONS } from './config'
   import dayjs from 'dayjs'
   import { CopyOutlined } from '@ant-design/icons-vue'
@@ -305,6 +317,7 @@
     searchKey: 'productName',
     searchValue: undefined,
     orderStatus: undefined,
+    queryHistoryOrder: false,
     createTime: null
   })
   const searchPropOptions = ref([
@@ -320,6 +333,17 @@
     pageNum: 1,
     pageSize: 50
   })
+
+  // 创建时间禁选区间
+  function disabledDate(cur) {
+    if (lazySearchForm.value.queryHistoryOrder) {
+      // 历史订单
+      return cur > dayjs().subtract(120, 'day')
+    } else {
+      // 120 天内
+      return cur < dayjs().subtract(120, 'day') || cur > dayjs()
+    }
+  }
 
   function toggleFold() {
     if (isFold.value) {
@@ -394,7 +418,8 @@
       createDateStart: dayjs(lazySearchForm.value.createTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss'),
       createDateEnd: dayjs(lazySearchForm.value.createTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss')
     }
-    orderSyncApi(params)
+    const requestApi = lazySearchForm.value.queryHistoryOrder ? orderSyncHistoryApi : orderSyncApi
+    requestApi(params)
       .then(res => {
         getSyncProgress(res.data)
       })

@@ -23,6 +23,11 @@ export function orderSyncApi(params) {
   return usePost('/platform-aliexpress/platform/aliexpress/order/sync', params)
 }
 
+// 历史订单同步
+export function orderSyncHistoryApi(params) {
+  return usePost('/platform-aliexpress/platform/aliexpress/order/sync/history', params)
+}
+
 // 订单同步进度条
 export function syncProgressApi(token) {
   return useGet(`/platform-aliexpress/platform/aliexpress/order/sync-progress?token=${token}`)
