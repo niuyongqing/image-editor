@@ -1,9 +1,6 @@
 <template>
-  <div id="financeCont" ref="financeContRef">
+  <div id="financeCont">
     <a-card style="margin: 10px 0">
-      <!-- <a-float-button-group shape="circle">
-        <a-back-top :visibility-height="0" @click="backToTop" />
-      </a-float-button-group> -->
       <a-form
         ref="formRef"
         :model="formState"
@@ -11,11 +8,37 @@
         :wrapper-col="wrapperCol"
       >
         <a-form-item label="时间筛选：" name="times">
-          <a-range-picker
-            format="YYYY-MM-DD"
-            v-model:value="formState.times"
-            @change="onRangeChange"
-          />
+          <div class="timesBox">
+            <div style="display: flex">
+              <div class="fBox">
+                <a-button
+                  @click="timeChange(item.prop)"
+                  :type="item.prop === actives ? 'primary' : ''"
+                  v-for="(item, index) in timeList"
+                  :key="index"
+                  >{{ item.label }}</a-button
+                >
+              </div>
+              <a-form-item-rest>
+                <a-range-picker
+                  style="margin-left: 10px"
+                  v-model:value="formState.times"
+                  @change="onRangeChange"
+                />
+              </a-form-item-rest>
+            </div>
+
+            <div style="float: right">
+              <a-form-item-rest>
+                <a-select
+                  ref="shopSelect"
+                  style="width: 80px"
+                  v-model:value="formState.currenc"
+                  :options="currencyList"
+                ></a-select>
+              </a-form-item-rest>
+            </div>
+          </div>
         </a-form-item>
         <a-form-item label="店铺账号：" name="checkedList">
           <div class="setBox" v-if="shopOptions.length != 0">
@@ -32,6 +55,7 @@
               <a-checkbox-group
                 v-model:value="formState.checkedList"
                 :options="shopOptions"
+                @change="getList"
               />
             </a-form-item-rest>
           </div>
@@ -51,28 +75,73 @@
               <a-checkbox-group
                 v-model:value="formState.marketplaces"
                 :options="countryOptions"
+                @change="getList"
               />
             </a-form-item-rest>
           </div>
         </a-form-item>
       </a-form>
     </a-card>
-    <a-card style="height: 100vh">
-      <a-row>
-        <a-col :span="1"
-          ><a-button type="primary" :loading="btnLoading" @click="exportList"
-            >导出财务数据</a-button
+    <a-card>
+      <div style="display: flex; justify-content: space-around">
+        <div v-for="(item, index) in statisticsList" :key="index">
+          <span style="color: #a0a3a6; font-size: 18px">{{ item.title }}</span>
+          <div
+            style="
+              color: #434649;
+              font-size: 18px;
+              font-weight: 600;
+              text-align: right;
+            "
           >
-        </a-col>
+            <span v-if="item.title === '销售额' || item.title === '退款金额'">{{
+              formState.currenc == "1" ? "$" : "￥"
+            }}</span
+            ><span>{{ item.value }}</span>
+          </div>
+        </div>
+      </div>
+    </a-card>
+    <div style="text-align: right; margin-top: 20px">
+      <div>
+        <a-select
+          ref="shopSelect"
+          style="width: 120px; margin-right: 10px"
+          v-model:value="searchType"
+          :options="searchList"
+        ></a-select>
+        <a-input-search
+          v-model:value="skuCont"
+          v-if="searchType == 1"
+          placeholder="SKU"
+          style="width: 200px"
+          @search="getList"
+        />
+        <a-input-search
+          v-model:value="descCont"
+          v-if="searchType == 2"
+          placeholder="产品标题"
+          style="width: 200px"
+          @search="getList"
+        />
+      </div>
+    </div>
+    <a-card style="height: 100vh; margin-top: 10px">
+      <a-row>
         <a-col :span="1"
           ><a-button type="primary" :loading="btnLoading" @click="asyncList"
             >同步数据</a-button
           >
         </a-col>
-        <a-col :span="18"></a-col>
-        <a-col :span="4">
+        <a-col :span="1.5"
+          ><a-button type="primary" :loading="btnLoading" @click="exportList"
+            >导出财务数据</a-button
+          >
+        </a-col>
+        <a-col :span="16"></a-col>
+        <!-- <a-col :span="6">
           <a-pagination
-            style="text-align: right; margin-top: 10px"
+            style="text-align: right"
             :show-total="(total) => `共 ${paginations.total} 条`"
             v-model:current="paginations.pageNum"
             v-model:pageSize="paginations.pageSize"
@@ -82,7 +151,7 @@
             :showSizeChanger="true"
             :pageSizeOptions="[50, 100, 200]"
           />
-        </a-col>
+        </a-col> -->
       </a-row>
       <div style="margin-top: 10px">
         <a-table
@@ -133,16 +202,51 @@ import {
 import tableHead from "@/pages/amazon/js/tableHead/finance";
 import download from "@/api/common/download";
 import { message } from "ant-design-vue";
-
 const labelCol = {
   style: {
     width: "80px",
   },
 };
 const wrapperCol = {
-  span: 20,
+  span: 24,
 };
-const financeContRef = ref(null);
+const skuCont = ref("");
+const descCont = ref("");
+const searchType = ref(1);
+const searchList = ref([
+  {
+    label: "SKU",
+    value: 1,
+  },
+  {
+    label: "产品标题",
+    value: 2,
+  },
+]);
+const currencyList = ref([
+  {
+    label: "USD",
+    value: "1",
+  },
+  {
+    label: "RMB",
+    value: "2",
+  },
+]);
+const timeList = ref([
+  {
+    label: "上月",
+    prop: "lastMonth",
+  },
+  {
+    label: "上周",
+    prop: "lastWeek",
+  },
+  {
+    label: "本月",
+    prop: "thisMonth",
+  },
+]);
 const shopOptions = ref([]);
 const countryOptions = ref([]);
 const formState = reactive({
@@ -155,19 +259,41 @@ const formState = reactive({
   countryCheckAll: false,
   countryIndeterminate: true,
   marketplaces: [],
+  currenc: "1",
 });
 const tableData = ref([]);
+const statisticsList = ref([
+  {
+    title: "SKU数量",
+    value: "0",
+  },
+  {
+    title: "销售数量	",
+    value: "0",
+  },
+  {
+    title: "销售额",
+    value: "0",
+  },
+  {
+    title: "退款数量",
+    value: "0",
+  },
+  {
+    title: "退款金额",
+    value: "0",
+  },
+]);
 const loading = ref(false);
 const btnLoading = ref(false);
 const columns = tableHead;
+const actives = ref("thisMonth");
 const paginations = ref({
   pageNum: 1,
   pageSize: 50,
   total: 0,
   pageSizeOptions: [50, 100, 200],
 });
-const tableHeight = ref(0);
-const tableContainer = ref(null);
 
 // 监听formState.checkedList的变化
 watch(
@@ -208,9 +334,47 @@ watchEffect(() => {
     getList();
   }
 });
+// 时间切换
 const onRangeChange = (value, dateString) => {
   formState.sTime = dateString[0];
   formState.endTime = dateString[1];
+};
+// 时间筛选
+const timeChange = (val) => {
+  actives.value = val;
+  switch (val) {
+    case "lastMonth":
+      // 获取上个月的开始时间（上个月的第一天 00:00:00）
+      const startOfLastMonth = dayjs().subtract(1, "month").startOf("month");
+      // 获取上个月的结束时间（上个月的最后一天 23:59:59）
+      const endOfLastMonth = dayjs().subtract(1, "month").endOf("month");
+      formState.times = [startOfLastMonth, endOfLastMonth];
+      formState.sTime = startOfLastMonth.format("YYYY-MM-DD");
+      formState.endTime = endOfLastMonth.format("YYYY-MM-DD");
+      break;
+    case "lastWeek":
+      // 获取本周的开始时间（周一 00:00:00）
+      const startOfThisWeek = dayjs().startOf("week");
+      // 获取本周的开始时间往前推7天，就是上周的开始时间（上周周一 00:00:00）
+      const startOfLastWeek = startOfThisWeek.subtract(7, "day");
+      // 获取上周的结束时间（上周周日 23:59:59），先获取本周开始时间再减去1天
+      const endOfLastWeek = startOfThisWeek.subtract(1, "day");
+
+      formState.times = [startOfLastWeek, endOfLastWeek];
+      formState.sTime = startOfLastWeek.format("YYYY-MM-DD");
+      formState.endTime = endOfLastWeek.format("YYYY-MM-DD");
+      break;
+    case "thisMonth":
+      const startOfMonth = dayjs().startOf("month");
+      const endOfMonth = dayjs().endOf("month");
+
+      formState.times = [startOfMonth, endOfMonth];
+      formState.sTime = startOfMonth.format("YYYY-MM-DD");
+      formState.endTime = endOfMonth.format("YYYY-MM-DD");
+      break;
+    default:
+      break;
+  }
 };
 // 店铺选择
 const onCheckAllChange = (e) => {
@@ -218,11 +382,14 @@ const onCheckAllChange = (e) => {
     checkedList: e.target.checked ? shopOptions.value.map((e) => e.value) : [],
     indeterminate: false,
   });
+  // getList();
 };
-
+// 获取列表数据
 const getList = () => {
   loading.value = true;
   let params = {
+    sku: skuCont.value,
+    description: descCont.value,
     postedAfter: formState.endTime,
     postedBefore: formState.sTime,
     shopId: formState.checkedList,
@@ -251,16 +418,17 @@ const onCountryCheckAllChange = (e) => {
 
 // 店铺数据
 const getShopList = () => {
-  queryShop().then((res) => {
-    formState.checkedList = res?.data?.map((e) => e.id);
-    shopOptions.value = res?.data?.map((item) => {
-      return {
-        label: item.shopName,
-        value: item.id,
-        areaEnName: item.areaEnName,
-      };
-    });
-  });
+  queryShop()
+    .then((res) => {
+      formState.checkedList = res?.data?.map((e) => e.id);
+      shopOptions.value = res?.data?.map((item) => {
+        return {
+          label: item.shopName,
+          value: item.id,
+          areaEnName: item.areaEnName,
+        };
+      });
+    })
 };
 // 店铺对应站点
 const getQueryAreaName = (list) => {
@@ -317,33 +485,13 @@ const asyncList = () => {
     });
 };
 
-// const backToTop = () => {
-//   let elements = document.getElementsByClassName('ant-layout-content');
-//   // if (financeContRef.value) {
-//   //   console.log(11);
-    
-//   //   financeContRef.value.scrollTop = 0;
-//   // }
-//   elements[0].scrollTop = 0
-//   console.log('elements',elements);
-  
-// };
-
-const setTableHeight = () => {
-  if (tableContainer.value) {
-    tableHeight.value =
-      window.innerHeight -
-      tableContainer.value.getBoundingClientRect().top -
-      140; // 偏移量可根据需求调整
-  }
-};
 onMounted(() => {
   getShopList();
-  setTableHeight();
-  window.addEventListener("resize", setTableHeight);
-});
-onUnmounted(() => {
-  window.removeEventListener("resize", setTableHeight);
+  const startOfMonth = dayjs().startOf("month");
+  const endOfMonth = dayjs().endOf("month");
+  formState.times = [startOfMonth, endOfMonth];
+  formState.sTime = startOfMonth.format("YYYY-MM-DD");
+  formState.endTime = endOfMonth.format("YYYY-MM-DD");
 });
 </script>
 <style lang="less" scoped>
@@ -360,9 +508,24 @@ onUnmounted(() => {
     }
   }
 }
-// :deep(.pages) {
-//   .ant-pagination-options .ant-select {
-//     width: 100px;
-//   }
-// }
+:deep(.pages) {
+  .ant-pagination-options .ant-select {
+    width: 100px;
+  }
+}
+:deep(.ant-form-item-control-input-content) {
+  .timesBox {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+
+    .fBox {
+      display: flex;
+      .ant-btn {
+        margin: 0 5px;
+        cursor: pointer;
+      }
+    }
+  }
+}
 </style>

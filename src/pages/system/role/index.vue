@@ -425,7 +425,7 @@ function generateTreeRoutes(menus) {
             </div>
           </template>
         </a-table>
-        <a-pagination style="text-align: right;margin-top: 10px;" :current="pagination.pageNum" :page-size="pagination.pageSize" :page-size-options="pagination.pageSizeOptions" :show-quick-jumper="true" :show-less-items="true" :show-title="true" :show-total="showTotal" :total="pagination.total" @change="handleTableChange"/>
+<!--        <a-pagination style="text-align: right;margin-top: 10px;" :current="pagination.pageNum" :page-size="pagination.pageSize" :page-size-options="pagination.pageSizeOptions" :show-quick-jumper="true" :show-less-items="true" :show-title="true" :show-total="showTotal" :total="pagination.total" @change="handleTableChange"/>-->
     </div>
     </a-card>
     <add-or-edit :open="open" :title="title" :data="editData" :menu="menu" @close="close"></add-or-edit>

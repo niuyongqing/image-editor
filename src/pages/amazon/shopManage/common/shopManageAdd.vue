@@ -4,8 +4,10 @@
       :open="props.showAddModal"
       title="新增"
       @cancel="handleCancel"
-      :footer="null"
+      @ok="onSubmit"
       :width="600"
+      :maskClosable="false"
+      :keyboard="false"
     >
       <a-form
         ref="formRef"
@@ -42,14 +44,6 @@
             v-model:value="formState.simpleName"
             placeholder="请输入内容"
           ></a-input>
-        </a-form-item>
-        <a-form-item :wrapper-col="{ span: 14, offset: 4 }">
-          <a-button type="primary" :loading="okType" @click="onSubmit"
-            >确定</a-button
-          >
-          <a-button style="margin-left: 10px" @click="handleCancel"
-            >重置</a-button
-          >
         </a-form-item>
       </a-form>
     </a-modal>

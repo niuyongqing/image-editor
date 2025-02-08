@@ -214,6 +214,7 @@
         row-key="productId"
         :pagination="false"
         :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }"
+        :scroll="{ x: 'max-content' }"
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'productId'">
@@ -409,7 +410,7 @@
           :columns="stockColumn"
           :data-source="stockTable"
           :loading="stockLoading"
-          :scroll="{ y: 800 }"
+          :scroll="{ x: 'max-content', y: 800 }"
           :pagination="{ defaultPageSize: 50, hideOnSinglePage: true }"
         >
           <template #bodyCell="{ column, record, text }">

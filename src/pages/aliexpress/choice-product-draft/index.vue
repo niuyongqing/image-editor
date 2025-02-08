@@ -201,6 +201,7 @@
         row-key="draftId"
         :pagination="false"
         :row-selection="{ selectedRowKeys, onChange: onSelectChange }"
+        :scroll="{ x: 'max-content' }"
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'draftId'">
@@ -230,7 +231,9 @@
               </a-popover>
               <div style="margin-left: 10px; width: 90%">
                 <a-tooltip :title="getTitle(record)">
-                  <div class="text-overflow">
+                  <div
+                    class="truncate"
+                  >
                     {{ getTitle(record) }}
                   </div>
                 </a-tooltip>
@@ -371,8 +374,8 @@
         ],
         placeholderEnum: {
           productName: '标题',
-          skuCode: '商品编码',
-          draftId: '草稿ID; 支持批量，举例：ID1,ID2,ID3'
+          skuCode: '商品编码, 多个SKU间用英文逗号隔开',
+          draftId: '草稿ID, 多个ID间用英文逗号隔开'
         },
         remarkOpions: [
           { label: '有备注', value: '1' },

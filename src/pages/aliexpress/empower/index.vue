@@ -1,6 +1,6 @@
 <!-- 店铺授权 -->
 <template>
-  <div class="empower">
+  <div class="empower text-left">
     <a-card>
       <a-form
         ref="searchFormRef"
@@ -40,33 +40,34 @@
         </a-form-item>
       </a-form>
     </a-card>
-    <a-card class="m-2.5 text-left">
-      <a-space
-        v-has-permi="['system:platform:aliexpress:accredit']"
-        class="mb-2.5"
-      >
-        <a-button
-          type="primary"
-          @click="empower"
-          >授权</a-button
-        >
-        <a-button
-          type="primary"
-          @click="simpleNameModalOpen = true"
-          >批量修改简称</a-button
-        >
-        <a-button
-          type="primary"
-          @click="meansKeepGrainModalOpen = true"
-          >批量修改仓库</a-button
-        >
-        <a-button
-          type="primary"
-          @click="exportFile"
-          >导出</a-button
-        >
-      </a-space>
 
+    <a-space
+      v-has-permi="['system:platform:aliexpress:accredit']"
+      class="my-4"
+    >
+      <a-button
+        type="primary"
+        @click="empower"
+        >授权</a-button
+      >
+      <a-button
+        type="primary"
+        @click="simpleNameModalOpen = true"
+        >批量修改简称</a-button
+      >
+      <a-button
+        type="primary"
+        @click="meansKeepGrainModalOpen = true"
+        >批量修改仓库</a-button
+      >
+      <a-button
+        type="primary"
+        @click="exportFile"
+        >导出</a-button
+      >
+    </a-space>
+
+    <a-card>
       <a-table
         :data-source="tableData"
         :columns="DEFAULT_TABLE_COLUMN"
@@ -75,6 +76,7 @@
         bordered
         row-key="sellerId"
         :pagination="{ defaultPageSize: 50, hideOnSinglePage: true }"
+        :scroll="{ x: 'max-content' }"
       >
         <template #bodyCell="{ column, record, text }">
           <template v-if="column.title === '过期时间'">
