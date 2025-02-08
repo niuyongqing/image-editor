@@ -231,6 +231,7 @@ const variationThemeData = reactive({     // 变种属性
   data: {},             // 变种数据
   theme: [],            // 变种
   themeAttribute: [],   // 变种标题
+  key: '',              // 当前的值标志，用于刷新变种信息
 })
 
 watchPostEffect(() => {
@@ -443,6 +444,7 @@ function variationThemeFn() {
     variationThemeData.data = data.properties
     variationThemeData.theme = theme
     variationThemeData.themeAttribute = themeAttribute
+    variationThemeData.key = createRandom()
   }
 }
 // 获取数据

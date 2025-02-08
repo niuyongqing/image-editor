@@ -84,9 +84,9 @@
         </div>
         <div v-if="column.key === 'SKU'">
           (
-            <a-button @click="sukHeaderDialog(column, 'foundation')" type="link" >一键生成</a-button>
+            <a-button @click="headerDialog(column, 'foundation', 'skuEdit')" type="link" >一键生成</a-button>
             ·
-            <a-button @click="sukHeaderDialog(column, 'senior')" type="link">高级</a-button>
+            <a-button @click="headerDialog(column, 'senior', 'skuEdit')" type="link">高级</a-button>
           )
         </div>
         <div v-if="column.dataIndex === 'MPN'">
@@ -119,39 +119,39 @@
         </div>
         <div v-if="column.key === 'SKUTitle'">
           (
-            <a-button @click="sukHeaderDialog(column, 'foundation')" type="link" >一键生成</a-button>
+            <a-button @click="headerDialog(column, 'foundation', 'skuEdit')" type="link" >一键生成</a-button>
             ·
-            <a-button @click="sukHeaderDialog(column, 'senior')" type="link">高级</a-button>
+            <a-button @click="headerDialog(column, 'senior', 'skuEdit')" type="link">高级</a-button>
           )
         </div>
         <div v-if="column.key === 'conditionType'">
           (
-            <a-button @click="sukHeaderDialog(column, 'senior')" type="link">批量</a-button>
+            <a-button @click="headerDialog(column, 'foundation', 'conditionTypeModal')" type="link">批量</a-button>
           )
         </div>
         <div v-if="column.key === 'describe'">
           (
-            <a-button @click="sukHeaderDialog(column, 'senior')" type="link">批量</a-button>
+            <a-button @click="headerDialog(column, 'foundation', 'describeModal')" type="link">批量</a-button>
           )
         </div>
         <div v-if="column.key === 'ourPrice'">
           (
-            <a-button @click="sukHeaderDialog(column, 'senior')" type="link">批量</a-button>
+            <a-button @click="headerDialog(column, 'foundation', 'numberEditModal', 1)" type="link">批量</a-button>
           )
         </div>
         <div v-if="column.key === 'quality'">
           (
-            <a-button @click="sukHeaderDialog(column, 'senior')" type="link">批量</a-button>
+            <a-button @click="headerDialog(column, 'foundation', 'numberEditModal', 2)" type="link">批量</a-button>
           )
         </div>
         <div v-if="column.key === 'discountedPrice'">
           (
-            <a-button @click="sukHeaderDialog(column, 'senior')" type="link">批量</a-button>
+            <a-button @click="headerDialog(column, 'foundation', 'numberEditModal', 3)" type="link">批量</a-button>
           )
         </div>
         <div v-if="column.key === 'discountedTime'">
           (
-            <a-button @click="sukHeaderDialog(column, 'senior')" type="link">批量</a-button>
+            <a-button @click="headerDialog(column, 'foundation', 'discountedTimeModal')" type="link">批量</a-button>
           )
         </div>
       </template>
@@ -203,7 +203,7 @@
                   <a-select-option 
                     :value="item.value"
                     :key="item.label"
-                    v-for="item in conditionType"
+                    v-for="item in conditionTypeList"
                   >{{ item.label }}</a-select-option>
                 </a-select>
               </a-form-item>
@@ -301,19 +301,25 @@
       </template>
     </a-table>
   </div>
-  <skuEdit 
-    v-model:open="modalInfo.skuEdit.open"
-    :suk-dialog-data="modalInfo.skuEdit.data"
+  <!-- 弹窗组件 -->
+  <component
+    :is="modalInfo.name"
+    v-model:open="modalInfo.open"
+    :modal-data="modalInfo.data"
     @editDone="editDone"
-    @sukGenerate="sukGenerate"
-  ></skuEdit>
+    @generate="generate"
+  ></component>
 </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
+import { ref, reactive, onMounted, computed, watchPostEffect, markRaw } from 'vue'
 import { EditOutlined, UndoOutlined, CheckOutlined, QuestionCircleOutlined, ExportOutlined } from '@ant-design/icons-vue';
 import skuEdit from './modal/skuEdit.vue';
+import conditionTypeModal from './modal/conditionTypeModal.vue';
+import describeModal from './modal/describeModal.vue';
+import numberEditModal from './modal/numberEditModal.vue';
+import discountedTimeModal from './modal/discountedTimeModal.vue';
 defineOptions({ name: "variationInfo" })
 const { proxy: _this } = getCurrentInstance();
 const props = defineProps({
@@ -333,7 +339,7 @@ const formState = reactive({
   variationList: [],
   tableData: []
 })
-const conditionType = ref([])     // 变种信息物品状况列表
+const conditionTypeList = ref([])     // 变种信息物品状况列表
 const variationHeaders = ref([])  // 变种主题表头
 const headers = [ // 固定表头
   {
@@ -448,33 +454,47 @@ const headers = [ // 固定表头
     fixed: 'right',
   }
 ];
-const modalInfo = reactive({
-  skuEdit: {
-    open: false,
-    data: {
-      show: false,
-      headerList: [],           // 表头
-      type: 'foundation',       // foundation: 一键生成 senior: 高级
-      variantInfo: [],           // 变种信息
-      prop: '',
-    },
-  }
+const modalInfo = reactive({        // 表头弹窗
+  name: null,
+  open: false,
+  data: {
+    headerList: [],           // 表头
+    type: 'foundation',       // foundation: 一键生成 senior: 高级
+    variantInfo: [],           // 变种信息
+    prop: '',
+  },
+  component: {
+    skuEdit: markRaw(skuEdit),
+    conditionTypeModal: markRaw(conditionTypeModal),
+    describeModal: markRaw(describeModal),
+    numberEditModal: markRaw(numberEditModal),
+    discountedTimeModal: markRaw(discountedTimeModal),
+  },
 })
 // 展示的表头
 const resultHeader = computed(() => {
   return [...variationHeaders.value, ...headers]
 })
-onMounted(() => {
+watch(() => props.variationThemeData.key, (val) => {
   // 创建变种信息物品状况列表
-  if (props.variationThemeData.data.condition_type) {
-    conditionType.value = props.variationThemeData.data.condition_type.items.properties.value.enumNames.map((i, index) => {
-      return {
-        label: i, 
-        value: props.variationThemeData.data.condition_type.items.properties.value.enum[index]
-      }
-    })
-  }
+  conditionTypeList.value = props.variationThemeData.data.condition_type.items.properties.value.enumNames.map((i, index) => {
+    return {
+      label: i, 
+      value: props.variationThemeData.data.condition_type.items.properties.value.enum[index]
+    }
+  })
 })
+// onMounted(() => {
+//   // 创建变种信息物品状况列表
+//   if (props.variationThemeData.data.condition_type) {
+//     conditionTypeList.value = props.variationThemeData.data.condition_type.items.properties.value.enumNames.map((i, index) => {
+//       return {
+//         label: i, 
+//         value: props.variationThemeData.data.condition_type.items.properties.value.enum[index]
+//       }
+//     })
+//   }
+// })
 // 切换变种主题
 function themeChange(val) {
   let { value } = props.variationThemeData.theme.find(i => i.label === val)
@@ -577,6 +597,12 @@ function iconClick(type, themeItem, variationItem) {
       if (item.key === themeItem.key) {
         item.label = themeItem.label
         item.value = themeItem.label
+      }
+    })
+    formState.tableData.forEach(item => {
+      if (item[variationItem.id].key === themeItem.key) {
+        item[variationItem.id].label = themeItem.label
+        item[variationItem.id].value = themeItem.label
       }
     })
   }
@@ -722,22 +748,36 @@ function shareData(row, target, val, type) {
     }
   })
 }
-// suk表头弹窗
-function sukHeaderDialog(column, type) {
+/**
+ * 表头弹窗
+ * @param column 当前列
+ * @param type 弹窗类型 foundation: 一键生成 senior: 高级
+ * @param modalName 弹窗组件名称
+ * @param title 弹窗名称
+ */
+function headerDialog(column, type, modalName, title = '') {
   // console.log({column, type});
-  modalInfo.skuEdit.open = true
-  modalInfo.skuEdit.data = {
-    headerList: variationHeaders.value,           // 表头
-    type: type,       // foundation: 一键生成 senior: 高级
-    variantInfo: formState.tableData,           // 变种信息
-    prop: column.key,
-  }
+  modalInfo.name = modalInfo.component[modalName]
+  nextTick(() => {
+    modalInfo.open = true
+    modalInfo.data = {
+      headerList: variationHeaders.value,           // 表头
+      typeList: conditionTypeList.value,           // 状况列表
+      type: type,       // foundation: 一键生成 senior: 高级
+      variantInfo: formState.tableData,           // 变种信息
+      prop: column.key,
+      title,
+    }
+  })
 }
 // 弹窗确认关闭
-function editDone(key) {
-  modalInfo[key].open = false
+function editDone(modalKey) {
+  modalInfo.open = false
+  // modalInfo.name = null
+  modalInfo.data = {}
 }
-function sukGenerate(data) {
+// 修改完成
+function generate(data) {
   data && (formState.tableData = data)
 }
 defineExpose({

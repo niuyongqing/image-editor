@@ -169,10 +169,10 @@ import { CloseOutlined } from '@ant-design/icons-vue';
 import Sortable from 'sortablejs'
 defineOptions({ name: "skuEdit" })
 const { proxy: _this } = getCurrentInstance();
-const emit = defineEmits(['update:open', 'editDone', 'sukGenerate']);
+const emit = defineEmits(['update:open', 'editDone', 'generate']);
 const props = defineProps({
   open: Boolean,
-  sukDialogData: {
+  modalData: {
     type: Object,
     default: () => {}
   }
@@ -212,7 +212,7 @@ const addStr = reactive({
   newValue: '',
 }) 
 const type = computed(() => {
-  return props.sukDialogData.type
+  return props.modalData.type
 })
 const skuPreview = computed(() => {
   let arr = []
@@ -225,8 +225,8 @@ const skuPreview = computed(() => {
 }) 
 watch(() => props.open, (val, old) => {
   if (val) {
-    skuEditData.variantInfo = JSON.parse(JSON.stringify(props.sukDialogData.variantInfo))
-    skuEditData.prop = props.sukDialogData.prop
+    skuEditData.variantInfo = JSON.parse(JSON.stringify(props.modalData.variantInfo))
+    skuEditData.prop = props.modalData.prop
     nextTick(() => {
       tagDrop()
       creatVariantAttribute()
@@ -237,13 +237,13 @@ function handleCancel() {
   emit('update:open', false)
 }
 function handleOk() {
-  emit('editDone', 'skuEdit')
+  emit('editDone')
 }
 
 // 根据变种信息创建变种主题列表
 function creatVariantAttribute() {
   skuEditData.variantAttribute = []
-  props.sukDialogData.headerList.forEach(item => {
+  props.modalData.headerList.forEach(item => {
     let obj = {
       name: item.title,
       id: item.key,
@@ -292,8 +292,8 @@ function handleClose(data) {
     }
   })
   skuEditData.prefix = ''
-  emit('sukGenerate', data);
-  emit('editDone', 'skuEdit');
+  emit('generate', data);
+  handleCancel()
 }
 function save() {
   if (type.value === 'foundation') {
@@ -305,7 +305,7 @@ function save() {
 }
 // 一键生成
 function foundationFn() {
-  let keys = props.sukDialogData.headerList.map(i => i.key)
+  let keys = props.modalData.headerList.map(i => i.key)
   skuEditData.variantInfo.forEach(item => {
     let str = this.prefix ? this.prefix + '-' : ''
     let arr = []
