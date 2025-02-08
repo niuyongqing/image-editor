@@ -1,478 +1,498 @@
 <!-- 半托管产品编辑 -->
 <template>
   <div class="pop-choice-product-publish text-left">
-    <a-space class="mb-3 pr-4 w-full justify-end">
-      <a-button
-        :loading="draftSaveLoading"
-        @click="backToProductEdit"
-        >返回商品编辑</a-button
-      >
-      <!-- 编辑时就没有保存草稿了 -->
-      <a-button
-        v-if="!isEdit"
-        type="primary"
-        ghost
-        :loading="draftSaveLoading"
-        @click="saveDraft"
-        >保存草稿</a-button
-      >
-      <a-button
-        type="primary"
-        :loading="saveLoading"
-        @click="submit"
-        >提 交</a-button
-      >
-    </a-space>
-
-    <a-card
-      title="参与国家/地区"
-      class="mb-4"
-    >
-      <p class="text-gray">在商品成功加入半托管服务后，国家/地区可以自行选择</p>
-      <a-checkbox
-        :indeterminate="isIndeterminate"
-        v-model:checked="checkAll"
-        :disabled="!isEdit"
-        @change="handleCheckAllChange"
-        >全选</a-checkbox
-      >
-      <a-spin :spinning="countryLoading">
-        <a-checkbox-group
-          v-model:value="joinedCountryList"
-          :disabled="!isEdit"
-          @change="handleCheckedCountriesChange"
+    <div class="w-[85%]">
+      <a-space class="mb-3 pr-4 w-full justify-end">
+        <a-button
+          :loading="draftSaveLoading"
+          @click="backToProductEdit"
+          >返回商品编辑</a-button
         >
-          <a-checkbox
-            v-for="item in countryList"
-            :key="item.countryCode"
-            :value="item.countryCode"
-            ><span
-              :title="item.cnName"
-              class="inline-block w-30 align-middle truncate"
-              >{{ item.cnName }}</span
-            ></a-checkbox
-          >
-        </a-checkbox-group>
-      </a-spin>
-    </a-card>
-
-    <a-card
-      :loading="SKUInfoLoading"
-      title="货品信息"
-      class="mb-4"
-    >
-      <div
-        v-if="attrList.length"
-        class="w-2/3 text-end"
-      >
-        <!-- 批量填充按钮 -->
+        <!-- 编辑时就没有保存草稿了 -->
+        <a-button
+          v-if="!isEdit"
+          type="primary"
+          ghost
+          :loading="draftSaveLoading"
+          @click="saveDraft"
+          >保存草稿</a-button
+        >
         <a-button
           type="primary"
-          class="mb-2"
-          @click="batchFillColSKUInfo"
-          >批量填充</a-button
+          :loading="saveLoading"
+          @click="submit"
+          >提 交</a-button
         >
-        <a-table
-          :data-source="popChoiceProductData"
-          :columns="productSKUHeader"
-          :scroll="{ y: 800 }"
-          bordered
-          :pagination="false"
+      </a-space>
+
+      <a-card
+        title="参与国家/地区"
+        class="mb-4"
+        id="nation"
+      >
+        <p class="text-gray">在商品成功加入半托管服务后，国家/地区可以自行选择</p>
+        <a-checkbox
+          :indeterminate="isIndeterminate"
+          v-model:checked="checkAll"
+          :disabled="!isEdit"
+          @change="handleCheckAllChange"
+          >全选</a-checkbox
         >
-          <template #headerCell="{ column }">
-            <template v-if="['originalBox', 'packageWeight', 'packageSize', 'specialProductTypeList'].includes(column.dataIndex)">
-              <template v-if="column.dataIndex === 'originalBox'">
-                <a-select
-                  v-model:value="batchValueSKUInfo[column.dataIndex]"
-                  :options="originalBoxOption"
-                  placeholder="请选择"
+        <a-spin :spinning="countryLoading">
+          <a-checkbox-group
+            v-model:value="joinedCountryList"
+            :disabled="!isEdit"
+            @change="handleCheckedCountriesChange"
+          >
+            <a-checkbox
+              v-for="item in countryList"
+              :key="item.countryCode"
+              :value="item.countryCode"
+              ><span
+                :title="item.cnName"
+                class="inline-block w-30 align-middle truncate"
+                >{{ item.cnName }}</span
+              ></a-checkbox
+            >
+          </a-checkbox-group>
+        </a-spin>
+      </a-card>
+
+      <a-card
+        :loading="SKUInfoLoading"
+        title="货品信息"
+        class="mb-4"
+        id="goods"
+      >
+        <div
+          v-if="attrList.length"
+          class="text-end"
+        >
+          <!-- 批量填充按钮 -->
+          <a-button
+            type="primary"
+            class="mb-2"
+            @click="batchFillColSKUInfo"
+            >批量填充</a-button
+          >
+          <a-table
+            :data-source="popChoiceProductData"
+            :columns="productSKUHeader"
+            :scroll="{ y: 800 }"
+            bordered
+            :pagination="false"
+          >
+            <template #headerCell="{ column }">
+              <template v-if="['originalBox', 'packageWeight', 'packageSize', 'specialProductTypeList'].includes(column.dataIndex)">
+                <template v-if="column.dataIndex === 'originalBox'">
+                  <a-select
+                    v-model:value="batchValueSKUInfo[column.dataIndex]"
+                    :options="originalBoxOption"
+                    placeholder="请选择"
+                  >
+                  </a-select>
+                  <div>
+                    <span class="mr-1 required-dot">{{ column.title }}</span>
+                    <a-popover>
+                      <template #content>
+                        <span>确认仓库是否可以直接使用商品原包装发货。</span>
+                      </template>
+                      <InfoCircleOutlined />
+                    </a-popover>
+                  </div>
+                </template>
+                <template v-else-if="column.dataIndex === 'packageWeight'">
+                  <a-input-number
+                    v-model:value="batchValueSKUInfo[column.dataIndex]"
+                    :controls="false"
+                    :min="0.001"
+                    :max="70"
+                    :precision="3"
+                    placeholder="重量 (kg)"
+                  ></a-input-number>
+                  <div>
+                    <span class="mr-1 required-dot">{{ column.title }}</span>
+                    <a-popover>
+                      <template #content>
+                        <span>物流重量：请分SKU如实填写商品的重量,填写支持小数点后三位。</span>
+                      </template>
+                      <InfoCircleOutlined />
+                    </a-popover>
+                  </div>
+                </template>
+                <template v-else-if="column.dataIndex === 'packageSize'">
+                  <div class="package-size-wrap">
+                    <a-input-number
+                      v-model:value="batchValueSKUInfo.packageLength"
+                      :controls="false"
+                      :min="0.01"
+                      :max="200"
+                      :precision="2"
+                      placeholder="长"
+                    ></a-input-number>
+                    <span class="mx-1">*</span>
+                    <a-input-number
+                      v-model:value="batchValueSKUInfo.packageWidth"
+                      :controls="false"
+                      :min="0.01"
+                      :max="200"
+                      :precision="2"
+                      placeholder="宽"
+                    ></a-input-number>
+                    <span class="mx-1">*</span>
+                    <a-input-number
+                      v-model:value="batchValueSKUInfo.packageHeight"
+                      :controls="false"
+                      :min="0.01"
+                      :max="200"
+                      :precision="2"
+                      placeholder="高"
+                    ></a-input-number>
+                  </div>
+                  <div>
+                    <span class="mr-1 required-dot">{{ column.title }}</span>
+                    <a-popover>
+                      <template #content>
+                        <span>物流尺寸：请分SKU如实填写商品长宽高,填写支持小数点后两位。</span>
+                      </template>
+                      <InfoCircleOutlined />
+                    </a-popover>
+                  </div>
+                </template>
+                <template v-else-if="column.dataIndex === 'specialProductTypeList'">
+                  <a-select
+                    v-model:value="batchValueSKUInfo[column.dataIndex]"
+                    mode="multiple"
+                    allow-clear
+                    :options="productSupportSpecialType"
+                    placeholder="请选择"
+                    class="w-2/3"
+                  />
+                  <div>
+                    <span class="mr-1">{{ column.title }}</span>
+                    <a-popover :overlay-inner-style="{ width: '400px' }">
+                      <template #content>
+                        <span
+                          >不选择默认普货。<br />
+                          1.纯电及外置电池：纯电以及商品包装中带有未安装的外置电池，如充电宝、电池芯、电池组、电池模块、电池系统、电脑电池、手机电池、耳机充电盒（不含耳机）、电子烟充电盒（不含电子烟）、不间断电源、纽扣电池等。<br />
+                          2. 内电：如平衡车（含锂电池）、电动滑板、电动踏板车、独轮车、电动扭扭车、电动童车、电动轮椅、手机等。<br />
+                          3.弱磁（可走带电物流）：音响器材如音箱、耳机、喇叭等等，以及货品组件包含电容、电线圈、马达等电子元器件 <br />
+                          4. 强磁（特货）：磁性材料，如磁铁、磁条等磁性物质<br />
+                          5.
+                          液体：含液体商品，如汽车修复液、粘合剂、香水、古龙水、药剂、洗洁精、纹身墨水、喷雾、化妆水、卸妆水、爽肤水、化妆乳液、化妆凝胶、化妆精华、头发定型胶、沐浴露、牙齿染色剂等各种液体<br />
+                          6. 粉末：粉末状化妆品、散粉、粉饼等粉末状物质、足浴粉、沙袋蚀刻剂、沙漏、调味香料、粉笔、猫砂干燥剂、墨盒（墨胆）、硒鼓等。<br />
+                          7. 膏体：眼影、胭脂、唇膏、睫毛膏、车蜡、肥皂、去角质剂、指甲胶、唇蜜、橡皮泥、膏状颜料、口红等。<br />
+                          8. 管制刀具：刀尖角度小于60度，刀身长度超过150毫米的各类单刃、双刃和多刃刀具；其他刀尖角度大于60度，刀身长度超过220毫米的各类单刃、双刃和多刃刀具。</span
+                        >
+                      </template>
+                      <InfoCircleOutlined />
+                    </a-popover>
+                  </div>
+                </template>
+              </template>
+            </template>
+
+            <template #bodyCell="{ record, column }">
+              <template v-if="!['originalBox', 'packageWeight', 'packageSize', 'specialProductTypeList'].includes(column.dataIndex)">
+                <a-popover
+                  v-if="getImageUrl(record, column.dataIndex)"
+                  placement="right"
                 >
-                </a-select>
-                <div>
-                  <span class="mr-1 required-dot">{{ column.title }}</span>
-                  <a-popover>
-                    <template #content>
-                      <span>确认仓库是否可以直接使用商品原包装发货。</span>
-                    </template>
-                    <InfoCircleOutlined />
-                  </a-popover>
-                </div>
+                  <template #content>
+                    <img
+                      :src="getImageUrl(record, column.dataIndex)"
+                      class="w-100 h-100"
+                    />
+                  </template>
+                  <span>
+                    <a-image
+                      width="56px"
+                      height="56px"
+                      :src="getImageUrl(record, column.dataIndex)"
+                    />
+                  </span>
+                </a-popover>
+                <span class="ml-2">{{ getLabel(record, column.dataIndex) }}</span>
               </template>
-              <template v-else-if="column.dataIndex === 'packageWeight'">
+              <a-select
+                v-else-if="column.dataIndex === 'originalBox'"
+                v-model:value="record[column.dataIndex]"
+                :options="originalBoxOption"
+                placeholder="请选择"
+                class="w-20"
+              >
+              </a-select>
+              <a-input-number
+                v-else-if="column.dataIndex === 'packageWeight'"
+                v-model:value="record[column.dataIndex]"
+                :controls="false"
+                :min="0.001"
+                :max="70"
+                :precision="3"
+                placeholder="重量 (kg)"
+              ></a-input-number>
+              <div
+                v-else-if="column.dataIndex === 'packageSize'"
+                class="package-size-wrap"
+              >
                 <a-input-number
-                  v-model:value="batchValueSKUInfo[column.dataIndex]"
+                  v-model:value="record.packageLength"
                   :controls="false"
-                  :min="0.001"
-                  :max="70"
-                  :precision="3"
-                  placeholder="重量 (kg)"
+                  :min="0.01"
+                  :max="200"
+                  :precision="2"
+                  placeholder="长"
                 ></a-input-number>
-                <div>
-                  <span class="mr-1 required-dot">{{ column.title }}</span>
-                  <a-popover>
-                    <template #content>
-                      <span>物流重量：请分SKU如实填写商品的重量,填写支持小数点后三位。</span>
-                    </template>
-                    <InfoCircleOutlined />
-                  </a-popover>
-                </div>
-              </template>
-              <template v-else-if="column.dataIndex === 'packageSize'">
-                <div class="package-size-wrap">
+                <span class="mx-1">*</span>
+                <a-input-number
+                  v-model:value="record.packageWidth"
+                  :controls="false"
+                  :min="0.01"
+                  :max="200"
+                  :precision="2"
+                  placeholder="宽"
+                ></a-input-number>
+                <span class="mx-1">*</span>
+                <a-input-number
+                  v-model:value="record.packageHeight"
+                  :controls="false"
+                  :min="0.01"
+                  :max="200"
+                  :precision="2"
+                  placeholder="高"
+                ></a-input-number>
+              </div>
+              <a-select
+                v-else-if="column.dataIndex === 'specialProductTypeList'"
+                v-model:value="record[column.dataIndex]"
+                :options="productSupportSpecialType"
+                mode="multiple"
+                allow-clear
+                placeholder="请选择"
+                class="w-2/3"
+              >
+              </a-select>
+              <a-input
+                v-else
+                v-model:value="record[column.dataIndex]"
+              ></a-input>
+            </template>
+          </a-table>
+        </div>
+      </a-card>
+
+      <a-card
+        :loading="SKUInfoLoading"
+        title="变种信息"
+        id="variant"
+      >
+        <div
+          v-if="attrList.length"
+          class="text-end"
+        >
+          <!-- 批量填充按钮 -->
+          <a-button
+            type="primary"
+            style="margin-bottom: 8px"
+            @click="batchFillColWarehouse"
+            >批量填充</a-button
+          >
+          <a-table
+            :data-source="popChoiceProductData"
+            :columns="SKUWarehouseHeader"
+            :scroll="{ y: 800 }"
+            bordered
+            :pagination="false"
+          >
+            <template #headerCell="{ column }">
+              <template v-if="['basePrice', 'sellableQuantity', 'skuCode', 'scItemCode', 'scItemBarCode', 'status'].includes(column.dataIndex)">
+                <template v-if="column.dataIndex === 'basePrice'">
                   <a-input-number
-                    v-model:value="batchValueSKUInfo.packageLength"
+                    v-model:value="batchValueWarehouse[column.dataIndex]"
                     :controls="false"
                     :min="0.01"
-                    :max="200"
+                    :max="9999"
                     :precision="2"
-                    placeholder="长"
+                    :placeholder="currencyCode"
                   ></a-input-number>
-                  <span class="mx-1">*</span>
+                  <div>
+                    <span class="mr-1 required-dot">{{ column.title }}</span>
+                    <a-popover>
+                      <template #content>
+                        <span>供货价并非前台零售价格，是提报给平台的批量供货价格。</span>
+                      </template>
+                      <InfoCircleOutlined />
+                    </a-popover>
+                  </div>
+                </template>
+                <template v-else-if="column.dataIndex === 'sellableQuantity'">
                   <a-input-number
-                    v-model:value="batchValueSKUInfo.packageWidth"
+                    v-model:value="batchValueWarehouse[column.dataIndex]"
                     :controls="false"
-                    :min="0.01"
-                    :max="200"
-                    :precision="2"
-                    placeholder="宽"
+                    :min="0"
+                    :max="99999"
+                    :precision="0"
+                    :placeholder="warehouseName"
+                    class="ml-1"
                   ></a-input-number>
-                  <span class="mx-1">*</span>
-                  <a-input-number
-                    v-model:value="batchValueSKUInfo.packageHeight"
-                    :controls="false"
-                    :min="0.01"
-                    :max="200"
-                    :precision="2"
-                    placeholder="高"
-                  ></a-input-number>
-                </div>
-                <div>
-                  <span class="mr-1 required-dot">{{ column.title }}</span>
-                  <a-popover>
-                    <template #content>
-                      <span>物流尺寸：请分SKU如实填写商品长宽高,填写支持小数点后两位。</span>
-                    </template>
-                    <InfoCircleOutlined />
-                  </a-popover>
-                </div>
-              </template>
-              <template v-else-if="column.dataIndex === 'specialProductTypeList'">
-                <a-select
-                  v-model:value="batchValueSKUInfo[column.dataIndex]"
-                  mode="multiple"
-                  allow-clear
-                  :options="productSupportSpecialType"
-                  placeholder="请选择"
-                  class="w-2/3"
-                />
-                <div>
+                  <div>
+                    <span class="mr-1 required-dot">{{ column.title }}</span>
+                    <a-popover>
+                      <template #content>
+                        <span>销售中的JIT商品，库存请在商品列表页进行调整，本页面不支持编辑。</span>
+                      </template>
+                      <InfoCircleOutlined />
+                    </a-popover>
+                  </div>
+                </template>
+                <template v-else-if="column.dataIndex === 'skuCode'">
+                  <a-input
+                    v-model:value="batchValueWarehouse[column.dataIndex]"
+                    :placeholder="column.title"
+                  ></a-input>
+                  <div>
+                    <span class="mr-1">{{ column.title }}</span>
+                    <a-popover>
+                      <template #content>
+                        <span>SKU编码请谨慎填写，建议与货品编码保持一致。如实物包装上的商品条形码；若无此编码，可以自行定义。</span>
+                      </template>
+                      <InfoCircleOutlined />
+                    </a-popover>
+                  </div>
+                </template>
+                <template v-else-if="column.dataIndex === 'scItemCode'">
+                  <a-input
+                    v-model:value="batchValueWarehouse[column.dataIndex]"
+                    :placeholder="column.title"
+                  ></a-input>
+                  <div>
+                    <span class="mr-1">{{ column.title }}</span>
+                    <a-popover>
+                      <template #content>
+                        <span>货品编码：商家ERP系统编码，商家可自行维护，等同SKU编码，如未维护系统会自动生成。</span>
+                      </template>
+                      <InfoCircleOutlined />
+                    </a-popover>
+                  </div>
+                </template>
+                <template v-else-if="column.dataIndex === 'scItemBarCode'">
+                  <a-input
+                    v-model:value="batchValueWarehouse[column.dataIndex]"
+                    :placeholder="column.title"
+                  ></a-input>
+                  <div>
+                    <span class="mr-1">{{ column.title }}</span>
+                    <a-popover :overlay-inner-style="{ width: '400px' }">
+                      <template #content>
+                        <span
+                          >货品条码：用于货品出入库扫描，若商家货品有条码，可以维护在货品上，如没有条码，则系统使用货品ID当作您的条码。<br />
+                          货品编码：商家ERP系统编码，商家可自行维护，等同SKU编码，如未维护系统会自动生成。</span
+                        >
+                      </template>
+                      <InfoCircleOutlined />
+                    </a-popover>
+                  </div>
+                </template>
+                <template v-else-if="column.dataIndex === 'status'">
                   <span class="mr-1">{{ column.title }}</span>
                   <a-popover :overlay-inner-style="{ width: '400px' }">
                     <template #content>
                       <span
-                        >不选择默认普货。<br />
-                        1.纯电及外置电池：纯电以及商品包装中带有未安装的外置电池，如充电宝、电池芯、电池组、电池模块、电池系统、电脑电池、手机电池、耳机充电盒（不含耳机）、电子烟充电盒（不含电子烟）、不间断电源、纽扣电池等。<br />
-                        2. 内电：如平衡车（含锂电池）、电动滑板、电动踏板车、独轮车、电动扭扭车、电动童车、电动轮椅、手机等。<br />
-                        3.弱磁（可走带电物流）：音响器材如音箱、耳机、喇叭等等，以及货品组件包含电容、电线圈、马达等电子元器件 <br />
-                        4. 强磁（特货）：磁性材料，如磁铁、磁条等磁性物质<br />
-                        5.
-                        液体：含液体商品，如汽车修复液、粘合剂、香水、古龙水、药剂、洗洁精、纹身墨水、喷雾、化妆水、卸妆水、爽肤水、化妆乳液、化妆凝胶、化妆精华、头发定型胶、沐浴露、牙齿染色剂等各种液体<br />
-                        6. 粉末：粉末状化妆品、散粉、粉饼等粉末状物质、足浴粉、沙袋蚀刻剂、沙漏、调味香料、粉笔、猫砂干燥剂、墨盒（墨胆）、硒鼓等。<br />
-                        7. 膏体：眼影、胭脂、唇膏、睫毛膏、车蜡、肥皂、去角质剂、指甲胶、唇蜜、橡皮泥、膏状颜料、口红等。<br />
-                        8. 管制刀具：刀尖角度小于60度，刀身长度超过150毫米的各类单刃、双刃和多刃刀具；其他刀尖角度大于60度，刀身长度超过220毫米的各类单刃、双刃和多刃刀具。</span
+                        >不可销售：不提报该SKU商品，即使平台审核通过，也不会安排入仓，不会上架销售。该SKU商品供货价及商品信息仍需要正常填写，以免影响买家页面展示。<br />
+                        可销售：提报该SKU商品，一旦平台审核通过，该SKU商品会安排入仓，并上架销售。</span
                       >
                     </template>
                     <InfoCircleOutlined />
                   </a-popover>
-                </div>
+                </template>
+                <template v-else>
+                  <a-input
+                    v-model:value="batchValueWarehouse[column.dataIndex]"
+                    :placeholder="column.title"
+                  ></a-input>
+                  <div>
+                    <span class="mr-1 required-dot">{{ column.title }}</span>
+                  </div>
+                </template>
               </template>
             </template>
-          </template>
 
-          <template #bodyCell="{ record, column }">
-            <template v-if="!['originalBox', 'packageWeight', 'packageSize', 'specialProductTypeList'].includes(column.dataIndex)">
-              <a-popover
-                v-if="getImageUrl(record, column.dataIndex)"
-                placement="right"
-              >
-                <template #content>
-                  <img
-                    :src="getImageUrl(record, column.dataIndex)"
-                    class="w-100 h-100"
-                  />
-                </template>
-                <span>
-                  <a-image
-                    width="56px"
-                    height="56px"
-                    :src="getImageUrl(record, column.dataIndex)"
-                  />
-                </span>
-              </a-popover>
-              <span class="ml-2">{{ getLabel(record, column.dataIndex) }}</span>
-            </template>
-            <a-select
-              v-else-if="column.dataIndex === 'originalBox'"
-              v-model:value="record[column.dataIndex]"
-              :options="originalBoxOption"
-              placeholder="请选择"
-              class="w-20"
-            >
-            </a-select>
-            <a-input-number
-              v-else-if="column.dataIndex === 'packageWeight'"
-              v-model:value="record[column.dataIndex]"
-              :controls="false"
-              :min="0.001"
-              :max="70"
-              :precision="3"
-              placeholder="重量 (kg)"
-            ></a-input-number>
-            <div
-              v-else-if="column.dataIndex === 'packageSize'"
-              class="package-size-wrap"
-            >
-              <a-input-number
-                v-model:value="record.packageLength"
-                :controls="false"
-                :min="0.01"
-                :max="200"
-                :precision="2"
-                placeholder="长"
-              ></a-input-number>
-              <span class="mx-1">*</span>
-              <a-input-number
-                v-model:value="record.packageWidth"
-                :controls="false"
-                :min="0.01"
-                :max="200"
-                :precision="2"
-                placeholder="宽"
-              ></a-input-number>
-              <span class="mx-1">*</span>
-              <a-input-number
-                v-model:value="record.packageHeight"
-                :controls="false"
-                :min="0.01"
-                :max="200"
-                :precision="2"
-                placeholder="高"
-              ></a-input-number>
-            </div>
-            <a-select
-              v-else-if="column.dataIndex === 'specialProductTypeList'"
-              v-model:value="record[column.dataIndex]"
-              :options="productSupportSpecialType"
-              mode="multiple"
-              allow-clear
-              placeholder="请选择"
-              class="w-2/3"
-            >
-            </a-select>
-            <a-input
-              v-else
-              v-model:value="record[column.dataIndex]"
-            ></a-input>
-          </template>
-        </a-table>
-      </div>
-    </a-card>
-
-    <a-card
-      :loading="SKUInfoLoading"
-      title="变种信息"
-    >
-      <div
-        v-if="attrList.length"
-        class="w-2/3 text-end"
-      >
-        <!-- 批量填充按钮 -->
-        <a-button
-          type="primary"
-          style="margin-bottom: 8px"
-          @click="batchFillColWarehouse"
-          >批量填充</a-button
-        >
-        <a-table
-          :data-source="popChoiceProductData"
-          :columns="SKUWarehouseHeader"
-          :scroll="{ y: 800 }"
-          bordered
-          :pagination="false"
-        >
-          <template #headerCell="{ column }">
-            <template v-if="['basePrice', 'sellableQuantity', 'skuCode', 'scItemCode', 'scItemBarCode', 'status'].includes(column.dataIndex)">
-              <template v-if="column.dataIndex === 'basePrice'">
+            <template #bodyCell="{ record, column }">
+              <template v-if="!['basePrice', 'sellableQuantity', 'skuCode', 'scItemCode', 'scItemBarCode', 'status'].includes(column.dataIndex)">
+                <a-popover
+                  v-if="getImageUrl(record, column.dataIndex)"
+                  placement="right"
+                >
+                  <template #content>
+                    <img
+                      :src="getImageUrl(record, column.dataIndex)"
+                      class="w-100 h-100"
+                    />
+                  </template>
+                  <span>
+                    <a-image
+                      width="56px"
+                      height="56px"
+                      :src="getImageUrl(record, column.dataIndex)"
+                    />
+                  </span>
+                </a-popover>
+                <span class="ml-2">{{ getLabel(record, column.dataIndex) }}</span>
+              </template>
+              <template v-else-if="column.dataIndex === 'basePrice'">
                 <a-input-number
-                  v-model:value="batchValueWarehouse[column.dataIndex]"
+                  v-model:value="record[column.dataIndex]"
                   :controls="false"
                   :min="0.01"
                   :max="9999"
                   :precision="2"
                   :placeholder="currencyCode"
                 ></a-input-number>
-                <div>
-                  <span class="mr-1 required-dot">{{ column.title }}</span>
-                  <a-popover>
-                    <template #content>
-                      <span>供货价并非前台零售价格，是提报给平台的批量供货价格。</span>
-                    </template>
-                    <InfoCircleOutlined />
-                  </a-popover>
-                </div>
               </template>
               <template v-else-if="column.dataIndex === 'sellableQuantity'">
                 <a-input-number
-                  v-model:value="batchValueWarehouse[column.dataIndex]"
+                  v-model:value="record.sellableQuantity"
                   :controls="false"
                   :min="0"
                   :max="99999"
                   :precision="0"
                   :placeholder="warehouseName"
-                  class="ml-1"
                 ></a-input-number>
-                <div>
-                  <span class="mr-1 required-dot">{{ column.title }}</span>
-                  <a-popover>
-                    <template #content>
-                      <span>销售中的JIT商品，库存请在商品列表页进行调整，本页面不支持编辑。</span>
-                    </template>
-                    <InfoCircleOutlined />
-                  </a-popover>
-                </div>
-              </template>
-              <template v-else-if="column.dataIndex === 'skuCode'">
-                <a-input
-                  v-model:value="batchValueWarehouse[column.dataIndex]"
-                  :placeholder="column.title"
-                ></a-input>
-                <div>
-                  <span class="mr-1">{{ column.title }}</span>
-                  <a-popover>
-                    <template #content>
-                      <span>SKU编码请谨慎填写，建议与货品编码保持一致。如实物包装上的商品条形码；若无此编码，可以自行定义。</span>
-                    </template>
-                    <InfoCircleOutlined />
-                  </a-popover>
-                </div>
-              </template>
-              <template v-else-if="column.dataIndex === 'scItemCode'">
-                <a-input
-                  v-model:value="batchValueWarehouse[column.dataIndex]"
-                  :placeholder="column.title"
-                ></a-input>
-                <div>
-                  <span class="mr-1">{{ column.title }}</span>
-                  <a-popover>
-                    <template #content>
-                      <span>货品编码：商家ERP系统编码，商家可自行维护，等同SKU编码，如未维护系统会自动生成。</span>
-                    </template>
-                    <InfoCircleOutlined />
-                  </a-popover>
-                </div>
-              </template>
-              <template v-else-if="column.dataIndex === 'scItemBarCode'">
-                <a-input
-                  v-model:value="batchValueWarehouse[column.dataIndex]"
-                  :placeholder="column.title"
-                ></a-input>
-                <div>
-                  <span class="mr-1">{{ column.title }}</span>
-                  <a-popover :overlay-inner-style="{ width: '400px' }">
-                    <template #content>
-                      <span
-                        >货品条码：用于货品出入库扫描，若商家货品有条码，可以维护在货品上，如没有条码，则系统使用货品ID当作您的条码。<br />
-                        货品编码：商家ERP系统编码，商家可自行维护，等同SKU编码，如未维护系统会自动生成。</span
-                      >
-                    </template>
-                    <InfoCircleOutlined />
-                  </a-popover>
-                </div>
               </template>
               <template v-else-if="column.dataIndex === 'status'">
-                <span class="mr-1">{{ column.title }}</span>
-                <a-popover :overlay-inner-style="{ width: '400px' }">
-                  <template #content>
-                    <span
-                      >不可销售：不提报该SKU商品，即使平台审核通过，也不会安排入仓，不会上架销售。该SKU商品供货价及商品信息仍需要正常填写，以免影响买家页面展示。<br />
-                      可销售：提报该SKU商品，一旦平台审核通过，该SKU商品会安排入仓，并上架销售。</span
-                    >
-                  </template>
-                  <InfoCircleOutlined />
-                </a-popover>
+                <a-switch
+                  v-model:checked="record[column.dataIndex]"
+                  checked-children="是"
+                  un-checked-children="否"
+                  checked-value="active"
+                  un-checked-value="inactive"
+                />
               </template>
-              <template v-else>
-                <a-input
-                  v-model:value="batchValueWarehouse[column.dataIndex]"
-                  :placeholder="column.title"
-                ></a-input>
-                <div>
-                  <span class="mr-1 required-dot">{{ column.title }}</span>
-                </div>
-              </template>
-            </template>
-          </template>
-
-          <template #bodyCell="{ record, column }">
-            <template v-if="!['basePrice', 'sellableQuantity', 'skuCode', 'scItemCode', 'scItemBarCode', 'status'].includes(column.dataIndex)">
-              <a-popover
-                v-if="getImageUrl(record, column.dataIndex)"
-                placement="right"
-              >
-                <template #content>
-                  <img
-                    :src="getImageUrl(record, column.dataIndex)"
-                    class="w-100 h-100"
-                  />
-                </template>
-                <span>
-                  <a-image
-                    width="56px"
-                    height="56px"
-                    :src="getImageUrl(record, column.dataIndex)"
-                  />
-                </span>
-              </a-popover>
-              <span class="ml-2">{{ getLabel(record, column.dataIndex) }}</span>
-            </template>
-            <template v-else-if="column.dataIndex === 'basePrice'">
-              <a-input-number
+              <a-input
+                v-else
                 v-model:value="record[column.dataIndex]"
-                :controls="false"
-                :min="0.01"
-                :max="9999"
-                :precision="2"
-                :placeholder="currencyCode"
-              ></a-input-number>
+                :placeholder="column.title"
+              ></a-input>
             </template>
-            <template v-else-if="column.dataIndex === 'sellableQuantity'">
-              <a-input-number
-                v-model:value="record.sellableQuantity"
-                :controls="false"
-                :min="0"
-                :max="99999"
-                :precision="0"
-                :placeholder="warehouseName"
-              ></a-input-number>
-            </template>
-            <template v-else-if="column.dataIndex === 'status'">
-              <a-switch
-                v-model:checked="record[column.dataIndex]"
-                checked-children="是"
-                un-checked-children="否"
-                checked-value="active"
-                un-checked-value="inactive"
-              />
-            </template>
-            <a-input
-              v-else
-              v-model:value="record[column.dataIndex]"
-              :placeholder="column.title"
-            ></a-input>
-          </template>
-        </a-table>
-      </div>
-    </a-card>
+          </a-table>
+        </div>
+      </a-card>
+    </div>
+
+    <!-- 右边锚点 -->
+    <a-timeline class="fixed top-[92px] left-[85%]">
+      <a-timeline-item
+        v-for="item in anchorList"
+        :key="item.id"
+        :color="item.turnRed ? 'red' : 'blue'"
+        ><a-button
+          type="text"
+          :danger="item.turnRed"
+          @click="scroll(item.id)"
+          >{{ item.label }}</a-button
+        ></a-timeline-item
+      >
+    </a-timeline>
   </div>
 </template>
 
@@ -481,6 +501,11 @@
   import { getSellerInfoApi } from '../apis/common'
   import { popChoiceInfoApi, SKUInfoApi, detailApi, getPopChoiceProductApi, draftSaveApi, popChoiceProductSaveApi, editApi } from '../apis/pop-choice-product'
   import { InfoCircleOutlined } from '@ant-design/icons-vue'
+
+  function stopUnload(e) {
+    e.preventDefault()
+    e.returnValue = ''
+  }
 
   export default {
     name: 'PopChoiceProductPublish',
@@ -523,7 +548,13 @@
           scItemBarCode: ''
         },
         draftSaveLoading: false,
-        saveLoading: false
+        saveLoading: false,
+        // 锚点 list
+        anchorList: [
+          { label: '参与国家/地区', id: 'nation', turnRed: false },
+          { label: '货品信息', id: 'goods', turnRed: false },
+          { label: '变种信息', id: 'variant', turnRed: false }
+        ]
       }
     },
     computed: {
@@ -617,6 +648,12 @@
       // 半托管基本信息
       this.getPopChoiceInfo()
       this.getSKUInfo()
+
+      // 页面卸载前弹窗提醒
+      // window.addEventListener('beforeunload', stopUnload)
+    },
+    beforeDestroy() {
+      // window.removeEventListener('beforeunload', stopUnload)
     },
     methods: {
       // 获取商家信息
@@ -914,6 +951,10 @@
           .finally(() => {
             this.saveLoading = false
           })
+      },
+      // 锚点滚动
+      scroll(id) {
+        document.getElementById(id).scrollIntoView({ behavior: 'smooth' })
       }
     }
   }

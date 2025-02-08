@@ -2,41 +2,76 @@
 <template>
   <div class="choice-product-publish text-left">
     <a-spin :spinning="queryDetailLoading">
-      <a-space class="mb-3 pr-4 w-full justify-end">
-        <a-button
-          :loading="saveLoading"
-          @click="saveDraft"
-          >保存草稿</a-button
-        >
-        <a-button
-          type="primary"
-          :loading="saveLoading"
-          @click="submit"
-          >提 交</a-button
-        >
-      </a-space>
+      <div class="w-[85%]">
+        <a-space class="mb-3 pr-4 w-full justify-end">
+          <a-button
+            :loading="saveLoading"
+            @click="saveDraft"
+            >保存草稿</a-button
+          >
+          <a-button
+            type="primary"
+            :loading="saveLoading"
+            @click="submit"
+            >提 交</a-button
+          >
+        </a-space>
 
-      <BaseInfo ref="baseInfoRef" />
-      <ImageInfo ref="imageInfoRef" />
-      <SKUInfo ref="SKUInfoRef" />
-      <ChoiceInfo ref="choiceInfoRef" />
-      <Description ref="descriptionRef" />
-      <Others ref="othersRef" />
-      
-      <a-space class="mt-3 pr-4 w-full justify-end">
-        <a-button
-          :loading="saveLoading"
-          @click="saveDraft"
-          >保存草稿</a-button
-        >
-        <a-button
-          type="primary"
-          :loading="saveLoading"
-          @click="submit"
-          >提交</a-button
-        >
-      </a-space>
+        <BaseInfo
+          id="baseInfo"
+          ref="baseInfoRef"
+        />
+        <ImageInfo
+          id="imageInfo"
+          ref="imageInfoRef"
+        />
+        <SKUInfo
+          id="SKUInfo"
+          ref="SKUInfoRef"
+        />
+        <ChoiceInfo
+          id="choiceInfo"
+          ref="choiceInfoRef"
+        />
+        <Description
+          id="description"
+          ref="descriptionRef"
+        />
+        <Others
+          id="others"
+          ref="othersRef"
+        />
+
+        <a-space class="mt-3 pr-4 w-full justify-end">
+          <a-button
+            :loading="saveLoading"
+            @click="saveDraft"
+            >保存草稿</a-button
+          >
+          <a-button
+            type="primary"
+            :loading="saveLoading"
+            @click="submit"
+            >提交</a-button
+          >
+        </a-space>
+      </div>
     </a-spin>
+
+    <!-- 右边锚点 -->
+    <a-timeline class="fixed top-[92px] left-[85%]">
+      <a-timeline-item
+        v-for="item in anchorList"
+        :key="item.id"
+        :color="item.turnRed ? 'red' : 'blue'"
+        ><a-button
+          type="text"
+          :danger="item.turnRed"
+          @click="scroll(item.id)"
+          >{{ item.label }}</a-button
+        ></a-timeline-item
+      >
+    </a-timeline>
   </div>
 </template>
 
@@ -122,7 +157,7 @@
     // 图片信息
     const imageInfo = await imageInfoRef.value.emitData({ isDraft: true })
     // SKU 信息
-    const SKUInfo = await SKUInfoRefInfoRef.value.emitData({ isDraft: true })
+    const SKUInfo = await SKUInfoRef.value.emitData({ isDraft: true })
     // 全托管信息
     const choiceInfo = await choiceInfoRef.value.emitData({ isDraft: true })
     // 描述信息
@@ -131,7 +166,24 @@
     const others = await othersRef.value.emitData({ isDraft: true })
 
     // 若有校验不通过
-    if (!baseInfo || !imageInfo || !SKUInfo || !choiceInfo || !description || !others) {
+    const resObj = { baseInfo, imageInfo, SKUInfo, choiceInfo, description, others }
+    const errList = []
+    for (const key in resObj) {
+      if (!resObj[key]) {
+        errList.push(key)
+      }
+    }
+    if (errList.length) {
+      // 锚点标红(该红的红, 该恢复的恢复)
+      anchorList.value.forEach(item => {
+        if (errList.includes(item.id)) {
+          item.turnRed = true
+        } else {
+          item.turnRed = false
+        }
+      })
+      // 跳转到第一个标红的位置
+      scroll(errList[0])
       Modal.warning({ title: '请填写必填项' })
 
       return
@@ -179,7 +231,24 @@
     const others = await othersRef.value.emitData({ isDraft: false })
 
     // 若有校验不通过
-    if (!baseInfo || !imageInfo || !SKUInfo || !choiceInfo || !description || !others) {
+    const resObj = { baseInfo, imageInfo, SKUInfo, choiceInfo, description, others }
+    const errList = []
+    for (const key in resObj) {
+      if (!resObj[key]) {
+        errList.push(key)
+      }
+    }
+    if (errList.length) {
+      // 锚点标红(该红的红, 该恢复的恢复)
+      anchorList.value.forEach(item => {
+        if (errList.includes(item.id)) {
+          item.turnRed = true
+        } else {
+          item.turnRed = false
+        }
+      })
+      // 跳转到第一个标红的位置
+      scroll(errList[0])
       Modal.warning({ title: '请填写必填项' })
 
       return
@@ -215,5 +284,19 @@
       .finally(() => {
         saveLoading.value = false
       })
+  }
+
+  /** 右侧锚点 */
+  const anchorList = ref([
+    { label: '基本信息', id: 'baseInfo', turnRed: false },
+    { label: '图片信息', id: 'imageInfo', turnRed: false },
+    { label: 'SKU信息', id: 'SKUInfo', turnRed: false },
+    { label: '变种和货品信息', id: 'choiceInfo', turnRed: false },
+    { label: '描述信息', id: 'description', turnRed: false },
+    { label: '其他信息', id: 'others', turnRed: false }
+  ])
+  // 锚点滚动
+  function scroll(id) {
+    document.getElementById(id).scrollIntoView({ behavior: 'smooth' })
   }
 </script>
