@@ -39,11 +39,13 @@
         <a-form-item>
           <a-button
             type="primary"
+            :loading="loading"
             @click="search"
             >查询</a-button
           >
           <a-button
             class="ml-[10px]"
+            :loading="loading"
             @click="reset"
             >重置</a-button
           >

@@ -31,14 +31,15 @@
             />
             <a-button
               type="primary"
+              :loading="loading"
               @click="search"
               >搜索</a-button
             >
-            <a-button
+            <!-- <a-button
               type="link"
               @click="toggleFold"
               >高级搜索</a-button
-            >
+            > -->
           </a-space>
         </a-descriptions-item>
         <a-descriptions-item label="商品状态">
@@ -449,7 +450,7 @@
             this.loading = false
           })
       },
-      toggleFold() {
+      /* toggleFold() {
         if (this.isFold) {
           this.isFold = false
         } else {
@@ -464,7 +465,7 @@
       foldExtendSearch() {
         this.resetExtendSearchForm()
         this.isFold = true
-      },
+      }, */
       search() {
         this.tableParams.pageNum = 1
         this.getList()
