@@ -99,7 +99,6 @@
                                     <a-input v-model:value="form.video.title"></a-input>
                                 </a-form-item>
                             </div>
-
                         </div>
                     </div>
                 </a-form-item>
@@ -118,7 +117,6 @@
                     <source :src="form.video.url" type="video/mp4">
                 </video>
             </div>
-
         </a-modal>
     </div>
 </template>
@@ -162,20 +160,21 @@ const form = reactive({
         title: '' // 视频标题
     },
     // 营销图
-    promotionWhite: [
-
-    ]
+    promotionWhite: []
 });
 
 //  编辑回显
 watch(() => {
     return detailData
 }, async (newVal) => {
+    console.log('newVal', newVal.images);
+
     const images = newVal.images ? JSON.parse(newVal.images) : {};
     let imageList = images.image ? images.image : [];
     const isarr = Array.isArray(imageList);
     if (!isarr) {
-        imageList = JSON.parse(imageList);
+        // imageList = JSON.parse(imageList);
+        imageList = imageList.Image;
     }
     // 产品图片
     form.fileList = imageList.map(item => {
@@ -186,7 +185,7 @@ watch(() => {
         }
     });
     // 营销图
-    form.promotionWhite = newVal.attributes.promotion_whitebkg_image ? [
+    form.promotionWhite = newVal.attributes.promotion_whitebkg_image && newVal.attributes.promotion_whitebkg_image.length > 0 ? [
         {
             url: newVal.attributes.promotion_whitebkg_image,
             uid: newVal.attributes.promotion_whitebkg_image,
@@ -343,8 +342,8 @@ const videoPreview = () => {
 
 //   导出全部图片
 const downloadIamge = () => {
-    const blob = new Blob(['Hello, world!'], { type: 'image/png' });
-    saveAs(blob, 'hello.txt');
+    // const blob = new Blob(['Hello, world!'], { type: 'image/png' });
+    // saveAs(blob, 'hello.txt');
 };
 
 // 校验
@@ -381,7 +380,6 @@ watch(() => lazadaAttrsState.product, (newValue) => {
 
 onMounted(() => {
     EventBus.on('shortCodeEmit', (code) => {
-        console.log('接受到的shortCode22 -->>', code);
         shortCode.value = code;
         apiParams.value = { shortCode: code }
     });

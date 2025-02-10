@@ -104,7 +104,6 @@
         <SpecialDateModal ref="specialDateModalRef" @success="specialDateSuccess"></SpecialDateModal>
         <WeightModal ref="weightModalRef" @success="weightSuccess"></WeightModal>
         <PackageModal ref="packageModalRef" @success="packageSuccess"></PackageModal>
-
     </div>
 </template>
 
@@ -284,13 +283,14 @@ const packageRequired = computed(() => {
 const generateTable = () => {
     // 一种变体组合
     if (selectTheme.value.length === 1 || !selectTheme.value[1]?.name) {
-        const list = theme.themeOne
+        const list = theme.themeOne;
         const name = selectTheme.value[0].name;
         let transData = list.map((item) => {
             return {
                 [name]: item,
             }
         });
+
         tableData.value = transData.map((item, index) => {
             return {
                 ...item,
@@ -321,48 +321,184 @@ const generateTable = () => {
     }
 };
 
-//  编辑回显
-watch(() => {
-    return detailData
-}, async (newVal) => {
-    const skus = newVal.skus || [];
-    console.log('skus ------------------->>', skus);
-    tableData.value = skus.map((item) => {
-        // const images = item?.images?.image || [];
-        // const images2 = item.Images || [];
-        let images = [];
-        if (item.Images) {
-            images = item.Images || []
-        } else {
-            images = item?.images?.image || []
+const list = {
+    variation: {
+        "variation1": {
+            "name": "color_family",
+            "hasImage": true,
+            "customize": true,
+            "options": {
+                "option": [
+                    "粉色",
+                    "蓝色",
+                    "黄色",
+                    "绿色"
+                ]
+            }
         }
-        return {
-            ...item,
-            sellerSKU: item.SellerSku,
-            stock: item.quantity,
-            price: item.retail_price,
-            specialPrice: item.special_price,
-            specialDate: [dayjs(item.special_to_time), dayjs(item.special_from_time)],
-            packageWeight: item.package_weight,
-            packageHeight: item.package_weight,
-            packageLength: item.package_length,
-            packageWidth: item.package_width,
-            fileList: images.map((img) => {
-                return {
-                    "fileName": img,
-                    url: img,
-                    originalFilename: img,
-                    name: img,
-                }
-            })
+    },
+    skus: [
+        {
+            "saleProp": {
+                "color_family": "粉色"
+            },
+            "quantity": "100",
+            "SellerSku": "13-粉色--33",
+            "sales_price": null,
+            "retail_price": "4.2",
+            "Images": {
+                "image": [
+                    "/prod-api/profile/upload/20230327202642919_J9344+-E7-B2-89-E8-89-B2+-E4-B8-80-E4-B8-AA-E4-B8-80-E5-8D-96.jpg"
+                ]
+            },
+            "package_height": "1",
+            "package_length": "1",
+            "package_content": "包装内容",
+            "package_width": "1",
+            "package_weight": "36"
+        },
+        {
+            "saleProp": {
+                "color_family": "蓝色"
+            },
+            "quantity": "100",
+            "SellerSku": "13-蓝色--33",
+            "sales_price": null,
+            "retail_price": "3.8571",
+            "Images": {
+                "image": [
+                    "/prod-api/profile/upload/20230327202642324_J9345+-E8-93-9D-E8-89-B2+-E4-B8-80-E4-B8-AA-E4-B8-80-E5-8D-96.jpg"
+                ]
+            },
+            "package_height": "1",
+            "package_length": "1",
+            "package_content": "包装内容",
+            "package_width": "1",
+            "package_weight": "36"
+        },
+        {
+            "saleProp": {
+                "color_family": "黄色"
+            },
+            "quantity": "100",
+            "SellerSku": "13-黄色--33",
+            "sales_price": null,
+            "retail_price": "3.8571",
+            "Images": {
+                "image": [
+                    "/prod-api/profile/upload/20230327202641716_J9346+-E9-BB-84-E8-89-B2+-E4-B8-80-E4-B8-AA-E4-B8-80-E5-8D-96.jpg"
+                ]
+            },
+            "package_height": "1",
+            "package_length": "1",
+            "package_content": "包装内容",
+            "package_width": "1",
+            "package_weight": "36"
+        },
+        {
+            "saleProp": {
+                "color_family": "绿色"
+            },
+            "quantity": "100",
+            "SellerSku": "13-绿色--33",
+            "sales_price": null,
+            "retail_price": "3.3",
+            "Images": {
+                "image": [
+                    "/prod-api/profile/upload/20230327202641122_J9347+-E7-BB-BF-E8-89-B2+-E4-B8-80-E4-B8-AA-E4-B8-80-E5-8D-96.jpg"
+                ]
+            },
+            "package_height": "1",
+            "package_length": "1",
+            "package_content": "包装内容",
+            "package_width": "1",
+            "package_weight": "36"
         }
-    });
-    console.log(' tableData.value ->>', tableData.value);
+    ]
+};
 
-}, {
-    deep: true
-});
-
+const skus2 = [
+    {
+        "saleProp": {
+            "color_family": "粉色"
+        },
+        "quantity": "100",
+        "SellerSku": "13-粉色--33",
+        "sales_price": null,
+        "retail_price": "4.2",
+        "Images": {
+            "image": [
+                "/prod-api/profile/upload/20230327202642919_J9344+-E7-B2-89-E8-89-B2+-E4-B8-80-E4-B8-AA-E4-B8-80-E5-8D-96.jpg"
+            ]
+        },
+        "package_height": "1",
+        "package_length": "1",
+        "package_content": "包装内容",
+        "package_width": "1",
+        "package_weight": "36",
+        color_family: '粉色'
+    },
+    {
+        "saleProp": {
+            "color_family": "蓝色"
+        },
+        "quantity": "100",
+        "SellerSku": "13-蓝色--33",
+        "sales_price": null,
+        "retail_price": "3.8571",
+        "Images": {
+            "image": [
+                "/prod-api/profile/upload/20230327202642324_J9345+-E8-93-9D-E8-89-B2+-E4-B8-80-E4-B8-AA-E4-B8-80-E5-8D-96.jpg"
+            ]
+        },
+        "package_height": "1",
+        "package_length": "1",
+        "package_content": "包装内容",
+        "package_width": "1",
+        "package_weight": "36",
+        color_family: '蓝色'
+    },
+    {
+        "saleProp": {
+            "color_family": "黄色"
+        },
+        "quantity": "100",
+        "SellerSku": "13-黄色--33",
+        "sales_price": null,
+        "retail_price": "3.8571",
+        "Images": {
+            "image": [
+                "/prod-api/profile/upload/20230327202641716_J9346+-E9-BB-84-E8-89-B2+-E4-B8-80-E4-B8-AA-E4-B8-80-E5-8D-96.jpg"
+            ]
+        },
+        "package_height": "1",
+        "package_length": "1",
+        "package_content": "包装内容",
+        "package_width": "1",
+        "package_weight": "36",
+        "color_family": "黄色"
+    },
+    {
+        "saleProp": {
+            "color_family": "绿色"
+        },
+        "quantity": "100",
+        "SellerSku": "13-绿色--33",
+        "sales_price": null,
+        "retail_price": "3.3",
+        "Images": {
+            "image": [
+                "/prod-api/profile/upload/20230327202641122_J9347+-E7-BB-BF-E8-89-B2+-E4-B8-80-E4-B8-AA-E4-B8-80-E5-8D-96.jpg"
+            ]
+        },
+        "package_height": "1",
+        "package_length": "1",
+        "package_content": "包装内容",
+        "package_width": "1",
+        "package_weight": "36",
+        "color_family": "绿色"
+    }
+]
 watch(() => lazadaAttrsState.shortCode, () => {
     tableData.value = [];
 }, { deep: true });
@@ -619,6 +755,43 @@ onMounted(() => {
         };
         generateTable();
     });
+    EventBus.on('generateSkuTableEmit', ({ resultData, newVal }) => {
+        const skus = newVal.skus || [];
+        tableData.value = skus.map((item) => {
+            let images = [];
+            if (item.Images) {
+                images = item.Images.image || []
+            } else {
+                images = item?.images?.image || []
+            }
+            return {
+                ...item,
+                sellerSKU: item.SellerSku,
+                stock: item.quantity,
+                price: item.retail_price,
+                specialPrice: item.special_price,
+                specialDate: [dayjs(item.special_to_time), dayjs(item.special_from_time)],
+                packageWeight: item.package_weight,
+                packageHeight: item.package_weight,
+                packageLength: item.package_length,
+                packageWidth: item.package_width,
+                fileList: images.map((img) => {
+                    return {
+                        fileName: img,
+                        url: img,
+                        originalFilename: img,
+                        name: img,
+                    }
+                })
+            }
+        });
+        theme.themeOne = lazadaAttrsState.selectTheme[0].checkedList || [];
+        if (lazadaAttrsState.selectTheme.length > 1) {
+            theme.themeTwo = lazadaAttrsState.selectTheme[1].checkedList || [];
+        };
+        generateTable();
+    });
+
 });
 onUnmounted(() => {
     EventBus.off('changeCheckedList');

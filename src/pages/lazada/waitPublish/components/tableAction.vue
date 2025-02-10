@@ -31,7 +31,6 @@
                     </template>
                 </a-dropdown>
             </div>
-
             <div>
                 <a-button @click="warehouseSetting" type="link" style="height: 32px; margin-left: 10px; ">
                     <SettingOutlined /> 仓库管理
@@ -55,26 +54,6 @@
                 <a-button type="primary" style="height: 32px ; margin-left: 10px;" @click="syncProduct">
                     同步产品
                 </a-button>
-                <!--  <a-dropdown>
-                    <a-button type="primary" style="height: 32px;  margin-left: 10px;">
-                        导出
-                        <DownOutlined />
-                    </a-button>
-
-                    <template #overlay>
-                        <a-menu>
-                            <a-menu-item @click="exportProduct">
-                                按页导出
-                            </a-menu-item>
-                            <a-menu-item @click="exportPrice">
-                                按勾选导出
-                            </a-menu-item>
-                        </a-menu>
-                    </template>
-                </a-dropdown>
-                 <a-button type="primary" style="height: 32px;  margin-left: 10px;">
-                    同步产品
-                </a-button> -->
             </div>
         </div>
     </div>
@@ -160,7 +139,4 @@ const stockSuccess = () => {
 const specialPriceSuccess = () => {
     emits('success');
 };
-
 </script>
-
-<style lang="less" scoped></style>

@@ -13,6 +13,7 @@
                         class="flex  justify-start">
                     </a-input>
                 </a-form-item>
+                {{ state.brandId }} ------
                 <a-form-item label="品牌:" name="brandId"
                     :rules="[{ required: true, message: '请选择品牌', trigger: ['change'] }]">
                     <a-select allowClear show-search @search="search" :filter-option="false"
@@ -168,14 +169,14 @@ watch(() => {
 }, async (newVal) => {
     state.title = newVal.attributes.name;
     getBrandList({
-        brandName: newVal.attributes.brand_id ?? '',
+        brandName: newVal.attributes.brand_id, // to do ...
         shortCode: newVal.shortCode
     }).then(res => {
         if (res.code === 200) {
             brandIdSelction.data = res.data || [];
             //  品牌回显
             const brandItem = brandIdSelction.data.find((item) => {
-                return item.nameEn === newVal.attributes.brand_id
+                return item.brandId === newVal.attributes.brand_id
             });
             state.brandId = brandItem ? brandItem.brandId : undefined;
         }
@@ -260,8 +261,6 @@ watch(() => lazadaAttrsState.product, (newValue) => {
     if (newValue && JSON.stringify(newValue) !== '{}') {
         console.log('newValue', newValue);
         state.title = newValue.tradeName; // 产品标题
-
-        //lazada 资料库数据回显 to do ...
     }
 });
 

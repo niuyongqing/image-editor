@@ -198,20 +198,16 @@ const validateAll = async () => {
 
     const tableData = variantInfoEl.value.tableData;
     let variations = {};
-    console.log('lazadaAttrsState.selectTheme ->>>', lazadaAttrsState.selectTheme);
     lazadaAttrsState.selectTheme.forEach((item, index) => {
         variations['variation' + (index + 1)] = {
-            // 在这里添加你需要的属性和值
             name: item.name,
-            hasImage: true,
+            hasImage: index === 0 ? true : false,
             customize: item.is_mandatory === 1 ? false : true,  // ??/ 必填 false ，非必填true
             options: {
                 option: item.checkedList
             }
         };
     });
-    // SKU数据组装
-    console.log('lazadaAttrsState.skuTable', lazadaAttrsState.skuTable);
     // SKU数据组装
     const skus = lazadaAttrsState.skuTable.map((item) => {
         // 共同的基础属性  

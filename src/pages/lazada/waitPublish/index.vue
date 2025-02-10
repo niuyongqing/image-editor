@@ -96,7 +96,7 @@
             <template #action="{ record }">
                 <div>
                     <div> <a-button type="link" @click="handleEdit(record)"> 编辑 </a-button> </div>
-                    <div> <a-button type="link" @click="handleEdit(record)"> 发布 </a-button> </div>
+                    <div> <a-button type="link" @click="handlePublish(record)"> 发布 </a-button> </div>
                     <div class="pl-2">
                         <a-dropdown>
                             <a class="ant-dropdown-link">
@@ -133,7 +133,9 @@ import TableAction from './components/tableAction.vue';
 import BaseTable from '@/components/baseTable/BaseTable.vue';
 import RemarkModal from './components/remarkModal.vue';
 
+const route = useRoute();
 const { copy } = useClipboard();
+const type = ref(false); // 是否是全球商品
 const searchFormState = ref({});
 const tableData = ref([]);
 const shortCodes = ref([]);
@@ -218,8 +220,15 @@ const handleSearch = async (state) => {
 };
 //  编辑
 const handleEdit = (record) => {
-    window.open(`/platform/lazada/waitPublish/edit?id=${record.id}`, '_blank');
+    const { id, type } = record;
+    window.open(`/platform/lazada/waitPublish/edit?id=${id}&type=${type === 'global' ? 'global' : 'site'}`, '_blank');
 };
+
+// 发布
+const handlePublish = (record) => {
+    window.open(`/platform/lazada/waitPublish/publish?id=${record.id}`, '_blank');
+};
+
 const handleReset = () => {
     baseTableEl.value.reset();
 };

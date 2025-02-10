@@ -9,21 +9,11 @@
                 <a-form-item label="变种主题:">
                     <div>
                         <div class="flex items-center gap-12px">
-                            <template v-if="lazadaAttrsState.skuAttrs.length">
-                                <a-button type="link" v-for="item in lazadaAttrsState.skuAttrs" :key="item.name"
-                                    :disabled="disabledTheme(item)" @click="handleSelectTheme(item)">
-                                    <PlusCircleOutlined style="font-size: 14px" />
-                                    <span> {{ item.label }} </span>
-                                </a-button>
-                            </template>
-                            <template v-else>
-                                <a-button type="link" v-for="item in selectThemeList" :key="item.name"
-                                    :disabled="disabledTheme(item)" @click="handleSelectTheme(item)">
-                                    <PlusCircleOutlined style="font-size: 14px" />
-                                    <span> {{ item.label }} </span>
-                                </a-button>
-                            </template>
-
+                            <a-button type="link" v-for="item in lazadaAttrsState.skuAttrs" :key="item.name"
+                                :disabled="disabledTheme(item)" @click="handleSelectTheme(item)">
+                                <PlusCircleOutlined style="font-size: 14px" />
+                                <span> {{ item.label }} </span>
+                            </a-button>
                             <a-button @click="addVariant" type="primary" @keyup.enter="addVariant"
                                 :disabled="lazadaAttrsState.skuAttrs.length >= 2"> 添加自定义属性
                             </a-button>
@@ -143,7 +133,7 @@ const { detailData } = defineProps({
         default: () => ({})
     }
 });
-const { state: lazadaAttrsState, setSelectTheme, setSkuTable, setProductSkus } = useLadazaAttrs();
+const { state: lazadaAttrsState, setSelectTheme, setSkuTable, setProductSkus, setSkuAttrs } = useLadazaAttrs();
 const baseModalEl = useTemplateRef('baseModalRef');
 const modalMethods = ref({});
 const selectThemeList = ref([]); // 选择的变种主题列表
@@ -174,6 +164,8 @@ const disabledTheme = (item) => {
 }
 
 const handleSelectTheme = (item) => {
+    console.log('item', item);
+
     selectThemeList.value.push({
         ...item,
         options: item.options ? item.options : [],
@@ -309,6 +301,7 @@ watch(() => lazadaAttrsState.primaryCategory, (newVal) => {
     immediate: true
 });
 const submit = () => {
+
     if (!customTheme.value) return;
     const findItem = lazadaAttrsState.skuAttrs.find((item) => {
         return item.label === customTheme.value
@@ -317,23 +310,23 @@ const submit = () => {
         message.warning('该属性已存在');
         return;
     }
-
-    lazadaAttrsState.skuAttrs.push({
-        label: customTheme.value,
-        name: customTheme.value,
-        is_mandatory: 0,
-        input_type: 'multiEnumInput',
-        options: []
-    });
-
+    // lazadaAttrsState.skuAttrs.push({
+    //     label: customTheme.value,
+    //     name: customTheme.value,
+    //     is_mandatory: 0,
+    //     input_type: 'multiEnumInput',
+    //     options: []
+    // });
     selectThemeList.value.push({
         label: customTheme.value,
         name: customTheme.value,
+        is_mandatory: 0,
         options: [],
         checkedList: [],
         otherValue: '',
         searchValue: ''
     });
+
     customTheme.value = '';
     modalMethods.value.closeModal();
 };
@@ -367,10 +360,17 @@ onMounted(() => {
             });
             selectThemeList.value[1].checkedList = oneThemeList2;
         };
-
     });
     EventBus.on('siteEditSelectThemeEmit', (list) => {
         selectThemeList.value = list;
+        // if (!lazadaAttrsState.skuAttrs.length) {
+        //     console.log('lazadaAttrsState.skuAttrs.length', lazadaAttrsState.skuAttrs.length);
+        //     // lazadaAttrsState.skuAttrs = selectThemeList.value;
+        //     setSkuAttrs(selectThemeList.value); // 设置skuAttrs
+        //     console.log('lazadaAttrsState.skuAttrs', lazadaAttrsState.skuAttrs);
+
+        // }
+
     })
 });
 

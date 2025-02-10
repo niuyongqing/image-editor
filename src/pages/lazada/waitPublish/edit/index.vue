@@ -13,33 +13,12 @@
                         </div>
                     </div>
                     <div class="flex gap-12px">
-                        <!-- <a-dropdown>
-                            <a-button type="primary" style="width: 90px; height: 31px;"
-                                :disabled="lazadaAttrsState.primaryCategory.length ? false : true">
-                                引用产品
-                                <DownOutlined />
-                            </a-button>
-                            <template #overlay>
-                                <a-menu>
-                                    <a-menu-item @click="selectNowProduct">
-                                        引用现有产品
-                                    </a-menu-item>
-                                </a-menu>
-                            </template>
-</a-dropdown>
-<a-button type="primary" style=" height: 32px;" @click="save" :loading="saveLoading">
-    保存
-</a-button>
-
-<a-button type="primary" style="height: 32px;" @click="publish" :loading="publishLoading">
-    发布
-</a-button>-->
                         <a-button type="primary" style="height: 32px;" @click="publish" :loading="publishLoading">
                             更新到Lazada
                         </a-button>
                     </div>
                 </div>
-                <BaseInfo id="baseInfo" ref="baseInfoRef" :detailData="detailData"></BaseInfo>
+                <BaseInfo id="baseInfo" ref="baseInfoRef" :detailData="detailData" :type="type"></BaseInfo>
                 <ProductInfo id="productInfo" ref="productInfoRef" :detailData="detailData"></ProductInfo>
                 <Package id="package" ref="packageRef" :detailData="detailData"></Package>
                 <ImageInfo id="imageInfo" ref="imageInfoRef" :waterList="waterList" :detailData="detailData">
@@ -52,23 +31,6 @@
 
                 <div w-full flex justify-end mt-10px>
                     <div class="flex gap-12px">
-                        <!-- <a-dropdown>
-                            <a-button type="primary" style="width: 90px; height: 31px;">
-                                引用产品
-                                <DownOutlined />
-                            </a-button>
-                            <template #overlay>
-                                <a-menu>
-                                    <a-menu-item @click="selectNowProduct">
-                                        引用现有产品
-                                    </a-menu-item>
-                                </a-menu>
-                            </template>
-                        </a-dropdown>
-                        <a-button type="primary" style="height: 32px;" @click="save" :loading="saveLoading">
-                            保存
-                        </a-button> -->
-
                         <a-button type="primary" style="height: 32px;" @click="publish" :loading="publishLoading">
                             更新到Lazada
                         </a-button>
@@ -139,6 +101,7 @@ import { watermarkList, lazadaAdd, } from '@/pages/lazada/product/api';
 import { lazadaWaitProductDetail } from '@/pages/lazada/waitPublish/api';
 
 const route = useRoute();
+const type = ref(false); //  是否是全球商品
 const detailData = ref({}); // 产品详情数据
 const saveLoading = ref(false);
 const publishLoading = ref(false);
@@ -261,9 +224,9 @@ const validateAll = async () => {
                 "price": item.price,
                 "quantity": item.quantity,
                 "sellerSku": item.sellerSku,
-                "specialFromDate": item.specialFromDate ? dayjs(item.specialFromDate).format('YYYY-MM-DD hh:mm:ss') : '',
-                "specialToDate": item.specialToDate ? dayjs(item.specialToDate).format('YYYY-MM-DD hh:mm:ss') : '',
-                "specialPrice": item.specialPrice ? dayjs(item.specialPrice).format('YYYY-MM-DD hh:mm:ss') : '',
+                "specialFromDate": item.specialFromDate ? dayjs(item.specialFromDate).format('YYYY-MM-DD HH:mm:ss') : '',
+                "specialToDate": item.specialToDate ? dayjs(item.specialToDate).format('YYYY-MM-DD HH:mm:ss') : '',
+                "specialPrice": item.specialPrice,
                 "saleProp": {
                     [lazadaAttrsState.selectTheme[0].name]: item[lazadaAttrsState.selectTheme[0].name],
                 },
@@ -281,9 +244,9 @@ const validateAll = async () => {
                 "price": item.price,
                 "quantity": item.quantity,
                 "sellerSku": item.sellerSku,
-                "specialFromDate": item.specialFromDate ? dayjs(item.specialFromDate).format('YYYY-MM-DD hh:mm:ss') : '',
-                "specialToDate": item.specialToDate ? dayjs(item.specialToDate).format('YYYY-MM-DD hh:mm:ss') : '',
-                "specialPrice": item.specialPrice ? dayjs(item.specialPrice).format('YYYY-MM-DD hh:mm:ss') : '',
+                "specialFromDate": item.specialFromDate ? dayjs(item.specialFromDate).format('YYYY-MM-DD HH:mm:ss') : '',
+                "specialToDate": item.specialToDate ? dayjs(item.specialToDate).format('YYYY-MM-DD HH:mm:ss') : '',
+                "specialPrice": item.specialPrice,
                 "saleProp": {
                     [lazadaAttrsState.selectTheme[0].name]: item[lazadaAttrsState.selectTheme[0].name],
                     [lazadaAttrsState.selectTheme[1].name]: item[lazadaAttrsState.selectTheme[1].name],
@@ -348,6 +311,9 @@ const getProductDetail = () => {
     const params = {
         id: route.query.id
     };
+    type.value = route.query.type === 'global';
+    console.log('type', type.value);
+
     if (!params.id) return;
     lazadaWaitProductDetail(params)
         .then((res) => {

@@ -1,7 +1,7 @@
 <template>
     <div class="mt-10px">
         <!-- 基本信息 -->
-        <a-tag color="orange" style="width: 100%;">
+        <a-tag color="orange" style="width: 100%;" v-if="type">
             <div class="tag-title"> 6合1发布功能——特别说明： </div>
             <div pt-5px>
                 <p class="tag-content">
@@ -30,7 +30,7 @@
                             @change="changeShortCode" allowClear :options="shortCodes"
                             :fieldNames="{ label: 'simpleName', value: 'shortCode' }" style="width: 250px;">
                         </a-select>
-                        <div flex ml-10px>
+                        <div flex ml-10px v-if="type">
                             <span> 同步发布到其他站点： </span>
                             <a-checkbox style="margin-right: 10px" v-model:checked="checkAll"
                                 @change="handleCheckAllChange">
@@ -70,10 +70,14 @@ import EventBus from "~/utils/event-bus";
 import { useLazadaWaitPublish } from "@/stores/lazadaWaitPublish";
 import { unique, findCategoryPath } from '@/pages/lazada/product/common';
 
-const { detailData } = defineProps({
+const { detailData, type } = defineProps({
     detailData: {
         type: Object,
         default: () => ({})
+    },
+    type: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -146,8 +150,7 @@ watch(() => {
     return detailData
 }, async (newVal) => {
     console.log('newVal ->>', newVal);
-
-    // loading.value = true;
+    loading.value = true;
     state.shortCode = newVal.shortCode;
     state.ventures = newVal.ventures.venture || [];
     checkAll.value = state.ventures.length === globalArea.length;
@@ -221,8 +224,16 @@ watch(() => {
         }
     });
     console.log('resultData', resultData);
-    setSelectTheme(resultData)
+
+    setSelectTheme(resultData);
+    if (lazadaAttrsState.skuAttrs.length === 0) {
+        setSkuAttrs(resultData);
+    };
     EventBus.emit('waitEditSelectThemeEmit', resultData);
+    EventBus.emit('generateSkuTableEmit', {
+        newVal,
+        resultData,
+    });
 }, {
     deep: true
 });

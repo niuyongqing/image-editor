@@ -168,6 +168,8 @@ const form = reactive({
 watch(() => {
     return detailData
 }, async (newVal) => {
+    console.log('newVal ---->>', newVal);
+
     const images = newVal.images ? JSON.parse(newVal.images) : [];
     // 产品图片
     form.fileList = images.map(item => {

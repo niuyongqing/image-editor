@@ -112,7 +112,6 @@ watch(() => {
         });
         return acc;
     }, {});
-
     const formattedResult = Object.keys(result).reduce((acc, key) => {
         acc[key] = Array.from(result[key]);
         return acc;
@@ -147,7 +146,10 @@ watch(() => {
             skuOptions: optionsUnique
         }
     });
-    setSelectTheme(resultData)
+    setSelectTheme(resultData);
+    if (lazadaAttrsState.skuAttrs.length === 0) {
+        setSkuAttrs(resultData);
+    };
     EventBus.emit('siteEditSelectThemeEmit', resultData);
 }, {
     deep: true

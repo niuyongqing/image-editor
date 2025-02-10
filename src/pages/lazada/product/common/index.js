@@ -64,6 +64,8 @@ export function getBase64(file) {
 
 //  去除重复
 export function unique(key, list) {
+  console.log("list", list);
+  if (!list || list.length === 0) return [];
   let uni1 = list.map((item) => [item[key], item]);
   let uni2 = new Map(uni1);
   let uni3 = Array.from(uni2.values());
