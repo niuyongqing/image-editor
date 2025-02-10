@@ -16,6 +16,14 @@ export const columns = [
   },
 
   {
+    title: "是否全球商品",
+    dataIndex: "global",
+    key: "global",
+    slot: "global",
+    width: 150,
+    align: "center",
+  },
+  {
     title: "SKU",
     dataIndex: "skus",
     key: "skus",

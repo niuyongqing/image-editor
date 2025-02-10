@@ -102,3 +102,31 @@ export function extractedFileName(filePath) {
   const match = filePath.match(regex);
   return match ? match[1] : "";
 }
+
+export const globalArea = [
+  {
+    label: "印度尼西亚",
+    value: "id",
+  },
+  {
+    label: "菲律宾",
+    value: "ph",
+  },
+  {
+    label: "新加坡",
+    value: "sg",
+  },
+  {
+    label: "泰国",
+    value: "th",
+  },
+  {
+    label: "越南",
+    value: "vn",
+  },
+
+  {
+    label: "马来西亚",
+    value: "my",
+  },
+];

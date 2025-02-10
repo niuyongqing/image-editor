@@ -119,3 +119,8 @@ export function hasValueAttributes(data) {
 export function saveProduct(data) {
   return usePost("/platform-lazada/platform/lazada/product/saveProduct", data);
 }
+
+// 复制
+export function copy(data) {
+  return usePost("/platform-lazada/platform/lazada/product/copy", data);
+}

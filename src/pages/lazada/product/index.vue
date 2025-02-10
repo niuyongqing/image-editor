@@ -40,7 +40,11 @@
                     </div>
                 </div>
             </template>
-
+            <template #global="{ record }">
+                <div class="record-sku-container pb-30px" text-center>
+                    <a-tag color="success"> {{ record.bizSupplement.globalPlusProductStatus ? '是' : '否' }}</a-tag>
+                </div>
+            </template>
             <template #skus="{ record }">
                 <div class="record-sku-container pb-30px">
                     <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
@@ -144,6 +148,7 @@
         <PriceModal ref="priceModalRef" @success="reload"></PriceModal>
         <StockModal ref="stockModalRef" @success="reload"></StockModal>
         <SpecialPriceModal ref="specialPriceModalRef" @success="reload"></SpecialPriceModal>
+        <CopySiteModal ref="copySiteModalRef" :account="accountDetail" @success="reload"></CopySiteModal>
     </div>
 </template>
 
@@ -163,9 +168,11 @@ import RemarkModal from '@/pages/lazada/product/components/remarkModal.vue';
 import PriceModal from './siteProduct/batchModal/priceModal.vue';
 import StockModal from './siteProduct/batchModal/stockModal.vue';
 import SpecialPriceModal from './siteProduct/batchModal/specialPriceModal.vue';
+import CopySiteModal from './components/copySiteModal.vue';
 
 const { copy } = useClipboard();
-const active = ref('ALL')
+const active = ref('ALL');
+const accountDetail = ref({}); // 所有店铺
 const searchFormState = ref({});
 const tableData = ref([]);
 const shortCodes = ref([]);
@@ -174,6 +181,7 @@ const priceModalEl = useTemplateRef('priceModalRef');
 const remarkModalEl = useTemplateRef('remarkModalRef');
 const stockModalEl = useTemplateRef('stockModalRef');
 const specialPriceModalEl = useTemplateRef('specialPriceModalRef');
+const copySiteModalEl = useTemplateRef('copySiteModalRef');
 const { singleDisabled, rowSelection, tableRow, selectedRows, clearSelection } = useTableSelection()
 const initSearchParam = {
     prop: "created_time",
@@ -279,11 +287,18 @@ const handleSync = (record) => {
 };
 //   复制为“六合一产品”
 const handleProduct = (record) => {
-    console.log('record', record);
+    if (!record.bizSupplement.globalPlusProductStatus) {
+        message.info('该产品为站点产品，无法复制为全球产品');
+        return;
+    }
 };
 //    复制为“站点产品”
 const handleCopyProduct = (record) => {
-    console.log('record', record);
+    if (record.bizSupplement.globalPlusProductStatus) {
+        message.info('该产品为全球产品，无法复制为站点产品');
+        return;
+    }
+    copySiteModalEl.value.open(record);
 };
 //   添加备注
 const handleRemark = (record) => {
@@ -351,6 +366,7 @@ const editQuantity = (item) => {
 onMounted(async () => {
     const accountCacheRes = await accountCache();
     if (accountCacheRes.code === 200) {
+        accountDetail.value = accountCacheRes.data.accountDetail;
         let codes = [];
         for (const resKey in accountCacheRes.data.accountDetail) {
             codes.push(...accountCacheRes.data.accountDetail[resKey])
