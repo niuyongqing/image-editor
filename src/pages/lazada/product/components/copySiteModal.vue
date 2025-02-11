@@ -13,7 +13,7 @@
                         </div>
                         <div flex-1>
                             <a-checkbox-group v-model:value="obj.checkedList" :options="valueTransform(obj.value)"
-                                class="checkbox-group">
+                                class="checkbox-group" @change="onCheckChange(obj)">
                                 <template #label="{ label }">
                                     {{ label }}
                                 </template>
@@ -63,7 +63,10 @@ const onCheckAllChange = (obj) => {
     } else {
         obj.checkAll = false;
     }
-}
+};
+const onCheckChange = (obj) => {
+    obj.checkAll = obj.checkedList.length === obj.value.length;
+};
 
 const modelMethods = ref();
 const register = (modal) => {

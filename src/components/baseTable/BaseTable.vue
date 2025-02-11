@@ -20,7 +20,6 @@
                         </a-space>
                     </div>
                 </div>
-                <!-- :scroll="{ y: tableHeight, x: scrollX ? scrollX : '100%', virtual: true }" -->
                 <a-table v-bind="$attrs" :columns="columns" :row-key="rowKey" :data-source="tableData"
                     :loading="loading" :pagination="{
                         ...pagination,
@@ -129,6 +128,6 @@ defineExpose({
     setLoading,
     search,
     reload,
-    setTableData, // 设置表格数据
+    setTableData,
 });
 </script>

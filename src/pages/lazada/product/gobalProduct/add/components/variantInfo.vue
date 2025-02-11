@@ -4,6 +4,16 @@
             <template #title>
                 <div text-left> 变种信息 </div>
             </template>
+            <div text-left mb-10px>
+                升级为Global Plus：
+                <a-checkbox v-model:checked="checkState.checkAll" @change="onChangeCheckAll"> 全部 </a-checkbox>
+                <a-checkbox-group v-model:value="checkState.checkedList" :options="checkState.options"
+                    @change="onChangeCheck">
+                    <template #label="{ label }">
+                        {{ label }}
+                    </template>
+                </a-checkbox-group>
+            </div>
             <a-table :columns="columns" :data-source="tableData" bordered :pagination="false" id="tableId">
                 <template #headerCell="{ title, column }">
                     <template v-if="column.dataIndex === 'sellerSKU'">
@@ -105,7 +115,6 @@
         <SpecialDateModal ref="specialDateModalRef" @success="specialDateSuccess"></SpecialDateModal>
         <WeightModal ref="weightModalRef" @success="weightSuccess"></WeightModal>
         <PackageModal ref="packageModalRef" @success="packageSuccess"></PackageModal>
-
     </div>
 </template>
 
@@ -120,9 +129,16 @@ import SpecialPriceModal from '../../batchModal/specialPriceModal.vue';
 import SpecialDateModal from '../../batchModal/specialDateModal.vue';
 import WeightModal from '../../batchModal/weightModal.vue';
 import PackageModal from "../../batchModal/packageModal.vue";
+import { globalArea } from '@/pages/lazada/product/common';
 
 const { state: lazadaAttrsState, setSkuTable } = useLazadaGobalAttrs();
 const skus = ref([]); // 属性中所有的 SKU
+
+const { state: checkState, reset } = useResetReactive({
+    checkAll: false,
+    checkedList: [],
+    options: globalArea
+});
 
 const theme = reactive({
     themeOne: [],
@@ -172,6 +188,14 @@ let baseColumns = [
         width: '120px'
     },
 ];
+
+const onChangeCheckAll = (e) => {
+    const selectOptions = checkState.options.map(item => item.value);
+    checkState.checkedList = e.target.checked ? selectOptions : [];
+};
+const onChangeCheck = (checkedList) => {
+    checkState.checkAll = checkedList.length === checkState.options.length;
+};
 
 const columns = computed(() => {
     const names = selectTheme.value.map((item) => {

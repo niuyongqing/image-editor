@@ -125,7 +125,7 @@
                                     <a-menu-item @click="handleSync(record)">
                                         同步
                                     </a-menu-item>
-                                    <a-menu-item @click="handleProduct(record)">
+                                    <a-menu-item @click="handleCopyGloablProduct(record)">
                                         复制为“六合一产品”
                                     </a-menu-item>
                                     <a-menu-item @click="handleCopyProduct(record)">
@@ -148,6 +148,7 @@
         <PriceModal ref="priceModalRef" @success="reload"></PriceModal>
         <StockModal ref="stockModalRef" @success="reload"></StockModal>
         <SpecialPriceModal ref="specialPriceModalRef" @success="reload"></SpecialPriceModal>
+        <CopyGlobalModal ref="copyGlobalModalRef" :account="accountDetail" @success="reload"></CopyGlobalModal>
         <CopySiteModal ref="copySiteModalRef" :account="accountDetail" @success="reload"></CopySiteModal>
     </div>
 </template>
@@ -169,6 +170,7 @@ import PriceModal from './siteProduct/batchModal/priceModal.vue';
 import StockModal from './siteProduct/batchModal/stockModal.vue';
 import SpecialPriceModal from './siteProduct/batchModal/specialPriceModal.vue';
 import CopySiteModal from './components/copySiteModal.vue';
+import CopyGlobalModal from './components/copyGlobalModal.vue';
 
 const { copy } = useClipboard();
 const active = ref('ALL');
@@ -182,6 +184,8 @@ const remarkModalEl = useTemplateRef('remarkModalRef');
 const stockModalEl = useTemplateRef('stockModalRef');
 const specialPriceModalEl = useTemplateRef('specialPriceModalRef');
 const copySiteModalEl = useTemplateRef('copySiteModalRef');
+const copyGlobalModalEl = useTemplateRef('copyGlobalModalRef');
+
 const { singleDisabled, rowSelection, tableRow, selectedRows, clearSelection } = useTableSelection()
 const initSearchParam = {
     prop: "created_time",
@@ -286,11 +290,12 @@ const handleSync = (record) => {
         })
 };
 //   复制为“六合一产品”
-const handleProduct = (record) => {
+const handleCopyGloablProduct = (record) => {
     if (!record.bizSupplement.globalPlusProductStatus) {
         message.info('该产品为站点产品，无法复制为全球产品');
         return;
-    }
+    };
+    copyGlobalModalEl.value.open(record);
 };
 //    复制为“站点产品”
 const handleCopyProduct = (record) => {
