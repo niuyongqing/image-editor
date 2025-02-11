@@ -230,11 +230,7 @@
     if (errList.length) {
       // 锚点标红(该红的红, 该恢复的恢复)
       anchorList.value.forEach(item => {
-        if (errList.includes(item.id)) {
-          item.turnRed = true
-        } else {
-          item.turnRed = false
-        }
+        item.turnRed = errList.includes(item.id)
       })
       // 跳转到第一个标红的位置
       scroll(errList[0])
@@ -336,11 +332,7 @@
     if (errList.length) {
       // 锚点标红(该红的红, 该恢复的恢复)
       anchorList.value.forEach(item => {
-        if (errList.includes(item.id)) {
-          item.turnRed = true
-        } else {
-          item.turnRed = false
-        }
+        item.turnRed = errList.includes(item.id)
       })
       // 跳转到第一个标红的位置
       scroll(errList[0])
