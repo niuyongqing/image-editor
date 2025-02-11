@@ -7,7 +7,7 @@
       ref="ruleFormRef"
       :model="form"
       :label-col="{ style: { width: '180px' } }"
-      :wrapper-col="{ span: 14 }"
+      :wrapper-col="{ span: 16 }"
       :rules="rules"
     >
       <a-form-item
@@ -79,7 +79,7 @@
             ref="attributeFormRef"
             :model="attributes"
             :label-col="{ style: { width: '150px' } }"
-            :wrapper-col="{ style: { width: '186px' } }"
+            :wrapper-col="{ style: { width: '240px' } }"
             class="mt-6 flex flex-wrap"
           >
             <a-form-item
@@ -147,18 +147,76 @@
                 >
               </a-radio-group>
               <!-- 高关注化学物质(check_box)选项太多了, 用多选下拉框替代 -->
-              <a-select
-                v-else-if="item.attributeShowTypeValue === 'check_box'"
-                v-model:value="attributes[item.zh]"
-                :options="item.values"
-                :field-names="{ label: 'name', value: 'attributeValueId' }"
-                :mode="item.supportEnumInput ? 'tags' : 'multiple'"
-                show-search
-                allow-clear
-                label-in-value
-                placeholder="输入或选择;回车确认输入值"
-                option-filter-prop="name"
-              />
+              <template v-else-if="item.attributeShowTypeValue === 'check_box'">
+                <!-- feature 含 AE_FEATURE_material_ratio 的需填材质比例 -->
+                <template v-if="item.showPercent">
+                  <div
+                    v-for="(materialItem, i2) in attributes[item.zh]"
+                    :key="materialItem.id"
+                    class="flex mb-1"
+                  >
+                    <a-form-item-rest>
+                      <a-space class="z-1">
+                        <a-select
+                          v-model:value="materialItem.material"
+                          :options="item.values"
+                          :field-names="{ label: 'name', value: 'attributeValueId' }"
+                          show-search
+                          allow-clear
+                          label-in-value
+                          placeholder="请选择"
+                          option-filter-prop="name"
+                          style="width: 128px"
+                        />
+                        <a-input-number
+                          v-model:value="materialItem.percent"
+                          :controls="false"
+                          :precision="0"
+                          :min="1"
+                          :max="100"
+                          style="width: 76px"
+                        >
+                          <template #addonAfter>%</template>
+                        </a-input-number>
+                        <a-button
+                          v-if="i2 === attributes[item.zh].length - 1"
+                          type="link"
+                          title="添加"
+                          @click="materialAdd(attributes[item.zh])"
+                        >
+                          <template #icon><PlusOutlined /></template>
+                        </a-button>
+                        <a-button
+                          v-if="attributes[item.zh].length !== 1"
+                          type="link"
+                          title="删除"
+                          @click="materialDel(attributes[item.zh], i2)"
+                        >
+                          <template #icon><MinusOutlined /></template>
+                        </a-button>
+                        <a-popover v-if="i2 === 0">
+                          <template #content>
+                            <span>材质百分比之和须等于 100%</span>
+                          </template>
+                          <InfoCircleOutlined />
+                        </a-popover>
+                      </a-space>
+                    </a-form-item-rest>
+                  </div>
+                </template>
+                <a-select
+                  v-else
+                  v-model:value="attributes[item.zh]"
+                  :options="item.values"
+                  :field-names="{ label: 'name', value: 'attributeValueId' }"
+                  :mode="item.supportEnumInput ? 'tags' : 'multiple'"
+                  show-search
+                  allow-clear
+                  label-in-value
+                  placeholder="输入或选择;回车确认输入值"
+                  option-filter-prop="name"
+                />
+              </template>
               <a-input
                 v-else
                 v-model:value="item.attributeShowTypeValue"
@@ -221,7 +279,7 @@
   import { getProductClassificationApi, resultByPostCateIdAndPathApi, getResultByPostCateIdAndPathApi } from '../../apis/product'
   import { accountCacheApi } from '../../apis/common'
   import { queryChannelApi } from '../../apis/choice-product'
-  import { InfoCircleOutlined, PlusOutlined, UpOutlined, DownOutlined } from '@ant-design/icons-vue'
+  import { InfoCircleOutlined, PlusOutlined, MinusOutlined, UpOutlined, DownOutlined } from '@ant-design/icons-vue'
   import { message } from 'ant-design-vue'
   import { v4 as uuidv4 } from 'uuid'
   import { cloneDeep } from 'lodash'
@@ -230,7 +288,7 @@
 
   export default {
     name: 'BaseInfo',
-    components: { InfoCircleOutlined, PlusOutlined, UpOutlined, DownOutlined },
+    components: { InfoCircleOutlined, PlusOutlined, MinusOutlined, UpOutlined, DownOutlined },
     data() {
       return {
         store: useAliexpressChoiceProductStore(),
@@ -342,11 +400,25 @@
                   attributesObj[option.zh] = root[attrNameId].map(item => {
                     const target = option.values.find(val => val.attributeValueId == item.attrValueId)
                     if (target) {
-                      return {
-                        label: target.name,
-                        value: target.attributeValueId,
-                        key: target.attributeValueId,
-                        option: target
+                      // 材质百分比
+                      if (option.showPercent) {
+                        return {
+                          material: {
+                            label: target.name,
+                            value: target.attributeValueId,
+                            key: target.attributeValueId,
+                            option: target
+                          },
+                          percent: item.percent
+                        }
+                      } else {
+                        // 其他多选类型
+                        return {
+                          label: target.name,
+                          value: target.attributeValueId,
+                          key: target.attributeValueId,
+                          option: target
+                        }
                       }
                     } else {
                       return { label: item.attrValue, value: undefined }
@@ -504,6 +576,8 @@
                 attributeList.forEach(item => {
                   item.zh = JSON.parse(item.names).zh
                   item.en = JSON.parse(item.names).en
+                  // 是否支持材质百分比(有 AE_FEATURE_material_ratio 字段则为需要填写百分比)
+                  item.showPercent = item.features.includes('AE_FEATURE_material_ratio')
                   item.values.forEach(value => {
                     const names = JSON.parse(value.names)
                     value.name = names.zh + '(' + names.en + ')'
@@ -522,6 +596,9 @@
                     if (val) {
                       this.attributes[item.zh] = [{ label: val.name, value: val.attributeValueId, option: val }]
                     }
+                  } else if (item.showPercent) {
+                    // 填写材质比例
+                    this.attributes[item.zh] = [{ id: uuidv4(), material: undefined, percent: undefined }]
                   } else {
                     this.attributes[item.zh] = []
                   }
@@ -645,6 +722,13 @@
           value: ''
         })
       },
+      /** 材质百分比 添加/删除 */
+      materialAdd(list) {
+        list.push({ id: uuidv4(), material: undefined, percent: undefined })
+      },
+      materialDel(list, i) {
+        list.splice(i, 1)
+      },
       // 自定义属性 上/下移
       move(type, i) {
         let targetIndex = undefined
@@ -670,13 +754,39 @@
         await this.$refs.attributeFormRef.validate().catch(err => {
           attrValid = false
         })
+        // 校验材质比例; 1. 非空; 2. 重复; 3. 和为 100%
+        let hasMaterialErr = false
+        const materialList = this.attributeOptions.filter(item => item.showPercent).map(item => item.zh)
+        if (materialList.length) {
+          materialList.forEach(key => {
+            // 非空
+            if (this.attributes[key].some(item => !item.material || !item.percent)) {
+              message.warning('材质比例存在空值!')
+              hasMaterialErr = true
+              return
+            }
+            // 判断是否有重复
+            const valList = new Set(this.attributes[key].map(item => item.material.value))
+            if (valList.size !== this.attributes[key].length) {
+              message.warning('材质存在重复值!')
+              hasMaterialErr = true
+              return
+            }
+            // 和为 100
+            const sum = this.attributes[key].reduce((pre, cur) => cur.percent + pre, 0)
+            if (sum !== 100) {
+              message.warning('材质百分比之和须等于 100!')
+              hasMaterialErr = true
+            }
+          })
+        }
         // 自定义属性
         const hasEmpty = this.cusAttribute.some(item => !item.label || !item.value)
         if (hasEmpty) {
           message.warning('请将自定义属性填写完整')
         }
         // 若有校验不通过, return; 阻断下序操作
-        if (!ruleFormValid || !attrValid || hasEmpty) return
+        if (!ruleFormValid || !attrValid || hasEmpty || hasMaterialErr) return
 
         let subjectList = []
         if (Object.keys(this.productDetail).length === 0) {
@@ -710,14 +820,26 @@
               break
             case 'Array':
               // 一个属性多个选中值的情况，以多个该对象存放
-              this.attributes[key].forEach(val => {
-                productPropertyList.push({
-                  attrName: key,
-                  attrNameId: tempObj.attributeId,
-                  attrValue: val.label, // 原写法值为: 选择的属性(Object) || 自定义(String)
-                  attrValueId: val.value
+              if (materialList.includes(key)) {
+                this.attributes[key].forEach(val => {
+                  productPropertyList.push({
+                    attrName: key,
+                    attrNameId: tempObj.attributeId,
+                    attrValue: val.material.label, // 原写法值为: 选择的属性(Object) || 自定义(String)
+                    attrValueId: val.material.value,
+                    percent: val.percent
+                  })
                 })
-              })
+              } else {
+                this.attributes[key].forEach(val => {
+                  productPropertyList.push({
+                    attrName: key,
+                    attrNameId: tempObj.attributeId,
+                    attrValue: val.label, // 原写法值为: 选择的属性(Object) || 自定义(String)
+                    attrValueId: val.value
+                  })
+                })
+              }
               break
             case 'String':
             default:

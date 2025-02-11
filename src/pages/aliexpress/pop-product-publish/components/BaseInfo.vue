@@ -548,9 +548,7 @@
                   item.zh = JSON.parse(item.names).zh
                   item.en = JSON.parse(item.names).en
                   // 是否支持材质百分比(有 AE_FEATURE_material_ratio 字段则为需要填写百分比)
-                  // item.showPercent = item.features.includes('AE_FEATURE_material_ratio')
-                  // FIXME: 临时用别的判断方法代替一下
-                  item.showPercent = item.en === 'Material'
+                  item.showPercent = item.features.includes('AE_FEATURE_material_ratio')
                   item.values.forEach(value => {
                     const names = JSON.parse(value.names)
                     value.name = names.zh + '(' + names.en + ')'

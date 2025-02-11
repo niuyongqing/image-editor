@@ -783,35 +783,38 @@
         }
 
         // 产品图片; 主图; 多个url用分号[;]分隔
-        const mainImageList = this.form.productImages.map(image => image.url.replace('/prod-api', ''))
+        const imageURLs = this.form.productImages.map(image => image.url.replace('/prod-api', '')).join(';')
         // 营销图片; imageType: 1-长图(3:4); 2-方图(1:1)
-        const marketImageList = []
+        const marketImages = []
         this.form.marketImage1.length &&
-          marketImageList.push({
+          marketImages.push({
             url: this.form.marketImage1[0].url.replace('/prod-api', ''),
             imageType: 2
           })
         this.form.marketImage2.length &&
-          marketImageList.push({
+          marketImages.push({
             url: this.form.marketImage2[0].url.replace('/prod-api', ''),
             imageType: 1
           })
         // 产品视频; 只允许一个
-        const videoList = []
-        this.form.video.mediaId &&
-          videoList.push({
-            mediaId: this.form.video.mediaId,
-            mediaType: this.form.video.mediaType,
-            posterUrl: this.form.video.posterUrl
-          })
+        const aeopAEMultimedia = {}
+        if (this.form.video.mediaId) {
+          const aeopAEVideos = [
+            {
+              mediaId: this.form.video.mediaId,
+              mediaType: this.form.video.mediaType,
+              posterUrl: this.form.video.posterUrl
+            }
+          ]
 
-        const multimedia = {
-          mainImageList,
-          marketImageList,
-          videoList
+          aeopAEMultimedia.aeopAEVideos = aeopAEVideos
         }
 
-        return { multimedia }
+        return {
+          imageURLs,
+          marketImages,
+          aeopAEMultimedia: this.form.video.mediaId ? aeopAEMultimedia : undefined
+        }
       }
     }
   }
