@@ -119,9 +119,9 @@
         </div>
         <div v-if="column.key === 'SKUTitle'">
           (
-            <a-button @click="headerDialog(column, 'foundation', 'skuEdit')" type="link" >一键生成</a-button>
+            <a-button @click="headerDialog(column, 'foundation', 'skuTitleModal')" type="link" >一键生成</a-button>
             ·
-            <a-button @click="headerDialog(column, 'senior', 'skuEdit')" type="link">高级</a-button>
+            <a-button @click="headerDialog(column, 'senior', 'skuTitleModal')" type="link">高级</a-button>
           )
         </div>
         <div v-if="column.key === 'conditionType'">
@@ -320,6 +320,7 @@ import conditionTypeModal from './modal/conditionTypeModal.vue';
 import describeModal from './modal/describeModal.vue';
 import numberEditModal from './modal/numberEditModal.vue';
 import discountedTimeModal from './modal/discountedTimeModal.vue';
+import skuTitleModal from './modal/skuTitleModal.vue';
 defineOptions({ name: "variationInfo" })
 const { proxy: _this } = getCurrentInstance();
 const props = defineProps({
@@ -469,6 +470,7 @@ const modalInfo = reactive({        // 表头弹窗
     describeModal: markRaw(describeModal),
     numberEditModal: markRaw(numberEditModal),
     discountedTimeModal: markRaw(discountedTimeModal),
+    skuTitleModal: markRaw(skuTitleModal),
   },
 })
 // 展示的表头

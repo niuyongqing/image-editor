@@ -1,8 +1,8 @@
 <template>
-<div id="skuEdit" class="skuEdit">
+<div id="skuTitleModal">
   <a-modal 
     v-model:open="props.open" 
-    :title="'SKU一键生成'" 
+    :title="'SKU标题生成'" 
     @ok="handleOk"
     :closable="false"
     style="width: 50%;"
@@ -12,63 +12,27 @@
     </div>
     <div v-if="type === 'senior'" class="dialog-box">
       <a-tabs v-model:activeKey="skuEditData.activeKey" @change="handleSelect">
-        <a-tab-pane key="add" tab="生成SUK">
+        <a-tab-pane key="add" tab="生成SUK标题">
           <div class="content-box">
             <div class="box-addStr">
-              <div class="box-content-title">添加前后缀</div>
+              <div class="box-content-title">自定义标题</div>
               <div class="box-addStr-text">
                 <div class="box-addStr-text-item">
-                  <span class="item-label">前缀：</span>
-                  <a-select style="width: 150px;" v-model:value="addStr.prefixType" @change="val => selectChange(val, 'prefix')" placeholder="请选择">
-                    <a-select-option
-                      v-for="item in skuEditData.options"
-                      :key="item.val"
-                      :disabled="item.val === 2 && skuEditData.variantInfo.length > 999"
-                      :value="item.val"
-                    >{{ item.label }}</a-select-option>
-                  </a-select>
-                  <a-input v-model:value="addStr.prefix" placeholder="请输入前缀" v-if="addStr.prefixType === 1"></a-input>
-                  <a-input v-model:value="addStr.prefix" disabled v-if="addStr.prefixType === 2"></a-input>
-                  <a-input-number
-                    style="width: 120px;"
-                    :min="0"
-                    v-model:value="addStr.prefix" 
-                    v-if="addStr.prefixType === 3"
-                    placeholder="请输入起始值" 
-                  ></a-input-number>
+                  <span class="item-label">标题：</span>
+                  <a-textarea 
+                    v-model:value="addStr.content" 
+                    placeholder="请输入内容"
+                    :autoSize="{ maxRows: 2 }"
+                    @blur="handleBlur"
+                  ></a-textarea>
                 </div>
                 <div class="box-addStr-text-item">
-                  <span class="item-label">连接符：</span>
-                  <a-input v-model:value="addStr.connector" placeholder="请输入连接符"></a-input>
-                </div>
-                <div class="box-addStr-text-item">
-                  <span class="item-label">后缀：</span>
-                  <a-select style="width: 150px;" v-model:value="addStr.suffixType" @change="selectChange($event, 'suffix')" placeholder="请选择">
-                    <a-select-option
-                      v-for="item in skuEditData.options"
-                      :key="item.val"
-                      :disabled="item.val === 2 && skuEditData.variantInfo.length > 999"
-                      :value="item.val"
-                    >{{ item.label }}</a-select-option>
-                  </a-select>
-                  <a-input v-model:value="addStr.suffix" placeholder="请输入后缀" v-if="addStr.suffixType === 1"></a-input>
-                  <a-input v-model:value="addStr.suffix" disabled v-if="addStr.suffixType === 2"></a-input>
-                  <a-input-number
-                    style="width: 120px;"
-                    :min="0"
-                    v-model:value="addStr.suffix" 
-                    v-if="addStr.suffixType === 3"
-                    placeholder="请输入起始值" 
-                  ></a-input-number>
-                </div>
-              </div>
-            </div>
-            <div class="box-setSUK">
-              <div class="box-content-title">设置SKU格式</div>
-              <div class="box-setSUK-tags">
-                <div class="label-tag" v-for="item in skuEditData.variantAttribute" :key="item.id">
-                  <span>{{ item.name }}</span>
-                  <CloseOutlined style="margin-left: 6px; font-size: 16px;" @click="removeTag(item)"/>
+                  <span class="item-label">标题变量：</span>
+                  <a-button type="link"
+                    v-for="(item, index) in skuEditData.variantAttribute" 
+                    :key="item.id"
+                    @click="handleTagClick(index)"
+                  >变种主题{{ index+1 }}</a-button>
                 </div>
               </div>
             </div>
@@ -90,54 +54,30 @@
               </div>
             </div>
             <div class="box-setSUK">
-              <div class="box-content-title">SKU生成预览</div>
+              <div class="box-content-title">标题字母</div>
+              <a-checkbox v-model:checked="addStr.capital">首字母大写</a-checkbox>
+            </div>
+            <div class="box-setSUK">
+              <div class="box-content-title">标题截取</div>
+              <a-checkbox v-model:checked="addStr.capture">标题超过200个字符时删除结尾超出字符</a-checkbox>
+            </div>
+            <div class="box-setSUK">
+              <div class="box-content-title">生成预览</div>
               <a-input v-model:value="skuPreview" disabled></a-input>
             </div>
           </div>
         </a-tab-pane>
-        <a-tab-pane key="edit" tab="修改SUK" force-render>
+        <a-tab-pane key="edit" tab="修改SUK标题" force-render>
           <div class="content-box">
             <div class="box-addStr">
               <div class="box-addStr-text sukReplace">
                 <div class="box-addStr-text-item">
                   <span class="item-label">前缀：</span>
-                  <a-select style="width: 150px;" v-model:value="addStr.prefixType" @change="val => selectChange(val, 'prefix')" placeholder="请选择">
-                    <a-select-option
-                      v-for="item in skuEditData.options"
-                      :key="item.val"
-                      :disabled="item.val === 2 && skuEditData.variantInfo.length > 999"
-                      :value="item.val"
-                    >{{ item.label }}</a-select-option>
-                  </a-select>
-                  <a-input v-model:value="addStr.prefix" placeholder="请输入后缀" v-if="addStr.prefixType === 1"></a-input>
-                  <a-input v-model:value="addStr.prefix" disabled v-if="addStr.prefixType === 2"></a-input>
-                  <a-input-number
-                    style="width: 120px;"
-                    :min="0"
-                    v-model:value="addStr.prefix" 
-                    v-if="addStr.prefixType === 3"
-                    placeholder="请输入起始值" 
-                  ></a-input-number>
+                  <a-input v-model:value="addStr.prefix" placeholder="请输入前缀"></a-input>
                 </div>
                 <div class="box-addStr-text-item">
                   <span class="item-label">后缀：</span>
-                  <a-select style="width: 150px;" v-model:value="addStr.suffixType" @change="val => selectChange(val, 'suffix')" placeholder="请选择">
-                    <a-select-option
-                      v-for="item in skuEditData.options"
-                      :key="item.val"
-                      :disabled="item.val === 2 && skuEditData.variantInfo.length > 999"
-                      :value="item.val"
-                    >{{ item.label }}</a-select-option>
-                  </a-select>
-                  <a-input v-model:value="addStr.suffix" placeholder="请输入后缀" v-if="addStr.suffixType === 1"></a-input>
-                  <a-input v-model:value="addStr.suffix" disabled v-if="addStr.suffixType === 2"></a-input>
-                  <a-input-number
-                    style="width: 120px;"
-                    :min="0"
-                    v-model="addStr.suffix" 
-                    v-if="addStr.suffixType === 3"
-                    placeholder="请输入起始值" 
-                  ></a-input-number>
+                  <a-input v-model:value="addStr.suffix" placeholder="请输入后缀"></a-input>
                 </div>
               </div>
               <div class="box-addStr-text sukReplace">
@@ -148,6 +88,24 @@
                 <div class="box-addStr-text-item sukReplace-item">
                   <span class="item-label">替换为</span>
                   <a-input v-model:value="addStr.newValue"></a-input>
+                </div>
+              </div>
+              <div class="box-addStr-text sukReplace">
+                <div class="box-addStr-text-item">
+                  <span class="item-label">标题中移除：</span>
+                  <a-input v-model:value="addStr.delValue"></a-input>
+                </div>
+              </div>
+              <div class="box-addStr-text sukReplace">
+                <div class="box-addStr-text-item">
+                  <span class="item-label">首字母大写：</span>
+                  <a-checkbox v-model:checked="addStr.capital">首字母大写</a-checkbox>
+                </div>
+              </div>
+              <div class="box-addStr-text sukReplace">
+                <div class="box-addStr-text-item">
+                  <span class="item-label">标题截取：</span>
+                  <a-checkbox v-model:checked="addStr.capture">标题超过200个字符时删除结尾超出字符</a-checkbox>
                 </div>
               </div>
             </div>
@@ -164,11 +122,9 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue' 
-import { CloseOutlined } from '@ant-design/icons-vue';
-import Sortable from 'sortablejs'
-defineOptions({ name: "skuEdit" })
-const { proxy: _this } = getCurrentInstance();
+import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
+defineOptions({ name: "skuTitleModal" })
+const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:open', 'editDone', 'generate']);
 const props = defineProps({
   open: Boolean,
@@ -200,35 +156,44 @@ const skuEditData = reactive({
   ]
 })
 const addStr = reactive({
+  content: '',      // 标题内容
+  cursorPos: null,  // 光标位置
+  capital: false,   // 首字母大写
+  capture: false,   // 字段截取
+
   prefix: '',
-  prefixType: 1,
-  prefixNumber: [],             // 随机数池，与变种信息的数量相等
-  connector: '-',
   suffix: '',
-  suffixType: 1,
-  suffixNumber: [],             // 随机数池，与变种信息的数量相等
 
   oldValue: '',                 
   newValue: '',
+  delValue: '',               // 需要移除的字段
 }) 
 const type = computed(() => {
   return props.modalData.type
 })
 const skuPreview = computed(() => {
-  let arr = []
-  skuEditData.variantAttribute.forEach(item => {
-    arr.push(item.values[0].input)
+  let reg = new RegExp(`#([^#]*变种主题[^#]*)#`, 'g');
+  let newStr = addStr.content
+  let item = skuEditData.variantInfo[0]
+  newStr = newStr.replace(reg, (match) => {
+    let index = Number(match.split('变种主题')[1].split('#')[0]) - 1
+    let id = skuEditData.variantAttribute[index].id
+    return item[id].input
   })
-  let str = arr.join(` ${addStr.connector} `)
-  // return arr.join(' - ')
-  return `${addStr.prefix ? `${addStr.prefix}${addStr.connector}`:''}${str}${addStr.suffix ? `${addStr.connector}${addStr.suffix}`:''}`
+  if (addStr.capital) {
+    newStr = newStr.replace(/\b\w/g, (char) => char.toUpperCase())
+  }
+  if (addStr.capture && newStr.length > 200) {
+    newStr = newStr.slice(0, 200)
+  }
+  return newStr
 }) 
 watch(() => props.open, (val, old) => {
   if (val) {
     skuEditData.variantInfo = JSON.parse(JSON.stringify(props.modalData.variantInfo))
     skuEditData.prop = props.modalData.prop
     nextTick(() => {
-      tagDrop()
+      // tagDrop()
       creatVariantAttribute()
     })
   }
@@ -263,6 +228,21 @@ function creatVariantAttribute() {
   })
   skuEditData.variantAttribute[0].show = true
 }
+// 输入框获取焦点
+function handleBlur(e) {
+  addStr.cursorPos = e.srcElement.selectionStart;
+}
+// 插入变种主题
+function handleTagClick(index) {
+  let tag = `#变种主题${index + 1}#`
+  if (!addStr.content) {
+    addStr.content = tag
+  } else {
+    let start = addStr.content.substring(0, addStr.cursorPos || 0);
+    let end = addStr.content.substring(addStr.cursorPos || 0);
+    addStr.content = start + tag + end
+  }
+}
 // 变种主题展开收起
 function variantAttributeShow(val) {
   skuEditData.variantAttribute.forEach(item => {
@@ -275,16 +255,17 @@ function variantAttributeShow(val) {
 }
 function handleClose(data) {
   let _addStr = {
+    content: '',      // 标题内容
+    cursorPos: null,  // 光标位置
+    capital: false,   // 首字母大写
+    capture: false,   // 字段截取
+
     prefix: '',
-    prefixType: 1,
-    prefixNumber: [],             // 随机数池，与变种信息的数量相等
-    connector: '-',
     suffix: '',
-    suffixType: 1,
-    suffixNumber: [],             // 随机数池，与变种信息的数量相等
 
     oldValue: '',                 
     newValue: '',
+    delValue: '',               // 需要移除的字段
   }
   Object.keys(_addStr).forEach(item => {
     if (addStr[item]) {
@@ -301,11 +282,11 @@ function save() {
   } else if (type.value === 'senior') {
     seniorFn()
   }
+  // return
   handleClose(skuEditData.variantInfo)
 }
 // 一键生成
 function foundationFn() {
-  let prop = props.modalData.prop
   let keys = props.modalData.headerList.map(i => i.key)
   skuEditData.variantInfo.forEach(item => {
     let str = skuEditData.prefix ? skuEditData.prefix + '-' : ''
@@ -313,75 +294,62 @@ function foundationFn() {
     keys.forEach(key => {
       arr.push(item[key].label)
     })
-    item[prop] = str + arr.join('-')
+    item[skuEditData.prop] = str + arr.join('-')
   })
 }
 // 高级设置
 function seniorFn() {
   let keys = skuEditData.variantAttribute.map(i => i.id)
+  let prop = skuEditData.prop
   skuEditData.variantInfo.forEach((item, index) => {
     let obj = {
       prefix: '',
       suffix: ''
     }
     let arr = []
-    let str = ''
     keys.forEach(key => {
       arr.push(item[key].input)
     })
-    str = arr.join(addStr.connector)
     let fix = ['prefix', 'suffix']
     fix.forEach((f, i) => {
-      // 根据规则生成前缀和后缀l
-      switch (addStr[(f + 'Type')]) {
-        case 1:
-          obj[f] = addStr[f]
-          break;
-        case 2:
-          obj[f] = addStr[(f + 'Number')][index]
-          break;
-        case 3:
-          obj[f] = (addStr[f]*1) + index + ''
-          break;
-      
-        default:
-          break;
-      }
+      obj[f] = addStr[f]
     })
     if (skuEditData.activeKey === 'add') {
-      let connector = addStr.connector
-      item[skuEditData.prop] = `${obj.prefix ? obj.prefix+connector : ''}${str}${obj.suffix ? connector+obj.suffix : ''}`
+      let reg = new RegExp(`#([^#]*变种主题[^#]*)#`, 'g');
+      // console.log(22, reg, addStr.content)
+      let newStr = addStr.content
+      newStr = newStr.replace(reg, (match) => {
+        let index = Number(match.split('变种主题')[1].split('#')[0]) - 1
+        let id = skuEditData.variantAttribute[index].id
+        // console.log(Number(match.split('变种主题')[1].split('#')[0]) - 1, item[id]);
+        return item[id].input
+      })
+      if (addStr.capital) {
+        console.log(22, newStr)
+        newStr = newStr.replace(/\b\w/g, (char) => {
+          console.log({char});
+          
+          return char.toUpperCase()
+        })
+      }
+      if (addStr.capture && newStr.length > 200) {
+        newStr = newStr.slice(0, 200)
+      }
+      item[prop] = newStr
     } else if (skuEditData.activeKey === 'edit') {
-      item[skuEditData.prop] = `${obj.prefix}${item[skuEditData.prop]}${obj.suffix}`
+      item[prop] = `${obj.prefix}${item[prop]}${obj.suffix}`.replace(addStr.delValue, '')
       if (addStr.oldValue) {
         let reg = new RegExp(addStr.oldValue, 'g')
-        item[skuEditData.prop] = item[skuEditData.prop].replace(reg, addStr.newValue)
+        item[prop] = item[prop].replace(reg, addStr.newValue)
+      }
+      if (addStr.capital) {
+        item[prop] = item[prop].replace(/\b\w/g, (char) => char.toUpperCase())
+      }
+      if (addStr.capture && item[prop].length > 200) {
+        item[prop] = item[prop].slice(0, 200)
       }
     }
   })
-}
-// 标签拖拽
-function tagDrop() {
-  const tagBox = document.querySelector('.box-setSUK-tags')
-  if (!tagBox) return;
-
-  let sortable = Sortable.create(tagBox, {
-    animation: 300,
-    delay: 0,
-    onEnd: evt => {
-      const oldItem = skuEditData.variantAttribute[evt.oldIndex]
-      skuEditData.variantAttribute.splice(evt.oldIndex, 1)
-      skuEditData.variantAttribute.splice(evt.newIndex, 0, oldItem)
-      // 在组件移除后，重新渲染组件
-      // this.$nextTick可实现在DOM 状态更新后，执行传入的方法。
-      nextTick(() => {
-        setTimeout(() => {
-          tagDrop() // 重新加载这个方法，否则刷新后无法使用
-        }, 200)
-      });
-    }
-  })
-  // console.log(11, {tagBox, sortable});
 }
 function selectChange(val, key) {
   let arr = []
@@ -407,10 +375,6 @@ function selectChange(val, key) {
     }
   }
 }
-// 标签删除
-function removeTag(val) {
-  skuEditData.variantAttribute = skuEditData.variantAttribute.filter(i => i.id !== val.id)
-}
 // 设置变种代码
 function variantItemChange(val, key) {
   skuEditData.variantInfo.forEach(item => {
@@ -420,25 +384,24 @@ function variantItemChange(val, key) {
   })
 }
 function handleSelect(index) {
-  skuEditData.activeKey = index
   let _addStr = {
+    content: '',      // 标题内容
+    cursorPos: null,  // 光标位置
+    capital: false,   // 首字母大写
+    capture: false,   // 字段截取
+
     prefix: '',
-    prefixType: 1,
-    prefixNumber: [],             // 随机数池，与变种信息的数量相等
-    connector: '-',
     suffix: '',
-    suffixType: 1,
-    suffixNumber: [],             // 随机数池，与变种信息的数量相等
 
     oldValue: '',                 
     newValue: '',
+    delValue: '',               // 需要移除的字段
   }
   Object.keys(_addStr).forEach(item => {
     if (addStr[item]) {
       addStr[item] = _addStr[item]
     }
   })
-  addStr.connector = skuEditData.activeKey === 'add' ? '-':''
 }
 </script>
 <style lang="less" scoped>
@@ -457,12 +420,37 @@ function handleSelect(index) {
       width: 100%;
       .box-addStr-text {
         width: 100%;
-        height: 40px;
+        // height: 40px;
         display: flex;
-        justify-content: space-between;
+        // justify-content: space-between;
+        flex-direction: column;
         :deep(.box-addStr-text-item) {
           // width: 30%;
-          margin-right: 20px;
+          display: flex;
+          align-items: center;
+          .item-label {
+            white-space:nowrap;
+          }
+          .ant-input {
+            // width: 130px;
+            margin-right: 8px;
+          }
+        }
+        :deep(.sukReplace-item) {
+          // width: 30%;
+          .ant-input {
+            width: 100%;
+            // width: calc(100% - 72px);
+          }
+        }
+      }
+      .sukReplace {
+        justify-content: flex-start;
+        // justify-content: space-between;
+        margin-bottom: 8px;
+        flex-direction: row;
+        :deep(.box-addStr-text-item) {
+          // width: 30%;
           display: flex;
           align-items: center;
           .item-label {
@@ -479,9 +467,6 @@ function handleSelect(index) {
             width: 100%;
             // width: calc(100% - 72px);
           }
-        }
-        &.sukReplace {
-          justify-content: flex-start;
         }
       }
     }
