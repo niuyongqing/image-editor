@@ -51,4 +51,12 @@ export const columns = [
     slot: "date",
     width: 300,
   },
+
+  {
+    title: "操作",
+    dataIndex: "action",
+    key: "action",
+    slot: "action",
+    width: 120,
+  },
 ];

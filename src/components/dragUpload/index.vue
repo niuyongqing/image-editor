@@ -2,7 +2,7 @@
     <div w-full>
         <div flex justify-between w-full>
             <a-upload name="file" :customRequest="customRequest" :before-upload="beforeUpload" :headers="headers"
-                :accept="getProps.accept" :action="getProps.actionUrl" :showUploadList="false">
+                :disabled="disabled" :accept="getProps.accept" :action="getProps.actionUrl" :showUploadList="false">
                 <a-button type="primary" v-if="fileList.length <= getProps.maxCount" style="width: 90px; height: 31px;">
                     <UploadOutlined></UploadOutlined>
                     选择图片
@@ -111,6 +111,10 @@ import { message } from "ant-design-vue";
 import { watermarkApi } from '@/api/common/water-mark.js';
 import router from '~@/router';
 const props = defineProps({
+    disabled: {
+        type: Boolean,
+        default: false
+    },
     //  水印列表
     waterList: {
         type: Array,

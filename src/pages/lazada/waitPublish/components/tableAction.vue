@@ -51,9 +51,6 @@
                         </a-menu>
                     </template>
                 </a-dropdown>
-                <a-button type="primary" style="height: 32px ; margin-left: 10px;" @click="syncProduct">
-                    同步产品
-                </a-button>
             </div>
         </div>
     </div>
@@ -127,9 +124,6 @@ const handleSpecialPrice = () => {
 
 // 批量发布
 const handlePublish = () => { };
-//  同步所有产品
-const syncProduct = () => { };
-
 const priceSuccess = () => {
     emits('success');
 };

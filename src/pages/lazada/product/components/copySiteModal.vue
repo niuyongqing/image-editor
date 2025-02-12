@@ -2,7 +2,7 @@
     <div>
         <BaseModal title="选择店铺" width="1600px" @register="register" showCancelBtn showSaveBtn @close="handleClose"
             @submit="submit">
-            <div h-900px overflow-auto>
+            <div max-h-900px overflow-auto>
                 <div v-for="[key, obj] in accountList" :key="key" mt-15px>
                     <div flex gap-10px>
                         <div w-120px>
@@ -30,6 +30,7 @@
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { globalArea } from '@/pages/lazada/product/common';
 import { copy } from '@/pages/lazada/product/api';
+import { message } from 'ant-design-vue';
 
 const { account } = defineProps({
     account: {
@@ -75,9 +76,21 @@ const register = (modal) => {
 const open = (record) => {
     acceptParams.value = record;
     modelMethods.value.openModal();
+    //  是否半托管
+    const isHalf = acceptParams.value.productType === 1;
+    //  是否普通商品
+    const isNormal = acceptParams.value.productType === 0;
     const accountMap = Object.entries(account).reduce((acc, [key, value]) => {
+        let list = [];
+        if (isHalf) {
+            list = value.filter((valItem) => valItem.shopModeType === 1);
+        } else if (isNormal) {
+            list = value.filter((valItem) => valItem.shopModeType === 0);
+        } else {
+            list = value;
+        };
         acc[key] = {
-            value: value,
+            value: list,
             checkAll: false,
             indeterminate: false,
             checkedList: []
@@ -91,8 +104,24 @@ const handleClose = () => {
 };
 
 // 提交
-const submit = (data) => {
-    emits('success');
+const submit = () => {
+    let shortCodes = [];
+    accountList.value.forEach(item => {
+        if (item[1].checkedList.length > 0) {
+            shortCodes.push(...item[1].checkedList)
+        }
+    });
+    copy({
+        "itemId": acceptParams.value.itemId,
+        "shortCodes": shortCodes
+    }).then((res) => {
+        if (res.code === 200) {
+            message.success('复制成功');
+            modelMethods.value.closeModal();
+            emits('success');
+        }
+    })
+
 };
 
 defineExpose({

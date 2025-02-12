@@ -94,7 +94,10 @@
                 </div>
             </template>
             <template #action="{ record }">
-                <div> <a-button type="link" @click="handleSync(record)"> 同步 </a-button> </div>
+                <div>
+                    <a-button type="link" @click="handleSync(record)"> 同步 </a-button>
+                    <a-button type="link" @click="handleDetail(record)"> 详情 </a-button>
+                </div>
             </template>
         </BaseTable>
     </div>
@@ -197,13 +200,11 @@ const handleSearch = async (state) => {
     await baseTableEl.value.search(state);
 };
 //  编辑
-const handleEdit = (record) => {
+const handleDetail = (record) => {
     const { itemId, productType } = record;
-    window.open(`/platform/lazada/siteProduct/edit?itemId=${itemId}&productType=${productType}`, '_blank');
+    window.open(`/platform/lazada/fullyProduct/detail?itemId=${itemId}&productType=${productType}`, '_blank');
 };
-const handleReset = () => {
-    baseTableEl.value.reset();
-};
+
 const handleBtnClick = (btn) => {
     active.value = btn.status;
     handleSearch({ ...initSearchParam, ...searchFormState.value, status: btn.status === 'ALL' ? '' : btn.status });

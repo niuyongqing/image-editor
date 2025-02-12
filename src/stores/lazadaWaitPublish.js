@@ -19,6 +19,7 @@ export const useLazadaWaitPublish = defineStore("lazadaWaitPublish", () => {
     loading: false, // 加载状态
     product: {}, // 选择资料库产品信息
     productSkus: [], // 选中资料库中产品sku列表
+    ventures: [], // 同步发布到其他站点
   });
   const setShortCode = (shortCode = "") => {
     state.shortCode = shortCode;
@@ -111,7 +112,9 @@ export const useLazadaWaitPublish = defineStore("lazadaWaitPublish", () => {
   const setProductSkus = (productSkus = []) => {
     state.productSkus = productSkus;
   };
-
+  const setVentures = (ventures = []) => {
+    state.ventures = ventures;
+  };
   // 重置
   const reset = () => {
     state.shortCode = "";
@@ -141,5 +144,6 @@ export const useLazadaWaitPublish = defineStore("lazadaWaitPublish", () => {
     reset,
     setProductSkus,
     setProductClassifyAtrrs,
+    setVentures,
   };
 });

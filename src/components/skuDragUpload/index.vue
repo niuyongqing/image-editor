@@ -1,6 +1,5 @@
 <template>
     <div w-full>
-
         <div flex justify-end items-center mt-15px v-if="showRightTool">
             <a-dropdown>
                 <a-button type="link" link style="width: 90px; height: 31px;">
@@ -32,10 +31,6 @@
                     </a-menu>
                 </template>
             </a-dropdown>
-            <!-- <a-button type="link" link style="height: 31px; margin-left: 10px;" @click="downloadAllImages">
-                <DownloadOutlined />
-                导出全部图片
-            </a-button> -->
         </div>
 
         <div>
@@ -44,7 +39,7 @@
         <!-- SKU 图片上传可拖拽 -->
         <div flex justify-between w-full>
             <a-upload name="file" :customRequest="customRequest" :before-upload="beforeUpload" :headers="headers"
-                :accept="getProps.accept" :action="getProps.actionUrl" :showUploadList="false">
+                :accept="getProps.accept" :action="getProps.actionUrl" :showUploadList="false" :disabled="disabled">
                 <a-button type="primary" v-if="fileList.length <= getProps.maxCount" style="width: 90px; height: 31px;">
                     <UploadOutlined></UploadOutlined>
                     选择图片
@@ -118,6 +113,10 @@ import BacthSkuEditImg from './bacthSkuEditImg.vue';
 import { message } from "ant-design-vue";
 import { scaleApi, watermarkApi } from '@/api/common/water-mark.js';
 const props = defineProps({
+    disabled: {
+        type: Boolean,
+        default: false
+    },
     //  水印列表
     waterList: {
         type: Array,

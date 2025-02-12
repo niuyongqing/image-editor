@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="mt-10px" v-show="lazadaAttrsState.skuAttrs.length > 0" id="skuTable">
+        <div class="mt-10px" id="skuTable">
             <a-card :bordered="true" style="margin: 0 auto; border-radius: 0px">
                 <template #title>
                     <div text-left> 变种图片 </div>
@@ -11,7 +11,7 @@
                             <div class="flex flex-wrap" v-for="(item, index) in lazadaAttrsState.skuTable" :key="index">
                                 <SkuDragUpload :actionUrl="actionUrl" v-model:file-list="item.fileList" :maxCount="8"
                                     :showUploadList="false" accept=".jpg,.png" :api="uploadImage" :apiParams="apiParams"
-                                    :waterList="waterList">
+                                    :waterList="waterList" disabled :showRightTool="false">
                                     <template #default>
                                         <div flex flex-col w-full justify-start mb-4px text-left>
                                             <p>
@@ -49,6 +49,7 @@
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 import { uploadImage } from '@/pages/lazada/product/api';
 import { message } from 'ant-design-vue';
+import SkuDragUpload from '@/components/skuDragUpload/index.vue';
 const { waterList } = defineProps({
     waterList: {
         type: Array,
