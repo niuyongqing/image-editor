@@ -1,5 +1,5 @@
 <template>
-  <a-card title="描述信息">
+  <a-card title="描述信息" class="mb-4">
     <a-form
       ref="form"
       :model="form"

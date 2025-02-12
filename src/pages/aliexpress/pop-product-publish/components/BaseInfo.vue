@@ -406,18 +406,20 @@
             } else {
               // 动态添加的下级属性(查不到, 下面查到属性后再狸猫换太子)
               attributesObj[attrNameId] = {
-                attributeValueId: Number(root[attrNameId][0].attrValueId),
-                name: root[attrNameId][0].attrName,
                 en: root[attrNameId][0].attrValue,
-                label: root[attrNameId][0].attrName,
-                value: root[attrNameId][0].attrValue
+                value: root[attrNameId][0].attrValueId,
+                option: {
+                  en: root[attrNameId][0].attrValue,
+                  name: root[attrNameId][0].attrName,
+                  attributeValueId: Number(root[attrNameId][0].attrValueId)
+                }
               }
             }
           }
           // 如果存在下级属性 hasSubAttr
           for (const zh in attributesObj) {
             if (Object.prototype.toString.call(attributesObj[zh]).slice(8, -1) === 'Object') {
-              if (attributesObj[zh].hasSubAttr) {
+              if (attributesObj[zh].option.hasSubAttr) {
                 const i = this.attributeOptions.findIndex(item => item.zh === zh)
                 i > -1 && this.handleAttrChange(attributesObj[zh], i, true)
               }
@@ -666,6 +668,7 @@
                     this.attributes[PROVINCE] = { value: 100015203, label: '浙江(Zhejiang)', en: 'Zhejiang', option: { attributeValueId: 100015203, name: '浙江(Zhejiang)', en: 'Zhejiang' } }
                   }
                 } else {
+                  // 狸猫换太子
                   attributeList.forEach(item => {
                     const subAttr = this.attributes[item.attributeId]
                     if (subAttr) {

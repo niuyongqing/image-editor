@@ -373,7 +373,7 @@
     <a-card>
       <div class="flex justify-between items-center">
         <a-tabs
-          v-model:activeKey="watchedSearchForm.productStatus"
+          v-model:activeKey="watchedSearchForm.productStatusType"
           :animated="false"
         >
           <a-tab-pane
@@ -712,7 +712,7 @@
           prop: 'gmt_modified_time',
           order: 'desc',
           productType: undefined,
-          productStatus: 'onSelling'
+          productStatusType: 'onSelling'
         },
         // 高级搜索表单; 需点击'搜索'按钮再执行搜索动作
         lazySearchForm: {

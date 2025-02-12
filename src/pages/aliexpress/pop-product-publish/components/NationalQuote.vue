@@ -1,5 +1,5 @@
 <template>
-  <div class="national-quote">
+  <div class="national-quote mb-4">
     <a-card title="区域调价信息">
       <a-form :label-col="{ style: { width: '180px' } }">
         <a-form-item label="调价方式：">

@@ -227,11 +227,11 @@
       }
     }
 
+    // 锚点标红(该红的红, 该恢复的恢复)
+    anchorList.value.forEach(item => {
+      item.turnRed = errList.includes(item.id)
+    })
     if (errList.length) {
-      // 锚点标红(该红的红, 该恢复的恢复)
-      anchorList.value.forEach(item => {
-        item.turnRed = errList.includes(item.id)
-      })
       // 跳转到第一个标红的位置
       scroll(errList[0])
       Modal.warning({ title: '请填写必填项' })
@@ -329,11 +329,11 @@
       }
     }
 
+    // 锚点标红(该红的红, 该恢复的恢复)
+    anchorList.value.forEach(item => {
+      item.turnRed = errList.includes(item.id)
+    })
     if (errList.length) {
-      // 锚点标红(该红的红, 该恢复的恢复)
-      anchorList.value.forEach(item => {
-        item.turnRed = errList.includes(item.id)
-      })
       // 跳转到第一个标红的位置
       scroll(errList[0])
       Modal.warning({ title: '请填写必填项' })
