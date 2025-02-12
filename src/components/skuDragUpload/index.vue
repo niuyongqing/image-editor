@@ -69,7 +69,8 @@
                                 </div>
                                 <div v-else class="file-img">
                                     <img :src="element.url" alt="" class="file-img"
-                                        @load="handleImageLoad(element, $event)" @click="handlePreview(element)" />
+                                        @load="handleImageLoad(element, $event)" @click="handlePreview(element)"
+                                        :key="element.key" />
                                     <div class="image-mask"> {{ element.height }} X {{ element.width }} </div>
                                 </div>
                             </div>
@@ -228,7 +229,8 @@ const handleImageLoad = (el, event) => {
         const img = event.target;
         el.width = img ? img.naturalWidth : '';
         el.height = img ? img.naturalHeight : '';
-    })
+        el.key = 1;
+    });
 };
 // 导出全部图片
 const downloadAllImages = () => {

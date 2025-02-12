@@ -108,6 +108,9 @@
                                     <a-menu-item @click="handleRemark(record)">
                                         添加备注
                                     </a-menu-item>
+                                    <a-menu-item @click="handleDelete(record)">
+                                        删除
+                                    </a-menu-item>
                                 </a-menu>
                             </template>
                         </a-dropdown>
@@ -122,9 +125,9 @@
 <script setup>
 import { SettingOutlined, EditOutlined, ReloadOutlined, CloudUploadOutlined, DownloadOutlined, DownOutlined } from '@ant-design/icons-vue';
 import { columns } from './columns';
-import { getList, accountCache } from './api';
+import { getList, accountCache, del } from './api';
 import { useTableSelection } from '@/components/baseTable/useTableSelection';
-import { message } from 'ant-design-vue';
+import { message, Modal } from 'ant-design-vue';
 import { checkPermi, checkRole } from '~@/utils/permission/component/permission';
 import { useClipboard } from '@v-c/utils';
 import { timestampToDateTime } from './common';
@@ -132,6 +135,7 @@ import Search from './components/search.vue';
 import TableAction from './components/tableAction.vue';
 import BaseTable from '@/components/baseTable/BaseTable.vue';
 import RemarkModal from './components/remarkModal.vue';
+import { publishCopyPublish } from '@/pages/lazada/waitPublish/api';
 
 const route = useRoute();
 const { copy } = useClipboard();
@@ -188,7 +192,18 @@ const isRemark = computed(() => {
 
 const imageSrc = (record) => {
     if (record.images) {
-        return JSON.parse(record.images).image[0];
+        const imgParse = JSON.parse(record.images);
+        if (Array.isArray(imgParse.image)) {
+            return imgParse.image[0]
+        } else {
+            const imgs = imgParse.image;
+            if (typeof imgs === 'string') {
+                const imgs2 = JSON.parse(imgParse.image);
+                return imgs2[0];
+            } else {
+                return imgs.Image[0];
+            }
+        }
     };
     return ''
 };
@@ -220,13 +235,25 @@ const handleSearch = async (state) => {
 };
 //  编辑
 const handleEdit = (record) => {
-    const { id, type } = record;
-    window.open(`/platform/lazada/waitPublish/edit?id=${id}&type=${type === 'global' ? 'global' : 'site'}`, '_blank');
+    const { id, type, productType } = record;
+    window.open(`/platform/lazada/waitPublish/edit?id=${id}&type=${type === 'global' ? 'global' : 'site'}&productType=${productType}`, '_blank');
 };
 
 // 发布
 const handlePublish = (record) => {
-    window.open(`/platform/lazada/waitPublish/publish?id=${record.id}`, '_blank');
+    Modal.confirm({
+        title: '发布',
+        content: '是否确认发布？',
+        onOk: async () => {
+            const res = await publishCopyPublish({ ids: record.id });
+            if (res.code === 200) {
+                message.success('发布成功');
+                reload();
+            } else {
+                message.error(res.msg);
+            }
+        },
+    })
 };
 
 const handleReset = () => {
@@ -238,18 +265,28 @@ const handleBtnClick = (btn) => {
     // handleSearch({ ...initSearchParam, ... searchFormState.value, status: btn.id });
 };
 
-//   复制为“六合一产品”
-const handleProduct = (record) => {
-    console.log('record', record);
-};
-//    复制为“站点产品”
-const handleCopyProduct = (record) => {
-    console.log('record', record);
-};
+
 //   添加备注
 const handleRemark = (record) => {
-    console.log('record', record, remarkModalEl.value);
+    console.log('record', record,);
     remarkModalEl.value.open(record);
+};
+
+//  删除
+const handleDelete = (record) => {
+    Modal.confirm({
+        title: '删除',
+        content: '是否确认删除？',
+        onOk: async () => {
+            const res = await del({ ids: record.id });
+            if (res.code === 200) {
+                message.success('删除成功');
+                reload();
+            } else {
+                message.error(res.msg);
+            }
+        },
+    })
 };
 
 onMounted(async () => {

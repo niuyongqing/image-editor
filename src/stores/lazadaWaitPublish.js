@@ -104,7 +104,9 @@ export const useLazadaWaitPublish = defineStore("lazadaWaitPublish", () => {
       }
     });
   };
-
+  const setSkuAttrs = (skuAttrs = []) => {
+    state.skuAttrs = skuAttrs;
+  };
   const setProduct = (data = {}) => {
     state.product = data;
   };
@@ -145,5 +147,6 @@ export const useLazadaWaitPublish = defineStore("lazadaWaitPublish", () => {
     setProductSkus,
     setProductClassifyAtrrs,
     setVentures,
+    setSkuAttrs,
   };
 });

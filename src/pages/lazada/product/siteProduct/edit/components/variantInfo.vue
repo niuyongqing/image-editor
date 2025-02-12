@@ -5,7 +5,6 @@
             <template #title>
                 <div text-left> 变种信息 </div>
             </template>
-            {{ tableData }}
             <a-table :columns="columns" :data-source="tableData" bordered :pagination="false" id="tableId">
                 <template #headerCell="{ title, column }">
 

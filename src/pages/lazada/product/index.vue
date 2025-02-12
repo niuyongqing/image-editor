@@ -50,7 +50,7 @@
             </template>
             <template #global="{ record }">
                 <div class="record-sku-container pb-30px" text-center>
-                    <a-tag color="success"> {{ record.bizSupplement.globalPlusProductStatus ? '是' : '否' }}</a-tag>
+                    <a-tag color="success"> {{ record.bizSupplement?.globalPlusProductStatus ? '是' : '否' }}</a-tag>
                 </div>
             </template>
             <template #status="{ record }">

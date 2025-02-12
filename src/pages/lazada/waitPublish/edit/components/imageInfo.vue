@@ -1,6 +1,5 @@
 <template>
     <div class="mt-10px">
-        <!-- 图片信息 -->
         <a-card :bordered="true" style="margin: 0 auto; border-radius: 0px">
             <template #title>
                 <div text-left @click="tab"> 图片信息 </div>
@@ -132,7 +131,7 @@ import DragUpload from '@/components/dragUpload/index.vue';
 import { saveAs } from 'file-saver';
 import { useLazadaWaitPublish } from "@/stores/lazadaWaitPublish";
 
-const { waterList, detailData } = defineProps({
+const { waterList, detailData, isHalfway } = defineProps({
     waterList: {
         type: Array,
         default: () => []
@@ -140,6 +139,10 @@ const { waterList, detailData } = defineProps({
     detailData: {
         type: Object,
         default: () => ({})
+    },
+    isHalfway: {
+        type: Boolean,
+        default: false
     }
 })
 
@@ -167,15 +170,19 @@ const form = reactive({
 watch(() => {
     return detailData
 }, async (newVal) => {
-    console.log('newVal', newVal.images);
-
     const images = newVal.images ? JSON.parse(newVal.images) : {};
     let imageList = images.image ? images.image : [];
     const isarr = Array.isArray(imageList);
-    if (!isarr) {
-        // imageList = JSON.parse(imageList);
-        imageList = imageList.Image;
+    // 是否 半托管
+    if (isHalfway) {
+
     }
+
+
+    // if (!isarr) {
+    //     // imageList = JSON.parse(imageList);
+    //     imageList = imageList.Image;
+    // }
     // 产品图片
     form.fileList = imageList.map(item => {
         return {

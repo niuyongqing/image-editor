@@ -292,7 +292,7 @@ const validateAll = async () => {
         shortCode,
         primaryCategory,
         images: { image: images },// 产品图片
-        // video,// 产品视频
+        // video, // 产品视频
         variation: variations,
         skus: {
             sku: skus

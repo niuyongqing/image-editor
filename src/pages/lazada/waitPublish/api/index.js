@@ -80,3 +80,16 @@ export function lazadaAdd(data) {
 export function lazadaWaitProductDetail(data) {
   return usePost("/platform-lazada/platform/lazada/wait/product/detail", data);
 }
+
+// 删除
+export function del(data) {
+  return usePost("/platform-lazada/platform/lazada/wait/product/del", data);
+}
+
+// 保存待发布商品
+export function saveCopyPublish(data) {
+  return usePost("/platform-lazada/platform/lazada/wait/product/edit", data);
+}
+export function publishCopyPublish(data) {
+  return usePost("/platform-lazada/platform/lazada/wait/product/publish", data);
+}

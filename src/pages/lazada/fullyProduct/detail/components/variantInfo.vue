@@ -89,7 +89,6 @@ import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { message } from 'ant-design-vue';
 import EventBus from "~/utils/event-bus";
-
 import dayjs from 'dayjs';
 
 const { detailData, isHalfway } = defineProps({

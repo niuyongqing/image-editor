@@ -46,11 +46,7 @@ const remarkModalEl = useTemplateRef('remarkModalRef');
 const stockModalEl = useTemplateRef('stockModalRef');
 const specialPriceModalEl = useTemplateRef('specialPriceModalRef');
 const { state: lazadaAttrsState, setShortCode, setLazadaAttrs, setLoading, reset } = useLadazaAttrs();
-// const handleEdit = () => {
-// };
-// const handleGobalPlus = () => {
-// };
-// 
+
 const handleDeactivated = () => {
     Modal.confirm({
         title: '下架',
@@ -66,8 +62,7 @@ const handleDeactivated = () => {
         },
     })
 };
-// const handleWater = () => {
-// };
+
 const handleRemark = () => {
     remarkModalEl.value.open();
 };
@@ -89,7 +84,6 @@ const warehouseSetting = () => {
 };
 // 创建半托管产品
 const addHalfway = () => {
-    // router.push('/platform/lazada/siteProduct/add?type=halfway');
     window.open('/platform/lazada/siteProduct/add?type=halfway', '_blank');
 };
 // 创建“六合一产品”

@@ -20,6 +20,11 @@
                         <div> ( <a-button type="link" @click="batchStock()"> 批量 </a-button> ) </div>
                     </template>
 
+                    <template v-if="column && column.dataIndex === 'supplyPrice'">
+                        <div> <span class="required"> * </span> {{ title }} </div>
+                        <div> ( <a-button type="link" @click="batchPrice()"> 批量 </a-button> ) </div>
+                    </template>
+
                     <template v-if="column && column.dataIndex === 'price'">
                         <div> <span class="required"> * </span> {{ title }} </div>
                         <div> ( <a-button type="link" @click="batchPrice()"> 批量 </a-button> ) </div>
@@ -53,7 +58,11 @@
                         <a-input-number :controls="false" :precision="0" :min="0" v-model:value="record.stock"
                             placeholder="请输入库存" style="width: 80%;" />
                     </template>
-
+                    <template v-if="column && column.dataIndex === 'supplyPrice'">
+                        <div> supplyPrice: {{ record.supplyPrice }} </div>
+                        <a-input-number :controls="false" :precision="0" :min="0" v-model:value="record.supplyPrice"
+                            placeholder="请输入价格" style="width: 80%;" />
+                    </template>
                     <template v-if="column && column.dataIndex === 'price'">
                         <div> price: {{ record.price }} </div>
                         <a-input-number :controls="false" :precision="2" :min="0.01" v-model:value="record.price"
@@ -121,11 +130,15 @@ import WeightModal from './batchModal/weightModal.vue';
 import PackageModal from "./batchModal/packageModal.vue";
 import dayjs from 'dayjs';
 
-const { detailData } = defineProps({
+const { detailData, isHalfway } = defineProps({
     detailData: {
         type: Object,
         default: () => ({})
-    }
+    },
+    isHalfway: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const { state: lazadaAttrsState, setSkuTable } = useLazadaWaitPublish();
@@ -224,42 +237,72 @@ const columns = computed(() => {
     let baseColumns = [];
     function getColumns() {
         if (selectTheme.value.length > 0) {
-            return baseColumns = [
-                {
-                    title: 'SKU',
-                    dataIndex: 'sellerSKU',
-                    align: 'center',
-                },
-                ...themeColumns,
-                {
-                    title: '库存',
-                    dataIndex: 'stock',
-                    align: 'center',
-                },
-                {
-                    title: '价格',
-                    dataIndex: 'price',
-                    align: 'center',
-                },
-                {
-                    title: '促销价',
-                    dataIndex: 'specialPrice',
-                    align: 'center',
-                },
-                {
-                    title: '促销时间',
-                    dataIndex: 'specialDate',
-                    align: 'center',
-                },
-                ...weightColumns(),
-                ...packageColumns(),
-                {
-                    title: '操作',
-                    dataIndex: 'action',
-                    align: 'center',
-                    width: '120px'
-                },
-            ];
+            if (isHalfway) {
+                return baseColumns = [
+                    {
+                        title: 'SKU',
+                        dataIndex: 'sellerSKU',
+                        align: 'center',
+                    },
+                    ...themeColumns,
+
+                    {
+                        title: '价格',
+                        dataIndex: 'supplyPrice',
+                        align: 'center',
+                    },
+                    {
+                        title: '库存',
+                        dataIndex: 'stock',
+                        align: 'center',
+                    },
+                    ...weightColumns(),
+                    ...packageColumns(),
+                    {
+                        title: '操作',
+                        dataIndex: 'action',
+                        align: 'center',
+                        width: '120px'
+                    },
+                ];
+            } else {
+                return baseColumns = [
+                    {
+                        title: 'SKU',
+                        dataIndex: 'sellerSKU',
+                        align: 'center',
+                    },
+                    ...themeColumns,
+                    {
+                        title: '库存',
+                        dataIndex: 'stock',
+                        align: 'center',
+                    },
+                    {
+                        title: '价格',
+                        dataIndex: 'price',
+                        align: 'center',
+                    },
+                    {
+                        title: '促销价',
+                        dataIndex: 'specialPrice',
+                        align: 'center',
+                    },
+                    {
+                        title: '促销时间',
+                        dataIndex: 'specialDate',
+                        align: 'center',
+                    },
+                    ...weightColumns(),
+                    ...packageColumns(),
+                    {
+                        title: '操作',
+                        dataIndex: 'action',
+                        align: 'center',
+                        width: '120px'
+                    },
+                ];
+            }
         } else {
             return baseColumns
         }
@@ -295,7 +338,7 @@ const generateTable = () => {
             return {
                 ...item,
                 fileList: [],
-                ...tableData.value[index]
+                ...tableData.value[index],
             }
         })
         return
@@ -321,184 +364,63 @@ const generateTable = () => {
     }
 };
 
-const list = {
-    variation: {
-        "variation1": {
-            "name": "color_family",
-            "hasImage": true,
-            "customize": true,
-            "options": {
-                "option": [
-                    "粉色",
-                    "蓝色",
-                    "黄色",
-                    "绿色"
-                ]
+//  编辑回显
+watch(() => {
+    return detailData
+}, async (newVal) => {
+    const skus = newVal.skus || [];
+    if (isHalfway) {
+        tableData.value = skus.map((item) => {
+            const images = item.Images || [];
+            const fileList = images.map((img) => {
+                return {
+                    "fileName": img,
+                    url: img,
+                    originalFilename: img,
+                    name: img,
+                }
+            });
+            return {
+                ...item,
+                sellerSKU: item.SellerSku,
+                stock: item.quantity,
+                supplyPrice: Number(item.supply_price),
+                packageWeight: item.package_weight,
+                packageHeight: item.package_weight,
+                packageLength: item.package_length,
+                packageWidth: item.package_width,
+                fileList,
             }
-        }
-    },
-    skus: [
-        {
-            "saleProp": {
-                "color_family": "粉色"
-            },
-            "quantity": "100",
-            "SellerSku": "13-粉色--33",
-            "sales_price": null,
-            "retail_price": "4.2",
-            "Images": {
-                "image": [
-                    "/prod-api/profile/upload/20230327202642919_J9344+-E7-B2-89-E8-89-B2+-E4-B8-80-E4-B8-AA-E4-B8-80-E5-8D-96.jpg"
-                ]
-            },
-            "package_height": "1",
-            "package_length": "1",
-            "package_content": "包装内容",
-            "package_width": "1",
-            "package_weight": "36"
-        },
-        {
-            "saleProp": {
-                "color_family": "蓝色"
-            },
-            "quantity": "100",
-            "SellerSku": "13-蓝色--33",
-            "sales_price": null,
-            "retail_price": "3.8571",
-            "Images": {
-                "image": [
-                    "/prod-api/profile/upload/20230327202642324_J9345+-E8-93-9D-E8-89-B2+-E4-B8-80-E4-B8-AA-E4-B8-80-E5-8D-96.jpg"
-                ]
-            },
-            "package_height": "1",
-            "package_length": "1",
-            "package_content": "包装内容",
-            "package_width": "1",
-            "package_weight": "36"
-        },
-        {
-            "saleProp": {
-                "color_family": "黄色"
-            },
-            "quantity": "100",
-            "SellerSku": "13-黄色--33",
-            "sales_price": null,
-            "retail_price": "3.8571",
-            "Images": {
-                "image": [
-                    "/prod-api/profile/upload/20230327202641716_J9346+-E9-BB-84-E8-89-B2+-E4-B8-80-E4-B8-AA-E4-B8-80-E5-8D-96.jpg"
-                ]
-            },
-            "package_height": "1",
-            "package_length": "1",
-            "package_content": "包装内容",
-            "package_width": "1",
-            "package_weight": "36"
-        },
-        {
-            "saleProp": {
-                "color_family": "绿色"
-            },
-            "quantity": "100",
-            "SellerSku": "13-绿色--33",
-            "sales_price": null,
-            "retail_price": "3.3",
-            "Images": {
-                "image": [
-                    "/prod-api/profile/upload/20230327202641122_J9347+-E7-BB-BF-E8-89-B2+-E4-B8-80-E4-B8-AA-E4-B8-80-E5-8D-96.jpg"
-                ]
-            },
-            "package_height": "1",
-            "package_length": "1",
-            "package_content": "包装内容",
-            "package_width": "1",
-            "package_weight": "36"
-        }
-    ]
-};
+        });
+    } else {
+        tableData.value = skus.map((item) => {
+            const images = item.Images || [];
+            return {
+                ...item,
+                sellerSKU: item.SellerSku,
+                stock: item.quantity,
+                price: item.price,
+                specialPrice: item.special_price,
+                specialDate: [dayjs(item.special_from_time), dayjs(item.special_to_time)],
+                packageWeight: item.package_weight,
+                packageHeight: item.package_weight,
+                packageLength: item.package_length,
+                packageWidth: item.package_width,
+                fileList: images.map((img) => {
+                    return {
+                        fileName: img,
+                        url: img,
+                        originalFilename: img,
+                        name: img,
+                    }
+                })
+            }
+        });
+    };
+}, {
+    deep: true
+});
 
-const skus2 = [
-    {
-        "saleProp": {
-            "color_family": "粉色"
-        },
-        "quantity": "100",
-        "SellerSku": "13-粉色--33",
-        "sales_price": null,
-        "retail_price": "4.2",
-        "Images": {
-            "image": [
-                "/prod-api/profile/upload/20230327202642919_J9344+-E7-B2-89-E8-89-B2+-E4-B8-80-E4-B8-AA-E4-B8-80-E5-8D-96.jpg"
-            ]
-        },
-        "package_height": "1",
-        "package_length": "1",
-        "package_content": "包装内容",
-        "package_width": "1",
-        "package_weight": "36",
-        color_family: '粉色'
-    },
-    {
-        "saleProp": {
-            "color_family": "蓝色"
-        },
-        "quantity": "100",
-        "SellerSku": "13-蓝色--33",
-        "sales_price": null,
-        "retail_price": "3.8571",
-        "Images": {
-            "image": [
-                "/prod-api/profile/upload/20230327202642324_J9345+-E8-93-9D-E8-89-B2+-E4-B8-80-E4-B8-AA-E4-B8-80-E5-8D-96.jpg"
-            ]
-        },
-        "package_height": "1",
-        "package_length": "1",
-        "package_content": "包装内容",
-        "package_width": "1",
-        "package_weight": "36",
-        color_family: '蓝色'
-    },
-    {
-        "saleProp": {
-            "color_family": "黄色"
-        },
-        "quantity": "100",
-        "SellerSku": "13-黄色--33",
-        "sales_price": null,
-        "retail_price": "3.8571",
-        "Images": {
-            "image": [
-                "/prod-api/profile/upload/20230327202641716_J9346+-E9-BB-84-E8-89-B2+-E4-B8-80-E4-B8-AA-E4-B8-80-E5-8D-96.jpg"
-            ]
-        },
-        "package_height": "1",
-        "package_length": "1",
-        "package_content": "包装内容",
-        "package_width": "1",
-        "package_weight": "36",
-        "color_family": "黄色"
-    },
-    {
-        "saleProp": {
-            "color_family": "绿色"
-        },
-        "quantity": "100",
-        "SellerSku": "13-绿色--33",
-        "sales_price": null,
-        "retail_price": "3.3",
-        "Images": {
-            "image": [
-                "/prod-api/profile/upload/20230327202641122_J9347+-E7-BB-BF-E8-89-B2+-E4-B8-80-E4-B8-AA-E4-B8-80-E5-8D-96.jpg"
-            ]
-        },
-        "package_height": "1",
-        "package_length": "1",
-        "package_content": "包装内容",
-        "package_width": "1",
-        "package_weight": "36",
-        "color_family": "绿色"
-    }
-]
 watch(() => lazadaAttrsState.shortCode, () => {
     tableData.value = [];
 }, { deep: true });
@@ -718,12 +640,21 @@ const validateForm = () => {
                 reject(false)
                 return false;
             };
-            if (!item.price) {
-                message.warning(`第${index + 1}行价格不能为空`);
-                document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                reject(false)
-                return false;
-            };
+            if (isHalfway) {
+                if (!item.supplyPrice) {
+                    message.warning(`第${index + 1}行价格不能为空`);
+                    document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    reject(false)
+                    return false;
+                };
+            } else {
+                if (!item.price) {
+                    message.warning(`第${index + 1}行价格不能为空`);
+                    document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    reject(false)
+                    return false;
+                };
+            }
             if (weightRequired.value && !item.packageWeight) {
                 message.warning(`第${index + 1}行重量不能为空`);
                 document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -759,10 +690,15 @@ onMounted(() => {
         const skus = newVal.skus || [];
         tableData.value = skus.map((item) => {
             let images = [];
-            if (item.Images) {
-                images = item.Images.image || []
-            } else {
-                images = item?.images?.image || []
+            console.log('item', item);
+            // 是否半托管
+            if (isHalfway) {
+                // images = item.image
+                images = item.Images
+            } else if (item.images) {
+                images = item.images.image
+            } else if (item.Images) {
+                images = item.Images
             }
             return {
                 ...item,
@@ -775,6 +711,7 @@ onMounted(() => {
                 packageHeight: item.package_weight,
                 packageLength: item.package_length,
                 packageWidth: item.package_width,
+                supplyPrice: item.supply_price,
                 fileList: images.map((img) => {
                     return {
                         fileName: img,
