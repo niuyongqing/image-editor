@@ -192,6 +192,7 @@ const validateAll = async () => {
 
     const baseInfoState = baseInfoEl.value.state;
     const shortCode = baseInfoState.shortCode; // 店铺
+    const ventures = baseInfoState.ventures; // 店铺
     const primaryCategory = Array.isArray(baseInfoState.primaryCategory) ? baseInfoState.primaryCategory[baseInfoState.primaryCategory.length - 1] : baseInfoState.primaryCategory; // 店铺
     const productInfoState = productInfoEl.value.state;
     const title = productInfoState.title; // 标题
@@ -224,6 +225,8 @@ const validateAll = async () => {
     // to do... 视频标题
 
     const tableData = variantInfoEl.value.tableData;
+    const semiUpgradeVentures = variantInfoEl.value.checkState.checkedList;
+
     let variations = {};
 
     lazadaAttrsState.selectTheme.forEach((item, index) => {
@@ -275,6 +278,9 @@ const validateAll = async () => {
         };
     });
     const attributes = {
+        type: 'global',
+        ventures: ventures,
+        semiUpgradeVentures: semiUpgradeVentures,
         "productType": isHalfway.value ? "1" : "0", // 0 普通卖家店铺, 1 半托管店铺, 2 全托管店铺
         attributes: {
             model,
@@ -309,15 +315,15 @@ const handleSelect = (productData) => {
 const save = async () => {
     const addParams = await validateAll();
     console.log('addParams ->>', addParams);
-    if (!addParams) {
-        return;
-    };
-    saveLoading.value = true;
-    saveProduct(addParams).then(res => {
-        addSuccessModalEl.value.open();
-    }).finally(() => {
-        saveLoading.value = false;
-    })
+    // if (!addParams) {
+    //     return;
+    // };
+    // saveLoading.value = true;
+    // saveProduct(addParams).then(res => {
+    //     addSuccessModalEl.value.open();
+    // }).finally(() => {
+    //     saveLoading.value = false;
+    // })
 };
 
 // 发布
@@ -351,6 +357,7 @@ const scrollTo = (id) => {
 };
 onMounted(() => {
     getWatermark();
+    const type = route.query.type || '';
     if (type === 'halfway') {
         isHalfway.value = true;
     }

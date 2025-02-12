@@ -351,9 +351,6 @@ const scrollTo = (id) => {
         element.scrollIntoView({ behavior: 'smooth' });
     }
 };
-
-
-
 onMounted(() => {
     getWatermark();
     const type = route.query.type || '';

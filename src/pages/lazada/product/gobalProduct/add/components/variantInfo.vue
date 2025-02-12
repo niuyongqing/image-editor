@@ -20,7 +20,6 @@
                         <div> <span class="required"> * </span> {{ title }} </div>
                         <div> ( <a-button type="link" @click="generateSKU()"> 一键生成 </a-button> ) </div>
                     </template>
-                    <!-- 主题1 -->
                     <template v-for="item in selectTheme" :key="item.name">
                         <div v-if="item.name === column.dataIndex">
                             {{ title }}
@@ -28,28 +27,22 @@
                     </template>
                     <template v-if="column.dataIndex === 'stock'">
                         <div> <span class="required"> * </span> {{ title }} </div>
-                        <div> ( <a-button type="link" @click="batchStock()"> 批量 </a-button> ) </div>
                     </template>
 
                     <template v-if="column.dataIndex === 'price'">
                         <div> <span class="required"> * </span> {{ title }} </div>
-                        <div> ( <a-button type="link" @click="batchPrice()"> 批量 </a-button> ) </div>
                     </template>
                     <template v-if="column.dataIndex === 'specialPrice'">
                         <div> {{ title }} </div>
-                        <div> ( <a-button type="link" @click="batchSpecialPrice()"> 批量 </a-button> ) </div>
                     </template>
                     <template v-if="column.dataIndex === 'specialDate'">
                         <div> {{ title }} </div>
-                        <div> ( <a-button type="link" @click="batchSpecialDate()"> 批量 </a-button> ) </div>
                     </template>
                     <template v-if="column.dataIndex === 'package_weight'">
                         <div> <span v-if="weightRequired" class="required"> * </span> {{ title }} </div>
-                        <div> ( <a-button type="link" @click="batchWeight()"> 批量 </a-button> ) </div>
                     </template>
                     <template v-if="column.dataIndex === 'package'">
                         <div> <span v-if="packageRequired" class="required"> * </span> {{ title }} </div>
-                        <div> ( <a-button type="link" @click="batchPackage()"> 批量 </a-button> ) </div>
                     </template>
                 </template>
                 <template #bodyCell="{ record, index, column }">
@@ -68,13 +61,29 @@
                     <template v-if="column.dataIndex === 'price'">
                         <div> price: {{ record.price }} </div>
                         <a-input-number :controls="false" :precision="2" :min="0.01" v-model:value="record.price"
-                            placeholder="请输入价格" style="width: 80%;" />
+                            placeholder="请输入价格" style="width: 50%;" />
+                        <a-tooltip placement="top">
+                            <template #title>
+                                <span>点击设置各个站点价格</span>
+                            </template>
+                            <a-button type="primary" @click="settingPrice(record)" style="margin-left: 10px;">
+                                <SettingOutlined />
+                            </a-button>
+                        </a-tooltip>
                     </template>
 
                     <template v-if="column.dataIndex === 'specialPrice'">
                         <div> specialPrice: {{ record.specialPrice }} </div>
                         <a-input-number :controls="false" :precision="0" v-model:value="record.specialPrice" :min="0.01"
-                            :max="record.price" placeholder="请输入促销价" style="width: 80%;" />
+                            :max="record.price" placeholder="请输入促销价" style="width: 50%;" />
+                        <a-tooltip placement="top">
+                            <template #title>
+                                <span>点击设置各个站点价格</span>
+                            </template>
+                            <a-button type="primary" @click="settingPrice(record)" style="margin-left: 10px;">
+                                <SettingOutlined />
+                            </a-button>
+                        </a-tooltip>
                     </template>
 
                     <template v-if="column.dataIndex === 'specialDate'">
@@ -115,10 +124,12 @@
         <SpecialDateModal ref="specialDateModalRef" @success="specialDateSuccess"></SpecialDateModal>
         <WeightModal ref="weightModalRef" @success="weightSuccess"></WeightModal>
         <PackageModal ref="packageModalRef" @success="packageSuccess"></PackageModal>
+        <EditPriceModal ref="editPriceModalRef" @success="editPriceSuccess"></EditPriceModal>
     </div>
 </template>
 
 <script setup>
+import { SettingOutlined } from '@ant-design/icons-vue';
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { message } from 'ant-design-vue';
 import EventBus from "~/utils/event-bus";
@@ -129,15 +140,46 @@ import SpecialPriceModal from '../../batchModal/specialPriceModal.vue';
 import SpecialDateModal from '../../batchModal/specialDateModal.vue';
 import WeightModal from '../../batchModal/weightModal.vue';
 import PackageModal from "../../batchModal/packageModal.vue";
-import { globalArea } from '@/pages/lazada/product/common';
-
+import EditPriceModal from './editPriceModal.vue';
 const { state: lazadaAttrsState, setSkuTable } = useLazadaGobalAttrs();
 const skus = ref([]); // 属性中所有的 SKU
-
 const { state: checkState, reset } = useResetReactive({
     checkAll: false,
     checkedList: [],
-    options: globalArea
+    options: computed(() => {
+        return [
+            {
+                label: "马来",
+                value: "MY",
+                disabled: false
+            }, {
+                label: "印度尼西亚",
+                value: "ID",
+                disabled: !lazadaAttrsState.ventures.includes('ID')
+            },
+            {
+                label: "菲律宾",
+                value: "PH",
+                disabled: !lazadaAttrsState.ventures.includes('PH')
+            },
+            {
+                label: "新加坡",
+                value: "SG",
+                disabled: !lazadaAttrsState.ventures.includes('SG')
+            },
+            {
+                label: "泰国",
+                value: "TH",
+                disabled: !lazadaAttrsState.ventures.includes('TH')
+            },
+            {
+                label: "越南",
+                value: "VN",
+                disabled: !lazadaAttrsState.ventures.includes('VN')
+            },
+        ]
+    })
+
 });
 
 const theme = reactive({
@@ -151,6 +193,7 @@ const specialPriceModalEl = useTemplateRef('specialPriceModalRef'); // 批量促
 const specialDateModalEl = useTemplateRef('specialDateModalRef');
 const weightModalEl = useTemplateRef('weightModalRef');
 const packageModalEl = useTemplateRef('packageModalRef');
+const editPriceModalEl = useTemplateRef('editPriceModalRef');
 
 const tableData = ref([]);
 const { selectTheme, skuAttrs, attributes } = toRefs(lazadaAttrsState);
@@ -415,6 +458,11 @@ const stockSuccess = (evt) => {
 const batchPrice = (evt) => {
     priceModalEl.value.open()
 };
+
+const settingPrice = (record) => {
+    editPriceModalEl.value.open({ record: record, checkedList: checkState.checkedList });
+};
+
 const priceSuccess = (evt) => {
     const setRuleNum = evt.setRuleNum ?? 0;
 
@@ -527,6 +575,44 @@ const packageSuccess = (evt) => {
         item.packageHeight = evt.packageHeight;
     })
 };
+// 修改价格
+const editPriceSuccess = (evt) => {
+    console.log('evt', evt);
+    // my-site
+    const defaultSite = evt.find((item) => item.enSite === 'default') // 默认
+    const mySite = evt.find((item) => item.enSite === 'MY') // 马来
+    const idSite = evt.find((item) => item.enSite === 'ID') // 印尼
+    const phSite = evt.find((item) => item.enSite === 'PH') // 菲律宾
+    const thSite = evt.find((item) => item.enSite === 'TH') // 泰国
+    const sgSite = evt.find((item) => item.enSite === 'SG') // 新加坡
+    const vnSite = evt.find((item) => item.enSite === 'VN') // 越南
+    tableData.value.forEach((item) => {
+        item.my_retail_price = mySite?.retailPrice ?? undefined;// 销售价 
+        item.my_sales_price = mySite?.salesPrice ?? undefined; // 促销价
+
+        if (checkState.checkedList.includes('ID')) {
+            item.id_retail_price = idSite?.retailPrice ?? undefined;// 销售价 
+            item.id_sales_price = idSite?.salesPrice ?? undefined; // 促销价
+        };
+        if (checkState.checkedList.includes('PH')) {
+            item.ph_retail_price = phSite?.retailPrice ?? undefined;// 销售价 
+            item.ph_sales_price = phSite?.salesPrice ?? undefined; // 促销价
+        };
+        if (checkState.checkedList.includes('TH')) {
+            item.th_retail_price = phSite?.retailPrice ?? undefined;// 销售价 
+            item.th_sales_price = phSite?.salesPrice ?? undefined; // 促销价
+        }
+
+        if (checkState.checkedList.includes('SG')) {
+            item.sg_retail_price = sgSite?.retailPrice ?? undefined;// 销售价 
+            item.sg_sales_price = sgSite?.salesPrice ?? undefined; // 促销价
+        }
+        if (checkState.checkedList.includes('VN')) {
+            item.vn_retail_price = vnSite?.retailPrice ?? undefined;// 销售价 
+            item.vn_sales_price = vnSite?.salesPrice ?? undefined; // 促销价
+        }
+    })
+};
 
 // 移除SKU
 const delRow = (index) => {
@@ -581,6 +667,7 @@ const validateForm = () => {
 
 defineExpose({
     tableData,
+    checkState,
     validateForm
 });
 

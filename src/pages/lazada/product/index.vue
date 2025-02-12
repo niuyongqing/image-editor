@@ -30,12 +30,20 @@
                 </p>
                 <div flex>
                     <p style="color: rgb(153, 153, 153)"> 「{{ shopSimpleName(record) }}」 </p>
+                    <div class="isGobal" v-if="record.productType === 1">
+                        <a-tooltip placement="top">
+                            <template #title>
+                                <span>半托管商品</span>
+                            </template>
+                            <a-tag color="success">半</a-tag>
+                        </a-tooltip>
+                    </div>
                     <div class="isGobal" v-if="record.bizSupplement && record.bizSupplement.globalPlusProductStatus">
                         <a-tooltip placement="top">
                             <template #title>
-                                <span>已升级Plus升级产品</span>
+                                <span>六合一商品</span>
                             </template>
-                            <a-tag>Plus</a-tag>
+                            <a-tag color="success">合</a-tag>
                         </a-tooltip>
                     </div>
                 </div>
@@ -43,6 +51,13 @@
             <template #global="{ record }">
                 <div class="record-sku-container pb-30px" text-center>
                     <a-tag color="success"> {{ record.bizSupplement.globalPlusProductStatus ? '是' : '否' }}</a-tag>
+                </div>
+            </template>
+            <template #status="{ record }">
+                <div class="record-sku-container pb-30px" text-center>
+                    <a-tag v-if="record.status === 'Active'" color="success">在线</a-tag>
+                    <a-tag v-if="record.status === 'Suspended'" color="warning">暂停</a-tag>
+                    <a-tag v-if="record.status === 'InActive'" color="error">下线</a-tag>
                 </div>
             </template>
             <template #skus="{ record }">

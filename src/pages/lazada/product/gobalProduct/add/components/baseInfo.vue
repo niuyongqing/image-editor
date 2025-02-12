@@ -39,7 +39,7 @@
                             <a-checkbox-group v-model:value="state.ventures" @change="checkedCitiesChange">
                                 <a-checkbox v-for="item in globalArea" :value="item.value" :key="item.value">{{
                                     item.label
-                                }}</a-checkbox>
+                                    }}</a-checkbox>
                             </a-checkbox-group>
                         </div>
                     </div>
@@ -68,7 +68,7 @@ import { useResetReactive } from '@/composables/reset';
 import { accountCache, categoryTree, categoryAttributesApi } from '@/pages/lazada/product/api';
 import EventBus from "~/utils/event-bus";
 import { useLazadaGobalAttrs } from "~@/stores/lazadaGobalAttrs";
-const { state: lazadaAttrsState, setShortCode, setPrimaryCategory, setLazadaAttrs, setLoading } = useLazadaGobalAttrs();
+const { state: lazadaAttrsState, setShortCode, setPrimaryCategory, setLazadaAttrs, setLoading, setVentures } = useLazadaGobalAttrs();
 
 const checkAll = ref(false);
 const globalArea = [{
@@ -91,11 +91,11 @@ const globalArea = [{
     label: "越南",
     value: "VN"
 },
-
-{
-    label: "马来西亚",
-    value: "MY"
-}];
+    // {
+    //     label: "马来西亚",
+    //     value: "MY"
+    // }
+];
 const shortCodes = ref([]); // 店铺列表
 const formEl = useTemplateRef('formRef');
 const primaryCategoryLoading = ref(false);
@@ -116,7 +116,8 @@ const handleCheckAllChange = (value) => {
         state.ventures = globalArea.map(v => v.value)
     } else {
         state.ventures = []
-    }
+    };
+    setVentures(state.ventures);
 };
 
 const checkedCitiesChange = (value) => {
@@ -124,9 +125,9 @@ const checkedCitiesChange = (value) => {
         checkAll.value = true
     } else {
         checkAll.value = false
-    }
-}
-
+    };
+    setVentures(state.ventures);
+};
 
 async function getShortCodes() {
     const accountCacheRes = await accountCache();

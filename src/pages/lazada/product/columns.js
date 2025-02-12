@@ -23,6 +23,15 @@ export const columns = [
     width: 150,
     align: "center",
   },
+
+  {
+    title: "状态",
+    dataIndex: "status",
+    key: "status",
+    slot: "status",
+    width: 150,
+    align: "center",
+  },
   {
     title: "SKU",
     dataIndex: "skus",
