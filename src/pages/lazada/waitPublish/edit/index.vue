@@ -43,8 +43,10 @@
                     :isHalfway="isHalfway">
                 </ImageInfo>
                 <Variant id="variant" ref="variantRef" :detailData="detailData"></Variant>
-                <VariantInfo id="variantInfo" ref="variantInfoRef" :detailData="detailData" :isHalfway="isHalfway">
+                <VariantInfo id="variantInfo" ref="variantInfoRef" :detailData="detailData" :isHalfway="isHalfway"
+                    :type="type">
                 </VariantInfo>
+
                 <VariantImage id="variantImage" ref="variantImageRef" :waterList="waterList" :detailData="detailData"
                     :isHalfway="isHalfway">
                 </VariantImage>

@@ -4,7 +4,6 @@
             <template #title>
                 <div text-left> 变种信息 </div>
             </template>
-
             <div text-left mb-10px>
                 升级为Global Plus：
                 <a-checkbox v-model:checked="checkState.checkAll" @change="onChangeCheckAll"> 全部 </a-checkbox>
@@ -15,10 +14,9 @@
                     </template>
                 </a-checkbox-group>
             </div>
-
             <a-table :columns="columns" :data-source="tableData" bordered :pagination="false" id="tableId">
                 <template #headerCell="{ title, column }">
-                    <template v-if="column && column.dataIndex === 'sellerSKU'">
+                    <template v-if="column.dataIndex === 'sellerSKU'">
                         <div> <span class="required"> * </span> {{ title }} </div>
                         <div> ( <a-button type="link" @click="generateSKU()"> 一键生成 </a-button> ) </div>
                     </template>
@@ -27,106 +25,76 @@
                             {{ title }}
                         </div>
                     </template>
-                    <template v-if="column && column.dataIndex === 'stock'">
+                    <template v-if="column.dataIndex === 'stock'">
                         <div> <span class="required"> * </span> {{ title }} </div>
-                        <div> ( <a-button type="link" @click="batchStock()"> 批量 </a-button> ) </div>
                     </template>
 
-                    <template v-if="column && column.dataIndex === 'supplyPrice'">
+                    <template v-if="column.dataIndex === 'price'">
                         <div> <span class="required"> * </span> {{ title }} </div>
-                        <div> ( <a-button type="link" @click="batchPrice()"> 批量 </a-button> ) </div>
                     </template>
-
-                    <template v-if="column && column.dataIndex === 'price'">
-                        <div> <span class="required"> * </span> {{ title }} </div>
-                        <div> ( <a-button type="link" @click="batchPrice()"> 批量 </a-button> ) </div>
-                    </template>
-                    <template v-if="column && column.dataIndex === 'specialPrice'">
+                    <template v-if="column.dataIndex === 'specialPrice'">
                         <div> {{ title }} </div>
-                        <div> ( <a-button type="link" @click="batchSpecialPrice()"> 批量 </a-button> ) </div>
                     </template>
-                    <template v-if="column && column.dataIndex === 'specialDate'">
+                    <template v-if="column.dataIndex === 'specialDate'">
                         <div> {{ title }} </div>
-                        <div> ( <a-button type="link" @click="batchSpecialDate()"> 批量 </a-button> ) </div>
                     </template>
-                    <template v-if="column && column.dataIndex === 'package_weight'">
+                    <template v-if="column.dataIndex === 'package_weight'">
                         <div> <span v-if="weightRequired" class="required"> * </span> {{ title }} </div>
-                        <div> ( <a-button type="link" @click="batchWeight()"> 批量 </a-button> ) </div>
                     </template>
-                    <template v-if="column && column.dataIndex === 'package'">
+                    <template v-if="column.dataIndex === 'package'">
                         <div> <span v-if="packageRequired" class="required"> * </span> {{ title }} </div>
-                        <div> ( <a-button type="link" @click="batchPackage()"> 批量 </a-button> ) </div>
                     </template>
                 </template>
                 <template #bodyCell="{ record, index, column }">
-                    <template v-if="column && column.dataIndex === 'sellerSKU'">
-                        <div> sellerSKU {{ record.sellerSKU }}
+                    <template v-if="column.dataIndex === 'sellerSKU'">
+                        <div>
                             <a-input v-model:value="record.sellerSKU" placeholder="请输入SKU" />
                         </div>
                     </template>
 
-                    <template v-if="column && column.dataIndex === 'stock'">
-                        <div> stock: {{ record.stock }} </div>
+                    <template v-if="column.dataIndex === 'stock'">
                         <a-input-number :controls="false" :precision="0" :min="0" v-model:value="record.stock"
                             placeholder="请输入库存" style="width: 80%;" />
                     </template>
-                    <template v-if="column && column.dataIndex === 'supplyPrice'">
-                        <div> supplyPrice: {{ record.supplyPrice }} </div>
-                        <a-input-number :controls="false" :precision="0" :min="0" v-model:value="record.supplyPrice"
-                            placeholder="请输入价格" style="width: 80%;" />
+
+                    <template v-if="column.dataIndex === 'price'">
+                        <a-input-number :controls="false" :precision="2" :min="0.01" v-model:value="record.price"
+                            placeholder="请输入价格" style="width: 50%;" />
+                        <a-tooltip placement="top">
+                            <template #title>
+                                <span>点击设置各个站点价格</span>
+                            </template>
+                            <a-button type="primary" @click="settingPrice(record)" style="margin-left: 10px;">
+                                <SettingOutlined />
+                            </a-button>
+                        </a-tooltip>
                     </template>
 
-
-
-                    <template v-if="column && column.dataIndex === 'price'">
-                        <div v-if="type">
-                            <a-input-number :controls="false" :precision="2" :min="0.01" v-model:value="record.price"
-                                placeholder="请输入价格" style="width: 50%;" />
-                            <a-tooltip placement="top">
-                                <template #title>
-                                    <span>点击设置各个站点价格</span>
-                                </template>
-                                <a-button type="primary" @click="settingPrice(record)" style="margin-left: 10px;">
-                                    <SettingOutlined />
-                                </a-button>
-                            </a-tooltip>
-                        </div>
-                        <div v-else>
-                            <a-input-number :controls="false" :precision="2" :min="0.01" v-model:value="record.price"
-                                placeholder="请输入价格" style="width: 80%;" />
-                        </div>
+                    <template v-if="column.dataIndex === 'specialPrice'">
+                        <a-input-number :controls="false" :precision="0" v-model:value="record.specialPrice" :min="0.01"
+                            :max="record.price" placeholder="请输入促销价" style="width: 50%;" />
+                        <a-tooltip placement="top">
+                            <template #title>
+                                <span>点击设置各个站点价格</span>
+                            </template>
+                            <a-button type="primary" @click="settingPrice(record)" style="margin-left: 10px;">
+                                <SettingOutlined />
+                            </a-button>
+                        </a-tooltip>
                     </template>
 
-                    <template v-if="column && column.dataIndex === 'specialPrice'">
-                        <div v-if="type">
-                            <a-input-number :controls="false" :precision="0" v-model:value="record.specialPrice"
-                                :min="0.01" :max="record.price" placeholder="请输入促销价" style="width: 50%;" />
-                            <a-tooltip placement="top">
-                                <template #title>
-                                    <span>点击设置各个站点价格</span>
-                                </template>
-                                <a-button type="primary" @click="settingPrice(record)" style="margin-left: 10px;">
-                                    <SettingOutlined />
-                                </a-button>
-                            </a-tooltip>
-                        </div>
-                        <div v-else>
-                            <a-input-number :controls="false" :precision="0" v-model:value="record.specialPrice"
-                                :min="0.01" :max="record.price" placeholder="请输入促销价" style="width: 80%;" />
-                        </div>
-
+                    <template v-if="column.dataIndex === 'specialDate'">
+                        <div> specialDate: {{ record.specialDate }} </div>
+                        <a-range-picker v-model:value="record.specialDate" format="YYYY-MM-DD" style="width: 80%;" />
                     </template>
-
-                    <template v-if="column && column.dataIndex === 'specialDate'">
-                        <a-range-picker v-model:value="record.specialDate" style="width: 80%;" />
-                    </template>
-                    <template v-if="column && column.dataIndex === 'package_weight'">
-
+                    <template v-if="column.dataIndex === 'package_weight'">
+                        <div> package_weight: {{ record.packageWeight }} </div>
                         <a-input-number :controls="false" :precision="0" v-model:value="record.packageWeight"
                             :min="0.001" :max="20" placeholder="请输入重量" style="width: 80%;" />
                     </template>
 
-                    <template v-if="column && column.dataIndex === 'package'">
+                    <template v-if="column.dataIndex === 'package'">
+                        <div> package: </div>
                         <a-input-number v-model:value="record.packageLength" :min="0.01" :max="110" :precision="2"
                             placeholder="长"></a-input-number>
                         <a-input-number v-model:value="record.packageWidth" :min="0.01" :max="110" :precision="2"
@@ -135,7 +103,7 @@
                             placeholder="高"></a-input-number>
                     </template>
 
-                    <template v-if="column && column.dataIndex === 'action'">
+                    <template v-if="column.dataIndex === 'action'">
                         <div> <a-button type="link" @click="delRow(index)"> 移除 </a-button> </div>
                     </template>
                 </template>
@@ -159,7 +127,6 @@
 
 <script setup>
 import { SettingOutlined } from '@ant-design/icons-vue';
-import { useLazadaWaitPublish } from "@/stores/lazadaWaitPublish";
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { message } from 'ant-design-vue';
 import EventBus from "~/utils/event-bus";
@@ -171,25 +138,8 @@ import SpecialDateModal from './batchModal/specialDateModal.vue';
 import WeightModal from './batchModal/weightModal.vue';
 import PackageModal from "./batchModal/packageModal.vue";
 import EditPriceModal from './batchModal/editPriceModal.vue';
-import dayjs from 'dayjs';
-
-const { detailData, isHalfway, type } = defineProps({
-    detailData: {
-        type: Object,
-        default: () => ({})
-    },
-    isHalfway: {
-        type: Boolean,
-        default: false,
-    },
-    // 是否全球商品
-    type: {
-        type: Boolean,
-        default: false
-    }
-});
-
-const { state: lazadaAttrsState, setSkuTable } = useLazadaWaitPublish();
+const { state: lazadaAttrsState, setSkuTable } = useLazadaGobalAttrs();
+const skus = ref([]); // 属性中所有的 SKU
 const { state: checkState, reset } = useResetReactive({
     checkAll: false,
     checkedList: [],
@@ -229,9 +179,6 @@ const { state: checkState, reset } = useResetReactive({
 
 });
 
-
-const skus = ref([]); // 属性中所有的 SKU
-
 const theme = reactive({
     themeOne: [],
     themeTwo: [],
@@ -244,6 +191,7 @@ const specialDateModalEl = useTemplateRef('specialDateModalRef');
 const weightModalEl = useTemplateRef('weightModalRef');
 const packageModalEl = useTemplateRef('packageModalRef');
 const editPriceModalEl = useTemplateRef('editPriceModalRef');
+
 const tableData = ref([]);
 const { selectTheme, skuAttrs, attributes } = toRefs(lazadaAttrsState);
 
@@ -280,6 +228,14 @@ let baseColumns = [
         width: '120px'
     },
 ];
+
+const onChangeCheckAll = (e) => {
+    const selectOptions = checkState.options.map(item => item.value);
+    checkState.checkedList = e.target.checked ? selectOptions : [];
+};
+const onChangeCheck = (checkedList) => {
+    checkState.checkAll = checkedList.length === checkState.options.length;
+};
 
 const columns = computed(() => {
     const names = selectTheme.value.map((item) => {
@@ -325,72 +281,42 @@ const columns = computed(() => {
     let baseColumns = [];
     function getColumns() {
         if (selectTheme.value.length > 0) {
-            if (isHalfway) {
-                return baseColumns = [
-                    {
-                        title: 'SKU',
-                        dataIndex: 'sellerSKU',
-                        align: 'center',
-                    },
-                    ...themeColumns,
-
-                    {
-                        title: '价格',
-                        dataIndex: 'supplyPrice',
-                        align: 'center',
-                    },
-                    {
-                        title: '库存',
-                        dataIndex: 'stock',
-                        align: 'center',
-                    },
-                    ...weightColumns(),
-                    ...packageColumns(),
-                    {
-                        title: '操作',
-                        dataIndex: 'action',
-                        align: 'center',
-                        width: '120px'
-                    },
-                ];
-            } else {
-                return baseColumns = [
-                    {
-                        title: 'SKU',
-                        dataIndex: 'sellerSKU',
-                        align: 'center',
-                    },
-                    ...themeColumns,
-                    {
-                        title: '库存',
-                        dataIndex: 'stock',
-                        align: 'center',
-                    },
-                    {
-                        title: '价格',
-                        dataIndex: 'price',
-                        align: 'center',
-                    },
-                    {
-                        title: '促销价',
-                        dataIndex: 'specialPrice',
-                        align: 'center',
-                    },
-                    {
-                        title: '促销时间',
-                        dataIndex: 'specialDate',
-                        align: 'center',
-                    },
-                    ...weightColumns(),
-                    ...packageColumns(),
-                    {
-                        title: '操作',
-                        dataIndex: 'action',
-                        align: 'center',
-                        width: '120px'
-                    },
-                ];
-            }
+            return baseColumns = [
+                {
+                    title: 'SKU',
+                    dataIndex: 'sellerSKU',
+                    align: 'center',
+                },
+                ...themeColumns,
+                {
+                    title: '库存',
+                    dataIndex: 'stock',
+                    align: 'center',
+                },
+                {
+                    title: '价格',
+                    dataIndex: 'price',
+                    align: 'center',
+                },
+                {
+                    title: '促销价',
+                    dataIndex: 'specialPrice',
+                    align: 'center',
+                },
+                {
+                    title: '促销时间',
+                    dataIndex: 'specialDate',
+                    align: 'center',
+                },
+                ...weightColumns(),
+                ...packageColumns(),
+                {
+                    title: '操作',
+                    dataIndex: 'action',
+                    align: 'center',
+                    width: '120px'
+                },
+            ];
         } else {
             return baseColumns
         }
@@ -414,19 +340,18 @@ const packageRequired = computed(() => {
 const generateTable = () => {
     // 一种变体组合
     if (selectTheme.value.length === 1 || !selectTheme.value[1]?.name) {
-        const list = theme.themeOne;
+        const list = theme.themeOne
         const name = selectTheme.value[0].name;
         let transData = list.map((item) => {
             return {
                 [name]: item,
             }
         });
-
         tableData.value = transData.map((item, index) => {
             return {
                 ...item,
                 fileList: [],
-                ...tableData.value[index],
+                ...tableData.value[index]
             }
         })
         return
@@ -451,75 +376,6 @@ const generateTable = () => {
         })
     }
 };
-
-//  编辑回显
-watch(() => {
-    return detailData
-}, async (newVal) => {
-    const skus = newVal.skus || [];
-    if (isHalfway) {
-        tableData.value = skus.map((item) => {
-            const images = item.Images || [];
-            const fileList = images.map((img) => {
-                return {
-                    "fileName": img,
-                    url: img,
-                    originalFilename: img,
-                    name: img,
-                }
-            });
-            return {
-                ...item,
-                sellerSKU: item.SellerSku,
-                stock: item.quantity,
-                supplyPrice: Number(item.supply_price),
-                packageWeight: item.package_weight,
-                packageHeight: item.package_weight,
-                packageLength: item.package_length,
-                packageWidth: item.package_width,
-                fileList,
-            }
-        });
-    } else {
-        tableData.value = skus.map((item) => {
-            const images = item.Images || [];
-            let imgs = [];
-            if (Array.isArray(images)) {
-                imgs = images
-            } else {
-                imgs = images.image
-            }
-            return {
-                ...item,
-                sellerSKU: item.SellerSku,
-                stock: item.quantity,
-                price: item.price,
-                specialPrice: item.special_price,
-                specialDate: [dayjs(item.special_from_time), dayjs(item.special_to_time)],
-                packageWeight: item.package_weight,
-                packageHeight: item.package_weight,
-                packageLength: item.package_length,
-                packageWidth: item.package_width,
-                fileList: imgs.map((img) => {
-                    return {
-                        fileName: img,
-                        url: img,
-                        originalFilename: img,
-                        name: img,
-                    }
-                })
-            }
-        });
-    };
-    if (newVal.type === 'global') {
-        checkState.checkedList = newVal.semiUpgradeVentures.venture
-    }
-}, {
-    deep: true
-});
-
-
-
 watch(() => lazadaAttrsState.shortCode, () => {
     tableData.value = [];
 }, { deep: true });
@@ -542,6 +398,7 @@ watch(() => lazadaAttrsState.productSkus, (newValue) => {
             [selectTheme.value[0].name]: item.detail.attr,
         }
     });
+
 }, {
     deep: true
 });
@@ -566,11 +423,6 @@ const success = (formData) => {
         item.sellerSKU = formData.prefix + '-' + item[nameOne] + '-' + `${nameTwo ? item[nameTwo] : ''}` + '-' + formData.suffix;
     })
 };
-
-const settingPrice = (record) => {
-    editPriceModalEl.value.open({ record: record, checkedList: checkState.checkedList });
-};
-
 //  批量修改库存
 const batchStock = () => {
     stockModalEl.value.open()
@@ -603,6 +455,11 @@ const stockSuccess = (evt) => {
 const batchPrice = (evt) => {
     priceModalEl.value.open()
 };
+
+const settingPrice = (record) => {
+    editPriceModalEl.value.open({ record: record, checkedList: checkState.checkedList });
+};
+
 const priceSuccess = (evt) => {
     const setRuleNum = evt.setRuleNum ?? 0;
 
@@ -704,8 +561,20 @@ const weightSuccess = (evt) => {
         }
     });
 };
-// 全球商品 修改价格
+
+const batchPackage = () => {
+    packageModalEl.value.open();
+};
+const packageSuccess = (evt) => {
+    tableData.value.forEach((item) => {
+        item.packageLength = evt.packageLength;
+        item.packageWidth = evt.packageWidth;
+        item.packageHeight = evt.packageHeight;
+    })
+};
+// 修改价格
 const editPriceSuccess = (evt) => {
+    console.log('evt', evt);
     // my-site
     const defaultSite = evt.find((item) => item.enSite === 'default') // 默认
     const mySite = evt.find((item) => item.enSite === 'MY') // 马来
@@ -741,16 +610,6 @@ const editPriceSuccess = (evt) => {
         }
     })
 };
-const batchPackage = () => {
-    packageModalEl.value.open();
-};
-const packageSuccess = (evt) => {
-    tableData.value.forEach((item) => {
-        item.packageLength = evt.packageLength;
-        item.packageWidth = evt.packageWidth;
-        item.packageHeight = evt.packageHeight;
-    })
-};
 
 // 移除SKU
 const delRow = (index) => {
@@ -780,21 +639,12 @@ const validateForm = () => {
                 reject(false)
                 return false;
             };
-            if (isHalfway) {
-                if (!item.supplyPrice) {
-                    message.warning(`第${index + 1}行价格不能为空`);
-                    document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    reject(false)
-                    return false;
-                };
-            } else {
-                if (!item.price) {
-                    message.warning(`第${index + 1}行价格不能为空`);
-                    document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    reject(false)
-                    return false;
-                };
-            }
+            if (!item.price) {
+                message.warning(`第${index + 1}行价格不能为空`);
+                document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                reject(false)
+                return false;
+            };
             if (weightRequired.value && !item.packageWeight) {
                 message.warning(`第${index + 1}行重量不能为空`);
                 document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -814,6 +664,7 @@ const validateForm = () => {
 
 defineExpose({
     tableData,
+    checkState,
     validateForm
 });
 
@@ -826,48 +677,6 @@ onMounted(() => {
         };
         generateTable();
     });
-    EventBus.on('generateSkuTableEmit', ({ resultData, newVal }) => {
-        const skus = newVal.skus || [];
-        tableData.value = skus.map((item) => {
-            let images = [];
-            // 是否半托管
-            if (isHalfway) {
-                // images = item.image
-                images = item.Images
-            } else if (item.images) {
-                images = item.images.image
-            } else if (item.Images) {
-                images = item.Images
-            }
-            return {
-                ...item,
-                sellerSKU: item.SellerSku,
-                stock: item.quantity,
-                price: item.retail_price,
-                specialPrice: item.special_price,
-                specialDate: [dayjs(item.special_to_time), dayjs(item.special_from_time)],
-                packageWeight: item.package_weight,
-                packageHeight: item.package_weight,
-                packageLength: item.package_length,
-                packageWidth: item.package_width,
-                supplyPrice: item.supply_price,
-                fileList: images.map((img) => {
-                    return {
-                        fileName: img,
-                        url: img,
-                        originalFilename: img,
-                        name: img,
-                    }
-                })
-            }
-        });
-        theme.themeOne = lazadaAttrsState.selectTheme[0].checkedList || [];
-        if (lazadaAttrsState.selectTheme.length > 1) {
-            theme.themeTwo = lazadaAttrsState.selectTheme[1].checkedList || [];
-        };
-        generateTable();
-    });
-
 });
 onUnmounted(() => {
     EventBus.off('changeCheckedList');
