@@ -252,7 +252,6 @@ const handleAddOther = (item) => {
 
 //  设为变种主题1
 const move = (item) => {
-    console.log('item', item);
     Modal.confirm({
         title: '提示',
         content: `确定将${item.label}设为变种主题1吗？`,

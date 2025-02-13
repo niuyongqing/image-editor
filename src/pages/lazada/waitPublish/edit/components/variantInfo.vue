@@ -395,6 +395,12 @@ watch(() => {
     } else {
         tableData.value = skus.map((item) => {
             const images = item.Images || [];
+            let imgs = [];
+            if (Array.isArray(images)) {
+                imgs = images
+            } else {
+                imgs = images.image
+            }
             return {
                 ...item,
                 sellerSKU: item.SellerSku,
@@ -406,7 +412,7 @@ watch(() => {
                 packageHeight: item.package_weight,
                 packageLength: item.package_length,
                 packageWidth: item.package_width,
-                fileList: images.map((img) => {
+                fileList: imgs.map((img) => {
                     return {
                         fileName: img,
                         url: img,
@@ -690,7 +696,6 @@ onMounted(() => {
         const skus = newVal.skus || [];
         tableData.value = skus.map((item) => {
             let images = [];
-            console.log('item', item);
             // 是否半托管
             if (isHalfway) {
                 // images = item.image

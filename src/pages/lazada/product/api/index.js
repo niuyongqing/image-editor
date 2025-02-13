@@ -124,3 +124,11 @@ export function saveProduct(data) {
 export function copy(data) {
   return usePost("/platform-lazada/platform/lazada/product/copy", data);
 }
+// 添加备注(支持批量)
+export function remark(data) {
+  return usePost("/platform-lazada/platform/lazada/product/add/remark", data);
+}
+// 修改库存(支持批量)
+export function batchStore(data) {
+  return usePost("/platform-lazada/platform/lazada/product/batch-store", data);
+}

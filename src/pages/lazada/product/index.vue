@@ -180,10 +180,10 @@ import { timestampToDateTime } from './common';
 import Search from './components/search.vue';
 import TableAction from './components/tableAction.vue';
 import BaseTable from '@/components/baseTable/BaseTable.vue';
-import RemarkModal from '@/pages/lazada/product/components/remarkModal.vue';
-import PriceModal from './siteProduct/batchModal/priceModal.vue';
-import StockModal from './siteProduct/batchModal/stockModal.vue';
-import SpecialPriceModal from './siteProduct/batchModal/specialPriceModal.vue';
+import RemarkModal from './components/remarkModal.vue';
+import PriceModal from './components/priceModal.vue';
+import StockModal from './components/stockModal.vue';
+import SpecialPriceModal from './components/specialPriceModal.vue';
 import CopySiteModal from './components/copySiteModal.vue';
 import CopyGlobalModal from './components/copyGlobalModal.vue';
 
@@ -323,7 +323,7 @@ const handleCopyProduct = (record) => {
 //   添加备注
 const handleRemark = (record) => {
     console.log('record', record, remarkModalEl.value);
-    remarkModalEl.value.open(record);
+    remarkModalEl.value.open(record, false);
 };
 //  下架
 const handleDeactivated = (record) => {

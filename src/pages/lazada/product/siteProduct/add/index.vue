@@ -298,6 +298,9 @@ const validateAll = async () => {
             sku: skus
         },
     };
+    if (!promotion_whitebkg_image.length) {
+        delete attributes.attributes.promotion_whitebkg_image;
+    }
     return attributes
 };
 

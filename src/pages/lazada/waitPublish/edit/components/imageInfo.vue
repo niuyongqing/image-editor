@@ -170,19 +170,21 @@ const form = reactive({
 watch(() => {
     return detailData
 }, async (newVal) => {
-    const images = newVal.images ? JSON.parse(newVal.images) : {};
-    let imageList = images.image ? images.image : [];
-    const isarr = Array.isArray(imageList);
-    // 是否 半托管
-    if (isHalfway) {
+    let imageList = [];
+    const imgParse = JSON.parse(newVal.images);
+    if (Array.isArray(imgParse.image)) {
+        imageList = imgParse.image
+    } else {
+        const imgs = imgParse.image;
+        if (typeof imgs === 'string') {
+            const imgs2 = JSON.parse(imgParse.image);
+            imageList = imgs2;
+        } else {
+            imageList = imgs.Image;
+        }
+    };
+    console.log('imageList ->>>>>>>>>', imageList);
 
-    }
-
-
-    // if (!isarr) {
-    //     // imageList = JSON.parse(imageList);
-    //     imageList = imageList.Image;
-    // }
     // 产品图片
     form.fileList = imageList.map(item => {
         return {
@@ -364,8 +366,11 @@ const validateForm = async () => {
         })
     })
 };
+
 //  产品资料库回显
 watch(() => lazadaAttrsState.product, (newValue) => {
+    console.log('----------');
+
     if (newValue && JSON.stringify(newValue) !== '{}') {
         const artMainImage = JSON.parse(newValue.artMainImage) || [];       // 主图
         const artAssistantImage = JSON.parse(newValue.artAssistantImage) || [];        // 副图
@@ -383,6 +388,9 @@ watch(() => lazadaAttrsState.product, (newValue) => {
             }
         });
     }
+}, {
+    immediate: true,
+    deep: true
 });
 
 onMounted(() => {

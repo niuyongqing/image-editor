@@ -135,10 +135,10 @@ import WarehouseSetting from './warehouseSetting.vue';
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 import { syncAll } from '@/pages/lazada/product/api';
 import { message, Modal } from 'ant-design-vue';
-import PriceModal from '@/pages/lazada/product/siteProduct//batchModal/priceModal.vue';
+import PriceModal from './priceModal.vue';
 import RemarkModal from './remarkModal.vue';
-import StockModal from '@/pages/lazada/product/siteProduct/batchModal/stockModal.vue';
-import SpecialPriceModal from '@/pages/lazada/product/siteProduct/batchModal/specialPriceModal.vue';
+import StockModal from './stockModal.vue';
+import SpecialPriceModal from './specialPriceModal.vue';
 
 const { selectedRows } = defineProps({
     //  表格选中的数据
@@ -178,17 +178,33 @@ const handleDeactivated = () => {
 // const handleWater = () => {
 // };
 const handleRemark = () => {
-    remarkModalEl.value.open();
+    if (!selectedRows.length) {
+        message.error('请选择需要备注的产品');
+        return
+    }
+    remarkModalEl.value.open(selectedRows, ture);
 };
 
 const handleBatchPrice = () => {
-    priceModalEl.value.open();
+    if (!selectedRows.length) {
+        message.error('请选择产品');
+        return
+    }
+    priceModalEl.value.open(selectedRows);
 };
 
 const handleBatchStock = () => {
-    stockModalEl.value.open();
+    if (!selectedRows.length) {
+        message.error('请选择产品');
+        return
+    }
+    stockModalEl.value.open(selectedRows);
 };
 const handleBatchSpecialPrice = () => {
+    if (!selectedRows.length) {
+        message.error('请选择产品');
+        return
+    }
     specialPriceModalEl.value.open();
 }
 
@@ -198,7 +214,6 @@ const warehouseSetting = () => {
 };
 // 创建半托管产品
 const addHalfway = () => {
-    // router.push('/platform/lazada/siteProduct/add?type=halfway');
     window.open('/platform/lazada/siteProduct/add?type=halfway', '_blank');
 };
 // 创建“六合一产品”

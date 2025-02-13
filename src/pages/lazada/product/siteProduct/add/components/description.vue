@@ -122,7 +122,6 @@ watch(() => lazadaAttrsState.product, (newVal) => {
             return item.input_type === "richText" && item.is_mandatory === 1;
         });
         richTextList.forEach((item) => {
-            console.log('item', item);
             form[item.item] = '<ul><li></li><ul>';
         });
         form.description = newVal.meansEnglishDescription;

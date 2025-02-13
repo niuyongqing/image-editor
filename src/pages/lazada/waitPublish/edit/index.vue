@@ -13,6 +13,20 @@
                         </div>
                     </div>
                     <div class="flex gap-12px">
+                        <a-dropdown>
+                            <a-button type="primary" style="width: 90px; height: 31px;">
+                                引用产品
+                                <DownOutlined />
+                            </a-button>
+                            <template #overlay>
+                                <a-menu>
+                                    <a-menu-item @click="selectNowProduct">
+                                        引用现有产品
+                                    </a-menu-item>
+                                </a-menu>
+                            </template>
+                        </a-dropdown>
+
                         <a-button type="primary" style="height: 32px;" @click="save" :loading="saveLoading">
                             保存
                         </a-button>
@@ -38,6 +52,20 @@
 
                 <div w-full flex justify-end mt-10px>
                     <div class="flex gap-12px">
+                        <a-dropdown>
+                            <a-button type="primary" style="width: 90px; height: 31px;">
+                                引用产品
+                                <DownOutlined />
+                            </a-button>
+                            <template #overlay>
+                                <a-menu>
+                                    <a-menu-item @click="selectNowProduct">
+                                        引用现有产品
+                                    </a-menu-item>
+                                </a-menu>
+                            </template>
+                        </a-dropdown>
+
                         <a-button type="primary" style="height: 32px;" @click="save" :loading="saveLoading">
                             保存
                         </a-button>
@@ -137,7 +165,7 @@ const imageInfoValid = ref(true);
 const variationValid = ref(true);
 const variantImageValid = ref(true);
 
-const { state: lazadaAttrsState, setProduct } = useLadazaAttrs();
+const { state: lazadaAttrsState, setProduct } = useLazadaWaitPublish();
 const product = ref({});
 // 引用现有产品
 const selectNowProduct = () => {
@@ -206,7 +234,7 @@ const validateAll = async () => {
 
     const imageInfoState = imageInfoEl.value.form;
     const images = imageInfoState.fileList.map((item) => item.url);// 产品图片
-    const promotion_whitebkg_image = imageInfoState.promotionWhite.length > 0 ? imageInfoState.promotionWhite[0].url : '';// 营销图
+    const promotion_whitebkg_image = imageInfoState.promotionWhite.length > 0 ? [imageInfoState.promotionWhite[0].url] : [];// 营销图
     const video = imageInfoState.video.url;// 产品视频
     const cover_url = imageInfoState.video.img; // 视频封面图 
     // to do... 视频标题
@@ -285,13 +313,16 @@ const validateAll = async () => {
             sku: skus
         },
     };
+    if (!promotion_whitebkg_image.length) {
+        delete attributes.attributes.promotion_whitebkg_image;
+    };
     return attributes
 };
-
-
 //  使用资料库产品
 const handleSelect = (productData) => {
     product.value = productData;
+    console.log('productData', productData);
+
     setProduct(productData);
 };
 
