@@ -13,7 +13,6 @@
                         class="flex  justify-start">
                     </a-input>
                 </a-form-item>
-                {{ state.brandId }} ------
                 <a-form-item label="品牌:" name="brandId"
                     :rules="[{ required: true, message: '请选择品牌', trigger: ['change'] }]">
                     <a-select allowClear show-search @search="search" :filter-option="false"
@@ -167,16 +166,30 @@ const productAtrrsform = reactive({});
 watch(() => {
     return detailData
 }, async (newVal) => {
+    console.log('newVal ->>>>>>>>>>>', newVal);
     state.title = newVal.attributes.name;
-    getBrandList({
-        brandName: newVal.attributes.brand_id, // to do ...
-        shortCode: newVal.shortCode
-    }).then(res => {
+    let params = {};
+    if (Number(newVal.attributes.brand_id)) {
+        params = {
+            brandId: newVal.attributes.brand_id,
+            shortCode: newVal.shortCode
+        }
+    } else {
+        params = {
+            brandName: newVal.attributes.brand_id || newVal.attributes.brand,
+            shortCode: newVal.shortCode
+        }
+    };
+    getBrandList(params).then(res => {
         if (res.code === 200) {
             brandIdSelction.data = res.data || [];
-            //  品牌回显
+            let brand = 0;
             const brandItem = brandIdSelction.data.find((item) => {
-                return item.brandId === newVal.attributes.brand_id
+                if (Number(newVal.attributes.brand_id)) {
+                    return item.brandId === newVal.attributes.brand_id
+                } else {
+                    return item.nameEn === newVal.attributes.brand_id || newVal.attributes.brand
+                }
             });
             state.brandId = brandItem ? brandItem.brandId : undefined;
         }
@@ -274,19 +287,19 @@ onMounted(() => {
         console.log('接受到的shortCode -->>', code);
         shortCode.value = code;
         brandIdSelction.brandId = undefined;
-        getBrandList({ brandName: '', shortCode: code }).then(res => {
-            if (res.code === 200) {
-                brandIdSelction.data = res.data || [];
-                //  品牌设置默认 No Brand
-                const brandItem = brandIdSelction.data.find((item) => {
-                    return item.nameEn === 'No Brand'
-                });
-                brandIdSelction.brandId = brandItem ? brandItem.brandId : undefined;
-                state.brandId = brandIdSelction.brandId;
-            }
-        }).finally(() => {
-            brandIdSelction.searchLoading = false;
-        });
+        // getBrandList({ brandName: '', shortCode: code }).then(res => {
+        //     if (res.code === 200) {
+        //         brandIdSelction.data = res.data || [];
+        //         //  品牌设置默认 No Brand
+        //         const brandItem = brandIdSelction.data.find((item) => {
+        //             return item.nameEn === 'No Brand'
+        //         });
+        //         brandIdSelction.brandId = brandItem ? brandItem.brandId : undefined;
+        //         state.brandId = brandIdSelction.brandId;
+        //     }
+        // }).finally(() => {
+        //     brandIdSelction.searchLoading = false;
+        // });
 
     });
 });

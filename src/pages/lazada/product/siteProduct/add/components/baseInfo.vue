@@ -18,7 +18,7 @@
                     <a-cascader :showSearch="showSearchConfig" class="flex w-full justify-start"
                         v-model:value="state.primaryCategory" :options="primaryCategoryOptions" placeholder="请先选择店铺"
                         allowClear :fieldNames="{ label: 'name2', value: 'categoryId', children: 'children' }"
-                        @change="changePrimaryCategory">
+                        @change="changePrimaryCategory" popupClassName="popupClassName">
                         <template #notFoundContent>
                             <div w-full h-300px flex items-center justify-center m-auto>
                                 <a-spin :spinning="true" tip="正在加载中..." m-auto>

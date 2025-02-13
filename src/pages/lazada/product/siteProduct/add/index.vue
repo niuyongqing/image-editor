@@ -317,11 +317,13 @@ const save = async () => {
     if (!addParams) {
         return;
     };
+    spinning.value = true;
     saveLoading.value = true;
     saveProduct(addParams).then(res => {
         addSuccessModalEl.value.open();
     }).finally(() => {
         saveLoading.value = false;
+        spinning.value = false;
     })
 };
 
@@ -332,11 +334,13 @@ const publish = async () => {
     if (!addParams) {
         return;
     };
+    saveLoading.value = true;
     publishLoading.value = true;
     lazadaAdd(addParams).then(res => {
         addSuccessModalEl.value.open();
     }).finally(() => {
         publishLoading.value = false;
+        spinning.value = false;
     })
 };
 
@@ -362,5 +366,3 @@ onMounted(() => {
     }
 });
 </script>
-
-<style lang="less" scoped></style>

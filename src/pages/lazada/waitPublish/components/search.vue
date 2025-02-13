@@ -22,7 +22,7 @@
                 <a-form-item label="搜索内容：">
                     <div>
                         <div class="flex">
-                            <a-input v-model:value="formState.name" placeholder="请输入搜索内容" style="width: 480px"
+                            <a-input v-model:value="formState.searchContent" placeholder="请输入搜索内容" style="width: 480px"
                                 v-show="currentSearchType === 'title'" />
                             <a-textarea v-model:value="formState.sku" placeholder="多个SKU间隔用逗号隔开，最多支持200个"
                                 style="width: 480px" v-show="currentSearchType === 'sku'"
@@ -137,7 +137,7 @@ const changeShortCode = (value) => {
 };
 const changeSearchType = (item) => {
     currentSearchType.value = item.value;
-    formState.name = '';
+    formState.searchContent = '';
     formState.sku = '';
     formState.productId = '';
 };

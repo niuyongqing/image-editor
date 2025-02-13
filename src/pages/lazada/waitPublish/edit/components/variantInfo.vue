@@ -5,7 +5,7 @@
                 <div text-left> 变种信息 </div>
             </template>
 
-            <div text-left mb-10px>
+            <div text-left mb-10px v-if="type">
                 升级为Global Plus：
                 <a-checkbox v-model:checked="checkState.checkAll" @change="onChangeCheckAll"> 全部 </a-checkbox>
                 <a-checkbox-group v-model:value="checkState.checkedList" :options="checkState.options"
@@ -838,6 +838,10 @@ onMounted(() => {
                 images = item.images.image
             } else if (item.Images) {
                 images = item.Images
+            }
+            console.log('images', images);
+            if (!Array.isArray(images)) {
+                images = images.image
             }
             return {
                 ...item,

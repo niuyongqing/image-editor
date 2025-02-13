@@ -290,11 +290,11 @@ const save = async () => {
     if (!addParams) {
         return;
     };
-    publishLoading.value = true;
+    saveLoading.value = true;
     lazadaEdit(addParams).then(res => {
         addSuccessModalEl.value.open();
     }).finally(() => {
-        publishLoading.value = false;
+        saveLoading.value = false;
     })
 };
 
@@ -335,5 +335,3 @@ onMounted(() => {
     getWatermark()
 });
 </script>
-
-<style lang="less" scoped></style>
