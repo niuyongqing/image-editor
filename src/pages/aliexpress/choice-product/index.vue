@@ -189,16 +189,18 @@
         <a-tabs
           v-model:activeKey="watchedSearchForm.productStatus"
           :animated="false"
+          class="flex-1"
         >
           <a-tab-pane
             v-for="item in statusTabs"
             :key="item.value"
-            :tab="`${item.label}(${statusCountEnum[item.value]})`"
+            :tab="`${item.label}(${statusCountEnum[item.value] || 0})`"
           ></a-tab-pane>
         </a-tabs>
         <a-pagination
           v-model:current="tableParams.pageNum"
           v-model:pageSize="tableParams.pageSize"
+          class="flex-none"
           :total="total"
           :default-page-size="50"
           show-size-changer
@@ -490,7 +492,7 @@
   import dayjs from 'dayjs'
   import { copyText } from '@/utils'
   import { accountCacheApi } from '../apis/common'
-  import { listApi, syncListApi, syncOneApi, syncProgressApi, detailApi, queryStockApi, editStockApi, stockRuleApi, copyToDraftApi } from '../apis/choice-product'
+  import { listApi, syncListApi, syncOneApi, syncProgressApi, getStatusCountApi, detailApi, queryStockApi, editStockApi, stockRuleApi, copyToDraftApi } from '../apis/choice-product'
   import { CopyOutlined, InfoCircleOutlined, EditOutlined } from '@ant-design/icons-vue'
   import { message } from 'ant-design-vue'
   import EmptyImg from '@/assets/images/aliexpress/empty.png'
@@ -652,10 +654,17 @@
       }
     },
     mounted() {
+      this.getStatusCount()
       this.getTableHeader()
       this.getAccountList()
     },
     methods: {
+      // 获取状态计数
+      getStatusCount() {
+        getStatusCountApi().then(res => {
+          this.statusCountEnum = res.data || {}
+        })
+      },
       // 获取表头
       getTableHeader() {
         this.tableHeader = this.DEFAULT_TABLE_COLUMN

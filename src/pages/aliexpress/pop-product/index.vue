@@ -375,11 +375,12 @@
         <a-tabs
           v-model:activeKey="watchedSearchForm.productStatusType"
           :animated="false"
+          class="flex-1"
         >
           <a-tab-pane
             v-for="item in PRODUCT_STATUS_TABS"
             :key="item.value"
-            :tab="`${item.label}(${STATUS_COUNT_ENUM[item.value]})`"
+            :tab="`${item.label}(${STATUS_COUNT_ENUM[item.value] || 0})`"
           ></a-tab-pane>
         </a-tabs>
         <a-pagination
@@ -390,6 +391,7 @@
           show-size-changer
           show-quick-jumper
           :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
+          class="flex-none"
           @change="getList"
         />
       </div>
@@ -687,7 +689,7 @@
   import dayjs from 'dayjs'
   import { copyText } from '@/utils'
   import { accountCacheApi, getAllFreightTemplateApi, getAllProductGroupsApi } from '../apis/common'
-  import { productListApi, syncOneApi, syncListApi, syncProgressApi, deleteProductApi, productsOffShelfApi, productsShelvesApi, copyProductApi, addNotesApi, productDetailApi } from '../apis/product'
+  import { productListApi, syncOneApi, syncListApi, syncProgressApi, getStatusCountApi, deleteProductApi, productsOffShelfApi, productsShelvesApi, copyProductApi, addNotesApi, productDetailApi } from '../apis/product'
   import { DownOutlined, CopyOutlined, InfoCircleOutlined, EditOutlined } from '@ant-design/icons-vue'
   import { message } from 'ant-design-vue'
   import EmptyImg from '@/assets/images/aliexpress/empty.png'
@@ -828,12 +830,19 @@
       }
     },
     mounted() {
+      this.getStatusCount()
       this.getAllProductGroups()
       this.getAllFreightTemplate()
       this.getTableHeader()
       this.getAccountList()
     },
     methods: {
+      // 获取状态计数
+      getStatusCount() {
+        getStatusCountApi().then(res => {
+          this.STATUS_COUNT_ENUM = res.data || {}
+        })
+      },
       // 获取全量分组数据
       getAllProductGroups() {
         this.groupLoading = true
