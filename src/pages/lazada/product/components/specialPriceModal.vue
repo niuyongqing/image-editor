@@ -30,20 +30,26 @@
 </template>
 
 <script setup>
+import { batchPrice } from '@/pages/lazada/product/api';
+
+const acceptParams = ref({});
+const isBatch = ref(false);
 const dialogVisible = ref(false);
 const radio = ref(1);
 const setNum = ref(null);
 const stockRule = ref(null);
 const setRuleNum = ref(null);
 
-const stockRuleList = [
-    { value: 1, label: '加' },
-    { value: 2, label: '减' },
-    { value: 3, label: '乘' },
-    { value: 4, label: '除' },
-];
+// const stockRuleList = [
+//     { value: 1, label: '加' },
+//     { value: 2, label: '减' },
+//     { value: 3, label: '乘' },
+//     { value: 4, label: '除' },
+// ];
 
-const open = () => {
+const open = (record, batch = false) => {
+    acceptParams.value = record;
+    isBatch.value = batch;
     dialogVisible.value = true;
 };
 
@@ -57,13 +63,30 @@ const cancel = () => {
 };
 
 const save = () => {
-    emit('success', {
-        radio: radio.value,
-        setNum: setNum.value,
-        stockRule: stockRule.value,
-        setRuleNum: setRuleNum.value
-    });
-    cancel();
+    const requestParams = isBatch.value
+        ? acceptParams.value.map((item) => ({
+            shortCode: item.shortCode,
+            itemId: item.itemId,
+            sku: item.skus.map((item) => item.SellerSku).join(','),
+            price: item.price,
+            specialPrice: setNum.value,
+        }))
+        : [{
+            shortCode: acceptParams.value.shortCode,
+            itemId: acceptParams.value.itemId,
+            sku: acceptParams.value.skus.map((item) => item.SellerSku).join(','),
+            price: acceptParams.value.price,
+            specialPrice: setNum.value,
+        }];
+
+    batchPrice(requestParams)
+        .then((res) => {
+            if (res.code === 200) {
+                message.success('操作成功');
+                emit('success');
+                cancel();
+            }
+        });
 };
 
 const emit = defineEmits(['cancel', 'success']);

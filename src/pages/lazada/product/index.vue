@@ -383,11 +383,11 @@ const mouseLeaveQuantity = (item) => {
 };
 
 const editPrice = (item) => {
-    priceModalEl.value.open(item);
+    priceModalEl.value.open(item, false);
 };
 
 const editSpecialPrice = (item) => {
-    specialPriceModalEl.value.open(item);
+    specialPriceModalEl.value.open(item, false);
 };
 
 const editQuantity = (item) => {

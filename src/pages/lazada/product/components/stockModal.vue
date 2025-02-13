@@ -77,7 +77,7 @@ const save = () => {
             quantity: setNum.value
         }];
 
-    batchStore({ request: requestParams })
+    batchStore(requestParams)
         .then((res) => {
             if (res.code === 200) {
                 message.success('操作成功');

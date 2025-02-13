@@ -135,3 +135,10 @@ export function batchStore(data) {
     data
   );
 }
+// 修改售价(支持批量)
+export function batchPrice(data) {
+  return usePost(
+    "/platform-lazada/platform/lazada/product/batch/price/new",
+    data
+  );
+}

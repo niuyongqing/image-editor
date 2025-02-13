@@ -190,7 +190,7 @@ const handleBatchPrice = () => {
         message.error('请选择产品');
         return
     }
-    priceModalEl.value.open(selectedRows);
+    priceModalEl.value.open(selectedRows, true);
 };
 
 const handleBatchStock = () => {
@@ -198,14 +198,14 @@ const handleBatchStock = () => {
         message.error('请选择产品');
         return
     }
-    stockModalEl.value.open(selectedRows);
+    stockModalEl.value.open(selectedRows, true);
 };
 const handleBatchSpecialPrice = () => {
     if (!selectedRows.length) {
         message.error('请选择产品');
         return
     }
-    specialPriceModalEl.value.open();
+    specialPriceModalEl.value.open(selectedRows, true);
 }
 
 // 仓库管理
