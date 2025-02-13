@@ -31,20 +31,25 @@
 
 <script setup>
 import { batchStore } from '@/pages/lazada/product/api';
+import { message } from 'ant-design-vue';
 
+const acceptParams = ref({});
+const isBatch = ref(false);
 const dialogVisible = ref(false);
 const radio = ref(1);
 const setNum = ref(null);
 const stockRule = ref(null);
 const setRuleNum = ref(null);
 
-const stockRuleList = [
-    { value: 1, label: '加' },
-    { value: 2, label: '减' },
-    { value: 3, label: '乘' },
-];
+// const stockRuleList = [
+//     { value: 1, label: '加' },
+//     { value: 2, label: '减' },
+//     { value: 3, label: '乘' },
+// ];
 
-const open = () => {
+const open = (record, batch) => {
+    acceptParams.value = record;
+    isBatch.value = batch;
     dialogVisible.value = true;
 };
 
@@ -58,13 +63,28 @@ const cancel = () => {
 };
 
 const save = () => {
-    // emit('success', {
-    //     radio: radio.value,
-    //     setNum: setNum.value,
-    //     stockRule: stockRule.value,
-    //     setRuleNum: setRuleNum.value
-    // });
-    // cancel();
+    const requestParams = isBatch.value
+        ? acceptParams.value.map((item) => ({
+            shortCode: item.shortCode,
+            itemId: item.itemId,
+            sku: item.skus.map((item) => item.SellerSku).join(','),
+            quantity: setNum.value
+        }))
+        : [{
+            shortCode: acceptParams.value.shortCode,
+            itemId: acceptParams.value.itemId,
+            sku: acceptParams.value.skus.map((item) => item.SellerSku).join(','),
+            quantity: setNum.value
+        }];
+
+    batchStore({ request: requestParams })
+        .then((res) => {
+            if (res.code === 200) {
+                message.success('操作成功');
+                emit('success');
+                cancel();
+            }
+        });
 };
 
 const emit = defineEmits(['cancel', 'success']);

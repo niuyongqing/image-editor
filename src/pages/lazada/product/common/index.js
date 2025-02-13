@@ -130,3 +130,38 @@ export const globalArea = [
     value: "my",
   },
 ];
+export const colors = [
+  {
+    id: 1,
+    color: "#009926",
+  },
+  {
+    id: 2,
+    color: "#F00",
+    name: "红色",
+  },
+  {
+    id: 3,
+    color: "#0005FD",
+  },
+  {
+    id: 4,
+    color: "#FF5800",
+  },
+  {
+    id: 5,
+    color: "#8E0075",
+  },
+  {
+    id: 6,
+    color: "#FF6666",
+  },
+  {
+    id: 7,
+    color: "#FFCAC5",
+  },
+  {
+    id: 8,
+    color: "#00D0FF",
+  },
+];

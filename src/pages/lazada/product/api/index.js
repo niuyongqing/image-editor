@@ -126,9 +126,12 @@ export function copy(data) {
 }
 // 添加备注(支持批量)
 export function remark(data) {
-  return usePost("/platform-lazada/platform/lazada/product/add/remark", data);
+  return usePost("/platform-lazada/platform/lazada/product/batch/remark", data);
 }
 // 修改库存(支持批量)
 export function batchStore(data) {
-  return usePost("/platform-lazada/platform/lazada/product/batch-store", data);
+  return usePost(
+    "/platform-lazada/platform/lazada/product/batch-store/new",
+    data
+  );
 }

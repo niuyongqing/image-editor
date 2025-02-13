@@ -12,8 +12,8 @@
                         <!-- 颜色列表 -->
                         <div class="color-list">
                             <div class="color-item" v-for="(item, index) in colorList" :key="index"
-                                :class="row.remarkColor === item.color ? 'color-active' : ''"
-                                :style="{ background: item.color }" @click="remarkColorSelect"></div>
+                                :class="item.id === seletColorId ? 'color-active' : ''"
+                                :style="{ background: item.color }" @click="remarkColorSelect(item)"></div>
                         </div>
                     </div>
                 </a-form-item>
@@ -26,47 +26,14 @@
 import { message } from 'ant-design-vue';
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { remark } from '@/pages/lazada/product/api';
+import { colors } from '@/pages/lazada/product/common';
 import _ from 'lodash';
 
 const acceptParams = ref({});
 const isBatch = ref(false);
 const dialogVisible = ref(false);
 const loading = ref(false);
-const colorList = [
-    {
-        id: 1,
-        color: '#009926',
-    },
-    {
-        id: 2,
-        color: '#F00',
-        name: '红色'
-    },
-    {
-        id: 3,
-        color: '#0005FD',
-    },
-    {
-        id: 4,
-        color: '#FF5800',
-    },
-    {
-        id: 5,
-        color: '#8E0075',
-    },
-    {
-        id: 6,
-        color: '#FF6666',
-    },
-    {
-        id: 7,
-        color: '#FFCAC5',
-    },
-    {
-        id: 8,
-        color: '#00D0FF',
-    }
-];
+const colorList = colors;
 const row = ref({
     remark: '',
     remarkColor: ''
@@ -77,47 +44,41 @@ const register = (modal) => {
 };
 const seletColorId = ref(0);
 const remarkColorSelect = (item) => {
-    row.value.remarkColor = item.color;
-    console.log('row', row.value);
+    row.value.remarkColor = item.id;
     seletColorId.value = item.id;
 }
 const open = (record, batch) => {
     acceptParams.value = record;
     isBatch.value = batch;
+    if (!batch) {
+        row.value.remark = record.remark;
+        row.value.remarkColor = record.remarkColor;
+        seletColorId.value = record.remarkColor;
+    };
     modelMethods.value.openModal();
 };
 const cancel = () => { };
 const submit = () => {
-    if (isBatch.value) {
-        const requestParams = acceptParams.value.map((item) => {
-            return {
-                itemId: item.itemId,
-                "remark": row.value.remark,
-                "remarkColor": row.value.remarkColor
-            }
-        });
-        remark({
-            "request": requestParams
-        }).then(() => {
-            message.success('备注成功');
-            modelMethods.value.closeModal();
-            emits('success')
-        })
-    } else {
-        remark({
-            "request": [{
-                "itemId": acceptParams.value.itemId,
-                "remark": row.value.remark,
-                "remarkColor": row.value.remarkColor
-            }]
-        }).then(() => {
-            message.success('备注成功');
-            modelMethods.value.closeModal();
-            emits('success')
-        })
-    }
+    const requestParams = isBatch.value
+        ? acceptParams.value.map((item) => ({
+            itemId: item.itemId,
+            remark: row.value.remark,
+            remarkColor: row.value.remarkColor
+        }))
+        : [{
+            itemId: acceptParams.value.itemId,
+            remark: row.value.remark,
+            remarkColor: row.value.remarkColor
+        }];
 
+    remark(requestParams)
+        .then(() => {
+            message.success('备注成功');
+            modelMethods.value.closeModal();
+            emits('success');
+        });
 };
+
 
 const emits = defineEmits(['success'])
 defineExpose({
@@ -133,7 +94,7 @@ defineExpose({
     border-radius: 2px;
     margin-right: 10px;
     cursor: pointer;
-    border: 1px solid #ccc;
+    border: 3px solid #ccc;
 }
 
 .color-list {

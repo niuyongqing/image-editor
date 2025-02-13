@@ -93,3 +93,10 @@ export function saveCopyPublish(data) {
 export function publishCopyPublish(data) {
   return usePost("/platform-lazada/platform/lazada/wait/product/publish", data);
 }
+// 获取各状态的产品数量
+export function getStatusCount(data) {
+  return usePost(
+    "/platform-lazada/platform/lazada/wait/product/getStatusCount",
+    data
+  );
+}

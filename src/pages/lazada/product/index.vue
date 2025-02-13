@@ -47,6 +47,9 @@
                         </a-tooltip>
                     </div>
                 </div>
+                <div v-if="record.remark">
+                    <span :style="{ color: remarkColor(record.remarkColor) }"> 备注: {{ record.remark }} </span>
+                </div>
             </template>
             <template #global="{ record }">
                 <div class="record-sku-container pb-30px" text-center>
@@ -186,6 +189,7 @@ import StockModal from './components/stockModal.vue';
 import SpecialPriceModal from './components/specialPriceModal.vue';
 import CopySiteModal from './components/copySiteModal.vue';
 import CopyGlobalModal from './components/copyGlobalModal.vue';
+import { colors } from '@/pages/lazada/product/common';
 
 const { copy } = useClipboard();
 const active = ref('ALL');
@@ -349,6 +353,13 @@ const handleDeactivated = (record) => {
     })
 };
 
+const remarkColor = (param) => {
+    const findItem = colors.find((item) => {
+        return item.id === param
+    });
+    return findItem ? findItem.color : '#000000';
+}
+
 const mouseEnterPrice = (item) => {
     if (!item.price) return;
     item.editPrice = true;
@@ -380,7 +391,7 @@ const editSpecialPrice = (item) => {
 };
 
 const editQuantity = (item) => {
-    stockModalEl.value.open(item);
+    stockModalEl.value.open(item, false);
 };
 
 onMounted(async () => {

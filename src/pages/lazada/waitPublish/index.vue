@@ -135,7 +135,7 @@ import Search from './components/search.vue';
 import TableAction from './components/tableAction.vue';
 import BaseTable from '@/components/baseTable/BaseTable.vue';
 import RemarkModal from './components/remarkModal.vue';
-import { publishCopyPublish } from '@/pages/lazada/waitPublish/api';
+import { publishCopyPublish, getStatusCount } from '@/pages/lazada/waitPublish/api';
 
 const route = useRoute();
 const { copy } = useClipboard();
@@ -149,32 +149,25 @@ const { singleDisabled, rowSelection, tableRow, selectedRows, clearSelection } =
 const initSearchParam = {
     prop: "created_time",
     order: "desc",
+    status: 1,
     shortCodes: [],
     name: '',
     sku: ''
 };
 const buttons = ref([{
     id: 1,
-    name: '在线',
-    count: 0,
+    name: '待发布',
+    count: 0
 },
 {
     id: 2,
-    name: '已下架',
+    name: '已发布',
     count: 0,
 }, {
     id: 3,
-    name: '审核中',
+    name: '发布失败',
     count: 0,
-}, {
-    id: 4,
-    name: '平台下架',
-    count: 0,
-}, {
-    id: 5,
-    name: '删除',
-    count: 0,
-}]);
+},]);
 const active = ref(1)
 const more = ref(true); // 是否显示全部
 const accreditAuth = computed(() => {
@@ -231,6 +224,7 @@ const reload = () => {
 // 查询
 const handleSearch = async (state) => {
     searchFormState.value = state;
+    tableStatusCount();
     await baseTableEl.value.search(state);
 };
 //  编辑
@@ -262,7 +256,7 @@ const handleReset = () => {
 
 const handleBtnClick = (btn) => {
     active.value = btn.id;
-    // handleSearch({ ...initSearchParam, ... searchFormState.value, status: btn.id });
+    handleSearch({ ...initSearchParam, ...searchFormState.value, status: btn.id });
 };
 
 
@@ -289,7 +283,39 @@ const handleDelete = (record) => {
     })
 };
 
+const tableStatusCount = () => {
+    getStatusCount({
+        "prop": "created_time",
+        "order": "desc",
+        "status": active.value,
+        "shortCodes": searchFormState.value.shortCode ? [searchFormState.value.shortCode] : [],
+        "name": searchFormState.value.name ?? '',
+        "sku": searchFormState.value.sku ?? '',
+    }).then(res => {
+        if (res.code === 200) {
+            const data = res.data || {};
+            buttons.value = [
+                {
+                    id: 1,
+                    name: '待发布',
+                    count: data[1] || 0,
+                },
+                {
+                    id: 2,
+                    name: '已发布',
+                    count: data[2] || 0,
+                }, {
+                    id: 3,
+                    name: '发布失败',
+                    count: data[3] || 0,
+                }
+            ]
+        }
+    });
+};
+
 onMounted(async () => {
+    tableStatusCount();
     const accountCacheRes = await accountCache();
     if (accountCacheRes.code === 200) {
         let codes = [];
