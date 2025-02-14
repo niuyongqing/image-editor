@@ -50,10 +50,10 @@
             </div>
 
             <div>
-                <a-button @click="warehouseSetting" type="link" style="height: 32px; margin-left: 10px; ">
+                <!-- <a-button @click="warehouseSetting" type="link" style="height: 32px; margin-left: 10px; ">
                     <SettingOutlined />
                     仓库管理
-                </a-button>
+                </a-button> -->
                 <a-button @click="addHalfway" type="primary" style="height: 32px; margin-left: 10px; ">
                     <PlusOutlined />
                     新增半托管商品
@@ -112,6 +112,9 @@
                             <a-menu-item @click="syncSelectProduct">
                                 同步选中产品
                             </a-menu-item>
+                            <a-menu-item @click="syncShortCodeProduct">
+                                同步店铺产品
+                            </a-menu-item>
                             <a-menu-item @click="syncUpProduct">
                                 同步可升级产品
                             </a-menu-item>
@@ -126,6 +129,8 @@
     <RemarkModal ref="remarkModalRef" @search="remarkSuccess"></RemarkModal>
     <StockModal ref="stockModalRef" @success="stockSuccess"></StockModal>
     <SpecialPriceModal ref="specialPriceModalRef" @success="specialPriceSuccess"></SpecialPriceModal>
+    <BaseProgess ref="baseProgessRef" v-model:percent="percent" v-model:open="progessOpen" :showSaveBtn="false"
+        :showCancelBtn="false"></BaseProgess>
 </template>
 
 <script setup>
@@ -133,22 +138,29 @@ import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { DownOutlined, SettingOutlined, PlusOutlined } from "@ant-design/icons-vue";
 import WarehouseSetting from './warehouseSetting.vue';
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
-import { syncAll } from '@/pages/lazada/product/api';
+import { syncAll, sync, deactivate } from '@/pages/lazada/product/api';
 import { message, Modal } from 'ant-design-vue';
 import PriceModal from './priceModal.vue';
 import RemarkModal from './remarkModal.vue';
 import StockModal from './stockModal.vue';
 import SpecialPriceModal from './specialPriceModal.vue';
 
-const { selectedRows } = defineProps({
+const { selectedRows, shortCode } = defineProps({
     //  表格选中的数据
     selectedRows: {
         type: Array,
         default: () => []
+    },
+    shortCode: {
+        type: String,
+        default: ''
     }
 });
 const emits = defineEmits(['success']);
 const router = useRouter();
+const percent = ref(0);
+const timer = ref(null);
+const progessOpen = ref(false);
 const warehouseSettingEl = useTemplateRef('warehouseSettingRef');
 const priceModalEl = useTemplateRef('priceModalRef');
 const remarkModalEl = useTemplateRef('remarkModalRef');
@@ -165,7 +177,7 @@ const handleDeactivated = () => {
         title: '下架',
         content: '是否确认下架？',
         onOk: async () => {
-            // const res = await deactivated({ itemId: record.itemId });
+            // const res = await deactivate({ itemId: record.itemId });
             // if (res.code === 200) {
             //     message.success('下架成功');
             //     emits('success');
@@ -175,6 +187,29 @@ const handleDeactivated = () => {
         },
     })
 };
+
+const syncShortCodeProduct = () => {
+    if (!shortCode) {
+        message.error('请选择店铺');
+        return
+    }
+    progessOpen.value = true;
+    timer.value = setInterval(() => {
+        if (percent.value < 80) {
+            percent.value++;
+        }
+    }, 800);
+    sync({
+        "shortCode": shortCode
+    }).then((res) => {
+        percent.value = 100;
+        progessOpen.value = false;
+    }).catch((err) => {
+        percent.value = 0;
+        progessOpen.value = false;
+    })
+};
+
 // const handleWater = () => {
 // };
 const handleRemark = () => {
@@ -257,4 +292,7 @@ const stockSuccess = () => {
 const specialPriceSuccess = () => {
     emits('success');
 };
+onBeforeUnmount(() => {
+    clearInterval(timer.value);
+})
 </script>

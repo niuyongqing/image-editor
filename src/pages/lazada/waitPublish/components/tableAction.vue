@@ -32,9 +32,9 @@
                 </a-dropdown>
             </div>
             <div>
-                <a-button @click="warehouseSetting" type="link" style="height: 32px; margin-left: 10px; ">
+                <!-- <a-button @click="warehouseSetting" type="link" style="height: 32px; margin-left: 10px; ">
                     <SettingOutlined /> 仓库管理
-                </a-button>
+                </a-button> -->
                 <a-dropdown>
                     <a-button type="primary" style="height: 32px ; margin-left: 10px;">
                         创建产品
@@ -55,13 +55,14 @@
         </div>
     </div>
     <WarehouseSetting ref="warehouseSettingRef" />
-    <RemarkModal ref="remarkModalRef"></RemarkModal>
+    <RemarkModal ref="remarkModalRef" @success="remarkSuccess"></RemarkModal>
     <PriceModal ref="priceModalRef" @success="priceSuccess"></PriceModal>
     <StockModal ref="stockModalRef" @success="stockSuccess"></StockModal>
     <SpecialPriceModal ref="specialPriceModalRef" @success="specialPriceSuccess"></SpecialPriceModal>
 </template>
 
 <script setup>
+import { message } from "ant-design-vue";
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { DownOutlined, SettingOutlined } from "@ant-design/icons-vue";
 import WarehouseSetting from './warehouseSetting.vue'; // 仓库管理
@@ -70,7 +71,6 @@ import RemarkModal from './batchModal/remarkModal.vue';
 import PriceModal from './batchModal/priceModal.vue';
 import SpecialPriceModal from './batchModal/specialPriceModal.vue';
 import StockModal from './batchModal/stockModal.vue';
-
 const { selectedRows } = defineProps({
     //  表格选中的数据
     selectedRows: {
@@ -109,8 +109,16 @@ const handleEdit = () => { };
 const handleGobalPlus = () => { };
 
 const handleRemark = () => {
-    remarkModalEl.value.open();
+    if (!selectedRows.length) {
+        message.error('请选择产品');
+        return
+    };
+    remarkModalEl.value.open(selectedRows, true);
 };
+
+const remarkSuccess = () => {
+    emits('success');
+}
 
 const handleBatchPrice = () => {
     priceModalEl.value.open();

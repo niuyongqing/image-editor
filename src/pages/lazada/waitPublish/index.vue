@@ -29,6 +29,9 @@
                     </a-tooltip>
                 </p>
                 <p style="color: rgb(153, 153, 153)"> 「{{ shopSimpleName(record) }}」 </p>
+                <div v-if="record.remark">
+                    <span :style="{ color: remarkColor(record.remarkColor) }"> 备注: {{ record.remark }} </span>
+                </div>
             </template>
 
             <template #skus="{ record }">
@@ -118,7 +121,7 @@
                 </div>
             </template>
         </BaseTable>
-        <RemarkModal ref="remarkModalRef"></RemarkModal>
+        <RemarkModal ref="remarkModalRef" @success="reload"></RemarkModal>
     </div>
 </template>
 
@@ -134,8 +137,9 @@ import { timestampToDateTime } from './common';
 import Search from './components/search.vue';
 import TableAction from './components/tableAction.vue';
 import BaseTable from '@/components/baseTable/BaseTable.vue';
-import RemarkModal from './components/remarkModal.vue';
+import RemarkModal from './components/batchModal/remarkModal.vue';
 import { publishCopyPublish, getStatusCount } from '@/pages/lazada/waitPublish/api';
+import { colors } from '@/pages/lazada/product/common';
 
 const route = useRoute();
 const { copy } = useClipboard();
@@ -182,7 +186,12 @@ const isAliasEdit = computed(() => {
 const isRemark = computed(() => {
     return checkPermi(['system:platform:lazada:remark']);
 });
-
+const remarkColor = (param) => {
+    const findItem = colors.find((item) => {
+        return item.id === param
+    });
+    return findItem ? findItem.color : '#000000';
+}
 const imageSrc = (record) => {
     if (record.images) {
         const imgParse = JSON.parse(record.images);
@@ -263,7 +272,7 @@ const handleBtnClick = (btn) => {
 //   添加备注
 const handleRemark = (record) => {
     console.log('record', record,);
-    remarkModalEl.value.open(record);
+    remarkModalEl.value.open(record, false);
 };
 
 //  删除

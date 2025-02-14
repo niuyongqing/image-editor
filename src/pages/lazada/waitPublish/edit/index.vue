@@ -228,11 +228,15 @@ const validateAll = async () => {
             Reflect.set(attrsForm, item.name, item.value);
         }
     });
-    console.log('attrsForm', attrsForm);
 
     const packageState = packageEl.value.state;
     const taxClass = packageState.taxClass;// 税
     const packageContent = packageState.packageContent;// 包裹内容
+    const packageWeight = packageState.packageWeight;
+    const packageHeight = packageState.packageHeight;
+    const packageLength = packageState.packageLength;
+    const packageWidth = packageState.packageWidth;
+
 
     const imageInfoState = imageInfoEl.value.form;
     const images = imageInfoState.fileList.map((item) => item.url);// 产品图片
@@ -261,10 +265,10 @@ const validateAll = async () => {
         const baseProperties = {
             taxClass: taxClass,
             skuId: item.SkuId,
-            packageHeight: item.packageHeight,
-            packageLength: item.packageLength,
-            packageWeight: Number(item.packageWeight),
-            packageWidth: item.packageWidth,
+            packageHeight: type.value ? packageHeight : item.packageHeight,
+            packageLength: type.value ? packageLength : item.packageLength,
+            packageWeight: type.value ? packageWeight : Number(item.packageWeight),
+            packageWidth: type.value ? packageWidth : item.packageWidth,
             packageContent: packageContent,
             price: item.price,
             quantity: item.stock,

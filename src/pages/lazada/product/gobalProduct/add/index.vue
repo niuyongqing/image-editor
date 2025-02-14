@@ -216,6 +216,10 @@ const validateAll = async () => {
     const packageState = packageEl.value.state;
     const taxClass = packageState.taxClass;// 税
     const packageContent = packageState.packageContent;// 包裹内容
+    const packageWeight = packageState.packageWeight;
+    const packageHeight = packageState.packageHeight;
+    const packageLength = packageState.packageLength;
+    const packageWidth = packageState.packageWidth;
 
     const imageInfoState = imageInfoEl.value.form;
     const images = imageInfoState.fileList.map((item) => item.url);// 产品图片
@@ -245,10 +249,10 @@ const validateAll = async () => {
         // 共同的基础属性  
         const baseProperties = {
             taxClass: taxClass,
-            packageHeight: item.packageHeight,
-            packageLength: item.packageLength,
-            packageWeight: Number(item.packageWeight),
-            packageWidth: item.packageWidth,
+            packageHeight: packageHeight,
+            packageLength: packageLength,
+            packageWeight: Number(packageWeight),
+            packageWidth: packageWidth,
             packageContent: packageContent,
             price: item.price,
             quantity: item.stock,

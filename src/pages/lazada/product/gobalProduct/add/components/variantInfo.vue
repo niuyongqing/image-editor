@@ -263,15 +263,15 @@ const columns = computed(() => {
         ] : []
     };
 
-    const packageColumns = () => {
-        return isHeight && isWidth && isLength ? [
-            {
-                title: '尺寸（cm）',
-                dataIndex: 'package',
-                align: 'center',
-            },
-        ] : []
-    };
+    // const packageColumns = () => {
+    //     return isHeight && isWidth && isLength ? [
+    //         {
+    //             title: '尺寸（cm）',
+    //             dataIndex: 'package',
+    //             align: 'center',
+    //         },
+    //     ] : []
+    // };
 
     const themeColumns = selectTheme.value.map((item) => {
         return {
@@ -311,8 +311,8 @@ const columns = computed(() => {
                     dataIndex: 'specialDate',
                     align: 'center',
                 },
-                ...weightColumns(),
-                ...packageColumns(),
+                // ...weightColumns(),
+                // ...packageColumns(),
                 {
                     title: '操作',
                     dataIndex: 'action',

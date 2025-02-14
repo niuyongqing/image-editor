@@ -102,6 +102,11 @@ export function syncOne(data) {
 export function syncAll() {
   return useGet("/platform-lazada/platform/lazada/product/sync-all");
 }
+// 同步店铺商品
+export function sync(data) {
+  return usePost("/platform-lazada/platform/lazada/product/sync", data);
+}
+
 // 下架
 export function deactivate(data) {
   return usePost("/platform-lazada/platform/lazada/product/deactivate", data);

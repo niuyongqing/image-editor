@@ -46,6 +46,7 @@
                         :options="lazadaAttrsState.warrantyList" :field-names="{ label: 'en_name', value: 'en_name' }">
                     </a-select>
                 </a-form-item>
+                {{ productAtrrsform }}
                 <a-form-item label="属性: " v-show="lazadaAttrsState.attributes.length > 0">
                     <a-card v-loading="lazadaAttrsState.loading" class="attrs-card">
                         <a-form :model="productAtrrsform" ref="attrsFormRef" scrollToFirstError>
@@ -286,7 +287,7 @@ onMounted(() => {
                 brandIdSelction.data = res.data || [];
                 //  品牌设置默认 No Brand
                 const brandItem = brandIdSelction.data.find((item) => {
-                    return item.nameEn === 'OEM'
+                    return item.nameEn === 'No Brand'
                 });
                 brandIdSelction.brandId = brandItem ? brandItem.brandId : undefined;
                 state.brandId = brandIdSelction.brandId;

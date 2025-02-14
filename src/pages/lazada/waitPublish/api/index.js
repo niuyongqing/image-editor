@@ -100,3 +100,10 @@ export function getStatusCount(data) {
     data
   );
 }
+// 添加备注
+export function batchRemark(data) {
+  return usePost(
+    "/platform-lazada/platform/lazada/wait/product/batch/remark",
+    data
+  );
+}

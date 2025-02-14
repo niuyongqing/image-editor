@@ -34,16 +34,16 @@
 
                     <template v-if="column && column.dataIndex === 'supplyPrice'">
                         <div> <span class="required"> * </span> {{ title }} </div>
-                        <div> ( <a-button type="link" @click="batchPrice()"> 批量 </a-button> ) </div>
+                        <div v-if="!type"> ( <a-button type="link" @click="batchPrice()"> 批量 </a-button> ) </div>
                     </template>
 
                     <template v-if="column && column.dataIndex === 'price'">
                         <div> <span class="required"> * </span> {{ title }} </div>
-                        <div> ( <a-button type="link" @click="batchPrice()"> 批量 </a-button> ) </div>
+                        <div v-if="!type"> ( <a-button type="link" @click="batchPrice()"> 批量 </a-button> ) </div>
                     </template>
                     <template v-if="column && column.dataIndex === 'specialPrice'">
                         <div> {{ title }} </div>
-                        <div> ( <a-button type="link" @click="batchSpecialPrice()"> 批量 </a-button> ) </div>
+                        <div v-if="!type"> ( <a-button type="link" @click="batchSpecialPrice()"> 批量 </a-button> ) </div>
                     </template>
                     <template v-if="column && column.dataIndex === 'specialDate'">
                         <div> {{ title }} </div>
@@ -295,7 +295,7 @@ const columns = computed(() => {
     const skusType = attributes.value.filter(item => item.attribute_type === 'sku');
     skus.value = skusType;
     const weightColumns = () => {
-        return isWeight ? [
+        return isWeight && !type ? [
             {
                 title: '重量（kg）',
                 dataIndex: 'package_weight',
@@ -305,7 +305,7 @@ const columns = computed(() => {
     };
 
     const packageColumns = () => {
-        return isHeight && isWidth && isLength ? [
+        return isHeight && isWidth && isLength && !type ? [
             {
                 title: '尺寸（cm）',
                 dataIndex: 'package',

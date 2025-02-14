@@ -1,7 +1,7 @@
 <template>
     <div>
         <Search :shortCodes="shortCodes" @search="handleSearch"></Search>
-        <TableAction @success="reload" :selectedRows="selectedRows"></TableAction>
+        <TableAction @success="reload" :selectedRows="selectedRows" :shortCode="shortCode"></TableAction>
         <BaseTable ref="baseTableRef" :columns="columns" :api="getList" :init-search-param="initSearchParam"
             :row-selection="rowSelection" show-right-pagination rowKey="itemId" resultField="rows[0].productList">
             <template #leftBar>
@@ -196,6 +196,7 @@ const active = ref('ALL');
 const accountDetail = ref({}); // 所有店铺
 const searchFormState = ref({});
 const tableData = ref([]);
+const shortCode = ref('');
 const shortCodes = ref([]);
 const baseTableEl = useTemplateRef('baseTableRef');
 const priceModalEl = useTemplateRef('priceModalRef');
@@ -280,6 +281,7 @@ const reload = () => {
 // 查询
 const handleSearch = async (state) => {
     searchFormState.value = state;
+    shortCode.value = searchFormState.value.shortCode;
     await baseTableEl.value.search(state);
 };
 //  编辑

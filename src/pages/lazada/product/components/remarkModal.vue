@@ -59,6 +59,14 @@ const open = (record, batch) => {
 };
 const cancel = () => { };
 const submit = () => {
+    if (!row.value.remark) {
+        message.error('请输入备注');
+        return;
+    }
+    if (!row.value.remarkColor) {
+        message.error('请选择颜色');
+        return;
+    }
     const requestParams = isBatch.value
         ? acceptParams.value.map((item) => ({
             itemId: item.itemId,
