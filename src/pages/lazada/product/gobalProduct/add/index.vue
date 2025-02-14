@@ -128,7 +128,7 @@ import VariantImage from './components/variantImage.vue';
 import Description from './components/description.vue';
 import SelectProduct from '@/components/selectProduct/index.vue';
 import { useLazadaGobalAttrs } from "~@/stores/lazadaGobalAttrs";
-import { watermarkList, lazadaAdd } from '@/pages/lazada/product/api';
+import { watermarkList, lazadaGlobalAdd, saveProduct } from '@/pages/lazada/product/api';
 import AddSuccessModal from '../batchModal/addSuccessModal.vue';
 import dayjs from 'dayjs';
 
@@ -223,7 +223,7 @@ const validateAll = async () => {
 
     const imageInfoState = imageInfoEl.value.form;
     const images = imageInfoState.fileList.map((item) => item.url);// 产品图片
-    const promotion_whitebkg_image = imageInfoState.promotionWhite.length > 0 ? imageInfoState.promotionWhite[0].url : '';// 营销图
+    const promotion_whitebkg_image = imageInfoState.promotionWhite.length > 0 ? [imageInfoState.promotionWhite[0].url] : [];// 营销图
     const video = imageInfoState.video.url;// 产品视频
     const cover_url = imageInfoState.video.img; // 视频封面图 
     // to do... 视频标题
@@ -234,10 +234,10 @@ const validateAll = async () => {
     let variations = {};
 
     lazadaAttrsState.selectTheme.forEach((item, index) => {
-        variations['variation' + index] = {
+        variations['variation' + (index + 1)] = {
             // 在这里添加你需要的属性和值
             name: item.name,
-            hasImage: true,
+            hasImage: index === 0 ? true : false,
             customize: item.is_mandatory === 1 ? false : true,  // ??/ 必填 false ，非必填true
             options: {
                 option: item.checkedList
@@ -254,10 +254,10 @@ const validateAll = async () => {
             packageWeight: Number(packageWeight),
             packageWidth: packageWidth,
             packageContent: packageContent,
-            price: item.price,
+            retail_price: item.price, // 价格
             quantity: item.stock,
             sellerSku: item.sellerSKU,
-            supplyPrice: item.supplyPrice,
+            sales_price: item.specialPrice, // 促销价格
             images: {
                 image: item.fileList.map((img) => img.url)
             }
@@ -272,7 +272,7 @@ const validateAll = async () => {
         const specialDateProps = !isHalfway.value ? {
             specialFromDate: item.specialDate ? dayjs(item.specialDate[0]).format('YYYY-MM-DD HH:mm:ss') : '',
             specialToDate: item.specialDate ? dayjs(item.specialDate[1]).format('YYYY-MM-DD HH:mm:ss') : '',
-            specialPrice: item.specialPrice
+            sales_price: item.specialPrice
         } : {};
 
         return {
@@ -283,8 +283,8 @@ const validateAll = async () => {
     });
     const attributes = {
         type: 'global',
-        ventures: ventures,
-        semiUpgradeVentures: semiUpgradeVentures,
+        ventures: { venture: ventures },
+        semiUpgradeVentures: { venture: semiUpgradeVentures },
         "productType": isHalfway.value ? "1" : "0", // 0 普通卖家店铺, 1 半托管店铺, 2 全托管店铺
         attributes: {
             model,
@@ -305,6 +305,9 @@ const validateAll = async () => {
         skus: {
             sku: skus
         },
+    };
+    if (!promotion_whitebkg_image.length) {
+        delete attributes.attributes.promotion_whitebkg_image;
     };
     return attributes
 };
@@ -338,7 +341,7 @@ const publish = async () => {
         return;
     };
     saveLoading.value = true;
-    saveProduct(addParams).then(res => {
+    lazadaGlobalAdd(addParams).then(res => {
         addSuccessModalEl.value.open();
     }).finally(() => {
         saveLoading.value = false;

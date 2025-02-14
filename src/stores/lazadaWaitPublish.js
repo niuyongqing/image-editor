@@ -20,6 +20,7 @@ export const useLazadaWaitPublish = defineStore("lazadaWaitPublish", () => {
     product: {}, // 选择资料库产品信息
     productSkus: [], // 选中资料库中产品sku列表
     ventures: [], // 同步发布到其他站点
+    country: "",
   });
   const setShortCode = (shortCode = "") => {
     state.shortCode = shortCode;
@@ -37,7 +38,9 @@ export const useLazadaWaitPublish = defineStore("lazadaWaitPublish", () => {
   const setSkuTable = (skuTable = []) => {
     state.skuTable = skuTable;
   };
-
+  const setCountry = (country) => {
+    state.country = country;
+  };
   const setLazadaAttrs = (attributes = []) => {
     state.attributes = attributes;
     state.productClassifyAtrrs = attributes.filter((item) => {
@@ -147,6 +150,7 @@ export const useLazadaWaitPublish = defineStore("lazadaWaitPublish", () => {
     setProductSkus,
     setProductClassifyAtrrs,
     setVentures,
+    setCountry,
     setSkuAttrs,
   };
 });

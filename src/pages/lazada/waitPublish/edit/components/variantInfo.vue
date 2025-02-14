@@ -111,6 +111,7 @@
                             </a-tooltip>
                         </div>
                         <div v-else>
+                            specialPrice
                             <a-input-number :controls="false" :precision="0" v-model:value="record.specialPrice"
                                 :min="0.01" :max="record.price" placeholder="请输入促销价" style="width: 80%;" />
                         </div>

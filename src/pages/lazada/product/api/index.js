@@ -79,6 +79,11 @@ export function lazadaEdit(data) {
   return usePost("/platform-lazada/platform/lazada/product/edit", data);
 }
 
+// lazada 添加全球商品
+export function lazadaGlobalAdd(data) {
+  return usePost("/platform-lazada/platform/lazada/product/global", data);
+}
+
 // lazada 商品详情
 export function lazadaProductDetail(data) {
   return usePost("/platform-lazada/platform/lazada/product/detail", data);
@@ -119,8 +124,6 @@ export function hasValueAttributes(data) {
     data
   );
 }
-
-// 获取已填充好值的分类属性列表
 export function saveProduct(data) {
   return usePost("/platform-lazada/platform/lazada/product/saveProduct", data);
 }

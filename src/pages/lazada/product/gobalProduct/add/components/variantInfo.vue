@@ -27,6 +27,7 @@
                     </template>
                     <template v-if="column.dataIndex === 'stock'">
                         <div> <span class="required"> * </span> {{ title }} </div>
+                        <div> ( <a-button type="link" @click="batchStock()"> 批量 </a-button> ) </div>
                     </template>
 
                     <template v-if="column.dataIndex === 'price'">
@@ -37,6 +38,7 @@
                     </template>
                     <template v-if="column.dataIndex === 'specialDate'">
                         <div> {{ title }} </div>
+                        <div> ( <a-button type="link" @click="batchSpecialDate()"> 批量 </a-button> ) </div>
                     </template>
                     <template v-if="column.dataIndex === 'package_weight'">
                         <div> <span v-if="weightRequired" class="required"> * </span> {{ title }} </div>
@@ -648,18 +650,18 @@ const validateForm = () => {
                 reject(false)
                 return false;
             };
-            if (weightRequired.value && !item.packageWeight) {
-                message.warning(`第${index + 1}行重量不能为空`);
-                document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                reject(false)
-                return false;
-            };
-            if (packageRequired.value && (!item.packageLength || !item.packageWidth || !item.packageHeight)) {
-                message.warning(`第${index + 1}行包装尺寸不能为空`);
-                document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                reject(false);
-                return false;
-            }
+            // if (weightRequired.value && !item.packageWeight) {
+            //     message.warning(`第${index + 1}行重量不能为空`);
+            //     document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            //     reject(false)
+            //     return false;
+            // };
+            // if (packageRequired.value && (!item.packageLength || !item.packageWidth || !item.packageHeight)) {
+            //     message.warning(`第${index + 1}行包装尺寸不能为空`);
+            //     document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            //     reject(false);
+            //     return false;
+            // }
             resolve(true)
         }
     })

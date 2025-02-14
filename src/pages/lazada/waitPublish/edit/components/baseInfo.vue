@@ -110,7 +110,7 @@ const globalArea = [{
 
 const { state: lazadaAttrsState, setShortCode,
     setPrimaryCategory, setLazadaAttrs, setLoading,
-    setProductClassifyAtrrs, setSelectTheme, setSkuAttrs
+    setProductClassifyAtrrs, setSelectTheme, setSkuAttrs, setCountry
 } = useLazadaWaitPublish();
 const loading = ref(false);
 const shortCodes = ref([]); // 店铺列表
@@ -248,6 +248,10 @@ async function getShortCodes() {
         };
         shortCodes.value = codes
     };
+
+    console.log('state.shortCode', state.shortCode);
+    const obj = shortCodes.value.find((item) => item.shortCode === state.shortCode);
+    setCountry(obj?.country);
 };
 
 async function getCategorys() {
@@ -293,7 +297,11 @@ const changeShortCode = (value) => {
     getCategorys();
     setShortCode(value);
     state.primaryCategory = undefined;
-    setLazadaAttrs([])
+    setLazadaAttrs([]);
+    const obj = shortCodes.value.find((item) => {
+        return item.shortCode === value
+    });
+    setCountry(obj?.country);
     EventBus.emit('waitPublishShortCodeEmit', value);
 };
 

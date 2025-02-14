@@ -249,7 +249,7 @@ const validateAll = async () => {
     let variations = {};
     console.log('lazadaAttrsState.selectTheme', lazadaAttrsState.selectTheme);
     lazadaAttrsState.selectTheme.forEach((item, index) => {
-        variations['variation' + index] = {
+        variations['variation' + (index + 1)] = {
             // 在这里添加你需要的属性和值
             name: item.name,
             hasImage: index === 0 ? true : false,
@@ -260,6 +260,8 @@ const validateAll = async () => {
         };
     });
     // SKU数据组装
+    console.log('lazadaAttrsState.skuTable', lazadaAttrsState.skuTable);
+
     const skus = lazadaAttrsState.skuTable.map((item) => {
         // 共同的基础属性  
         const baseProperties = {
@@ -271,6 +273,7 @@ const validateAll = async () => {
             packageWidth: type.value ? packageWidth : item.packageWidth,
             packageContent: packageContent,
             price: item.price,
+            specialPrice: item.specialPrice,
             quantity: item.stock,
             sellerSku: item.sellerSKU,
             supplyPrice: String(item.supplyPrice),
@@ -298,6 +301,7 @@ const validateAll = async () => {
         };
     });
     const attributes = {
+        id: detailData.value.id,
         "productType": isHalfway.value ? "1" : "0", // 0 普通卖家店铺, 1 半托管店铺, 2 全托管店铺
         attributes: {
             model,
@@ -312,23 +316,32 @@ const validateAll = async () => {
         },
         shortCode,
         primaryCategory,
-        images: { image: images },// 产品图片
+        images: JSON.stringify({ image: images }),// 产品图片
         // video, // 产品视频
         variation: variations,
-        skus: {
-            sku: skus
-        },
+        skus: skus,
     };
     if (!promotion_whitebkg_image.length) {
         delete attributes.attributes.promotion_whitebkg_image;
     };
+    if (!type.value) {
+        attributes.country = lazadaAttrsState.country.toUpperCase();
+        attributes.ventures = {
+            venture: [lazadaAttrsState.country.toUpperCase()]
+        }
+    } else {
+        const ventures = baseInfoState.ventures || []; // 店铺
+        attributes.country = ventures.join(',');
+        attributes.ventures = {
+            venture: ventures
+        }
+    }
     return attributes
 };
 //  使用资料库产品
 const handleSelect = (productData) => {
     product.value = productData;
     console.log('productData', productData);
-
     setProduct(productData);
 };
 
