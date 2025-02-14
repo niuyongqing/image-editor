@@ -68,9 +68,10 @@ import { DownOutlined, SettingOutlined } from "@ant-design/icons-vue";
 import WarehouseSetting from './warehouseSetting.vue'; // 仓库管理
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 import RemarkModal from './batchModal/remarkModal.vue';
-import PriceModal from './batchModal/priceModal.vue';
-import SpecialPriceModal from './batchModal/specialPriceModal.vue';
-import StockModal from './batchModal/stockModal.vue';
+import PriceModal from './priceModal.vue';
+import SpecialPriceModal from './specialPriceModal.vue';
+import StockModal from './stockModal.vue';
+
 const { selectedRows } = defineProps({
     //  表格选中的数据
     selectedRows: {
@@ -121,13 +122,25 @@ const remarkSuccess = () => {
 }
 
 const handleBatchPrice = () => {
-    priceModalEl.value.open();
+    if (!selectedRows.length) {
+        message.error('请选择产品');
+        return
+    };
+    priceModalEl.value.open(selectedRows, true);
 };
 const handleStock = () => {
-    stockModalEl.value.open();
+    if (!selectedRows.length) {
+        message.error('请选择产品');
+        return
+    };
+    stockModalEl.value.open(selectedRows, true);
 };
 const handleSpecialPrice = () => {
-    specialPriceModalEl.value.open();
+    if (!selectedRows.length) {
+        message.error('请选择产品');
+        return
+    };
+    specialPriceModalEl.value.open(selectedRows, true);
 };
 
 // 批量发布

@@ -95,7 +95,7 @@ defineExpose({
 
 </script>
 
-<style scoped>
+<style scoped lang="less">
 .radio-group {
     display: flex;
     flex-direction: column;
