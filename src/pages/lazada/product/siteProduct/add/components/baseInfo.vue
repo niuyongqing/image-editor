@@ -137,15 +137,19 @@ async function validateCodeRule() {
 // 表单校验
 async function validateForm() {
     return new Promise((resolve, reject) => {
-        formEl.value.validate().then(() => {
-            resolve(true);
-        }).catch(() => {
-            document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            reject(false);
-        })
+        formEl.value.validate()
+            .then(() => {
+                resolve(true);
+                emits('valid', true)
+            }).catch(() => {
+                document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                reject(false);
+                emits('valid', false)
+            })
     })
 };
 
+const emits = defineEmits(['valid']);
 defineExpose({
     state,
     validateForm

@@ -114,7 +114,7 @@
                                 ?
                                 '- 收起'
                                 : '+ 展开'
-                                }}</a-button>
+                            }}</a-button>
                         </div>
 
                     </a-card>
@@ -246,15 +246,16 @@ const validateForm = async () => {
         formEl.value.validate().then(() => {
             attrsFormEl.value.validate().then(() => {
                 resolve(true);
+                emits('valid', true)
             }).catch((err) => {
-                console.log('err', err);
-
+                emits('valid', false)
                 document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 reject(false);
             })
         }).catch((err) => {
             document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             reject(false);
+            emits('valid', false)
         })
     });
 };
@@ -262,13 +263,10 @@ const validateForm = async () => {
 //  产品资料库回显
 watch(() => lazadaAttrsState.product, (newValue) => {
     if (newValue && JSON.stringify(newValue) !== '{}') {
-        console.log('newValue', newValue);
         state.title = newValue.tradeName; // 产品标题
-
-        //lazada 资料库数据回显 to do ...
     }
 });
-
+const emits = defineEmits(['valid']);
 defineExpose({
     state,
     validateForm

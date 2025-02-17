@@ -83,6 +83,7 @@ const validateForm = async () => {
             message.warning('变种图片不能为空');
             document.querySelector('#skuTable')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             reject(false);
+            emits('valid', false);
             return
         };
         for (let index = 0; index < lazadaAttrsState.skuTable.length; index++) {
@@ -91,13 +92,15 @@ const validateForm = async () => {
                 message.warning(`第${index + 1}行图片不能为空`);
                 document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 reject(false)
+                emits('valid', false);
                 return false;
             };
         };
-        resolve(true)
+        resolve(true);
+        emits('valid', true)
     })
 };
-
+const emits = defineEmits(['valid']);
 defineExpose({
     validateForm
 })

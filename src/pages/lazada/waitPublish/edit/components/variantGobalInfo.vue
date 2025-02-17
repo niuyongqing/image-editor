@@ -623,6 +623,7 @@ const validateForm = () => {
             message.warning('变种参数不能为空');
             document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             reject(false);
+            emits('valid', false);
             return
         };
         for (let index = 0; index < tableData.value.length; index++) {
@@ -630,38 +631,44 @@ const validateForm = () => {
             if (!item.sellerSKU) {
                 message.warning(`第${index + 1}行SKU不能为空`);
                 document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                reject(false)
+                reject(false);
+                emits('valid', false);
                 return false;
             };
             if (!item.stock) {
                 message.warning(`第${index + 1}行库存不能为空`);
                 document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                reject(false)
+                reject(false);
+                emits('valid', false);
                 return false;
             };
             if (!item.price) {
                 message.warning(`第${index + 1}行价格不能为空`);
                 document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                reject(false)
+                reject(false);
+                emits('valid', false);
                 return false;
             };
             if (weightRequired.value && !item.packageWeight) {
                 message.warning(`第${index + 1}行重量不能为空`);
                 document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                reject(false)
+                reject(false);
+                emits('valid', false);
                 return false;
             };
             if (packageRequired.value && (!item.packageLength || !item.packageWidth || !item.packageHeight)) {
                 message.warning(`第${index + 1}行包装尺寸不能为空`);
                 document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 reject(false);
+                emits('valid', false);
                 return false;
             }
-            resolve(true)
+            resolve(true);
+            emits('valid', true);
         }
     })
 };
-
+const emits = defineEmits(['valid']);
 defineExpose({
     tableData,
     checkState,

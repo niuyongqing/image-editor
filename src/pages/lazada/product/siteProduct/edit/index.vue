@@ -18,15 +18,22 @@
                         </a-button>
                     </div>
                 </div>
-                <BaseInfo id="baseInfo" ref="baseInfoRef" :detailData="detailData"></BaseInfo>
-                <ProductInfo id="productInfo" ref="productInfoRef" :detailData="detailData"></ProductInfo>
-                <Package id="package" ref="packageRef" :detailData="detailData"></Package>
-                <ImageInfo id="imageInfo" ref="imageInfoRef" :waterList="waterList" :detailData="detailData">
+                <BaseInfo id="baseInfo" ref="baseInfoRef" :detailData="detailData" @valid="baseInfoValid = $event">
+                </BaseInfo>
+                <ProductInfo id="productInfo" ref="productInfoRef" :detailData="detailData"
+                    @valid="productInfoValid = $event"></ProductInfo>
+                <Package id="package" ref="packageRef" :detailData="detailData" @valid="packageValid = $event">
+                </Package>
+                <ImageInfo id="imageInfo" ref="imageInfoRef" :waterList="waterList" :detailData="detailData"
+                    @valid="imageInfoValid = $event">
                 </ImageInfo>
-                <Variant id="variant" ref="variantRef" :detailData="detailData"></Variant>
-                <VariantInfo id="variantInfo" ref="variantInfoRef" :detailData="detailData" :isHalfway="isHalfway">
+                <Variant Variant id=" variant" ref="variantRef" :detailData="detailData">
+                </Variant>
+                <VariantInfo id="variantInfo" ref="variantInfoRef" :detailData="detailData" :isHalfway="isHalfway"
+                    @valid="variationValid = $event">
                 </VariantInfo>
-                <VariantImage id="variantImage" ref="variantImageRef" :waterList="waterList" :detailData="detailData">
+                <VariantImage id="variantImage" ref="variantImageRef" :waterList="waterList" :detailData="detailData"
+                    @valid="variantImageValid = $event">
                 </VariantImage>
                 <Description id="description" ref="descriptionRef" :detailData="detailData"></Description>
                 <div w-full flex justify-end mt-10px>

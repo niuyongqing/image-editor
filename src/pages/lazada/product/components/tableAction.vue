@@ -188,6 +188,11 @@ const handleDeactivated = () => {
     })
 };
 
+watch(() => shortCode, (newVal) => {
+    clearInterval(timer.value);
+    percent.value = 0;
+})
+
 const syncShortCodeProduct = () => {
     if (!shortCode) {
         message.error('请选择店铺');
@@ -204,6 +209,10 @@ const syncShortCodeProduct = () => {
     }).then((res) => {
         percent.value = 100;
         progessOpen.value = false;
+        message.success('同步成功');
+        clearInterval(timer.value);
+        percent.value = 0;
+        emits('success');
     }).catch((err) => {
         percent.value = 0;
         progessOpen.value = false;

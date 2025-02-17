@@ -320,9 +320,11 @@ async function validateForm() {
     return new Promise((resolve, reject) => {
         formEl.value.validate().then(() => {
             resolve(true);
+            emits('valid', true)
         }).catch(() => {
             document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             reject(false);
+            emits('valid', false)
         })
     })
 }

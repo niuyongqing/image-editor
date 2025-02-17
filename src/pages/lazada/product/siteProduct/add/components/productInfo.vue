@@ -123,7 +123,7 @@
                                 ?
                                 '- 收起'
                                 : '+ 展开'
-                                }}</a-button>
+                            }}</a-button>
                         </div>
 
                     </a-card>
@@ -221,13 +221,16 @@ const validateForm = async () => {
         formEl.value.validate().then(() => {
             attrsFormEl.value.validate().then(() => {
                 resolve(true);
+                emits('valid', true)
             }).catch(() => {
                 document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 reject(false);
+                emits('valid', false)
             })
         }).catch(() => {
             document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             reject(false);
+            emits('valid', false)
         })
     });
 };
@@ -270,6 +273,7 @@ watch(() => lazadaAttrsState.product, (newValue) => {
         });
     }
 });
+const emits = defineEmits(['valid']);
 
 defineExpose({
     state,

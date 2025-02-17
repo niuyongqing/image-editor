@@ -35,13 +35,19 @@
                         </a-button>
                     </div>
                 </div>
-                <BaseInfo id="baseInfo" ref="baseInfoRef" :isHalfway="isHalfway"></BaseInfo>
-                <ProductInfo id="productInfo" ref="productInfoRef"></ProductInfo>
-                <Package id="package" ref="packageRef"></Package>
-                <ImageInfo id="imageInfo" ref="imageInfoRef" :waterList="waterList"></ImageInfo>
+                <BaseInfo id="baseInfo" ref="baseInfoRef" :isHalfway="isHalfway" @valid="baseInfoValid = $event">
+                </BaseInfo>
+                <ProductInfo id="productInfo" ref="productInfoRef" @valid="productInfoValid = $event"></ProductInfo>
+                <Package id="package" ref="packageRef" @valid="packageValid = $event"></Package>
+                <ImageInfo id="imageInfo" ref="imageInfoRef" :waterList="waterList" @valid="imageInfoValid = $event">
+                </ImageInfo>
                 <Variant id="variant" ref="variantRef"></Variant>
-                <VariantInfo id="variantInfo" ref="variantInfoRef" :isHalfway="isHalfway"></VariantInfo>
-                <VariantImage id="variantImage" ref="variantImageRef" :waterList="waterList"></VariantImage>
+                <VariantInfo id="variantInfo" ref="variantInfoRef" :isHalfway="isHalfway"
+                    @valid="variationValid = $event">
+                </VariantInfo>
+                <VariantImage id="variantImage" ref="variantImageRef" :waterList="waterList"
+                    @valid="variantImageValid = $event">
+                </VariantImage>
                 <Description id="description" ref="descriptionRef"></Description>
 
                 <div w-full flex justify-end mt-10px>

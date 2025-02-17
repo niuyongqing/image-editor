@@ -348,9 +348,11 @@ const validateForm = async () => {
     return new Promise((resolve, reject) => {
         formEl.value.validate().then(() => {
             resolve(true);
+            emits('valid', true)
         }).catch(() => {
             document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             reject(false);
+            emits('valid', false)
         })
     })
 };
@@ -377,12 +379,11 @@ watch(() => lazadaAttrsState.product, (newValue) => {
 
 onMounted(() => {
     EventBus.on('shortCodeEmit', (code) => {
-        console.log('接受到的shortCode22 -->>', code);
         shortCode.value = code;
         apiParams.value = { shortCode: code }
     });
 });
-
+const emits = defineEmits(['valid']);
 defineExpose({
     form,
     validateForm

@@ -36,19 +36,22 @@
                         </a-button>
                     </div>
                 </div>
-                <BaseInfo id="baseInfo" ref="baseInfoRef" :detailData="detailData" :type="type"></BaseInfo>
+                <BaseInfo id="baseInfo" ref="baseInfoRef" :detailData="detailData" :type="type"
+                    @valid="baseInfoValid = $event">
+                </BaseInfo>
                 <ProductInfo id="productInfo" ref="productInfoRef" :detailData="detailData"></ProductInfo>
-                <Package id="package" ref="packageRef" :detailData="detailData"></Package>
+                <Package id="package" ref="packageRef" :detailData="detailData" @valid="productInfoValid = $event">
+                </Package>
                 <ImageInfo id="imageInfo" ref="imageInfoRef" :waterList="waterList" :detailData="detailData"
-                    :isHalfway="isHalfway">
+                    :isHalfway="isHalfway" @valid="imageInfoValid = $event">
                 </ImageInfo>
                 <Variant id="variant" ref="variantRef" :detailData="detailData"></Variant>
                 <VariantInfo id="variantInfo" ref="variantInfoRef" :detailData="detailData" :isHalfway="isHalfway"
-                    :type="type">
+                    :type="type" @valid="variationValid = $event">
                 </VariantInfo>
 
                 <VariantImage id="variantImage" ref="variantImageRef" :waterList="waterList" :detailData="detailData"
-                    :isHalfway="isHalfway">
+                    :isHalfway="isHalfway" @valid="variantImageValid = $event">
                 </VariantImage>
                 <Description id="description" ref="descriptionRef" :detailData="detailData"></Description>
 
@@ -177,32 +180,26 @@ const selectNowProduct = () => {
 //  验证校验
 const validateAll = async () => {
     const baseInfoForm = await baseInfoEl.value.validateForm();
-    baseInfoValid.value = baseInfoForm;
     if (!baseInfoForm) {
         return;
     }
     const productInfoForm = await productInfoEl.value.validateForm();
-    productInfoValid.value = productInfoForm;
     if (!productInfoForm) {
         return;
     }
     const packageForm = await packageEl.value.validateForm();
-    packageValid.value = packageValid;
     if (!packageForm) {
         return;
     }
     const imageInfoForm = await imageInfoEl.value.validateForm();
-    packageValid.value = imageInfoForm;
     if (!imageInfoForm) {
         return;
     }
     const variationForm = await variantInfoEl.value.validateForm();
-    variationValid.value = variationForm;
     if (!variationForm) {
         return;
     }
     const variantImage = await variantImageEl.value.validateForm();
-    variantImageValid.value = variantImage;
     if (!variantImage) {
         return;
     };
@@ -279,7 +276,9 @@ const validateAll = async () => {
             supplyPrice: String(item.supplyPrice),
             images: {
                 image: item.fileList.map((img) => img.url)
-            }
+            },
+            retail_price: item.price,
+            sales_price: item.specialPrice,
         };
         // 动态生成 saleProp  
         const saleProp = lazadaAttrsState.selectTheme.reduce((acc, theme) => {

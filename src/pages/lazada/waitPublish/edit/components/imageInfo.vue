@@ -360,17 +360,17 @@ const validateForm = async () => {
     return new Promise((resolve, reject) => {
         formEl.value.validate().then(() => {
             resolve(true);
+            emits('valid', true)
         }).catch(() => {
             document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             reject(false);
+            emits('valid', false)
         })
     })
 };
 
 //  产品资料库回显
 watch(() => lazadaAttrsState.product, (newValue) => {
-    console.log('----------');
-
     if (newValue && JSON.stringify(newValue) !== '{}') {
         const artMainImage = JSON.parse(newValue.artMainImage) || [];       // 主图
         const artAssistantImage = JSON.parse(newValue.artAssistantImage) || [];        // 副图
@@ -400,6 +400,7 @@ onMounted(() => {
     });
 });
 
+const emits = defineEmits(['valid']);
 defineExpose({
     form,
     validateForm

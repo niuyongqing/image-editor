@@ -7,7 +7,7 @@
                         <div>
                             <a-breadcrumb separator=">">
                                 <a-breadcrumb-item>Lazada</a-breadcrumb-item>
-                                <a-breadcrumb-item>创建产品</a-breadcrumb-item>
+                                <a-breadcrumb-item>创建产品 {{ baseInfoValid }}</a-breadcrumb-item>
                             </a-breadcrumb>
                         </div>
                     </div>
@@ -35,13 +35,19 @@
                         </a-button>
                     </div>
                 </div>
-                <BaseInfo id="baseInfo" ref="baseInfoRef" :isHalfway="isHalfway"></BaseInfo>
-                <ProductInfo id="productInfo" ref="productInfoRef"></ProductInfo>
-                <Package id="package" ref="packageRef"></Package>
-                <ImageInfo id="imageInfo" ref="imageInfoRef" :waterList="waterList"></ImageInfo>
+                <BaseInfo id="baseInfo" ref="baseInfoRef" :isHalfway="isHalfway" @valid="baseInfoValid = $event">
+                </BaseInfo>
+                <ProductInfo id="productInfo" ref="productInfoRef" @valid="productInfoValid = $event"></ProductInfo>
+                <Package id="package" ref="packageRef" @valid="packageValid = $event"></Package>
+                <ImageInfo id="imageInfo" ref="imageInfoRef" :waterList="waterList" @valid="imageInfoValid = $event">
+                </ImageInfo>
                 <Variant id="variant" ref="variantRef"></Variant>
-                <VariantInfo id="variantInfo" ref="variantInfoRef" :isHalfway="isHalfway"></VariantInfo>
-                <VariantImage id="variantImage" ref="variantImageRef" :waterList="waterList"></VariantImage>
+                <VariantInfo id="variantInfo" ref="variantInfoRef" :isHalfway="isHalfway"
+                    @valid="variationValid = $event">
+                </VariantInfo>
+                <VariantImage id="variantImage" ref="variantImageRef" :waterList="waterList"
+                    @valid="variantImageValid = $event">
+                </VariantImage>
                 <Description id="description" ref="descriptionRef"></Description>
 
                 <div w-full flex justify-end mt-10px>
@@ -165,35 +171,34 @@ const selectNowProduct = () => {
 //  验证校验
 const validateAll = async () => {
     const baseInfoForm = await baseInfoEl.value.validateForm();
-    baseInfoValid.value = baseInfoForm;
     if (!baseInfoForm) {
         return;
     }
+
     const productInfoForm = await productInfoEl.value.validateForm();
-    productInfoValid.value = productInfoForm;
     if (!productInfoForm) {
         return;
     }
+
     const packageForm = await packageEl.value.validateForm();
-    packageValid.value = packageValid;
     if (!packageForm) {
         return;
     }
+
     const imageInfoForm = await imageInfoEl.value.validateForm();
-    packageValid.value = imageInfoForm;
     if (!imageInfoForm) {
         return;
     }
     const variationForm = await variantInfoEl.value.validateForm();
-    variationValid.value = variationForm;
     if (!variationForm) {
         return;
     }
+
     const variantImage = await variantImageEl.value.validateForm();
-    variantImageValid.value = variantImage;
     if (!variantImage) {
         return;
     };
+
     const form = await descriptionEl.value.form;
 
     const baseInfoState = baseInfoEl.value.state;
@@ -249,7 +254,7 @@ const validateAll = async () => {
             packageWeight: Number(item.packageWeight),
             packageWidth: item.packageWidth,
             packageContent: packageContent,
-            price: item.price,
+            price: isHalfway.value ? item.supplyPrice : item.price,
             quantity: item.stock,
             sellerSku: item.sellerSKU,
             supplyPrice: item.supplyPrice,
@@ -317,13 +322,11 @@ const save = async () => {
     if (!addParams) {
         return;
     };
-    spinning.value = true;
     saveLoading.value = true;
     saveProduct(addParams).then(res => {
         addSuccessModalEl.value.open();
     }).finally(() => {
         saveLoading.value = false;
-        spinning.value = false;
     })
 };
 
@@ -334,13 +337,11 @@ const publish = async () => {
     if (!addParams) {
         return;
     };
-    saveLoading.value = true;
     publishLoading.value = true;
     lazadaAdd(addParams).then(res => {
         addSuccessModalEl.value.open();
     }).finally(() => {
         publishLoading.value = false;
-        spinning.value = false;
     })
 };
 
