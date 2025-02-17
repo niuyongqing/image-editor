@@ -3,13 +3,13 @@
     <div class="p-2" v-if="visible">
         <a-form :label-col="{ style: { width: '140px' } }" labelAlign="right">
             <a-form-item label="站点:">
-                <a-select v-model:value="state.site" placeholder="请选择站点" style="width: 352px" :options="siteOptions"
+                <a-select v-model:value="state.cuntry" placeholder="请选择站点" style="width: 352px" :options="siteOptions"
                     @change="changeSite" allowClear>
                 </a-select>
             </a-form-item>
             <a-form-item label="产品分类:">
                 <a-cascader :showSearch="showSearchConfig" class="flex w-full justify-start" style="width: 352px"
-                    v-model:value="state.primaryCategory" :options="primaryCategoryOptions" placeholder="请先选择站点"
+                    v-model:value="state.primaryCategoryId" :options="primaryCategoryOptions" placeholder="请先选择站点"
                     allowClear :fieldNames="{ label: 'name2', value: 'categoryId', children: 'children' }"
                     @change="changePrimaryCategory">
                     <template #notFoundContent>
@@ -120,7 +120,7 @@ const maxValue = ref(undefined);
 const dateType = ref('updateTime');
 const date = ref([]);
 const { state, reset } = useResetReactive({
-    site: undefined,
+    cuntry: undefined,
     classify: undefined,
     minSpecialPrice: undefined,
     maxSpecialPrice: undefined,
@@ -188,8 +188,8 @@ const handleReset = () => {
 
 const getParams = () => {
     const params = {
-        // site: state.site, // 站点
-        // classify:state.classify  // 产品分类
+        country: state.country, // 站点
+        primaryCategoryId: state.primaryCategoryId,  // 产品分类
         minPrice: state.minPrice,
         maxPrice: state.maxPrice,
         minSpecialPrice: state.minSpecialPrice,
@@ -273,15 +273,13 @@ const changeDateType = () => {
 };
 const changeDate = (value) => {
     if (dateType.value === 'updateTime') {
-        date.value = []
-        state.updateAfter = minValue.value;
-        state.updateBefore = maxValue.value;
+        state.updateAfter = date.value[0].format('YYYY-MM-DD HH:mm:ss');
+        state.updateBefore = date.value[1].format('YYYY-MM-DD HH:mm:ss');;
         state.createAfter = undefined;
         state.createBefore = undefined;
-
     } else {
-        state.createAfter = date[0];
-        state.createBefore = date[1];;
+        state.createAfter = date.value[0].format('YYYY-MM-DD HH:mm:ss');;
+        state.createBefore = date.value[1].format('YYYY-MM-DD HH:mm:ss');;
         state.updateAfter = undefined;
         state.updateBefore = undefined;
     };

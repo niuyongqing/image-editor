@@ -167,7 +167,6 @@ const showAdvanceSearch = () => {
 };
 const changeShortCode = (value) => {
     formState.shortCode = value;
-    console.log('value ->>>', value);
     submit();
 };
 const changeSearchType = (item) => {
@@ -215,6 +214,10 @@ function getParams() {
         "createBefore": searchParams.createAfter,  //创建结束时间 
         "updateAfter": searchParams.updateAfter,//修改开始时间
         "updateBefore": searchParams.updateBefore, //修改结束时间
+        hasRemark: searchParams.hasRemark, //是否备注
+        "country": searchParams.country,//站点
+        "primaryCategoryId": searchParams.primaryCategoryId && searchParams.primaryCategoryId.length > 0 ? searchParams.primaryCategoryId[searchParams.primaryCategoryId.length - 1] : '',//分类id
+
     };
     return params;
 };

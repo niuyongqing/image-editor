@@ -3,13 +3,13 @@
     <div class="p-2" v-if="visible">
         <a-form :label-col="{ style: { width: '140px' } }" labelAlign="right">
             <a-form-item label="站点:">
-                <a-select v-model:value="state.site" placeholder="请选择站点" style="width: 352px" :options="siteOptions"
+                <a-select v-model:value="state.country" placeholder="请选择站点" style="width: 352px" :options="siteOptions"
                     @change="changeSite" allowClear>
                 </a-select>
             </a-form-item>
             <a-form-item label="产品分类:">
                 <a-cascader :showSearch="showSearchConfig" class="flex w-full justify-start" style="width: 352px"
-                    v-model:value="state.primaryCategory" :options="primaryCategoryOptions" placeholder="请先选择站点"
+                    v-model:value="state.primaryCategoryId" :options="primaryCategoryOptions" placeholder="请先选择站点"
                     allowClear :fieldNames="{ label: 'name2', value: 'categoryId', children: 'children' }"
                     @change="changePrimaryCategory">
                     <template #notFoundContent>
@@ -44,7 +44,7 @@
                 <template #label>
                     <a-select v-model:value="type" style="width: 170px" @change="handleSelect">
                         <a-select-option :value="1">库存</a-select-option>
-                        <a-select-option :value="2">变种最小库存</a-select-option>
+                        <!-- <a-select-option :value="2">变种最小库存</a-select-option> -->
                     </a-select>
                 </template>
                 <a-input-number v-model:value="minValue" placeholder="" style="width: 170px"
@@ -63,17 +63,17 @@
             </a-form-item> -->
 
             <a-form-item label="备注:">
-                <a-select v-model:value="state.stockType" allowClear @change="change">
-                    <a-select-option value="1">有备注</a-select-option>
-                    <a-select-option value="2">无备注</a-select-option>
+                <a-select v-model:value="state.hasRemark" allowClear @change="change">
+                    <a-select-option :value="true">有备注</a-select-option>
+                    <a-select-option :value="false">无备注</a-select-option>
                 </a-select>
             </a-form-item>
 
-            <a-form-item label="六合一发布:">
-                <a-select v-model:value="state.stockType" allowClear @change="change">
+            <!-- <a-form-item label="六合一发布:">
+                <a-select v-model:value="state.hasRemark" allowClear @change="change">
                     <a-select-option value="1">六合一发布异常（无产品id）</a-select-option>
                 </a-select>
-            </a-form-item>
+            </a-form-item> -->
 
             <a-form-item>
                 <template #label>
@@ -120,8 +120,8 @@ const maxValue = ref(undefined);
 const dateType = ref('updateTime');
 const date = ref([]);
 const { state, reset } = useResetReactive({
-    site: undefined,
-    classify: undefined,
+    country: undefined,
+    primaryCategoryId: undefined,
     minSpecialPrice: undefined,
     maxSpecialPrice: undefined,
     minInventoryQuantity: undefined,
@@ -132,6 +132,7 @@ const { state, reset } = useResetReactive({
     createBefore: undefined,
     updateAfter: undefined,
     updateBefore: undefined,
+    hasRemark: undefined,
 });
 
 const emits = defineEmits(['submit']);
@@ -188,8 +189,8 @@ const handleReset = () => {
 
 const getParams = () => {
     const params = {
-        // site: state.site, // 站点
-        // classify:state.classify  // 产品分类
+        country: state.country, // 站点
+        primaryCategoryId: state.primaryCategoryId,  // 产品分类
         minPrice: state.minPrice,
         maxPrice: state.maxPrice,
         minSpecialPrice: state.minSpecialPrice,
@@ -204,6 +205,7 @@ const getParams = () => {
         updateBefore: state.updateBefore,
         createAfter: state.createAfter,
         createBefore: state.createBefore,
+        hasRemark: state.hasRemark,
     };
     return params;
 };
@@ -273,21 +275,20 @@ const changeDateType = () => {
 };
 const changeDate = (value) => {
     if (dateType.value === 'updateTime') {
-        date.value = []
-        state.updateAfter = minValue.value;
-        state.updateBefore = maxValue.value;
+        state.updateAfter = date.value[0].format('YYYY-MM-DD HH:mm:ss');
+        state.updateBefore = date.value[1].format('YYYY-MM-DD HH:mm:ss');;
         state.createAfter = undefined;
         state.createBefore = undefined;
-
     } else {
-        state.createAfter = date[0];
-        state.createBefore = date[1];;
+        state.createAfter = date.value[0].format('YYYY-MM-DD HH:mm:ss');;
+        state.createBefore = date.value[1].format('YYYY-MM-DD HH:mm:ss');;
         state.updateAfter = undefined;
         state.updateBefore = undefined;
     };
     change()
 };
 const search = () => {
-    emits('submit');
+    const params = getParams()
+    emits('submit', params);
 };
 </script>
