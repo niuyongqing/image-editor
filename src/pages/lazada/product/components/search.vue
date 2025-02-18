@@ -157,9 +157,7 @@ const formState = reactive({
     itemId: ''
 });
 
-const searchParams = reactive({
-
-})
+const searchParams = reactive({})
 // 显示高级搜索
 const showAdvanceSearch = () => {
     visible.value = !visible.value;

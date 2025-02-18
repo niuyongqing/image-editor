@@ -140,32 +140,26 @@ const selectNowProduct = () => {
 //  验证校验
 const validateAll = async () => {
     const baseInfoForm = await baseInfoEl.value.validateForm();
-    baseInfoValid.value = baseInfoForm;
     if (!baseInfoForm) {
         return;
     }
     const productInfoForm = await productInfoEl.value.validateForm();
-    productInfoValid.value = productInfoForm;
     if (!productInfoForm) {
         return;
     }
     const packageForm = await packageEl.value.validateForm();
-    packageValid.value = packageValid;
     if (!packageForm) {
         return;
     }
     const imageInfoForm = await imageInfoEl.value.validateForm();
-    packageValid.value = imageInfoForm;
     if (!imageInfoForm) {
         return;
     }
     const variationForm = await variantInfoEl.value.validateForm();
-    variationValid.value = variationForm;
     if (!variationForm) {
         return;
     }
     const variantImage = await variantImageEl.value.validateForm();
-    variantImageValid.value = variantImage;
     if (!variantImage) {
         return;
     };
@@ -282,8 +276,6 @@ const validateAll = async () => {
     };
     return attributes
 };
-
-
 //  使用资料库产品
 const handleSelect = (productData) => {
     product.value = productData;
@@ -304,8 +296,6 @@ const save = async () => {
         saveLoading.value = false;
     })
 };
-
-
 // 获取水印
 const getWatermark = () => {
     watermarkList().then((res) => {

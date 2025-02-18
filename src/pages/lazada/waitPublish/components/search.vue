@@ -34,7 +34,9 @@
                             <a-button type="link" @click="showAdvanceSearch">高级搜索</a-button>
                         </div>
                         <div class="flex w-600px  mt-10px" style="background-color: rgb(245, 245, 245);">
-                            <AdvancedSearch v-model="visible"></AdvancedSearch>
+                            <!-- <AdvancedSearch v-model="visible"></AdvancedSearch> -->
+                            <AdvancedSearch :shortCodes="shortCodes" v-model="visible" @change="advancedSearchChange"
+                                @submit="advancedSearchSubmit"></AdvancedSearch>
                         </div>
                     </div>
                 </a-form-item>
@@ -126,9 +128,7 @@ const formState = reactive({
     sku: '',
     id: ''
 });
-const searchParams = reactive({
-
-})
+const searchParams = reactive({})
 
 // 显示高级搜索
 const showAdvanceSearch = () => {
@@ -158,10 +158,20 @@ const changeSortType = (item) => {
     formState.sort = item.sort;
 };
 
+// 高级搜索
+const advancedSearchChange = (evt) => {
+    Object.assign(searchParams, evt);
+};
+// 高级搜索
+const advancedSearchSubmit = (evt) => {
+    Object.assign(searchParams, evt);
+    const params = getParams();
+    emits('search', params);
+}
+
 // 获取所有参数
 function getParams() {
     console.log('searchParams', searchParams);
-
     const params = {
         "country": searchParams.country,//站点
         "primaryCategoryId": searchParams.primaryCategoryId && searchParams.primaryCategoryId.length > 0 ? searchParams.primaryCategoryId[searchParams.primaryCategoryId.length - 1] : '',//分类id
@@ -175,17 +185,16 @@ function getParams() {
         order: formState.sort, // 排序方式
         minPrice: searchParams.minPrice, //  //起始价格
         maxPrice: searchParams.maxPrice, //结束价格
-        minSpecialPrice: searchParams.minSpecialPrice, //  //起始特价
-        maxSpecialPrice: searchParams.maxSpecialPrice, //  //结束促销价格
+        minSalesPprice: searchParams.minSalesPprice, //  //起始特价
+        maxSalesPprice: searchParams.maxSalesPprice, //  //结束促销价格
         "minInventoryQuantity": searchParams.minInventoryQuantity, //起始库存数量
         "maxInventoryQuantity": searchParams.maxInventoryQuantity, //结束库存数量
-        "minVariantQuantity": searchParams.minVariantQuantity, // 起始变种库存数量
-        "maxVariantQuantity": searchParams.maxVariantQuantity, //结束变种库存数量
+        // "minVariantQuantity": searchParams.minVariantQuantity, // 起始变种库存数量
+        // "maxVariantQuantity": searchParams.maxVariantQuantity, //结束变种库存数量
         "createAfter": searchParams.createAfter, //创建开始时间 
-        "createBefore": searchParams.createAfter,  //创建结束时间 
+        "createBefore": searchParams.createBefore,  //创建结束时间 
         "updateAfter": searchParams.updateAfter,//修改开始时间
         "updateBefore": searchParams.updateBefore, //修改结束时间
-        hasRemark: searchParams.hasRemark, //是否备注
     };
     return params;
 };
@@ -200,5 +209,3 @@ const handleReset = () => {
 };
 const emits = defineEmits(['search']);
 </script>
-
-<style lang="less" scoped></style>

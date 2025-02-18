@@ -38,7 +38,8 @@
                             <a-tag color="success">半</a-tag>
                         </a-tooltip>
                     </div>
-                    <div class="isGobal" v-if="record.bizSupplement && record.bizSupplement.globalPlusProductStatus">
+                    <div class="isGobal"
+                        v-if="record.bizSupplement && record.bizSupplement.globalPlusProductStatus === true">
                         <a-tooltip placement="top">
                             <template #title>
                                 <span>六合一商品</span>

@@ -10,8 +10,7 @@
             <a-form-item label="产品分类:">
                 <a-cascader :showSearch="showSearchConfig" class="flex w-full justify-start" style="width: 352px"
                     v-model:value="state.primaryCategoryId" :options="primaryCategoryOptions" placeholder="请先选择站点"
-                    allowClear :fieldNames="{ label: 'name2', value: 'categoryId', children: 'children' }"
-                    @change="changePrimaryCategory">
+                    allowClear :fieldNames="{ label: 'name2', value: 'categoryId', children: 'children' }">
                     <template #notFoundContent>
                         <div v-if="primaryCategoryOptions.length === 0">
                             暂无数据
@@ -43,8 +42,7 @@
             <a-form-item>
                 <template #label>
                     <a-select v-model:value="type" style="width: 170px" @change="handleSelect">
-                        <a-select-option :value="1">库存</a-select-option>
-                        <!-- <a-select-option :value="2">变种最小库存</a-select-option> -->
+                        <a-select-optio :value="1">库存</a-select-optio>
                     </a-select>
                 </template>
                 <a-input-number v-model:value="minValue" placeholder="" style="width: 170px"
@@ -135,7 +133,7 @@ const { state, reset } = useResetReactive({
     hasRemark: undefined,
 });
 
-const emits = defineEmits(['submit']);
+const emits = defineEmits(['submit', 'change']);
 
 const siteOptions = [
     {
@@ -211,13 +209,17 @@ const getParams = () => {
 };
 
 const changeSite = (value) => {
+    state.primaryCategoryId = undefined;
+    primaryCategoryOptions.value = [];
     const findItem = shortCodes.find((item) => {
         return item.country === value
     })
-    if (!findItem) return;
+    if (!findItem) {
+        state.primaryCategoryId = undefined;
+        primaryCategoryOptions.value = [];
+    };
     lazadaCategoryTree({ shortCode: findItem.shortCode }).then((categoryTreeRes) => {
         if (categoryTreeRes.code === 200) {
-            // primaryCategoryLoading.value = false;
             const data = categoryTreeRes.data || [];
             function treeToArr(arr) {
                 arr.forEach(item => {
@@ -275,13 +277,13 @@ const changeDateType = () => {
 };
 const changeDate = (value) => {
     if (dateType.value === 'updateTime') {
-        state.updateAfter = date.value[0].format('YYYY-MM-DD HH:mm:ss');
-        state.updateBefore = date.value[1].format('YYYY-MM-DD HH:mm:ss');;
+        state.updateAfter = date.value[0].format('YYYY-MM-DD 00:00:00');
+        state.updateBefore = date.value[1].format('YYYY-MM-DD 23:59:59');;
         state.createAfter = undefined;
         state.createBefore = undefined;
     } else {
-        state.createAfter = date.value[0].format('YYYY-MM-DD HH:mm:ss');;
-        state.createBefore = date.value[1].format('YYYY-MM-DD HH:mm:ss');;
+        state.createAfter = date.value[0].format('YYYY-MM-DD 00:00:00');;
+        state.createBefore = date.value[1].format('YYYY-MM-DD 23:59:59');;
         state.updateAfter = undefined;
         state.updateBefore = undefined;
     };

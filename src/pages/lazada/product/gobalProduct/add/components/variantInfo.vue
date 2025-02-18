@@ -14,6 +14,7 @@
                     </template>
                 </a-checkbox-group>
             </div>
+            {{ tableData }} --- {{ theme.themeOne }} -- {{ lazadaAttrsState.selectTheme[0].name }}
             <a-table :columns="columns" :data-source="tableData" bordered :pagination="false" id="tableId">
                 <template #headerCell="{ title, column }">
                     <template v-if="column.dataIndex === 'sellerSKU'">
@@ -36,6 +37,12 @@
                     <template v-if="column.dataIndex === 'specialPrice'">
                         <div> {{ title }} </div>
                     </template>
+
+                    <!-- 不含邮价格 -->
+                    <template v-if="column.dataIndex === 'postPrices'">
+                        <div> <span class="required"> * </span> {{ title }} </div>
+                    </template>
+
                     <template v-if="column.dataIndex === 'specialDate'">
                         <div> {{ title }} </div>
                         <div> ( <a-button type="link" @click="batchSpecialDate()"> 批量 </a-button> ) </div>
@@ -49,22 +56,20 @@
                 </template>
                 <template #bodyCell="{ record, index, column }">
                     <template v-if="column.dataIndex === 'sellerSKU'">
-                        <div> sellerSKU {{ record.sellerSKU }}
+                        <div>
                             <a-input v-model:value="record.sellerSKU" placeholder="请输入SKU" />
                         </div>
                     </template>
 
                     <template v-if="column.dataIndex === 'stock'">
-                        <div> stock: {{ record.stock }} </div>
                         <a-input-number :controls="false" :precision="0" :min="0" v-model:value="record.stock"
                             placeholder="请输入库存" style="width: 80%;" />
                     </template>
 
                     <template v-if="column.dataIndex === 'price'">
-                        <div> price: {{ record.price }} </div>
                         <a-input-number :controls="false" :precision="2" :min="0.01" v-model:value="record.price"
                             placeholder="请输入价格" style="width: 50%;" />
-                        <a-tooltip placement="top">
+                        <a-tooltip placement="top" v-if="lazadaAttrsState.ventures.length > 0">
                             <template #title>
                                 <span>点击设置各个站点价格</span>
                             </template>
@@ -75,10 +80,9 @@
                     </template>
 
                     <template v-if="column.dataIndex === 'specialPrice'">
-                        <div> specialPrice: {{ record.specialPrice }} </div>
                         <a-input-number :controls="false" :precision="0" v-model:value="record.specialPrice" :min="0.01"
                             :max="record.price" placeholder="请输入促销价" style="width: 50%;" />
-                        <a-tooltip placement="top">
+                        <a-tooltip placement="top" v-if="lazadaAttrsState.ventures.length > 0">
                             <template #title>
                                 <span>点击设置各个站点价格</span>
                             </template>
@@ -88,18 +92,30 @@
                         </a-tooltip>
                     </template>
 
+                    <!-- 不含邮价格 -->
+                    <template v-if="column.dataIndex === 'postPrices'">
+                        <div> <a-input-number :controls="false" :precision="0" v-model:value="record.postPrices"
+                                :min="0.01" placeholder="请输入不含邮价格" style="width: 50%;" />
+                            <a-tooltip placement="top">
+                                <template #title>
+                                    <span>点击设置各个站点价格</span>
+                                </template>
+                                <a-button type="primary" @click="settingPrice(record)" style="margin-left: 10px;">
+                                    <SettingOutlined />
+                                </a-button>
+                            </a-tooltip>
+                        </div>
+                    </template>
+
                     <template v-if="column.dataIndex === 'specialDate'">
-                        <div> specialDate: {{ record.specialDate }} </div>
                         <a-range-picker v-model:value="record.specialDate" format="YYYY-MM-DD" style="width: 80%;" />
                     </template>
                     <template v-if="column.dataIndex === 'package_weight'">
-                        <div> package_weight: {{ record.packageWeight }} </div>
                         <a-input-number :controls="false" :precision="0" v-model:value="record.packageWeight"
                             :min="0.001" :max="20" placeholder="请输入重量" style="width: 80%;" />
                     </template>
 
                     <template v-if="column.dataIndex === 'package'">
-                        <div> package: </div>
                         <a-input-number v-model:value="record.packageLength" :min="0.01" :max="110" :precision="2"
                             placeholder="长"></a-input-number>
                         <a-input-number v-model:value="record.packageWidth" :min="0.01" :max="110" :precision="2"
@@ -126,7 +142,8 @@
         <SpecialDateModal ref="specialDateModalRef" @success="specialDateSuccess"></SpecialDateModal>
         <WeightModal ref="weightModalRef" @success="weightSuccess"></WeightModal>
         <PackageModal ref="packageModalRef" @success="packageSuccess"></PackageModal>
-        <EditPriceModal ref="editPriceModalRef" @success="editPriceSuccess"></EditPriceModal>
+        <EditPriceModal ref="editPriceModalRef" @success="editPriceSuccess" :checkedList="checkState.checkedList">
+        </EditPriceModal>
     </div>
 </template>
 
@@ -188,6 +205,9 @@ const theme = reactive({
     themeOne: [],
     themeTwo: [],
 });
+const themeOne = ref('');// 主题一
+const themeTwo = ref(''); // 主题二
+
 const generateModalEl = useTemplateRef('generateModalRef'); // 批量生成弹窗
 const stockModalEl = useTemplateRef('stockModalRef'); // 批量库存弹窗
 const priceModalEl = useTemplateRef('priceModalRef');
@@ -264,16 +284,15 @@ const columns = computed(() => {
             },
         ] : []
     };
-
-    // const packageColumns = () => {
-    //     return isHeight && isWidth && isLength ? [
-    //         {
-    //             title: '尺寸（cm）',
-    //             dataIndex: 'package',
-    //             align: 'center',
-    //         },
-    //     ] : []
-    // };
+    const postPricesColoumns = () => {
+        return checkState.checkedList.length ? [
+            {
+                title: '不含邮价格',
+                dataIndex: 'postPrices',
+                align: 'center',
+            },
+        ] : []
+    };
 
     const themeColumns = selectTheme.value.map((item) => {
         return {
@@ -303,6 +322,7 @@ const columns = computed(() => {
                     dataIndex: 'price',
                     align: 'center',
                 },
+                ...postPricesColoumns(),
                 {
                     title: '促销价',
                     dataIndex: 'specialPrice',
@@ -313,8 +333,6 @@ const columns = computed(() => {
                     dataIndex: 'specialDate',
                     align: 'center',
                 },
-                // ...weightColumns(),
-                // ...packageColumns(),
                 {
                     title: '操作',
                     dataIndex: 'action',
@@ -462,6 +480,10 @@ const batchPrice = (evt) => {
 };
 
 const settingPrice = (record) => {
+    themeOne.value = record[lazadaAttrsState.selectTheme[0].name];
+    if (lazadaAttrsState.selectTheme.length === 2) {
+        themeTwo.value = record[lazadaAttrsState.selectTheme[1].name];
+    }
     editPriceModalEl.value.open({ record: record, checkedList: checkState.checkedList });
 };
 
@@ -588,11 +610,15 @@ const editPriceSuccess = (evt) => {
     const thSite = evt.find((item) => item.enSite === 'TH') // 泰国
     const sgSite = evt.find((item) => item.enSite === 'SG') // 新加坡
     const vnSite = evt.find((item) => item.enSite === 'VN') // 越南
-    tableData.value.forEach((item) => {
+    console.log('defaultSite', defaultSite);
+    tableData.value[0].price = defaultSite.retailPrice;
+    tableData.value[0].specialPrice = defaultSite.salesPrice;
+    tableData.value.forEach((item, index) => {
+
         item.my_retail_price = mySite?.retailPrice ?? undefined;// 销售价 
         item.my_sales_price = mySite?.salesPrice ?? undefined; // 促销价
 
-        if (checkState.checkedList.includes('ID')) {
+        if (checkState.checkedList.includes('ID') && lazadaAttrsState.selectTheme[0].name) {
             item.id_retail_price = idSite?.retailPrice ?? undefined;// 销售价 
             item.id_sales_price = idSite?.salesPrice ?? undefined; // 促销价
         };
@@ -613,7 +639,13 @@ const editPriceSuccess = (evt) => {
             item.vn_retail_price = vnSite?.retailPrice ?? undefined;// 销售价 
             item.vn_sales_price = vnSite?.salesPrice ?? undefined; // 促销价
         }
-    })
+        if (checkState.checkedList.length) {
+            item.postPrices = vnSite?.retailPrice ?? undefined;// 销售价 
+        }
+    });
+
+    console.log('tableData.value', tableData.value);
+
 };
 
 // 移除SKU
@@ -654,6 +686,16 @@ const validateForm = () => {
                 emits('valid', false);
                 return false;
             };
+            if (checkState.checkedList.length) {
+                if (!item.postPrices) {
+                    message.warning(`第${index + 1}行不含邮价格不能为空`);
+                    document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    reject(false);
+                    emits('valid', false);
+                    return false;
+                };
+            }
+
             resolve(true);
             emits('valid', true);
         }

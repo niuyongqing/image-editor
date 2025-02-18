@@ -153,8 +153,8 @@ const { singleDisabled, rowSelection, tableRow, selectedRows, clearSelection } =
 const initSearchParam = {
     prop: "created_time",
     order: "desc",
-    status: 1,
-    shortCodes: [],
+    // status: 1,
+    // shortCodes: [],
     name: '',
     sku: ''
 };
