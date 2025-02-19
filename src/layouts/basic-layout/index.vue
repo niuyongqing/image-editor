@@ -18,15 +18,7 @@ function handleCollapsed(collapsed) {
   emit('update:collapsed', collapsed)
   props?.onCollapsed?.(collapsed)
 }
-function backToTop () {
-  let elements = document.getElementsByClassName('ant-layout-content');
-  if(elements) {
-    elements[0].scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  }
-}
+
 const { layout, contentWidth } = useLayoutProvider(props, {
   handleCollapsed,
 })
@@ -40,9 +32,6 @@ const contentCls = computed(() => {
 
 <template>
   <div class="ant-pro-basicLayout" :data-theme="theme">
-    <a-float-button-group shape="circle">
-        <a-back-top :visibility-height="0" @click="backToTop" />
-      </a-float-button-group>
     <a-layout class="fixed-layout">
       <template v-if="menu">
         <SiderMenu v-if="layout !== 'top' && !isMobile" />

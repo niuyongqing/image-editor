@@ -1,6 +1,6 @@
 <template>
     <div id="OzonBaseInfoCont">
-        <a-card title="基本信息" style="text-align: left;">
+        <a-card title="基本信息" class="text-left">
             <a-form :label-col="{ span: 3 }" ref="ruleForm" :model="form" class="mt-5" :rules="rules">
                 <a-form-item label="店铺：" name="shortCode">
                     <a-select v-model:value="form.shortCode" placeholder="请选择店铺" @change="getHistoryList"
@@ -78,7 +78,8 @@
                                         </div>
                                         <a-form-item-rest>
                                             <a-checkbox-group v-model:value="form.attributes[item.name]"
-                                                style="width: 80%;" :options="item.acquiesceList">
+                                                style="width: 80%;" @change="changeRule(form.attributes, item.name)"
+                                                :options="item.acquiesceList">
                                                 <!--  :options="item.acquiesceList" v-model:checked="option.value" -->
                                                 <!-- <a-checkbox v-for="option in item.acquiesceList" :key="option.value">
                                                     {{ option.label }}
@@ -91,7 +92,7 @@
                                     <a-select optionFilterProp="label" show-search
                                         v-model:value="form.attributes[item.name]" v-if="item.selectType === 'select'"
                                         labelInValue :style="'width: 80%'" allowClear>
-                                        <a-select-option v-if="item.name == '品牌'" :value="'无品牌'"
+                                        <a-select-option v-if="item.name == '品牌(Бренд)'" :value="'无品牌'"
                                             :label="'无品牌'">无品牌</a-select-option>
 
                                         <a-select-option :value="v" :label="v.label" v-else
@@ -120,13 +121,11 @@ import {
 } from "../../config/api/product";
 import categoryDialog from "./categoryDialog.vue";
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
+import { useOzonProductStore } from '~@/stores/ozon-product'
 
 const props = defineProps({
     categoryAttributesLoading: Boolean,
     shopList: Array,
-    attributesCache: Array,
-    product: Object,
-    editData: Object,
 });
 const emit = defineEmits(["sendShortCode", "getAttributes"]);
 
@@ -165,8 +164,6 @@ const rules = {
 }
 const rules2 = ref({})
 const loopAttributes = ref({})
-const foldStatus = ref(true)
-const categoryTreeLoading = ref(false)
 const categoryTreeList = ref([])
 const historyCategoryList = ref([])
 const vatList = [
@@ -183,14 +180,15 @@ const vatList = [
         value: "0.2",
     },
 ]
-const filterAttrList = ref([])
-const operationLine = ref([]) //取消的
 const hisAttrObj = ref([]) //选中的三级
 
-
+// 清除校验
+const changeRule = (attributes, name) => {
+    ruleForm2.value.clearValidate(name);
+}
 // 获取选择树
 const getCategoryTree = () => {
-    if (form.shortCode === "" || form.shortCode == null) {
+    if (!form.shortCode) {
         return;
     }
     categoryTree({ account: form.shortCode }).then((res) => {
@@ -216,17 +214,16 @@ const getAttributesID = (ids) => {
         label: ids.label,
         value: ids.value
     };
-    console.log('form',form.categoryId);
-    
+    console.log('form', form.categoryId);
+
     emit("getAttributes", form.shortCode, form.categoryId);
 }
 // 历史分类
 const getHistoryList = (shortCode) => {
-    emit("sendShortCode", shortCode);
-    if (form.shortCode === "" || form.shortCode == null) {
+    if (!form.shortCode) {
         return;
     }
-    categoryTreeLoading.value = true;
+    emit("sendShortCode", shortCode);
     historyCategory({ account: form.shortCode })
         .then((res) => {
             historyCategoryList.value = res?.data || [];
@@ -241,9 +238,6 @@ const getHistoryList = (shortCode) => {
                 );
             }
         })
-        .finally(() => {
-            categoryTreeLoading.value = false;
-        });
 }
 const searchOption = (input, option) => {
     return option.threeCategoryName.indexOf(input) >= 0;
@@ -346,7 +340,7 @@ const assignValues = (a, b) => {
                     });
                     result[name] = filteredItems.map((e) => e.value);
                 } else if (selectType === "select") {
-                    result[name] = name == "品牌" ? "无品牌" : a[key];
+                    result[name] = name == "品牌(Бренд)" ? "无品牌" : a[key];
                 } else {
                     result[name] = a[key];
                 }
@@ -358,36 +352,39 @@ const assignValues = (a, b) => {
 }
 
 const addItemValues = (obj) => {
-    console.log("item", obj);
     const { attributes } = form;
     const isExist = obj.acquiesceList.some(
         (item) => item.value === obj.selectDate.value
     );
-    console.log('attributes', attributes[obj.name]);
-
     //!  判断搜索出来的是否在初始的数组中显示
     if (isExist) {
-        attributes[obj.name].push(obj.selectDate.value);
+        attributes[obj.name]?.push(obj.selectDate.value);
     } else {
-        attributes[obj.name].push(obj.selectDate.value);
+        attributes[obj.name]?.push(obj.selectDate.value);
         obj.acquiesceList.push(obj.selectDate);
     }
     obj.selectDate = undefined
-    console.log("22s", attributes, obj.acquiesceList);
 }
 
 const childForm = async () => {
+    // 收集需要校验的表单引用
+    const formRefs = [ruleForm, ruleForm2];
 
-    let res = true;
-    const validatePromise = async (formRef) => {
-        if (!formRef.value) return false;
-        const valid = await formRef.value.validate();
-        return valid;
-    };
-    res = await validatePromise(ruleForm);
-    if (!res) return false;
-    res = await validatePromise(ruleForm2);
-    return res;
+    // 循环遍历表单引用数组进行校验
+    for (const formRef of formRefs) {
+        try {
+            // 如果表单引用不存在，跳过本次循环
+            if (!formRef.value) continue;
+
+            // 调用表单的 validate 方法进行校验
+            await formRef.value.validate();
+        } catch (error) {
+            // 若校验失败，捕获错误并返回 false
+            return false;
+        }
+    }
+    // 所有表单都校验通过，返回 true
+    return true;
 }
 
 // 抛出数据和方法，可以让父级用ref获取
@@ -396,14 +393,14 @@ defineExpose({
     childForm
 })
 
-
 watch(() => form.shortCode, val => {
     if (val) {
         getCategoryTree()
         hisAttrObj.value = []
     }
 })
-watch(() => props.attributesCache, (val) => {
+// props.attributesCache,
+watch(() => useOzonProductStore().attributes, (val) => {
     if (val) {
         /**
          *  "URL"  4080
@@ -415,9 +412,7 @@ watch(() => props.attributesCache, (val) => {
          *  "JSON 丰富内容"  11254
          *  "卖家代码" 9024
          */
-        const newAttributesCache = processAttributesCache(
-            val
-        );
+        const newAttributesCache = processAttributesCache(val);
         const custAttr = newAttributesCache.filter((a) => !a.isRequired);
         const filterAttributesCache = custAttr.filter(
             (a) =>
@@ -438,10 +433,7 @@ watch(() => props.attributesCache, (val) => {
                     a.attributeComplexId == "100002"
                 )
         );
-        // 需传值到SKU处
-        // this.$bus.$emit("OzonNewVariantInfo", filterAttributesCache);
-        // console.log("filterAttributesCache", filterAttributesCache);
-
+   
         let noThemeAttributesCache = newAttributesCache.filter(
             (a) => !a.isAspect
         );
@@ -463,7 +455,7 @@ watch(() => props.attributesCache, (val) => {
                     label: "",
                     value: ""
                 };
-                item.options = item?.options?.map(item => {    
+                item.options = item?.options?.map(item => {
                     return {
                         ...item,
                         label: item.value,
@@ -478,7 +470,6 @@ watch(() => props.attributesCache, (val) => {
 
             // 属性校验
             for (let i = 0; i < data.length; i++) {
-
                 let obj = {
                     required: true,
                     message: `${data[i].name} 为必填项，请填写`,

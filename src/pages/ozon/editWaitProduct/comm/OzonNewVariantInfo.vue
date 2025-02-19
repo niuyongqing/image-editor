@@ -185,8 +185,9 @@
                                     </div>
                                     <div style="display: flex; margin-top: 5px">
                                         重量：
-                                        <a-input-number controls-position="right" :min="0" style="width: 80%"
-                                            v-model:value="record.packageWeight" placeholder="重量" :precision="0">
+                                        <a-input-number controls-position="right" :precision="0" :min="0"
+                                            style="width: 80%" v-model:value="record.packageWeight" placeholder="重量">
+                                            <!-- @blur="handleInput(record.packageWeight, record)" -->
                                             <template #addonAfter>g</template>
                                         </a-input-number>
                                     </div>
@@ -253,10 +254,11 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- <div v-if="item && item.detail">{{ item.detail.attr }}</div> -->
                                 <span v-if="item.imageUrl" class="block mt-2.5">{{ item.imageUrl.length
                                     }}/15</span>
-                                <dragUpload @changeImg="(list) => changeImg(list, item)" @singleSelectImg="(e) => singleSelectImg(e, item)"></dragUpload>
+                                <dragUpload @changeImg="(list) => changeImg(list, item)"
+                                    @singleSelectImg="(e) => singleSelectImg(e, item)" :imageList="item.imageUrl">
+                                </dragUpload>
 
                             </a-card>
                         </div>
@@ -280,25 +282,23 @@
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { message } from "ant-design-vue";
-import EditProdQuantity from './EditProdQuantity.vue';
-import dragUpload from './dragUpload.vue';
+import EditProdQuantity from '../../productPublish/comm/EditProdQuantity.vue';
+import dragUpload from '../../productPublish/comm/dragUpload.vue';
 import { scaleApi, watermarkListApi, watermarkApi } from "~/api/common/water-mark";
 import { productWarehouse } from "../../config/api/product"
-import SelectAttr from './SelectAttr.vue';
+import SelectAttr from '../../productPublish/comm/SelectAttr.vue';
 import { useOzonProductStore } from '~@/stores/ozon-product'
 import batchEditModal from "~/pages/ozon/config/component/batchEditModal/index.vue"
 import {
-    updatePrice, processAttributesCache,
+    updatePrice, endResult, processAttributesCache,
     reorderArray, cartesianProduct, processResult,
     processData, checkSellerSKU, hasDuplicateModelValues,
-    checkData, handleTheme
+    checkData, rearrangeColorFields, handleTheme
 } from "../../config/commJs/index"
 import { publishHead, otherList } from '../../config/tabColumns/skuHead';
 const props = defineProps({
     categoryAttributesLoading: Boolean,
-    storeOption: Array,
-    product: Object,
-    editData: Object,
+    productDetail: Object,
     shopCode: String
 });
 const themeList = ref([]) //主题数据
@@ -338,7 +338,7 @@ const plainOptions = [
         value: 'skuTitle',
     },
 ]
-let otherHeader = otherList
+const otherHeader = otherList
 const isConform = ref(false)
 const headers = {
     'Authorization': 'Bearer ' + useAuthorization().value,
@@ -431,6 +431,7 @@ const processDataFormat = (list = []) => {
     let newHeaderList = handleTheme(list)
     const insertIndex = headerList.value.length - 6;
     for (let i = list.length - 1; i >= 0; i--) {
+        // reversedArray.push(originalArray[i]);
         headerList.value.splice(insertIndex, 0, {
             dataIndex: list[i].name,
             id: list[i].id,
@@ -446,7 +447,24 @@ const processDataFormat = (list = []) => {
     console.log('headerList2', headerList.value, tableData.value);
 
     attributeList.value = [...attributeList.value, ...newHeaderList]
+    // 检查数组中对象的 id 属性是否存在 10096
+    // const indexOfColor = headerList.value.findIndex(item => item.id === 10096);
+    // console.log('/*', indexOfColor !== -1 && isConform.value);
+    // const indexOfColorName = headerList.value.findIndex(item => item.id === 10097);
+    // if (indexOfColor !== -1 && isConform.value && indexOfColorName !== -1) {
+    //     headerList.value.splice(indexOfColor + 1, 0, {
+    //         dataIndex: "颜色名称(Название цвета)",
+    //         id: 10097,
+    //         selectType: "input",
+    //         show: true,
+    //         title: "颜色名称(Название цвета)",
+    //         align: 'center'
+    //     });
+
+    // }
     console.log('attributeList', attributeList.value, headerList.value);
+
+
 }
 
 // 手动添加多个变种主题
@@ -455,7 +473,9 @@ const enterVariantType = (item) => {
     console.log('item', item);
     if (isConform.value && item.id === 10096) {
         arr = [
-            { ...item },
+            {
+                ...item
+            },
             {
                 selectType: "input",
                 id: 10097,
@@ -491,6 +511,7 @@ const removeVariantType = (item, index) => {
         }
     }
     // 表头删除
+    // headerList.value.splice(index, 1); !(item.prop == item.name && item.label == item.name)
     headerList.value = headerList.value.filter(
         (e) => !(e.title == item.title)
     );
@@ -522,20 +543,20 @@ const addItem = (item, row) => {
         };
     }
     row.tableData.push(ele)
-    console.log('row',row.tableData);
-    
 }
 
 // 移除多个属性操作
 const removeItem = (item, row) => {
     console.log('removeItem', item, row);
-    if (item.id === 10096) {
-        let ind = row.tableData.indexOf(item)
-        console.log('ind', ind);
-        row.tableData.splice(ind, 1);
-    } else {
-        row.tableData = row.tableData.filter(el => el.id !== item.id);
-    }
+    // if (item.id === 10096) {
+    //     let ind = row.tableData.indexOf(item)
+    //     console.log('ind', ind);
+    //     row.tableData.splice(ind, 1);
+    // } else {
+    //     row.tableData = row.tableData.filter(el => el.id !== item.id);
+    // }
+    let ind = row.tableData.indexOf(item)
+    row.tableData.splice(ind, 1);
     const newData = [];
     for (let i = 0; i < tableData.value.length; i++) {
         let hasValueFour = false;
@@ -569,7 +590,7 @@ const pushValue = (index, item) => {
     let cartesianProducts = cartesianProduct(attributeList.value);
     let newTableData = processResult(cartesianProducts);
     let minLength = Math.min(newTableData.length, tableData.value.length);
-    console.log("newTableData", minLength);
+    console.log("newTableData", newTableData, headerList.value, minLength);
     for (let i = 0; i < minLength; i++) {
         // 将b数组中对应下标的数据赋值到a数组中
         newTableData[i].skuTitle = tableData.value[i].skuTitle;
@@ -578,6 +599,8 @@ const pushValue = (index, item) => {
         newTableData[i].oldPrice = tableData.value[i].oldPrice;
         newTableData[i].colorImg = tableData.value[i].colorImg;
         newTableData[i].quantity = tableData.value[i].quantity;
+        // newTableData[i].warehouseName = tableData.value[i].warehouseName;
+        // newTableData[i].warehouseId = tableData.value[i].warehouseId;
         newTableData[i].packageHeight = tableData.value[i].packageHeight;
         newTableData[i].packageLength = tableData.value[i].packageLength;
         newTableData[i].packageWidth = tableData.value[i].packageWidth;
@@ -585,7 +608,6 @@ const pushValue = (index, item) => {
     }
     tableData.value = newTableData
 }
-
 
 // 动态添加表头数据
 const changeHeade = () => {
@@ -773,6 +795,7 @@ const selectWaterMark = () => {
 // 裁剪
 const crop = () => {
     let res = [];
+
     for (let i = 0; i < tableData.value.length; i++) {
         for (let j = 0; j < tableData.value[i].imageUrl.length; j++) {
             if (tableData.value[i].imageUrl[j].checked) {
@@ -809,6 +832,7 @@ const crop = () => {
         .finally(() => {
             watermarkValue.value = "";
             selectAll.value = false
+            // ++this.refreshKey;
         });
 }
 // 图片全选
@@ -858,7 +882,6 @@ const getEditStore = (account) => {
     });
 }
 
-// props.attributes
 watch(() => useOzonProductStore().attributes, val => {
     if (val) {
         themeBtns.value = [];
@@ -866,11 +889,15 @@ watch(() => useOzonProductStore().attributes, val => {
         attributeList.value = [];
         tableData.value = [];
         imgHeaderList.value = [];
-        headerList.value = [...publishHead]
+        headerList.value = [...publishHead] //重新赋值
+        let editRes = []
         // 提取变种主题
         let arr = val.filter((obj) => obj.isAspect);
         isConform.value = checkData(arr);
         const requiredItem = arr.some(item => item.isRequired === true);
+        let sortArr = rearrangeColorFields(arr)
+        console.log('sortArr', sortArr);
+
         //判断主题中是否有颜色名称，且商品颜色是不是必填项
         if (requiredItem) {
             if (isConform.value) {
@@ -894,6 +921,7 @@ watch(() => useOzonProductStore().attributes, val => {
                 themeBtns.value = arr.filter((obj) => !obj.isRequired)
             }
         }
+        const { skuList } = props.productDetail;
         const newAttributesCache = processAttributesCache(val);
         const list = newAttributesCache.filter((a) => !a.isRequired);
         custAttr.value = list.filter(
@@ -918,24 +946,191 @@ watch(() => useOzonProductStore().attributes, val => {
         if (requiredList.value.length != 0) {
             processDataFormat(requiredList.value);
         }
-        tableData.value.push({
-            skuTitle: "",
-            sellerSKU: "",
-            price: "",
-            oldPrice: "",
-            quantity: undefined,
-            warehouseList: [],
-            packageLength: undefined,
-            packageWidth: undefined,
-            packageHeight: undefined,
-            packageWeight: undefined,
-            imageUrl: [],
-            colorImg: [],
-            id: Math.random().toString(36).substring(2, 10),
+
+
+        let result = [];
+        let attrHeaderList = [];
+        // 遍历b中的skuList
+        skuList.forEach((sku) => {
+            let newItem = {
+                oldPrice: sku.oldPrice,
+                price: sku.price,
+                quantity: sku.stock,
+                packageHeight: sku.height,
+                packageLength: sku.depth,
+                packageWeight: sku.weight,
+                packageWidth: sku.width,
+                colorImg: sku?.colorImage ? [{
+                    url: sku.colorImage,
+                    name: sku.colorImage.substring(sku.colorImage.lastIndexOf("/") + 1)
+                }] : [],
+                warehouseList: sku?.warehouseList?.map(item => {
+                    return {
+                        ...item,
+                        offerId: sku.offerId
+                    }
+                }),
+                sellerSKU: sku.offerId,
+                imageUrl: sku.images?.map(item => {
+                    return {
+                        url: item,
+                        checked: false,
+                    }
+                }) ?? []
+            };
+            // 遍历a数组
+            sortArr.forEach((attr) => {
+                // 遍历sku的attributes中的每个attributes
+                sku.attributes.forEach((subAttr) => {
+                    subAttr.attributes.forEach((subSubAttr) => {
+                        if (subSubAttr.id == attr.id) {
+                            if (attr.selectType === "multSelect" && attr.options) {
+                                let values = subSubAttr.values.map((val) => {
+                                    let option = attr.options.find((opt) => opt.id == val.dictionary_value_id);
+                                    return option ? option.value : val.value;
+                                });
+                                newItem[attr.name] = values.join(', ');
+                            } else {
+                                newItem[attr.name] = subSubAttr.values[0].value;
+                            }
+                            attrHeaderList.push({
+                                title: attr.name,
+                                dataIndex: attr.name,
+                                show: true,
+                                align: 'center'
+                            })
+                        }
+                    });
+                });
+            });
+            result.push(newItem);
         });
+        // 处理数据回显到表格
+        attrHeaderList = [...new Map(attrHeaderList.map(item => [item.dataIndex, item])).values()];
+        console.log('attrHeaderList', attrHeaderList);
+
+        headerList.value = [...attrHeaderList, ...headerList.value] //表格主题标题赋值
+        imgHeaderList.value = attrHeaderList  //图片标题赋值
+        if (result.some(item => item.colorImg.length !== 0)) {
+            headerList.value.unshift({
+                title: "颜色样本",
+                dataIndex: "colorImg",
+                selectType: "url",
+                type: 1,
+                show: true,
+                align: 'center',
+            })
+            addHeaderList.value.push("colorImg")
+        }
+        console.log('result', result);
+
+        tableData.value = result
+        // 处理到数据回显到主题
+        let echoThemeList = handleTheme(sortArr)  //handleTheme方法可以将属性转换成主题数据格式
+        const aIds = echoThemeList.map(item => item.id);
+        // 过滤 有数据的主题
+        themeBtns.value = themeBtns.value.filter(item =>!aIds.includes(item.id));
+        attributeList.value = matchAndAssignValues(echoThemeList, skuList)
     }
 
 })
+
+const matchAndAssignValues = (a, b) => {
+    // 遍历 a 数组的每个配置项
+    return a.map(aItem => {
+        const isThemeData = checkThemeData(aItem.tableData);
+        const newTableData = b.map(bItem => {
+            const tableDataTemplate = JSON.parse(JSON.stringify(aItem.tableData[0]));
+            const attributeId = tableDataTemplate.id;
+            const matchedAttribute = bItem.attributes[0].attributes.find(
+                attr => attr.id === attributeId
+            );
+            const secondAttr = bItem.attributes[0].attributes.find(
+                attr => attr.id === tableDataTemplate?.secondId
+            );
+            return processTableDataItem(tableDataTemplate, matchedAttribute, secondAttr, isThemeData);
+        });
+        aItem.tableData = deduplicateTableData(newTableData, isThemeData);
+        return aItem;
+    });
+}
+
+// 对数组中的对象按指定属性去重
+const removeDuplicatesByProperty = (arr, property) => {
+    return arr.filter((value, index, self) =>
+        index === self.findIndex(t => t[property] === value[property])
+    );
+};
+
+// 检查两个数组是否内容相同
+const isArrayContentEqual = (arr1, arr2) => {
+    return JSON.stringify(arr1) === JSON.stringify(arr2);
+};
+
+// 处理单个 tableData 项
+const processTableDataItem = (tableDataTemplate, matchedAttribute, secondAttr, isThemeData) => {
+    if (isThemeData) {
+        if (matchedAttribute) {
+            tableDataTemplate.modelValue = tableDataTemplate.details.filter(itemA => {
+                return matchedAttribute.values.some(itemB => {
+                    return itemA.id === itemB.dictionary_value_id;
+                });
+            });
+            tableDataTemplate.modelValue = removeDuplicatesByProperty(tableDataTemplate.modelValue, 'id');
+        }
+        if (secondAttr) {
+            tableDataTemplate.secondModelValue = secondAttr.values[0].value;
+        }
+    } else {
+        if (tableDataTemplate.selectType === 'input') {
+            if (matchedAttribute) {
+                tableDataTemplate.modelValue = matchedAttribute.values[0].value;
+            }
+        } else {
+            if (matchedAttribute) {
+                const matchedValues = matchedAttribute.values.map(item => ({
+                    label: item.value,
+                    value: item.dictionary_value_id
+                }));
+                const uniqueMatchedValues = removeDuplicatesByProperty(matchedValues, 'value');
+                tableDataTemplate.modelValue = uniqueMatchedValues;
+            }
+        }
+    }
+    return tableDataTemplate;
+};
+
+// 对 tableData 进行去重
+const deduplicateTableData = (tableData, isThemeData) => {
+    if (isThemeData) {
+        return tableData.filter((item, index, self) => {
+            return !self.some((uniqueItem, uniqueIndex) => {
+                return uniqueIndex < index &&
+                    uniqueItem.secondModelValue === item.secondModelValue &&
+                    isArrayContentEqual(uniqueItem.modelValue, item.modelValue);
+            });
+        });
+    } else {
+        const valueMap = new Map();
+        return tableData.filter(item => {
+            const key = JSON.stringify(item.modelValue);
+            if (!valueMap.has(key)) {
+                valueMap.set(key, true);
+                return true;
+            }
+            return false;
+        });
+    }
+};
+
+const checkThemeData = (data) => {
+    const hasColorName = data.some((item) => item.secondId === 10097);
+    const hasProductColor = data.some(
+        (item) => item.id === 10096
+    );
+    return hasColorName && hasProductColor;
+}
+
 watch(() => props.shopCode, val => {
     if (val) {
         getEditStore(val)

@@ -13,7 +13,6 @@
                 </a-form-item>
                 <a-form-item label="JSON 丰富内容：" name="jsonDes">
                     <span style="color: #ff0a37">说明：描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M</span>
-                    <jsonForm></jsonForm>
                 </a-form-item>
                 <a-form-item label="视频：">
                     <div>
@@ -87,8 +86,6 @@
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { message } from "ant-design-vue";
-import jsonForm from "~@/pages/ozon/config/component/json/index.vue"
-
 const ruleForm = ref(null)
 const props = defineProps({
     shopCode: String
