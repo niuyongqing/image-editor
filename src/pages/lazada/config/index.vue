@@ -181,5 +181,3 @@ onMounted(() => {
     getUserDepList();
 })
 </script>
-
-<style lang="less" scoped></style>

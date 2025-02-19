@@ -287,7 +287,7 @@ const validateAll = async () => {
             ...specialDateProps
         };
     });
-    const attributes = {
+    let attributes = {
         type: 'global',
         ventures: { venture: ventures },
         semiUpgradeVentures: { venture: semiUpgradeVentures },
@@ -315,6 +315,10 @@ const validateAll = async () => {
     if (!promotion_whitebkg_image.length) {
         delete attributes.attributes.promotion_whitebkg_image;
     };
+    if (video) {
+        attributes.video = video;
+        attributes.cover_url = cover_url;
+    }
     return attributes
 };
 

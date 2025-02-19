@@ -65,7 +65,9 @@
                                         <p> 封面图 </p>
                                     </a-button>
                                     <div v-else class="videoImgIcon">
-                                        <a-image :width="120" :src="form.video.img" />
+                                        <div class="video-image">
+                                            <a-image :width="120" :src="form.video.img" />
+                                        </div>
                                         <div flex justify-end class="del-icon" @click="videoImgDelete">
                                             <DeleteOutlined>
                                             </DeleteOutlined>
@@ -159,6 +161,7 @@ const form = reactive({
     fileList: [],
     video: {
         url: '',
+        videoId: undefined, // 视频id
         img: '', // 视频封面
         title: '' // 视频标题
     },
@@ -286,6 +289,7 @@ const customRequestImg = (options) => {
     videoImageUpload(formData, options.headers).then(res => {
         if (res.code === 200) {
             form.video.img = res.url;
+            form.video.videoId = res.videoId; // 视频id
             videoImageFile.value = [{
                 url: res.url,
                 name: res.originalFilename
@@ -324,6 +328,7 @@ const customRequestVideo = (options) => {
 // 删除视频
 const videoDelete = (file) => {
     form.video.url = '';
+    form.video.videoId = undefined;
 };
 
 const handleCancel = () => {
@@ -413,7 +418,7 @@ defineExpose({
 }
 
 .empty-img {
-    width: 120px;
+    width: 130px;
     height: 120px;
     background-color: white;
     border: 1px solid #cccccc;
@@ -426,14 +431,22 @@ defineExpose({
 }
 
 .videoImgIcon {
-    width: 120px;
+    width: 130px;
     height: 140px;
     border: 1px solid #cccccc;
     border-radius: 5px;
 
+    .video-image {
+        width: 100%;
+        height: 120px;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+    }
+
     img {
         width: 100%;
-        height: 115px;
     }
 
     .del-icon {

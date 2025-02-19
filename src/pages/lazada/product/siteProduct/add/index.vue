@@ -228,7 +228,7 @@ const validateAll = async () => {
     const imageInfoState = imageInfoEl.value.form;
     const images = imageInfoState.fileList.map((item) => item.url);// 产品图片
     const promotion_whitebkg_image = imageInfoState.promotionWhite.length > 0 ? [imageInfoState.promotionWhite[0].url] : [];// 营销图
-    const video = imageInfoState.video.url;// 产品视频
+    const video = imageInfoState.video.videoId;// 产品视频
     const cover_url = imageInfoState.video.img; // 视频封面图 
     // to do... 视频标题
     const tableData = variantInfoEl.value.tableData;
@@ -281,7 +281,7 @@ const validateAll = async () => {
             ...specialDateProps
         };
     });
-    const attributes = {
+    let attributes = {
         "productType": isHalfway.value ? "1" : "0", // 0 普通卖家店铺, 1 半托管店铺, 2 全托管店铺
         attributes: {
             model,
@@ -305,6 +305,10 @@ const validateAll = async () => {
     };
     if (!promotion_whitebkg_image.length) {
         delete attributes.attributes.promotion_whitebkg_image;
+    };
+    if (video) {
+        attributes.video = video;
+        attributes.cover_url = cover_url;
     }
     return attributes
 };

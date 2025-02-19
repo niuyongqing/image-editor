@@ -65,7 +65,9 @@
                                         <p> 封面图 </p>
                                     </a-button>
                                     <div v-else class="videoImgIcon">
-                                        <a-image :width="120" :src="form.video.img" />
+                                        <div class="video-image">
+                                            <a-image :width="120" :src="form.video.img" />
+                                        </div>
                                         <div flex justify-end class="del-icon" @click="videoImgDelete">
                                             <DeleteOutlined>
                                             </DeleteOutlined>
@@ -155,13 +157,12 @@ const form = reactive({
     fileList: [],
     video: {
         url: '',
+        videoId: undefined, // 视频id
         img: '', // 视频封面
         title: '' // 视频标题
     },
     // 营销图
-    promotionWhite: [
-
-    ]
+    promotionWhite: []
 });
 
 //  编辑回显
@@ -169,7 +170,6 @@ watch(() => {
     return detailData
 }, async (newVal) => {
     console.log('newVal ---->>', newVal);
-
     const images = newVal.images ? JSON.parse(newVal.images) : [];
     // 产品图片
     form.fileList = images.map(item => {
@@ -192,8 +192,9 @@ watch(() => {
         lazadaVideoUrl({ shortCode: lazadaAttrsState.shortCode, videoId: newVal.attributes.video })
             .then((res) => {
                 //  to do ...
-                form.video.img = res.msg;
-                form.video.img = images[0]
+                form.video.url = res.msg;
+                form.video.img = images[0];
+                form.video.videoId = newVal.attributes.video;
             })
         // form.video.title = newVal.attributes.title;
     }
@@ -230,7 +231,6 @@ const videoPreviewVisible = ref(false); // 视频预览
 // 视频上传校验
 const videoBeforeUpload = (file) => {
     if (!file) return;
-    // coverUrl
     if (videoImageFile.value.length === 0) {
         message.error('请先上传封面图');
         return false;
@@ -274,6 +274,7 @@ const customRequestImg = (options) => {
     videoImageUpload(formData, options.headers).then(res => {
         if (res.code === 200) {
             form.video.img = res.url;
+            form.video.videoId = res.videoId; // 视频id
             videoImageFile.value = [{
                 url: res.url,
                 name: res.originalFilename
@@ -312,6 +313,7 @@ const customRequestVideo = (options) => {
 // 删除视频
 const videoDelete = (file) => {
     form.video.url = '';
+    form.video.videoId = undefined;
 };
 
 const handleCancel = () => {
@@ -338,10 +340,7 @@ const videoPreview = () => {
 };
 
 //   导出全部图片
-const downloadIamge = () => {
-    const blob = new Blob(['Hello, world!'], { type: 'image/png' });
-    saveAs(blob, 'hello.txt');
-};
+0
 
 // 校验
 const validateForm = async () => {
@@ -396,7 +395,7 @@ defineExpose({
 }
 
 .empty-img {
-    width: 120px;
+    width: 130px;
     height: 120px;
     background-color: white;
     border: 1px solid #cccccc;
@@ -409,14 +408,22 @@ defineExpose({
 }
 
 .videoImgIcon {
-    width: 120px;
+    width: 130px;
     height: 140px;
     border: 1px solid #cccccc;
     border-radius: 5px;
 
+    .video-image {
+        width: 100%;
+        height: 120px;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+    }
+
     img {
         width: 100%;
-        height: 115px;
     }
 
     .del-icon {

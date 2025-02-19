@@ -299,7 +299,7 @@ const validateAll = async () => {
             ...specialDateProps
         };
     });
-    const attributes = {
+    let attributes = {
         id: detailData.value.id,
         "productType": isHalfway.value ? "1" : "0", // 0 普通卖家店铺, 1 半托管店铺, 2 全托管店铺
         attributes: {
@@ -316,7 +316,6 @@ const validateAll = async () => {
         shortCode,
         primaryCategory,
         images: JSON.stringify({ image: images }),// 产品图片
-        // video, // 产品视频
         variation: variations,
         skus: skus,
     };
@@ -334,6 +333,10 @@ const validateAll = async () => {
         attributes.ventures = {
             venture: ventures
         }
+    };
+    if (video) {
+        attributes.video = video;
+        attributes.cover_url = cover_url;
     }
     return attributes
 };
@@ -353,7 +356,6 @@ const save = async () => {
     };
     saveLoading.value = true;
     console.log('addParams', addParams);
-
     saveCopyPublish(addParams).then(res => {
         message.success('保存成功');
     }).finally(() => {

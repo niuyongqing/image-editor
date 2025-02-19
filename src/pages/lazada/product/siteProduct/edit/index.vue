@@ -250,7 +250,7 @@ const validateAll = async () => {
     const associatedSkus = skus.map((item) => {
         return item.skuId
     }).filter(Boolean);
-    const attributes = {
+    let attributes = {
         associatedSku: associatedSkus[0],
         itemId: detailData.value.itemId,
         "productType": isHalfway.value ? 1 : 0, // 0 普通卖家店铺, 1 半托管店铺, 2 全托管店铺
@@ -274,6 +274,10 @@ const validateAll = async () => {
             sku: skus
         },
     };
+    if (video) {
+        attributes.video = video;
+        attributes.cover_url = cover_url;
+    }
     return attributes
 };
 //  使用资料库产品
