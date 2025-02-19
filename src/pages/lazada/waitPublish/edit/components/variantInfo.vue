@@ -64,7 +64,6 @@
                             <a-input v-model:value="record.sellerSKU" placeholder="请输入SKU" />
                         </div>
                     </template>
-
                     <template v-if="column && column.dataIndex === 'stock'">
                         <div> stock: {{ record.stock }} </div>
                         <a-input-number :controls="false" :precision="0" :min="0" v-model:value="record.stock"
@@ -75,9 +74,6 @@
                         <a-input-number :controls="false" :precision="0" :min="0" v-model:value="record.supplyPrice"
                             placeholder="请输入价格" style="width: 80%;" />
                     </template>
-
-
-
                     <template v-if="column && column.dataIndex === 'price'">
                         <div v-if="type">
                             <a-input-number :controls="false" :precision="2" :min="0.01" v-model:value="record.price"
@@ -86,7 +82,8 @@
                                 <template #title>
                                     <span>点击设置各个站点价格</span>
                                 </template>
-                                <a-button type="primary" @click="settingPrice(record)" style="margin-left: 10px;">
+                                <a-button type="primary" @click="settingPrice(record, index)"
+                                    style="margin-left: 10px;">
                                     <SettingOutlined />
                                 </a-button>
                             </a-tooltip>
@@ -105,24 +102,39 @@
                                 <template #title>
                                     <span>点击设置各个站点价格</span>
                                 </template>
-                                <a-button type="primary" @click="settingPrice(record)" style="margin-left: 10px;">
+                                <a-button type="primary" @click="settingPrice(record, index)"
+                                    style="margin-left: 10px;">
                                     <SettingOutlined />
                                 </a-button>
                             </a-tooltip>
                         </div>
                         <div v-else>
-                            specialPrice
                             <a-input-number :controls="false" :precision="0" v-model:value="record.specialPrice"
                                 :min="0.01" :max="record.price" placeholder="请输入促销价" style="width: 80%;" />
                         </div>
-
                     </template>
+                    <!-- 不含邮价格 -->
+                    <template v-if="column.dataIndex === 'postPrices'">
+                        <div> <a-input-number :controls="false" :precision="0" v-model:value="record.postPrices"
+                                :min="0.01" placeholder="请输入不含邮价格" style="width: 50%;" />
+                            <a-tooltip placement="top">
+                                <template #title>
+                                    <span>点击设置各个站点价格</span>
+                                </template>
+                                <a-button type="primary" @click="settingPrice(record, index)"
+                                    style="margin-left: 10px;">
+                                    <SettingOutlined />
+                                </a-button>
+                            </a-tooltip>
+                        </div>
+                    </template>
+
+
 
                     <template v-if="column && column.dataIndex === 'specialDate'">
                         <a-range-picker v-model:value="record.specialDate" style="width: 80%;" />
                     </template>
                     <template v-if="column && column.dataIndex === 'package_weight'">
-
                         <a-input-number :controls="false" :precision="0" v-model:value="record.packageWeight"
                             :min="0.001" :max="20" placeholder="请输入重量" style="width: 80%;" />
                     </template>
@@ -135,7 +147,6 @@
                         <a-input-number v-model:value="record.packageHeight" :min="0.01" :max="110" :precision="2"
                             placeholder="高"></a-input-number>
                     </template>
-
                     <template v-if="column && column.dataIndex === 'action'">
                         <div> <a-button type="link" @click="delRow(index)"> 移除 </a-button> </div>
                     </template>
@@ -237,6 +248,7 @@ const theme = reactive({
     themeOne: [],
     themeTwo: [],
 });
+const currentIndex = ref(0);
 const generateModalEl = useTemplateRef('generateModalRef'); // 批量生成弹窗
 const stockModalEl = useTemplateRef('stockModalRef'); // 批量库存弹窗
 const priceModalEl = useTemplateRef('priceModalRef');
@@ -315,6 +327,17 @@ const columns = computed(() => {
         ] : []
     };
 
+    const postPricesColoumns = () => {
+        return checkState.checkedList.length ? [
+            {
+                title: '不含邮价格',
+                dataIndex: 'postPrices',
+                align: 'center',
+            },
+        ] : []
+    };
+
+
     const themeColumns = selectTheme.value.map((item) => {
         return {
             title: item.label,
@@ -372,6 +395,9 @@ const columns = computed(() => {
                         dataIndex: 'price',
                         align: 'center',
                     },
+
+                    ...postPricesColoumns(),
+
                     {
                         title: '促销价',
                         dataIndex: 'specialPrice',
@@ -568,7 +594,8 @@ const success = (formData) => {
     })
 };
 
-const settingPrice = (record) => {
+const settingPrice = (record, index) => {
+    currentIndex.value = index;
     editPriceModalEl.value.open({ record: record, checkedList: checkState.checkedList });
 };
 
@@ -715,33 +742,45 @@ const editPriceSuccess = (evt) => {
     const thSite = evt.find((item) => item.enSite === 'TH') // 泰国
     const sgSite = evt.find((item) => item.enSite === 'SG') // 新加坡
     const vnSite = evt.find((item) => item.enSite === 'VN') // 越南
-    tableData.value.forEach((item) => {
-        item.my_retail_price = mySite?.retailPrice ?? undefined;// 销售价 
-        item.my_sales_price = mySite?.salesPrice ?? undefined; // 促销价
+    tableData.value[currentIndex.value].price = defaultSite.retailPrice;
+    tableData.value[currentIndex.value].specialPrice = defaultSite.salesPrice;
+    if (checkState.checkedList.length > 0) {
+        tableData.value[currentIndex.value].postPrices = evt.postPrices;
+    }
 
-        if (checkState.checkedList.includes('ID')) {
+    tableData.value.forEach((item, index) => {
+        if (currentIndex.value === index) {
+            item.my_retail_price = mySite?.retailPrice ?? undefined;// 销售价 
+            item.my_sales_price = mySite?.salesPrice ?? undefined; // 促销价
+        };
+
+        if (checkState.checkedList.includes('ID') && (currentIndex.value === index)) {
             item.id_retail_price = idSite?.retailPrice ?? undefined;// 销售价 
             item.id_sales_price = idSite?.salesPrice ?? undefined; // 促销价
         };
-        if (checkState.checkedList.includes('PH')) {
+        if (checkState.checkedList.includes('PH') && (currentIndex.value === index)) {
             item.ph_retail_price = phSite?.retailPrice ?? undefined;// 销售价 
             item.ph_sales_price = phSite?.salesPrice ?? undefined; // 促销价
         };
-        if (checkState.checkedList.includes('TH')) {
+        if (checkState.checkedList.includes('TH') && (currentIndex.value === index)) {
             item.th_retail_price = phSite?.retailPrice ?? undefined;// 销售价 
             item.th_sales_price = phSite?.salesPrice ?? undefined; // 促销价
         }
 
-        if (checkState.checkedList.includes('SG')) {
+        if (checkState.checkedList.includes('SG') && (currentIndex.value === index)) {
             item.sg_retail_price = sgSite?.retailPrice ?? undefined;// 销售价 
             item.sg_sales_price = sgSite?.salesPrice ?? undefined; // 促销价
         }
-        if (checkState.checkedList.includes('VN')) {
+        if (checkState.checkedList.includes('VN') && (currentIndex.value === index)) {
             item.vn_retail_price = vnSite?.retailPrice ?? undefined;// 销售价 
             item.vn_sales_price = vnSite?.salesPrice ?? undefined; // 促销价
         }
-    })
+        // if (checkState.checkedList.length && (currentIndex.value === index)) {
+        //     // item.postPrices = vnSite?.retailPrice ?? undefined;// 销售价 
+        // }
+    });
 };
+
 const batchPackage = () => {
     packageModalEl.value.open();
 };
@@ -801,6 +840,17 @@ const validateForm = () => {
                     return false;
                 };
             }
+
+            if (checkState.checkedList.length) {
+                if (!item.postPrices) {
+                    message.warning(`第${index + 1}行不含邮价格不能为空`);
+                    document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    reject(false);
+                    emits('valid', false);
+                    return false;
+                };
+            }
+
             if (weightRequired.value && !item.packageWeight) {
                 message.warning(`第${index + 1}行重量不能为空`);
                 document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -848,7 +898,6 @@ onMounted(() => {
             } else if (item.Images) {
                 images = item.Images
             }
-            console.log('images', images);
             if (!Array.isArray(images)) {
                 images = images.image
             }

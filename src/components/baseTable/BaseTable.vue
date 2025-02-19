@@ -32,7 +32,8 @@
                         <slot v-if="column.headerCell" name="headerCell" :column="column"></slot>
                     </template>
                     <template #bodyCell="{ column, record, index }">
-                        <template v-if="column.slot && !['leftBar', 'rightBar'].includes(column.slot)">
+                        <template
+                            v-if="column.slot && !['leftBar', 'rightBar', 'bodyCell', 'expandedRowRender'].includes(column.slot)">
                             <slot :name="column.slot" :record="record" :index="index"></slot>
                         </template>
                     </template>

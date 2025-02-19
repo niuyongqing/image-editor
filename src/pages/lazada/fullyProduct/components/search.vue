@@ -76,7 +76,6 @@
                             </template>
                             <QuestionCircleOutlined />
                         </a-tooltip>
-
                     </div>
                 </a-form-item>
             </a-form>
@@ -158,9 +157,7 @@ const formState = reactive({
     itemId: ''
 });
 
-const searchParams = reactive({
-
-})
+const searchParams = reactive({})
 // 显示高级搜索
 const showAdvanceSearch = () => {
     visible.value = !visible.value;
@@ -202,6 +199,8 @@ function getParams() {
         publishType: formState.publishType,
         prop: formState.sortType, // 排序字段
         order: formState.sort, // 排序方式
+        "country": searchParams.country,//站点
+        "primaryCategoryId": searchParams.primaryCategoryId && searchParams.primaryCategoryId.length > 0 ? searchParams.primaryCategoryId[searchParams.primaryCategoryId.length - 1] : '',//分类id
         minPrice: searchParams.minPrice, //  //起始价格
         maxPrice: searchParams.maxPrice, //结束价格
         minSpecialPrice: searchParams.minSpecialPrice, //  //起始特价
@@ -215,9 +214,6 @@ function getParams() {
         "updateAfter": searchParams.updateAfter,//修改开始时间
         "updateBefore": searchParams.updateBefore, //修改结束时间
         hasRemark: searchParams.hasRemark, //是否备注
-        "country": searchParams.country,//站点
-        "primaryCategoryId": searchParams.primaryCategoryId && searchParams.primaryCategoryId.length > 0 ? searchParams.primaryCategoryId[searchParams.primaryCategoryId.length - 1] : '',//分类id
-
     };
     return params;
 };

@@ -14,7 +14,7 @@
                     </template>
                 </a-checkbox-group>
             </div>
-            {{ tableData }} --- {{ theme.themeOne }} -- {{ lazadaAttrsState.selectTheme[0].name }}
+            <!-- {{ tableData }} -->
             <a-table :columns="columns" :data-source="tableData" bordered :pagination="false" id="tableId">
                 <template #headerCell="{ title, column }">
                     <template v-if="column.dataIndex === 'sellerSKU'">
@@ -73,7 +73,7 @@
                             <template #title>
                                 <span>点击设置各个站点价格</span>
                             </template>
-                            <a-button type="primary" @click="settingPrice(record)" style="margin-left: 10px;">
+                            <a-button type="primary" @click="settingPrice(record, index)" style="margin-left: 10px;">
                                 <SettingOutlined />
                             </a-button>
                         </a-tooltip>
@@ -86,7 +86,7 @@
                             <template #title>
                                 <span>点击设置各个站点价格</span>
                             </template>
-                            <a-button type="primary" @click="settingPrice(record)" style="margin-left: 10px;">
+                            <a-button type="primary" @click="settingPrice(record, index)" style="margin-left: 10px;">
                                 <SettingOutlined />
                             </a-button>
                         </a-tooltip>
@@ -100,7 +100,8 @@
                                 <template #title>
                                     <span>点击设置各个站点价格</span>
                                 </template>
-                                <a-button type="primary" @click="settingPrice(record)" style="margin-left: 10px;">
+                                <a-button type="primary" @click="settingPrice(record, index)"
+                                    style="margin-left: 10px;">
                                     <SettingOutlined />
                                 </a-button>
                             </a-tooltip>
@@ -205,9 +206,9 @@ const theme = reactive({
     themeOne: [],
     themeTwo: [],
 });
-const themeOne = ref('');// 主题一
-const themeTwo = ref(''); // 主题二
-
+// const themeOne = ref('');// 主题一
+// const themeTwo = ref(''); // 主题二
+const currentIndex = ref(0);
 const generateModalEl = useTemplateRef('generateModalRef'); // 批量生成弹窗
 const stockModalEl = useTemplateRef('stockModalRef'); // 批量库存弹窗
 const priceModalEl = useTemplateRef('priceModalRef');
@@ -479,11 +480,14 @@ const batchPrice = (evt) => {
     priceModalEl.value.open()
 };
 
-const settingPrice = (record) => {
-    themeOne.value = record[lazadaAttrsState.selectTheme[0].name];
-    if (lazadaAttrsState.selectTheme.length === 2) {
-        themeTwo.value = record[lazadaAttrsState.selectTheme[1].name];
-    }
+
+const settingPrice = (record, index) => {
+    console.log('index', index);
+    // themeOne.value = record[lazadaAttrsState.selectTheme[0].name];
+    // if (lazadaAttrsState.selectTheme.length === 2) {
+    //     themeTwo.value = record[lazadaAttrsState.selectTheme[1].name];
+    // }
+    currentIndex.value = index;
     editPriceModalEl.value.open({ record: record, checkedList: checkState.checkedList });
 };
 
@@ -520,7 +524,6 @@ const batchSpecialPrice = () => {
 };
 const specialPriceSuccess = (evt) => {
     const setRuleNum = evt.setRuleNum ?? 0;
-
     tableData.value.forEach((item) => {
         if (evt.radio === 1) {
             item.specialPrice = evt.setNum;
@@ -601,7 +604,6 @@ const packageSuccess = (evt) => {
 };
 // 修改价格
 const editPriceSuccess = (evt) => {
-    console.log('evt', evt);
     // my-site
     const defaultSite = evt.find((item) => item.enSite === 'default') // 默认
     const mySite = evt.find((item) => item.enSite === 'MY') // 马来
@@ -610,42 +612,43 @@ const editPriceSuccess = (evt) => {
     const thSite = evt.find((item) => item.enSite === 'TH') // 泰国
     const sgSite = evt.find((item) => item.enSite === 'SG') // 新加坡
     const vnSite = evt.find((item) => item.enSite === 'VN') // 越南
-    console.log('defaultSite', defaultSite);
-    tableData.value[0].price = defaultSite.retailPrice;
-    tableData.value[0].specialPrice = defaultSite.salesPrice;
+    tableData.value[currentIndex.value].price = defaultSite.retailPrice;
+    tableData.value[currentIndex.value].specialPrice = defaultSite.salesPrice;
+    if (checkState.checkedList.length > 0) {
+        tableData.value[currentIndex.value].postPrices = evt.postPrices;
+    }
+
     tableData.value.forEach((item, index) => {
+        if (currentIndex.value === index) {
+            item.my_retail_price = mySite?.retailPrice ?? undefined;// 销售价 
+            item.my_sales_price = mySite?.salesPrice ?? undefined; // 促销价
+        };
 
-        item.my_retail_price = mySite?.retailPrice ?? undefined;// 销售价 
-        item.my_sales_price = mySite?.salesPrice ?? undefined; // 促销价
-
-        if (checkState.checkedList.includes('ID') && lazadaAttrsState.selectTheme[0].name) {
+        if (checkState.checkedList.includes('ID') && (currentIndex.value === index)) {
             item.id_retail_price = idSite?.retailPrice ?? undefined;// 销售价 
             item.id_sales_price = idSite?.salesPrice ?? undefined; // 促销价
         };
-        if (checkState.checkedList.includes('PH')) {
+        if (checkState.checkedList.includes('PH') && (currentIndex.value === index)) {
             item.ph_retail_price = phSite?.retailPrice ?? undefined;// 销售价 
             item.ph_sales_price = phSite?.salesPrice ?? undefined; // 促销价
         };
-        if (checkState.checkedList.includes('TH')) {
+        if (checkState.checkedList.includes('TH') && (currentIndex.value === index)) {
             item.th_retail_price = phSite?.retailPrice ?? undefined;// 销售价 
             item.th_sales_price = phSite?.salesPrice ?? undefined; // 促销价
         }
 
-        if (checkState.checkedList.includes('SG')) {
+        if (checkState.checkedList.includes('SG') && (currentIndex.value === index)) {
             item.sg_retail_price = sgSite?.retailPrice ?? undefined;// 销售价 
             item.sg_sales_price = sgSite?.salesPrice ?? undefined; // 促销价
         }
-        if (checkState.checkedList.includes('VN')) {
+        if (checkState.checkedList.includes('VN') && (currentIndex.value === index)) {
             item.vn_retail_price = vnSite?.retailPrice ?? undefined;// 销售价 
             item.vn_sales_price = vnSite?.salesPrice ?? undefined; // 促销价
         }
-        if (checkState.checkedList.length) {
-            item.postPrices = vnSite?.retailPrice ?? undefined;// 销售价 
-        }
+        // if (checkState.checkedList.length && (currentIndex.value === index)) {
+        //     // item.postPrices = vnSite?.retailPrice ?? undefined;// 销售价 
+        // }
     });
-
-    console.log('tableData.value', tableData.value);
-
 };
 
 // 移除SKU

@@ -146,7 +146,7 @@ const submit = () => {
     };
     if (checkedList.length > 0) {
         const dataFilter = data.value.filter((item, index) => {
-            return index !== 0
+            return [0, 1].includes(index)
         });
         // dataFilter中 站点价格、站点促销价和站点不含邮价格需同时填写或不填！
         let error = [];

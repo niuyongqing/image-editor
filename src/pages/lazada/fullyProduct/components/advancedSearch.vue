@@ -3,15 +3,14 @@
     <div class="p-2" v-if="visible">
         <a-form :label-col="{ style: { width: '140px' } }" labelAlign="right">
             <a-form-item label="站点:">
-                <a-select v-model:value="state.cuntry" placeholder="请选择站点" style="width: 352px" :options="siteOptions"
+                <a-select v-model:value="state.country" placeholder="请选择站点" style="width: 352px" :options="siteOptions"
                     @change="changeSite" allowClear>
                 </a-select>
             </a-form-item>
             <a-form-item label="产品分类:">
                 <a-cascader :showSearch="showSearchConfig" class="flex w-full justify-start" style="width: 352px"
                     v-model:value="state.primaryCategoryId" :options="primaryCategoryOptions" placeholder="请先选择站点"
-                    allowClear :fieldNames="{ label: 'name2', value: 'categoryId', children: 'children' }"
-                    @change="changePrimaryCategory">
+                    allowClear :fieldNames="{ label: 'name2', value: 'categoryId', children: 'children' }">
                     <template #notFoundContent>
                         <div v-if="primaryCategoryOptions.length === 0">
                             暂无数据
@@ -40,40 +39,26 @@
                     @change="change"></a-input-number>
             </a-form-item>
 
-            <a-form-item>
-                <template #label>
-                    <a-select v-model:value="type" style="width: 170px" @change="handleSelect">
-                        <a-select-option :value="1">库存</a-select-option>
-                        <a-select-option :value="2">变种最小库存</a-select-option>
-                    </a-select>
-                </template>
+            <a-form-item label="库存:">
                 <a-input-number v-model:value="minValue" placeholder="" style="width: 170px"
                     @change="changeMinValue"></a-input-number>
                 -
                 <a-input-number v-model:value="maxValue" placeholder="" style="width: 170px"
                     @change="changeMaxValue"></a-input-number>
             </a-form-item>
-            <!-- 
-            <a-form-item label="预售:">
-                <a-select @change="change" v-model:value="state.classify" placeholder="请先选择站点" style="width: 352px"
-                    allowClear>
-                    <a-select-option value="1">已开启预售</a-select-option>
-                    <a-select-option value="2">未开启预售</a-select-option>
-                </a-select>
-            </a-form-item> -->
 
             <a-form-item label="备注:">
-                <a-select v-model:value="state.stockType" allowClear @change="change">
-                    <a-select-option value="1">有备注</a-select-option>
-                    <a-select-option value="2">无备注</a-select-option>
+                <a-select v-model:value="state.hasRemark" allowClear @change="change">
+                    <a-select-option :value="true">有备注</a-select-option>
+                    <a-select-option :value="false">无备注</a-select-option>
                 </a-select>
             </a-form-item>
 
-            <a-form-item label="六合一发布:">
-                <a-select v-model:value="state.stockType" allowClear @change="change">
+            <!-- <a-form-item label="六合一发布:">
+                <a-select v-model:value="state.hasRemark" allowClear @change="change">
                     <a-select-option value="1">六合一发布异常（无产品id）</a-select-option>
                 </a-select>
-            </a-form-item>
+            </a-form-item> -->
 
             <a-form-item>
                 <template #label>
@@ -120,8 +105,8 @@ const maxValue = ref(undefined);
 const dateType = ref('updateTime');
 const date = ref([]);
 const { state, reset } = useResetReactive({
-    cuntry: undefined,
-    classify: undefined,
+    country: undefined,
+    primaryCategoryId: undefined,
     minSpecialPrice: undefined,
     maxSpecialPrice: undefined,
     minInventoryQuantity: undefined,
@@ -132,9 +117,10 @@ const { state, reset } = useResetReactive({
     createBefore: undefined,
     updateAfter: undefined,
     updateBefore: undefined,
+    hasRemark: undefined,
 });
 
-const emits = defineEmits(['submit']);
+const emits = defineEmits(['submit', 'change']);
 
 const siteOptions = [
     {
@@ -204,18 +190,23 @@ const getParams = () => {
         updateBefore: state.updateBefore,
         createAfter: state.createAfter,
         createBefore: state.createBefore,
+        hasRemark: state.hasRemark,
     };
     return params;
 };
 
 const changeSite = (value) => {
+    state.primaryCategoryId = undefined;
+    primaryCategoryOptions.value = [];
     const findItem = shortCodes.find((item) => {
         return item.country === value
     })
-    if (!findItem) return;
+    if (!findItem) {
+        state.primaryCategoryId = undefined;
+        primaryCategoryOptions.value = [];
+    };
     lazadaCategoryTree({ shortCode: findItem.shortCode }).then((categoryTreeRes) => {
         if (categoryTreeRes.code === 200) {
-            // primaryCategoryLoading.value = false;
             const data = categoryTreeRes.data || [];
             function treeToArr(arr) {
                 arr.forEach(item => {
@@ -273,19 +264,20 @@ const changeDateType = () => {
 };
 const changeDate = (value) => {
     if (dateType.value === 'updateTime') {
-        state.updateAfter = date.value[0].format('YYYY-MM-DD HH:mm:ss');
-        state.updateBefore = date.value[1].format('YYYY-MM-DD HH:mm:ss');;
+        state.updateAfter = date.value[0].format('YYYY-MM-DD 00:00:00');
+        state.updateBefore = date.value[1].format('YYYY-MM-DD 23:59:59');;
         state.createAfter = undefined;
         state.createBefore = undefined;
     } else {
-        state.createAfter = date.value[0].format('YYYY-MM-DD HH:mm:ss');;
-        state.createBefore = date.value[1].format('YYYY-MM-DD HH:mm:ss');;
+        state.createAfter = date.value[0].format('YYYY-MM-DD 00:00:00');;
+        state.createBefore = date.value[1].format('YYYY-MM-DD 23:59:59');;
         state.updateAfter = undefined;
         state.updateBefore = undefined;
     };
     change()
 };
 const search = () => {
-    emits('submit');
+    const params = getParams()
+    emits('submit', params);
 };
 </script>

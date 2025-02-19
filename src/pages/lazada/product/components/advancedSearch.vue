@@ -39,26 +39,13 @@
                     @change="change"></a-input-number>
             </a-form-item>
 
-            <a-form-item>
-                <template #label>
-                    <a-select v-model:value="type" style="width: 170px" @change="handleSelect">
-                        <a-select-optio :value="1">库存</a-select-optio>
-                    </a-select>
-                </template>
+            <a-form-item label="库存:">
                 <a-input-number v-model:value="minValue" placeholder="" style="width: 170px"
                     @change="changeMinValue"></a-input-number>
                 -
                 <a-input-number v-model:value="maxValue" placeholder="" style="width: 170px"
                     @change="changeMaxValue"></a-input-number>
             </a-form-item>
-            <!-- 
-            <a-form-item label="预售:">
-                <a-select @change="change" v-model:value="state.classify" placeholder="请先选择站点" style="width: 352px"
-                    allowClear>
-                    <a-select-option value="1">已开启预售</a-select-option>
-                    <a-select-option value="2">未开启预售</a-select-option>
-                </a-select>
-            </a-form-item> -->
 
             <a-form-item label="备注:">
                 <a-select v-model:value="state.hasRemark" allowClear @change="change">
@@ -278,12 +265,12 @@ const changeDateType = () => {
 const changeDate = (value) => {
     if (dateType.value === 'updateTime') {
         state.updateAfter = date.value[0].format('YYYY-MM-DD 00:00:00');
-        state.updateBefore = date.value[1].format('YYYY-MM-DD 23:59:59');;
+        state.updateBefore = date.value[1].format('YYYY-MM-DD 23:59:59');
         state.createAfter = undefined;
         state.createBefore = undefined;
     } else {
-        state.createAfter = date.value[0].format('YYYY-MM-DD 00:00:00');;
-        state.createBefore = date.value[1].format('YYYY-MM-DD 23:59:59');;
+        state.createAfter = date.value[0].format('YYYY-MM-DD 00:00:00');
+        state.createBefore = date.value[1].format('YYYY-MM-DD 23:59:59');
         state.updateAfter = undefined;
         state.updateBefore = undefined;
     };
