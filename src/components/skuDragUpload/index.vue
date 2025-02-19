@@ -1,6 +1,5 @@
 <template>
     <div w-full>
-
         <div flex justify-end items-center mt-15px v-if="showRightTool">
             <a-dropdown>
                 <a-button type="link" link style="width: 90px; height: 31px;">
@@ -32,10 +31,6 @@
                     </a-menu>
                 </template>
             </a-dropdown>
-            <!-- <a-button type="link" link style="height: 31px; margin-left: 10px;" @click="downloadAllImages">
-                <DownloadOutlined />
-                导出全部图片
-            </a-button> -->
         </div>
 
         <div>
@@ -44,7 +39,7 @@
         <!-- SKU 图片上传可拖拽 -->
         <div flex justify-between w-full>
             <a-upload name="file" :customRequest="customRequest" :before-upload="beforeUpload" :headers="headers"
-                :accept="getProps.accept" :action="getProps.actionUrl" :showUploadList="false">
+                :accept="getProps.accept" :action="getProps.actionUrl" :showUploadList="false" :disabled="disabled">
                 <a-button type="primary" v-if="fileList.length <= getProps.maxCount" style="width: 90px; height: 31px;">
                     <UploadOutlined></UploadOutlined>
                     选择图片
@@ -63,17 +58,19 @@
 
 
         <div flex flex-wrap mt-10px>
-            <draggable v-if="fileList.length > 0" v-model="fileList" @end="handleDragEnd" tag="div" class="flex">
+            <draggable v-if="fileList.length > 0" v-model="fileList" @end="handleDragEnd" tag="div" class="flex"
+                item-key="url">
                 <template #item="{ element }">
                     <a-card ml-10px p-0px rounded-none class="file-card" hoverable>
                         <div :key="element.uid">
                             <div class="file-item">
-                                <div v-if="element.loading" w-120px h-120px flex items-center justify-center>
+                                <div v-if="element.loading" w-160px h-160px flex items-center justify-center>
                                     <loading-outlined></loading-outlined>
                                 </div>
                                 <div v-else class="file-img">
                                     <img :src="element.url" alt="" class="file-img"
-                                        @load="handleImageLoad(element, $event)" @click="handlePreview(element)" />
+                                        @load="handleImageLoad(element, $event)" @click="handlePreview(element)"
+                                        :key="element.key" />
                                     <div class="image-mask"> {{ element.height }} X {{ element.width }} </div>
                                 </div>
                             </div>
@@ -117,6 +114,10 @@ import BacthSkuEditImg from './bacthSkuEditImg.vue';
 import { message } from "ant-design-vue";
 import { scaleApi, watermarkApi } from '@/api/common/water-mark.js';
 const props = defineProps({
+    disabled: {
+        type: Boolean,
+        default: false
+    },
     //  水印列表
     waterList: {
         type: Array,
@@ -228,7 +229,8 @@ const handleImageLoad = (el, event) => {
         const img = event.target;
         el.width = img ? img.naturalWidth : '';
         el.height = img ? img.naturalHeight : '';
-    })
+        el.key = 1;
+    });
 };
 // 导出全部图片
 const downloadAllImages = () => {
@@ -283,8 +285,8 @@ const watermark = async (item) => {
 }
 
 .custom-upload .ant-upload {
-    width: 120px;
-    height: 120px;
+    width: 160px;
+    height: 160px;
     margin: 0 auto;
 }
 
@@ -294,8 +296,8 @@ const watermark = async (item) => {
 }
 
 .file-img {
-    width: 120px;
-    height: 120px;
+    width: 160px;
+    height: 160px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -318,7 +320,7 @@ const watermark = async (item) => {
 }
 
 :deep(.ant-card-body) {
-    width: 120px;
+    width: 160px;
 }
 
 .delete-icon,
@@ -339,7 +341,7 @@ const watermark = async (item) => {
     position: absolute;
     bottom: 0px;
     left: 0;
-    width: 120px;
+    width: 160px;
     height: 20px;
     background-color: rgba(0, 0, 0, .2);
     display: flex;
@@ -350,8 +352,8 @@ const watermark = async (item) => {
 }
 
 .empty-img {
-    width: 120px;
-    height: 120px;
+    width: 160px;
+    height: 160px;
     display: flex;
     align-items: center;
     justify-content: center;

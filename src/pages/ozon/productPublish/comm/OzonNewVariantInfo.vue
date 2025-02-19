@@ -452,7 +452,6 @@ const processDataFormat = (list = []) => {
 // 手动添加多个变种主题
 const enterVariantType = (item) => {
     let arr = [];
-    console.log('item', item);
     if (isConform.value && item.id === 10096) {
         arr = [
             { ...item },
@@ -498,7 +497,6 @@ const removeVariantType = (item, index) => {
 }
 // 添加多个属性操作
 const addItem = (item, row) => {
-    console.log('item', item);
     let ele = {}
     if (isConform.value && item.id === 10096) {
         ele = {

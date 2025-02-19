@@ -13,7 +13,7 @@
                     <a-button type="default" @click="close" style="width: 90px; height: 31px;"> 关闭 </a-button>
                     <a-dropdown>
                         <a-button type="primary" link style="width: 90px; height: 31px;">
-                            普通水印
+                            创建产品
                             <DownOutlined />
                         </a-button>
                         <template #overlay>
@@ -46,6 +46,7 @@ const register = (methods) => {
 // 打开
 const open = () => {
     modalMethods.value.openModal();
+
 };
 // 关闭
 const close = () => {
@@ -63,7 +64,6 @@ const createProduct = () => {
 const createProductKeep = () => {
     modalMethods.value.closeModal();
 };
-
 const submit = () => {
 
 }

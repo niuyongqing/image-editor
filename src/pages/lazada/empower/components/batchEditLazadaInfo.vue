@@ -110,6 +110,7 @@ const register = (methods) => {
 };
 const handleClose = () => {
     fileList.value = [];
+    modalMethods.value.closeModal()
 };
 
 const open = (shortCode) => {

@@ -1,6 +1,5 @@
 <template>
     <div class="mt-10px">
-        <!-- 图片信息 -->
         <a-card :bordered="true" style="margin: 0 auto; border-radius: 0px">
             <template #title>
                 <div text-left @click="tab"> 图片信息 </div>
@@ -66,7 +65,9 @@
                                         <p> 封面图 </p>
                                     </a-button>
                                     <div v-else class="videoImgIcon">
-                                        <a-image :width="120" :src="form.video.img" />
+                                        <div class="video-image">
+                                            <a-image :width="120" :src="form.video.img" />
+                                        </div>
                                         <div flex justify-end class="del-icon" @click="videoImgDelete">
                                             <DeleteOutlined>
                                             </DeleteOutlined>
@@ -99,7 +100,6 @@
                                     <a-input v-model:value="form.video.title"></a-input>
                                 </a-form-item>
                             </div>
-
                         </div>
                     </div>
                 </a-form-item>
@@ -118,7 +118,6 @@
                     <source :src="form.video.url" type="video/mp4">
                 </video>
             </div>
-
         </a-modal>
     </div>
 </template>
@@ -134,7 +133,7 @@ import DragUpload from '@/components/dragUpload/index.vue';
 import { saveAs } from 'file-saver';
 import { useLazadaWaitPublish } from "@/stores/lazadaWaitPublish";
 
-const { waterList, detailData } = defineProps({
+const { waterList, detailData, isHalfway } = defineProps({
     waterList: {
         type: Array,
         default: () => []
@@ -142,6 +141,10 @@ const { waterList, detailData } = defineProps({
     detailData: {
         type: Object,
         default: () => ({})
+    },
+    isHalfway: {
+        type: Boolean,
+        default: false
     }
 })
 
@@ -158,21 +161,33 @@ const form = reactive({
     fileList: [],
     video: {
         url: '',
+        videoId: undefined, // 视频id
         img: '', // 视频封面
         title: '' // 视频标题
     },
     // 营销图
-    promotionWhite: [
-
-    ]
+    promotionWhite: []
 });
 
 //  编辑回显
 watch(() => {
     return detailData
 }, async (newVal) => {
-    const images = newVal.images ? JSON.parse(newVal.images) : {};
-    const imageList = images.image ? images.image : [];
+    let imageList = [];
+    const imgParse = JSON.parse(newVal.images);
+    if (Array.isArray(imgParse.image)) {
+        imageList = imgParse.image
+    } else {
+        const imgs = imgParse.image;
+        if (typeof imgs === 'string') {
+            const imgs2 = JSON.parse(imgParse.image);
+            imageList = imgs2;
+        } else {
+            imageList = imgs.Image;
+        }
+    };
+    console.log('imageList ->>>>>>>>>', imageList);
+
     // 产品图片
     form.fileList = imageList.map(item => {
         return {
@@ -182,7 +197,7 @@ watch(() => {
         }
     });
     // 营销图
-    form.promotionWhite = newVal.attributes.promotion_whitebkg_image ? [
+    form.promotionWhite = newVal.attributes.promotion_whitebkg_image && newVal.attributes.promotion_whitebkg_image.length > 0 ? [
         {
             url: newVal.attributes.promotion_whitebkg_image,
             uid: newVal.attributes.promotion_whitebkg_image,
@@ -274,6 +289,7 @@ const customRequestImg = (options) => {
     videoImageUpload(formData, options.headers).then(res => {
         if (res.code === 200) {
             form.video.img = res.url;
+            form.video.videoId = res.videoId; // 视频id
             videoImageFile.value = [{
                 url: res.url,
                 name: res.originalFilename
@@ -312,6 +328,7 @@ const customRequestVideo = (options) => {
 // 删除视频
 const videoDelete = (file) => {
     form.video.url = '';
+    form.video.videoId = undefined;
 };
 
 const handleCancel = () => {
@@ -339,8 +356,8 @@ const videoPreview = () => {
 
 //   导出全部图片
 const downloadIamge = () => {
-    const blob = new Blob(['Hello, world!'], { type: 'image/png' });
-    saveAs(blob, 'hello.txt');
+    // const blob = new Blob(['Hello, world!'], { type: 'image/png' });
+    // saveAs(blob, 'hello.txt');
 };
 
 // 校验
@@ -348,12 +365,15 @@ const validateForm = async () => {
     return new Promise((resolve, reject) => {
         formEl.value.validate().then(() => {
             resolve(true);
+            emits('valid', true)
         }).catch(() => {
             document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             reject(false);
+            emits('valid', false)
         })
     })
 };
+
 //  产品资料库回显
 watch(() => lazadaAttrsState.product, (newValue) => {
     if (newValue && JSON.stringify(newValue) !== '{}') {
@@ -373,16 +393,19 @@ watch(() => lazadaAttrsState.product, (newValue) => {
             }
         });
     }
+}, {
+    immediate: true,
+    deep: true
 });
 
 onMounted(() => {
     EventBus.on('shortCodeEmit', (code) => {
-        console.log('接受到的shortCode22 -->>', code);
         shortCode.value = code;
         apiParams.value = { shortCode: code }
     });
 });
 
+const emits = defineEmits(['valid']);
 defineExpose({
     form,
     validateForm
@@ -395,7 +418,7 @@ defineExpose({
 }
 
 .empty-img {
-    width: 120px;
+    width: 130px;
     height: 120px;
     background-color: white;
     border: 1px solid #cccccc;
@@ -408,14 +431,22 @@ defineExpose({
 }
 
 .videoImgIcon {
-    width: 120px;
+    width: 130px;
     height: 140px;
     border: 1px solid #cccccc;
     border-radius: 5px;
 
+    .video-image {
+        width: 100%;
+        height: 120px;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+    }
+
     img {
         width: 100%;
-        height: 115px;
     }
 
     .del-icon {

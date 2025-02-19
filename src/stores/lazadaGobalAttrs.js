@@ -19,6 +19,7 @@ export const useLazadaGobalAttrs = defineStore("lazadaGobalAttrs", () => {
     loading: false, // 加载状态
     product: {}, // 选择资料库产品信息
     productSkus: [], // 选中资料库中产品sku列表
+    ventures: [], // 同步发布到其他站点
   });
   const setShortCode = (shortCode = "") => {
     state.shortCode = shortCode;
@@ -97,9 +98,9 @@ export const useLazadaGobalAttrs = defineStore("lazadaGobalAttrs", () => {
         if (attr.name === key) {
           // 多选数据转为数组
           if (attr.input_type.includes("multi")) {
-            attr.value = obj[key] ? obj[key].split(",") : [];
+            attr.value = attributes[key] ? attributes[key].split(",") : [];
           } else {
-            attr.value = obj[key];
+            attr.value = attributes[key];
           }
         }
       }
@@ -112,6 +113,10 @@ export const useLazadaGobalAttrs = defineStore("lazadaGobalAttrs", () => {
 
   const setProductSkus = (productSkus = []) => {
     state.productSkus = productSkus;
+  };
+
+  const setVentures = (ventures = []) => {
+    state.ventures = ventures;
   };
 
   // 重置
@@ -130,6 +135,7 @@ export const useLazadaGobalAttrs = defineStore("lazadaGobalAttrs", () => {
     state.loading = false;
     state.product = {};
     state.productSkus = [];
+    state.ventures = [];
   };
   return {
     state,
@@ -142,5 +148,6 @@ export const useLazadaGobalAttrs = defineStore("lazadaGobalAttrs", () => {
     setProduct,
     reset,
     setProductSkus,
+    setVentures,
   };
 });

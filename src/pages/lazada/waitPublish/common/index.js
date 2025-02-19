@@ -15,8 +15,6 @@ export function findParentAndMerge(deptId, list) {
       return false; // 没有找到目标部门
     })(department.children);
   });
-
-  console.log("parentId", parentId);
   if (parentId) {
     return [parentId, deptId];
   } else {
@@ -91,6 +89,38 @@ export function unique(key, list) {
   let uni3 = Array.from(uni2.values());
   return uni3;
 }
-
-//  获取水印
-export function getWatermarkList() {}
+export const colors = [
+  {
+    id: 1,
+    color: "#009926",
+  },
+  {
+    id: 2,
+    color: "#F00",
+    name: "红色",
+  },
+  {
+    id: 3,
+    color: "#0005FD",
+  },
+  {
+    id: 4,
+    color: "#FF5800",
+  },
+  {
+    id: 5,
+    color: "#8E0075",
+  },
+  {
+    id: 6,
+    color: "#FF6666",
+  },
+  {
+    id: 7,
+    color: "#FFCAC5",
+  },
+  {
+    id: 8,
+    color: "#00D0FF",
+  },
+];

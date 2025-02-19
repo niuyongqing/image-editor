@@ -19,10 +19,11 @@
           </a-radio-group>
         </a-form-item>
       </a-form>
-
       <full-discount v-if="formData.Type === 'fullDiscount'" ref="discountConfigRef"></full-discount>
-      <sample-giveaway v-if="formData.Type === 'sampleGiveaway'" ref="discountConfigRef"></sample-giveaway>
-      <combo-discount v-if="formData.Type === 'comboDiscount'" ref="discountConfigRef"></combo-discount>
+      <sample-giveaway v-if="formData.Type === 'sampleGiveaway'" ref="discountConfigRef"
+        :shortCode="shortCode"></sample-giveaway>
+      <combo-discount v-if="formData.Type === 'comboDiscount'" ref="discountConfigRef"
+        :shortCode="shortCode"></combo-discount>
       <fixed-price v-if="formData.Type === 'fixedPrice'" ref="discountConfigRef"></fixed-price>
     </a-card>
   </div>
@@ -35,6 +36,13 @@ import sampleGiveaway from './discountConfig/sampleGiveaway.vue';
 import comboDiscount from './discountConfig/comboDiscount.vue';
 import fixedPrice from './discountConfig/fixedPrice.vue';
 
+defineProps({
+  shortCode: {
+    type: String,
+    default: ''
+  }
+})
+
 const { state: formData, reset } = useResetReactive({
   Type: 'fullDiscount',
   discountData: {},
@@ -44,22 +52,22 @@ const { state: formData, reset } = useResetReactive({
 const discountConfigEl = useTemplateRef('discountConfigRef')
 
 const getDiscountConfigData = () => {
-  formData.value.discountData = discountConfigEl.value.formData;
-  formData.value.fullDiscountArr = discountConfigEl.value.fullDiscountArr;
+  formData.discountData = discountConfigEl.value.formData;
+  formData.fullDiscountArr = discountConfigEl.value.fullDiscountArr;
 };
 
 const getSampleGiveawayData = () => {
-  formData.value.discountData = discountConfigEl.value.formData;
-  formData.value.fullDiscountArr = discountConfigEl.value.steepness;
+  formData.discountData = discountConfigEl.value.formData;
+  formData.fullDiscountArr = discountConfigEl.value.steepness;
 };
 
 const getComboDiscountData = () => {
-  formData.value.discountData = discountConfigEl.value.formData;
-  formData.value.fullDiscountArr = discountConfigEl.value.steepness;
+  formData.discountData = discountConfigEl.value.formData;
+  formData.fullDiscountArr = discountConfigEl.value.steepness;
 };
 
 const getFixedPriceData = () => {
-  formData.value.discountData = discountConfigEl.value.formData;
+  formData.discountData = discountConfigEl.value.formData;
 };
 
 const changeType = (type) => {
@@ -70,6 +78,18 @@ const changeType = (type) => {
   }
 };
 
-</script>
+const clear = () => {
+  discountConfigEl.value.clearValidate()
+};
 
-<style lang="scss" scoped></style>
+defineExpose({
+  formData,
+  reset,
+  clear,
+  getDiscountConfigData,
+  getSampleGiveawayData,
+  getFixedPriceData,
+  getComboDiscountData,
+})
+
+</script>

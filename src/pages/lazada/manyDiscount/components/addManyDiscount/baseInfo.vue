@@ -14,7 +14,6 @@
                 <a-form-item label="活动名称：" name="name">
                     <a-input v-model:value="formData.name" allowClear placeholder="请输入活动名称" style="width: 50%" />
                 </a-form-item>
-
                 <a-form-item label="生效时间：" name="time">
                     <a-range-picker style="width: 50%" v-model:value="formData.time" showTime
                         format="YYYY-MM-DD HH:mm:ss" allowClear />
@@ -39,23 +38,21 @@ const rules = ref({
 
 const baseValidate = async () => {
     const validatePromise = (formRef) =>
-        new Promise((resolve) => {
-            formRef.validate((valid) => {
-                if (!valid) {
-                    resolve(false); // 校验失败
-                } else {
-                    resolve(true); // 校验成功
-                }
-            });
+        new Promise(async (resolve) => {
+            const res = await formRef.validate();
+            resolve(res)
         });
-    return await validatePromise(this.$refs.formData);
+    return await validatePromise(formEl.value);
 };
+
+const clearValid = () => {
+    formEl.value.resetFields();
+}
 
 defineExpose({
     formData,
     baseValidate,
+    clearValid,
 });
 
 </script>
-
-<style lang="scss" scoped></style>

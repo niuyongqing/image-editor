@@ -1,8 +1,8 @@
 <template>
     <div>
-        <Search :account="account" @search="handleSearch"></Search>
+        <Search :account="account" @search="handleSearch" :shortCode="searchParams.shortCode" />
         <BaseTable ref="baseTableRef" :columns="columns" :api="lazadaFlexicomboList" :immediate="false"
-            :init-search-param="initSearchParam">
+            :init-search-param="initSearchParam" :row-selection="rowSelection" row-key="id">
             <template #leftBar>
                 <a-space>
                     <a-button type="primary" @click="handleAdd">
@@ -29,17 +29,18 @@
                 <a-tag v-if="record.status == 'NOT_START'" color="blue">未开始</a-tag>
                 <a-tag v-if="record.status == 'ONGOING'" color="green">进行中</a-tag>
                 <a-tag v-if="record.status == 'SUSPEND'" color="red">暂停</a-tag>
-                <a-tag v-if="rorecordw.status == 'FINISH'" color="orange">已过期</a-tag>
+                <a-tag v-if="record.status == 'FINISH'" color="orange">已过期</a-tag>
             </template>
             <template #apply="{ record }">
-                <div v-if="record.apply === 'ENTIRE_SHOP'">全店商品</div>
+                <div v-if="record.apply === 'ENTIRE_STORE'">全店商品</div>
                 <div v-if="record.apply === 'SPECIFIC_PRODUCTS'">部分商品</div>
             </template>
             <template #syncTime="{ record }">
                 <div>{{ Timedata(parseFloat(record.syncTime) * 1000) }}</div>
             </template>
         </BaseTable>
-        <AddManyDiscount ref="addManyDiscountRef"></AddManyDiscount>
+        <AddManyDiscount :shortCode="searchParams.shortCode" ref="addManyDiscountRef" @success="reload">
+        </AddManyDiscount>
     </div>
 </template>
 
@@ -58,6 +59,7 @@ import Search from './components/search.vue';
 import { Timedata } from '~@/pages/lazada/manyDiscount/common/util.js';
 import { useTableSelection } from '@/components/baseTable/useTableSelection';
 import AddManyDiscount from './components/addManyDiscount/index.vue';
+import { message } from 'ant-design-vue';
 
 const { singleDisabled, multipleDisabled, rowSelection, selectedRowKeys, tableRow, clearSelection } = useTableSelection();
 const shortCode = ref('');
@@ -67,39 +69,37 @@ const deactivateVoucherLoading = ref(false); //暂停loading
 const syncLazadaShopLoading = ref(false); // 同步loading
 const baseTableEl = useTemplateRef('baseTableRef');
 const addManyDiscountEl = useTemplateRef('addManyDiscountRef');
-
+const searchParams = ref({}); //搜索条件
 const initSearchParam = {
     prop: 'create_time',
     order: 'desc'
 };
 // 查询
 const handleSearch = async (state) => {
+    searchParams.value = state;
     await baseTableEl.value.search(state);
 };
 
 const reload = async (state) => {
     await baseTableEl.value.reload();
+    clearSelection();
 };
 
 const handleAdd = () => {
     addManyDiscountEl.value.open();
 };
 const activate = () => {
-    let activateVoucherList = []
-    selectedRowKeys.forEach((item) => {
-        activateVoucherList.push(item.id)
-    })
     let data = {
-        shortCode: this.shortCode,
-        flexiComboId: activateVoucherList.join()
+        shortCode: searchParams.value.shortCode,
+        ids: selectedRowKeys.value.join()
     }
     activateLoading.value = true
     flexiComboActivateVoucher(data).then(res => {
         if (res.code === 200) {
-            message.success(res.message)
+            message.success(res.msg)
         }
         else {
-            message.error(res.message)
+            message.error(res.msg)
         }
     }).finally(() => {
         activateLoading.value = false
@@ -107,21 +107,17 @@ const activate = () => {
     })
 };
 const deactivateVoucher = () => {
-    let activateVoucherList = []
-    selectedRowKeys.forEach((item) => {
-        activateVoucherList.push(item.id)
-    })
     let data = {
-        shortCode: this.shortCode,
-        flexiComboId: activateVoucherList.join()
+        shortCode: searchParams.value.shortCode,
+        ids: selectedRowKeys.value.join()
     }
     deactivateVoucherLoading.value = true
     flexiComboDeactivateVoucher(data).then(res => {
         if (res.code === 200) {
-            message.success(res.message)
+            message.success(res.msg)
         }
         else {
-            message.error(res.message)
+            message.error(res.msg)
         }
     }).finally(() => {
         deactivateVoucherLoading.value = false
@@ -131,14 +127,14 @@ const deactivateVoucher = () => {
 const syncLazadaShopVoucher = () => {
     syncLazadaShopLoading.value = true
     let data = {
-        shortCode: shortCode.value
+        shortCode: searchParams.value.shortCode
     }
     syncLazadaShopFlexiVoucher(data).then(res => {
         if (res.code === 200) {
-            message.success(res.message)
+            message.success(res.msg)
         }
         else {
-            message.error(res.message)
+            message.error(res.msg)
         }
     }).finally(() => {
         syncLazadaShopLoading.value = false
@@ -154,11 +150,6 @@ onMounted(async () => {
             codes.push(...accountCacheRes.data.accountDetail[resKey])
         };
         account.value = codes;
-        shortCode.value = codes[0].shortCode;
     };
 });
-
-
 </script>
-
-<style scoped></style>

@@ -16,6 +16,23 @@ export const columns = [
   },
 
   {
+    title: "是否全球商品",
+    dataIndex: "global",
+    key: "global",
+    slot: "global",
+    width: 150,
+    align: "center",
+  },
+
+  {
+    title: "状态",
+    dataIndex: "status",
+    key: "status",
+    slot: "status",
+    width: 150,
+    align: "center",
+  },
+  {
     title: "SKU",
     dataIndex: "skus",
     key: "skus",
@@ -27,6 +44,7 @@ export const columns = [
     dataIndex: "price",
     key: "price",
     slot: "price",
+    width: 200,
   },
 
   {
@@ -34,6 +52,7 @@ export const columns = [
     dataIndex: "special_price",
     key: "special_price",
     slot: "special_price",
+    width: 200,
   },
   // {
   //   title: "不含邮价格",
@@ -45,13 +64,14 @@ export const columns = [
     dataIndex: "quantity",
     key: "quantity",
     slot: "quantity",
+    width: 200,
   },
   {
     title: "时间",
     dataIndex: "date",
     key: "date",
     slot: "date",
-    width: 200,
+    width: 300,
   },
   {
     title: "操作",
