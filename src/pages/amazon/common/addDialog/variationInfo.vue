@@ -300,6 +300,34 @@
         </template>
       </template>
     </a-table>
+    <div class="image-box">
+      <div class="image-item-content" v-for="item in formState.tableData" :key="item.rowId">
+        <div class="item-title">
+          <div class="title-text">
+            变种属性：
+            <span 
+              v-for="head in variationHeaders"
+              :key="head.key"
+              style="margin-right: 20px;"
+            >{{ head.title }}：{{ item[head.key].value }}</span>
+          </div>
+          <div class="title-btn">
+            <a-button type="primary">全选</a-button>
+          </div>
+        </div>
+        <div class="item-box">
+          <div class="image-main">
+            <xzUploadImage
+              v-if="item.image.main.length < 1"
+              :options="imageOption.main"
+              v-model:fileList="item.image.main"
+            ></xzUploadImage>
+            <xzIamge v-else></xzIamge>
+          </div>
+          <div class="image-subsidiary"></div>
+        </div>
+      </div>
+    </div>
   </div>
   <!-- 弹窗组件 -->
   <component
@@ -321,6 +349,9 @@ import describeModal from './modal/describeModal.vue';
 import numberEditModal from './modal/numberEditModal.vue';
 import discountedTimeModal from './modal/discountedTimeModal.vue';
 import skuTitleModal from './modal/skuTitleModal.vue';
+
+import xzIamge from './common/xzIamge.vue';
+import xzUploadImage from './common/xzUploadImage.vue';
 defineOptions({ name: "variationInfo" })
 const { proxy: _this } = getCurrentInstance();
 const props = defineProps({
@@ -455,6 +486,14 @@ const headers = [ // 固定表头
     fixed: 'right',
   }
 ];
+console.log(import.meta.env.VITE_APP_BASE_API)
+const imageOption = {
+  main: {
+    url: import.meta.env.VITE_APP_BASE_API + '/platform-tiktok/platform/tiktok/global/file/upload/img',
+    max: 1,
+    type: 'main',
+  }
+}
 const modalInfo = reactive({        // 表头弹窗
   name: null,
   open: false,
@@ -695,6 +734,12 @@ function creatVariationInfo(e, val, variationItem) {
     if (!item.rowId) {
       item.rowId = 'sku_info_' + createRandom()
     }
+    if (!item.image) {
+      item.image = {
+        main: [],       // 主图
+        subsidiary: []  // 副图
+      }
+    }
   })
 }
 // 删除变种信息
@@ -791,6 +836,16 @@ defineExpose({
   width: 100%;
   .variation-table {
     width: 100%;
+  }
+  .image-box {
+    margin-top: 10px;
+    .image-item-content {
+      margin-bottom: 10px;
+      .item-title {
+        display: flex;
+        justify-content: space-between;
+      }
+    }
   }
 }
 ::v-deep(.ant-form-item-control-input-content) {

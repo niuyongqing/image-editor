@@ -660,7 +660,7 @@ const advancedForm = reactive({
     time: []
 })
 const dropCol = tableHead
-const tabList = tabDicList
+let tabList = tabDicList
 const discLists = attrList
 const advancedType = ref(false)
 const loading = ref(false)

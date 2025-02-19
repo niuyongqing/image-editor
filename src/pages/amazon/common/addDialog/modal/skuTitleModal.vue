@@ -325,10 +325,7 @@ function seniorFn() {
         return item[id].input
       })
       if (addStr.capital) {
-        console.log(22, newStr)
         newStr = newStr.replace(/\b\w/g, (char) => {
-          console.log({char});
-          
           return char.toUpperCase()
         })
       }

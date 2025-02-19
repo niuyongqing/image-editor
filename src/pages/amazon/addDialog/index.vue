@@ -10,31 +10,22 @@
     <a-spin :spinning="!!spinning">
       <productInfo
         v-if="formData.product.$id"
-        :key="formData.product.$_key"
         :schema-data="formData.product"
         v-model:modelForm="form.product"
-        @formMounted="formMounted"
-        @formValueChange="formValueChange"
         class="productInfoRef"
         ref="productInfoRef"
       ></productInfo>
       <descriptionInfo
         v-if="formData.description.$id"
-        :key="formData.description.$_key"
         :schema-data="formData.description"
         v-model:modelForm="form.description"
-        @formMounted="formMounted"
-        @formValueChange="formValueChange"
         ref="descriptionInfoRef"
       ></descriptionInfo>
       <!-- <imageInfo></imageInfo> -->
       <attributeInfo
         v-if="formData.attribute.$id"
-        :key="formData.attribute.$_key"
         :schema-data="formData.attribute"
         v-model:modelForm="form.attribute"
-        @formMounted="formMounted"
-        @formValueChange="formValueChange"
         class="attributeInfoRef"
         ref="attributeInfoRef"
       ></attributeInfo>
@@ -44,11 +35,8 @@
       ></variationInfo>
       <offerInfo
         v-if="formData.offer.$id"
-        :key="formData.offer.$_key"
         :schema-data="formData.offer"
         v-model:modelForm="form.offer"
-        @formMounted="formMounted"
-        @formValueChange="formValueChange"
         class="AmazonOfferInfoRef"
         ref="offerInfoRef"
       ></offerInfo>
@@ -82,7 +70,7 @@ import offerInfo from '@/pages/amazon/common/addDialog/offerInfo.vue'
 import '@/assets/library/jsonScheam_v3_ant/style/baseForm.css'
 
 // import scheam from './TrainSets - 副本.json'
-import TrainSets from './TrainSets.json'
+import TrainSets from './NETTING_COVER.json'
 import { ref, reactive, onMounted, computed, watchPostEffect, getCurrentInstance, nextTick } from 'vue'
 import { getJsonUrl, validateJson } from '@/pages/amazon/js/api/activeProduct'
 import axios from "axios";
@@ -261,7 +249,7 @@ function formValueChange(type) {
   
   if (!spinning.value && spinning.value !== 0) {
     // console.log({_this});
-    attributeChangeValidate(type);
+    // attributeChangeValidate(type);
   }
 }
 // form加载完成触发
@@ -409,8 +397,8 @@ async function selectedProductType(val) {
   formData.attribute = {}
   formData.offer = {}
   variationThemeFn()
-  // await validateJsonFn()
-  // spinning.value = false
+  await validateJsonFn()
+  spinning.value = false
 }
 // 找出变种主题
 function variationThemeFn() {

@@ -3,100 +3,69 @@
   <div class="title">
     <span>价格信息</span>
   </div>
-  <div class="content">
-    <VueForm
-      v-if="schemaData.$id"
-      v-model="form"
-      :schema="schemaData"
-      class="sechma-form"
-      :form-footer="{
-        show: false
-      }"
-      @form-mounted="formMounted"
-      @change="formChange"
-    ></VueForm>
+  <div class="content" style="overflow-y: auto; max-height: 500px;">
+    <sechmaForm 
+      :sechma="props.schemaData"
+      v-model:formState="form.formState"
+      ref="sechmaFormRef"
+    ></sechmaForm>
   </div>
 </div>
 </template>
 
 <script setup>
-import VueForm from '@/assets/library/jsonScheam_v3_ant/vue3-form-ant.esm.min.js';
+import sechmaForm from '@/pages/amazon/common/sechma/index.vue'
 import { ref, reactive, onMounted, computed, watchPostEffect, nextTick } from 'vue'
 defineOptions({
   name: "AmazonOfferInfo"
 })
+const { proxy: _this } = getCurrentInstance();
 const props = defineProps({
   // 属性数据
   schemaData: {
     type: Object,
     required: true,
-    default: () => {}
+    default: () => { }
   },
   modelForm: {
     type: Object,
     default: () => {}
   }
 });
+const form = reactive({
+  formState: {}
+})  // 表单
+onMounted(() => { })
 const emit = defineEmits(['update:modelForm', 'formMounted', 'formValueChange'])
-let form = ref({});             // 取值对象
-let schemaData = ref({});
-let formRef = ref(null);
-let isComplete = ref(false);     // 是否加载完成
-watchPostEffect(() => {
-  schemaData.value = props.schemaData;
-  isComplete.value = false;
-});
-// form加载完成触发
-function formMounted(ref, { formData }) {
-  formRef.value = ref;
-  
+// 更新表单值
+watch(() => form.formState, (val, oldVal) => {
   nextTick(() => {
-    setTimeout(() => {
-      isComplete.value = true;
-      emit('formMounted', 'offer');
-    }, 2000);
+    console.log(55);
+    emit('update:modelForm', val)
   })
-}
-let timeout = null
-function formChange() {
-  if (timeout) {
-    clearTimeout(timeout)
-  }
-  timeout = setTimeout(() => {
-    emit('update:modelForm', form.value)
-    nextTick(() => {
-      emit('formValueChange', 'offer')
-    })
-  }, 500);
-}
+}, {
+  deep: true,
+  // immediate: true
+})
+watch(props.modelForm, () => {
+  console.log('5555');
+  
+},{
+  deep: true,
+})
 // 校验，暴露数据
 async function save() {
   let obj = {
     result: false,
-    params: form.value
+    params: JSON.parse(JSON.stringify(form.formState))
   }
   try {
-    let res = await formRef.value.validateFields()
-    obj.result = true
-  } catch (error) {
-    console.log({error});
-    
-  }
+    obj.result = await _this.$refs.sechmaFormRef.resetFieldsFn()
+  } catch (error) {}
   return obj
 }
-// 更新值
-function updateForm(val) {
-  Object.keys(form.value).forEach(item => {
-    if (val[item]) {
-      form.value[item] = val[item]
-    }
-  })
-}
 defineExpose({
-  formRef,
   save,
-  isComplete,
-  updateForm
 })
 </script>
 <style lang="less" scoped>
