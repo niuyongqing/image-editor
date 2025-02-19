@@ -282,7 +282,7 @@ const handleExport = () => {
 .canvas-component {
   margin-top: 10px;
   padding: 10px;
-  border: 1px solid #00aaff;
+  /* border: 1px solid #00aaff; */
 }
 
 .titleAreas {
@@ -295,11 +295,11 @@ const handleExport = () => {
   margin-top: 20px;
 }
 
-/* .canvas-component.active {
-  border-color: #1890ff; */
-/* box-shadow: 0 0 8px rgba(24, 144, 255, 0.2);
-  
-} */
+.canvas-component.active {
+  /* border-color: #1890ff; 
+  box-shadow: 0 0 8px rgba(24, 144, 255, 0.2); */
+  border: 1px solid #00aaff;
+}
 
 .export-btn {
   position: fixed;
