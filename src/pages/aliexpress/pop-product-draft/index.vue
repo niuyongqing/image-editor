@@ -31,6 +31,7 @@
             />
             <a-button
               type="primary"
+              :loading="loading"
               @click="search"
               >搜索</a-button
             >
@@ -239,6 +240,7 @@
                 >
                 <a-button
                   type="primary"
+                  :loading="loading"
                   @click="search"
                   >搜索</a-button
                 >
@@ -404,13 +406,13 @@
             <a-button
               type="text"
               style="color: #0b56fa"
-              @click.stop="goPublish(record)"
+              @click="goPublish(record)"
               >编辑</a-button
             >
             <a-button
               type="text"
               style="color: #28f728"
-              @click.stop="publish(record)"
+              @click="publish(record)"
               >发布</a-button
             >
             <a-popconfirm
@@ -448,7 +450,7 @@
   import { copyText } from '@/utils'
   import { accountCacheApi, getAllFreightTemplateApi, getAllProductGroupsApi } from '../apis/common'
   import { addProductApi } from '../apis/product'
-  import { getProductDraftsListApi, getProductDraftsApi, deleteProductDraftsApi } from '../apis/pop-product-draft'
+  import { getProductDraftsListApi, deleteProductDraftsApi } from '../apis/pop-product-draft'
   import { CopyOutlined } from '@ant-design/icons-vue'
   import { message } from 'ant-design-vue'
   import EmptyImg from '@/assets/images/aliexpress/empty.png'
@@ -786,9 +788,8 @@
           this.batchPublishLoading = false
         })
       },
-      // FIXME:
       goPublish(record) {
-        const query = `?sellerId=${record.sellerId}&productId=${record.productId}`
+        const query = `?draftsId=${record.draftsId}`
         window.open(location.origin + '/platform/aliexpress/pop-product-publish' + query)
       },
       publish(record) {

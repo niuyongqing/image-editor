@@ -64,6 +64,11 @@ export function queryWarehouseCodeApi(params) {
   return usePost('/platform-aliexpress/platform/aliexpress/full-custodial/product/query-warehouse-code', params)
 }
 
+// 获取状态计数
+export function getStatusCountApi(params) {
+  return usePost('/platform-aliexpress/platform/aliexpress/full-custodial/product/getStatusCount', params)
+}
+
 // 获取全托管商家渠道信息
 export function queryChannelApi(sellerId) {
   return useGet(`/platform-aliexpress/platform/aliexpress/full-custodial/product/query-channel?sellerId=${sellerId}`)

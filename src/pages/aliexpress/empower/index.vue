@@ -1,6 +1,6 @@
 <!-- 店铺授权 -->
 <template>
-  <div class="empower">
+  <div class="empower text-left">
     <a-card>
       <a-form
         ref="searchFormRef"
@@ -29,44 +29,47 @@
         <a-form-item>
           <a-button
             type="primary"
+            :loading="loading"
             @click="search"
             >查询</a-button
           >
           <a-button
             class="ml-[10px]"
+            :loading="loading"
             @click="reset"
             >重置</a-button
           >
         </a-form-item>
       </a-form>
     </a-card>
-    <a-card class="m-2.5 text-left">
-      <a-space
-        v-has-permi="['system:platform:aliexpress:accredit']"
-        class="mb-2.5"
-      >
-        <a-button
-          type="primary"
-          @click="empower"
-          >授权</a-button
-        >
-        <a-button
-          type="primary"
-          @click="simpleNameModalOpen = true"
-          >批量修改简称</a-button
-        >
-        <a-button
-          type="primary"
-          @click="meansKeepGrainModalOpen = true"
-          >批量修改仓库</a-button
-        >
-        <a-button
-          type="primary"
-          @click="exportFile"
-          >导出</a-button
-        >
-      </a-space>
 
+    <a-space
+      v-has-permi="['system:platform:aliexpress:accredit']"
+      class="my-4"
+    >
+      <a-button
+        type="primary"
+        @click="empower"
+        >授权</a-button
+      >
+      <a-button
+        type="primary"
+        @click="simpleNameModalOpen = true"
+        >批量修改简称</a-button
+      >
+      <a-button
+        type="primary"
+        @click="meansKeepGrainModalOpen = true"
+        >批量修改仓库</a-button
+      >
+      <a-button
+        type="primary"
+        @click="exportFile"
+        >导出</a-button
+      >
+    </a-space>
+
+    <a-card>
       <a-table
         :data-source="tableData"
         :columns="DEFAULT_TABLE_COLUMN"
@@ -254,6 +257,29 @@
         </a-upload>
       </div>
     </a-modal>
+
+    <!-- 即将过期账号列表弹窗 -->
+    <a-modal
+      title="请及时给以下账号重新授权"
+      v-model:open="expireAccountModalOpen"
+      :footer="null"
+    >
+      <a-table
+        :columns="EXPIRE_TABLE_COLUMN"
+        :data-source="expireList"
+        :pagination="false"
+      >
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.title === '过期时间'">
+            <a-tag
+              :bordered="false"
+              :color="getExpireInfo(record.expireTime).color"
+              >{{ getExpireInfo(record.expireTime).text }}</a-tag
+            >
+          </template>
+        </template>
+      </a-table>
+    </a-modal>
   </div>
 </template>
 
@@ -300,7 +326,7 @@
   }
 
   onMounted(() => {
-    getList()
+    getList(true)
     getForbidSale()
   })
 
@@ -329,7 +355,7 @@
   const tableData = ref([])
   const total = ref(0)
   const loading = ref(false)
-  function getList() {
+  function getList(validateExpire = false) {
     loading.value = true
     const params = {
       ...searchForm.value,
@@ -343,6 +369,14 @@
         })
         tableData.value = list
         total.value = res.total
+
+        // 初次进入授权页面校验一下是否有即将过期的账号(有则弹窗提示)
+        if (validateExpire) {
+          expireList.value = list.filter(item => dayjs(item.expireTime).diff(dayjs(), 'day') < 15)
+          if (expireList.value.length) {
+            expireAccountModalOpen.value = true
+          }
+        }
       })
       .finally(() => {
         loading.value = false
@@ -373,7 +407,7 @@
       text = `剩余${dayDiff}天`
       if (dayDiff > 30) {
         color = 'green'
-      } else if (dayDiff <= 30 && dayDiff > 10) {
+      } else if (dayDiff <= 30 && dayDiff > 15) {
         color = 'lime'
       } else {
         color = 'warning'
@@ -538,4 +572,14 @@
       download.name(res.msg)
     })
   }
+
+  /** 过期提醒弹窗 */
+  const expireAccountModalOpen = ref(false)
+  const expireList = ref([])
+  const EXPIRE_TABLE_COLUMN = ref([
+    { title: '店铺ID', dataIndex: 'sellerId' },
+    { title: '过期时间', dataIndex: 'expireTime' },
+    { title: '账号', dataIndex: 'account' },
+    { title: '简称', dataIndex: 'simpleName' }
+  ])
 </script>

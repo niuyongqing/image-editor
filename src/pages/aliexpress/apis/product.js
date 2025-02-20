@@ -144,3 +144,8 @@ export function editProductDraftsApi(params) {
 export function popOneSubmitApi(params) {
   return usePost('/platform-aliexpress/platform/aliexpress/semiCustodial/product/popOneSubmit', params)
 }
+
+// 普通商品状态计数
+export function getStatusCountApi(params) {
+  return usePost('/platform-aliexpress/platform/aliexpress/general/product/getStatusCount', params)
+}

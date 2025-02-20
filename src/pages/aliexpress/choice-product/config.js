@@ -2,51 +2,38 @@
 export const DEFAULT_TABLE_COLUMN = [
   {
     title: '商品',
-    dataIndex: 'productId',
     key: 'productId',
     show: true,
     ellipsis: true,
-    width: 400
+    width: 350
   },
   {
     title: '备货类型',
-    dataIndex: 'productType',
     key: 'productType',
     show: true,
     width: 140
   },
   {
     title: 'SKU信息',
-    dataIndex: 'skus',
     key: 'skus',
     show: true,
-    width: 450,
-    minWidth: 450
+    width: 400,
+    minWidth: 400
   },
   {
     title: '状态',
-    dataIndex: 'productStatus',
     key: 'productStatus',
     show: true,
     width: 80
   },
   {
-    title: '创建时间',
-    dataIndex: 'create_time',
-    key: 'create_time',
+    title: '时间',
+    key: 'time',
     show: true,
-    width: 130
-  },
-  {
-    title: '编辑时间',
-    dataIndex: 'update_time',
-    key: 'update_time',
-    show: true,
-    width: 130
+    width: 160
   },
   {
     title: '操作',
-    dataIndex: 'option',
     key: 'option',
     show: true,
     width: 100
