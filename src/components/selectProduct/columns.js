@@ -7,7 +7,7 @@ export const columns = [
     align: "center",
     sorter: false,
     show: true,
-    width: 120,
+    width: 130,
   },
   {
     title: "主图",

@@ -7,6 +7,7 @@
             <BaseTable ref="baseTableRef" :columns="columns" :api="storeList" :init-search-param="initSearchParam"
                 :scroll="{ y: 'calc(100vh - 390px)', x: '3200px' }">
                 <template #action="{ record }">
+                    <a-button @click="handleDetail(record)" type="link">详情</a-button>
                     <a-button @click="handleSelect(record)" type="link">选中</a-button>
                 </template>
 
@@ -106,6 +107,8 @@
                 </template>
             </BaseTable>
         </div>
+
+        <DetailModal ref="detailModalRef"></DetailModal>
     </a-modal>
 </template>
 
@@ -121,9 +124,12 @@ import sheepProhibitionSelect from "@/utils/sheepProhibitionSelect";
 import sheepProhibition from "@/utils/sheepProhibition";
 import { useSelectProduct } from './useSelectProduct';
 import devAttributableMarketRevert from "@/utils/devAttributableMarketRevert";
+import DetailModal from './detail/detailModal.vue';
+
 const { userInfo, forbidSaleList } = useSelectProduct();
 const initSearchParam = { order: "", prop: "" };
 const baseTablEl = useTemplateRef('baseTableRef');
+const detailModalEl = useTemplateRef('detailModalRef');
 const emits = defineEmits(['select']);
 
 const visible = ref(false);
@@ -147,7 +153,6 @@ const handleSearch = (formData) => {
 function admin() {
     // return this.$auth.hasRole("admin");
     const super_admin = "admin";
-    // 获取 Pinia store 实例
     const userStore = useUserStore()
     const roles = userStore.roles
     if (roles && Array.isArray(roles) && roles.length > 0) {
@@ -161,6 +166,11 @@ function admin() {
     }
     return false
 };
+
+const handleDetail = (record) => {
+    detailModalEl.value.open(record);
+};
+
 
 const handleSelect = (record) => {
     emits('select', record);
@@ -181,7 +191,7 @@ const sortArrey = (e) => {
         e = ''
     }
     let spanD = e.split(',');
-    let oldSku = e.split(','); //原始错乱sku
+    let oldSku = e.split(',');
     let b = [] //去除所有带标签的
     oldSku.map(item => {
         b.push(item.replace(/<[^>]+>/g, ''))
@@ -340,14 +350,11 @@ const meansKeepGrainMap = (list) => {
         }
     });
     return tagList;
-}
+};
+
+
 
 defineExpose({ openModal });
-
-// 
-onMounted(() => {
-
-})
 
 </script>
 

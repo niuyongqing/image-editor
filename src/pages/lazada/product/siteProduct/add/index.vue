@@ -7,7 +7,7 @@
                         <div>
                             <a-breadcrumb separator=">">
                                 <a-breadcrumb-item>Lazada</a-breadcrumb-item>
-                                <a-breadcrumb-item>创建产品 {{ baseInfoValid }}</a-breadcrumb-item>
+                                <a-breadcrumb-item>创建产品 </a-breadcrumb-item>
                             </a-breadcrumb>
                         </div>
                     </div>

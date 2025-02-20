@@ -29,6 +29,22 @@ export const columns = [
     key: "forbidSale",
     slot: "forbidSale",
   },
+
+  {
+    title: "是否推送库存",
+    dataIndex: "isPushStock",
+    align: "center",
+    key: "isPushStock",
+    slot: "isPushStock",
+  },
+  {
+    title: "库存推送比例",
+    dataIndex: "stockPushRatio",
+    align: "center",
+    key: "stockPushRatio",
+    slot: "stockPushRatio",
+  },
+
   {
     title: "自动刊登",
     dataIndex: "autoPublish",
