@@ -12,8 +12,7 @@
                     </div>
                 </a-form-item>
                 <a-form-item label="JSON 丰富内容：" name="jsonDes">
-                    <span style="color: #ff0a37">说明：描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M</span>
-                    <jsonForm></jsonForm>
+                    <span style="color: #ff0a37">说明：保存发布后，手机端的图片及文字信息将跟PC端保持一致</span>
                 </a-form-item>
                 <a-form-item label="视频：">
                     <div>
@@ -26,8 +25,8 @@
                     <div class="flex mt-2.5">
                         <div>
                             封面视频：
-                            <a-upload v-if="!form.coverUrl" :maxCount="1" :action="uploadImageVideoUrl" accept=".mp4,.mov"
-                                list-type="picture-card" @change="handleChange" :data="{
+                            <a-upload v-if="!form.coverUrl" :maxCount="1" :action="uploadImageVideoUrl"
+                                accept=".mp4,.mov" list-type="picture-card" @change="handleChange" :data="{
                                     shortCode: shopCode
                                 }" :headers="headers" :showUploadList="false">
                                 <div>
@@ -87,8 +86,8 @@
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { message } from "ant-design-vue";
-import jsonForm from "~@/pages/ozon/config/component/json/index.vue"
 
+const showContent = ref(false);
 const ruleForm = ref(null)
 const props = defineProps({
     shopCode: String
@@ -193,4 +192,5 @@ defineExpose({
         align-items: center;
     }
 }
+
 </style>
