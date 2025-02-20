@@ -32,19 +32,21 @@
           @click="cloneWebDetail"
           >根据PC端描述生成</a-button
         >
-        <WangEditor
+        <MobileDetailEditor :mobile-detail="mobileDetail" :seller-id="store.sellerId" />
+        <!-- <WangEditor
           v-model="form.mobileDetail"
           ref="mobileDetailRef"
           :toolbar-config="toolbarConfig"
           :editor-config="editorConfig"
           :height="500"
-        />
+        /> -->
       </a-form-item>
     </a-form>
   </a-card>
 </template>
 
 <script>
+  import MobileDetailEditor from '@/components/mobile-detail-editor/index.vue'
   import { InfoCircleOutlined } from '@ant-design/icons-vue'
   import { useAliexpressPopProductStore } from '~@/stores/aliexpress-pop-product'
   import { uploadImageForSdkApi } from '../../apis/common'
@@ -52,7 +54,7 @@
 
   export default {
     name: 'Description',
-    components: { InfoCircleOutlined },
+    components: { MobileDetailEditor, InfoCircleOutlined },
     data() {
       const validWebDetail = (rule, val) => {
         if (!val.length) {
@@ -67,6 +69,7 @@
           webDetail: '',
           mobileDetail: ''
         },
+        mobileDetail: [],
         rules: {
           webDetail: { validator: validWebDetail, required: true, trigger: 'change' }
         },
@@ -120,6 +123,7 @@
               richTextData && (this.form.webDetail = richTextData.html.content)
             }
             if (mobileDetail) {
+              this.mobileDetail = mobileDetail.moduleList
               // 将移动端格式转为富文本格式
               let richTextData = ''
               mobileDetail.moduleList.forEach(item => {
@@ -154,6 +158,8 @@
     methods: {
       // 复制 PC 描述到 APP 描述
       cloneWebDetail() {
+        this.mobileDetail[0].texts[0].content = 'This is a text edited by Lynch on Earth.' + this.mobileDetail[0].texts[0].content
+        return
         if (!this.form.webDetail || this.form.webDetail === '<p><br></p>') {
           message.warning('PC端描述为空')
           return

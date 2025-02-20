@@ -458,6 +458,7 @@
   /** 导出 */
   function exportFile() {
     const params = {
+      // exportFileType: '1',
       sellerId: watchedSearchForm.value.sellerId,
       orderStatus: lazySearchForm.value.orderStatus,
       createDateStart: dayjs(lazySearchForm.value.createTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss'),

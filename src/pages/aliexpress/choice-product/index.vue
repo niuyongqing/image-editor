@@ -661,7 +661,24 @@
     methods: {
       // 获取状态计数
       getStatusCount() {
-        getStatusCountApi().then(res => {
+        const params = {
+          ...this.watchedSearchForm,
+          ...this.lazySearchForm,
+          [this.lazySearchForm.searchKey]: this.lazySearchForm.searchValue,
+          ...this.tableParams,
+          createAfter: this.lazySearchForm.createTime ? dayjs(this.lazySearchForm.createTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+          createBefore: this.lazySearchForm.createTime ? dayjs(this.lazySearchForm.createTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+          updateAfter: this.lazySearchForm.updateTime ? dayjs(this.lazySearchForm.updateTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+          updateBefore: this.lazySearchForm.updateTime ? dayjs(this.lazySearchForm.updateTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined
+        }
+        delete params.prop
+        delete params.order
+        delete params.createTime
+        delete params.updateTime
+        delete params.searchKey
+        delete params.searchValue
+
+        getStatusCountApi(params).then(res => {
           this.statusCountEnum = res.data || {}
         })
       },
@@ -741,6 +758,7 @@
       search() {
         this.tableParams.pageNum = 1
         this.getList()
+        this.getStatusCount()
       },
       reset() {
         this.$refs.searchFormRef.resetFields()

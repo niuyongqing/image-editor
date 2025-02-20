@@ -105,6 +105,7 @@ declare module 'vue' {
     Frame: typeof import('./../src/components/process-pictures/component/frame/index.vue')['default']
     Mark: typeof import('./../src/components/process-pictures/component/mark/index.vue')['default']
     Material: typeof import('./../src/components/process-pictures/component/material/index.vue')['default']
+    MobileDetailEditor: typeof import('./../src/components/mobile-detail-editor/index.vue')['default']
     PageContainer: typeof import('./../src/components/page-container/index.vue')['default']
     Painting: typeof import('./../src/components/process-pictures/component/painting/index.vue')['default']
     PlaneSpin: typeof import('./../src/components/base-loading/spin/plane-spin.vue')['default']
