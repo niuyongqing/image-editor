@@ -747,37 +747,31 @@ const editPriceSuccess = (evt) => {
     if (checkState.checkedList.length > 0) {
         tableData.value[currentIndex.value].postPrices = evt.postPrices;
     }
-
     tableData.value.forEach((item, index) => {
         if (currentIndex.value === index) {
             item.my_retail_price = mySite?.retailPrice ?? undefined;// 销售价 
             item.my_sales_price = mySite?.salesPrice ?? undefined; // 促销价
         };
-
         if (checkState.checkedList.includes('ID') && (currentIndex.value === index)) {
-            item.id_retail_price = idSite?.retailPrice ?? undefined;// 销售价 
-            item.id_sales_price = idSite?.salesPrice ?? undefined; // 促销价
+            item.id_retail_price = idSite?.retailPrice ?? undefined;
+            item.id_sales_price = idSite?.salesPrice ?? undefined;
         };
         if (checkState.checkedList.includes('PH') && (currentIndex.value === index)) {
-            item.ph_retail_price = phSite?.retailPrice ?? undefined;// 销售价 
-            item.ph_sales_price = phSite?.salesPrice ?? undefined; // 促销价
+            item.ph_retail_price = phSite?.retailPrice ?? undefined;
+            item.ph_sales_price = phSite?.salesPrice ?? undefined;
         };
         if (checkState.checkedList.includes('TH') && (currentIndex.value === index)) {
-            item.th_retail_price = phSite?.retailPrice ?? undefined;// 销售价 
-            item.th_sales_price = phSite?.salesPrice ?? undefined; // 促销价
+            item.th_retail_price = phSite?.retailPrice ?? undefined;
+            item.th_sales_price = phSite?.salesPrice ?? undefined;
         }
-
         if (checkState.checkedList.includes('SG') && (currentIndex.value === index)) {
-            item.sg_retail_price = sgSite?.retailPrice ?? undefined;// 销售价 
-            item.sg_sales_price = sgSite?.salesPrice ?? undefined; // 促销价
+            item.sg_retail_price = sgSite?.retailPrice ?? undefined;
+            item.sg_sales_price = sgSite?.salesPrice ?? undefined;
         }
         if (checkState.checkedList.includes('VN') && (currentIndex.value === index)) {
-            item.vn_retail_price = vnSite?.retailPrice ?? undefined;// 销售价 
-            item.vn_sales_price = vnSite?.salesPrice ?? undefined; // 促销价
+            item.vn_retail_price = vnSite?.retailPrice ?? undefined;
+            item.vn_sales_price = vnSite?.salesPrice ?? undefined;
         }
-        // if (checkState.checkedList.length && (currentIndex.value === index)) {
-        //     // item.postPrices = vnSite?.retailPrice ?? undefined;// 销售价 
-        // }
     });
 };
 

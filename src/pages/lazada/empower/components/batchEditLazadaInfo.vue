@@ -14,7 +14,7 @@
                     <template #description>
                         <span style="font-size: 15px; color: black;">
                             点击
-                            <span style="font-size: 15px; color: orange; cursor: pointer;"
+                            <span style="font-size: 15px; color: orange; cursor: pointer;text-decoration: underline;"
                                 @click="exportFile">导出文件</span>
                             进行导出
                         </span>
@@ -52,7 +52,8 @@ import { message } from 'ant-design-vue';
 import { Modal } from 'ant-design-vue';
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { CloudUploadOutlined } from '@ant-design/icons-vue';
-import { uploadBatchPasswordExcel } from '@/pages/lazada/empower/api';
+import { uploadBatchPasswordExcel, lazadaExport } from '@/pages/lazada/empower/api';
+import download from '~@/api/common/download';
 
 const columns = [{
     title: 'ShortCode',
@@ -137,6 +138,17 @@ const submitUpload = () => {
         loading.value = false;
     })
 };
+
+const exportFile = () => {
+    lazadaExport().then(res => {
+        message.success(res.msg);
+        download.name(res.msg);
+        // this.$message.success("执行下载成功，请等待文件下载完成！勿重复操作")
+        // this.$download.name(res.msg, true);
+    }).finally(() => {
+    })
+}
+
 defineExpose({
     open
 })

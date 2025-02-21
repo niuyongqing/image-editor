@@ -104,7 +104,6 @@
             </template>
 
             <template #isPushStock="{ record }">
-                <!--  -->
                 <a-switch v-model:checked="record.isPushStock" :checked-value="1" :un-checked-value="0"
                     @change="editStockPush(record)" />
             </template>
