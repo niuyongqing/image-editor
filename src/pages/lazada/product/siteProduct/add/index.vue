@@ -12,20 +12,10 @@
                         </div>
                     </div>
                     <div class="flex gap-12px">
-                        <a-dropdown>
-                            <a-button type="primary" style="width: 90px; height: 31px;"
-                                :disabled="lazadaAttrsState.primaryCategory.length ? false : true">
-                                引用产品
-                                <DownOutlined />
-                            </a-button>
-                            <template #overlay>
-                                <a-menu>
-                                    <a-menu-item @click="selectNowProduct">
-                                        引用现有产品
-                                    </a-menu-item>
-                                </a-menu>
-                            </template>
-                        </a-dropdown>
+                        <a-button type="primary" style="width: 120px; height: 31px;" @click="selectNowProduct"
+                            :disabled="lazadaAttrsState.primaryCategory.length ? false : true">
+                            引用资料库产品
+                        </a-button>
                         <a-button type="primary" style=" height: 32px;" @click="save" :loading="saveLoading">
                             保存
                         </a-button>
@@ -52,19 +42,10 @@
 
                 <div w-full flex justify-end mt-10px>
                     <div class="flex gap-12px">
-                        <a-dropdown>
-                            <a-button type="primary" style="width: 90px; height: 31px;">
-                                引用产品
-                                <DownOutlined />
-                            </a-button>
-                            <template #overlay>
-                                <a-menu>
-                                    <a-menu-item @click="selectNowProduct">
-                                        引用现有产品
-                                    </a-menu-item>
-                                </a-menu>
-                            </template>
-                        </a-dropdown>
+                        <a-button type="primary" style="width: 120px; height: 31px;" @click="selectNowProduct"
+                            :disabled="lazadaAttrsState.primaryCategory.length ? false : true">
+                            引用资料库产品
+                        </a-button>
                         <a-button type="primary" style="height: 32px;" @click="save" :loading="saveLoading">
                             保存
                         </a-button>
@@ -163,7 +144,7 @@ const variantImageValid = ref(true);
 
 const { state: lazadaAttrsState, setProduct } = useLadazaAttrs();
 const product = ref({});
-// 引用现有产品
+// 引用资料库产品
 const selectNowProduct = () => {
     selectProductEl.value.openModal();
 };

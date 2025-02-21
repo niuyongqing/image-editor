@@ -104,19 +104,16 @@
             </template>
 
             <template #isPushStock="{ record }">
-                <!-- @change="editStockPush(record)" -->
-                <a-switch v-model:checked="record.isPushStock" :checked-value="1" :un-checked-value="0" />
+                <!--  -->
+                <a-switch v-model:checked="record.isPushStock" :checked-value="1" :un-checked-value="0"
+                    @change="editStockPush(record)" />
             </template>
 
-            <template #stockPushRatio="{ record }">
-                <!-- @blur="editStockPush(record)"  -->
-                <a-input-number v-model:value="record.stockPushRatio" :precision="0" :min="1" :max="100"
-                    :controls="false" placeholder="1 ~ 100" :disabled="record.isPushStock !== '1'" />
+            <template #pushRatio="{ record }">
+                <a-input-number v-model:value="record.pushRatio" :precision="0" :min="1" :max="100" :controls="false"
+                    placeholder="1 ~ 100" :disabled="record.isPushStock !== 1" @blur="editStockPush(record)" />
                 <!-- <span v-else>{{ text || '--' }}</span> -->
             </template>
-
-
-
             <template #autoPublish="{ record }">
                 <div flex justify-center items-center>
                     <a-switch v-model:checked="record.autoPublish" :disabled="!accreditAuth" checked-value="1"
@@ -162,6 +159,7 @@ const accreditLoading = ref(false); // 授权按钮 loading
 const refreshLoading = ref(false); // 刷新按钮 loading
 const exportLoading = ref(false); // 导出按钮 loading
 
+const tabType = ref('');
 const forbidSaleOptions = ref([]); // 禁售属性
 const accountUserLsit = ref([]);
 const accountOptions = ref([]);
@@ -360,19 +358,18 @@ const autoPublishChange = (record) => {
 // 修改推送库存
 const editStockPush = (record) => {
     const params = {
-        account: record.account,
-        sellerId: record.userId,
+        "shortCode": record.shortCode,
         isPushStock: record.isPushStock,
-        stockPushRatio: record.stockPushRatio
+        pushRatio: record.pushRatio
     }
-    // editStockPushApi(params)
-    //     .then(res => {
-    //         message.success('修改成功')
-    //     })
-    //     .catch(err => {
-    //         message.warning(err)
-    //         getList()
-    //     })
+    updateShop(params)
+        .then(res => {
+            message.success('修改成功')
+        })
+        .catch(err => {
+            message.warning(err)
+            baseTableEl.value.reload()
+        })
 }
 
 
@@ -389,6 +386,7 @@ const lookLazadaInfo = async () => {
     }
 };
 const handleEdit = async () => {
+    tabType.value = 'bacthEdit';
     let loginCheckRes = await loginCheck();
     if (loginCheckRes.data === false) {
         erpValidModalEl.value.open();

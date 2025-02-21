@@ -51,6 +51,10 @@ const formList = computed(() => {
             componentProps: {
                 fieldNames: { label: "label", value: "value" },
                 options: area,
+                // onChange: (val) => {
+                //     console.log('value', val);
+                //     sessionStorage.setItem('lazadaCountry', val)
+                // },
             },
         },
     ];

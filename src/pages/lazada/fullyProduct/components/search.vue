@@ -127,7 +127,7 @@ const globalPlusList = [{
 const sortTypeList = [{
     label: '按创建时间',
     value: 'created_time',
-    sort: 'asc' // asc 升序； desc 降序
+    sort: 'desc' // asc 升序； desc 降序
 },
 {
     label: '按更新时间',

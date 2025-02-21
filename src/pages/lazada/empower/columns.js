@@ -39,10 +39,10 @@ export const columns = [
   },
   {
     title: "库存推送比例",
-    dataIndex: "stockPushRatio",
+    dataIndex: "pushRatio",
     align: "center",
-    key: "stockPushRatio",
-    slot: "stockPushRatio",
+    key: "pushRatio",
+    slot: "pushRatio",
   },
 
   {

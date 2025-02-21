@@ -132,7 +132,7 @@ const variantImageValid = ref(true);
 
 const { state: lazadaAttrsState, setProduct } = useLadazaAttrs();
 const product = ref({});
-// 引用现有产品
+// 引用资料库产品
 const selectNowProduct = () => {
     selectProductEl.value.openModal();
 };
