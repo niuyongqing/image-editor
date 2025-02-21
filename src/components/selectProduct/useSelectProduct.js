@@ -13,7 +13,6 @@ export const useSelectProduct = () => {
       if (res.code === 200) {
         const data = res.data || {};
         userInfo.value = data;
-        console.log("userInfo", userInfo.value);
       }
     });
   }

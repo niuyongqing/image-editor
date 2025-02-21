@@ -14,7 +14,6 @@ export function useCookieStorage(key, defaultValue, options = {}) {
 
     // 监听 cookieValue 的变化，并更新到 Cookie
     watch(cookieValue, (newValue) => {
-        console.log(newValue)
         setCookie(key, newValue, options);
     });
 
