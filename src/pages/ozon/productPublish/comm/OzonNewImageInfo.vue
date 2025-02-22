@@ -12,7 +12,10 @@
                     </div>
                 </a-form-item>
                 <a-form-item label="JSON 丰富内容：" name="jsonDes">
-                    <span style="color: #ff0a37">说明：保存发布后，手机端的图片及文字信息将跟PC端保持一致</span>
+                    <span style="color: #ff0a37;margin-bottom: 10px;display: block;">说明：保存发布后，手机端的图片及文字信息将跟PC端保持一致</span>
+                    <a-form-item-rest>
+                        <jsonForm></jsonForm>
+                    </a-form-item-rest>
                 </a-form-item>
                 <a-form-item label="视频：">
                     <div>
@@ -86,8 +89,8 @@
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { message } from "ant-design-vue";
+import jsonForm from "../../config/component/json/index.vue"
 
-const showContent = ref(false);
 const ruleForm = ref(null)
 const props = defineProps({
     shopCode: String
