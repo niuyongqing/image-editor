@@ -5,7 +5,7 @@
     <div class="preview">
       <div class="wrap">
         <div
-          v-for="(item, i) in moduleList"
+          v-for="(item, i) in mobileDetail"
           :key="i"
         >
           <div v-if="item.type === 'text'">
@@ -63,10 +63,10 @@
     >
       <div class="header">
         <a-space>
-          <a-button @click="show = false">关闭</a-button>
+          <a-button @click="handleClose">关闭</a-button>
           <a-button
             type="primary"
-            @click="show = false"
+            @click="save"
             >保存</a-button
           >
         </a-space>
@@ -462,6 +462,7 @@
       default: ''
     }
   })
+  const emits = defineEmits(['clear', 'mobileDetailEdit'])
 
   const show = ref(false)
   const moduleList = ref([])
@@ -487,7 +488,7 @@
     Modal.confirm({
       title: '确定清空吗？',
       onOk: () => {
-        moduleList.value = []
+        emits('clear')
       }
     })
   }
@@ -668,7 +669,7 @@
     activeModule.value = {}
     textDetail.value = cloneDeep(textDetailDefault)
   }
-  // 模块右侧的控制控制面板
+  // 模块右侧的控制面板
   function moduleUp() {
     const temp = { ...moduleList.value[activeModuleIndex.value] }
     moduleList.value[activeModuleIndex.value] = moduleList.value[activeModuleIndex.value - 1]
@@ -791,7 +792,17 @@
   function fillImgData(imgData, i) {
     activeModule.value.images[i].url = imgData[0].url
     if (imgData.length > 1) {
-      // 如果一次性上传多张图片, 自动在后面插入
+      // 如果一次性上传多张图片, 自动在后面替换/插入
+      const lengthDiff = imgData.length - 1 - (activeModule.value.images.length - (i + 1))
+      if (lengthDiff > 0) {
+        for (let index = 0; index < lengthDiff; index++) {
+          activeModule.value.images.push({ url: '', style: {} })
+        }
+      }
+      // 替换/插入
+      for (let index = 1; index < imgData.length; index++) {
+        activeModule.value.images[i + index].url = imgData[index].url
+      }
     }
   }
   function switchImgData(imgData, i) {
@@ -821,6 +832,42 @@
       },
       noMargin: true
     })
+  }
+
+  /** 顶端按钮操作; 关闭, 保存等 */
+  // 点击关闭按钮
+  function handleClose() {
+    Modal.confirm({
+      title: '确定关闭吗吗？',
+      onOk: () => {
+        close()
+      }
+    })
+  }
+  // 真正的关闭操作
+  function close() {
+    moduleList.value = []
+    activeModule.value = {}
+    activeModuleIndex.value = 0
+    show.value = false
+  }
+  function save() {
+    // 将 moduleList 数据转为速卖通接收的格式
+    const res = []
+    moduleList.value.forEach(item => {
+      const obj = { ...item }
+      if (obj.type === 'image') {
+        obj.images.forEach(imageItem => {
+          imageItem.style.hasMargin = !obj.noMargin
+        })
+        delete obj.id
+        delete obj.noMargin
+      }
+
+      res.push(obj)
+    })
+    console.log('res', res)
+    // close()
   }
 </script>
 
@@ -987,7 +1034,7 @@
           }
 
           .module-empty {
-            height: 330px;
+            height: 314px;
             background: url('@/assets/images/common/module-empty.png') center no-repeat;
           }
         }
