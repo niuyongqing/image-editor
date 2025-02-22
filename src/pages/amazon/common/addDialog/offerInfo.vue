@@ -7,6 +7,7 @@
     <sechmaForm 
       :sechma="props.schemaData"
       v-model:formState="form.formState"
+      @proactivelyChange="emit('formValueChange', 'offer')"
       ref="sechmaFormRef"
     ></sechmaForm>
   </div>
@@ -39,10 +40,12 @@ onMounted(() => { })
 const emit = defineEmits(['update:modelForm', 'formMounted', 'formValueChange'])
 // 更新表单值
 watch(() => form.formState, (val, oldVal) => {
-  nextTick(() => {
-    console.log(55);
-    emit('update:modelForm', val)
-  })
+  // nextTick(() => {
+  //   console.log(55);
+  //   emit('update:modelForm', val)
+  // })
+  console.log(55);
+  emit('update:modelForm', val)
 }, {
   deep: true,
   // immediate: true

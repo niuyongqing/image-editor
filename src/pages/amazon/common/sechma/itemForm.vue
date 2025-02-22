@@ -36,15 +36,27 @@
     >
       <div class="item-content" v-if="['inputNumber'].includes(item.itemType)">
         <!-- 数字输入框 -->
-        <a-input-number v-model:value="itemData.formState[item._key]" :min="item.minimum ? item.minimum:0" :max="item.maximum ? item.maximum:99999999" />
+        <a-input-number 
+          v-model:value="itemData.formState[item._key]" 
+          :min="item.minimum ? item.minimum:0" 
+          :max="item.maximum ? item.maximum:99999999" 
+          @blur="proactivelyChange"
+        />
       </div>
       <div class="item-content" v-if="['input'].includes(item.itemType)">
         <!-- 文字输入框 -->
-        <a-input v-model:value="itemData.formState[item._key]"></a-input>
+        <a-input 
+          v-model:value="itemData.formState[item._key]"
+          @blur="proactivelyChange"
+        />
       </div>
       <div class="item-content" v-if="['date'].includes(item.itemType)">
         <!-- 日期 -->
-        <a-date-picker valueFormat="YYYY-MM-DD" v-model:value="itemData.formState[item._key]" />
+        <a-date-picker 
+          valueFormat="YYYY-MM-DD" 
+          v-model:value="itemData.formState[item._key]"
+          @openChange="val => val ? '' : proactivelyChange()" 
+        />
       </div>
       <div class="item-content" v-if="['checkbox'].includes(item.itemType)">
         <!-- 多选框 -->
@@ -57,6 +69,7 @@
               :value="i.val"
               v-for="i in item.valueList"
               :key="i.val"
+              @focus="proactivelyChange"
             >{{ i.label }}</a-checkbox>
           </a-checkbox-group>
         </div>
@@ -74,6 +87,7 @@
             <a-radio 
               :value="i.val"
               :key="i.label"
+              @focus="proactivelyChange"
               v-for="i in item.valueList"
             >{{ i.label }}</a-radio>
           </a-radio-group>
@@ -93,6 +107,7 @@
             <a-radio 
               :value="i.val"
               :key="i.label"
+              @focus="proactivelyChange"
               v-for="i in item.valueList"
             >{{ i.label }}</a-radio>
           </a-radio-group>
@@ -107,6 +122,7 @@
             placeholder="Select a person"
             style="width: 200px"
             :filter-option="filterOption"
+            @select="proactivelyChange"
           >
             <a-select-option 
               :value="i.val"
@@ -123,7 +139,7 @@
 
 <script setup>
 import itemForm from '@/pages/amazon/common/sechma/itemForm.vue'
-import { ref, reactive, onMounted, computed, watch, watchPostEffect, getCurrentInstance } from 'vue'
+import { ref, reactive, onMounted, computed, watch, watchPostEffect, getCurrentInstance, inject } from 'vue'
 defineOptions({
   name: "itemForm"
 })
@@ -151,9 +167,7 @@ const itemData = reactive({
   data: [],       // 当前渲染数据
   addValue: '',
   formState: {},
-  // sechmaDefs: {}
 })
-const sechmaDefs = inject('sechmaDefs');
 onBeforeMount(() => { })
 watch(() => props.children, (val) => {
   let data = JSON.parse(JSON.stringify(props.children))
@@ -322,9 +336,19 @@ function addValItem(val) {
   }
   itemData.addValue = ''
   _this.$refs.formRef.clearValidate(val._key)
+  proactivelyChange()
 }
 const filterOption = (input, option) => {
   return option.value.indexOf(input) >= 0;
+}
+// 获取最顶层值变化的处理方法
+const valueChange = inject('valueChange')
+// 主动变更值
+function proactivelyChange(val) {
+  // nextTick(() => valueChange())
+  setTimeout(() => {
+    valueChange(val)
+  }, 50);
 }
 // 向外界暴露参数
 function itemParams(val) {

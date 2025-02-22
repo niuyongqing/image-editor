@@ -34,9 +34,9 @@
 // import TrainSets from './TrainSets.json'
 // import sechmaData from './TrainSets - 副本.json'
 import itemForm from './itemForm.vue'
-import { ref, onMounted, computed, watchPostEffect } from 'vue'
+import { ref, onMounted, computed, watchPostEffect, provide } from 'vue';
 defineOptions({ name: "sechmaFormIndex" })
-const emit = defineEmits(['update:formState'])
+const emit = defineEmits(['update:formState', 'proactivelyChange'])
 const { proxy: _this } = getCurrentInstance();
 const props = defineProps({
   sechma: {
@@ -53,10 +53,9 @@ const sechmaData = reactive({
   form: {},       // 表单数据,
   sechmaDefs: {}
 })
-provide('sechmaDefs', sechmaData.sechmaDefs);
+provide('valueChange', valueChange)
 // 更新数据
 watch(() => props.sechma, (val, oldVal) => {
-  console.log(1111);
   nextTick(() => {
     sechmaData.sechmaDefs.marketplace_id = val.$defs.marketplace_id
     sechmaData.sechmaDefs.language_tag = val.$defs.language_tag
@@ -279,6 +278,12 @@ function merge(oldVal, newVal) {
       }
     }
   }
+}
+// 主动改变表单数据
+function valueChange(val) {
+  console.log('1321', val);
+  
+  emit('proactivelyChange')
 }
 // 校验全部必填项
 function validateFieldsFn() {

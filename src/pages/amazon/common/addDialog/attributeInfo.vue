@@ -7,6 +7,7 @@
     <sechmaForm 
       :sechma="props.schemaData"
       v-model:formState="form.formState"
+      @proactivelyChange="emit('formValueChange', 'attribute')"
       ref="sechmaFormRef"
     ></sechmaForm>
   </div>
