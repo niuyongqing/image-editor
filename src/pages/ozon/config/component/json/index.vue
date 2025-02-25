@@ -3,30 +3,14 @@
   <div class="mobile-detail-editor">
     <!-- 外显的部分 -->
     <div class="preview">
-      <div class="wrap">
-        <div v-for="(item, i) in moduleList" :key="i">
-          <div v-if="item.type === 'text'">
-            <div v-for="(text, i2) in item.texts" :key="i2">
-              <!-- 类型(class)分为 title 和 body, 但没有区别, 只是编辑时设置的默认样式不一样 -->
-              <div
-                :style="{ 'font-size': text.style.fontSize + 'px', 'font-weight': text.style.fontWeight, 'text-align': text.style.align, color: text.style.color }"
-                :innerText="text.content"></div>
-            </div>
-          </div>
-          <div v-else-if="item.type === 'image'">
-            <div v-for="(image, i2) in item.images" :key="i2">
-              <!-- 固定尺寸, 撑满 -->
-              <img :src="image.url" width="100%" :class="image.style.hasMargin ? 'mb-2' : ''" />
-            </div>
-          </div>
-          <div v-else-if="item.type === 'text-image'">图文</div>
-          <div v-else>暂不支持该类型: {{ item.type }}</div>
-        </div>
-      </div>
+      <pre class="wrap" style="overflow: hidden;height: 530px;" v-if="Object.keys(finallyObj).length > 0">
+        {{ finallyObj }}
+      </pre>
       <div class="mask">
+        <!-- :disabled="!shop" -->
         <a-button type="primary" size="large" class="mt-60 mb-4 w30" @click="show = true">编辑</a-button>
         <br />
-        <a-button size="large" class="w-30" @click="clear">清空</a-button>
+        <a-button size="large" class="w-30" :disabled="!shop" @click="clear">清空</a-button>
       </div>
     </div>
 
@@ -36,9 +20,9 @@
         <div></div>
         <div>富内容编辑</div>
         <a-space>
-          <a-button type="link">批量设置图片尺寸</a-button>
+          <a-button type="link" @click="showEdit = true">批量设置图片尺寸</a-button>
           <a-button @click="show = false">关闭</a-button>
-          <a-button type="primary" @click="show = false">保存</a-button>
+          <a-button type="primary" @click="save">保存</a-button>
         </a-space>
       </div>
       <!-- 版心 -->
@@ -48,7 +32,7 @@
           <div class="font-bold mb-2">添加模块</div>
           <div class="module">
             <div v-for="item in modules" :key="item.name" :data-name="item.name" class="module-item" draggable="true"
-              @dragstart="handleDragStart($event, item)" @dragend="dragends">
+              @dragstart="handleDragStart" @dragend="dragends">
               <div :class="['module-item-icon', item.name]"></div>
               <div>
                 <div>{{ item.text }}</div>
@@ -58,26 +42,19 @@
           <div class="font-bold mb-2">使用中的模块</div>
           <a-empty v-if="moduleList.length === 0" :image="simpleImage" />
           <Draggable v-else class="active-module" :list="moduleList" item-key="id" group="left" animation="200">
-            <template #item="{ element: item }">
-              <div v-if="item.type != 'tip'" :class="['active-module-item', activeId === item.id && 'active-bar']"
-                @click="turnActive(item.id)">
+            <template #item="{ element: item, index }">
+              <div :class="['active-module-item', activeId === item.id && 'active-bar']"
+                @click="selectModule(item, index)">
                 <div>
                   <HolderOutlined class="mx-2" />
                   <span>{{ TEXT_ENUM[item.type] }}</span>
                 </div>
                 <div class="optionBtn">
                   <a-space class="text-xl">
-                    <a-button type="text" title="上移" :disabled="moduleList.length === 0" @click="moduleUp">
-                      <ArrowUpOutlined />
-                    </a-button>
-                    <a-button type="text" title="下移" :disabled="activeModuleIndex === moduleList.length - 1"
-                      @click="moduleDown">
-                      <ArrowDownOutlined />
-                    </a-button>
-                    <a-button type="text" title="复制" @click="moduleCopy">
+                    <a-button type="text" title="复制" @click.stop="moduleCopy(index)">
                       <CopyOutlined />
                     </a-button>
-                    <a-button type="text" title="删除" @click="moduleDel">
+                    <a-button type="text" title="删除" @click.stop="moduleDel">
                       <DeleteOutlined />
                     </a-button>
                   </a-space>
@@ -88,89 +65,90 @@
         </div>
 
         <!-- 中间内容 -->
-        <div :class="['content', false && 'pointer-events-none']" @dragleave="dragleaves" @drop="handleDrop"
-          @dragover.prevent>
-          <div v-for="(item, i) in moduleList" :key="i" @click="e => selectModule(i, item.id)">
-            <div v-if="item.type != 'tip'" :class="['content-module-item', activeId === item.id && 'active']">
-              <div v-if="item.type === 'text'" class="textModule">
-                <a-textarea v-model:value="item.title.content" placeholder="点击输入标题" :style="item.title.styles"
-                  class="titleAreas" :auto-size="{ minRows: 1, maxRows: 3 }" />
-                <a-textarea v-model:value="item.text.content" :style="item.text.cStyles" placeholder="点击输入内容"
-                  class="areas" :auto-size="{ minRows: 1 }" />
-              </div>
-              <div v-else-if="item.type === 'image'">
-                <div v-for="(imgs, i) in item.img" :key="i">
-                  <div class="imageModule" v-if="!imgs.src.length">
-                    <PictureOutlined :style="{ fontSize: '60px', color: '#a0a3a6' }" />
-                    <span>文件格式为 JPEG、JPG、PNG，大小不能超过10MB</span>
-                  </div>
-                  <img v-else :src="imgs.src[0].url" alt="" :style="imgs.style">
+        <div class="inline-block" @dragleave="dragleaves" @drop="handleDrop" @dragover="allowDrop">
+          <div :class="['content', pointerEventsNone && 'pointer-events-none']">
+            <template v-if="moduleList.length">
+              <div v-for="(item, i) in moduleList" :key="i" @click="e => selectModule(item, i)"
+                :class="['content-module-item', activeId === item.id && 'active']">
+                <div v-if="item.type === 'text'" class="textModule">
+                  <a-textarea v-model:value="item.title.content" placeholder="点击输入标题" :style="item.title.styles"
+                    class="titleAreas" :auto-size="{ minRows: 1, maxRows: 3 }" />
+                  <a-textarea v-model:value="item.text.content" :style="item.text.cStyles" placeholder="点击输入内容"
+                    class="areas" :auto-size="{ minRows: 1 }" />
                 </div>
-              </div>
-              <div v-else-if="item.type === 'text-image'" class="textImageModule">
-                <template v-if="item.imgText.dataType != 'chess'">
-                  <div :class="getClassName(item.imgText.dataType)">
-                    <div class="item" v-for="(imgItem, index) in item.imgText.dataList" :key="index">
-                      <div class="top">
-                        <div v-if="!imgItem.src" class="tip">
-                          <PictureOutlined :style="{ fontSize: '60px', color: '#a0a3a6' }" />
-                          <span style="color: #a0a3a6">文件格式为 JPEG、JPG、PNG，大小不能超过10MB</span>
+                <div v-else-if="item.type === 'image'">
+                  <div v-for="(imgs, i) in item.img" :key="i">
+                    <div class="imageModule" v-if="!imgs.src.length">
+                      <PictureOutlined :style="{ fontSize: '60px', color: '#a0a3a6' }" />
+                      <span>文件格式为 JPEG、JPG、PNG，大小不能超过10MB</span>
+                    </div>
+                    <img v-else :src="imgs.src[0].url" alt="" :style="imgs.style">
+                  </div>
+                </div>
+                <div v-else-if="item.type === 'text-image'" class="textImageModule">
+                  <template v-if="item.imgText.dataType != 'chess'">
+                    <div :class="getClassName(item.imgText.dataType)">
+                      <div class="item" v-for="(imgItem, index) in item.imgText.dataList" :key="index">
+                        <div class="top">
+                          <div v-if="!imgItem.src.length" class="tip">
+                            <PictureOutlined :style="{ fontSize: '60px', color: '#a0a3a6' }" />
+                            <span style="color: #a0a3a6">文件格式为 JPEG、JPG、PNG，大小不能超过10MB</span>
+                          </div>
+                          <img v-if="imgItem.src.length" :src="imgItem.src[0].url" alt="" :style="imgItem.imgTextStyle">
                         </div>
-                        <img v-if="imgItem.src" :src="imgItem.src" alt="">
-                      </div>
-                      <div class="textareas">
-                        <a-textarea v-model:value="imgItem.title" placeholder="点击输入标题" :style="imgItem.styles"
-                          class="titleAreas" :auto-size="{ minRows: 1, maxRows: 3 }" />
-                        <a-textarea v-model:value="imgItem.content" :style="imgItem.cStyles" placeholder="点击输入内容"
-                          class="areas" :auto-size="{ minRows: 1 }" />
+                        <div class="textareas">
+                          <a-textarea v-model:value="imgItem.title.content" placeholder="点击输入标题"
+                            :style="imgItem.title.styles" class="titleAreas" :auto-size="{ minRows: 1, maxRows: 3 }" />
+                          <a-textarea v-model:value="imgItem.text.content" :style="imgItem.text.cStyles"
+                            placeholder="点击输入内容" class="areas" :auto-size="{ minRows: 1 }" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </template>
-                <template v-else>
-                  <div class="chessList">
-                    <div class="item" v-for="(imgItem, index) in item.imgText.dataList" :key="index">
-                      <div class="top">
-                        <div v-if="!imgItem.src" class="tip">
-                          <PictureOutlined :style="{ fontSize: '60px', color: '#a0a3a6' }" />
-                          <span style="color: #a0a3a6">文件格式为 JPEG、JPG、PNG，大小不能超过10MB</span>
+                  </template>
+                  <template v-else>
+                    <div class="chessList">
+                      <div class="item" v-for="(imgItem, index) in item.imgText.dataList" :key="index">
+                        <div class="top">
+                          <div v-if="!imgItem.src.length" class="tip">
+                            <PictureOutlined :style="{ fontSize: '60px', color: '#a0a3a6' }" />
+                            <span style="color: #a0a3a6">文件格式为 JPEG、JPG、PNG，大小不能超过10MB</span>
+                          </div>
+                          <img v-if="imgItem.src.length" :src="imgItem.src[0].url" alt="" :style="imgItem.imgTextStyle">
                         </div>
-                        <img v-if="imgItem.src" :src="imgItem.src" alt="">
-                      </div>
-                      <div class="textareas">
-                        <a-textarea v-model:value="imgItem.title" placeholder="点击输入标题" :style="imgItem.styles"
-                          class="titleAreas" :auto-size="{ minRows: 1, maxRows: 3 }" />
-                        <a-textarea v-model:value="imgItem.content" :style="imgItem.cStyles" placeholder="点击输入内容"
-                          class="areas" :auto-size="{ minRows: 1 }" />
+                        <div class="textareas">
+                          <a-textarea v-model:value="imgItem.title.content" placeholder="点击输入标题"
+                            :style="imgItem.title.styles" class="titleAreas" :auto-size="{ minRows: 1, maxRows: 3 }" />
+                          <a-textarea v-model:value="imgItem.text.content" :style="imgItem.text.cStyles"
+                            placeholder="点击输入内容" class="areas" :auto-size="{ minRows: 1 }" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </template>
+                  </template>
+                </div>
+                <!-- 提示模块 -->
+                <div v-if="item.type === 'placement-area'" class="placement-area">可将模块放置到此区域</div>
               </div>
-            </div>
-            <!-- 提示模块 -->
-            <div v-if="item.type === 'tip' && item.show" class="placement-area">{{ item.tip }}</div>
+            </template>
           </div>
         </div>
 
         <!-- 右侧详情 -->
-        <div class="right-panel" v-if="activeComponent">
+        <div class="right-panel" v-if="showRight">
           <a-form class="rightForm">
-            <template v-if="activeComponent.type === 'text'">
+            <template v-if="activeModule.type === 'text'">
               <h2>标题</h2>
               <a-form-item label="文字大小:">
-                <a-select v-model:value="activeComponent.title.styles.fontSize" :options="sizeOption"></a-select>
+                <a-select v-model:value="activeModule.title.styles.fontSize" :options="sizeOption"></a-select>
               </a-form-item>
               <a-form-item label="文字颜色:">
                 <div class="textColors">
-                  <div v-for="(colorItem, i) in colorList" :class="activeComponent.title.active == i ? 'cheacd' : ''"
-                    :key="i"
-                    @click="handleTextColors(colorItem, i, activeComponent.title.styles, activeComponent.title)"
+                  <div v-for="(colorItem, i) in colorList" :class="activeModule.title.active == i ? 'cheacd' : ''"
+                    :key="i" @click="handleTextColors(colorItem, i, activeModule.title.styles, activeModule.title)"
                     class="colorItems"></div>
                 </div>
               </a-form-item>
               <a-form-item label="对齐方式" style="border-bottom: 1px dotted #ccc;padding-bottom: 20px;">
-                <a-radio-group v-model:value="activeComponent.title.styles.textAlign">
+                <a-radio-group v-model:value="activeModule.title.styles.textAlign">
                   <a-radio-button value="left">左对齐</a-radio-button>
                   <a-radio-button value="center">居中</a-radio-button>
                   <a-radio-button value="right">右对齐</a-radio-button>
@@ -178,35 +156,29 @@
               </a-form-item>
               <h2>内容文本</h2>
               <a-form-item label="文字大小:">
-                <a-select v-model:value="activeComponent.text.cStyles.fontSize" :options="sizeOption"></a-select>
+                <a-select v-model:value="activeModule.text.cStyles.fontSize" :options="sizeOption"></a-select>
               </a-form-item>
               <a-form-item label="文字颜色:">
                 <div class="textColors">
-                  <div v-for="(colorItem, i) in colorList" :class="activeComponent.text.active == i ? 'cheacd' : ''"
-                    :key="i" @click="handleTextColors(colorItem, i, activeComponent.text.cStyles, activeComponent.text)"
+                  <div v-for="(colorItem, i) in colorList" :class="activeModule.text.active == i ? 'cheacd' : ''"
+                    :key="i" @click="handleTextColors(colorItem, i, activeModule.text.cStyles, activeModule.text)"
                     class="colorItems"></div>
                 </div>
               </a-form-item>
               <a-form-item label="对齐方式">
-                <a-radio-group v-model:value="activeComponent.text.cStyles.textAlign">
+                <a-radio-group v-model:value="activeModule.text.cStyles.textAlign">
                   <a-radio-button value="left">左对齐</a-radio-button>
                   <a-radio-button value="center">居中</a-radio-button>
                   <a-radio-button value="right">右对齐</a-radio-button>
                 </a-radio-group>
               </a-form-item>
             </template>
-            <template v-if="activeComponent.type === 'image'">
+            <template v-if="activeModule.type === 'image'">
               <div class="flex items-center justify-between">
                 <h2 style="margin-bottom: 0;">图片</h2>
-                <!-- <a-button type="link">批量传图</a-button> -->
-                <a-upload accept=".jpg,.jpeg,.png" name="file" :action="uploadUrl" :headers="headers"
-                  :showUploadList="false" @change="handleChange($event, activeComponent.img)" multiple>
-                  <a-button>
-                    批量传图
-                  </a-button>
-                </a-upload>
+                <jsonUpload @batchPicture="batchPicture"></jsonUpload>
               </div>
-              <div v-for="(itemImgs, i) in activeComponent.img" :key="i" style="margin-top: 24px;">
+              <div v-for="(itemImgs, i) in activeModule.img" :key="i" style="margin-top: 24px;">
                 <div class="flex items-center justify-between">
                   <div class="flex items-center">
                     <div @click="itemImgs.open = !itemImgs.open" style="cursor: pointer;">
@@ -215,10 +187,16 @@
                     </div>
                     <span class="ml-2.5" style="user-select: none;">第{{ i + 1 }}组</span>
                   </div>
-                  <a-tooltip>
-                    <template #title>新增组</template>
-                    <PlusOutlined />
-                  </a-tooltip>
+                  <div>
+                    <a-tooltip>
+                      <template #title>新增组</template>
+                      <PlusOutlined @click="addImgs" />
+                    </a-tooltip>
+                    <a-tooltip>
+                      <template #title>删除组</template>
+                      <DeleteOutlined @click="delImgs(i)" v-if="activeModule.img.length > 1" class="ml-2.5" />
+                    </a-tooltip>
+                  </div>
                 </div>
                 <div :class="itemImgs.open ? 'showImgCont' : 'noneImgCont'">
                   <a-form-item label="添加图片:">
@@ -241,14 +219,12 @@
                     <a-input v-model:value="itemImgs.jumpUrl" placeholder="请填写到ozon.ru的链接" />
                   </a-form-item>
                   <a-form-item label="图片放置:">
-                    <div class="flex picPosition">
-                      <div v-for="(pItem, i) in picPosition" :key="i" class="item"
-                        @click="selectPicPos(i, itemImgs.style, pItem)">
-                        <PictureOutlined :style="{ fontSize: pItem.value + 'px' }"
-                          :class="itemImgs.style.select === i && 'itemActive'" />
-                        <span>{{ pItem.label }}</span>
-                      </div>
-                    </div>
+                    <a-radio-group v-model:value="itemImgs.style.width">
+                      <a-radio-button :value="'100%'">全宽度</a-radio-button>
+                      <a-radio-button :value="'50%'">1/2</a-radio-button>
+                      <a-radio-button :value="'33.33%'">1/3</a-radio-button>
+                      <a-radio-button :value="'25%'">1/4</a-radio-button>
+                    </a-radio-group>
                   </a-form-item>
                   <a-form-item label="文本描述:">
                     <a-input v-model:value="itemImgs.alt" placeholder="浏览器中图片加载时的文字" />
@@ -256,35 +232,151 @@
                 </div>
               </div>
             </template>
-            <template v-if="activeComponent.type === 'text-image'">
+            <template v-if="activeModule.type === 'text-image'">
+              <div class="flex items-center justify-between mb-2.5">
+                <h2 style="margin-bottom: 0;">图文</h2>
+                <jsonUpload @batchPicture="batchPictureTimg"></jsonUpload>
+              </div>
               <a-form-item label="图文类型:">
-                <a-select v-model:value="activeComponent.imgText.dataType"
-                  @change="changeTextImg(activeComponent.imgText.dataType)" :options="typeList"></a-select>
+                <a-select v-model:value="activeModule.imgText.dataType"
+                  @change="changeTextImg(activeModule.imgText.dataType)" :options="typeList"></a-select>
               </a-form-item>
+              <!-- 图片 -->
+              <div v-for="(itemImgs, i) in activeModule.imgText.dataList" :key="i" style="margin-top: 24px;">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center">
+                    <div @click="itemImgs.open = !itemImgs.open" style="cursor: pointer;">
+                      <DownOutlined v-if="itemImgs.open" />
+                      <RightOutlined v-else />
+                    </div>
+                    <span class="ml-2.5" style="user-select: none;">第{{ i + 1 }}组</span>
+                  </div>
+                  <div>
+                    <a-tooltip>
+                      <template #title>一键应用字体大小、颜色、对齐至其余组</template>
+                      <DiffOutlined @click="batchAssign(itemImgs)" />
+                    </a-tooltip>
+                    <a-tooltip>
+                      <template #title>新增组</template>
+                      <PlusOutlined @click="batchAddImgs" class="mx-2.5" />
+                    </a-tooltip>
+                    <a-tooltip>
+                      <template #title>删除组</template>
+                      <DeleteOutlined @click="batchDelImgs(i)" v-if="activeModule.imgText.dataList.length > 1" />
+                    </a-tooltip>
+                  </div>
+                </div>
+                <div :class="itemImgs.open ? 'showImgCont' : 'noneImgCont'">
+                  <h3 style="font-weight: 700;">图片</h3>
+                  <a-form-item label="添加图片:">
+                    <a-image v-if="itemImgs.src.length" style="position: relative;" :width="100"
+                      :src="itemImgs.src[0].url" />
+                    <div v-if="itemImgs.src.length" style="position: absolute;top:-10px;left: 90px">
+                      <AsyncIcon icon="CloseCircleOutlined" size="20px" color="black" @click="itemImgs.src = []" />
+                    </div>
+                    <a-upload name="file" v-if="!itemImgs.src.length" class="h-20 w-20 headerImg" :headers="headers"
+                      accept=".jpg,.jpeg,.png" :action="uploadUrl" :showUploadList="false" list-type="picture-card"
+                      @change="(e) => handleChangeColroImg(e, itemImgs)" :max-count="1">
+                      <div>
+                        <PlusOutlined />
+                        <div>上传图片</div>
+                      </div>
+                    </a-upload>
+                    <div style="margin-top: 30px;">图片尺寸要求：200*200~4320*7680</div>
+                  </a-form-item>
+                  <a-form-item label="跳转链接:">
+                    <a-input v-model:value="itemImgs.jumpUrl" placeholder="请填写到ozon.ru的链接" />
+                  </a-form-item>
+                  <a-form-item label="图片放置:">
+                    <a-radio-group v-model:value="itemImgs.imgTextStyle.width"
+                      v-if="activeModule.imgText.dataType === 'billboard'">
+                      <a-radio-button :value="'100%'">全宽度</a-radio-button>
+                      <a-radio-button :value="'50%'">1/2</a-radio-button>
+                      <a-radio-button :value="'33.33%'">1/3</a-radio-button>
+                      <a-radio-button :value="'25%'">1/4</a-radio-button>
+                    </a-radio-group>
+                    <a-radio-group v-model:value="itemImgs.imgTextStyle.width"
+                      @change="changeImgTextStyle($event, itemImgs.imgTextStyle)" v-else>
+                      <a-radio-button :value="'100%'">铺满</a-radio-button>
+                      <a-radio-button :value="'auto'">自适应</a-radio-button>
+                    </a-radio-group>
+                  </a-form-item>
+                  <a-form-item label="文本描述:">
+                    <a-input v-model:value="itemImgs.alt" placeholder="浏览器中图片加载时的文字" />
+                  </a-form-item>
+                </div>
+                <div :class="itemImgs.open ? 'showImgCont' : 'noneImgCont'">
+                  <h3 style="font-weight: 700;">标题</h3>
+                  <a-form-item label="文字大小:">
+                    <a-select v-model:value="itemImgs.title.styles.fontSize" :options="sizeOption"></a-select>
+                  </a-form-item>
+                  <a-form-item label="文字颜色:">
+                    <div class="textColors">
+                      <div v-for="(colorItem, i) in colorList" :class="itemImgs.title.active == i ? 'cheacd' : ''"
+                        :key="i" @click="handleTextColors(colorItem, i, itemImgs.title.styles, itemImgs.title)"
+                        class="colorItems"></div>
+                    </div>
+                  </a-form-item>
+                  <a-form-item label="对齐方式" style="border-bottom: 1px dotted #ccc;padding-bottom: 20px;">
+                    <a-radio-group v-model:value="itemImgs.title.styles.textAlign">
+                      <a-radio-button value="left">左对齐</a-radio-button>
+                      <a-radio-button value="center">居中</a-radio-button>
+                      <a-radio-button value="right">右对齐</a-radio-button>
+                    </a-radio-group>
+                  </a-form-item>
+                  <h3 style="font-weight: 700;">内容文本</h3>
+                  <a-form-item label="文字大小:">
+                    <a-select v-model:value="itemImgs.text.cStyles.fontSize" :options="sizeOption"></a-select>
+                  </a-form-item>
+                  <a-form-item label="文字颜色:">
+                    <div class="textColors">
+                      <div v-for="(colorItem, i) in colorList" :class="itemImgs.text.active == i ? 'cheacd' : ''"
+                        :key="i" @click="handleTextColors(colorItem, i, itemImgs.text.cStyles, itemImgs.text)"
+                        class="colorItems"></div>
+                    </div>
+                  </a-form-item>
+                  <a-form-item label="对齐方式">
+                    <a-radio-group v-model:value="itemImgs.text.cStyles.textAlign">
+                      <a-radio-button value="left">左对齐</a-radio-button>
+                      <a-radio-button value="center">居中</a-radio-button>
+                      <a-radio-button value="right">右对齐</a-radio-button>
+                    </a-radio-group>
+                  </a-form-item>
+                </div>
+              </div>
             </template>
           </a-form>
         </div>
       </div>
     </div>
+    <batchModify :showEdit="showEdit" @handleBatchModifyClose="showEdit = false" :moduleList="moduleList"></batchModify>
   </div>
 </template>
 
 <script setup>
+import { cloneDeep } from 'lodash'
 import { v4 as uuidv4 } from 'uuid'
 import Draggable from 'vuedraggable'
 import {
   HolderOutlined, CloseOutlined, UpOutlined,
   DownOutlined, ArrowUpOutlined, ArrowDownOutlined,
-  LinkOutlined, DeleteOutlined, RightSquareOutlined,
+  LinkOutlined, DeleteOutlined, RightSquareOutlined, DiffOutlined,
   CopyOutlined, PictureOutlined, RightOutlined, PlusOutlined
 } from '@ant-design/icons-vue'
 import { Empty, Modal } from 'ant-design-vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { message } from "ant-design-vue";
+import { deepClone } from '~@/utils'
+import jsonUpload from "../jsonUpload/index.vue"
+import batchModify from "../batchModify/index.vue"
 const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE
 
 defineOptions({ name: 'MobileDetailEditor' })
 
+const emits = defineEmits(['backResult'])
+const props = defineProps({
+  shop: String
+});
 const headers = {
   'Authorization': 'Bearer ' + useAuthorization().value,
 }
@@ -292,16 +384,17 @@ const uploadUrl =
   import.meta.env.VITE_APP_BASE_API +
   "/platform-ozon/platform/ozon/file/upload/img"
 
+
+const showEdit = ref(false)
 // 单个传图
 const handleChangeColroImg = (info, record) => {
   if (info.file.status === 'done') {
-    console.log('info', info.file);
-
     record.src.push(
       {
+        id: uuidv4(),
         name: info.file.response.originalFilename,
         url: info.file.response.url,
-        checked: false,
+        checked: true,
         width: info.file.response.width,
         height: info.file.response.height,
       }
@@ -313,94 +406,193 @@ const handleChangeColroImg = (info, record) => {
 }
 
 // 批量传图
-function handleChange(e, img) {
-  console.log('//e', e.fileList);
-  const promises = e.fileList.map(item => {
-    return new Promise((resolve, reject) => {
-      if (item.status === "done") {
-        resolve(true);
-      } else {
-        reject(false);
-      }
-    });
-  });
-  Promise.all(promises)
-    .then(() => {
-      // console.log("数组中的所有数据的 status 都是 done");
-      let arr = processArrays(img, e.fileList)
-      console.log('//', arr);
-    })
-    .catch(() => {
-      // console.log("数组中存在数据的 status 不是 done");
-      message.error('图片上传有误！');
-    });
-  // let arr = processArrays(img, e.fileList)
-  // console.log('//', arr);
+function batchPicture(list) {
+  let arr = processArrays(activeModule.value.img, list);
+  moduleList.value[activeModuleIndex.value].img = arr
+}
+
+function batchPictureTimg(list) {
+  console.log('activeModule', activeModule.value.imgText);
+
+  let arr = tImgProcessArrays(activeModule.value.imgText.dataList, list);
+  moduleList.value[activeModuleIndex.value].imgText.dataList = arr
 }
 
 function processArrays(a, b) {
-  for (let i = 0; i < a.length; i++) {
-    const currentA = a[i];
-    if (currentA.src.length === 0) {
-      // 如果 src 为空，将 b 数组的 url 添加到 a 数组中
-      for (let j = 0; j < b.length; j++) {
-        currentA.push({
-          src: [
-            {
-              name: b[j].name,
-              url: b[j].response.url,
-              checked: false,
-              width: b[j].response.width,
-              height: b[j].response.height
-            }
-          ],
-          open: true,
-          jumpUrl: "",
-          alt: "",
-          style: {
-            width: "100%",
-            select: 0,
-            margin: "0 auto",
-            display: "block"
-          }
-        });
-      }
+  const result = [];
+  a.forEach(aItem => {
+    if (aItem.src.length === 0) {
+      // src为空，添加b数组转换后的元素
+      b.forEach(bItem => {
+        const newItem = convertBToA(bItem, aItem);
+        result.push(newItem);
+      });
     } else {
-      // 如果 src 不为空，在 a 数组添加对应 b 数组长度的数据
-      for (let j = 0; j < b.length; j++) {
-        currentA.push({
-          src: [
-            {
-              name: b[j].name,
-              url: b[j].response.url,
-              checked: false,
-              width: b[j].response.width,
-              height: b[j].response.height
-            }
-          ],
-          open: true,
-          jumpUrl: "",
-          alt: "",
-          style: {
-            width: "100%",
-            select: 0,
-            margin: "0 auto",
-            display: "block"
-          }
-        });
+      // src不为空，保留原元素并添加b数组转换后的元素
+      result.push(aItem);
+      b.forEach(bItem => {
+        const newItem = convertBToA(bItem, aItem);
+        result.push(newItem);
+      });
+    }
+  });
+  return result;
+}
+
+function convertBToA(bItem, aTemplate) {
+  return {
+    src: [{
+      id: uuidv4(),
+      name: bItem.originalFilename,
+      url: bItem.url,
+      checked: true,
+      width: bItem.width,
+      height: bItem.height
+    }],
+    open: aTemplate.open,
+    jumpUrl: aTemplate.jumpUrl,
+    alt: aTemplate.alt,
+    style: { ...aTemplate.style } // 拷贝原样式对象
+  };
+}
+
+function tImgProcessArrays(a, b) {
+  let allSrcEmpty = a.every(item => item.src.length === 0);
+  const result = [];
+  if (allSrcEmpty) {
+    b.forEach(bItem => {
+      const newItem = tImgConvertBToA(bItem, a[0]);
+      result.push(deepClone(newItem));
+    })
+  } else {
+    a.forEach((aItem, index) => {
+      if (aItem.src.length === 0) {
+        // src为空，添加b数组中对应索引的元素转换后的结果
+        const bItem = b[index];
+        if (bItem) {
+          const newItem = tImgConvertBToA(bItem, aItem);
+          result.push(deepClone(newItem));
+        }
+      } else {
+        // src不为空，保留原元素并添加b数组中对应索引的元素转换后的结果
+        result.push(aItem);
+        const bItem = b[index];
+        if (bItem) {
+          const newItem = tImgConvertBToA(bItem, aItem);
+          result.push(deepClone(newItem));
+        }
       }
+    });
+  }
+  return result;
+}
+
+function tImgConvertBToA(bItem, aTemplate) {
+  return {
+    src: [
+      {
+        id: uuidv4(),
+        name: bItem.originalFilename,
+        url: bItem.url,
+        checked: true,
+        width: bItem.width,
+        height: bItem.height
+      }
+    ],
+    open: aTemplate.open,
+    imgTextStyle: aTemplate.imgTextStyle,
+    title: aTemplate.title,
+    text: aTemplate.text,
+  };
+}
+
+function addImgs() {
+  let obj = {
+    src: [],
+    open: true,
+    jumpUrl: "",
+    alt: "",
+    style: {
+      width: "100%",
+      select: 0,
+      margin: "0 auto",
+      display: "block"
     }
   }
-  return a;
+  activeModule.value.img.push(deepClone(obj))
 }
 
-// 选择百分比
-function selectPicPos(index, style, pItem) {
-  style.select = index
-  style.width = pItem.width
+function delImgs(index) {
+  activeModule.value.img.splice(index, 1)
 }
 
-const show = ref(true)
+function batchAddImgs() {
+  let obj = {
+    src: [],
+    open: true,
+    imgTextStyle: {
+      width: "100%",
+      height: "100%",
+      select: 0,
+      margin: "0 auto",
+      display: "block"
+    },
+    title: {
+      content: '',
+      active: "",
+      styles: {
+        fontSize: '20px',
+        color: '#263c53',
+        textAlign: 'left',
+        width: '100%',
+        height: '100px',
+        marginTop: "20px"
+      },
+    },
+    text: {
+      content: '',
+      active: "",
+      cStyles: {
+        fontSize: '14px',
+        color: '#263c53',
+        textAlign: 'left',
+        width: '100%',
+        height: '100px',
+        marginTop: "20px"
+      },
+    },
+  }
+  activeModule.value.imgText.dataList.push(deepClone(obj))
+}
+
+function batchDelImgs(index) {
+  activeModule.value.imgText.dataList.splice(index, 1)
+}
+
+function batchAssign(e) {
+  activeModule.value.imgText.dataList.forEach(item => {
+    item.title.styles.fontSize = e.title.styles.fontSize
+    item.title.styles.textAlign = e.title.styles.textAlign
+    item.title.styles.color = e.title.styles.color
+    item.text.cStyles.fontSize = e.text.cStyles.fontSize
+    item.text.cStyles.textAlign = e.text.cStyles.textAlign
+    item.text.cStyles.color = e.text.cStyles.color
+  })
+}
+
+function changeImgTextStyle(e, itemStyle) {
+  console.log('e', e, itemStyle);
+  if (e.target.value === '100%') {
+    itemStyle.width = "100%"
+    itemStyle.height = "100%"
+    itemStyle['object-fit'] = "cover"
+  } else {
+    itemStyle.width = "auto"
+    itemStyle.height = "auto"
+    itemStyle['object-fit'] = "contain"
+  }
+}
+const show = ref(false)
 const moduleList = ref([])
 const typeList = ref([
   {
@@ -425,32 +617,12 @@ const typeList = ref([
   }
 ])
 
-const picPosition = [
-  {
-    label: "全宽度",
-    value: "28",
-    width: "100%",
-    fields: "width_full"
-  },
-  {
-    label: "1/2",
-    value: "24",
-    width: "50%",
-    fields: "width_half",
-  },
-  {
-    label: "1/3",
-    value: "20",
-    width: "33.33%",
-    fields: "width_one_third"
-  },
-  {
-    label: "1/4",
-    value: "16",
-    width: "25%",
-    fields: "width_one_fourth"
-  }
-]
+const picPosition = {
+  "100%": "width_full",
+  "50%": "width_half",
+  "33.33%": "width_one_third",
+  "25%": "width_one_fourth"
+}
 
 function clear() {
   Modal.confirm({
@@ -458,33 +630,47 @@ function clear() {
     // content: '将PC端描述生成到APP端描述可能存在一定的格式损耗和内容丢失，且之前已有的APP端描述将被覆盖，确定要生成吗？',
     onOk: () => {
       moduleList.value = []
+      finallyObj.value = {}
     }
   })
 }
 
 const changeTextImg = (type) => {
   let obj = {
-    src: "",
-    title: "",
-    content: "",
+    src: [],
+    open: true,
+    jumpUrl: "",
+    alt: "",
     imgTextStyle: {
-      with: "100%"
+      width: type == "billboard" ? "100%" : "auto",
+      height: type == "billboard" ? "100%" : "auto",
+      select: 0,
+      margin: "0 auto",
+      display: "block",
     },
-    cStyles: {
-      fontSize: '16px',
-      color: '#000000',
-      textAlign: 'left',
-      width: '100%',
-      height: '100px',
-      marginTop: "20px"
+    title: {
+      content: '',
+      active: "",
+      styles: {
+        fontSize: '20px',
+        color: '#263c53',
+        textAlign: 'left',
+        width: '100%',
+        height: '100px',
+        marginTop: "20px"
+      },
     },
-    styles: {
-      fontSize: '16px',
-      color: '#000000',
-      textAlign: 'left',
-      width: '100%',
-      height: '100px',
-      marginTop: "20px"
+    text: {
+      content: '',
+      active: "",
+      cStyles: {
+        fontSize: '14px',
+        color: '#263c53',
+        textAlign: 'left',
+        width: '100%',
+        height: '100px',
+        marginTop: "20px"
+      },
     },
   }
   switch (type) {
@@ -502,7 +688,7 @@ const changeTextImg = (type) => {
         if (item.imgText.dataList.length > 0) {
           item.imgText.dataList = [];
         }
-        item.imgText.dataList.push(obj, obj)
+        item.imgText.dataList.push(deepClone(obj), deepClone(obj))
         item.imgText.dataType = "tileXL"
       })
       break;
@@ -511,7 +697,7 @@ const changeTextImg = (type) => {
         if (item.imgText.dataList.length > 0) {
           item.imgText.dataList = [];
         }
-        item.imgText.dataList.push(obj, obj, obj)
+        item.imgText.dataList.push(deepClone(obj), deepClone(obj), deepClone(obj))
         item.imgText.dataType = "tileL"
       })
       break;
@@ -520,7 +706,7 @@ const changeTextImg = (type) => {
         if (item.imgText.dataList.length > 0) {
           item.imgText.dataList = [];
         }
-        item.imgText.dataList.push(obj, obj, obj, obj)
+        item.imgText.dataList.push(deepClone(obj), deepClone(obj), deepClone(obj), deepClone(obj))
         item.imgText.dataType = "tileM"
       })
       break;
@@ -575,182 +761,216 @@ const TEXT_ENUM = {
   'text-image': '图文',
 }
 const activeId = ref('')
-function turnActive(id) {
-  console.log('id', id);
-
-  activeId.value = id
-}
 // 拖拽方法
 const pointerEventsNone = ref(false)
 
-function handleDragStart(e, component) {
+function handleDragStart(e) {
   pointerEventsNone.value = true
-  e.dataTransfer.setData('componentName', component.name)
-  console.log('moduleList', moduleList.value);
-  let obj = { tip: "可将模块放置到此区域", type: 'tip', show: true }
-  if (moduleList.value.length === 0) {
-    moduleList.value.push(obj)
-  } else {
-    let newList = [];
-    moduleList.value.forEach((item, index) => {
-      // 检查前一个元素是否与 obj 相同
-      if (index === 0 || !isEqual(newList[newList.length - 1], obj)) {
-        newList.push(obj);
-      }
-      newList.push(item);
-      // 检查下一个元素是否是数组最后一个元素且与 obj 相同
-      if (index === moduleList.value.length - 1 || !isEqual(moduleList.value[index + 1], obj)) {
-        newList.push(obj);
-      }
-    });
-    moduleList.value = newList;
-  }
-}
-// 辅助函数，用于深度比较两个对象是否相等
-function isEqual(obj1, obj2) {
-  return JSON.stringify(obj1) === JSON.stringify(obj2);
+  e.dataTransfer.setData('componentName', e.target.dataset.name)
 }
 function dragends(e) {
   pointerEventsNone.value = false
 }
 
 // 释放方法
+let offsetY = 0;
+function removePlacementArea() {
+  moduleList.value = moduleList.value.filter(item => item.type !== 'placement-area');
+}
+// 当将元素拖动到有效放置目标（每几百毫秒）上时, 触发
+function allowDrop(e) {
+  e.preventDefault();
+  /* 获取鼠标高度 */
+  let eventoffset = e.offsetY;
+  /* 如果没有移动不触发事件减少损耗 */
+  if (offsetY === eventoffset) return;
+  else offsetY = eventoffset;
+
+  /* 获取组件 */
+  const childrenObject = e.target.children[0];
+  if (!childrenObject) return;
+
+  // 如果当前模块数大于一个
+  if (moduleList.value.length) {
+    // 如果只有一个模块并且第一个是提示模块直接返回
+    if (moduleList.value.length === 1 && moduleList.value[0].type === 'placement-area') return;
+
+    /* 如果鼠标的高度小于第一个的一半直接放到第一个 */
+    if (childrenObject.children.length > 0 && eventoffset < childrenObject.children[0].clientHeight / 2) {
+      /* 如果第一个是提示组件直接返回 */
+      if (moduleList.value[0].type === 'placement-area') return;
+      /* 删除提示组件(如果存在) */
+      removePlacementArea();
+      /* 最上面添加提示组件 */
+      moduleList.value.unshift({ type: 'placement-area' });
+      return;
+    }
+
+    /* 记录距离父元素高度 */
+    const childOff = childrenObject.offsetTop;
+
+    /* 鼠标在所有组件下面 */
+    if (eventoffset > childrenObject.clientHeight ||
+      (childrenObject.lastElementChild.offsetTop - childOff + childrenObject.lastElementChild.clientHeight / 2 < eventoffset)) {
+      /* 最后一个组件是提示组件返回 */
+      if (moduleList.value[moduleList.value.length - 1].type === 'placement-area') return;
+      /* 清除提示组件 */
+      removePlacementArea();
+      /* 最后一个不是提示组件添加 */
+      moduleList.value.push({ type: 'placement-area' });
+      return;
+    }
+
+    /* 在两个组件中间，插入 */
+    const childrens = childrenObject.children;
+    for (let i = 0, l = childrens.length; i < l; i++) {
+      const childoffset = childrens[i].offsetTop - childOff;
+
+      if (childoffset + childrens[i].clientHeight / 2 > e.offsetY) {
+        /* 如果是提示组件直接返回 */
+        if (moduleList.value[i].type === 'placement-area') break;
+        if (i > 0 && moduleList.value[i - 1].type === 'placement-area') break;
+
+        /* 清除提示组件 */
+        removePlacementArea();
+        moduleList.value.splice(i, 0, { type: 'placement-area' });
+        break;
+      } else if (childoffset + childrens[i].clientHeight > e.offsetY) {
+        if (moduleList.value[i].type === 'placement-area') break;
+        if (i < moduleList.value.length - 1 && moduleList.value[i + 1].type === 'placement-area') break;
+
+        /* 清除提示组件 */
+        removePlacementArea();
+        moduleList.value.splice(i, 0, { type: 'placement-area' });
+        break;
+      }
+    }
+  } else {
+    // 空白时直接 push 提示模块
+    moduleList.value.push({ type: 'placement-area' });
+  }
+}
+
+const textDefault = {
+  title: {
+    content: '',
+    active: "",
+    styles: {
+      fontSize: '20px',
+      color: '#263c53',
+      textAlign: 'left',
+      width: '100%',
+      height: '100px',
+      marginTop: "20px"
+    },
+  },
+  text: {
+    content: '',
+    active: "",
+    cStyles: {
+      fontSize: '14px',
+      color: '#263c53',
+      textAlign: 'left',
+      width: '100%',
+      height: '100px',
+      marginTop: "20px"
+    },
+  },
+}
+
+const imgDefaulet = {
+  img: [{
+    src: [],
+    open: true,
+    jumpUrl: "",
+    alt: "",
+    style: {
+      width: "100%",
+      select: 0,
+      margin: "0 auto",
+      display: "block"
+    }
+  }],
+}
+
+const imgTextDefaulet = {
+  imgText: {
+    dataType: "billboard",
+    dataList: [{
+      src: [],
+      open: true,
+      imgTextStyle: {
+        width: "100%",
+        height: "100%",
+        select: 0,
+        margin: "0 auto",
+        display: "block"
+      },
+      title: {
+        content: '',
+        active: "",
+        styles: {
+          fontSize: '20px',
+          color: '#263c53',
+          textAlign: 'left',
+          width: '100%',
+          height: '100px',
+          marginTop: "20px"
+        },
+      },
+      text: {
+        content: '',
+        active: "",
+        cStyles: {
+          fontSize: '14px',
+          color: '#263c53',
+          textAlign: 'left',
+          width: '100%',
+          height: '100px',
+          marginTop: "20px"
+        },
+      },
+    }]
+  }
+}
+
 // 当在有效放置目标上放置元素时触发此事件
 function handleDrop(e) {
-  console.log('drop--', e)
   const type = e.dataTransfer.getData('componentName')
-  console.log('e', e, type);
-  let arr = ['text', 'image', 'text-image']
-  if (arr.includes(type)) {
-    addComponent(type)
+  let moduleItem = { type, id: uuidv4() }
+  if (type == 'text') {
+    moduleItem = { ...moduleItem, ...deepClone(textDefault) }
+  } else if (type == 'image') {
+    moduleItem = { ...moduleItem, ...deepClone(imgDefaulet) }
+  } else if (type == 'text-image') {
+    moduleItem = { ...moduleItem, ...deepClone(imgTextDefaulet) }
   }
-  moduleList.value = moduleList.value.filter(item => item.type !== 'tip')
-  console.log('moduleList', moduleList.value);
+  // 插入拖过来的模块(即为替换掉提示模块)
+  const index = moduleList.value.findIndex(item => item.type === 'placement-area')
+  moduleList.value.splice(index, 1, moduleItem)
+  selectModule(moduleItem, index)
 }
 
 // 当拖动的元素离开有效的放置目标时, 触发
 function dragleaves(e) {
-  console.log('dragleaves', e)
-  console.log('moduleList---', moduleList.value);
-  if (moduleList.value.length == 1) {
-    moduleList.value = moduleList.value.filter(item => item.type !== 'tip')
-  }
-}
-const newComponent = ref({})
-// 添加新组件
-function addComponent(type) {
-  console.log('type', type);
-  newComponent.value = {
-    id: uuidv4(),
-    type,
-    show: true,
-    title: {
-      content: '',
-      active: "",
-      styles: {
-        fontSize: '16px',
-        color: '#263c53',
-        textAlign: 'left',
-        width: '100%',
-        height: '100px',
-        marginTop: "20px"
-      },
-    },
-    text: {
-      content: '',
-      active: "",
-      cStyles: {
-        fontSize: '16px',
-        color: '#263c53',
-        textAlign: 'left',
-        width: '100%',
-        height: '100px',
-        marginTop: "20px"
-      },
-    },
-    img: [{
-      src: [],
-      open: true,
-      jumpUrl: "",
-      alt: "",
-      style: {
-        width: "100%",
-        select: 0,
-        margin: "0 auto",
-        display: "block"
-      }
-    }],
-    imgText: {
-      dataType: "billboard",
-      dataList: [{
-        src: "",
-        title: "",
-        content: "",
-        imgTextStyle: {
-          width: "100%"
-        },
-        cStyles: {
-          fontSize: '16px',
-          color: '#263c53',
-          textAlign: 'left',
-          width: '100%',
-          height: '100px',
-          marginTop: "20px"
-        },
-        styles: {
-          fontSize: '16px',
-          color: '#263c53',
-          textAlign: 'left',
-          width: '100%',
-          height: '100px',
-          marginTop: "20px"
-        },
-      }]
-    }
-  }
-  moduleList.value.push(newComponent.value)
-  selectModule(moduleList.value.length - 1)
-  activeId.value = newComponent.value.id
-
+  moduleList.value = moduleList.value.filter(item => item.type !== 'placement-area')
 }
 
 // 点击模块
 const offsetTop = ref(0)
 const activeModuleIndex = ref(0)
-// 当前激活组件
-const activeComponent = computed(() => {
-  return moduleList.value[activeModuleIndex.value]
-})
+const activeModule = ref({})
+const showRight = ref(false)
+const finallyObj = ref({})
 
-function selectModule(i, id = "") {
+function selectModule(item, i) {
   activeModuleIndex.value = i
-  console.log('activeModuleIndex', activeModuleIndex.value);
-
-  activeId.value = id
+  activeModule.value = item
+  showRight.value = true
+  activeId.value = item.id
 }
 
 /** 右侧 */
-// 文字; 因为文字类型有两种类型, 需要特殊处理
-const textDetail = ref({
-  // 标题
-  titleInfo: {
-    text: '',
-    style: {
-      fontSize: 20,
-      color: 'color1',
-      align: 'left'
-    }
-  },
-  // 正文
-  bodyInfo: {
-    text: '',
-    style: {
-      fontSize: 14,
-      color: 'color1',
-      align: 'left'
-    }
-  }
-})
 const sizeEnumObj = {
   '12px': "size1",
   '14px': "size2",
@@ -813,7 +1033,6 @@ const colorList = [
 ]
 
 function handleTextColors(item, index, style, modules) {
-  console.log('//', activeComponent.value);
   style.color = item.color
   modules.active = index
 }
@@ -833,22 +1052,225 @@ function moduleDown() {
   moduleList.value[activeModuleIndex.value + 1] = temp
   activeModuleIndex.value -= 1
 }
-function moduleCopy() {
-  const moduleItem = {
-    ...moduleList.value[activeModuleIndex.value],
+function moduleCopy(i) {
+  let index = i === undefined ? activeModuleIndex.value : i
+  const item = {
+    ...moduleList.value[index],
     id: uuidv4()
   }
-  moduleList.value.splice(activeModuleIndex.value, 0, moduleItem)
+  const moduleItem = cloneDeep(item)
+  index += 1
+  moduleList.value.splice(index, 0, moduleItem)
+  selectModule(moduleItem, index)
 }
-function moduleMore() { }
+
 function moduleDel() {
-  moduleList.value = moduleList.value.filter(item => {
-    item.id == activeId
-  })
-  // moduleList.value.splice(activeModuleIndex.value, 1)
+  moduleList.value.splice(activeModuleIndex.value, 1)
+  closeModule()
 }
 
+// 关闭选中的模块
+function closeModule() {
+  activeModuleIndex.value = 0
+  activeId.value = ''
+  showRight.value = false
+  activeModule.value = {}
+}
+// ozon文字模板
+let ozonText = {
+  "widgetName": "raTextBlock",
+  "theme": "default",
+  "gapSize": "m",
+  "padding": "type2",
+  "title": {
+    "size": "size5",
+    "color": "color1",
+    "align": "left",
+    "content": [""]
+  },
+  "text": {
+    "size": "size2",
+    "color": "color1",
+    "align": "left",
+    "content": [""]
+  }
+}
+// ozon图片模板
+let ozonPic = {
+  "widgetName": "raShowcase",
+  "type": "roll",
+  "blocks": [{
+    "imgLink": "",
+    "img": {
+      "src": "",
+      "srcMobile": "",
+      "alt": "",
+      "position": "width_full",
+      "positionMobile": "width_full",
+      "widthMobile": 800,
+      "heightMobile": 800
+    }
+  }]
+}
+// ozon图文模板
+let ozonTImg = {
+  "widgetName": "raShowcase",
+  "type": "billboard",
+  "blocks": [{
+    "imgLink": "",
+    "img": {
+      "src": "https://wxalbum-10001658.image.myqcloud.com//wxalbum/377880/20250224171417/566d8c629d53c5dfefc3fa0f2ea37528.jpg",
+      "srcMobile": "https://wxalbum-10001658.image.myqcloud.com//wxalbum/377880/20250224171417/566d8c629d53c5dfefc3fa0f2ea37528.jpg",
+      "alt": "",
+      "position": "width_full",
+      "positionMobile": "width_full",
+      "widthMobile": 1000,
+      "heightMobile": 1000
+    },
+    "title": {
+      "size": "size4",
+      "color": "color1",
+      "align": "left",
+      "content": [""]
+    },
+    "text": {
+      "size": "size2",
+      "color": "color1",
+      "align": "left",
+      "content": ["dsfgsdfgfd"]
+    }
+  }, {
+    "imgLink": "",
+    "img": {
+      "src": "https://wxalbum-10001658.image.myqcloud.com//wxalbum/377880/20250224171841/c1afdb18373340462cb4a5c14314f8e0.jpg",
+      "srcMobile": "https://wxalbum-10001658.image.myqcloud.com//wxalbum/377880/20250224171841/c1afdb18373340462cb4a5c14314f8e0.jpg",
+      "alt": "",
+      "position": "width_full",
+      "positionMobile": "width_full",
+      "widthMobile": 1000,
+      "heightMobile": 1000
+    },
+    "title": {
+      "size": "size4",
+      "color": "color1",
+      "align": "left",
+      "content": [""]
+    },
+    "text": {
+      "size": "size2",
+      "color": "color1",
+      "align": "left",
+      "content": ["111"]
+    }
+  }]
+}
+let tImgMenu = {
+  "auto": "to_the_edge",
+  "100%": "fill"
+}
+// 保存
+function save() {
+  if (moduleList.value.length === 0) {
+    message.error("至少添加一个模块信息");
+    return
+  }
+  console.log('moduleList', moduleList.value);
+  let res = []
+  let obj = {}
+  moduleList.value.forEach(item => {
+    switch (item.type) {
+      case 'text':
+        obj = deepClone(ozonText)
+        obj.title = {
+          size: sizeEnumObj[item.title.styles.fontSize],
+          ocolor: colorEnumObj[item.title.styles.color],
+          align: item.title.styles.textAlign,
+          content: item.title.content.split(/\r?\n/)
+        }
+        obj.text = {
+          size: sizeEnumObj[item.text.cStyles.fontSize],
+          color: colorEnumObj[item.text.cStyles.color],
+          align: item.text.cStyles.textAlign,
+          content: item.text.content.split(/\r?\n/)
+        }
+        res.push(obj)
+        break;
+      case 'image':
+        obj = deepClone(ozonPic)
+        obj.blocks = item.img.map(el => {
+          return {
+            imgLink: el.jumpUrl,
+            img: {
+              src: el.src[0].url,
+              srcMobile: el.src[0].url,
+              alt: el.alt,
+              position: picPosition[el.style.width],
+              positionMobile: picPosition[el.style.width],
+              widthMobile: el.src[0].width,
+              heightMobile: el.src[0].height
+            }
+          }
+        })
+        res.push(obj)
+        break;
+      case 'text-image':
+        obj = deepClone(ozonTImg)
+        const commonMapper = (e) => ({
+          imgLink: e.jumpUrl ?? "",
+          img: {
+            src: e.src[0].url,
+            srcMobile: e.src[0].url,
+            alt: e.alt ?? "",
+            widthMobile: e.src[0].width,
+            heightMobile: e.src[0].height
+          },
+          title: {
+            size: sizeEnumObj[e.title.styles.fontSize],
+            color: colorEnumObj[e.title.styles.color],
+            align: e.title.styles.textAlign,
+            content: e.title.content.split(/\r?\n/)
+          },
+          text: {
+            size: sizeEnumObj[e.text.cStyles.fontSize],
+            color: colorEnumObj[e.text.cStyles.color],
+            align: e.text.cStyles.textAlign,
+            content: e.text.content.split(/\r?\n/)
+          }
+        });
 
+        if (item.imgText.dataType !== "chess") {
+          obj.blocks = item.imgText.dataList.map(e => {
+            const base = commonMapper(e);
+            base.img.position = item.imgText.dataType === "billboard" ?
+              picPosition[e.imgTextStyle.width] : tImgMenu[e.imgTextStyle.width];
+            base.img.positionMobile = base.img.position;
+            return base;
+          });
+        } else {
+          obj.blocks = item.imgText.dataList.map((e, index) => {
+            const base = commonMapper(e);
+            base.img.position = tImgMenu[e.imgTextStyle.width];
+            base.img.positionMobile = base.img.position;
+            base.reverse = index % 2 === 0 ? false : true;
+            return base;
+          });
+        }
+
+        obj.type = item.imgText.dataType;
+        res.push(obj)
+        break;
+      default:
+        break;
+    }
+  })
+  console.log('res', res);
+  finallyObj.value = {
+    content: res,
+    version: 0.3
+  }
+  show.value = false
+  emits("backResult", finallyObj.value)
+}
 </script>
 
 <style lang="less" scoped>
@@ -920,7 +1342,7 @@ function moduleDel() {
         background-color: #fff;
         user-select: none;
         width: 260px;
-        min-height: 300px;
+        min-height: 330px;
         padding: 16px;
 
         .module {
@@ -1013,7 +1435,7 @@ function moduleDel() {
       width: 760px;
       // width: 640px;
       max-height: 1000px;
-      min-height: 300px;
+      min-height: 330px;
       overflow-y: auto;
       background-color: #fff;
       // 隐藏滚动条
@@ -1146,6 +1568,7 @@ function moduleDel() {
 
           .tileXLFlex {
             display: flex;
+            flex-wrap: wrap;
 
             &>div {
               width: calc((100% - 20px) / 2);
@@ -1153,12 +1576,33 @@ function moduleDel() {
 
               .top {
                 background: rgba(14, 50, 103, 0.04);
+                height: 160px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+                overflow: hidden;
+                flex-direction: column;
+
+                img {
+                  max-width: 100%;
+                  max-height: 100%;
+                }
+
+                .tip {
+                  span {
+                    &:last-child {
+                      text-align: center;
+                    }
+                  }
+                }
               }
             }
           }
 
           .tileLFlex {
             display: flex;
+            flex-wrap: wrap;
 
             &>div {
               width: calc((100% - 30px) / 3);
@@ -1166,6 +1610,24 @@ function moduleDel() {
 
               .top {
                 background: rgba(14, 50, 103, 0.04);
+                width: 100%;
+                height: 160px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+                flex-direction: column;
+
+                img {
+                  max-width: 100%;
+                  max-height: 100%;
+                }
+
+                span {
+                  &:last-child {
+                    text-align: center;
+                  }
+                }
               }
             }
           }
@@ -1182,6 +1644,14 @@ function moduleDel() {
                 margin: 5px;
                 display: flex;
                 align-items: center;
+                justify-content: center;
+                width: 50%;
+
+                img {
+                  max-width: 100%;
+                  max-height: 100%;
+                  object-fit: cover;
+                }
               }
 
               .textareas {
@@ -1190,7 +1660,7 @@ function moduleDel() {
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
-                width: 300px;
+                width: 50%;
               }
             }
 
@@ -1206,6 +1676,14 @@ function moduleDel() {
                 margin: 5px;
                 display: flex;
                 align-items: center;
+                justify-content: center;
+                width: 50%;
+
+                img {
+                  max-width: 100%;
+                  max-height: 100%;
+                  object-fit: cover;
+                }
               }
 
               .textareas {
@@ -1215,6 +1693,7 @@ function moduleDel() {
                 flex-direction: column;
                 justify-content: center;
                 width: 300px;
+                width: 50%;
               }
             }
           }
@@ -1243,6 +1722,8 @@ function moduleDel() {
       // margin-left: 40px;
       background-color: #fff;
       border-left: 1px solid #e8e8e8;
+      max-height: 1000px;
+      overflow-y: auto;
 
       :deep(.rightForm) {
         .ant-form-item-row .ant-form-item-control .ant-form-item-control-input {
@@ -1314,7 +1795,6 @@ function moduleDel() {
             cursor: pointer;
             box-sizing: border-box;
           }
-
         }
 
         .showImgCont {
@@ -1365,7 +1845,6 @@ function moduleDel() {
       .canvas-component {
         margin-top: 10px;
         padding: 10px;
-        /* border: 1px solid #00aaff; */
       }
 
       .titleAreas {
@@ -1378,8 +1857,6 @@ function moduleDel() {
       }
 
       .canvas-component.active {
-        /* border-color: #1890ff; 
-        box-shadow: 0 0 8px rgba(24, 144, 255, 0.2); */
         border: 1px solid #00aaff;
       }
     }

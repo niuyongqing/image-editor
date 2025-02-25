@@ -60,7 +60,7 @@
                                 <a-select-option value="update_time">更新时间</a-select-option>
                                 <a-select-option value="created_time">创建时间</a-select-option>
                             </a-select>
-                            <a-range-picker class="ml-2.5" style="width: 320px;" v-model:value="advancedForm.time" />
+                            <a-range-picker class="ml-2.5" style="width: 320px;" valueFormat="YYYY-MM-DD" v-model:value="advancedForm.time" />
                         </a-form-item>
                         <a-form-item>
                             <div class="text-right mr-15">
@@ -1360,10 +1360,20 @@ const timestampToDateTime = (timestamp) => {
 
 // 获取店铺数据
 const getList = (isSearch = false) => {
+    if(advancedForm.minPrice > advancedForm.maxPrice){
+        message.error("最大售价必须大于最小售价！");
+        return;
+    }
+    if(advancedForm.minOldPrice > advancedForm.maxOldPrice) {
+        message.error("最大原价必须大于最小原价！");
+        return;
+    }
     loading.value = true;
     let params = {
         ...formData,
         ...advancedForm,
+        minDateTime: advancedForm.time[0],
+        maxDateTime: advancedForm.time[1],
         pageNum: paginations.pageNum,
         pageSize: paginations.pageSize,
         isSearch

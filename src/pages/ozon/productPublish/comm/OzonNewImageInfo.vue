@@ -11,10 +11,10 @@
                         <a-textarea v-model:value="form.description" :rows="10" :maxlength="6000" showCount />
                     </div>
                 </a-form-item>
-                <a-form-item label="JSON 丰富内容：" name="jsonDes">
+                <a-form-item label="JSON 丰富内容：" name="jsons">
                     <span style="color: #ff0a37;margin-bottom: 10px;display: block;">说明：保存发布后，手机端的图片及文字信息将跟PC端保持一致</span>
                     <a-form-item-rest>
-                        <jsonForm></jsonForm>
+                        <jsonForm @backResult="backResult" :shop="shopCode"></jsonForm>
                     </a-form-item-rest>
                 </a-form-item>
                 <a-form-item label="视频：">
@@ -29,7 +29,9 @@
                         <div>
                             封面视频：
                             <a-upload v-if="!form.coverUrl" :maxCount="1" :action="uploadImageVideoUrl"
-                                accept=".mp4,.mov" list-type="picture-card" @change="handleChange" :data="{
+                                accept=".mp4,.mov" list-type="picture-card" @change="handleChange" 
+                                :disabled="!shopCode"
+                                :data="{
                                     shortCode: shopCode
                                 }" :headers="headers" :showUploadList="false">
                                 <div>
@@ -67,7 +69,7 @@
                                     <a-upload ref="uploadVideo" list-type="picture-card" class="avatar-uploader"
                                         :action="uploadVideoUrl" :data="{
                                             shortCode: shopCode,
-                                        }" :headers="headers" accept=".mp4,.mov" @change="msgHandleChange"
+                                        }" :headers="headers" :disabled="!shopCode" accept=".mp4,.mov" @change="msgHandleChange"
                                         :showUploadList="false">
                                         <div>
                                             <AsyncIcon icon="PlusOutlined" />
@@ -76,7 +78,6 @@
                                     </a-upload>
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 </a-form-item>
@@ -99,8 +100,7 @@ const form = reactive({
     video: [],
     coverUrl: "",
     description: "",
-    jsons: "",
-    jsonDes: "",
+    jsons: {},
 })
 const headers = {
     'Authorization': 'Bearer ' + useAuthorization().value,
@@ -118,7 +118,7 @@ const uploadImageVideoUrl =
 const uploadVideoLoading = ref(false)
 
 const rules = {
-    jsonDes: [{ required: true }],
+    jsons: [{ required: true }],
 }
 
 const handleChange = info => {
@@ -147,7 +147,11 @@ const removeVideo = () => {
 const removeVideoList = (index) => {
     form.video.splice(index, 1)
 }
-const handleVideoImageSuccess = () => { }
+const backResult = (res) => { 
+    form.jsons = res 
+    console.log('p',props.shopCode);
+    
+}
 
 // 抛出数据和方法，可以让父级用ref获取
 defineExpose({
