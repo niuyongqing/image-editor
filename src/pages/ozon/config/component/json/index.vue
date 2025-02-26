@@ -627,7 +627,6 @@ const picPosition = {
 function clear() {
   Modal.confirm({
     title: '确定清空吗？',
-    // content: '将PC端描述生成到APP端描述可能存在一定的格式损耗和内容丢失，且之前已有的APP端描述将被覆盖，确定要生成吗？',
     onOk: () => {
       moduleList.value = []
       finallyObj.value = {}

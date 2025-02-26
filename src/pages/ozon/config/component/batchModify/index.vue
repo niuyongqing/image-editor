@@ -12,14 +12,15 @@
         <a-input v-model:value="sizeValue" placeholder="请填写尺寸" />
         <div class="w-10 h-full text-center" style="background: #eee;">px</div>
       </div>
-      <a-select v-model:value="scaleValue" v-if="picSize !== 'customWH' && picScale ==='custom'" class="mx-2.5" style="width: 200px" :options="scaleOpion">
+      <a-select v-model:value="scaleValue" v-if="picSize !== 'customWH' && picScale === 'custom'" class="mx-2.5"
+        style="width: 200px" :options="scaleOpion">
       </a-select>
       <div class="flex mx-2.5" v-if="picSize === 'customWH'">
         <a-input v-model:value="heightValue" placeholder="请填写尺寸" />
         <div class="w-10 h-full text-center" style="background: #eee;">px</div>
       </div>
-      <a-button type="primary" class="ml-2.5">生成JPG图片</a-button>
-      <a-button class="mx-2.5">生成PNG图片</a-button>
+      <a-button type="primary" class="ml-2.5" @click="generateJPG">生成JPG图片</a-button>
+      <a-button class="mx-2.5" @click="generatePNG">生成PNG图片</a-button>
     </div>
     <div class="mt-5">
       <a-button @click="selectAllImg" class="mr-5 mt-1">{{ selectAll ? '取消选择全部图片' :
@@ -47,7 +48,7 @@
 
 <script setup name=''>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-
+import { message } from "ant-design-vue";
 const props = defineProps({
   showEdit: Boolean,
   moduleList: Array,
@@ -128,8 +129,99 @@ const cancel = () => {
 }
 
 const handleOk = () => {
-  emit("handleBatchModifyClose")
+  // emit("handleBatchModifyClose")
+  if (!sizeValue.value || !heightValue.value) {
+    message.error("请填写变化值！")
+  }
 }
+
+const commFn = () => {
+  let isCheckedList = copyModuleList.value.filter((item) => item.checked);
+  console.log('isCheckedList', isCheckedList);
+  let arr = adjustList(isCheckedList,picScale.value,picSize.value,scaleValue.value,sizeValue.value)
+  console.log('arr',arr);
+  
+}
+
+function adjustList(list, picScale, picSize, scaleValue, sizeValue) {
+  return list.map(item => {
+    const newItem = { ...item };
+    if (picScale === 'equal') {
+      handleEqual(newItem, picSize, sizeValue);
+    } else if (picScale === 'custom') {
+      handleCustom(newItem, picSize, scaleValue, sizeValue);
+    }
+    return newItem;
+  });
+}
+
+function handleEqual(item, picSize, sizeValue) {
+  const width = parseInt(item.width);
+  const height = parseInt(item.height);
+
+  if (width === height) {
+    item.width = sizeValue.toString();
+  } else {
+    const isSmall = picSize === 'small';
+    const min = Math.min(width, height);
+    const max = Math.max(width, height);
+
+    if (isSmall && width === min || !isSmall && width === max) {
+      item.width = sizeValue.toString();
+    } else {
+      item.height = sizeValue.toString();
+    }
+  }
+}
+
+function handleCustom(item, picSize, scaleValue, sizeValue) {
+  const originalWidth = parseInt(item.width);
+  const originalHeight = parseInt(item.height);
+
+  if (picSize === 'pWidth') {
+    item.width = sizeValue.toString();
+    const ratio = scaleValue === 'none'
+      ? originalHeight / originalWidth
+      : getHeightRatio(scaleValue);
+    item.height = Math.round(sizeValue * ratio).toString();
+  } else if (picSize === 'pHeight') {
+    item.height = sizeValue.toString();
+    const ratio = scaleValue === 'none'
+      ? originalWidth / originalHeight
+      : getWidthRatio(scaleValue);
+    item.width = Math.round(sizeValue * ratio).toString();
+  } else if (picSize === 'customWH') {
+    item.width = sizeValue.toString();
+    item.height = sizeValue.toString();
+  }
+}
+
+function getHeightRatio(scaleValue) {
+  switch (scaleValue) {
+    case '1': return 1;          // 1:1
+    case '2': return 4 / 3;      // 3:4 → height is 4 parts
+    case '3': return 3 / 4;      // 4:3 → height is 3 parts
+    case '4': return 16 / 9;     // 9:16 → height is 16 parts
+    case '5': return 9 / 16;     // 16:9 → height is 9 parts
+    default: return 1;
+  }
+}
+
+function getWidthRatio(scaleValue) {
+  switch (scaleValue) {
+    case '1': return 1;          // 1:1
+    case '2': return 3 / 4;      // 3:4 → width is 3 parts
+    case '3': return 4 / 3;      // 4:3 → width is 4 parts
+    case '4': return 9 / 16;     // 9:16 → width is 9 parts
+    case '5': return 16 / 9;     // 16:9 → width is 16 parts
+    default: return 1;
+  }
+}
+
+const generateJPG = () => {
+  commFn()
+}
+const generatePNG = () => { }
 
 const selectAllImg = () => {
   selectAll.value = !selectAll.value

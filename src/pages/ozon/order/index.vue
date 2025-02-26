@@ -26,11 +26,11 @@
               <selectComm :options="orderType" :fieldObj="orderObj" @backSelectAll="orderSelectAll"
                 @backSelectItem="orderSelectItem"></selectComm>
             </div>
-            <div style="display: flex; margin-bottom: 24px">
+            <!-- <div style="display: flex; margin-bottom: 24px">
               <span style="margin-right: 10px; white-space: nowrap">国家区域：</span>
               <selectComm v-if="areaList.length > 0" :options="areaList" :fieldObj="areaObj" @backSelectAll="areaSelectAll"
                 @backSelectItem="areaSelectItem"></selectComm>
-            </div>
+            </div> -->
             <div style="display: flex">
               <span style="margin-right: 10px; white-space: nowrap">物流方式：</span>
               <selectComm :options="materialflowType" :fieldObj="materialflowObj" @backSelectAll="materialflowSelectAll"

@@ -19,6 +19,12 @@
         <a-form-item label="导出方式：">
           <a-radio-group v-model:value="formState.exportType" :options="exportOptions" />
         </a-form-item>
+        <a-form-item label="导出格式：">
+          <a-select v-model:value="formState.exportFileType" style="width: 120px">
+            <a-select-option :value="0">.excel</a-select-option>
+            <a-select-option :value="1">.csv</a-select-option>
+          </a-select>
+        </a-form-item>
       </a-form>
     </a-modal>
   </div>
@@ -37,7 +43,7 @@ const props = defineProps({
   incomingForm: Object
 });
 // 使用defineEmits获取emit函数
-const emit = defineEmits(["update:openExModal","backRefresh"]);
+const emit = defineEmits(["update:openExModal", "backRefresh"]);
 const formRef = ref();
 const formState = reactive({
   orderStatus: "",
@@ -46,6 +52,7 @@ const formState = reactive({
   times: [],
   sTime: "",
   endTime: "",
+  exportFileType: 1
 });
 const orderObj = ref({
   fieldKey: "status",
@@ -140,7 +147,7 @@ const handleOk = () => {
   console.log('props', props);
   console.log('formState', formState);
   const { exportWay, incomingForm: { marketId, shopId }, selectedRowKeys } = props;
-  const { orderStatus, timeType, sTime, endTime,exportType } = formState;
+  const { orderStatus, timeType, sTime, endTime, exportType } = formState;
   let params = {
     type: exportWay,
     orderStatus: "当type等于时需要使用,订单状态", //后续知道状态后补充
@@ -152,11 +159,11 @@ const handleOk = () => {
     endTime: endTime,
     exportType
   }
-  console.log('params',params);
-  
+  console.log('params', params);
+
   orderExport(params).then(res => {
     download.name(res.msg);
-  }).finally(() =>{
+  }).finally(() => {
     formRef.value.resetFields();
     emit("update:openExModal", false);
     emit("backRefresh")
