@@ -29,7 +29,7 @@
               <img
                 :src="image.url"
                 width="100%"
-                :class="item.noMargin ? '' : 'mb-2'"
+                :class="image.hasMargin ? 'mb-2' : ''"
               />
             </div>
           </div>
@@ -43,7 +43,7 @@
           shape="round"
           size="large"
           class="mt-60 mb-4"
-          @click="show = true"
+          @click="openEditor"
           >移动端详情编辑器</a-button
         >
         <br />
@@ -89,7 +89,7 @@
               <div :class="['module-item-icon', item.name]"></div>
               <div>
                 <div>{{ item.text }}</div>
-                <div>{{ item.activeCount }} / {{ item.limit }}</div>
+                <div>{{ moduleList.filter(el => el.type === item.name).length }} / {{ item.limit }}</div>
               </div>
             </div>
           </div>
@@ -199,53 +199,6 @@
               v-else
               class="module-empty"
             ></div>
-            <div
-              v-if="showRight"
-              class="content-panel"
-              :style="{ top: offsetTop + 'px' }"
-            >
-              <a-space
-                direction="vertical"
-                class="text-xl"
-              >
-                <a-button
-                  type="text"
-                  title="上移"
-                  :disabled="activeModuleIndex === 0"
-                  @click="moduleUp"
-                >
-                  <ArrowUpOutlined />
-                </a-button>
-                <a-button
-                  type="text"
-                  title="下移"
-                  :disabled="activeModuleIndex === moduleList.length - 1"
-                  @click="moduleDown"
-                >
-                  <ArrowDownOutlined />
-                </a-button>
-                <a-button
-                  type="text"
-                  title="复制"
-                  @click="moduleCopy()"
-                >
-                  <CopyOutlined />
-                </a-button>
-                <!-- <a-button
-                  type="text"
-                  @click="moduleMore"
-                >
-                  <RightSquareOutlined />
-                </a-button> -->
-                <a-button
-                  type="text"
-                  title="删除"
-                  @click="moduleDel"
-                >
-                  <DeleteOutlined />
-                </a-button>
-              </a-space>
-            </div>
           </div>
         </section>
 
@@ -255,6 +208,50 @@
           class="right"
           :style="{ top: offsetTop + 'px' }"
         >
+          <!-- 点击中间模块时显示在右边的操作面板 -->
+          <div class="content-panel">
+            <a-space
+              direction="vertical"
+              class="text-xl"
+            >
+              <a-button
+                type="text"
+                title="上移"
+                :disabled="activeModuleIndex === 0"
+                @click="moduleUp"
+              >
+                <ArrowUpOutlined />
+              </a-button>
+              <a-button
+                type="text"
+                title="下移"
+                :disabled="activeModuleIndex === moduleList.length - 1"
+                @click="moduleDown"
+              >
+                <ArrowDownOutlined />
+              </a-button>
+              <a-button
+                type="text"
+                title="复制"
+                @click="moduleCopy()"
+              >
+                <CopyOutlined />
+              </a-button>
+              <!-- <a-button
+                  type="text"
+                  @click="moduleMore"
+                >
+                  <RightSquareOutlined />
+                </a-button> -->
+              <a-button
+                type="text"
+                title="删除"
+                @click="moduleDel"
+              >
+                <DeleteOutlined />
+              </a-button>
+            </a-space>
+          </div>
           <div class="text-base text-gray flex justify-between mb-2">
             <span>{{ TEXT_ENUM[activeModule.type] }}</span>
             <CloseOutlined
@@ -359,7 +356,7 @@
                   <DropdownOfImage
                     v-else
                     :account="props.sellerId"
-                    :limit="20"
+                    :limit="10"
                     @submit="imgData => fillImgData(imgData, i)"
                   >
                     <a-button
@@ -466,23 +463,21 @@
 
   const show = ref(false)
   const moduleList = ref([])
-  watch(
-    () => props.mobileDetail,
-    val => {
-      moduleList.value = val.map(item => {
-        const obj = {
-          ...item,
-          id: uuidv4()
-        }
-        if (item.type === 'image') {
-          obj.noMargin = !item.images[0].hasMargin
-        }
+  function openEditor() {
+    moduleList.value = props.mobileDetail.map(item => {
+      const obj = {
+        ...cloneDeep(item),
+        id: uuidv4()
+      }
+      if (item.type === 'image') {
+        obj.noMargin = !item.images[0].hasMargin
+      }
 
-        return obj
-      })
-    },
-    { deep: true }
-  )
+      return obj
+    })
+
+    show.value = true
+  }
 
   function clear() {
     Modal.confirm({
@@ -499,20 +494,17 @@
     {
       text: '文字',
       name: 'text',
-      limit: 30,
-      activeCount: 0
+      limit: 30
     },
     {
       text: '图片',
       name: 'image',
-      limit: 30,
-      activeCount: 0
+      limit: 30
     },
     {
       text: '图文',
       name: 'text-image',
-      limit: 15,
-      activeCount: 0
+      limit: 15
     }
   ])
   const TEXT_ENUM = {
@@ -537,6 +529,7 @@
   // 当将元素拖动到有效放置目标（每几百毫秒）上时, 触发
   function allowDrop(e) {
     e.preventDefault()
+    if (!pointerEventsNone.value) return
 
     /* 获取鼠标高度 */
     let eventoffset = e.offsetY
@@ -571,7 +564,7 @@
       const childOff = childrenObject.offsetTop
 
       /* 鼠标在所有组件下面 */
-      if (eventoffset > childrenObject.clientHeight || childrenObject.lastChild.offsetTop - childOff + childrenObject.lastChild.clientHeight / 2 < eventoffset) {
+      if (eventoffset > childrenObject.clientHeight || childrenObject.lastElementChild.offsetTop - childOff + childrenObject.lastElementChild.clientHeight / 2 < eventoffset) {
         /* 最后一个组件是提示组件返回 */
         if (moduleList.value[moduleList.value.length - 1].type === 'placement-area') return
 
@@ -619,6 +612,8 @@
   }
   // 当在有效放置目标上放置元素时触发此事件
   function drop(e) {
+    if (!pointerEventsNone.value) return
+
     const type = e.dataTransfer.getData('componentName')
     const moduleItem = { type, id: uuidv4() }
     if (type === 'text') {
@@ -647,7 +642,7 @@
     activeId.value = item.id
     nextTick(() => {
       const activeDom = document.getElementById(item.id)
-      offsetTop.value = activeDom.offsetTop
+      offsetTop.value = activeDom.offsetTop - 36
     })
 
     showRight.value = true
@@ -846,28 +841,31 @@
   }
   // 真正的关闭操作
   function close() {
-    moduleList.value = []
     activeModule.value = {}
     activeModuleIndex.value = 0
     show.value = false
+    showRight.value = false
   }
   function save() {
     // 将 moduleList 数据转为速卖通接收的格式
     const res = []
     moduleList.value.forEach(item => {
       const obj = { ...item }
+      // 移除空值(未填写任何内容或图片的模块)
+      if (obj.type === 'text' && obj.texts.every(subItem => !subItem.content)) return
+      if (obj.type === 'image' && obj.images.every(subItem => !subItem.url)) return
       if (obj.type === 'image') {
         obj.images.forEach(imageItem => {
           imageItem.style.hasMargin = !obj.noMargin
         })
-        delete obj.id
         delete obj.noMargin
       }
+      delete obj.id
 
       res.push(obj)
     })
-    console.log('res', res)
-    // close()
+    emits('mobileDetailEdit', res)
+    close()
   }
 </script>
 
@@ -914,6 +912,7 @@
         width: 1200px;
         height: calc(100vmin - 36px);
         margin: 0 auto;
+        padding-bottom: 100px;
         overflow: auto;
         // 隐藏滚动条
         -ms-overflow-style: none; // IE and Edge
@@ -989,7 +988,6 @@
           }
         }
         .content {
-          position: relative;
           background-color: #fff;
           user-select: none;
           width: 500px;
@@ -1027,11 +1025,6 @@
           .active {
             border: 1px solid #00aaff;
           }
-          &-panel {
-            position: absolute;
-            right: -40px;
-            background-color: #fff;
-          }
 
           .module-empty {
             height: 314px;
@@ -1046,6 +1039,13 @@
           width: 370px;
           margin-left: 60px;
           vertical-align: top;
+          .content-panel {
+            position: absolute;
+            top: 0;
+            left: -50px;
+            background-color: #fff;
+          }
+
           .text-item {
             border-bottom: 1px solid #ddd;
             padding-bottom: 12px;

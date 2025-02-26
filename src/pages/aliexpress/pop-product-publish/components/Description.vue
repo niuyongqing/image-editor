@@ -52,13 +52,14 @@
   import { useAliexpressPopProductStore } from '~@/stores/aliexpress-pop-product'
   import { uploadImageForSdkApi } from '../../apis/common'
   import { message, Modal } from 'ant-design-vue'
+  import { replaceTagsWithRegex, extractTextFromHTML, extractImageUrls } from '@/utils'
 
   export default {
     name: 'Description',
     components: { MobileDetailEditor, InfoCircleOutlined },
     data() {
       const validWebDetail = (rule, val) => {
-        if (!val.length) {
+        if (!val.length || val === '<p><br></p>') {
           return Promise.reject('请填写PC端描述')
         } else {
           return Promise.resolve()
@@ -67,8 +68,7 @@
       return {
         store: useAliexpressPopProductStore(),
         form: {
-          webDetail: '',
-          mobileDetail: ''
+          webDetail: ''
         },
         mobileModuleList: [],
         rules: {
@@ -122,9 +122,14 @@
             if (webDetail) {
               const richTextData = webDetail.moduleList.find(item => item.type === 'html')
               richTextData && (this.form.webDetail = richTextData.html.content)
+              this.$nextTick(() => {
+                if (!this.form.webDetail.includes('<img')) {
+                  this.form.webDetail = replaceTagsWithRegex(richTextData.html.content)
+                }
+              })
             }
             if (mobileDetail) {
-              this.mobileModuleList = mobileDetail.moduleList
+              this.mobileModuleList = mobileDetail.moduleList || []
             }
           }
         },
@@ -132,12 +137,14 @@
       }
     },
     methods: {
+      // 清空移动端详情
       clear() {
         this.mobileModuleList = []
-        this.form.mobileDetail = ''
       },
       // 移动端详情编辑
-      mobileDetailEdit() {},
+      mobileDetailEdit(res) {
+        this.mobileModuleList = res
+      },
       // 复制 PC 描述到 APP 描述
       cloneWebDetail() {
         if (!this.form.webDetail || this.form.webDetail === '<p><br></p>') {
@@ -148,11 +155,45 @@
           title: '确定生成吗？',
           content: '将PC端描述生成到APP端描述可能存在一定的格式损耗和内容丢失，且之前已有的APP端描述将被覆盖，确定要生成吗？',
           onOk: () => {
-            // FIXME:
-            this.form.mobileDetail = this.form.webDetail
+            // 将富文本格式转为移动端格式; 不要 title, 文字内容都转成 body; 简陋版, 会丢失数据
+            const text = extractTextFromHTML(this.form.webDetail)
+            const imgUrls = extractImageUrls(this.form.webDetail)
+
+            const moduleList = []
+            moduleList.push({
+              type: 'text',
+              texts: [
+                {
+                  class: 'body',
+                  content: text,
+                  style: {}
+                }
+              ]
+            })
+
+            let images = []
+            imgUrls.forEach((img, i) => {
+              images.push({
+                url: img,
+                style: {
+                  hasMargin: false
+                }
+              })
+              // 最多 10 张图片一个集合; 遍历到最后一张 push 一下
+              if ((i !== 0 && (i + 1) % 10 === 0) || i === imgUrls.length - 1) {
+                moduleList.push({
+                  type: 'image',
+                  images
+                })
+                images = []
+              }
+            })
+
+            this.mobileModuleList = moduleList
           }
         })
       },
+      
       async emitData({ looseValidate = false }) {
         if (looseValidate) {
           this.$refs.form.clearValidate()
@@ -180,66 +221,13 @@
           }
           webDetail = JSON.stringify(res)
         }
-        if (this.form.mobileDetail && this.form.mobileDetail !== '<p><br></p>') {
-          // 将富文本格式转为移动端格式; 不要 title, 文字内容都转成 body; 简陋版, 会丢失数据
-          const pattern = /<[a-z]+[1-6]?\b[^>]*>(.*?)<\/[a-z]+[1-6]?>/g
-          const srcReg = /src=[\'\"]?([^\'\"]*)[\'\"]?/i // 匹配图片中的src
-          const bodyList = []
-          const imgList = []
-          this.form.mobileDetail.split('<p><br></p>').forEach(paragraph => {
-            if (paragraph.includes('<img src=')) {
-              const pLabelList = paragraph.match(/<\/p>/g)
-              const splitStr = pLabelList.length > 1 ? '</p>' : '><'
-              let imgLabelList = paragraph.replaceAll('<p>', '').split(splitStr)
-              // 去除空数据
-              imgLabelList = imgLabelList.filter(img => img)
-              imgLabelList.forEach(img => {
-                const res = img.match(srcReg)
-                res && imgList.push(res[1])
-              })
-            } else {
-              let match
-              while ((match = pattern.exec(paragraph)) !== null) {
-                bodyList.push(match[1].trim())
-              }
-            }
-          })
 
-          let moduleList = []
-          bodyList.forEach(body => {
-            moduleList.push({
-              type: 'text',
-              texts: [
-                {
-                  class: 'body',
-                  content: body,
-                  style: {
-                    fontSize: 14
-                  }
-                }
-              ]
-            })
-          })
-          imgList.forEach(img => {
-            moduleList.push({
-              type: 'image',
-              images: [
-                {
-                  url: img,
-                  style: {
-                    // width: 800,
-                    // height: 800,
-                    hasMargin: false
-                  }
-                }
-              ]
-            })
-          })
-
+        if (this.mobileModuleList.length) {
           const res = {
             version: '2.0.0',
-            moduleList
+            moduleList: this.mobileModuleList
           }
+
           mobileDetail = JSON.stringify(res)
         }
 

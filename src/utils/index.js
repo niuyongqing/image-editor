@@ -2,13 +2,13 @@
  * 表格时间格式化
  */
 export function formatDate(cellValue) {
-  if (cellValue == null || cellValue == "") return "";
-  var date = new Date(cellValue) 
+  if (cellValue == null || cellValue == '') return ''
+  var date = new Date(cellValue)
   var year = date.getFullYear()
   var month = date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1
-  var day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate() 
-  var hours = date.getHours() < 10 ? '0' + date.getHours() : date.getHours() 
-  var minutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes() 
+  var day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate()
+  var hours = date.getHours() < 10 ? '0' + date.getHours() : date.getHours()
+  var minutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()
   var seconds = date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds()
   return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds
 }
@@ -43,7 +43,7 @@ export function byteLength(str) {
     const code = str.charCodeAt(i)
     if (code > 0x7f && code <= 0x7ff) s++
     else if (code > 0x7ff && code <= 0xffff) s += 2
-    if (code >= 0xDC00 && code <= 0xDFFF) i--
+    if (code >= 0xdc00 && code <= 0xdfff) i--
   }
   return s
 }
@@ -145,9 +145,7 @@ export function toggleClass(element, className) {
   if (nameIndex === -1) {
     classString += '' + className
   } else {
-    classString =
-      classString.substr(0, nameIndex) +
-      classString.substr(nameIndex + className.length)
+    classString = classString.substr(0, nameIndex) + classString.substr(nameIndex + className.length)
   }
   element.className = classString
 }
@@ -173,7 +171,7 @@ export function getTime(type) {
 export function debounce(func, wait, immediate) {
   let timeout, args, context, timestamp, result
 
-  const later = function() {
+  const later = function () {
     // 据上一次触发时间间隔
     const last = +new Date() - timestamp
 
@@ -190,7 +188,7 @@ export function debounce(func, wait, immediate) {
     }
   }
 
-  return function(...args) {
+  return function (...args) {
     context = this
     timestamp = +new Date()
     const callNow = immediate && !timeout
@@ -281,11 +279,9 @@ export function makeMap(str, expectsLowerCase) {
   for (let i = 0; i < list.length; i++) {
     map[list[i]] = true
   }
-  return expectsLowerCase
-    ? val => map[val.toLowerCase()]
-    : val => map[val]
+  return expectsLowerCase ? val => map[val.toLowerCase()] : val => map[val]
 }
- 
+
 export const exportDefault = 'export default '
 
 export const beautifierConf = {
@@ -394,4 +390,32 @@ export function findParentIds(tree, id, parentIds = []) {
     }
   }
   return []
-} 
+}
+
+// wangEditor 解析能力有限, 替换掉全部的 div 标签和 p 标签
+export function replaceTagsWithRegex(html) {
+  // 替换开始和结束标签，保留属性
+  return html.replace(/<(\/?)div\b([^>]*)>/gi, '<$1p$2>').replace(/<(\/?)span\b([^>]*)>/gi, '<$1p$2>')
+}
+
+// 从 HTML 中提取文本内容
+export function extractTextFromHTML(html) {
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(html, 'text/html')
+  return doc.body.textContent
+}
+
+// 从 HTML 中提取图片地址数组
+export function extractImageUrls(html) {
+  const tempDiv = document.createElement('div')
+  tempDiv.innerHTML = html
+  const imgElements = tempDiv.getElementsByTagName('img')
+  const imageUrls = []
+  for (let i = 0; i < imgElements.length; i++) {
+    const src = imgElements[i].src
+    if (src) {
+      imageUrls.push(src)
+    }
+  }
+  return imageUrls
+}
