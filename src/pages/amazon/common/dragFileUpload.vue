@@ -2,32 +2,34 @@
 <div id="dragFileUpload" class="dragFileUpload">
   <div class="img-content">
     <div class="img-item"
-      v-for="item in imageList"
+      v-for="item in imageData.list"
       :key="item"
     >
       <a-image
         :width="200"
-        src="https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png"
+        :height="200"
+        :src="item.path"
       />
+      <div class="img-item-size">{{ `${item.width}*${item.height}` }}</div>
       <div class="image-item-foot">
         <a-checkbox v-model:checked="item.checked"></a-checkbox>
         <a-tooltip>
-          <template #title>{{ 'dasfgsdfsdfgsdgfsdgsfasdfsadf' }}</template>
-          <div class="image-name">dasfgsdfsdfgsdgfsdgsfasdfsadf</div>
+          <template #title>{{ item.name }}</template>
+          <div class="image-name">{{ item.name }}</div>
         </a-tooltip>
         <DeleteOutlined @click="delImage(item)"/>
       </div>
     </div>
     <div class="img-item uploadDom">
       <a-upload
-        v-model:file-list="fileList"
+        v-model:file-list="imageData.list"
         name="avatar"
         list-type="picture-card"
         class="avatar-uploader"
         multiple
         :show-upload-list="false"
         :customRequest="customRequest"
-        :action="'http://10.93.90.146:88/prod-api/platform-tiktok/platform/tiktok/global/file/upload/img'"
+        :action="''"
         :before-upload="beforeUpload"
         @change="handleChange"
       >
@@ -50,80 +52,111 @@ import { ref, reactive, onMounted, computed, watchPostEffect, nextTick } from 'v
 defineOptions({
   name: "dragFileUpload"
 })
+const emit = defineEmits(['update:imageList'])
 onMounted(() => {
   tagDrop()
 })
-const imageList = ref([
-  {
-    name: 'sdfsdfsf',
-    path: 'asfrgsdfsfsdfsdf',
-    checked: false,
-  }
-]);     // 图片列表
+const props = defineProps({
+  imageList: {
+    type: Array,
+    default: () => [],
+  },
+  maxNumber: Number,        // 最大数量
+  maxSize: Number,          // 限制单个图片大小MB
+})
+const imageData = reactive({
+  list: [],     // 图片列表
+  loading: false
+});     
+watch(() => props.imageList, (val) => {
+  imageData.list = val
+}, {
+  deep: true,
+})
+// 删除图片
 function delImage(image) {
-  imageList.value = imageList.value.filter(i => i.path !== image.path)
+  imageData.list = imageData.list.filter(i => i.path !== image.path)
+  emit('update:imageList', imageData.list)
 }
-function getBase64(img, callback) {
-  const reader = new FileReader();
-  reader.addEventListener('load', () => callback(reader.result));
-  reader.readAsDataURL(img);
-}
-const fileList = ref([]);
-const loading = ref(false);
-const imageUrl = ref('');
-const handleChange = info => {
-  console.log({info});
-  
-  if (info.file.status === 'uploading') {
-    loading.value = true;
+// 上传文件变化
+function handleChange({file, fileList}) {
+  // console.log({file, fileList}, '56');
+  if (file.status === 'uploading') {
     return;
   }
-  if (info.file.status === 'done') {
+  if (file.status === 'done') {
     // Get this url from response in real world.
-    getBase64(info.file.originFileObj, base64Url => {
-      imageUrl.value = base64Url;
-      loading.value = false;
-    });
+    console.log(file, fileList);
+    let index = fileList.findIndex(i => i.uid === file.uid)
   }
-  if (info.file.status === 'error') {
-    loading.value = false;
+  if (file.status === 'error') {
     console.log('upload error');
   }
 };
-const beforeUpload = file => {
+// 上传之前校验
+function beforeUpload(file, fileList) {
+  let uid = file.uid
+  if (props.maxSize) {
+    let isLt2M = file.size / 1024 / 1024 < props.maxSize
+    if (!isLt2M) {
+      console.log(`图片大小不应超过${props.maxSize}M`);
+      return false;
+    }
+  }
+  if (props.maxNumber) {
+    let maxNumber = (imageData.list.length + fileList.length) <= props.maxNumber
+    if (!maxNumber) {
+      setTimeout(() => {
+        let index = imageData.list.findIndex(i => i.uid === uid);
+        imageData.list.splice(index, 1);
+      });
+      return false
+    }
+  };
   const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
   if (!isJpgOrPng) {
-    console.log('You can only upload JPG file!');
+    console.log('上传图片类型不正确!');
+    return false;
   }
-  const isLt2M = file.size / 1024 / 1024 < 2;
-  if (!isLt2M) {
-    console.log('Image must smaller than 2MB!');
-  }
-  return isJpgOrPng && isLt2M;
+  // return isJpgOrPng && isLt2M;
 };
-function customRequest(file) {
-  console.log(file);
+// 自定义上传
+async function customRequest({ file }) {
+  // console.log({file});
   let data = new FormData()
-  data.append('openId', 'ekMlTQAAAAAB7XAM6zof9JRc66GwSVqUEP2Y23bBOIYal0FUXl8xkg')
-  data.append('file', file.file)
-  usePost('platform-tiktok/platform/tiktok/global/file/upload/img',data).then(res => {
-    console.log(res);
-    
-  }).finally(() => {
-    console.log(111);
-    imageList.value.push({
-      name: 'sdfsdfsf',
-      path: 'asfrgsdfsfsdfsdf' + Math.floor(Math.random()*10000),
-      checked: false,
-    })
-  })
+  data.append('file', file)
+  let headers = {
+    'Content-Type': 'multipart/form-data',
+    'Authorization': 'Bearer ' + useAuthorization().value
+  }
+  try {
+    let res = await usePost('/platform-amazon/platform/amazon/file/upload/image', data, { headers })
+    let obj = imageData.list.find(i => i.uid === file.uid)
+    obj.name = res.newFileName
+    obj.path = res.url
+    obj.checked = false
+    imageLoad(obj)
+    emit('update:imageList', imageData.list)
+  } catch (error) {
+    console.log({ error });
+  }
+}
+// 图片加载完成
+function imageLoad(obj) {
+  // console.log({obj});
+  const img = new Image();  // 创建一个新的 Image 对象
+  img.onload = () => {
+    // 获取图片的宽高
+    obj.width = img.naturalWidth;
+    obj.height = img.naturalHeight;
+  };
+  img.src = obj.path;
 }
 // 拖拽
 function tagDrop() {
   const _this = this;
   const tagBox = document.querySelector('.img-content')
   if (!tagBox) return;
-
   let sortable = Sortable.create(tagBox, {
     animation: 300,
     delay: 0,
@@ -132,14 +165,14 @@ function tagDrop() {
         return;
       }
       let oldIndex = evt.oldIndex
-      let oldItem = imageList.value[oldIndex]
+      let oldItem = imageData.list[oldIndex]
       // 如果是调整最后一个位置
       if (!oldItem) {
         oldIndex--
-        oldItem = imageList.value[oldIndex]
+        oldItem = imageData.list[oldIndex]
       }
-      imageList.value.splice(oldIndex, 1)
-      imageList.value.splice(evt.newIndex, 0, oldItem)
+      imageData.list.splice(oldIndex, 1)
+      imageData.list.splice(evt.newIndex, 0, oldItem)
       // 在组件移除后，重新渲染组件
       nextTick(() => {
         setTimeout(() => {
@@ -162,6 +195,18 @@ function tagDrop() {
       width: 200px;
       height: 240px;
       margin: 0 15px 15px 0;
+      position: relative;
+      .img-item-size {
+        width: 100%;
+        height: 30px;
+        position: absolute;
+        bottom: 40px;
+        background: #000000;
+        opacity: 0.2;
+        color: #fff;
+        font-size: 18px;
+        text-align: center;
+      }
       .image-item-foot {
         width: 100%;
         height: 40px;
