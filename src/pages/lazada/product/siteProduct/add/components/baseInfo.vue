@@ -18,7 +18,7 @@
                     <a-cascader :showSearch="showSearchConfig" class="flex w-full justify-start"
                         v-model:value="state.primaryCategory" :options="primaryCategoryOptions" placeholder="请先选择店铺"
                         allowClear :fieldNames="{ label: 'name2', value: 'categoryId', children: 'children' }"
-                        @change="changePrimaryCategory">
+                        @change="changePrimaryCategory" popupClassName="popupClassName">
                         <template #notFoundContent>
                             <div w-full h-300px flex items-center justify-center m-auto>
                                 <a-spin :spinning="true" tip="正在加载中..." m-auto>
@@ -39,6 +39,13 @@ import { accountCache, categoryTree, categoryAttributesApi } from '@/pages/lazad
 import EventBus from "~/utils/event-bus";
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 
+// 是否半托管新增
+const { isHalfway } = defineProps({
+    isHalfway: {
+        type: Boolean,
+        default: false,
+    },
+});
 const { state: lazadaAttrsState, setShortCode, setPrimaryCategory, setLazadaAttrs, setLoading } = useLadazaAttrs();
 const shortCodes = ref([]); // 店铺列表
 const formEl = useTemplateRef('formRef');
@@ -61,7 +68,13 @@ async function getShortCodes() {
         for (const resKey in accountCacheRes.data.accountDetail) {
             codes.push(...accountCacheRes.data.accountDetail[resKey])
         };
-        shortCodes.value = codes
+        const OrdinaryShops = codes.filter((item) => {
+            return item.shopModeType === 0
+        });
+        const halfwayShops = codes.filter((item) => {
+            return item.shopModeType === 1
+        });
+        shortCodes.value = isHalfway ? halfwayShops : OrdinaryShops;
     };
 };
 
@@ -124,15 +137,19 @@ async function validateCodeRule() {
 // 表单校验
 async function validateForm() {
     return new Promise((resolve, reject) => {
-        formEl.value.validate().then(() => {
-            resolve(true);
-        }).catch(() => {
-            document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            reject(false);
-        })
+        formEl.value.validate()
+            .then(() => {
+                resolve(true);
+                emits('valid', true)
+            }).catch(() => {
+                document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                reject(false);
+                emits('valid', false)
+            })
     })
 };
 
+const emits = defineEmits(['valid']);
 defineExpose({
     state,
     validateForm

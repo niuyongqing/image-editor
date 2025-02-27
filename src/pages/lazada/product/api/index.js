@@ -1,5 +1,5 @@
 export function getList(params) {
-  return usePost("/platform-lazada/platform/lazada/product/list", params);
+  return usePost("/platform-lazada/platform/lazada/product/listNew", params);
 }
 
 export function accountCache() {
@@ -74,6 +74,15 @@ export function watermarkList(params) {
 export function lazadaAdd(data) {
   return usePost("/platform-lazada/platform/lazada/product/add", data);
 }
+// lazada 编辑站点商品
+export function lazadaEdit(data) {
+  return usePost("/platform-lazada/platform/lazada/product/edit", data);
+}
+
+// lazada 添加全球商品
+export function lazadaGlobalAdd(data) {
+  return usePost("/platform-lazada/platform/lazada/product/global", data);
+}
 
 // lazada 商品详情
 export function lazadaProductDetail(data) {
@@ -98,6 +107,46 @@ export function syncOne(data) {
 export function syncAll() {
   return useGet("/platform-lazada/platform/lazada/product/sync-all");
 }
+// 同步店铺商品
+export function sync(data) {
+  return usePost("/platform-lazada/platform/lazada/product/sync", data);
+}
+
+// 下架
 export function deactivate(data) {
   return usePost("/platform-lazada/platform/lazada/product/deactivate", data);
+}
+
+// 获取已填充好值的分类属性列表
+export function hasValueAttributes(data) {
+  return usePost(
+    "/platform-lazada/platform/lazada/attribute/category/hasValueAttributes",
+    data
+  );
+}
+export function saveProduct(data) {
+  return usePost("/platform-lazada/platform/lazada/product/saveProduct", data);
+}
+
+// 复制
+export function copy(data) {
+  return usePost("/platform-lazada/platform/lazada/product/copy", data);
+}
+// 添加备注(支持批量)
+export function remark(data) {
+  return usePost("/platform-lazada/platform/lazada/product/batch/remark", data);
+}
+// 修改库存(支持批量)
+export function batchStore(data) {
+  return usePost(
+    "/platform-lazada/platform/lazada/product/batch-store/new",
+    data
+  );
+}
+// 修改售价(支持批量)
+export function batchPrice(data) {
+  return usePost(
+    "/platform-lazada/platform/lazada/product/batch/price/new",
+    data
+  );
 }

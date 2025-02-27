@@ -1,7 +1,7 @@
 <template>
     <div>
         <Search :shortCodes="shortCodes" @search="handleSearch"></Search>
-        <TableAction @success="reload" :selectedRows="selectedRows"></TableAction>
+        <TableAction @success="reload" :selectedRows="selectedRows" :shortCode="shortCode"></TableAction>
         <BaseTable ref="baseTableRef" :columns="columns" :api="getList" :init-search-param="initSearchParam"
             :row-selection="rowSelection" show-right-pagination rowKey="itemId" resultField="rows[0].productList">
             <template #leftBar>
@@ -30,17 +30,40 @@
                 </p>
                 <div flex>
                     <p style="color: rgb(153, 153, 153)"> 「{{ shopSimpleName(record) }}」 </p>
-                    <div class="isGobal" v-if="record.bizSupplement && record.bizSupplement.globalPlusProductStatus">
+                    <div class="isGobal" v-if="record.productType === 1">
                         <a-tooltip placement="top">
                             <template #title>
-                                <span>已升级Plus升级产品</span>
+                                <span>半托管商品</span>
                             </template>
-                            <a-tag>Plus</a-tag>
+                            <a-tag color="success">半</a-tag>
+                        </a-tooltip>
+                    </div>
+                    <div class="isGobal"
+                        v-if="record.bizSupplement && record.bizSupplement.globalPlusProductStatus === true">
+                        <a-tooltip placement="top">
+                            <template #title>
+                                <span>六合一商品</span>
+                            </template>
+                            <a-tag color="success">合</a-tag>
                         </a-tooltip>
                     </div>
                 </div>
+                <div v-if="record.remark">
+                    <span :style="{ color: remarkColor(record.remarkColor) }"> 备注: {{ record.remark }} </span>
+                </div>
             </template>
-
+            <template #global="{ record }">
+                <div class="record-sku-container pb-30px" text-center>
+                    <a-tag color="success"> {{ record.bizSupplement?.globalPlusProductStatus ? '是' : '否' }}</a-tag>
+                </div>
+            </template>
+            <template #status="{ record }">
+                <div class="record-sku-container pb-30px" text-center>
+                    <a-tag v-if="record.status === 'Active'" color="success">在线</a-tag>
+                    <a-tag v-if="record.status === 'Suspended'" color="warning">暂停</a-tag>
+                    <a-tag v-if="record.status === 'InActive'" color="error">下线</a-tag>
+                </div>
+            </template>
             <template #skus="{ record }">
                 <div class="record-sku-container pb-30px">
                     <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
@@ -102,14 +125,9 @@
             </template>
             <template #date="{ record }">
                 <div>
-                    <p class="date"> 创建： </p>
-                    <p>
-                        {{ timestampToDateTime(record.createdTime) }}
-                    </p>
-                    <p class="date"> 更新: </p>
-                    <p>
-                        {{ timestampToDateTime(record.updatedTime) }}
-                    </p>
+                    <p class="date"> 创建: <span text-black> {{ timestampToDateTime(record.createdTime) }} </span> </p>
+                    <p class="date"> 更新: <span text-black> {{ timestampToDateTime(record.updatedTime) }} </span> </p>
+                    <p class="date"> 同步: <span text-black> {{ timestampToDateTime(record.syncTime) }} </span> </p>
                 </div>
             </template>
             <template #action="{ record }">
@@ -126,7 +144,7 @@
                                     <a-menu-item @click="handleSync(record)">
                                         同步
                                     </a-menu-item>
-                                    <a-menu-item @click="handleProduct(record)">
+                                    <a-menu-item @click="handleCopyGloablProduct(record)">
                                         复制为“六合一产品”
                                     </a-menu-item>
                                     <a-menu-item @click="handleCopyProduct(record)">
@@ -149,13 +167,15 @@
         <PriceModal ref="priceModalRef" @success="reload"></PriceModal>
         <StockModal ref="stockModalRef" @success="reload"></StockModal>
         <SpecialPriceModal ref="specialPriceModalRef" @success="reload"></SpecialPriceModal>
+        <CopyGlobalModal ref="copyGlobalModalRef" :account="accountDetail" @success="reload"></CopyGlobalModal>
+        <CopySiteModal ref="copySiteModalRef" :account="accountDetail" @success="reload"></CopySiteModal>
     </div>
 </template>
 
 <script setup>
 import { SettingOutlined, EditOutlined, ReloadOutlined, CloudUploadOutlined, DownloadOutlined, DownOutlined } from '@ant-design/icons-vue';
 import { columns } from './columns';
-import { getList, accountCache, syncOne } from './api';
+import { getList, accountCache, syncOne, deactivate } from './api';
 import { useTableSelection } from '@/components/baseTable/useTableSelection';
 import { message, Modal } from 'ant-design-vue';
 import { checkPermi, checkRole } from '~@/utils/permission/component/permission';
@@ -164,21 +184,29 @@ import { timestampToDateTime } from './common';
 import Search from './components/search.vue';
 import TableAction from './components/tableAction.vue';
 import BaseTable from '@/components/baseTable/BaseTable.vue';
-import RemarkModal from '@/pages/lazada/product/components/remarkModal.vue';
-import PriceModal from '@/pages/lazada/product/siteProduct/add/components/batchModal/priceModal.vue';
-import StockModal from '@/pages/lazada/product/siteProduct/add/components/batchModal/stockModal.vue';
-import SpecialPriceModal from '@/pages/lazada/product/siteProduct/add/components/batchModal/specialPriceModal.vue';
+import RemarkModal from './components/remarkModal.vue';
+import PriceModal from './components/priceModal.vue';
+import StockModal from './components/stockModal.vue';
+import SpecialPriceModal from './components/specialPriceModal.vue';
+import CopySiteModal from './components/copySiteModal.vue';
+import CopyGlobalModal from './components/copyGlobalModal.vue';
+import { colors } from '@/pages/lazada/product/common';
 
 const { copy } = useClipboard();
-const active = ref('ALL')
+const active = ref('ALL');
+const accountDetail = ref({}); // 所有店铺
 const searchFormState = ref({});
 const tableData = ref([]);
+const shortCode = ref('');
 const shortCodes = ref([]);
 const baseTableEl = useTemplateRef('baseTableRef');
 const priceModalEl = useTemplateRef('priceModalRef');
 const remarkModalEl = useTemplateRef('remarkModalRef');
 const stockModalEl = useTemplateRef('stockModalRef');
 const specialPriceModalEl = useTemplateRef('specialPriceModalRef');
+const copySiteModalEl = useTemplateRef('copySiteModalRef');
+const copyGlobalModalEl = useTemplateRef('copyGlobalModalRef');
+
 const { singleDisabled, rowSelection, tableRow, selectedRows, clearSelection } = useTableSelection()
 const initSearchParam = {
     prop: "created_time",
@@ -254,12 +282,13 @@ const reload = () => {
 // 查询
 const handleSearch = async (state) => {
     searchFormState.value = state;
+    shortCode.value = searchFormState.value.shortCode;
     await baseTableEl.value.search(state);
 };
 //  编辑
 const handleEdit = (record) => {
-    const { itemId } = record;
-    window.open(`/platform/lazada/siteProduct/edit?itemId=${itemId}`, '_blank');
+    const { itemId, productType } = record;
+    window.open(`/platform/lazada/siteProduct/edit?itemId=${itemId}&productType=${productType}`, '_blank');
 };
 const handleReset = () => {
     baseTableEl.value.reset();
@@ -270,44 +299,69 @@ const handleBtnClick = (btn) => {
 };
 //  同步
 const handleSync = (record) => {
-    syncOne({ shortCode: record.shortCode, itemId: record.itemId }).then((res) => {
-        if (res.code === 200) {
-            message.success('同步成功');
-            reload();
-        } else {
-            message.error(res.msg);
-        }
-    })
+    baseTableEl.value.setLoading(true);
+    syncOne({ shortCode: record.shortCode, itemId: record.itemId })
+        .then((res) => {
+            if (res.code === 200) {
+                message.success('同步成功');
+                reload();
+            } else {
+                message.error(res.msg);
+                baseTableEl.value.setLoading(false);
+            }
+        })
 };
 //   复制为“六合一产品”
-const handleProduct = (record) => {
-    console.log('record', record);
+const handleCopyGloablProduct = (record) => {
+    if (!record.bizSupplement.globalPlusProductStatus) {
+        message.info('该产品为站点产品，无法复制为全球产品');
+        return;
+    };
+    copyGlobalModalEl.value.open(record);
 };
 //    复制为“站点产品”
 const handleCopyProduct = (record) => {
-    console.log('record', record);
+    if (record.bizSupplement.globalPlusProductStatus) {
+        message.info('该产品为全球产品，无法复制为站点产品');
+        return;
+    }
+    copySiteModalEl.value.open(record);
 };
 //   添加备注
 const handleRemark = (record) => {
     console.log('record', record, remarkModalEl.value);
-    remarkModalEl.value.open(record);
+    remarkModalEl.value.open(record, false);
 };
 //  下架
 const handleDeactivated = (record) => {
+    if (record.status === 'InActive') {
+        message.info('该产品已下架');
+        return;
+    }
     Modal.confirm({
         title: '下架',
         content: '是否确认下架？',
+        confirmLoading: true,
         onOk: async () => {
-            const res = await deactivated({ itemId: record.itemId });
+            baseTableEl.value.setLoading(true);
+            const res = await deactivate({ itemId: record.itemId });
             if (res.code === 200) {
                 message.success('下架成功');
                 reload();
             } else {
                 message.error(res.msg);
+                baseTableEl.value.setLoading(false);
             }
         },
     })
 };
+
+const remarkColor = (param) => {
+    const findItem = colors.find((item) => {
+        return item.id === param
+    });
+    return findItem ? findItem.color : '#000000';
+}
 
 const mouseEnterPrice = (item) => {
     if (!item.price) return;
@@ -332,20 +386,21 @@ const mouseLeaveQuantity = (item) => {
 };
 
 const editPrice = (item) => {
-    priceModalEl.value.open(item);
+    priceModalEl.value.open(item, false);
 };
 
 const editSpecialPrice = (item) => {
-    specialPriceModalEl.value.open(item);
+    specialPriceModalEl.value.open(item, false);
 };
 
 const editQuantity = (item) => {
-    stockModalEl.value.open(item);
+    stockModalEl.value.open(item, false);
 };
 
 onMounted(async () => {
     const accountCacheRes = await accountCache();
     if (accountCacheRes.code === 200) {
+        accountDetail.value = accountCacheRes.data.accountDetail;
         let codes = [];
         for (const resKey in accountCacheRes.data.accountDetail) {
             codes.push(...accountCacheRes.data.accountDetail[resKey])
@@ -374,6 +429,7 @@ onMounted(async () => {
 
 .date {
     color: #999;
+    margin-bottom: 4px;
 }
 
 .more {

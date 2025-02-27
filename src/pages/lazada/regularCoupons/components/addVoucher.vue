@@ -33,7 +33,7 @@
                         <a-form-item label="优惠券适用于：" name="apply"
                             :rules="[{ required: true, message: '请选择', trigger: 'change' }]">
                             <a-radio-group v-model:value="formData.apply">
-                                <a-radio value="ENTIRE_STORE">全店商品</a-radio>
+                                <a-radio value="ENTIRE_SHOP">全店商品</a-radio>
                                 <a-radio value="SPECIFIC_PRODUCTS">部分商品</a-radio>
                             </a-radio-group>
                         </a-form-item>
@@ -96,7 +96,7 @@
                                 @change="changeDiscountUpperLimit" />
                             <span style="color: orange; font-style: oblique; margin-left: 10px">{{
                                 formData.discountUpperLimitMessage
-                                }}</span>
+                            }}</span>
                         </a-form-item>
 
                         <a-form-item label="优惠券发放总张数：" name="discountCouponCount"
@@ -143,7 +143,7 @@ const { state: formData, reset } = useResetReactive({
     voucherName: '',
     periodStartTime: [],
     collectStart: '', //券领取开始时间
-    apply: 'ENTIRE_STORE',//优惠券适用于
+    apply: 'ENTIRE_SHOP',//优惠券适用于
     voucherDiscountType: 'MONEY_VALUE_OFF',//优惠设置
 
     // 满减字段
@@ -252,6 +252,7 @@ const open = () => {
 const close = () => {
     reset();
     ruleFormEl.value.resetFields();
+
 };
 
 // 提交
@@ -299,11 +300,10 @@ const submit = () => {
         addLazadaProduct(data).then(res => {
             if (res.code === 200) {
                 //如果 选择的是部分商品  打开商品列表
-                if (formData.apply !== 'ENTIRE_STORE') {
+                if (formData.apply !== 'ENTIRE_SHOP') {
                     manageProductEl.value.open({ shortCode: shortCode, voucherId: res.data.id });
                     modalMethods.value.closeModal()
-                }
-                else {
+                } else {
                     message.success('添加成功');
                     emits('success')
                     close()
@@ -314,7 +314,8 @@ const submit = () => {
             }
 
         }).finally(() => {
-            loading.value = false
+            loading.value = false;
+            modalMethods.value.closeModal();
         })
     })
 };
@@ -327,8 +328,6 @@ const emits = defineEmits(['success']);
 defineExpose({
     open,
 })
-
-
 </script>
 
 <style scoped></style>

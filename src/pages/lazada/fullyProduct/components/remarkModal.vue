@@ -1,10 +1,10 @@
 <template>
     <div>
-        <!-- 批量修改备注 -->
+        <!-- 修改备注 -->
         <BaseModal title="批量修改备注" @close="cancel" width="600px" @register="register" showCancelBtn @submit="submit">
             <a-form :label-col="{ span: 6 }" :wrapper-col="{ span: 18 }">
                 <a-form-item label="内容:">
-                    <a-textarea v-model:value="row.remark" rows="4" allow-clear />
+                    <a-textarea v-model:value="row.remark" :rows="4" allow-clear />
                 </a-form-item>
                 <a-form-item label="颜色:">
                     <div>
@@ -47,7 +47,9 @@ const register = (modal) => {
     modelMethods.value = modal;
 };
 
-const open = () => {
+const open = (record) => {
+    console.log('record', record);
+
     modelMethods.value.openModal();
 };
 const cancel = () => { };

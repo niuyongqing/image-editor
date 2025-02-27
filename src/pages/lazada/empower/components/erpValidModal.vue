@@ -48,6 +48,9 @@ const submit = async () => {
     loginPowerVerify({ password: form.password }).then((res) => {
         if (res.data === true) {
             emits('success');
+            message.success('验证成功');
+            submitBtnLoading.value = false;
+            modalMethods.value.closeModal();
         } else {
             Modal.confirm({
                 title: '验证失败',

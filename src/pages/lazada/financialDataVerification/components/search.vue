@@ -24,8 +24,7 @@
                 <a-form-item label="操作时间：" name="createTime">
                     <a-range-picker v-model:value="formData.createTime" format="YYYY-MM-DD" style="width: 220px" />
                 </a-form-item>
-                <br />
-                <a-form-item label="模糊查询：" style="margin-top: 10px;">
+                <a-form-item label="模糊查询：">
                     <a-space>
                         <a-form-item name="puyuanOrderNo">
                             <a-input v-model:value="formData.puyuanOrderNo" placeholder="订单编号" allowClear />
@@ -37,9 +36,8 @@
                             <a-input v-model:value="formData.optUserName" placeholder="操作人" allowClear />
                         </a-form-item>
                     </a-space>
-
                 </a-form-item>
-                <a-form-item style="margin-top: 10px;">
+                <a-form-item>
                     <a-space>
                         <a-button type="primary" @click="onSubmit">查询</a-button>
                         <a-button @click="resetForm">重置</a-button>

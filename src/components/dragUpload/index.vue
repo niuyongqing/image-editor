@@ -2,7 +2,7 @@
     <div w-full>
         <div flex justify-between w-full>
             <a-upload name="file" :customRequest="customRequest" :before-upload="beforeUpload" :headers="headers"
-                :accept="getProps.accept" :action="getProps.actionUrl" :showUploadList="false">
+                :disabled="disabled" :accept="getProps.accept" :action="getProps.actionUrl" :showUploadList="false">
                 <a-button type="primary" v-if="fileList.length <= getProps.maxCount" style="width: 90px; height: 31px;">
                     <UploadOutlined></UploadOutlined>
                     选择图片
@@ -50,12 +50,13 @@
         </div>
 
         <div flex flex-wrap>
-            <draggable v-if="fileList.length > 0" v-model="fileList" @end="handleDragEnd" tag="div" class="flex">
+            <draggable v-if="fileList.length > 0" v-model="fileList" @end="handleDragEnd" tag="div" class="flex"
+                item-key="url">
                 <template #item="{ element }">
                     <a-card ml-10px p-0px rounded-none class="file-card" hoverable>
                         <div :key="element.uid">
                             <div class="file-item">
-                                <div v-if="element.loading" w-120px h-120px flex items-center justify-center>
+                                <div v-if="element.loading" w-160px h-160px flex items-center justify-center>
                                     <loading-outlined></loading-outlined>
                                 </div>
                                 <div v-else class="file-img">
@@ -66,7 +67,12 @@
                             </div>
                         </div>
                         <div w-full>
-                            <div flex justify-end w-full>
+                            <div flex justify-between w-full>
+                                <div>
+                                    <!-- <a-button type="text" color="#428bca" @click="navSample(element)">
+                                        <EditOutlined />
+                                    </a-button> -->
+                                </div>
                                 <a-button type="text" color="#428bca" @click="handleRemove(element)">
                                     <DeleteOutlined />
                                 </a-button>
@@ -96,14 +102,19 @@
 
 <script setup>
 import draggable from 'vuedraggable';
-import { UploadOutlined, DownOutlined, DownloadOutlined, DeleteOutlined, LoadingOutlined } from '@ant-design/icons-vue';
+import { UploadOutlined, DownOutlined, DownloadOutlined, DeleteOutlined, LoadingOutlined, EditOutlined } from '@ant-design/icons-vue';
 import { useAuthorization } from '~/composables/authorization'
 import { getBase64 } from '@/pages/lazada/product/common'
 import BaseModal from '@/components/baseModal/BaseModal.vue'
 import BacthEditImgSize from './bacthEditImgSize.vue';
 import { message } from "ant-design-vue";
 import { watermarkApi } from '@/api/common/water-mark.js';
+import router from '~@/router';
 const props = defineProps({
+    disabled: {
+        type: Boolean,
+        default: false
+    },
     //  水印列表
     waterList: {
         type: Array,
@@ -235,6 +246,13 @@ const clearAllImages = () => {
 const handleDragEnd = (event) => {
     console.log('拖拽结束', event);
 };
+// 跳转到在线P图
+// const navSample = (element) => {
+//     console.log('跳转到在线P图', element);
+//     message.error('暂未开放在线P图功能');
+//     return;
+//     router.push({ path: '/platform/dev/sample/table', query: { url: element.url } });
+// }
 
 // 点击水印
 const watermark = async (item) => {
@@ -272,8 +290,8 @@ const watermark = async (item) => {
 }
 
 .custom-upload .ant-upload {
-    width: 120px;
-    height: 120px;
+    width: 160px;
+    height: 160px;
     margin: 0 auto;
 }
 
@@ -283,8 +301,8 @@ const watermark = async (item) => {
 }
 
 .file-img {
-    width: 120px;
-    height: 120px;
+    width: 160px;
+    height: 160px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -307,7 +325,7 @@ const watermark = async (item) => {
 }
 
 :deep(.ant-card-body) {
-    width: 120px;
+    width: 160px;
 }
 
 .delete-icon,
@@ -328,7 +346,7 @@ const watermark = async (item) => {
     position: absolute;
     bottom: 0px;
     left: 0;
-    width: 120px;
+    width: 160px;
     height: 20px;
     background-color: rgba(0, 0, 0, .2);
     display: flex;
@@ -339,8 +357,8 @@ const watermark = async (item) => {
 }
 
 .empty-img {
-    width: 120px;
-    height: 120px;
+    width: 160px;
+    height: 160px;
     display: flex;
     align-items: center;
     justify-content: center;

@@ -18,14 +18,22 @@
                         </a-button>
                     </div>
                 </div>
-                <BaseInfo id="baseInfo" ref="baseInfoRef" :detailData="detailData"></BaseInfo>
-                <ProductInfo id="productInfo" ref="productInfoRef" :detailData="detailData"></ProductInfo>
-                <Package id="package" ref="packageRef" :detailData="detailData"></Package>
-                <ImageInfo id="imageInfo" ref="imageInfoRef" :waterList="waterList" :detailData="detailData">
+                <BaseInfo id="baseInfo" ref="baseInfoRef" :detailData="detailData" @valid="baseInfoValid = $event">
+                </BaseInfo>
+                <ProductInfo id="productInfo" ref="productInfoRef" :detailData="detailData"
+                    @valid="productInfoValid = $event"></ProductInfo>
+                <Package id="package" ref="packageRef" :detailData="detailData" @valid="packageValid = $event">
+                </Package>
+                <ImageInfo id="imageInfo" ref="imageInfoRef" :waterList="waterList" :detailData="detailData"
+                    @valid="imageInfoValid = $event">
                 </ImageInfo>
-                <Variant id="variant" ref="variantRef" :detailData="detailData"></Variant>
-                <VariantInfo id="variantInfo" ref="variantInfoRef" :detailData="detailData"></VariantInfo>
-                <VariantImage id="variantImage" ref="variantImageRef" :waterList="waterList" :detailData="detailData">
+                <Variant Variant id=" variant" ref="variantRef" :detailData="detailData">
+                </Variant>
+                <VariantInfo id="variantInfo" ref="variantInfoRef" :detailData="detailData" :isHalfway="isHalfway"
+                    @valid="variationValid = $event">
+                </VariantInfo>
+                <VariantImage id="variantImage" ref="variantImageRef" :waterList="waterList" :detailData="detailData"
+                    @valid="variantImageValid = $event">
                 </VariantImage>
                 <Description id="description" ref="descriptionRef" :detailData="detailData"></Description>
                 <div w-full flex justify-end mt-10px>
@@ -94,11 +102,12 @@ import VariantImage from './components/variantImage.vue';
 import Description from './components/description.vue';
 import SelectProduct from '@/components/selectProduct/index.vue';
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
-import AddSuccessModal from './components/batchModal/addSuccessModal.vue';
-import { watermarkList, lazadaAdd, lazadaProductDetail } from '@/pages/lazada/product/api';
+import AddSuccessModal from '../batchModal/addSuccessModal.vue';
+import { watermarkList, lazadaEdit, lazadaProductDetail } from '@/pages/lazada/product/api';
 import dayjs from 'dayjs';
 
 const route = useRoute();
+const isHalfway = ref(false); // 是否半托管
 const detailData = ref({}); // 产品详情数据
 const saveLoading = ref(false);
 const publishLoading = ref(false);
@@ -123,7 +132,7 @@ const variantImageValid = ref(true);
 
 const { state: lazadaAttrsState, setProduct } = useLadazaAttrs();
 const product = ref({});
-// 引用现有产品
+// 引用资料库产品
 const selectNowProduct = () => {
     selectProductEl.value.openModal();
 };
@@ -131,32 +140,26 @@ const selectNowProduct = () => {
 //  验证校验
 const validateAll = async () => {
     const baseInfoForm = await baseInfoEl.value.validateForm();
-    baseInfoValid.value = baseInfoForm;
     if (!baseInfoForm) {
         return;
     }
     const productInfoForm = await productInfoEl.value.validateForm();
-    productInfoValid.value = productInfoForm;
     if (!productInfoForm) {
         return;
     }
     const packageForm = await packageEl.value.validateForm();
-    packageValid.value = packageValid;
     if (!packageForm) {
         return;
     }
     const imageInfoForm = await imageInfoEl.value.validateForm();
-    packageValid.value = imageInfoForm;
     if (!imageInfoForm) {
         return;
     }
     const variationForm = await variantInfoEl.value.validateForm();
-    variationValid.value = variationForm;
     if (!variationForm) {
         return;
     }
     const variantImage = await variantImageEl.value.validateForm();
-    variantImageValid.value = variantImage;
     if (!variantImage) {
         return;
     };
@@ -182,7 +185,6 @@ const validateAll = async () => {
             Reflect.set(attrsForm, item.name, item.value);
         }
     });
-    console.log('attrsForm', attrsForm);
 
     const packageState = packageEl.value.state;
     const taxClass = packageState.taxClass;// 税
@@ -190,19 +192,17 @@ const validateAll = async () => {
 
     const imageInfoState = imageInfoEl.value.form;
     const images = imageInfoState.fileList.map((item) => item.url);// 产品图片
-    const promotion_whitebkg_image = imageInfoState.promotionWhite.length > 0 ? imageInfoState.promotionWhite[0].url : '';// 营销图
+    const promotion_whitebkg_image = imageInfoState.promotionWhite.length > 0 ? [imageInfoState.promotionWhite[0].url] : [];// 营销图
     const video = imageInfoState.video.url;// 产品视频
     const cover_url = imageInfoState.video.img; // 视频封面图 
     // to do... 视频标题
 
     const tableData = variantInfoEl.value.tableData;
     let variations = {};
-    console.log('lazadaAttrsState.selectTheme', lazadaAttrsState.selectTheme);
     lazadaAttrsState.selectTheme.forEach((item, index) => {
-        variations['variation' + index] = {
-            // 在这里添加你需要的属性和值
+        variations['variation' + (index + 1)] = {
             name: item.name,
-            hasImage: true,
+            hasImage: index === 0 ? true : false,
             customize: item.is_mandatory === 1 ? false : true,  // ??/ 必填 false ，非必填true
             options: {
                 option: item.checkedList
@@ -210,61 +210,76 @@ const validateAll = async () => {
         };
     });
     // SKU数据组装
-    const skus = lazadaAttrsState.skuTable.map((item, index) => {
-        if (lazadaAttrsState.selectTheme.length === 1) {
-            return {
-                "packageHeight": item.packageHeight,
-                "packageLength": item.packageLength,
-                "packageWeight": item.packageWeight,
-                "packageWidth": item.packageWidth,
-                "packageContent": packageContent,
-                "price": item.price,
-                "quantity": item.quantity,
-                "sellerSku": item.sellerSku,
-                "specialFromDate": item.specialFromDate ? dayjs(item.specialFromDate).format('YYYY-MM-DD hh:mm:ss') : '',
-                "specialToDate": item.specialToDate ? dayjs(item.specialToDate).format('YYYY-MM-DD hh:mm:ss') : '',
-                "specialPrice": item.specialPrice ? dayjs(item.specialPrice).format('YYYY-MM-DD hh:mm:ss') : '',
-                "saleProp": {
-                    [lazadaAttrsState.selectTheme[0].name]: item[lazadaAttrsState.selectTheme[0].name],
-                },
-                "images": {
-                    "imageList": item.fileList.map((item) => item.url)
-                }
+    const skus = lazadaAttrsState.skuTable.map((item) => {
+        // 共同的基础属性  
+        const baseProperties = {
+            taxClass: taxClass,
+            skuId: item.SkuId,
+            packageHeight: item.packageHeight,
+            packageLength: item.packageLength,
+            packageWeight: Number(item.packageWeight),
+            packageWidth: item.packageWidth,
+            packageContent: packageContent,
+            price: item.price,
+            quantity: item.stock,
+            sellerSku: item.sellerSKU,
+            supplyPrice: String(item.supplyPrice),
+            images: {
+                image: item.fileList.map((img) => img.url)
             }
-        } else if (lazadaAttrsState.selectTheme.length === 2) {
-            return {
-                "packageHeight": item.packageHeight,
-                "packageLength": item.packageLength,
-                "packageWeight": item.packageWeight,
-                "packageWidth": item.packageWidth,
-                "packageContent": packageContent,
-                "price": item.price,
-                "quantity": item.quantity,
-                "sellerSku": item.sellerSku,
-                "specialFromDate": item.specialFromDate ? dayjs(item.specialFromDate).format('YYYY-MM-DD hh:mm:ss') : '',
-                "specialToDate": item.specialToDate ? dayjs(item.specialToDate).format('YYYY-MM-DD hh:mm:ss') : '',
-                "specialPrice": item.specialPrice ? dayjs(item.specialPrice).format('YYYY-MM-DD hh:mm:ss') : '',
-                "saleProp": {
-                    [lazadaAttrsState.selectTheme[0].name]: item[lazadaAttrsState.selectTheme[0].name],
-                    [lazadaAttrsState.selectTheme[1].name]: item[lazadaAttrsState.selectTheme[1].name],
-                },
-                "images": {
-                    "imageList": item.fileList.map((item) => item.url)
-                }
-            }
-        }
+        };
+        // 动态生成 saleProp  
+        const saleProp = lazadaAttrsState.selectTheme.reduce((acc, theme) => {
+            acc[theme.name] = item[theme.name];
+            return acc;
+        }, {});
 
+        // 处理特殊日期和价格  
+        const specialDateProps = !isHalfway.value ? {
+            specialFromDate: item.specialDate ? dayjs(item.specialDate[0]).format('YYYY-MM-DD HH:mm:ss') : '',
+            specialToDate: item.specialDate ? dayjs(item.specialDate[1]).format('YYYY-MM-DD HH:mm:ss') : '',
+            specialPrice: item.specialPrice
+        } : {};
+
+        return {
+            ...baseProperties,
+            saleProp,
+            ...specialDateProps
+        };
     });
-    const attributes = {
-        ...attrsForm,
-        ...form
+    const associatedSkus = skus.map((item) => {
+        return item.skuId
+    }).filter(Boolean);
+    let attributes = {
+        associatedSku: associatedSkus[0],
+        itemId: detailData.value.itemId,
+        "productType": isHalfway.value ? 1 : 0, // 0 普通卖家店铺, 1 半托管店铺, 2 全托管店铺
+        attributes: {
+            model,
+            name: title,
+            brand_id,
+            brandId,
+            warranty_type,
+            warranty,
+            ...attrsForm, // 产品属性
+            promotion_whitebkg_image,// 营销图
+            ...form, // 描述信息
+        },
+        shortCode,
+        primaryCategory,
+        images: { image: images },// 产品图片
+        // video,// 产品视频
+        variation: variations,
+        skus: {
+            sku: skus
+        },
     };
-
+    if (video) {
+        attributes.video = video;
+        attributes.cover_url = cover_url;
+    }
     return attributes
-
 };
-
-
 //  使用资料库产品
 const handleSelect = (productData) => {
     product.value = productData;
@@ -272,18 +287,19 @@ const handleSelect = (productData) => {
 };
 
 // 更新到lazada 
-const save = () => {
-    const data = validateAll();
-    console.log('data', data);
-    // publishLoading.value = true;
-    // lazadaAdd(res).then(res => {
-    //     addSuccessModalEl.value.open();
-    // }).finally(() => {
-    //     publishLoading.value = false;
-    // })
+const save = async () => {
+    const addParams = await validateAll();
+    console.log('data', addParams);
+    if (!addParams) {
+        return;
+    };
+    saveLoading.value = true;
+    lazadaEdit(addParams).then(res => {
+        addSuccessModalEl.value.open();
+    }).finally(() => {
+        saveLoading.value = false;
+    })
 };
-
-
 // 获取水印
 const getWatermark = () => {
     watermarkList().then((res) => {
@@ -294,6 +310,8 @@ const getWatermark = () => {
 };
 // 获取产品
 const getProductDetail = () => {
+    const productType = route.query.productType;
+    isHalfway.value = productType === '1';
     const params = {
         itemId: route.query.itemId
     };
@@ -318,5 +336,3 @@ onMounted(() => {
     getWatermark()
 });
 </script>
-
-<style lang="less" scoped></style>

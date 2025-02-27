@@ -2,7 +2,7 @@
     <div>
         <Search :area="area" @search="handleSearch"></Search>
         <BaseTable ref="baseTableRef" :columns="columns" :api="empowerList" :init-search-param="initSearchParam"
-            :row-selection="rowSelection" row-key="userId">
+            :row-selection="rowSelection" row-key="userId" :scroll="{ y: '100%', x: '2000px' }">
             <template #leftBar>
                 <a-button type="primary" @click="Reauthorization" v-has-permi="[`system:platform:lazada:accredit`]"
                     :loading="accreditLoading">
@@ -99,10 +99,20 @@
                     :field-names="{ label: 'attributes', value: 'id' }"
                     :filter-option="(input, option) => option.attributes.toLowerCase().indexOf(input.toLowerCase()) >= 0"
                     @change="forbidSaleChange(record, $event)"></a-select>
-                <span v-else>{{ text && text.map(id => forbidSaleOptions.find(item => item.id ===
-                    id)?.attributes).join() }}</span>
+                <span v-else>{{text && text.map(id => forbidSaleOptions.find(item => item.id ===
+                    id)?.attributes).join()}}</span>
             </template>
 
+            <template #isPushStock="{ record }">
+                <a-switch v-model:checked="record.isPushStock" :checked-value="1" :un-checked-value="0"
+                    @change="editStockPush(record)" />
+            </template>
+
+            <template #pushRatio="{ record }">
+                <a-input-number v-model:value="record.pushRatio" :precision="0" :min="1" :max="100" :controls="false"
+                    placeholder="1 ~ 100" :disabled="record.isPushStock !== 1" @blur="editStockPush(record)" />
+                <!-- <span v-else>{{ text || '--' }}</span> -->
+            </template>
             <template #autoPublish="{ record }">
                 <div flex justify-center items-center>
                     <a-switch v-model:checked="record.autoPublish" :disabled="!accreditAuth" checked-value="1"
@@ -148,6 +158,7 @@ const accreditLoading = ref(false); // 授权按钮 loading
 const refreshLoading = ref(false); // 刷新按钮 loading
 const exportLoading = ref(false); // 导出按钮 loading
 
+const tabType = ref('');
 const forbidSaleOptions = ref([]); // 禁售属性
 const accountUserLsit = ref([]);
 const accountOptions = ref([]);
@@ -320,6 +331,7 @@ const recordForbidSale = (value) => {
     return value ? value.split(',').map((item) => Number(item)) : [];
 };
 
+
 const forbidSaleChange = (record, val) => {
     updateShop({
         shortCode: record.shortCode,
@@ -342,6 +354,24 @@ const autoPublishChange = (record) => {
     })
 };
 
+// 修改推送库存
+const editStockPush = (record) => {
+    const params = {
+        "shortCode": record.shortCode,
+        isPushStock: record.isPushStock,
+        pushRatio: record.pushRatio
+    }
+    updateShop(params)
+        .then(res => {
+            message.success('修改成功')
+        })
+        .catch(err => {
+            message.warning(err)
+            baseTableEl.value.reload()
+        })
+}
+
+
 //查看账号密码邮箱
 const lookLazadaInfo = async () => {
     let loginCheckRes = await loginCheck();
@@ -355,6 +385,7 @@ const lookLazadaInfo = async () => {
     }
 };
 const handleEdit = async () => {
+    tabType.value = 'bacthEdit';
     let loginCheckRes = await loginCheck();
     if (loginCheckRes.data === false) {
         erpValidModalEl.value.open();
@@ -388,6 +419,7 @@ const handleSearch = async (state) => {
 // 重新授权
 const Reauthorization = () => {
     // 获取授权链接
+    // if()
     accreditLoading.value = true;
     url().then(res => {
         window.location.href = res.msg;

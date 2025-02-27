@@ -44,6 +44,7 @@
                         </div>
                     </div>
                 </a-form-item>
+                {{ state.primaryCategory }}
                 <a-form-item label="分类:" name="primaryCategory" :rules="[{ required: true, message: '请选择分类' }]">
                     <a-cascader :showSearch="showSearchConfig" class="flex w-full justify-start"
                         v-model:value="state.primaryCategory" :options="primaryCategoryOptions" placeholder="请先选择店铺"
@@ -68,7 +69,7 @@ import { useResetReactive } from '@/composables/reset';
 import { accountCache, categoryTree, categoryAttributesApi } from '@/pages/lazada/product/api';
 import EventBus from "~/utils/event-bus";
 import { useLazadaGobalAttrs } from "~@/stores/lazadaGobalAttrs";
-const { state: lazadaAttrsState, setShortCode, setPrimaryCategory, setLazadaAttrs, setLoading } = useLazadaGobalAttrs();
+const { state: lazadaAttrsState, setShortCode, setPrimaryCategory, setLazadaAttrs, setLoading, setVentures } = useLazadaGobalAttrs();
 
 const checkAll = ref(false);
 const globalArea = [{
@@ -91,11 +92,11 @@ const globalArea = [{
     label: "越南",
     value: "VN"
 },
-
-{
-    label: "马来西亚",
-    value: "MY"
-}];
+    // {
+    //     label: "马来西亚",
+    //     value: "MY"
+    // }
+];
 const shortCodes = ref([]); // 店铺列表
 const formEl = useTemplateRef('formRef');
 const primaryCategoryLoading = ref(false);
@@ -116,7 +117,8 @@ const handleCheckAllChange = (value) => {
         state.ventures = globalArea.map(v => v.value)
     } else {
         state.ventures = []
-    }
+    };
+    setVentures(state.ventures);
 };
 
 const checkedCitiesChange = (value) => {
@@ -124,9 +126,9 @@ const checkedCitiesChange = (value) => {
         checkAll.value = true
     } else {
         checkAll.value = false
-    }
-}
-
+    };
+    setVentures(state.ventures);
+};
 
 async function getShortCodes() {
     const accountCacheRes = await accountCache();
@@ -200,13 +202,15 @@ async function validateForm() {
     return new Promise((resolve, reject) => {
         formEl.value.validate().then(() => {
             resolve(true);
+            emits('valid', true)
         }).catch(() => {
             document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             reject(false);
+            emits('valid', false)
         })
     })
 }
-
+const emits = defineEmits(['valid']);
 defineExpose({
     state,
     validateForm

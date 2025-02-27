@@ -20,6 +20,16 @@ const { state: formData, reset } = useResetReactive({
   criteriaValue: '',
   discountValue: '',
 });
-</script>
 
-<style lang="scss" scoped></style>
+const clearValidate = () => {
+  formData.value = {
+    criteriaValue: 'discountWithGift',
+  };
+}
+
+defineExpose({
+  formData,
+  clearValidate
+})
+
+</script>

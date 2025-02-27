@@ -4,7 +4,7 @@ export const columns = [
     dataIndex: "name",
     key: "name",
     align: "center",
-    width: 90,
+    width: 200,
   },
 
   {

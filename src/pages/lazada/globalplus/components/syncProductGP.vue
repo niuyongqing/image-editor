@@ -34,6 +34,8 @@
                 </div>
             </a-card>
         </BaseModal>
+        <!-- 进度条 -->
+        <syncProductProgress ref="syncProductProgressRef"></syncProductProgress>
     </div>
 </template>
 
@@ -41,6 +43,7 @@
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { message } from "ant-design-vue";
 import { getNoFeePriceApi, productUpgrade, syncProductGP } from '@/pages/lazada/globalplus/api';
+import syncProductProgress from '@/pages/lazada/globalplus/components/syncProductProgress.vue';
 
 const { account } = defineProps({
     account: {
@@ -48,7 +51,9 @@ const { account } = defineProps({
         default: () => []
     }
 });
-
+const openProgress = ref(false);
+const percent = ref(0);
+const syncProductProgressEl = useTemplateRef('syncProductProgressRef');
 const formEl = useTemplateRef('formRef');
 const rowData = ref({
     skus: []
@@ -56,32 +61,29 @@ const rowData = ref({
 const formData = reactive({
     shortCode: undefined,
     type: undefined,
-})
-
-
+});
 const modalMethods = ref();
 const submitBtnLoading = ref(false);
-
-
 const register = (methods) => {
     modalMethods.value = methods
 };
-
 const open = (row) => {
     rowData.value = row;
     modalMethods.value.openModal();
 };
 const cancel = (data) => {
     submitBtnLoading.value = false;
+    formData.shortCode = undefined;
+    formData.type = undefined;
+    formEl.value.resetFields();
 };
-
 const submit = async () => {
     formEl.value.validate().then(async () => {
         submitBtnLoading.value = true;
-        syncProductGP(this.formData.shortCode, this.formData.type).then(res => {
+        syncProductGP(formData.shortCode, formData.type).then(res => {
             if (res.code === 200) {
-                // this.$bus.$emit(`syncProductProgress`, res.msg)
                 modalMethods.value.closeModal();
+                syncProductProgressEl.value.open(res.msg);
             }
         }).catch(() => {
             message.error('同步失败')

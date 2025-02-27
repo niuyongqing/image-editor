@@ -582,8 +582,6 @@ const removeVariantType = (item, index) => {
 }
 // 添加多个属性操作
 const addItem = (item, row) => {
-    console.log('item', item);
-
     let ele = {
         id: Date.now(),
         name: item.name,
@@ -802,8 +800,6 @@ const processResult = (productList) => {
             id: Math.random().toString(36).substring(2, 10),
         };
         product.forEach((item) => {
-            console.log('item', item);
-
             let values =
                 item.selectType === "multSelect"
                     ? item?.modelValue?.map((val) => val.label).join(",")
@@ -984,7 +980,7 @@ watch(() => props.attributes, val => {
         // 提取变种主题
         let arr = props.attributes.filter((obj) => obj.isAspect);
         isConform.value = checkData(arr);
-        console.log("arr", arr,isConform.value);
+        console.log("arr", arr, isConform.value);
         // if (isConform.value) {
         //     // 过滤有颜色名称的数据
         //     requiredList.value = arr.filter(
@@ -995,7 +991,7 @@ watch(() => props.attributes, val => {
         //     )
         // } else {
         //     console.log('props',arr);
-            
+
         // }
         themeBtns.value = arr.filter(
             (obj) => !(obj.isRequired || obj.id === 10097)

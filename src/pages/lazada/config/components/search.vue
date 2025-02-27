@@ -36,8 +36,7 @@ const { depOptions } = defineProps({
         type: Array,
         default: () => []
     }
-})
-
+});
 const loading = defineModel()
 const userIdSelction = reactive({
     data: [],
@@ -61,7 +60,6 @@ const search = debounce((value) => {
     }).finally(() => {
         userIdSelction.searchLoading = false;
     });
-
 }, 200)
 
 const submit = () => {
@@ -73,7 +71,4 @@ const handleReset = () => {
     emits('search', state);
 };
 const emits = defineEmits(['search'])
-
 </script>
-
-<style lang="less" scoped></style>

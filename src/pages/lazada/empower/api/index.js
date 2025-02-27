@@ -101,3 +101,9 @@ export function updateShop(data) {
 export function meansAttribute() {
   return useGet("/commodity-manage/commodity/means-public/forbid-sale");
 }
+export function lazadaExport(data) {
+  return usePost(
+    "/platform-lazada/platform/lazada/empower/login/code/template",
+    data
+  );
+}

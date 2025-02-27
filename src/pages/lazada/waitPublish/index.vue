@@ -29,6 +29,9 @@
                     </a-tooltip>
                 </p>
                 <p style="color: rgb(153, 153, 153)"> 「{{ shopSimpleName(record) }}」 </p>
+                <div v-if="record.remark">
+                    <span :style="{ color: remarkColor(record.remarkColor) }"> 备注: {{ record.remark }} </span>
+                </div>
             </template>
 
             <template #skus="{ record }">
@@ -96,7 +99,7 @@
             <template #action="{ record }">
                 <div>
                     <div> <a-button type="link" @click="handleEdit(record)"> 编辑 </a-button> </div>
-                    <div> <a-button type="link" @click="handleEdit(record)"> 发布 </a-button> </div>
+                    <div> <a-button type="link" @click="handlePublish(record)"> 发布 </a-button> </div>
                     <div class="pl-2">
                         <a-dropdown>
                             <a class="ant-dropdown-link">
@@ -108,6 +111,9 @@
                                     <a-menu-item @click="handleRemark(record)">
                                         添加备注
                                     </a-menu-item>
+                                    <a-menu-item @click="handleDelete(record)">
+                                        删除
+                                    </a-menu-item>
                                 </a-menu>
                             </template>
                         </a-dropdown>
@@ -115,25 +121,29 @@
                 </div>
             </template>
         </BaseTable>
-        <RemarkModal ref="remarkModalRef"></RemarkModal>
+        <RemarkModal ref="remarkModalRef" @success="reload"></RemarkModal>
     </div>
 </template>
 
 <script setup>
 import { SettingOutlined, EditOutlined, ReloadOutlined, CloudUploadOutlined, DownloadOutlined, DownOutlined } from '@ant-design/icons-vue';
 import { columns } from './columns';
-import { getList, accountCache } from './api';
+import { getList, accountCache, del } from './api';
 import { useTableSelection } from '@/components/baseTable/useTableSelection';
-import { message } from 'ant-design-vue';
+import { message, Modal } from 'ant-design-vue';
 import { checkPermi, checkRole } from '~@/utils/permission/component/permission';
 import { useClipboard } from '@v-c/utils';
 import { timestampToDateTime } from './common';
 import Search from './components/search.vue';
 import TableAction from './components/tableAction.vue';
 import BaseTable from '@/components/baseTable/BaseTable.vue';
-import RemarkModal from './components/remarkModal.vue';
+import RemarkModal from './components/batchModal/remarkModal.vue';
+import { publishCopyPublish, getStatusCount } from '@/pages/lazada/waitPublish/api';
+import { colors } from '@/pages/lazada/product/common';
 
+const route = useRoute();
 const { copy } = useClipboard();
+const type = ref(false); // 是否是全球商品
 const searchFormState = ref({});
 const tableData = ref([]);
 const shortCodes = ref([]);
@@ -143,32 +153,25 @@ const { singleDisabled, rowSelection, tableRow, selectedRows, clearSelection } =
 const initSearchParam = {
     prop: "created_time",
     order: "desc",
-    shortCodes: [],
+    // status: 1,
+    // shortCodes: [],
     name: '',
     sku: ''
 };
 const buttons = ref([{
     id: 1,
-    name: '在线',
-    count: 0,
+    name: '待发布',
+    count: 0
 },
 {
     id: 2,
-    name: '已下架',
+    name: '已发布',
     count: 0,
 }, {
     id: 3,
-    name: '审核中',
+    name: '发布失败',
     count: 0,
-}, {
-    id: 4,
-    name: '平台下架',
-    count: 0,
-}, {
-    id: 5,
-    name: '删除',
-    count: 0,
-}]);
+},]);
 const active = ref(1)
 const more = ref(true); // 是否显示全部
 const accreditAuth = computed(() => {
@@ -183,10 +186,26 @@ const isAliasEdit = computed(() => {
 const isRemark = computed(() => {
     return checkPermi(['system:platform:lazada:remark']);
 });
-
+const remarkColor = (param) => {
+    const findItem = colors.find((item) => {
+        return item.id === param
+    });
+    return findItem ? findItem.color : '#000000';
+}
 const imageSrc = (record) => {
     if (record.images) {
-        return JSON.parse(record.images).image[0];
+        const imgParse = JSON.parse(record.images);
+        if (Array.isArray(imgParse.image)) {
+            return imgParse.image[0]
+        } else {
+            const imgs = imgParse.image;
+            if (typeof imgs === 'string') {
+                const imgs2 = JSON.parse(imgParse.image);
+                return imgs2[0];
+            } else {
+                return imgs.Image[0];
+            }
+        }
     };
     return ''
 };
@@ -214,36 +233,98 @@ const reload = () => {
 // 查询
 const handleSearch = async (state) => {
     searchFormState.value = state;
+    tableStatusCount();
     await baseTableEl.value.search(state);
 };
 //  编辑
 const handleEdit = (record) => {
-    window.open(`/platform/lazada/waitPublish/edit?id=${record.id}`, '_blank');
+    const { id, type, productType } = record;
+    window.open(`/platform/lazada/waitPublish/edit?id=${id}&type=${type === 'global' ? 'global' : 'site'}&productType=${productType}`, '_blank');
 };
+
+// 发布
+const handlePublish = (record) => {
+    Modal.confirm({
+        title: '发布',
+        content: '是否确认发布？',
+        onOk: async () => {
+            const res = await publishCopyPublish({ ids: record.id });
+            if (res.code === 200) {
+                message.success('发布成功');
+                reload();
+            } else {
+                message.error(res.msg);
+            }
+        },
+    })
+};
+
 const handleReset = () => {
     baseTableEl.value.reset();
 };
 
 const handleBtnClick = (btn) => {
     active.value = btn.id;
-    // handleSearch({ ...initSearchParam, ... searchFormState.value, status: btn.id });
+    handleSearch({ ...initSearchParam, ...searchFormState.value, status: btn.id });
 };
 
-//   复制为“六合一产品”
-const handleProduct = (record) => {
-    console.log('record', record);
-};
-//    复制为“站点产品”
-const handleCopyProduct = (record) => {
-    console.log('record', record);
-};
+
 //   添加备注
 const handleRemark = (record) => {
-    console.log('record', record, remarkModalEl.value);
-    // remarkModalEl.value.open(record);
+    console.log('record', record,);
+    remarkModalEl.value.open(record, false);
+};
+
+//  删除
+const handleDelete = (record) => {
+    Modal.confirm({
+        title: '删除',
+        content: '是否确认删除？',
+        onOk: async () => {
+            const res = await del({ ids: record.id });
+            if (res.code === 200) {
+                message.success('删除成功');
+                reload();
+            } else {
+                message.error(res.msg);
+            }
+        },
+    })
+};
+
+const tableStatusCount = () => {
+    getStatusCount({
+        "prop": "created_time",
+        "order": "desc",
+        "status": active.value,
+        "shortCodes": searchFormState.value.shortCode ? [searchFormState.value.shortCode] : [],
+        "name": searchFormState.value.name ?? '',
+        "sku": searchFormState.value.sku ?? '',
+    }).then(res => {
+        if (res.code === 200) {
+            const data = res.data || {};
+            buttons.value = [
+                {
+                    id: 1,
+                    name: '待发布',
+                    count: data[1] || 0,
+                },
+                {
+                    id: 2,
+                    name: '已发布',
+                    count: data[2] || 0,
+                }, {
+                    id: 3,
+                    name: '发布失败',
+                    count: data[3] || 0,
+                }
+            ]
+        }
+    });
 };
 
 onMounted(async () => {
+    tableStatusCount();
     const accountCacheRes = await accountCache();
     if (accountCacheRes.code === 200) {
         let codes = [];

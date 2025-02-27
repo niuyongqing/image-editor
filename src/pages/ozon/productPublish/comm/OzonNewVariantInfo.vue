@@ -227,7 +227,7 @@
                                     " @allList="imageUpload($event, item)" :allList="item.imageUrl" ref="imageList"
                                     :is-check="true" accept=".jpg,.jpeg,.png"
                                     :upload-url="uploadUrl"></drag-file-upload> -->
-                                    <!-- <dragUpload></dragUpload> -->
+                                <!-- <dragUpload></dragUpload> -->
                             </a-card>
                         </div>
                     </div>
@@ -534,7 +534,6 @@ const processDataFormat = (list = []) => {
 // 手动添加多个变种主题
 const enterVariantType = (item) => {
     let arr = [];
-    console.log('item', item);
     if (isConform.value && item.id === 10096) {
         arr = [
             {
@@ -588,7 +587,6 @@ const removeVariantType = (item, index) => {
 }
 // 添加多个属性操作
 const addItem = (item, row) => {
-    console.log('item', item);
     let ele = {}
     if (isConform.value && item.id === 10096) {
         ele = {
@@ -694,7 +692,6 @@ const processResult = (productList) => {
             id: Math.random().toString(36).substring(2, 10),
         };
         product.forEach((item) => {
-            console.log('item', item);
 
             let values =
                 item.selectType === "multSelect"

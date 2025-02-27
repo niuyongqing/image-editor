@@ -55,7 +55,7 @@ const { detailData } = defineProps({
 const {
     state: lazadaAttrsState, setShortCode, setPrimaryCategory,
     setLazadaAttrs, setLoading, setProductClassifyAtrrs,
-    setSelectTheme
+    setSelectTheme, setSkuAttrs
 } = useLadazaAttrs();
 
 const loading = ref(false);
@@ -112,7 +112,6 @@ watch(() => {
         });
         return acc;
     }, {});
-
     const formattedResult = Object.keys(result).reduce((acc, key) => {
         acc[key] = Array.from(result[key]);
         return acc;
@@ -121,19 +120,20 @@ watch(() => {
         const findItem = selectThemeList.find(item => item.name === key);
         let options = [];
         if (findItem) {
-            const has = findItem.options.find((option) => {
-                return formattedResult[key].includes(option.en_name)
+            let itemOptions = findItem?.options ?? [];
+            const has = itemOptions.find((option) => {
+                return formattedResult[key] === option.en_name
             });
             if (!has) {
-                findItem.options = findItem.options.concat(formattedResult[key].map((keyItem) => ({ name: keyItem, en_name: keyItem })));
-                options = findItem.options;
+                findItem.options = itemOptions.concat(formattedResult[key].map((keyItem) => ({ name: keyItem, en_name: keyItem })));
+                itemOptions = findItem.options;
+                options = itemOptions;
             } else {
-                options = findItem.options
+                options = itemOptions;
             }
         } else {
             options = (formattedResult[key].map((keyItem) => ({ name: keyItem, en_name: keyItem })) || [])
         }
-
         const optionsUnique = unique('en_name', options); // 去重
         return {
             name: findItem ? findItem.name : key,
@@ -146,8 +146,10 @@ watch(() => {
             skuOptions: optionsUnique
         }
     });
-
-    setSelectTheme(resultData)
+    setSelectTheme(resultData);
+    if (lazadaAttrsState.skuAttrs.length === 0) {
+        setSkuAttrs(resultData);
+    };
     EventBus.emit('siteEditSelectThemeEmit', resultData);
 }, {
     deep: true
@@ -222,13 +224,15 @@ async function validateForm() {
     return new Promise((resolve, reject) => {
         formEl.value.validate().then(() => {
             resolve(true);
+            emits('valid', true)
         }).catch(() => {
             document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             reject(false);
+            emits('valid', false)
         })
     })
 }
-
+const emits = defineEmits(['valid']);
 defineExpose({
     state,
     validateForm

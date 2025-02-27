@@ -116,7 +116,7 @@
                                 ?
                                 '- 收起'
                                 : '+ 展开'
-                                }}</a-button>
+                            }}</a-button>
                         </div>
                     </a-card>
                 </a-form-item>
@@ -166,16 +166,30 @@ const productAtrrsform = reactive({});
 watch(() => {
     return detailData
 }, async (newVal) => {
+    console.log('newVal ->>>>>>>>>>>', newVal);
     state.title = newVal.attributes.name;
-    getBrandList({
-        brandName: newVal.attributes.brand_id ?? '',
-        shortCode: newVal.shortCode
-    }).then(res => {
+    let params = {};
+    if (Number(newVal.attributes.brand_id)) {
+        params = {
+            brandId: newVal.attributes.brand_id,
+            shortCode: newVal.shortCode
+        }
+    } else {
+        params = {
+            brandName: newVal.attributes.brand_id || newVal.attributes.brand,
+            shortCode: newVal.shortCode
+        }
+    };
+    getBrandList(params).then(res => {
         if (res.code === 200) {
             brandIdSelction.data = res.data || [];
-            //  品牌回显
+            let brand = 0;
             const brandItem = brandIdSelction.data.find((item) => {
-                return item.nameEn === newVal.attributes.brand_id
+                if (Number(newVal.attributes.brand_id)) {
+                    return item.brandId === newVal.attributes.brand_id
+                } else {
+                    return item.nameEn === newVal.attributes.brand_id || newVal.attributes.brand
+                }
             });
             state.brandId = brandItem ? brandItem.brandId : undefined;
         }
@@ -244,13 +258,16 @@ const validateForm = async () => {
         formEl.value.validate().then(() => {
             attrsFormEl.value.validate().then(() => {
                 resolve(true);
+                emits('valid', true)
             }).catch(() => {
                 document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 reject(false);
+                emits('valid', false)
             })
         }).catch(() => {
             document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             reject(false);
+            emits('valid', false)
         })
     });
 };
@@ -260,11 +277,9 @@ watch(() => lazadaAttrsState.product, (newValue) => {
     if (newValue && JSON.stringify(newValue) !== '{}') {
         console.log('newValue', newValue);
         state.title = newValue.tradeName; // 产品标题
-
-        //lazada 资料库数据回显 to do ...
     }
 });
-
+const emits = defineEmits(['valid']);
 defineExpose({
     state,
     validateForm
@@ -275,19 +290,19 @@ onMounted(() => {
         console.log('接受到的shortCode -->>', code);
         shortCode.value = code;
         brandIdSelction.brandId = undefined;
-        getBrandList({ brandName: '', shortCode: code }).then(res => {
-            if (res.code === 200) {
-                brandIdSelction.data = res.data || [];
-                //  品牌设置默认 No Brand
-                const brandItem = brandIdSelction.data.find((item) => {
-                    return item.nameEn === 'No Brand'
-                });
-                brandIdSelction.brandId = brandItem ? brandItem.brandId : undefined;
-                state.brandId = brandIdSelction.brandId;
-            }
-        }).finally(() => {
-            brandIdSelction.searchLoading = false;
-        });
+        // getBrandList({ brandName: '', shortCode: code }).then(res => {
+        //     if (res.code === 200) {
+        //         brandIdSelction.data = res.data || [];
+        //         //  品牌设置默认 No Brand
+        //         const brandItem = brandIdSelction.data.find((item) => {
+        //             return item.nameEn === 'No Brand'
+        //         });
+        //         brandIdSelction.brandId = brandItem ? brandItem.brandId : undefined;
+        //         state.brandId = brandIdSelction.brandId;
+        //     }
+        // }).finally(() => {
+        //     brandIdSelction.searchLoading = false;
+        // });
 
     });
 });

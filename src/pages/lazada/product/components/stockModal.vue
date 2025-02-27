@@ -1,5 +1,6 @@
 <template>
-    <a-modal v-model:open="dialogVisible" title="批量修改包装重量" width="620px" @cancel="cancel">
+    <a-modal v-model:open="dialogVisible" title="修改库存" width="620px" :destroyOnClose="true" :maskClosable="false"
+        @cancel="cancel">
         <div>
             <a-radio-group v-model:value="radio" class="radio-group">
                 <a-radio :value="1">
@@ -7,8 +8,8 @@
                     <a-input-number :precision="2" :controls="false" style="width: 250px;" :disabled="radio !== 1"
                         v-model:value="setNum" placeholder="示例：1.00"></a-input-number>
                 </a-radio>
-                <a-radio style="margin-top: 30px;" :value="2">
-                    按现有重量
+                <!-- <a-radio style="margin-top: 30px;" :value="2">
+                    按现有库存
                     <a-select v-model:value="stockRule" placeholder="请选择" style="width: 150px; margin-left: 10px;"
                         :disabled="radio !== 2">
                         <a-select-option v-for="item in stockRuleList" :key="item.value" :value="item.value">
@@ -17,10 +18,10 @@
                     </a-select>
                     <a-input-number :precision="2" :controls="false" style="width: 150px; margin-left: 10px;"
                         :disabled="radio !== 2" v-model:value="setRuleNum" placeholder="示例：1.00"></a-input-number>
-                </a-radio>
+                </a-radio> -->
             </a-radio-group>
         </div>
-        <p class="pull-left p-top8 f-red f13">注：所有SKU信息将同步更改</p>
+        <p class="pull-left p-top8 f-red f13">注：批量修改后,变种信息将同步更改</p>
         <template #footer>
             <a-button @click="cancel">取 消</a-button>
             <a-button type="primary" @click="save">确定</a-button>
@@ -29,20 +30,26 @@
 </template>
 
 <script setup>
+import { batchStore } from '@/pages/lazada/product/api';
+import { message } from 'ant-design-vue';
+
+const acceptParams = ref({});
+const isBatch = ref(false);
 const dialogVisible = ref(false);
 const radio = ref(1);
 const setNum = ref(null);
 const stockRule = ref(null);
 const setRuleNum = ref(null);
 
-const stockRuleList = [
-    { value: 1, label: '加' },
-    { value: 2, label: '减' },
-    { value: 3, label: '乘' },
-    { value: 4, label: '除' },
-];
+// const stockRuleList = [
+//     { value: 1, label: '加' },
+//     { value: 2, label: '减' },
+//     { value: 3, label: '乘' },
+// ];
 
-const open = () => {
+const open = (record, batch) => {
+    acceptParams.value = record;
+    isBatch.value = batch;
     dialogVisible.value = true;
 };
 
@@ -56,13 +63,28 @@ const cancel = () => {
 };
 
 const save = () => {
-    emit('success', {
-        radio: radio.value,
-        setNum: setNum.value,
-        stockRule: stockRule.value,
-        setRuleNum: setRuleNum.value
-    });
-    cancel();
+    const requestParams = isBatch.value
+        ? acceptParams.value.map((item) => ({
+            shortCode: item.shortCode,
+            itemId: item.itemId,
+            sku: item.skus.map((item) => item.SellerSku).join(','),
+            quantity: setNum.value
+        }))
+        : [{
+            shortCode: acceptParams.value.shortCode,
+            itemId: acceptParams.value.itemId,
+            sku: acceptParams.value.skus.map((item) => item.SellerSku).join(','),
+            quantity: setNum.value
+        }];
+
+    batchStore(requestParams)
+        .then((res) => {
+            if (res.code === 200) {
+                message.success('操作成功');
+                emit('success');
+                cancel();
+            }
+        });
 };
 
 const emit = defineEmits(['cancel', 'success']);
@@ -73,7 +95,7 @@ defineExpose({
 
 </script>
 
-<style scoped>
+<style scoped lang="less">
 .radio-group {
     display: flex;
     flex-direction: column;

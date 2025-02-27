@@ -19,3 +19,8 @@ export function sync(params) {
 export function shopList() {
   return useGet("/platform-lazada/platform/lazada/order/shop");
 }
+export function accountCache() {
+  return useGet(
+    "/platform-lazada/platform/lazada/setting/account/relevance/user/cache"
+  );
+}
