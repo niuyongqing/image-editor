@@ -185,7 +185,6 @@ onBeforeUnmount(() => {
 }
 
 // 全屏样式
-// :deep(.w-e-full-screen-container) {
 .w-e-full-screen-container {
   z-index: 10;
   background-color: #f0f2f5;

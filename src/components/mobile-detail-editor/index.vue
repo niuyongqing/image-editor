@@ -428,7 +428,7 @@
             </div>
           </template>
           <!-- 图文 -->
-          <template v-else-if="activeModule.type === 'text-image'"></template>
+          <!-- <template v-else-if="activeModule.type === 'text-image'"></template> -->
           <template v-else>
             <span>暂不支持该类型: {{ activeModule.type }}</span>
           </template>
@@ -501,11 +501,11 @@
       name: 'image',
       limit: 30
     },
-    {
-      text: '图文',
-      name: 'text-image',
-      limit: 15
-    }
+    // {
+    //   text: '图文',
+    //   name: 'text-image',
+    //   limit: 15
+    // }
   ])
   const TEXT_ENUM = {
     text: '文字',

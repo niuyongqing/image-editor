@@ -15,12 +15,10 @@
         name="webDetail"
       >
         <span class="text-[#a0a3a6]">详细描述一般包含产品功能属性、产品细节图片、支付物流、售后服务、公司实力等内容。</span>
-        <WangEditor
+        <WangEditorPlus
           v-model="form.webDetail"
           ref="webDetailRef"
-          :toolbar-config="toolbarConfig"
           :editor-config="editorConfig"
-          :height="500"
         />
       </a-form-item>
       <a-form-item label="APP端描述">
@@ -74,8 +72,6 @@
         rules: {
           webDetail: { validator: validWebDetail, required: true, trigger: 'change' }
         },
-        // 工具栏配置
-        toolbarConfig: {},
         // 编辑器配置
         editorConfig: {
           placeholder: '请输入内容...',
@@ -193,7 +189,7 @@
           }
         })
       },
-      
+
       async emitData({ looseValidate = false }) {
         if (looseValidate) {
           this.$refs.form.clearValidate()
