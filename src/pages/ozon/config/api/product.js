@@ -252,3 +252,20 @@ export function asyncProgress(data) {
     method: 'get',
   })
 }
+
+// 获取设置店铺币种列表
+export function shopCurrency(data) {
+  return request({
+    url: "/platform-ozon/platform/ozon/product/find/shop/currency",
+    method: 'get',
+  })
+}
+
+// 获取修改仓库数据的列表
+export function updateCurrency(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/product/update/currency',
+    method: 'post',
+    data: data
+  })
+}

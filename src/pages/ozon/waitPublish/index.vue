@@ -132,7 +132,7 @@
           <template v-if="column.dataIndex === 'sku'">
             <div class="text-left">
               <div v-for="(item, index) in displayedSkus(record)" :key="index">
-                SKU： <span>{{ record.offerId }}</span>
+                SKU： <span>{{ item.offerId }}</span>
                 <a-divider type="vertical"></a-divider>
                 原价：<span style="color: #9e9f9e">{{ item.oldPrice }}</span>
                 当前售价：<span style="color: #9e9f9e">{{ item.price }}</span>
@@ -227,7 +227,7 @@ const shopAccount = ref([])
 const actives = ref(1);
 const selectedRowList = ref([])
 const tableData = ref([])
-const columns = tableHeard
+let columns = tableHeard
 const deactivateLoading = ref(false)
 const delLoading = ref(false)
 const loading = ref(false)

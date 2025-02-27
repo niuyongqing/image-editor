@@ -47,11 +47,19 @@
                                 :options="forbidSaleList" @change="editSimpleName(record)"
                                 :max-tag-count="1"></a-select>
                         </template>
+                        <template v-if="column.dataIndex === 'isPushStock'">
+                            <a-switch v-model:checked="record.isPushStock" :checkedValue="1" :unCheckedValue="0"
+                                checked-children="是" un-checked-children="否" @change="editSimpleName(record)" />
+                        </template>
+                        <template v-if="column.dataIndex === 'pushRatio'">
+                            <a-input-number placeholder="1 - 100" :disabled="record.isPushStock == 0"
+                                style="width: 180px" v-model:value="record.pushRatio" :min="1" :max="100"
+                                :precision="0"  @blur="editSimpleName(record)"/>
+                        </template>
                         <template v-if="column.dataIndex === 'autoPublish'">
                             <a-switch v-model:checked="record.autoPublish" :checkedValue="1" :unCheckedValue="0"
                                 checked-children="是" un-checked-children="否" @change="editSimpleName(record)" />
                         </template>
-
                         <template v-if="column.dataIndex === 'alias'">
                             <a-input v-model:value="record.alias" @blur.stop="editSimpleName(record)"></a-input>
                         </template>
@@ -104,8 +112,8 @@
         <simpleNameModal :editnameType="editnameType" @handelClose="handelClose"></simpleNameModal>
 
         <!--    批量修改仓库弹框-->
-        <a-modal title="批量修改仓库" :width="'30%'" :open="editWarehouseVisible" @ok="handelCancel"
-            @cancel="handelCancel" :keyboard="false" :maskClosable="false">
+        <a-modal title="批量修改仓库" :width="'30%'" :open="editWarehouseVisible" @ok="handelCancel" @cancel="handelCancel"
+            :keyboard="false" :maskClosable="false">
             <a-descriptions :column="1">
                 <a-descriptions-item label="示例">
                     <a-table :data-source="editWarehouseTypeTableData" style="width: 100%" bordered :pagination="false"
@@ -316,11 +324,13 @@ const getMeansAttribute = () => {
 const editSimpleName = (row) => {
     if (
         row.simpleName || row.alias || row.remark || row.store ||
-        row.classify || row.forbidSale || row.autoPublish
+        row.classify || row.forbidSale || row.autoPublish || 
+        row.isPushStock || row.pushRatio
     ) {
         const {
             id, store, simpleName, alias, remark,
             account, classify, forbidSale, autoPublish,
+            isPushStock,pushRatio
         } = row;
         const params = {
             id,
@@ -332,6 +342,7 @@ const editSimpleName = (row) => {
             classify,
             forbidSale: forbidSale ? forbidSale.join(',') : '',
             autoPublish,
+            isPushStock,pushRatio
         };
         simpleNames(params).then((res) => {
             message.success(res.msg);

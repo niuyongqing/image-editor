@@ -2,65 +2,106 @@
 <template>
   <div class="Pop-product-publish text-left">
     <a-spin :spinning="queryDetailLoading">
-      <a-space class="mb-3 pr-4 w-full justify-end">
-        <!-- 正式的商品编辑, 不显示保存到草稿 -->
-        <!-- 有草稿ID则显示 -->
-        <a-button
-          v-if="!productDetail.productId"
-          :loading="submitLoading"
-          @click="saveDraft({ looseValidate: true })"
-          >保存草稿</a-button
-        >
-        <a-button
-          v-if="!(isSemiCustodial && !productDetail.productId)"
-          type="primary"
-          :loading="submitLoading"
-          @click="submit"
-          >提 交</a-button
-        >
-        <a-button
-          v-if="isSemiCustodial && !productDetail.productId"
-          type="primary"
-          :loading="submitLoading"
-          @click="saveDraft({ looseValidate: false })"
-          >编辑半托管信息</a-button
-        >
-      </a-space>
+      <div class="w-[85%]">
+        <a-space class="mb-3 pr-4 w-full justify-end">
+          <!-- 正式的商品编辑, 不显示保存到草稿 -->
+          <!-- 有草稿ID则显示 -->
+          <a-button
+            v-if="!productDetail.productId"
+            :loading="submitLoading"
+            @click="saveDraft({ looseValidate: true })"
+            >保存草稿</a-button
+          >
+          <a-button
+            v-if="!(isSemiCustodial && !productDetail.productId)"
+            type="primary"
+            :loading="submitLoading"
+            @click="submit"
+            >提 交</a-button
+          >
+          <a-button
+            v-if="isSemiCustodial && !productDetail.productId"
+            type="primary"
+            :loading="submitLoading"
+            @click="saveDraft({ looseValidate: false })"
+            >编辑半托管信息</a-button
+          >
+        </a-space>
 
-      <BaseInfo ref="baseInfoRef" />
-      <ImageInfo ref="imageInfoRef" />
-      <PriceAndStock ref="priceAndStockRef" />
-      <NationalQuote ref="nationalQuoteRef" />
-      <Description ref="descriptionRef" />
-      <PackageInfo ref="packageInfoRef" />
-      <TemplateInfo ref="templateInfoRef" />
-      <Others ref="othersRef" />
+        <BaseInfo
+          id="baseInfo"
+          ref="baseInfoRef"
+        />
+        <ImageInfo
+          id="imageInfo"
+          ref="imageInfoRef"
+        />
+        <PriceAndStock
+          id="priceAndStock"
+          ref="priceAndStockRef"
+        />
+        <NationalQuote
+          id="nationalQuote"
+          ref="nationalQuoteRef"
+        />
+        <Description
+          id="description"
+          ref="descriptionRef"
+        />
+        <PackageInfo
+          id="packageInfo"
+          ref="packageInfoRef"
+        />
+        <TemplateInfo
+          id="templateInfo"
+          ref="templateInfoRef"
+        />
+        <Others
+          id="others"
+          ref="othersRef"
+        />
 
-      <a-space class="mt-3 pr-4 w-full justify-end">
-        <!-- 正式的商品编辑, 不显示保存到草稿 -->
-        <!-- 有草稿ID则显示 -->
-        <a-button
-          v-if="!productDetail.productId"
-          :loading="submitLoading"
-          @click="saveDraft({ looseValidate: true })"
-          >保存草稿</a-button
-        >
-        <a-button
-          v-if="!(isSemiCustodial && !productDetail.productId)"
-          type="primary"
-          :loading="submitLoading"
-          @click="submit"
-          >提 交</a-button
-        >
-        <a-button
-          v-if="isSemiCustodial && !productDetail.productId"
-          type="primary"
-          :loading="submitLoading"
-          @click="saveDraft({ looseValidate: false })"
-          >编辑半托管信息</a-button
-        >
-      </a-space>
+        <a-space class="mt-3 pr-4 w-full justify-end">
+          <!-- 正式的商品编辑, 不显示保存到草稿 -->
+          <!-- 有草稿ID则显示 -->
+          <a-button
+            v-if="!productDetail.productId"
+            :loading="submitLoading"
+            @click="saveDraft({ looseValidate: true })"
+            >保存草稿</a-button
+          >
+          <a-button
+            v-if="!(isSemiCustodial && !productDetail.productId)"
+            type="primary"
+            :loading="submitLoading"
+            @click="submit"
+            >提 交</a-button
+          >
+          <a-button
+            v-if="isSemiCustodial && !productDetail.productId"
+            type="primary"
+            :loading="submitLoading"
+            @click="saveDraft({ looseValidate: false })"
+            >编辑半托管信息</a-button
+          >
+        </a-space>
+      </div>
     </a-spin>
+
+    <!-- 右边锚点 -->
+    <a-timeline class="fixed top-[92px] left-[85%]">
+      <a-timeline-item
+        v-for="item in anchorList"
+        :key="item.id"
+        :color="item.turnRed ? 'red' : 'blue'"
+        ><a-button
+          type="text"
+          :danger="item.turnRed"
+          @click="scroll(item.id)"
+          >{{ item.label }}</a-button
+        ></a-timeline-item
+      >
+    </a-timeline>
   </div>
 </template>
 
@@ -95,7 +136,7 @@
   const query = useRoute().query
   const queryDetailLoading = ref(false)
   const productDetail = ref({})
-  let draftId = undefined
+  let draftsId = undefined
   getDetail()
 
   function getDetail() {
@@ -103,9 +144,9 @@
 
     queryDetailLoading.value = true
     const store = useAliexpressPopProductStore()
-    if (query.draftId) {
+    if (query.draftsId) {
       // 草稿
-      getProductDraftsApi({ uuid: query.draftId })
+      getProductDraftsApi({ uuid: query.draftsId })
         .then(res => {
           if (res.data) {
             const detail = {
@@ -178,13 +219,28 @@
     const others = await othersRef.value.emitData({ looseValidate })
 
     // 若有校验不通过
-    if (!baseInfo || !imageInfo || !priceAndStock || !nationalQuote || !description || !templateInfo || !others) {
+    const resObj = { baseInfo, imageInfo, priceAndStock, description, packageInfo, templateInfo, others }
+    const errList = []
+    for (const key in resObj) {
+      if (!resObj[key]) {
+        errList.push(key)
+      }
+    }
+
+    // 锚点标红(该红的红, 该恢复的恢复)
+    anchorList.value.forEach(item => {
+      item.turnRed = errList.includes(item.id)
+    })
+    if (errList.length) {
+      // 跳转到第一个标红的位置
+      scroll(errList[0])
       Modal.warning({ title: '请填写必填项' })
 
       return
     }
     // 选择半托管则区域调价只能直接报价
     if (isSemiCustodial.value && nationalQuote.aeopNationalQuoteConfiguration.configurationType !== 'absolute') {
+      scroll('nationalQuote')
       Modal.warning('半托管商品区域定价的定价方式仅支持直接报价，如果你在商品编辑时使用了调整比例或其他方式进行价格设置，请调整为直接报价。')
 
       return
@@ -265,13 +321,29 @@
     const others = await othersRef.value.emitData({ looseValidate: false })
 
     // 若有校验不通过
-    if (!baseInfo || !imageInfo || !priceAndStock || !description || !packageInfo || !templateInfo || !others) {
+    const resObj = { baseInfo, imageInfo, priceAndStock, description, packageInfo, templateInfo, others }
+    const errList = []
+    for (const key in resObj) {
+      if (!resObj[key]) {
+        errList.push(key)
+      }
+    }
+
+    // 锚点标红(该红的红, 该恢复的恢复)
+    anchorList.value.forEach(item => {
+      item.turnRed = errList.includes(item.id)
+    })
+    if (errList.length) {
+      // 跳转到第一个标红的位置
+      scroll(errList[0])
       Modal.warning({ title: '请填写必填项' })
 
       return
     }
+
     // 选择半托管则区域调价只能直接报价
     if (isSemiCustodial.value && nationalQuote.aeopNationalQuoteConfiguration.configurationType !== 'absolute') {
+      scroll('nationalQuote')
       Modal.warning({ title: '半托管商品区域定价的定价方式仅支持直接报价，如果你在商品编辑时使用了调整比例或其他方式进行价格设置，请调整为直接报价。' })
 
       return
@@ -306,5 +378,21 @@
       .finally(() => {
         submitLoading.value = false
       })
+  }
+
+  /** 右侧锚点 */
+  const anchorList = ref([
+    { label: '基本信息', id: 'baseInfo', turnRed: false },
+    { label: '图片信息', id: 'imageInfo', turnRed: false },
+    { label: '价格与库存', id: 'priceAndStock', turnRed: false },
+    { label: '区域调价信息', id: 'nationalQuote', turnRed: false },
+    { label: '描述信息', id: 'description', turnRed: false },
+    { label: '包装信息', id: 'packageInfo', turnRed: false },
+    { label: '模版信息', id: 'templateInfo', turnRed: false },
+    { label: '其他信息', id: 'others', turnRed: false }
+  ])
+  // 锚点滚动
+  function scroll(id) {
+    document.getElementById(id).scrollIntoView({ behavior: 'smooth' })
   }
 </script>

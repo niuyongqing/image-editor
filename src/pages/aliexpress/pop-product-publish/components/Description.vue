@@ -1,5 +1,8 @@
 <template>
-  <a-card title="描述信息">
+  <a-card
+    title="描述信息"
+    class="mb-4"
+  >
     <a-form
       ref="form"
       :model="form"
@@ -32,12 +35,11 @@
           @click="cloneWebDetail"
           >根据PC端描述生成</a-button
         >
-        <WangEditor
-          v-model="form.mobileDetail"
-          ref="mobileDetailRef"
-          :toolbar-config="toolbarConfig"
-          :editor-config="editorConfig"
-          :height="500"
+        <MobileDetailEditor
+          :mobile-detail="mobileModuleList"
+          :seller-id="store.sellerId"
+          @clear="clear"
+          @mobile-detail-edit="mobileDetailEdit"
         />
       </a-form-item>
     </a-form>
@@ -45,6 +47,7 @@
 </template>
 
 <script>
+  import MobileDetailEditor from '@/components/mobile-detail-editor/index.vue'
   import { InfoCircleOutlined } from '@ant-design/icons-vue'
   import { useAliexpressPopProductStore } from '~@/stores/aliexpress-pop-product'
   import { uploadImageForSdkApi } from '../../apis/common'
@@ -52,7 +55,7 @@
 
   export default {
     name: 'Description',
-    components: { InfoCircleOutlined },
+    components: { MobileDetailEditor, InfoCircleOutlined },
     data() {
       const validWebDetail = (rule, val) => {
         if (!val.length) {
@@ -67,6 +70,7 @@
           webDetail: '',
           mobileDetail: ''
         },
+        mobileModuleList: [],
         rules: {
           webDetail: { validator: validWebDetail, required: true, trigger: 'change' }
         },
@@ -120,31 +124,7 @@
               richTextData && (this.form.webDetail = richTextData.html.content)
             }
             if (mobileDetail) {
-              // 将移动端格式转为富文本格式
-              let richTextData = ''
-              mobileDetail.moduleList.forEach(item => {
-                if (item.type === 'text') {
-                  item.texts.forEach(textItem => {
-                    richTextData += '<p style="'
-                    // 有 title 和 body 两种; 这里不做区分
-                    for (const key in textItem.style) {
-                      richTextData += `${key}: ${textItem.style[key]}${key === 'fontSize' ? 'px' : ''}; `
-                    }
-                    richTextData += `">${textItem.content}</p><br>`
-                  })
-                } else if (item.type === 'image') {
-                  item.images.forEach(imageItem => {
-                    let imageText = `<img src="${imageItem.url}" style="width: ${imageItem.style.width}px; height: ${imageItem.style.height}px;">`
-                    if (imageItem.targetUrl) {
-                      imageText = `<a href="${imageItem.targetUrl}">${imageText}</a>`
-                    }
-                    imageText = `<p>${imageText}</p>`
-                    richTextData += imageText
-                  })
-                }
-              })
-
-              this.form.mobileDetail = richTextData
+              this.mobileModuleList = mobileDetail.moduleList
             }
           }
         },
@@ -152,6 +132,12 @@
       }
     },
     methods: {
+      clear() {
+        this.mobileModuleList = []
+        this.form.mobileDetail = ''
+      },
+      // 移动端详情编辑
+      mobileDetailEdit() {},
       // 复制 PC 描述到 APP 描述
       cloneWebDetail() {
         if (!this.form.webDetail || this.form.webDetail === '<p><br></p>') {
@@ -162,6 +148,7 @@
           title: '确定生成吗？',
           content: '将PC端描述生成到APP端描述可能存在一定的格式损耗和内容丢失，且之前已有的APP端描述将被覆盖，确定要生成吗？',
           onOk: () => {
+            // FIXME:
             this.form.mobileDetail = this.form.webDetail
           }
         })

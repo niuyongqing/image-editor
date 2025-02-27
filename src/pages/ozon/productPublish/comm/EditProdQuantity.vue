@@ -7,14 +7,14 @@
                     <span>店铺账号</span><span>仓库</span><span>库存</span><span>总库存</span>
                 </div>
                 <div class="stockList">
-                    <div class="items" v-for="(item, index) in editStockList" :key="index">
+                    <div class="items" v-for="(item, index) in copyList" :key="index">
                         <div class="simpleName">{{ item.simpleName }}</div>
                         <div class="children">
                             <div class="childrenItem" v-for="(it, ind) in item.children" :key="ind">
                                 <div class="childrenItemName">{{ it.name }}</div>
                                 <div style="width: 50%">
                                     <a-input-number :precision="0" :min="0"
-                                        style="width: 80%; display: block; margin: 0 auto" v-model="it.stock"
+                                        style="width: 80%; display: block; margin: 0 auto" v-model:value="it.stock"
                                         @change="changeInputNumber(item)"></a-input-number>
                                 </div>
                             </div>
@@ -38,16 +38,51 @@ import { message } from "ant-design-vue";
 const props = defineProps({
     editQuantityVis: Boolean,
     selectOzonId: Array,
-    editStockList: Array
+    editStockList: Array,
+   
 })
 const loading = ref(false)
-const emit = defineEmits(["backCloseQuantity"]);
+const quantities = ref(0)
+
+const copyList = ref([])
+const emit = defineEmits(["backCloseQuantity","backQuantity"]);
+const changeInputNumber = (item) => {
+    let count = 0;
+    
+    item.children.forEach((child) => {
+        count = count + child.stock;
+    });
+    quantities.value = count
+    item.allStock = count;
+}
 const handleCancel = () => {
     emit("backCloseQuantity")
+    quantities.value = 0
+    copyList.value[0].allStock = 0;
+    copyList.value[0].children = copyList.value[0].children.map(item => {
+        item.stock = null
+        return {
+            ...item,
+        }
+    })
 }
 const onSubmit = () => {
-
+    emit("backQuantity",quantities.value,copyList.value)
+    handleCancel()
+    // emit("backCloseQuantity")
+    // copyList.value[0].allStock = 0;
+    // copyList.value[0].children = copyList.value[0].children.map(item => {
+    //     item.stock = ""
+    //     return {
+    //         ...item,
+    //     }
+    // })
 }
+watch(() => props.editStockList, val => {
+    if (val.length > 0) {
+        copyList.value = val
+    }
+})
 </script>
 <style lang="less" scoped>
 .titles {
