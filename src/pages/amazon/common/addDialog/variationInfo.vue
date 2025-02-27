@@ -92,21 +92,25 @@
         <div v-if="column.dataIndex === 'MPN'">
           <div>
             <div style="display: flex; justify-content: center;">
-              <!-- <span style="color: red; margin-right: 4px;">*</span> -->
+              <span v-if="props.upcType === 2" style="color: red; margin-right: 4px;">*</span>
               <a-select
                 ref="select"
                 v-model:value="column.key"
                 style="width: 100px"
                 @change="val => MPNChange(val, column.select)"
+                :disabled="props.upcType === 1"
               >
                 <a-select-option
-                  v-for="i in column.select" 
+                  v-for="i in props.upcType === 1 ? column.select:column.select.filter(i => i !== 'MPN')" 
                   :value="i"
                   :key="i"
                 > {{ i }} </a-select-option>
               </a-select>
               <a-tooltip>
-                <template #title>
+                <template #title v-if="props.upcType === 1">
+                  Part_Number，可以填写英文/数字，方便区分不同变种
+                </template>
+                <template #title v-else>
                   UPC需填写12位数的数字<br/>
                   EAN需填写13位数的数字<br/>
                   GTIN需填写12/13/14位数的数字<br/>
@@ -173,10 +177,10 @@
         </template>
         <template v-if="column.dataIndex === 'MPN'">
           <div>
-            <a-form :model="record" :ref="`${record.rowId}_${column.key}`">
+            <a-form ref="mpnForm" :model="record" :ref="`${record.rowId}_${column.key}`">
               <a-form-item
                 :name="column.key"
-                :rules="[{ required: true, message: `请输入${column.key}` }]"
+                :rules="[{ required: props.upcType === 2, message: `请输入${column.key}` }]"
               >
                 <a-input v-model:value="record[column.key]" />
               </a-form-item>
@@ -301,6 +305,38 @@
       </template>
     </a-table>
     <div class="image-box">
+      <div class="box-btn">
+        <a-button 
+          style="margin-right: 15px;"
+          :disabled="btnDisabled"
+          @click="checkAll()" 
+          type="primary"
+        >{{isAll ? '全选':'取消全选'}}</a-button>
+        <span style="float: right; padding: 3px 0;color: #99999a;margin-right: 10px">
+          <a-select 
+            style="width: 200px;"
+            v-model:value="formState.watermarkValue" 
+            :placeholder="'请选择水印'" 
+            :disabled="isDisabled"
+            allowClear
+            @change="selectWaterMark" 
+          >
+            <a-select-option v-for="item in formState.watermarList" :key="item.title" :value="item.id">
+              <div>
+                <span>{{item.title}} </span>
+                <a-image v-if="item.type === 1" :src="item.content" style="width: 20px;height: 20px;margin-top: -10px"></a-image>
+                <span v-else>{{item.content}}</span>
+              </div>
+            </a-select-option>
+          </a-select>
+        </span>
+        <span style="float: right; padding: 3px 0;color: #99999a;margin-right: 10px">
+          <a-input-number :disabled="isDisabled" v-model:value="formState.cropWidth" placeholder="宽"></a-input-number>
+          X
+          <a-input-number :disabled="isDisabled" v-model:value="formState.cropHeight" placeholder="高"></a-input-number>
+          <a-button :disabled="isDisabled" @click="crop">裁剪</a-button>
+        </span>
+      </div>
       <div class="image-item-content" v-for="item in formState.tableData" :key="item.rowId">
         <div class="item-title">
           <div class="title-text">
@@ -311,20 +347,16 @@
               style="margin-right: 20px;"
             >{{ head.title }}：{{ item[head.key].value }}</span>
           </div>
-          <div class="title-btn">
-            <a-button type="primary">全选</a-button>
-          </div>
         </div>
         <div class="item-box">
           <div class="image-main">
-            <xzUploadImage
-              v-if="item.image.main.length < 1"
-              :options="imageOption.main"
-              v-model:fileList="item.image.main"
-            ></xzUploadImage>
-            <xzIamge v-else></xzIamge>
+            <div>主图</div>
+            <mainImage v-model:main-image-info="item.image.main"></mainImage>
           </div>
-          <div class="image-subsidiary"></div>
+          <div class="image-subsidiary">
+            <div>副图</div>
+            <supplementaryImage v-model:image-list="item.image.subsidiary" :max-number="8"></supplementaryImage>
+          </div>
         </div>
       </div>
     </div>
@@ -350,8 +382,10 @@ import numberEditModal from './modal/numberEditModal.vue';
 import discountedTimeModal from './modal/discountedTimeModal.vue';
 import skuTitleModal from './modal/skuTitleModal.vue';
 
-import xzIamge from './common/xzIamge.vue';
-import xzUploadImage from './common/xzUploadImage.vue';
+import mainImage from './common/mainImage.vue';
+import supplementaryImage from './common/supplementaryImage.vue';
+
+import { uploadImage, watermark, cropImg, watermarkList } from '../../js/api/addDialog.js';
 defineOptions({ name: "variationInfo" })
 const { proxy: _this } = getCurrentInstance();
 const props = defineProps({
@@ -364,12 +398,21 @@ const props = defineProps({
         themeAttribute: [],   // 变种标题
       }
     }
-  }
+  },
+  upcType: {                 // 售卖形式
+    type: Number,
+    default: 1
+  },
 })
 const formState = reactive({
   theme: '',
   variationList: [],
-  tableData: []
+  tableData: [],
+
+  watermarList: [],             // 水印列表
+  cropWidth: 800,
+  cropHeight: 800,
+  watermarkValue: undefined,
 })
 const conditionTypeList = ref([])     // 变种信息物品状况列表
 const variationHeaders = ref([])  // 变种主题表头
@@ -486,7 +529,6 @@ const headers = [ // 固定表头
     fixed: 'right',
   }
 ];
-console.log(import.meta.env.VITE_APP_BASE_API)
 const imageOption = {
   main: {
     url: import.meta.env.VITE_APP_BASE_API + '/platform-tiktok/platform/tiktok/global/file/upload/img',
@@ -516,6 +558,35 @@ const modalInfo = reactive({        // 表头弹窗
 const resultHeader = computed(() => {
   return [...variationHeaders.value, ...headers]
 })
+// 全选按钮禁用
+const btnDisabled = computed(() => {
+  let disabled = formState.tableData.every(item => {
+    return !item.image.main.path && item.image.subsidiary.length < 1
+  })
+  return formState.tableData.length < 1 || disabled
+})
+// 是否可以全选
+const isAll = computed(() => {
+  // return true
+  let all = formState.tableData.some(item => {
+    return (item.image.main.path && !item.image.main.checked) || item.image.subsidiary.some(i => !i.checked)
+  })
+  return all || btnDisabled.value;
+})
+// 是否禁用水印裁剪
+const isDisabled = computed(() => {
+  let disabled = formState.tableData.every(item => {
+    return (!item.image.main.path || !item.image.main.checked) && item.image.subsidiary.every(i => !i.checked)
+  })
+  return disabled || btnDisabled.value
+})
+onBeforeMount(async () => {
+  try {
+    let res = await watermarkList()
+    formState.watermarList = res.data
+  } catch (error) {}
+})
+
 watch(() => props.variationThemeData.key, (val) => {
   // 创建变种信息物品状况列表
   conditionTypeList.value = props.variationThemeData.data.condition_type.items.properties.value.enumNames.map((i, index) => {
@@ -524,6 +595,20 @@ watch(() => props.variationThemeData.key, (val) => {
       value: props.variationThemeData.data.condition_type.items.properties.value.enum[index]
     }
   })
+})
+watch(() => props.upcType, (val) => {
+  let select = headers[1].select
+  if (val === 1) {
+    MPNChange('MPN', select)
+    headers[1].key = 'MPN'
+    // console.log(_this.$refs.mpnForm);
+    // 清空校验结果
+    let mpnForm = _this.$refs.mpnForm
+    mpnForm && mpnForm.clearValidate()
+  } else {
+    MPNChange('UPC', select)
+    headers[1].key = 'UPC'
+  }
 })
 // onMounted(() => {
 //   // 创建变种信息物品状况列表
@@ -736,7 +821,7 @@ function creatVariationInfo(e, val, variationItem) {
     }
     if (!item.image) {
       item.image = {
-        main: [],       // 主图
+        main: {},       // 主图
         subsidiary: []  // 副图
       }
     }
@@ -773,7 +858,6 @@ function createRandom() {
 }
 // 表头复选框变化
 function MPNChange(val, select) {
-  // console.log({val});
   // 删除之前的选项，给新选项赋值
   formState.tableData.forEach(item => {
     Object.keys(item).forEach(key => {
@@ -827,6 +911,97 @@ function editDone(modalKey) {
 function generate(data) {
   data && (formState.tableData = data)
 }
+
+// 图片全选
+function checkAll() {
+  if (isAll.value) {
+    formState.tableData.forEach(item => {
+      item.image.main.path && (item.image.main.checked = true)
+      item.image.subsidiary.forEach(i => i.checked = true)
+    })
+  } else {
+    formState.tableData.forEach(item => {
+      item.image.main.checked = false
+      item.image.subsidiary.forEach(i => i.checked = false)
+    })
+  }
+  // _this.$forceUpdate()
+}
+// 选择水印
+function selectWaterMark(val) {
+  if (val === undefined) return;
+  formState.tableData.forEach(info => {
+    if (!info.image.main.path && info.image.subsidiary.length < 1) return;
+    let arr = []
+    let main = []
+    let supplementary = info.image.subsidiary.filter(i => i.checked)
+    if (info.image.main.checked) {
+      main.push(info.image.main)
+    }
+    arr.push(main, supplementary)
+    arr.forEach(async item => {
+      if (item.length < 1) return;
+      let imagePathList = item.map(i => i.path)
+      try {
+        let data = {
+          id: val,
+          imagePathList
+        }
+        let res = await watermark(data)
+        res.data.forEach(v => {
+          let obj = item.find(i => i.path === v.originalFilename)
+          obj.path = v.url
+          obj.name = v.newFileName
+          obj.checked = false
+          imageLoad(obj)
+        })
+      } catch (error) {}
+    })
+  })
+}
+// 裁剪
+async function crop() {
+  formState.tableData.forEach(info => {
+    if (!info.image.main.path && info.image.subsidiary.length < 1) return;
+    let arr = []
+    let main = []
+    let supplementary = info.image.subsidiary.filter(i => i.checked)
+    if (info.image.main.checked) {
+      main.push(info.image.main)
+    }
+    arr.push(main, supplementary)
+    arr.forEach(async item => {
+      if (item.length < 1) return;
+      let imagePathList = item.map(i => i.path)
+      try {
+        let data = {
+          newHeight: formState.cropHeight,
+          newWidth: formState.cropWidth,
+          imagePathList
+        }
+        let res = await cropImg(data)
+        res.data.forEach(v => {
+          let obj = item.find(i => i.path === v.originalFilename)
+          obj.path = v.url
+          obj.name = v.newFileName
+          obj.checked = false
+          imageLoad(obj)
+        })
+      } catch (error) {}
+    })
+  })
+}
+// 图片加载完成
+function imageLoad(obj) {
+  // console.log({obj});
+  const img = new Image();  // 创建一个新的 Image 对象
+  img.onload = () => {
+    // 获取图片的宽高
+    obj.width = img.naturalWidth;
+    obj.height = img.naturalHeight;
+  };
+  img.src = obj.path;
+}
 defineExpose({
   validateVariationInfo
 })
@@ -839,11 +1014,26 @@ defineExpose({
   }
   .image-box {
     margin-top: 10px;
+    .box-btn {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+    }
     .image-item-content {
       margin-bottom: 10px;
       .item-title {
         display: flex;
         justify-content: space-between;
+      }
+      .item-box {
+        width: 100%;
+        display: flex;
+        .image-main {
+          width: 215px;
+        }
+        .image-subsidiary {
+          flex: 1;
+        }
       }
     }
   }

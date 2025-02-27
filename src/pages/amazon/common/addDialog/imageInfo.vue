@@ -16,6 +16,7 @@
           style="width: 200px;"
           v-model:value="imageData.watermarkValue" 
           :placeholder="'请选择水印'" 
+          :disabled="isDisabled"
           allowClear
           @change="selectWaterMark" 
         >
@@ -29,55 +30,25 @@
         </a-select>
       </span>
       <span style="float: right; padding: 3px 0;color: #99999a;margin-right: 10px">
-        <a-input-number v-model:value="imageData.cropWidth" placeholder="宽"></a-input-number>
+        <a-input-number :disabled="isDisabled" v-model:value="imageData.cropWidth" placeholder="宽"></a-input-number>
         X
-        <a-input-number v-model:value="imageData.cropHeight" placeholder="高"></a-input-number>
-        <a-button @click="crop">裁剪</a-button>
+        <a-input-number :disabled="isDisabled" v-model:value="imageData.cropHeight" placeholder="高"></a-input-number>
+        <a-button :disabled="isDisabled" @click="crop">裁剪</a-button>
       </span>
     </div>
     <div class="content-item">
       <div class="content-title">主图</div>
       <div class="content">
-        <div class="img-item" v-if="mainImage.path">
-          <a-image
-            :width="200"
-            :src="mainImage.path"
-            @load="imageLoad"
-          />
-          <div class="img-item-size">{{ `${mainImage.width}*${mainImage.height}` }}</div>
-          <div class="image-item-foot">
-            <a-checkbox v-model:checked="mainImage.checked"></a-checkbox>
-            <a-tooltip>
-              <template #title>{{ mainImage.name }}</template>
-              <div class="image-name">{{ mainImage.name }}</div>
-            </a-tooltip>
-            <DeleteOutlined @click="delImage(item)"/>
-          </div>
-        </div>
-        <a-upload
-          v-else
-          v-model:file-list="imageData.fileList"
-          name="avatar"
-          list-type="picture-card"
-          class="avatar-uploader"
-          :show-upload-list="false"
-          :action="imageData.url"
-          :headers="imageData.headers"
-          :customRequest="customRequest"
-          :before-upload="beforeUpload"
-          @change="handleChange"
-        >
-          <PlusOutlined />
-        </a-upload>
+        <mainImageVue v-model:mainImageInfo="mainImage"></mainImageVue>
       </div>
     </div>
     <div class="content-item">
       <div class="content-title">副图</div>
       <div class="content">
-        <dragFileUpload 
+        <supplementaryImage 
           :max-number="5"
           v-model:image-list="imageData.supplementaryImage"
-        ></dragFileUpload>
+        ></supplementaryImage>
       </div>
     </div>
   </div>
@@ -86,17 +57,22 @@
 
 <script setup>
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons-vue';
-import dragFileUpload from '../dragFileUpload.vue';
+import mainImageVue from './common/mainImage.vue';
+import supplementaryImage from './common/supplementaryImage.vue';
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-import { uploadImage } from '../../js/api/addDialog.js';
-import { watermark, cropImg, watermarkList } from '../../js/api/addDialog.js';
+import { uploadImage, watermark, cropImg, watermarkList } from '../../js/api/addDialog.js';
 defineOptions({
   name: "amazonImageInfo"
 })
-const { proxy: _this } = getCurrentInstance()// 当前的vue实例
+const { proxy: _this } = getCurrentInstance();// 当前的vue实例
+const props = defineProps({
+  imageInfo: {
+    type: Object,
+    default: () => {}
+  }
+})
+const emit = defineEmits(['update:imageInfo'])
 const imageData = reactive({
-  url: import.meta.env.VITE_APP_BASE_API + '/platform-amazon/platform/amazon/file/upload/image',
-  headers: { Authorization: `Bearer ${useAuthorization().value}` },
   fileList: [],
 
   supplementaryImage: [],       // 副图列表
@@ -106,8 +82,9 @@ const imageData = reactive({
   watermarkValue: undefined,
 })
 const mainImage = reactive({
-  name: 'sdfsdsdfhgfsf',
+  name: '',
   path: '',
+  uid: '',
   checked: false,
   width: 0,
   height: 0,
@@ -116,24 +93,31 @@ const mainImage = reactive({
 const isAll = computed(() => {
   return !mainImage.checked || imageData.supplementaryImage.some(i => !i.checked)
 })
+// 是否禁用
+const isDisabled = computed(() => {
+  return !mainImage.checked && imageData.supplementaryImage.every(i => !i.checked)
+})
+watch([() => mainImage, () => imageData.supplementaryImage], ([main, supplementary]) => {
+  // console.log({ main, supplementary });
+  let obj = {
+    mainImage: main,
+    supplementaryImage: supplementary,
+  }
+  emit('update:imageInfo', obj)
+}, {
+  deep: true,
+})
 
 onBeforeMount(async () => {
   try {
     let res = await watermarkList()
     imageData.watermarList = res.data
-  } catch (error) {
-    
-  }
+  } catch (error) {}
 })
-// 删除图片
-function delImage(image) {
-  mainImage.path = '',
-  mainImage.checked = false
-};
 // 图片全选
 function checkAll() {
   if (isAll.value) {
-    mainImage.checked = true
+    mainImage.path && (mainImage.checked = true)
     imageData.supplementaryImage.forEach(item => item.checked = true)
   } else {
     mainImage.checked = false
@@ -143,6 +127,7 @@ function checkAll() {
 }
 // 选择水印
 function selectWaterMark(val) {
+  if (val === undefined) return;
   let arr = []
   let main = []
   let supplementary = imageData.supplementaryImage.filter(i => i.checked)
@@ -197,47 +182,6 @@ async function crop() {
       })
     } catch (error) {}
   })
-}
-function handleChange(info) {
-  
-};
-function beforeUpload(file) {
-  const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-  if (!isJpgOrPng) {
-    console.log('You can only upload JPG file!');
-    return false
-  }
-  return true
-};
-// 自定义上传
-async function customRequest({ file }) {
-  const formData = new FormData();
-  formData.append('file', file);
-  // return;
-  let headers = {
-    'Content-Type': 'multipart/form-data',
-    'Authorization': 'Bearer ' + useAuthorization().value
-  }
-  try {
-    let res = await usePost('/platform-amazon/platform/amazon/file/upload/image', formData, { headers })
-    // console.log({ res });
-    mainImage.path = res.url
-    mainImage.name = res.newFileName
-    imageLoad(mainImage)
-  } catch (error) {
-    console.log({error});
-  }
-}
-// 图片加载完成
-function imageLoad(obj) {
-  // console.log({obj});
-  const img = new Image();  // 创建一个新的 Image 对象
-  img.onload = () => {
-    // 获取图片的宽高
-    obj.width = img.naturalWidth;
-    obj.height = img.naturalHeight;
-  };
-  img.src = obj.path;
 }
 </script>
 <style lang="less" scoped>

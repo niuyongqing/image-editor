@@ -1,5 +1,5 @@
 <template>
-<div id="dragFileUpload" class="dragFileUpload">
+<div id="supplementaryImage" class="supplementaryImage">
   <div class="img-content">
     <div class="img-item"
       v-for="item in imageData.list"
@@ -17,7 +17,7 @@
           <template #title>{{ item.name }}</template>
           <div class="image-name">{{ item.name }}</div>
         </a-tooltip>
-        <DeleteOutlined @click="delImage(item)"/>
+        <DeleteOutlined style="color: red;" @click="delImage(item)"/>
       </div>
     </div>
     <div class="img-item uploadDom">
@@ -49,9 +49,10 @@
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons-vue';
 import Sortable from 'sortablejs'
 import { ref, reactive, onMounted, computed, watchPostEffect, nextTick } from 'vue'
-defineOptions({
-  name: "dragFileUpload"
-})
+// import { uploadImage } from '../js/api/addDialog.js';
+import { uploadImage } from '~@/pages/amazon/js/api/addDialog';
+defineOptions({ name: "supplementaryImage" })
+const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:imageList'])
 onMounted(() => {
   tagDrop()
@@ -125,12 +126,8 @@ async function customRequest({ file }) {
   // console.log({file});
   let data = new FormData()
   data.append('file', file)
-  let headers = {
-    'Content-Type': 'multipart/form-data',
-    'Authorization': 'Bearer ' + useAuthorization().value
-  }
   try {
-    let res = await usePost('/platform-amazon/platform/amazon/file/upload/image', data, { headers })
+    let res = await uploadImage(data)
     let obj = imageData.list.find(i => i.uid === file.uid)
     obj.name = res.newFileName
     obj.path = res.url
@@ -185,7 +182,7 @@ function tagDrop() {
 }
 </script>
 <style lang="less" scoped>
-.dragFileUpload {
+.supplementaryImage {
   width: 100%;
   .img-content {
     width: 100%;
