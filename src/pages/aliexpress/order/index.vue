@@ -129,13 +129,19 @@
         @click="sync"
         >{{ lazySearchForm.queryHistoryOrder ? '同步历史数据' : '同步数据' }}</a-button
       >
-      <a-button
-        type="primary"
-        title="请先选择创建时间"
-        :disabled="!lazySearchForm.createTime"
-        @click="exportFile"
-        >导出</a-button
-      >
+      <a-dropdown :disabled="!lazySearchForm.createTime">
+        <a-button
+          type="primary"
+          title="请先选择创建时间"
+          >导出</a-button
+        >
+        <template #overlay>
+          <a-menu @click="exportFile">
+            <a-menu-item key="0">导出excel</a-menu-item>
+            <a-menu-item key="1">导出cvs</a-menu-item>
+          </a-menu>
+        </template>
+      </a-dropdown>
     </a-space>
 
     <!-- table 区 -->
@@ -456,9 +462,9 @@
   }
 
   /** 导出 */
-  function exportFile() {
+  function exportFile({ key }) {
     const params = {
-      // exportFileType: '1',
+      exportFileType: key,
       sellerId: watchedSearchForm.value.sellerId,
       orderStatus: lazySearchForm.value.orderStatus,
       createDateStart: dayjs(lazySearchForm.value.createTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss'),

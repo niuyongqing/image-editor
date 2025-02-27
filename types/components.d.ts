@@ -130,5 +130,6 @@ declare module 'vue' {
     UserAvatar: typeof import('./../src/components/user-avatar/index.vue')['default']
     VirtualList: typeof import('./../src/components/virtual-list/index.vue')['default']
     WangEditor: typeof import('./../src/components/wangeditor/WangEditor.vue')['default']
+    WangEditorPlus: typeof import('./../src/components/wang-editor-plus/index.vue')['default']
   }
 }
