@@ -48,6 +48,14 @@
                 <a-form-item label="属性: " v-show="lazadaAttrsState.attributes.length > 0">
                     <a-card v-loading="lazadaAttrsState.loading" class="attrs-card">
                         <a-form :model="productAtrrsform" ref="attrsFormRef" scrollToFirstError>
+                            <a-form-item>
+                                <div flex items-center gap-8px ml-20px>
+                                    <a-switch v-model:checked="disableAttributeAutoFill" checked-children="开"
+                                        un-checked-children="关" />
+                                    <span style="color: #9fa0a2">自动填充</span>
+                                </div>
+                            </a-form-item>
+
                             <a-form-item v-for="item in sortAttrs(lazadaAttrsState.productClassifyAtrrs)"
                                 :key="item.name" :name="item.name" :rules="itemRules(item)" :label="item.label"
                                 :labelCol="{ span: 4 }" :wrapperCol="{ span: 20 }">
@@ -98,8 +106,8 @@
                                     <div v-if="item.input_type === 'richText'"> </div>
 
                                     <!-- img 仅支持输入 Lazada 图片链接-->
-                                    <a-input v-if="item.input_type === 'imgimg'" v-model:value="item.value"
-                                        placeholder="" allowClear @change="changeValue(item)"></a-input>
+                                    <a-input v-if="item.input_type === 'img'" v-model:value="item.value" placeholder=""
+                                        allowClear @change="changeValue(item)"></a-input>
 
                                     <!-- 危险品 -->
                                     <a-checkbox-group v-if="item.name === 'Hazmat'" v-model:value="item.value"
@@ -115,7 +123,7 @@
                                 ?
                                 '- 收起'
                                 : '+ 展开'
-                                }}</a-button>
+                            }}</a-button>
                         </div>
 
                     </a-card>
@@ -129,14 +137,14 @@
 <script setup>
 import { DownOutlined } from "@ant-design/icons-vue";
 import { useResetReactive } from '@/composables/reset';
-import { accountCache, categoryTree, getBrandList } from '@/pages/lazada/product/api';
+import { accountCache, categoryTree, getBrandList, hasValueAttributes } from '@/pages/lazada/product/api';
 import EventBus from "~/utils/event-bus";
 import { debounce } from "lodash-es";
 import { message } from "ant-design-vue";
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 
 const { state: lazadaAttrsState, } = useLadazaAttrs();
-
+const disableAttributeAutoFill = ref(true); // 自动填充
 const isExpand = ref(false); // 展开收起
 const attributesLoading = ref(false);
 const shortCode = ref('');
@@ -213,13 +221,16 @@ const validateForm = async () => {
         formEl.value.validate().then(() => {
             attrsFormEl.value.validate().then(() => {
                 resolve(true);
+                emits('valid', true)
             }).catch(() => {
                 document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 reject(false);
+                emits('valid', false)
             })
         }).catch(() => {
             document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             reject(false);
+            emits('valid', false)
         })
     });
 };
@@ -231,18 +242,38 @@ const clearValidate = () => {
 
 watch(() => lazadaAttrsState.loading, (newValue) => {
     clearValidate();
-})
-
+});
 
 //  产品资料库回显
 watch(() => lazadaAttrsState.product, (newValue) => {
     if (newValue && JSON.stringify(newValue) !== '{}') {
         console.log('newValue', newValue);
         state.title = newValue.tradeName; // 产品标题
-
-        //lazada 资料库数据回显 to do ...
+        // lazada 资料库数据回显
+        if (!disableAttributeAutoFill.value) return;
+        hasValueAttributes({
+            "shortCode": shortCode.value,
+            "primaryCategoryId": lazadaAttrsState.primaryCategory[lazadaAttrsState.primaryCategory.length - 1],
+        }).then(res => {
+            if (res.code === 200) {
+                const obj = res.data || {};
+                lazadaAttrsState.productClassifyAtrrs.forEach((item) => {
+                    for (let key in obj) {
+                        if (item.name === key) {
+                            // 多选数据转为数组
+                            if (item.input_type.includes('multi')) {
+                                item.value = obj[key] ? obj[key].split(',') : [];
+                            } else {
+                                item.value = obj[key]
+                            }
+                        }
+                    }
+                })
+            }
+        });
     }
 });
+const emits = defineEmits(['valid']);
 
 defineExpose({
     state,
@@ -269,20 +300,29 @@ onMounted(() => {
     });
 
     EventBus.on('siteAddAttrsEmit', () => {
-        //  根据分类回显属性 to do ...
-        const obj = { "number_of_pieces": "6 and up", "zal_present": "Yes", "delivery_option_economy": "No", "Hazmat": "None", "delivery_option_express": "Yes" };
-        lazadaAttrsState.productClassifyAtrrs.forEach((item) => {
-            for (let key in obj) {
-                if (item.name === key) {
-                    // 多选数据转为数组
-                    if (item.input_type.includes('multi')) {
-                        item.value = obj[key] ? obj[key].split(',') : [];
-                    } else {
-                        item.value = obj[key]
+        //  根据分类回显属性 
+        if (!disableAttributeAutoFill.value) return;
+        hasValueAttributes({
+            "shortCode": shortCode.value,
+            "primaryCategoryId": lazadaAttrsState.primaryCategory[lazadaAttrsState.primaryCategory.length - 1],
+        }).then(res => {
+            if (res.code === 200) {
+                console.log('res', res);
+                const obj = res.data || {};
+                lazadaAttrsState.productClassifyAtrrs.forEach((item) => {
+                    for (let key in obj) {
+                        if (item.name === key) {
+                            // 多选数据转为数组
+                            if (item.input_type.includes('multi')) {
+                                item.value = obj[key] ? obj[key].split(',') : [];
+                            } else {
+                                item.value = obj[key]
+                            }
+                        }
                     }
-                }
+                })
             }
-        })
+        });
     });
 });
 onBeforeUnmount(() => {

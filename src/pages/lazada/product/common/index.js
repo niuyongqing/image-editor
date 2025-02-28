@@ -64,6 +64,8 @@ export function getBase64(file) {
 
 //  去除重复
 export function unique(key, list) {
+  console.log("list", list);
+  if (!list || list.length === 0) return [];
   let uni1 = list.map((item) => [item[key], item]);
   let uni2 = new Map(uni1);
   let uni3 = Array.from(uni2.values());
@@ -100,3 +102,66 @@ export function extractedFileName(filePath) {
   const match = filePath.match(regex);
   return match ? match[1] : "";
 }
+
+export const globalArea = [
+  {
+    label: "印度尼西亚",
+    value: "id",
+  },
+  {
+    label: "菲律宾",
+    value: "ph",
+  },
+  {
+    label: "新加坡",
+    value: "sg",
+  },
+  {
+    label: "泰国",
+    value: "th",
+  },
+  {
+    label: "越南",
+    value: "vn",
+  },
+
+  {
+    label: "马来西亚",
+    value: "my",
+  },
+];
+export const colors = [
+  {
+    id: 1,
+    color: "#009926",
+  },
+  {
+    id: 2,
+    color: "#F00",
+    name: "红色",
+  },
+  {
+    id: 3,
+    color: "#0005FD",
+  },
+  {
+    id: 4,
+    color: "#FF5800",
+  },
+  {
+    id: 5,
+    color: "#8E0075",
+  },
+  {
+    id: 6,
+    color: "#FF6666",
+  },
+  {
+    id: 7,
+    color: "#FFCAC5",
+  },
+  {
+    id: 8,
+    color: "#00D0FF",
+  },
+];

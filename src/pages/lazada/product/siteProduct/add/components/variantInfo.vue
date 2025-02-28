@@ -21,6 +21,11 @@
                         <div> ( <a-button type="link" @click="batchStock()"> 批量 </a-button> ) </div>
                     </template>
 
+                    <template v-if="column.dataIndex === 'supplyPrice'">
+                        <div> <span class="required"> * </span> {{ title }} </div>
+                        <div> ( <a-button type="link" @click="batchPrice()"> 批量 </a-button> ) </div>
+                    </template>
+
                     <template v-if="column.dataIndex === 'price'">
                         <div> <span class="required"> * </span> {{ title }} </div>
                         <div> ( <a-button type="link" @click="batchPrice()"> 批量 </a-button> ) </div>
@@ -48,11 +53,16 @@
                             <a-input v-model:value="record.sellerSKU" placeholder="请输入SKU" />
                         </div>
                     </template>
-
                     <template v-if="column.dataIndex === 'stock'">
                         <div> stock: {{ record.stock }} </div>
                         <a-input-number :controls="false" :precision="0" :min="0" v-model:value="record.stock"
                             placeholder="请输入库存" style="width: 80%;" />
+                    </template>
+
+                    <template v-if="column.dataIndex === 'supplyPrice'">
+                        <div> supplyPrice: {{ record.supplyPrice }} </div>
+                        <a-input-number :controls="false" :precision="0" :min="0" v-model:value="record.supplyPrice"
+                            placeholder="请输入价格" style="width: 80%;" />
                     </template>
 
                     <template v-if="column.dataIndex === 'price'">
@@ -69,7 +79,7 @@
 
                     <template v-if="column.dataIndex === 'specialDate'">
                         <div> specialDate: {{ record.specialDate }} </div>
-                        <a-range-picker v-model:value="record.specialDate" :format="dateFormat" style="width: 80%;" />
+                        <a-range-picker v-model:value="record.specialDate" format="YYYY-MM-DD" style="width: 80%;" />
                     </template>
                     <template v-if="column.dataIndex === 'package_weight'">
                         <div> package_weight: {{ record.packageWeight }} </div>
@@ -113,13 +123,21 @@ import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { message } from 'ant-design-vue';
 import EventBus from "~/utils/event-bus";
-import GenerateModal from './batchModal/generateModal.vue';
-import StockModal from './batchModal/stockModal.vue';
-import PriceModal from './batchModal/priceModal.vue';
-import SpecialPriceModal from './batchModal/specialPriceModal.vue';
-import SpecialDateModal from './batchModal/specialDateModal.vue';
-import WeightModal from './batchModal/weightModal.vue';
-import PackageModal from "./batchModal/packageModal.vue";
+import GenerateModal from '../../batchModal/generateModal.vue';
+import StockModal from '../../batchModal/stockModal.vue';
+import PriceModal from '../../batchModal/priceModal.vue';
+import SpecialPriceModal from '../../batchModal/specialPriceModal.vue';
+import SpecialDateModal from '../../batchModal/specialDateModal.vue';
+import WeightModal from '../../batchModal/weightModal.vue';
+import PackageModal from "../../batchModal/packageModal.vue";
+
+// 是否半托管新增
+const { isHalfway } = defineProps({
+    isHalfway: {
+        type: Boolean,
+        default: false,
+    },
+})
 
 const { state: lazadaAttrsState, setSkuTable } = useLadazaAttrs();
 const skus = ref([]); // 属性中所有的 SKU
@@ -148,21 +166,6 @@ let baseColumns = [
     {
         title: '库存',
         dataIndex: 'stock',
-        align: 'center',
-    },
-    {
-        title: '价格',
-        dataIndex: 'price',
-        align: 'center',
-    },
-    {
-        title: '促销价',
-        dataIndex: 'specialPrice',
-        align: 'center',
-    },
-    {
-        title: '促销时间',
-        dataIndex: 'specialDate',
         align: 'center',
     },
     {
@@ -217,42 +220,72 @@ const columns = computed(() => {
     let baseColumns = [];
     function getColumns() {
         if (selectTheme.value.length > 0) {
-            return baseColumns = [
-                {
-                    title: 'SKU',
-                    dataIndex: 'sellerSKU',
-                    align: 'center',
-                },
-                ...themeColumns,
-                {
-                    title: '库存',
-                    dataIndex: 'stock',
-                    align: 'center',
-                },
-                {
-                    title: '价格',
-                    dataIndex: 'price',
-                    align: 'center',
-                },
-                {
-                    title: '促销价',
-                    dataIndex: 'specialPrice',
-                    align: 'center',
-                },
-                {
-                    title: '促销时间',
-                    dataIndex: 'specialDate',
-                    align: 'center',
-                },
-                ...weightColumns(),
-                ...packageColumns(),
-                {
-                    title: '操作',
-                    dataIndex: 'action',
-                    align: 'center',
-                    width: '120px'
-                },
-            ];
+            if (isHalfway) {
+                return baseColumns = [
+                    {
+                        title: 'SKU',
+                        dataIndex: 'sellerSKU',
+                        align: 'center',
+                    },
+                    ...themeColumns,
+
+                    {
+                        title: '价格',
+                        dataIndex: 'supplyPrice',
+                        align: 'center',
+                    },
+                    {
+                        title: '库存',
+                        dataIndex: 'stock',
+                        align: 'center',
+                    },
+                    ...weightColumns(),
+                    ...packageColumns(),
+                    {
+                        title: '操作',
+                        dataIndex: 'action',
+                        align: 'center',
+                        width: '120px'
+                    },
+                ];
+            } else {
+                return baseColumns = [
+                    {
+                        title: 'SKU',
+                        dataIndex: 'sellerSKU',
+                        align: 'center',
+                    },
+                    ...themeColumns,
+                    {
+                        title: '库存',
+                        dataIndex: 'stock',
+                        align: 'center',
+                    },
+                    {
+                        title: '价格',
+                        dataIndex: 'price',
+                        align: 'center',
+                    },
+                    {
+                        title: '促销价',
+                        dataIndex: 'specialPrice',
+                        align: 'center',
+                    },
+                    {
+                        title: '促销时间',
+                        dataIndex: 'specialDate',
+                        align: 'center',
+                    },
+                    ...weightColumns(),
+                    ...packageColumns(),
+                    {
+                        title: '操作',
+                        dataIndex: 'action',
+                        align: 'center',
+                        width: '120px'
+                    },
+                ];
+            }
         } else {
             return baseColumns
         }
@@ -396,21 +429,21 @@ const priceSuccess = (evt) => {
 
     tableData.value.forEach((item) => {
         if (evt.radio === 1) {
-            item.price = evt.setNum;
+            item[isHalfway ? 'supplyPrice' : 'price'] = evt.setNum;
         } else if (evt.radio === 2) {
-            const currentPrice = Number(item.price ?? 0);
+            const currentPrice = Number(item[isHalfway ? 'supplyPrice' : 'price'] ?? 0);
             switch (evt.stockRule) {
                 case 1:
-                    item.price = currentPrice + setRuleNum;
+                    item[isHalfway ? 'supplyPrice' : 'price'] = currentPrice + setRuleNum;
                     break;
                 case 2:
-                    item.price = currentPrice - setRuleNum;
+                    item[isHalfway ? 'supplyPrice' : 'price'] = currentPrice - setRuleNum;
                     break;
                 case 3:
-                    item.price = currentPrice * setRuleNum;
+                    item[isHalfway ? 'supplyPrice' : 'price'] = currentPrice * setRuleNum;
                     break;
                 case 4:
-                    item.price = currentPrice / setRuleNum;
+                    item[isHalfway ? 'supplyPrice' : 'price'] = currentPrice / setRuleNum;
                     break;
                 default:
                     break;
@@ -516,6 +549,7 @@ const validateForm = () => {
             message.warning('变种参数不能为空');
             document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             reject(false);
+            emits('valid', false);
             return
         };
         for (let index = 0; index < tableData.value.length; index++) {
@@ -523,38 +557,54 @@ const validateForm = () => {
             if (!item.sellerSKU) {
                 message.warning(`第${index + 1}行SKU不能为空`);
                 document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                reject(false)
+                reject(false);
+                emits('valid', false);
                 return false;
             };
             if (!item.stock) {
                 message.warning(`第${index + 1}行库存不能为空`);
                 document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 reject(false)
+                emits('valid', false);
                 return false;
             };
-            if (!item.price) {
-                message.warning(`第${index + 1}行价格不能为空`);
-                document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                reject(false)
-                return false;
-            };
+            if (isHalfway) {
+                if (!item.supplyPrice) {
+                    message.warning(`第${index + 1}行价格不能为空`);
+                    document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    reject(false);
+                    emits('valid', false);
+                    return false;
+                };
+            } else {
+                if (!item.price) {
+                    message.warning(`第${index + 1}行价格不能为空`);
+                    document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    reject(false);
+                    emits('valid', false);
+                    return false;
+                };
+            }
             if (weightRequired.value && !item.packageWeight) {
                 message.warning(`第${index + 1}行重量不能为空`);
                 document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 reject(false)
+                emits('valid', false);
                 return false;
             };
             if (packageRequired.value && (!item.packageLength || !item.packageWidth || !item.packageHeight)) {
                 message.warning(`第${index + 1}行包装尺寸不能为空`);
                 document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 reject(false);
+                emits('valid', false);
                 return false;
             }
-            resolve(true)
+            resolve(true);
+            emits('valid', true);
         }
     })
 };
-
+const emits = defineEmits(['valid']);
 defineExpose({
     tableData,
     validateForm

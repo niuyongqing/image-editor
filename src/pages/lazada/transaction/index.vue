@@ -2,7 +2,7 @@
     <div>
         <Search @search="handleSearch" ref="searchRef"></Search>
         <BaseTable ref="baseTableRef" :columns="columns" :api="myIncomeList" :immediate="false"
-            :init-search-param="initSearchParam">
+            :init-search-param="initSearchParam" :scroll="{ x: 3800 }">
             <template #leftBar>
                 <a-space>
                     <a-button type="primary" @click="syncLazada">

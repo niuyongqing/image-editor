@@ -31,11 +31,10 @@
                     </template>
                 </a-dropdown>
             </div>
-
             <div>
-                <a-button @click="warehouseSetting" type="link" style="height: 32px; margin-left: 10px; ">
+                <!-- <a-button @click="warehouseSetting" type="link" style="height: 32px; margin-left: 10px; ">
                     <SettingOutlined /> 仓库管理
-                </a-button>
+                </a-button> -->
                 <a-dropdown>
                     <a-button type="primary" style="height: 32px ; margin-left: 10px;">
                         创建产品
@@ -52,48 +51,26 @@
                         </a-menu>
                     </template>
                 </a-dropdown>
-                <a-button type="primary" style="height: 32px ; margin-left: 10px;" @click="syncProduct">
-                    同步产品
-                </a-button>
-                <!--  <a-dropdown>
-                    <a-button type="primary" style="height: 32px;  margin-left: 10px;">
-                        导出
-                        <DownOutlined />
-                    </a-button>
-
-                    <template #overlay>
-                        <a-menu>
-                            <a-menu-item @click="exportProduct">
-                                按页导出
-                            </a-menu-item>
-                            <a-menu-item @click="exportPrice">
-                                按勾选导出
-                            </a-menu-item>
-                        </a-menu>
-                    </template>
-                </a-dropdown>
-                 <a-button type="primary" style="height: 32px;  margin-left: 10px;">
-                    同步产品
-                </a-button> -->
             </div>
         </div>
     </div>
     <WarehouseSetting ref="warehouseSettingRef" />
-    <RemarkModal ref="remarkModalRef"></RemarkModal>
+    <RemarkModal ref="remarkModalRef" @success="remarkSuccess"></RemarkModal>
     <PriceModal ref="priceModalRef" @success="priceSuccess"></PriceModal>
     <StockModal ref="stockModalRef" @success="stockSuccess"></StockModal>
     <SpecialPriceModal ref="specialPriceModalRef" @success="specialPriceSuccess"></SpecialPriceModal>
 </template>
 
 <script setup>
+import { message } from "ant-design-vue";
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { DownOutlined, SettingOutlined } from "@ant-design/icons-vue";
 import WarehouseSetting from './warehouseSetting.vue'; // 仓库管理
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
 import RemarkModal from './batchModal/remarkModal.vue';
-import PriceModal from './batchModal/priceModal.vue';
-import SpecialPriceModal from './batchModal/specialPriceModal.vue';
-import StockModal from './batchModal/stockModal.vue';
+import PriceModal from './priceModal.vue';
+import SpecialPriceModal from './specialPriceModal.vue';
+import StockModal from './stockModal.vue';
 
 const { selectedRows } = defineProps({
     //  表格选中的数据
@@ -102,6 +79,7 @@ const { selectedRows } = defineProps({
         default: () => []
     }
 });
+const emits = defineEmits(['success']);
 
 const router = useRouter();
 const remarkModalEl = useTemplateRef('remarkModalRef');
@@ -132,24 +110,41 @@ const handleEdit = () => { };
 const handleGobalPlus = () => { };
 
 const handleRemark = () => {
-    remarkModalEl.value.open();
+    if (!selectedRows.length) {
+        message.error('请选择产品');
+        return
+    };
+    remarkModalEl.value.open(selectedRows, true);
 };
 
+const remarkSuccess = () => {
+    emits('success');
+}
+
 const handleBatchPrice = () => {
-    priceModalEl.value.open();
+    if (!selectedRows.length) {
+        message.error('请选择产品');
+        return
+    };
+    priceModalEl.value.open(selectedRows, true);
 };
 const handleStock = () => {
-    stockModalEl.value.open();
+    if (!selectedRows.length) {
+        message.error('请选择产品');
+        return
+    };
+    stockModalEl.value.open(selectedRows, true);
 };
 const handleSpecialPrice = () => {
-    specialPriceModalEl.value.open();
+    if (!selectedRows.length) {
+        message.error('请选择产品');
+        return
+    };
+    specialPriceModalEl.value.open(selectedRows, true);
 };
 
 // 批量发布
 const handlePublish = () => { };
-//  同步所有产品
-const syncProduct = () => { };
-
 const priceSuccess = () => {
     emits('success');
 };
@@ -159,7 +154,4 @@ const stockSuccess = () => {
 const specialPriceSuccess = () => {
     emits('success');
 };
-
 </script>
-
-<style lang="less" scoped></style>

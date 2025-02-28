@@ -7,8 +7,8 @@
                         :options="shopAccount"></a-select>
                 </a-form-item>
                 <a-form-item label="时间：" name="times">
-                    <a-date-picker v-model:value="formData.times" style="width: 200px" @change="handlerChange" type="month"
-                        placeholder="选择月">
+                    <a-date-picker v-model:value="formData.times" style="width: 200px" @change="handlerChange"
+                        type="month" placeholder="选择月">
                     </a-date-picker>
                 </a-form-item>
                 <a-form-item>
@@ -45,8 +45,16 @@
             </a-table>
             <a-pagination style="margin-top: 20px;text-align: right;" :show-total="(total) => `共 ${total} 条`"
                 :total="paginations.total" v-model:current="paginations.pageNum" v-model:pageSize="paginations.pageSize"
-                :defaultPageSize="50" :showSizeChanger="true" @change="getList" :pageSizeOptions="[50, 100, 200]"></a-pagination>
+                :defaultPageSize="50" :showSizeChanger="true" @change="getList"
+                :pageSizeOptions="[50, 100, 200]"></a-pagination>
         </a-card>
+        <a-modal v-model:open="expType" title="导出文件格式选择" @cancel="exportTypes = false" @ok="handleOk"
+            :maskClosable="false" :keyboard="false" :destroyOnClose="true" :width="'15%'">
+            <a-select ref="select" v-model:value="exportTypes" class="w-50 mt-5">
+                <a-select-option :value="0">.excel</a-select-option>
+                <a-select-option :value="1">.csv</a-select-option>
+            </a-select>
+        </a-modal>
     </div>
 </template>
 
@@ -73,6 +81,8 @@ const tableData = ref([])
 const loading = ref(false)
 const syncLoading = ref(false)
 const exportLoading = ref(false)
+const expType = ref(false)
+const exportTypes = ref()
 const paginations = reactive({
     pageNum: 1,
     pageSize: 50,
@@ -131,11 +141,16 @@ const toExport = () => {
         message.error("请先选择时间后导出！");
         return;
     }
+    expType.value = true
+}
+
+const handleOk = () => {
     const { account, month, year } = formData;
     let params = {
         account,
         month,
         year,
+        exportFileType: exportTypes.value
     };
     exportLoading.value = true;
     exportProductSell(params).then((res) => {
@@ -146,6 +161,7 @@ const toExport = () => {
             exportLoading.value = false;
         });
 }
+
 // 获取店铺列表
 const getAccount = () => {
     accountCache().then((res) => {

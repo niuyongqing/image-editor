@@ -58,6 +58,9 @@
                     </div>
                 </div>
             </template>
+            <template #createTime="{ record }">
+                {{ record.createTime ? dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') : '' }}
+            </template>
         </BaseTable>
         <UpgradeGP ref="upgradeGPRef" @success="reload"></UpgradeGP>
         <ExcelUpgradeGP ref="ExcelUpgradeGPRef" @success="reload"></ExcelUpgradeGP>
@@ -79,6 +82,7 @@ import UpgradeGP from './components/upgradeGP.vue';
 import ExcelUpgradeGP from './components/excelUpgradeGP.vue';
 import SyncProductGP from './components/syncProductGP.vue';
 import LogIndexUpgradeGP from './components/logIndexUpgradeGP.vue';
+import dayjs from 'dayjs';
 
 const initSearchParam = {
     prop: 'create_time',

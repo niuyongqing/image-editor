@@ -1,7 +1,7 @@
 <template>
     <div class="mt-10px">
         <!-- 基本信息 -->
-        <a-tag color="orange" style="width: 100%;">
+        <a-tag color="orange" style="width: 100%;" v-if="type">
             <div class="tag-title"> 6合1发布功能——特别说明： </div>
             <div pt-5px>
                 <p class="tag-content">
@@ -30,7 +30,7 @@
                             @change="changeShortCode" allowClear :options="shortCodes"
                             :fieldNames="{ label: 'simpleName', value: 'shortCode' }" style="width: 250px;">
                         </a-select>
-                        <div flex ml-10px>
+                        <div flex ml-10px v-if="type">
                             <span> 同步发布到其他站点： </span>
                             <a-checkbox style="margin-right: 10px" v-model:checked="checkAll"
                                 @change="handleCheckAllChange">
@@ -70,10 +70,14 @@ import EventBus from "~/utils/event-bus";
 import { useLazadaWaitPublish } from "@/stores/lazadaWaitPublish";
 import { unique, findCategoryPath } from '@/pages/lazada/product/common';
 
-const { detailData } = defineProps({
+const { detailData, type } = defineProps({
     detailData: {
         type: Object,
         default: () => ({})
+    },
+    type: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -106,7 +110,7 @@ const globalArea = [{
 
 const { state: lazadaAttrsState, setShortCode,
     setPrimaryCategory, setLazadaAttrs, setLoading,
-    setProductClassifyAtrrs,
+    setProductClassifyAtrrs, setSelectTheme, setSkuAttrs, setCountry
 } = useLazadaWaitPublish();
 const loading = ref(false);
 const shortCodes = ref([]); // 店铺列表
@@ -145,15 +149,14 @@ const checkedCitiesChange = (value) => {
 watch(() => {
     return detailData
 }, async (newVal) => {
-    // loading.value = true;
+    console.log('newVal ->>', newVal);
+    loading.value = true;
     state.shortCode = newVal.shortCode;
     state.ventures = newVal.ventures.venture || [];
     checkAll.value = state.ventures.length === globalArea.length;
     EventBus.emit('waitPublishShortCodeEmit', state.shortCode);
     setShortCode(state.shortCode);
     await getCategorys();
-    console.log('primaryCategoryOptions.value', primaryCategoryOptions.value);
-
     const data = findCategoryPath(primaryCategoryOptions.value, newVal.primaryCategory);
     state.primaryCategory = data || [];
     validateCodeRule();
@@ -161,66 +164,76 @@ watch(() => {
     loading.value = false;
     await getAttributes();
     setProductClassifyAtrrs(newVal.attributes); // 回显详情的分类属性值
-    // const skus = newVal.skus || [];
-    // const keys = Object.keys(skus[0].saleProp);
-    // let values = [];
-    // skus.forEach((item) => {
-    //     const vals = Object.values(item.saleProp);
-    //     values.push(...vals);
-    // });
+    const skus = newVal.skus || [];
+    const keys = Object.keys(skus[0].saleProp);
+    let values = [];
+    skus.forEach((item) => {
+        const vals = Object.values(item.saleProp);
+        values.push(...vals);
+    });
+    const saleProps = skus.map((item) => {
+        return item.saleProp;
+    });
+    const selectThemeList = lazadaAttrsState.skuAttrs.filter((item) => {
+        return keys.includes(item.name)
+    });
+    const result = saleProps.reduce((acc, item) => {
+        Object.keys(item).forEach(key => {
+            if (!acc[key]) {
+                acc[key] = new Set();
+            }
+            acc[key].add(item[key]);
+        });
+        return acc;
+    }, {});
 
-    // const saleProps = skus.map((item) => {
-    //     return item.saleProp;
-    // });
-    // const selectThemeList = lazadaAttrsState.skuAttrs.filter((item) => {
-    //     return keys.includes(item.name)
-    // });
-    // const result = saleProps.reduce((acc, item) => {
-    //     Object.keys(item).forEach(key => {
-    //         if (!acc[key]) {
-    //             acc[key] = new Set();
-    //         }
-    //         acc[key].add(item[key]);
-    //     });
-    //     return acc;
-    // }, {});
+    const formattedResult = Object.keys(result).reduce((acc, key) => {
+        acc[key] = Array.from(result[key]);
+        return acc;
+    }, {});
+    const resultData = keys.map(key => {
+        const findItem = selectThemeList.find(item => item.name === key);
+        let options = [];
+        if (findItem) {
+            let itemOptions = findItem?.options ?? [];
 
-    // const formattedResult = Object.keys(result).reduce((acc, key) => {
-    //     acc[key] = Array.from(result[key]);
-    //     return acc;
-    // }, {});
-    // const resultData = keys.map(key => {
-    //     const findItem = selectThemeList.find(item => item.name === key);
-    //     let options = [];
-    //     if (findItem) {
-    //         const has = findItem.options.find((option) => {
-    //             return formattedResult[key].includes(option.en_name)
-    //         });
-    //         if (!has) {
-    //             findItem.options = findItem.options.concat(formattedResult[key].map((keyItem) => ({ name: keyItem, en_name: keyItem })));
-    //             options = findItem.options;
-    //         } else {
-    //             options = findItem.options
-    //         }
-    //     } else {
-    //         options = (formattedResult[key].map((keyItem) => ({ name: keyItem, en_name: keyItem })) || [])
-    //     }
+            const has = itemOptions.find((option) => {
+                return formattedResult[key] === option.en_name
+            });
+            if (!has) {
+                findItem.options = itemOptions.concat(formattedResult[key].map((keyItem) => ({ name: keyItem, en_name: keyItem })));
+                itemOptions = findItem.options;
+                options = itemOptions;
+            } else {
+                options = itemOptions;
+            }
+        } else {
+            options = (formattedResult[key].map((keyItem) => ({ name: keyItem, en_name: keyItem })) || [])
+        }
 
-    //     const optionsUnique = unique('en_name', options); // 去重
-    //     return {
-    //         name: findItem ? findItem.name : key,
-    //         label: findItem ? findItem.label : key,
-    //         is_mandatory: findItem ? findItem.is_mandatory : 0,
-    //         input_type: findItem ? findItem.input_type : 'multiEnumInput',
-    //         checkedList: formattedResult[key] || [],
-    //         attribute_type: findItem ? findItem.attribute_type : 'sku',
-    //         options: optionsUnique,
-    //         skuOptions: optionsUnique
-    //     }
-    // });
+        const optionsUnique = unique('en_name', options); // 去重
+        return {
+            name: findItem ? findItem.name : key,
+            label: findItem ? findItem.label : key,
+            is_mandatory: findItem ? findItem.is_mandatory : 0,
+            input_type: findItem ? findItem.input_type : 'multiEnumInput',
+            checkedList: formattedResult[key] || [],
+            attribute_type: findItem ? findItem.attribute_type : 'sku',
+            options: optionsUnique,
+            skuOptions: optionsUnique
+        }
+    });
+    console.log('resultData', resultData);
 
-    // setSelectTheme(resultData)
-    // EventBus.emit('siteEditSelectThemeEmit', resultData);
+    setSelectTheme(resultData);
+    if (lazadaAttrsState.skuAttrs.length === 0) {
+        setSkuAttrs(resultData);
+    };
+    EventBus.emit('waitEditSelectThemeEmit', resultData);
+    EventBus.emit('generateSkuTableEmit', {
+        newVal,
+        resultData,
+    });
 }, {
     deep: true
 });
@@ -235,6 +248,10 @@ async function getShortCodes() {
         };
         shortCodes.value = codes
     };
+
+    console.log('state.shortCode', state.shortCode);
+    const obj = shortCodes.value.find((item) => item.shortCode === state.shortCode);
+    setCountry(obj?.country);
 };
 
 async function getCategorys() {
@@ -271,6 +288,7 @@ async function getAttributes() {
     });
     if (res.code === 200) {
         attributes.value = res.data || [];
+        console.log('attributes', attributes.value);
         setLazadaAttrs(attributes.value);
     };
 };
@@ -279,7 +297,11 @@ const changeShortCode = (value) => {
     getCategorys();
     setShortCode(value);
     state.primaryCategory = undefined;
-    setLazadaAttrs([])
+    setLazadaAttrs([]);
+    const obj = shortCodes.value.find((item) => {
+        return item.shortCode === value
+    });
+    setCountry(obj?.country);
     EventBus.emit('waitPublishShortCodeEmit', value);
 };
 
@@ -298,9 +320,11 @@ async function validateForm() {
     return new Promise((resolve, reject) => {
         formEl.value.validate().then(() => {
             resolve(true);
+            emits('valid', true)
         }).catch(() => {
             document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             reject(false);
+            emits('valid', false)
         })
     })
 }

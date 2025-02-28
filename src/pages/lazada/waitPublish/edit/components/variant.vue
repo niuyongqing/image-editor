@@ -79,7 +79,7 @@
                                 <div v-else>
                                     <a-input v-model:value="optionName" placeholder="请输入变种主题" style="width: 80px;"
                                         ref="themeLabelRef" />
-                                    <a-button type="link" @click="saveOptionName(option)">
+                                    <a-button type="link" @click="saveOptionName(option, item)">
                                         <SaveOutlined />
                                     </a-button>
                                     <a-button type="link" @click="closeOptionName(option)">
@@ -103,6 +103,7 @@
                     </a-form-item>
                 </a-form>
                 <template #tabBarExtraContent></template>
+                <template #cover></template>
             </a-card>
         </a-card>
 
@@ -215,11 +216,16 @@ const editOptionName = (option) => {
     optionName.value = option.en_name;
     option.isEdit = true;
 };
-const saveOptionName = (option) => {
+const saveOptionName = (option, item) => {
     option.isEdit = false;
+    if (optionName.value != option.en_name) {
+        option.name = optionName.value;
+        option.en_name = optionName.value;
+        item.checkedList.push(optionName.value);
+        changeCheckedList(item);
+    };
     setSelectTheme(selectThemeList.value);
 };
-
 const closeOptionName = (option) => {
     option.isEdit = false;
 };
@@ -246,7 +252,6 @@ const handleAddOther = (item) => {
 
 //  设为变种主题1
 const move = (item) => {
-    console.log('item', item);
     Modal.confirm({
         title: '提示',
         content: `确定将${item.label}设为变种主题1吗？`,
@@ -345,8 +350,10 @@ onMounted(() => {
             });
             selectThemeList.value[1].checkedList = oneThemeList2;
         };
-
     });
+    EventBus.on('waitEditSelectThemeEmit', (list) => {
+        selectThemeList.value = list;
+    })
 });
 
 //  产品资料库回显

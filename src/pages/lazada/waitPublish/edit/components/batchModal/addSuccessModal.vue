@@ -13,7 +13,7 @@
                     <a-button type="default" @click="close" style="width: 90px; height: 31px;"> 关闭 </a-button>
                     <a-dropdown>
                         <a-button type="primary" link style="width: 90px; height: 31px;">
-                            普通水印
+                            创建产品
                             <DownOutlined />
                         </a-button>
                         <template #overlay>
@@ -64,6 +64,10 @@ const createProduct = () => {
 //  创建新产品（保留已填内容）
 const createProductKeep = () => {
     modalMethods.value.closeModal();
+};
+
+const submit = () => {
+
 };
 
 defineExpose({

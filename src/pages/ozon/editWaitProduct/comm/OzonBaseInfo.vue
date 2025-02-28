@@ -3,8 +3,8 @@
         <a-card title="基本信息" style="text-align: left;">
             <a-form :label-col="{ span: 3 }" ref="ruleForm" :model="form" class="mt-5" :rules="rules">
                 <a-form-item label="店铺：" name="shortCode">
-                    <a-select v-model:value="form.shortCode" placeholder="请选择店铺" disabled style="width: 90%" allowClear
-                        showSearch optionFilterProp="label">
+                    <a-select v-model:value="form.shortCode" placeholder="请选择店铺" style="width: 90%" allowClear
+                        showSearch optionFilterProp="label" :options="shopList" @change="getHistoryList">
                     </a-select>
                 </a-form-item>
                 <a-form-item label="商品标题：" name="name">
@@ -16,12 +16,13 @@
                     </a-select>
                 </a-form-item>
                 <a-form-item label="分类：" name="categoryId">
-                    <a-select v-model:value="form.categoryId" disabled allowClear showSearch labelInValue
-                        placeholder="请选择" style="width: 200px;" :options="historyCategoryList" :fieldNames="{
+                    <a-select v-model:value="form.categoryId" allowClear showSearch labelInValue placeholder="请选择"
+                        style="width: 200px;" :options="historyCategoryList" @change="selectAttributes" :fieldNames="{
                             label: 'threeCategoryName', value: 'threeCategoryId',
                         }">
                     </a-select>
-                    <a-button style="margin-left: 20px" disabled @click="selectVisible = true">选择分类</a-button>
+                    <a-button style="margin-left: 20px" :disabled="categoryTreeList.length == 0"
+                        @click="selectVisible = true">选择分类</a-button>
                     <p v-if="hisAttrObj.length != 0" style="color: #933">
                         <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{
                             hisAttrObj[0].secondCategoryName }}</span>/
@@ -100,8 +101,8 @@
                 </a-form-item>
             </a-form>
         </a-card>
-        <!-- <categoryDialog @getAttributesID="getAttributesID" :categoryTreeList="categoryTreeList"
-            :selectVisible="selectVisible" @handleEditClose="selectVisible = false"></categoryDialog> -->
+        <categoryDialog @getAttributesID="getAttributesID" :categoryTreeList="categoryTreeList"
+            :selectVisible="selectVisible" @handleEditClose="selectVisible = false"></categoryDialog>
     </div>
 </template>
 
@@ -113,15 +114,15 @@ import {
     addHistoryCategory,
     historyAttribute,
 } from "../../config/api/product";
-// import categoryDialog from "./categoryDialog.vue";
+import categoryDialog from "../../productPublish/comm/categoryDialog.vue";
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 
 const props = defineProps({
     categoryAttributesLoading: Boolean,
-    attributesCache: Array,
     productDetail: Object,
+    shopList: Array,
 });
-const emit = defineEmits(["sendShortCode", "getAttributes"]);
+const emit = defineEmits(["sendShortCode","getAttributes"]);
 
 const ruleForm = ref(null)
 const ruleForm2 = ref(null)
@@ -158,8 +159,6 @@ const rules = {
 }
 const rules2 = ref({})
 const loopAttributes = ref({})
-const foldStatus = ref(true)
-const categoryTreeLoading = ref(false)
 const categoryTreeList = ref([])
 const historyCategoryList = ref([])
 const vatList = [
@@ -176,15 +175,47 @@ const vatList = [
         value: "0.2",
     },
 ]
-const filterAttrList = ref([])
-const operationLine = ref([]) //取消的
 const hisAttrObj = ref([]) //选中的三级
 
+// 获取选择树
+const getCategoryTree = () => {
+    if (!form.shortCode) {
+        return;
+    }
+    categoryTree({ account: form.shortCode }).then((res) => {
+        let result = res?.data || [];
+        categoryTreeList.value = filterEmptyChildren(result);
+    });
+}
 
+// 根据分类弹窗中选择的分类去查询属性
+const getAttributesID = (ids) => {
+    let params = {
+        account: form.shortCode,
+        secondCategoryId: ids.secondCategoryId,
+        threeCategoryId: ids.value,
+    };
+    addHistoryCategory(params).then((res) => {
+        getHistoryList(form.shortCode);
+    });
+    form.categoryId = {
+        threeCategoryId: ids.value,
+        threeCategoryName: "",
+        secondCategoryId: ids.secondCategoryId,
+        label: ids.label,
+        value: ids.value
+    };
+    console.log('form', form.categoryId);
 
+    emit("getAttributes", form.shortCode, form.categoryId);
+}
 
 // 历史分类
 const getHistoryList = (account) => {
+    if (!form.shortCode) {
+        return;
+    }
+    emit("sendShortCode", form.shortCode);
     historyCategory({ account })
         .then((res) => {
             historyCategoryList.value = res?.data || [];
@@ -201,6 +232,26 @@ const getHistoryList = (account) => {
         })
 }
 
+// 选中的分类
+const selectAttributes = (e) => {
+    if (e) {
+        if (historyCategoryList.value.length != 0) {
+            hisAttrObj.value = historyCategoryList.value.filter(
+                (item) =>
+                    item.threeCategoryId ==
+                    e.option.threeCategoryId
+            );
+        }
+        form.categoryId = {
+            threeCategoryId: e.option.threeCategoryId,
+            threeCategoryName: "",
+            secondCategoryId: e.option.secondCategoryId,
+            label: e.option.threeCategoryName,
+            value: e.option.threeCategoryId
+        }
+        emit("getAttributes", form.shortCode, e.option);
+    }
+}
 
 // 递归清除最后一级的空的Children
 const filterEmptyChildren = (data) => {
@@ -340,17 +391,24 @@ const addItemValues = (obj) => {
 }
 
 const childForm = async () => {
+    // 收集需要校验的表单引用
+    const formRefs = [ruleForm, ruleForm2];
 
-    let res = true;
-    const validatePromise = async (formRef) => {
-        if (!formRef.value) return false;
-        const valid = await formRef.value.validate();
-        return valid;
-    };
-    res = await validatePromise(ruleForm);
-    if (!res) return false;
-    res = await validatePromise(ruleForm2);
-    return res;
+    // 循环遍历表单引用数组进行校验
+    for (const formRef of formRefs) {
+        try {
+            // 如果表单引用不存在，跳过本次循环
+            if (!formRef.value) continue;
+
+            // 调用表单的 validate 方法进行校验
+            await formRef.value.validate();
+        } catch (error) {
+            // 若校验失败，捕获错误并返回 false
+            return false;
+        }
+    }
+    // 所有表单都校验通过，返回 true
+    return true;
 }
 
 
@@ -360,12 +418,17 @@ defineExpose({
     childForm
 })
 
-
+watch(() => form.shortCode, val => {
+    if (val) {
+        getCategoryTree()
+        hisAttrObj.value = []
+    }
+})
 watch(() => props.productDetail, val => {
     if (val) {
         const { simpleName, account, name, vat, typeId, descriptionCategoryId } = val;
         // 修改响应式对象的属性
-        form.shortCode = simpleName;
+        form.shortCode = account;
         form.name = name;
         form.vat = vat === "0.0" ? vat.split(".")[0] : vat;
         form.categoryId = {
@@ -380,7 +443,7 @@ watch(() => props.productDetail, val => {
 })
 
 
-watch(() => props.attributesCache, (val) => {
+watch(() => useOzonProductStore().attributes, (val) => {
     if (val) {
         /**
          *  "URL"  4080
@@ -392,9 +455,7 @@ watch(() => props.attributesCache, (val) => {
          *  "JSON 丰富内容"  11254
          *  "卖家代码" 9024
          */
-        const newAttributesCache = processAttributesCache(
-            val
-        );
+        const newAttributesCache = processAttributesCache(val);
         const custAttr = newAttributesCache.filter((a) => !a.isRequired);
         const filterAttributesCache = custAttr.filter(
             (a) =>
@@ -415,9 +476,6 @@ watch(() => props.attributesCache, (val) => {
                     a.attributeComplexId == "100002"
                 )
         );
-        // 需传值到SKU处
-        // this.$bus.$emit("OzonNewVariantInfo", filterAttributesCache);
-        // console.log("filterAttributesCache", filterAttributesCache);
 
         let noThemeAttributesCache = newAttributesCache.filter(
             (a) => !a.isAspect
@@ -473,8 +531,7 @@ watch(() => props.attributesCache, (val) => {
             const { attributes: oldAttributes } = props.productDetail.attributes[0];
             const proceRes = assignValues(oldAttributes, loopAttributes.value);
             form.attributes = proceRes;
-            console.log('proceRes0', proceRes);
-
+            // console.log('proceRes0', proceRes);
 
         }
     }

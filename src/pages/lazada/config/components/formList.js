@@ -97,6 +97,7 @@ export const useFormList = () => {
         style: { display: "flex" },
         componentProps: {
           mode: "multiple",
+          // maxTagCount: 4,
           fieldNames: { label: "simpleName", value: "shortCode" },
           options: lazadaAccountOptions.value,
           showSearch: true,

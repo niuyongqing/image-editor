@@ -96,6 +96,9 @@
                 除</a-button>
             </a-popconfirm>
           </a-col>
+          <a-col :span="1.5">
+            <a-button type="primary" @click="editPriceVisible = true">数据采集</a-button>
+          </a-col>
         </a-row>
       </div>
       <a-table :row-selection="rowSelection" :rowKey="(row) => row" :data-source="tableData" bordered :columns="columns"
@@ -125,14 +128,14 @@
           <template v-if="column.dataIndex === 'waitState'">
             <a-tag color="success" v-if="record.waitState == 'published'">{{ state[record.waitState] }}</a-tag>
             <a-tag color="warning" v-else-if="record.waitState == 'wait_publish'">{{ state[record.waitState]
-              }}</a-tag>
+            }}</a-tag>
             <a-tag color="error" v-else-if="record.waitState == 'publish_failed'">{{ state[record.waitState]
-              }}</a-tag>
+            }}</a-tag>
           </template>
           <template v-if="column.dataIndex === 'sku'">
             <div class="text-left">
               <div v-for="(item, index) in displayedSkus(record)" :key="index">
-                SKU： <span>{{ record.offerId }}</span>
+                SKU： <span>{{ item.offerId }}</span>
                 <a-divider type="vertical"></a-divider>
                 原价：<span style="color: #9e9f9e">{{ item.oldPrice }}</span>
                 当前售价：<span style="color: #9e9f9e">{{ item.price }}</span>
@@ -149,7 +152,7 @@
               </div>
               <div v-if="record.skuList && record.skuList.length > 3">
                 <a-button type="text" @click="record.show = !record.show">共{{ record.skuList && record.skuList.length
-                  }}条SKU，{{
+                }}条SKU，{{
                     !record.show ? "展开" : "收起"
                   }}</a-button>
               </div>
@@ -193,11 +196,12 @@
         </template>
       </a-table>
       <a-pagination style="margin: 20px 0 10px 0; text-align: right" :show-total="(total) => `共 ${total} 条`"
-                v-model:current="paginations.pageNum" v-model:pageSize="paginations.pageSize" :total="paginations.total"
-                class="pages" :show-quick-jumper="true" @change="getList" :showSizeChanger="true"
-                :pageSizeOptions="[50, 100, 200]" />
+        v-model:current="paginations.pageNum" v-model:pageSize="paginations.pageSize" :total="paginations.total"
+        class="pages" :show-quick-jumper="true" @change="getList" :showSizeChanger="true"
+        :pageSizeOptions="[50, 100, 200]" />
     </a-card>
     <editRemark :remarkVisible="remarkVisible" :remarkId="remarkId" @backCloseRemark="backCloseRemark"></editRemark>
+    <dataCrawli :editPriceVisible="editPriceVisible" @handleDataCrawliClose="editPriceVisible = false"></dataCrawli>
   </div>
 </template>
 
@@ -209,6 +213,8 @@ import { ozonProductList, ozonProductDel } from "../config/api/waitProduct";
 import tableHeard from "../config/tabColumns/waitPublish"
 import editRemark from './comm/editRemark.vue';
 import { message } from 'ant-design-vue';
+import dataCrawli from './comm/dataCrawli.vue';
+
 const formData = reactive({
   offerId: "",
   account: "",
@@ -227,11 +233,12 @@ const shopAccount = ref([])
 const actives = ref(1);
 const selectedRowList = ref([])
 const tableData = ref([])
-const columns = tableHeard
+let columns = tableHeard
 const deactivateLoading = ref(false)
 const delLoading = ref(false)
 const loading = ref(false)
 const remarkVisible = ref(false)
+const editPriceVisible = ref(false)
 const remarkId = ref([])
 const state = {
   wait_publish: "待发布",
@@ -299,7 +306,7 @@ const rowSelection = {
   },
 };
 const add = () => {
-    window.open("productPublish", '_blank');
+  window.open("productPublish", '_blank');
 }
 // 店铺单选多选
 const selectAll = () => {
@@ -432,9 +439,9 @@ const backCloseRemark = () => {
   getList();
 }
 const edit = (row = {}) => {
-  let newRow = Object.keys(row).length != 0 ? row  : selectedRowList.value[0];
-  console.log('newRow',newRow);
-  
+  let newRow = Object.keys(row).length != 0 ? row : selectedRowList.value[0];
+  console.log('newRow', newRow);
+
   window.open("editWaitProduct" + `?id=${newRow.waitId}&account=${newRow.account}`, '_blank');
 
 }

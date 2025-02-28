@@ -66,7 +66,9 @@
                                         <p> 封面图 </p>
                                     </a-button>
                                     <div v-else class="videoImgIcon">
-                                        <a-image :width="120" :src="form.video.img" />
+                                        <div class="video-image">
+                                            <a-image :width="120" :src="form.video.img" />
+                                        </div>
                                         <div flex justify-end class="del-icon" @click="videoImgDelete">
                                             <DeleteOutlined>
                                             </DeleteOutlined>
@@ -154,13 +156,12 @@ const form = reactive({
     fileList: [],
     video: {
         url: '',
+        videoId: undefined, // 视频id
         img: '', // 视频封面
         title: '' // 视频标题
     },
     // 营销图
-    promotionWhite: [
-
-    ]
+    promotionWhite: []
 });
 const fileListRules = computed(() => {
     return [
@@ -266,12 +267,14 @@ const customRequestVideo = (options) => {
                 coverUrl: res.url,
             }];
             form.video.url = res.url;
+            form.video.videoId = res.videoId; // 视频id
         }
     })
 };
 // 删除视频
 const videoDelete = (file) => {
     form.video.url = '';
+    form.video.videoId = undefined;
 };
 
 const handleCancel = () => {
@@ -308,9 +311,11 @@ const validateForm = async () => {
     return new Promise((resolve, reject) => {
         formEl.value.validate().then(() => {
             resolve(true);
+            emits('valid', true)
         }).catch(() => {
             document.querySelector('.ant-form-item-has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             reject(false);
+            emits('valid', false)
         })
     })
 };
@@ -334,10 +339,9 @@ watch(() => lazadaAttrsState.product, (newValue) => {
         });
     }
 });
-
+const emits = defineEmits(['valid']);
 onMounted(() => {
     EventBus.on('shortCodeEmit', (code) => {
-        console.log('接受到的shortCode22 -->>', code);
         shortCode.value = code;
         apiParams.value = { shortCode: code }
     });
@@ -355,7 +359,7 @@ defineExpose({
 }
 
 .empty-img {
-    width: 120px;
+    width: 130px;
     height: 120px;
     background-color: white;
     border: 1px solid #cccccc;
@@ -368,14 +372,13 @@ defineExpose({
 }
 
 .videoImgIcon {
-    width: 120px;
+    width: 130px;
     height: 140px;
     border: 1px solid #cccccc;
     border-radius: 5px;
 
     img {
         width: 100%;
-        height: 115px;
     }
 
     .del-icon {

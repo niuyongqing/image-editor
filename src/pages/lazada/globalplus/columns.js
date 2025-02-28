@@ -12,7 +12,7 @@ export const columns = [
     dataIndex: "skus",
     key: "skus",
     slot: "skus",
-    width: 800,
+    width: 1000,
     align: "center",
   },
   {
@@ -28,9 +28,11 @@ export const columns = [
     title: "同步时间",
     dataIndex: "createTime",
     sorter: true,
+    slot: "createTime",
     sortField: "create_time",
     key: "createTime",
     align: "center",
+    width: 400,
   },
 ];
 

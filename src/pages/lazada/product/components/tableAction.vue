@@ -50,11 +50,14 @@
             </div>
 
             <div>
-                <a-button @click="warehouseSetting" type="link" style="height: 32px; margin-left: 10px; ">
+                <!-- <a-button @click="warehouseSetting" type="link" style="height: 32px; margin-left: 10px; ">
                     <SettingOutlined />
                     仓库管理
+                </a-button> -->
+                <a-button @click="addHalfway" type="primary" style="height: 32px; margin-left: 10px; ">
+                    <PlusOutlined />
+                    新增半托管商品
                 </a-button>
-
                 <a-dropdown>
 
                     <a-button type="primary" style="height: 32px ; margin-left: 10px;">
@@ -74,8 +77,8 @@
                     </template>
                 </a-dropdown>
 
-                <a-dropdown>
-
+                <!--
+                 <a-dropdown>
                     <a-button type="primary" style="height: 32px;  margin-left: 10px;">
                         导入/导出
                         <DownOutlined />
@@ -93,6 +96,7 @@
                         </a-menu>
                     </template>
                 </a-dropdown>
+                 -->
 
 
                 <a-dropdown>
@@ -100,7 +104,6 @@
                         同步产品
                         <DownOutlined />
                     </a-button>
-
                     <template #overlay>
                         <a-menu>
                             <a-menu-item @click="syncProduct">
@@ -108,6 +111,9 @@
                             </a-menu-item>
                             <a-menu-item @click="syncSelectProduct">
                                 同步选中产品
+                            </a-menu-item>
+                            <a-menu-item @click="syncShortCodeProduct">
+                                同步店铺产品
                             </a-menu-item>
                             <a-menu-item @click="syncUpProduct">
                                 同步可升级产品
@@ -123,29 +129,38 @@
     <RemarkModal ref="remarkModalRef" @search="remarkSuccess"></RemarkModal>
     <StockModal ref="stockModalRef" @success="stockSuccess"></StockModal>
     <SpecialPriceModal ref="specialPriceModalRef" @success="specialPriceSuccess"></SpecialPriceModal>
+    <BaseProgess ref="baseProgessRef" v-model:percent="percent" v-model:open="progessOpen" :showSaveBtn="false"
+        :showCancelBtn="false"></BaseProgess>
 </template>
 
 <script setup>
 import BaseModal from '@/components/baseModal/BaseModal.vue';
-import { DownOutlined, SettingOutlined } from "@ant-design/icons-vue";
-import WarehouseSetting from './warehouseSetting.vue'; // 仓库管理
+import { DownOutlined, SettingOutlined, PlusOutlined } from "@ant-design/icons-vue";
+import WarehouseSetting from './warehouseSetting.vue';
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
-import { syncAll } from '@/pages/lazada/product/api';
+import { syncAll, sync, deactivate } from '@/pages/lazada/product/api';
 import { message, Modal } from 'ant-design-vue';
-import PriceModal from '@/pages/lazada/product/siteProduct/add/components/batchModal/priceModal.vue';
+import PriceModal from './priceModal.vue';
 import RemarkModal from './remarkModal.vue';
-import StockModal from '@/pages/lazada/product/siteProduct/add/components/batchModal/stockModal.vue';
-import SpecialPriceModal from '@/pages/lazada/product/siteProduct/add/components/batchModal/specialPriceModal.vue';
+import StockModal from './stockModal.vue';
+import SpecialPriceModal from './specialPriceModal.vue';
 
-const { selectedRows } = defineProps({
+const { selectedRows, shortCode } = defineProps({
     //  表格选中的数据
     selectedRows: {
         type: Array,
         default: () => []
+    },
+    shortCode: {
+        type: String,
+        default: ''
     }
 });
 const emits = defineEmits(['success']);
 const router = useRouter();
+const percent = ref(0);
+const timer = ref(null);
+const progessOpen = ref(false);
 const warehouseSettingEl = useTemplateRef('warehouseSettingRef');
 const priceModalEl = useTemplateRef('priceModalRef');
 const remarkModalEl = useTemplateRef('remarkModalRef');
@@ -162,7 +177,7 @@ const handleDeactivated = () => {
         title: '下架',
         content: '是否确认下架？',
         onOk: async () => {
-            // const res = await deactivated({ itemId: record.itemId });
+            // const res = await deactivate({ itemId: record.itemId });
             // if (res.code === 200) {
             //     message.success('下架成功');
             //     emits('success');
@@ -172,28 +187,79 @@ const handleDeactivated = () => {
         },
     })
 };
+
+watch(() => shortCode, (newVal) => {
+    clearInterval(timer.value);
+    percent.value = 0;
+})
+
+const syncShortCodeProduct = () => {
+    if (!shortCode) {
+        message.error('请选择店铺');
+        return
+    }
+    progessOpen.value = true;
+    timer.value = setInterval(() => {
+        if (percent.value < 80) {
+            percent.value++;
+        }
+    }, 800);
+    sync({
+        "shortCode": shortCode
+    }).then((res) => {
+        percent.value = 100;
+        progessOpen.value = false;
+        message.success('同步成功');
+        clearInterval(timer.value);
+        percent.value = 0;
+        emits('success');
+    }).catch((err) => {
+        percent.value = 0;
+        progessOpen.value = false;
+    })
+};
+
 // const handleWater = () => {
 // };
 const handleRemark = () => {
-    remarkModalEl.value.open();
+    if (!selectedRows.length) {
+        message.error('请选择需要备注的产品');
+        return
+    }
+    remarkModalEl.value.open(selectedRows, ture);
 };
 
 const handleBatchPrice = () => {
-    priceModalEl.value.open();
+    if (!selectedRows.length) {
+        message.error('请选择产品');
+        return
+    }
+    priceModalEl.value.open(selectedRows, true);
 };
 
 const handleBatchStock = () => {
-    stockModalEl.value.open();
+    if (!selectedRows.length) {
+        message.error('请选择产品');
+        return
+    }
+    stockModalEl.value.open(selectedRows, true);
 };
 const handleBatchSpecialPrice = () => {
-    specialPriceModalEl.value.open();
+    if (!selectedRows.length) {
+        message.error('请选择产品');
+        return
+    }
+    specialPriceModalEl.value.open(selectedRows, true);
 }
 
 // 仓库管理
 const warehouseSetting = () => {
     warehouseSettingEl.value.open();
 };
-
+// 创建半托管产品
+const addHalfway = () => {
+    window.open('/platform/lazada/siteProduct/add?type=halfway', '_blank');
+};
 // 创建“六合一产品”
 const cretateGlobalProduct = () => {
     reset();
@@ -235,4 +301,7 @@ const stockSuccess = () => {
 const specialPriceSuccess = () => {
     emits('success');
 };
+onBeforeUnmount(() => {
+    clearInterval(timer.value);
+})
 </script>

@@ -1,5 +1,6 @@
 <template>
-    <div class="mt-10px" v-show="lazadaAttrsState.skuAttrs.length > 0">
+    <!-- v-show="lazadaAttrsState.skuAttrs.length > 0" -->
+    <div class="mt-10px">
         <a-card :bordered="true" style="margin: 0 auto; border-radius: 0px">
             <template #title>
                 <div text-left> 变种参数 </div>
@@ -79,7 +80,7 @@
                                 <div v-else>
                                     <a-input v-model:value="optionName" placeholder="请输入变种主题" style="width: 80px;"
                                         ref="themeLabelRef" />
-                                    <a-button type="link" @click="saveOptionName(option)">
+                                    <a-button type="link" @click="saveOptionName(option, item)">
                                         <SaveOutlined />
                                     </a-button>
                                     <a-button type="link" @click="closeOptionName(option)">
@@ -132,7 +133,7 @@ const { detailData } = defineProps({
         default: () => ({})
     }
 });
-const { state: lazadaAttrsState, setSelectTheme, setSkuTable, setProductSkus } = useLadazaAttrs();
+const { state: lazadaAttrsState, setSelectTheme, setSkuTable, setProductSkus, setSkuAttrs } = useLadazaAttrs();
 const baseModalEl = useTemplateRef('baseModalRef');
 const modalMethods = ref({});
 const selectThemeList = ref([]); // 选择的变种主题列表
@@ -220,8 +221,14 @@ const editOptionName = (option) => {
     optionName.value = option.en_name;
     option.isEdit = true;
 };
-const saveOptionName = (option) => {
+const saveOptionName = (option, item) => {
     option.isEdit = false;
+    if (optionName.value != option.en_name) {
+        option.name = optionName.value;
+        option.en_name = optionName.value;
+        item.checkedList.push(optionName.value);
+        changeCheckedList(item);
+    };
     setSelectTheme(selectThemeList.value);
 };
 
@@ -251,7 +258,6 @@ const handleAddOther = (item) => {
 
 //  设为变种主题1
 const move = (item) => {
-    console.log('item', item);
     Modal.confirm({
         title: '提示',
         content: `确定将${item.label}设为变种主题1吗？`,
@@ -292,6 +298,7 @@ watch(() => lazadaAttrsState.primaryCategory, (newVal) => {
     immediate: true
 });
 const submit = () => {
+
     if (!customTheme.value) return;
     const findItem = lazadaAttrsState.skuAttrs.find((item) => {
         return item.label === customTheme.value
@@ -300,23 +307,23 @@ const submit = () => {
         message.warning('该属性已存在');
         return;
     }
-
-    lazadaAttrsState.skuAttrs.push({
-        label: customTheme.value,
-        name: customTheme.value,
-        is_mandatory: 0,
-        input_type: 'multiEnumInput',
-        options: []
-    });
-
+    // lazadaAttrsState.skuAttrs.push({
+    //     label: customTheme.value,
+    //     name: customTheme.value,
+    //     is_mandatory: 0,
+    //     input_type: 'multiEnumInput',
+    //     options: []
+    // });
     selectThemeList.value.push({
         label: customTheme.value,
         name: customTheme.value,
+        is_mandatory: 0,
         options: [],
         checkedList: [],
         otherValue: '',
         searchValue: ''
     });
+
     customTheme.value = '';
     modalMethods.value.closeModal();
 };
@@ -350,10 +357,17 @@ onMounted(() => {
             });
             selectThemeList.value[1].checkedList = oneThemeList2;
         };
-
     });
     EventBus.on('siteEditSelectThemeEmit', (list) => {
         selectThemeList.value = list;
+        // if (!lazadaAttrsState.skuAttrs.length) {
+        //     console.log('lazadaAttrsState.skuAttrs.length', lazadaAttrsState.skuAttrs.length);
+        //     // lazadaAttrsState.skuAttrs = selectThemeList.value;
+        //     setSkuAttrs(selectThemeList.value); // 设置skuAttrs
+        //     console.log('lazadaAttrsState.skuAttrs', lazadaAttrsState.skuAttrs);
+
+        // }
+
     })
 });
 

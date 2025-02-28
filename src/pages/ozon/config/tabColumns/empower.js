@@ -25,7 +25,7 @@ export default [
   },
   {
     title: '库存推送比例',
-    dataIndex: 'stockPushRatio',
+    dataIndex: 'pushRatio',
     align: "center",
     width: 200,
   },

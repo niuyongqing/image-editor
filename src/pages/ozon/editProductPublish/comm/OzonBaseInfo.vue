@@ -340,17 +340,25 @@ const addItemValues = (obj) => {
 }
 
 const childForm = async () => {
+    // 收集需要校验的表单引用
+    const formRefs = [ruleForm, ruleForm2];
 
-    let res = true;
-    const validatePromise = async (formRef) => {
-        if (!formRef.value) return false;
-        const valid = await formRef.value.validate();
-        return valid;
-    };
-    res = await validatePromise(ruleForm);
-    if (!res) return false;
-    res = await validatePromise(ruleForm2);
-    return res;
+    // 循环遍历表单引用数组进行校验
+    for (const formRef of formRefs) {
+        try {
+            // 如果表单引用不存在，跳过本次循环
+            if (!formRef.value) continue;
+
+            // 调用表单的 validate 方法进行校验
+            await formRef.value.validate();
+        } catch (error) {
+            // 若校验失败，捕获错误并返回 false
+            return false;
+        }
+    }
+
+    // 所有表单都校验通过，返回 true
+    return true;
 }
 
 
@@ -362,7 +370,9 @@ defineExpose({
 
 
 watch(() => props.productDetail, val => {
-    if (val) {
+    console.log('val*//',val);
+    
+    if (Object.keys(val).length > 0) {
         const { simpleName, account, name, vat, typeId, descriptionCategoryId } = val;
         // 修改响应式对象的属性
         form.shortCode = simpleName;
@@ -392,9 +402,7 @@ watch(() => props.attributesCache, (val) => {
          *  "JSON 丰富内容"  11254
          *  "卖家代码" 9024
          */
-        const newAttributesCache = processAttributesCache(
-            val
-        );
+        const newAttributesCache = processAttributesCache(val);
         const custAttr = newAttributesCache.filter((a) => !a.isRequired);
         const filterAttributesCache = custAttr.filter(
             (a) =>
@@ -415,9 +423,6 @@ watch(() => props.attributesCache, (val) => {
                     a.attributeComplexId == "100002"
                 )
         );
-        // 需传值到SKU处
-        // this.$bus.$emit("OzonNewVariantInfo", filterAttributesCache);
-        // console.log("filterAttributesCache", filterAttributesCache);
 
         let noThemeAttributesCache = newAttributesCache.filter(
             (a) => !a.isAspect
@@ -454,7 +459,6 @@ watch(() => props.attributesCache, (val) => {
 
             // 属性校验
             for (let i = 0; i < data.length; i++) {
-
                 let obj = {
                     required: true,
                     message: `${data[i].name} 为必填项，请填写`,
