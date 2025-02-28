@@ -88,7 +88,7 @@ const options = ref([
 ])
 const handleCancel = () => {
   emit("handleShopSetClose")
-  tableData.value = []
+  // tableData.value = []
 }
 
 const onSubmit = () => {

@@ -82,7 +82,7 @@
                       <PictureOutlined :style="{ fontSize: '60px', color: '#a0a3a6' }" />
                       <span>文件格式为 JPEG、JPG、PNG，大小不能超过10MB</span>
                     </div>
-                    <img v-else :src="imgs.src[0].url" alt="" :style="imgs.style">
+                    <img v-else :src="'/prod-api' + imgs.src[0].url" alt="" :style="imgs.style">
                   </div>
                 </div>
                 <div v-else-if="item.type === 'text-image'" class="textImageModule">
@@ -94,7 +94,8 @@
                             <PictureOutlined :style="{ fontSize: '60px', color: '#a0a3a6' }" />
                             <span style="color: #a0a3a6">文件格式为 JPEG、JPG、PNG，大小不能超过10MB</span>
                           </div>
-                          <img v-if="imgItem.src.length" :src="imgItem.src[0].url" alt="" :style="imgItem.imgTextStyle">
+                          <img v-if="imgItem.src.length" :src="'/prod-api' + imgItem.src[0].url" alt=""
+                            :style="imgItem.imgTextStyle">
                         </div>
                         <div class="textareas">
                           <a-textarea v-model:value="imgItem.title.content" placeholder="点击输入标题"
@@ -113,7 +114,8 @@
                             <PictureOutlined :style="{ fontSize: '60px', color: '#a0a3a6' }" />
                             <span style="color: #a0a3a6">文件格式为 JPEG、JPG、PNG，大小不能超过10MB</span>
                           </div>
-                          <img v-if="imgItem.src.length" :src="imgItem.src[0].url" alt="" :style="imgItem.imgTextStyle">
+                          <img v-if="imgItem.src.length" :src="'/prod-api' + imgItem.src[0].url" alt=""
+                            :style="imgItem.imgTextStyle">
                         </div>
                         <div class="textareas">
                           <a-textarea v-model:value="imgItem.title.content" placeholder="点击输入标题"
@@ -201,7 +203,7 @@
                 <div :class="itemImgs.open ? 'showImgCont' : 'noneImgCont'">
                   <a-form-item label="添加图片:">
                     <a-image v-if="itemImgs.src.length" style="position: relative;" :width="100"
-                      :src="itemImgs.src[0].url" />
+                      :src="'/prod-api' + itemImgs.src[0].url" />
                     <div v-if="itemImgs.src.length" style="position: absolute;top:-10px;left: 90px">
                       <AsyncIcon icon="CloseCircleOutlined" size="20px" color="black" @click="itemImgs.src = []" />
                     </div>
@@ -270,7 +272,7 @@
                   <h3 style="font-weight: 700;">图片</h3>
                   <a-form-item label="添加图片:">
                     <a-image v-if="itemImgs.src.length" style="position: relative;" :width="100"
-                      :src="itemImgs.src[0].url" />
+                      :src="'/prod-api' + itemImgs.src[0].url" />
                     <div v-if="itemImgs.src.length" style="position: absolute;top:-10px;left: 90px">
                       <AsyncIcon icon="CloseCircleOutlined" size="20px" color="black" @click="itemImgs.src = []" />
                     </div>
@@ -349,7 +351,8 @@
         </div>
       </div>
     </div>
-    <batchModify :showEdit="showEdit" @handleBatchModifyClose="showEdit = false" :moduleList="moduleList"></batchModify>
+    <batchModify :showEdit="showEdit" @handleBatchModifyClose="showEdit = false" :moduleList="moduleList"
+      @rebackList="rebackList"></batchModify>
   </div>
 </template>
 
@@ -393,7 +396,7 @@ const handleChangeColroImg = (info, record) => {
       {
         id: uuidv4(),
         name: info.file.response.originalFilename,
-        url: info.file.response.url,
+        url: info.file.response.fileName,
         checked: true,
         width: info.file.response.width,
         height: info.file.response.height,
@@ -444,7 +447,7 @@ function convertBToA(bItem, aTemplate) {
     src: [{
       id: uuidv4(),
       name: bItem.originalFilename,
-      url: bItem.url,
+      url: bItem.fileName,
       checked: true,
       width: bItem.width,
       height: bItem.height
@@ -493,7 +496,7 @@ function tImgConvertBToA(bItem, aTemplate) {
       {
         id: uuidv4(),
         name: bItem.originalFilename,
-        url: bItem.url,
+        url: bItem.fileName,
         checked: true,
         width: bItem.width,
         height: bItem.height
@@ -634,93 +637,70 @@ function clear() {
   })
 }
 
+
+const typeConfig = {
+  billboard: { count: 1, dataType: 'billboard' },
+  tileXL: { count: 2, dataType: 'tileXL' },
+  tileL: { count: 3, dataType: 'tileL' },
+  tileM: { count: 4, dataType: 'tileM' },
+  chess: { count: 3, dataType: 'chess' }
+};
+
+const getBaseObj = (type) => ({
+  src: [],
+  open: true,
+  jumpUrl: "",
+  alt: "",
+  imgTextStyle: {
+    width: type === "billboard" ? "100%" : "auto",
+    height: type === "billboard" ? "100%" : "auto",
+    select: 0,
+    margin: "0 auto",
+    display: "block",
+  },
+  title: {
+    content: '',
+    active: "",
+    styles: {
+      fontSize: '20px',
+      color: '#263c53',
+      textAlign: 'left',
+      width: '100%',
+      height: '100px',
+      marginTop: "20px"
+    }
+  },
+  text: {
+    content: '',
+    active: "",
+    cStyles: {
+      fontSize: '14px',
+      color: '#263c53',
+      textAlign: 'left',
+      width: '100%',
+      height: '100px',
+      marginTop: "20px"
+    }
+  }
+});
+
 const changeTextImg = (type) => {
-  let obj = {
-    src: [],
-    open: true,
-    jumpUrl: "",
-    alt: "",
-    imgTextStyle: {
-      width: type == "billboard" ? "100%" : "auto",
-      height: type == "billboard" ? "100%" : "auto",
-      select: 0,
-      margin: "0 auto",
-      display: "block",
-    },
-    title: {
-      content: '',
-      active: "",
-      styles: {
-        fontSize: '20px',
-        color: '#263c53',
-        textAlign: 'left',
-        width: '100%',
-        height: '100px',
-        marginTop: "20px"
-      },
-    },
-    text: {
-      content: '',
-      active: "",
-      cStyles: {
-        fontSize: '14px',
-        color: '#263c53',
-        textAlign: 'left',
-        width: '100%',
-        height: '100px',
-        marginTop: "20px"
-      },
-    },
-  }
-  switch (type) {
-    case "billboard":
-      moduleList.value.forEach(item => {
-        if (item.imgText.dataList.length > 0) {
-          item.imgText.dataList = [];
-        }
-        item.imgText.dataList.push(obj)
-        item.imgText.dataType = "billboard"
-      })
-      break;
-    case "tileXL":
-      moduleList.value.forEach(item => {
-        if (item.imgText.dataList.length > 0) {
-          item.imgText.dataList = [];
-        }
-        item.imgText.dataList.push(deepClone(obj), deepClone(obj))
-        item.imgText.dataType = "tileXL"
-      })
-      break;
-    case "tileL":
-      moduleList.value.forEach(item => {
-        if (item.imgText.dataList.length > 0) {
-          item.imgText.dataList = [];
-        }
-        item.imgText.dataList.push(deepClone(obj), deepClone(obj), deepClone(obj))
-        item.imgText.dataType = "tileL"
-      })
-      break;
-    case "tileM":
-      moduleList.value.forEach(item => {
-        if (item.imgText.dataList.length > 0) {
-          item.imgText.dataList = [];
-        }
-        item.imgText.dataList.push(deepClone(obj), deepClone(obj), deepClone(obj), deepClone(obj))
-        item.imgText.dataType = "tileM"
-      })
-      break;
-    case "chess":
-      moduleList.value.forEach(item => {
-        if (item.imgText.dataList.length > 0) {
-          item.imgText.dataList = [];
-        }
-        item.imgText.dataList.push(obj, obj, obj)
-        item.imgText.dataType = "chess"
-      })
-      break;
-    default:
-      break;
-  }
+  const config = typeConfig[type];
+  if (!config) return; // 无效类型直接返回
+
+  const baseObj = getBaseObj(type);
+
+  moduleList.value.forEach(item => {
+    if (item.type === 'text-image') {
+      // 清空数组的更优写法
+      item.imgText.dataList.length = 0;
+      // 批量添加深拷贝对象
+      item.imgText.dataList.push(
+        ...Array.from({ length: config.count }, () => deepClone(baseObj))
+      );
+      item.imgText.dataType = config.dataType;
+    }
+  });
 }
 
 const getClassName = (type) => {
@@ -1167,6 +1147,44 @@ let tImgMenu = {
   "auto": "to_the_edge",
   "100%": "fill"
 }
+
+function rebackList(list) {
+  console.log('list', list);
+  const aMap = list.reduce((acc, item) => {
+    acc[item.id] = item;
+    return acc;
+  }, {});
+
+  // 遍历数组b，替换匹配的项
+  moduleList.value.forEach((item) => {
+    if (item.type === 'text-image') {
+      // 处理text-image类型中的src
+      item.imgText.dataList.forEach((dataItem) => {
+        dataItem.src.forEach((srcItem) => {
+          const matchedA = aMap[srcItem.id];
+          if (matchedA) {
+            srcItem.url = matchedA.url;
+            srcItem.width = matchedA.width;
+            srcItem.height = matchedA.height;
+          }
+        });
+      });
+    } else if (item.type === 'image') {
+      // 处理image类型中的src
+      item.img.forEach((imgItem) => {
+        imgItem.src.forEach((srcItem) => {
+          const matchedA = aMap[srcItem.id];
+          if (matchedA) {
+            srcItem.url = matchedA.url;
+            srcItem.width = matchedA.width;
+            srcItem.height = matchedA.height;
+          }
+        });
+      });
+    }
+  });
+}
+
 // 保存
 function save() {
   if (moduleList.value.length === 0) {
@@ -1718,7 +1736,6 @@ function save() {
     .right-panel {
       width: 350px;
       padding: 20px;
-      // margin-left: 40px;
       background-color: #fff;
       border-left: 1px solid #e8e8e8;
       max-height: 1000px;

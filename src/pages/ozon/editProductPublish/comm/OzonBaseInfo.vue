@@ -370,7 +370,9 @@ defineExpose({
 
 
 watch(() => props.productDetail, val => {
-    if (val) {
+    console.log('val*//',val);
+    
+    if (Object.keys(val).length > 0) {
         const { simpleName, account, name, vat, typeId, descriptionCategoryId } = val;
         // 修改响应式对象的属性
         form.shortCode = simpleName;

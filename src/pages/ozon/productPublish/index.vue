@@ -338,19 +338,19 @@ const onSubmit = async (type = 1) => {
     
     if (type == 1) {
         params['isUpdate'] = false
-        // loading.value = true;
-        // add(params)
-        //     .then((res) => {
-        //         message.success(res.msg);
-        //         publishVis.value = true
-        //     })
-        //     .finally(() => {
-        //         loading.value = false;
-        //     });
+        loading.value = true;
+        add(params)
+            .then((res) => {
+                message.success(res.msg);
+                publishVis.value = true
+            })
+            .finally(() => {
+                loading.value = false;
+            });
     } else {
-        // ozonProductEdit(params).then(res => {
+        ozonProductEdit(params).then(res => {
 
-        // })
+        })
     }
     console.log('params', params);
 }
