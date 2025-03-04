@@ -151,6 +151,14 @@
         />
       </a-card>
     </div>
+
+    <!-- 属性模版 弹窗 -->
+    <AttributeModal
+      v-if="attributeOpen"
+      v-model:open="attributeOpen"
+      :account-list="accountList"
+      :id="attributeTemplateId"
+    />
   </div>
 </template>
 
@@ -158,9 +166,11 @@
   import { ALL_TABLE_COLUMN } from './config'
   import { accountCacheApi } from '../apis/common'
   import { message } from 'ant-design-vue'
+  import AttributeModal from './components/AttributeModal.vue'
 
   export default {
     name: 'Templates',
+    components: { AttributeModal },
     data() {
       return {
         TEMPLATE_TYPE_LIST: [
@@ -195,7 +205,12 @@
         loading: false,
         selectedRowKeys: [],
         selectedRows: [],
-        delLoading: false
+        delLoading: false,
+        /** 模版弹窗 */
+        attributeOpen: false,
+        variantOpen: false,
+        nationalQuoteOpen: false,
+        attributeTemplateId: ''
       }
     },
     computed: {
@@ -297,8 +312,22 @@
         this.search()
       },
       statusChange(checked) {},
-      add() {},
-      goEdit(record) {},
+      add() {
+        switch (this.activedValue) {
+          case 'attribute':
+            this.attributeOpen = true
+            break
+          case 'variant':
+            this.variantOpen = true
+            break
+          case 'nationalQuote':
+            this.nationalQuoteOpen = true
+            break
+        }
+      },
+      goEdit(record) {
+        this.attributeTemplateId = record.id
+      },
       copy(record) {},
       del(record) {}
     }
