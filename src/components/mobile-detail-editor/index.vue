@@ -66,6 +66,11 @@
           <a-button @click="handleClose">关闭</a-button>
           <a-button
             type="primary"
+            @click="openModal"
+            >批量改图片尺寸</a-button
+          >
+          <a-button
+            type="primary"
             @click="save"
             >保存</a-button
           >
@@ -435,6 +440,13 @@
         </div>
       </div>
     </div>
+
+    <!-- 批量编辑图片尺寸 -->
+    <EditImageBatch
+      v-model:open="open"
+      :image-list="imageList"
+      @confirm="editImageConfirm"
+    />
   </div>
 </template>
 
@@ -444,7 +456,8 @@
   import Draggable from 'vuedraggable'
   import DropdownOfImage from '../dropdown-of-image/index.vue'
   import { HolderOutlined, CloseOutlined, UpOutlined, DownOutlined, ArrowUpOutlined, ArrowDownOutlined, LinkOutlined, DeleteOutlined, RightSquareOutlined, CopyOutlined } from '@ant-design/icons-vue'
-  import { Empty, Modal } from 'ant-design-vue'
+  import EditImageBatch from '../edit-image-batch/index.vue'
+  import { Empty, Modal, message } from 'ant-design-vue'
   const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE
 
   defineOptions({ name: 'MobileDetailEditor' })
@@ -500,7 +513,7 @@
       text: '图片',
       name: 'image',
       limit: 30
-    },
+    }
     // {
     //   text: '图文',
     //   name: 'text-image',
@@ -866,6 +879,40 @@
     })
     emits('mobileDetailEdit', res)
     close()
+  }
+
+  /** 修改图片尺寸弹窗 */
+  const open = ref(false)
+  const imageList = ref([])
+  function openModal() {
+    imageList.value = []
+    // 提取所有图片
+    const imageModuleList = moduleList.value.filter(item => item.type === 'image')
+    imageModuleList.forEach(item => {
+      item.images.forEach(image => {
+        image.url && imageList.value.push(image.url)
+      })
+    })
+    if (!imageList.value.length) {
+      message.error('未检测到图片')
+
+      return
+    }
+
+    open.value = true
+  }
+  function editImageConfirm(imageList) {
+    console.log(imageList)
+    const imageModuleList = moduleList.value.filter(item => item.type === 'image')
+    imageModuleList.forEach(item => {
+      item.images.forEach(image => {
+        const target = imageList.find(img => img.originUrl === image.url)
+        target && (image.url = target.url)
+      })
+    })
+  }
+  function editImageClose() {
+    imageList.value = []
   }
 </script>
 

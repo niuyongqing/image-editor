@@ -13,6 +13,9 @@
                 </a-form-item>
                 <a-form-item label="JSON 丰富内容：" name="jsonDes">
                     <span style="color: #ff0a37">说明：描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M</span>
+                    <a-form-item-rest>
+                        <jsonForm @backResult="backResult" :shop="shopCode"></jsonForm>
+                    </a-form-item-rest>
                 </a-form-item>
                 <a-form-item label="视频：">
                     <div>
@@ -73,7 +76,6 @@
                                     </a-upload>
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 </a-form-item>
@@ -86,17 +88,19 @@
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { message } from "ant-design-vue";
+import jsonForm from "../../config/component/json/index.vue"
 const ruleForm = ref(null)
 const props = defineProps({
-    shopCode: String
+    shopCode: String,
+    productDetail: Object,
 });
 const form = reactive({
     video: [],
     coverUrl: "",
     description: "",
     jsons: "",
-    jsonDes: "",
 })
+const copyJson = ref([])
 const headers = {
     'Authorization': 'Bearer ' + useAuthorization().value,
 }
@@ -113,7 +117,7 @@ const uploadImageVideoUrl =
 const uploadVideoLoading = ref(false)
 
 const rules = {
-    jsonDes: [{ required: true }],
+    jsons: [{ required: true }],
 }
 
 const handleChange = info => {
@@ -142,7 +146,11 @@ const removeVideo = () => {
 const removeVideoList = (index) => {
     form.video.splice(index, 1)
 }
-const handleVideoImageSuccess = () => { }
+const backResult = (res) => { 
+    form.jsons = res 
+    console.log('p',props.shopCode);
+    
+}
 
 const submitForm = () => {
     return true
@@ -152,6 +160,12 @@ const submitForm = () => {
 defineExpose({
     form,
     submitForm
+})
+
+watch(() => props.productDetail, val=>{
+    if(Object.keys(val).length > 0) {
+
+    }
 })
 </script>
 <style lang="less" scoped>

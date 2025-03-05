@@ -531,14 +531,10 @@
         groupLoading: false,
         allGroupOptions: [],
         allFreightOptions: [],
-        deactivateLoading: false,
-        activateLoading: false,
         delLoading: false,
         note: '',
         noteDialogVisible: false,
         noteLoading: false,
-        curRow: {}, // 当前点击的行
-        selectedRows: [],
         batchPublishLoading: false
       }
     },

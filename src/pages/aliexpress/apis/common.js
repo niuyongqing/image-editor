@@ -23,3 +23,8 @@ export function getSellerInfoApi(params) {
 export function uploadImageForSdkApi(params) {
   return usePost('/platform-aliexpress/platform/aliexpress/file/imageBank/uploadImageForSdk', params, { headers: { 'Content-Type': 'multipart/form-data' } })
 }
+
+// 批量修改图片尺寸
+export function replaceSuffixApi(params) {
+  return usePost('/platform-aliexpress/platform/aliexpress/file/replace/suffix', params)
+}

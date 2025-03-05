@@ -12,7 +12,7 @@
                 :productDetail="productDetail"></ozon-base-info>
             <br />
             <!-- 描述信息 -->
-            <OzonNewImageInfo ref="ozonImageInfoRef"></OzonNewImageInfo>
+            <OzonNewImageInfo ref="ozonImageInfoRef" :productDetail="productDetail"></OzonNewImageInfo>
 
             <!-- 变种信息. -->
             <OzonVariantInfo ref="ozonNewVariantInfoRef" :attributesCache="attributes" :productDetail="productDetail">
@@ -75,7 +75,7 @@ const categoryAttributesLoading = ref(false)
 const getProductDetail = (id, account) => {
     getDetail({ account, id }).then(res => {
         productDetail.value = res?.data ?? {}
-        getAttributes(res?.data.account, res?.data.typeId, res?.data.descriptionCategoryId)
+        getAttributes(res?.data?.account, res?.data?.typeId, res?.data?.descriptionCategoryId)
     })
 }
 const backToTop = () => {

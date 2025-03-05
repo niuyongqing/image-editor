@@ -269,3 +269,12 @@ export function updateCurrency(data) {
     data: data
   })
 }
+
+// 富文本修改图片尺寸
+export function replaceSuffix(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/file/replace/suffix',
+    method: 'post',
+    data: data
+  })
+}

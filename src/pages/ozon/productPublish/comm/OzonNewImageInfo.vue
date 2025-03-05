@@ -12,7 +12,8 @@
                     </div>
                 </a-form-item>
                 <a-form-item label="JSON 丰富内容：" name="jsons">
-                    <span style="color: #ff0a37;margin-bottom: 10px;display: block;">说明：保存发布后，手机端的图片及文字信息将跟PC端保持一致</span>
+                    <span
+                        style="color: #ff0a37;margin-bottom: 10px;display: block;">说明：保存发布后，手机端的图片及文字信息将跟PC端保持一致</span>
                     <a-form-item-rest>
                         <jsonForm @backResult="backResult" :shop="shopCode"></jsonForm>
                     </a-form-item-rest>
@@ -29,8 +30,7 @@
                         <div>
                             封面视频：
                             <a-upload v-if="!form.coverUrl" :maxCount="1" :action="uploadImageVideoUrl"
-                                accept=".mp4,.mov" list-type="picture-card" @change="handleChange" 
-                                :disabled="!shopCode"
+                                accept=".mp4,.mov" list-type="picture-card" @change="handleChange" :disabled="!shopCode"
                                 :data="{
                                     shortCode: shopCode
                                 }" :headers="headers" :showUploadList="false">
@@ -69,8 +69,8 @@
                                     <a-upload ref="uploadVideo" list-type="picture-card" class="avatar-uploader"
                                         :action="uploadVideoUrl" :data="{
                                             shortCode: shopCode,
-                                        }" :headers="headers" :disabled="!shopCode" accept=".mp4,.mov" @change="msgHandleChange"
-                                        :showUploadList="false">
+                                        }" :headers="headers" :disabled="!shopCode" accept=".mp4,.mov"
+                                        @change="msgHandleChange" :showUploadList="false">
                                         <div>
                                             <AsyncIcon icon="PlusOutlined" />
                                             <div style="margin-top: 8px">Upload</div>
@@ -147,12 +147,18 @@ const removeVideo = () => {
 const removeVideoList = (index) => {
     form.video.splice(index, 1)
 }
-const backResult = (res) => { 
-    form.jsons = res 
-    console.log('p',props.shopCode);
-    
-}
+const backResult = (res) => {
+    form.jsons = res
+    console.log('p', props.shopCode);
 
+}
+const submitForm = () => {
+    if (Object.keys(this.form.jsons).length == 0) {
+        message.error("JSON富文本未填写！")
+        return false;
+    }
+    return true;
+}
 // 抛出数据和方法，可以让父级用ref获取
 defineExpose({
     form
@@ -199,5 +205,4 @@ defineExpose({
         align-items: center;
     }
 }
-
 </style>

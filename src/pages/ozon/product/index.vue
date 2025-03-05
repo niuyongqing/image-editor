@@ -60,7 +60,8 @@
                                 <a-select-option value="update_time">更新时间</a-select-option>
                                 <a-select-option value="created_time">创建时间</a-select-option>
                             </a-select>
-                            <a-range-picker class="ml-2.5" style="width: 320px;" valueFormat="YYYY-MM-DD" v-model:value="advancedForm.time" />
+                            <a-range-picker class="ml-2.5" style="width: 320px;" valueFormat="YYYY-MM-DD"
+                                v-model:value="advancedForm.time" />
                         </a-form-item>
                         <a-form-item>
                             <div class="text-right mr-15">
@@ -159,7 +160,7 @@
                         </a-popconfirm>
                     </a-col>
                     <a-col :span="1.5">
-                        <a-button type="primary" @click="shopSetVisible = true">
+                        <a-button type="primary" @click="shopSet">
                             <AsyncIcon icon="SettingOutlined" />
                             店铺设置
                         </a-button>
@@ -244,15 +245,15 @@
                             <div v-if="column.dataIndex === 'state'">
                                 <a-tag :bordered="false" color="processing" v-if="record.state === '平台审核'">{{
                                     record.state
-                                }}</a-tag>
+                                    }}</a-tag>
                                 <a-tag :bordered="false" color="success" v-if="record.state === '在售'">{{ record.state
-                                    }}</a-tag>
+                                }}</a-tag>
                                 <a-tag :bordered="false" color="warning" v-if="record.state === '审核不通过'">{{ record.state
-                                    }}</a-tag>
+                                }}</a-tag>
                                 <a-tag :bordered="false" color="error" v-if="record.state === '准备出售'">{{ record.state
-                                    }}</a-tag>
+                                }}</a-tag>
                                 <a-tag :bordered="false" color="default" v-if="record.state === '已归档'">{{ record.state
-                                    }}</a-tag>
+                                }}</a-tag>
                             </div>
                             <div v-if="column.dataIndex === 'sku'" style="text-align: left">
                                 <div>
@@ -261,7 +262,7 @@
                                         <a-divider type="vertical"></a-divider>
                                         促销活动价：<span style="color: #1677ff">{{
                                             record.marketingPrice ? record.marketingPrice : "暂未参加活动"
-                                        }}</span>
+                                            }}</span>
                                         <a-divider type="vertical"></a-divider>
                                         库存：
                                         <a-tooltip style="margin-right: 10px" effect="dark" placement="top"
@@ -276,7 +277,7 @@
                                         </a-tooltip>
                                         <span v-else style="color: #1677ff; margin-right: 10px">{{
                                             record.stock
-                                        }}</span>
+                                            }}</span>
                                         <AsyncIcon style="cursor: pointer; color: #1677ff" icon="EditOutlined" v-if="
                                             record.state != '审核不通过' && record.state != '已归档'
                                         " @click="editStock(record)"></AsyncIcon>
@@ -363,7 +364,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[0].score
-                                                                    }}分</span>
+                                                                        }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -406,7 +407,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[1].score
-                                                                    }}分</span>
+                                                                        }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -449,7 +450,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[2].score
-                                                                    }}分</span>
+                                                                        }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -492,7 +493,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[3].score
-                                                                    }}分</span>
+                                                                        }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -509,7 +510,7 @@
                                                     </template>
                                                     <span style="margin-left: 10px;color: #1677ff;cursor: pointer;">{{
                                                         record.productsScore[0].rating
-                                                    }}分</span>
+                                                        }}分</span>
                                                 </a-popover>
                                             </div>
                                             <span v-else>{{ 0.0 }}分</span>
@@ -549,12 +550,12 @@
                                 <div>
                                     创建时间：<span style="color: #9e9f9e">{{
                                         timestampToDateTime(record.createdTime)
-                                    }}</span>
+                                        }}</span>
                                 </div>
                                 <div>
                                     更新时间：<span style="color: #9e9f9e">{{
                                         timestampToDateTime(record.updatedTime)
-                                    }}</span>
+                                        }}</span>
                                 </div>
                             </div>
                             <div v-if="column.dataIndex === 'option'">
@@ -623,9 +624,8 @@
             :prodListVisible="prodListVisible">
         </productList>
         <!-- 店铺设置 -->
-        <shopSetModal :shopSetVisible="shopSetVisible" :shopCurryList="shopCurryList" @handleShopSetClose="shopSetVisible = false"
-        @refreshShopSet="getShopSet"
-        ></shopSetModal>
+        <shopSetModal :shopSetVisible="shopSetVisible" :shopCurryList="shopCurryList"
+            @handleShopSetClose="shopSetVisible = false" @refreshShopSet="getShopSet"></shopSetModal>
     </div>
 </template>
 
@@ -1360,11 +1360,11 @@ const timestampToDateTime = (timestamp) => {
 
 // 获取店铺数据
 const getList = (isSearch = false) => {
-    if(advancedForm.minPrice > advancedForm.maxPrice){
+    if (advancedForm.minPrice > advancedForm.maxPrice) {
         message.error("最大售价必须大于最小售价！");
         return;
     }
-    if(advancedForm.minOldPrice > advancedForm.maxOldPrice) {
+    if (advancedForm.minOldPrice > advancedForm.maxOldPrice) {
         message.error("最大原价必须大于最小原价！");
         return;
     }
@@ -1393,11 +1393,16 @@ const getList = (isSearch = false) => {
         });
 }
 
+const shopSet = () => {
+    shopSetVisible.value = true
+    getShopSet()
+}
+
 const getShopSet = () => {
     shopCurrency().then(res => {
         shopCurryList.value = res?.data ?? []
     })
-}   
+}
 watch(tabQuantity, (newValue, oldValue) => {
     if (tabQuantity.length == 0) {
         tabList = tabDicList
@@ -1414,7 +1419,6 @@ watch(tabQuantity, (newValue, oldValue) => {
 })
 onMounted(() => {
     getAccount()
-    getShopSet()
 })
 </script>
 <style lang="less" scoped>

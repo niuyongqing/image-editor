@@ -1,68 +1,72 @@
 <template>
   <a-modal :open="showEdit" title="批量修改图片尺寸" @ok="handleOk" @cancel="cancel" :keyboard="false" width="1200px">
-    <div class="mt-5 flex">
-      <a-select v-model:value="picScale" style="width: 200px" @change="handleChange">
-        <a-select-option :value="'equal'">等比例调整</a-select-option>
-        <a-select-option :value="'custom'">自定义比例调整</a-select-option>
-      </a-select>
-      <a-select v-model:value="picSize" class="mx-2.5" style="width: 200px" :options="sizeOptions">
-      </a-select>
-      <span class="mr-2.5">变化至</span>
-      <div class="flex">
-        <a-input v-model:value="sizeValue" placeholder="请填写尺寸" />
-        <div class="w-10 h-full text-center" style="background: #eee;">px</div>
+    <a-spin :spinning="spinning">
+      <div class="mt-5 flex">
+        <a-select v-model:value="picScale" style="width: 200px" @change="handleChange">
+          <a-select-option :value="'equal'">等比例调整</a-select-option>
+          <a-select-option :value="'custom'">自定义比例调整</a-select-option>
+        </a-select>
+        <a-select v-model:value="picSize" class="mx-2.5" style="width: 200px" :options="sizeOptions">
+        </a-select>
+        <span class="mr-2.5">变化至</span>
+        <div class="flex">
+          <a-input-number v-model:value="sizeValue" placeholder="请填写尺寸" :precision="0" :controls="false" />
+          <div class="w-10 h-full text-center" style="background: #eee;">px</div>
+        </div>
+        <a-select v-model:value="scaleValue" v-if="picSize !== 'customWH' && picScale === 'custom'" class="mx-2.5"
+          style="width: 200px" :options="scaleOpion">
+        </a-select>
+        <div class="flex mx-2.5" v-if="picSize === 'customWH'">
+          <a-input-number v-model:value="heightValue" placeholder="请填写尺寸" :controls="false" :precision="0" />
+          <div class="w-10 h-full text-center" style="background: #eee;">px</div>
+        </div>
+        <a-button type="primary" class="ml-2.5" @click="generateJPG">生成JPG图片</a-button>
+        <a-button class="mx-2.5" @click="generatePNG">生成PNG图片</a-button>
       </div>
-      <a-select v-model:value="scaleValue" v-if="picSize !== 'customWH' && picScale === 'custom'" class="mx-2.5"
-        style="width: 200px" :options="scaleOpion">
-      </a-select>
-      <div class="flex mx-2.5" v-if="picSize === 'customWH'">
-        <a-input v-model:value="heightValue" placeholder="请填写尺寸" />
-        <div class="w-10 h-full text-center" style="background: #eee;">px</div>
-      </div>
-      <a-button type="primary" class="ml-2.5" @click="generateJPG">生成JPG图片</a-button>
-      <a-button class="mx-2.5" @click="generatePNG">生成PNG图片</a-button>
-    </div>
-    <div class="mt-5">
-      <a-button @click="selectAllImg" class="mr-5 mt-1">{{ selectAll ? '取消选择全部图片' :
-        '选择全部图片'
-      }}</a-button>
-      <div class="flex mt-5 flex-wrap">
-        <a-card class="file-card" v-for="item in copyModuleList" :key="item.id"
-          style="margin-right: 10px;margin-bottom: 10px;" hoverable>
-          <div>
-            <div class="file-img">
-              <a-image :src="item.url" alt="" :width="150" :height="150" />
-              <div class="image-mask text-center"> {{ item.height }} X {{ item.width }} </div>
+      <div class="mt-5">
+        <a-button @click="selectAllImg" class="mr-5 mt-1">{{ selectAll ? '取消选择全部图片' :
+          '选择全部图片'
+        }}</a-button>
+        <div class="flex mt-5 flex-wrap">
+          <a-card class="file-card" v-for="item in copyModuleList" :key="item.id"
+            style="margin-right: 10px;margin-bottom: 10px;" hoverable>
+            <div>
+              <div class="file-img">
+                <a-image :src="'/prod-api' + item.url" alt="" :width="150" :height="150" />
+                <div class="image-mask text-center"> {{ item.width }} X {{ item.height }} </div>
+              </div>
             </div>
-          </div>
-          <div w-full>
-            <div flex justify-between w-full>
-              <a-checkbox v-model:checked="item.checked" @change="handleSelectImg($event, item)"></a-checkbox>
+            <div w-full>
+              <div flex justify-between w-full>
+                <a-checkbox v-model:checked="item.checked" @change="handleSelectImg($event, item)"></a-checkbox>
+              </div>
             </div>
-          </div>
-        </a-card>
+          </a-card>
+        </div>
       </div>
-    </div>
+    </a-spin>
   </a-modal>
 </template>
 
 <script setup name=''>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { message } from "ant-design-vue";
+import { replaceSuffix } from "../../api/product";
 const props = defineProps({
   showEdit: Boolean,
   moduleList: Array,
 });
 
-const emit = defineEmits(["handleBatchModifyClose"]);
+const emit = defineEmits(["handleBatchModifyClose", "rebackList"]);
 
 const picScale = ref('equal')
 const picSize = ref('small')
 const selectAll = ref(true)
 const copyModuleList = ref([])
-const sizeValue = ref("")
+const sizeValue = ref(null)
 const scaleValue = ref("none")
 const heightValue = ref(null)
+const spinning = ref(false);
 const pictureOtion = ref([
   {
     label: "图片小边",
@@ -126,30 +130,25 @@ const handleChange = () => {
 
 const cancel = () => {
   emit("handleBatchModifyClose")
+  copyModuleList.value = []
 }
 
 const handleOk = () => {
-  // emit("handleBatchModifyClose")
-  if (!sizeValue.value || !heightValue.value) {
+  if (!sizeValue.value || (picSize.value === 'customWH' && !heightValue.value)) {
     message.error("请填写变化值！")
+    return
   }
+  emit("rebackList", copyModuleList.value)
+  cancel()
 }
 
-const commFn = () => {
-  let isCheckedList = copyModuleList.value.filter((item) => item.checked);
-  console.log('isCheckedList', isCheckedList);
-  let arr = adjustList(isCheckedList,picScale.value,picSize.value,scaleValue.value,sizeValue.value)
-  console.log('arr',arr);
-  
-}
-
-function adjustList(list, picScale, picSize, scaleValue, sizeValue) {
+function adjustList(list, picScale, picSize, scaleValue, sizeValue, heightValue) {
   return list.map(item => {
     const newItem = { ...item };
     if (picScale === 'equal') {
       handleEqual(newItem, picSize, sizeValue);
     } else if (picScale === 'custom') {
-      handleCustom(newItem, picSize, scaleValue, sizeValue);
+      handleCustom(newItem, picSize, scaleValue, sizeValue, heightValue);
     }
     return newItem;
   });
@@ -160,39 +159,39 @@ function handleEqual(item, picSize, sizeValue) {
   const height = parseInt(item.height);
 
   if (width === height) {
-    item.width = sizeValue.toString();
+    item.width = sizeValue;
   } else {
     const isSmall = picSize === 'small';
     const min = Math.min(width, height);
     const max = Math.max(width, height);
 
     if (isSmall && width === min || !isSmall && width === max) {
-      item.width = sizeValue.toString();
+      item.width = sizeValue;
     } else {
-      item.height = sizeValue.toString();
+      item.height = sizeValue;
     }
   }
 }
 
-function handleCustom(item, picSize, scaleValue, sizeValue) {
+function handleCustom(item, picSize, scaleValue, sizeValue, heightValue) {
   const originalWidth = parseInt(item.width);
   const originalHeight = parseInt(item.height);
 
   if (picSize === 'pWidth') {
-    item.width = sizeValue.toString();
+    item.width = sizeValue;
     const ratio = scaleValue === 'none'
       ? originalHeight / originalWidth
       : getHeightRatio(scaleValue);
-    item.height = Math.round(sizeValue * ratio).toString();
+    item.height = Math.round(sizeValue * ratio);
   } else if (picSize === 'pHeight') {
-    item.height = sizeValue.toString();
+    item.height = sizeValue;
     const ratio = scaleValue === 'none'
       ? originalWidth / originalHeight
       : getWidthRatio(scaleValue);
-    item.width = Math.round(sizeValue * ratio).toString();
+    item.width = Math.round(sizeValue * ratio);
   } else if (picSize === 'customWH') {
-    item.width = sizeValue.toString();
-    item.height = sizeValue.toString();
+    item.width = sizeValue;
+    item.height = heightValue;
   }
 }
 
@@ -218,10 +217,61 @@ function getWidthRatio(scaleValue) {
   }
 }
 
+// 转换成jpg
 const generateJPG = () => {
-  commFn()
+  let isCheckedList = copyModuleList.value.filter((item) => item.checked);
+  let handeleList = isCheckedList.map(item => {
+    return {
+      id: item.id,
+      path: item.url,
+      width: item.width,
+      height: item.height
+    }
+  })
+  let arr = adjustList(handeleList, picScale.value, picSize.value, scaleValue.value, sizeValue.value, heightValue.value)
+  spinning.value = true
+  replaceSuffix({ imags: arr, fileType: 1 }).then(res => {
+    copyModuleList.value.forEach(itemB => {
+      const matchingItemA = res?.data?.find(itemA => itemA.id === itemB.id);
+      if (matchingItemA) {
+        // 如果找到匹配的元素，则替换宽高和 url
+        itemB.width = matchingItemA.width;
+        itemB.height = matchingItemA.height;
+        itemB.url = matchingItemA.path;
+      }
+    })
+  }).finally(() => {
+    spinning.value = false
+  })
 }
-const generatePNG = () => { }
+// 转换成png
+const generatePNG = () => {
+  let isCheckedList = copyModuleList.value.filter((item) => item.checked);
+  let handeleList = isCheckedList.map(item => {
+    return {
+      id: item.id,
+      path: item.url,
+      width: item.width,
+      height: item.height
+    }
+  })
+  let arr = adjustList(handeleList, picScale.value, picSize.value, scaleValue.value, sizeValue.value, heightValue.value)
+  spinning.value = true
+  replaceSuffix({ imags: arr, fileType: 2 }).then(res => {
+    console.log('res', res);
+    copyModuleList.value.forEach(itemB => {
+      const matchingItemA = res?.data?.find(itemA => itemA.id === itemB.id);
+      if (matchingItemA) {
+        // 如果找到匹配的元素，则替换宽高和 url
+        itemB.width = matchingItemA.width;
+        itemB.height = matchingItemA.height;
+        itemB.url = matchingItemA.path;
+      }
+    })
+  }).finally(() => {
+    spinning.value = false
+  })
+}
 
 const selectAllImg = () => {
   selectAll.value = !selectAll.value

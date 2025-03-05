@@ -97,6 +97,7 @@ declare module 'vue' {
     Draw: typeof import('./../src/components/process-pictures/component/draw/index.vue')['default']
     DropdownOfImage: typeof import('./../src/components/dropdown-of-image/index.vue')['default']
     DropdownOfVideo: typeof import('./../src/components/dropdown-of-video/index.vue')['default']
+    EditImageBatch: typeof import('./../src/components/edit-image-batch/index.vue')['default']
     EliminateTemplate: typeof import('./../src/components/process-pictures/component/adjust/eliminate-template.vue')['default']
     FooterLinks: typeof import('./../src/components/footer-links.vue')['default']
     FooterToolBar: typeof import('./../src/components/footer-tool-bar/index.vue')['default']
