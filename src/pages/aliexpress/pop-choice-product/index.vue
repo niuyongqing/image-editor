@@ -279,6 +279,7 @@
   import { copyText } from '@/utils'
   import { accountCacheApi } from '../apis/common'
   import { listApi, waitPublishListApi, deleteSemiProductApi, syncListApi, syncOneApi, syncWaitPublishOneApi } from '../apis/pop-choice-product'
+  import { syncProgressApi } from '../apis/product'
   import { CopyOutlined, EditOutlined } from '@ant-design/icons-vue'
   import { message } from 'ant-design-vue'
   import EmptyImg from '@/assets/images/aliexpress/empty.png'
@@ -499,11 +500,7 @@
       },
       // 同步进度条
       getSyncProgress(progressToken) {
-        const params = {
-          sellerId: this.watchedSearchForm.sellerId,
-          progressToken
-        }
-        syncProgressApi(params)
+        syncProgressApi(progressToken)
           .then(res => {
             if (res.data) {
               const resList = res.data.split(':')

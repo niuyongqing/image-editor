@@ -220,18 +220,17 @@
     const width = parseInt(item.width)
     const height = parseInt(item.height)
 
-    if (width === height) {
-      item.width = sizeValue
-    } else {
-      const isSmall = picSize === 'small'
-      const min = Math.min(width, height)
-      const max = Math.max(width, height)
+    const isSmall = picSize === 'small'
+    const min = Math.min(width, height)
 
-      if ((isSmall && width === min) || (!isSmall && width === max)) {
-        item.width = sizeValue
-      } else {
-        item.height = sizeValue
-      }
+    if ((isSmall && width === min) || (!isSmall && width !== min)) {
+      // 以宽为基准
+      item.width = sizeValue
+      item.height = (height / width) * sizeValue
+    } else {
+      // 高
+      item.height = sizeValue
+      item.width = (width / height) * sizeValue
     }
   }
 
@@ -290,6 +289,15 @@
   // 转换成 jpg/png
   const generate = ({ fileType = 'jpg' }) => {
     let isCheckedList = copyImageList.value.filter(item => item.checked)
+    if (!sizeValue.value) {
+      message.error('请填写尺寸')
+      return
+    }
+    if (isCheckedList.length === 0) {
+      message.error('请选择图片')
+      return
+    }
+
     let handeleList = isCheckedList.map(item => {
       return {
         id: item.id,
@@ -304,13 +312,14 @@
     replaceSuffixApi({ images: arr, imagesSuffix: fileType })
       .then(res => {
         const list = res.data || []
-        list.forEach(item => {
-          const target = copyImageList.value.find(img => img.id === item.id)
-          if (target) {
-            target.url = '/prod-api' + item.path
+        const result = list.map(item => {
+          const target = copyImageList.value.find(img => img.id === item.id) || {}
+          return {
+            ...target,
+            url: '/prod-api' + item.path
           }
         })
-        emit('confirm', copyImageList.value)
+        emit('confirm', result)
         cancel()
       })
       .finally(() => {

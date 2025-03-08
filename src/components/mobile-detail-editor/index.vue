@@ -902,7 +902,6 @@
     open.value = true
   }
   function editImageConfirm(imageList) {
-    console.log(imageList)
     const imageModuleList = moduleList.value.filter(item => item.type === 'image')
     imageModuleList.forEach(item => {
       item.images.forEach(image => {
@@ -910,9 +909,6 @@
         target && (image.url = target.url)
       })
     })
-  }
-  function editImageClose() {
-    imageList.value = []
   }
 </script>
 

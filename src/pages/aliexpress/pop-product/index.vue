@@ -1071,11 +1071,7 @@
       },
       // 同步进度条
       getSyncProgress(progressToken) {
-        const params = {
-          sellerId: this.watchedSearchForm.sellerId,
-          progressToken
-        }
-        syncProgressApi(params)
+        syncProgressApi(progressToken)
           .then(res => {
             if (res.data) {
               const resList = res.data.split(':')

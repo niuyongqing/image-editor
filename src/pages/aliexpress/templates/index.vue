@@ -66,9 +66,9 @@
           @click="add"
           >新增模版</a-button
         >
-        <!-- <a-popconfirm
+        <a-popconfirm
           title="确定删除吗？"
-          @confirm="del"
+          @confirm="batchDel"
         >
           <a-button
             type="primary"
@@ -78,7 +78,7 @@
             :loading="delLoading"
             >批量删除</a-button
           >
-        </a-popconfirm> -->
+        </a-popconfirm>
       </a-space>
       <!-- TABLE 区 -->
       <a-card>
@@ -101,6 +101,7 @@
           ref="tableRef"
           row-key="id"
           :pagination="false"
+          :row-selection="{ selectedRowKeys, onChange: onSelectChange }"
           :scroll="{ x: 'max-content' }"
         >
           <template #bodyCell="{ column, record }">
@@ -189,7 +190,7 @@
   import { cloneDeep } from 'lodash'
   import { accountCacheApi } from '../apis/common'
   import { areaListApi } from '../apis/product'
-  import { templateListApi, templateAddApi, templateUpdateApi, templateDelApi, templateUpdateStateApi } from '../apis/templates'
+  import { templateListApi, templateAddApi, templateUpdateApi, templateDelApi, templateBatchDelApi, templateUpdateStateApi } from '../apis/templates'
   import { message } from 'ant-design-vue'
   import AttributeModal from './components/AttributeModal.vue'
   import VariantModal from './components/VariantModal.vue'
@@ -365,6 +366,17 @@
         templateDelApi({ id }).then(res => {
           this.getList()
         })
+      },
+      // 批量删除
+      batchDel() {
+        this.delLoading = true
+        templateBatchDelApi(this.selectedRowKeys)
+          .then(res => {
+            this.getList()
+          })
+          .finally(() => {
+            this.delLoading = false
+          })
       }
     }
   }
