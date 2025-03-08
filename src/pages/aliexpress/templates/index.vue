@@ -22,7 +22,10 @@
       <a-card>
         <a-descriptions :column="1">
           <!-- 为区域调价模版时, 不显示 -->
-          <a-descriptions-item label="店铺账号" v-if="activedValue !== 'nationalQuote'">
+          <a-descriptions-item
+            label="店铺账号"
+            v-if="activedValue !== 'nationalQuote'"
+          >
             <TiledSelect
               v-model:value="watchedSearchForm.sellerId"
               :options="accountList"
@@ -174,6 +177,7 @@
     <NationalQuoteModal
       v-if="nationalQuoteOpen"
       v-model:open="nationalQuoteOpen"
+      :countries="countries"
       :detail="templateDetail"
       @refresh="search"
     />
@@ -184,6 +188,7 @@
   import { ALL_TABLE_COLUMN } from './config'
   import { cloneDeep } from 'lodash'
   import { accountCacheApi } from '../apis/common'
+  import { areaListApi } from '../apis/product'
   import { templateListApi, templateAddApi, templateUpdateApi, templateDelApi, templateUpdateStateApi } from '../apis/templates'
   import { message } from 'ant-design-vue'
   import AttributeModal from './components/AttributeModal.vue'
@@ -204,8 +209,7 @@
         PLACEHOLDER_ENUM: {
           templateName: '模版名称'
         },
-        // activedValue: 'attribute',
-        activedValue: 'nationalQuote',
+        activedValue: 'attribute',
         // 后端定义: 1:产品模板 2:自定义模板 3:区域调价模板 4:尺码模板  5:汽配模板 6:产品属性模板 7:变种模板
         TEMPLATE_TYPE_ENUM: {
           attribute: 6,
@@ -239,7 +243,9 @@
         attributeOpen: false,
         variantOpen: false,
         nationalQuoteOpen: false,
-        templateDetail: {}
+        templateDetail: {},
+        // 区域调价模版用的 国家(区域)
+        countries: []
       }
     },
     computed: {
@@ -256,10 +262,17 @@
       }
     },
     mounted() {
+      // 获取区域数据
+      this.getAreaList()
       this.getTableHeader()
       this.getAccountList()
     },
     methods: {
+      getAreaList() {
+        areaListApi().then(res => {
+          this.countries = res.data || []
+        })
+      },
       // 获取表头
       getTableHeader() {
         this.tableHeader = this.ALL_TABLE_COLUMN

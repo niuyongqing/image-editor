@@ -83,7 +83,6 @@
 </template>
 
 <script>
-  import { areaListApi } from '../../apis/product'
   import { getProductClassificationApi, resultByPostCateIdAndPathApi } from '../../apis/product'
   import { templateAddApi, templateUpdateApi } from '../../apis/templates'
   import { message, Modal } from 'ant-design-vue'
@@ -94,6 +93,10 @@
       open: {
         type: Boolean,
         default: false
+      },
+      countries: {
+        type: Array,
+        default: () => []
       },
       detail: {
         type: Object,
@@ -106,7 +109,6 @@
           name: '',
           configurationType: 'absolute' // 还有一个类型: delete-删除分国家报价;
         },
-        countries: [],
         options: [
           { label: '直接报价', value: 'absolute' },
           { label: '按比例', value: 'percentage' },
@@ -116,7 +118,6 @@
         isIndeterminate: true, // 只负责控制老大的样式
         checkList: [],
         regionalPriceTable: [],
-        isEdit: false,
         configurationData: [],
         confirmLoading: false
       }
@@ -178,16 +179,7 @@
         }
       }
     },
-    mounted() {
-      // 获取区域数据
-      this.getAreaList()
-    },
     methods: {
-      getAreaList() {
-        areaListApi().then(res => {
-          this.countries = res.data || []
-        })
-      },
       handleCheckAllChange(e) {
         this.checkList = e.target.checked ? this.countries.map(item => item.areaCode) : []
         this.isIndeterminate = false
