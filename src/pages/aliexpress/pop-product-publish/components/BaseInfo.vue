@@ -3,6 +3,18 @@
     title="基本信息"
     class="mb-4"
   >
+    <template #extra>
+      <a-select
+        v-model:value="attributeTemplateId"
+        placeholder="选择产品分类后可引用属性模版"
+        show-search
+        :options="attributeTemplateList"
+        :field-names="{ label: 'templateName', value: 'id' }"
+        option-filter-prop="templateName"
+        class="w-60"
+        @change="handleTemplateChange"
+      />
+    </template>
     <a-form
       ref="ruleFormRef"
       :model="form"
@@ -23,8 +35,7 @@
           :field-names="{ label: 'simpleName', value: 'sellerId' }"
           option-filter-prop="simpleName"
           @change="handleAccountChange"
-        >
-        </a-select>
+        />
       </a-form-item>
       <a-form-item
         label="产品标题"
@@ -83,8 +94,7 @@
                   placeholder="请选择"
                   option-filter-prop="name"
                   @change="val => handleAttrChange(val, i)"
-                >
-                </a-select>
+                />
                 <!-- 可自定义填写内容 -->
                 <a-select
                   v-else
@@ -259,6 +269,7 @@
 <script>
   import { getProductClassificationApi, resultByPostCateIdAndPathApi, getResultByPostCateIdAndPathApi } from '../../apis/product'
   import { accountCacheApi, getSellerInfoApi } from '../../apis/common'
+  import { templateListApi } from '../../apis/templates'
   import { queryChannelApi } from '../../apis/choice-product'
   import { InfoCircleOutlined, PlusOutlined, MinusOutlined, UpOutlined, DownOutlined } from '@ant-design/icons-vue'
   import { message } from 'ant-design-vue'
@@ -284,6 +295,8 @@
         currencyCode: '',
         loading: false,
         attributes: {}, // 产品属性, 收集值
+        attributeTemplateId: undefined,
+        attributeTemplateList: [], // 属性模版列表
         rules: {
           sellerId: {
             required: true,
@@ -325,116 +338,7 @@
           this.form.category = String(detail.categoryId)
           await this.getAttributes()
 
-          // 与品类绑定的属性
-          const attributeList = detail.aeopAeProductPropertys.filter(item => item.attrNameId && item.attrNameId !== -1)
-          // 整合先
-          const root = {}
-          attributeList.forEach(item => {
-            if (root[item.attrNameId]) {
-              root[item.attrNameId].push(item)
-            } else {
-              root[item.attrNameId] = [item]
-            }
-          })
-          // 因要判断是否还有下级属性(hasSubAttr), 不能直接赋 aeopAeProductPropertys 的值; 从 attributeOptions 里取
-          const attributesObj = {}
-          for (const attrNameId in root) {
-            const option = this.attributeOptions.find(option => option.attributeId == attrNameId)
-            if (option) {
-              switch (option.attributeShowTypeValue) {
-                case 'list_box':
-                  const target = option.values.find(val => val.attributeValueId == root[attrNameId][0].attrValueId)
-                  if (target) {
-                    // 如果 supportEnumInput 为 true, 则设置 mode = tags, 值为 Array
-                    attributesObj[option.zh] = option.supportEnumInput
-                      ? [
-                          {
-                            label: target.name,
-                            value: target.attributeValueId,
-                            key: target.attributeValueId,
-                            option: target
-                          }
-                        ]
-                      : {
-                          label: target.name,
-                          value: target.attributeValueId,
-                          key: target.attributeValueId,
-                          option: target
-                        }
-                  } else {
-                    attributesObj[option.zh] = option.supportEnumInput ? [{ label: root[attrNameId][0].attrValue, value: undefined }] : { label: root[attrNameId][0].attrValue, value: undefined }
-                  }
-                  break
-
-                case 'check_box':
-                  attributesObj[option.zh] = root[attrNameId].map(item => {
-                    const target = option.values.find(val => val.attributeValueId == item.attrValueId)
-                    if (target) {
-                      // 材质百分比
-                      if (option.showPercent) {
-                        return {
-                          material: {
-                            label: target.name,
-                            value: target.attributeValueId,
-                            key: target.attributeValueId,
-                            option: target
-                          },
-                          percent: item.percent
-                        }
-                      } else {
-                        // 其他多选类型
-                        return {
-                          label: target.name,
-                          value: target.attributeValueId,
-                          key: target.attributeValueId,
-                          option: target
-                        }
-                      }
-                    } else {
-                      return { label: item.attrValue, value: undefined }
-                    }
-                  })
-                  break
-
-                case 'input':
-                case 'input_int':
-                case 'radio':
-                default:
-                  attributesObj[option.zh] = root[attrNameId][0].attrValue
-                  break
-              }
-            } else {
-              // 动态添加的下级属性(查不到, 下面查到属性后再狸猫换太子)
-              attributesObj[attrNameId] = {
-                en: root[attrNameId][0].attrValue,
-                value: root[attrNameId][0].attrValueId,
-                option: {
-                  en: root[attrNameId][0].attrValue,
-                  name: root[attrNameId][0].attrName,
-                  attributeValueId: Number(root[attrNameId][0].attrValueId)
-                }
-              }
-            }
-          }
-          // 如果存在下级属性 hasSubAttr
-          for (const zh in attributesObj) {
-            if (Object.prototype.toString.call(attributesObj[zh]).slice(8, -1) === 'Object') {
-              if (attributesObj[zh].option.hasSubAttr) {
-                const i = this.attributeOptions.findIndex(item => item.zh === zh)
-                i > -1 && this.handleAttrChange(attributesObj[zh], i, true)
-              }
-            }
-          }
-          this.attributes = attributesObj
-          // 自定义属性
-          const cusAttributeList = detail.aeopAeProductPropertys.filter(item => item.attrNameId === -1)
-          cusAttributeList.forEach(item => {
-            this.cusAttribute.push({
-              id: uuidv4(),
-              label: item.attrName,
-              value: item.attrValue
-            })
-          })
+          this.setAttributeValue(detail.aeopAeProductPropertys)
         }
       }
     },
@@ -442,6 +346,120 @@
       this.getAccounts()
     },
     methods: {
+      // 给产品属性赋值
+      setAttributeValue(valueList) {
+        // 与品类绑定的属性
+        const attributeList = valueList.filter(item => item.attrNameId && item.attrNameId !== -1)
+        // 整合先
+        const root = {}
+        attributeList.forEach(item => {
+          if (root[item.attrNameId]) {
+            root[item.attrNameId].push(item)
+          } else {
+            root[item.attrNameId] = [item]
+          }
+        })
+        // 因要判断是否还有下级属性(hasSubAttr), 不能直接赋 aeopAeProductPropertys 的值; 从 attributeOptions 里取
+        const attributesObj = {}
+        for (const attrNameId in root) {
+          const option = this.attributeOptions.find(option => option.attributeId == attrNameId)
+          if (option) {
+            switch (option.attributeShowTypeValue) {
+              case 'list_box':
+                const target = option.values.find(val => val.attributeValueId == root[attrNameId][0].attrValueId)
+                if (target) {
+                  // 如果 supportEnumInput 为 true, 则设置 mode = tags, 值为 Array
+                  attributesObj[option.zh] = option.supportEnumInput
+                    ? [
+                        {
+                          label: target.name,
+                          value: target.attributeValueId,
+                          key: target.attributeValueId,
+                          option: target
+                        }
+                      ]
+                    : {
+                        label: target.name,
+                        value: target.attributeValueId,
+                        key: target.attributeValueId,
+                        option: target
+                      }
+                } else {
+                  attributesObj[option.zh] = option.supportEnumInput ? [{ label: root[attrNameId][0].attrValue, value: undefined }] : { label: root[attrNameId][0].attrValue, value: undefined }
+                }
+                break
+
+              case 'check_box':
+                attributesObj[option.zh] = root[attrNameId].map(item => {
+                  const target = option.values.find(val => val.attributeValueId == item.attrValueId)
+                  if (target) {
+                    // 材质百分比
+                    if (option.showPercent) {
+                      return {
+                        material: {
+                          label: target.name,
+                          value: target.attributeValueId,
+                          key: target.attributeValueId,
+                          option: target
+                        },
+                        percent: item.percent
+                      }
+                    } else {
+                      // 其他多选类型
+                      return {
+                        label: target.name,
+                        value: target.attributeValueId,
+                        key: target.attributeValueId,
+                        option: target
+                      }
+                    }
+                  } else {
+                    return { label: item.attrValue, value: undefined }
+                  }
+                })
+                break
+
+              case 'input':
+              case 'input_int':
+              case 'radio':
+              default:
+                attributesObj[option.zh] = root[attrNameId][0].attrValue
+                break
+            }
+          } else {
+            // 动态添加的下级属性(查不到, 下面查到属性后再狸猫换太子)
+            attributesObj[attrNameId] = {
+              en: root[attrNameId][0].attrValue,
+              value: root[attrNameId][0].attrValueId,
+              option: {
+                en: root[attrNameId][0].attrValue,
+                name: root[attrNameId][0].attrName,
+                attributeValueId: Number(root[attrNameId][0].attrValueId)
+              }
+            }
+          }
+        }
+        // 如果存在下级属性 hasSubAttr
+        for (const zh in attributesObj) {
+          if (Object.prototype.toString.call(attributesObj[zh]).slice(8, -1) === 'Object') {
+            if (attributesObj[zh].option.hasSubAttr) {
+              const i = this.attributeOptions.findIndex(item => item.zh === zh)
+              i > -1 && this.handleAttrChange(attributesObj[zh], i, true)
+            }
+          }
+        }
+        this.attributes = attributesObj
+        // 自定义属性
+        const cusAttributeList = valueList.filter(item => item.attrNameId === -1)
+        cusAttributeList.forEach(item => {
+          this.cusAttribute.push({
+            id: uuidv4(),
+            label: item.attrName,
+            value: item.attrValue
+          })
+        })
+      },
+
       getAccounts() {
         accountCacheApi().then(res => {
           this.accounts = res.data.accountDetail || []
@@ -502,11 +520,54 @@
           })
         })
       },
+      // 获取属性模版列表
+      getAttributeTemplateList() {
+        const params = {
+          sellerId: this.form.sellerId,
+          templateType: 6,
+          productClassification: [this.form.category],
+          pageNum: 1,
+          pageSize: 999
+        }
+
+        templateListApi(params).then(res => {
+          this.attributeTemplateList = res.rows || []
+        })
+      },
+      // 获取变种模版列表
+      getVariantTemplateList() {
+        const params = {
+          sellerId: this.form.sellerId,
+          templateType: 7,
+          productClassification: [this.form.category],
+          pageNum: 1,
+          pageSize: 999
+        }
+
+        templateListApi(params).then(res => {
+          const variantTemplateList = res.rows || []
+          this.store.$patch(state => {
+            state.variantTemplateList = variantTemplateList
+          })
+        })
+      },
+      // 填充属性模版内容
+      handleTemplateChange(id, option) {
+        const templateValue = JSON.parse(option.templateValue)
+        // 先清空, 再赋值
+        this.attributes = {}
+        this.cusAttribute = []
+        this.setAttributeValue(templateValue)
+      },
       // 选完分类后获取属性
       getAttributes() {
         if (this.form.categoryIdList.length !== 0) {
           this.form.category = this.form.categoryIdList[this.form.categoryIdList.length - 1]
         }
+        this.attributeTemplateId = undefined
+        this.attributeTemplateList = []
+        this.getAttributeTemplateList()
+        this.getVariantTemplateList()
 
         this.store.$patch(state => {
           state.categoryId = this.form.category
