@@ -2,8 +2,7 @@
   <div id="editWaitProductCont" class="pr-14">
     <div class="w-19/20">
       <div class="flex justify-end mt-5">
-        <a-button :loading="loading" class="ml-2.5">存为草稿</a-button>
-        <a-button :loading="loading" type="primary" @click="onSubmit" class="ml-2.5">更新</a-button>
+        <a-button :loading="loading" class="ml-2.5" @click="onSubmit(2)">保存</a-button>
       </div>
       <br />
       <!-- 基本信息 -->
@@ -13,14 +12,13 @@
       <br />
       <!-- 描述信息 -->
       <ozon-new-image-info ref="ozonImageInfoRef" id="OzonNewImageInfo"
-        :shopCode="formData.shortCode"></ozon-new-image-info>
+        :shopCode="formData.shortCode" :productDetail="productDetail"></ozon-new-image-info>
 
       <!-- 变种信息. -->
       <OzonNewVariantInfo ref="ozonNewVariantInfoRef" id="ozonNewVariantInfo" :productDetail="productDetail"
         :shopCode="formData.shortCode"></OzonNewVariantInfo>
       <div class="flex justify-end mt-5">
-        <a-button :loading="loading" class="ml-2.5">存为草稿</a-button>
-        <a-button :loading="loading" type="primary" @click="onSubmit" class="ml-2.5">更新</a-button>
+        <a-button :loading="loading" class="ml-2.5" @click="onSubmit(2)">保存</a-button>
       </div>
     </div>
     <div style="position: fixed;top: 10%;right: 3%;">
@@ -143,11 +141,11 @@ const scrollTo = (id) => {
   }
 };
 
-const onSubmit = async () => {
+const onSubmit = async (tpye) => {
   const ozonBaseInfo = await ozonBaseInfoRef.value.childForm();
-  // const imageInfoRes = await ozonImageInfoRef.submitForm();
+  const OzonNewImageInfo = await ozonImageInfoRef.value.submitForm();
   const ozonNewVariantInfo = await ozonNewVariantInfoRef.value.submitForm();
-  const errorIndex = findFalseInArrayLikeObject({ ozonBaseInfo, ozonNewVariantInfo })
+  const errorIndex = findFalseInArrayLikeObject({ ozonBaseInfo,OzonNewImageInfo, ozonNewVariantInfo })
   console.log('errorIndex', errorIndex);
 
   anchorList.value.forEach(item => {
@@ -192,7 +190,7 @@ const onSubmit = async () => {
   const baseObj = {
     attributes: [
       {
-        complex_id: null,
+        complexId: null,
         id: null,
         values: [
           {
@@ -207,7 +205,7 @@ const onSubmit = async () => {
   if (image.coverUrl !== "" && image.video.length > 0) {
     // 创建video对应的baseObj副本并更新value值
     let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
-    videoBaseObj = createAndUpdateBaseObj(image.video, 100002, 21845);
+    videoBaseObj = createAndUpdateBaseObj(image.video, 100002, 21845, tpye);
     newComplexAttributes.push(videoBaseObj);
 
     // 创建coverUrl对应的baseObj副本并更新value值
@@ -215,7 +213,7 @@ const onSubmit = async () => {
     coverUrlBaseObj = createAndUpdateBaseObj(
       image.coverUrl,
       100001,
-      21841
+      21841, tpye
     );
     newComplexAttributes.push(coverUrlBaseObj);
   } else if (image.coverUrl !== "") {
@@ -223,25 +221,27 @@ const onSubmit = async () => {
     coverUrlBaseObj = createAndUpdateBaseObj(
       image.coverUrl,
       100001,
-      21841
+      21841, tpye
     );
     newComplexAttributes.push(coverUrlBaseObj);
   } else if (image.video.length > 0) {
     let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
-    videoBaseObj = createAndUpdateBaseObj(image.video, 100002, 21845);
+    videoBaseObj = createAndUpdateBaseObj(image.video, 100002, 21845, tpye);
     newComplexAttributes.push(videoBaseObj);
   }
   console.log("newComplexAttributes", newComplexAttributes);
 
   const resItem = tableDatas.map((item) => {
     const moditAttributes = [];
+    const getDictionaryIdKey = type === 1 ? 'dictionary_value_id' : 'dictionaryValueId';
+    const getComplexIdKey = type === 1 ? 'complex_id' : 'complexId';
     const createValueObj = (newId, newVal) => ({
-      dictionary_value_id: newId || 0,
+      [getDictionaryIdKey]: newId || 0,
       value: newVal instanceof Array ? newVal.split(",") : newVal || "",
     });
     const createAttrItem = (attr, values) => ({
       id: attr.id,
-      complex_id: attr.attributeComplexId,
+      [getComplexIdKey]: attr.attributeComplexId,
       values,
     });
     for (let attr of newList) {
@@ -269,10 +269,10 @@ const onSubmit = async () => {
             attr,
             item,
             base,
-            createValueObj
+            createValueObj,type
           );
           const filteredMSlect = mSlect.filter(
-            (obj) => obj.value || obj.dictionary_value_id !== 0
+            (obj) => obj.value || obj?.dictionary_value_id !== 0 || obj?.dictionaryValueid !== 0
           );
           if (filteredMSlect.length) {
             moditAttributes.push(createAttrItem(attr, filteredMSlect));
@@ -283,12 +283,8 @@ const onSubmit = async () => {
     console.log("moditAttributes--", moditAttributes);
 
     return {
-      attributes: [
-        {
-          attributes: moditAttributes,
-          complex_attributes: newComplexAttributes ?? null, // 非必填 100002-21845-封面视频 100001-21841-视频
-        }
-      ],
+      attributes: moditAttributes,
+      complex_attributes: newComplexAttributes ?? null, // 非必填 100002-21845-封面视频 100001-21841-视频
       color_image: item?.colorImg[0]?.url, // 非必填
       images: item.imageUrl && item.imageUrl.map(item => item.url),
       warehouseList: item?.warehouseList,

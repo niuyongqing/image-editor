@@ -50,13 +50,14 @@ const onSubmit = () => {
     let remarks = props.remarkId.map(e => {
         return {
             account: e.account,
-            offerIds: e.offerIds,
+            waitIds: e.waitIds,
             remark: editForm.remark,
             remarkColor: editForm.remarkColor,
         }
     })
-
-    ozonProductRemark({ remarks }).then((res) => {
+    console.log('props',props.remarkId);
+    
+    ozonProductRemark(remarks).then((res) => {
         message.success(res.msg);
     }).finally(() => {
         loading.value = false

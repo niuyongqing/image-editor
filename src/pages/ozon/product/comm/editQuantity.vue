@@ -14,8 +14,8 @@
                                 <div class="childrenItemName">{{ it.name }}</div>
                                 <div style="width: 50%">
                                     <a-input-number :precision="0" :min="0"
-                                        style="width: 80%; display: block; margin: 0 auto" v-model="it.stock"
-                                        @change="changeInputNumber(item)"></a-input-number>
+                                        style="width: 80%; display: block; margin: 0 auto"
+                                        v-model:value="it.stock" @change="changeInputNumber(item)"></a-input-number>
                                 </div>
                             </div>
                         </div>
@@ -33,7 +33,7 @@
 
 <script setup name='editQuantity'>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-
+import { updateStock } from "~/pages/ozon/config/api/product"
 import { message } from "ant-design-vue";
 const props = defineProps({
     editQuantityVis: Boolean,
@@ -42,24 +42,73 @@ const props = defineProps({
 })
 const loading = ref(false)
 const emit = defineEmits(["backCloseQuantity"]);
+
+const changeInputNumber = (item) => {
+    let count = 0;
+    item.children.forEach((child) => {
+        count = count + child.stock;
+    });
+    item.allStock = count;
+}
+
 const handleCancel = () => {
     emit("backCloseQuantity")
 }
 const onSubmit = () => {
+    loading.value = true;
+    let stockList = [];
+    let obj = {};
+    console.log('selectOzonId', props.selectOzonId);
+    console.log('editStockList', props.editStockList);
+    props.selectOzonId.forEach((e) => {
+        props.editStockList.forEach((item) => {
+            if (e.account === item.account) {
+                // 使用.filter过滤出stock不为0的数据
+                const validWarehouseList = item.children.filter((el) => el.stock !== 0).map((el) => {
+                    return {
+                        present: el.stock,
+                        warehouseId: el.warehouseId,
+                        warehouseName: el.name
+                    };
+                });
+                obj = {
+                    offerIds: e.offerIds,
+                    warehouseList: validWarehouseList,
+                    totalStock: item.allStock,
+                    account: e.account,
+                };
+            }
+        });
+        stockList.push(obj);
+    });
+    let params = {
+        stocks: stockList,
+    };
+    console.log('params', params);
 
+    updateStock(params)
+        .then((res) => {
+            message.success(res.msg);
+            handleCancel()
+        })
+        .finally(() => {
+            loading.value = false;
+        });
 }
 
 </script>
 <style lang="less" scoped>
 .titles {
-  display: flex;
-  justify-content: space-between;
-  span {
-    width: 100%;
-    text-align: center;
-    border: 1px solid #ccc;
-  }
+    display: flex;
+    justify-content: space-between;
+
+    span {
+        width: 100%;
+        text-align: center;
+        border: 1px solid #ccc;
+    }
 }
+
 .stockList {
     border: 1px solid #ccc;
 

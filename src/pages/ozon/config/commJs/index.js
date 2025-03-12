@@ -1,3 +1,4 @@
+
 // 提取更新价格的公共逻辑
 const updatePrice = (items, priceKey, batchFields) => {
   items.forEach((item) => {
@@ -109,7 +110,7 @@ const processResult = (productList) => {
       price: "",
       oldPrice: "",
       quantity: undefined,
-      warehouse: [],
+      warehouseList: [],
       packageLength: undefined,
       packageWidth: undefined,
       packageHeight: undefined,
@@ -211,6 +212,7 @@ const checkData = (data) => {
   );
   return hasColorName && hasProductColor;
 }
+
 // 处理报错表单
 const findFalseInArrayLikeObject = (obj) => {
   let list = []
@@ -411,61 +413,78 @@ const handleTheme = (list) => {
 
 // 获取input类型属性的值 
 const getInputValue = (attr, base, image, item) => {
-  if (attr.name === "简介" && attr.id === 4191) {
-      return image.description === "<ul><li></li></ul>"
-          ? null
-          : image.description;
-  } else if (attr.name === "JSON 丰富内容" && attr.id === 11254) {
-      return image.jsons ? image.jsons : null;
+  if (attr.id === 4191) {
+    return image.description === "<ul><li></li></ul>"
+      ? null
+      : image.description;
+  } else if (attr.id === 11254) {
+    return image.jsons ? JSON.stringify(image.jsons) : null;
   } else if (
-      (attr.isAspect && !attr.isRequired) ||
-      (attr.isAspect && attr.isCollection)
+    (attr.isAspect && !attr.isRequired) ||
+    (attr.isAspect && attr.isCollection)
   ) {
-      return item[attr.name];
+    return item[attr.name];
   } else {
-      return base.attributes[attr.name] || "";
+    return base.attributes[attr.name] || "";
   }
 }
 // 获取select类型属性的值
 const getSelectValue = (attr, base) => {
-  if (attr.name === "类型" && attr.id === 8229) {
-      return [
-          Number(base.categoryId.threeCategoryId),
-          base.categoryId.threeCategoryName,
-      ];
+  if (attr.id === 8229) {
+    return [
+      Number(base.categoryId.threeCategoryId),
+      base.categoryId.threeCategoryName,
+    ];
   } else {
-      const value = base.attributes[attr.name];
+    const value = base.attributes[attr.name];
+    console.log('va', value);
+
+    if (attr.id === 9070 && value !== undefined) {
       return [
-          value === "无品牌" ? 126745801 : value?.id,
-          value === "无品牌" ? "无品牌" : value?.value,
+        0,
+        value[0]?.value?.value
+      ]
+    } else {
+      return [
+        value?.value === "无品牌" ? 126745801 : value?.value,
+        value?.value === "无品牌" ? "无品牌" : value?.label,
       ];
+    }
   }
 }
 // 获取multSelect类型属性的值
-const getMultiSelectValue = (attr, item, base, createValueObj) => {
+const getMultiSelectValue = (attr, item, base, createValueObj, type) => {
   if (item[attr.name]) {
-      console.log('attr.name', item[attr.name]);
-      const colorList = item[attr.name]?.split(",");
-      return colorList.map((color) => {
-          const foundOption = attr.options.find(
-              (option) => option.value === color
-          );
-          return {
-              dictionary_value_id: foundOption ? foundOption.id : "",
-              value: color,
-          };
-      });
-  } else {
-      return (
-          base.attributes[attr.name]?.map((item) =>
-              createValueObj(item.id, item)
-          ) || []
+    console.log('attr.name', item[attr.name]);
+    const colorList = item[attr.name]?.split(",");
+    return colorList.map((color) => {
+      const foundOption = attr.options.find(
+        (option) => option.value === color
       );
-      // return (
-      //     base.attributes[attr.name]?.map((item) =>
-      //         createValueObj(item.id, item.value)
-      //     ) || []
-      // );
+      if (type === 1) {
+        return {
+          dictionary_value_id: foundOption ? foundOption.id : "",
+          value: color,
+        };
+      } else {
+        return {
+          dictionaryValueId: foundOption ? foundOption.id : "",
+          value: color,
+        };
+      }
+    });
+  } else {
+    let filteredData = attr.options.filter(item => base.attributes[attr.name]?.includes(item.id));
+    return (
+      filteredData?.map((item) =>
+        createValueObj(item.id, item.label)
+      ) || []
+    );
+    // return (
+    //     base.attributes[attr.name]?.map((item) =>
+    //         createValueObj(item.id, item.value)
+    //     ) || []
+    // );
   }
 }
 // 判断值是否不为空
@@ -473,28 +492,53 @@ const isNotEmpty = (value) => {
   return value || value === 0 || value === false;
 }
 // 处理视频格式
-const createAndUpdateBaseObj = (targetObj, complexId, id) => {
+const createAndUpdateBaseObj = (targetObj, complexId, id, type) => {
+  // 统一属性命名格式
+  const keyStyle = type === 1 ? 'snake' : 'camel';
+
+  // 映射属性名
+  const keyMap = {
+    complexId: keyStyle === 'snake' ? 'complex_id' : 'complexId',
+    dictionaryValueId: keyStyle === 'snake' ? 'dictionary_value_id' : 'dictionaryValueId'
+  };
+
+  // 通用值处理逻辑
+  const processValues = () => {
+    if (complexId === 100001) {
+      return [{ [keyMap.dictionaryValueId]: 0, value: targetObj.replace('/prod-api', '') }];
+    }
+    return (Array.isArray(targetObj) ? targetObj : []).map(item => ({
+      [keyMap.dictionaryValueId]: 0,
+      value: item?.url?.replace('/prod-api', '') || null // 添加空值保护
+    }));
+  };
+
   return {
-      attributes: [
-          {
-              complex_id: complexId,
-              id: id,
-              values: complexId === 100001 ? [
-                  {
-                      dictionary_value_id: 0,
-                      value: targetObj,
-                  },
-              ] : targetObj.map(item => {
-                  return {
-                      dictionary_value_id: 0,
-                      value: item.url,
-                  }
-              }),
-          },
-      ],
+    attributes: [{
+      [keyMap.complexId]: complexId,
+      id: id,
+      values: processValues()
+    }]
   };
 }
 
+const processImageSource = (source) => {
+  if (source === undefined || source === null || source === '') return
+  const processUrl = url => {
+    // 检查是否以 https:// 开头
+    if (url.startsWith('https://')) {
+      return url;
+    } else {
+      // 移除开头的斜杠以避免重复，并拼接 /prod-api/
+      return `/prod-api/${url.replace(/^\//, '')}`;
+    }
+  };
+
+  // 处理数组或字符串
+  return Array.isArray(source)
+    ? source.map(processUrl)
+    : processUrl(source);
+}
 
 export {
   updatePrice, endResult,
@@ -502,6 +546,6 @@ export {
   cartesianProduct, processResult,
   processData, checkSellerSKU, hasDuplicateModelValues,
   checkData, findFalseInArrayLikeObject, rearrangeColorFields,
-  handleTheme,getInputValue,getSelectValue,getMultiSelectValue,
-  isNotEmpty,createAndUpdateBaseObj
+  handleTheme, getInputValue, getSelectValue, getMultiSelectValue,
+  isNotEmpty, createAndUpdateBaseObj, processImageSource
 }

@@ -23,17 +23,17 @@
                                 <a-radio-group v-model:value="form.oldPriceValue" style="width: 100%;"
                                     name="radioGroup">
                                     <div class="flex">
-                                        <a-radio :value="1">直接修改为：</a-radio><a-input type="number" style="width: 200px;"
+                                        <a-radio :value="1">直接修改为：</a-radio><a-input-number style="width: 200px;"
                                             v-model:value="form.oldPrice" :disabled="form.oldPriceValue == 2"
-                                            :precision="2" placeholder="示例：1.00"></a-input>
+                                            :precision="2" placeholder="示例：1.00" :min="0"></a-input-number>
                                     </div>
                                     <div class="mt-2.5">
                                         <a-radio :value="2">按现有原价：</a-radio><a-select v-model:value="form.oldSelct1"
                                             :disabled="form.oldPriceValue == 1" class="mr-2.5" style="width: 110px"
-                                            :options="commList[0].option"></a-select><a-input type="number"
-                                            class="mr-2.5" style="width: 150px;" :disabled="form.oldPriceValue == 1"
-                                            v-model:value="form.toOldPrice" placeholder="请输原价格"
-                                            :precision="2"></a-input><a-select v-model:value="form.oldSelct2"
+                                            :options="commList[0].option"></a-select><a-input-number class="mr-2.5"
+                                            style="width: 150px;" :disabled="form.oldPriceValue == 1"
+                                            v-model:value="form.toOldPrice" placeholder="请输原价格" :precision="2"
+                                            :min="0"></a-input-number><a-select v-model:value="form.oldSelct2"
                                             style="width: 120px" :options="commList[1].option"
                                             :disabled="form.oldPriceValue == 1"></a-select>
                                     </div>
@@ -45,17 +45,17 @@
                             <a-form-item label="售价：">
                                 <a-radio-group v-model:value="form.priceValue" style="width: 100%;" name="radioGroup">
                                     <div class="flex">
-                                        <a-radio :value="1">直接修改为：</a-radio><a-input type="number" style="width: 200px;"
+                                        <a-radio :value="1">直接修改为：</a-radio><a-input-number style="width: 200px;"
                                             v-model:value="form.price" :disabled="form.priceValue == 2" :precision="2"
-                                            placeholder="示例：1.00"></a-input>
+                                            placeholder="示例：1.00" :min="0"></a-input-number>
                                     </div>
                                     <div class="mt-2.5">
                                         <a-radio :value="2">按现有原价：</a-radio><a-select v-model:value="form.priceSelct1"
                                             :disabled="form.priceValue == 1" class="mr-2.5" style="width: 110px"
-                                            :options="commList[0].option"></a-select><a-input type="number"
-                                            class="mr-2.5" style="width: 150px;" :disabled="form.priceValue == 1"
-                                            v-model:value="form.toPrice" placeholder="请输原价格"
-                                            :precision="2"></a-input><a-select v-model:value="form.priceSelct2"
+                                            :options="commList[0].option"></a-select><a-input-number class="mr-2.5"
+                                            style="width: 150px;" :disabled="form.priceValue == 1"
+                                            v-model:value="form.toPrice" placeholder="请输原价格" :precision="2"
+                                            :min="0"></a-input-number><a-select v-model:value="form.priceSelct2"
                                             style="width: 120px" :options="commList[1].option"
                                             :disabled="form.priceValue == 1"></a-select>
                                     </div>
@@ -68,27 +68,27 @@
                             <a-form-item label="最低价：">
                                 <a-radio-group v-model:value="form.minValue" style="width: 100%;" name="radioGroup">
                                     <div class="flex">
-                                        <a-radio :value="1">直接修改为：</a-radio><a-input type="number" style="width: 200px;"
+                                        <a-radio :value="1">直接修改为：</a-radio><a-input-number style="width: 200px;"
                                             v-model:value="form.minPrice" :disabled="form.minValue == 2" :precision="2"
-                                            placeholder="示例：1.00"></a-input>
+                                            placeholder="示例：1.00" :min="0"></a-input-number>
                                     </div>
                                     <div class="mt-2.5">
                                         <a-radio :value="2">按现有原价：</a-radio><a-select v-model:value="form.minSelct1"
                                             :disabled="form.minValue == 1" class="mr-2.5" style="width: 110px"
-                                            :options="commList[0].option"></a-select><a-input type="number"
-                                            class="mr-2.5" style="width: 150px;" :disabled="form.minValue == 1"
-                                            v-model:value="form.toMinPrice" placeholder="请输原价格"
-                                            :precision="2"></a-input><a-select v-model:value="form.minSelct2"
+                                            :options="commList[0].option"></a-select><a-input-number class="mr-2.5"
+                                            style="width: 150px;" :disabled="form.minValue == 1"
+                                            v-model:value="form.toMinPrice" placeholder="请输原价格" :precision="2"
+                                            :min="0"></a-input-number><a-select v-model:value="form.minSelct2"
                                             style="width: 120px" :options="commList[1].option"
                                             :disabled="form.minValue == 1"></a-select>
                                     </div>
                                     <div class="mt-2.5">
                                         <a-radio :value="3">按现有售价：</a-radio><a-select v-model:value="form.minSelct3"
                                             :disabled="form.minValue == 1" class="mr-2.5" style="width: 110px"
-                                            :options="commList[0].option"></a-select><a-input type="number"
-                                            class="mr-2.5" style="width: 150px;" :disabled="form.minValue == 1"
-                                            v-model:value="form.toMinPrice2" placeholder="请输原价格"
-                                            :precision="2"></a-input><a-select v-model:value="form.minSelct4"
+                                            :options="commList[0].option"></a-select><a-input-number class="mr-2.5"
+                                            style="width: 150px;" :disabled="form.minValue == 1"
+                                            v-model:value="form.toMinPrice2" placeholder="请输原价格" :precision="2"
+                                            :min="0"></a-input-number><a-select v-model:value="form.minSelct4"
                                             style="width: 120px" :options="commList[1].option"
                                             :disabled="form.minValue == 1"></a-select>
                                     </div>
@@ -127,16 +127,16 @@
                             <a-form-item label="重量：">
                                 <a-radio-group v-model:value="form.weightValue" style="width: 100%;" name="radioGroup">
                                     <div class="flex">
-                                        <a-radio :value="1">直接修改为：</a-radio><a-input type="number" style="width: 200px;"
+                                        <a-radio :value="1">直接修改为：</a-radio><a-input-number style="width: 200px;"
                                             v-model:value="form.packageWeight" :disabled="form.weightValue == 2"
-                                            :precision="0" placeholder="示例：1"></a-input>g
+                                            :precision="0" placeholder="示例：1" :min="0"></a-input-number>g
                                     </div>
                                     <div class="mt-2.5">
                                         <a-radio :value="2">按现有重量：</a-radio><a-select v-model:value="form.weightSelect"
                                             :disabled="form.weightValue == 1" class="mr-2.5" style="width: 110px"
-                                            :options="commList[2].option"></a-select><a-input type="number"
-                                            class="mr-2.5" style="width: 150px;" :disabled="form.weightValue == 1"
-                                            v-model:value="form.weight" :precision="0"></a-input>g
+                                            :options="commList[2].option"></a-select><a-input-number class="mr-2.5"
+                                            style="width: 150px;" :disabled="form.weightValue == 1"
+                                            v-model:value="form.weight" :precision="0" :min="0"></a-input-number>g
                                     </div>
                                 </a-radio-group>
                             </a-form-item>
@@ -146,18 +146,18 @@
                             <a-form-item label="尺寸：">
                                 <div class="flex">
                                     <div class="mr-2.5">
-                                        <a-input type="number" style="width: 100px;" v-model:value="form.packageLength"
-                                            placeholder="长" :precision="0"></a-input>
+                                        <a-input-number style="width: 100px;" v-model:value="form.packageLength"
+                                            placeholder="长" :precision="0" :min="0"></a-input-number>
                                         <span>mm</span>
                                     </div>
                                     <div class="mr-2.5">
-                                        <a-input type="number" style="width: 100px;" v-model:value="form.packageWidth"
-                                            placeholder="宽" :precision="0"></a-input>
+                                        <a-input-number style="width: 100px;" v-model:value="form.packageWidth"
+                                            placeholder="宽" :precision="0" :min="0"></a-input-number>
                                         <span>mm</span>
                                     </div>
                                     <div>
-                                        <a-input type="number" style="width: 100px;" v-model:value="form.packageHeight"
-                                            placeholder="高" :precision="0"></a-input>
+                                        <a-input-number style="width: 100px;" v-model:value="form.packageHeight"
+                                            placeholder="高" :precision="0" :min="0"></a-input-number>
                                         <span>mm</span>
                                     </div>
                                 </div>
@@ -474,6 +474,8 @@ const changeInputNumber = (item) => {
 const onSubmit = () => {
     if (props.selectedRows.length == 0) return;
     // loading.value = true;
+    console.log('selectedRows', props.selectedRows);
+
     // 标题数据处理
     let priceList = props.selectedRows.map((item) => {
         return {
@@ -482,7 +484,8 @@ const onSubmit = () => {
             price: item.price,
             oldPrice: item.oldPrice,
             minPrice: item.minPrice,
-            stock: item.stock,
+            warehouseList: item.stock,
+            offerId: item.offerId,
             packageWeight: item?.attributes[0]?.weight,
             packageWidth: item?.attributes[0]?.width,
             packageHeight: item?.attributes[0]?.height,
@@ -502,13 +505,27 @@ const onSubmit = () => {
         }
         if (field === 'stock') {
             console.log('priceList', priceList, props.editStockList);
-            priceList.forEach(item => {
-                props.editStockList.forEach(e => {
-                    if (e.account === item.account) {
-                        item.stock = e.children[0].stock;
-                    }
-                })
-            })
+
+
+            // 遍历数组 a
+            priceList.forEach(itemA => {
+                // 查找 b 数组中 account 匹配的元素
+                const matchingItemB = props.editStockList.find(itemB => itemB.account === itemA.account);
+                if (matchingItemB) {
+                    // 过滤掉 children 中 stock 为空的元素
+                    const validChildren = matchingItemB.children.filter(child => child.stock !== null && child.stock !== '');
+                    // 生成新数组，包含 name、warehouseId 和 stock
+                    const newStockArray = validChildren.map(child => ({
+                        name: child.name,
+                        warehouseId: child.warehouseId,
+                        present: child.stock,
+                        offerId: itemA.offerId
+                    }));
+                    // 将新数组赋值给 a 数组中对应元素的 stock 属性
+                    itemA.warehouseList = newStockArray;
+                }
+            });
+            console.log('priceList', priceList);
         }
     });
     let params = {

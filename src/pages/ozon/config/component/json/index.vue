@@ -8,7 +8,8 @@
       </pre>
       <div class="mask">
         <!-- :disabled="!shop" -->
-        <a-button type="primary" size="large" class="mt-60 mb-4 w30" @click="show = true">编辑</a-button>
+        <a-button type="primary" size="large" :disabled="!shop" class="mt-60 mb-4 w30"
+          @click="show = true">编辑</a-button>
         <br />
         <a-button size="large" class="w-30" :disabled="!shop" @click="clear">清空</a-button>
       </div>
@@ -82,7 +83,7 @@
                       <PictureOutlined :style="{ fontSize: '60px', color: '#a0a3a6' }" />
                       <span>文件格式为 JPEG、JPG、PNG，大小不能超过10MB</span>
                     </div>
-                    <img v-else :src="'/prod-api' + imgs.src[0].url" alt="" :style="imgs.style">
+                    <img v-else :src="imgs.src[0].url" alt="" :style="imgs.style">
                   </div>
                 </div>
                 <div v-else-if="item.type === 'text-image'" class="textImageModule">
@@ -94,8 +95,7 @@
                             <PictureOutlined :style="{ fontSize: '60px', color: '#a0a3a6' }" />
                             <span style="color: #a0a3a6">文件格式为 JPEG、JPG、PNG，大小不能超过10MB</span>
                           </div>
-                          <img v-if="imgItem.src.length" :src="'/prod-api' + imgItem.src[0].url" alt=""
-                            :style="imgItem.imgTextStyle">
+                          <img v-if="imgItem.src.length" :src="imgItem.src[0].url" alt="" :style="imgItem.imgTextStyle">
                         </div>
                         <div class="textareas">
                           <a-textarea v-model:value="imgItem.title.content" placeholder="点击输入标题"
@@ -114,8 +114,7 @@
                             <PictureOutlined :style="{ fontSize: '60px', color: '#a0a3a6' }" />
                             <span style="color: #a0a3a6">文件格式为 JPEG、JPG、PNG，大小不能超过10MB</span>
                           </div>
-                          <img v-if="imgItem.src.length" :src="'/prod-api' + imgItem.src[0].url" alt=""
-                            :style="imgItem.imgTextStyle">
+                          <img v-if="imgItem.src.length" :src="imgItem.src[0].url" alt="" :style="imgItem.imgTextStyle">
                         </div>
                         <div class="textareas">
                           <a-textarea v-model:value="imgItem.title.content" placeholder="点击输入标题"
@@ -203,7 +202,7 @@
                 <div :class="itemImgs.open ? 'showImgCont' : 'noneImgCont'">
                   <a-form-item label="添加图片:">
                     <a-image v-if="itemImgs.src.length" style="position: relative;" :width="100"
-                      :src="'/prod-api' + itemImgs.src[0].url" />
+                      :src="itemImgs.src[0].url" />
                     <div v-if="itemImgs.src.length" style="position: absolute;top:-10px;left: 90px">
                       <AsyncIcon icon="CloseCircleOutlined" size="20px" color="black" @click="itemImgs.src = []" />
                     </div>
@@ -272,7 +271,7 @@
                   <h3 style="font-weight: 700;">图片</h3>
                   <a-form-item label="添加图片:">
                     <a-image v-if="itemImgs.src.length" style="position: relative;" :width="100"
-                      :src="'/prod-api' + itemImgs.src[0].url" />
+                      :src="itemImgs.src[0].url" />
                     <div v-if="itemImgs.src.length" style="position: absolute;top:-10px;left: 90px">
                       <AsyncIcon icon="CloseCircleOutlined" size="20px" color="black" @click="itemImgs.src = []" />
                     </div>
@@ -372,13 +371,15 @@ import { message } from "ant-design-vue";
 import { deepClone } from '~@/utils'
 import jsonUpload from "../jsonUpload/index.vue"
 import batchModify from "../batchModify/index.vue"
+import { processImageSource } from "~/pages/ozon/config/commJs/index"
 const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE
 
 defineOptions({ name: 'MobileDetailEditor' })
 
 const emits = defineEmits(['backResult'])
 const props = defineProps({
-  shop: String
+  shop: String,
+  content: String
 });
 const headers = {
   'Authorization': 'Bearer ' + useAuthorization().value,
@@ -386,6 +387,129 @@ const headers = {
 const uploadUrl =
   import.meta.env.VITE_APP_BASE_API +
   "/platform-ozon/platform/ozon/file/upload/img"
+
+
+watch(() => props.content, val => {
+  if (val.length > 0) {
+    // console.log('val', val);
+    finallyObj.value = JSON.parse(val)
+    const { content } = JSON.parse(val)
+    // console.log('content',content);
+    let textObj = deepClone(textDefault)
+    let imgObj = deepClone(imgDefaulet)
+    let imgTextObj = deepClone(imgTextDefaulet)
+    content.forEach(item => {
+      if (item.widgetName === 'raTextBlock') {
+        item.title.content.join('\n')
+        // console.log('content', typeof item.title.content.join('\n'));
+        if (item.title.content.join('\n').length > 0) {
+          textObj.title.content = item.title.content.join('\n')
+          textObj.title.styles.fontSize = getKeyByValue(sizeEnumObj, item.title.size)
+          textObj.title.styles.color = getKeyByValue(colorEnumObj, item.title.color)
+          textObj.title.styles.textAlign = item.title.align
+        }
+        if (item.text.content.join('\n').length > 0) {
+          textObj.text.content = item.text.content.join('\n')
+          textObj.text.cStyles.fontSize = getKeyByValue(sizeEnumObj, item.text.size)
+          textObj.text.cStyles.color = getKeyByValue(colorEnumObj, item.text.color)
+          textObj.text.cStyles.textAlign = item.text.align
+        }
+        textObj.id = uuidv4()
+        textObj.type = 'text'
+        moduleList.value.push(textObj)
+      } else if (item.widgetName === 'raShowcase') {
+        if (item.type === 'roll') {
+          imgObj.img = item.blocks.map(item => {
+            return {
+              src: [
+                {
+                  url: processImageSource(item.img.src),
+                  checked: true,
+                  id: uuidv4(),
+                  width: item.img.widthMobile,
+                  height: item.img.heightMobile,
+                }
+              ],
+              open: true,
+              jumpUrl: item.imgLink,
+              alt: item.img.alt,
+              style: {
+                width: getKeyByValue(picPosition, item.img.position),
+                select: 0,
+                margin: "0 auto",
+                display: "block"
+              }
+            }
+          })
+          imgObj.id = uuidv4()
+          imgObj.type = 'image'
+          moduleList.value.push(imgObj)
+        } else {
+          imgObj.id = uuidv4()
+          imgObj.type = 'text-image'
+          imgTextObj.imgText.dataType = item.type
+          imgTextObj.imgText.dataList = item.blocks.map(item => {
+            return {
+              src: [
+                {
+                  url: processImageSource(item.img.src),
+                  checked: true,
+                  id: uuidv4(),
+                  width: item.img.widthMobile,
+                  height: item.img.heightMobile,
+                }
+              ],
+              open: true,
+              imgTextStyle: {
+                width: getKeyByValue(picPosition, item.img.position),
+                height: "100%",
+                select: 0,
+                margin: "0 auto",
+                display: "block"
+              },
+              title: {
+                content: item.title.content.join('\n').length > 0 ? item.title.content.join('\n') : "",
+                active: "",
+                styles: {
+                  fontSize: getKeyByValue(sizeEnumObj, item.title.size),
+                  color: getKeyByValue(colorEnumObj, item.title.color),
+                  textAlign: item.title.align,
+                  width: '100%',
+                  height: '100px',
+                  marginTop: "20px"
+                },
+              },
+              text: {
+                content: item.text.content.join('\n').length > 0 ? item.text.content.join('\n') : "",
+                active: "",
+                cStyles: {
+                  fontSize: getKeyByValue(sizeEnumObj, item.text.size),
+                  color: getKeyByValue(colorEnumObj, item.text.color),
+                  textAlign: item.text.align,
+                  width: '100%',
+                  height: '100px',
+                  marginTop: "20px"
+                },
+              }
+            }
+          })
+          moduleList.value.push(imgTextObj)
+        }
+      }
+    })
+
+    // console.log('moduleList', moduleList.value);
+  }
+})
+
+function getKeyByValue(object, value) {
+  for (let key in object) {
+    if (object[key] === value) {
+      return key;
+    }
+  }
+  return null;
+}
 
 
 const showEdit = ref(false)
@@ -396,7 +520,7 @@ const handleChangeColroImg = (info, record) => {
       {
         id: uuidv4(),
         name: info.file.response.originalFilename,
-        url: info.file.response.fileName,
+        url: '/prod-api' + info.file.response.url,
         checked: true,
         width: info.file.response.width,
         height: info.file.response.height,
@@ -415,8 +539,6 @@ function batchPicture(list) {
 }
 
 function batchPictureTimg(list) {
-  console.log('activeModule', activeModule.value.imgText);
-
   let arr = tImgProcessArrays(activeModule.value.imgText.dataList, list);
   moduleList.value[activeModuleIndex.value].imgText.dataList = arr
 }
@@ -447,7 +569,7 @@ function convertBToA(bItem, aTemplate) {
     src: [{
       id: uuidv4(),
       name: bItem.originalFilename,
-      url: bItem.fileName,
+      url: bItem.url,
       checked: true,
       width: bItem.width,
       height: bItem.height
@@ -496,7 +618,7 @@ function tImgConvertBToA(bItem, aTemplate) {
       {
         id: uuidv4(),
         name: bItem.originalFilename,
-        url: bItem.fileName,
+        url: bItem.url,
         checked: true,
         width: bItem.width,
         height: bItem.height
@@ -584,7 +706,6 @@ function batchAssign(e) {
 }
 
 function changeImgTextStyle(e, itemStyle) {
-  console.log('e', e, itemStyle);
   if (e.target.value === '100%') {
     itemStyle.width = "100%"
     itemStyle.height = "100%"
@@ -636,7 +757,6 @@ function clear() {
     }
   })
 }
-
 
 const typeConfig = {
   billboard: { count: 1, dataType: 'billboard' },
@@ -1191,7 +1311,7 @@ function save() {
     message.error("至少添加一个模块信息");
     return
   }
-  console.log('moduleList', moduleList.value);
+  // console.log('moduleList', moduleList.value);
   let res = []
   let obj = {}
   moduleList.value.forEach(item => {
@@ -1280,9 +1400,27 @@ function save() {
         break;
     }
   })
-  console.log('res', res);
+  
+  const newData = res.map(item => {
+    return {
+      ...item,
+      blocks: item.blocks.map(block => {
+        return {
+          ...block,
+          img: {
+            ...block.img,
+            // src: block.img.src.replace('/prod-api', ''),
+            // srcMobile: block.img.srcMobile.replace('/prod-api', '')
+            src: "https://www.xzerp.com/file/wish/upload/2025-03-10/2025/03/10/7017600413_20250310114548A001.jpg",
+            srcMobile: "https://www.xzerp.com/file/wish/upload/2025-03-10/2025/03/10/7017600413_20250310114548A001.jpg"
+          }
+        };
+      })
+    };
+  });
+  // console.log('newData', newData);
   finallyObj.value = {
-    content: res,
+    content: newData,
     version: 0.3
   }
   show.value = false

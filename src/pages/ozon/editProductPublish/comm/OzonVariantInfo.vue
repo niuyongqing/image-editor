@@ -72,10 +72,12 @@
                                 mode="tags"></a-select>
                         </template>
                         <template v-if="column.dataIndex === 'price'">
-                            <a-input-number style="width: 80%" v-model:value="record.price"></a-input-number>
+                            <a-input-number style="width: 80%" v-model:value="record.price"
+                                @blur="judgeMax(record)"></a-input-number>
                         </template>
                         <template v-if="column.dataIndex === 'oldPrice'">
-                            <a-input-number style="width: 80%" v-model:value="record.oldPrice"></a-input-number>
+                            <a-input-number style="width: 80%" v-model:value="record.oldPrice"
+                                @blur="judgeMax(record)"></a-input-number>
                         </template>
                         <template v-if="column.dataIndex === 'minPrice'">
                             <a-input-number disabled style="width: 80%"
@@ -146,7 +148,7 @@
                     </span>
                     <a-button @click="selectAllImg" class="mr-5 mt-1" :disabled="!shopCode">{{ selectAll ? '取消选择全部图片' :
                         '选择全部图片'
-                        }}</a-button>
+                    }}</a-button>
                 </template>
                 <div>
                     <a-tag color="warning">！说明</a-tag>
@@ -162,13 +164,14 @@
                                     <div v-for="(e, i) in imgHeaderList" :key="i">
                                         <div>
                                             <span>{{ e.title }}:</span><span style="margin-left: 10px;">{{ item[e.title]
-                                                }}</span>
+                                            }}</span>
                                         </div>
                                     </div>
                                 </div>
                                 <span v-if="item.imageUrl" class="block mt-2.5">{{ item.imageUrl.length
-                                    }}/15</span>
-                                <dragUpload @changeImg="(list) => changeImg(list, item)" @singleSelectImg="(e) => singleSelectImg(e, item)" :imageList="item.imageUrl">
+                                }}/30</span>
+                                <dragUpload @changeImg="(list) => changeImg(list, item)"
+                                    @singleSelectImg="(e) => singleSelectImg(e, item)" :imageList="item.imageUrl">
                                 </dragUpload>
 
                             </a-card>
@@ -197,7 +200,7 @@ import { productWarehouse } from "../../config/api/product"
 import SelectAttr from '../../productPublish/comm/SelectAttr.vue';
 import batchEditModal from "~/pages/ozon/config/component/batchEditModal/index.vue"
 import { editHead, otherList } from '../../config/tabColumns/skuHead';
-import { updatePrice, processAttributesCache, checkData,rearrangeColorFields } from "../../config/commJs/index"
+import { updatePrice, processAttributesCache, checkData, rearrangeColorFields, processImageSource } from "../../config/commJs/index"
 import { useOzonProductStore } from '~@/stores/ozon-product'
 import dragUpload from '../../productPublish/comm/dragUpload.vue';
 import { scaleApi, watermarkListApi, watermarkApi } from "~/api/common/water-mark";
@@ -583,6 +586,28 @@ const singleSelectImg = (e, item) => {
     }
 }
 
+const judgeMax = (item) => {
+    const { price, oldPrice } = item;
+    // 检查 price 和 oldPrice 是否为空或 null
+    if (price == null || oldPrice == null) {
+        return; // 如果有一个为空或 null，直接返回，不做后续比较
+    }
+    // 确保 price 和 oldPrice 是有效的数字
+    const parsedPrice = parseFloat(price);
+    const parsedOldPrice = parseFloat(oldPrice);
+    if (isNaN(parsedPrice) || isNaN(parsedOldPrice)) {
+        return; // 如果转换后不是有效的数字，直接返回
+    }
+
+    if (parsedPrice > parsedOldPrice) {
+        Modal.error({
+            title: '错误提示',
+            content: '售价不能大于原价！'
+        })
+    }
+
+}
+
 const submitForm = () => {
     const isEmpty = (value) => value == null || value === '' || value === 0;
     const validations = [
@@ -625,11 +650,26 @@ watch(() => useOzonProductStore().attributes, val => {
         const {
             attributes, oldPrice, price, stock,
             offerId, images, colorImage, warehouseList,
-            account, minPrice,
+            account, minPrice, primaryImage
         } = props.productDetail;
         rowOldPrice.value = oldPrice
         rowPrice.value = price
         getEditStore(account) //获取仓库
+        let newImgList = []
+        if (Array.isArray(primaryImage) && primaryImage.length != 0) {
+            newImgList = [...new Set([...primaryImage, ...images])]
+        } else {
+            newImgList = [...new Set([...images])]
+        }
+        console.log('newImgList', newImgList);
+
+        let imgList = []
+        imgList = newImgList?.map(item => {
+            return {
+                url: processImageSource(item),
+                checked: false,
+            }
+        })
         shopCode.value = account
         // 以下是过滤出自定义属性数据
         const newAttributesCache = processAttributesCache(val);
@@ -666,14 +706,18 @@ watch(() => useOzonProductStore().attributes, val => {
                     const { selectType, name: sortName, options } = sortItem;
                     // 处理多选或单选类型
                     if (selectType === "multSelect" || selectType === "select") {
+                        const matchedValues = [];
                         attrItem.values.forEach((valueItem) => {
                             if (!options) return; // 无选项可匹配时跳过
-                            const matchedOption = options.find(opt => opt.id === valueItem.dictionary_value_id);
+                            const matchedOption = options.find(opt => opt.id === valueItem.dictionaryValueId);
                             if (matchedOption) {
-                                editRes.value[sortName] = matchedOption.value; // 注: 会保留最后一次匹配的值
-                                imgHeaderList.value.push({
-                                    title: sortName
-                                })
+                                // console.log('matchedOption',matchedOption);
+                                matchedValues.push(matchedOption.value);
+                                // editRes.value[sortName] = matchedOption.value; // 注: 会保留最后一次匹配的值
+                            }
+
+                            if (matchedValues.length > 0) {
+                                editRes.value[sortName] = matchedValues.join(',');
                             }
                         });
                     }
@@ -682,9 +726,6 @@ watch(() => useOzonProductStore().attributes, val => {
                         const validValue = attrItem.values.find(value => value.value !== "");
                         if (validValue) {
                             editRes.value[sortName] = validValue.value;
-                            imgHeaderList.value.push({
-                                title: sortName
-                            })
                         }
 
                     }
@@ -695,10 +736,21 @@ watch(() => useOzonProductStore().attributes, val => {
                         show: true,
                         align: 'center'
                     });
+                    const exists = imgHeaderList.value.some(item => item.title === sortName);
+                    if(!exists) {
+                        imgHeaderList.value.push({
+                            title: sortName
+                        })
+                    }
                 });
+                // imgHeaderList.value = sortArr.map(item => {
+                //     return {
+                //         title: item.name
+                //     }
+                // })
                 let colorObj = {};
                 let colorHead = [];
-                if (colorImage) {
+                if (colorImage.length > 0) {
                     colorObj = {
                         title: "颜色样本",
                         dataIndex: "colorImg",
@@ -718,10 +770,10 @@ watch(() => useOzonProductStore().attributes, val => {
             }
         }
         let colorImageObj = {};
-        if (colorImage) {
+        if (colorImage.length > 0) {
             colorImageObj = {
-                url: colorImage,
-                name: colorImage.substring(colorImage.lastIndexOf("/") + 1),
+                url: processImageSource(colorImage[0]),
+                name: colorImage[0].substring(colorImage.lastIndexOf("/") + 1),
             };
         }
         let item = {
@@ -735,14 +787,11 @@ watch(() => useOzonProductStore().attributes, val => {
             warehouseList: warehouseList && warehouseList,
             quantity: stock,
             sellerSKU: offerId,
-            imageUrl: images?.map(item => {
-                return {
-                    url: item,
-                    checked: false,
-                }
-            }),
-            colorImg: colorImage ? [colorImageObj] : [],
+            imageUrl: imgList,
+            colorImg: colorImage.length > 0 ? [colorImageObj] : [],
         };
+        console.log('editRes', editRes.value);
+
         Object.assign(item, editRes.value);
         // this.$set(this.tableData, 0, item);
         tableData.value.push(item)

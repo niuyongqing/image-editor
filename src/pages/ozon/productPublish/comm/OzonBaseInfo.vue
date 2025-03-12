@@ -214,8 +214,6 @@ const getAttributesID = (ids) => {
         label: ids.label,
         value: ids.value
     };
-    console.log('form', form.categoryId);
-
     emit("getAttributes", form.shortCode, form.categoryId);
 }
 // 历史分类
@@ -310,7 +308,10 @@ const getHistoryAttr = (historyCategoryId, account) => {
     }).then((res) => {
         let resObj = (res?.data && JSON.parse(res?.data)) || {};
         // this.$set(this.form, "attributes", resObj);
-        form.attributes = resObj
+        // form.attributes = resObj
+        form.attributes = assignValues(resObj,loopAttributes.value)
+        console.log('attributes',form.attributes);
+        
         // // this.form.attributes = res?.data
         // //   ? JSON.parse(res?.data)
         // //   : this.form.attributes;
@@ -340,7 +341,23 @@ const assignValues = (a, b) => {
                     });
                     result[name] = filteredItems.map((e) => e.value);
                 } else if (selectType === "select") {
-                    result[name] = name == "品牌(Бренд)" ? "无品牌" : a[key];
+                    // console.log('sss',result[name],key,a[key]);
+                    let filteredItems =
+                        item?.options &&
+                        item?.options?.filter((e) =>e.value === a[key]);
+                    filteredItems.forEach((e) => {
+                        e.value = {
+                            label: e.label,
+                            value: e.value
+                        }
+                    });
+                    result[name] = name == "品牌(Бренд)" ? {
+                        label: "无品牌",
+                        value:{
+                            label: "无品牌",
+                            value: "无品牌"
+                        }
+                    } : filteredItems
                 } else {
                     result[name] = a[key];
                 }
@@ -352,6 +369,8 @@ const assignValues = (a, b) => {
 }
 
 const addItemValues = (obj) => {
+    console.log('obj',obj);
+    
     const { attributes } = form;
     const isExist = obj.acquiesceList.some(
         (item) => item.value === obj.selectDate.value
@@ -455,13 +474,23 @@ watch(() => useOzonProductStore().attributes, (val) => {
                     label: "",
                     value: ""
                 };
-                item.options = item?.options?.map(item => {
-                    return {
-                        ...item,
-                        label: item.value,
-                        value: item.id,
-                    }
-                })
+                if(item.id === 9070) {
+                    item.options = item?.options?.map(item => {
+                        return {
+                            ...item,
+                            label: item.label,
+                            value: item.value,
+                        }
+                    })
+                }else {
+                    item.options = item?.options?.map(item => {
+                        return {
+                            ...item,
+                            label: item.value,
+                            value: item.id,
+                        }
+                    })
+                }
                 item.acquiesceList =
                     (item.options && item.options.slice(0, 25)) ?? [];
                 attributes[item.name] = item.selectType === "multSelect" ? [] : undefined;

@@ -146,18 +146,19 @@ const onRangeChange = (value, dateString) => {
 const handleOk = () => {
   console.log('props', props);
   console.log('formState', formState);
-  const { exportWay, incomingForm: { marketId, shopId }, selectedRowKeys } = props;
-  const { orderStatus, timeType, sTime, endTime, exportType } = formState;
+  const { exportWay, incomingForm: { marketId, account }, selectedRowKeys } = props;
+  const { orderStatus, timeType, sTime, endTime, exportType,exportFileType } = formState;
   let params = {
     type: exportWay,
+    account,
     orderStatus: "当type等于时需要使用,订单状态", //后续知道状态后补充
     orderIds: exportWay == 2 ? selectedRowKeys : [],
     marketId: marketId.length > 1 ? [] : marketId,
-    shopId: shopId,
     timeField: exportWay == 1 ? timeType : "",
-    startTime: sTime,
-    endTime: endTime,
-    exportType
+    startDate: sTime,
+    endDate: endTime,
+    exportType,
+    exportFileType
   }
   console.log('params', params);
 

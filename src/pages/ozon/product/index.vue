@@ -21,7 +21,7 @@
                             <a-input v-if="actives == 2" style="width: 400px;" v-model:value="formData.sku" allowClear
                                 @clear="onSubmit" placeholder="请输入SKU查询,多个SKU间用逗号隔开，最多支持200个"></a-input>
                             <a-input v-if="actives == 3" style="width: 400px;" allowClear
-                                v-model:value="formData.offerId" @clear="onSubmit"
+                                v-model:value="formData.id" @clear="onSubmit"
                                 placeholder="请输入产品ID查询,多个ID间用逗号隔开，最多支持200个"></a-input>
                         </div>
                         <a-button type="primary" class="ml-[10px]" @click="onSubmit(true)">查询</a-button>
@@ -132,20 +132,20 @@
                             :disabled="selectedRows.length === 0">批量修改备注</a-button>
                     </a-col>
                     <a-col :span="1.5">
-                        <a-button type="primary" @click="edit" :disabled="selectedRows.length !== 1">编 辑</a-button>
+                        <a-button type="primary" @click="edit()" :disabled="selectedRows.length !== 1">编 辑</a-button>
                     </a-col>
                     <a-col :span="1.5">
-                        <a-button type="primary" @click="copy" :disabled="selectedRows.length === 0">复 制</a-button>
+                        <a-button type="primary" @click="copy()" :disabled="selectedRows.length === 0">复 制</a-button>
                     </a-col>
                     <a-col :span="1.5">
-                        <a-button type="primary" @click="sync" :loading="syncLoading">同步店铺商品</a-button>
+                        <a-button type="primary" @click="sync()" :loading="syncLoading">同步店铺商品</a-button>
                     </a-col>
                     <a-col :span="1.5">
-                        <a-button type="primary" @click="syncOne" :disabled="selectedRows.length === 0"
+                        <a-button type="primary" @click="syncOne()" :disabled="selectedRows.length === 0"
                             :loading="syncLoading">同步当前商品</a-button>
                     </a-col>
                     <a-col :span="1.5">
-                        <a-popconfirm title="确定下架吗？" @confirm="deactivate">
+                        <a-popconfirm title="确定下架吗？" @confirm="deactivate()">
                             <a-button type="primary" :disabled="selectedRows.length === 0"
                                 :loading="deactivateLoading">批量归档</a-button>
                         </a-popconfirm>
@@ -154,7 +154,7 @@
                         <a-button type="primary" @click="syncHisAttr()" :loading="syncLoading">同步历史分类</a-button>
                     </a-col>
                     <a-col :span="1.5">
-                        <a-popconfirm title="删除代表该产品在ozon平台删除，确定删除吗？" @confirm="deleteItem">
+                        <a-popconfirm title="删除代表该产品在ozon平台删除，确定删除吗？" @confirm="deleteItem()">
                             <a-button type="primary" danger :disabled="selectedRows.length === 0"
                                 :loading="delLoading">删 除</a-button>
                         </a-popconfirm>
@@ -204,7 +204,7 @@
                                 <a-checkbox style="margin:0 10px;" @change="handelChecked($event, tbItem, record)"
                                     v-model:checked="record.checked"></a-checkbox>
                                 <div class="flex text-left items-center">
-                                    <a-image style="width: 100px; height: 100px;" :src="record.primaryImage ? record.primaryImage : record.images[0]
+                                    <a-image style="width: 100px; height: 100px;" :src="record.primaryImage ? processImageSource(record.primaryImage[0]) : processImageSource(record.images[0])
                                         ">
                                     </a-image>
                                     <div style="margin-left: 10px; display: block">
@@ -215,8 +215,8 @@
                                             <div class="w-110 truncate">{{ record.name }}</div>
                                         </a-tooltip>
                                         <div style="color: #999; float: left">
-                                            产品ID：<a style="color: #1677ff" href="#" @click="jumpTo(record.sku)">{{
-                                                record.sku }}</a>
+                                            产品ID：<a style="color: #1677ff" href="#" @click="jumpTo(record.id)">{{
+                                                record.id }}</a>
                                         </div>
                                         <br />
                                         <div style="color: #999; float: left">
@@ -513,32 +513,31 @@
                                                         }}分</span>
                                                 </a-popover>
                                             </div>
-                                            <span v-else>{{ 0.0 }}分</span>
+                                            <span v-else class="ml-2.5">{{ 0.0 }}分</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div v-if="column.dataIndex === 'errorInfo'">
-                                <div v-if="record.errorInfo != null">
-                                    <div style="display: flex">
+                                <div v-if="record.errors != null">
+                                    <!-- <div style="display: flex">
                                         <div>商品状态描述:</div>
                                         <div style="margin-left: 20px; color: red">
                                             {{ record.errorInfo.stateDescription }}
                                         </div>
-                                    </div>
+                                    </div> -->
                                     <div style="display: flex">
                                         <div>
                                             详细描述:
                                             <a-popover :overlayInnerStyle="{ width: '1000px' }" trigger="click">
                                                 <template #content>
-                                                    <a-table :pagination="false" :data-source="record.errorInfo.itemErrors &&
-                                                        record.errorInfo.itemErrors
+                                                    <a-table :pagination="false" :data-source="record.errors
                                                         " bordered :scroll="{ x: 200, y: 300 }"
                                                         :columns="errorColumns">
                                                     </a-table>
                                                 </template>
-                                                <a-button type="primary" :disabled="record.errorInfo.itemErrors &&
-                                                    record.errorInfo.itemErrors.length == 0
+                                                <a-button type="primary" :disabled="record.errors &&
+                                                    record.errors.length == 0
                                                     " style="margin-left: 20px">更多信息</a-button>
                                             </a-popover>
                                         </div>
@@ -647,11 +646,12 @@ import progressBar from "../config/component/progressBar/index.vue"
 import productList from "./comm/productList.vue";
 import copyProduct from "./comm/copyProduct.vue";
 import shopSetModal from "./comm/shopSetModal.vue";
+import { processImageSource } from "~/pages/ozon/config/commJs/index"
 
 const OzonProduct = ref(null)
 const formRef = ref(null)
 const formData = reactive({
-    offerId: "",
+    id: "",
     account: "",
     sku: "",
     name: "",
@@ -822,11 +822,11 @@ const selectTypes = (index) => {
     switch (index) {
         case 1:
             formData.sku = "";
-            formData.offerId = "";
+            formData.id = "";
             break;
         case 2:
             formData.name = "";
-            formData.offerId = "";
+            formData.id = "";
             break;
         case 3:
             formData.sku = "";
@@ -840,7 +840,7 @@ const selectTypes = (index) => {
 // 高级搜索重置
 const resetForm = (type = 0) => {
     formData.sku = "";
-    formData.offerId = "";
+    formData.id = "";
     formData.name = "";
     advancedForm.minPrice = ""
     advancedForm.maxPrice = ""
@@ -898,7 +898,6 @@ const commFn = (tableItem, type = 'single', record = {}) => {
     console.log('syncOneList', syncOneList.value);
 
 }
-
 
 //单个选择
 const handelChecked = (e, tbItem, record) => {
@@ -974,7 +973,6 @@ const changeBox = (e, tbItem, index) => {
         });
     }
 }
-
 
 const showChildren = (account, id, typeId) => {
     if (!id) return;
@@ -1054,7 +1052,6 @@ const handleMenuClick = (e) => {
     getStore();
 
 }
-
 
 // 批量修改库存
 const editStock = (row = {}) => {
@@ -1137,6 +1134,9 @@ const handleEditPriceClose = () => {
     editPriceVisible.value = false;
     // getList();
     console.log('tableData', tableData.value);
+    setUncheck()
+}
+const setUncheck = () => {
     tableData.value.forEach(item => {
         item.tabAllChecked = false
         item.children.forEach(child => {
@@ -1163,7 +1163,9 @@ const backCloseRemark = () => {
     selectedRows.value = [];
     remarkId.value = [];
     syncOneList.value = [];
+    allChecked.value = false
     getList();
+    // setUncheck()
 }
 
 const handleCopyProductClose = () => {
@@ -1173,7 +1175,7 @@ const handleCopyProductClose = () => {
 }
 
 // 复制
-const copy = (row) => {
+const copy = (row = {}) => {
     if (syncOneList.value.length == 0) {
         copyList.value.push({
             account: row.account,
@@ -1250,10 +1252,12 @@ const add = () => {
     window.open("productPublish", '_blank');
 }
 const edit = (row = {}) => {
+    console.log('**', row, selectedRows.value);
+
     let newRow = Object.keys(row).length != 0 ? row : selectedRows.value[0];
     console.log('newRow', newRow);
 
-    window.open("editProductPublish" + `?id=${newRow.id}&account=${newRow.account}`, '_blank');
+    window.open("editProductPublish" + `?id=${newRow.offerId}&account=${newRow.account}`, '_blank');
 }
 const sync = () => {
     syncLoading.value = true;
@@ -1266,39 +1270,56 @@ const sync = () => {
                         percentage.value = parseInt(res.data);
                         if (res.data >= 100) {
                             clearInterval(interval.value)
+                            message.success("同步成功！");
+                            syncLoading.value = false;
+                            showOpen.value = false;
+                            getList();
+                            setTimeout(() => {
+                                percentage.value = 0;
+                            }, 300);
                         }
                     })
                 }, 5000);
             })
-        //     .catch(() => {
+        // .finally(() => {
+        //     syncLoading.value = false;
+        //     showOpen.value = false;
+        //     getList();
+        //     setTimeout(() => {
         //         percentage.value = 0;
-        //     })
-        //     .finally(() => {
-        //         syncLoading.value = false;
-        //         showOpen.value = false;
-        //         getList();
-        //         setTimeout(() => {
-        //             percentage.value = 0;
-        //         }, 300);
-        //     });
-
-
+        //     }, 300);
+        // });
     } else {
         syncShopProduct({ account: formData.account })
             .then((res) => {
-                percentage.value = 100;
+                // percentage.value = 100;
+                interval.value = setInterval(() => {
+                    asyncProgress(res.msg).then(res => {
+                        percentage.value = parseInt(res.data);
+                        if (res.data >= 100) {
+                            clearInterval(interval.value)
+                            message.success("同步成功！");
+                            syncLoading.value = false;
+                            showOpen.value = false;
+                            getList();
+                            setTimeout(() => {
+                                percentage.value = 0;
+                            }, 300);
+                        }
+                    })
+                }, 5000);
             })
             .catch(() => {
                 percentage.value = 0;
             })
-            .finally(() => {
-                syncLoading.value = false;
-                showOpen.value = false;
-                getList();
-                setTimeout(() => {
-                    percentage.value = 0;
-                }, 300);
-            });
+        // .finally(() => {
+        //     syncLoading.value = false;
+        //     showOpen.value = false;
+        //     getList();
+        //     setTimeout(() => {
+        //         percentage.value = 0;
+        //     }, 300);
+        // });
     }
 }
 
@@ -1313,8 +1334,8 @@ const syncOne = (record = {}) => {
     if (syncOneList.value.length == 0) {
         obj = {
             account: record.account,
-            // offerIds: [record.offerId],
-            productIds: [record.id]
+            offerIds: [record.offerId],
+            // productIds: [record.id]
         };
         id.push(obj);
     } else {
@@ -1383,6 +1404,15 @@ const getList = (isSearch = false) => {
             tableData.value =
                 res?.rows[0]?.productList?.map((item) => {
                     item.show = false;
+                    item.children.forEach(e => {
+                        e.errors = e?.errors?.map(el => {
+                            return {
+                                attributeName: el?.texts?.attributeName,
+                                description: el?.texts?.description,
+                                message: el?.texts?.message
+                            }
+                        })
+                    })
                     return item;
                 }) ?? [];
             tabQuantity.value = res?.rows[0]?.quantity ?? [];
@@ -1391,6 +1421,7 @@ const getList = (isSearch = false) => {
         .finally(() => {
             loading.value = false;
         });
+        
 }
 
 const shopSet = () => {

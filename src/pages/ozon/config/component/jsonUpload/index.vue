@@ -23,6 +23,7 @@ const newList = ref([])
 async function handleChange(info) {
   const { file, fileList } = info;
   if (file.status === 'done') {
+    file.response.url = '/prod-api' + file.response.url
     // 当单个文件上传完成时，将其添加到已上传文件数组中
     newList.value.push(file.response);
     // 检查是否所有文件都已上传完成

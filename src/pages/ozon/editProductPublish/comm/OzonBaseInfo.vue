@@ -4,7 +4,7 @@
             <a-form :label-col="{ span: 3 }" ref="ruleForm" :model="form" class="mt-5" :rules="rules">
                 <a-form-item label="店铺：" name="shortCode">
                     <a-select v-model:value="form.shortCode" placeholder="请选择店铺" disabled style="width: 90%" allowClear
-                        showSearch optionFilterProp="label">
+                        showSearch optionFilterProp="label" :options="shopList">
                     </a-select>
                 </a-form-item>
                 <a-form-item label="商品标题：" name="name">
@@ -120,6 +120,7 @@ const props = defineProps({
     categoryAttributesLoading: Boolean,
     attributesCache: Array,
     productDetail: Object,
+    shopList: Array,
 });
 const emit = defineEmits(["sendShortCode", "getAttributes"]);
 
@@ -179,9 +180,6 @@ const vatList = [
 const filterAttrList = ref([])
 const operationLine = ref([]) //取消的
 const hisAttrObj = ref([]) //选中的三级
-
-
-
 
 // 历史分类
 const getHistoryList = (account) => {
@@ -243,7 +241,6 @@ const shouldHideItem = (item) => {
     );
 }
 
-
 // 此方法将历史缓存中的属性值进行重新赋值
 const assignValues = (a, b) => {
     let newRes = a.map((item) => {
@@ -252,7 +249,7 @@ const assignValues = (a, b) => {
             values: item.values.map((value) => {
                 return {
                     ...value,
-                    id: Number(value.dictionary_value_id),
+                    id: Number(value.dictionaryValueId),
                     info: "",
                     picture: "",
                     label: ""
@@ -270,8 +267,10 @@ const assignValues = (a, b) => {
             const allValidItems = resItem.values.every((item) => item.value !== "");
             if (attributeId === item.id && allValidItems) {
                 if (selectType === "multSelect") {
-                    result[name] = resItem.values.map(item => item.id);
-                    item.acquiesceList = moveMatchedItemForward(item.options, resItem.values.map(item => item.id))
+                    // result[name] = resItem.values.map(item => item.id); 旧写法
+                    result[name] = resItem.values.map(item => Number(item.dictionaryValueId)); // 新
+                    // item.acquiesceList = moveMatchedItemForward(item.options, resItem.values.map(item => item.id))
+                    item.acquiesceList = moveMatchedItemForward(item.options, resItem.values.map(item => item.value))
                 }
                 else if (selectType === "select") {
                     result[name] = findMatchedOption(attributeId, resItem.values[0], item.options)
@@ -282,7 +281,6 @@ const assignValues = (a, b) => {
             }
         });
     });
-
     return result;
 }
 
@@ -370,14 +368,12 @@ defineExpose({
 
 
 watch(() => props.productDetail, val => {
-    console.log('val*//',val);
-    
     if (Object.keys(val).length > 0) {
         const { simpleName, account, name, vat, typeId, descriptionCategoryId } = val;
         // 修改响应式对象的属性
-        form.shortCode = simpleName;
+        form.shortCode = account;
         form.name = name;
-        form.vat = vat === "0.0" ? vat.split(".")[0] : vat;
+        form.vat = vat === "0.00" ? vat.split(".")[0] : vat;
         form.categoryId = {
             threeCategoryId: typeId,
             threeCategoryName: "",
@@ -475,6 +471,8 @@ watch(() => props.attributesCache, (val) => {
             loopAttributes.value = noThemeAttributesCache;
             // 赋值
             const { attributes: oldAttributes } = props.productDetail.attributes[0];
+            console.log('loopAttributes', oldAttributes);
+            
             const proceRes = assignValues(oldAttributes, loopAttributes.value);
             form.attributes = proceRes;
             console.log('proceRes0', proceRes);

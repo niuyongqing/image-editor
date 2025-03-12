@@ -13,6 +13,9 @@
                 </a-form-item>
                 <a-form-item label="JSON 丰富内容：" name="jsonDes">
                     <span style="color: #ff0a37">说明：描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M</span>
+                    <a-form-item-rest>
+                        <jsonForm @backResult="backResult" :content="form.jsons" :shop="shopCode"></jsonForm>
+                    </a-form-item-rest>
                 </a-form-item>
                 <a-form-item label="视频：">
                     <div>
@@ -86,9 +89,12 @@
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { message } from "ant-design-vue";
+import jsonForm from "../../config/component/json/index.vue"
+import { processImageSource } from "~/pages/ozon/config/commJs/index"
 const ruleForm = ref(null)
 const props = defineProps({
-    shopCode: String
+    shopCode: String,
+    productDetail: Object,
 });
 const form = reactive({
     video: [],
@@ -142,12 +148,66 @@ const removeVideo = () => {
 const removeVideoList = (index) => {
     form.video.splice(index, 1)
 }
-const handleVideoImageSuccess = () => { }
+const submitForm = () => {
+    if (Object.keys(form.jsons).length == 0) {
+        message.error("JSON富文本未填写！")
+        return false;
+    }
+    return true;
+}
 
 // 抛出数据和方法，可以让父级用ref获取
 defineExpose({
-    form
+    form,
+    submitForm
 })
+
+
+const backResult = (res) => {
+    form.jsons = res
+    // console.log('p', form.jsons);
+
+}
+
+watch(() => props.productDetail, val => {
+    if (Object.keys(val).length > 0) {
+        const { attributes, complexAttributes } = val.skuList[0];
+
+        if (attributes?.length == 0 || attributes == null) return;
+        const copyAttr = attributes?.filter(
+            (a) => a.id == 11254 || a.id == 4191
+        );
+        complexAttributes && complexAttributes.forEach((item) => {
+            // item.attributes.forEach((attribute) => {
+            // });
+            if (item.id === 21841) {
+                form.video.push({
+                    url: processImageSource(item.values[0].value),
+                    name: item.values[0].value.substring(
+                        item.values[0].value.lastIndexOf("/") + 1
+                    ),
+                })
+            } else if (item.id === 21845) {
+                form.coverUrl = {
+                    url: processImageSource(item.values[0].value),
+                    name: item.values[0].value.substring(
+                        item.values[0].value.lastIndexOf("/") + 1
+                    ),
+                };
+            }
+        });
+        copyAttr.forEach(e => {
+            if (e.id === 11254) {
+                form.jsons = e.values[0].value 
+            } else {
+                form.description = e.values[0].value
+            }
+        })
+        // console.log('form',form);
+        
+    }
+})
+
 </script>
 <style lang="less" scoped>
 .cover-item {
