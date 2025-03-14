@@ -181,7 +181,7 @@
         isMsrEuIdFromDetail: false,
         isManufacturerIdFromDetail: false,
         rules: {
-          groupIdList: { validator: validGroup, trigger: 'change' }
+          groupIdList: { required: true, validator: validGroup, trigger: 'change' }
         },
         // 资质信息
         qualificationList: [],

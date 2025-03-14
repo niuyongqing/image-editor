@@ -15,12 +15,11 @@
         name="webDetail"
       >
         <span class="text-[#a0a3a6]">详细描述一般包含产品功能属性、产品细节图片、支付物流、售后服务、公司实力等内容。</span>
-        <WangEditor
+        <WangEditorPlus
           v-model="form.webDetail"
           ref="webDetailRef"
-          :toolbar-config="toolbarConfig"
           :editor-config="editorConfig"
-          :height="500"
+          @edit-image-size="editImageSize"
         />
       </a-form-item>
       <a-form-item label="APP端描述">
@@ -35,20 +34,27 @@
           @click="cloneWebDetail"
           >根据PC端描述生成</a-button
         >
-        <WangEditor
-          v-model="form.mobileDetail"
-          ref="mobileDetailRef"
-          :toolbar-config="toolbarConfig"
-          :editor-config="editorConfig"
-          :height="500"
+        <MobileDetailEditor
+          :mobile-detail="mobileModuleList"
+          :seller-id="store.sellerId"
+          @clear="clear"
+          @mobile-detail-edit="mobileDetailEdit"
         />
       </a-form-item>
     </a-form>
+
+    <!-- 批量编辑图片尺寸 -->
+    <EditImageBatch
+      v-model:open="open"
+      :image-list="imgUrls"
+      @confirm="editImageConfirm"
+    />
   </a-card>
 </template>
 
 <script>
   import MobileDetailEditor from '@/components/mobile-detail-editor/index.vue'
+  import EditImageBatch from '@/components/edit-image-batch/index.vue'
   import { InfoCircleOutlined } from '@ant-design/icons-vue'
   import { useAliexpressChoiceProductStore } from '~@/stores/aliexpress-choice-product'
   import { uploadImageForSdkApi } from '../../apis/common'
@@ -57,7 +63,7 @@
 
   export default {
     name: 'Description',
-    components: { MobileDetailEditor, InfoCircleOutlined },
+    components: { MobileDetailEditor, InfoCircleOutlined, EditImageBatch },
     data() {
       const validWebDetail = (rule, val) => {
         if (!val.length || val === '<p><br></p>') {
@@ -68,7 +74,6 @@
       }
       return {
         store: useAliexpressChoiceProductStore(),
-        uploadImageUrl: import.meta.env.VITE_APP_BASE_API_DEV + '/platform-aliexpress/platform/aliexpress/file/imageBank/uploadImageForSdk',
         form: {
           webDetail: ''
         },
@@ -76,8 +81,6 @@
         rules: {
           webDetail: { validator: validWebDetail, required: true, trigger: 'change' }
         },
-        // 工具栏配置
-        toolbarConfig: {},
         // 编辑器配置
         editorConfig: {
           placeholder: '请输入内容...',
@@ -87,7 +90,7 @@
               // 选择文件时的类型限制，默认为 ['image/*'] 。如不想限制，则设置为 []
               allowedFileTypes: ['image/*'],
               customUpload(file, insertFn) {
-                if (!useAliexpressPopProductStore().sellerId) {
+                if (!useAliexpressChoiceProductStore().sellerId) {
                   message.warning('请先选择店铺')
 
                   return
@@ -95,7 +98,7 @@
 
                 const formData = new FormData()
                 formData.append('file', file)
-                formData.append('sellerId', useAliexpressPopProductStore().sellerId)
+                formData.append('sellerId', useAliexpressChoiceProductStore().sellerId)
                 formData.append('fileName', file.name)
                 uploadImageForSdkApi(formData).then(res => {
                   insertFn(res.data.result.photobankUrl)
@@ -104,7 +107,10 @@
               }
             }
           }
-        }
+        },
+        // 编辑图片尺寸
+        open: false,
+        imgUrls: []
       }
     },
     computed: {
@@ -195,6 +201,27 @@
           }
         })
       },
+      // 批量修改图片尺寸
+      editImageSize() {
+        // 提取所有图片
+        // 编辑过的图片需要移除前面的 origin(IP)
+        const origin = window.location.origin
+        this.imgUrls = extractImageUrls(this.form.webDetail).map(url => url.replace(origin, ''))
+        if (this.imgUrls.length === 0) {
+          message.error('未检测到图片')
+
+          return
+        }
+
+        this.open = true
+      },
+      // 编辑后返回的数据
+      editImageConfirm(imageList) {
+        this.form.webDetail = this.form.webDetail.replaceAll('&amp;', '&')
+        imageList.forEach(item => {
+          this.form.webDetail = this.form.webDetail.replace(item.originUrl, item.url)
+        })
+      },
 
       async emitData({ isDraft = false }) {
         if (isDraft) {
@@ -216,7 +243,7 @@
               {
                 type: 'html',
                 html: {
-                  content: this.form.webDetail
+                  content: this.form.webDetail.replaceAll('/prod-api', '')
                 }
               }
             ]
@@ -225,9 +252,12 @@
         }
 
         if (this.mobileModuleList.length) {
+          let mobileModuleListStr = JSON.stringify(this.mobileModuleList)
+          mobileModuleListStr = mobileModuleListStr.replaceAll('/prod-api', '')
+          const moduleList = JSON.parse(mobileModuleListStr)
           const res = {
             version: '2.0.0',
-            moduleList: this.mobileModuleList
+            moduleList
           }
 
           mobileDetail = JSON.stringify(res)

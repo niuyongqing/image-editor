@@ -64,10 +64,7 @@
         class="mb-4"
         id="goods"
       >
-        <div
-          v-if="attrList.length"
-          class="text-end"
-        >
+        <div class="text-end">
           <!-- 批量填充按钮 -->
           <a-button
             type="primary"
@@ -286,10 +283,7 @@
         title="变种信息"
         id="variant"
       >
-        <div
-          v-if="attrList.length"
-          class="text-end"
-        >
+        <div class="text-end">
           <!-- 批量填充按钮 -->
           <a-button
             type="primary"
