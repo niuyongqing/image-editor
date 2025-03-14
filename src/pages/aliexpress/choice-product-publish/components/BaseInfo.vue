@@ -89,7 +89,7 @@
               :label="item.zh || item.en"
               :name="item.zh"
             >
-              <!-- supportEnumInput 当前属性是否支持自定义枚举类型属性值(通过filterable来控制能否输入) -->
+              <!-- supportEnumInput 当前属性是否支持自定义枚举类型属性值 -->
               <template v-if="item.attributeShowTypeValue === 'list_box'">
                 <a-select
                   v-if="!item.supportEnumInput"

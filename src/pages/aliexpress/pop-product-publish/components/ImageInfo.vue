@@ -449,7 +449,7 @@
           }
         }
         // 视频媒体
-        if (detail.aeopAEMultimedia && detail.aeopAEMultimedia.length) {
+        if (detail.aeopAEMultimedia && detail.aeopAEMultimedia.aeopAEVideos) {
           this.form.video = {
             mediaId: detail.aeopAEMultimedia?.aeopAEVideos[0]?.mediaId,
             mediaType: detail.aeopAEMultimedia?.aeopAEVideos[0]?.mediaType,

@@ -81,7 +81,7 @@
               :label="item.zh || item.en"
               :name="item.zh"
             >
-              <!-- supportEnumInput 当前属性是否支持自定义枚举类型属性值(通过filterable来控制能否输入) -->
+              <!-- supportEnumInput 当前属性是否支持自定义枚举类型属性值 -->
               <template v-if="item.attributeShowTypeValue === 'list_box'">
                 <a-select
                   v-if="!item.supportEnumInput"
@@ -526,6 +526,7 @@
           sellerId: this.form.sellerId,
           templateType: 6,
           productClassification: [this.form.category],
+          state: 1, // 启用
           pageNum: 1,
           pageSize: 999
         }
@@ -540,6 +541,7 @@
           sellerId: this.form.sellerId,
           templateType: 7,
           productClassification: [this.form.category],
+          state: 1,
           pageNum: 1,
           pageSize: 999
         }
@@ -610,8 +612,8 @@
                 attributeList.forEach(item => {
                   item.zh = JSON.parse(item.names).zh
                   item.en = JSON.parse(item.names).en
-                  // 是否支持材质百分比(有 AE_FEATURE_material_ratio 字段则为需要填写百分比)
-                  item.showPercent = item.features.includes('AE_FEATURE_material_ratio')
+                  // 是否支持材质百分比(有 AE_FEATURE_material_ratio 字段则为需要填写百分比)(check_box)
+                  item.showPercent = item.attributeShowTypeValue === 'check_box' && item.features.includes('AE_FEATURE_material_ratio')
                   item.values.forEach(value => {
                     const names = JSON.parse(value.names)
                     value.name = names.zh + '(' + names.en + ')'

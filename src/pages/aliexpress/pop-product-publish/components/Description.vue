@@ -247,7 +247,7 @@
               {
                 type: 'html',
                 html: {
-                  content: this.form.webDetail
+                  content: this.form.webDetail.replaceAll('/prod-api', '')
                 }
               }
             ]
@@ -256,9 +256,12 @@
         }
 
         if (this.mobileModuleList.length) {
+          let mobileModuleListStr = JSON.stringify(this.mobileModuleList)
+          mobileModuleListStr = mobileModuleListStr.replaceAll('/prod-api', '')
+          const moduleList = JSON.parse(mobileModuleListStr)
           const res = {
             version: '2.0.0',
-            moduleList: this.mobileModuleList
+            moduleList
           }
 
           mobileDetail = JSON.stringify(res)

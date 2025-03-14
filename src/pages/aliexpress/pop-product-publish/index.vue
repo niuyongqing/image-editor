@@ -121,7 +121,7 @@
   import { Modal, message } from 'ant-design-vue'
 
   // 页面卸载前弹窗提醒
-  /* onMounted(() => {
+  onMounted(() => {
     window.addEventListener('beforeunload', stopUnload)
   })
   onBeforeUnmount(() => {
@@ -130,7 +130,7 @@
   function stopUnload(e) {
     e.preventDefault()
     e.returnValue = ''
-  } */
+  }
 
   /** 编辑; 获取数据 */
   const query = useRoute().query
@@ -200,6 +200,7 @@
   const othersRef = ref()
 
   /** 保存草稿 */
+  const router = useRouter()
   async function saveDraft({ looseValidate = false }) {
     // 基本信息
     const baseInfo = await baseInfoRef.value.emitData({ looseValidate })
@@ -251,6 +252,7 @@
       draftsId: productDetail.value.draftsId // uuid
     }
     const result = {
+      isSemiCustodial: isSemiCustodial.value,
       ...baseInfo,
       ...imageInfo,
       ...priceAndStock,
@@ -270,29 +272,29 @@
     }
 
     const submitLoading = ref(true)
+    // FIXME:: '保存草稿'时, 不会更新存在速卖通后台的草稿(未调用 popOneSubmitApi)
     const saveDraftApi = looseValidate ? (productDetail.value.draftsId ? editProductDraftsApi : saveProductDraftsApi) : popOneSubmitApi
     saveDraftApi(params)
       .then(res => {
+        message.success('保存成功')
+        window.removeEventListener('beforeunload', stopUnload)
         if (looseValidate) {
-          message.success('保存成功')
+          setTimeout(() => {
+            window.close()
+          }, 300)
         } else {
           // 跳转半托管
           const query = {
             sellerId: params.sellerId,
-            draftsId: res.data.draftsId, // 给半托管传草稿的 uuid
-            draftId: res.data.draftId, // 产品 id
-            fromPath: productDetail.value.draftId ? 'Pop-product-draft' : 'Pop-product'
+            productId: res.data.draftId, // 产品 id
+            draftsId: res.data.draftsId // 给半托管传草稿的 uuid
+            // draftId: res.data.draftId, // 产品 id
+            // fromPath: productDetail.value.draftId ? 'pop-product-publish-draft' : 'pop-product-publish'
           }
-          const router = useRouter()
           router.push({
-            name: 'Pop-choice-product',
-            params: query
+            name: 'pop-choice-product-publish',
+            query
           })
-
-          window.removeEventListener('beforeunload', stopUnload)
-          setTimeout(() => {
-            window.close()
-          }, 300)
         }
       })
       .finally(() => {
@@ -365,12 +367,17 @@
     const requestApi = productDetail.value.productId ? editProductApi : addProductApi
     requestApi(params)
       .then(res => {
-        if (res.msg) {
+        /* if (res.msg) {
           // 如果是由草稿发布的, 发布成功后删除该草稿
           if (productDetail.value.draftsId) {
             // this.$bus.$emit('delDraftAndRefresh', { draftsId: productDetail.value.draftsId })
           }
-        }
+        } */
+        message.success('发布成功')
+        window.removeEventListener('beforeunload', stopUnload)
+        setTimeout(() => {
+          window.close()
+        }, 300)
       })
       .catch(err => {
         console.log('发布失败', err)

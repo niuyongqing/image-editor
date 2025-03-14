@@ -399,7 +399,7 @@
               创建时间: <span class="text-gray">{{ record.createTime || '--' }}</span>
             </div>
             <div>
-              编辑时间: <span class="text-gray">{{ record.gmtModified || '--' }}</span>
+              编辑时间: <span class="text-gray">{{ record.updateTime || '--' }}</span>
             </div>
           </div>
           <div v-if="column.key === 'option'">
@@ -470,7 +470,7 @@
         // 被 watch 监听的搜索表单; 外层, 点击即可搜索
         watchedSearchForm: {
           sellerId: undefined,
-          prop: 'gmt_modified_time',
+          prop: 'updateTime',
           order: 'desc',
           productType: undefined,
           productStatus: 'ONLINE'
@@ -668,10 +668,10 @@
           ...this.lazySearchForm,
           [this.lazySearchForm.searchKey]: this.lazySearchForm.searchValue,
           ...this.tableParams,
-          gmtCreateStart: this.lazySearchForm.createTime ? dayjs(this.lazySearchForm.createTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
-          gmtCreateEnd: this.lazySearchForm.createTime ? dayjs(this.lazySearchForm.createTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
-          gmtModifiedStart: this.lazySearchForm.updateTime ? dayjs(this.lazySearchForm.updateTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
-          gmtModifiedEnd: this.lazySearchForm.updateTime ? dayjs(this.lazySearchForm.updateTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined
+          startCreateTime: this.lazySearchForm.createTime ? dayjs(this.lazySearchForm.createTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+          endCreateTime: this.lazySearchForm.createTime ? dayjs(this.lazySearchForm.createTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+          startUpdateTime: this.lazySearchForm.updateTime ? dayjs(this.lazySearchForm.updateTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+          endUpdateTime: this.lazySearchForm.updateTime ? dayjs(this.lazySearchForm.updateTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined
         }
         delete params.createTime
         delete params.updateTime

@@ -477,6 +477,29 @@
           </a-table>
         </div>
       </a-card>
+
+      <a-space class="mt-3 pr-4 w-full justify-end">
+        <a-button
+          :loading="draftSaveLoading"
+          @click="backToProductEdit"
+          >返回商品编辑</a-button
+        >
+        <!-- 编辑时就没有保存草稿了 -->
+        <a-button
+          v-if="!isEdit"
+          type="primary"
+          ghost
+          :loading="draftSaveLoading"
+          @click="saveDraft"
+          >保存草稿</a-button
+        >
+        <a-button
+          type="primary"
+          :loading="saveLoading"
+          @click="submit"
+          >提 交</a-button
+        >
+      </a-space>
     </div>
 
     <!-- 右边锚点 -->
@@ -513,7 +536,7 @@
     data() {
       return {
         isEdit: false,
-        params: {},
+        query: {},
         categoryId: '',
         currencyCode: '',
         countryLoading: false,
@@ -638,10 +661,7 @@
     watch: {},
     mounted() {
       const { query } = this.$route
-      this.params = {
-        sellerId: query.sellerId,
-        productId: query.productId
-      }
+      this.query = query
       this.isEdit = query.isEdit === 'true'
       // 拿 currencyCode
       this.getSellerInfo()
@@ -650,22 +670,26 @@
       this.getSKUInfo()
 
       // 页面卸载前弹窗提醒
-      // window.addEventListener('beforeunload', stopUnload)
+      window.addEventListener('beforeunload', stopUnload)
     },
     beforeDestroy() {
-      // window.removeEventListener('beforeunload', stopUnload)
+      window.removeEventListener('beforeunload', stopUnload)
     },
     methods: {
       // 获取商家信息
       getSellerInfo() {
-        getSellerInfoApi({ sellerId: this.params.sellerId }).then(res => {
+        getSellerInfoApi({ sellerId: this.query.sellerId }).then(res => {
           this.currencyCode = res.data.profile.quotationCurrency
         })
       },
       // 获取商家半托管基本信息
       getPopChoiceInfo() {
         this.countryLoading = true
-        popChoiceInfoApi(this.params)
+        const params = {
+          sellerId: this.query.sellerId,
+          productId: this.query.productId
+        }
+        popChoiceInfoApi(params)
           .then(res => {
             this.countryList = res.data.result.popChoiceCountryList || []
             this.warehouseList = res.data.result.popChoiceWarehouseList || []
@@ -687,7 +711,11 @@
       // 获取 SKU 信息
       getSKUInfo() {
         this.SKUInfoLoading = true
-        SKUInfoApi(this.params)
+        const params = {
+          sellerId: this.query.sellerId,
+          productId: this.query.productId
+        }
+        SKUInfoApi(params)
           .then(res => {
             this.categoryId = res.data.result.popChoiceProduct.categoryId
             const productSkuList = res.data.result.popChoiceProduct.productSkuList || []
@@ -712,7 +740,12 @@
           })
       },
       getDraftDetail() {
-        getPopChoiceProductApi(this.params)
+        const params = {
+          sellerId: this.query.sellerId,
+          draftsId: this.query.draftsId
+          // productId: this.query.productId
+        }
+        getPopChoiceProductApi(params)
           .then(res => {
             if (res.data) {
               const { joinedCountryList = [], productSkuList = [] } = res.data.result.popChoiceProduct
@@ -741,7 +774,11 @@
           })
       },
       getDetail() {
-        detailApi(this.params)
+        const params = {
+          sellerId: this.query.sellerId,
+          productId: this.query.productId
+        }
+        detailApi(params)
           .then(res => {
             if (res.data) {
               const { joinedCountryList = [], productSkuList = [] } = res.data.result.popChoiceProduct
@@ -906,14 +943,14 @@
         })
         const key = needValidate ? (this.isEdit ? 'productId' : 'draftId') : 'productId'
         const popChoiceProduct = {
-          [key]: this.params.productId,
+          [key]: this.query.productId,
           categoryId: this.categoryId,
           currencyCode: this.currencyCode,
           joinedCountryList: this.joinedCountryList,
           productSkuList
         }
         return {
-          sellerId: this.params.sellerId,
+          sellerId: this.query.sellerId,
           popChoiceProduct
         }
       },
@@ -921,7 +958,7 @@
       backToProductEdit() {
         this.$router.push({
           path: '/platform/aliexpress/pop-product-publish',
-          query: this.params
+          query: this.query
         })
       },
       // 保存草稿
@@ -932,6 +969,10 @@
         draftSaveApi(params)
           .then(_ => {
             this.$message.success('保存成功')
+            window.removeEventListener('beforeunload', stopUnload)
+            setTimeout(() => {
+              window.close()
+            }, 300)
           })
           .finally(() => {
             this.draftSaveLoading = false
@@ -947,6 +988,10 @@
         requestApi(params)
           .then(_ => {
             this.$message.success('提交成功')
+            window.removeEventListener('beforeunload', stopUnload)
+            setTimeout(() => {
+              window.close()
+            }, 300)
           })
           .finally(() => {
             this.saveLoading = false

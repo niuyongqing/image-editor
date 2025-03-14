@@ -29,7 +29,8 @@
         >
           <a-select
             v-model:value="form.productUnit"
-            filterable
+            show-search
+            option-filter-prop="label"
             placeholder="请选择计件单位"
             :options="UNIT_OPTIONS"
           />

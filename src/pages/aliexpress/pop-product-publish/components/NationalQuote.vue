@@ -323,6 +323,7 @@
       getNationalQuoteTemplateList() {
         const params = {
           templateType: 3,
+          state: 1,
           pageNum: 1,
           pageSize: 999
         }

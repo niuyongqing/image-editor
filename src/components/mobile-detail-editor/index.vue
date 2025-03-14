@@ -15,7 +15,7 @@
             >
               <!-- 类型(class)分为 title 和 body, 但没有区别, 只是编辑时设置的默认样式不一样 -->
               <div
-                :style="{ 'font-size': text.style.fontSize + 'px', 'font-weight': text.style.fontWeight, 'text-align': text.style.align, color: text.style.color }"
+                :style="{ 'font-size': text.style?.fontSize + 'px', 'font-weight': text.style?.fontWeight, 'text-align': text.style?.align, color: text.style?.color }"
                 :innerText="text.content"
               ></div>
             </div>

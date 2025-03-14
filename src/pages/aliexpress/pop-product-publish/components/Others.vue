@@ -228,6 +228,13 @@
           this.getQualification()
         }
       },
+      'form.isSemiCustodial': {
+        handler: function (checked) {
+          this.store.$patch(state => {
+            state.isSemiCustodial = checked
+          })
+        }
+      },
       productDetail: {
         handler: function (detail) {
           if (Object.keys(detail).length === 0) return
