@@ -1,6 +1,18 @@
 <template>
   <div class="national-quote mb-4">
     <a-card title="区域调价信息">
+      <template #extra>
+        <a-select
+          placeholder="选择区域调价模版"
+          allow-clear
+          show-search
+          :options="nationalQuoteTemplateList"
+          :field-names="{ label: 'templateName', value: 'id' }"
+          option-filter-prop="templateName"
+          class="w-60"
+          @change="handleTemplateChange"
+        />
+      </template>
       <a-form :label-col="{ style: { width: '180px' } }">
         <a-form-item label="调价方式：">
           <div class="mb-3 w-[63%]">
@@ -124,6 +136,7 @@
 
 <script>
   import { areaListApi } from '../../apis/product'
+  import { templateListApi } from '../../apis/templates'
   import { useAliexpressPopProductStore } from '@/stores/aliexpress-pop-product'
   import { Modal } from 'ant-design-vue'
   import { CopyOutlined } from '@ant-design/icons-vue'
@@ -135,6 +148,7 @@
       return {
         store: useAliexpressPopProductStore(),
         countries: [],
+        nationalQuoteTemplateList: [],
         configurationType: 'absolute', // 还有一个类型: delete-删除分国家报价;
         options: [
           { label: '直接报价', value: 'absolute' },
@@ -291,6 +305,8 @@
     mounted() {
       // 获取区域数据
       this.getAreaList()
+      // 获取区域调价模板数据
+      this.getNationalQuoteTemplateList()
     },
     methods: {
       getAreaList() {
@@ -303,6 +319,19 @@
           }
         })
       },
+      // 获取调价模版列表
+      getNationalQuoteTemplateList() {
+        const params = {
+          templateType: 3,
+          state: 1,
+          pageNum: 1,
+          pageSize: 999
+        }
+
+        templateListApi(params).then(res => {
+          this.nationalQuoteTemplateList = res.rows || []
+        })
+      },
       handleCheckAllChange(e) {
         this.checkList = e.target.checked ? this.countries.map(item => item.areaCode) : []
         this.isIndeterminate = false
@@ -311,6 +340,31 @@
         let checkedCount = value.length
         this.checkAll = checkedCount === this.countries.length
         this.isIndeterminate = checkedCount > 0 && checkedCount < this.countries.length
+      },
+      // 填充属性模版内容
+      handleTemplateChange(id, option) {
+        if (!id) return
+
+        const templateValue = JSON.parse(option.templateValue)
+        this.configurationType = templateValue.configurationType
+        this.checkList = Object.keys(templateValue.regionalPriceTable[0])
+        this.$nextTick(() => {
+          if (this.SKUTableData.length) {
+            // SKU数据当骨架, 融合已填写数据
+            this.regionalPriceTable = this.SKUTableData.map(item => {
+              const row = { ...item }
+              this.checkList.forEach(areaCode => {
+                row[areaCode] = templateValue.regionalPriceTable[0][areaCode]
+                row[`${areaCode}Price`] = templateValue.regionalPriceTable[0][areaCode]
+              })
+
+              return row
+            })
+          } else {
+            // 未选择变种
+            this.regionalPriceTable = templateValue.regionalPriceTable
+          }
+        })
       },
       // 切换调价方式, 清空已填写数据
       configurationChange() {

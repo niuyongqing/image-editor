@@ -4,6 +4,7 @@
     :open="open"
     title="属性模版"
     width="40%"
+    :confirm-loading="confirmLoading"
     @cancel="cancel"
     @ok="handleOk"
   >
@@ -26,7 +27,7 @@
             placeholder="请输入"
             :maxlength="128"
             show-count
-          ></a-input>
+          />
         </a-form-item>
         <a-form-item
           label="店铺名称"
@@ -63,160 +64,159 @@
     <a-card title="产品属性">
       <a-form :label-col="{ style: { width: '100px' } }">
         <a-form-item label="产品属性">
-          <a-card
-            :loading="loading"
-            class="relative"
-          >
-            <a-form
-              ref="attributeFormRef"
-              :model="attributes"
-              :label-col="{ style: { width: '150px' } }"
-              :wrapper-col="{ style: { width: '240px' } }"
-              class="mt-6 flex flex-wrap"
-            >
-              <a-form-item
-                v-for="(item, i) in attributeOptions"
-                :key="item.attributeId"
-                :required="item.required"
-                :label="item.zh || item.en"
-                :name="item.zh"
+          <a-spin :spinning="loading">
+            <a-card class="relative">
+              <a-form
+                ref="attributeFormRef"
+                :model="attributes"
+                :label-col="{ style: { width: '150px' } }"
+                :wrapper-col="{ style: { width: '240px' } }"
+                class="mt-6 flex flex-wrap"
               >
-                <!-- supportEnumInput 当前属性是否支持自定义枚举类型属性值(通过filterable来控制能否输入) -->
-                <template v-if="item.attributeShowTypeValue === 'list_box'">
-                  <a-select
-                    v-if="!item.supportEnumInput"
-                    v-model:value="attributes[item.zh]"
-                    :options="item.values"
-                    :field-names="{ label: 'name', value: 'attributeValueId' }"
-                    show-search
-                    allow-clear
-                    label-in-value
-                    placeholder="请选择"
-                    option-filter-prop="name"
-                    @change="val => handleAttrChange(val, i)"
-                  >
-                  </a-select>
-                  <!-- 可自定义填写内容 -->
-                  <a-select
-                    v-else
-                    v-model:value="attributes[item.zh]"
-                    :options="item.values"
-                    :field-names="{ label: 'name', value: 'attributeValueId' }"
-                    :ref="el => setRef(el, item.zh)"
-                    mode="tags"
-                    show-search
-                    allow-clear
-                    label-in-value
-                    placeholder="输入或选择;回车确认输入值"
-                    option-filter-prop="name"
-                    @select="(val, option) => supportEnumInputSelect(val, option, item.zh, i)"
-                  >
-                    <template #tagRender="{ label }">
-                      <span>{{ label }}</span>
-                    </template>
-                  </a-select>
-                </template>
-                <a-input
-                  v-else-if="item.attributeShowTypeValue === 'input'"
-                  v-model:value="attributes[item.zh]"
-                  placeholder="请输入"
-                ></a-input>
-                <a-input
-                  v-else-if="item.attributeShowTypeValue === 'input_int'"
-                  v-model:value.trim="attributes[item.zh]"
-                  placeholder="请输入数值"
-                ></a-input>
-                <a-radio-group
-                  v-else-if="item.attributeShowTypeValue === 'radio'"
-                  v-model:value="attributes[item.zh]"
+                <a-form-item
+                  v-for="(item, i) in attributeOptions"
+                  :key="item.attributeId"
+                  :required="item.required"
+                  :label="item.zh || item.en"
                   :name="item.zh"
                 >
-                  <a-radio
-                    v-for="radio in item.values"
-                    :key="radio.attributeValueId"
-                    :value="radio.attributeValueId"
-                    >{{ radio.name }}</a-radio
-                  >
-                </a-radio-group>
-                <!-- 高关注化学物质(check_box)选项太多了, 用多选下拉框替代 -->
-                <template v-else-if="item.attributeShowTypeValue === 'check_box'">
-                  <!-- feature 含 AE_FEATURE_material_ratio 的需填材质比例 -->
-                  <template v-if="item.showPercent">
-                    <div
-                      v-for="(materialItem, i2) in attributes[item.zh]"
-                      :key="materialItem.id"
-                      class="flex mb-1"
+                  <!-- supportEnumInput 当前属性是否支持自定义枚举类型属性值 -->
+                  <template v-if="item.attributeShowTypeValue === 'list_box'">
+                    <a-select
+                      v-if="!item.supportEnumInput"
+                      v-model:value="attributes[item.zh]"
+                      :options="item.values"
+                      :field-names="{ label: 'name', value: 'attributeValueId' }"
+                      show-search
+                      allow-clear
+                      label-in-value
+                      placeholder="请选择"
+                      option-filter-prop="name"
+                      @change="val => handleAttrChange(val, i)"
                     >
-                      <a-form-item-rest>
-                        <a-space class="z-1">
-                          <a-select
-                            v-model:value="materialItem.material"
-                            :options="item.values"
-                            :field-names="{ label: 'name', value: 'attributeValueId' }"
-                            show-search
-                            allow-clear
-                            label-in-value
-                            placeholder="请选择"
-                            option-filter-prop="name"
-                            style="width: 128px"
-                          />
-                          <a-input-number
-                            v-model:value="materialItem.percent"
-                            :controls="false"
-                            :precision="0"
-                            :min="1"
-                            :max="100"
-                            style="width: 76px"
-                          >
-                            <template #addonAfter>%</template>
-                          </a-input-number>
-                          <a-button
-                            v-if="i2 === attributes[item.zh].length - 1"
-                            type="link"
-                            title="添加"
-                            @click="materialAdd(attributes[item.zh])"
-                          >
-                            <template #icon><PlusOutlined /></template>
-                          </a-button>
-                          <a-button
-                            v-if="attributes[item.zh].length !== 1"
-                            type="link"
-                            title="删除"
-                            @click="materialDel(attributes[item.zh], i2)"
-                          >
-                            <template #icon><MinusOutlined /></template>
-                          </a-button>
-                          <a-popover v-if="i2 === 0">
-                            <template #content>
-                              <span>材质百分比之和须等于 100%</span>
-                            </template>
-                            <InfoCircleOutlined />
-                          </a-popover>
-                        </a-space>
-                      </a-form-item-rest>
-                    </div>
+                    </a-select>
+                    <!-- 可自定义填写内容 -->
+                    <a-select
+                      v-else
+                      v-model:value="attributes[item.zh]"
+                      :options="item.values"
+                      :field-names="{ label: 'name', value: 'attributeValueId' }"
+                      :ref="el => setRef(el, item.zh)"
+                      mode="tags"
+                      show-search
+                      allow-clear
+                      label-in-value
+                      placeholder="输入或选择;回车确认输入值"
+                      option-filter-prop="name"
+                      @select="(val, option) => supportEnumInputSelect(val, option, item.zh, i)"
+                    >
+                      <template #tagRender="{ label }">
+                        <span>{{ label }}</span>
+                      </template>
+                    </a-select>
                   </template>
-                  <a-select
-                    v-else
+                  <a-input
+                    v-else-if="item.attributeShowTypeValue === 'input'"
                     v-model:value="attributes[item.zh]"
-                    :options="item.values"
-                    :field-names="{ label: 'name', value: 'attributeValueId' }"
-                    :mode="item.supportEnumInput ? 'tags' : 'multiple'"
-                    show-search
-                    allow-clear
-                    label-in-value
-                    placeholder="输入或选择;回车确认输入值"
-                    option-filter-prop="name"
+                    placeholder="请输入"
                   />
-                </template>
-                <a-input
-                  v-else
-                  v-model:value="item.attributeShowTypeValue"
-                  disabled
-                ></a-input>
-              </a-form-item>
-            </a-form>
-          </a-card>
+                  <a-input
+                    v-else-if="item.attributeShowTypeValue === 'input_int'"
+                    v-model:value.trim="attributes[item.zh]"
+                    placeholder="请输入数值"
+                  />
+                  <a-radio-group
+                    v-else-if="item.attributeShowTypeValue === 'radio'"
+                    v-model:value="attributes[item.zh]"
+                    :name="item.zh"
+                  >
+                    <a-radio
+                      v-for="radio in item.values"
+                      :key="radio.attributeValueId"
+                      :value="radio.attributeValueId"
+                      >{{ radio.name }}</a-radio
+                    >
+                  </a-radio-group>
+                  <!-- 高关注化学物质(check_box)选项太多了, 用多选下拉框替代 -->
+                  <template v-else-if="item.attributeShowTypeValue === 'check_box'">
+                    <!-- feature 含 AE_FEATURE_material_ratio 的需填材质比例 -->
+                    <template v-if="item.showPercent">
+                      <div
+                        v-for="(materialItem, i2) in attributes[item.zh]"
+                        :key="materialItem.id"
+                        class="flex mb-1"
+                      >
+                        <a-form-item-rest>
+                          <a-space class="z-1">
+                            <a-select
+                              v-model:value="materialItem.material"
+                              :options="item.values"
+                              :field-names="{ label: 'name', value: 'attributeValueId' }"
+                              show-search
+                              allow-clear
+                              label-in-value
+                              placeholder="请选择"
+                              option-filter-prop="name"
+                              style="width: 128px"
+                            />
+                            <a-input-number
+                              v-model:value="materialItem.percent"
+                              :controls="false"
+                              :precision="0"
+                              :min="1"
+                              :max="100"
+                              style="width: 76px"
+                            >
+                              <template #addonAfter>%</template>
+                            </a-input-number>
+                            <a-button
+                              v-if="i2 === attributes[item.zh].length - 1"
+                              type="link"
+                              title="添加"
+                              @click="materialAdd(attributes[item.zh])"
+                            >
+                              <template #icon><PlusOutlined /></template>
+                            </a-button>
+                            <a-button
+                              v-if="attributes[item.zh].length !== 1"
+                              type="link"
+                              title="删除"
+                              @click="materialDel(attributes[item.zh], i2)"
+                            >
+                              <template #icon><MinusOutlined /></template>
+                            </a-button>
+                            <a-popover v-if="i2 === 0">
+                              <template #content>
+                                <span>材质百分比之和须等于 100%</span>
+                              </template>
+                              <InfoCircleOutlined />
+                            </a-popover>
+                          </a-space>
+                        </a-form-item-rest>
+                      </div>
+                    </template>
+                    <a-select
+                      v-else
+                      v-model:value="attributes[item.zh]"
+                      :options="item.values"
+                      :field-names="{ label: 'name', value: 'attributeValueId' }"
+                      :mode="item.supportEnumInput ? 'tags' : 'multiple'"
+                      show-search
+                      allow-clear
+                      label-in-value
+                      placeholder="输入或选择;回车确认输入值"
+                      option-filter-prop="name"
+                    />
+                  </template>
+                  <a-input
+                    v-else
+                    v-model:value="item.attributeShowTypeValue"
+                    disabled
+                  />
+                </a-form-item>
+              </a-form>
+            </a-card>
+          </a-spin>
         </a-form-item>
         <a-form-item label="自定义属性">
           <div class="w-1/2">
@@ -228,12 +228,12 @@
               <a-input
                 v-model:value="item.label"
                 placeholder="属性名"
-              ></a-input>
+              />
               <a-input
                 v-model:value="item.value"
                 placeholder="属性值"
                 class="ml-2.5"
-              ></a-input>
+              />
               <a-space>
                 <a-button
                   type="link"
@@ -270,6 +270,7 @@
 
 <script setup>
   import { getProductClassificationApi, resultByPostCateIdAndPathApi, getResultByPostCateIdAndPathApi } from '../../apis/product'
+  import { templateAddApi, templateUpdateApi } from '../../apis/templates'
   import { message } from 'ant-design-vue'
   import { v4 as uuidv4 } from 'uuid'
   import { InfoCircleOutlined, PlusOutlined, MinusOutlined, UpOutlined, DownOutlined } from '@ant-design/icons-vue'
@@ -288,23 +289,13 @@
       default: () => []
     }
   })
-  const emits = defineEmits(['update:open', 'confirm'])
-
-  watch(
-    () => props.open,
-    open => {
-      if (!open || Object.keys(props.detail).length === 0) return
-
-      stopHandleAttrOnce.value = true
-
-      console.log('watch', props.detail)
-    }
-  )
+  const emits = defineEmits(['update:open', 'confirm', 'refresh'])
 
   /** 弹窗相关 */
   function cancel() {
     emits('update:open', false)
   }
+  const confirmLoading = ref(false)
   async function handleOk() {
     let baseInfoFormValid = true
     await baseInfoFormRef.value.validate().catch(err => {
@@ -348,6 +339,7 @@
     // 若有校验不通过, return; 阻断下序操作
     if (!baseInfoFormValid || !attrValid || hasMaterialErr || hasEmpty) return
 
+    confirmLoading.value = true
     const aeopAeProductPropertys = []
     for (const key in attributes.value) {
       const tempObj = attributeOptions.value.find(item => item.zh === key)
@@ -396,22 +388,37 @@
 
     const result = cusAttribute.value.map(item => {
       return {
+        attrNameId: -1,
         attrName: item.label,
         attrValue: item.value
       }
     })
+    // 分类 label
+    const textList = baseInfoForm.value.categoryIds.map(id => {
+      const target = categoryRawList.value.find(item => item.id === id)
+      return target.label
+    })
+    let displayText = textList.join('/')
 
     aeopAeProductPropertys.push(...result)
     const params = {
+      id: props.detail.id,
       sellerId: baseInfoForm.value.sellerId,
       templateName: baseInfoForm.value.name,
-      // templateType: 1,
-      // state: 2,
+      templateType: 6,
       productClassification: baseInfoForm.value.categoryIds,
-      templateValue: aeopAeProductPropertys
+      displayText,
+      templateValue: JSON.stringify(aeopAeProductPropertys)
     }
-
-    emits('confirm', params)
+    const requestApi = props.detail.id ?  templateUpdateApi : templateAddApi
+    requestApi(params)
+      .then(res => {
+        cancel()
+        emits('refresh')
+      })
+      .finally(() => {
+        confirmLoading.value = false
+      })
   }
 
   /** 表单内容 */
@@ -449,6 +456,7 @@
 
   function handleAccountChange() {
     baseInfoForm.value.categoryIds = []
+    categoryRawList.value = []
     categoryOptions.value = []
     getCategoryOptions()
     attributes.value = {}
@@ -456,6 +464,7 @@
   }
 
   // 获取分类选项列表
+  const categoryRawList = ref([]) // 分类数据原始列表, 供查询分类 label 用
   function getCategoryOptions() {
     getProductClassificationApi({ channelSellerId: baseInfoForm.value.sellerId }).then(res => {
       const rawList = res.data || []
@@ -463,6 +472,7 @@
         const names = JSON.parse(item.names)
         item.label = `${names.zh}(${names.en})`
       })
+      categoryRawList.value = rawList
 
       // 添加进第一级数据
       const options = rawList.filter(item => item.levelId === '0')
@@ -699,4 +709,132 @@
   function delAttr(id) {
     cusAttribute.value = cusAttribute.value.filter(item => item.id !== id)
   }
+
+  watch(
+    () => props.open,
+    async open => {
+      if (open && Object.keys(props.detail).length) {
+        stopHandleAttrOnce.value = true
+        baseInfoForm.value.name = props.detail.templateName
+        baseInfoForm.value.sellerId = props.detail.sellerId
+        handleAccountChange()
+        baseInfoForm.value.categoryIds = props.detail.productClassification
+        await getAttributes()
+
+        const templateValue = JSON.parse(props.detail.templateValue)
+        // 与品类绑定的属性
+        const attributeList = templateValue.filter(item => item.attrNameId && item.attrNameId !== -1)
+        // 整合先
+        const root = {}
+        attributeList.forEach(item => {
+          if (root[item.attrNameId]) {
+            root[item.attrNameId].push(item)
+          } else {
+            root[item.attrNameId] = [item]
+          }
+        })
+        // 因要判断是否还有下级属性(hasSubAttr), 不能直接赋 aeopAeProductPropertys 的值; 从 attributeOptions 里取
+        const attributesObj = {}
+        for (const attrNameId in root) {
+          const option = attributeOptions.value.find(option => option.attributeId == attrNameId)
+          if (option) {
+            switch (option.attributeShowTypeValue) {
+              case 'list_box':
+                const target = option.values.find(val => val.attributeValueId == root[attrNameId][0].attrValueId)
+                if (target) {
+                  // 如果 supportEnumInput 为 true, 则设置 mode = tags, 值为 Array
+                  attributesObj[option.zh] = option.supportEnumInput
+                    ? [
+                        {
+                          label: target.name,
+                          value: target.attributeValueId,
+                          key: target.attributeValueId,
+                          option: target
+                        }
+                      ]
+                    : {
+                        label: target.name,
+                        value: target.attributeValueId,
+                        key: target.attributeValueId,
+                        option: target
+                      }
+                } else {
+                  attributesObj[option.zh] = option.supportEnumInput ? [{ label: root[attrNameId][0].attrValue, value: undefined }] : { label: root[attrNameId][0].attrValue, value: undefined }
+                }
+                break
+
+              case 'check_box':
+                attributesObj[option.zh] = root[attrNameId].map(item => {
+                  const target = option.values.find(val => val.attributeValueId == item.attrValueId)
+                  if (target) {
+                    // 材质百分比
+                    if (option.showPercent) {
+                      return {
+                        material: {
+                          label: target.name,
+                          value: target.attributeValueId,
+                          key: target.attributeValueId,
+                          option: target
+                        },
+                        percent: item.percent
+                      }
+                    } else {
+                      // 其他多选类型
+                      return {
+                        label: target.name,
+                        value: target.attributeValueId,
+                        key: target.attributeValueId,
+                        option: target
+                      }
+                    }
+                  } else {
+                    return { label: item.attrValue, value: undefined }
+                  }
+                })
+                break
+
+              case 'input':
+              case 'input_int':
+              case 'radio':
+              default:
+                attributesObj[option.zh] = root[attrNameId][0].attrValue
+                break
+            }
+          } else {
+            // 动态添加的下级属性(查不到, 下面查到属性后再狸猫换太子)
+            attributesObj[attrNameId] = {
+              en: root[attrNameId][0].attrValue,
+              value: root[attrNameId][0].attrValueId,
+              option: {
+                en: root[attrNameId][0].attrValue,
+                name: root[attrNameId][0].attrName,
+                attributeValueId: Number(root[attrNameId][0].attrValueId)
+              }
+            }
+          }
+        }
+        // 如果存在下级属性 hasSubAttr
+        for (const zh in attributesObj) {
+          if (Object.prototype.toString.call(attributesObj[zh]).slice(8, -1) === 'Object') {
+            if (attributesObj[zh].option.hasSubAttr) {
+              const i = attributeOptions.value.findIndex(item => item.zh === zh)
+              i > -1 && handleAttrChange(attributesObj[zh], i, true)
+            }
+          }
+        }
+        attributes.value = attributesObj
+        // 自定义属性
+        const cusAttributeList = templateValue.filter(item => item.attrNameId === -1)
+        cusAttributeList.forEach(item => {
+          cusAttribute.value.push({
+            id: uuidv4(),
+            label: item.attrName,
+            value: item.attrValue
+          })
+        })
+      }
+    },
+    // 因为父组件用了 v-if, 这里侦听器立即触发一次
+    { immediate: true }
+  )
 </script>

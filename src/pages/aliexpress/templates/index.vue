@@ -21,7 +21,11 @@
       <!-- 搜索区 -->
       <a-card>
         <a-descriptions :column="1">
-          <a-descriptions-item label="店铺账号">
+          <!-- 为区域调价模版时, 不显示 -->
+          <a-descriptions-item
+            label="店铺账号"
+            v-if="activedValue !== 'nationalQuote'"
+          >
             <TiledSelect
               v-model:value="watchedSearchForm.sellerId"
               :options="accountList"
@@ -42,7 +46,7 @@
             <a-space align="start">
               <SearchContentInput
                 v-model:value="lazySearchForm.searchValue"
-                :hide-control="['title'].includes(lazySearchForm.searchKey)"
+                :hide-control="['templateName'].includes(lazySearchForm.searchKey)"
                 :placeholder="PLACEHOLDER_ENUM[lazySearchForm.searchKey]"
                 @enter="search"
               />
@@ -64,7 +68,7 @@
         >
         <a-popconfirm
           title="确定删除吗？"
-          @confirm="del"
+          @confirm="batchDel"
         >
           <a-button
             type="primary"
@@ -97,19 +101,19 @@
           ref="tableRef"
           row-key="id"
           :pagination="false"
-          :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }"
+          :row-selection="{ selectedRowKeys, onChange: onSelectChange }"
           :scroll="{ x: 'max-content' }"
         >
           <template #bodyCell="{ column, record }">
             <!-- <div v-if="column.key === '模版分类'"></div> -->
             <div v-if="column.key === 'status'">
               <a-switch
-                v-model:checked="record.status"
-                checked-value="1"
-                un-checked-value="0"
+                v-model:checked="record.state"
+                :checked-value="1"
+                :un-checked-value="2"
                 checked-children="开"
                 un-checked-children="关"
-                @change="statusChange"
+                @change="state => statusChange(state, record)"
               />
             </div>
             <div v-if="column.key === 'option'">
@@ -127,7 +131,7 @@
               >
               <a-popconfirm
                 title="删除吗?"
-                @confirm="del(record)"
+                @confirm="del(record.id)"
               >
                 <a-button
                   type="text"
@@ -157,20 +161,44 @@
       v-if="attributeOpen"
       v-model:open="attributeOpen"
       :account-list="accountList"
-      :id="attributeTemplateId"
+      :detail="templateDetail"
+      @refresh="search"
+    />
+
+    <!-- 变种模版 -->
+    <VariantModal
+      v-if="variantOpen"
+      v-model:open="variantOpen"
+      :account-list="accountList"
+      :detail="templateDetail"
+      @refresh="search"
+    />
+
+    <!-- 区域调价模版 -->
+    <NationalQuoteModal
+      v-if="nationalQuoteOpen"
+      v-model:open="nationalQuoteOpen"
+      :countries="countries"
+      :detail="templateDetail"
+      @refresh="search"
     />
   </div>
 </template>
 
 <script>
   import { ALL_TABLE_COLUMN } from './config'
+  import { cloneDeep } from 'lodash'
   import { accountCacheApi } from '../apis/common'
+  import { areaListApi } from '../apis/product'
+  import { templateListApi, templateAddApi, templateUpdateApi, templateDelApi, templateBatchDelApi, templateUpdateStateApi } from '../apis/templates'
   import { message } from 'ant-design-vue'
   import AttributeModal from './components/AttributeModal.vue'
+  import VariantModal from './components/VariantModal.vue'
+  import NationalQuoteModal from './components/NationalQuoteModal.vue'
 
   export default {
     name: 'Templates',
-    components: { AttributeModal },
+    components: { AttributeModal, VariantModal, NationalQuoteModal },
     data() {
       return {
         TEMPLATE_TYPE_LIST: [
@@ -178,11 +206,17 @@
           { label: '变种模版', value: 'variant' },
           { label: '调价模版', value: 'nationalQuote' }
         ],
-        SEARCH_PROP_OPTIONS: [{ label: '模版名称', value: 'title' }],
+        SEARCH_PROP_OPTIONS: [{ label: '模版名称', value: 'templateName' }],
         PLACEHOLDER_ENUM: {
-          title: '模版名称'
+          templateName: '模版名称'
         },
         activedValue: 'attribute',
+        // 后端定义: 1:产品模板 2:自定义模板 3:区域调价模板 4:尺码模板  5:汽配模板 6:产品属性模板 7:变种模板
+        TEMPLATE_TYPE_ENUM: {
+          attribute: 6,
+          variant: 7,
+          nationalQuote: 3
+        },
         accountList: [],
         // 被 watch 监听的搜索表单; 外层, 点击即可搜索
         watchedSearchForm: {
@@ -190,7 +224,7 @@
         },
         // 高级搜索表单; 需点击'搜索'按钮再执行搜索动作
         lazySearchForm: {
-          searchKey: 'title', // 搜索类型
+          searchKey: 'templateName', // 搜索类型
           searchValue: undefined // 搜索内容
         },
         tableParams: {
@@ -210,7 +244,9 @@
         attributeOpen: false,
         variantOpen: false,
         nationalQuoteOpen: false,
-        attributeTemplateId: ''
+        templateDetail: {},
+        // 区域调价模版用的 国家(区域)
+        countries: []
       }
     },
     computed: {
@@ -227,10 +263,17 @@
       }
     },
     mounted() {
+      // 获取区域数据
+      this.getAreaList()
       this.getTableHeader()
       this.getAccountList()
     },
     methods: {
+      getAreaList() {
+        areaListApi().then(res => {
+          this.countries = res.data || []
+        })
+      },
       // 获取表头
       getTableHeader() {
         this.tableHeader = this.ALL_TABLE_COLUMN
@@ -252,12 +295,13 @@
           })
       },
       getList() {
-        // this.loading = true
+        this.loading = true
         // 重置选择的数据
         this.selectedRowKeys = []
         this.selectedRows = []
 
         const params = {
+          templateType: this.TEMPLATE_TYPE_ENUM[this.activedValue],
           ...this.watchedSearchForm,
           ...this.lazySearchForm,
           [this.lazySearchForm.searchKey]: this.lazySearchForm.searchValue,
@@ -265,14 +309,9 @@
         }
         delete params.searchKey
         delete params.searchValue
+        this.activedValue === 'nationalQuote' && delete params.sellerId
 
-        // 根据当前选择的模板类型, 获取不同的数据列表
-        /* const requestApi = {
-          attribute: '',
-          variant: '',
-          nationalQuote: ''
-        }[this.activedValue]
-        requestApi(params)
+        templateListApi(params)
           .then(res => {
             const list = res.rows || []
             this.tableData = list
@@ -280,26 +319,7 @@
           })
           .finally(() => {
             this.loading = false
-          }) */
-        this.tableData = [
-          {
-            id: '1',
-            name: 'test1',
-            category: '钥匙链>流行饰品>珠宝',
-            variant: '变种主题',
-            time: '2025-02-27',
-            status: '1'
-          },
-          {
-            id: '13',
-            name: 'test13',
-            category: '钥匙链>流行饰品>珠宝',
-            variant: '变种主题',
-            time: '2025-02-27',
-            status: '0'
-          }
-        ]
-        this.total = 2
+          })
       },
       search() {
         this.tableParams.pageNum = 1
@@ -311,8 +331,12 @@
         this.activedValue = value
         this.search()
       },
-      statusChange(checked) {},
-      add() {
+      statusChange(state, record) {
+        templateUpdateStateApi({ state, id: record.id }).catch(() => {
+          record.state = state === 1 ? 2 : 1
+        })
+      },
+      openModal() {
         switch (this.activedValue) {
           case 'attribute':
             this.attributeOpen = true
@@ -325,11 +349,35 @@
             break
         }
       },
-      goEdit(record) {
-        this.attributeTemplateId = record.id
+      add() {
+        this.templateDetail = {}
+        this.openModal()
       },
-      copy(record) {},
-      del(record) {}
+      goEdit(record) {
+        this.templateDetail = cloneDeep(record)
+        this.openModal()
+      },
+      copy(record) {
+        this.templateDetail = cloneDeep(record)
+        delete this.templateDetail.id
+        this.openModal()
+      },
+      del(id) {
+        templateDelApi({ id }).then(res => {
+          this.getList()
+        })
+      },
+      // 批量删除
+      batchDel() {
+        this.delLoading = true
+        templateBatchDelApi(this.selectedRowKeys)
+          .then(res => {
+            this.getList()
+          })
+          .finally(() => {
+            this.delLoading = false
+          })
+      }
     }
   }
 </script>

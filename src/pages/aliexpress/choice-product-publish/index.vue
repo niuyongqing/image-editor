@@ -203,6 +203,10 @@
     saveDraftApi(params)
       .then(_ => {
         message.success('保存成功')
+        window.removeEventListener('beforeunload', stopUnload)
+        setTimeout(() => {
+          window.close()
+        }, 300)
         // 弹窗; 新建, 继续编辑
       })
       .finally(() => {
@@ -266,7 +270,7 @@
     const requestApi = query.productId ? editApi : createApi
     requestApi(params)
       .then(_ => {
-        store.$reset()
+        useAliexpressChoiceProductStore().$reset()
         message.success('提交成功')
         window.removeEventListener('beforeunload', stopUnload)
         setTimeout(() => {

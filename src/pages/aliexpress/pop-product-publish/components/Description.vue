@@ -19,6 +19,7 @@
           v-model="form.webDetail"
           ref="webDetailRef"
           :editor-config="editorConfig"
+          @edit-image-size="editImageSize"
         />
       </a-form-item>
       <a-form-item label="APP端描述">
@@ -41,11 +42,19 @@
         />
       </a-form-item>
     </a-form>
+
+    <!-- 批量编辑图片尺寸 -->
+    <EditImageBatch
+      v-model:open="open"
+      :image-list="imgUrls"
+      @confirm="editImageConfirm"
+    />
   </a-card>
 </template>
 
 <script>
   import MobileDetailEditor from '@/components/mobile-detail-editor/index.vue'
+  import EditImageBatch from '@/components/edit-image-batch/index.vue'
   import { InfoCircleOutlined } from '@ant-design/icons-vue'
   import { useAliexpressPopProductStore } from '~@/stores/aliexpress-pop-product'
   import { uploadImageForSdkApi } from '../../apis/common'
@@ -54,7 +63,11 @@
 
   export default {
     name: 'Description',
-    components: { MobileDetailEditor, InfoCircleOutlined },
+    components: {
+      MobileDetailEditor,
+      InfoCircleOutlined,
+      EditImageBatch
+    },
     data() {
       const validWebDetail = (rule, val) => {
         if (!val.length || val === '<p><br></p>') {
@@ -98,7 +111,10 @@
               }
             }
           }
-        }
+        },
+        // 编辑图片尺寸
+        open: false,
+        imgUrls: []
       }
     },
     computed: {
@@ -189,6 +205,27 @@
           }
         })
       },
+      // 批量修改图片尺寸
+      editImageSize() {
+        // 提取所有图片
+        // 编辑过的图片需要移除前面的 origin(IP)
+        const origin = window.location.origin
+        this.imgUrls = extractImageUrls(this.form.webDetail).map(url => url.replace(origin, ''))
+        if (this.imgUrls.length === 0) {
+          message.error('未检测到图片')
+
+          return
+        }
+
+        this.open = true
+      },
+      // 编辑后返回的数据
+      editImageConfirm(imageList) {
+        this.form.webDetail = this.form.webDetail.replaceAll('&amp;', '&')
+        imageList.forEach(item => {
+          this.form.webDetail = this.form.webDetail.replace(item.originUrl, item.url)
+        })
+      },
 
       async emitData({ looseValidate = false }) {
         if (looseValidate) {
@@ -210,7 +247,7 @@
               {
                 type: 'html',
                 html: {
-                  content: this.form.webDetail
+                  content: this.form.webDetail.replaceAll('/prod-api', '')
                 }
               }
             ]
@@ -219,9 +256,12 @@
         }
 
         if (this.mobileModuleList.length) {
+          let mobileModuleListStr = JSON.stringify(this.mobileModuleList)
+          mobileModuleListStr = mobileModuleListStr.replaceAll('/prod-api', '')
+          const moduleList = JSON.parse(mobileModuleListStr)
           const res = {
             version: '2.0.0',
-            moduleList: this.mobileModuleList
+            moduleList
           }
 
           mobileDetail = JSON.stringify(res)

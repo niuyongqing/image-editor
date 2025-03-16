@@ -4,6 +4,18 @@
       title="价格与库存"
       class="mb-4"
     >
+      <template #extra>
+        <a-select
+          v-model:value="variantTemplateId"
+          placeholder="选择产品分类后可引用变种模版"
+          show-search
+          :options="variantTemplateList"
+          :field-names="{ label: 'templateName', value: 'id' }"
+          option-filter-prop="templateName"
+          class="w-60"
+          @change="handleTemplateChange"
+        />
+      </template>
       <a-form
         :model="form"
         :rules="rules"
@@ -17,7 +29,8 @@
         >
           <a-select
             v-model:value="form.productUnit"
-            filterable
+            show-search
+            option-filter-prop="label"
             placeholder="请选择计件单位"
             :options="UNIT_OPTIONS"
           />
@@ -401,6 +414,7 @@
         store: useAliexpressPopProductStore(),
         imgGroupList: [],
         UNIT_OPTIONS,
+        variantTemplateId: undefined,
         SKUAttributeList: [],
         form: {
           productUnit: undefined,
@@ -449,6 +463,9 @@
       SKUList() {
         return this.store.SKUList
       },
+      variantTemplateList() {
+        return this.store.variantTemplateList
+      },
       productDetail() {
         return this.store.productDetail
       },
@@ -480,6 +497,7 @@
       SKUList: {
         handler: function (SKUList) {
           // 重置初始状态
+          this.variantTemplateId = undefined
           this.SKUAttributeList = []
           this.SKUTableData = []
           this.SKUAttributesForm = {}
@@ -762,6 +780,13 @@
         } else {
           return ''
         }
+      },
+      // 填充属性模版内容
+      handleTemplateChange(id, option) {
+        const templateValue = JSON.parse(option.templateValue)
+        this.SKUAttributesForm = templateValue.SKUAttributesForm
+        this.SKUAttributesCache = templateValue.SKUAttributesCache
+        this.generateSKUTableData()
       },
       // 批量填充
       batchFillCol() {

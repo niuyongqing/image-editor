@@ -45,7 +45,7 @@
 
     // 点击菜单时触发的函数
     exec(editor, value) {
-      editor.emit('test', 'Lynch')
+      editor.emit('editImageSize')
     }
   }
 
@@ -88,6 +88,8 @@
       default: false
     }
   })
+
+  const emits = defineEmits(['editImageSize'])
 
   const editorRef = shallowRef() // 编辑器实例(页面多编辑下,需要处理，仅适用于单编辑)
   const valueHtml = defineModel() //  HTML内容
@@ -148,8 +150,8 @@
 
   const handleCreated = editor => {
     editorRef.value = editor
-    editor.on('test', name => {
-      console.log(name)
+    editor.on('editImageSize', val => {
+      emits('editImageSize')
     })
   }
 

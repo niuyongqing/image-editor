@@ -41,8 +41,8 @@ export const DEFAULT_TABLE_COLUMN = [
 
 // 排序类型
 export const SORT_TYPE_OPTIONS = [
-  { label: '按更新时间', value: 'gmt_modified_time' },
-  { label: '按创建时间', value: 'gmt_create_time' },
-  { label: '按库存', value: 'ipm_sku_stock_count' },
-  { label: '按价格', value: 'aeop_ae_product_s_k_us.sku_price_number' }
+  { label: '按更新时间', value: 'update_time' },
+  { label: '按创建时间', value: 'create_time' },
+  { label: '按库存', value: 'result.aeop_ae_product_s_k_us.sku_stock' },
+  { label: '按价格', value: 'result.aeop_ae_product_s_k_us.sku_price' }
 ]

@@ -400,9 +400,65 @@ export function replaceTagsWithRegex(html) {
 
 // 从 HTML 中提取文本内容
 export function extractTextFromHTML(html) {
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(html, 'text/html')
-  return doc.body.textContent
+  // 创建一个临时的 DOM 元素
+  const tempDiv = document.createElement('div')
+  // 将 HTML 内容插入到临时元素中
+  tempDiv.innerHTML = html
+
+  // 定义一个数组来存储提取的文本行
+  const lines = []
+
+  // 递归遍历临时元素的所有子节点
+  function traverse(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      // 如果是文本节点，去除首尾空格并添加到行数组中
+      const text = node.textContent.trim()
+      if (text) {
+        lines.push(text)
+      }
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      // 如果是元素节点，检查是否为段落元素
+      if (['P', 'BR', 'DIV', 'LI', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(node.tagName)) {
+        // 如果是段落元素，添加一个空行作为分隔
+        lines.push('')
+      }
+      // 递归遍历子节点
+      for (let i = 0; i < node.childNodes.length; i++) {
+        traverse(node.childNodes[i])
+      }
+    }
+  }
+
+  // 开始遍历临时元素的子节点
+  traverse(tempDiv)
+
+  // 过滤掉连续的空行
+  let filteredLines = []
+  let prevLineWasEmpty = false
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    if (line === '') {
+      if (!prevLineWasEmpty) {
+        filteredLines.push(line)
+        prevLineWasEmpty = true
+      }
+    } else {
+      filteredLines.push(line)
+      prevLineWasEmpty = false
+    }
+  }
+
+  // 去除开头和结尾的空行
+  while (filteredLines.length > 0 && filteredLines[0] === '') {
+    filteredLines.shift()
+  }
+  while (filteredLines.length > 0 && filteredLines[filteredLines.length - 1] === '') {
+    filteredLines.pop()
+  }
+
+  filteredLines = filteredLines.filter(Boolean)
+  // 将数组中的行用换行符连接成字符串
+  return filteredLines.join('\n')
 }
 
 // 从 HTML 中提取图片地址数组

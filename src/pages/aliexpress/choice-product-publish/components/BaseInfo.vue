@@ -89,7 +89,7 @@
               :label="item.zh || item.en"
               :name="item.zh"
             >
-              <!-- supportEnumInput 当前属性是否支持自定义枚举类型属性值(通过filterable来控制能否输入) -->
+              <!-- supportEnumInput 当前属性是否支持自定义枚举类型属性值 -->
               <template v-if="item.attributeShowTypeValue === 'list_box'">
                 <a-select
                   v-if="!item.supportEnumInput"
@@ -430,7 +430,7 @@
                 case 'input_int':
                 case 'radio':
                 default:
-                  attributesObj[option.zh] = { label: root[attrNameId][0].attrValue, value: undefined }
+                  attributesObj[option.zh] = root[attrNameId][0].attrValue
                   break
               }
             } else {
@@ -449,7 +449,7 @@
           // 如果存在下级属性 hasSubAttr
           for (const zh in attributesObj) {
             if (Object.prototype.toString.call(attributesObj[zh]).slice(8, -1) === 'Object') {
-              if (attributesObj[zh].option.hasSubAttr) {
+              if (attributesObj[zh].option?.hasSubAttr) {
                 const i = this.attributeOptions.findIndex(item => item.zh === zh)
                 i > -1 && this.handleAttrChange(attributesObj[zh], i, true)
               }
