@@ -49,7 +49,7 @@
                 v-model:pageSize="paginations.pageSize" :defaultPageSize="50" :showSizeChanger="true" @change="getList"
                 :pageSizeOptions="[50, 100, 200]"></a-pagination>
         </a-card>
-        <progressBar :showOpen="showOpen" :percentage="percentage" @handleProgressBarClose="showOpen = false"></progressBar>
+        <!-- <progressBar :showOpen="showOpen" :percentage="percentage" @handleProgressBarClose="showOpen = false"></progressBar> -->
     </div>
 </template>
 
@@ -59,7 +59,7 @@ import { accountCache } from "../config/api/product";
 import tableHead from "../config/tabColumns/promotion"
 import { syncActivity, list, syncOneProduct } from "../config/api/promotion"
 import { message } from 'ant-design-vue';
-import progressBar from "../config/component/progressBar/index.vue"
+// import progressBar from "./progressBar/index.vue"
 
 const formState = reactive({
     account: "",
@@ -121,7 +121,6 @@ const syncOne = (row) => {
 }
 
 const syncOrder = () => {
-
     //   dialogTableVisible.value = true;
     syncLoading.value = true;
     showOpen.value = true
@@ -131,18 +130,13 @@ const syncOrder = () => {
     };
     syncActivity(params)
         .then((res) => {
-            percentage.value = 100;
-        })
-        .catch(() => {
-            percentage.value = 0;
+
+            message.success(res.msg)
         })
         .finally(() => {
             syncLoading.value = false;
-            //   dialogTableVisible.value = false;
-            setTimeout(() => {
-                percentage.value = 0;
-            }, 300);
         });
+    message.success("数据开始同步请稍后查看！")   
 }
 const getList = () => {
     loading.value = true;

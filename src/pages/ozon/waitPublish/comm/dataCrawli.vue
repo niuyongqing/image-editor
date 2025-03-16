@@ -364,7 +364,6 @@ const getList = () => {
     pageNum: pages.pageNum,
     pageSize: pages.pageSize,
   }).then(res => {
-    console.log(res);
     tableData.value = res.rows ?? []
     pages.total = res.total ?? 0
   })

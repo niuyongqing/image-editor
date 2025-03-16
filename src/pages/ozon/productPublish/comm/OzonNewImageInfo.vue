@@ -124,7 +124,7 @@ const rules = {
 const handleChange = info => {
     if (info.file.status === 'done') {
         if (info.file.response.code == 200) {
-            form.coverUrl = info.file.response.url
+            form.coverUrl = '/prod-api' + info.file.response.url
         } else {
             message.error(info.file.response.msg)
         }
@@ -134,7 +134,7 @@ const msgHandleChange = info => {
     if (info.file.status === 'done') {
         if (info.file.response.code == 200) {
             form.video.push({
-                url: info.file.response.url
+                url: '/prod-api' + info.file.response.url
             })
         } else {
             message.error(info.file.response.msg)
@@ -149,11 +149,10 @@ const removeVideoList = (index) => {
 }
 const backResult = (res) => {
     form.jsons = res
-    console.log('p', props.shopCode);
-
+    // console.log('p', props.shopCode);
 }
 const submitForm = () => {
-    if (Object.keys(this.form.jsons).length == 0) {
+    if (Object.keys(form.jsons).length == 0) {
         message.error("JSON富文本未填写！")
         return false;
     }
@@ -161,7 +160,8 @@ const submitForm = () => {
 }
 // 抛出数据和方法，可以让父级用ref获取
 defineExpose({
-    form
+    form,
+    submitForm
 })
 </script>
 <style lang="less" scoped>

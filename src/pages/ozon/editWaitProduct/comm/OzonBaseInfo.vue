@@ -303,7 +303,7 @@ const assignValues = (a, b) => {
             values: item.values.map((value) => {
                 return {
                     ...value,
-                    id: Number(value.dictionary_value_id),
+                    id: Number(value.dictionaryValueId),
                     info: "",
                     picture: "",
                     label: ""
@@ -430,7 +430,7 @@ watch(() => props.productDetail, val => {
         // 修改响应式对象的属性
         form.shortCode = account;
         form.name = name;
-        form.vat = vat === "0.0" ? vat.split(".")[0] : vat;
+        form.vat = (vat === "0.0" || vat === "0.00") ? "0" : vat;
         form.categoryId = {
             threeCategoryId: typeId,
             threeCategoryName: "",
@@ -442,6 +442,7 @@ watch(() => props.productDetail, val => {
     }
 })
 
+console.log('props',props);
 
 watch(() => useOzonProductStore().attributes, (val) => {
     if (val) {
@@ -528,10 +529,12 @@ watch(() => useOzonProductStore().attributes, (val) => {
             // console.log("rules2", rules2.value);
             loopAttributes.value = noThemeAttributesCache;
             // 赋值
-            const { attributes: oldAttributes } = props.productDetail.attributes[0];
+            const { attributes: oldAttributes } = props.productDetail?.skuList[0]; 
+            console.log('oldAttributes',oldAttributes);
+            console.log('loopAttributes',loopAttributes.value);
             const proceRes = assignValues(oldAttributes, loopAttributes.value);
             form.attributes = proceRes;
-            // console.log('proceRes0', proceRes);
+            console.log('proceRes0', proceRes);
 
         }
     }

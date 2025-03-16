@@ -145,13 +145,13 @@
                         </template>
                         <template v-if="column.dataIndex === 'price'">
                             <a-input-number style="width: 80%" :min="0" :max="99999999" :precision="2"
-                                v-model:value="record.price"></a-input-number>
+                                v-model:value="record.price" @blur="judgeMax(record)"></a-input-number>
                             <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.price, 'price')"
                                 class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
                         </template>
                         <template v-if="column.dataIndex === 'oldPrice'">
                             <a-input-number style="width: 80%" :min="0" :max="99999999" v-model:value="record.oldPrice"
-                                :precision="2"></a-input-number>
+                                :precision="2" @blur="judgeMax(record)"></a-input-number>
                             <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.oldPrice, 'oldPrice')"
                                 class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
                         </template>
@@ -233,7 +233,7 @@
                     </span>
                     <a-button @click="selectAllImg" class="mr-5 mt-1" :disabled="!shopCode">{{ selectAll ? '取消选择全部图片' :
                         '选择全部图片'
-                        }}</a-button>
+                    }}</a-button>
                 </template>
                 <div>
                     <a-tag color="warning">！说明</a-tag>
@@ -249,14 +249,15 @@
                                     <div v-for="(e, i) in imgHeaderList" :key="i">
                                         <div>
                                             <span>{{ e.title }}:</span><span style="margin-left: 10px;">{{ item[e.title]
-                                                }}</span>
+                                            }}</span>
                                         </div>
                                     </div>
                                 </div>
                                 <!-- <div v-if="item && item.detail">{{ item.detail.attr }}</div> -->
                                 <span v-if="item.imageUrl" class="block mt-2.5">{{ item.imageUrl.length
-                                    }}/15</span>
-                                <dragUpload @changeImg="(list) => changeImg(list, item)" @singleSelectImg="(e) => singleSelectImg(e, item)"></dragUpload>
+                                }}/30</span>
+                                <dragUpload @changeImg="(list) => changeImg(list, item)"
+                                    @singleSelectImg="(e) => singleSelectImg(e, item)"></dragUpload>
 
                             </a-card>
                         </div>
@@ -279,7 +280,7 @@
 <script setup name='OzonNewVariantInfo'>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
-import { message } from "ant-design-vue";
+import { message, Modal } from "ant-design-vue";
 import EditProdQuantity from './EditProdQuantity.vue';
 import dragUpload from './dragUpload.vue';
 import { scaleApi, watermarkListApi, watermarkApi } from "~/api/common/water-mark";
@@ -352,7 +353,7 @@ const handleChangeColroImg = (info, record) => {
         record.colorImg.push(
             {
                 name: info.file.response.originalFilename,
-                url: info.file.response.url,
+                url: '/prod-api' + info.file.response.url,
                 checked: false,
                 width: info.file.response.width,
                 height: info.file.response.height,
@@ -427,7 +428,6 @@ const filteredHeaderList = computed(() => {
 
 // 处理数据格式
 const processDataFormat = (list = []) => {
-    console.log('list', list, isConform.value);
     let newHeaderList = handleTheme(list)
     const insertIndex = headerList.value.length - 6;
     for (let i = list.length - 1; i >= 0; i--) {
@@ -446,7 +446,7 @@ const processDataFormat = (list = []) => {
     console.log('headerList2', headerList.value, tableData.value);
 
     attributeList.value = [...attributeList.value, ...newHeaderList]
-    console.log('attributeList', attributeList.value, headerList.value);
+    // console.log('attributeList', attributeList.value, headerList.value);
 }
 
 // 手动添加多个变种主题
@@ -520,8 +520,8 @@ const addItem = (item, row) => {
         };
     }
     row.tableData.push(ele)
-    console.log('row',row.tableData);
-    
+    console.log('row', row.tableData);
+
 }
 
 // 移除多个属性操作
@@ -658,7 +658,6 @@ const batchStock = (type, row = {}) => {
 
 //修改库存
 const backQuantity = (quantities, copyList) => {
-    console.log('copyList', copyList);
     // 生成仓库条目函数（过滤空值并映射结构）
     const createWarehouseEntries = (offerId, copyList) =>
         copyList[0].children
@@ -827,7 +826,7 @@ const getWatermark = () => {
 }
 // 图片上传
 const changeImg = (list, item) => {
-    item.imageUrl = list
+    item.imageUrl = list.value
 }
 
 const singleSelectImg = (e, item) => {
@@ -837,6 +836,28 @@ const singleSelectImg = (e, item) => {
     if (targetItem) {
         targetItem.checked = e.checked;
     }
+}
+
+const judgeMax = (item) => {
+    const { price, oldPrice } = item;
+    // 检查 price 和 oldPrice 是否为空或 null
+    if (price == null || oldPrice == null) {
+        return; // 如果有一个为空或 null，直接返回，不做后续比较
+    }
+    // 确保 price 和 oldPrice 是有效的数字
+    const parsedPrice = parseFloat(price);
+    const parsedOldPrice = parseFloat(oldPrice);
+    if (isNaN(parsedPrice) || isNaN(parsedOldPrice)) {
+        return; // 如果转换后不是有效的数字，直接返回
+    }
+
+    if (parsedPrice > parsedOldPrice) {
+        Modal.error({
+            title: '错误提示',
+            content: '售价不能大于原价！'
+        })
+    }
+
 }
 
 const getEditStore = (account) => {
@@ -856,7 +877,6 @@ const getEditStore = (account) => {
     });
 }
 
-// props.attributes
 watch(() => useOzonProductStore().attributes, val => {
     if (val) {
         themeBtns.value = [];
@@ -869,16 +889,21 @@ watch(() => useOzonProductStore().attributes, val => {
         let arr = val.filter((obj) => obj.isAspect);
         isConform.value = checkData(arr);
         const requiredItem = arr.some(item => item.isRequired === true);
+        console.log('arr', arr);
+        console.log('requiredItem', requiredItem);
         //判断主题中是否有颜色名称，且商品颜色是不是必填项
         if (requiredItem) {
             if (isConform.value) {
-                requiredList.value = arr.filter(
-                    (obj) => obj.isRequired || obj.id == 10097
-                );
+                requiredList.value = arr.filter((obj) => obj.isRequired);
+                if (requiredList.value.some(item => (item.id === 10096))) {
+                    requiredList.value.push(arr.find(obj => obj.id === 10097))
+                }
                 themeBtns.value = arr.filter(
                     (obj) => !(obj.isRequired || obj.id === 10097)
                 )
+                console.log('requiredList---', requiredList.value);
                 requiredList.value = reorderArray(requiredList.value)
+                console.log('themeBtns---', themeBtns.value);
             } else {
                 requiredList.value = arr.filter((obj) => obj.isRequired);
             }
@@ -916,6 +941,8 @@ watch(() => useOzonProductStore().attributes, val => {
         if (requiredList.value.length != 0) {
             processDataFormat(requiredList.value);
         }
+        console.log('themeBtns', themeBtns.value);
+
         tableData.value.push({
             skuTitle: "",
             sellerSKU: "",

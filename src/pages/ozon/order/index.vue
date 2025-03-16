@@ -26,16 +26,6 @@
               <selectComm :options="orderType" :fieldObj="orderObj" @backSelectAll="orderSelectAll"
                 @backSelectItem="orderSelectItem"></selectComm>
             </div>
-            <!-- <div style="display: flex; margin-bottom: 24px">
-              <span style="margin-right: 10px; white-space: nowrap">国家区域：</span>
-              <selectComm v-if="areaList.length > 0" :options="areaList" :fieldObj="areaObj" @backSelectAll="areaSelectAll"
-                @backSelectItem="areaSelectItem"></selectComm>
-            </div> -->
-            <div style="display: flex">
-              <span style="margin-right: 10px; white-space: nowrap">物流方式：</span>
-              <selectComm :options="materialflowType" :fieldObj="materialflowObj" @backSelectAll="materialflowSelectAll"
-                @backSelectItem="materialflowSelectItem"></selectComm>
-            </div>
           </div>
         </a-form-item>
         <a-form-item label="排序方式：">
@@ -73,54 +63,36 @@
           v-model:current="paginations.pageNum" v-model:pageSize="paginations.pageSize" :total="paginations.total"
           class="pages" :show-quick-jumper="true" @change="queryList" :showSizeChanger="true"
           :pageSizeOptions="[50, 100, 200]" />
-        <a-table bordered :columns="columns" :data-source="data" :scroll="{ x: 2000 }" :expand-column-width="0"
-          :defaultExpandAllRows="true" :loading="tableLoading" :rowKey="(record) => record.key" :pagination="false"
-          :row-selection="{
+        <a-table bordered :columns="columns" :data-source="data" :scroll="{ x: 2000 }" :loading="tableLoading"
+          :rowKey="(record) => record.orderId" :pagination="false" :row-selection="{
             selectedRowKeys,
             onChange,
           }">
-          <template #bodyCell="{ column }">
-            <template v-if="column.key === 'amount'">
-              <span></span>
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'products'">
+              <div>
+                <span>{{ record.offerId }}</span> <span>* {{ record.quantity }}</span>
+                <p>
+                  <span>{{ record.currencyCode }}</span>  <span>{{ record.price }}</span>
+                </p>
+                <p>跟踪号：<span>{{ record.trackingNumber }}</span></p>
+              </div>
             </template>
-            <template v-if="column.key === 'district'">
-              <span></span>
+            <template v-if="column.key === 'orderAmount'">
+              <span>{{ record.currencyCode }} {{ record.orderAmount }}</span>
             </template>
-            <template v-if="column.key === 'orderNumber'">
-              <span></span>
+            <template v-if="column.key === 'customerName'">
+              <span>{{ record.customerName }}</span><span>[俄罗斯]</span>
             </template>
-            <!-- <template v-if="column.key === 'time'">
-              <span></span>
-            </template> -->
-            <template v-if="column.key === 'logisticsmode'">
-              <span></span>
+            <template v-if="column.key === 'deliveryMethodName'">
+              <p>买家指定： {{ record.deliveryMethodName }}</p>
+              <div>
+                <span>下单时间：</span><span>{{ record.inProcessAt }}</span>
+              </div>
             </template>
-            <template v-if="column.key === 'status'">
-              <span></span>
+            <template v-if="column.key === 'options'">
+              <a @click="openDetailsModal = true">详情</a>
             </template>
-            <!-- <template v-if="column.key === 'typeStatus'">
-              <span></span>
-            </template> -->
-          </template>
-          <template #expandedRowRender="{ record }">
-            <a-row>
-              <a-col :span="3" style="margin-right:50px; ">{{ record.description }}</a-col>
-              <a-col :span="3">{{ record.amount }}</a-col>
-              <a-col :span="3">{{ record.district }}</a-col>
-              <a-col :span="3">{{ record.orderNumber }}</a-col>
-              <a-col :span="3">
-                <div>
-                  <div>{{ record.sTime }}</div>
-                  <div>{{ record.fTime }}</div>
-                  <div>{{ record.sdTime }}</div>
-                </div>
-              </a-col>
-              <a-col :span="3">{{ record.logisticsmode }}</a-col>
-              <a-col :span="2" style="margin-right:100px; ">{{ record.status }}</a-col>
-              <a-col :span="2">
-                <a @click="openDetailsModal = true">详情</a>
-              </a-col>
-            </a-row>
           </template>
         </a-table>
         <a-pagination style="margin-top: 10px; text-align: right" :show-total="(total) => `共 ${total} 条`"
@@ -129,11 +101,12 @@
           :pageSizeOptions="[50, 100, 200]" />
       </div>
     </a-card>
-    <exportModal v-model:openExModal="openExModal" @backRefresh="backRefresh" :isTimes="isTimes" :selectedRowKeys="selectedRowKeys" :exportWay="exportWay" :incomingForm="formState"></exportModal>
+    <exportModal v-model:openExModal="openExModal" @backRefresh="backRefresh" :isTimes="isTimes"
+      :selectedRowKeys="selectedRowKeys" :exportWay="exportWay" :incomingForm="formState"></exportModal>
     <detailsModal v-model:openDetailsModal="openDetailsModal"></detailsModal>
     <a-modal :open="asyncOrderModal" @ok="handleOk" title="同步时间选择" @cancel="asyncOrderModal = false" :width="'20%'"
       :maskClosable="false" :keyboard="false">
-      <a-range-picker @change="onRangeChange" v-model:value="asyncObj.asyncTime" style="margin: 20px 0;" />
+      <a-range-picker @change="onRangeChange" v-model:value="asyncObj.asyncTime" show-time style="margin: 20px 0;" />
     </a-modal>
   </div>
 </template>
@@ -145,8 +118,10 @@ import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import exportModal from "./common/exportModal.vue";
 import detailsModal from "./common/detailsModal.vue";
 import { accountCache } from "../config/api/product";
-
-// import { asyncOrder, queryShop, queryAreaName, orderList, historyOrderList } from "../js/api/order"
+import { orderStatus } from "../config/commDic/defDic";
+// asyncOrder, queryShop, queryAreaName, historyOrderList
+import { orderList, asyncOrder } from "~/pages/ozon/config/api/order"
+import { message } from "ant-design-vue";
 
 
 const activeKey = ref(1); // 默认120天内订单
@@ -163,14 +138,10 @@ const asyncObj = reactive({
 })
 const areaList = ref([]);
 const formState = reactive({
-  shopId: [],
-  marketId: [],
-  orderType: [],
-  materialFlowType: [],
-  sortType: "",
-  sortName: "",
+  account: "",
+  orderStat: "",
 });
-const tableData = ref([]);
+// const tableData = ref([]);
 const paginations = reactive({
   pageNum: 1,
   pageSize: 50,
@@ -295,122 +266,67 @@ const orderType = ref([
     status: 12,
   },
 ]);
-const materialflowType = ref([
-  {
-    name: "亚马逊官方",
-    val: "1",
-  },
-  {
-    name: "卖家自定义",
-    val: "2",
-  },
-]);
 
 const selectedRowKeys = ref([]);
 const onChange = (selecteds) => {
-  console.log('selecteds',selecteds);
-  
   selectedRowKeys.value = selecteds;
 };
 const columns = [
   {
-    title: "商品信息",
-    dataIndex: "name",
-    key: "name",
-    fixed: true,
+    title: "商品明细",
+    dataIndex: "products",
+    key: "products",
+  },
+  {
+    title: "订单编号",
+    dataIndex: "orderId",
+    key: "orderId",
+    align: 'center'
+  },
+  {
+    title: "店铺单号",
+    dataIndex: "postingNumber",
+    key: "postingNumber",
+    align: 'center'
   },
   {
     title: "订单金额",
-    dataIndex: "amount",
-    key: "amount",
+    dataIndex: "orderAmount",
+    key: "orderAmount",
+    align: 'center'
   },
   {
     title: "收件人「国家/地区」",
-    dataIndex: "district",
-    key: "district",
-  },
-  {
-    title: "订单号",
-    dataIndex: "orderTypes",
-    key: "orderTypes",
+    dataIndex: "customerName",
+    key: "customerName",
+    align: 'center'
   },
   {
     title: "时间",
-    dataIndex: "time",
-    key: "time",
+    dataIndex: "deliveryMethodName",
+    key: "deliveryMethodName",
   },
   {
     title: "物流方式",
-    dataIndex: "logisticsmode",
-    key: "logisticsmode",
+    dataIndex: "tplIntegrationType",
+    key: "tplIntegrationType",
+    align: 'center'
   },
   {
     title: "状态",
     dataIndex: "status",
     key: "status",
+    align: 'center'
   },
   {
     title: "操作",
-    dataIndex: "typeStatus",
-    key: "typeStatus",
+    dataIndex: "options",
+    key: "options",
+    align: 'center'
   },
 ];
 
-const data = [
-  {
-    key: 1,
-    name: "XMBH0RFN52667",
-    age: 32,
-    address: "New York No. 1 Lake Park",
-    description:
-      "这里是商品信息",
-    amount: "EUR 2.99",
-    district: "Marijana Subjak 「克罗地亚」",
-    orderNumber: "303-3004939-9140321",
-    time: "买家指定： Standard",
-    sTime: "下单：2017-07-25 04:30",
-    fTime: "发货：2017-07-27 05:59",
-    sdTime: "送达：2017-08-22 05:59",
-    logisticsmode: "WishPost「83882179897」",
-    status: "已发货",
-    orderTypes: "支付: 货到付款(CASH_ON_DELIVERY)",
-    typeStatus: "[全托管]"
-  },
-  {
-    key: 2,
-    name: "XMBH0RFN67432",
-    age: 42,
-    address: "London No. 1 Lake Park",
-    description:
-      "My name is Jim Green, I am 42 years old, living in London No. 1 Lake Park.",
-    amount: "EUR 2.49",
-    district: "Ginevra Angelelli 「意大利」",
-    orderNumber: "302-5650913-5525965",
-    time: "买家指定： Standard",
-    sTime: "下单：2017-07-25 04:30",
-    fTime: "发货：2017-07-27 05:59",
-    sdTime: "送达：2017-08-22 05:59",
-    logisticsmode: "WishPost「86514181187」",
-    status: "已退款",
-  },
-  {
-    key: 3,
-    name: "XMBH0RFP17429",
-    age: 32,
-    address: "Sidney No. 1 Lake Park",
-    description:
-      "My name is Joe Black, I am 32 years old, living in Sidney No. 1 Lake Park.",
-    amount: "USD 5",
-    district: "Joan Abad Marin 「西班牙」",
-    orderNumber: "5a3e2bbc927efb43cb3e0010",
-    time: "买家指定： Standard",
-    sTime: "下单：2017-07-25 04:30",
-    fTime: "发货：2017-07-27 05:59",
-    sdTime: "送达：2017-08-22 05:59",
-    logisticsmode: "WishPost「SFC1WU2492806200355」",
-    status: "已忽略",
-  },
-];
+const data = ref([])
 
 // 时间切换
 const onRangeChange = (value, dateString) => {
@@ -422,8 +338,7 @@ const onRangeChange = (value, dateString) => {
 const selectAll = () => {
   isAllSelected.value = true;
   selectedIndex.value = null;
-  formState.shopId = account.value.map(item => item.id)
-  queryAreaNameList({ areaAames: account.value.map(item => item.areaEnName) })
+  formState.account = ""
   queryList();
 };
 const selectItem = (index, item) => {
@@ -431,65 +346,48 @@ const selectItem = (index, item) => {
     isAllSelected.value = false;
   }
   selectedIndex.value = index;
-  formState.shopId = [item.id]
-  queryAreaNameList({ areaAames: [item.areaEnName] })
+  formState.account = item.account
   queryList();
 };
 
 
 // 订单状态全选和单选
 const orderSelectAll = () => {
-  console.log("1");
+  formState.orderStat = ""
+  queryList()
 };
 const orderSelectItem = (val) => {
-  console.log("2", val);
-  //   formState.shopId = account;
+  formState.orderStat = val
+  queryList()
 };
 
-// 站点全选和单选
-const areaSelectAll = () => {
-  formState.marketId = areaList.value.map(item => item.marketplaceId)
-  queryList();
-};
-const areaSelectItem = (val) => {
-  formState.marketId = [val]
-  queryList();
-};
-
-
-// 物流全选和单选
-const materialflowSelectAll = () => {
-  console.log("1");
-};
-const materialflowSelectItem = (val) => {
-  console.log("2", val);
-  //   formState.shopId = account;
-};
 // 排序方式
 const storChange = (val) => {
   val.type = val.type === "top" ? "bottom" : "top";
   active.value = val;
   sortObj.sortField = val.sortField
-  sortObj.sortType = val.type === "top" ? "ASC" : "DESC" 
+  sortObj.sortType = val.type === "top" ? "ASC" : "DESC"
   queryList();
 };
 
 // 同步订单
 const handleOk = () => {
-  const { shopId, marketId } = formState;
+  const { account, orderStat } = formState;
   asyncOrderLoading.value = true
   let params = {
-    shopId,
-    marketId,
+    account: account,
     orderStatuses: "",
-    startTime: asyncObj.startTime,
-    endTime: asyncObj.endTime
+    startDate: asyncObj.startTime,
+    endDate: asyncObj.endTime
   }
   asyncOrder(params).then(res => {
-
+    message.success(res.msg)
   }).finally(() => {
     asyncOrderLoading.value = false;
     asyncOrderModal.value = false
+    asyncObj.startTime = ""
+    asyncObj.endTime = ""
+    asyncObj.asyncTime = []
     queryList();
   })
 }
@@ -497,21 +395,7 @@ const handleOk = () => {
 const queryShopList = () => {
   accountCache().then(res => {
     account.value = res?.data ?? [];
-    formState.shopId = res?.data?.map(item => item.id)
-    if (isAllSelected.value) {
-      // queryAreaNameList({ areaAames: account.value.map(item => item.areaEnName) })
-    }
-  })
-}
-// 根据店铺区域查站点
-const queryAreaNameList = (list) => {
-  queryAreaName(list).then(res => {
-    areaList.value = res?.data ?? [];
-  }).finally(() => {
-    if (account.value.length > 0 && areaList.value.length > 0) {
-      formState.marketId = areaList.value.map(item => item.marketplaceId)
-      queryList();
-    }
+    formState.account = ""
   })
 }
 // tab切换
@@ -520,35 +404,75 @@ const handleTabchange = (activeKey) => {
 }
 
 //导出后刷新页面（防止表格选中后，没法清空）
-const backRefresh= () => {
+const backRefresh = () => {
   queryList()
 }
 
+const statusMenus = {
+  "acceptance_in_progress": "正在验收",
+  "arbitration": "仲裁",
+  "awaiting_approve": "等待确认",
+  "awaiting_deliver": "等待装运",
+  "awaiting_packaging": "等待包装",
+  "awaiting_registration": "等待注册",
+  "awaiting_verification": "已创建",
+  "cancelled": "已取消",
+  "cancelled_from_split_pending": "因货件拆分而取消",
+  "client_arbitration": "快递客户仲裁",
+  "delivering": "运输中",
+  "driver_pickup": "司机处",
+  "not_accepted": "分拣中心未接受",
+  "sent_by_seller": "由卖家发送"
+}
 
+const tplTyep = {
+  "ozon": "Ozon 快递服务",
+  "3pl_tracking": "集成服务快递",
+  "non_integrated": "第三方物流服务",
+  "aggregator": "通过Ozon合作物流伙伴交付",
+  "hybryd": "俄罗斯邮政配送方案"
+}
 // 120天内订单数据
 const queryList = () => {
-  const { shopId, marketId } = formState;
+  const { account, orderStat } = formState;
   tableLoading.value = true
   let params = {
-    shopId,
-    marketId,
-    orderStatus: "订单状态",
+    account,
+    status: orderStat,
     pageSize: paginations.pageSize,
     pageNum: paginations.pageNum,
-    sortField: sortObj.sortField,  //排序字段
-    sortType: sortObj.sortType   //排序方式
+    queryHistoryOrder: activeKey.value == 1 ? true : false,
+    prop: sortObj.sortField,  //排序字段
+    order: sortObj.sortType   //排序方式
   }
 
   if (activeKey.value == 1) {
     orderList(params).then(res => {
-      tableData.value = res?.rows ?? []
+      data.value = res?.rows.map(item => {
+        return {
+          customerName: item.customer.name,
+          deliveryMethodName: item.deliveryMethod.name,
+          inProcessAt: item.inProcessAt,
+          postingNumber: item.postingNumber,
+          products: item.products,
+          orderAmount: item.orderAmount,
+          trackingNumber: item.trackingNumber,
+          orderId: item.orderId,
+          offerId: item.products[0].offerId,
+          price: item.products[0].price,
+          quantity: item.products[0].quantity,
+          currencyCode: item.products[0].currencyCode,
+          status: statusMenus[item.status],
+          tplIntegrationType: tplTyep[item.tplIntegrationType]
+        }
+      }) ?? []
       paginations.total = res?.total ?? 0
     }).finally(() => {
       tableLoading.value = false
     })
   } else {
     historyOrderList(params).then(res => {
-      tableData.value = res?.rows ?? []
+      data.value = res?.rows ?? []
       paginations.total = res?.total ?? 0
     }).finally(() => {
       tableLoading.value = false
@@ -565,7 +489,7 @@ const handleMenuClick = (e) => {
 
 onMounted(() => {
   queryShopList();
-
+  queryList()
 });
 </script>
 <style lang="less" scoped>

@@ -11,10 +11,10 @@
                         <a-textarea v-model:value="form.description" :rows="10" :maxlength="6000" showCount />
                     </div>
                 </a-form-item>
-                <a-form-item label="JSON 丰富内容：" name="jsonDes">
+                <a-form-item label="JSON 丰富内容：" name="jsons">
                     <span style="color: #ff0a37">说明：描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M</span>
                     <a-form-item-rest>
-                        <jsonForm @backResult="backResult" :shop="shopCode"></jsonForm>
+                        <jsonForm @backResult="backResult" :content="form.jsons" :shop="shopCode"></jsonForm>
                     </a-form-item-rest>
                 </a-form-item>
                 <a-form-item label="视频：">
@@ -28,8 +28,8 @@
                     <div class="flex mt-2.5">
                         <div>
                             封面视频：
-                            <a-upload v-if="!form.coverUrl" :maxCount="1" :action="uploadImageVideoUrl" accept=".mp4,.mov"
-                                list-type="picture-card" @change="handleChange" :data="{
+                            <a-upload v-if="!form.coverUrl" :maxCount="1" :action="uploadImageVideoUrl"
+                                accept=".mp4,.mov" list-type="picture-card" @change="handleChange" :data="{
                                     shortCode: shopCode
                                 }" :headers="headers" :showUploadList="false">
                                 <div>
@@ -53,7 +53,7 @@
                             <div class="flex">
                                 <div class="video-item" v-if="form.video.length > 0">
                                     <div class="items" v-for="(item, index) in form.video" :key="index">
-                                        <video controls :src="item.url" class="avatar" width="100%" height="200px">
+                                        <video controls :src="item.url" class="avatar" width="200px" height="200px">
                                         </video>
                                         <div class="image-wrap">
                                             <span></span>
@@ -89,6 +89,7 @@ import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { message } from "ant-design-vue";
 import jsonForm from "../../config/component/json/index.vue"
+import { processImageSource } from "~/pages/ozon/config/commJs/index"
 const ruleForm = ref(null)
 const props = defineProps({
     shopCode: String,
@@ -146,14 +147,17 @@ const removeVideo = () => {
 const removeVideoList = (index) => {
     form.video.splice(index, 1)
 }
-const backResult = (res) => { 
-    form.jsons = res 
-    console.log('p',props.shopCode);
-    
+const backResult = (res) => {
+    form.jsons = res
+    // console.log('p', form.jsons);
 }
 
 const submitForm = () => {
-    return true
+    if (Object.keys(form.jsons).length == 0) {
+        message.error("JSON富文本未填写！")
+        return false;
+    }
+    return true;
 }
 
 // 抛出数据和方法，可以让父级用ref获取
@@ -162,8 +166,43 @@ defineExpose({
     submitForm
 })
 
-watch(() => props.productDetail, val=>{
-    if(Object.keys(val).length > 0) {
+watch(() => props.productDetail, val => {
+    if (Object.keys(val).length > 0) {
+        const { attributes, complexAttributes } = val.attributes[0];
+
+        if (attributes?.length == 0 || attributes == null) return;
+        const copyAttr = attributes?.filter(
+            (a) => a.id == 11254 || a.id == 4191
+        );
+        complexAttributes && complexAttributes.forEach((item) => {
+            // item.forEach((attribute) => {
+            // });
+            // console.log('item',item);
+            
+            if (item.id === 21841) {
+                form.video.push({
+                    url: processImageSource(item.values[0].value),
+                    name: item.values[0].value.substring(
+                        item.values[0].value.lastIndexOf("/") + 1
+                    ),
+                })
+            } else if (item.id === 21845) {
+                form.coverUrl = {
+                    url: processImageSource(item.values[0].value),
+                    name: item.values[0].value.substring(
+                        item.values[0].value.lastIndexOf("/") + 1
+                    ),
+                };
+            }
+        });
+        copyAttr.forEach(e => {
+            if (e.id === 11254) {
+                form.jsons = e.values[0].value
+            } else {
+                form.description = e.values[0].value
+            }
+        })
+        // console.log('form', form);
 
     }
 })

@@ -78,6 +78,7 @@ import { accountCache } from "../config/api/product"
 import { transactionList, syncTransaction, exportTransaction } from "../config/api/financial";
 import { tradStatus } from "../config/commDic/defDic"
 import { message } from "ant-design-vue";
+import download from '@/api/common/download'
 const ruleForm = ref(null)
 const formData = reactive({
     order: "desc",
@@ -96,7 +97,7 @@ const loading = ref(false)
 const syncLoading = ref(false)
 const exportLoading = ref(false)
 const expType = ref(false)
-const exportTypes = ref()
+const exportTypes = ref(1)
 const paginations = reactive({
     pageNum: 1,
     pageSize: 50,

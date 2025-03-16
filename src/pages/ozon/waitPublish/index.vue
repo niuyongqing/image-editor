@@ -106,7 +106,7 @@
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'name'">
             <div class="flex text-left">
-              <a-image :width="100" :src="record.primaryImage" />
+              <a-image :width="100" :src="processImageSource(record?.skuList[0]?.primaryImage[0])" />
               <div class="ml-2.5 block">
                 <a-tooltip class="item" effect="dark" :title="record.name" placement="top"
                   style="overflow-wrap: break-word">
@@ -209,11 +209,12 @@
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { accountCache } from "../config/api/product";
-import { ozonProductList, ozonProductDel } from "../config/api/waitProduct";
+import { ozonProductList, ozonProductDel, ozonProductPublish } from "../config/api/waitProduct";
 import tableHeard from "../config/tabColumns/waitPublish"
 import editRemark from './comm/editRemark.vue';
 import { message } from 'ant-design-vue';
 import dataCrawli from './comm/dataCrawli.vue';
+import { processImageSource } from "~/pages/ozon/config/commJs/index"
 
 const formData = reactive({
   offerId: "",
@@ -418,14 +419,16 @@ const displayedSkus = (row) => {
 }
 
 // 备注
-const addRemark = () => {
+const addRemark = (row = {}) => {
+  console.log('row', row);
+
   remarkVisible.value = true
   if (Object.keys(row).length == 0) {
     remarkId.value = selectedRowList.value;
   } else {
     let remarkObj = {
       account: row.account,
-      offerIds: [row.offerId],
+      waitIds: [row.waitId],
     };
     remarkId.value.push(remarkObj);
   }
@@ -441,7 +444,6 @@ const backCloseRemark = () => {
 const edit = (row = {}) => {
   let newRow = Object.keys(row).length != 0 ? row : selectedRowList.value[0];
   console.log('newRow', newRow);
-
   window.open("editWaitProduct" + `?id=${newRow.waitId}&account=${newRow.account}`, '_blank');
 
 }
@@ -457,6 +459,19 @@ const getList = () => {
       paginations.total = res?.total || 0;
     })
     .finally(() => {
+      loading.value = false;
+    });
+}
+
+const publish = (row = {}) => {
+  let params = {
+    account: row.account,
+    waitId: [row.waitId]
+  }
+  loading.value = true;
+  ozonProductPublish(params).then(res => {
+    message.success(res.msg)
+  }).finally(() => {
       loading.value = false;
     });
 }

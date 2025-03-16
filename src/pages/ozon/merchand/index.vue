@@ -82,7 +82,7 @@ const loading = ref(false)
 const syncLoading = ref(false)
 const exportLoading = ref(false)
 const expType = ref(false)
-const exportTypes = ref()
+const exportTypes = ref(1)
 const paginations = reactive({
     pageNum: 1,
     pageSize: 50,

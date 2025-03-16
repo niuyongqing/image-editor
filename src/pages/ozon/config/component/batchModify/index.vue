@@ -20,8 +20,8 @@
           <a-input-number v-model:value="heightValue" placeholder="请填写尺寸" :controls="false" :precision="0" />
           <div class="w-10 h-full text-center" style="background: #eee;">px</div>
         </div>
-        <a-button type="primary" class="ml-2.5" @click="generateJPG">生成JPG图片</a-button>
-        <a-button class="mx-2.5" @click="generatePNG">生成PNG图片</a-button>
+        <a-button type="primary" class="ml-2.5" @click="generateJPG(1)">生成JPG图片</a-button>
+        <a-button class="mx-2.5" @click="generateJPG(2)">生成PNG图片</a-button>
       </div>
       <div class="mt-5">
         <a-button @click="selectAllImg" class="mr-5 mt-1">{{ selectAll ? '取消选择全部图片' :
@@ -32,14 +32,12 @@
             style="margin-right: 10px;margin-bottom: 10px;" hoverable>
             <div>
               <div class="file-img">
-                <a-image :src="'/prod-api' + item.url" alt="" :width="150" :height="150" />
+                <a-image :src="item.url" alt="" :width="150" :height="150" />
                 <div class="image-mask text-center"> {{ item.width }} X {{ item.height }} </div>
               </div>
             </div>
-            <div w-full>
-              <div flex justify-between w-full>
-                <a-checkbox v-model:checked="item.checked" @change="handleSelectImg($event, item)"></a-checkbox>
-              </div>
+            <div>
+              <a-checkbox v-model:checked="item.checked" @change="handleSelectImg($event, item)"></a-checkbox>
             </div>
           </a-card>
         </div>
@@ -49,7 +47,6 @@
 </template>
 
 <script setup name=''>
-import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { message } from "ant-design-vue";
 import { replaceSuffix } from "../../api/product";
 const props = defineProps({
@@ -130,7 +127,6 @@ const handleChange = () => {
 
 const cancel = () => {
   emit("handleBatchModifyClose")
-  copyModuleList.value = []
 }
 
 const handleOk = () => {
@@ -155,21 +151,20 @@ function adjustList(list, picScale, picSize, scaleValue, sizeValue, heightValue)
 }
 
 function handleEqual(item, picSize, sizeValue) {
-  const width = parseInt(item.width);
-  const height = parseInt(item.height);
+  const width = parseInt(item.width)
+  const height = parseInt(item.height)
 
-  if (width === height) {
-    item.width = sizeValue;
+  const isSmall = picSize === 'small'
+  const min = Math.min(width, height)
+
+  if ((isSmall && width === min) || (!isSmall && width !== min)) {
+    // 以宽为基准
+    item.width = sizeValue
+    item.height = (height / width) * sizeValue
   } else {
-    const isSmall = picSize === 'small';
-    const min = Math.min(width, height);
-    const max = Math.max(width, height);
-
-    if (isSmall && width === min || !isSmall && width === max) {
-      item.width = sizeValue;
-    } else {
-      item.height = sizeValue;
-    }
+    // 高
+    item.height = sizeValue
+    item.width = (width / height) * sizeValue
   }
 }
 
@@ -218,54 +213,26 @@ function getWidthRatio(scaleValue) {
 }
 
 // 转换成jpg
-const generateJPG = () => {
+const generateJPG = (type) => {
   let isCheckedList = copyModuleList.value.filter((item) => item.checked);
   let handeleList = isCheckedList.map(item => {
     return {
       id: item.id,
-      path: item.url,
+      path: item.url.replace("/prod-api", ""),
       width: item.width,
       height: item.height
     }
   })
   let arr = adjustList(handeleList, picScale.value, picSize.value, scaleValue.value, sizeValue.value, heightValue.value)
   spinning.value = true
-  replaceSuffix({ imags: arr, fileType: 1 }).then(res => {
+  replaceSuffix({ imags: arr, fileType: type }).then(res => {
     copyModuleList.value.forEach(itemB => {
       const matchingItemA = res?.data?.find(itemA => itemA.id === itemB.id);
       if (matchingItemA) {
         // 如果找到匹配的元素，则替换宽高和 url
         itemB.width = matchingItemA.width;
         itemB.height = matchingItemA.height;
-        itemB.url = matchingItemA.path;
-      }
-    })
-  }).finally(() => {
-    spinning.value = false
-  })
-}
-// 转换成png
-const generatePNG = () => {
-  let isCheckedList = copyModuleList.value.filter((item) => item.checked);
-  let handeleList = isCheckedList.map(item => {
-    return {
-      id: item.id,
-      path: item.url,
-      width: item.width,
-      height: item.height
-    }
-  })
-  let arr = adjustList(handeleList, picScale.value, picSize.value, scaleValue.value, sizeValue.value, heightValue.value)
-  spinning.value = true
-  replaceSuffix({ imags: arr, fileType: 2 }).then(res => {
-    console.log('res', res);
-    copyModuleList.value.forEach(itemB => {
-      const matchingItemA = res?.data?.find(itemA => itemA.id === itemB.id);
-      if (matchingItemA) {
-        // 如果找到匹配的元素，则替换宽高和 url
-        itemB.width = matchingItemA.width;
-        itemB.height = matchingItemA.height;
-        itemB.url = matchingItemA.path;
+        itemB.url = '/prod-api' + matchingItemA.path;
       }
     })
   }).finally(() => {
@@ -313,6 +280,6 @@ watch(() => props.moduleList, val => {
     copyModuleList.value = Array.from(uniqueSet).map(str => JSON.parse(str));
     console.log('copyModuleList', copyModuleList.value);
   }
-}, { deep: true });
+}, { deep: true, immediate: true });
 </script>
 <style lang="less" scoped></style>

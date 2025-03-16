@@ -1,8 +1,8 @@
 <template>
   <div>
-    <a-upload name="file" v-if="images.length < 15" style="width: 100px; height: 100px;" :headers="headers"
+    <a-upload name="file" v-if="images.length < 30" style="width: 100px; height: 100px;" :headers="headers"
       accept=".jpg,.jpeg,.png" :action="uploadUrl" :showUploadList="false" :before-upload="beforeUpload"
-      @change="handleChange" :multiple="true" :max-count="15">
+      @change="handleChange" :multiple="true" :max-count="30">
       <a-button>
         <AsyncIcon icon="UploadOutlined" />
         上传图片
@@ -45,7 +45,7 @@ const props = defineProps({
   },
   max: {
     type: Number,
-    default: 15
+    default: 30
   },
 
 })
@@ -62,7 +62,7 @@ const handleChange = info => {
     images.value.push(
       {
         name: info.file.response.originalFilename,
-        url: info.file.response.url,
+        url:  '/prod-api' + info.file.response.url,
         checked: false,
         width: info.file.response.width,
         height: info.file.response.height,
