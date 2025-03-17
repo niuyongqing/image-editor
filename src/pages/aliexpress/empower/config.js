@@ -18,7 +18,8 @@ export const DEFAULT_TABLE_COLUMN = [
   },
   {
     title: '禁售属性',
-    dataIndex: 'forbidSale'
+    dataIndex: 'forbidSale',
+    minWidth: 160
   },
   {
     title: '自动刊登',

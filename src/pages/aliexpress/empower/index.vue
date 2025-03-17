@@ -8,6 +8,15 @@
         :model="searchForm"
       >
         <a-form-item
+          label="店铺ID: "
+          name="sellerId"
+        >
+          <a-input
+            v-model:value="searchForm.sellerId"
+            placeholder="请输入"
+          />
+        </a-form-item>
+        <a-form-item
           label="别名: "
           name="alias"
         >
@@ -70,6 +79,17 @@
     </a-space>
 
     <a-card>
+      <a-pagination
+        v-model:current="pageParams.pageNum"
+        v-model:pageSize="pageParams.pageSize"
+        class="text-right mb-2"
+        :total="total"
+        :default-page-size="50"
+        show-size-changer
+        show-quick-jumper
+        :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
+        @change="getList"
+      />
       <a-table
         :data-source="tableData"
         :columns="DEFAULT_TABLE_COLUMN"
@@ -77,7 +97,7 @@
         stripe
         bordered
         row-key="sellerId"
-        :pagination="{ defaultPageSize: 50, hideOnSinglePage: true }"
+        :pagination="false"
         :scroll="{ x: 'max-content' }"
       >
         <template #bodyCell="{ column, record, text }">
@@ -188,6 +208,17 @@
           </template>
         </template>
       </a-table>
+      <a-pagination
+        v-model:current="pageParams.pageNum"
+        v-model:pageSize="pageParams.pageSize"
+        class="text-right mt-2"
+        :total="total"
+        :default-page-size="50"
+        show-size-changer
+        show-quick-jumper
+        :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
+        @change="getList"
+      />
     </a-card>
 
     <!-- 批量修改简称弹窗 -->
@@ -312,13 +343,18 @@
   const route = useRoute()
   const router = useRouter()
   const code = route.query.code
+  const multiTabStore = useMultiTab()
 
   if (code) {
+    const path = route.fullPath
     empowerApi({ code })
       .then(res => {
         message.success('授权成功')
+        // 成功后关闭带路由参数的页面
+        router.push({}).then(() => {
+          multiTabStore.close(path)
+        })
         getList()
-        router.push({ query: {} })
       })
       .catch(() => {
         message.error('授权失败')
@@ -334,8 +370,9 @@
 
   const searchFormRef = ref()
   const searchForm = ref({
-    alias: '', // 别名
-    simpleName: '' // 简称
+    sellerId: undefined,
+    alias: undefined, // 别名
+    simpleName: undefined // 简称
   })
   const pageParams = ref({
     pageNum: 1,

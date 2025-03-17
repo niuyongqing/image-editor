@@ -420,7 +420,6 @@
           :data-source="stockTable"
           :loading="stockLoading"
           :scroll="{ x: 'max-content', y: 800 }"
-          :pagination="{ defaultPageSize: 50, hideOnSinglePage: true }"
         >
           <template #bodyCell="{ column, record, text }">
             <template v-if="skuPropertyList.includes(column.dataIndex)">
