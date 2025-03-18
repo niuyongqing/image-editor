@@ -1,4 +1,3 @@
-
 // 提取更新价格的公共逻辑
 const updatePrice = (items, priceKey, batchFields) => {
   items.forEach((item) => {
@@ -120,8 +119,6 @@ const processResult = (productList) => {
       id: Math.random().toString(36).substring(2, 10),
     };
     product.forEach((item) => {
-      console.log('item', item);
-
       let values =
         item.selectType === "multSelect"
           ? item?.modelValue?.map((val) => val.label).join(",")
@@ -241,6 +238,8 @@ const rearrangeColorFields = (arr) => {
 
 // 处理变种主题展示
 const handleTheme = (list) => {
+  console.log('list',list);
+  
   let echoThemeList = []
   if (checkData(list)) {
     const prodColor = list.find(item => item.id === 10096)
@@ -418,7 +417,7 @@ const getInputValue = (attr, base, image, item) => {
       ? null
       : image.description;
   } else if (attr.id === 11254) {
-    return image.jsons ? JSON.stringify(image.jsons) : null;
+    return image.jsons ? typeof image.jsons === 'string' ? image.jsons : JSON.stringify(image.jsons) : null;
   } else if (
     (attr.isAspect && !attr.isRequired) ||
     (attr.isAspect && attr.isCollection)
@@ -444,10 +443,12 @@ const getSelectValue = (attr, base) => {
         0,
         value[0]?.value?.value
       ]
+    } else if (value?.value === '无品牌' || value?.label === '无品牌') {
+      return [126745801, "无品牌"];
     } else {
       return [
-        value?.value === "无品牌" ? 126745801 : value?.value,
-        value?.value === "无品牌" ? "无品牌" : value?.label,
+        value?.value,
+        value?.label,
       ];
     }
   }

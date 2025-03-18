@@ -28,12 +28,12 @@
                                             :precision="2" placeholder="示例：1.00" :min="0"></a-input-number>
                                     </div>
                                     <div class="mt-2.5">
-                                        <a-radio :value="2">按现有原价：</a-radio><a-select v-model:value="form.oldSelct1"
+                                        <a-radio :value="2">按现有原价：</a-radio><a-select v-model:value="form.oldSelect1"
                                             :disabled="form.oldPriceValue == 1" class="mr-2.5" style="width: 110px"
                                             :options="commList[0].option"></a-select><a-input-number class="mr-2.5"
                                             style="width: 150px;" :disabled="form.oldPriceValue == 1"
                                             v-model:value="form.toOldPrice" placeholder="请输原价格" :precision="2"
-                                            :min="0"></a-input-number><a-select v-model:value="form.oldSelct2"
+                                            :min="0"></a-input-number><a-select v-model:value="form.oldSelect2"
                                             style="width: 120px" :options="commList[1].option"
                                             :disabled="form.oldPriceValue == 1"></a-select>
                                     </div>
@@ -212,7 +212,7 @@
             </a-row>
 
             <template #footer>
-                <a-button @click="handleCancel">取消</a-button>
+                <a-button :loading="loading" @click="handleCancel">取消</a-button>
                 <a-button type="primary" :loading="loading" @click="onSubmit">确定</a-button>
             </template>
         </a-modal>
@@ -221,10 +221,10 @@
 
 <script setup name='editPriceModal'>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-import { updatePrices } from "../../config/api/product";
+import { batchUpdate } from "../../config/api/product";
 import { endResult } from "../../config/commJs/index"
 import { message } from "ant-design-vue";
-import { title } from 'process';
+
 const props = defineProps({
     editPriceVisible: Boolean,
     selectedRows: Array,
@@ -234,28 +234,26 @@ const props = defineProps({
 const emit = defineEmits(["handleEditPriceClose"]);
 const loading = ref(false)
 const ruleForm = ref()
-const form = reactive({
+// 提取初始表单数据工厂函数
+const getInitialFormData = () => ({
     oldPriceValue: 1,
     oldPrice: "",
     toOldPrice: "",
-    oldSelct1: "",
-    oldSelct2: "",
-
+    oldSelect1: "",    // 修正拼写错误 Selct -> Select
+    oldSelect2: "",
     priceValue: 1,
     price: "",
-    priceSelct1: "",
-    priceSelct2: "",
+    priceSelect1: "",
+    priceSelect2: "",
     toPrice: "",
-
     minPrice: "",
     minValue: 1,
     toMinPrice: "",
     toMinPrice2: "",
-    minSelct1: "",
-    minSelct2: "",
-    minSelct3: "",
-    minSelct4: "",
-
+    minSelect1: "",
+    minSelect2: "",
+    minSelect3: "",
+    minSelect4: "",
     weightValue: 1,
     weightSelect: "",
     weight: null,
@@ -269,8 +267,9 @@ const form = reactive({
     packageLength: null,
     packageWidth: null,
     packageHeight: null,
-    packageWeight: null,
+    packageWeight: null
 })
+const form = reactive(getInitialFormData())
 const state = reactive({
     indeterminate: false,
     checkAll: false,
@@ -421,10 +420,7 @@ const leftList = reactive([
     }
 ])
 
-
-
 const onProductAllChange = (e, item) => {
-    console.log('e', e, item);
     item.checkedList = e.target.checked ? item.option.map(item => item.value) : []
 }
 
@@ -461,6 +457,11 @@ const handleCancel = () => {
     leftList.forEach(item => {
         item.checkedList = []
     })
+    // 重置表单数据
+    const initialData = getInitialFormData()
+    Object.keys(initialData).forEach(key => {
+        form[key] = initialData[key]
+    })
 }
 const changeInputNumber = (item) => {
     let count = 0;
@@ -473,9 +474,7 @@ const changeInputNumber = (item) => {
 }
 const onSubmit = () => {
     if (props.selectedRows.length == 0) return;
-    // loading.value = true;
-    console.log('selectedRows', props.selectedRows);
-
+    loading.value = true;
     // 标题数据处理
     let priceList = props.selectedRows.map((item) => {
         return {
@@ -484,7 +483,7 @@ const onSubmit = () => {
             price: item.price,
             oldPrice: item.oldPrice,
             minPrice: item.minPrice,
-            warehouseList: item.stock,
+            warehouseList: [],
             offerId: item.offerId,
             packageWeight: item?.attributes[0]?.weight,
             packageWidth: item?.attributes[0]?.width,
@@ -504,9 +503,6 @@ const onSubmit = () => {
             priceList = priceList.map((row) => fieldHandlers.dimensions(row, form));
         }
         if (field === 'stock') {
-            console.log('priceList', priceList, props.editStockList);
-
-
             // 遍历数组 a
             priceList.forEach(itemA => {
                 // 查找 b 数组中 account 匹配的元素
@@ -516,7 +512,7 @@ const onSubmit = () => {
                     const validChildren = matchingItemB.children.filter(child => child.stock !== null && child.stock !== '');
                     // 生成新数组，包含 name、warehouseId 和 stock
                     const newStockArray = validChildren.map(child => ({
-                        name: child.name,
+                        warehouseName: child.name,
                         warehouseId: child.warehouseId,
                         present: child.stock,
                         offerId: itemA.offerId
@@ -528,11 +524,49 @@ const onSubmit = () => {
             console.log('priceList', priceList);
         }
     });
-    let params = {
-        prices: priceList,
-    };
-    console.log(params, "params");
+    
+    const fieldsToCompare = ['name', 'price', 'oldPrice', 'minPrice'];
+    const packageFields = [
+        { key: 'packageWeight', path: 'attributes.0.weight' },
+        { key: 'packageWidth', path: 'attributes.0.width' },
+        { key: 'packageHeight', path: 'attributes.0.height' },
+        { key: 'packageLength', path: 'attributes.0.depth' }
+    ];
 
+    priceList.forEach(itemA => {
+        for (const itemB of props.selectedRows) {
+            // 通用字段比较
+            for (const field of fieldsToCompare) {
+                if (itemA[field] === itemB[field]) {
+                    itemA[field] = '';
+                }
+            }
+            
+            if (itemA.vat === itemB.vat) {
+                itemA.vat = "";
+            }
+
+            // 处理包装属性
+            for (const { key, path } of packageFields) {
+                const value = path.split('.').reduce((obj, p) => obj?.[p], itemB);
+                if (itemA[key] === value) {
+                    itemA[key] = "";  // 修正原代码错误：原逻辑错误地修改vat字段
+                }
+            }
+        }
+    });
+    console.log('priceList--', priceList);
+    batchUpdate(priceList).then(res => {
+        message.success(res.msg)
+    }).finally(() => {
+        emit("handleEditPriceClose")
+        loading.value = false;
+        // 重置表单数据
+        const initialData = getInitialFormData()
+        Object.keys(initialData).forEach(key => {
+            form[key] = initialData[key]
+        })
+    })
 }
 
 // 封装处理标题的函数
@@ -573,6 +607,7 @@ const handlePrice = (row, form) => {
     } else {
         row.price = endResult(Number(row.price), Number(form.toPrice), form.priceSelct1, form.priceSelct2);
     }
+
     return row;
 };
 
@@ -581,7 +616,7 @@ const handleOldPrice = (row, form) => {
     if (form.oldPriceValue === 1) {
         row.oldPrice = form.oldPrice;
     } else {
-        row.oldPrice = endResult(Number(row.oldPrice), Number(form.toOldPrice), form.oldSelct1, form.oldSelct2);
+        row.oldPrice = endResult(Number(row.oldPrice), Number(form.toOldPrice), form.oldSelect1, form.oldSelect2);
     }
     return row;
 };
@@ -601,6 +636,7 @@ const handleMinPrice = (row, form) => {
         default:
             break;
     }
+
     return row;
 };
 
@@ -644,6 +680,8 @@ const fieldHandlers = {
     weight: handleWeight,
     dimensions: handleDimensions
 };
+
+
 
 
 </script>

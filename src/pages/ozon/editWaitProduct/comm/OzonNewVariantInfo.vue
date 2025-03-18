@@ -234,7 +234,7 @@
                     </span>
                     <a-button @click="selectAllImg" class="mr-5 mt-1" :disabled="!shopCode">{{ selectAll ? '取消选择全部图片' :
                         '选择全部图片'
-                        }}</a-button>
+                    }}</a-button>
                 </template>
                 <div>
                     <a-tag color="warning">！说明</a-tag>
@@ -250,12 +250,12 @@
                                     <div v-for="(e, i) in imgHeaderList" :key="i">
                                         <div>
                                             <span>{{ e.title }}:</span><span style="margin-left: 10px;">{{ item[e.title]
-                                                }}</span>
+                                            }}</span>
                                         </div>
                                     </div>
                                 </div>
                                 <span v-if="item.imageUrl" class="block mt-2.5">{{ item.imageUrl.length
-                                    }}/30</span>
+                                }}/30</span>
                                 <dragUpload @changeImg="(list) => changeImg(list, item)"
                                     @singleSelectImg="(e) => singleSelectImg(e, item)" :imageList="item.imageUrl">
                                 </dragUpload>
@@ -281,7 +281,7 @@
 <script setup name='OzonNewVariantInfo'>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
-import { message } from "ant-design-vue";
+import { message, Modal } from "ant-design-vue";
 import EditProdQuantity from '../../productPublish/comm/EditProdQuantity.vue';
 import dragUpload from '../../productPublish/comm/dragUpload.vue';
 import { scaleApi, watermarkListApi, watermarkApi } from "~/api/common/water-mark";
@@ -352,7 +352,7 @@ const handleChangeColroImg = (info, record) => {
         record.colorImg.push(
             {
                 name: info.file.response.originalFilename,
-                url: info.file.response.url,
+                url: '/prod-api' + info.file.response.url,
                 checked: false,
                 width: info.file.response.width,
                 height: info.file.response.height,
@@ -899,7 +899,6 @@ const judgeMax = (item) => {
 
 }
 
-
 watch(() => useOzonProductStore().attributes, val => {
     if (val) {
         themeBtns.value = [];
@@ -914,14 +913,13 @@ watch(() => useOzonProductStore().attributes, val => {
         isConform.value = checkData(arr);
         const requiredItem = arr.some(item => item.isRequired === true);
         let sortArr = rearrangeColorFields(arr)
-        console.log('sortArr', headerList.value);
-
         //判断主题中是否有颜色名称，且商品颜色是不是必填项
         if (requiredItem) {
             if (isConform.value) {
-                requiredList.value = arr.filter(
-                    (obj) => obj.isRequired || obj.id == 10097
-                );
+                requiredList.value = arr.filter((obj) => obj.isRequired);
+                if (requiredList.value.some(item => (item.id === 10096))) {
+                    requiredList.value.push(arr.find(obj => obj.id === 10097))
+                }
                 themeBtns.value = arr.filter(
                     (obj) => !(obj.isRequired || obj.id === 10097)
                 )
@@ -964,8 +962,6 @@ watch(() => useOzonProductStore().attributes, val => {
         if (requiredList.value.length != 0) {
             processDataFormat(requiredList.value);
         }
-
-
         let result = [];
         let attrHeaderList = [];
         // 遍历b中的skuList
@@ -978,9 +974,9 @@ watch(() => useOzonProductStore().attributes, val => {
                 packageLength: sku.depth,
                 packageWeight: sku.weight,
                 packageWidth: sku.width,
-                colorImg: sku?.colorImage.length > 0 ? [{
-                    url: processImageSource(sku.colorImage[0]),
-                    name: sku.colorImage[0].substring(sku.colorImage[0].lastIndexOf("/") + 1)
+                colorImg: sku?.colorImage !== "" ? [{
+                    url: processImageSource(sku.colorImage),
+                    name: sku.colorImage.split('/').pop()
                 }] : [],
                 warehouseList: sku?.warehouseList?.map(item => {
                     return {
@@ -1048,17 +1044,31 @@ watch(() => useOzonProductStore().attributes, val => {
             addHeaderList.value.push("colorImg")
         }
         tableData.value = result
+        // 将不匹配的主题过滤掉
+        console.log('sortArr',sortArr,skuList);
+        
+        // let isModelValueList = filterModelValues(sortArr, skuList);
+        // console.log('isModelValueList',isModelValueList);
+        
         // 处理到数据回显到主题
-        let echoThemeList = handleTheme(sortArr)  //handleTheme方法可以将属性转换成主题数据格式
+        let echoThemeList = handleTheme(sortArr) 
+        // let echoThemeList = handleTheme(isModelValueList)  //handleTheme方法可以将属性转换成主题数据格式
         const aIds = echoThemeList.map(item => item.id);
         // 过滤 有数据的主题
         themeBtns.value = themeBtns.value.filter(item => !aIds.includes(item.id));
         attributeList.value = matchAndAssignValues(echoThemeList, skuList)
-        console.log('attributeList', tableData.value);
+        console.log('attributeList99', attributeList.value);
 
     }
 
 })
+
+const filterModelValues = (a, b) => {
+    const allAttributeIds = b.flatMap(item => item.attributes.map(attr => attr.id));
+    // 过滤 sortArr 中匹配不上的项
+    const filteredSortArr = a.filter(item => allAttributeIds.includes(item.id));
+    return filteredSortArr
+}
 
 const matchAndAssignValues = (a, b) => {
     // 遍历 a 数组的每个配置项
@@ -1113,10 +1123,8 @@ const processTableDataItem = (tableDataTemplate, matchedAttribute, secondAttr, i
             }
         } else {
             if (matchedAttribute) {
-                const matchedValues = matchedAttribute.values.map(item => ({
-                    label: item.value,
-                    value: item.dictionaryValueId
-                }));
+                let themIds = matchedAttribute.values.map(item => item.dictionaryValueId)
+                const matchedValues = tableDataTemplate.details.filter(item => themIds.includes(item.id));
                 const uniqueMatchedValues = removeDuplicatesByProperty(matchedValues, 'value');
                 tableDataTemplate.modelValue = uniqueMatchedValues;
             }

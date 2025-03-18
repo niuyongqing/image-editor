@@ -9,7 +9,7 @@
       </a-button>
     </a-upload>
     <draggable v-if="images.length > 0" item-key="url" v-model="images" class="flex flex-wrap"
-      style="width: 1800px;margin-top: 10px;">
+      style="width: 1600px;margin-top: 10px;">
       <template #item="{ element }">
         <a-card class="file-card" style="margin-right: 10px;margin-bottom: 10px;" hoverable>
           <div :key="element.uid">
@@ -37,7 +37,7 @@ import { message } from "ant-design-vue";
 import { ref } from 'vue';
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 
-const emit = defineEmits(['changeImg',"singleSelectImg"])
+const emit = defineEmits(['changeImg', "singleSelectImg"])
 const props = defineProps({
   imageList: {
     type: Array,
@@ -62,7 +62,7 @@ const handleChange = info => {
     images.value.push(
       {
         name: info.file.response.originalFilename,
-        url:  '/prod-api' + info.file.response.url,
+        url: '/prod-api' + info.file.response.url,
         checked: false,
         width: info.file.response.width,
         height: info.file.response.height,
@@ -108,8 +108,8 @@ const handleRemove = (file) => {
 }
 
 const handleSelectImg = (e) => {
-  console.log('e',e);
-  emit("singleSelectImg",e)
+  console.log('e', e);
+  emit("singleSelectImg", e)
 }
 
 watch(() => props.imageList, val => {
@@ -117,10 +117,10 @@ watch(() => props.imageList, val => {
     const promiseList1 = val.map(item => {
       return new Promise(resolve => {
         const image = new Image()
-        image.src = item.url
+        image.src = item.url ?? ""
         image.onload = () => {
           resolve({
-            url: item.url,
+            url: item.url ?? "",
             width: image.width,
             height: image.height,
             checked: item.checked,
@@ -129,9 +129,8 @@ watch(() => props.imageList, val => {
       })
     })
     Promise.all(promiseList1).then(list => {
-      images.value = list 
-      console.log('images',images.value);
-      
+      images.value = list
+      console.log('images', images.value);
     })
   }
 }, { immediate: true, deep: true })

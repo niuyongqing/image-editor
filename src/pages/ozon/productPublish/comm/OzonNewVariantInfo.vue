@@ -233,7 +233,7 @@
                     </span>
                     <a-button @click="selectAllImg" class="mr-5 mt-1" :disabled="!shopCode">{{ selectAll ? '取消选择全部图片' :
                         '选择全部图片'
-                    }}</a-button>
+                        }}</a-button>
                 </template>
                 <div>
                     <a-tag color="warning">！说明</a-tag>
@@ -249,13 +249,13 @@
                                     <div v-for="(e, i) in imgHeaderList" :key="i">
                                         <div>
                                             <span>{{ e.title }}:</span><span style="margin-left: 10px;">{{ item[e.title]
-                                            }}</span>
+                                                }}</span>
                                         </div>
                                     </div>
                                 </div>
                                 <!-- <div v-if="item && item.detail">{{ item.detail.attr }}</div> -->
                                 <span v-if="item.imageUrl" class="block mt-2.5">{{ item.imageUrl.length
-                                }}/30</span>
+                                    }}/30</span>
                                 <dragUpload @changeImg="(list) => changeImg(list, item)"
                                     @singleSelectImg="(e) => singleSelectImg(e, item)"></dragUpload>
 
@@ -446,7 +446,7 @@ const processDataFormat = (list = []) => {
     console.log('headerList2', headerList.value, tableData.value);
 
     attributeList.value = [...attributeList.value, ...newHeaderList]
-    // console.log('attributeList', attributeList.value, headerList.value);
+    console.log('attributeList', attributeList.value);
 }
 
 // 手动添加多个变种主题
@@ -877,6 +877,12 @@ const getEditStore = (account) => {
     });
 }
 
+// 变种主题中是组合在一起的主题
+// const dependencyMap = new Map([
+//     [10096, 10097],  // 商品颜色和颜色名称
+//     [4295, 9533]    // 俄罗斯尺码和制造商尺码
+// ]);
+
 watch(() => useOzonProductStore().attributes, val => {
     if (val) {
         themeBtns.value = [];
@@ -890,16 +896,35 @@ watch(() => useOzonProductStore().attributes, val => {
         isConform.value = checkData(arr);
         const requiredItem = arr.some(item => item.isRequired === true);
         console.log('arr', arr);
-        console.log('requiredItem', requiredItem);
+        // console.log('requiredItem', attributeList.value);
         //判断主题中是否有颜色名称，且商品颜色是不是必填项
         if (requiredItem) {
             if (isConform.value) {
                 requiredList.value = arr.filter((obj) => obj.isRequired);
+                // 将arr转换为ID索引对象，提高查找效率
+                // const arrById = arr.reduce((acc, item) => {
+                //     acc[item.id] = item;
+                //     return acc;
+                // }, {});
+                // console.log('arrById0',arrById);
+                
+                // // 检查并添加依赖项
+                // dependencyMap.forEach((addId, targetId) => {
+                //     // 检查目标ID是否存在
+                //     if (requiredList.value.some(item => item.id === targetId)) {
+                //         // 获取要添加的对象
+                //         const itemToAdd = arrById[addId];
+                //         // 检查是否已存在且对象存在
+                //         if (itemToAdd && !requiredList.value.some(item => item.id === addId)) {
+                //             requiredList.value.push(itemToAdd);
+                //         }
+                //     }
+                // });
                 if (requiredList.value.some(item => (item.id === 10096))) {
                     requiredList.value.push(arr.find(obj => obj.id === 10097))
-                }
+                } 
                 themeBtns.value = arr.filter(
-                    (obj) => !(obj.isRequired || obj.id === 10097)
+                    (obj) => !(obj.isRequired || obj.id === 10097) //obj.id === 9533
                 )
                 console.log('requiredList---', requiredList.value);
                 requiredList.value = reorderArray(requiredList.value)
@@ -941,7 +966,7 @@ watch(() => useOzonProductStore().attributes, val => {
         if (requiredList.value.length != 0) {
             processDataFormat(requiredList.value);
         }
-        console.log('themeBtns', themeBtns.value);
+        // console.log('themeBtns', tableData.value);
 
         tableData.value.push({
             skuTitle: "",

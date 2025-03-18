@@ -159,6 +159,7 @@ const handleOk = () => {
     })
         .finally(() => {
             exportLoading.value = false;
+            expType.value = false
         });
 }
 

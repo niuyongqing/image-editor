@@ -148,7 +148,7 @@
                     </span>
                     <a-button @click="selectAllImg" class="mr-5 mt-1" :disabled="!shopCode">{{ selectAll ? '取消选择全部图片' :
                         '选择全部图片'
-                    }}</a-button>
+                        }}</a-button>
                 </template>
                 <div>
                     <a-tag color="warning">！说明</a-tag>
@@ -164,12 +164,12 @@
                                     <div v-for="(e, i) in imgHeaderList" :key="i">
                                         <div>
                                             <span>{{ e.title }}:</span><span style="margin-left: 10px;">{{ item[e.title]
-                                            }}</span>
+                                                }}</span>
                                         </div>
                                     </div>
                                 </div>
                                 <span v-if="item.imageUrl" class="block mt-2.5">{{ item.imageUrl.length
-                                }}/30</span>
+                                    }}/30</span>
                                 <dragUpload @changeImg="(list) => changeImg(list, item)"
                                     @singleSelectImg="(e) => singleSelectImg(e, item)" :imageList="item.imageUrl">
                                 </dragUpload>
@@ -195,7 +195,7 @@
 <script setup name='OzonVariantInfo'>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
-import { message } from "ant-design-vue";
+import { message, Modal } from "ant-design-vue";
 import { productWarehouse } from "../../config/api/product"
 import SelectAttr from '../../productPublish/comm/SelectAttr.vue';
 import batchEditModal from "~/pages/ozon/config/component/batchEditModal/index.vue"
@@ -221,7 +221,7 @@ const quantityRow = ref({})
 const tableData = ref([])
 const themeBtns = ref([])
 const requiredList = ref([]) //必填变种主题 
-const editRes = ref([])
+const editRes = ref({})
 const editStockList = ref([]) //仓库数据
 const rowOldPrice = ref("")
 const rowPrice = ref("")
@@ -262,7 +262,7 @@ const handleChangeColroImg = (info, record) => {
         record.colorImg.push(
             {
                 name: info.file.response.originalFilename,
-                url: info.file.response.url,
+                url: '/prod-api' + info.file.response.url,
                 checked: false,
                 width: info.file.response.width,
                 height: info.file.response.height,
@@ -661,8 +661,6 @@ watch(() => useOzonProductStore().attributes, val => {
         } else {
             newImgList = [...new Set([...images])]
         }
-        console.log('newImgList', newImgList);
-
         let imgList = []
         imgList = newImgList?.map(item => {
             return {
@@ -697,38 +695,47 @@ watch(() => useOzonProductStore().attributes, val => {
         // 提取出变种主题的标头和对应的值
         if (sortArr.length > 0) {
             const attrs = attributes[0] && attributes[0].attributes;
+            console.log('attrs', attrs, sortArr);
+
             if (attrs) {
                 let attrHeaderList = [];
-                const attrsMap = new Map(attrs.map(attr => [attr.id, attr])); // 将attrs转为Map提高查询效率
+                // const attrsMap = new Map(attrs.map(attr => [attr.id, attr])); // 将attrs转为Map提高查询效率
+                const bMap = new Map();
+                attrs.forEach(item => bMap.set(item.id, item));
                 sortArr.forEach((sortItem) => {
-                    const attrItem = attrsMap.get(sortItem.id);
-                    if (!attrItem) return; // 无匹配项则跳过
+                    const attrItem = bMap.get(sortItem.id);
+                    console.log('attrItem',attrItem);
                     const { selectType, name: sortName, options } = sortItem;
-                    // 处理多选或单选类型
-                    if (selectType === "multSelect" || selectType === "select") {
-                        const matchedValues = [];
-                        attrItem.values.forEach((valueItem) => {
-                            if (!options) return; // 无选项可匹配时跳过
-                            const matchedOption = options.find(opt => opt.id === valueItem.dictionaryValueId);
-                            if (matchedOption) {
-                                // console.log('matchedOption',matchedOption);
-                                matchedValues.push(matchedOption.value);
-                                // editRes.value[sortName] = matchedOption.value; // 注: 会保留最后一次匹配的值
-                            }
-
-                            if (matchedValues.length > 0) {
-                                editRes.value[sortName] = matchedValues.join(',');
-                            }
-                        });
-                    }
-                    // 处理其他类型
-                    else {
-                        const validValue = attrItem.values.find(value => value.value !== "");
-                        if (validValue) {
-                            editRes.value[sortName] = validValue.value;
+                    if(attrItem) {
+                        // 处理多选或单选类型
+                        if (selectType === "multSelect" || selectType === "select") {
+                            const matchedValues = [];
+                            attrItem.values.forEach((valueItem) => {
+                                if (!options) return; // 无选项可匹配时跳过
+                                const matchedOption = options.find(opt => opt.id === valueItem.dictionaryValueId);
+                                if (matchedOption) {
+                                    // console.log('matchedOption',matchedOption);
+                                    matchedValues.push(matchedOption.value);
+                                    // editRes.value[sortName] = matchedOption.value; // 注: 会保留最后一次匹配的值
+                                }
+    
+                                if (matchedValues.length > 0) {
+                                    editRes.value[sortName] = matchedValues.join(',');
+                                }
+                            });
                         }
-
+                        // 处理其他类型
+                        else {
+                            const validValue = attrItem.values.find(value => value.value !== "");
+                            if (validValue) {
+                                editRes.value[sortName] = validValue.value;
+                            }
+    
+                        }
+                    }else {
+                        editRes.value[sortName] = ""
                     }
+                    // if (!attrItem) return; // 无匹配项则跳过
                     // 添加表头配置（确保每个sortItem只添加一次）
                     attrHeaderList.push({
                         title: sortName,
@@ -743,11 +750,6 @@ watch(() => useOzonProductStore().attributes, val => {
                         })
                     }
                 });
-                // imgHeaderList.value = sortArr.map(item => {
-                //     return {
-                //         title: item.name
-                //     }
-                // })
                 let colorObj = {};
                 let colorHead = [];
                 if (colorImage.length > 0) {
@@ -770,10 +772,10 @@ watch(() => useOzonProductStore().attributes, val => {
             }
         }
         let colorImageObj = {};
-        if (colorImage.length > 0) {
+        if (colorImage) {
             colorImageObj = {
-                url: processImageSource(colorImage[0]),
-                name: colorImage[0].substring(colorImage.lastIndexOf("/") + 1),
+                url: processImageSource(colorImage),
+                name: colorImage.split('/').pop(),
             };
         }
         let item = {
@@ -791,13 +793,12 @@ watch(() => useOzonProductStore().attributes, val => {
             colorImg: colorImage.length > 0 ? [colorImageObj] : [],
         };
         console.log('editRes', editRes.value);
-
         Object.assign(item, editRes.value);
-        // this.$set(this.tableData, 0, item);
         tableData.value.push(item)
-        console.log("tableData", tableData.value);
+        console.log("tableData", item);
     }
 })
+
 
 onMounted(() => {
     getWatermark()

@@ -530,8 +530,8 @@ watch(() => useOzonProductStore().attributes, (val) => {
             loopAttributes.value = noThemeAttributesCache;
             // 赋值
             const { attributes: oldAttributes } = props.productDetail?.skuList[0]; 
-            console.log('oldAttributes',oldAttributes);
-            console.log('loopAttributes',loopAttributes.value);
+            // console.log('oldAttributes',oldAttributes);
+            // console.log('loopAttributes',loopAttributes.value);
             const proceRes = assignValues(oldAttributes, loopAttributes.value);
             form.attributes = proceRes;
             console.log('proceRes0', proceRes);
