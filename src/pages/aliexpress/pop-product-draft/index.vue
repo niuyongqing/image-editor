@@ -268,7 +268,7 @@
       >
       <a-popconfirm
         title="确定删除吗？"
-        @confirm="del"
+        @confirm="del()"
       >
         <a-button
           type="primary"
@@ -682,11 +682,13 @@
           .then(res => {
             const list = res.rows || []
             list.forEach((item, i) => {
+              let images = item.result.imageURLs ? item.result.imageURLs.split(';') : []
+              images = images.map(url => (url.includes('http') ? url : '/prod-api' + url))
               list[i] = {
                 ...item,
                 ...item.result,
                 SKUExpand: false,
-                images: item.result.imageURLs ? item.result.imageURLs.split(';') : []
+                images
               }
               delete list[i].result
             })

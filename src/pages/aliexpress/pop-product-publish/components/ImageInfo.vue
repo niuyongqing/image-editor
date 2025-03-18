@@ -407,6 +407,7 @@
         // 产品主图
         const mainImageList = detail.imageURLs ? detail.imageURLs.split(';') : []
         const promiseList1 = mainImageList.map(url => {
+          url = url.includes('http') ? url : '/prod-api' + url
           return new Promise(resolve => {
             const image = new Image()
             image.src = url
@@ -425,11 +426,12 @@
         // 营销图 1:1
         const marketImage1 = detail.marketImages && detail.marketImages.find(item => item.imageType === 2)
         if (marketImage1) {
+          const url = marketImage1.url.includes('http') ? marketImage1.url : '/prod-api' + marketImage1.url
           const image = new Image()
-          image.src = marketImage1.url
+          image.src = url
           image.onload = () => {
             this.form.marketImage1.push({
-              url: marketImage1.url,
+              url,
               width: image.width,
               height: image.height
             })
@@ -438,11 +440,12 @@
         // 营销图 3:4
         const marketImage2 = detail.marketImages && detail.marketImages.find(item => item.imageType === 1)
         if (marketImage2) {
+          const url = marketImage2.url.includes('http') ? marketImage2.url : '/prod-api' + marketImage2.url
           const image = new Image()
-          image.src = marketImage2.url
+          image.src = url
           image.onload = () => {
             this.form.marketImage2.push({
-              url: marketImage2.url,
+              url,
               width: image.width,
               height: image.height
             })

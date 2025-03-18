@@ -463,6 +463,8 @@ export function extractTextFromHTML(html) {
 
 // 从 HTML 中提取图片地址数组
 export function extractImageUrls(html) {
+  // 编辑过的图片需要移除前面的 origin(IP)
+  const origin = window.location.origin
   const tempDiv = document.createElement('div')
   tempDiv.innerHTML = html
   const imgElements = tempDiv.getElementsByTagName('img')
@@ -470,8 +472,9 @@ export function extractImageUrls(html) {
   for (let i = 0; i < imgElements.length; i++) {
     const src = imgElements[i].src
     if (src) {
-      imageUrls.push(src)
+      imageUrls.push(src.replace(origin, ''))
     }
   }
+
   return imageUrls
 }

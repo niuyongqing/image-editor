@@ -242,7 +242,7 @@
     // 选择半托管则区域调价只能直接报价
     if (isSemiCustodial.value && nationalQuote.aeopNationalQuoteConfiguration.configurationType !== 'absolute') {
       scroll('nationalQuote')
-      Modal.warning('半托管商品区域定价的定价方式仅支持直接报价，如果你在商品编辑时使用了调整比例或其他方式进行价格设置，请调整为直接报价。')
+      Modal.warning({ title : '半托管商品区域定价的定价方式仅支持直接报价，如果你在商品编辑时使用了调整比例或其他方式进行价格设置，请调整为直接报价。' })
 
       return
     }
@@ -276,13 +276,14 @@
     const saveDraftApi = looseValidate ? (productDetail.value.draftsId ? editProductDraftsApi : saveProductDraftsApi) : popOneSubmitApi
     saveDraftApi(params)
       .then(res => {
-        message.success('保存成功')
         window.removeEventListener('beforeunload', stopUnload)
         if (looseValidate) {
+          message.success('保存成功, 在待发布中查看')
           setTimeout(() => {
             window.close()
-          }, 300)
+          }, 500)
         } else {
+          message.success('保存成功')
           // 跳转半托管
           const query = {
             sellerId: params.sellerId,
@@ -377,7 +378,7 @@
         window.removeEventListener('beforeunload', stopUnload)
         setTimeout(() => {
           window.close()
-        }, 300)
+        }, 500)
       })
       .catch(err => {
         console.log('发布失败', err)

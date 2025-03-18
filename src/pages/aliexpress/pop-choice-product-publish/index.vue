@@ -966,7 +966,7 @@
             window.removeEventListener('beforeunload', stopUnload)
             setTimeout(() => {
               window.close()
-            }, 300)
+            }, 500)
           })
           .finally(() => {
             this.draftSaveLoading = false
@@ -985,7 +985,7 @@
             window.removeEventListener('beforeunload', stopUnload)
             setTimeout(() => {
               window.close()
-            }, 300)
+            }, 500)
           })
           .finally(() => {
             this.saveLoading = false
