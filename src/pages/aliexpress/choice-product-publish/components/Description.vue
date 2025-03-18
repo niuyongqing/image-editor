@@ -125,11 +125,11 @@
 
           if (detail.detailSourceList[0]) {
             const webDetail = JSON.parse(detail.detailSourceList[0].webDetail)
-            const mobileDetail = JSON.parse(detail.detailSourceList[0].mobileDetail)
+            const mobileDetail = JSON.parse(detail.detailSourceList[0].mobileDetail.replaceAll('/profile', '/prod-api/profile'))
 
             if (webDetail) {
               const richTextData = webDetail.moduleList.find(item => item.type === 'html')
-              richTextData && (this.form.webDetail = richTextData.html.content)
+              richTextData && (this.form.webDetail = richTextData.html.content.replaceAll('/profile', '/prod-api/profile'))
               this.$nextTick(() => {
                 if (!this.form.webDetail.includes('<img')) {
                   this.form.webDetail = replaceTagsWithRegex(richTextData.html.content)
@@ -204,9 +204,7 @@
       // 批量修改图片尺寸
       editImageSize() {
         // 提取所有图片
-        // 编辑过的图片需要移除前面的 origin(IP)
-        const origin = window.location.origin
-        this.imgUrls = extractImageUrls(this.form.webDetail).map(url => url.replace(origin, ''))
+        this.imgUrls = extractImageUrls(this.form.webDetail)
         if (this.imgUrls.length === 0) {
           message.error('未检测到图片')
 

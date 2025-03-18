@@ -166,7 +166,7 @@
         stripe
         bordered
         row-key="id"
-        :pagination="{ defaultPageSize: 50, hideOnSinglePage: true }"
+        :pagination="false"
         :scroll="{ x: 'max-content' }"
       >
         <template #bodyCell="{ column, record }">

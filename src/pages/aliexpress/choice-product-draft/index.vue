@@ -167,7 +167,7 @@
         okText="好的"
         cancelText="不用了"
         title="确定删除吗？"
-        @confirm="del"
+        @confirm="del()"
       >
         <a-button
           type="primary"
@@ -211,7 +211,7 @@
               <a-popover placement="right">
                 <template #content>
                   <img
-                    :src="record.multimedia.mainImageList[0] || EmptyImg"
+                    :src="record.mainImageList[0] || EmptyImg"
                     style="height: 400px; width: 400px"
                   />
                 </template>
@@ -219,11 +219,11 @@
                   <a-image-preview-group>
                     <a-image
                       style="width: 56px; height: 56px; border: 1px solid #ccc"
-                      :src="record.multimedia.mainImageList[0] || EmptyImg"
+                      :src="record.mainImageList[0] || EmptyImg"
                       :fallback="EmptyImg"
                     />
                     <a-image
-                      v-for="url in record.multimedia.mainImageList.slice(1)"
+                      v-for="url in record.mainImageList.slice(1)"
                       :key="url"
                       :src="url"
                       class="hidden"
@@ -233,9 +233,7 @@
               </a-popover>
               <div style="margin-left: 10px; width: 90%">
                 <a-tooltip :title="getTitle(record)">
-                  <div
-                    class="truncate"
-                  >
+                  <div class="truncate">
                     {{ getTitle(record) }}
                   </div>
                 </a-tooltip>
@@ -469,7 +467,11 @@
           .then(res => {
             const list = res.rows || []
             list.forEach(item => {
+              const images = item.multimedia.mainImageList || []
+              const mainImageList = images.map(url => (url.includes('http') ? url : '/prod-api' + url))
+
               item.SKUExpand = false
+              item.mainImageList = mainImageList
             })
             this.tableData = list
             this.total = res.total
@@ -549,7 +551,7 @@
       },
       publish(record) {
         const params = {
-          ...row
+          ...record
         }
         delete params.SKUExpand
         delete params.saveTime

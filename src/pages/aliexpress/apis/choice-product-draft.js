@@ -10,5 +10,5 @@ export function createBatchApi(params) {
 
 // 全托管商品待发布-删除
 export function delDraftApi(params) {
-  return usePost('/platform-aliexpress/platform/aliexpress/full-custodial/product/del-batch', params)
+  return usePost('/platform-aliexpress/platform/aliexpress/full-custodial/product/del-draft', params)
 }

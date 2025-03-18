@@ -202,11 +202,11 @@
     saveLoading.value = true
     saveDraftApi(params)
       .then(_ => {
-        message.success('保存成功')
+        message.success('保存成功, 在待发布中查看')
         window.removeEventListener('beforeunload', stopUnload)
         setTimeout(() => {
           window.close()
-        }, 300)
+        }, 500)
         // 弹窗; 新建, 继续编辑
       })
       .finally(() => {
@@ -275,7 +275,7 @@
         window.removeEventListener('beforeunload', stopUnload)
         setTimeout(() => {
           window.close()
-        }, 300)
+        }, 500)
       })
       .finally(() => {
         saveLoading.value = false

@@ -318,7 +318,7 @@
       </a-dropdown>
       <a-popconfirm
         title="确定下架吗？"
-        @confirm="deactivate"
+        @confirm="deactivate()"
       >
         <a-button
           type="primary"
@@ -330,7 +330,7 @@
       </a-popconfirm>
       <a-popconfirm
         title="确定上架吗？"
-        @confirm="activate"
+        @confirm="activate()"
       >
         <a-button
           type="primary"
@@ -356,8 +356,9 @@
         >批量同步店铺商品</a-button
       >
       <a-popconfirm
+        v-if="watchedSearchForm.productStatusType !== 'deleted'"
         title="确定删除吗？"
-        @confirm="del"
+        @confirm="del()"
       >
         <a-button
           type="primary"
@@ -586,6 +587,7 @@
               >备注</a-button
             >
             <a-popconfirm
+              v-if="record.productStatusType !== 'deleted'"
               title="删除吗?"
               @confirm="del(record)"
             >
