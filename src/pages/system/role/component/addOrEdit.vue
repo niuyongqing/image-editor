@@ -17,7 +17,7 @@
         <a-form-item label="菜单权限" name="menuId">
           <div style="text-align: right"><a-checkbox v-model:checked="selectAll">全选</a-checkbox></div>
           <a-card style="height: 500px">
-            <a-tree :height="500" v-model:checkedKeys="checkedKeys" checkable :tree-data="menu" :field-names="{title:'name',key:'id',children:'children'}"></a-tree>
+            <a-tree :height="500" v-model:checkedKeys="checkedKeys" checkable :tree-data="menu" :field-names="{title:'title',key:'id',children:'children'}"></a-tree>
           </a-card>
         </a-form-item>
         <a-form-item style="display: flex; text-align: right">
