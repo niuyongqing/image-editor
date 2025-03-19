@@ -341,16 +341,10 @@ const assignValues = (a, b) => {
                     });
                     result[name] = filteredItems.map((e) => e.value);
                 } else if (selectType === "select") {
-                    // console.log('sss',result[name],key,a[key]);
+                    console.log('sss',a,key,a[key]);
                     let filteredItems =
                         item?.options &&
-                        item?.options?.filter((e) =>e.value === a[key]);
-                    filteredItems.forEach((e) => {
-                        e.value = {
-                            label: e.label,
-                            value: e.value
-                        }
-                    });
+                        item?.options?.find((e) =>e.value === a[key] || e.value === a[key].value);
                     result[name] = name == "品牌(Бренд)" ? {
                         label: "无品牌",
                         value:{
@@ -369,8 +363,6 @@ const assignValues = (a, b) => {
 }
 
 const addItemValues = (obj) => {
-    console.log('obj',obj);
-    
     const { attributes } = form;
     const isExist = obj.acquiesceList.some(
         (item) => item.value === obj.selectDate.value

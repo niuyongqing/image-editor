@@ -53,7 +53,7 @@
                             <div class="flex">
                                 <div class="video-item" v-if="form.video.length > 0">
                                     <div class="items" v-for="(item, index) in form.video" :key="index">
-                                        <video controls :src="item.url" class="avatar" width="100%" height="200px">
+                                        <video controls :src="item.url" class="avatar" width="200px" height="200px">
                                         </video>
                                         <div class="image-wrap">
                                             <span></span>

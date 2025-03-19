@@ -41,7 +41,7 @@
           <a-col :span="1.5">
             <a-button type="primary" @click="add">创建产品</a-button>
           </a-col>
-          <a-col :span="1.5">
+          <!-- <a-col :span="1.5">
             <a-dropdown :disabled="selectedRowList.length === 0">
               <template #overlay>
                 <a-menu @click="handleMenuClick">
@@ -75,19 +75,12 @@
                 批量操作
               </a-button>
             </a-dropdown>
-          </a-col>
+          </a-col> -->
           <a-col :span="1.5">
             <a-button type="primary" @click="addRemark()" :disabled="selectedRowList.length === 0">批量修改备注</a-button>
           </a-col>
           <a-col :span="1.5">
             <a-button type="primary" :disabled="selectedRowList.length !== 1">编 辑</a-button>
-          </a-col>
-
-          <a-col :span="1.5">
-            <a-popconfirm title="确定下架吗？" @confirm="deactivate">
-              <a-button type="primary" :disabled="selectedRowList.length === 0"
-                :loading="deactivateLoading">批量归档</a-button>
-            </a-popconfirm>
           </a-col>
 
           <a-col :span="1.5">
@@ -106,7 +99,7 @@
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'name'">
             <div class="flex text-left">
-              <a-image :width="100" :src="processImageSource(record?.skuList[0]?.primaryImage[0])" />
+              <a-image :width="100" :src="record?.skuList[0]?.primaryImage ? processImageSource(record?.skuList[0]?.primaryImage[0]) : processImageSource(record?.skuList[0]?.images[0]) " />
               <div class="ml-2.5 block">
                 <a-tooltip class="item" effect="dark" :title="record.name" placement="top"
                   style="overflow-wrap: break-word">
@@ -141,14 +134,16 @@
                 当前售价：<span style="color: #9e9f9e">{{ item.price }}</span>
                 <a-divider type="vertical"></a-divider>
                 库存：
-                <a-tooltip style="margin-right:10px" effect="dark" v-if="item.warehouse">
-                  <template #title>
-                    <span>{{ item.warehouse[0].warehouseName }}</span>:
-                    <span>{{ item.warehouse[0].present }}</span>
-                  </template>
-                  <span style="color: #3c8dbc">{{ item.stock }}</span>
+                <a-tooltip style="margin-right: 10px" effect="dark" placement="top"
+                    v-if="item.warehouseList">
+                    <template #title>
+                        <div v-for="(el, ind) in item.warehouseList" :key="ind">
+                            <span>{{ el.warehouseName }}</span>:
+                            <span>{{ el.present ? el.present : 0 }}</span>
+                        </div>
+                    </template>
+                    <span style="color: #1677ff">{{ item.stock }}</span>
                 </a-tooltip>
-                <span v-else style="color: #3c8dbc;margin-right:10px">{{ item.stock }}</span>
               </div>
               <div v-if="record.skuList && record.skuList.length > 3">
                 <a-button type="text" @click="record.show = !record.show">共{{ record.skuList && record.skuList.length
@@ -250,7 +245,10 @@ const shopObj = {
   fieldKey: "account",
   fieldLabel: "simpleName",
 }
-
+const sortObj = reactive({
+  sortField: "created_time",
+  sortType: "desc"
+})
 const searchType = [
   {
     label: "标题",
@@ -340,6 +338,17 @@ const selectTypes = (index) => {
   }
 }
 
+// 排序方式
+const storChange = (item) => {
+  item.type = item.type === "top" ? "bottom" : "top";
+  active.value = item;
+  sortObj.sortField = item.value
+  sortObj.sortType = item.type === "top" ? "desc" : "asc"
+  formData.order = item.type === "top" ? "desc" : "asc"
+  formData.prop = item.value
+  getList();
+};
+
 // 表单搜索
 const onSubmit = () => { getList() }
 
@@ -353,45 +362,6 @@ const getAccount = () => {
   });
 }
 
-
-// 下架商品
-const deactivate = (row = {}) => {
-  let id = [];
-  if (Object.keys(row).length == 0) {
-    for (let i = 0; i < selectedRowList.value.length; i++) {
-      if (selectedRowList.value[i].state == "已归档") {
-        message.error("已归档商品不可重复归档，请取消！");
-        return;
-      }
-    }
-    id = syncOneList.value;
-  } else {
-    id.push({
-      account: row.account,
-      productIds: [row.id],
-    });
-  }
-  let hasEmptyData = false;
-  id.forEach((item) => {
-    hasEmptyData = item.productIds.some((id) => id === "");
-  });
-  if (hasEmptyData) {
-    message.error("产品ID为空,请同步后归档！");
-    return;
-  }
-  console.log("hasEmptyData", hasEmptyData);
-
-  deactivateLoading.value = true;
-  batchArchive({ productArchive: id })
-    .then((res) => {
-      message.success(res.msg);
-    })
-    .finally(() => {
-      getList();
-      deactivateLoading.value = false;
-      syncOneList.value = [];
-    });
-}
 
 // 单个和批量删除
 const del = (row = {}) => {
@@ -472,8 +442,8 @@ const publish = (row = {}) => {
   ozonProductPublish(params).then(res => {
     message.success(res.msg)
   }).finally(() => {
-      loading.value = false;
-    });
+    loading.value = false;
+  });
 }
 onMounted(() => {
   getAccount()
