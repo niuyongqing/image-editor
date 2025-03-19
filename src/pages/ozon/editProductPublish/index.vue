@@ -313,44 +313,44 @@ const onSubmit = async (type = 1) => {
         if (type === 1) {
             return {
                 attributes: moditAttributes,
-                // complex_attributes: newComplexAttributes ?? null, // 非必填 100002-21845-封面视频 100001-21841-视频
-                complex_attributes: [
-                    {
-                        attributes: [
-                            {
-                                complex_id: 100001,
-                                id: 21841,
-                                values: [
-                                    {
-                                        value:
-                                            "https://www.xzerp.com/file/wish/upload/2025-03-10/2025/03/10/asset_0_h264_20250310114853A002.mp4",
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                    {
-                        attributes: [
-                            {
-                                complex_id: 100002,
-                                id: 21845,
-                                values: [
-                                    {
-                                        value:
-                                            "https://www.xzerp.com/file/wish/upload/2025-03-10/2025/03/10/asset_0_h264_20250310114853A002.mp4",
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                ],
-                // color_image: item?.colorImg[0]?.url ?? "", // 非必填
-                color_image: "https://www.xzerp.com/file/wish/upload/2025-03-10/2025/03/10/2_20250310114827A001.jpg",
-                // images: item.imageUrl && item?.imageUrl?.map(e => e.url),
-                images: [
-                    "https://www.xzerp.com/file/wish/upload/2025-03-10/2025/03/10/7017600413_20250310114548A001.jpg",
-                    "https://www.xzerp.com/file/wish/upload/2025-03-10/2025/03/10/2_20250310114827A001.jpg"
-                ],
+                complex_attributes: newComplexAttributes ?? null, // 非必填 100002-21845-封面视频 100001-21841-视频
+                // complex_attributes: [
+                //     {
+                //         attributes: [
+                //             {
+                //                 complex_id: 100001,
+                //                 id: 21841,
+                //                 values: [
+                //                     {
+                //                         value:
+                //                             "https://www.xzerp.com/file/wish/upload/2025-03-10/2025/03/10/asset_0_h264_20250310114853A002.mp4",
+                //                     },
+                //                 ],
+                //             },
+                //         ],
+                //     },
+                //     {
+                //         attributes: [
+                //             {
+                //                 complex_id: 100002,
+                //                 id: 21845,
+                //                 values: [
+                //                     {
+                //                         value:
+                //                             "https://www.xzerp.com/file/wish/upload/2025-03-10/2025/03/10/asset_0_h264_20250310114853A002.mp4",
+                //                     },
+                //                 ],
+                //             },
+                //         ],
+                //     },
+                // ],
+                color_image: item?.colorImg[0]?.url ?? "", // 非必填
+                // color_image: "https://www.xzerp.com/file/wish/upload/2025-03-10/2025/03/10/2_20250310114827A001.jpg",
+                images: item.imageUrl && item?.imageUrl?.map(e => e.url),
+                // images: [
+                //     "https://www.xzerp.com/file/wish/upload/2025-03-10/2025/03/10/7017600413_20250310114548A001.jpg",
+                //     "https://www.xzerp.com/file/wish/upload/2025-03-10/2025/03/10/2_20250310114827A001.jpg"
+                // ],
                 offer_id: item.sellerSKU,
                 old_price: item.oldPrice, // 非必填
                 price: item.price,

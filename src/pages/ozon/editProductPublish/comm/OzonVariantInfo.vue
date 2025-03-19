@@ -704,9 +704,9 @@ watch(() => useOzonProductStore().attributes, val => {
                 attrs.forEach(item => bMap.set(item.id, item));
                 sortArr.forEach((sortItem) => {
                     const attrItem = bMap.get(sortItem.id);
-                    console.log('attrItem',attrItem);
+                    console.log('attrItem', attrItem);
                     const { selectType, name: sortName, options } = sortItem;
-                    if(attrItem) {
+                    if (attrItem) {
                         // 处理多选或单选类型
                         if (selectType === "multSelect" || selectType === "select") {
                             const matchedValues = [];
@@ -718,7 +718,7 @@ watch(() => useOzonProductStore().attributes, val => {
                                     matchedValues.push(matchedOption.value);
                                     // editRes.value[sortName] = matchedOption.value; // 注: 会保留最后一次匹配的值
                                 }
-    
+
                                 if (matchedValues.length > 0) {
                                     editRes.value[sortName] = matchedValues.join(',');
                                 }
@@ -730,21 +730,35 @@ watch(() => useOzonProductStore().attributes, val => {
                             if (validValue) {
                                 editRes.value[sortName] = validValue.value;
                             }
-    
+
                         }
-                    }else {
+                        // 添加表头配置（确保每个sortItem只添加一次）
+                        attrHeaderList.push({
+                            title: sortName,
+                            dataIndex: sortName,
+                            show: true,
+                            align: 'center'
+                        });
+                    } else if (attrItem?.id === 10097 || attrItem?.id === 9533) {
                         editRes.value[sortName] = ""
+                        // 添加表头配置（确保每个sortItem只添加一次）
+                        attrHeaderList.push({
+                            title: sortName,
+                            dataIndex: sortName,
+                            show: true,
+                            align: 'center'
+                        });
                     }
                     // if (!attrItem) return; // 无匹配项则跳过
                     // 添加表头配置（确保每个sortItem只添加一次）
-                    attrHeaderList.push({
-                        title: sortName,
-                        dataIndex: sortName,
-                        show: true,
-                        align: 'center'
-                    });
+                    // attrHeaderList.push({
+                    //     title: sortName,
+                    //     dataIndex: sortName,
+                    //     show: true,
+                    //     align: 'center'
+                    // });
                     const exists = imgHeaderList.value.some(item => item.title === sortName);
-                    if(!exists) {
+                    if (!exists) {
                         imgHeaderList.value.push({
                             title: sortName
                         })
@@ -767,6 +781,7 @@ watch(() => useOzonProductStore().attributes, val => {
                 attrHeaderList = colorImage
                     ? [...colorHead, ...attrHeaderList]
                     : attrHeaderList;
+                console.log('attrHeaderList--', attrHeaderList);
 
                 headerList.value = [...attrHeaderList, ...headerList.value]
             }

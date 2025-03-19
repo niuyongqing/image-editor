@@ -442,7 +442,7 @@ watch(() => props.productDetail, val => {
     }
 })
 
-console.log('props',props);
+// console.log('props',props);
 
 watch(() => useOzonProductStore().attributes, (val) => {
     if (val) {
@@ -534,7 +534,7 @@ watch(() => useOzonProductStore().attributes, (val) => {
             // console.log('loopAttributes',loopAttributes.value);
             const proceRes = assignValues(oldAttributes, loopAttributes.value);
             form.attributes = proceRes;
-            console.log('proceRes0', proceRes);
+            // console.log('proceRes0', proceRes);
 
         }
     }
