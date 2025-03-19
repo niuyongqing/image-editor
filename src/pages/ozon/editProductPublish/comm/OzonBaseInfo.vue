@@ -471,13 +471,10 @@ watch(() => props.attributesCache, (val) => {
             loopAttributes.value = noThemeAttributesCache;
             // 赋值
             const { attributes: oldAttributes } = props.productDetail.attributes[0];
-            console.log('loopAttributes', oldAttributes);
-            
+            // console.log('loopAttributes', oldAttributes);
             const proceRes = assignValues(oldAttributes, loopAttributes.value);
             form.attributes = proceRes;
             console.log('proceRes0', proceRes);
-
-
         }
     }
 })

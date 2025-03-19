@@ -278,7 +278,7 @@ watch(() => props.moduleList, val => {
     });
     // 将 Set 转换回数组
     copyModuleList.value = Array.from(uniqueSet).map(str => JSON.parse(str));
-    console.log('copyModuleList', copyModuleList.value);
+    // console.log('copyModuleList', copyModuleList.value);
   }
 }, { deep: true, immediate: true });
 </script>

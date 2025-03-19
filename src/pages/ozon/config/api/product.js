@@ -278,3 +278,12 @@ export function replaceSuffix(data) {
     data: data
   })
 }
+
+// 批量修改字段数据
+export function batchUpdate(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/product/batch/update',
+    method: 'post',
+    data: data
+  })
+}

@@ -421,7 +421,7 @@ function generateTreeRoutes(menus) {
               <a-button @click="copy(record)" type="text" color="amber" v-if="checkPermi(['system:platform:role:edit'])">复制权限</a-button>
               <a-button @click="allocationRole(record)" type="text" color="emerald" v-if="checkPermi(['system:platform:role:edit'])">分配用户</a-button>
               <a-button @click="edit(record)" type="text" color="blue" v-if="checkPermi(['system:platform:role:edit'])">编辑</a-button>
-              <a-popconfirm title="确定删除吗？" ok-text="Yes" cancel-text="No" @confirm="del(record)"  v-if="checkPermi(['system:platform:role:remove'])" ><a  color="red">删除</a></a-popconfirm>
+              <a-popconfirm title="确定删除吗？" ok-text="Yes" cancel-text="No" @confirm="del(record)"  v-if="checkPermi(['system:platform:role:del'])" ><a  color="red">删除</a></a-popconfirm>
             </div>
           </template>
         </a-table>

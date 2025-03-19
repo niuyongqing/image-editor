@@ -11,8 +11,8 @@
         @getAttributes="getAttributes"></ozon-base-info>
       <br />
       <!-- 描述信息 -->
-      <ozon-new-image-info ref="ozonImageInfoRef" id="OzonNewImageInfo"
-        :shopCode="formData.shortCode" :productDetail="productDetail"></ozon-new-image-info>
+      <ozon-new-image-info ref="ozonImageInfoRef" id="OzonNewImageInfo" :shopCode="formData.shortCode"
+        :productDetail="productDetail"></ozon-new-image-info>
 
       <!-- 变种信息. -->
       <OzonNewVariantInfo ref="ozonNewVariantInfoRef" id="ozonNewVariantInfo" :productDetail="productDetail"
@@ -49,6 +49,7 @@ import { skuList } from '~@/pages/lazada/product/api';
 const ozonBaseInfoRef = ref(null)
 const ozonImageInfoRef = ref(null)
 const ozonNewVariantInfoRef = ref(null)
+const waitId = ref("")
 const attributes = ref([])
 const shopList = ref([])
 const productDetail = ref({})
@@ -141,11 +142,11 @@ const scrollTo = (id) => {
   }
 };
 
-const onSubmit = async (tpye) => {
+const onSubmit = async (type) => {
   const ozonBaseInfo = await ozonBaseInfoRef.value.childForm();
   const OzonNewImageInfo = await ozonImageInfoRef.value.submitForm();
   const ozonNewVariantInfo = await ozonNewVariantInfoRef.value.submitForm();
-  const errorIndex = findFalseInArrayLikeObject({ ozonBaseInfo,OzonNewImageInfo, ozonNewVariantInfo })
+  const errorIndex = findFalseInArrayLikeObject({ ozonBaseInfo, OzonNewImageInfo, ozonNewVariantInfo })
   console.log('errorIndex', errorIndex);
 
   anchorList.value.forEach(item => {
@@ -269,7 +270,7 @@ const onSubmit = async (tpye) => {
             attr,
             item,
             base,
-            createValueObj,type
+            createValueObj, type
           );
           const filteredMSlect = mSlect.filter(
             (obj) => obj.value || obj?.dictionary_value_id !== 0 || obj?.dictionaryValueid !== 0
@@ -284,15 +285,15 @@ const onSubmit = async (tpye) => {
 
     return {
       attributes: moditAttributes,
-      complex_attributes: newComplexAttributes ?? null, // 非必填 100002-21845-封面视频 100001-21841-视频
-      color_image: item?.colorImg[0]?.url, // 非必填
-      images: item.imageUrl && item.imageUrl.map(item => item.url),
+      complexAttributes: newComplexAttributes ?? null, // 非必填 100002-21845-封面视频 100001-21841-视频
+      colorImage: item?.colorImg[0]?.url.replace('/prod-api', '') ?? "", // 非必填
+      images: item.imageUrl && item.imageUrl.map(item => item.url.replace('/prod-api', '')),
       warehouseList: item?.warehouseList,
-      offer_id: item.sellerSKU,
-      old_price: item.oldPrice, // 非必填
+      offerId: item.sellerSKU,
+      oldPrice: item.oldPrice, // 非必填
       price: item.price,
-      weight_unit: "g",
-      dimension_unit: "mm",
+      weightUnit: "g",
+      dimensionUnit: "mm",
       weight: item.packageWeight,
       height: item.packageHeight,
       depth: item.packageLength,
@@ -305,29 +306,34 @@ const onSubmit = async (tpye) => {
     vat: base.vat,
     name: base.name,
     skuList: resItem,
-    historyCategoryId: base?.categoryId?.threeCategoryId, //平台分类ID
-    storeHistoryCategoryId: base?.categoryId?.storeHistoryCategoryId
-      ? base?.categoryId?.storeHistoryCategoryId
-      : "", //资料库分类ID
-    historyAttributes: base.attributes,
-    description_category_id:
+    waitId: waitId.value,
+    // historyCategoryId: base?.categoryId?.threeCategoryId, //平台分类ID
+    // storeHistoryCategoryId: base?.categoryId?.storeHistoryCategoryId
+    //   ? base?.categoryId?.storeHistoryCategoryId
+    //   : "", //资料库分类ID
+    // historyAttributes: base.attributes,
+    descriptionCategoryId:
       base.categoryId.secondCategoryId, // 二级id
-    type_id: base.categoryId.threeCategoryId, // 三级分id
+    typeId: base.categoryId.threeCategoryId, // 三级分id
   }
   console.log('params', params);
-  //  loading.value = true;
+  loading.value = true;
   ozonProductEdit(params).then(res => {
-
+    message.success(res.msg)
+    setTimeout(() => {
+      window.close();
+    }, 2000);
   })
-  //.finally(() => {
-  //         loading.value = false;
-  //     });
+    .finally(() => {
+      loading.value = false;
+    });
 }
 
 onMounted(() => {
   const urlParams = new URLSearchParams(window.location.search);
   const rowId = urlParams.get('id');
   const rowAccount = urlParams.get('account');
+  waitId.value = urlParams.get('id');
   getProductDetail(rowId, rowAccount)
   getAccount()
 })

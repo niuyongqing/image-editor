@@ -1,12 +1,12 @@
 <template>
     <div id="productListCont">
-        <a-modal :open="prodListVisible" :maskClosable="false" @cancel="handleCancel" :width="'40%'" :keyboard="false"
-            title="修改价格" :footer="null">
+        <a-modal :open="prodListVisible" :maskClosable="false" @cancel="handleCancel" :width="'50%'" :keyboard="false"
+            title="合并产品" :footer="null">
             <a-table :columns="columns" :data-source="childList" :pagination="false">
                 <template #bodyCell="{ column, record }">
                     <div v-if="column.dataIndex === 'name'" class="flex">
                         <div class="flex text-left items-center">
-                            <a-image style="width: 100px; height: 100px;" :src="record.primaryImage ? record.primaryImage : record.images[0]
+                            <a-image style="width: 100px; height: 100px;" :src="record.primaryImage ? record.primaryImage[0] : record.images[0]
                                 ">
                             </a-image>
                             <div style="margin-left: 10px; display: block">
@@ -14,17 +14,20 @@
                                     <template #title>
                                         <span>{{ record.name }}</span>
                                     </template>
-                                    <div class="w-100 truncate">{{ record.name }}</div>
+                                    <div class="w-50 truncate">{{ record.name }}</div>
                                 </a-tooltip>
                                 <div style="color: #999; float: left">
-                                    产品ID：<a style="color: #1677ff" href="#" @click="jumpTo(record.sku)">{{
-                                        record.sku }}</a>
+                                    产品ID：<a style="color: #1677ff" href="#" @click="jumpTo(record.id)">{{
+                                        record.id }}</a>
                                 </div>
                                 <br />
                                 <div style="color: #999; float: left">
                                     店铺: {{ record.simpleName }}
                                 </div>
                                 <br />
+                                <div style="color: #1677ff; float: left">
+                                    SKU: {{ record.offerId }}
+                                </div>
                                 <br />
                                 <div :style="{
                                     color: record.remarkColor ? 'green' : 'red',
@@ -51,12 +54,25 @@
                     <div v-if="column.dataIndex === 'sku'" style="text-align: left">
                         <div>
                             <div>
-                                SKU: {{ record.offerId }}
-                                <a-divider type="vertical"></a-divider>
                                 促销活动价：<span style="color: #1677ff">{{
                                     record.marketingPrice ? record.marketingPrice : "暂未参加活动"
                                     }}</span>
                                 <a-divider type="vertical"></a-divider>
+                                最低价：<span style="color: #1677ff" v-if="record.minPrice">CNY {{
+                                    record.minPrice
+                                    }}</span><span v-if="!record.minPrice">---</span>
+                            </div>
+                            <div>
+                                当前售价：<span style="color: #1677ff">CNY {{
+                                    record.price
+                                }}</span>
+                                <a-divider type="vertical"></a-divider>
+                                原价：<span style="color: #1677ff">CNY {{
+                                    record.oldPrice
+                                }}</span>
+
+                            </div>
+                            <div>
                                 库存：
                                 <a-tooltip style="margin-right: 10px" effect="dark" placement="top"
                                     v-if="record.warehouse">
@@ -71,22 +87,6 @@
                                 <span v-else style="color: #1677ff; margin-right: 10px">{{
                                     record.stock
                                     }}</span>
-                            </div>
-                            <div>
-                                最低价：<span style="color: #1677ff" v-if="record.minPrice">CNY {{
-                                    record.minPrice
-                                    }}</span><span v-if="!record.minPrice">---</span>
-                                <a-divider type="vertical"></a-divider>
-                                原价：<span style="color: #1677ff">CNY {{
-                                    record.oldPrice
-                                }}</span>
-                                <a-divider type="vertical"></a-divider>
-                                当前售价：<span style="color: #1677ff">CNY {{
-                                    record.price
-                                }}</span>
-
-                            </div>
-                            <div>
                                 <div style="display: flex">
                                     <span>内容质量分:</span>
                                     <div v-if="record.productsScore">
@@ -307,20 +307,17 @@ const columns = [
         title: "状态",
         dataIndex: "state", // state
         align: "center",
-        width: "100",
     },
     {
         title: "SKU信息",
         dataIndex: "sku",
         align: "center",
-        width: "700",
     },
 
     {
         title: "时间",
         dataIndex: "createdAt",
         align: "center",
-        width: "260",
     },
 ]
 const handleCancel = () => {

@@ -13,12 +13,12 @@
               :options="timeOptions"></a-select>
           </a-form-item-rest>
           <a-form-item-rest>
-            <a-range-picker v-model:value="formState.times" show-time @change="onRangeChange" />
+            <a-range-picker v-model:value="formState.times" @change="onRangeChange" />
           </a-form-item-rest>
         </a-form-item>
-        <a-form-item label="导出方式：">
+        <!-- <a-form-item label="导出方式：">
           <a-radio-group v-model:value="formState.exportType" :options="exportOptions" />
-        </a-form-item>
+        </a-form-item> -->
         <a-form-item label="导出格式：">
           <a-select v-model:value="formState.exportFileType" style="width: 120px">
             <a-select-option :value="0">.excel</a-select-option>
@@ -34,6 +34,8 @@
 import { ref, reactive, onMounted, computed, watchPostEffect } from "vue";
 // import { orderExport } from "../../js/api/order"
 import download from "@/api/common/download";
+import { message } from "ant-design-vue";
+import dayjs from 'dayjs'
 
 const props = defineProps({
   openExModal: Boolean,
@@ -146,29 +148,32 @@ const onRangeChange = (value, dateString) => {
 const handleOk = () => {
   console.log('props', props);
   console.log('formState', formState);
-  const { exportWay, incomingForm: { marketId, account }, selectedRowKeys } = props;
-  const { orderStatus, timeType, sTime, endTime, exportType,exportFileType } = formState;
+  const { exportWay, incomingForm: { account }, selectedRowKeys } = props;
+  const { orderStatus, timeType, sTime, endTime, exportFileType } = formState;
+  if(!sTime && !endTime) {
+    message.error("请先选择时间！")
+    return
+  }
   let params = {
     type: exportWay,
     account,
     orderStatus: "当type等于时需要使用,订单状态", //后续知道状态后补充
-    orderIds: exportWay == 2 ? selectedRowKeys : [],
-    marketId: marketId.length > 1 ? [] : marketId,
+    // orderIds: exportWay == 2 ? selectedRowKeys : [],
     timeField: exportWay == 1 ? timeType : "",
-    startDate: sTime,
-    endDate: endTime,
-    exportType,
+    startDate:  dayjs(sTime).startOf('day').format('YYYY-MM-DD HH:mm:ss'),
+    endDate:  dayjs(endTime).endOf('day').format('YYYY-MM-DD HH:mm:ss'),
+    // exportType,
     exportFileType
   }
   console.log('params', params);
 
-  orderExport(params).then(res => {
-    download.name(res.msg);
-  }).finally(() => {
-    formRef.value.resetFields();
-    emit("update:openExModal", false);
-    emit("backRefresh")
-  })
+  // orderExport(params).then(res => {
+  //   download.name(res.msg);
+  // }).finally(() => {
+  //   formRef.value.resetFields();
+  //   emit("update:openExModal", false);
+  //   emit("backRefresh")
+  // })
 }
 const handleCancel = () => {
   emit("update:openExModal", false);

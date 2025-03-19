@@ -1,4 +1,3 @@
-
 // 提取更新价格的公共逻辑
 const updatePrice = (items, priceKey, batchFields) => {
   items.forEach((item) => {
@@ -120,8 +119,6 @@ const processResult = (productList) => {
       id: Math.random().toString(36).substring(2, 10),
     };
     product.forEach((item) => {
-      console.log('item', item);
-
       let values =
         item.selectType === "multSelect"
           ? item?.modelValue?.map((val) => val.label).join(",")
@@ -241,59 +238,20 @@ const rearrangeColorFields = (arr) => {
 
 // 处理变种主题展示
 const handleTheme = (list) => {
+  console.log('list', list);
+
   let echoThemeList = []
   if (checkData(list)) {
     const prodColor = list.find(item => item.id === 10096)
     const newList = list.filter(
-      (obj) => !(obj.id === 10097)
+      (obj) => !(obj.id === 10097 || obj.id === 9533)
     );
+    console.log('newList',newList);
+    
     echoThemeList = newList.map(item => {
       return {
         title: item.name,
-        tableColumns: item.id === 10096 ? [
-          {
-            selectType: item.selectType,
-            dataIndex: item.name,
-            title: item.name,
-            type: 2,
-            id: item.id,
-            show: true,
-            align: 'center',
-            width: 900
-          },
-          {
-            dataIndex: '颜色名称(Название цвета)',
-            title: '颜色名称(Название цвета)',
-            selectType: "input",
-            show: true,
-            type: 2,
-            align: 'center',
-            id: 10097
-          },
-          {
-            dataIndex: 'options',
-            title: '操作',
-            fixed: 'right',
-            width: 200
-          }
-        ] : [
-          {
-            selectType: item.selectType,
-            dataIndex: item.name,
-            title: item.name,
-            type: 2,
-            id: item.id,
-            show: true,
-            align: 'center',
-            width: 900
-          },
-          {
-            dataIndex: 'options',
-            title: '操作',
-            fixed: 'right',
-            width: 200
-          }
-        ],
+        tableColumns: rebackHeadList(item.id, item),
         isRequired: item.isRequired,
         id: item.id,
         name: item.name,
@@ -302,53 +260,7 @@ const handleTheme = (list) => {
         isCollection: item.isCollection,
         selectType: item.selectType,
         details: item.options,
-        tableData: item.id === 10096 ? [
-          {
-            details: item.options?.map(item => {
-              return {
-                ...item,
-                label: item.value,
-                value: item.id
-              }
-            }),
-            isRequired: item.isRequired,
-            categoryDependent: item.categoryDependent,
-            isCollection: item.isCollection,
-            id: item.id,
-            name: item.name,
-            selectType: item.selectType,
-            modelValue: item.selectType === "input"
-              ? ""
-              : item.selectType === "multSelect"
-                ? []
-                : undefined,
-            secondName: '颜色名称(Название цвета)',
-            '颜色名称(Название цвета)': '颜色名称(Название цвета)',
-            secondId: 10097,
-            secondModelValue: ""
-          }
-        ] : [
-          {
-            details: item.options?.map(item => {
-              return {
-                ...item,
-                label: item.value,
-                value: item.id
-              }
-            }),
-            isRequired: item.isRequired,
-            categoryDependent: item.categoryDependent,
-            isCollection: item.isCollection,
-            id: item.id,
-            name: item.name,
-            selectType: item.selectType,
-            modelValue: item.selectType === "input"
-              ? ""
-              : item.selectType === "multSelect"
-                ? []
-                : undefined,
-          }
-        ]
+        tableData: rebackDataList(item.id, item)
       }
     })
   } else {
@@ -408,8 +320,170 @@ const handleTheme = (list) => {
   }
   return echoThemeList
 }
+// 返回主题表格数据
+const rebackHeadList = (id, item) => {
+  let arr = []
+  if (id === 10096) {
+    arr = [
+      {
+        selectType: item.selectType,
+        dataIndex: item.name,
+        title: item.name,
+        type: 2,
+        id: item.id,
+        show: true,
+        align: 'center',
+        width: 900
+      },
+      {
+        dataIndex: '颜色名称(Название цвета)',
+        title: '颜色名称(Название цвета)',
+        selectType: "input",
+        show: true,
+        type: 2,
+        align: 'center',
+        id: 10097
+      },
+      {
+        dataIndex: 'options',
+        title: '操作',
+        fixed: 'right',
+        width: 200
+      }
+    ]
+  } else if (id === 4295) {
+    arr = [
+      {
+        selectType: item.selectType,
+        dataIndex: item.name,
+        title: item.name,
+        type: 2,
+        id: item.id,
+        show: true,
+        align: 'center',
+        width: 900
+      },
+      {
+        dataIndex: '制造商尺码(Размер производителя)',
+        title: '制造商尺码(Размер производителя)',
+        selectType: "input",
+        show: true,
+        type: 2,
+        align: 'center',
+        id: 9533
+      },
+      {
+        dataIndex: 'options',
+        title: '操作',
+        fixed: 'right',
+        width: 200
+      }
+    ]
+  } else {
+    arr = [
+      {
+        selectType: item.selectType,
+        dataIndex: item.name,
+        title: item.name,
+        type: 2,
+        id: item.id,
+        show: true,
+        align: 'center',
+        width: 900
+      },
+      {
+        dataIndex: 'options',
+        title: '操作',
+        fixed: 'right',
+        width: 200
+      }
+    ]
+  }
+  return arr
+}
 
-
+const rebackDataList = (id, item) => {
+  let arr = []
+  if (id === 10096) {
+    arr = [
+      {
+        details: item.options?.map(item => {
+          return {
+            ...item,
+            label: item.value,
+            value: item.id
+          }
+        }),
+        isRequired: item.isRequired,
+        categoryDependent: item.categoryDependent,
+        isCollection: item.isCollection,
+        id: item.id,
+        name: item.name,
+        selectType: item.selectType,
+        modelValue: item.selectType === "input"
+          ? ""
+          : item.selectType === "multSelect"
+            ? []
+            : undefined,
+        secondName: '颜色名称(Название цвета)',
+        '颜色名称(Название цвета)': '颜色名称(Название цвета)',
+        secondId: 10097,
+        secondModelValue: ""
+      }
+    ]
+  } else if (id === 4295) {
+    arr = [
+      {
+        details: item.options?.map(item => {
+          return {
+            ...item,
+            label: item.value,
+            value: item.id
+          }
+        }),
+        isRequired: item.isRequired,
+        categoryDependent: item.categoryDependent,
+        isCollection: item.isCollection,
+        id: item.id,
+        name: item.name,
+        selectType: item.selectType,
+        modelValue: item.selectType === "input"
+          ? ""
+          : item.selectType === "multSelect"
+            ? []
+            : undefined,
+        secondName: '制造商尺码(Размер производителя)',
+        '制造商尺码(Размер производителя)': '制造商尺码(Размер производителя)',
+        secondId: 9533,
+        secondModelValue: ""
+      }
+    ]
+  } else {
+    arr = [
+      {
+        details: item.options?.map(item => {
+          return {
+            ...item,
+            label: item.value,
+            value: item.id
+          }
+        }),
+        isRequired: item.isRequired,
+        categoryDependent: item.categoryDependent,
+        isCollection: item.isCollection,
+        id: item.id,
+        name: item.name,
+        selectType: item.selectType,
+        modelValue: item.selectType === "input"
+          ? ""
+          : item.selectType === "multSelect"
+            ? []
+            : undefined,
+      }
+    ]
+  }
+  return arr
+}
 
 // 获取input类型属性的值 
 const getInputValue = (attr, base, image, item) => {
@@ -418,7 +492,7 @@ const getInputValue = (attr, base, image, item) => {
       ? null
       : image.description;
   } else if (attr.id === 11254) {
-    return image.jsons ? JSON.stringify(image.jsons) : null;
+    return image.jsons ? typeof image.jsons === 'string' ? image.jsons : JSON.stringify(image.jsons) : null;
   } else if (
     (attr.isAspect && !attr.isRequired) ||
     (attr.isAspect && attr.isCollection)
@@ -444,10 +518,12 @@ const getSelectValue = (attr, base) => {
         0,
         value[0]?.value?.value
       ]
+    } else if (value?.value === '无品牌' || value?.label === '无品牌') {
+      return [126745801, "无品牌"];
     } else {
       return [
-        value?.value === "无品牌" ? 126745801 : value?.value,
-        value?.value === "无品牌" ? "无品牌" : value?.label,
+        value?.value,
+        value?.label,
       ];
     }
   }

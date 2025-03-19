@@ -443,10 +443,10 @@ const processDataFormat = (list = []) => {
         })
     }
 
-    console.log('headerList2', headerList.value, tableData.value);
+    console.log('headerList2', attributeList.value, newHeaderList);
 
     attributeList.value = [...attributeList.value, ...newHeaderList]
-    // console.log('attributeList', attributeList.value, headerList.value);
+    console.log('attributeList', attributeList.value);
 }
 
 // 手动添加多个变种主题
@@ -510,7 +510,20 @@ const addItem = (item, row) => {
             secondId: 10097,
             secondModelValue: ""
         };
-    } else {
+    } else if (isConform.value && item.id === 4295) {
+        ele = {
+            id: item.id,
+            name: item.name,
+            modelValue: item.selectType === 'multSelect' ? [] : undefined,
+            selectType: item.selectType,
+            details: item.details,
+            secondName: '制造商尺码(Размер производителя)',
+            '制造商尺码(Размер производителя)': '制造商尺码(Размер производителя)',
+            secondId: 9533,
+            secondModelValue: ""
+        };
+    }
+    else {
         ele = {
             id: Date.now(),
             name: item.name,
@@ -529,7 +542,9 @@ const removeItem = (item, row) => {
     console.log('removeItem', item, row);
     if (item.id === 10096) {
         let ind = row.tableData.indexOf(item)
-        console.log('ind', ind);
+        row.tableData.splice(ind, 1);
+    } else if (item.id === 4295) {
+        let ind = row.tableData.indexOf(item)
         row.tableData.splice(ind, 1);
     } else {
         row.tableData = row.tableData.filter(el => el.id !== item.id);
@@ -567,7 +582,7 @@ const pushValue = (index, item) => {
     let cartesianProducts = cartesianProduct(attributeList.value);
     let newTableData = processResult(cartesianProducts);
     let minLength = Math.min(newTableData.length, tableData.value.length);
-    console.log("newTableData", minLength);
+    console.log("newTableData", tableData.value);
     for (let i = 0; i < minLength; i++) {
         // 将b数组中对应下标的数据赋值到a数组中
         newTableData[i].skuTitle = tableData.value[i].skuTitle;
@@ -576,6 +591,8 @@ const pushValue = (index, item) => {
         newTableData[i].oldPrice = tableData.value[i].oldPrice;
         newTableData[i].colorImg = tableData.value[i].colorImg;
         newTableData[i].quantity = tableData.value[i].quantity;
+        newTableData[i].imageUrl = tableData.value[i].imageUrl;
+        newTableData[i].warehouseList = tableData.value[i].warehouseList;
         newTableData[i].packageHeight = tableData.value[i].packageHeight;
         newTableData[i].packageLength = tableData.value[i].packageLength;
         newTableData[i].packageWidth = tableData.value[i].packageWidth;
@@ -877,6 +894,12 @@ const getEditStore = (account) => {
     });
 }
 
+// 变种主题中是组合在一起的主题
+const dependencyMap = new Map([
+    [10096, 10097],  // 商品颜色和颜色名称
+    [4295, 9533]    // 俄罗斯尺码和制造商尺码
+]);
+
 watch(() => useOzonProductStore().attributes, val => {
     if (val) {
         themeBtns.value = [];
@@ -889,21 +912,36 @@ watch(() => useOzonProductStore().attributes, val => {
         let arr = val.filter((obj) => obj.isAspect);
         isConform.value = checkData(arr);
         const requiredItem = arr.some(item => item.isRequired === true);
-        console.log('arr', arr);
-        console.log('requiredItem', requiredItem);
+        // console.log('arr', arr);
+        // console.log('requiredItem', attributeList.value);
         //判断主题中是否有颜色名称，且商品颜色是不是必填项
         if (requiredItem) {
             if (isConform.value) {
                 requiredList.value = arr.filter((obj) => obj.isRequired);
-                if (requiredList.value.some(item => (item.id === 10096))) {
-                    requiredList.value.push(arr.find(obj => obj.id === 10097))
-                }
+                // 将arr转换为ID索引对象，提高查找效率
+                const arrById = arr.reduce((acc, item) => {
+                    acc[item.id] = item;
+                    return acc;
+                }, {});
+                // 检查并添加依赖项
+                dependencyMap.forEach((addId, targetId) => {
+                    // 检查目标ID是否存在
+                    if (requiredList.value.some(item => item.id === targetId)) {
+                        // 获取要添加的对象
+                        const itemToAdd = arrById[addId];
+                        // 检查是否已存在且对象存在
+                        if (itemToAdd && !requiredList.value.some(item => item.id === addId)) {
+                            requiredList.value.push(itemToAdd);
+                        }
+                    }
+                });
+                // if (requiredList.value.some(item => (item.id === 10096))) {
+                //     requiredList.value.push(arr.find(obj => obj.id === 10097))
+                // } 
                 themeBtns.value = arr.filter(
-                    (obj) => !(obj.isRequired || obj.id === 10097)
+                    (obj) => !(obj.isRequired || obj.id === 10097 || obj.id === 9533) //obj.id === 9533
                 )
-                console.log('requiredList---', requiredList.value);
                 requiredList.value = reorderArray(requiredList.value)
-                console.log('themeBtns---', themeBtns.value);
             } else {
                 requiredList.value = arr.filter((obj) => obj.isRequired);
             }
@@ -941,7 +979,7 @@ watch(() => useOzonProductStore().attributes, val => {
         if (requiredList.value.length != 0) {
             processDataFormat(requiredList.value);
         }
-        console.log('themeBtns', themeBtns.value);
+        // console.log('themeBtns', tableData.value);
 
         tableData.value.push({
             skuTitle: "",
@@ -980,11 +1018,9 @@ const submitForm = () => {
     }
     for (let i = 0; i < attributeList.value.length; i++) {
         for (let j = 0; j < attributeList.value[i].tableData.length; j++) {
-            if (
-                attributeList.value[i].tableData[j].modelValue == "" ||
-                attributeList.value[i].tableData[j].modelValue.length == 0
-            ) {
-                message.error("请填写变体主题！")
+            const row = attributeList.value[i].tableData[j];
+            if (!validateRow(row)) {
+                message.error("请填写变体主题！");
                 return false;
             }
         }
@@ -1014,6 +1050,13 @@ const submitForm = () => {
         }
     }
     return true;
+}
+function validateRow(row) {
+    if (row.isRequired) {
+        return row.modelValue && row.modelValue.length > 0;
+    } else {
+        return (row.modelValue && row.modelValue.length > 0) || (row.secondModelValue && row.secondModelValue.length > 0);
+    }
 }
 // 抛出数据和方法，可以让父级用ref获取
 defineExpose({
