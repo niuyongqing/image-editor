@@ -427,7 +427,7 @@ const filteredHeaderList = computed(() => {
 
 // 处理数据格式
 const processDataFormat = (list = []) => {
-    let newHeaderList = handleTheme(list)
+    let newHeaderList = handleTheme(list)  
     const insertIndex = headerList.value.length - 6;
     for (let i = list.length - 1; i >= 0; i--) {
         // reversedArray.push(originalArray[i]);
@@ -992,7 +992,7 @@ watch(() => useOzonProductStore().attributes, val => {
                 packageLength: sku.depth,
                 packageWeight: sku.weight,
                 packageWidth: sku.width,
-                colorImg: sku?.colorImage !== "" ? [{
+                colorImg: sku?.colorImage ? [{
                     url: processImageSource(sku.colorImage),
                     name: sku.colorImage.split('/').pop()
                 }] : [],
@@ -1063,16 +1063,26 @@ watch(() => useOzonProductStore().attributes, val => {
         }
         tableData.value = result
         // 将不匹配的主题过滤掉
-        console.log('tableData', tableData);
-
-        let isModelValueList = filterModelValues(sortArr, skuList);
+        console.log('tableData', tableData.value);
+        let comAttrList = [10096,4295]
+        // 从数组 a 中提取所有的 id
+        const idsInA = sortArr.map(item => item.id);
+        // 使用 every 方法检查 comAttrList 中的每个元素是否都在 idsInA 中
+        const isAllMatched = comAttrList.every(id => idsInA.includes(id));
+        let echoThemeList= []
+        let isModelValueList = []
+        // 判断sortArr中是否有组合数据
+        if(isAllMatched) {
+            echoThemeList = handleTheme(sortArr)  //handleTheme方法可以将属性转换成主题数据格式
+        }else {
+            isModelValueList = filterModelValues(sortArr, skuList);
+            echoThemeList = handleTheme(isModelValueList)
+        }
         console.log('isModelValueList',isModelValueList);
 
         // 处理到数据回显到主题
-        // let echoThemeList = handleTheme(sortArr)
-        let echoThemeList = handleTheme(isModelValueList)  //handleTheme方法可以将属性转换成主题数据格式
         const aIds = echoThemeList.map(item => item.id);
-        console.log('aIds', aIds);
+        console.log('aIds', echoThemeList);
         // 过滤 有数据的主题
         themeBtns.value = themeBtns.value.filter(item => !aIds.includes(item.id));
         attributeList.value = matchAndAssignValues(echoThemeList, skuList)

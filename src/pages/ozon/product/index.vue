@@ -274,7 +274,7 @@
                                                 placeholder="请输原价格"></a-input>
                                             <a-button class="mr-2.5" @click="minPriceVisible = false">取消</a-button>
                                             <a-button type="primary" :loading="loading"
-                                                @click="checkOldPrice(record, '', '', record.minPrice)">确定</a-button>
+                                                @click="checkOldPrice(record)">确定</a-button>
                                         </div>
                                         <AsyncIcon v-if="!(minPriceVisible && itemId == record.id) && record.minPrice"
                                             style="cursor: pointer; color: #1677ff" icon="EditOutlined"
@@ -291,7 +291,7 @@
                                                 placeholder="请输原价格"></a-input>
                                             <a-button class="mr-2.5" @click="priceVisible = false">取消</a-button>
                                             <a-button type="primary" :loading="loading"
-                                                @click="checkOldPrice(record, '', record.price)">确定</a-button>
+                                                @click="checkOldPrice(record)">确定</a-button>
                                         </div>
                                         <AsyncIcon v-if="!(priceVisible && itemId == record.id)" icon="EditOutlined"
                                             style="cursor: pointer; color: #1677ff" @click="editSinglePrice(record)">
@@ -306,7 +306,7 @@
                                                 placeholder="请输原价格"></a-input>
                                             <a-button class="mr-2.5" @click="singleVisible = false">取消</a-button>
                                             <a-button type="primary" :loading="loading"
-                                                @click="checkOldPrice(record, record.oldPrice)">确定</a-button>
+                                                @click="checkOldPrice(record)">确定</a-button>
                                         </div>
                                         <AsyncIcon v-if="!(singleVisible && itemId == record.id)"
                                             style="cursor: pointer; color: #1677ff" icon="EditOutlined"
@@ -898,9 +898,7 @@ const commFn = (tableItem, type = 'single', record = {}) => {
         };
         syncOneList.value.push(newObj);
     }
-
-    console.log('syncOneList', syncOneList.value);
-
+    // console.log('syncOneList', syncOneList.value);
 }
 
 //单个选择
@@ -941,8 +939,7 @@ const allChangeBox = (e) => {
             });
             commFn(item, 'multiple')
         });
-        console.log('syncOneList', syncOneList.value);
-
+        // console.log('syncOneList', syncOneList.value);
     } else {
         // 取消选中时，移除所有相关子元素
         tableData.value.forEach((item) => {
@@ -953,8 +950,7 @@ const allChangeBox = (e) => {
             });
         });
     }
-    console.log('selectedRows*-*', selectedRows.value);
-
+    // console.log('selectedRows*-*', selectedRows.value);
 }
 
 // 总产品全选
@@ -1079,13 +1075,17 @@ const backCloseQuantity = () => {
 }
 
 // 修改单个价格
-const checkOldPrice = (row, oldPrice = "", price = "", minPrice = "") => {
+const checkOldPrice = (row) => {
+    if(row.price > row.oldPrice) {
+        message.error("售价不能大于原价！")
+        return;
+    }
     let params = {
-        offerIds: row.offerIds,
-        oldPrice,
-        price,
+        offerIds: row.offerId,
+        oldPrice:  Math.round(row.oldPrice * 100) / 100,
+        price: Math.round(row.price * 100) / 100,
         productIds: row.productIds,
-        minPrice,
+        minPrice: Math.round(row.minPrice * 100) / 100,
         account: row.account
     }
     updatePrices([params]).then((res) => {
@@ -1218,8 +1218,7 @@ const deactivate = (row = {}) => {
         message.error("产品ID为空,请同步后归档！");
         return;
     }
-    console.log("hasEmptyData", hasEmptyData);
-
+    // console.log("hasEmptyData", hasEmptyData);
     deactivateLoading.value = true;
     batchArchive({ productArchive: id })
         .then((res) => {
@@ -1257,11 +1256,9 @@ const add = () => {
     window.open("productPublish", '_blank');
 }
 const edit = (row = {}) => {
-    console.log('**', row, selectedRows.value);
-
+    // console.log('**', row, selectedRows.value);
     let newRow = Object.keys(row).length != 0 ? row : selectedRows.value[0];
-    console.log('newRow', newRow);
-
+    // console.log('newRow', newRow);
     window.open("editProductPublish" + `?id=${newRow.offerId}&account=${newRow.account}`, '_blank');
 }
 const sync = () => {
