@@ -559,34 +559,34 @@
                             </div>
                             <div v-if="column.dataIndex === 'option'">
                                 <a-row :gutter="3">
-                                    <a-col :span="6">
+                                    <a-col :span="6" v-if="record.state !== '已归档'">
                                         <a-button @click.stop="edit(record)" type="text" style="color: #0b56fa"
-                                            v-if="record.state !== '已归档'">编辑</a-button>
+                                            >编辑</a-button>
                                     </a-col>
                                     <a-col :span="6">
                                         <a-button @click.stop="syncOne(record)" type="text" style="color: #67c23a"
-                                            v-if="record.state !== '已归档'">同步</a-button>
+                                            >同步</a-button>
                                     </a-col>
                                     <a-col :span="6">
-                                        <a-button @click.stop="copy(record)" type="text" v-if="record.state !== '已归档'"
+                                        <a-button @click.stop="copy(record)" type="text"
                                             style="color: #0d9888">复制</a-button>
                                     </a-col>
-                                    <a-col :span="6">
+                                    <a-col :span="6" v-if="record.state !== '已归档'">
                                         <a-popconfirm ok-text="YES" cancel-text="NO" title="归档吗？"
                                             @confirm="deactivate(record)">
-                                            <a-button type="text" v-if="record.state !== '已归档'"
+                                            <a-button type="text" 
                                                 style="color: #e6a23c">归档</a-button>
                                         </a-popconfirm>
                                     </a-col>
                                     <a-col :span="6">
                                         <a-button type="text" @click="addRemark(record)">备注</a-button>
                                     </a-col>
-                                    <a-col :span="6">
+                                    <a-col :span="6" v-if="
+                                                record.sku === 'sku未创建' && record.state === '已归档'
+                                            ">
                                         <a-popconfirm ok-text="YES" cancel-text="NO" title="删除代表该产品在ozon平台删除，确定删除吗？"
                                             @confirm="deleteItem(record)">
-                                            <a-button v-if="
-                                                record.sku === 'sku未创建' && record.state === '已归档'
-                                            " type="text" style="color: red">删除</a-button>
+                                            <a-button  type="text" style="color: red">删除</a-button>
                                         </a-popconfirm>
                                     </a-col>
                                 </a-row>
@@ -1358,10 +1358,10 @@ const syncOne = (record = {}) => {
 
 // 同步历史分类
 const syncHisAttr = () => {
-    if (!formData.account) {
-        message.error("请先选择店铺后同步历史分类！");
-        return;
-    }
+    // if (!formData.account) {
+    //     message.error("请先选择店铺后同步历史分类！");
+    //     return;
+    // }
     syncLoading.value = true;
     syncHistoryCategory({
         account: formData.account,
