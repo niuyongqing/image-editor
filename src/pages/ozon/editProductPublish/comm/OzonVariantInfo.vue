@@ -1,6 +1,6 @@
 <template>
     <div id="OzonVariantInfoCont">
-        <a-card title="产品信息" class="text-left">
+        <a-card title="产品信息" class="text-left mt-5">
             <a-card title="变种信息" class="text-left mx-50">
                 <div class="flex mb-2.5">
                     <a-checkbox-group @change="changeHeade" v-model:value="addHeaderList" :options="plainOptions">
@@ -696,7 +696,13 @@ watch(() => useOzonProductStore().attributes, val => {
         if (sortArr.length > 0) {
             const attrs = attributes[0] && attributes[0].attributes;
             console.log('attrs', attrs, sortArr);
-
+            // const idsInA = sortArr.map(item => item.id);
+            // let comAttrList = [10096,10097];
+            // let comAttrs = [4295,9533];
+            // let isInclude = comAttrList.every(id => idsInA.includes(id));
+            // let isIncludes = comAttrs.every(id => idsInA.includes(id));
+            // console.log('isInclude',isInclude);
+            
             if (attrs) {
                 let attrHeaderList = [];
                 // const attrsMap = new Map(attrs.map(attr => [attr.id, attr])); // 将attrs转为Map提高查询效率
@@ -704,7 +710,6 @@ watch(() => useOzonProductStore().attributes, val => {
                 attrs.forEach(item => bMap.set(item.id, item));
                 sortArr.forEach((sortItem) => {
                     const attrItem = bMap.get(sortItem.id);
-                    console.log('attrItem', attrItem);
                     const { selectType, name: sortName, options } = sortItem;
                     if (attrItem) {
                         // 处理多选或单选类型
@@ -739,24 +744,18 @@ watch(() => useOzonProductStore().attributes, val => {
                             show: true,
                             align: 'center'
                         });
-                    } else if (attrItem?.id === 10097 || attrItem?.id === 9533) {
-                        editRes.value[sortName] = ""
-                        // 添加表头配置（确保每个sortItem只添加一次）
-                        attrHeaderList.push({
-                            title: sortName,
-                            dataIndex: sortName,
-                            show: true,
-                            align: 'center'
-                        });
-                    }
-                    // if (!attrItem) return; // 无匹配项则跳过
-                    // 添加表头配置（确保每个sortItem只添加一次）
-                    // attrHeaderList.push({
-                    //     title: sortName,
-                    //     dataIndex: sortName,
-                    //     show: true,
-                    //     align: 'center'
-                    // });
+                    } 
+                    // else if (isInclude || isIncludes) {
+                    //     editRes.value[sortName] = ""
+                    //     // 添加表头配置（确保每个sortItem只添加一次）
+                    //     attrHeaderList.push({
+                    //         title: sortName,
+                    //         dataIndex: sortName,
+                    //         show: true,
+                    //         align: 'center'
+                    //     });
+                    // }
+                    if (!attrItem) return; // 无匹配项则跳过
                     const exists = imgHeaderList.value.some(item => item.title === sortName);
                     if (!exists) {
                         imgHeaderList.value.push({
@@ -781,8 +780,6 @@ watch(() => useOzonProductStore().attributes, val => {
                 attrHeaderList = colorImage
                     ? [...colorHead, ...attrHeaderList]
                     : attrHeaderList;
-                console.log('attrHeaderList--', attrHeaderList);
-
                 headerList.value = [...attrHeaderList, ...headerList.value]
             }
         }

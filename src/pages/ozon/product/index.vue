@@ -47,12 +47,12 @@
                             <span class="mx-2.5">-</span>
                             <a-input style="width: 150px;" v-model:value="advancedForm.maxStock" allowClear></a-input>
                         </a-form-item>
-                        <a-form-item label="备注：">
+                        <!-- <a-form-item label="备注：">
                             <a-select ref="select" v-model:value="advancedForm.isRemark" style="width: 150px">
                                 <a-select-option value="1">有备注</a-select-option>
                                 <a-select-option value="0">无备注</a-select-option>
                             </a-select>
-                        </a-form-item>
+                        </a-form-item> -->
                         <a-form-item>
                             <a-select ref="select" v-model:value="advancedForm.timeSort" class="ml-6.5"
                                 style="width: 120px">
@@ -248,22 +248,22 @@
                             <div v-if="column.dataIndex === 'state'">
                                 <a-tag :bordered="false" color="processing" v-if="record.state === '平台审核'">{{
                                     record.state
-                                }}</a-tag>
+                                    }}</a-tag>
                                 <a-tag :bordered="false" color="success" v-if="record.state === '在售'">{{ record.state
-                                    }}</a-tag>
+                                }}</a-tag>
                                 <a-tag :bordered="false" color="warning" v-if="record.state === '审核不通过'">{{ record.state
-                                    }}</a-tag>
+                                }}</a-tag>
                                 <a-tag :bordered="false" color="error" v-if="record.state === '准备出售'">{{ record.state
-                                    }}</a-tag>
+                                }}</a-tag>
                                 <a-tag :bordered="false" color="default" v-if="record.state === '已归档'">{{ record.state
-                                    }}</a-tag>
+                                }}</a-tag>
                             </div>
                             <div v-if="column.dataIndex === 'sku'" style="text-align: left">
                                 <div>
                                     <div>
                                         促销活动价：<span style="color: #1677ff">{{
                                             record.marketingPrice ? record.marketingPrice : "暂未参加活动"
-                                        }}</span>
+                                            }}</span>
                                         <a-divider type="vertical"></a-divider>
                                         最低价：<span style="color: #1677ff"
                                             v-if="record.minPrice && !(minPriceVisible && itemId == record.id)">CNY {{
@@ -327,7 +327,7 @@
                                         </a-tooltip>
                                         <span v-else style="color: #1677ff; margin-right: 10px">{{
                                             record.stock
-                                        }}</span>
+                                            }}</span>
                                         <AsyncIcon style="cursor: pointer; color: #1677ff" icon="EditOutlined" v-if="
                                             record.state != '审核不通过' && record.state != '已归档'
                                         " @click="editStock(record)"></AsyncIcon>
@@ -364,7 +364,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[0].score
-                                                                    }}分</span>
+                                                                        }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -407,7 +407,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[1].score
-                                                                    }}分</span>
+                                                                        }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -450,7 +450,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[2].score
-                                                                    }}分</span>
+                                                                        }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -493,7 +493,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[3].score
-                                                                    }}分</span>
+                                                                        }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -510,7 +510,7 @@
                                                     </template>
                                                     <span style="margin-left: 10px;color: #1677ff;cursor: pointer;">{{
                                                         record.productsScore[0].rating
-                                                    }}分</span>
+                                                        }}分</span>
                                                 </a-popover>
                                             </div>
                                             <span v-else class="ml-2.5">{{ 0.0 }}分</span>
@@ -549,12 +549,12 @@
                                 <div>
                                     创建时间：<span style="color: #9e9f9e">{{
                                         timestampToDateTime(record.createdTime)
-                                    }}</span>
+                                        }}</span>
                                 </div>
                                 <div>
                                     更新时间：<span style="color: #9e9f9e">{{
                                         timestampToDateTime(record.updatedTime)
-                                    }}</span>
+                                        }}</span>
                                 </div>
                             </div>
                             <div v-if="column.dataIndex === 'option'">
@@ -672,7 +672,7 @@ const advancedForm = reactive({
     maxOldPrice: "",
     minStock: null,
     maxStock: null,
-    isRemark: "",
+    // isRemark: "",
     timeSort: "update_time",
     time: []
 })
@@ -849,7 +849,7 @@ const resetForm = (type = 0) => {
     advancedForm.maxOldPrice = ""
     advancedForm.minStock = null
     advancedForm.maxStock = null
-    advancedForm.isRemark = ""
+    // advancedForm.isRemark = ""
     advancedForm.timeSort = "update_time"
     advancedForm.time = []
     advancedType.value = type == 1 ? false : true
@@ -1076,13 +1076,13 @@ const backCloseQuantity = () => {
 
 // 修改单个价格
 const checkOldPrice = (row) => {
-    if(row.price > row.oldPrice) {
+    if (row.price > row.oldPrice) {
         message.error("售价不能大于原价！")
         return;
     }
     let params = {
         offerIds: row.offerId,
-        oldPrice:  Math.round(row.oldPrice * 100) / 100,
+        oldPrice: Math.round(row.oldPrice * 100) / 100,
         price: Math.round(row.price * 100) / 100,
         productIds: row.productIds,
         minPrice: Math.round(row.minPrice * 100) / 100,
@@ -1243,7 +1243,7 @@ const deleteItem = (row = {}) => {
     }
 
     delLoading.value = true;
-    del( products ).then((res) => {
+    del(products).then((res) => {
         message.success(res.msg);
     }).finally(() => {
         getList();
@@ -1263,8 +1263,8 @@ const edit = (row = {}) => {
 }
 const sync = () => {
     syncLoading.value = true;
-    showOpen.value = true;
     if (formData.account == null || formData.account == "") {
+        showOpen.value = true;
         syncShopProductAll()
             .then((res) => {
                 interval.value = setInterval(() => {
@@ -1294,34 +1294,35 @@ const sync = () => {
     } else {
         syncShopProduct({ account: formData.account })
             .then((res) => {
+                message.success("同步成功！");
                 // percentage.value = 100;
-                interval.value = setInterval(() => {
-                    asyncProgress(res.msg).then(res => {
-                        percentage.value = parseInt(res.data);
-                        if (res.data >= 100) {
-                            clearInterval(interval.value)
-                            message.success("同步成功！");
-                            syncLoading.value = false;
-                            showOpen.value = false;
-                            getList();
-                            setTimeout(() => {
-                                percentage.value = 0;
-                            }, 300);
-                        }
-                    })
-                }, 5000);
+                // interval.value = setInterval(() => {
+                //     asyncProgress(res.msg).then(res => {
+                //         percentage.value = parseInt(res.data);
+                //         if (res.data >= 100) {
+                //             clearInterval(interval.value)
+                            
+                //             syncLoading.value = false;
+                //             showOpen.value = false;
+                //             getList();
+                //             setTimeout(() => {
+                //                 percentage.value = 0;
+                //             }, 300);
+                //         }
+                //     })
+                // }, 5000);
             })
-            .catch(() => {
-                percentage.value = 0;
-            })
-        // .finally(() => {
-        //     syncLoading.value = false;
-        //     showOpen.value = false;
-        //     getList();
-        //     setTimeout(() => {
-        //         percentage.value = 0;
-        //     }, 300);
-        // });
+            // .catch(() => {
+            //     percentage.value = 0;
+            // })
+            .finally(() => {
+                syncLoading.value = false;
+                // showOpen.value = false;
+                getList();
+                // setTimeout(() => {
+                //     percentage.value = 0;
+                // }, 300);
+            });
     }
 }
 
@@ -1391,6 +1392,10 @@ const getList = (isSearch = false) => {
         message.error("最大原价必须大于最小原价！");
         return;
     }
+    if (advancedForm.minStock > advancedForm.maxStock) {
+        message.error("最大库存必须大于最小库存！");
+        return;
+    }
     loading.value = true;
     let params = {
         ...formData,
@@ -1436,18 +1441,18 @@ const getShopSet = () => {
         shopCurryList.value = res?.data ?? []
     })
 }
+// tabs的商品统计条数赋值
 watch(tabQuantity, (newValue, oldValue) => {
-    if (tabQuantity.length == 0) {
-        tabList = tabDicList
+    if (newValue.length === 0) {
+        tabList = [...tabDicList];
     } else {
-        for (let i = 0; i < tabList.length; i++) {
-            for (let j = 0; j < tabQuantity.value.length; j++) {
-                if (tabList[i].label === tabQuantity.value[j].state) {
-                    tabList[i].value = tabQuantity.value[j].count;
-                    break;
-                }
-            }
-        }
+        tabList = tabDicList.map(item => {
+            const match = newValue.find(q => q.state === item.label);
+            return {
+                ...item,
+                value: match ? match.count.toString() : "0"
+            };
+        });
     }
 })
 onMounted(() => {
