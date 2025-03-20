@@ -47,12 +47,12 @@
                             <span class="mx-2.5">-</span>
                             <a-input style="width: 150px;" v-model:value="advancedForm.maxStock" allowClear></a-input>
                         </a-form-item>
-                        <a-form-item label="备注：">
+                        <!-- <a-form-item label="备注：">
                             <a-select ref="select" v-model:value="advancedForm.isRemark" style="width: 150px">
                                 <a-select-option value="1">有备注</a-select-option>
                                 <a-select-option value="0">无备注</a-select-option>
                             </a-select>
-                        </a-form-item>
+                        </a-form-item> -->
                         <a-form-item>
                             <a-select ref="select" v-model:value="advancedForm.timeSort" class="ml-6.5"
                                 style="width: 120px">
@@ -248,22 +248,22 @@
                             <div v-if="column.dataIndex === 'state'">
                                 <a-tag :bordered="false" color="processing" v-if="record.state === '平台审核'">{{
                                     record.state
-                                }}</a-tag>
+                                    }}</a-tag>
                                 <a-tag :bordered="false" color="success" v-if="record.state === '在售'">{{ record.state
-                                    }}</a-tag>
+                                }}</a-tag>
                                 <a-tag :bordered="false" color="warning" v-if="record.state === '审核不通过'">{{ record.state
-                                    }}</a-tag>
+                                }}</a-tag>
                                 <a-tag :bordered="false" color="error" v-if="record.state === '准备出售'">{{ record.state
-                                    }}</a-tag>
+                                }}</a-tag>
                                 <a-tag :bordered="false" color="default" v-if="record.state === '已归档'">{{ record.state
-                                    }}</a-tag>
+                                }}</a-tag>
                             </div>
                             <div v-if="column.dataIndex === 'sku'" style="text-align: left">
                                 <div>
                                     <div>
                                         促销活动价：<span style="color: #1677ff">{{
                                             record.marketingPrice ? record.marketingPrice : "暂未参加活动"
-                                        }}</span>
+                                            }}</span>
                                         <a-divider type="vertical"></a-divider>
                                         最低价：<span style="color: #1677ff"
                                             v-if="record.minPrice && !(minPriceVisible && itemId == record.id)">CNY {{
@@ -274,7 +274,7 @@
                                                 placeholder="请输原价格"></a-input>
                                             <a-button class="mr-2.5" @click="minPriceVisible = false">取消</a-button>
                                             <a-button type="primary" :loading="loading"
-                                                @click="checkOldPrice(record, '', '', record.minPrice)">确定</a-button>
+                                                @click="checkOldPrice(record)">确定</a-button>
                                         </div>
                                         <AsyncIcon v-if="!(minPriceVisible && itemId == record.id) && record.minPrice"
                                             style="cursor: pointer; color: #1677ff" icon="EditOutlined"
@@ -291,7 +291,7 @@
                                                 placeholder="请输原价格"></a-input>
                                             <a-button class="mr-2.5" @click="priceVisible = false">取消</a-button>
                                             <a-button type="primary" :loading="loading"
-                                                @click="checkOldPrice(record, '', record.price)">确定</a-button>
+                                                @click="checkOldPrice(record)">确定</a-button>
                                         </div>
                                         <AsyncIcon v-if="!(priceVisible && itemId == record.id)" icon="EditOutlined"
                                             style="cursor: pointer; color: #1677ff" @click="editSinglePrice(record)">
@@ -306,7 +306,7 @@
                                                 placeholder="请输原价格"></a-input>
                                             <a-button class="mr-2.5" @click="singleVisible = false">取消</a-button>
                                             <a-button type="primary" :loading="loading"
-                                                @click="checkOldPrice(record, record.oldPrice)">确定</a-button>
+                                                @click="checkOldPrice(record)">确定</a-button>
                                         </div>
                                         <AsyncIcon v-if="!(singleVisible && itemId == record.id)"
                                             style="cursor: pointer; color: #1677ff" icon="EditOutlined"
@@ -327,7 +327,7 @@
                                         </a-tooltip>
                                         <span v-else style="color: #1677ff; margin-right: 10px">{{
                                             record.stock
-                                        }}</span>
+                                            }}</span>
                                         <AsyncIcon style="cursor: pointer; color: #1677ff" icon="EditOutlined" v-if="
                                             record.state != '审核不通过' && record.state != '已归档'
                                         " @click="editStock(record)"></AsyncIcon>
@@ -364,7 +364,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[0].score
-                                                                    }}分</span>
+                                                                        }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -407,7 +407,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[1].score
-                                                                    }}分</span>
+                                                                        }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -450,7 +450,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[2].score
-                                                                    }}分</span>
+                                                                        }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -493,7 +493,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[3].score
-                                                                    }}分</span>
+                                                                        }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -510,7 +510,7 @@
                                                     </template>
                                                     <span style="margin-left: 10px;color: #1677ff;cursor: pointer;">{{
                                                         record.productsScore[0].rating
-                                                    }}分</span>
+                                                        }}分</span>
                                                 </a-popover>
                                             </div>
                                             <span v-else class="ml-2.5">{{ 0.0 }}分</span>
@@ -549,44 +549,44 @@
                                 <div>
                                     创建时间：<span style="color: #9e9f9e">{{
                                         timestampToDateTime(record.createdTime)
-                                    }}</span>
+                                        }}</span>
                                 </div>
                                 <div>
                                     更新时间：<span style="color: #9e9f9e">{{
                                         timestampToDateTime(record.updatedTime)
-                                    }}</span>
+                                        }}</span>
                                 </div>
                             </div>
                             <div v-if="column.dataIndex === 'option'">
                                 <a-row :gutter="3">
-                                    <a-col :span="6">
+                                    <a-col :span="6" v-if="record.state !== '已归档'">
                                         <a-button @click.stop="edit(record)" type="text" style="color: #0b56fa"
-                                            v-if="record.state !== '已归档'">编辑</a-button>
+                                            >编辑</a-button>
                                     </a-col>
                                     <a-col :span="6">
                                         <a-button @click.stop="syncOne(record)" type="text" style="color: #67c23a"
-                                            v-if="record.state !== '已归档'">同步</a-button>
+                                            >同步</a-button>
                                     </a-col>
                                     <a-col :span="6">
-                                        <a-button @click.stop="copy(record)" type="text" v-if="record.state !== '已归档'"
+                                        <a-button @click.stop="copy(record)" type="text"
                                             style="color: #0d9888">复制</a-button>
                                     </a-col>
-                                    <a-col :span="6">
+                                    <a-col :span="6" v-if="record.state !== '已归档'">
                                         <a-popconfirm ok-text="YES" cancel-text="NO" title="归档吗？"
                                             @confirm="deactivate(record)">
-                                            <a-button type="text" v-if="record.state !== '已归档'"
+                                            <a-button type="text" 
                                                 style="color: #e6a23c">归档</a-button>
                                         </a-popconfirm>
                                     </a-col>
                                     <a-col :span="6">
                                         <a-button type="text" @click="addRemark(record)">备注</a-button>
                                     </a-col>
-                                    <a-col :span="6">
+                                    <a-col :span="6" v-if="
+                                                record.sku === 'sku未创建' && record.state === '已归档'
+                                            ">
                                         <a-popconfirm ok-text="YES" cancel-text="NO" title="删除代表该产品在ozon平台删除，确定删除吗？"
                                             @confirm="deleteItem(record)">
-                                            <a-button v-if="
-                                                record.sku === 'sku未创建' && record.state === '已归档'
-                                            " type="text" style="color: red">删除</a-button>
+                                            <a-button  type="text" style="color: red">删除</a-button>
                                         </a-popconfirm>
                                     </a-col>
                                 </a-row>
@@ -672,7 +672,7 @@ const advancedForm = reactive({
     maxOldPrice: "",
     minStock: null,
     maxStock: null,
-    isRemark: "",
+    // isRemark: "",
     timeSort: "update_time",
     time: []
 })
@@ -849,7 +849,7 @@ const resetForm = (type = 0) => {
     advancedForm.maxOldPrice = ""
     advancedForm.minStock = null
     advancedForm.maxStock = null
-    advancedForm.isRemark = ""
+    // advancedForm.isRemark = ""
     advancedForm.timeSort = "update_time"
     advancedForm.time = []
     advancedType.value = type == 1 ? false : true
@@ -898,9 +898,7 @@ const commFn = (tableItem, type = 'single', record = {}) => {
         };
         syncOneList.value.push(newObj);
     }
-
-    console.log('syncOneList', syncOneList.value);
-
+    // console.log('syncOneList', syncOneList.value);
 }
 
 //单个选择
@@ -941,8 +939,7 @@ const allChangeBox = (e) => {
             });
             commFn(item, 'multiple')
         });
-        console.log('syncOneList', syncOneList.value);
-
+        // console.log('syncOneList', syncOneList.value);
     } else {
         // 取消选中时，移除所有相关子元素
         tableData.value.forEach((item) => {
@@ -953,8 +950,7 @@ const allChangeBox = (e) => {
             });
         });
     }
-    console.log('selectedRows*-*', selectedRows.value);
-
+    // console.log('selectedRows*-*', selectedRows.value);
 }
 
 // 总产品全选
@@ -1079,13 +1075,17 @@ const backCloseQuantity = () => {
 }
 
 // 修改单个价格
-const checkOldPrice = (row, oldPrice = "", price = "", minPrice = "") => {
+const checkOldPrice = (row) => {
+    if (row.price > row.oldPrice) {
+        message.error("售价不能大于原价！")
+        return;
+    }
     let params = {
-        offerIds: row.offerIds,
-        oldPrice,
-        price,
+        offerIds: row.offerId,
+        oldPrice: Math.round(row.oldPrice * 100) / 100,
+        price: Math.round(row.price * 100) / 100,
         productIds: row.productIds,
-        minPrice,
+        minPrice: Math.round(row.minPrice * 100) / 100,
         account: row.account
     }
     updatePrices([params]).then((res) => {
@@ -1218,8 +1218,7 @@ const deactivate = (row = {}) => {
         message.error("产品ID为空,请同步后归档！");
         return;
     }
-    console.log("hasEmptyData", hasEmptyData);
-
+    // console.log("hasEmptyData", hasEmptyData);
     deactivateLoading.value = true;
     batchArchive({ productArchive: id })
         .then((res) => {
@@ -1244,7 +1243,7 @@ const deleteItem = (row = {}) => {
     }
 
     delLoading.value = true;
-    del( products ).then((res) => {
+    del(products).then((res) => {
         message.success(res.msg);
     }).finally(() => {
         getList();
@@ -1257,17 +1256,15 @@ const add = () => {
     window.open("productPublish", '_blank');
 }
 const edit = (row = {}) => {
-    console.log('**', row, selectedRows.value);
-
+    // console.log('**', row, selectedRows.value);
     let newRow = Object.keys(row).length != 0 ? row : selectedRows.value[0];
-    console.log('newRow', newRow);
-
+    // console.log('newRow', newRow);
     window.open("editProductPublish" + `?id=${newRow.offerId}&account=${newRow.account}`, '_blank');
 }
 const sync = () => {
     syncLoading.value = true;
-    showOpen.value = true;
     if (formData.account == null || formData.account == "") {
+        showOpen.value = true;
         syncShopProductAll()
             .then((res) => {
                 interval.value = setInterval(() => {
@@ -1297,34 +1294,35 @@ const sync = () => {
     } else {
         syncShopProduct({ account: formData.account })
             .then((res) => {
+                message.success("同步成功！");
                 // percentage.value = 100;
-                interval.value = setInterval(() => {
-                    asyncProgress(res.msg).then(res => {
-                        percentage.value = parseInt(res.data);
-                        if (res.data >= 100) {
-                            clearInterval(interval.value)
-                            message.success("同步成功！");
-                            syncLoading.value = false;
-                            showOpen.value = false;
-                            getList();
-                            setTimeout(() => {
-                                percentage.value = 0;
-                            }, 300);
-                        }
-                    })
-                }, 5000);
+                // interval.value = setInterval(() => {
+                //     asyncProgress(res.msg).then(res => {
+                //         percentage.value = parseInt(res.data);
+                //         if (res.data >= 100) {
+                //             clearInterval(interval.value)
+                            
+                //             syncLoading.value = false;
+                //             showOpen.value = false;
+                //             getList();
+                //             setTimeout(() => {
+                //                 percentage.value = 0;
+                //             }, 300);
+                //         }
+                //     })
+                // }, 5000);
             })
-            .catch(() => {
-                percentage.value = 0;
-            })
-        // .finally(() => {
-        //     syncLoading.value = false;
-        //     showOpen.value = false;
-        //     getList();
-        //     setTimeout(() => {
-        //         percentage.value = 0;
-        //     }, 300);
-        // });
+            // .catch(() => {
+            //     percentage.value = 0;
+            // })
+            .finally(() => {
+                syncLoading.value = false;
+                // showOpen.value = false;
+                getList();
+                // setTimeout(() => {
+                //     percentage.value = 0;
+                // }, 300);
+            });
     }
 }
 
@@ -1360,10 +1358,10 @@ const syncOne = (record = {}) => {
 
 // 同步历史分类
 const syncHisAttr = () => {
-    if (!formData.account) {
-        message.error("请先选择店铺后同步历史分类！");
-        return;
-    }
+    // if (!formData.account) {
+    //     message.error("请先选择店铺后同步历史分类！");
+    //     return;
+    // }
     syncLoading.value = true;
     syncHistoryCategory({
         account: formData.account,
@@ -1392,6 +1390,10 @@ const getList = (isSearch = false) => {
     }
     if (advancedForm.minOldPrice > advancedForm.maxOldPrice) {
         message.error("最大原价必须大于最小原价！");
+        return;
+    }
+    if (advancedForm.minStock > advancedForm.maxStock) {
+        message.error("最大库存必须大于最小库存！");
         return;
     }
     loading.value = true;
@@ -1439,18 +1441,18 @@ const getShopSet = () => {
         shopCurryList.value = res?.data ?? []
     })
 }
+// tabs的商品统计条数赋值
 watch(tabQuantity, (newValue, oldValue) => {
-    if (tabQuantity.length == 0) {
-        tabList = tabDicList
+    if (newValue.length === 0) {
+        tabList = [...tabDicList];
     } else {
-        for (let i = 0; i < tabList.length; i++) {
-            for (let j = 0; j < tabQuantity.value.length; j++) {
-                if (tabList[i].label === tabQuantity.value[j].state) {
-                    tabList[i].value = tabQuantity.value[j].count;
-                    break;
-                }
-            }
-        }
+        tabList = tabDicList.map(item => {
+            const match = newValue.find(q => q.state === item.label);
+            return {
+                ...item,
+                value: match ? match.count.toString() : "0"
+            };
+        });
     }
 })
 onMounted(() => {
