@@ -39,7 +39,7 @@ export function refreshTokenApi(params) {
   return usePost('/platform-tiktok/platform/tiktok/shop/refresh-token', params)
 }
 
-// 登录校验
+// 校验是否输入过密码
 export function loginCheckApi(params) {
   return usePost('/platform-tiktok/platform/tiktok/shop/login/power/check', params)
 }
@@ -67,4 +67,9 @@ export function editSimpleNameBatchApi(params) {
 // 上传表格批量修改仓库
 export function editStoreBatchApi(params) {
   return usePost('/platform-tiktok/platform/tiktok/shop/import-store', params, { headers: { 'Content-Type': 'multipart/form-data' } })
+}
+
+// 上传表格批量修改密码
+export function editCodeBatchApi(params) {
+  return usePost('/platform-tiktok/platform/tiktok/shop/login/code/batch/edit', params, { headers: { 'Content-Type': 'multipart/form-data' } })
 }

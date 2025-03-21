@@ -84,6 +84,7 @@
         @click="exportFile"
         >导出</a-button
       >
+      <a-button @click="editPasswordBatch">批量修改店铺登录密码</a-button>
     </a-space>
 
     <a-card>
@@ -209,6 +210,18 @@
           <template v-if="column.title === '店铺类型'">
             <span>{{ text === 'CROSS_BORDER' ? '跨境' : '本土' }}</span>
           </template>
+          <template v-if="column.title === '操作'">
+            <a-button
+              type="link"
+              @click="viewPassword(record)"
+              >查看密码</a-button
+            >
+            <a-button
+              type="link"
+              @click="editPassword(record)"
+              >修改密码</a-button
+            >
+          </template>
         </template>
       </a-table>
       <a-pagination
@@ -241,7 +254,7 @@
         >
           <template #bodyCell="{ column, record }">
             <template v-if="column.title === '店铺ID'">{{ '100' + record }}</template>
-            <template v-if="column.title === '店铺简称'">{{ 'tiktok-0' + record }}</template>
+            <template v-if="column.title === '简称'">{{ 'tiktok-0' + record }}</template>
           </template>
         </a-table>
         <div class="mt-4">上传文件:</div>
@@ -292,6 +305,128 @@
       </div>
     </a-modal>
 
+    <!-- 输入 ERP 密码的弹窗 -->
+    <a-modal
+      title="请输入ERP密码进行验证"
+      v-model:open="verifyModalOpen"
+      :confirm-loading="verifyModalLoading"
+      @cancel="verifyModalCancel"
+      @ok="verifyModalOk"
+    >
+      <a-input
+        v-model:value="ERPCode"
+        placeholder="请输入ERP密码进行验证"
+      />
+    </a-modal>
+
+    <!-- 查看账号密码的弹窗 -->
+    <a-modal
+      title="查看账号密码"
+      v-model:open="viewCodeModalOpen"
+      :footer="null"
+      @cancel="accountInfo = {}"
+    >
+      <a-form
+        :label-col="{ span: 4 }"
+        :wrapper-col="{ span: 18 }"
+      >
+        <a-form-item label="店铺ID">
+          <span>{{ accountInfo.id }}</span>
+        </a-form-item>
+        <a-form-item label="登录账号">
+          <span>{{ accountInfo.loginAccount }}</span>
+        </a-form-item>
+        <a-form-item label="登录密码">
+          <span>{{ accountInfo.loginPassword }}</span>
+        </a-form-item>
+        <a-form-item label="邮箱Code">
+          <span>{{ accountInfo.emailCode }}</span>
+        </a-form-item>
+      </a-form>
+    </a-modal>
+
+    <!-- 修改账号密码的弹窗 -->
+    <a-modal
+      title="修改账号密码"
+      v-model:open="editCodeModalOpen"
+      @cancel="editPasswordModalCancel"
+      @ok="editPasswordModalOk"
+    >
+      <a-form
+        :model="accountInfo"
+        ref="editCodeFormRef"
+        :label-col="{ span: 4 }"
+        :wrapper-col="{ span: 18 }"
+      >
+        <a-form-item
+          label="店铺ID"
+          name="id"
+        >
+          <span>{{ accountInfo.id }}</span>
+        </a-form-item>
+        <a-form-item
+          label="登录账号"
+          name="loginAccount"
+          required
+        >
+          <a-input v-model:value="accountInfo.loginAccount" />
+        </a-form-item>
+        <a-form-item
+          label="登录密码"
+          name="loginPassword"
+          required
+        >
+          <a-input v-model:value="accountInfo.loginPassword" />
+        </a-form-item>
+        <a-form-item
+          label="邮箱Code"
+          name="emailCode"
+          required
+        >
+          <a-input v-model:value="accountInfo.emailCode" />
+        </a-form-item>
+      </a-form>
+    </a-modal>
+
+    <!-- 批量修改店铺登录密码 -->
+    <a-modal
+      title="批量修改店铺登录密码"
+      v-model:open="editPwdBatchModalOpen"
+      :confirm-loading="editPwdBatchConfirmLoading"
+      @cancel="editPwdBatchModalCancel"
+      @ok="editPwdBatchOk"
+    >
+      <div>示例:</div>
+      <div class="content">
+        <a-table
+          :columns="[{ title: '店铺ID' }, { title: '登录账号' }, { title: '登录密码' }, { title: '邮箱code' }]"
+          :data-source="Array(4).fill('***')"
+          :pagination="false"
+        >
+        </a-table>
+        <div class="my-4">
+          点击
+          <a-button
+            type="link"
+            @click="exportCodeTemplate"
+            >导出模版</a-button
+          >
+          可下载表格数据
+        </div>
+        <div class="my-4">把编辑好的Excel表导入</div>
+        <a-upload
+          :file-list="fileList"
+          accept=".xlsx, .xlsm, .xls"
+          :before-upload="beforeUpload"
+        >
+          <a-button>
+            <UploadOutlined />
+            选择 Excel
+          </a-button>
+        </a-upload>
+      </div>
+    </a-modal>
+
     <!-- 即将过期账号列表弹窗 -->
     <!-- <a-modal
       title="请及时给以下账号重新授权"
@@ -319,7 +454,23 @@
 
 <script setup>
   import { checkPermi, checkRole } from '~/utils/permission/component/permission.js'
-  import { forbidSaleApi, shopListApi, refreshTokenApi, editApi, empowerApi, exportApi, shopUrlApi } from '../apis/empower.js'
+  import {
+    forbidSaleApi,
+    shopListApi,
+    refreshTokenApi,
+    editApi,
+    empowerApi,
+    exportApi,
+    shopUrlApi,
+    editSimpleNameBatchApi,
+    editStoreBatchApi,
+    loginCheckApi,
+    loginVerifyApi,
+    codeViewApi,
+    codeEditApi,
+    exportCodeTemplateApi,
+    editCodeBatchApi
+  } from '../apis/empower.js'
   import { DEFAULT_TABLE_COLUMN, CATEGORY_OPTIONS, WAREHOUSE_LIST } from './config.js'
   import dayjs from 'dayjs'
   import { message } from 'ant-design-vue'
@@ -465,14 +616,14 @@
       })
   }
 
-  /** 编辑数据 */
+  /** 修改数据 */
   function editShopRecord(record) {
     const params = {
       ...record,
       prohibitedProperties: record.prohibitedProperties.join()
     }
     editApi(params).then(res => {
-      message.success('编辑成功')
+      message.success('修改成功')
       getList()
     })
   }
@@ -552,6 +703,134 @@
       message.success('下载任务已开始！请耐心等待完成')
       download.name(res.msg)
     })
+  }
+
+  /** 密码相关 */
+  const verifyModalOpen = ref(false)
+  const verifyModalLoading = ref(false)
+  const ERPCode = ref('')
+  const accountInfo = ref({}) // 账号信息
+
+  function verifyModalCancel() {
+    verifyModalOpen.value = false
+    ERPCode.value = ''
+  }
+
+  function verifyModalOk() {
+    if (!ERPCode.value) {
+      message.warning('请输入密码')
+      return
+    }
+
+    verifyModalLoading.value = true
+    loginVerifyApi({ password: ERPCode.value })
+      .then(res => {
+        message.success('密码校验正确, 可以进行后续操作')
+      })
+      .finally(() => {
+        verifyModalLoading.value = false
+        verifyModalCancel()
+      })
+  }
+
+  // 登录校验
+  async function loginCheck() {
+    let checked = false
+    await loginCheckApi().then(res => {
+      checked = res.data
+    })
+
+    if (checked) return true
+    // 校验结果是未输入过正确密码时, 弹窗让用户数据密码进行校验
+    verifyModalOpen.value = true
+    return false
+  }
+
+  const viewCodeModalOpen = ref(false)
+  // 查看密码
+  async function viewPassword(record) {
+    const flag = await loginCheck()
+    if (flag) {
+      codeViewApi({ id: record.id }).then(res => {
+        accountInfo.value = res.data || {}
+        viewCodeModalOpen.value = true
+      })
+    }
+  }
+
+  const editCodeModalOpen = ref(false)
+  const editCodeFormRef = ref()
+  // 修改密码
+  async function editPassword(record) {
+    const flag = await loginCheck()
+    if (flag) {
+      codeViewApi({ id: record.id }).then(res => {
+        accountInfo.value = res.data || {}
+        editCodeModalOpen.value = true
+      })
+    }
+  }
+
+  function editPasswordModalCancel() {
+    editCodeModalOpen.value = false
+    accountInfo.value = {}
+    editCodeFormRef.value.resetFields()
+  }
+
+  function editPasswordModalOk() {
+    editCodeFormRef.value
+      .validate()
+      .then(() => {
+        codeEditApi(accountInfo.value).then(res => {
+          message.success('修改成功')
+          editPasswordModalCancel()
+        })
+      })
+      .catch(err => {})
+  }
+
+  /** 批量修改密码 */
+  const editPwdBatchModalOpen = ref()
+  const editPwdBatchConfirmLoading = ref(false)
+
+  async function editPasswordBatch() {
+    const flag = await loginCheck()
+    flag && (editPwdBatchModalOpen.value = true)
+  }
+
+  // 导出密码表格模板
+  function exportCodeTemplate() {
+    exportCodeTemplateApi().then(res => {
+      message.success('下载任务已开始！请耐心等待完成')
+      download.name(res.msg)
+    })
+  }
+
+  function editPwdBatchModalCancel() {
+    fileList.value = []
+    editPwdBatchModalOpen.value = false
+  }
+
+  function editPwdBatchOk() {
+    if (fileList.value.length === 0) {
+      message.warning('请上传文件')
+      return
+    }
+
+    // 手动上传
+    editPwdBatchConfirmLoading.value = true
+    const formData = new FormData()
+    fileList.value.forEach(file => {
+      formData.append('file', file)
+    })
+    editCodeBatchApi(formData)
+      .then(res => {
+        getList()
+      })
+      .finally(() => {
+        editPwdBatchConfirmLoading.value = false
+      })
+    editPwdBatchModalCancel()
   }
 
   /** 过期提醒弹窗 */

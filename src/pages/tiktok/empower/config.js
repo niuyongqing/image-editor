@@ -64,6 +64,11 @@ export const DEFAULT_TABLE_COLUMN = [
   {
     title: '编辑时间',
     dataIndex: 'updateTime'
+  },
+  {
+    title: '操作',
+    dataIndex: 'operation',
+    fixed: 'right'
   }
 ]
 
