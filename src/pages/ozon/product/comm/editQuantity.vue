@@ -14,8 +14,8 @@
                                 <div class="childrenItemName">{{ it.name }}</div>
                                 <div style="width: 50%">
                                     <a-input-number :precision="0" :min="0"
-                                        style="width: 80%; display: block; margin: 0 auto"
-                                        v-model:value="it.stock" @change="changeInputNumber(item)"></a-input-number>
+                                        style="width: 80%; display: block; margin: 0 auto" v-model:value="it.stock"
+                                        @change="changeInputNumber(item)"></a-input-number>
                                 </div>
                             </div>
                         </div>
@@ -61,32 +61,34 @@ const onSubmit = () => {
     console.log('selectOzonId', props.selectOzonId);
     console.log('editStockList', props.editStockList);
     props.selectOzonId.forEach((e) => {
+        // 为每次外层循环初始化一个新的 obj
+        let obj = {};
         props.editStockList.forEach((item) => {
             if (e.account === item.account) {
-                // 使用.filter过滤出stock不为0的数据
-                const validWarehouseList = item.children.filter((el) => el.stock !== 0).map((el) => {
+                // 使用.filter过滤出stock不为0且不为null的数据
+                const validWarehouseList = item.children.filter((el) => el.stock !== 0 && el.stock !== null).map((el) => {
                     return {
                         present: el.stock,
                         warehouseId: el.warehouseId,
-                        warehouseName: el.name
+                        warehouseName: el.name,
+                        offerId: e.offerIds.join()
                     };
                 });
                 obj = {
-                    offerIds: e.offerIds,
                     warehouseList: validWarehouseList,
                     totalStock: item.allStock,
                     account: e.account,
                 };
             }
         });
-        stockList.push(obj);
+        // 只有当 obj 有实际内容时才添加到 stockList 中
+        if (Object.keys(obj).length > 0) {
+            stockList.push(obj);
+        }
     });
-    let params = {
-        stocks: stockList,
-    };
-    console.log('params', params);
+    console.log('params--', stockList);
 
-    updateStock(params)
+    updateStock(stockList)
         .then((res) => {
             message.success(res.msg);
             handleCancel()
