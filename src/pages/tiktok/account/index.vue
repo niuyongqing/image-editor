@@ -53,10 +53,8 @@
       </a-form>
     </a-card>
 
-    <a-space
-      v-has-permi="['system:platform:aliexpress:accredit']"
-      class="my-4"
-    >
+    <!-- v-has-permi="['system:platform:tiktok:accredit']" -->
+    <a-space class="my-4">
       <a-button
         type="primary"
         @click="add"
@@ -93,11 +91,11 @@
           </template>
           <template v-if="column.title === '账号'">
             <a-tag
-              v-for="account in record.account.split(',')"
+              v-for="account in record.accountName"
               :key="account"
               color="green"
               class="mb-2"
-              >{{ getSimpleName(account) }}</a-tag
+              >{{ account }}</a-tag
             >
           </template>
           <template v-if="column.title === '部门信息'">
@@ -168,13 +166,13 @@
           name="accounts"
           required
         >
-          <a-select
+          <a-cascader
             v-model:value="modalForm.accounts"
-            mode="multiple"
-            placeholder="请选择"
             :options="accountList"
-            :field-names="{ label: 'simpleName', value: 'sellerId' }"
-            option-filter-prop="simpleName"
+            multiple
+            :fieldNames="{ label: 'simpleName', value: 'code' }"
+            show-checked-strategy="SHOW_CHILD"
+            placeholder="请选择"
           />
         </a-form-item>
         <a-form-item
@@ -197,13 +195,12 @@
 
 <script setup>
   import { checkPermi, checkRole } from '~/utils/permission/component/permission.js'
-  import { accountListApi, userListApi, aliexpressAccountApi, userDepApi, addAccountApi, editAccountApi, delAccountApi } from '../apis/account.js'
+  import { accountListApi, userListApi, tiktokAccountApi, userDepApi, addAccountApi, editAccountApi, delAccountApi } from '../apis/account.js'
   import { DEFAULT_TABLE_COLUMN } from './config.js'
   import dayjs from 'dayjs'
-  // import { debounce } from 'lodash-es'
   import { message } from 'ant-design-vue'
 
-  const hasPermi = computed(() => checkPermi(['system:platform:aliexpress:account']) || checkRole('admin'))
+  const hasPermi = computed(() => true || checkPermi(['system:platform:tiktok:account']) || checkRole('admin'))
 
   const searchFormRef = ref()
   const searchForm = ref({
@@ -239,8 +236,8 @@
     }
     accountListApi(params)
       .then(res => {
-        tableData.value = res.rows || []
-        total.value = res.total
+        tableData.value = res.data.rows || []
+        total.value = res.data.total
       })
       .finally(() => {
         loading.value = false
@@ -255,28 +252,6 @@
       userList.value = res.data || []
     })
   }
-  /* // 远程搜索
-  const fetching = ref(false)
-  let lastFetchId = 0
-  const fetchUser = debounce(value => {
-    userList.value = []
-    if (!value) return
-
-    lastFetchId += 1
-    const fetchId = lastFetchId
-    fetching.value = true
-    userListApi({ userName: value })
-      .then(res => {
-        if (fetchId !== lastFetchId) {
-          // for fetch callback order
-          return
-        }
-        userList.value = res.data || []
-      })
-      .finally(() => {
-        fetching.value = false
-      })
-  }, 300) */
 
   /** 部门 */
   const depOptions = ref([])
@@ -302,22 +277,12 @@
     return text
   }
 
-  /** 枚举出账号简称 */
-  function getSimpleName(account) {
-    let text = '--'
-    const target = accountList.value.find(item => item.sellerId === account)
-    if (target) {
-      text = target.simpleName || target.alias || target.sellerId
-    }
-
-    return text
-  }
   // 获取账号列表信息
   const accountList = ref([])
   getAccountList()
   function getAccountList() {
-    aliexpressAccountApi().then(res => {
-      accountList.value = res.data || []
+    tiktokAccountApi({ pageNum: 1, pageSize: 999 }).then(res => {
+      accountList.value = res.rows || []
     })
   }
 
@@ -389,10 +354,10 @@
     confirmLoading.value = true
     const params = {
       id: modalForm.value.id,
-      platform: 'AliExpress',
+      platform: 'Tiktok',
       userId: modalForm.value.userIds.join(','),
       account: modalForm.value.accounts.join(','),
-      depId: modalForm.value.depIds[modalForm.value.depIds.length - 1]
+      depId: modalForm.value.depIds.slice(-1)[0]
     }
     const requestApi = modalForm.value.id ? editAccountApi : addAccountApi
     requestApi(params)
