@@ -86,6 +86,7 @@
 <script setup>
 import { CaretDownOutlined, CaretUpOutlined, QuestionCircleOutlined } from '@ant-design/icons-vue'
 import AdvancedSearch from './advancedSearch.vue'
+import { message } from 'ant-design-vue';
 const { shortCodes = [] } = defineProps({
     shortCodes: {
         type: Array
@@ -232,6 +233,20 @@ const advancedSearchChange = (evt) => {
 const advancedSearchSubmit = (evt) => {
     Object.assign(searchParams, evt);
     const params = getParams();
+    console.log('params',params);
+    const {minPrice,maxPrice,minSpecialPrice,maxSpecialPrice,minValue,maxValue} = params
+    if(minPrice > maxPrice) {
+        message.error("最小价格不能大于最大价格");
+        return
+    }
+    if(minSpecialPrice > maxSpecialPrice) {
+        message.error("最小促销价不能大于最大促销价");
+        return
+    }
+    if(minValue > maxValue) {
+        message.error("最小库存不能大于最大库存");
+        return
+    }
     emits('search', params);
 }
 

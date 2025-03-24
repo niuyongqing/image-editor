@@ -9,18 +9,9 @@
                     </a-button>
                     <template #overlay>
                         <a-menu>
-                            <!-- <a-menu-item @click="handleEdit()">
-                                批量编辑
-                            </a-menu-item> 
-                            <a-menu-item @click="handleGobalPlus()">
-                                批量升级Gobal Plus
-                            </a-menu-item>-->
                             <a-menu-item @click="handleDeactivated()">
                                 批量下架
                             </a-menu-item>
-                            <!-- <a-menu-item @click="handleWater()">
-                                营销水印
-                            </a-menu-item> -->
                             <a-menu-item @click="handleRemark()">
                                 批量备注
                             </a-menu-item>
@@ -34,16 +25,6 @@
                             <a-menu-item @click="handleBatchSpecialPrice()">
                                 批量修改促销价格
                             </a-menu-item>
-
-                            <!-- <a-menu-item @click="handleRemark()">
-                                批量修改短描述
-                            </a-menu-item>
-                            <a-menu-item @click="handleRemark()">
-                                批量修改产品描述
-                            </a-menu-item>
-                            <a-menu-item @click="handleRemark()">
-                                全属性修改
-                            </a-menu-item> -->
                         </a-menu>
                     </template>
                 </a-dropdown>
@@ -167,12 +148,12 @@ const remarkModalEl = useTemplateRef('remarkModalRef');
 const stockModalEl = useTemplateRef('stockModalRef');
 const specialPriceModalEl = useTemplateRef('specialPriceModalRef');
 const { state: lazadaAttrsState, setShortCode, setLazadaAttrs, setLoading, reset } = useLadazaAttrs();
-// const handleEdit = () => {
-// };
-// const handleGobalPlus = () => {
-// };
-// 
+
 const handleDeactivated = () => {
+    if (!selectedRows.length) {
+        message.error('请选择需要下架的产品');
+        return
+    }
     Modal.confirm({
         title: '下架',
         content: '是否确认下架？',
@@ -219,14 +200,13 @@ const syncShortCodeProduct = () => {
     })
 };
 
-// const handleWater = () => {
-// };
+
 const handleRemark = () => {
     if (!selectedRows.length) {
         message.error('请选择需要备注的产品');
         return
     }
-    remarkModalEl.value.open(selectedRows, ture);
+    remarkModalEl.value.open(selectedRows, true);
 };
 
 const handleBatchPrice = () => {
