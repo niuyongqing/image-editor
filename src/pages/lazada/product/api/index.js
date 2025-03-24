@@ -81,7 +81,7 @@ export function lazadaEdit(data) {
 
 // lazada 添加全球商品
 export function lazadaGlobalAdd(data) {
-  return usePost("/platform-lazada/platform/lazada/product/global", data);
+  return usePost("/platform-lazada/platform/lazada/product/global/new", data);
 }
 
 // lazada 商品详情

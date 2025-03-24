@@ -3,24 +3,12 @@
     <a-card style="margin-top: 20px">
       <a-form :model="formState" layout="inline" ref="formRef">
         <a-form-item label="用户：" name="userId">
-          <a-select
-            v-model:value="formState.userId"
-            show-search
-            placeholder="请选择用户"
-            style="width: 200px"
-            :options="getAccountUserArr"
-            :filter-option="filterOption"
-            :fieldNames="userLabels"
-          ></a-select>
+          <a-select v-model:value="formState.userId" show-search placeholder="请选择用户" style="width: 200px"
+            :options="getAccountUserArr" :filter-option="filterOption" :fieldNames="userLabels"></a-select>
         </a-form-item>
         <a-form-item label="部门：" name="depId">
-          <a-cascader
-            v-model:value="formState.depId"
-            :options="depOptions"
-            style="width: 200px"
-            placeholder="Please select"
-            :fieldNames="depLabels"
-          />
+          <a-cascader v-model:value="formState.depId" :options="depOptions" style="width: 200px"
+            placeholder="Please select" :fieldNames="depLabels" />
         </a-form-item>
         <a-form-item>
           <a-button type="primary" @click="onSubmit">查询</a-button>
@@ -31,50 +19,26 @@
     <a-card style="margin-top: 20px">
       <div>
         <a-row>
-          <a-col :span="1.5" style="margin: 0 5px"
-            ><a-button type="primary" v-has-permi="['platform:ozon:account:relevance:add']" @click="showAdd = true"
-              >新增</a-button
-            ></a-col
-          >
-          <a-col :span="1.5" style="margin: 0 5px"
-            ><a-button
-              @click="showEdit = true"
+          <a-col :span="1.5" style="margin: 0 5px"><a-button type="primary"
+              v-has-permi="['platform:ozon:account:relevance:add']" @click="showAdd = true">新增</a-button></a-col>
+          <a-col :span="1.5" style="margin: 0 5px"><a-button @click="showEdit = true"
               v-has-permi="['platform:ozon:account:relevance:update']"
-              :disabled="selectedRowKeys.length !== 1"
-              >修改</a-button
-            ></a-col
-          >
+              :disabled="selectedRowKeys.length !== 1">修改</a-button></a-col>
           <a-col :span="1.5" style="margin: 0 5px">
-            <a-popconfirm
-              placement="top"
-              ok-text="Yes"
-              cancel-text="No"
-              @confirm="confirm"
-              :disabled="selectedRowKeys.length !== 1"
-            >
+            <a-popconfirm placement="top" ok-text="Yes" cancel-text="No" @confirm="confirm"
+              :disabled="selectedRowKeys.length !== 1">
               <template #title>
                 <p>是否确定删除？</p>
               </template>
-              <a-button
-                type="primary"
-                danger
-                v-has-permi="['platform:ozon:account:relevance:del']"
-                :disabled="selectedRowKeys.length !== 1"
-                >删除</a-button
-              >
+              <a-button type="primary" danger v-has-permi="['platform:ozon:account:relevance:del']"
+                :disabled="selectedRowKeys.length !== 1">删除</a-button>
             </a-popconfirm>
           </a-col>
         </a-row>
       </div>
       <div style="margin-top: 20px">
-        <a-table
-          :row-selection="rowSelection"
-          :columns="columns"
-          :data-source="tableData"
-          :rowKey="(row) => row"
-          bordered
-          :pagination="false"
-        >
+        <a-table :row-selection="rowSelection" :columns="columns" :data-source="tableData" :rowKey="(row) => row"
+          bordered :pagination="false">
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'userId'">
               <span>
@@ -82,54 +46,28 @@
               </span>
             </template>
             <template v-if="column.key === 'account'">
-              <span
-                v-for="(item, index) in record.account.split(',')"
-                :key="index"
-              >
-                <a-tag color="blue" style="margin-right: 5px">{{
+              <span v-for="(item, index) in record.account.split(',')" :key="index">
+                <a-tag color="blue" class="mt-1.5">{{
                   getsimpleName(item)
                 }}</a-tag>
               </span>
             </template>
             <template v-if="column.key === 'depId'">
-              <a-cascader
-                style="width: 100%"
-                v-model:value="record.depId"
-                :options="depOptions"
-                :field-names="depLabels"
-                :disabled="true"
-              >
+              <a-cascader style="width: 100%" v-model:value="record.depId" :options="depOptions"
+                :field-names="depLabels" :disabled="true">
               </a-cascader>
             </template>
           </template>
         </a-table>
-        <a-pagination
-          style="margin-top: 20px;text-align: right;"
-          :show-total="(total) => `共 ${total} 条`"
-          v-model:current="pages.pageNum"
-          v-model:pageSize="pages.pageSize"
-          :total="pages.total"
-          class="pages"
-          :defaultPageSize="50"
-          :showSizeChanger="true"
-          :pageSizeOptions="[50, 100, 200]"
-          @change="getList"
-        />
+        <a-pagination style="margin-top: 20px;text-align: right;" :show-total="(total) => `共 ${total} 条`"
+          v-model:current="pages.pageNum" v-model:pageSize="pages.pageSize" :total="pages.total" class="pages"
+          :defaultPageSize="50" :showSizeChanger="true" :pageSizeOptions="[50, 100, 200]" @change="getList" />
       </div>
     </a-card>
-    <addAccountConfig
-      :showAdd="showAdd"
-      :depOptions="depOptions"
-      :getAccountUserArr="getAccountUserArr"
-      @backAddForm="backAddForm"
-    ></addAccountConfig>
-    <editAccountConfig
-      :showEdit="showEdit"
-      :depOptions="depOptions"
-      :getAccountUserArr="getAccountUserArr"
-      @backEditForm="backEditForm"
-      :selectedRowKeys="selectedRowKeys"
-    ></editAccountConfig>
+    <addAccountConfig :showAdd="showAdd" :depOptions="depOptions" :getAccountUserArr="getAccountUserArr"
+      @backAddForm="backAddForm"></addAccountConfig>
+    <editAccountConfig :showEdit="showEdit" :depOptions="depOptions" :getAccountUserArr="getAccountUserArr"
+      @backEditForm="backEditForm" :selectedRowKeys="selectedRowKeys"></editAccountConfig>
   </div>
 </template>
 
@@ -214,7 +152,7 @@ const getList = () => {
           e.depId = e.depId.split(",").map((item) => Number(item));
           return e;
         }) || [];
-        pages.total = res?.total || 0;
+      pages.total = res?.total || 0;
     })
     .finally(() => {
       loading.value = false;

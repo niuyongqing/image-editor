@@ -14,9 +14,7 @@ export default [
     dataIndex:"account",
     key: 'account',
     align:"center",
-    sortable:false,
-    show:true,
-    filter:false,
+    width: 1600
   },
   {
     title: '部门信息',

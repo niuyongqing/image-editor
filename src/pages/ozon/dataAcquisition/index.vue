@@ -68,7 +68,7 @@
       <div class="outContent" v-loading="loading">
         <div class="topHeader">
           <a-checkbox style="margin-right: 90px;" v-model:checked="allChecked" @change="allChangeBox"></a-checkbox>
-          <a-table style="width: 100%;" class="fixedTable" :columns="dropCol">
+          <a-table style="width: 100%;height: 38px;" class="fixedTable" :columns="dropCol">
           </a-table>
         </div>
         <div v-if="selectedRows.length != 0" class="h-7.5 pl-5 lh-7.5 text-left" style="background-color: #ffffcd;">
@@ -837,5 +837,12 @@ onMounted(() => {
   .el-table {
     border-bottom: none;
   }
+}
+
+:deep(.fixedTable) {
+    height: 38px;
+    table {
+        height: 38px;
+    }
 }
 </style>
