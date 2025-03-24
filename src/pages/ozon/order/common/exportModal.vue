@@ -167,13 +167,13 @@ const handleOk = () => {
   }
   console.log('params', params);
 
-  // orderExport(params).then(res => {
-  //   download.name(res.msg);
-  // }).finally(() => {
-  //   formRef.value.resetFields();
-  //   emit("update:openExModal", false);
-  //   emit("backRefresh")
-  // })
+  orderExport(params).then(res => {
+    download.name(res.msg);
+  }).finally(() => {
+    formRef.value.resetFields();
+    emit("update:openExModal", false);
+    emit("backRefresh")
+  })
 }
 const handleCancel = () => {
   emit("update:openExModal", false);

@@ -73,7 +73,7 @@
               <div>
                 <span>{{ record.offerId }}</span> <span>* {{ record.quantity }}</span>
                 <p>
-                  <span>{{ record.currencyCode }}</span>  <span>{{ record.price }}</span>
+                  <span>{{ record.currencyCode }}</span> <span>{{ record.price }}</span>
                 </p>
                 <p>跟踪号：<span>{{ record.trackingNumber }}</span></p>
               </div>
@@ -104,9 +104,14 @@
     <exportModal v-model:openExModal="openExModal" @backRefresh="backRefresh" :isTimes="isTimes"
       :selectedRowKeys="selectedRowKeys" :exportWay="exportWay" :incomingForm="formState"></exportModal>
     <detailsModal v-model:openDetailsModal="openDetailsModal"></detailsModal>
-    <a-modal :open="asyncOrderModal" @ok="handleOk" title="同步时间选择" @cancel="asyncOrderModal = false" :width="'20%'"
+    <a-modal :open="asyncOrderModal" title="同步时间选择" @cancel="asyncOrderModal = false" :width="'20%'"
       :maskClosable="false" :keyboard="false">
       <a-range-picker @change="onRangeChange" v-model:value="asyncObj.asyncTime" show-time style="margin: 20px 0;" />
+
+      <template #footer>
+        <a-button :loading="asyncOrderLoading" @click="asyncOrderModal = false">取消</a-button>
+        <a-button type="primary" :loading="asyncOrderLoading" @click="handleOk">确定</a-button>
+      </template>
     </a-modal>
   </div>
 </template>
