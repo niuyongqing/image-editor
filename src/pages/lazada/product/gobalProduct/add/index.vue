@@ -118,6 +118,7 @@ import { useLazadaGobalAttrs } from "~@/stores/lazadaGobalAttrs";
 import { watermarkList, lazadaGlobalAdd, saveProduct } from '@/pages/lazada/product/api';
 import AddSuccessModal from '../batchModal/addSuccessModal.vue';
 import dayjs from 'dayjs';
+import { cloneDeep } from 'lodash';
 
 const route = useRoute();
 const isHalfway = ref(false); // 是否是半托管产品
@@ -231,24 +232,44 @@ const validateAll = async () => {
             }
         };
     });
-    // SKU数据组装
-    const skus = lazadaAttrsState.skuTable.map((item) => {
+    const skus = cloneDeep(lazadaAttrsState.skuTable).map((item) => {
         // 共同的基础属性  
         const baseProperties = {
             taxClass: taxClass,
-            packageHeight: packageHeight,
-            packageLength: packageLength,
-            packageWeight: Number(packageWeight),
-            packageWidth: packageWidth,
+            // packageHeight: packageHeight,
+            // packageLength: packageLength,
+            // packageWeight: Number(packageWeight),
+            // packageWidth: packageWidth,
             packageContent: packageContent,
-            retail_price: item.price, // 价格
             quantity: item.stock,
             sellerSku: item.sellerSKU,
+            retail_price: item.price, // 价格
             sales_price: item.specialPrice, // 促销价格
-            images: {
-                image: item.fileList.map((img) => img.url)
-            }
+
+            sg_retail_price: item.sg_retail_price, // 价格
+            sg_sales_price: item.sg_sales_price, // 促销价格
+
+            th_retail_price: item.th_retail_price, // 价格
+            th_sales_price: item.th_sales_price, // 促销价格
+
+            ph_retail_price: item.ph_retail_price, // 价格
+            ph_sales_price: item.ph_sales_price, // 促销价格
+
+            id_retail_price: item.id_retail_price, // 价格
+            id_sales_price: item.id_sales_price, // 促销价格
+
+            vn_retail_price: item.vn_retail_price, // 价格
+            vn_sales_price: item.vn_sales_price, // 促销价格
+            // images: {
+            //     image: item.fileList.map((img) => img.url)
+            // }
+            // images: {
+            //     image: item.fileList.map((img) => img.url)
+            // }
+            images: item.fileList.map((img) => img.url)
         };
+        delete item.fileList; // 删除fileList属性
+
         // 动态生成 saleProp  
         const saleProp = lazadaAttrsState.selectTheme.reduce((acc, theme) => {
             acc[theme.name] = item[theme.name];
@@ -269,11 +290,16 @@ const validateAll = async () => {
         };
     });
     let attributes = {
-        type: 'global',
-        ventures: { venture: ventures },
-        semiUpgradeVentures: { venture: semiUpgradeVentures },
-        "productType": isHalfway.value ? "1" : "0", // 0 普通卖家店铺, 1 半托管店铺, 2 全托管店铺
+        // type: 'global',
+        ventures: { venture: [...ventures, 'MY'] },
+        semiUpgradeVentures: { venture: [...semiUpgradeVentures, 'MY'] },
+        // "productType": isHalfway.value ? "1" : "0", // 0 普通卖家店铺, 1 半托管店铺, 2 全托管店铺
         attributes: {
+            packageHeight: packageHeight,
+            packageLength: packageLength,
+            packageWeight: Number(packageWeight),
+            packageWidth: packageWidth,
+            packageContent: packageContent,
             model,
             name: title,
             brand_id,
@@ -286,12 +312,14 @@ const validateAll = async () => {
         },
         shortCode,
         primaryCategory,
-        images: { image: images },// 产品图片
+        image: images,// 产品图片
+        // images: { image: images },// 产品图片
         // video,// 产品视频
         variation: variations,
-        skus: {
-            sku: skus
-        },
+        sku: skus
+        // skus: {
+        //     sku: skus
+        // },
     };
     if (!promotion_whitebkg_image.length) {
         delete attributes.attributes.promotion_whitebkg_image;
@@ -331,11 +359,13 @@ const publish = async () => {
     if (!addParams) {
         return;
     };
-    saveLoading.value = true;
+    publishLoading.value = true;
+    console.log('addParams ->>', addParams);
+
     lazadaGlobalAdd(addParams).then(res => {
         addSuccessModalEl.value.open();
     }).finally(() => {
-        saveLoading.value = false;
+        publishLoading.value = false;
     });
 };
 
