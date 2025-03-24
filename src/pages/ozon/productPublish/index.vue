@@ -372,10 +372,11 @@ const onSubmit = async (type = 1) => {
                 //     },
                 // ],
                 color_image: item?.colorImg[0]?.url.replace('/prod-api', '') ?? "", // 非必填
+                // color_image: "https://www.xzerp.com/file/wish/upload/2025-03-22/2025/03/22/2_20250322160055A001.jpg",
                 images: item.imageUrl && item?.imageUrl?.map(e => e.url.replace('/prod-api', '')),
                 // images: [
-                //     "https://www.xzerp.com/file/wish/upload/2025-03-19/2025/03/19/7017600413_20250319151141A002.jpg",
-                //     "https://www.xzerp.com/file/wish/upload/2025-03-19/2025/03/19/3_20250319151154A003.jpg"
+                //     "https://www.xzerp.com/file/wish/upload/2025-03-22/2025/03/22/7017600413_20250322155935A001.jpg ",
+                //     "https://www.xzerp.com/file/wish/upload/2025-03-22/2025/03/22/3_20250322160037A001.jpg"
                 // ],
                 offer_id: item.sellerSKU,
                 old_price: item.oldPrice, // 非必填

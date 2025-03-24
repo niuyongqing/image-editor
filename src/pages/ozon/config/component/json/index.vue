@@ -1409,10 +1409,10 @@ function save() {
           ...block,
           img: {
             ...block.img,
-            // src: block.img.src.replace('/prod-api', ''),
-            // srcMobile: block.img.srcMobile.replace('/prod-api', '')
-            src: "https://www.xzerp.com/file/wish/upload/2025-03-10/2025/03/10/7017600413_20250310114548A001.jpg",
-            srcMobile: "https://www.xzerp.com/file/wish/upload/2025-03-10/2025/03/10/7017600413_20250310114548A001.jpg"
+            src: block.img.src.replace('/prod-api', ''),
+            srcMobile: block.img.srcMobile.replace('/prod-api', '')
+            // src: "https://www.xzerp.com/file/wish/upload/2025-03-22/2025/03/22/1_20250322160125A002.jpg",
+            // srcMobile: "https://www.xzerp.com/file/wish/upload/2025-03-22/2025/03/22/1_20250322160125A002.jpg"
           }
         };
       })
