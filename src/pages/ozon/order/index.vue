@@ -16,11 +16,7 @@
             @backSelectItem="selectItem"></selectComm> -->
         </a-form-item>
         <a-form-item>
-          <div style="
-              display: flex;
-              flex-direction: column;
-              align-items: flex-start;
-            ">
+          <div class="flex flex-col items-center">
             <div style="display: flex; margin-bottom: 24px">
               <span style="margin-right: 10px; white-space: nowrap">订单状态：</span>
               <selectComm :options="orderType" :fieldObj="orderObj" @backSelectAll="orderSelectAll"
@@ -164,14 +160,6 @@ const orderObj = ref({
   fieldKey: "status",
   fieldLabel: "name",
 });
-const areaObj = ref({
-  fieldKey: "marketplaceId",
-  fieldLabel: "countryZhName",
-});
-const materialflowObj = ref({
-  fieldKey: "val",
-  fieldLabel: "name",
-});
 const active = ref({
   label: "按下单时间",
   value: "orderDate",
@@ -223,53 +211,33 @@ const strList = ref([
 const account = ref([]);
 const orderType = ref([
   {
-    name: "未付款",
-    status: 1,
+    name: "待打包",
+    status: "awaiting_packaging",
   },
   {
-    name: "风控中",
-    status: 2,
+    name: "已取消",
+    status: "cancelled",
   },
   {
-    name: "待审核",
-    status: 3,
+    name: "配送中",
+    status: "delivering",
   },
   {
-    name: "待处理",
-    status: 4,
+    name: "即将送达",
+    status: "last-mile",
   },
   {
-    name: "已处理",
-    status: 5,
+    name: "已送达",
+    status: "delivered",
   },
   {
-    name: "待打单（有货）",
-    status: 6,
+    name: "待配送",
+    status: "awaiting_deliver",
   },
   {
-    name: "待打单（缺货）",
-    status: 7,
-  },
-  {
-    name: "待打单（有异常）",
-    status: 8,
-  },
-  {
-    name: "已交运",
-    status: 9,
-  },
-  {
-    name: "已退款",
-    status: 10,
-  },
-  {
-    name: "已忽略",
-    status: 11,
-  },
-  {
-    name: "已完成",
-    status: 12,
-  },
+    name: "卖家已发货",
+    status: "sent_by_seller",
+  }
 ]);
 
 const selectedRowKeys = ref([]);
@@ -284,8 +252,8 @@ const columns = [
   },
   {
     title: "订单编号",
-    dataIndex: "orderId",
-    key: "orderId",
+    dataIndex: "orderNumber",
+    key: "orderNumber",
     align: 'center'
   },
   {
@@ -410,24 +378,19 @@ const handleTabchange = (activeKey) => {
 
 //导出后刷新页面（防止表格选中后，没法清空）
 const backRefresh = () => {
-  queryList()
+  queryList();
+  selectedRowKeys.value = []
 }
 
 const statusMenus = {
-  "acceptance_in_progress": "正在验收",
-  "arbitration": "仲裁",
   "awaiting_approve": "等待确认",
-  "awaiting_deliver": "等待装运",
-  "awaiting_packaging": "等待包装",
-  "awaiting_registration": "等待注册",
-  "awaiting_verification": "已创建",
+  "awaiting_deliver": "待配送",
+  "awaiting_packaging": "待打包",
   "cancelled": "已取消",
-  "cancelled_from_split_pending": "因货件拆分而取消",
-  "client_arbitration": "快递客户仲裁",
-  "delivering": "运输中",
-  "driver_pickup": "司机处",
-  "not_accepted": "分拣中心未接受",
-  "sent_by_seller": "由卖家发送"
+  "last-mile": "即将送达",
+  "delivering": "配送中",
+  "delivered": "已送达",
+  "sent_by_seller": "卖家已发货"
 }
 
 const tplTyep = {
@@ -451,38 +414,29 @@ const queryList = () => {
     order: sortObj.sortType   //排序方式
   }
 
-  if (activeKey.value == 1) {
-    orderList(params).then(res => {
-      data.value = res?.rows.map(item => {
-        return {
-          customerName: item.customer.name,
-          deliveryMethodName: item.deliveryMethod.name,
-          inProcessAt: item.inProcessAt,
-          postingNumber: item.postingNumber,
-          products: item.products,
-          orderAmount: item.orderAmount,
-          trackingNumber: item.trackingNumber,
-          orderId: item.orderId,
-          offerId: item.products[0].offerId,
-          price: item.products[0].price,
-          quantity: item.products[0].quantity,
-          currencyCode: item.products[0].currencyCode,
-          status: statusMenus[item.status],
-          tplIntegrationType: tplTyep[item.tplIntegrationType]
-        }
-      }) ?? []
-      paginations.total = res?.total ?? 0
-    }).finally(() => {
-      tableLoading.value = false
-    })
-  } else {
-    historyOrderList(params).then(res => {
-      data.value = res?.rows ?? []
-      paginations.total = res?.total ?? 0
-    }).finally(() => {
-      tableLoading.value = false
-    })
-  }
+  orderList(params).then(res => {
+    data.value = res?.rows.map(item => {
+      return {
+        customerName: item.customer.name,
+        deliveryMethodName: item.deliveryMethod.name,
+        inProcessAt: item.inProcessAt,
+        postingNumber: item.postingNumber,
+        products: item.products,
+        orderAmount: item.orderAmount,
+        trackingNumber: item.trackingNumber,
+        orderNumber: item.orderNumber,
+        offerId: item.products[0].offerId,
+        price: item.products[0].price,
+        quantity: item.products[0].quantity,
+        currencyCode: item.products[0].currencyCode,
+        status: statusMenus[item.status],
+        tplIntegrationType: tplTyep[item.tplIntegrationType]
+      }
+    }) ?? []
+    paginations.total = res?.total ?? 0
+  }).finally(() => {
+    tableLoading.value = false
+  })
 }
 
 // 导出方式

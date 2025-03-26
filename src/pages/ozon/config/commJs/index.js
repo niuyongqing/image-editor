@@ -581,11 +581,13 @@ const createAndUpdateBaseObj = (targetObj, complexId, id, type) => {
   // 通用值处理逻辑
   const processValues = () => {
     if (complexId === 100001) {
-      return [{ [keyMap.dictionaryValueId]: 0, value: targetObj.replace('/prod-api', '') }];
+      // return [{ [keyMap.dictionaryValueId]: 0, value: targetObj.replace('/prod-api', '') }];
+      return [{ [keyMap.dictionaryValueId]: 0, value: processImageSource(targetObj.url)}];
     }
     return (Array.isArray(targetObj) ? targetObj : []).map(item => ({
       [keyMap.dictionaryValueId]: 0,
-      value: item?.url?.replace('/prod-api', '') || null // 添加空值保护
+      // value: item?.url?.replace('/prod-api', '') || null // 添加空值保护
+      value: processImageSource(item?.url) || null
     }));
   };
 
