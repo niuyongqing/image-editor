@@ -1404,7 +1404,7 @@ function save() {
   const newData = res.map(item => {
     return {
       ...item,
-      blocks: item.blocks.map(block => {
+      blocks: item?.blocks?.map(block => {
         return {
           ...block,
           img: {
