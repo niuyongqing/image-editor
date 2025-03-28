@@ -122,11 +122,11 @@ const shopSelectItem = (val) => {
 
 // 状态全选和单选
 const statusSelectAll = () => {
-    formState.status = ""
+    formData.status = ""
     getList();
 }
 const statusSelectItem = (val) => {
-    formState.status = val
+    formData.status = val
     getList();
 }
 
@@ -140,7 +140,7 @@ const getAccount = () => {
                     value: item.account
                 }
             }) ?? [];
-            formData.account = res?.data[0].account ?? "";
+            // formData.account = res?.data[0].account ?? "";
             getList()
         }
     });

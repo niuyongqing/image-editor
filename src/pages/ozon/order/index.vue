@@ -85,6 +85,12 @@
               <div>
                 <span>下单时间：</span><span>{{ record.inProcessAt }}</span>
               </div>
+              <div>
+                <span>付款时间：</span><span>{{ record.deliveringDate }}</span>
+              </div>
+              <div style="color: red;">
+                <span>剩余发货：</span><span>{{ record.shipmentDate }}</span>
+              </div>
             </template>
             <template v-if="column.key === 'options'">
               <a @click="openDetailsModal = true">详情</a>
@@ -420,6 +426,8 @@ const queryList = () => {
         customerName: item.customer.name,
         deliveryMethodName: item.deliveryMethod.name,
         inProcessAt: item.inProcessAt,
+        shipmentDate: item.shipmentDate,
+        deliveringDate: item.deliveringDate,
         postingNumber: item.postingNumber,
         products: item.products,
         orderAmount: item.orderAmount,
@@ -427,6 +435,7 @@ const queryList = () => {
         orderNumber: item.orderNumber,
         offerId: item.products[0].offerId,
         price: item.products[0].price,
+        orderId: item.orderId,
         quantity: item.products[0].quantity,
         currencyCode: item.products[0].currencyCode,
         status: statusMenus[item.status],

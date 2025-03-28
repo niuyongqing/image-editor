@@ -1,7 +1,6 @@
 <template>
   <div id="exportModalCont">
-    <a-modal :open="props.openExModal" title="导出订单" :width="'30%'"
-      :maskClosable="false" :keyboard="false">
+    <a-modal :open="props.openExModal" title="导出订单" @cancel="handleCancel" :width="'30%'" :maskClosable="false" :keyboard="false">
       <a-form :model="formState" ref="formRef">
         <a-form-item label="订单状态：" v-if="props.isTimes">
           <selectComm :options="orderTypeList" :fieldObj="orderObj" @backSelectAll="orderSelectAll"
@@ -138,8 +137,6 @@ const onRangeChange = (value, dateString) => {
 };
 
 const handleOk = () => {
-  console.log('props', props);
-  console.log('formState', formState);
   const { exportWay, incomingForm: { account }, selectedRowKeys } = props;
   const { orderStatus, timeType, sTime, endTime, exportFileType } = formState;
   // 定义不同 exportWay 对应的验证规则和错误信息
@@ -160,12 +157,13 @@ const handleOk = () => {
     message.error(validationResult.errorMessage);
     return;
   }
+
   loading.value = true
   let params = {
     type: exportWay,
     account,
     orderStatus, //后续知道状态后补充
-    orderIds: exportWay == 2 ? selectedRowKeys : [],
+    orderIds: exportWay == 2 ? selectedRowKeys.map(item => item) : [],
     timeField: exportWay == 1 ? timeType : "",
     startDate: exportWay == 1 ? dayjs(sTime).startOf('day').format('YYYY-MM-DD HH:mm:ss') : "",
     endDate: exportWay == 1 ? dayjs(endTime).endOf('day').format('YYYY-MM-DD HH:mm:ss') : "",

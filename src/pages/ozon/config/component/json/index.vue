@@ -398,7 +398,7 @@ watch(() => props.content, val => {
     let textObj = deepClone(textDefault)
     let imgObj = deepClone(imgDefaulet)
     let imgTextObj = deepClone(imgTextDefaulet)
-    content.forEach(item => {
+    content?.forEach(item => {
       if (item.widgetName === 'raTextBlock') {
         item.title.content.join('\n')
         // console.log('content', typeof item.title.content.join('\n'));

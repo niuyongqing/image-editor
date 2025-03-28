@@ -242,28 +242,31 @@
                                         }">
                                             备注:{{ record.remark }}
                                         </div>
+                                        <div style="color: red;" v-if="record.bathErrorInfo">
+                                            失败原因:{{ record.bathErrorInfo }}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             <div v-if="column.dataIndex === 'state'">
                                 <a-tag :bordered="false" color="processing" v-if="record.state === '平台审核'">{{
                                     record.state
-                                    }}</a-tag>
+                                }}</a-tag>
                                 <a-tag :bordered="false" color="success" v-if="record.state === '在售'">{{ record.state
-                                }}</a-tag>
+                                    }}</a-tag>
                                 <a-tag :bordered="false" color="warning" v-if="record.state === '审核不通过'">{{ record.state
-                                }}</a-tag>
+                                    }}</a-tag>
                                 <a-tag :bordered="false" color="error" v-if="record.state === '准备出售'">{{ record.state
-                                }}</a-tag>
+                                    }}</a-tag>
                                 <a-tag :bordered="false" color="default" v-if="record.state === '已归档'">{{ record.state
-                                }}</a-tag>
+                                    }}</a-tag>
                             </div>
                             <div v-if="column.dataIndex === 'sku'" style="text-align: left">
                                 <div>
                                     <div>
                                         促销活动价：<span style="color: #1677ff">{{
                                             record.marketingPrice ? record.marketingPrice : "暂未参加活动"
-                                            }}</span>
+                                        }}</span>
                                         <a-divider type="vertical"></a-divider>
                                         最低价：<span style="color: #1677ff"
                                             v-if="record.minPrice && !(minPriceVisible && itemId == record.id)">CNY {{
@@ -327,7 +330,7 @@
                                         </a-tooltip>
                                         <span v-else style="color: #1677ff; margin-right: 10px">{{
                                             record.stock
-                                            }}</span>
+                                        }}</span>
                                         <AsyncIcon style="cursor: pointer; color: #1677ff" icon="EditOutlined" v-if="
                                             record.state != '审核不通过' && record.state != '已归档'
                                         " @click="editStock(record)"></AsyncIcon>
@@ -364,7 +367,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[0].score
-                                                                        }}分</span>
+                                                                    }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -407,7 +410,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[1].score
-                                                                        }}分</span>
+                                                                    }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -450,7 +453,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[2].score
-                                                                        }}分</span>
+                                                                    }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -493,7 +496,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[3].score
-                                                                        }}分</span>
+                                                                    }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -510,7 +513,7 @@
                                                     </template>
                                                     <span style="margin-left: 10px;color: #1677ff;cursor: pointer;">{{
                                                         record.productsScore[0].rating
-                                                        }}分</span>
+                                                    }}分</span>
                                                 </a-popover>
                                             </div>
                                             <span v-else class="ml-2.5">{{ 0.0 }}分</span>
@@ -549,12 +552,12 @@
                                 <div>
                                     创建时间：<span style="color: #9e9f9e">{{
                                         timestampToDateTime(record.createdTime)
-                                        }}</span>
+                                    }}</span>
                                 </div>
                                 <div>
                                     更新时间：<span style="color: #9e9f9e">{{
                                         timestampToDateTime(record.updatedTime)
-                                        }}</span>
+                                    }}</span>
                                 </div>
                             </div>
                             <div v-if="column.dataIndex === 'option'">
@@ -868,7 +871,7 @@ const storChange = (item) => {
 };
 
 // 表单搜索
-const onSubmit = (type = false) => { getList(type) }
+const onSubmit = (type = false) => { getList(type); setUncheck() }
 
 // 标签页切换
 const handleClick = activeKey => {
@@ -1157,6 +1160,8 @@ function clearStock(data) {
 }
 
 const setUncheck = () => {
+    allChecked.value = false
+    selectedRows.value = [];
     tableData.value.forEach(item => {
         item.tabAllChecked = false
         item.children.forEach(child => {
@@ -1272,7 +1277,8 @@ const edit = (row = {}) => {
     // console.log('**', row, selectedRows.value);
     let newRow = Object.keys(row).length != 0 ? row : selectedRows.value[0];
     // console.log('newRow', newRow);
-    window.open("editProductPublish" + `?id=${newRow.offerId}&account=${newRow.account}`, '_blank');
+    let newRowId = encodeURIComponent(newRow.offerId); //转译
+    window.open("editProductPublish" + `?id=${newRowId}&account=${newRow.account}`, '_blank');
 }
 const sync = () => {
     syncLoading.value = true;
