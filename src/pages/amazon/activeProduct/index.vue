@@ -45,11 +45,11 @@
             @click="search"
             >搜索</a-button
           >
-          <a-button
+          <!-- <a-button
             type="link"
             @click="toggleFold"
             >高级搜索</a-button
-          >
+          > -->
         </a-space>
         <a-form
           v-show="!isFold"
@@ -134,35 +134,163 @@
     </a-descriptions>
   </a-card>
   <!-- TABLE 区 -->
-  <a-card
-    style="margin: 10px"
-    id="table"
-  >
-    <div class="btns">
-      <div class="left-group">
-        <a-button type="primary" @click="toAdd">发布商品</a-button>
-        <a-button type="primary" @click="syncFn">同步商品</a-button>
-        <a-upload
-          v-model:file-list="options.fileList"
-          :show-upload-list="false"
-          name="file"
-          :action="options.uploadTemplateUrl"
-          :headers="options.headers"
-          @change="uploadTemplateFn"
-        >
-          <a-button type="primary">导入更新价格和库存</a-button>
-        </a-upload>
-        <a-button type="primary" @click="downloadTemplateFn">下载导入模板</a-button>
-        <a-popconfirm
-          title="是否删除勾选的sku?"
-          ok-text="是"
-          cancel-text="否"
-          @confirm="batchDel"
-        >
-          <a-button type="primary" danger :disabled="tableInfo.selectedRows.length < 1">批量删除</a-button>
-        </a-popconfirm>
+  <a-spin :spinning="spinning.table">
+    <a-card
+      style="margin: 10px"
+      id="table"
+    >
+      <div class="btns">
+        <div class="left-group">
+          <a-button type="primary" @click="toAdd">发布商品</a-button>
+          <a-button type="primary" @click="syncFn">同步商品</a-button>
+          <a-upload
+            v-model:file-list="options.fileList"
+            :show-upload-list="false"
+            name="file"
+            :action="options.uploadTemplateUrl"
+            :headers="options.headers"
+            @change="uploadTemplateFn"
+          >
+            <a-button type="primary">导入更新价格和库存</a-button>
+          </a-upload>
+          <a-button type="primary" @click="downloadTemplateFn">下载导入模板</a-button>
+          <a-popconfirm
+            title="是否删除勾选的sku?"
+            ok-text="是"
+            cancel-text="否"
+            @confirm="batchDel"
+          >
+            <a-button type="primary" danger :disabled="tableInfo.selectedRows.length < 1">批量删除</a-button>
+          </a-popconfirm>
+        </div>
+        <!-- <a-pagination
+          size="small"
+          v-model:current="tableInfo.params.pageNum"
+          v-model:pageSize="tableInfo.params.pageSize"
+          :total="tableInfo.total"
+          :default-page-size="50"
+          show-size-changer
+          show-quick-jumper
+          :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
+          @change="onPaginationChange"
+        /> -->
+        <div class="right-group">
+          <a-dropdown :trigger="['click']">
+            <a-button
+              type="primary" 
+              @click.prevent
+              :disabled="tableInfo.selectedRows.length < 1"
+            >批量操作</a-button>
+            <template #overlay>
+              <a-menu @click="onClickBatch">
+                <a-menu-item 
+                  v-for="item in batchData.itemList"
+                  :key="item.key"
+                >{{ item.label }}</a-menu-item>
+              </a-menu>
+            </template>
+          </a-dropdown>
+        </div>
       </div>
-      <!-- <a-pagination
+      <a-table
+        :columns="displayHeader"
+        :data-source="tableInfo.data"
+        :loading="tableInfo.loading"
+        stripe
+        ref="tableRef"
+        :scroll="{ y: 850 }"
+        :row-key="record => record.key"
+        :pagination="false"
+      >
+        <template #bodyCell="{ column, record }">
+          <!-- <button @click="columnFn(column, record)">fsdfasdfas</button> -->
+          <template v-if="column.key === 'type'">
+            <div>变体：{{ record.amazonProducts.length }}</div>
+          </template>
+          <template v-if="column.key === 'info'">
+            <div class="column-info">
+              <!-- <div class="info-name">
+                变体系列：<span>{{  }}</span>
+              </div> -->
+              <div class="info-text">
+                <div class="info-asin">
+                  <span class="info-text-label">Parent ASIN：</span>
+                  {{ record.parentAsin }}
+                </div>
+                <div class="info-sku">
+                  <span class="info-text-label">父 SKU：</span>
+                  {{ record.parentSKu }}
+                </div>
+              </div>
+            </div>
+          </template>
+        </template>
+        <template #expandedRowRender="{ record }">
+          <a-table 
+            :columns="displayChildHead" 
+            :data-source="record.amazonProducts" 
+            :pagination="false"
+            :ref="record.key"
+            :row-key="record => record.key"
+            :row-selection="{ 
+              selectedRowKeys: tableInfo.childData[record.key]?.selectedRowKeys, 
+              onChange: (keys, rows) => onChildSelectChange(keys, rows, record.key) 
+            }"
+          >
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.key === 'info'">
+                <div class="column-info">
+                  <div class="info-image">
+                    <a-image
+                      :width="100"
+                      :src="record.attribute.main_product_image_locator[0].media_location"
+                    >
+                      <template #placeholder>
+                        <a-image
+                          :src="record.attribute.main_product_image_locator[0].media_location"
+                          :width="200"
+                          :preview="false"
+                        />
+                      </template>
+                    </a-image>
+                  </div>
+                  <div class="info-text">
+                    <div class="info-name">
+                      <span class="info-text-label">标题：</span>  
+                      {{ record.itemName }}
+                    </div>
+                    <div class="info-asin"> 
+                      <span class="info-text-label">ASIN：</span> 
+                      {{ record.asin }}
+                    </div>
+                    <div class="info-sku">                    
+                      <span class="info-text-label">SKU：</span> 
+                      {{ record.sku }}
+                    </div>
+                  </div>
+                </div>
+              </template>
+              <template v-if="column.key === 'state'">
+                <span>{{ record.status }}</span>
+              </template>
+              <template v-if="column.key === 'ourPrice'">
+                <span> {{ record.ourPrice }}_{{ record.currency }} </span>
+              </template>
+              <template v-else-if="column.key === 'options'">
+                <a-popconfirm
+                  title="是否删除商品sku?"
+                  ok-text="是"
+                  cancel-text="否"
+                  @confirm="delSku(record)"
+                >
+                  <a-button type="text" danger>删除</a-button>
+                </a-popconfirm>
+              </template>
+            </template>
+          </a-table>
+        </template>
+      </a-table>
+      <a-pagination
         size="small"
         v-model:current="tableInfo.params.pageNum"
         v-model:pageSize="tableInfo.params.pageSize"
@@ -172,135 +300,9 @@
         show-quick-jumper
         :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
         @change="onPaginationChange"
-      /> -->
-      <div class="right-group">
-        <a-dropdown :trigger="['click']">
-          <a-button
-            type="primary" 
-            @click.prevent
-            :disabled="tableInfo.selectedRows.length < 1"
-          >批量操作</a-button>
-          <template #overlay>
-            <a-menu @click="onClickBatch">
-              <a-menu-item 
-                v-for="item in batchData.itemList"
-                :key="item.key"
-              >{{ item.label }}</a-menu-item>
-            </a-menu>
-          </template>
-        </a-dropdown>
-      </div>
-    </div>
-    <a-table
-      :columns="displayHeader"
-      :data-source="tableInfo.data"
-      :loading="tableInfo.loading"
-      stripe
-      ref="tableRef"
-      :scroll="{ y: 850 }"
-      :row-key="record => record.key"
-      :pagination="false"
-    >
-      <template #bodyCell="{ column, record }">
-        <!-- <button @click="columnFn(column, record)">fsdfasdfas</button> -->
-        <template v-if="column.key === 'type'">
-          <div>变体：{{ record.amazonProducts.length }}</div>
-        </template>
-        <template v-if="column.key === 'info'">
-          <div class="column-info">
-            <!-- <div class="info-name">
-              变体系列：<span>{{  }}</span>
-            </div> -->
-            <div class="info-text">
-              <div class="info-asin">
-                <span class="info-text-label">Parent ASIN：</span>
-                {{ record.parentAsin }}
-              </div>
-              <div class="info-sku">
-                <span class="info-text-label">父 SKU：</span>
-                {{ record.parentSKu }}
-              </div>
-            </div>
-          </div>
-        </template>
-      </template>
-      <template #expandedRowRender="{ record }">
-        <a-table 
-          :columns="displayChildHead" 
-          :data-source="record.amazonProducts" 
-          :pagination="false"
-          :ref="record.key"
-          :row-key="record => record.key"
-          :row-selection="{ 
-            selectedRowKeys: tableInfo.childData[record.key]?.selectedRowKeys, 
-            onChange: (keys, rows) => onChildSelectChange(keys, rows, record.key) 
-          }"
-        >
-          <template #bodyCell="{ column, record }">
-            <template v-if="column.key === 'info'">
-              <div class="column-info">
-                <div class="info-image">
-                  <a-image
-                    :width="100"
-                    :src="record.attribute.main_product_image_locator[0].media_location"
-                  >
-                    <template #placeholder>
-                      <a-image
-                        :src="record.attribute.main_product_image_locator[0].media_location"
-                        :width="200"
-                        :preview="false"
-                      />
-                    </template>
-                  </a-image>
-                </div>
-                <div class="info-text">
-                  <div class="info-name">
-                    <span class="info-text-label">标题：</span>  
-                    {{ record.itemName }}
-                  </div>
-                  <div class="info-asin"> 
-                    <span class="info-text-label">ASIN：</span> 
-                    {{ record.asin }}
-                  </div>
-                  <div class="info-sku">                    
-                    <span class="info-text-label">SKU：</span> 
-                    {{ record.sku }}
-                  </div>
-                </div>
-              </div>
-            </template>
-            <template v-if="column.key === 'state'">
-              <span>{{ record.status }}</span>
-            </template>
-            <template v-if="column.key === 'ourPrice'">
-              <span> {{ record.ourPrice }}_{{ record.currency }} </span>
-            </template>
-            <template v-else-if="column.key === 'options'">
-              <a-popconfirm
-                title="是否删除商品sku?"
-                ok-text="是"
-                cancel-text="否"
-                @confirm="delSku(record)"
-              >
-                <a-button type="text" danger>删除</a-button>
-              </a-popconfirm>
-            </template>
-          </template>
-        </a-table>
-      </template>
-    </a-table>
-    <a-pagination
-      size="small"
-      v-model:current="tableInfo.params.pageNum"
-      v-model:pageSize="tableInfo.params.pageSize"
-      :total="tableInfo.total"
-      :default-page-size="50"
-      show-size-changer
-      show-quick-jumper
-      :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
-      @change="onPaginationChange"
-    />
-  </a-card>
+      />
+    </a-card>
+  </a-spin>
   <a-modal 
     v-model:open="modalInfo.sync.open" 
     title="同步商品" 
@@ -401,43 +403,34 @@ const modalInfo = reactive({
     str: ''         // 展示字段
   }
 })
-// 获取站点列表
-function shopChange(id) {
-  getMarketList(id).then(res => {
-    options.marketList = res.data
-    if (res.data.length > 0) {
-      marketChange(res.data[0].marketId)
-    }
-  })
-}
 const options = reactive({
   shopList: [],     
   marketList: [],
   propList: [         // 搜索类型
-    {
-      label: '所有',
-      code: 'sdfsdvfsd'
-    },
-    {
-      label: 'SKUS',
-      code: 'asfdgsddgsdg'
-    },
-    {
-      label: 'ASIN',
-      code: 'DSGVSDF'
-    },
-    {
-      label: 'FNSKU',
-      code: 'SXDDFHDFSD'
-    },
+    // {
+    //   label: '所有',
+    //   code: 'sdfsdvfsd'
+    // },
+    // {
+    //   label: 'SKUS',
+    //   code: 'asfdgsddgsdg'
+    // },
+    // {
+    //   label: 'ASIN',
+    //   code: 'DSGVSDF'
+    // },
+    // {
+    //   label: 'FNSKU',
+    //   code: 'SXDDFHDFSD'
+    // },
     {
       label: '商品名称/关键字',
       code: 'HDSDFHDFHDSF'
     },
-    {
-      label: 'UPC/EAN',
-      code: 'JFASFSDFSD'
-    }
+    // {
+    //   label: 'UPC/EAN',
+    //   code: 'JFASFSDFSD'
+    // }
   ],
   sortType: [
     {
@@ -561,10 +554,21 @@ const batchData = reactive({
     }
   ]
 });
-const router = useRouter;
+const spinning = reactive({     // 加载中
+  table: false
+})
 function toAdd() {
   // router.push('/amazon/activeProduct/add')
   window.open('/platform/amazon/activeProduct/add')
+}
+// 获取站点列表
+function shopChange(id) {
+  getMarketList(id).then(res => {
+    options.marketList = res.data
+    if (res.data.length > 0) {
+      marketChange(res.data[0].marketId)
+    }
+  })
 }
 // 同步商品
 async function syncFn() {
@@ -734,6 +738,7 @@ async function delSku(row) {
   }
 }
 function getListFn() {
+  spinning.table = true
   let params = {
     ...searchForm,
     ...tableInfo.params
@@ -765,6 +770,8 @@ function getListFn() {
       tableInfo.data = res.data.rows
       tableInfo.total = res.data.total
     }
+  }).finally(() => {
+    spinning.table = false
   })
 }
 // 生成一个随机数

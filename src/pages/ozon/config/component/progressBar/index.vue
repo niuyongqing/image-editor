@@ -1,7 +1,7 @@
 <template>
     <div id="progressBarCont">
-        <a-modal :open="showOpen" :footer="null" :maskClosable="false" :width="'40%'" :keyboard="false">
-            <a-progress class="m-5" style="width: 900px;" :percent="percentage" :stroke-width="20" />
+        <a-modal :open="showOpen" :footer="null" @cancel="handleCancel" :maskClosable="false" :width="'40%'" :keyboard="false">
+            <a-progress class="m-5" style="width: 850px;" :percent="percentage" :stroke-width="20" />
         </a-modal>
     </div>
 </template>

@@ -252,3 +252,38 @@ export function asyncProgress(data) {
     method: 'get',
   })
 }
+
+// 获取设置店铺币种列表
+export function shopCurrency(data) {
+  return request({
+    url: "/platform-ozon/platform/ozon/product/find/shop/currency",
+    method: 'get',
+  })
+}
+
+// 获取修改仓库数据的列表
+export function updateCurrency(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/product/update/currency',
+    method: 'post',
+    data: data
+  })
+}
+
+// 富文本修改图片尺寸
+export function replaceSuffix(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/file/replace/suffix',
+    method: 'post',
+    data: data
+  })
+}
+
+// 批量修改字段数据
+export function batchUpdate(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/product/batch/update',
+    method: 'post',
+    data: data
+  })
+}

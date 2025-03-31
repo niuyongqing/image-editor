@@ -67,3 +67,12 @@ export function categoryAttributes(data) {
     data:data
   })
 }
+
+// 保存到待发布
+export function saveTowaitProduct(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/wait/product/save',
+    method: 'post',
+    data:data
+  })
+}

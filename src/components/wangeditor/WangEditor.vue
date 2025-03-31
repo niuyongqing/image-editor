@@ -183,4 +183,11 @@ onBeforeUnmount(() => {
 :deep(.w-e-text-placeholder) {
     text-align: left !important;
 }
+
+// 全屏样式
+.w-e-full-screen-container {
+  z-index: 10;
+  background-color: #f0f2f5;
+  padding: 0 24% !important;
+}
 </style>

@@ -4,7 +4,7 @@
             <a-form :label-col="{ span: 3 }" ref="ruleForm" :model="form" class="mt-5" :rules="rules">
                 <a-form-item label="店铺：" name="shortCode">
                     <a-select v-model:value="form.shortCode" placeholder="请选择店铺" disabled style="width: 90%" allowClear
-                        showSearch optionFilterProp="label">
+                        showSearch optionFilterProp="label" :options="shopList">
                     </a-select>
                 </a-form-item>
                 <a-form-item label="商品标题：" name="name">
@@ -120,6 +120,7 @@ const props = defineProps({
     categoryAttributesLoading: Boolean,
     attributesCache: Array,
     productDetail: Object,
+    shopList: Array,
 });
 const emit = defineEmits(["sendShortCode", "getAttributes"]);
 
@@ -179,9 +180,6 @@ const vatList = [
 const filterAttrList = ref([])
 const operationLine = ref([]) //取消的
 const hisAttrObj = ref([]) //选中的三级
-
-
-
 
 // 历史分类
 const getHistoryList = (account) => {
@@ -243,7 +241,6 @@ const shouldHideItem = (item) => {
     );
 }
 
-
 // 此方法将历史缓存中的属性值进行重新赋值
 const assignValues = (a, b) => {
     let newRes = a.map((item) => {
@@ -252,7 +249,7 @@ const assignValues = (a, b) => {
             values: item.values.map((value) => {
                 return {
                     ...value,
-                    id: Number(value.dictionary_value_id),
+                    id: Number(value.dictionaryValueId),
                     info: "",
                     picture: "",
                     label: ""
@@ -270,8 +267,10 @@ const assignValues = (a, b) => {
             const allValidItems = resItem.values.every((item) => item.value !== "");
             if (attributeId === item.id && allValidItems) {
                 if (selectType === "multSelect") {
-                    result[name] = resItem.values.map(item => item.id);
-                    item.acquiesceList = moveMatchedItemForward(item.options, resItem.values.map(item => item.id))
+                    // result[name] = resItem.values.map(item => item.id); 旧写法
+                    result[name] = resItem.values.map(item => Number(item.dictionaryValueId)); // 新
+                    // item.acquiesceList = moveMatchedItemForward(item.options, resItem.values.map(item => item.id))
+                    item.acquiesceList = moveMatchedItemForward(item.options, resItem.values.map(item => item.value))
                 }
                 else if (selectType === "select") {
                     result[name] = findMatchedOption(attributeId, resItem.values[0], item.options)
@@ -282,13 +281,12 @@ const assignValues = (a, b) => {
             }
         });
     });
-
     return result;
 }
 
 const findMatchedOption = (attributeId, data, options) => {
-
-    const matchedOption = options.find(option => option.id === data.id);
+    
+    const matchedOption = options?.find(option => option.id === data.id);
     if (attributeId == 9070) {
         return {
             label: JSON.parse(data.value) == true ? "是" : '否',
@@ -340,17 +338,25 @@ const addItemValues = (obj) => {
 }
 
 const childForm = async () => {
+    // 收集需要校验的表单引用
+    const formRefs = [ruleForm, ruleForm2];
 
-    let res = true;
-    const validatePromise = async (formRef) => {
-        if (!formRef.value) return false;
-        const valid = await formRef.value.validate();
-        return valid;
-    };
-    res = await validatePromise(ruleForm);
-    if (!res) return false;
-    res = await validatePromise(ruleForm2);
-    return res;
+    // 循环遍历表单引用数组进行校验
+    for (const formRef of formRefs) {
+        try {
+            // 如果表单引用不存在，跳过本次循环
+            if (!formRef.value) continue;
+
+            // 调用表单的 validate 方法进行校验
+            await formRef.value.validate();
+        } catch (error) {
+            // 若校验失败，捕获错误并返回 false
+            return false;
+        }
+    }
+
+    // 所有表单都校验通过，返回 true
+    return true;
 }
 
 
@@ -362,12 +368,12 @@ defineExpose({
 
 
 watch(() => props.productDetail, val => {
-    if (val) {
+    if (Object.keys(val).length > 0) {
         const { simpleName, account, name, vat, typeId, descriptionCategoryId } = val;
         // 修改响应式对象的属性
-        form.shortCode = simpleName;
+        form.shortCode = account;
         form.name = name;
-        form.vat = vat === "0.0" ? vat.split(".")[0] : vat;
+        form.vat = vat === "0.00" ? vat.split(".")[0] : vat;
         form.categoryId = {
             threeCategoryId: typeId,
             threeCategoryName: "",
@@ -392,9 +398,7 @@ watch(() => props.attributesCache, (val) => {
          *  "JSON 丰富内容"  11254
          *  "卖家代码" 9024
          */
-        const newAttributesCache = processAttributesCache(
-            val
-        );
+        const newAttributesCache = processAttributesCache(val);
         const custAttr = newAttributesCache.filter((a) => !a.isRequired);
         const filterAttributesCache = custAttr.filter(
             (a) =>
@@ -415,9 +419,6 @@ watch(() => props.attributesCache, (val) => {
                     a.attributeComplexId == "100002"
                 )
         );
-        // 需传值到SKU处
-        // this.$bus.$emit("OzonNewVariantInfo", filterAttributesCache);
-        // console.log("filterAttributesCache", filterAttributesCache);
 
         let noThemeAttributesCache = newAttributesCache.filter(
             (a) => !a.isAspect
@@ -454,7 +455,6 @@ watch(() => props.attributesCache, (val) => {
 
             // 属性校验
             for (let i = 0; i < data.length; i++) {
-
                 let obj = {
                     required: true,
                     message: `${data[i].name} 为必填项，请填写`,
@@ -471,11 +471,10 @@ watch(() => props.attributesCache, (val) => {
             loopAttributes.value = noThemeAttributesCache;
             // 赋值
             const { attributes: oldAttributes } = props.productDetail.attributes[0];
+            // console.log('loopAttributes', oldAttributes);
             const proceRes = assignValues(oldAttributes, loopAttributes.value);
             form.attributes = proceRes;
             console.log('proceRes0', proceRes);
-
-
         }
     }
 })

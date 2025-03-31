@@ -1,88 +1,139 @@
 <template>
   <div>
-    <a-upload :before-upload="beforeUpload" :file-list="fileList" :custom-request="handleUpload"
-      list-type="picture-card" @change="handleChange" multiple>
-      <div v-if="fileList.length === 0">
-        <!-- <a-icon type="plus" /> -->
-        <div style="margin-top: 8px">上传图片</div>
-      </div>
+    <a-upload name="file" v-if="images.length < 30" style="width: 100px; height: 100px;" :headers="headers"
+      accept=".jpg,.jpeg,.png" :action="uploadUrl" :showUploadList="false" :before-upload="beforeUpload"
+      @change="handleChange" :multiple="true" :max-count="30">
+      <a-button>
+        <AsyncIcon icon="UploadOutlined" />
+        上传图片
+      </a-button>
     </a-upload>
-    <div class="image-list">
-      <div v-for="(file, index) in fileList" :key="file.uid" class="image-item" draggable="true"
-        @dragstart="handleDragStart(index)" @dragover.prevent @drop="handleDrop(index)">
-        <img :src="file.url" alt="" />
-        <!-- <a-icon type="close" @click="handleRemove(index)"
-          style="cursor: pointer; position: absolute; top: 0; right: 0" /> -->
-      </div>
-    </div>
+    <draggable v-if="images.length > 0" item-key="url" v-model="images" class="flex flex-wrap"
+      style="width: 1600px;margin-top: 10px;">
+      <template #item="{ element }">
+        <a-card class="file-card" style="margin-right: 10px;margin-bottom: 10px;" hoverable>
+          <div :key="element.uid">
+            <div class="file-img">
+              <a-image :src="element.url" alt="" :width="150" :height="150" />
+              <div class="image-mask text-center"> {{ element.height }} X {{ element.width }} </div>
+            </div>
+          </div>
+          <div w-full>
+            <div flex justify-between w-full>
+              <a-checkbox v-model:checked="element.checked" @change="handleSelectImg(element)"></a-checkbox>
+              <AsyncIcon icon="DeleteOutlined" size="15px" color="#428bca" @click="handleRemove(element)" />
+            </div>
+          </div>
+        </a-card>
+      </template>
+    </draggable>
   </div>
 </template>
 
 <script setup>
-import { defineComponent, ref } from 'vue';
-import { message } from 'ant-design-vue';
-const fileList = ref([]);
-let dragIndex = null;
+import draggable from 'vuedraggable';
+import { UploadOutlined, DownOutlined, DownloadOutlined, DeleteOutlined, LoadingOutlined } from '@ant-design/icons-vue';
+import { message } from "ant-design-vue";
+import { ref } from 'vue';
+import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
+
+const emit = defineEmits(['changeImg', "singleSelectImg"])
+const props = defineProps({
+  imageList: {
+    type: Array,
+    default: () => []
+  },
+  max: {
+    type: Number,
+    default: 30
+  },
+
+})
+const images = ref([]);
+const headers = {
+  'Authorization': 'Bearer ' + useAuthorization().value,
+}
+const uploadUrl =
+  import.meta.env.VITE_APP_BASE_API +
+  "/platform-ozon/platform/ozon/file/upload/img"
+
+const handleChange = info => {
+  if (info.file.status === 'done') {
+    images.value.push(
+      {
+        name: info.file.response.originalFilename,
+        url: '/prod-api' + info.file.response.url,
+        checked: false,
+        width: info.file.response.width,
+        height: info.file.response.height,
+      }
+    )
+  }
+  if (info.file.status === 'error') {
+    message.error('图片上传有误！');
+  }
+  emit('changeImg', images)
+}
+
+const handleImageLoad = (el, event) => {
+  nextTick(() => {
+    const img = event.target;
+    el.width = img ? img.naturalWidth : '';
+    el.height = img ? img.naturalHeight : '';
+  })
+};
 
 const beforeUpload = (file) => {
   const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
   if (!isJpgOrPng) {
-    message.error('仅支持 JPG/PNG 格式的图片');
+    message.error('上传图片只能是 JPG、PNG 格式!');
     return false;
-  }
+  };
+  // 不能超过2MB
   const isLt2M = file.size / 1024 / 1024 < 2;
   if (!isLt2M) {
-    message.error('图片大小不能超过 2MB');
+    message.error('上传图片大小不能超过 2MB!');
+    return false;
+  };
+  // 不能超过最大限制
+  if (images.value.length >= 15) {
+    message.error(`最多上传15张图片`);
     return false;
   }
   return true;
 };
+const handleRemove = (file) => {
+  const index = images.value.indexOf(file);
+  images.value.splice(index, 1);
+}
 
-const handleUpload = (options) => {
-  // 这里可以自定义上传逻辑，比如使用 axios 上传到服务器
-  // 假设上传成功后会返回一个包含图片 url 的对象，这里模拟一个 url
-  const url = `https://example.com/images/${options.file.name}`;
-  options.onSuccess({ ...options.file, url });
-};
+const handleSelectImg = (e) => {
+  console.log('e', e);
+  emit("singleSelectImg", e)
+}
 
-const handleChange = ({ fileList: newFileList }) => {
-  fileList.value = newFileList;
-};
-
-const handleRemove = (index) => {
-  fileList.value.splice(index, 1);
-};
-
-const handleDragStart = (index) => {
-  dragIndex = index;
-};
-
-const handleDrop = (index) => {
-  const newFileList = [...fileList.value];
-  const temp = newFileList[dragIndex];
-  newFileList[dragIndex] = newFileList[index];
-  newFileList[index] = temp;
-  fileList.value = newFileList;
-  dragIndex = null;
-};
+watch(() => props.imageList, val => {
+  if (val.length) {
+    const promiseList1 = val.map(item => {
+      return new Promise(resolve => {
+        const image = new Image()
+        image.src = item.url ?? ""
+        image.onload = () => {
+          resolve({
+            url: item.url ?? "",
+            width: image.width,
+            height: image.height,
+            checked: item.checked,
+          })
+        }
+      })
+    })
+    Promise.all(promiseList1).then(list => {
+      images.value = list
+      console.log('images', images.value);
+    })
+  }
+}, { immediate: true, deep: true })
 </script>
 
-<style scoped>
-.image-list {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.image-item {
-  position: relative;
-  margin: 8px;
-  width: 100px;
-  height: 100px;
-}
-
-.image-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-</style>
+<style scoped></style>

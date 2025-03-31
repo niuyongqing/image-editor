@@ -19,13 +19,13 @@
           <div class="searchs flex">
             <div class="searchInputs flex align-start ml-[10px]">
               <a-input v-if="actives == 1" style="width: 400px;" v-model:value="formData.name" placeholder="请输入标题查询"
-                clearable @clear="onSubmit"></a-input>
-              <a-input v-if="actives == 2" style="width: 400px;" v-model:value="formData.sku" clearable
+              allowClear @clear="onSubmit"></a-input>
+              <a-input v-if="actives == 2" style="width: 400px;" v-model:value="formData.sku" allowClear
                 @clear="onSubmit" placeholder="请输入SKU查询,多个SKU间用逗号隔开，最多支持200个"></a-input>
-              <a-input v-if="actives == 3" style="width: 400px;" clearable v-model:value="formData.offerId"
+              <a-input v-if="actives == 3" style="width: 400px;" allowClear v-model:value="formData.offerId"
                 @clear="onSubmit" placeholder="请输入产品ID查询,多个ID间用逗号隔开，最多支持200个"></a-input>
             </div>
-            <a-button type="primary" class="ml-[10px]" @click="onSubmit(true)">查询</a-button>
+            <a-button type="primary" class="ml-[10px]" @click="onSubmit">查询</a-button>
           </div>
         </a-form-item>
         <a-form-item label="产品状态:">
@@ -447,9 +447,7 @@
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { accountCache } from "../config/api/product";
-import {
-  list
-} from '../config/api/product';
+import { relocationList } from '../config/api/dataAcquisition';
 import tableHead from "../config/tabColumns/product"
 import { dataMove, attrList, tabDicList } from "../config/commDic/defDic"
 import copyProduct from "./comm/copyProduct.vue";
@@ -485,7 +483,7 @@ const stepsList = [
   },
 ]
 const dropCol = tableHead
-const tabList = dataMove
+let tabList = dataMove
 const productType = tabDicList
 const formData = reactive({
   offerId: "",
@@ -616,7 +614,7 @@ const storChange = (val) => {
 };
 
 // 表单搜索
-const onSubmit = (type = false) => { getList(type) }
+const onSubmit = () => { getList() }
 
 // 店铺数据
 const getAccount = () => {
@@ -629,15 +627,14 @@ const getAccount = () => {
 }
 
 // 获取店铺数据
-const getList = (isSearch = false) => {
+const getList = () => {
   loading.value = true;
   let params = {
     ...formData,
     pageNum: paginations.pageNum,
     pageSize: paginations.pageSize,
-    isSearch
   }
-  list(params)
+  relocationList(params)
     .then((res) => {
       tableData.value =
         res?.rows[0]?.productList?.map((item) => {
@@ -768,7 +765,7 @@ const timestampToDateTime = (timestamp) => {
   return timestamp;
 }
 
-const handleCopyProductClose = () =>{
+const handleCopyProductClose = () => {
   copyProductVis.value = false
 }
 
@@ -840,9 +837,10 @@ onMounted(() => {
 }
 
 :deep(.fixedTable) {
+  height: 38px;
+
+  table {
     height: 38px;
-    table {
-        height: 38px;
-    }
+  }
 }
 </style>

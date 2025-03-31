@@ -41,7 +41,7 @@
           <a-col :span="1.5">
             <a-button type="primary" @click="add">创建产品</a-button>
           </a-col>
-          <a-col :span="1.5">
+          <!-- <a-col :span="1.5">
             <a-dropdown :disabled="selectedRowList.length === 0">
               <template #overlay>
                 <a-menu @click="handleMenuClick">
@@ -71,11 +71,11 @@
                   </a-menu-item>
                 </a-menu>
               </template>
-              <a-button>
-                批量操作
-              </a-button>
-            </a-dropdown>
-          </a-col>
+<a-button>
+  批量操作
+</a-button>
+</a-dropdown>
+</a-col> -->
           <a-col :span="1.5">
             <a-button type="primary" @click="addRemark()" :disabled="selectedRowList.length === 0">批量修改备注</a-button>
           </a-col>
@@ -84,17 +84,13 @@
           </a-col>
 
           <a-col :span="1.5">
-            <a-popconfirm title="确定下架吗？" @confirm="deactivate">
-              <a-button type="primary" :disabled="selectedRowList.length === 0"
-                :loading="deactivateLoading">批量归档</a-button>
-            </a-popconfirm>
-          </a-col>
-
-          <a-col :span="1.5">
             <a-popconfirm title="删除代表该产品在ozon平台删除，确定删除吗？" @confirm="del()">
               <a-button type="primary" danger :disabled="selectedRowList.length === 0" :loading="delLoading">删
                 除</a-button>
             </a-popconfirm>
+          </a-col>
+          <a-col :span="1.5">
+            <a-button type="primary" @click="editPriceVisible = true">数据采集</a-button>
           </a-col>
         </a-row>
       </div>
@@ -103,7 +99,8 @@
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'name'">
             <div class="flex text-left">
-              <a-image :width="100" :src="record.primaryImage" />
+              <a-image :width="100"
+                :src="record?.skuList[0]?.primaryImage && record?.skuList[0]?.primaryImage.length > 0 ? processImageSource(record?.skuList[0]?.primaryImage[0]) : processImageSource(record?.skuList[0]?.images[0])" />
               <div class="ml-2.5 block">
                 <a-tooltip class="item" effect="dark" :title="record.name" placement="top"
                   style="overflow-wrap: break-word">
@@ -125,31 +122,32 @@
           <template v-if="column.dataIndex === 'waitState'">
             <a-tag color="success" v-if="record.waitState == 'published'">{{ state[record.waitState] }}</a-tag>
             <a-tag color="warning" v-else-if="record.waitState == 'wait_publish'">{{ state[record.waitState]
-              }}</a-tag>
+            }}</a-tag>
             <a-tag color="error" v-else-if="record.waitState == 'publish_failed'">{{ state[record.waitState]
-              }}</a-tag>
+            }}</a-tag>
           </template>
           <template v-if="column.dataIndex === 'sku'">
             <div class="text-left">
               <div v-for="(item, index) in displayedSkus(record)" :key="index">
-                SKU： <span>{{ record.offerId }}</span>
+                SKU： <span>{{ item.offerId }}</span>
                 <a-divider type="vertical"></a-divider>
                 原价：<span style="color: #9e9f9e">{{ item.oldPrice }}</span>
                 当前售价：<span style="color: #9e9f9e">{{ item.price }}</span>
                 <a-divider type="vertical"></a-divider>
                 库存：
-                <a-tooltip style="margin-right:10px" effect="dark" v-if="item.warehouse">
+                <a-tooltip style="margin-right: 10px" effect="dark" placement="top" v-if="item.warehouseList">
                   <template #title>
-                    <span>{{ item.warehouse[0].warehouseName }}</span>:
-                    <span>{{ item.warehouse[0].present }}</span>
+                    <div v-for="(el, ind) in item.warehouseList" :key="ind">
+                      <span>{{ el.warehouseName }}</span>:
+                      <span>{{ el.present ? el.present : 0 }}</span>
+                    </div>
                   </template>
-                  <span style="color: #3c8dbc">{{ item.stock }}</span>
+                  <span style="color: #1677ff">{{ item.stock }}</span>
                 </a-tooltip>
-                <span v-else style="color: #3c8dbc;margin-right:10px">{{ item.stock }}</span>
               </div>
               <div v-if="record.skuList && record.skuList.length > 3">
                 <a-button type="text" @click="record.show = !record.show">共{{ record.skuList && record.skuList.length
-                  }}条SKU，{{
+                }}条SKU，{{
                     !record.show ? "展开" : "收起"
                   }}</a-button>
               </div>
@@ -193,11 +191,12 @@
         </template>
       </a-table>
       <a-pagination style="margin: 20px 0 10px 0; text-align: right" :show-total="(total) => `共 ${total} 条`"
-                v-model:current="paginations.pageNum" v-model:pageSize="paginations.pageSize" :total="paginations.total"
-                class="pages" :show-quick-jumper="true" @change="getList" :showSizeChanger="true"
-                :pageSizeOptions="[50, 100, 200]" />
+        v-model:current="paginations.pageNum" v-model:pageSize="paginations.pageSize" :total="paginations.total"
+        class="pages" :show-quick-jumper="true" @change="getList" :showSizeChanger="true"
+        :pageSizeOptions="[50, 100, 200]" />
     </a-card>
     <editRemark :remarkVisible="remarkVisible" :remarkId="remarkId" @backCloseRemark="backCloseRemark"></editRemark>
+    <dataCrawli :editPriceVisible="editPriceVisible" @handleDataCrawliClose="editPriceVisible = false"></dataCrawli>
   </div>
 </template>
 
@@ -205,10 +204,13 @@
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { accountCache } from "../config/api/product";
-import { ozonProductList, ozonProductDel } from "../config/api/waitProduct";
+import { ozonProductList, ozonProductDel, ozonProductPublish } from "../config/api/waitProduct";
 import tableHeard from "../config/tabColumns/waitPublish"
 import editRemark from './comm/editRemark.vue';
 import { message } from 'ant-design-vue';
+import dataCrawli from './comm/dataCrawli.vue';
+import { processImageSource } from "~/pages/ozon/config/commJs/index"
+
 const formData = reactive({
   offerId: "",
   account: "",
@@ -227,11 +229,12 @@ const shopAccount = ref([])
 const actives = ref(1);
 const selectedRowList = ref([])
 const tableData = ref([])
-const columns = tableHeard
+let columns = tableHeard
 const deactivateLoading = ref(false)
 const delLoading = ref(false)
 const loading = ref(false)
 const remarkVisible = ref(false)
+const editPriceVisible = ref(false)
 const remarkId = ref([])
 const state = {
   wait_publish: "待发布",
@@ -242,7 +245,10 @@ const shopObj = {
   fieldKey: "account",
   fieldLabel: "simpleName",
 }
-
+const sortObj = reactive({
+  sortField: "created_time",
+  sortType: "desc"
+})
 const searchType = [
   {
     label: "标题",
@@ -299,7 +305,7 @@ const rowSelection = {
   },
 };
 const add = () => {
-    window.open("productPublish", '_blank');
+  window.open("productPublish", '_blank');
 }
 // 店铺单选多选
 const selectAll = () => {
@@ -332,6 +338,17 @@ const selectTypes = (index) => {
   }
 }
 
+// 排序方式
+const storChange = (item) => {
+  item.type = item.type === "top" ? "bottom" : "top";
+  active.value = item;
+  sortObj.sortField = item.value
+  sortObj.sortType = item.type === "top" ? "desc" : "asc"
+  formData.order = item.type === "top" ? "desc" : "asc"
+  formData.prop = item.value
+  getList();
+};
+
 // 表单搜索
 const onSubmit = () => { getList() }
 
@@ -345,45 +362,6 @@ const getAccount = () => {
   });
 }
 
-
-// 下架商品
-const deactivate = (row = {}) => {
-  let id = [];
-  if (Object.keys(row).length == 0) {
-    for (let i = 0; i < selectedRowList.value.length; i++) {
-      if (selectedRowList.value[i].state == "已归档") {
-        message.error("已归档商品不可重复归档，请取消！");
-        return;
-      }
-    }
-    id = syncOneList.value;
-  } else {
-    id.push({
-      account: row.account,
-      productIds: [row.id],
-    });
-  }
-  let hasEmptyData = false;
-  id.forEach((item) => {
-    hasEmptyData = item.productIds.some((id) => id === "");
-  });
-  if (hasEmptyData) {
-    message.error("产品ID为空,请同步后归档！");
-    return;
-  }
-  console.log("hasEmptyData", hasEmptyData);
-
-  deactivateLoading.value = true;
-  batchArchive({ productArchive: id })
-    .then((res) => {
-      message.success(res.msg);
-    })
-    .finally(() => {
-      getList();
-      deactivateLoading.value = false;
-      syncOneList.value = [];
-    });
-}
 
 // 单个和批量删除
 const del = (row = {}) => {
@@ -411,14 +389,16 @@ const displayedSkus = (row) => {
 }
 
 // 备注
-const addRemark = () => {
+const addRemark = (row = {}) => {
+  console.log('row', row);
+
   remarkVisible.value = true
   if (Object.keys(row).length == 0) {
     remarkId.value = selectedRowList.value;
   } else {
     let remarkObj = {
       account: row.account,
-      offerIds: [row.offerId],
+      waitIds: [row.waitId],
     };
     remarkId.value.push(remarkObj);
   }
@@ -432,9 +412,8 @@ const backCloseRemark = () => {
   getList();
 }
 const edit = (row = {}) => {
-  let newRow = Object.keys(row).length != 0 ? row  : selectedRowList.value[0];
-  console.log('newRow',newRow);
-  
+  let newRow = Object.keys(row).length != 0 ? row : selectedRowList.value[0];
+  console.log('newRow', newRow);
   window.open("editWaitProduct" + `?id=${newRow.waitId}&account=${newRow.account}`, '_blank');
 
 }
@@ -452,6 +431,19 @@ const getList = () => {
     .finally(() => {
       loading.value = false;
     });
+}
+
+const publish = (row = {}) => {
+  let params = {
+    account: row.account,
+    waitId: [row.waitId]
+  }
+  loading.value = true;
+  ozonProductPublish(params).then(res => {
+    message.success(res.msg)
+  }).finally(() => {
+    loading.value = false;
+  });
 }
 onMounted(() => {
   getAccount()

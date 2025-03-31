@@ -31,14 +31,15 @@
             />
             <a-button
               type="primary"
+              :loading="loading"
               @click="search"
               >搜索</a-button
             >
-            <a-button
+            <!-- <a-button
               type="link"
               @click="toggleFold"
               >高级搜索</a-button
-            >
+            > -->
           </a-space>
         </a-descriptions-item>
         <a-descriptions-item label="商品状态">
@@ -207,17 +208,17 @@
           </div>
           <div v-if="column.key === 'option'">
             <a-button
-              v-if="curTab === '1'"
+              v-if="activeTab === '1'"
               type="text"
               style="color: #0b56fa"
-              @click="edit(record, { isEdit: true })"
+              @click="goPublish(record, { isEdit: true })"
               >编辑</a-button
             >
             <a-button
-              v-if="curTab === '2'"
+              v-if="activeTab === '2'"
               type="text"
               style="color: #0b56fa"
-              @click="edit(record, { isEdit: false })"
+              @click="goPublish(record, { isEdit: false })"
               >加入</a-button
             >
             <a-button
@@ -227,7 +228,7 @@
               >同步</a-button
             >
             <a-popconfirm
-              v-if="curTab === '1'"
+              v-if="activeTab === '1'"
               title="删除吗?"
               @confirm="del(record)"
             >
@@ -278,6 +279,7 @@
   import { copyText } from '@/utils'
   import { accountCacheApi } from '../apis/common'
   import { listApi, waitPublishListApi, deleteSemiProductApi, syncListApi, syncOneApi, syncWaitPublishOneApi } from '../apis/pop-choice-product'
+  import { syncProgressApi } from '../apis/product'
   import { CopyOutlined, EditOutlined } from '@ant-design/icons-vue'
   import { message } from 'ant-design-vue'
   import EmptyImg from '@/assets/images/aliexpress/empty.png'
@@ -334,7 +336,6 @@
           { label: '可加入', value: '2' }
         ],
         activeTab: '1', // '1'-已加入; '2'-可加入;
-        curTab: '1',
         requestApi: listApi,
         DEFAULT_TABLE_COLUMN,
         tableHeader: [],
@@ -350,6 +351,7 @@
         selectedRows: [],
         syncProgressOpen: false,
         syncLoading: false,
+        syncPercentage: 0,
         editStockDialogVisible: false, // 修改库存弹窗显隐
         curRow: {}
       }
@@ -373,13 +375,10 @@
     },
     methods: {
       tabChange() {
-        if (this.activeTab === this.curTab) return
-
-        this.curTab = this.activeTab
         this.tableParams.pageNum = 1
         this.requestApi = this.activeTab === '1' ? listApi : waitPublishListApi
         this.getList()
-      },
+      }, 
       // 获取表头
       getTableHeader() {
         this.tableHeader = this.DEFAULT_TABLE_COLUMN
@@ -422,7 +421,7 @@
               item.SKUExpand = false
               item.images = item.imageURLs ? item.imageURLs.split(';') : ''
               // 将[已加入]列表数据格式转换成[可加入]格式
-              if (this.curTab === '1') {
+              if (this.activeTab === '1') {
                 const popChoiceProduct = item.result.popChoiceProduct || {}
 
                 // SKU info
@@ -452,7 +451,7 @@
             this.loading = false
           })
       },
-      toggleFold() {
+      /* toggleFold() {
         if (this.isFold) {
           this.isFold = false
         } else {
@@ -467,7 +466,7 @@
       foldExtendSearch() {
         this.resetExtendSearchForm()
         this.isFold = true
-      },
+      }, */
       search() {
         this.tableParams.pageNum = 1
         this.getList()
@@ -482,7 +481,7 @@
           sellerId: record.sellerId,
           productId: record.productId
         }
-        const requestApi = this.curTab === '1' ? syncOneApi : syncWaitPublishOneApi
+        const requestApi = this.activeTab === '1' ? syncOneApi : syncWaitPublishOneApi
         requestApi(params).then(res => {
           message.success(res.msg)
           this.getList()
@@ -501,11 +500,7 @@
       },
       // 同步进度条
       getSyncProgress(progressToken) {
-        const params = {
-          sellerId: this.watchedSearchForm.sellerId,
-          progressToken
-        }
-        syncProgressApi(params)
+        syncProgressApi(progressToken)
           .then(res => {
             if (res.data) {
               const resList = res.data.split(':')
@@ -517,7 +512,7 @@
               } else {
                 this.syncPercentage = 0
                 this.syncProgressOpen = false
-                this.getList()
+                this.search()
               }
             } else {
               setTimeout(() => {
@@ -579,13 +574,12 @@
       goAliExpress(productId) {
         window.open(`https://vi.aliexpress.com/item/${productId}.html`)
       },
-      edit(record, { isEdit = true }) {},
-      goPublish(record) {
+      goPublish(record, { isEdit = true }) {
         let query = ''
         if (record) {
-          query = `?sellerId=${record.sellerId}&productId=${record.productId}`
+          query = `?sellerId=${record.sellerId}&productId=${record.productId}&isEdit=${isEdit}`
         }
-        window.open(location.origin + '/platform/aliexpress/choice-product-publish' + query)
+        window.open(location.origin + '/platform/aliexpress/pop-choice-product-publish' + query)
       }
     }
   }

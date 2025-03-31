@@ -49,8 +49,8 @@
       </a-form-item>
       <a-form-item label="售卖形式：">
         <a-radio-group v-model:value="formState.sellType">
-          <a-radio value="1">单品</a-radio>
-          <a-radio value="2">多变种</a-radio>
+          <a-radio :value="1">单品</a-radio>
+          <a-radio :value="2">多变种</a-radio>
         </a-radio-group>
       </a-form-item>
       <a-form-item 
@@ -58,8 +58,8 @@
         tooltip="如果您注册了品牌且亚马逊后台表格上传产品时不用写UPC/EAN，请选择【是】，如果不是以上情况，请选择【否】。"
       >
         <a-radio-group v-model:value="formState.upc">
-          <a-radio value="1">是</a-radio>
-          <a-radio value="2">否</a-radio>
+          <a-radio :value="1">是</a-radio>
+          <a-radio :value="2">否</a-radio>
         </a-radio-group>
       </a-form-item>
     </a-form>
@@ -74,15 +74,46 @@ import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 defineOptions({
   name: "AmazonBaseInfo"
 })
-const emit = defineEmits(['selectedProductType'])
+const emit = defineEmits(['selectedProductType', 'update:baseInfo'])
 const props = defineProps({
   // 属性数据
-  schemaData: {
+  baseInfo: {
     type: Object,
     required: true,
     default: () => {}
-  }
+  },
 });
+const formState = reactive({
+  shopId: '',
+  countryCode: '',
+  productType: [],
+  sellType: 1,
+  upc: 2,
+});
+const rules = {
+  shopId: [
+    {
+      required: true,
+      message: '请选择店铺',
+      trigger: 'change',
+    }
+  ],
+  countryCode: [
+    {
+      required: true,
+      message: '请选择站点',
+      trigger: 'change',
+    },
+  ],
+  productType: [
+    {
+      required: true,
+      message: '请选择产品',
+      trigger: 'change',
+    },
+  ]
+};
+let formRef = ref(null)
 onMounted(async () => {
   let res = await getShopList()
   if (res.data && res.data.length) {
@@ -90,7 +121,12 @@ onMounted(async () => {
     formState.shopId = res.data[0].id
     getCountryCode(res.data[0].id)
   }
-
+})
+watch(() => formState, (val) => {
+  // console.log({val});
+  emit('update:baseInfo', {...val})
+}, {
+  deep: true,
 })
 const productTypes = ref([]);
 async function getProductTypesFn(categoryParentId) {
@@ -141,39 +177,6 @@ async function countryCodeChange(val) {
   let data = await getProductTypesFn()
   productTypes.value = data
 }
-const formState = reactive({
-  shopId: '',
-  countryCode: '',
-  productType: [],
-  sellType: '',
-  upc: '',
-});
-const rules = {
-  shopId: [
-    {
-      required: true,
-      message: '请选择店铺',
-      trigger: 'change',
-    }
-  ],
-  countryCode: [
-    {
-      required: true,
-      message: '请选择站点',
-      trigger: 'change',
-    },
-  ],
-  productType: [
-    {
-      required: true,
-      message: '请选择产品',
-      trigger: 'change',
-    },
-  ]
-};
-let form = {};             // 取值对象
-let schemaData = props.schemaData
-let formRef = ref(null)
 function formMounted(ref, { formData }) {
   // console.log(ref, { formData });
   formRef.value = ref

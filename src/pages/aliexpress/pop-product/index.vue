@@ -31,6 +31,7 @@
             />
             <a-button
               type="primary"
+              :loading="loading"
               @click="search"
               >搜索</a-button
             >
@@ -272,6 +273,7 @@
                 >
                 <a-button
                   type="primary"
+                  :loading="loading"
                   @click="search"
                   >搜索</a-button
                 >
@@ -316,7 +318,7 @@
       </a-dropdown>
       <a-popconfirm
         title="确定下架吗？"
-        @confirm="deactivate"
+        @confirm="deactivate()"
       >
         <a-button
           type="primary"
@@ -328,7 +330,7 @@
       </a-popconfirm>
       <a-popconfirm
         title="确定上架吗？"
-        @confirm="activate"
+        @confirm="activate()"
       >
         <a-button
           type="primary"
@@ -354,8 +356,9 @@
         >批量同步店铺商品</a-button
       >
       <a-popconfirm
+        v-if="watchedSearchForm.productStatusType !== 'deleted'"
         title="确定删除吗？"
-        @confirm="del"
+        @confirm="del()"
       >
         <a-button
           type="primary"
@@ -371,13 +374,14 @@
     <a-card>
       <div class="flex justify-between items-center">
         <a-tabs
-          v-model:activeKey="watchedSearchForm.productStatus"
+          v-model:activeKey="watchedSearchForm.productStatusType"
           :animated="false"
+          class="flex-1"
         >
           <a-tab-pane
             v-for="item in PRODUCT_STATUS_TABS"
             :key="item.value"
-            :tab="`${item.label}(${STATUS_COUNT_ENUM[item.value]})`"
+            :tab="`${item.label}(${STATUS_COUNT_ENUM[item.value] || 0})`"
           ></a-tab-pane>
         </a-tabs>
         <a-pagination
@@ -388,6 +392,7 @@
           show-size-changer
           show-quick-jumper
           :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
+          class="flex-none"
           @change="getList"
         />
       </div>
@@ -530,6 +535,9 @@
             <div>
               编辑时间: <span class="text-gray">{{ record.gmtModified || '--' }}</span>
             </div>
+            <div>
+              同步时间: <span class="text-gray">{{ record.syncTime || '--' }}</span>
+            </div>
           </div>
           <div v-if="column.key === 'option'">
             <a-button
@@ -579,6 +587,7 @@
               >备注</a-button
             >
             <a-popconfirm
+              v-if="record.productStatusType !== 'deleted'"
               title="删除吗?"
               @confirm="del(record)"
             >
@@ -682,7 +691,7 @@
   import dayjs from 'dayjs'
   import { copyText } from '@/utils'
   import { accountCacheApi, getAllFreightTemplateApi, getAllProductGroupsApi } from '../apis/common'
-  import { productListApi, syncOneApi, syncListApi, syncProgressApi, deleteProductApi, productsOffShelfApi, productsShelvesApi, copyProductApi, addNotesApi, productDetailApi } from '../apis/product'
+  import { productListApi, syncOneApi, syncListApi, syncProgressApi, getStatusCountApi, deleteProductApi, productsOffShelfApi, productsShelvesApi, copyProductApi, addNotesApi, productDetailApi } from '../apis/product'
   import { DownOutlined, CopyOutlined, InfoCircleOutlined, EditOutlined } from '@ant-design/icons-vue'
   import { message } from 'ant-design-vue'
   import EmptyImg from '@/assets/images/aliexpress/empty.png'
@@ -706,8 +715,7 @@
           sellerId: undefined,
           prop: 'gmt_modified_time',
           order: 'desc',
-          productType: undefined,
-          productStatus: 'onSelling'
+          productStatusType: 'onSelling'
         },
         // 高级搜索表单; 需点击'搜索'按钮再执行搜索动作
         lazySearchForm: {
@@ -798,7 +806,6 @@
         curRow: {}, // 当前点击的行
         syncLoading: false,
         selectedRows: [],
-        syncPercentage: 0,
         editPriceAndStockDialogVisible: false, // 修改价格和库存显隐
         wholeAttrEditDialogVisible: false, // 全属性修改弹窗显隐
         command: '', // 批量操作指令
@@ -824,12 +831,36 @@
       }
     },
     mounted() {
+      this.getStatusCount()
       this.getAllProductGroups()
       this.getAllFreightTemplate()
       this.getTableHeader()
       this.getAccountList()
     },
     methods: {
+      // 获取状态计数
+      getStatusCount() {
+        const params = {
+          ...this.watchedSearchForm,
+          ...this.lazySearchForm,
+          [this.lazySearchForm.searchKey]: this.lazySearchForm.searchValue,
+          ...this.tableParams,
+          gmtCreateStart: this.lazySearchForm.createTime ? dayjs(this.lazySearchForm.createTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+          gmtCreateEnd: this.lazySearchForm.createTime ? dayjs(this.lazySearchForm.createTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+          gmtModifiedStart: this.lazySearchForm.updateTime ? dayjs(this.lazySearchForm.updateTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+          gmtModifiedEnd: this.lazySearchForm.updateTime ? dayjs(this.lazySearchForm.updateTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined
+        }
+        delete params.prop
+        delete params.order
+        delete params.createTime
+        delete params.updateTime
+        delete params.searchKey
+        delete params.searchValue
+
+        getStatusCountApi(params).then(res => {
+          this.STATUS_COUNT_ENUM = res.data || {}
+        })
+      },
       // 获取全量分组数据
       getAllProductGroups() {
         this.groupLoading = true
@@ -967,6 +998,7 @@
       search() {
         this.tableParams.pageNum = 1
         this.getList()
+        this.getStatusCount()
       },
       reset() {
         this.$refs.searchFormRef.resetFields()
@@ -1041,11 +1073,7 @@
       },
       // 同步进度条
       getSyncProgress(progressToken) {
-        const params = {
-          sellerId: this.watchedSearchForm.sellerId,
-          progressToken
-        }
-        syncProgressApi(params)
+        syncProgressApi(progressToken)
           .then(res => {
             if (res.data) {
               const resList = res.data.split(':')
@@ -1057,7 +1085,7 @@
               } else {
                 this.syncPercentage = 0
                 this.syncProgressOpen = false
-                this.getList()
+                this.search()
               }
             } else {
               setTimeout(() => {

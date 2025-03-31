@@ -4,43 +4,51 @@
     <span>产品图片</span>
   </div>
   <div class="content-box">
+    <div class="box-btn">
+      <a-button 
+        style="margin-right: 15px;"
+        :disabled="!mainImage.path && imageData.supplementaryImage.length < 1" 
+        @click="checkAll()" 
+        type="primary"
+      >{{isAll ? '全选':'取消全选'}}</a-button>
+      <span style="float: right; padding: 3px 0;color: #99999a;margin-right: 10px">
+        <a-select 
+          style="width: 200px;"
+          v-model:value="imageData.watermarkValue" 
+          :placeholder="'请选择水印'" 
+          :disabled="isDisabled"
+          allowClear
+          @change="selectWaterMark" 
+        >
+          <a-select-option v-for="item in imageData.watermarList" :key="item.title" :value="item.id">
+            <div>
+              <span>{{item.title}} </span>
+              <a-image v-if="item.type === 1" :src="item.content" style="width: 20px;height: 20px;margin-top: -10px"></a-image>
+              <span v-else>{{item.content}}</span>
+            </div>
+          </a-select-option>
+        </a-select>
+      </span>
+      <span style="float: right; padding: 3px 0;color: #99999a;margin-right: 10px">
+        <a-input-number :disabled="isDisabled" v-model:value="imageData.cropWidth" placeholder="宽"></a-input-number>
+        X
+        <a-input-number :disabled="isDisabled" v-model:value="imageData.cropHeight" placeholder="高"></a-input-number>
+        <a-button :disabled="isDisabled" @click="crop">裁剪</a-button>
+      </span>
+    </div>
     <div class="content-item">
       <div class="content-title">主图</div>
       <div class="content">
-        <div class="img-item" v-if="mainImage.path">
-          <a-image
-            :width="200"
-            src="https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png"
-          />
-          <div class="image-item-foot">
-            <a-checkbox v-model:checked="mainImage.checked"></a-checkbox>
-            <a-tooltip>
-              <template #title>{{ mainImage.name }}</template>
-              <div class="image-name">{{ mainImage.name }}</div>
-            </a-tooltip>
-            <DeleteOutlined @click="delImage(item)"/>
-          </div>
-        </div>
-        <a-upload
-          v-else
-          v-model:file-list="fileList"
-          name="avatar"
-          list-type="picture-card"
-          class="avatar-uploader"
-          :show-upload-list="false"
-          :customRequest="customRequest"
-          :action="'http://10.93.90.146:88/prod-api/platform-tiktok/platform/tiktok/global/file/upload/img'"
-          :before-upload="beforeUpload"
-          @change="handleChange"
-        >
-          <PlusOutlined />
-        </a-upload>
+        <mainImageVue v-model:mainImageInfo="mainImage"></mainImageVue>
       </div>
     </div>
     <div class="content-item">
       <div class="content-title">副图</div>
       <div class="content">
-        <dragFileUpload></dragFileUpload>
+        <supplementaryImage 
+          :max-number="5"
+          v-model:image-list="imageData.supplementaryImage"
+        ></supplementaryImage>
       </div>
     </div>
   </div>
@@ -49,77 +57,140 @@
 
 <script setup>
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons-vue';
-import dragFileUpload from '../dragFileUpload.vue';
+import mainImageVue from './common/mainImage.vue';
+import supplementaryImage from './common/supplementaryImage.vue';
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
+import { uploadImage, watermark, cropImg, watermarkList } from '../../js/api/addDialog.js';
 defineOptions({
   name: "amazonImageInfo"
 })
-const formState = reactive({
-  username: '',
-  password: '',
-  remember: true,
-});
-const mainImage = ref({
-  name: 'sdfsdsdfhgfsf',
-  path: 'asfrgsdfsfsdfssdgdf',
-  checked: false,
+const { proxy: _this } = getCurrentInstance();// 当前的vue实例
+const props = defineProps({
+  imageInfo: {
+    type: Object,
+    default: () => {}
+  }
 })
-function delImage(image) {
-  mainImage.value.path = ''
-};
-const fileList = ref([]);
-const loading = ref(false);
-const imageUrl = ref('');
-function handleChange(info) {
-  console.log({info});
-  
-  if (info.file.status === 'uploading') {
-    loading.value = true;
-    return;
+const emit = defineEmits(['update:imageInfo'])
+const imageData = reactive({
+  fileList: [],
+
+  supplementaryImage: [],       // 副图列表
+  watermarList: [],             // 水印列表
+  cropWidth: 800,
+  cropHeight: 800,
+  watermarkValue: undefined,
+})
+const mainImage = reactive({
+  name: '',
+  path: '',
+  uid: '',
+  checked: false,
+  width: 0,
+  height: 0,
+})
+// 是否可以全选
+const isAll = computed(() => {
+  return !mainImage.checked || imageData.supplementaryImage.some(i => !i.checked)
+})
+// 是否禁用
+const isDisabled = computed(() => {
+  return !mainImage.checked && imageData.supplementaryImage.every(i => !i.checked)
+})
+watch([() => mainImage, () => imageData.supplementaryImage], ([main, supplementary]) => {
+  // console.log({ main, supplementary });
+  let obj = {
+    mainImage: main,
+    supplementaryImage: supplementary,
   }
-  if (info.file.status === 'done') {
-    // Get this url from response in real world.
-    getBase64(info.file.originFileObj, base64Url => {
-      imageUrl.value = base64Url;
-      loading.value = false;
-    });
+  emit('update:imageInfo', obj)
+}, {
+  deep: true,
+})
+
+onBeforeMount(async () => {
+  try {
+    let res = await watermarkList()
+    imageData.watermarList = res.data
+  } catch (error) {}
+})
+// 图片全选
+function checkAll() {
+  if (isAll.value) {
+    mainImage.path && (mainImage.checked = true)
+    imageData.supplementaryImage.forEach(item => item.checked = true)
+  } else {
+    mainImage.checked = false
+    imageData.supplementaryImage.forEach(item => item.checked = false)
   }
-  if (info.file.status === 'error') {
-    loading.value = false;
-    console.log('upload error');
+  // _this.$forceUpdate()
+}
+// 选择水印
+function selectWaterMark(val) {
+  if (val === undefined) return;
+  let arr = []
+  let main = []
+  let supplementary = imageData.supplementaryImage.filter(i => i.checked)
+  if (mainImage.checked) {
+    main.push(mainImage)
   }
-};
-function beforeUpload(file) {
-  const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-  if (!isJpgOrPng) {
-    console.log('You can only upload JPG file!');
+  arr.push(main, supplementary)
+  arr.forEach(async item => {
+    if (item.length < 1) return;
+    let imagePathList = item.map(i => i.path)
+    try {
+      let data = {
+        id: val,
+        imagePathList
+      }
+      let res = await watermark(data)
+      res.data.forEach(v => {
+        let obj = item.find(i => i.path === v.originalFilename)
+        obj.path = v.url
+        obj.name = v.newFileName
+        obj.checked = false
+        imageLoad(obj)
+      })
+    } catch (error) {}
+  })
+}
+// 裁剪
+async function crop() {
+  let arr = []
+  let main = []
+  let supplementary = imageData.supplementaryImage.filter(i => i.checked)
+  if (mainImage.checked) {
+    main.push(mainImage)
   }
-  const isLt2M = file.size / 1024 / 1024 < 2;
-  if (!isLt2M) {
-    console.log('Image must smaller than 2MB!');
-  }
-  return isJpgOrPng && isLt2M;
-};
-function customRequest(file) {
-  console.log(file);
-  let data = new FormData()
-  data.append('openId', 'ekMlTQAAAAAB7XAM6zof9JRc66GwSVqUEP2Y23bBOIYal0FUXl8xkg')
-  data.append('file', file.file)
-  usePost('platform-tiktok/platform/tiktok/global/file/upload/img',data).then(res => {
-    console.log(res);
-    
-  }).finally(() => {
-    console.log(111);
-    mainImage.value = {
-      name: 'sdfsdfsf',
-      path: 'asfrgsdfsfsdfsdf' + Math.floor(Math.random()*10000),
-      checked: false,
-    }
+  arr.push(main, supplementary)
+  arr.forEach(async item => {
+    if (item.length < 1) return;
+    let imagePathList = item.map(i => i.path)
+    try {
+      let data = {
+        newHeight: imageData.cropHeight,
+        newWidth: imageData.cropWidth,
+        imagePathList
+      }
+      let res = await cropImg(data)
+      res.data.forEach(v => {
+        let obj = item.find(i => i.path === v.originalFilename)
+        obj.path = v.url
+        obj.name = v.newFileName
+        obj.checked = false
+        imageLoad(obj)
+      })
+    } catch (error) {}
   })
 }
 </script>
 <style lang="less" scoped>
 #amazonImageInfo {
+  .box-btn {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
   .content-item {
     margin-bottom: 22px;
     .content-title {
@@ -137,6 +208,18 @@ function customRequest(file) {
         width: 200px;
         height: 240px;
         margin: 0 15px 15px 0;
+        position: relative;
+        .img-item-size {
+          width: 100%;
+          height: 30px;
+          position: absolute;
+          bottom: 40px;
+          background: #000000;
+          opacity: 0.2;
+          color: #fff;
+          font-size: 18px;
+          text-align: center;
+        }
         .image-item-foot {
           width: 100%;
           height: 40px;

@@ -31,6 +31,7 @@
             />
             <a-button
               type="primary"
+              :loading="loading"
               @click="search"
               >搜索</a-button
             >
@@ -143,6 +144,7 @@
                 >
                 <a-button
                   type="primary"
+                  :loading="loading"
                   @click="search"
                   >搜索</a-button
                 >
@@ -187,16 +189,18 @@
         <a-tabs
           v-model:activeKey="watchedSearchForm.productStatus"
           :animated="false"
+          class="flex-1"
         >
           <a-tab-pane
             v-for="item in statusTabs"
             :key="item.value"
-            :tab="`${item.label}(${statusCountEnum[item.value]})`"
+            :tab="`${item.label}(${statusCountEnum[item.value] || 0})`"
           ></a-tab-pane>
         </a-tabs>
         <a-pagination
           v-model:current="tableParams.pageNum"
           v-model:pageSize="tableParams.pageSize"
+          class="flex-none"
           :total="total"
           :default-page-size="50"
           show-size-changer
@@ -277,32 +281,32 @@
               <p>SKU属性：{{ SKU.variation }}</p>
               <a-row>
                 SKU编码：<span style="color: #9e9f9e">{{ SKU.sellerSku }}</span>
-                <a-divider type="vertical"/>
+                <a-divider type="vertical" />
                 货品条码：<span style="color: #9e9f9e">{{ SKU.productSkuScItemInfoDto.scItemBarCode || '--' }}</span>
-                <a-divider type="vertical"/>
+                <a-divider type="vertical" />
                 货品ID：<span style="color: #9e9f9e">{{ SKU.productSkuScItemInfoDto.scItemId || '--' }}</span>
                 <template v-if="SKU.productSkuScItemInfoDto.unbindRefuseReason">
-                  <a-divider type="vertical"/>
+                  <a-divider type="vertical" />
                   解绑拒绝原因：<span style="color: #fd7159ff">{{ SKU.productSkuScItemInfoDto.unbindRefuseReason }}</span>
                 </template>
               </a-row>
               <a-row>
                 <template v-if="SKU.skuAuditStatus === null || SKU.skuAuditStatus === '1'">
                   <a-tag color="green">审核通过</a-tag>
-                  <a-divider type="vertical"/>
+                  <a-divider type="vertical" />
                   供货价：<span style="color: #9e9f9e">{{ SKU.supplyPrice }}</span>
                 </template>
                 <template v-else>
                   <a-tag color="red">审核不通过</a-tag>
-                  <a-divider type="vertical"/>
+                  <a-divider type="vertical" />
                   建议供货价：<span style="color: #9e9f9e">{{ SKU.suggestPrice || '--' }}</span>
-                  <a-divider type="vertical"/>
+                  <a-divider type="vertical" />
                   建议标签：<span style="color: #9e9f9e">{{ SKU.suggestNote || '--' }}</span>
                 </template>
-                <a-divider type="vertical"/>
+                <a-divider type="vertical" />
                 库存：<span style="color: #9e9f9e">{{ SKU.skuStock }}</span>
               </a-row>
-              <a-divider class="my-3"/>
+              <a-divider class="my-3" />
             </div>
             <div v-if="record.searchSkuInfoList.length > 3">
               <a-button
@@ -332,11 +336,16 @@
             <a-tag v-else-if="record.productStatus === 'OFFLINE'">已下架</a-tag>
             <span v-else>--</span>
           </div>
-          <div v-if="column.key === 'create_time'">
-            <span>{{ record.createdTime || '--' }}</span>
-          </div>
-          <div v-if="column.key === 'update_time'">
-            <span>{{ record.modifiedTime || '--' }}</span>
+          <div v-if="column.key === 'time'">
+            <div>
+              创建时间: <span class="text-gray">{{ record.createdTime || '--' }}</span>
+            </div>
+            <div>
+              编辑时间: <span class="text-gray">{{ record.modifiedTime || '--' }}</span>
+            </div>
+            <div>
+              同步时间: <span class="text-gray">{{ record.syncTime || '--' }}</span>
+            </div>
           </div>
           <div v-if="column.key === 'option'">
             <a-button
@@ -411,7 +420,6 @@
           :data-source="stockTable"
           :loading="stockLoading"
           :scroll="{ x: 'max-content', y: 800 }"
-          :pagination="{ defaultPageSize: 50, hideOnSinglePage: true }"
         >
           <template #bodyCell="{ column, record, text }">
             <template v-if="skuPropertyList.includes(column.dataIndex)">
@@ -483,7 +491,7 @@
   import dayjs from 'dayjs'
   import { copyText } from '@/utils'
   import { accountCacheApi } from '../apis/common'
-  import { listApi, syncListApi, syncOneApi, syncProgressApi, detailApi, queryStockApi, editStockApi, stockRuleApi, copyToDraftApi } from '../apis/choice-product'
+  import { listApi, syncListApi, syncOneApi, syncProgressApi, getStatusCountApi, detailApi, queryStockApi, editStockApi, stockRuleApi, copyToDraftApi } from '../apis/choice-product'
   import { CopyOutlined, InfoCircleOutlined, EditOutlined } from '@ant-design/icons-vue'
   import { message } from 'ant-design-vue'
   import EmptyImg from '@/assets/images/aliexpress/empty.png'
@@ -645,10 +653,34 @@
       }
     },
     mounted() {
+      this.getStatusCount()
       this.getTableHeader()
       this.getAccountList()
     },
     methods: {
+      // 获取状态计数
+      getStatusCount() {
+        const params = {
+          ...this.watchedSearchForm,
+          ...this.lazySearchForm,
+          [this.lazySearchForm.searchKey]: this.lazySearchForm.searchValue,
+          ...this.tableParams,
+          createAfter: this.lazySearchForm.createTime ? dayjs(this.lazySearchForm.createTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+          createBefore: this.lazySearchForm.createTime ? dayjs(this.lazySearchForm.createTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+          updateAfter: this.lazySearchForm.updateTime ? dayjs(this.lazySearchForm.updateTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+          updateBefore: this.lazySearchForm.updateTime ? dayjs(this.lazySearchForm.updateTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined
+        }
+        delete params.prop
+        delete params.order
+        delete params.createTime
+        delete params.updateTime
+        delete params.searchKey
+        delete params.searchValue
+
+        getStatusCountApi(params).then(res => {
+          this.statusCountEnum = res.data || {}
+        })
+      },
       // 获取表头
       getTableHeader() {
         this.tableHeader = this.DEFAULT_TABLE_COLUMN
@@ -725,6 +757,7 @@
       search() {
         this.tableParams.pageNum = 1
         this.getList()
+        this.getStatusCount()
       },
       reset() {
         this.$refs.searchFormRef.resetFields()
@@ -771,7 +804,7 @@
               } else {
                 this.syncPercentage = 0
                 this.syncProgressOpen = false
-                this.getList()
+                this.search()
               }
             } else {
               setTimeout(() => {

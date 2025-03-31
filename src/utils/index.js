@@ -2,13 +2,13 @@
  * 表格时间格式化
  */
 export function formatDate(cellValue) {
-  if (cellValue == null || cellValue == "") return "";
-  var date = new Date(cellValue) 
+  if (cellValue == null || cellValue == '') return ''
+  var date = new Date(cellValue)
   var year = date.getFullYear()
   var month = date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1
-  var day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate() 
-  var hours = date.getHours() < 10 ? '0' + date.getHours() : date.getHours() 
-  var minutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes() 
+  var day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate()
+  var hours = date.getHours() < 10 ? '0' + date.getHours() : date.getHours()
+  var minutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()
   var seconds = date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds()
   return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds
 }
@@ -43,7 +43,7 @@ export function byteLength(str) {
     const code = str.charCodeAt(i)
     if (code > 0x7f && code <= 0x7ff) s++
     else if (code > 0x7ff && code <= 0xffff) s += 2
-    if (code >= 0xDC00 && code <= 0xDFFF) i--
+    if (code >= 0xdc00 && code <= 0xdfff) i--
   }
   return s
 }
@@ -145,9 +145,7 @@ export function toggleClass(element, className) {
   if (nameIndex === -1) {
     classString += '' + className
   } else {
-    classString =
-      classString.substr(0, nameIndex) +
-      classString.substr(nameIndex + className.length)
+    classString = classString.substr(0, nameIndex) + classString.substr(nameIndex + className.length)
   }
   element.className = classString
 }
@@ -173,7 +171,7 @@ export function getTime(type) {
 export function debounce(func, wait, immediate) {
   let timeout, args, context, timestamp, result
 
-  const later = function() {
+  const later = function () {
     // 据上一次触发时间间隔
     const last = +new Date() - timestamp
 
@@ -190,7 +188,7 @@ export function debounce(func, wait, immediate) {
     }
   }
 
-  return function(...args) {
+  return function (...args) {
     context = this
     timestamp = +new Date()
     const callNow = immediate && !timeout
@@ -281,11 +279,9 @@ export function makeMap(str, expectsLowerCase) {
   for (let i = 0; i < list.length; i++) {
     map[list[i]] = true
   }
-  return expectsLowerCase
-    ? val => map[val.toLowerCase()]
-    : val => map[val]
+  return expectsLowerCase ? val => map[val.toLowerCase()] : val => map[val]
 }
- 
+
 export const exportDefault = 'export default '
 
 export const beautifierConf = {
@@ -394,4 +390,91 @@ export function findParentIds(tree, id, parentIds = []) {
     }
   }
   return []
-} 
+}
+
+// wangEditor 解析能力有限, 替换掉全部的 div 标签和 p 标签
+export function replaceTagsWithRegex(html) {
+  // 替换开始和结束标签，保留属性
+  return html.replace(/<(\/?)div\b([^>]*)>/gi, '<$1p$2>').replace(/<(\/?)span\b([^>]*)>/gi, '<$1p$2>')
+}
+
+// 从 HTML 中提取文本内容
+export function extractTextFromHTML(html) {
+  // 创建一个临时的 DOM 元素
+  const tempDiv = document.createElement('div')
+  // 将 HTML 内容插入到临时元素中
+  tempDiv.innerHTML = html
+
+  // 定义一个数组来存储提取的文本行
+  const lines = []
+
+  // 递归遍历临时元素的所有子节点
+  function traverse(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      // 如果是文本节点，去除首尾空格并添加到行数组中
+      const text = node.textContent.trim()
+      if (text) {
+        lines.push(text)
+      }
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      // 如果是元素节点，检查是否为段落元素
+      if (['P', 'BR', 'DIV', 'LI', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(node.tagName)) {
+        // 如果是段落元素，添加一个空行作为分隔
+        lines.push('')
+      }
+      // 递归遍历子节点
+      for (let i = 0; i < node.childNodes.length; i++) {
+        traverse(node.childNodes[i])
+      }
+    }
+  }
+
+  // 开始遍历临时元素的子节点
+  traverse(tempDiv)
+
+  // 过滤掉连续的空行
+  let filteredLines = []
+  let prevLineWasEmpty = false
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    if (line === '') {
+      if (!prevLineWasEmpty) {
+        filteredLines.push(line)
+        prevLineWasEmpty = true
+      }
+    } else {
+      filteredLines.push(line)
+      prevLineWasEmpty = false
+    }
+  }
+
+  // 去除开头和结尾的空行
+  while (filteredLines.length > 0 && filteredLines[0] === '') {
+    filteredLines.shift()
+  }
+  while (filteredLines.length > 0 && filteredLines[filteredLines.length - 1] === '') {
+    filteredLines.pop()
+  }
+
+  filteredLines = filteredLines.filter(Boolean)
+  // 将数组中的行用换行符连接成字符串
+  return filteredLines.join('\n')
+}
+
+// 从 HTML 中提取图片地址数组
+export function extractImageUrls(html) {
+  // 编辑过的图片需要移除前面的 origin(IP)
+  const origin = window.location.origin
+  const tempDiv = document.createElement('div')
+  tempDiv.innerHTML = html
+  const imgElements = tempDiv.getElementsByTagName('img')
+  const imageUrls = []
+  for (let i = 0; i < imgElements.length; i++) {
+    const src = imgElements[i].src
+    if (src) {
+      imageUrls.push(src.replace(origin, ''))
+    }
+  }
+
+  return imageUrls
+}

@@ -131,11 +131,7 @@ function confirmDeleteDept(record) {
 }
 
 </script>
-<style lang="less">
-.ant-table {
-  min-height: 352px !important;
-}
-
+<style scoped lang="less">
 .dept-table-container {
   padding: 0;
   background-color: #fff;

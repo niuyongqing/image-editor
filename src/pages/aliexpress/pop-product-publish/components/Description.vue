@@ -1,5 +1,8 @@
 <template>
-  <a-card title="描述信息">
+  <a-card
+    title="描述信息"
+    class="mb-4"
+  >
     <a-form
       ref="form"
       :model="form"
@@ -12,12 +15,11 @@
         name="webDetail"
       >
         <span class="text-[#a0a3a6]">详细描述一般包含产品功能属性、产品细节图片、支付物流、售后服务、公司实力等内容。</span>
-        <WangEditor
+        <WangEditorPlus
           v-model="form.webDetail"
           ref="webDetailRef"
-          :toolbar-config="toolbarConfig"
           :editor-config="editorConfig"
-          :height="500"
+          @edit-image-size="editImageSize"
         />
       </a-form-item>
       <a-form-item label="APP端描述">
@@ -32,30 +34,43 @@
           @click="cloneWebDetail"
           >根据PC端描述生成</a-button
         >
-        <WangEditor
-          v-model="form.mobileDetail"
-          ref="mobileDetailRef"
-          :toolbar-config="toolbarConfig"
-          :editor-config="editorConfig"
-          :height="500"
+        <MobileDetailEditor
+          :mobile-detail="mobileModuleList"
+          :seller-id="store.sellerId"
+          @clear="clear"
+          @mobile-detail-edit="mobileDetailEdit"
         />
       </a-form-item>
     </a-form>
+
+    <!-- 批量编辑图片尺寸 -->
+    <EditImageBatch
+      v-model:open="open"
+      :image-list="imgUrls"
+      @confirm="editImageConfirm"
+    />
   </a-card>
 </template>
 
 <script>
+  import MobileDetailEditor from '@/components/mobile-detail-editor/index.vue'
+  import EditImageBatch from '@/components/edit-image-batch/index.vue'
   import { InfoCircleOutlined } from '@ant-design/icons-vue'
   import { useAliexpressPopProductStore } from '~@/stores/aliexpress-pop-product'
   import { uploadImageForSdkApi } from '../../apis/common'
   import { message, Modal } from 'ant-design-vue'
+  import { replaceTagsWithRegex, extractTextFromHTML, extractImageUrls } from '@/utils'
 
   export default {
     name: 'Description',
-    components: { InfoCircleOutlined },
+    components: {
+      MobileDetailEditor,
+      InfoCircleOutlined,
+      EditImageBatch
+    },
     data() {
       const validWebDetail = (rule, val) => {
-        if (!val.length) {
+        if (!val.length || val === '<p><br></p>') {
           return Promise.reject('请填写PC端描述')
         } else {
           return Promise.resolve()
@@ -64,14 +79,12 @@
       return {
         store: useAliexpressPopProductStore(),
         form: {
-          webDetail: '',
-          mobileDetail: ''
+          webDetail: ''
         },
+        mobileModuleList: [],
         rules: {
           webDetail: { validator: validWebDetail, required: true, trigger: 'change' }
         },
-        // 工具栏配置
-        toolbarConfig: {},
         // 编辑器配置
         editorConfig: {
           placeholder: '请输入内容...',
@@ -98,7 +111,10 @@
               }
             }
           }
-        }
+        },
+        // 编辑图片尺寸
+        open: false,
+        imgUrls: []
       }
     },
     computed: {
@@ -113,38 +129,19 @@
 
           if (detail.detailSourceList[0]) {
             const webDetail = JSON.parse(detail.detailSourceList[0].webDetail)
-            const mobileDetail = JSON.parse(detail.detailSourceList[0].mobileDetail)
+            const mobileDetail = JSON.parse(detail.detailSourceList[0].mobileDetail.replaceAll('/profile', '/prod-api/profile'))
 
             if (webDetail) {
               const richTextData = webDetail.moduleList.find(item => item.type === 'html')
-              richTextData && (this.form.webDetail = richTextData.html.content)
-            }
-            if (mobileDetail) {
-              // 将移动端格式转为富文本格式
-              let richTextData = ''
-              mobileDetail.moduleList.forEach(item => {
-                if (item.type === 'text') {
-                  item.texts.forEach(textItem => {
-                    richTextData += '<p style="'
-                    // 有 title 和 body 两种; 这里不做区分
-                    for (const key in textItem.style) {
-                      richTextData += `${key}: ${textItem.style[key]}${key === 'fontSize' ? 'px' : ''}; `
-                    }
-                    richTextData += `">${textItem.content}</p><br>`
-                  })
-                } else if (item.type === 'image') {
-                  item.images.forEach(imageItem => {
-                    let imageText = `<img src="${imageItem.url}" style="width: ${imageItem.style.width}px; height: ${imageItem.style.height}px;">`
-                    if (imageItem.targetUrl) {
-                      imageText = `<a href="${imageItem.targetUrl}">${imageText}</a>`
-                    }
-                    imageText = `<p>${imageText}</p>`
-                    richTextData += imageText
-                  })
+              richTextData && (this.form.webDetail = richTextData.html.content.replaceAll('/profile', '/prod-api/profile'))
+              this.$nextTick(() => {
+                if (!this.form.webDetail.includes('<img')) {
+                  this.form.webDetail = replaceTagsWithRegex(richTextData.html.content)
                 }
               })
-
-              this.form.mobileDetail = richTextData
+            }
+            if (mobileDetail) {
+              this.mobileModuleList = mobileDetail.moduleList || []
             }
           }
         },
@@ -152,6 +149,14 @@
       }
     },
     methods: {
+      // 清空移动端详情
+      clear() {
+        this.mobileModuleList = []
+      },
+      // 移动端详情编辑
+      mobileDetailEdit(res) {
+        this.mobileModuleList = res
+      },
       // 复制 PC 描述到 APP 描述
       cloneWebDetail() {
         if (!this.form.webDetail || this.form.webDetail === '<p><br></p>') {
@@ -162,10 +167,64 @@
           title: '确定生成吗？',
           content: '将PC端描述生成到APP端描述可能存在一定的格式损耗和内容丢失，且之前已有的APP端描述将被覆盖，确定要生成吗？',
           onOk: () => {
-            this.form.mobileDetail = this.form.webDetail
+            // 将富文本格式转为移动端格式; 不要 title, 文字内容都转成 body; 简陋版, 会丢失数据
+            const text = extractTextFromHTML(this.form.webDetail)
+            const imgUrls = extractImageUrls(this.form.webDetail)
+
+            const moduleList = []
+            moduleList.push({
+              type: 'text',
+              texts: [
+                {
+                  class: 'body',
+                  content: text,
+                  style: {}
+                }
+              ]
+            })
+
+            let images = []
+            imgUrls.forEach((img, i) => {
+              images.push({
+                url: img,
+                style: {
+                  hasMargin: false
+                }
+              })
+              // 最多 10 张图片一个集合; 遍历到最后一张 push 一下
+              if ((i !== 0 && (i + 1) % 10 === 0) || i === imgUrls.length - 1) {
+                moduleList.push({
+                  type: 'image',
+                  images
+                })
+                images = []
+              }
+            })
+
+            this.mobileModuleList = moduleList
           }
         })
       },
+      // 批量修改图片尺寸
+      editImageSize() {
+        // 提取所有图片
+        this.imgUrls = extractImageUrls(this.form.webDetail)
+        if (this.imgUrls.length === 0) {
+          message.error('未检测到图片')
+
+          return
+        }
+
+        this.open = true
+      },
+      // 编辑后返回的数据
+      editImageConfirm(imageList) {
+        this.form.webDetail = this.form.webDetail.replaceAll('&amp;', '&')
+        imageList.forEach(item => {
+          this.form.webDetail = this.form.webDetail.replace(item.originUrl, item.url)
+        })
+      },
+
       async emitData({ looseValidate = false }) {
         if (looseValidate) {
           this.$refs.form.clearValidate()
@@ -186,73 +245,23 @@
               {
                 type: 'html',
                 html: {
-                  content: this.form.webDetail
+                  content: this.form.webDetail.replaceAll('/prod-api', '')
                 }
               }
             ]
           }
           webDetail = JSON.stringify(res)
         }
-        if (this.form.mobileDetail && this.form.mobileDetail !== '<p><br></p>') {
-          // 将富文本格式转为移动端格式; 不要 title, 文字内容都转成 body; 简陋版, 会丢失数据
-          const pattern = /<[a-z]+[1-6]?\b[^>]*>(.*?)<\/[a-z]+[1-6]?>/g
-          const srcReg = /src=[\'\"]?([^\'\"]*)[\'\"]?/i // 匹配图片中的src
-          const bodyList = []
-          const imgList = []
-          this.form.mobileDetail.split('<p><br></p>').forEach(paragraph => {
-            if (paragraph.includes('<img src=')) {
-              const pLabelList = paragraph.match(/<\/p>/g)
-              const splitStr = pLabelList.length > 1 ? '</p>' : '><'
-              let imgLabelList = paragraph.replaceAll('<p>', '').split(splitStr)
-              // 去除空数据
-              imgLabelList = imgLabelList.filter(img => img)
-              imgLabelList.forEach(img => {
-                const res = img.match(srcReg)
-                res && imgList.push(res[1])
-              })
-            } else {
-              let match
-              while ((match = pattern.exec(paragraph)) !== null) {
-                bodyList.push(match[1].trim())
-              }
-            }
-          })
 
-          let moduleList = []
-          bodyList.forEach(body => {
-            moduleList.push({
-              type: 'text',
-              texts: [
-                {
-                  class: 'body',
-                  content: body,
-                  style: {
-                    fontSize: 14
-                  }
-                }
-              ]
-            })
-          })
-          imgList.forEach(img => {
-            moduleList.push({
-              type: 'image',
-              images: [
-                {
-                  url: img,
-                  style: {
-                    // width: 800,
-                    // height: 800,
-                    hasMargin: false
-                  }
-                }
-              ]
-            })
-          })
-
+        if (this.mobileModuleList.length) {
+          let mobileModuleListStr = JSON.stringify(this.mobileModuleList)
+          mobileModuleListStr = mobileModuleListStr.replaceAll('/prod-api', '')
+          const moduleList = JSON.parse(mobileModuleListStr)
           const res = {
             version: '2.0.0',
             moduleList
           }
+
           mobileDetail = JSON.stringify(res)
         }
 

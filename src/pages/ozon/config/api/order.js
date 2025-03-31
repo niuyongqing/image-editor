@@ -16,7 +16,7 @@ export function orderExport(data) {
   });
 }
 // 同步订单
-export function sync(data) {
+export function asyncOrder(data) {
   return request({
     url: `/platform-ozon/platform/ozon/order/sync`,
     method: "post",

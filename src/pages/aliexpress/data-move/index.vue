@@ -31,6 +31,7 @@
             />
             <a-button
               type="primary"
+              :loading="loading"
               @click="search"
               >搜索</a-button
             >
@@ -272,6 +273,7 @@
                 >
                 <a-button
                   type="primary"
+                  :loading="loading"
                   @click="search"
                   >搜索</a-button
                 >

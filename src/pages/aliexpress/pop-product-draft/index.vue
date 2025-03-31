@@ -31,6 +31,7 @@
             />
             <a-button
               type="primary"
+              :loading="loading"
               @click="search"
               >搜索</a-button
             >
@@ -239,6 +240,7 @@
                 >
                 <a-button
                   type="primary"
+                  :loading="loading"
                   @click="search"
                   >搜索</a-button
                 >
@@ -266,7 +268,7 @@
       >
       <a-popconfirm
         title="确定删除吗？"
-        @confirm="del"
+        @confirm="del()"
       >
         <a-button
           type="primary"
@@ -397,20 +399,20 @@
               创建时间: <span class="text-gray">{{ record.createTime || '--' }}</span>
             </div>
             <div>
-              编辑时间: <span class="text-gray">{{ record.gmtModified || '--' }}</span>
+              编辑时间: <span class="text-gray">{{ record.updateTime || '--' }}</span>
             </div>
           </div>
           <div v-if="column.key === 'option'">
             <a-button
               type="text"
               style="color: #0b56fa"
-              @click.stop="goPublish(record)"
+              @click="goPublish(record)"
               >编辑</a-button
             >
             <a-button
               type="text"
               style="color: #28f728"
-              @click.stop="publish(record)"
+              @click="publish(record)"
               >发布</a-button
             >
             <a-popconfirm
@@ -448,7 +450,7 @@
   import { copyText } from '@/utils'
   import { accountCacheApi, getAllFreightTemplateApi, getAllProductGroupsApi } from '../apis/common'
   import { addProductApi } from '../apis/product'
-  import { getProductDraftsListApi, getProductDraftsApi, deleteProductDraftsApi } from '../apis/pop-product-draft'
+  import { getProductDraftsListApi, deleteProductDraftsApi } from '../apis/pop-product-draft'
   import { CopyOutlined } from '@ant-design/icons-vue'
   import { message } from 'ant-design-vue'
   import EmptyImg from '@/assets/images/aliexpress/empty.png'
@@ -468,7 +470,7 @@
         // 被 watch 监听的搜索表单; 外层, 点击即可搜索
         watchedSearchForm: {
           sellerId: undefined,
-          prop: 'gmt_modified_time',
+          prop: 'updateTime',
           order: 'desc',
           productType: undefined,
           productStatus: 'ONLINE'
@@ -529,14 +531,10 @@
         groupLoading: false,
         allGroupOptions: [],
         allFreightOptions: [],
-        deactivateLoading: false,
-        activateLoading: false,
         delLoading: false,
         note: '',
         noteDialogVisible: false,
         noteLoading: false,
-        curRow: {}, // 当前点击的行
-        selectedRows: [],
         batchPublishLoading: false
       }
     },
@@ -670,10 +668,10 @@
           ...this.lazySearchForm,
           [this.lazySearchForm.searchKey]: this.lazySearchForm.searchValue,
           ...this.tableParams,
-          gmtCreateStart: this.lazySearchForm.createTime ? dayjs(this.lazySearchForm.createTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
-          gmtCreateEnd: this.lazySearchForm.createTime ? dayjs(this.lazySearchForm.createTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
-          gmtModifiedStart: this.lazySearchForm.updateTime ? dayjs(this.lazySearchForm.updateTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
-          gmtModifiedEnd: this.lazySearchForm.updateTime ? dayjs(this.lazySearchForm.updateTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined
+          startCreateTime: this.lazySearchForm.createTime ? dayjs(this.lazySearchForm.createTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+          endCreateTime: this.lazySearchForm.createTime ? dayjs(this.lazySearchForm.createTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+          startUpdateTime: this.lazySearchForm.updateTime ? dayjs(this.lazySearchForm.updateTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+          endUpdateTime: this.lazySearchForm.updateTime ? dayjs(this.lazySearchForm.updateTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined
         }
         delete params.createTime
         delete params.updateTime
@@ -684,11 +682,13 @@
           .then(res => {
             const list = res.rows || []
             list.forEach((item, i) => {
+              let images = item.result.imageURLs ? item.result.imageURLs.split(';') : []
+              images = images.map(url => (url.includes('http') ? url : '/prod-api' + url))
               list[i] = {
                 ...item,
                 ...item.result,
                 SKUExpand: false,
-                images: item.result.imageURLs ? item.result.imageURLs.split(';') : []
+                images
               }
               delete list[i].result
             })
@@ -786,9 +786,8 @@
           this.batchPublishLoading = false
         })
       },
-      // FIXME:
       goPublish(record) {
-        const query = `?sellerId=${record.sellerId}&productId=${record.productId}`
+        const query = `?draftsId=${record.draftsId}`
         window.open(location.origin + '/platform/aliexpress/pop-product-publish' + query)
       },
       publish(record) {

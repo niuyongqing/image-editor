@@ -181,7 +181,7 @@
         isMsrEuIdFromDetail: false,
         isManufacturerIdFromDetail: false,
         rules: {
-          groupIdList: { validator: validGroup, trigger: 'change' }
+          groupIdList: { required: true, validator: validGroup, trigger: 'change' }
         },
         // 资质信息
         qualificationList: [],
@@ -226,6 +226,13 @@
           this.syncEuPersonList()
           // 获取资质信息
           this.getQualification()
+        }
+      },
+      'form.isSemiCustodial': {
+        handler: function (checked) {
+          this.store.$patch(state => {
+            state.isSemiCustodial = checked
+          })
         }
       },
       productDetail: {

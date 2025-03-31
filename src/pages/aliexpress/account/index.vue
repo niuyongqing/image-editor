@@ -39,11 +39,13 @@
         <a-form-item>
           <a-button
             type="primary"
+            :loading="loading"
             @click="search"
             >查询</a-button
           >
           <a-button
             class="ml-[10px]"
+            :loading="loading"
             @click="reset"
             >重置</a-button
           >
@@ -64,6 +66,17 @@
 
     <!-- table 区 -->
     <a-card>
+      <a-pagination
+        v-model:current="pageParams.pageNum"
+        v-model:pageSize="pageParams.pageSize"
+        class="text-right mb-2"
+        :total="total"
+        :default-page-size="50"
+        show-size-changer
+        show-quick-jumper
+        :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
+        @change="getList"
+      />
       <a-table
         :data-source="tableData"
         :columns="DEFAULT_TABLE_COLUMN"
@@ -71,7 +84,7 @@
         stripe
         bordered
         row-key="id"
-        :pagination="{ defaultPageSize: 50, hideOnSinglePage: true }"
+        :pagination="false"
         :scroll="{ x: 'max-content' }"
       >
         <template #bodyCell="{ column, record }">
@@ -83,6 +96,7 @@
               v-for="account in record.account.split(',')"
               :key="account"
               color="green"
+              class="mb-2"
               >{{ getSimpleName(account) }}</a-tag
             >
           </template>
@@ -108,6 +122,17 @@
           </template>
         </template>
       </a-table>
+      <a-pagination
+        v-model:current="pageParams.pageNum"
+        v-model:pageSize="pageParams.pageSize"
+        class="text-right mt-2"
+        :total="total"
+        :default-page-size="50"
+        show-size-changer
+        show-quick-jumper
+        :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
+        @change="getList"
+      />
     </a-card>
 
     <!-- 新增/编辑 弹窗 -->

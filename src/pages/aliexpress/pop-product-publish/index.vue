@@ -2,65 +2,106 @@
 <template>
   <div class="Pop-product-publish text-left">
     <a-spin :spinning="queryDetailLoading">
-      <a-space class="mb-3 pr-4 w-full justify-end">
-        <!-- 正式的商品编辑, 不显示保存到草稿 -->
-        <!-- 有草稿ID则显示 -->
-        <a-button
-          v-if="!productDetail.productId"
-          :loading="submitLoading"
-          @click="saveDraft({ looseValidate: true })"
-          >保存草稿</a-button
-        >
-        <a-button
-          v-if="!(isSemiCustodial && !productDetail.productId)"
-          type="primary"
-          :loading="submitLoading"
-          @click="submit"
-          >提 交</a-button
-        >
-        <a-button
-          v-if="isSemiCustodial && !productDetail.productId"
-          type="primary"
-          :loading="submitLoading"
-          @click="saveDraft({ looseValidate: false })"
-          >编辑半托管信息</a-button
-        >
-      </a-space>
+      <div class="w-[85%]">
+        <a-space class="mb-3 pr-4 w-full justify-end">
+          <!-- 正式的商品编辑, 不显示保存到草稿 -->
+          <!-- 有草稿ID则显示 -->
+          <a-button
+            v-if="!productDetail.productId"
+            :loading="submitLoading"
+            @click="saveDraft({ looseValidate: true })"
+            >保存草稿</a-button
+          >
+          <a-button
+            v-if="!(isSemiCustodial && !productDetail.productId)"
+            type="primary"
+            :loading="submitLoading"
+            @click="submit"
+            >提 交</a-button
+          >
+          <a-button
+            v-if="isSemiCustodial && !productDetail.productId"
+            type="primary"
+            :loading="submitLoading"
+            @click="saveDraft({ looseValidate: false })"
+            >编辑半托管信息</a-button
+          >
+        </a-space>
 
-      <BaseInfo ref="baseInfoRef" />
-      <ImageInfo ref="imageInfoRef" />
-      <PriceAndStock ref="priceAndStockRef" />
-      <NationalQuote ref="nationalQuoteRef" />
-      <Description ref="descriptionRef" />
-      <PackageInfo ref="packageInfoRef" />
-      <TemplateInfo ref="templateInfoRef" />
-      <Others ref="othersRef" />
+        <BaseInfo
+          id="baseInfo"
+          ref="baseInfoRef"
+        />
+        <ImageInfo
+          id="imageInfo"
+          ref="imageInfoRef"
+        />
+        <PriceAndStock
+          id="priceAndStock"
+          ref="priceAndStockRef"
+        />
+        <NationalQuote
+          id="nationalQuote"
+          ref="nationalQuoteRef"
+        />
+        <Description
+          id="description"
+          ref="descriptionRef"
+        />
+        <PackageInfo
+          id="packageInfo"
+          ref="packageInfoRef"
+        />
+        <TemplateInfo
+          id="templateInfo"
+          ref="templateInfoRef"
+        />
+        <Others
+          id="others"
+          ref="othersRef"
+        />
 
-      <a-space class="mt-3 pr-4 w-full justify-end">
-        <!-- 正式的商品编辑, 不显示保存到草稿 -->
-        <!-- 有草稿ID则显示 -->
-        <a-button
-          v-if="!productDetail.productId"
-          :loading="submitLoading"
-          @click="saveDraft({ looseValidate: true })"
-          >保存草稿</a-button
-        >
-        <a-button
-          v-if="!(isSemiCustodial && !productDetail.productId)"
-          type="primary"
-          :loading="submitLoading"
-          @click="submit"
-          >提 交</a-button
-        >
-        <a-button
-          v-if="isSemiCustodial && !productDetail.productId"
-          type="primary"
-          :loading="submitLoading"
-          @click="saveDraft({ looseValidate: false })"
-          >编辑半托管信息</a-button
-        >
-      </a-space>
+        <a-space class="mt-3 pr-4 w-full justify-end">
+          <!-- 正式的商品编辑, 不显示保存到草稿 -->
+          <!-- 有草稿ID则显示 -->
+          <a-button
+            v-if="!productDetail.productId"
+            :loading="submitLoading"
+            @click="saveDraft({ looseValidate: true })"
+            >保存草稿</a-button
+          >
+          <a-button
+            v-if="!(isSemiCustodial && !productDetail.productId)"
+            type="primary"
+            :loading="submitLoading"
+            @click="submit"
+            >提 交</a-button
+          >
+          <a-button
+            v-if="isSemiCustodial && !productDetail.productId"
+            type="primary"
+            :loading="submitLoading"
+            @click="saveDraft({ looseValidate: false })"
+            >编辑半托管信息</a-button
+          >
+        </a-space>
+      </div>
     </a-spin>
+
+    <!-- 右边锚点 -->
+    <a-timeline class="fixed top-[92px] left-[85%]">
+      <a-timeline-item
+        v-for="item in anchorList"
+        :key="item.id"
+        :color="item.turnRed ? 'red' : 'blue'"
+        ><a-button
+          type="text"
+          :danger="item.turnRed"
+          @click="scroll(item.id)"
+          >{{ item.label }}</a-button
+        ></a-timeline-item
+      >
+    </a-timeline>
   </div>
 </template>
 
@@ -80,7 +121,7 @@
   import { Modal, message } from 'ant-design-vue'
 
   // 页面卸载前弹窗提醒
-  /* onMounted(() => {
+  onMounted(() => {
     window.addEventListener('beforeunload', stopUnload)
   })
   onBeforeUnmount(() => {
@@ -89,13 +130,13 @@
   function stopUnload(e) {
     e.preventDefault()
     e.returnValue = ''
-  } */
+  }
 
   /** 编辑; 获取数据 */
   const query = useRoute().query
   const queryDetailLoading = ref(false)
   const productDetail = ref({})
-  let draftId = undefined
+  let draftsId = undefined
   getDetail()
 
   function getDetail() {
@@ -103,9 +144,9 @@
 
     queryDetailLoading.value = true
     const store = useAliexpressPopProductStore()
-    if (query.draftId) {
+    if (query.draftsId) {
       // 草稿
-      getProductDraftsApi({ uuid: query.draftId })
+      getProductDraftsApi({ uuid: query.draftsId })
         .then(res => {
           if (res.data) {
             const detail = {
@@ -159,6 +200,7 @@
   const othersRef = ref()
 
   /** 保存草稿 */
+  const router = useRouter()
   async function saveDraft({ looseValidate = false }) {
     // 基本信息
     const baseInfo = await baseInfoRef.value.emitData({ looseValidate })
@@ -178,14 +220,29 @@
     const others = await othersRef.value.emitData({ looseValidate })
 
     // 若有校验不通过
-    if (!baseInfo || !imageInfo || !priceAndStock || !nationalQuote || !description || !templateInfo || !others) {
+    const resObj = { baseInfo, imageInfo, priceAndStock, description, packageInfo, templateInfo, others }
+    const errList = []
+    for (const key in resObj) {
+      if (!resObj[key]) {
+        errList.push(key)
+      }
+    }
+
+    // 锚点标红(该红的红, 该恢复的恢复)
+    anchorList.value.forEach(item => {
+      item.turnRed = errList.includes(item.id)
+    })
+    if (errList.length) {
+      // 跳转到第一个标红的位置
+      scroll(errList[0])
       Modal.warning({ title: '请填写必填项' })
 
       return
     }
     // 选择半托管则区域调价只能直接报价
     if (isSemiCustodial.value && nationalQuote.aeopNationalQuoteConfiguration.configurationType !== 'absolute') {
-      Modal.warning('半托管商品区域定价的定价方式仅支持直接报价，如果你在商品编辑时使用了调整比例或其他方式进行价格设置，请调整为直接报价。')
+      scroll('nationalQuote')
+      Modal.warning({ title : '半托管商品区域定价的定价方式仅支持直接报价，如果你在商品编辑时使用了调整比例或其他方式进行价格设置，请调整为直接报价。' })
 
       return
     }
@@ -195,6 +252,7 @@
       draftsId: productDetail.value.draftsId // uuid
     }
     const result = {
+      isSemiCustodial: isSemiCustodial.value,
       ...baseInfo,
       ...imageInfo,
       ...priceAndStock,
@@ -214,29 +272,30 @@
     }
 
     const submitLoading = ref(true)
+    // FIXME:: '保存草稿'时, 不会更新存在速卖通后台的草稿(未调用 popOneSubmitApi)
     const saveDraftApi = looseValidate ? (productDetail.value.draftsId ? editProductDraftsApi : saveProductDraftsApi) : popOneSubmitApi
     saveDraftApi(params)
       .then(res => {
+        window.removeEventListener('beforeunload', stopUnload)
         if (looseValidate) {
-          message.success('保存成功')
+          message.success('保存成功, 在待发布中查看')
+          setTimeout(() => {
+            window.close()
+          }, 500)
         } else {
+          message.success('保存成功')
           // 跳转半托管
           const query = {
             sellerId: params.sellerId,
-            draftsId: res.data.draftsId, // 给半托管传草稿的 uuid
-            draftId: res.data.draftId, // 产品 id
-            fromPath: productDetail.value.draftId ? 'Pop-product-draft' : 'Pop-product'
+            productId: res.data.draftId, // 产品 id
+            draftsId: res.data.draftsId // 给半托管传草稿的 uuid
+            // draftId: res.data.draftId, // 产品 id
+            // fromPath: productDetail.value.draftId ? 'pop-product-publish-draft' : 'pop-product-publish'
           }
-          const router = useRouter()
           router.push({
-            name: 'Pop-choice-product',
-            params: query
+            name: 'pop-choice-product-publish',
+            query
           })
-
-          window.removeEventListener('beforeunload', stopUnload)
-          setTimeout(() => {
-            window.close()
-          }, 300)
         }
       })
       .finally(() => {
@@ -265,13 +324,29 @@
     const others = await othersRef.value.emitData({ looseValidate: false })
 
     // 若有校验不通过
-    if (!baseInfo || !imageInfo || !priceAndStock || !description || !packageInfo || !templateInfo || !others) {
+    const resObj = { baseInfo, imageInfo, priceAndStock, description, packageInfo, templateInfo, others }
+    const errList = []
+    for (const key in resObj) {
+      if (!resObj[key]) {
+        errList.push(key)
+      }
+    }
+
+    // 锚点标红(该红的红, 该恢复的恢复)
+    anchorList.value.forEach(item => {
+      item.turnRed = errList.includes(item.id)
+    })
+    if (errList.length) {
+      // 跳转到第一个标红的位置
+      scroll(errList[0])
       Modal.warning({ title: '请填写必填项' })
 
       return
     }
+
     // 选择半托管则区域调价只能直接报价
     if (isSemiCustodial.value && nationalQuote.aeopNationalQuoteConfiguration.configurationType !== 'absolute') {
+      scroll('nationalQuote')
       Modal.warning({ title: '半托管商品区域定价的定价方式仅支持直接报价，如果你在商品编辑时使用了调整比例或其他方式进行价格设置，请调整为直接报价。' })
 
       return
@@ -293,12 +368,17 @@
     const requestApi = productDetail.value.productId ? editProductApi : addProductApi
     requestApi(params)
       .then(res => {
-        if (res.msg) {
+        /* if (res.msg) {
           // 如果是由草稿发布的, 发布成功后删除该草稿
           if (productDetail.value.draftsId) {
             // this.$bus.$emit('delDraftAndRefresh', { draftsId: productDetail.value.draftsId })
           }
-        }
+        } */
+        message.success('发布成功')
+        window.removeEventListener('beforeunload', stopUnload)
+        setTimeout(() => {
+          window.close()
+        }, 500)
       })
       .catch(err => {
         console.log('发布失败', err)
@@ -306,5 +386,21 @@
       .finally(() => {
         submitLoading.value = false
       })
+  }
+
+  /** 右侧锚点 */
+  const anchorList = ref([
+    { label: '基本信息', id: 'baseInfo', turnRed: false },
+    { label: '图片信息', id: 'imageInfo', turnRed: false },
+    { label: '价格与库存', id: 'priceAndStock', turnRed: false },
+    { label: '区域调价信息', id: 'nationalQuote', turnRed: false },
+    { label: '描述信息', id: 'description', turnRed: false },
+    { label: '包装信息', id: 'packageInfo', turnRed: false },
+    { label: '模版信息', id: 'templateInfo', turnRed: false },
+    { label: '其他信息', id: 'others', turnRed: false }
+  ])
+  // 锚点滚动
+  function scroll(id) {
+    document.getElementById(id).scrollIntoView({ behavior: 'smooth' })
   }
 </script>

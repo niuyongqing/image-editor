@@ -3,11 +3,23 @@
     title="基本信息"
     class="mb-4"
   >
+    <template #extra>
+      <a-select
+        v-model:value="attributeTemplateId"
+        placeholder="选择产品分类后可引用属性模版"
+        show-search
+        :options="attributeTemplateList"
+        :field-names="{ label: 'templateName', value: 'id' }"
+        option-filter-prop="templateName"
+        class="w-60"
+        @change="handleTemplateChange"
+      />
+    </template>
     <a-form
       ref="ruleFormRef"
       :model="form"
       :label-col="{ style: { width: '180px' } }"
-      :wrapper-col="{ span: 14 }"
+      :wrapper-col="{ span: 16 }"
       :rules="rules"
     >
       <a-form-item
@@ -23,8 +35,7 @@
           :field-names="{ label: 'simpleName', value: 'sellerId' }"
           option-filter-prop="simpleName"
           @change="handleAccountChange"
-        >
-        </a-select>
+        />
       </a-form-item>
       <a-form-item
         label="产品标题"
@@ -60,7 +71,7 @@
             ref="attributeFormRef"
             :model="attributes"
             :label-col="{ style: { width: '150px' } }"
-            :wrapper-col="{ style: { width: '186px' } }"
+            :wrapper-col="{ style: { width: '240px' } }"
             class="mt-6 flex flex-wrap"
           >
             <a-form-item
@@ -70,7 +81,7 @@
               :label="item.zh || item.en"
               :name="item.zh"
             >
-              <!-- supportEnumInput 当前属性是否支持自定义枚举类型属性值(通过filterable来控制能否输入) -->
+              <!-- supportEnumInput 当前属性是否支持自定义枚举类型属性值 -->
               <template v-if="item.attributeShowTypeValue === 'list_box'">
                 <a-select
                   v-if="!item.supportEnumInput"
@@ -83,8 +94,7 @@
                   placeholder="请选择"
                   option-filter-prop="name"
                   @change="val => handleAttrChange(val, i)"
-                >
-                </a-select>
+                />
                 <!-- 可自定义填写内容 -->
                 <a-select
                   v-else
@@ -128,18 +138,76 @@
                 >
               </a-radio-group>
               <!-- 高关注化学物质(check_box)选项太多了, 用多选下拉框替代 -->
-              <a-select
-                v-else-if="item.attributeShowTypeValue === 'check_box'"
-                v-model:value="attributes[item.zh]"
-                :options="item.values"
-                :field-names="{ label: 'name', value: 'attributeValueId' }"
-                :mode="item.supportEnumInput ? 'tags' : 'multiple'"
-                show-search
-                allow-clear
-                label-in-value
-                placeholder="输入或选择;回车确认输入值"
-                option-filter-prop="name"
-              />
+              <template v-else-if="item.attributeShowTypeValue === 'check_box'">
+                <!-- feature 含 AE_FEATURE_material_ratio 的需填材质比例 -->
+                <template v-if="item.showPercent">
+                  <div
+                    v-for="(materialItem, i2) in attributes[item.zh]"
+                    :key="materialItem.id"
+                    class="flex mb-1"
+                  >
+                    <a-form-item-rest>
+                      <a-space class="z-1">
+                        <a-select
+                          v-model:value="materialItem.material"
+                          :options="item.values"
+                          :field-names="{ label: 'name', value: 'attributeValueId' }"
+                          show-search
+                          allow-clear
+                          label-in-value
+                          placeholder="请选择"
+                          option-filter-prop="name"
+                          style="width: 128px"
+                        />
+                        <a-input-number
+                          v-model:value="materialItem.percent"
+                          :controls="false"
+                          :precision="0"
+                          :min="1"
+                          :max="100"
+                          style="width: 76px"
+                        >
+                          <template #addonAfter>%</template>
+                        </a-input-number>
+                        <a-button
+                          v-if="i2 === attributes[item.zh].length - 1"
+                          type="link"
+                          title="添加"
+                          @click="materialAdd(attributes[item.zh])"
+                        >
+                          <template #icon><PlusOutlined /></template>
+                        </a-button>
+                        <a-button
+                          v-if="attributes[item.zh].length !== 1"
+                          type="link"
+                          title="删除"
+                          @click="materialDel(attributes[item.zh], i2)"
+                        >
+                          <template #icon><MinusOutlined /></template>
+                        </a-button>
+                        <a-popover v-if="i2 === 0">
+                          <template #content>
+                            <span>材质百分比之和须等于 100%</span>
+                          </template>
+                          <InfoCircleOutlined />
+                        </a-popover>
+                      </a-space>
+                    </a-form-item-rest>
+                  </div>
+                </template>
+                <a-select
+                  v-else
+                  v-model:value="attributes[item.zh]"
+                  :options="item.values"
+                  :field-names="{ label: 'name', value: 'attributeValueId' }"
+                  :mode="item.supportEnumInput ? 'tags' : 'multiple'"
+                  show-search
+                  allow-clear
+                  label-in-value
+                  placeholder="输入或选择;回车确认输入值"
+                  option-filter-prop="name"
+                />
+              </template>
               <a-input
                 v-else
                 v-model:value="item.attributeShowTypeValue"
@@ -201,8 +269,9 @@
 <script>
   import { getProductClassificationApi, resultByPostCateIdAndPathApi, getResultByPostCateIdAndPathApi } from '../../apis/product'
   import { accountCacheApi, getSellerInfoApi } from '../../apis/common'
+  import { templateListApi } from '../../apis/templates'
   import { queryChannelApi } from '../../apis/choice-product'
-  import { InfoCircleOutlined, PlusOutlined, UpOutlined, DownOutlined } from '@ant-design/icons-vue'
+  import { InfoCircleOutlined, PlusOutlined, MinusOutlined, UpOutlined, DownOutlined } from '@ant-design/icons-vue'
   import { message } from 'ant-design-vue'
   import { v4 as uuidv4 } from 'uuid'
   import { cloneDeep } from 'lodash'
@@ -211,7 +280,7 @@
 
   export default {
     name: 'BaseInfo',
-    components: { InfoCircleOutlined, PlusOutlined, UpOutlined, DownOutlined },
+    components: { InfoCircleOutlined, PlusOutlined, MinusOutlined, UpOutlined, DownOutlined },
     data() {
       return {
         store: useAliexpressPopProductStore(),
@@ -226,6 +295,8 @@
         currencyCode: '',
         loading: false,
         attributes: {}, // 产品属性, 收集值
+        attributeTemplateId: undefined,
+        attributeTemplateList: [], // 属性模版列表
         rules: {
           sellerId: {
             required: true,
@@ -267,100 +338,7 @@
           this.form.category = String(detail.categoryId)
           await this.getAttributes()
 
-          // 与品类绑定的属性
-          const attributeList = detail.aeopAeProductPropertys.filter(item => item.attrNameId && item.attrNameId !== -1)
-          // 整合先
-          const root = {}
-          attributeList.forEach(item => {
-            if (root[item.attrNameId]) {
-              root[item.attrNameId].push(item)
-            } else {
-              root[item.attrNameId] = [item]
-            }
-          })
-          // 因要判断是否还有下级属性(hasSubAttr), 不能直接赋 aeopAeProductPropertys 的值; 从 attributeOptions 里取
-          const attributesObj = {}
-          for (const attrNameId in root) {
-            const option = this.attributeOptions.find(option => option.attributeId == attrNameId)
-            if (option) {
-              switch (option.attributeShowTypeValue) {
-                case 'list_box':
-                  const target = option.values.find(val => val.attributeValueId == root[attrNameId][0].attrValueId)
-                  if (target) {
-                    // 如果 supportEnumInput 为 true, 则设置 mode = tags, 值为 Array
-                    attributesObj[option.zh] = option.supportEnumInput
-                      ? [
-                          {
-                            label: target.name,
-                            value: target.attributeValueId,
-                            key: target.attributeValueId,
-                            option: target
-                          }
-                        ]
-                      : {
-                          label: target.name,
-                          value: target.attributeValueId,
-                          key: target.attributeValueId,
-                          option: target
-                        }
-                  } else {
-                    attributesObj[option.zh] = option.supportEnumInput ? [{ label: root[attrNameId][0].attrValue, value: undefined }] : { label: root[attrNameId][0].attrValue, value: undefined }
-                  }
-                  break
-
-                case 'check_box':
-                  attributesObj[option.zh] = root[attrNameId].map(item => {
-                    const target = option.values.find(val => val.attributeValueId == item.attrValueId)
-                    if (target) {
-                      return {
-                        label: target.name,
-                        value: target.attributeValueId,
-                        key: target.attributeValueId,
-                        option: target
-                      }
-                    } else {
-                      return { label: item.attrValue, value: undefined }
-                    }
-                  })
-                  break
-
-                case 'input':
-                case 'input_int':
-                case 'radio':
-                default:
-                  attributesObj[option.zh] = root[attrNameId][0].attrValue
-                  break
-              }
-            } else {
-              // 动态添加的下级属性(查不到, 下面查到属性后再狸猫换太子)
-              attributesObj[attrNameId] = {
-                attributeValueId: Number(root[attrNameId][0].attrValueId),
-                name: root[attrNameId][0].attrName,
-                en: root[attrNameId][0].attrValue,
-                label: root[attrNameId][0].attrName,
-                value: root[attrNameId][0].attrValue
-              }
-            }
-          }
-          // 如果存在下级属性 hasSubAttr
-          for (const zh in attributesObj) {
-            if (Object.prototype.toString.call(attributesObj[zh]).slice(8, -1) === 'Object') {
-              if (attributesObj[zh].hasSubAttr) {
-                const i = this.attributeOptions.findIndex(item => item.zh === zh)
-                i > -1 && this.handleAttrChange(attributesObj[zh], i, true)
-              }
-            }
-          }
-          this.attributes = attributesObj
-          // 自定义属性
-          const cusAttributeList = detail.aeopAeProductPropertys.filter(item => item.attrNameId === -1)
-          cusAttributeList.forEach(item => {
-            this.cusAttribute.push({
-              id: uuidv4(),
-              label: item.attrName,
-              value: item.attrValue
-            })
-          })
+          this.setAttributeValue(detail.aeopAeProductPropertys)
         }
       }
     },
@@ -368,6 +346,120 @@
       this.getAccounts()
     },
     methods: {
+      // 给产品属性赋值
+      setAttributeValue(valueList) {
+        // 与品类绑定的属性
+        const attributeList = valueList.filter(item => item.attrNameId && item.attrNameId !== -1)
+        // 整合先
+        const root = {}
+        attributeList.forEach(item => {
+          if (root[item.attrNameId]) {
+            root[item.attrNameId].push(item)
+          } else {
+            root[item.attrNameId] = [item]
+          }
+        })
+        // 因要判断是否还有下级属性(hasSubAttr), 不能直接赋 aeopAeProductPropertys 的值; 从 attributeOptions 里取
+        const attributesObj = {}
+        for (const attrNameId in root) {
+          const option = this.attributeOptions.find(option => option.attributeId == attrNameId)
+          if (option) {
+            switch (option.attributeShowTypeValue) {
+              case 'list_box':
+                const target = option.values.find(val => val.attributeValueId == root[attrNameId][0].attrValueId)
+                if (target) {
+                  // 如果 supportEnumInput 为 true, 则设置 mode = tags, 值为 Array
+                  attributesObj[option.zh] = option.supportEnumInput
+                    ? [
+                        {
+                          label: target.name,
+                          value: target.attributeValueId,
+                          key: target.attributeValueId,
+                          option: target
+                        }
+                      ]
+                    : {
+                        label: target.name,
+                        value: target.attributeValueId,
+                        key: target.attributeValueId,
+                        option: target
+                      }
+                } else {
+                  attributesObj[option.zh] = option.supportEnumInput ? [{ label: root[attrNameId][0].attrValue, value: undefined }] : { label: root[attrNameId][0].attrValue, value: undefined }
+                }
+                break
+
+              case 'check_box':
+                attributesObj[option.zh] = root[attrNameId].map(item => {
+                  const target = option.values.find(val => val.attributeValueId == item.attrValueId)
+                  if (target) {
+                    // 材质百分比
+                    if (option.showPercent) {
+                      return {
+                        material: {
+                          label: target.name,
+                          value: target.attributeValueId,
+                          key: target.attributeValueId,
+                          option: target
+                        },
+                        percent: item.percent
+                      }
+                    } else {
+                      // 其他多选类型
+                      return {
+                        label: target.name,
+                        value: target.attributeValueId,
+                        key: target.attributeValueId,
+                        option: target
+                      }
+                    }
+                  } else {
+                    return { label: item.attrValue, value: undefined }
+                  }
+                })
+                break
+
+              case 'input':
+              case 'input_int':
+              case 'radio':
+              default:
+                attributesObj[option.zh] = root[attrNameId][0].attrValue
+                break
+            }
+          } else {
+            // 动态添加的下级属性(查不到, 下面查到属性后再狸猫换太子)
+            attributesObj[attrNameId] = {
+              en: root[attrNameId][0].attrValue,
+              value: root[attrNameId][0].attrValueId,
+              option: {
+                en: root[attrNameId][0].attrValue,
+                name: root[attrNameId][0].attrName,
+                attributeValueId: Number(root[attrNameId][0].attrValueId)
+              }
+            }
+          }
+        }
+        // 如果存在下级属性 hasSubAttr
+        for (const zh in attributesObj) {
+          if (Object.prototype.toString.call(attributesObj[zh]).slice(8, -1) === 'Object') {
+            if (attributesObj[zh].option.hasSubAttr) {
+              const i = this.attributeOptions.findIndex(item => item.zh === zh)
+              i > -1 && this.handleAttrChange(attributesObj[zh], i, true)
+            }
+          }
+        }
+        this.attributes = attributesObj
+        // 自定义属性
+        const cusAttributeList = valueList.filter(item => item.attrNameId === -1)
+        cusAttributeList.forEach(item => {
+          this.cusAttribute.push({
+            id: uuidv4(),
+            label: item.attrName,
+            value: item.attrValue
+          })
+        })
+      },
+
       getAccounts() {
         accountCacheApi().then(res => {
           this.accounts = res.data.accountDetail || []
@@ -428,11 +520,56 @@
           })
         })
       },
+      // 获取属性模版列表
+      getAttributeTemplateList() {
+        const params = {
+          sellerId: this.form.sellerId,
+          templateType: 6,
+          productClassification: [this.form.category],
+          state: 1, // 启用
+          pageNum: 1,
+          pageSize: 999
+        }
+
+        templateListApi(params).then(res => {
+          this.attributeTemplateList = res.rows || []
+        })
+      },
+      // 获取变种模版列表
+      getVariantTemplateList() {
+        const params = {
+          sellerId: this.form.sellerId,
+          templateType: 7,
+          productClassification: [this.form.category],
+          state: 1,
+          pageNum: 1,
+          pageSize: 999
+        }
+
+        templateListApi(params).then(res => {
+          const variantTemplateList = res.rows || []
+          this.store.$patch(state => {
+            state.variantTemplateList = variantTemplateList
+          })
+        })
+      },
+      // 填充属性模版内容
+      handleTemplateChange(id, option) {
+        const templateValue = JSON.parse(option.templateValue)
+        // 先清空, 再赋值
+        this.attributes = {}
+        this.cusAttribute = []
+        this.setAttributeValue(templateValue)
+      },
       // 选完分类后获取属性
       getAttributes() {
         if (this.form.categoryIdList.length !== 0) {
           this.form.category = this.form.categoryIdList[this.form.categoryIdList.length - 1]
         }
+        this.attributeTemplateId = undefined
+        this.attributeTemplateList = []
+        this.getAttributeTemplateList()
+        this.getVariantTemplateList()
 
         this.store.$patch(state => {
           state.categoryId = this.form.category
@@ -475,6 +612,8 @@
                 attributeList.forEach(item => {
                   item.zh = JSON.parse(item.names).zh
                   item.en = JSON.parse(item.names).en
+                  // 是否支持材质百分比(有 AE_FEATURE_material_ratio 字段则为需要填写百分比)(check_box)
+                  item.showPercent = item.attributeShowTypeValue === 'check_box' && item.features.includes('AE_FEATURE_material_ratio')
                   item.values.forEach(value => {
                     const names = JSON.parse(value.names)
                     value.name = names.zh + '(' + names.en + ')'
@@ -493,6 +632,9 @@
                     if (val) {
                       this.attributes[item.zh] = [{ label: val.name, value: val.attributeValueId, option: val }]
                     }
+                  } else if (item.showPercent) {
+                    // 填写材质比例
+                    this.attributes[item.zh] = [{ id: uuidv4(), material: undefined, percent: undefined }]
                   } else {
                     this.attributes[item.zh] = []
                   }
@@ -589,6 +731,7 @@
                     this.attributes[PROVINCE] = { value: 100015203, label: '浙江(Zhejiang)', en: 'Zhejiang', option: { attributeValueId: 100015203, name: '浙江(Zhejiang)', en: 'Zhejiang' } }
                   }
                 } else {
+                  // 狸猫换太子
                   attributeList.forEach(item => {
                     const subAttr = this.attributes[item.attributeId]
                     if (subAttr) {
@@ -616,6 +759,13 @@
           value: ''
         })
       },
+      /** 材质百分比 添加/删除 */
+      materialAdd(list) {
+        list.push({ id: uuidv4(), material: undefined, percent: undefined })
+      },
+      materialDel(list, i) {
+        list.splice(i, 1)
+      },
       // 自定义属性 上/下移
       move(type, i) {
         let targetIndex = undefined
@@ -641,13 +791,39 @@
         await this.$refs.attributeFormRef.validate().catch(err => {
           attrValid = false
         })
+        // 校验材质比例; 1. 非空; 2. 重复; 3. 和为 100%
+        let hasMaterialErr = false
+        const materialList = this.attributeOptions.filter(item => item.showPercent).map(item => item.zh)
+        if (materialList.length) {
+          materialList.forEach(key => {
+            // 非空
+            if (this.attributes[key].some(item => !item.material || !item.percent)) {
+              message.warning('材质比例存在空值!')
+              hasMaterialErr = true
+              return
+            }
+            // 判断是否有重复
+            const valList = new Set(this.attributes[key].map(item => item.material.value))
+            if (valList.size !== this.attributes[key].length) {
+              message.warning('材质存在重复值!')
+              hasMaterialErr = true
+              return
+            }
+            // 和为 100
+            const sum = this.attributes[key].reduce((pre, cur) => cur.percent + pre, 0)
+            if (sum !== 100) {
+              message.warning('材质百分比之和须等于 100!')
+              hasMaterialErr = true
+            }
+          })
+        }
         // 自定义属性
         const hasEmpty = this.cusAttribute.some(item => !item.label || !item.value)
         if (hasEmpty) {
           message.warning('请将自定义属性填写完整')
         }
         // 若有校验不通过, return; 阻断下序操作
-        if (!ruleFormValid || !attrValid || hasEmpty) return
+        if (!ruleFormValid || !attrValid || hasEmpty || hasMaterialErr) return
 
         let subjectList = []
         if (Object.keys(this.productDetail).length === 0) {
@@ -675,14 +851,26 @@
               break
             case 'Array':
               // 一个属性多个选中值的情况，以多个该对象存放
-              this.attributes[key].forEach(val => {
-                aeopAeProductPropertys.push({
-                  attrName: key,
-                  attrNameId: tempObj.attributeId,
-                  attrValue: val.label, // 原写法值为: 选择的属性(Object) || 自定义(String)
-                  attrValueId: val.value
+              if (materialList.includes(key)) {
+                this.attributes[key].forEach(val => {
+                  aeopAeProductPropertys.push({
+                    attrName: key,
+                    attrNameId: tempObj.attributeId,
+                    attrValue: val.material.label, // 原写法值为: 选择的属性(Object) || 自定义(String)
+                    attrValueId: val.material.value,
+                    percent: val.percent
+                  })
                 })
-              })
+              } else {
+                this.attributes[key].forEach(val => {
+                  aeopAeProductPropertys.push({
+                    attrName: key,
+                    attrNameId: tempObj.attributeId,
+                    attrValue: val.label, // 原写法值为: 选择的属性(Object) || 自定义(String)
+                    attrValueId: val.value
+                  })
+                })
+              }
               break
             case 'String':
             default:

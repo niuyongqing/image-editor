@@ -10,7 +10,8 @@ export const useAliexpressPopProductStore = defineStore('aliexpressPopProductSto
       SKUTableData: [],
       SKUAttributesCache: {}, // SKU 属性缓存
       isSemiCustodial: false, // 是否为半托商品
-      productDetail: {} // 产品详情
+      productDetail: {}, // 产品详情
+      variantTemplateList: [] // 变种模版列表
     }
   }
 })

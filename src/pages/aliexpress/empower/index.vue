@@ -8,6 +8,15 @@
         :model="searchForm"
       >
         <a-form-item
+          label="店铺ID: "
+          name="sellerId"
+        >
+          <a-input
+            v-model:value="searchForm.sellerId"
+            placeholder="请输入"
+          />
+        </a-form-item>
+        <a-form-item
           label="别名: "
           name="alias"
         >
@@ -29,11 +38,13 @@
         <a-form-item>
           <a-button
             type="primary"
+            :loading="loading"
             @click="search"
             >查询</a-button
           >
           <a-button
             class="ml-[10px]"
+            :loading="loading"
             @click="reset"
             >重置</a-button
           >
@@ -68,6 +79,17 @@
     </a-space>
 
     <a-card>
+      <a-pagination
+        v-model:current="pageParams.pageNum"
+        v-model:pageSize="pageParams.pageSize"
+        class="text-right mb-2"
+        :total="total"
+        :default-page-size="50"
+        show-size-changer
+        show-quick-jumper
+        :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
+        @change="getList"
+      />
       <a-table
         :data-source="tableData"
         :columns="DEFAULT_TABLE_COLUMN"
@@ -75,7 +97,7 @@
         stripe
         bordered
         row-key="sellerId"
-        :pagination="{ defaultPageSize: 50, hideOnSinglePage: true }"
+        :pagination="false"
         :scroll="{ x: 'max-content' }"
       >
         <template #bodyCell="{ column, record, text }">
@@ -186,6 +208,17 @@
           </template>
         </template>
       </a-table>
+      <a-pagination
+        v-model:current="pageParams.pageNum"
+        v-model:pageSize="pageParams.pageSize"
+        class="text-right mt-2"
+        :total="total"
+        :default-page-size="50"
+        show-size-changer
+        show-quick-jumper
+        :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
+        @change="getList"
+      />
     </a-card>
 
     <!-- 批量修改简称弹窗 -->
@@ -255,6 +288,29 @@
         </a-upload>
       </div>
     </a-modal>
+
+    <!-- 即将过期账号列表弹窗 -->
+    <a-modal
+      title="请及时给以下账号重新授权"
+      v-model:open="expireAccountModalOpen"
+      :footer="null"
+    >
+      <a-table
+        :columns="EXPIRE_TABLE_COLUMN"
+        :data-source="expireList"
+        :pagination="false"
+      >
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.title === '过期时间'">
+            <a-tag
+              :bordered="false"
+              :color="getExpireInfo(record.expireTime).color"
+              >{{ getExpireInfo(record.expireTime).text }}</a-tag
+            >
+          </template>
+        </template>
+      </a-table>
+    </a-modal>
   </div>
 </template>
 
@@ -287,13 +343,18 @@
   const route = useRoute()
   const router = useRouter()
   const code = route.query.code
+  const multiTabStore = useMultiTab()
 
   if (code) {
+    const path = route.fullPath
     empowerApi({ code })
       .then(res => {
         message.success('授权成功')
+        // 成功后关闭带路由参数的页面
+        router.push({}).then(() => {
+          multiTabStore.close(path)
+        })
         getList()
-        router.push({ query: {} })
       })
       .catch(() => {
         message.error('授权失败')
@@ -301,7 +362,7 @@
   }
 
   onMounted(() => {
-    getList()
+    getList(true)
     getForbidSale()
   })
 
@@ -309,8 +370,9 @@
 
   const searchFormRef = ref()
   const searchForm = ref({
-    alias: '', // 别名
-    simpleName: '' // 简称
+    sellerId: undefined,
+    alias: undefined, // 别名
+    simpleName: undefined // 简称
   })
   const pageParams = ref({
     pageNum: 1,
@@ -330,7 +392,7 @@
   const tableData = ref([])
   const total = ref(0)
   const loading = ref(false)
-  function getList() {
+  function getList(validateExpire = false) {
     loading.value = true
     const params = {
       ...searchForm.value,
@@ -344,6 +406,14 @@
         })
         tableData.value = list
         total.value = res.total
+
+        // 初次进入授权页面校验一下是否有即将过期的账号(有则弹窗提示)
+        if (validateExpire) {
+          expireList.value = list.filter(item => dayjs(item.expireTime).diff(dayjs(), 'day') < 15)
+          if (expireList.value.length) {
+            expireAccountModalOpen.value = true
+          }
+        }
       })
       .finally(() => {
         loading.value = false
@@ -374,7 +444,7 @@
       text = `剩余${dayDiff}天`
       if (dayDiff > 30) {
         color = 'green'
-      } else if (dayDiff <= 30 && dayDiff > 10) {
+      } else if (dayDiff <= 30 && dayDiff > 15) {
         color = 'lime'
       } else {
         color = 'warning'
@@ -539,4 +609,14 @@
       download.name(res.msg)
     })
   }
+
+  /** 过期提醒弹窗 */
+  const expireAccountModalOpen = ref(false)
+  const expireList = ref([])
+  const EXPIRE_TABLE_COLUMN = ref([
+    { title: '店铺ID', dataIndex: 'sellerId' },
+    { title: '过期时间', dataIndex: 'expireTime' },
+    { title: '账号', dataIndex: 'account' },
+    { title: '简称', dataIndex: 'simpleName' }
+  ])
 </script>
