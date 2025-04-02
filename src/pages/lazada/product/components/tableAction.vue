@@ -107,7 +107,7 @@
     </div>
     <WarehouseSetting ref="warehouseSettingRef" />
     <PriceModal ref="priceModalRef" @success="priceSuccess"></PriceModal>
-    <RemarkModal ref="remarkModalRef" @search="remarkSuccess"></RemarkModal>
+    <RemarkModal ref="remarkModalRef" @success="remarkSuccess"></RemarkModal>
     <StockModal ref="stockModalRef" @success="stockSuccess"></StockModal>
     <SpecialPriceModal ref="specialPriceModalRef" @success="specialPriceSuccess"></SpecialPriceModal>
     <BaseProgess ref="baseProgessRef" v-model:percent="percent" v-model:open="progessOpen" :showSaveBtn="false"
@@ -158,13 +158,13 @@ const handleDeactivated = () => {
         title: '下架',
         content: '是否确认下架？',
         onOk: async () => {
-            // const res = await deactivate({ itemId: record.itemId });
-            // if (res.code === 200) {
-            //     message.success('下架成功');
-            //     emits('success');
-            // } else {
-            //     message.error(res.msg);
-            // }
+            const res = await deactivate({ itemId: record.itemId });
+            if (res.code === 200) {
+                message.success('下架成功');
+                emits('success');
+            } else {
+                message.error(res.msg);
+            }
         },
     })
 };

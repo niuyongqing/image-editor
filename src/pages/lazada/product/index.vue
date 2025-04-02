@@ -274,6 +274,7 @@ const copyText = (text) => {
 const displayedSkus = (record) => {
     return record.show ? record.skus : record.skus.slice(0, 5);
 };
+
 //  重新刷新
 const reload = () => {
     baseTableEl.value.reload();

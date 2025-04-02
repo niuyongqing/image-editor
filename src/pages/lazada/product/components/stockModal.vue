@@ -23,8 +23,8 @@
         </div>
         <p class="pull-left p-top8 f-red f13">注：批量修改后,变种信息将同步更改</p>
         <template #footer>
-            <a-button @click="cancel">取 消</a-button>
-            <a-button type="primary" @click="save">确定</a-button>
+            <a-button :loading="loading" @click="cancel">取 消</a-button>
+            <a-button :loading="loading" type="primary" @click="save">确定</a-button>
         </template>
     </a-modal>
 </template>
@@ -36,6 +36,7 @@ import { message } from 'ant-design-vue';
 const acceptParams = ref({});
 const isBatch = ref(false);
 const dialogVisible = ref(false);
+const loading = ref(false);
 const radio = ref(1);
 const setNum = ref(null);
 const stockRule = ref(null);
@@ -63,6 +64,7 @@ const cancel = () => {
 };
 
 const save = () => {
+    loading.value = true
     const requestParams = isBatch.value
         ? acceptParams.value.map((item) => ({
             shortCode: item.shortCode,
@@ -84,6 +86,8 @@ const save = () => {
                 emit('success');
                 cancel();
             }
+        }).finally(() => {
+            loading.value = false;
         });
 };
 

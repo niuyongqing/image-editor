@@ -22,8 +22,8 @@
         </div>
         <p class="pull-left p-top8 f-red f13">注：所有SKU信息将同步更改</p>
         <template #footer>
-            <a-button @click="cancel">取 消</a-button>
-            <a-button type="primary" @click="save">确定</a-button>
+            <a-button :loading="loading" @click="cancel">取 消</a-button>
+            <a-button type="primary" :loading="loading" @click="save">确定</a-button>
         </template>
     </a-modal>
 </template>
@@ -34,6 +34,7 @@ import { batchPrice } from '@/pages/lazada/product/api';
 const acceptParams = ref({});
 const isBatch = ref(false);
 const dialogVisible = ref(false);
+const loading = ref(false);
 const radio = ref(1);
 const setNum = ref(null);
 const stockRule = ref(null);
@@ -62,6 +63,7 @@ const cancel = () => {
 };
 
 const save = () => {
+    loading.value = true;
     const requestParams = isBatch.value
         ? acceptParams.value.map((item) => ({
             shortCode: item.shortCode,
@@ -85,6 +87,8 @@ const save = () => {
                 emit('success');
                 cancel();
             }
+        }).finally(() => {
+            loading.value = false;
         });
 };
 
