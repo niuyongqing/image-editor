@@ -8,11 +8,12 @@
             <br />
             <!-- 基本信息 -->
             <ozon-base-info ref="ozonBaseInfoRef" id="ozonBaseInfo"
-                :categoryAttributesLoading="categoryAttributesLoading" :shopList="shopList" :attributesCache="attributes"
-                :productDetail="productDetail"></ozon-base-info>
+                :categoryAttributesLoading="categoryAttributesLoading" :shopList="shopList"
+                :attributesCache="attributes" :productDetail="productDetail"></ozon-base-info>
             <br />
             <!-- 描述信息 -->
-            <OzonNewImageInfo ref="ozonImageInfoRef" :productDetail="productDetail" :shopCode="formData.shortCode"></OzonNewImageInfo>
+            <OzonNewImageInfo ref="ozonImageInfoRef" :productDetail="productDetail" :shopCode="formData.shortCode">
+            </OzonNewImageInfo>
 
             <!-- 变种信息. -->
             <OzonVariantInfo ref="ozonNewVariantInfoRef" :attributesCache="attributes" :productDetail="productDetail">
@@ -53,7 +54,7 @@ import {
     isNotEmpty, createAndUpdateBaseObj
 } from '~/pages/ozon/config/commJs/index';
 import { saveTowaitProduct } from "../config/api/waitProduct"
-import { message,Modal } from "ant-design-vue";
+import { message, Modal } from "ant-design-vue";
 const ozonBaseInfoRef = ref(null)
 const ozonImageInfoRef = ref(null)
 const ozonNewVariantInfoRef = ref(null)
@@ -81,7 +82,7 @@ const anchorList = ref([
 ])
 const categoryAttributesLoading = ref(false)
 const formData = reactive({
-  shortCode: ""
+    shortCode: ""
 })
 
 const getProductDetail = (offerId, account) => {
@@ -188,7 +189,7 @@ const onSubmit = async (type = 1) => {
 
             // 过滤无效值
             if (value != null && value !== '') {
-                hisAttr[key] =  key === '品牌(Бренд)' ? '无品牌' : value;
+                hisAttr[key] = key === '品牌(Бренд)' ? '无品牌' : value;
             }
         }
     }
@@ -231,33 +232,33 @@ const onSubmit = async (type = 1) => {
     };
     if (image.coverUrl !== "" && image.video.length > 0) {
         // 创建video对应的baseObj副本并更新value值
-        let videoBaseObj = createAndUpdateBaseObj(image.video, 100002, 21845,type);
+        let videoBaseObj = createAndUpdateBaseObj(image.video, 100002, 21845, type);
         newComplexAttributes.push(videoBaseObj);
 
         // 创建coverUrl对应的baseObj副本并更新value值
         let coverUrlBaseObj = createAndUpdateBaseObj(
             image.coverUrl,
             100001,
-            21841,type
+            21841, type
         );
         newComplexAttributes.push(coverUrlBaseObj);
     } else if (image.coverUrl !== "") {
         let coverUrlBaseObj = createAndUpdateBaseObj(
             image.coverUrl,
             100001,
-            21841,type
+            21841, type
         );
         newComplexAttributes.push(coverUrlBaseObj);
     } else if (image.video.length > 0) {
-        let videoBaseObj = createAndUpdateBaseObj(image.video, 100002, 21845,type);
+        let videoBaseObj = createAndUpdateBaseObj(image.video, 100002, 21845, type);
         newComplexAttributes.push(videoBaseObj);
     }
     console.log("newComplexAttributes", newComplexAttributes);
 
     const resItem = tableDatas.map((item) => {
         const moditAttributes = [];
-        const getDictionaryIdKey =  type === 1 ? 'dictionary_value_id' : 'dictionaryValueId';
-        const getComplexIdKey =  type === 1 ? 'complex_id' : 'complexId';
+        const getDictionaryIdKey = type === 1 ? 'dictionary_value_id' : 'dictionaryValueId';
+        const getComplexIdKey = type === 1 ? 'complex_id' : 'complexId';
         const createValueObj = (newId, newVal) => ({
             [getDictionaryIdKey]: newId || 0,
             value: newVal instanceof Array ? newVal.split(",") : newVal || "",
@@ -421,7 +422,7 @@ const onSubmit = async (type = 1) => {
             historyAttributes: hisAttr,
             descriptionCategoryId:
                 base.categoryId.secondCategoryId, // 二级id
-                typeId: base.categoryId.threeCategoryId, // 三级分id
+            typeId: base.categoryId.threeCategoryId, // 三级分id
         }
         saveTowaitProduct(waitParams).then(res => {
             message.success(res.msg);
@@ -451,8 +452,9 @@ const handleOk = () => {
 onMounted(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const rowId = urlParams.get('id');
+    const decodedId = decodeURIComponent(rowId); //解译
     const rowAccount = urlParams.get('account');
-    getProductDetail(rowId, rowAccount)
+    getProductDetail(decodedId, rowAccount)
     getAccount()
 })
 </script>

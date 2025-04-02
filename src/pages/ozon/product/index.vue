@@ -203,7 +203,7 @@
                                 <a-checkbox style="margin:0 10px;" @change="handelChecked($event, tbItem, record)"
                                     v-model:checked="record.checked"></a-checkbox>
                                 <div class="flex text-left items-center">
-                                    <a-image style="width: 100px; height: 100px;" :src="record.primaryImage ? processImageSource(record.primaryImage[0]) : processImageSource(record.images[0])
+                                    <a-image style="width: 100px; height: 100px;" :src="record.primaryImage && record.primaryImage.length > 0 ? processImageSource(record.primaryImage[0]) : processImageSource(record.images[0])
                                         ">
                                     </a-image>
                                     <div style="margin-left: 10px; display: block">
@@ -241,6 +241,9 @@
                                             float: 'left',
                                         }">
                                             备注:{{ record.remark }}
+                                        </div>
+                                        <div style="color: red;" v-if="record.bathErrorInfo">
+                                            失败原因:{{ record.bathErrorInfo }}
                                         </div>
                                     </div>
                                 </div>
@@ -868,7 +871,7 @@ const storChange = (item) => {
 };
 
 // 表单搜索
-const onSubmit = (type = false) => { getList(type) }
+const onSubmit = (type = false) => { getList(type); setUncheck() }
 
 // 标签页切换
 const handleClick = activeKey => {
@@ -1157,6 +1160,8 @@ function clearStock(data) {
 }
 
 const setUncheck = () => {
+    allChecked.value = false
+    selectedRows.value = [];
     tableData.value.forEach(item => {
         item.tabAllChecked = false
         item.children.forEach(child => {
@@ -1272,7 +1277,8 @@ const edit = (row = {}) => {
     // console.log('**', row, selectedRows.value);
     let newRow = Object.keys(row).length != 0 ? row : selectedRows.value[0];
     // console.log('newRow', newRow);
-    window.open("editProductPublish" + `?id=${newRow.offerId}&account=${newRow.account}`, '_blank');
+    let newRowId = encodeURIComponent(newRow.offerId); //转译
+    window.open("editProductPublish" + `?id=${newRowId}&account=${newRow.account}`, '_blank');
 }
 const sync = () => {
     syncLoading.value = true;

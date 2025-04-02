@@ -398,7 +398,7 @@ watch(() => props.content, val => {
     let textObj = deepClone(textDefault)
     let imgObj = deepClone(imgDefaulet)
     let imgTextObj = deepClone(imgTextDefaulet)
-    content.forEach(item => {
+    content?.forEach(item => {
       if (item.widgetName === 'raTextBlock') {
         item.title.content.join('\n')
         // console.log('content', typeof item.title.content.join('\n'));
@@ -1218,8 +1218,8 @@ let ozonTImg = {
   "blocks": [{
     "imgLink": "",
     "img": {
-      "src": "https://wxalbum-10001658.image.myqcloud.com//wxalbum/377880/20250224171417/566d8c629d53c5dfefc3fa0f2ea37528.jpg",
-      "srcMobile": "https://wxalbum-10001658.image.myqcloud.com//wxalbum/377880/20250224171417/566d8c629d53c5dfefc3fa0f2ea37528.jpg",
+      "src": "",
+      "srcMobile": "",
       "alt": "",
       "position": "width_full",
       "positionMobile": "width_full",
@@ -1241,8 +1241,8 @@ let ozonTImg = {
   }, {
     "imgLink": "",
     "img": {
-      "src": "https://wxalbum-10001658.image.myqcloud.com//wxalbum/377880/20250224171841/c1afdb18373340462cb4a5c14314f8e0.jpg",
-      "srcMobile": "https://wxalbum-10001658.image.myqcloud.com//wxalbum/377880/20250224171841/c1afdb18373340462cb4a5c14314f8e0.jpg",
+      "src": "",
+      "srcMobile": "",
       "alt": "",
       "position": "width_full",
       "positionMobile": "width_full",
@@ -1404,7 +1404,7 @@ function save() {
   const newData = res.map(item => {
     return {
       ...item,
-      blocks: item.blocks.map(block => {
+      blocks: item?.blocks?.map(block => {
         return {
           ...block,
           img: {

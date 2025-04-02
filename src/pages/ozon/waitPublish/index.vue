@@ -71,11 +71,11 @@
                   </a-menu-item>
                 </a-menu>
               </template>
-              <a-button>
-                批量操作
-              </a-button>
-            </a-dropdown>
-          </a-col> -->
+<a-button>
+  批量操作
+</a-button>
+</a-dropdown>
+</a-col> -->
           <a-col :span="1.5">
             <a-button type="primary" @click="addRemark()" :disabled="selectedRowList.length === 0">批量修改备注</a-button>
           </a-col>
@@ -99,7 +99,8 @@
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'name'">
             <div class="flex text-left">
-              <a-image :width="100" :src="record?.skuList[0]?.primaryImage ? processImageSource(record?.skuList[0]?.primaryImage[0]) : processImageSource(record?.skuList[0]?.images[0]) " />
+              <a-image :width="100"
+                :src="record?.skuList[0]?.primaryImage && record?.skuList[0]?.primaryImage.length > 0 ? processImageSource(record?.skuList[0]?.primaryImage[0]) : processImageSource(record?.skuList[0]?.images[0])" />
               <div class="ml-2.5 block">
                 <a-tooltip class="item" effect="dark" :title="record.name" placement="top"
                   style="overflow-wrap: break-word">
@@ -134,15 +135,14 @@
                 当前售价：<span style="color: #9e9f9e">{{ item.price }}</span>
                 <a-divider type="vertical"></a-divider>
                 库存：
-                <a-tooltip style="margin-right: 10px" effect="dark" placement="top"
-                    v-if="item.warehouseList">
-                    <template #title>
-                        <div v-for="(el, ind) in item.warehouseList" :key="ind">
-                            <span>{{ el.warehouseName }}</span>:
-                            <span>{{ el.present ? el.present : 0 }}</span>
-                        </div>
-                    </template>
-                    <span style="color: #1677ff">{{ item.stock }}</span>
+                <a-tooltip style="margin-right: 10px" effect="dark" placement="top" v-if="item.warehouseList">
+                  <template #title>
+                    <div v-for="(el, ind) in item.warehouseList" :key="ind">
+                      <span>{{ el.warehouseName }}</span>:
+                      <span>{{ el.present ? el.present : 0 }}</span>
+                    </div>
+                  </template>
+                  <span style="color: #1677ff">{{ item.stock }}</span>
                 </a-tooltip>
               </div>
               <div v-if="record.skuList && record.skuList.length > 3">

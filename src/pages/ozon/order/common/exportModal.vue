@@ -1,7 +1,6 @@
 <template>
   <div id="exportModalCont">
-    <a-modal :open="props.openExModal" title="导出订单" @ok="handleOk" @cancel="handleCancel" :width="'40%'"
-      :maskClosable="false" :keyboard="false">
+    <a-modal :open="props.openExModal" title="导出订单" @cancel="handleCancel" :width="'30%'" :maskClosable="false" :keyboard="false">
       <a-form :model="formState" ref="formRef">
         <a-form-item label="订单状态：" v-if="props.isTimes">
           <selectComm :options="orderTypeList" :fieldObj="orderObj" @backSelectAll="orderSelectAll"
@@ -26,13 +25,17 @@
           </a-select>
         </a-form-item>
       </a-form>
+      <template #footer>
+        <a-button :loading="loading" @click="handleCancel">取消</a-button>
+        <a-button type="primary" :loading="loading" @click="handleOk">确定</a-button>
+      </template>
     </a-modal>
   </div>
 </template>
 
 <script setup name='exportModal'>
 import { ref, reactive, onMounted, computed, watchPostEffect } from "vue";
-// import { orderExport } from "../../js/api/order"
+import { orderExport } from "../../config/api/order"
 import download from "@/api/common/download";
 import { message } from "ant-design-vue";
 import dayjs from 'dayjs'
@@ -46,11 +49,12 @@ const props = defineProps({
 });
 // 使用defineEmits获取emit函数
 const emit = defineEmits(["update:openExModal", "backRefresh"]);
+const loading = ref(false);
 const formRef = ref();
 const formState = reactive({
   orderStatus: "",
   exportType: 1,
-  timeType: "orderDate",
+  timeType: "inProcessAt",
   times: [],
   sTime: "",
   endTime: "",
@@ -62,58 +66,46 @@ const orderObj = ref({
 });
 const orderTypeList = ref([
   {
-    name: "未付款",
-    status: 1,
+    name: "待打包",
+    status: "awaiting_packaging",
   },
   {
-    name: "风控中",
-    status: 2,
+    name: "已取消",
+    status: "cancelled",
   },
   {
-    name: "待审核",
-    status: 3,
+    name: "配送中",
+    status: "delivering",
   },
   {
-    name: "待处理",
-    status: 4,
+    name: "即将送达",
+    status: "last-mile",
   },
   {
-    name: "待打单（有货）",
-    status: 5,
+    name: "已送达",
+    status: "delivered",
   },
   {
-    name: "待打单（缺货）",
-    status: 6,
+    name: "待配送",
+    status: "awaiting_deliver",
   },
   {
-    name: "待打单（异常）",
-    status: 7,
-  },
-  {
-    name: "已发货",
-    status: 8,
-  },
-  {
-    name: "已退款",
-    status: 9,
-  },
-  {
-    name: "已忽略",
-    status: 10,
-  },
+    name: "卖家已发货",
+    status: "sent_by_seller",
+  }
 ]);
 const timeOptions = ref([
   {
     label: "下单时间",
-    value: "orderDate"
+    value: "inProcessAt"
   },
   {
     label: "付款时间",
-    value: "orderPostedDate"
+    value: "paymentDate"
   },
   {
     label: "发货时间",
-    value: "3"
+    value: "deliveryDateBegin"
   }
 ])
 const exportOptions = ref([
@@ -133,11 +125,10 @@ const exportOptions = ref([
 
 // 订单全选和单选
 const orderSelectAll = () => {
-  console.log("1");
+  formState.orderStatus = "";
 };
 const orderSelectItem = (val) => {
-  console.log("2", val);
-  //   formState.shopId = account;
+  formState.orderStatus = val;
 };
 // 时间切换
 const onRangeChange = (value, dateString) => {
@@ -146,38 +137,64 @@ const onRangeChange = (value, dateString) => {
 };
 
 const handleOk = () => {
-  console.log('props', props);
-  console.log('formState', formState);
   const { exportWay, incomingForm: { account }, selectedRowKeys } = props;
   const { orderStatus, timeType, sTime, endTime, exportFileType } = formState;
-  if(!sTime && !endTime) {
-    message.error("请先选择时间！")
-    return
+  // 定义不同 exportWay 对应的验证规则和错误信息
+  const validationRules = {
+    1: {
+      condition: () => !sTime && !endTime,
+      errorMessage: "请先选择时间！"
+    },
+    2: {
+      condition: () => selectedRowKeys.length === 0,
+      errorMessage: "请勾选数据！"
+    }
+  };
+
+  // 根据 exportWay 进行验证
+  const validationResult = validationRules[exportWay];
+  if (validationResult && validationResult.condition()) {
+    message.error(validationResult.errorMessage);
+    return;
   }
+
+  loading.value = true
   let params = {
     type: exportWay,
     account,
-    orderStatus: "当type等于时需要使用,订单状态", //后续知道状态后补充
-    // orderIds: exportWay == 2 ? selectedRowKeys : [],
+    orderStatus, //后续知道状态后补充
+    orderIds: exportWay == 2 ? selectedRowKeys.map(item => item) : [],
     timeField: exportWay == 1 ? timeType : "",
-    startDate:  dayjs(sTime).startOf('day').format('YYYY-MM-DD HH:mm:ss'),
-    endDate:  dayjs(endTime).endOf('day').format('YYYY-MM-DD HH:mm:ss'),
+    startDate: exportWay == 1 ? dayjs(sTime).startOf('day').format('YYYY-MM-DD HH:mm:ss') : "",
+    endDate: exportWay == 1 ? dayjs(endTime).endOf('day').format('YYYY-MM-DD HH:mm:ss') : "",
     // exportType,
     exportFileType
   }
   console.log('params', params);
 
-  // orderExport(params).then(res => {
-  //   download.name(res.msg);
-  // }).finally(() => {
-  //   formRef.value.resetFields();
-  //   emit("update:openExModal", false);
-  //   emit("backRefresh")
-  // })
+  orderExport(params).then(res => {
+    download.name(res.msg);
+  }).finally(() => {
+    loading.value = false
+    formRef.value.resetFields();
+    clearForm();
+    emit("update:openExModal", false);
+    emit("backRefresh")
+  })
+}
+const clearForm = () => {
+  formState.orderStatus = "";
+  formState.exportType = 1
+  formState.timeType = "inProcessAt"
+  formState.times = []
+  formState.sTime = ""
+  formState.endTime = ""
+  formState.exportFileType = 1
 }
 const handleCancel = () => {
   emit("update:openExModal", false);
   formRef.value.resetFields();
+  clearForm();
 }
 </script>
 <style lang="less" scoped></style>
