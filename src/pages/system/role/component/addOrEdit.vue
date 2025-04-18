@@ -71,6 +71,11 @@ watchEffect(() => {
         halfChecked: []
       }
     })
+  } else {
+    checkedKeys.value = {
+      checked: [dashboardId, ...dashboardChildrenIds],
+      halfChecked: []
+    }
   }
   if (props.open && props.menu) {
     menuIds.value = getAllIds(props.menu)
@@ -108,7 +113,7 @@ const labelCol = {
 
 function handleOk() {
   loading.value = true;
-  formData.value.menuId = list
+  formData.value.menuId = checkedKeys.value.checked
   if (props.title === '新增角色') {
     addRoleApi(formData.value).then(res => {
       resFunc(res)
