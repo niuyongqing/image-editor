@@ -16,11 +16,13 @@
           <a-textarea v-model:value="formData.remark" :rows="2"></a-textarea>
         </a-form-item>
         <a-form-item label="菜单权限" name="menuId">
-          <div style="text-align: right"><a-checkbox v-model:checked="selectAll">全选</a-checkbox></div>
+          <div style="text-align: right"><a-checkbox v-model:checked="selectAll" @change="checkAll">全选</a-checkbox>
+          </div>
           <a-card style="height: 500px">
-            <a-tree :height="500" v-model:checkedKeys="checkedKeys" checkable :tree-data="menu"
-              :field-names="{ title: 'title', key: 'id', children: 'children' }"></a-tree>
+            <a-tree :height="500" v-model:checkedKeys="checkedKeys" checkable checkStrictly :tree-data="menu"
+              :field-names="{ title: 'title', key: 'id', children: 'children' }" @check="checkTree"></a-tree>
           </a-card>
+
         </a-form-item>
         <a-form-item style="display: flex; text-align: right">
           <a-button @click="close" style="margin-right: 10px">取消</a-button>
@@ -57,22 +59,46 @@ watchEffect(() => {
     const dashboardChildren = dashboardItem.children || [];
     dashboardChildrenIds = dashboardChildren.map((item) => item.id) || [];
   }
+
   if (props.data.roleId) {
     getRoleByIdApi({ roleId: props.data.roleId }).then(res => {
       formData.value = res.data
-      checkedKeys.value = props.data.menuId ? props.data.menuId : [dashboardId, ...dashboardChildrenIds]
+      checkedKeys.value = props.data.menuId ? {
+        checked: [dashboardId, ...dashboardChildrenIds],
+        halfChecked: []
+      } : {
+        checked: [dashboardId, ...dashboardChildrenIds],
+        halfChecked: []
+      }
     })
   }
   if (props.open && props.menu) {
     menuIds.value = getAllIds(props.menu)
   }
-  if (selectAll.value) {
-    checkedKeys.value = menuIds.value
-  } else {
-    checkedKeys.value = [dashboardId, ...dashboardChildrenIds]
-  }
 });
 
+const checkAll = () => {
+  // 找到仪表页面的id和下面的所有菜单id
+  const dashboardItem = props.menu.find((item) => item.path === '/platform/dashboard');
+  let dashboardId = null;
+  let dashboardChildrenIds = [];
+  if (dashboardItem) {
+    dashboardId = dashboardItem.id;
+    const dashboardChildren = dashboardItem.children || [];
+    dashboardChildrenIds = dashboardChildren.map((item) => item.id) || [];
+  }
+  if (selectAll.value) {
+    checkedKeys.value = {
+      checked: menuIds.value,
+      halfChecked: []
+    }
+  } else {
+    checkedKeys.value = {
+      checked: [dashboardId, ...dashboardChildrenIds],
+      halfChecked: []
+    }
+  }
+}
 
 const labelCol = {
   style: {
@@ -128,6 +154,26 @@ function close() {
   emit('close', false);
 }
 
+
+const checkTree = (keys, { checked, checkedNodes, node, event }) => {
+  //   是父节点
+  if (!node.parent) {
+    if (checked) {
+      const ids = node.children.map((item) => item.id);
+      checkedKeys.value.checked = Array.from(new Set([...checkedKeys.value.checked, ...ids]));
+    } else {
+      checkedKeys.value.checked = checkedKeys.value.checked.filter((item) => !node.children.some((child) => child.id === item));
+    }
+  } else {
+    //  非父节点
+    const currentNodeIds = node.parent.children.map((item) => item.key);
+    if (currentNodeIds.every((id) => checkedKeys.value.checked.includes(id))) {
+      checkedKeys.value.checked.push(node.parent.key);
+    } else {
+      checkedKeys.value.checked = checkedKeys.value.checked.filter((id) => id !== node.parent.key);
+    }
+  }
+}
 
 </script>
 <style scoped lang="less"></style>
