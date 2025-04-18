@@ -64,7 +64,7 @@ watchEffect(() => {
     getRoleByIdApi({ roleId: props.data.roleId }).then(res => {
       formData.value = res.data
       checkedKeys.value = props.data.menuId ? {
-        checked: [dashboardId, ...dashboardChildrenIds],
+        checked: props.data.menuId,
         halfChecked: []
       } : {
         checked: [dashboardId, ...dashboardChildrenIds],
