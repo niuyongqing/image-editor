@@ -1,9 +1,10 @@
 <template>
-  <a-modal :open="props.open" :title="title"  :confirm-loading="loading" html-type="submit" :footer="null" :closable="false" :destroyOnClose="true">
+  <a-modal :open="props.open" :title="title" :confirm-loading="loading" html-type="submit" :footer="null"
+    :closable="false" :destroyOnClose="true">
     <a-card>
-      <a-form :model="formData"  label-align="right" @finish="handleOk" :label-col="labelCol" >
+      <a-form :model="formData" label-align="right" @finish="handleOk" :label-col="labelCol">
         <a-form-item label="角色名" name="roleName" :rules="[{ required: true }]">
-          <a-input v-model:value="formData.roleName" ></a-input>
+          <a-input v-model:value="formData.roleName"></a-input>
         </a-form-item>
         <a-form-item label="排序" name="sort" :rules="[{ required: true }]">
           <a-input-number v-model:value="formData.sort" style="width: 100%"></a-input-number>
@@ -17,7 +18,8 @@
         <a-form-item label="菜单权限" name="menuId">
           <div style="text-align: right"><a-checkbox v-model:checked="selectAll">全选</a-checkbox></div>
           <a-card style="height: 500px">
-            <a-tree :height="500" v-model:checkedKeys="checkedKeys" checkable :tree-data="menu" :field-names="{title:'title',key:'id',children:'children'}"></a-tree>
+            <a-tree :height="500" v-model:checkedKeys="checkedKeys" checkable :tree-data="menu"
+              :field-names="{ title: 'title', key: 'id', children: 'children' }"></a-tree>
           </a-card>
         </a-form-item>
         <a-form-item style="display: flex; text-align: right">
@@ -29,36 +31,45 @@
   </a-modal>
 </template>
 <script setup lang="js">
-import {ref} from "vue";
+import { ref } from "vue";
 import { message } from 'ant-design-vue';
-import {addRoleApi,getRoleByIdApi,editRoleApi} from "~/api/common/role";
+import { addRoleApi, getRoleByIdApi, editRoleApi } from "~/api/common/role";
 const emit = defineEmits(['close']);
 const props = defineProps({
-  open:{ type: Boolean, required: true, default:false },
-  title:{type:String, required: true, default:''},
-  data:{type:Object,required: false, default:{}},
-  menu:{type:Array,required: true, default:[]},
+  open: { type: Boolean, required: true, default: false },
+  title: { type: String, required: true, default: '' },
+  data: { type: Object, required: false, default: {} },
+  menu: { type: Array, required: true, default: [] },
 })
 const checkedKeys = ref([]) // 已选择
 const loading = ref(false);
-const formData = ref({status:'0',menuId:[]});
+const formData = ref({ status: '0', menuId: [] });
 const menuIds = ref([])
 const selectAll = ref(false)
 
-watchEffect(()=>{
-  if(props.data.roleId){
-    getRoleByIdApi({roleId:props.data.roleId}).then(res=>{
+watchEffect(() => {
+  // 找到仪表页面的id和下面的所有菜单id
+  const dashboardItem = props.menu.find((item) => item.path === '/platform/dashboard');
+  let dashboardId = null;
+  let dashboardChildrenIds = [];
+  if (dashboardItem) {
+    dashboardId = dashboardItem.id;
+    const dashboardChildren = dashboardItem.children || [];
+    dashboardChildrenIds = dashboardChildren.map((item) => item.id) || [];
+  }
+  if (props.data.roleId) {
+    getRoleByIdApi({ roleId: props.data.roleId }).then(res => {
       formData.value = res.data
-      checkedKeys.value =  props.data.menuId?props.data.menuId:[]
+      checkedKeys.value = props.data.menuId ? props.data.menuId : [dashboardId, ...dashboardChildrenIds]
     })
   }
-  if(props.open && props.menu){
+  if (props.open && props.menu) {
     menuIds.value = getAllIds(props.menu)
   }
-  if(selectAll.value){
-    checkedKeys.value =  menuIds.value
-  }else {
-    checkedKeys.value =  []
+  if (selectAll.value) {
+    checkedKeys.value = menuIds.value
+  } else {
+    checkedKeys.value = [dashboardId, ...dashboardChildrenIds]
   }
 });
 
@@ -70,26 +81,27 @@ const labelCol = {
 };
 
 function handleOk() {
-  formData.value.menuId = checkedKeys.value
-  if(props.title === '新增角色'){
-    addRoleApi(formData.value).then(res=>{
+  loading.value = true;
+  formData.value.menuId = list
+  if (props.title === '新增角色') {
+    addRoleApi(formData.value).then(res => {
       resFunc(res)
     })
   }
-  if(props.title === '编辑角色') {
+  if (props.title === '编辑角色') {
     editRoleApi(formData.value).then(res => {
       resFunc(res)
     })
   }
 }
 
-function resFunc(res){
-  if(res.code == 200){
+function resFunc(res) {
+  if (res.code == 200) {
     message.success(res.msg);
-    formData.value = {status:'0',menuId:[]}
+    formData.value = { status: '0', menuId: [] }
     checkedKeys.value = []
     close()
-  }else {
+  } else {
     message.error(res.msg);
   }
 }
@@ -109,13 +121,13 @@ function getAllIds(data) {
 }
 
 function close() {
-  formData.value = {status:'0',menuId:[]};
+  formData.value = { status: '0', menuId: [] };
   menuIds.value = []
   checkedKeys.value = []
   selectAll.value = false
   emit('close', false);
 }
-</script>
-<style scoped lang="less">
 
-</style>
+
+</script>
+<style scoped lang="less"></style>
