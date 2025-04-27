@@ -1,15 +1,15 @@
 <template>
   <div>
-    <a-modal title="选择类目" :open="selectVisible" :maskClosable="false" @cancel="handleClose" :width="'35%'"
-      :keyboard="false">
-      <div>
+    <a-modal title="选择类目" :open="selectVisible" :maskClosable="false" @cancel="handleClose" :width="'53%'"
+      :keyboard="false" class="cascaderModal">
+      <div style="margin-top: 20px;margin-bottom: 30%;">
         <!-- @change="getAttributes" filterable -->
-        <a-cascader style="width: 80%; margin-bottom: 5px" clearable v-model:value="attributesValue" :options="categoryTreeList"
-          ref="cascaderNode" showSearch @change="getAttributes" :fieldNames="{
+        <a-cascader style="width: 80%; margin-bottom: 5px" clearable v-model:value="attributesValue"
+          :options="categoryTreeList" ref="cascaderNode" showSearch @change="getAttributes" :fieldNames="{
             value: 'descriptionCategoryId',
             label: 'categoryName',
             children: 'children',
-          }"></a-cascader>
+          }" :open="setOpen" popupClassName="popupCascaderModal"></a-cascader>
       </div>
       <template #footer>
         <a-button @click="handleClose">取 消</a-button>
@@ -31,20 +31,28 @@ const loading = ref(false)
 const attributesValue = ref([])
 const categoryId = ref({})
 const selectedNodeName = ref({})
+const setOpen = ref(true)
+
+watch(() => props.selectVisible, (val) => {
+  if (val) {
+    setOpen.value = true
+  }
+})
 
 // 关闭弹窗
 const handleClose = () => {
   emit("handleEditClose");
-  categoryId.value = {};
-  attributesValue.value = [];
+  // categoryId.value = {};
+  setOpen.value = false;
+  // attributesValue.value = [];
 }
 const submit = () => {
   if (attributesValue.value.length == 0) {
     message.error("请先选则分类")
     return
   }
-  console.log('categoryId',categoryId.value);
-  
+  console.log('categoryId', categoryId.value);
+
   emit("getAttributesID", categoryId.value);
   handleClose()
 }
@@ -58,4 +66,17 @@ const getAttributes = (value, selectedOptions) => {
 }
 </script>
 
-<style lang="less" scoped></style>
+<style lang="less">
+.popupCascaderModal {
+  .ant-cascader-menus .ant-cascader-menu {
+    height: 350px !important; // 设置具体高度值
+
+    .ant-cascader-menu-item .ant-cascader-menu-item-content {
+      width: 260px !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+  }
+}
+</style>

@@ -134,7 +134,8 @@
                         <a-button type="primary" @click="edit()" :disabled="selectedRows.length !== 1">编 辑</a-button>
                     </a-col>
                     <a-col :span="1.5">
-                        <a-button type="primary" @click="copy()" :disabled="selectedRows.length === 0">复 制</a-button>
+                        <a-button type="primary" @click="copyItems()" :disabled="selectedRows.length === 0">复
+                            制</a-button>
                     </a-col>
                     <a-col :span="1.5">
                         <a-button type="primary" @click="sync()" :loading="syncLoading">同步店铺商品</a-button>
@@ -178,7 +179,7 @@
             </div>
             <div class="outContent" v-loading="loading">
                 <div class="topHeader">
-                    <a-checkbox style="margin-right: 90px;" v-model:checked="allChecked"
+                    <a-checkbox style="margin-right: 70px;" v-model:checked="allChecked"
                         @change="allChangeBox"></a-checkbox>
                     <a-table style="width: 100%;height: 39px;" class="fixedTable" :columns="dropCol">
                     </a-table>
@@ -214,28 +215,22 @@
                                             <div class="w-110 truncate">{{ record.name }}</div>
                                         </a-tooltip>
                                         <div style="color: #999; float: left">
-                                            产品ID：<a style="color: #1677ff" href="#" @click="jumpTo(record.id)">{{
-                                                record.id }}</a>
+                                            产品ID：
+                                            <a-tooltip placement="top">
+                                                <template #title>
+                                                    <span style="cursor: pointer" @click="copyText(record.id)">复制</span>
+                                                </template>
+                                                <a style="color: #1677ff" href="#" @click="jumpTo(record.id)">{{
+                                                    record.id }}</a>
+                                            </a-tooltip>
+
                                         </div>
                                         <br />
                                         <div style="color: #999; float: left">
                                             店铺: {{ record.simpleName }}
                                         </div>
                                         <br />
-                                        <div style="color: #1677ff; float: left">
-                                            SKU: {{ record.offerId }}
-                                        </div>
-                                        <br />
-                                        <div style="color: #428bca; float: left; cursor: pointer" @click="
-                                            showChildren(
-                                                record.account,
-                                                tbItem.attributeId,
-                                                record.typeId
-                                            )
-                                            ">
-                                            已合并:{{ tbItem.count }}
-                                        </div>
-                                        <br />
+
                                         <div :style="{
                                             color: record.remarkColor ? 'green' : 'red',
                                             float: 'left',
@@ -251,89 +246,43 @@
                             <div v-if="column.dataIndex === 'state'">
                                 <a-tag :bordered="false" color="processing" v-if="record.state === '平台审核'">{{
                                     record.state
-                                }}</a-tag>
+                                    }}</a-tag>
                                 <a-tag :bordered="false" color="success" v-if="record.state === '在售'">{{ record.state
-                                    }}</a-tag>
+                                }}</a-tag>
                                 <a-tag :bordered="false" color="warning" v-if="record.state === '审核不通过'">{{ record.state
-                                    }}</a-tag>
+                                }}</a-tag>
                                 <a-tag :bordered="false" color="error" v-if="record.state === '准备出售'">{{ record.state
-                                    }}</a-tag>
+                                }}</a-tag>
                                 <a-tag :bordered="false" color="default" v-if="record.state === '已归档'">{{ record.state
-                                    }}</a-tag>
+                                }}</a-tag>
                             </div>
                             <div v-if="column.dataIndex === 'sku'" style="text-align: left">
                                 <div>
+                                    <div style="color: #1677ff;cursor: pointer">
+                                        <!-- SKU: {{ record.offerId }} -->
+                                        <a-tooltip placement="topLeft">
+                                            <template #title>
+                                                <span style="cursor: pointer"
+                                                    @click="copyText(record.offerId)">复制</span>
+                                            </template>
+                                            <div>{{ record.offerId }}</div>
+                                        </a-tooltip>
+                                    </div>
+                                    <div style="color: #428bca; cursor: pointer" @click="
+                                        showChildren(
+                                            record.account,
+                                            tbItem.attributeId,
+                                            record.typeId
+                                        )
+                                        ">
+                                        已合并:{{ tbItem.count }}
+                                    </div>
                                     <div>
                                         促销活动价：<span style="color: #1677ff">{{
                                             record.marketingPrice ? record.marketingPrice : "暂未参加活动"
-                                        }}</span>
-                                        <a-divider type="vertical"></a-divider>
-                                        最低价：<span style="color: #1677ff"
-                                            v-if="record.minPrice && !(minPriceVisible && itemId == record.id)">CNY {{
-                                                record.minPrice
-                                            }}</span><span v-if="!record.minPrice">---</span>
-                                        <div v-if="minPriceVisible" class="inline-block">
-                                            <a-input type="number" class="mr-2.5 w-30" v-model:value="record.minPrice"
-                                                placeholder="请输原价格"></a-input>
-                                            <a-button class="mr-2.5" @click="minPriceVisible = false">取消</a-button>
-                                            <a-button type="primary" :loading="loading"
-                                                @click="checkOldPrice(record)">确定</a-button>
-                                        </div>
-                                        <AsyncIcon v-if="!(minPriceVisible && itemId == record.id) && record.minPrice"
-                                            style="cursor: pointer; color: #1677ff" icon="EditOutlined"
-                                            @click="handelEditminPrice(record)">
-                                        </AsyncIcon>
+                                            }}</span>
                                     </div>
                                     <div>
-                                        当前售价：<span style="color: #1677ff"
-                                            v-if="!(priceVisible && itemId == record.id)">{{ record.currencyCode }} {{
-                                                record.price
-                                            }}</span>
-                                        <div v-else class="inline-block">
-                                            <a-input type="number" class="mr-2.5 w-30" v-model:value="record.price"
-                                                placeholder="请输原价格"></a-input>
-                                            <a-button class="mr-2.5" @click="priceVisible = false">取消</a-button>
-                                            <a-button type="primary" :loading="loading"
-                                                @click="checkOldPrice(record)">确定</a-button>
-                                        </div>
-                                        <AsyncIcon v-if="!(priceVisible && itemId == record.id)" icon="EditOutlined"
-                                            style="cursor: pointer; color: #1677ff" @click="editSinglePrice(record)">
-                                        </AsyncIcon>
-                                        <a-divider type="vertical"></a-divider>
-                                        原价：<span style="color: #1677ff"
-                                            v-if="!(singleVisible && itemId == record.id)">{{ record.currencyCode }} {{
-                                                record.oldPrice
-                                            }}</span>
-                                        <div v-else class="inline-block">
-                                            <a-input type="number" class="mr-2.5 w-30" v-model:value="record.oldPrice"
-                                                placeholder="请输原价格"></a-input>
-                                            <a-button class="mr-2.5" @click="singleVisible = false">取消</a-button>
-                                            <a-button type="primary" :loading="loading"
-                                                @click="checkOldPrice(record)">确定</a-button>
-                                        </div>
-                                        <AsyncIcon v-if="!(singleVisible && itemId == record.id)"
-                                            style="cursor: pointer; color: #1677ff" icon="EditOutlined"
-                                            @click="handelEditPrice(record)">
-                                        </AsyncIcon>
-                                    </div>
-                                    <div>
-                                        库存：
-                                        <a-tooltip style="margin-right: 10px" effect="dark" placement="top"
-                                            v-if="record.warehouseList">
-                                            <template #title>
-                                                <div v-for="(item, index) in record.warehouseList" :key="index">
-                                                    <span>{{ item.warehouseName }}</span>:
-                                                    <span>{{ item.present ? item.present : 0 }}</span>
-                                                </div>
-                                            </template>
-                                            <span style="color: #1677ff">{{ record.stock }}</span>
-                                        </a-tooltip>
-                                        <span v-else style="color: #1677ff; margin-right: 10px">{{
-                                            record.stock
-                                        }}</span>
-                                        <AsyncIcon style="cursor: pointer; color: #1677ff" icon="EditOutlined" v-if="
-                                            record.state != '审核不通过' && record.state != '已归档'
-                                        " @click="editStock(record)"></AsyncIcon>
                                         <div style="display: flex">
                                             <span>内容质量分:</span>
                                             <div v-if="record.productsScore">
@@ -367,7 +316,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[0].score
-                                                                    }}分</span>
+                                                                        }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -410,7 +359,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[1].score
-                                                                    }}分</span>
+                                                                        }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -453,7 +402,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[2].score
-                                                                    }}分</span>
+                                                                        }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -496,7 +445,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[3].score
-                                                                    }}分</span>
+                                                                        }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -513,13 +462,82 @@
                                                     </template>
                                                     <span style="margin-left: 10px;color: #1677ff;cursor: pointer;">{{
                                                         record.productsScore[0].rating
-                                                    }}分</span>
+                                                        }}分</span>
                                                 </a-popover>
                                             </div>
                                             <span v-else class="ml-2.5">{{ 0.0 }}分</span>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                            <div v-if="column.dataIndex === 'price'">
+                                <span style="color: #1677ff" v-if="!(priceVisible && itemId == record.id)">{{
+                                    record.currencyCode }} {{
+                                        record.price
+                                    }}</span>
+                                <div v-else class="inline-block">
+                                    <a-input type="number" class="mr-2.5 w-30" v-model:value="record.price"
+                                        placeholder="请输原价格"></a-input>
+                                    <a-button class="mr-2.5" @click="priceVisible = false">取消</a-button>
+                                    <a-button type="primary" :loading="loading"
+                                        @click="checkOldPrice(record)">确定</a-button>
+                                </div>
+                                <AsyncIcon v-if="!(priceVisible && itemId == record.id)" icon="EditOutlined"
+                                    style="cursor: pointer; color: #1677ff" @click="editSinglePrice(record)">
+                                </AsyncIcon>
+
+                            </div>
+                            <div v-if="column.dataIndex === 'oldPrice'">
+                                <span style="color: #1677ff" v-if="!(singleVisible && itemId == record.id)">{{
+                                    record.currencyCode }} {{
+                                        record.oldPrice
+                                    }}</span>
+                                <div v-else class="inline-block">
+                                    <a-input type="number" class="mr-2.5 w-30" v-model:value="record.oldPrice"
+                                        placeholder="请输原价格"></a-input>
+                                    <a-button class="mr-2.5" @click="singleVisible = false">取消</a-button>
+                                    <a-button type="primary" :loading="loading"
+                                        @click="checkOldPrice(record)">确定</a-button>
+                                </div>
+                                <AsyncIcon v-if="!(singleVisible && itemId == record.id)"
+                                    style="cursor: pointer; color: #1677ff" icon="EditOutlined"
+                                    @click="handelEditPrice(record)">
+                                </AsyncIcon>
+                            </div>
+                            <div v-if="column.dataIndex === 'minPrice'">
+                                <span style="color: #1677ff"
+                                    v-if="record.minPrice && !(minPriceVisible && itemId == record.id)">CNY {{
+                                        record.minPrice
+                                    }}</span><span v-if="!record.minPrice">---</span>
+                                <div v-if="minPriceVisible && itemId == record.id" class="inline-block">
+                                    <a-input type="number" class="mr-2.5 w-30" v-model:value="record.minPrice"
+                                        placeholder="请输原价格"></a-input>
+                                    <a-button class="mr-2.5" @click="minPriceVisible = false">取消</a-button>
+                                    <a-button type="primary" :loading="loading"
+                                        @click="checkOldPrice(record)">确定</a-button>
+                                </div>
+                                <AsyncIcon v-if="!(minPriceVisible && itemId == record.id) && record.minPrice"
+                                    style="cursor: pointer; color: #1677ff" icon="EditOutlined"
+                                    @click="handelEditminPrice(record)">
+                                </AsyncIcon>
+                            </div>
+                            <div v-if="column.dataIndex === 'stock'">
+                                <a-tooltip style="margin-right: 10px" effect="dark" placement="top"
+                                    v-if="record.warehouseList">
+                                    <template #title>
+                                        <div v-for="(item, index) in record.warehouseList" :key="index">
+                                            <span>{{ item.warehouseName }}</span>:
+                                            <span>{{ item.present ? item.present : 0 }}</span>
+                                        </div>
+                                    </template>
+                                    <span style="color: #1677ff">{{ record.stock }}</span>
+                                </a-tooltip>
+                                <span v-else style="color: #1677ff; margin-right: 10px">{{
+                                    record.stock
+                                }}</span>
+                                <AsyncIcon style="cursor: pointer; color: #1677ff" icon="EditOutlined" v-if="
+                                    record.state != '审核不通过' && record.state != '已归档'
+                                " @click="editStock(record)"></AsyncIcon>
                             </div>
                             <div v-if="column.dataIndex === 'errorInfo'">
                                 <div v-if="record.errors != null">
@@ -552,21 +570,53 @@
                                 <div>
                                     创建时间：<span style="color: #9e9f9e">{{
                                         timestampToDateTime(record.createdTime)
-                                    }}</span>
+                                        }}</span>
                                 </div>
                                 <div>
                                     更新时间：<span style="color: #9e9f9e">{{
                                         timestampToDateTime(record.updatedTime)
-                                    }}</span>
+                                        }}</span>
                                 </div>
                             </div>
                             <div v-if="column.dataIndex === 'option'">
-                                <a-row :gutter="3">
-                                    <a-col :span="6" v-if="record.state !== '已归档'">
+                                <a-row>
+                                    <a-col :span="11" v-if="record.state !== '已归档'">
                                         <a-button @click.stop="edit(record)" type="text"
                                             style="color: #0b56fa">编辑</a-button>
                                     </a-col>
-                                    <a-col :span="6">
+                                    <a-col :span="11">
+                                        <a-dropdown>
+                                            <a class="ant-dropdown-link">
+                                                更多
+                                                <DownOutlined />
+                                            </a>
+                                            <template #overlay>
+                                                <a-menu>
+                                                    <a-menu-item style="color: #67c23a" @click="syncOne(record)">
+                                                        同步
+                                                    </a-menu-item>
+                                                    <a-menu-item style="color: #0d9888" @click="copyItems(record)">
+                                                        复制
+                                                    </a-menu-item>
+                                                    <a-popconfirm ok-text="YES" cancel-text="NO" title="归档吗？"
+                                                        @confirm="deactivate(record)">
+                                                        <a-menu-item v-if="record.state !== '已归档'" type="text"
+                                                            style="color: #e6a23c">归档</a-menu-item>
+                                                    </a-popconfirm>
+                                                    <a-menu-item @click="addRemark(record)">
+                                                        备注
+                                                    </a-menu-item>
+                                                    <a-popconfirm ok-text="YES" cancel-text="NO"
+                                                        title="删除代表该产品在ozon平台删除，确定删除吗？" @confirm="deleteItem(record)">
+                                                        <a-menu-item type="text" v-if="
+                                                            record.sku === 'sku未创建' && record.state === '已归档'
+                                                        " style="color: red">删除</a-menu-item>
+                                                    </a-popconfirm>
+                                                </a-menu>
+                                            </template>
+                                        </a-dropdown>
+                                    </a-col>
+                                    <!-- <a-col :span="6">
                                         <a-button @click.stop="syncOne(record)" type="text"
                                             style="color: #67c23a">同步</a-button>
                                     </a-col>
@@ -590,7 +640,7 @@
                                             @confirm="deleteItem(record)">
                                             <a-button type="text" style="color: red">删除</a-button>
                                         </a-popconfirm>
-                                    </a-col>
+                                    </a-col> -->
                                 </a-row>
                             </div>
                         </template>
@@ -650,7 +700,10 @@ import copyProduct from "./comm/copyProduct.vue";
 import shopSetModal from "./comm/shopSetModal.vue";
 import { processImageSource } from "~/pages/ozon/config/commJs/index";
 import dayjs from 'dayjs'
+import { useClipboard } from '@v-c/utils';
+import { SettingOutlined, EditOutlined, ReloadOutlined, CloudUploadOutlined, DownloadOutlined, DownOutlined } from '@ant-design/icons-vue';
 
+const { copy } = useClipboard();
 const OzonProduct = ref(null)
 const formRef = ref(null)
 const formData = reactive({
@@ -792,6 +845,13 @@ const strList = ref([
         isDefault: false,
     },
 ]);
+
+// 复制
+const copyText = (text) => {
+    copy(text);
+    message.success(`复制成功：${text}`);
+};
+
 // 店铺数据
 const getAccount = () => {
     accountCache().then((res) => {
@@ -1200,7 +1260,7 @@ const handleCopyProductClose = () => {
 }
 
 // 复制
-const copy = (row = {}) => {
+const copyItems = (row = {}) => {
     if (syncOneList.value.length == 0) {
         copyList.value.push({
             account: row.account,

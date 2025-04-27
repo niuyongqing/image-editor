@@ -6,24 +6,49 @@ export default [
     width: 500,
     filter: false,
   },
+  
+  {
+    title: 'SKU信息',
+    dataIndex: 'sku',
+    align: "center",
+    width: 200,
+  },
+  {
+    title: '售价',
+    dataIndex: 'price',
+    align: "center",
+    width: 200,
+  },
+  {
+    title: '原价',
+    dataIndex: 'oldPrice',
+    align: "center",
+    width: 200,
+  },
+  {
+    title: '最低价',
+    dataIndex: 'minPrice',
+    align: "center",
+    width: 200,
+  },
+  {
+    title: '总库存',
+    dataIndex: 'stock',
+    align: "center",
+    width: 200,
+  },
+  {
+    title: '错误信息',
+    dataIndex: 'errorInfo',
+    align: "center",
+    width: 200,
+  },
   {
     title: '状态',
     dataIndex: 'state', // state
     align: "center",
     width: 200,
     filter: false,
-  },
-  {
-    title: 'SKU信息',
-    dataIndex: 'sku',
-    align: "center",
-    width: 450,
-  },
-  {
-    title: '错误信息',
-    dataIndex: 'errorInfo',
-    align: "center",
-    width: 300,
   },
   {
     title: '时间',
@@ -36,7 +61,7 @@ export default [
     title: '操作',
     dataIndex: 'option',
     align: "center",
-    width: 200,
+    width: 180,
     filter: false,
   },
 ]
