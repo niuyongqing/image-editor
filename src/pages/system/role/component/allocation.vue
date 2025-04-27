@@ -1,20 +1,12 @@
 <template>
-  <a-modal :open="props.open" :title="`分配${data.roleName}`"  :confirm-loading="loading" html-type="submit" :footer="null" :closable="false" :destroyOnClose="true" >
-    <a-form :model="formData"  label-align="right" @finish="handleOk" :label-col="labelCol" >
-      <a-form-item label="姓名" name="userId" >
-        <a-select style="width: 100%"
-                  mode="multiple"
-                  show-search
-                  placeholder="搜索姓名"
-                  :default-active-first-option="false"
-                  :show-arrow="false"
-                  :filter-option="false"
-                  :not-found-content="false"
-                  :options="userData"
-                  v-model:value="formData.userIds"
-                  :fieldNames="{label:'userName',value:'userId'}"
-                  @search="outInput"
-        ></a-select>
+  <a-modal :open="props.open" :title="`分配${data.roleName}`" :confirm-loading="loading" html-type="submit" :footer="null"
+    :closable="false" :destroyOnClose="true">
+    <a-form :model="formData" label-align="right" @finish="handleOk" :label-col="labelCol" :rules="rules" ref="formRef">
+      <a-form-item label="姓名" name="userIds">
+        <a-select style="width: 100%" mode="multiple" show-search placeholder="搜索姓名"
+          :default-active-first-option="false" :show-arrow="false" :filter-option="false" :not-found-content="false"
+          :options="userData" v-model:value="formData.userIds" :fieldNames="{ label: 'userName', value: 'userId' }"
+          @search="outInput"></a-select>
       </a-form-item>
       <a-form-item style="display: flex; text-align: right">
         <a-button @click="close" style="margin-right: 10px">取消</a-button>
@@ -24,54 +16,77 @@
   </a-modal>
 </template>
 <script setup lang="js">
-import {ref} from 'vue'
+import { ref } from 'vue'
+
+const rules = {
+  userIds: [
+    {
+      required: true, message: '请选择用户', trigger: ['change'],
+      validator: (rule, value) => {
+        if (value.length === 0) {
+          return Promise.reject('请选择用户')
+        } else {
+          return Promise.resolve()
+        }
+      }
+    },
+  ],
+}
+const formEl = useTemplateRef('formRef');
 const loading = ref(false)
 const props = defineProps({
-  open:{ type: Boolean, required: true, default:false },
-  data:{type:Object,required: false, default:{}},
+  open: { type: Boolean, required: true, default: false },
+  data: { type: Object, required: false, default: {} },
 })
 const emit = defineEmits(['close']);
 import useDebounce from "@/utils/useDebounce";
-import { editRoleEditUserApi, getRoleUserApi, getUserListApi} from '~/api/common/role'
-import {message} from "ant-design-vue";
+import { editRoleEditUserApi, getRoleUserApi, getUserListApi } from '~/api/common/role'
+import { message } from "ant-design-vue";
+import { validate } from 'uuid';
 const userData = ref([])
-const formData = ref({roleId:null,userIds:[]})
-const  outInput = useDebounce((a) => {
+const formData = ref({ roleId: null, userIds: [] })
+const outInput = useDebounce((a) => {
   getUserList(a);
-}, 500,true)
+}, 500, true)
 
-watchEffect(()=>{
-  if(props.data.roleId){
-    getRoleUserApi({roleId: props.data.roleId}).then(res=>{
+watchEffect(() => {
+  if (props.data.roleId) {
+    getRoleUserApi({ roleId: props.data.roleId }).then(res => {
       formData.value.roleId = props.data.roleId
       for (let i = 0; i < res.data.length; i++) {
-        userData.value.push({userId:res.data[i].userId,userName:res.data[i].userName})
+        userData.value.push({ userId: res.data[i].userId, userName: res.data[i].userName })
         formData.value.userIds.push(res.data[i].userId)
       }
     })
   }
 })
 
-function getUserList(e){
-  if(e){
-    getUserListApi(e).then((res)=>{
+function getUserList(e) {
+  if (e) {
+    getUserListApi(e).then((res) => {
       userData.value = res.data
     })
   }
 }
 
-function handleOk(){
-  editRoleEditUserApi(formData.value).then((res)=>{
-    if(res.code == 200){
-      message.success(res.msg);
-      close()
-    }else
-      message.error(res.msg);
-  })
+async function handleOk() {
+  //  新增校验
+  await formEl.value.validate();
+  loading.value = true;
+  editRoleEditUserApi(formData.value)
+    .then((res) => {
+      if (res.code == 200) {
+        message.success(res.msg);
+        close()
+      } else
+        message.error(res.msg);
+    }).finally(() => {
+      loading.value = false;
+    })
 }
 
 function close() {
-  formData.value = {roleId:null,userIds:[]};
+  formData.value = { roleId: null, userIds: [] };
   userData.value = []
   emit('close', false);
 }
@@ -84,6 +99,4 @@ const labelCol = {
 </script>
 
 
-<style scoped lang="less">
-
-</style>
+<style scoped lang="less"></style>
