@@ -78,6 +78,8 @@ const { state, reset } = useResetReactive({
 const fileList = ref([]); // 图片列表
 const modalMethods = ref();
 const register = (modal) => {
+  console.log("modal",modal);
+  
   modalMethods.value = modal;
 }
 

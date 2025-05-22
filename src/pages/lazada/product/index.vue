@@ -169,6 +169,7 @@
         <SpecialPriceModal ref="specialPriceModalRef" @success="reload"></SpecialPriceModal>
         <CopyGlobalModal ref="copyGlobalModalRef" :account="accountDetail" @success="reload"></CopyGlobalModal>
         <CopySiteModal ref="copySiteModalRef" :account="accountDetail" @success="reload"></CopySiteModal>
+        <a-back-top :visibility-height="0" style="margin-right: 10px;" @click="backToTop" />
     </div>
 </template>
 
@@ -397,6 +398,17 @@ const editSpecialPrice = (item) => {
 const editQuantity = (item) => {
     stockModalEl.value.open(item, false);
 };
+
+
+const backToTop = () => {
+    let elements = document.getElementsByClassName('ant-layout-content');
+    if (elements) {
+        elements[0].scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }
+}
 
 onMounted(async () => {
     const accountCacheRes = await accountCache();

@@ -13,7 +13,8 @@
                     </div>
                     <div class="flex gap-12px">
                         <a-button type="primary" style="width: 120px; height: 31px;" @click="selectNowProduct"
-                            :disabled="lazadaAttrsState.primaryCategory.length ? false : true">
+                            :disabled="lazadaAttrsState.shortCode == ''">
+                            <!-- lazadaAttrsState.primaryCategory.length ? false : true -->
                             引用资料库产品
                         </a-button>
                         <a-button type="primary" style=" height: 32px;" @click="save" :loading="saveLoading">
@@ -43,7 +44,8 @@
                 <div w-full flex justify-end mt-10px>
                     <div class="flex gap-12px">
                         <a-button type="primary" style="width: 120px; height: 31px;" @click="selectNowProduct"
-                            :disabled="lazadaAttrsState.primaryCategory.length ? false : true">
+                            :disabled="lazadaAttrsState.shortCode == ''">
+                            <!-- :disabled="lazadaAttrsState.primaryCategory.length ? false : true" -->
                             引用资料库产品
                         </a-button>
                         <a-button type="primary" style="height: 32px;" @click="save" :loading="saveLoading">

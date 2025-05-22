@@ -57,7 +57,7 @@ const downloadTable = () => {
     myIncomeDownloadLoading.value = true;
     let data = {
         "simpleName": searchData.simpleName,
-        "county": searchData.county,
+        "country": searchData.county,
         sellerSkus: searchData.sellerSkus,
         "sellerId": searchData.sellerId,
         orderNo: searchData.orderNo,

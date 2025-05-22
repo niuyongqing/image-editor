@@ -70,7 +70,7 @@ const onSubmit = () => {
     const endTime = formData.time[1] ? formData.time[1].format('YYYY-MM-DD 23:59:59') : '';
     emits('search', {
         "simpleName": formData.simpleName,
-        "county": formData.county,
+        "country": formData.county,
         sellerSkus: formData.sellerSkus,
         "sellerId": formData.sellerId,
         transactionNumber: formData.transactionNumber,

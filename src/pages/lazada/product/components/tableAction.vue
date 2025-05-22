@@ -93,9 +93,9 @@
                             <a-menu-item @click="syncSelectProduct">
                                 同步选中产品
                             </a-menu-item>
-                            <a-menu-item @click="syncShortCodeProduct">
+                            <!-- <a-menu-item @click="syncShortCodeProduct">
                                 同步店铺产品
-                            </a-menu-item>
+                            </a-menu-item> -->
                             <a-menu-item @click="syncUpProduct">
                                 同步可升级产品
                             </a-menu-item>
@@ -119,7 +119,7 @@ import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { DownOutlined, SettingOutlined, PlusOutlined } from "@ant-design/icons-vue";
 import WarehouseSetting from './warehouseSetting.vue';
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
-import { syncAll, sync, deactivate } from '@/pages/lazada/product/api';
+import { syncAll, sync, deactivate, syncOne } from '@/pages/lazada/product/api';
 import { message, Modal } from 'ant-design-vue';
 import PriceModal from './priceModal.vue';
 import RemarkModal from './remarkModal.vue';
@@ -154,11 +154,13 @@ const handleDeactivated = () => {
         message.error('请选择需要下架的产品');
         return
     }
+    console.log("selectedRows", selectedRows);
+    let ids = selectedRows.map(item => item.itemId);
     Modal.confirm({
         title: '下架',
         content: '是否确认下架？',
         onOk: async () => {
-            const res = await deactivate({ itemId: record.itemId });
+            const res = await deactivate({ itemId: ids });
             if (res.code === 200) {
                 message.success('下架成功');
                 emits('success');
@@ -174,31 +176,31 @@ watch(() => shortCode, (newVal) => {
     percent.value = 0;
 })
 
-const syncShortCodeProduct = () => {
-    if (!shortCode) {
-        message.error('请选择店铺');
-        return
-    }
-    progessOpen.value = true;
-    timer.value = setInterval(() => {
-        if (percent.value < 80) {
-            percent.value++;
-        }
-    }, 800);
-    sync({
-        "shortCode": shortCode
-    }).then((res) => {
-        percent.value = 100;
-        progessOpen.value = false;
-        message.success('同步成功');
-        clearInterval(timer.value);
-        percent.value = 0;
-        emits('success');
-    }).catch((err) => {
-        percent.value = 0;
-        progessOpen.value = false;
-    })
-};
+// const syncShortCodeProduct = () => {
+//     if (!shortCode) {
+//         message.error('请选择店铺');
+//         return
+//     }
+//     progessOpen.value = true;
+//     timer.value = setInterval(() => {
+//         if (percent.value < 80) {
+//             percent.value++;
+//         }
+//     }, 800);
+//     sync({
+//         "shortCode": shortCode
+//     }).then((res) => {
+//         percent.value = 100;
+//         progessOpen.value = false;
+//         message.success('同步成功');
+//         clearInterval(timer.value);
+//         percent.value = 0;
+//         emits('success');
+//     }).catch((err) => {
+//         percent.value = 0;
+//         progessOpen.value = false;
+//     })
+// };
 
 
 const handleRemark = () => {
@@ -253,7 +255,31 @@ const createSiteProduct = () => {
 };
 //  同步所有产品
 const syncProduct = () => {
-    syncAll().then(res => {
+    // if(shortCode) {
+    //     progessOpen.value = true;
+    //     timer.value = setInterval(() => {
+    //         if (percent.value < 80) {
+    //             percent.value++;
+    //         }
+    //     }, 800);
+    //     sync({
+    //         "shortCode": shortCode
+    //     }).then((res) => {
+    //         percent.value = 100;
+    //         progessOpen.value = false;
+    //         message.success('同步成功');
+    //         clearInterval(timer.value);
+    //         percent.value = 0;
+    //         emits('success');
+    //     }).catch((err) => {
+    //         percent.value = 0;
+    //         progessOpen.value = false;
+    //     })
+    // }else {
+        message.warning('已开始同步，请稍后查看！');
+    syncAll({
+        "shortCode":shortCode
+    }).then(res => {
         console.log(res);
         message.success('同步成功');
         emits('success');
@@ -262,7 +288,16 @@ const syncProduct = () => {
 
 //  同步选中产品
 const syncSelectProduct = () => {
-
+    let ids = selectedRows.map(e => {
+        return {
+            itemId: e.itemId,
+            shortCode: e.shortCode
+        }
+    })
+    syncOne(ids).then(res => {
+        message.success('同步成功');
+        emits('success');
+    });
 };
 // 同步可升级产品
 const syncUpProduct = () => {

@@ -56,7 +56,7 @@ export function remark(params) {
   return usePost("/platform-lazada/platform/lazada/empower/remark", params);
 }
 export function url(params) {
-  return usePost("/platform-lazada/platform/lazada/empower/url", params);
+  return usePost("/platform-lazada/platform/lazada/empower/url/new", params);
 }
 export function loginCheck(params) {
   return usePost(
