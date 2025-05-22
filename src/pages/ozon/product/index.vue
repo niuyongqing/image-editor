@@ -218,10 +218,10 @@
                                             产品ID：
                                             <a-tooltip placement="top">
                                                 <template #title>
-                                                    <span style="cursor: pointer" @click="copyText(record.id)">复制</span>
+                                                    <span style="cursor: pointer" @click="copyText(record.sku)">复制</span>
                                                 </template>
-                                                <a style="color: #1677ff" href="#" @click="jumpTo(record.id)">{{
-                                                    record.id }}</a>
+                                                <a style="color: #1677ff" href="#" @click="jumpTo(record.sku)">{{
+                                                    record.sku }}</a>
                                             </a-tooltip>
 
                                         </div>
