@@ -98,7 +98,7 @@
                                     </a-tag>
 
                                     <a-input v-if="item.input_type === 'text'" v-model:value="item.value" placeholder=""
-                                        allowClear></a-input>
+                                        allowClear @change="changeValue(item)"></a-input>
 
                                     <!--  enuminput： 单选和可自定义输入; -->
                                     <a-select v-if="item.input_type === 'enumInput'" v-model:value="item.value"

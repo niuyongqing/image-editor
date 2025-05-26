@@ -1,6 +1,6 @@
 <template>
   <div>
-    <BaseModal @register="register" @close="cancel" title="批量修改图片尺寸" width="1000px" @submit="submit">
+    <a-modal @ok="handleOk" v-model:open="modalMethods" @cancel="cancel" title="批量修改图片尺寸" width="1000px" @submit="submit">
       <div>
         <a-form layout="inline" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }" labelAlign="">
           <a-form-item label="宽度:">
@@ -52,7 +52,7 @@
           <template #tabBarExtraContent></template>
         </a-card>
       </div>
-    </BaseModal>
+    </a-modal>
   </div>
 </template>
 <script setup>
@@ -79,8 +79,8 @@ const { state, reset } = useResetReactive({
 });
 
 const fileList = ref([]); // 图片列表
-const modalMethods = ref();
-const register = (modal) => {
+const modalMethods = ref(false);
+const handleOk = (modal) => {
   modalMethods.value = modal;
 }
 
@@ -99,7 +99,7 @@ const showModal = (list) => {
   fileList.value.forEach((item) => {
     item.checked = false;
   })
-  modalMethods.value.openModal();
+  modalMethods.value = true;
 };
 
 const cancel = () => {

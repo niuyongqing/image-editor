@@ -346,7 +346,7 @@ const handleDeactivated = (record) => {
         confirmLoading: true,
         onOk: async () => {
             baseTableEl.value.setLoading(true);
-            const res = await deactivate({ itemId: record.itemId });
+            const res = await deactivate({ itemId: record.itemId.toString() });
             if (res.code === 200) {
                 message.success('下架成功');
                 reload();

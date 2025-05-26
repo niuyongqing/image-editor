@@ -160,7 +160,7 @@ const handleDeactivated = () => {
         title: '下架',
         content: '是否确认下架？',
         onOk: async () => {
-            const res = await deactivate({ itemId: ids });
+            const res = await deactivate({ itemId: ids.join(",") });
             if (res.code === 200) {
                 message.success('下架成功');
                 emits('success');
