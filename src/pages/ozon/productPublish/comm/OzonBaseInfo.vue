@@ -36,12 +36,20 @@
                     <a-card shadow="never" :loading="categoryAttributesLoading" style="
                     position: relative;
                     width: 90%;
-                    height: 600px;
+                    max-height: 600px;
                     overflow-y: auto;
                     ">
+                        <!-- 展开收起 -->
+                        <div w-full sticky top-2 right-0 z-2 v-if="loopAttributes.length">
+                            <a-button class="flex justify-end" type="link" @click="isExpand = !isExpand"> {{ isExpand
+                                ?
+                                '- 收起'
+                                : '+ 展开'
+                            }}</a-button>
+                        </div>
                         <a-form ref="ruleForm2" :model="form.attributes" :label-col="{ span: 5 }" :rules="rules2"
                             style="margin-top: 25px">
-                            <div v-for="(item, index) in loopAttributes" :key="index"
+                            <div v-for="(item, index) in sortAttrs(loopAttributes)" :key="index"
                                 style="margin: 10px; flex: 0 0 auto">
                                 <a-form-item :name="item.name" v-if="item.show">
                                     <template #label>
@@ -66,8 +74,9 @@
                                     ">
                                         <div v-if="item.options && item.options.length > 25">
                                             <a-select optionFilterProp="label" show-search
-                                                v-model:value="item.selectDate" allowClear style="width: 200px;margin-bottom: 5px;"
-                                                placeholder="请输入内容" labelInValue>
+                                                v-model:value="item.selectDate" allowClear
+                                                style="width: 200px;margin-bottom: 5px;" placeholder="请输入内容"
+                                                labelInValue>
                                                 <!-- :options="item.options" @change="handlerChangeSelectDate"-->
                                                 <a-select-option :value="v" :label="v.label"
                                                     v-for="(v, i) in item.options" :key="i">{{ v.label
@@ -103,6 +112,7 @@
                                 </a-form-item>
                             </div>
                         </a-form>
+
                     </a-card>
                 </a-form-item>
             </a-form>
@@ -164,9 +174,10 @@ const rules = {
     },
 }
 const rules2 = ref({})
-const loopAttributes = ref({})
+const loopAttributes = ref([])
 const categoryTreeList = ref([])
 const historyCategoryList = ref([])
+const isExpand = ref(false)
 const vatList = [
     {
         label: "免税",
@@ -399,6 +410,15 @@ const childForm = async () => {
     return true;
 }
 
+const sortAttrs = (attrs) => {
+    // 如果是展开
+    if (isExpand.value) {
+        return attrs
+    } else {
+        return attrs?.filter(item => item.isRequired)
+    }
+};
+
 // 抛出数据和方法，可以让父级用ref获取
 defineExpose({
     form,
@@ -509,7 +529,6 @@ watch(() => useOzonProductStore().attributes, (val) => {
             //!未同步属性
             form.attributes = attributes;
             loopAttributes.value = noThemeAttributesCache;
-
         }
         if (!form.shortCode || !form.categoryId) return;
         getHistoryAttr(
@@ -520,10 +539,17 @@ watch(() => useOzonProductStore().attributes, (val) => {
 })
 </script>
 <style lang="less" scoped>
+:deep(.ant-form) {
+    .ant-form-item {
+        margin-bottom: 30px;
+    }
+}
+
 :deep(.boxGroup) {
     .ant-checkbox-wrapper {
         margin-bottom: 5px;
-        & > span {
+
+        &>span {
             &:last-child {
                 width: 130px;
                 overflow: hidden;
