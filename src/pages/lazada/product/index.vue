@@ -387,16 +387,21 @@ const mouseLeaveQuantity = (item) => {
     item.editQuantity = false;
 };
 
-const editPrice = (item) => {
-    priceModalEl.value.open(item, false);
+/**
+ * 
+ * @param row 当前行
+ * @param item 当前修改的sku行
+ */
+const editPrice = (row, item) => {
+    priceModalEl.value.open(row, item, false);
 };
 
-const editSpecialPrice = (item) => {
-    specialPriceModalEl.value.open(item, false);
+const editSpecialPrice = (row, item) => {
+    specialPriceModalEl.value.open(row, item, false);
 };
 
-const editQuantity = (item) => {
-    stockModalEl.value.open(item, false);
+const editQuantity = (row, item) => {
+    stockModalEl.value.open(row, item, false);
 };
 
 

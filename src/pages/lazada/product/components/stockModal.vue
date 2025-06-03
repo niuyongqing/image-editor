@@ -30,10 +30,11 @@
 </template>
 
 <script setup>
-import { batchStore } from '@/pages/lazada/product/api';
+import { batchPrice } from '@/pages/lazada/product/api';
 import { message } from 'ant-design-vue';
 
 const acceptParams = ref({});
+const skuItem = ref({});
 const isBatch = ref(false);
 const dialogVisible = ref(false);
 const loading = ref(false);
@@ -48,8 +49,9 @@ const setRuleNum = ref(null);
 //     { value: 3, label: '乘' },
 // ];
 
-const open = (record, batch) => {
+const open = (record, item = {}, batch) => {
     acceptParams.value = record;
+    skuItem.value = item
     isBatch.value = batch;
     dialogVisible.value = true;
 };
@@ -66,20 +68,26 @@ const cancel = () => {
 const save = () => {
     loading.value = true
     const requestParams = isBatch.value
-        ? acceptParams.value.map((item) => ({
-            shortCode: item.shortCode,
-            itemId: item.itemId,
-            sku: item.skus.map((item) => item.SellerSku).join(','),
-            quantity: setNum.value
-        }))
+        ? acceptParams.value.flatMap(item =>
+            item.skus.map(sku => ({
+                shortCode: item.shortCode,
+                itemId: item.itemId,
+                skuId: sku.SkuId,
+                price: null,
+                quantity: setNum.value,
+                specialPrice: null
+            }))
+        )
         : [{
             shortCode: acceptParams.value.shortCode,
             itemId: acceptParams.value.itemId,
-            sku: acceptParams.value.skus.map((item) => item.SellerSku).join(','),
-            quantity: setNum.value
+            skuId: skuItem.value.SkuId,
+            quantity: setNum.value,
+            specialPrice: null,
+            price: null
         }];
 
-    batchStore(requestParams)
+    batchPrice(requestParams)
         .then((res) => {
             if (res.code === 200) {
                 message.success('操作成功');

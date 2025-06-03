@@ -216,7 +216,7 @@ const handleBatchPrice = () => {
         message.error('请选择产品');
         return
     }
-    priceModalEl.value.open(selectedRows, true);
+    priceModalEl.value.open(selectedRows, {}, true);
 };
 
 const handleBatchStock = () => {
@@ -224,14 +224,14 @@ const handleBatchStock = () => {
         message.error('请选择产品');
         return
     }
-    stockModalEl.value.open(selectedRows, true);
+    stockModalEl.value.open(selectedRows, {}, true);
 };
 const handleBatchSpecialPrice = () => {
     if (!selectedRows.length) {
         message.error('请选择产品');
         return
     }
-    specialPriceModalEl.value.open(selectedRows, true);
+    specialPriceModalEl.value.open(selectedRows, {}, true);
 }
 
 // 仓库管理
@@ -276,9 +276,9 @@ const syncProduct = () => {
     //         progessOpen.value = false;
     //     })
     // }else {
-        message.warning('已开始同步，请稍后查看！');
+    message.warning('已开始同步，请稍后查看！');
     syncAll({
-        "shortCode":shortCode
+        "shortCode": shortCode
     }).then(res => {
         console.log(res);
         message.success('同步成功');
