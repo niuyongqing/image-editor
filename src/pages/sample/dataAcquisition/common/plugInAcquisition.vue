@@ -48,13 +48,26 @@
       </template>
     </a-step>
   </a-steps>
+  <div class="platform-box">
+    <div class="platform-title">支持平台</div>
+    <div class="platform-item-box">
+      <div class="platform-item" 
+        v-for="item in platformList" 
+        :key="item.account"
+      >
+        {{ item.simpleName }}
+      </div>
+    </div>
+  </div>
 </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
+import { dataGathe } from "../../../ozon/config/commDic/defDic"
 defineOptions({ name: "plugInAcquisition" })
 const { proxy: _this } = getCurrentInstance()
+const platformList = dataGathe
 function loadDescribe(key) {
   console.log('下载对应插件' + key);
   
@@ -112,6 +125,27 @@ const description = 'This is a description.';
       .ant-steps-item-description {
         background: #fff !important;
         color: rgba(0, 0, 0, 0.25) !important;
+      }
+    }
+  }
+  .platform-box {
+    .platform-title {
+      height: 40px;
+      text-align: left;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .platform-item-box {
+      display: flex;
+      .platform-item {
+        height: 40px;
+        padding: 10px;
+        margin: 0 8px 8px 0;
+        border: #e8f8ff 1px solid;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
       }
     }
   }
