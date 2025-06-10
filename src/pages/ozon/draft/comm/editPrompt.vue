@@ -89,6 +89,7 @@ const editCategory = () => {
 //  跳过
 const skip = () => {
     emit('skip');
+    window.open(`/platform/ozon/editDraftProduct?id=${acceptParams.value.id}`, '_blank')
     cancel();
 };
 

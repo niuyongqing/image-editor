@@ -78,8 +78,9 @@
 <script setup>
 import { SettingOutlined } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
-import ManageCategories from './manageCategories.vue';
 import { cloneDeep } from 'lodash';
+import ManageCategories from './manageCategories.vue';
+
 const active = ref('all');
 const selectedKeys = ref([]);
 
