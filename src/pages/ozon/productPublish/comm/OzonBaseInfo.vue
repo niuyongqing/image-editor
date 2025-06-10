@@ -102,7 +102,7 @@
                                     <a-select optionFilterProp="label" show-search
                                         v-model:value="form.attributes[item.name]" v-if="item.selectType === 'select'"
                                         labelInValue :style="'width: 80%'" allowClear>
-                                        <a-select-option v-if="item.name == '品牌(Бренд)'" :value="'无品牌'"
+                                        <a-select-option v-if="item.id == 85" :value="'无品牌'"
                                             :label="'无品牌'">无品牌</a-select-option>
 
                                         <a-select-option :value="v" :label="v.label" v-else
@@ -233,6 +233,7 @@ const getHistoryList = (shortCode) => {
     if (!form.shortCode) {
         return;
     }
+    form.vat = "0"
     emit("sendShortCode", shortCode);
     historyCategory({ account: form.shortCode })
         .then((res) => {
@@ -507,6 +508,10 @@ watch(() => useOzonProductStore().attributes, (val) => {
                 item.acquiesceList =
                     (item.options && item.options.slice(0, 25)) ?? [];
                 attributes[item.name] = item.selectType === "multSelect" ? [] : undefined;
+                // attributes["品牌(Бренд)"] = {
+                //     label: "无品牌",
+                //     value: "无品牌"
+                // }
             });
             // console.log("filterAttributesCache", noThemeAttributesCache);
 
@@ -529,12 +534,22 @@ watch(() => useOzonProductStore().attributes, (val) => {
             //!未同步属性
             form.attributes = attributes;
             loopAttributes.value = noThemeAttributesCache;
+
+            // console.log("noThemeAttributesCache", form.attributes);
+            // console.log("loopAttributes.value", loopAttributes.value);
         }
         if (!form.shortCode || !form.categoryId) return;
         getHistoryAttr(
             form.categoryId.threeCategoryId,
             form.shortCode
         );
+    }
+})
+
+watch(() => form.attributes, (val) => {
+    form.attributes["品牌(Бренд)"] = {
+        label: "无品牌",
+        value: "无品牌"
     }
 })
 </script>
