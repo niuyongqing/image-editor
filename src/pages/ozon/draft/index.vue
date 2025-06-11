@@ -1,9 +1,10 @@
 <template>
     <div flex>
-        <div w-210px>
+        <!-- <div w-210px>
             <draftSidebar />
-        </div>
-        <div id="draft" w-full ml-15px>
+        </div> -->
+        <!-- ml-15px -->
+        <div id="draft" w-full>
             <a-card>
                 <a-form ref="ruleForm2" :model="formData">
                     <a-form-item label="店铺账号：">
@@ -19,9 +20,9 @@
                     <a-form-item label="搜索内容：">
                         <div class="flex">
                             <div class="flex align-start">
-                                <a-input v-if="actives == 1" style="width: 400px;" v-model:value="formData.name"
+                                <a-input v-if="actives === 1" style="width: 400px;" v-model:value="formData.name"
                                     placeholder="请输入标题查询" clearable @clear="onSubmit"></a-input>
-                                <a-input v-if="actives == 2" style="width: 400px;" v-model:value="formData.sku"
+                                <a-input v-if="actives === 2" style="width: 400px;" v-model:value="formData.sku"
                                     clearable @clear="onSubmit" placeholder="请输入SKU查询,多个SKU间用逗号隔开，最多支持200个"></a-input>
                             </div>
                             <a-button type="primary" class="ml-[10px]" @click="onSubmit()">查询</a-button>
@@ -33,9 +34,9 @@
                                 :type="item.prop === active.prop ? 'primary' : ''" @click="storChange(item)">
                                 <span>{{ item.label }}</span>
                                 <AsyncIcon icon="CaretUpOutlined"
-                                    v-if="item.prop === active.prop && active.type == 'bottom'" />
+                                    v-if="item.prop === active.prop && active.type === 'bottom'" />
                                 <AsyncIcon icon="CaretDownOutlined"
-                                    v-if="item.prop === active.prop && active.type == 'top'" />
+                                    v-if="item.prop === active.prop && active.type === 'top'" />
                             </a-button>
                         </div>
                     </a-form-item>
@@ -50,32 +51,25 @@
                                 <DownOutlined />
                             </a-button>
                             <template #overlay>
-                                <a-menu>
-                                    <a-menu-item>
-                                        批量编辑
-                                    </a-menu-item>
-                                    <a-menu-item>
-                                        批量移入待发布
-                                    </a-menu-item>
-                                    <a-menu-item>
-                                        批量发布
-                                    </a-menu-item>
-                                    <a-menu-item>
-                                        批量加水印
-                                    </a-menu-item>
-                                    <a-menu-item>
-                                        批量归档
-                                    </a-menu-item>
-                                    <a-menu-item>
-                                        批量备注
-                                    </a-menu-item>
-                                    <a-menu-item>
-                                        批量删除
-                                    </a-menu-item>
+                                <a-menu @click="handleMenuClick">
+                                    <a-menu-item :key="0">批量编辑</a-menu-item>
+                                    <a-menu-item :key="1">批量移入待发布</a-menu-item>
+                                    <a-menu-item :key="2">批量发布</a-menu-item>
+                                    <a-menu-item :key="3">批量加水印</a-menu-item>
+                                    <a-menu-item :key="4">批量归档</a-menu-item>
+                                    <a-menu-item :key="5">批量备注</a-menu-item>
+                                    <a-menu-item :key="6">批量删除</a-menu-item>
+
+                                    <a-menu-item :key="7" disabled> 快捷操作 </a-menu-item>
+                                    <a-menu-item :key="8"> 批量修改售价 </a-menu-item>
+                                    <a-menu-item :key="9"> 批量修改原价 </a-menu-item>
+                                    <a-menu-item :key="10"> 批量修改库存 </a-menu-item>
+                                    <a-menu-item :key="11"> 全属性修改 </a-menu-item>
                                 </a-menu>
+
+
                             </template>
                         </a-dropdown>
-
 
                         <a-dropdown trigger="click">
                             <a-button type="primary" style="height: 32px;  margin-left: 10px;">
@@ -103,15 +97,25 @@
                                 <SettingOutlined />
                                 店铺设置
                             </a-button>
-                            <a-button type="primary" style="height: 32px;  ">
+                            <a-button type="primary" style="height: 32px;">
                                 采集数据
                             </a-button>
-                            <a-button type="primary" style="height: 32px;  ">
+                            <a-button type="primary" style="height: 32px;" @click="createProduct">
                                 创建产品
                             </a-button>
-                            <a-button type="primary" style="height: 32px;">
-                                同步产品
-                            </a-button>
+                            <a-tooltip>
+                                <template #title>
+                                    <p mb-0>【 同步产品 】按钮：</p>
+                                    <p mb-0 text-gray-400>
+                                        仅从平台后台同步产品，产品的信息将会被更新至最新
+                                    </p>
+                                </template>
+                                <a-button type="primary" style="height: 32px;">
+                                    同步产品
+                                    <QuestionCircleOutlined />
+                                </a-button>
+                            </a-tooltip>
+
                         </a-space>
                     </div>
                 </div>
@@ -232,42 +236,42 @@
                     :showSizeChanger="true" :pageSizeOptions="[50, 100, 200]" />
                 <template #cover></template>
             </a-card>
-            <editRemark :remarkVisible="remarkVisible" :remarkId="remarkId" @backCloseRemark="backCloseRemark">
-            </editRemark>
-            <dataCrawli :editPriceVisible="editPriceVisible" @handleDataCrawliClose="editPriceVisible = false">
-            </dataCrawli>
         </div>
 
-        <!-- 备注 -->
-        <editRemark :remarkVisible="remarkVisible" :remarkId="remarkId" @backCloseRemark="backCloseRemark"></editRemark>
-
         <!-- 店铺设置 -->
-        <shopSetModal :shopSetVisible="shopSetVisible" :shopCurryList="shopCurryList"
-            @handleShopSetClose="shopSetVisible = false" @refreshShopSet="getShopSet"></shopSetModal>
+        <ShopSetModal :shopSetVisible="shopSetVisible" :shopCurryList="shopCurryList"
+            @handleShopSetClose="shopSetVisible = false" @refreshShopSet="getShopSet"></ShopSetModal>
 
         <!--编辑提示 弹窗-->
         <EditPrompt ref="editPromptRef"></EditPrompt>
+
+        <!-- 批量编辑 -->
+        <BatchEdit ref="batchEditRef"></BatchEdit>
+
+        <!-- 批量备注 -->
+        <remarkModal ref="remarkModalRef"></remarkModal>
     </div>
 </template>
 
 <script setup name='draft'>
-import { message } from 'ant-design-vue';
-import { DownOutlined, SettingOutlined } from "@ant-design/icons-vue";
+import { message, Modal } from 'ant-design-vue';
+import { DownOutlined, SettingOutlined, SyncOutlined, QuestionCircleOutlined } from "@ant-design/icons-vue";
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { accountCache } from "../config/api/product";
 import { ozonProductList, ozonProductDel, ozonProductPublish } from "../config/api/waitProduct";
 import tableHeard from "../config/tabColumns/draft"
 import { processImageSource } from "~/pages/ozon/config/commJs/index"
 import draftSidebar from './comm/draftSidebar.vue';
-import editRemark from './comm/editRemark.vue';
-import dataCrawli from './comm/dataCrawli.vue';
-import shopSetModal from "@/pages/ozon/product/comm/shopSetModal.vue";
+import ShopSetModal from "@/pages/ozon/product/comm/shopSetModal.vue";
 import { shopCurrency } from "../config/api/product"
 import EditPrompt from './comm/editPrompt.vue';
+import BatchEdit from './batchComponent/batchEdit.vue';
+import remarkModal from './batchComponent/remarkModal.vue';
 
-
+let columns = tableHeard
 const editPromptEl = useTemplateRef('editPromptRef');
-
+const batchEditEl = useTemplateRef('batchEditRef'); // 批量编辑-弹窗
+const remarkModalEl = useTemplateRef('remarkModalRef'); // 批量备注-弹窗
 
 const shopSetVisible = ref(false);
 const shopCurryList = ref([]);
@@ -334,10 +338,8 @@ const copyTreeData = ref([{
             ],
         },
     ],
-},]);
-watch(treeValue, () => {
-    onSearch();
-});
+}]);
+
 
 function filterTreeWithParents(nodes, predicate) {
     return nodes
@@ -360,6 +362,9 @@ const onSearch = () => {
         treeData.value = copyTreeData.value;
     }
 };
+watch(treeValue, () => {
+    onSearch();
+});
 
 const formData = reactive({
     offerId: "",
@@ -379,12 +384,11 @@ const shopAccount = ref([])
 const actives = ref(1);
 const selectedRowList = ref([]);
 const tableData = ref([])
-let columns = tableHeard
 const deactivateLoading = ref(false)
 const delLoading = ref(false)
 const loading = ref(false)
 const remarkVisible = ref(false);
-const editPriceVisible = ref(false)
+
 const remarkId = ref([]);
 const state = {
     wait_publish: "待发布",
@@ -452,21 +456,17 @@ const rowSelection = {
         selectedRowList.value = selectedRows;
     },
 };
-const add = () => {
-    window.open("productPublish", '_blank');
-}
 
 // 店铺设置
 const shopSet = () => {
-    shopSetVisible.value = true
-    getShopSet()
+    shopSetVisible.value = true;
+    getShopSet();
 };
 const getShopSet = () => {
     shopCurrency().then(res => {
         shopCurryList.value = res?.data ?? []
     })
 };
-
 
 // 店铺单选多选
 const selectAll = () => {
@@ -521,28 +521,13 @@ const getAccount = () => {
             getList();
         }
     });
-}
-
-
+};
 
 const displayedSkus = (row) => {
     return row.show ? row?.skuList : row?.skuList?.slice(0, 3);
 }
 
 
-// 备注弹窗关闭
-const backCloseRemark = () => {
-    remarkVisible.value = false;
-    selectedRowList.value = [];
-    remarkId.value = [];
-    getList();
-}
-const edit = (row = {}) => {
-    let newRow = Object.keys(row).length != 0 ? row : selectedRowList.value[0];
-    console.log('newRow', newRow);
-    window.open("editWaitProduct" + `?id=${newRow.waitId}&account=${newRow.account}`, '_blank');
-
-}
 const getList = () => {
     loading.value = true;
     ozonProductList(formData)
@@ -558,11 +543,6 @@ const getList = () => {
             loading.value = false;
         });
 };
-
-//  店铺设置
-const shopSetting = () => {
-
-}
 
 //  移入待发布
 const moveToPending = (row = {}) => {
@@ -581,37 +561,120 @@ const publishProduct = (row = {}) => {
 
 // 备注
 const addRemark = (row = {}) => {
-    remarkVisible.value = true;
-    if (Object.keys(row).length == 0) {
-        remarkId.value = selectedRowList.value;
-    } else {
-        let remarkObj = {
-            account: row.account,
-            waitIds: [row.waitId],
-        };
-        remarkId.value.push(remarkObj);
-    }
+    remarkModalEl.value.open(row, false);
 };
 
 // 单个或批量删除产品
 const delProduct = (row = {}) => {
-    loading.value = true;
-    let waitIds = [];
-    if (Object.keys(row).length != 0) {
-        waitIds.push(row.waitId);
-    } else {
-        waitIds = selectedRowList.value.map((item) => item.waitId);
-    }
-    ozonProductDel({ waitIds })
-        .then((res) => {
-            message.success("操作成功");
-            getList();
-        })
-        .finally(() => {
-            loading.value = false;
-        });
-}
+    Modal.confirm({
+        title: '提示',
+        content: '确定要删除吗？',
+        onOk: async () => {
+            // loading.value = true;
+            // let waitIds = [];
+            // if (Object.keys(row).length != 0) {
+            //     waitIds.push(row.waitId);
+            // } else {
+            //     waitIds = selectedRowList.value.map((item) => item.waitId);
+            // }
+            // ozonProductDel({ waitIds })
+            //     .then((res) => {
+            //         message.success("操作成功");
+            //         getList();
+            //     })
+            //     .finally(() => {
+            //         loading.value = false;
+            //     });
+        }
+    })
 
+};
+
+// 创建产品
+const createProduct = () => {
+    window.open("/platform/ozon/productPublish", '_blank');
+};
+
+//  批量操作
+const handleMenuClick = (e) => {
+    console.log(e, selectedRowList.value);
+    if (!selectedRowList.value.length) {
+        message.warning("请至少选择一条数据");
+        return;
+    }
+    switch (e.key) {
+        case 0:
+            console.log('批量编辑');
+            batchEditEl.value.open(selectedRowList.value);
+            break;
+        case 1:
+            Modal.confirm({
+                title: '提示',
+                content: '确定要批量移入待发布吗？',
+                confirmLoading: true,
+                onOk: async () => {
+                    // baseTableEl.value.setLoading(true);
+                    // const res = await moveToPending({ itemId: record.itemId });
+                    // if (res.code === 200) {
+                    //     message.success('移入待发布成功');
+                    //     getList();
+                    // } else {
+                    //     message.error(res.msg);
+                    //     baseTableEl.value.setLoading(false);
+                    // }
+                }
+            });
+            break;
+        case 2:
+            console.log('批量发布');
+            break;
+        case 3:
+            console.log('批量加水印');
+            break;
+        case 4:
+            Modal.confirm({
+                title: '提示',
+                content: '确定要批量归档吗？',
+                confirmLoading: true,
+                onOk: async () => {
+                    // baseTableEl.value.setLoading(true);
+                    // const res = await moveToPending({ itemId: record.itemId });
+                    // if (res.code === 200) {
+                    //     message.success('归档成功');
+                    //     getList();
+                    // } else {
+                    //     message.error(res.msg);
+                    //     baseTableEl.value.setLoading(false);
+                    // }
+                }
+            })
+            console.log('批量归档');
+            break;
+        case 5:
+            remarkModalEl.value.open(selectedRowList.value, true);
+            console.log('批量备注');
+            break;
+        case 6:
+            Modal.confirm({
+                title: '提示',
+                content: '确定要批量删除吗？',
+                confirmLoading: true,
+                onOk: async () => {
+                    // baseTableEl.value.setLoading(true);
+                    // const res = await moveToPending({ itemId: record.itemId });
+                    // if (res.code === 200) {
+                    //     message.success('删除成功');
+                    //     getList();
+                    // } else {
+                    //     message.error(res.msg);
+                    //     baseTableEl.value.setLoading(false);
+                    // }
+                }
+            })
+            console.log('批量删除');
+            break;
+    }
+};
 
 onMounted(() => {
     getAccount()
