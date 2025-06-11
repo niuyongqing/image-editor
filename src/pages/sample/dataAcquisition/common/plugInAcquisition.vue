@@ -59,12 +59,14 @@
       </div>
     </div>
   </div>
+  <pictureLibrary></pictureLibrary>
 </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { dataGathe } from "../../../ozon/config/commDic/defDic"
+import pictureLibrary from '@/components/pictureLibrary/index.vue'
 defineOptions({ name: "plugInAcquisition" })
 const { proxy: _this } = getCurrentInstance()
 const platformList = dataGathe
