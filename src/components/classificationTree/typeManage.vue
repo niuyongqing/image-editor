@@ -1,0 +1,318 @@
+<template>
+<div id="typeManage" class="typeManage">
+  <a-modal 
+    v-model:open="modalOpen" 
+    title="分类管理"
+    :width="500"
+  >
+    <a-input-search
+      v-model:value="treeData.keyword"
+      placeholder="input search text"
+      style="margin-bottom: 8px"
+      @search="treeSearch(treeData.keyword)"
+    />
+    <div class="box-tree">
+      <a-tree
+        v-if="treeData.showTree.length > 0"
+        defaultExpandAll
+        :tree-data="treeData.showTree"
+        :selectedKeys="treeData.selectedKeys"
+        :fieldNames="{
+          children:'children', 
+          title:'name', 
+          key:'id'
+        }"
+        :show-line="true"
+        :show-icon="false"
+        @select="selectNode"
+      >
+        <template #title="{ id, name, parentId }">
+          <a-popover placement="right" overlayClassName="typeManage-popover">
+            <template #content>
+              <div class="btn-content">
+                <CheckOutlined 
+                  v-if="treeData.editNode && id === treeData.editNode.id" 
+                  @click="editFn"
+                  class="typeManage-btn-icon"
+                />
+                <a-space v-else>
+                  <PlusOutlined 
+                    class="typeManage-btn-icon" 
+                    @click="addIcon({ id, name, parentId })" 
+                  />
+                  <FormOutlined 
+                    class="typeManage-btn-icon" 
+                    @click="editIcon({ id, name, parentId })" 
+                  />
+                  <DeleteOutlined 
+                    class="typeManage-btn-icon" 
+                    @click="delIcon({ id, name, parentId })" 
+                  />
+                </a-space>
+              </div>
+            </template>
+            <!-- <a-button>Right</a-button> -->
+            <a-input 
+              v-if="treeData.editNode && id === treeData.editNode.id"
+              v-model:value="treeData.editNode.name" 
+              placeholder="" 
+            />
+            <span v-else>{{ name }}</span>
+          </a-popover>
+        </template>
+      </a-tree>
+    </div>
+    <template #footer>
+      <a-button key="submit" type="primary" @click="handleOk">关闭</a-button>
+    </template>
+  </a-modal>
+</div>
+</template>
+
+<script setup>
+import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
+import { cloneDeep } from 'lodash-es';
+import { editClass, getClassList } from './api';
+import { PlusOutlined, FormOutlined, DeleteOutlined, CheckOutlined } from '@ant-design/icons-vue';
+defineOptions({ name: "typeManage" })
+const { proxy: _this } = getCurrentInstance()
+const emit = defineEmits(['update:modalOpen'])
+const props = defineProps({
+  modalOpen: Boolean,
+  platform: {
+    type: String,
+    default: ''
+  }
+})
+const modalOpen = ref(false)
+const treeData = reactive({
+  tree: [
+    {
+      id: '0',
+      name: 'sfdggas' + '0',
+      parentId: '0',
+      platform: 'onze',
+      isDeleted: false,
+      children: [
+        {
+          id: '0-1',
+          name: 'fdytgjhcv' + '0-1',
+          parentId: '0',
+          platform: 'onze',
+          isDeleted: false,
+          children: [
+            {
+              id: '0-1-1',
+              name: 'sdgsgsdfsd' + '0-1-1',
+              parentId: '0-1',
+              platform: 'onze',
+              isDeleted: false,
+              children: []
+            },
+            {
+              id: '0-1-2',
+              name: 'ghkgffg' + '0-1-2',
+              parentId: '0-1',
+              platform: 'onze',
+              isDeleted: false,
+              children: [
+              {
+                  id: '0-1-2-0',
+                  name: 'sdgsgsdfsd' + '0-1-2-0',
+                  parentId: '0-1-2',
+                  platform: 'onze',
+                  isDeleted: false,
+                  children: []
+                },
+                {
+                  id: '0-1-2-1',
+                  name: 'ghkgffg' + '0-1-2-1',
+                  parentId: '0-1-2',
+                  platform: 'onze',
+                  isDeleted: false,
+                  children: []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          id: '0-2',
+          name: 'egjfgfbsdz' + '0-2',
+          parentId: '0',
+          platform: 'onze',
+          isDeleted: false,
+          children: [
+            {
+              id: '0-2-1',
+              name: 'sdgsgsdfsd' + '0-2-1',
+              parentId: '0-2',
+              platform: 'onze',
+              isDeleted: false,
+              children: [
+                {
+                  id: '0-2-1-0',
+                  name: 'sdgsgsdfsd' + '0-2-1-0',
+                  parentId: '0-2-1',
+                  platform: 'onze',
+                  isDeleted: false,
+                  children: []
+                },
+                {
+                  id: '0-2-1-1',
+                  name: 'ghkgffg' + '0-2-1-1',
+                  parentId: '0-2-1',
+                  platform: 'onze',
+                  isDeleted: false,
+                  children: []
+                }
+              ]
+            },
+            {
+              id: '0-2-2',
+              name: 'ghkgffg' + '0-2-2',
+              parentId: '0-2',
+              platform: 'onze',
+              isDeleted: false,
+              children: []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  selectedKeys: ['0'],
+  showTree: [],         // 用于展示的树的数据
+  nodeList: [],         // 所有节点的数据，用于
+  keyword: '',          // 搜索关键词
+
+  editNode: null,       // 正在编辑的
+  addNode: null,        // 新增的节点
+})
+
+onMounted(() => {
+  // getClassListFn()
+  treeData.showTree = cloneDeep(treeData.tree)
+  treeData.nodeList = getNodeList(treeData.showTree)
+})
+// 搜索
+watch(() => treeData.keyword, value => {
+  treeSearch(value) 
+});
+// 打开弹窗
+watch(() => props.modalOpen, val => {
+  // console.log({val});
+  modalOpen.value = val
+});
+// 关闭弹窗
+watch(() => modalOpen.value, val => {
+  !val && emit('update:modalOpen', false);
+});
+// 关闭弹窗
+function handleOk() {
+  modalOpen.value = false
+}
+// 获取树数据
+async function getClassListFn(params) {
+  try {
+    let params = {
+      "platform": props.platform,//平台
+    }
+    let res = await getClassList(params)
+    treeData.tree = res.data
+    treeData.showTree = cloneDeep(res.data)
+  } catch (error) {
+    console.error(error)
+  }
+}
+// 将数据扁平化
+function getNodeList(data) {
+  let list = [...data]
+  data.forEach(item => {
+    if (item.children && item.children.length > 0) {
+      let children = getNodeList(item.children)
+      list = [...list, ...children]
+    }
+  })
+  return list
+}
+// 树搜索
+function treeSearch(val) {
+  let data = cloneDeep(treeData.tree)
+  treeData.showTree = filterTreeNode(data, val)
+  treeData.nodeList = getNodeList(treeData.showTree)
+}
+// 树节点搜索
+function filterTreeNode(data, keyword) {
+  let list = data.filter(item => {
+    if (item.name.includes(keyword)) {
+      return true
+    } else if (item.children && item.children.length > 0) {
+      item.children = filterTreeNode(item.children, keyword)
+      return item.children.length > 0
+    } 
+  })
+  return list
+}
+// 树节点点击
+function selectNode(expandedKeys, { expanded: bool, node }) {
+  // console.log({expandedKeys,bool,node});
+  treeData.selectedKeys = [node.id]
+}
+// 新增节点
+function addIcon({ id, name, parentId }) {
+  let obj = {
+    id,
+    name: '',
+    parentId,
+    platform: props.platform
+  }
+  treeData.addNode = obj
+}
+async function addFn() {
+
+}
+// 修改节点
+function editIcon({ id, name, parentId }) {
+  let obj = { id, name, parentId, platform: props.platform }
+  treeData.editNode = obj
+}
+// 修改节点方法
+async function editFn() {
+  try {
+    let res = await editClass(treeData.editNode)
+  } catch (error) {
+    console.error(error)
+  }
+  treeData.editNode = null
+}
+// 删除节点
+function delIcon({ id, name, parentId }) {
+
+}
+
+</script>
+<style lang="less" scoped>
+.box-tree {
+  width: 100%;
+  max-height: 350px;
+  overflow-y: auto;
+}
+</style>
+<style lang="less">
+.btn-content {
+  .typeManage-btn-icon {
+    cursor: pointer;
+    font-size: 20px;
+  }
+  // background: red;
+  padding: 0;
+}
+.typeManage-popover {
+  .ant-popover-content .ant-popover-inner {
+    padding: 4px 8px !important;
+    border-radius: 1px;
+  }
+}
+
+</style>
