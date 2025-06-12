@@ -275,7 +275,7 @@ const remarkModalEl = useTemplateRef('remarkModalRef'); // 批量备注-弹窗
 
 const shopSetVisible = ref(false);
 const shopCurryList = ref([]);
-
+const selectedKeys = ref([]);
 const treeValue = ref(''); // 待发布产品搜索
 const treeData = ref([
     {

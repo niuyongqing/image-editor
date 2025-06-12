@@ -36,38 +36,19 @@
                         >>
                     </template>
                     <template v-if="column.dataIndex === 'ozonCategory'">
-                        <!-- <a-select class="w-300px" v-model:value="record.categoryId" placeholder="请选择"
-                            @change="handleCategoryChange(record)" :options="categoryOptions">
-                        </a-select> -->
-
                         <a-select v-model:value="form.categoryId" allowClear showSearch labelInValue placeholder="请选择"
                             style="width: 300px;" :options="historyCategoryList" @change="selectAttributes" :fieldNames="{
                                 label: 'threeCategoryName', value: 'threeCategoryId',
                             }">
                         </a-select>
 
-                        <a-button type="link" @click="selectVisible = true">更换分类</a-button>
-                        <!-- <div class="text-gray-600">电子产品(Электроника) > 智能手机、平板电脑、手机(Смартфоны, планшеты, мобильные
-                            телефоны) > 智能手机(Смартфон)</div> -->
+                        <!-- <a-button type="link" @click="selectVisible = true">更换分类</a-button> -->
+                        <a-button type="link" @click="changeCategory">更换分类</a-button>
                         <div text-gray-600 v-if="hisAttrObj.length != 0">
                             <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{
                                 hisAttrObj[0].secondCategoryName }}</span>/
                             <span>{{ hisAttrObj[0].threeCategoryName }}</span>
                         </div>
-
-
-                        <a-table :columns="categoryColumns" :dataSource="categoryTableData" bordered :pagination="false"
-                            style="margin-top: 10px;">
-                            <template #bodyCell="{ column, record }">
-                                <template v-if="column.dataIndex === 'theme'">
-                                    <a-select style="width: 80%;" v-model:value="record.categoryId" placeholder="请选择"
-                                        @change="handleCategoryChange(record)" :options="categoryOptions">
-                                    </a-select>
-                                </template>
-                            </template>
-                        </a-table>
-
-
                     </template>
                 </template>
             </a-table>
@@ -75,12 +56,16 @@
 
         <CategoryDialog :selectVisible="selectVisible" :categoryTreeList="categoryTreeList"
             @getAttributesID="getAttributesID" @handleEditClose="selectVisible = false"></CategoryDialog>
+
+
+        <CategoryModal ref="categoryModalRef"></CategoryModal>
     </div>
 
 </template>
 
 <script setup>
 import CategoryDialog from "@/pages/ozon/productPublish/comm/categoryDialog.vue";
+import CategoryModal from "./categoryModal.vue";
 import {
     historyCategory,
     addHistoryCategory,
@@ -108,27 +93,13 @@ const columns = [
     },
 ];
 
-const categoryColumns = [
-    {
-        title: '天猫变种主题',
-        dataIndex: 'productInfo',
-        key: 'productInfo',
-        width: 400
-    },
-    {
-        title: '对应Ozon变种主题',
-        dataIndex: 'theme',
-        key: 'theme',
-        width: 400
-    },
-];
 const categoryTableData = ref([
     {
         productInfo: '机身颜色',
         theme: undefined,
     }
-])
-
+]);
+const categoryModalEl = useTemplateRef('categoryModalRef');
 const categoryOptions = ref([]);
 const selectVisible = ref(false);
 const categoryTreeList = ref([]);
@@ -224,6 +195,13 @@ const selectAttributes = (e) => {
     }
 }
 
+// 更换分类
+const changeCategory = () => {
+    dialogVisible.value = false;
+    nextTick(() => {
+        categoryModalEl.value.open();
+    })
+}
 
 
 

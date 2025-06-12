@@ -67,6 +67,9 @@
                 :categoryAttributesLoading="categoryAttributesLoading" :shopList="shopList"
                 :attributesCache="attributes" :productDetail="productDetail"></ozon-base-info>
             <br />
+            <!-- ERP信息 -->
+            <erp-info ref="erpInfoRef"></erp-info>
+
             <!-- 描述信息 -->
             <OzonNewImageInfo ref="ozonImageInfoRef" :productDetail="productDetail" :shopCode="formData.shortCode">
             </OzonNewImageInfo>
@@ -160,10 +163,12 @@ import {
 import { saveTowaitProduct } from "../config/api/waitProduct"
 import { message, Modal } from "ant-design-vue";
 import { UploadOutlined, DownOutlined } from '@ant-design/icons-vue';
+import ErpInfo from './comm/erpInfo.vue';
 
 const ozonBaseInfoRef = ref(null)
 const ozonImageInfoRef = ref(null)
 const ozonNewVariantInfoRef = ref(null)
+const erpInfoRef = ref(null) // erp信息Dom
 const attributes = ref([])
 const shopList = ref([])
 const productDetail = ref({})
