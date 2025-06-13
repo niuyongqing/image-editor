@@ -208,6 +208,8 @@ const changeCategory = () => {
 const open = (data) => {
     acceptParams.value = data;
     dialogVisible.value = true;
+
+
 };
 
 const cancel = () => {

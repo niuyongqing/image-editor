@@ -16,21 +16,18 @@
                     </a-select>
                 </a-form-item>
                 <a-form-item label="分类：" name="categoryId">
-                    <a-select v-model:value="form.categoryId" disabled allowClear showSearch labelInValue
-                        placeholder="请选择" style="width: 200px;" :options="historyCategoryList" :fieldNames="{
+                    <a-select v-model:value="form.categoryId" allowClear showSearch placeholder="请选择"
+                        style="width: 200px;" :options="historyCategoryList" :fieldNames="{
                             label: 'threeCategoryName', value: 'threeCategoryId',
                         }">
                     </a-select>
-                    <a-button style="margin-left: 20px" disabled @click="selectVisible = true">选择分类</a-button>
-                    <p v-if="hisAttrObj.length != 0" style="color: #933">
-                        <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{
-                            hisAttrObj[0].secondCategoryName }}</span>/
-                        <span>{{ hisAttrObj[0].threeCategoryName }}</span>
-                    </p>
+                    <a-button style="margin-left: 20px" @click="changeCategory">选择分类</a-button>
+                    <p class="tooltip-text" v-if="JSON.stringify(hisAttrObj) != '{}'">{{ hisAttrObj.categoryName }}/{{
+                        hisAttrObj.secondCategoryName }}/{{
+                            hisAttrObj.threeCategoryName }} </p>
                 </a-form-item>
                 <a-form-item label="产品属性：">
                     <a-card shadow="never" v-loading="categoryAttributesLoading" style="
-                    position: relative;
                     width: 90%;
                     height: 600px;
                     overflow-y: auto;
@@ -47,7 +44,7 @@
                                             <AsyncIcon icon="QuestionCircleOutlined"></AsyncIcon>
                                         </a-tooltip>
                                     </template>
-                                    <a-input v-if="item.selectType === 'input'"
+                                    <a-input v-if="item.selectType === 'input' && item.type == 'String'"
                                         v-model:value="form.attributes[item.name]" :style="'width: 80%'" allow-clear
                                         :maxlength="item.name == '海关编码' || item.name == 'IKP公司'
                                             ? 17
@@ -55,6 +52,13 @@
                                                 ? 9999999
                                                 : 100
                                             " :minlength="1000000"></a-input>
+                                    <a-input-number v-if="item.selectType === 'input' && item.type == 'Decimal'"
+                                        v-model:value="form.attributes[item.name]" :precision="2"
+                                        style="width: 80%"></a-input-number>
+                                    <a-input-number v-if="item.selectType === 'input' && item.type == 'Integer'"
+                                        v-model:value="form.attributes[item.name]" :precision="0"
+                                        style="width: 80%"></a-input-number>
+
                                     <div v-if="
                                         item.type == 'String' &&
                                         item.isCollection &&
@@ -64,7 +68,6 @@
                                             <a-select optionFilterProp="label" show-search
                                                 v-model:value="item.selectDate" allowClear style="width: 200px"
                                                 placeholder="请输入内容" labelInValue>
-                                                <!-- :options="item.options" @change="handlerChangeSelectDate"-->
                                                 <a-select-option :value="v" :label="v.label"
                                                     v-for="(v, i) in item.options" :key="i">{{ v.label
                                                     }}</a-select-option>
@@ -75,23 +78,14 @@
                                         <a-form-item-rest>
                                             <a-checkbox-group v-model:value="form.attributes[item.name]"
                                                 style="width: 80%;" :options="item.acquiesceList">
-                                                <!--  :options="item.acquiesceList" v-model:checked="option.value" -->
-                                                <!-- <a-checkbox v-for="option in item.acquiesceList" :key="option.value">
-                                                    {{ option.label }}
-                                                </a-checkbox> -->
                                             </a-checkbox-group>
                                         </a-form-item-rest>
-                                        <!-- <a-checkbox v-for="i in item.acquiesceList" :label="i.value"
-                                            :key="i.value">{{ i.value }}</a-checkbox> @change="handlerSelectDate"-->
                                     </div>
                                     <a-select optionFilterProp="label" show-search
                                         v-model:value="form.attributes[item.name]" v-if="item.selectType === 'select'"
-                                        labelInValue :style="'width: 80%'" allowClear>
-                                        <!-- <a-select-option v-if="item.name == '品牌(Бренд)'" :value="'无品牌'"
-                                            :label="'无品牌'">无品牌</a-select-option> -->
-
+                                        labelInValue style="width: 80%" allowClear>
                                         <a-select-option :value="v" v-for="(v, i) in item.options" :key="i">{{ v.label
-                                            }}</a-select-option>
+                                        }}</a-select-option>
                                     </a-select>
                                 </a-form-item>
                             </div>
@@ -100,8 +94,7 @@
                 </a-form-item>
             </a-form>
         </a-card>
-        <!-- <categoryDialog @getAttributesID="getAttributesID" :categoryTreeList="categoryTreeList"
-            :selectVisible="selectVisible" @handleEditClose="selectVisible = false"></categoryDialog> -->
+        <CategoryModal ref="categoryModalRef" :account="form.shortCode" @select="handleSelect"></CategoryModal>
     </div>
 </template>
 
@@ -113,8 +106,8 @@ import {
     addHistoryCategory,
     historyAttribute,
 } from "../../config/api/product";
-// import categoryDialog from "./categoryDialog.vue";
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
+import CategoryModal from "./categoryModal.vue";
 
 const props = defineProps({
     categoryAttributesLoading: Boolean,
@@ -123,7 +116,7 @@ const props = defineProps({
     shopList: Array,
 });
 const emit = defineEmits(["sendShortCode", "getAttributes"]);
-
+const categoryModalEl = useTemplateRef('categoryModalRef');
 const ruleForm = ref(null)
 const ruleForm2 = ref(null)
 const form = reactive({
@@ -179,23 +172,20 @@ const vatList = [
 ]
 const filterAttrList = ref([])
 const operationLine = ref([]) //取消的
-const hisAttrObj = ref([]) //选中的三级
+const hisAttrObj = ref({}) //选中的三级
+const secondCategoryId = ref(undefined);
 
-// 历史分类
-const getHistoryList = (account) => {
-    historyCategory({ account })
+const getHistoryList = async (account, categoryId) => {
+
+    historyCategory({ account: account })
         .then((res) => {
             historyCategoryList.value = res?.data || [];
-            if (
-                historyCategoryList.value.length != 0 &&
-                JSON.stringify(form.categoryId) != "{}"
-            ) {
-                hisAttrObj.value = historyCategoryList.value.filter(
-                    (item) =>
-                        item.threeCategoryId ==
-                        form?.categoryId?.threeCategoryId
-                );
-            }
+            form.categoryId = categoryId;
+            const findItem = historyCategoryList.value.find((item) => {
+                return item.threeCategoryId === categoryId
+            });
+            hisAttrObj.value = findItem;
+            secondCategoryId.value = findItem?.secondCategoryId;
         })
 }
 
@@ -323,6 +313,7 @@ const moveMatchedItemForward = (data, arr) => {
 }
 
 const addItemValues = (obj) => {
+    if (!obj.selectDate.value) return;
     const { attributes } = form;
     const isExist = obj.acquiesceList.some(
         (item) => item.value === obj.selectDate.value
@@ -343,7 +334,6 @@ const addItemValues = (obj) => {
 const childForm = async () => {
     // 收集需要校验的表单引用
     const formRefs = [ruleForm, ruleForm2];
-
     // 循环遍历表单引用数组进行校验
     for (const formRef of formRefs) {
         try {
@@ -362,6 +352,16 @@ const childForm = async () => {
     return true;
 }
 
+// 打开选择分类弹窗
+const changeCategory = () => {
+    categoryModalEl.value.open()
+};
+
+const handleSelect = (data) => {
+    console.log('data ->>>>>>>>', data);
+
+    // form.categoryId = data.value
+}
 
 // 抛出数据和方法，可以让父级用ref获取
 defineExpose({
@@ -377,14 +377,9 @@ watch(() => props.productDetail, val => {
         form.shortCode = account;
         form.name = name;
         form.vat = vat === "0.00" ? vat.split(".")[0] : vat;
-        form.categoryId = {
-            threeCategoryId: typeId,
-            threeCategoryName: "",
-            secondCategoryId: descriptionCategoryId,
-            label: undefined,
-            value: typeId
-        };
-        getHistoryList(account)
+
+        getHistoryList("160318262", 96814)
+        // getHistoryList(account, form.categoryId)
     }
 })
 
@@ -496,5 +491,10 @@ watch(() => props.attributesCache, (val) => {
             /* 设置容器宽度 */
         }
     }
+}
+
+.tooltip-text {
+    color: #933;
+    padding-top: 5px;
 }
 </style>

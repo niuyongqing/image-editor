@@ -34,7 +34,7 @@
                                         @click="selectFirstItem(item)">
                                         <div flex>
                                             <div w-250px overflow-hidden text-ellipsis whitespace-nowrap> {{ item.label
-                                                }}
+                                            }}
                                             </div>
                                             <div>
                                                 <RightOutlined />
@@ -59,7 +59,7 @@
                                         @click="selectSecondItem(item)">
                                         <div flex>
                                             <div w-250px overflow-hidden text-ellipsis whitespace-nowrap> {{ item.label
-                                                }}
+                                            }}
                                             </div>
                                             <div>
                                                 <RightOutlined />
@@ -67,14 +67,13 @@
                                         </div>
                                     </a-menu-item>
                                 </a-menu>
-
                             </template>
                         </a-dropdown>
                     </div>
                 </a-card>
 
 
-                <a-card>
+                <a-card v-if="thirdState.options.length">
                     <div w-320px h-300px>
                         <a-dropdown v-model:open="thirdState.open" trigger="">
                             <a-input-search v-model:value="thirdState.value" placeholder="搜索" style="width: 320px"
@@ -110,37 +109,42 @@ import { message } from 'ant-design-vue';
 import { RightOutlined } from '@ant-design/icons-vue';
 import { cloneDeep } from 'lodash'
 
+const { account } = defineProps({
+    account: {
+        type: String,
+        default: ''
+    }
+})
+
 const searchValue = ref('');
 const openSelect = ref(false); // 是否展开下拉菜单
 const selectItem = ref({}); // 选中的历史分类
-const visible = ref(true);
+const visible = ref(false);
 const treeData = ref([]);
 const historyCategoryList = ref([]);
 const copyFirstOpts = ref([]);
 const copySecondOpts = ref([]);
 const copyThirdOpts = ref([]);
-//  一级
 const { state: firstState, reset: firstReset } = useResetReactive({
     options: [],
     open: true,
     value: '',
     selectKeys: [],
+    selectValue: {},
 });
-
-//  二级
 const { state: secondState, reset: secondReset } = useResetReactive({
     options: [],
     open: true,
     value: '',
-    selectKeys: []
+    selectKeys: [],
+    selectValue: {},
 });
-
-//  三级
 const { state: thirdState, reset: thirdReset } = useResetReactive({
     options: [],
     open: true,
     value: '',
-    selectKeys: []
+    selectKeys: [],
+    selectValue: {},
 });
 
 function filterTreeWithParents(nodes, predicate) {
@@ -153,16 +157,12 @@ function filterTreeWithParents(nodes, predicate) {
             return predicate(node) || (node.children && node.children.length > 0);
         });
 };
-
-// 根据搜索条件过滤treeData
 const searchHistory = () => {
     if (searchValue.value) {
         openSelect.value = true;
         const filterData = filterTreeWithParents(data, node =>
             node.categoryName && node.categoryName.includes(searchValue.value)
         );
-
-        // 把r 转换为 fr的数据结构
         function treeToList(tree, path = [], result = []) {
             tree.forEach(node => {
                 const newPath = [...path, node.categoryName];
@@ -219,10 +219,9 @@ const onSearchThird = (value) => {
 // 分类数据
 function getCategoryTree() {
     categoryTree({
-        "account": "15382473660"
+        "account": account
     }).then(res => {
         treeData.value = res.data || [];
-
         firstState.options = treeData.value.map((item) => {
             return {
                 ...item,
@@ -230,7 +229,6 @@ function getCategoryTree() {
                 value: item.descriptionCategoryId,
             }
         });
-
         secondState.options = treeData.value[0].children.map((item) => {
             return {
                 ...item,
@@ -238,7 +236,6 @@ function getCategoryTree() {
                 value: item.descriptionCategoryId,
             }
         });
-
         thirdState.options = treeData.value[0].children[0].children.map((item) => {
             return {
                 ...item,
@@ -246,25 +243,22 @@ function getCategoryTree() {
                 value: item.descriptionCategoryId,
             }
         });
-
+        firstState.open = true;
+        secondState.open = true;
+        thirdState.open = true;
         copyFirstOpts.value = cloneDeep(firstState.options);
         copySecondOpts.value = cloneDeep(secondState.options);
         copyThirdOpts.value = cloneDeep(thirdState.options);
     })
 };
-// 保存
 const handleSave = (value) => {
-    console.log('value', value);
     openSelect.value = false;
     emits('select')
 };
-// 选择菜单
 const selectMenu = (item) => {
-    console.log('item ->>>', item);
     selectItem.value = item;
     handleClose();
 };
-
 const selectFirstItem = (item) => {
     firstState.selectKeys = [item.value];
     secondState.options = item.children.map((item) => {
@@ -275,10 +269,11 @@ const selectFirstItem = (item) => {
         }
     });
     secondState.open = true;
+    firstState.selectValue = item;
+    secondState.selectKeys = [];
+    thirdReset();
 };
 const selectSecondItem = (item) => {
-    console.log('item', item);
-
     secondState.selectKeys = [item.value];
     thirdState.options = item.children.map((item) => {
         return {
@@ -288,12 +283,14 @@ const selectSecondItem = (item) => {
         }
     });
     thirdState.open = true;
+    secondState.selectValue = item;
+    thirdState.selectKeys = [];
 };
 
 
 const selectThirdItem = (item) => {
     thirdState.selectKeys = [item.value];
-
+    thirdState.selectValue = item;
 }
 
 const open = () => {
@@ -328,6 +325,8 @@ const emits = defineEmits(['select']);
 defineExpose({
     open,
 })
+
+
 
 
 </script>

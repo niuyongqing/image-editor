@@ -147,7 +147,6 @@
                                 </div>
                             </div>
                         </template>
-
                         <template v-if="column.dataIndex === 'sku'">
                             <div class="text-left">
                                 <div v-for="(item, index) in displayedSkus(record)" :key="index">
@@ -171,7 +170,6 @@
                                 </div>
                             </div>
                         </template>
-
                         <template v-if="column.dataIndex === 'price'">
                             <div class="flex items-start flex-col">
                                 price
@@ -187,8 +185,6 @@
                                 stock
                             </div>
                         </template>
-
-
                         <template v-if="column.dataIndex === 'createTime'">
                             <div class="flex items-start flex-col">
                                 <div>
@@ -254,7 +250,7 @@
 </template>
 
 <script setup name='draft'>
-import { message, Modal } from 'ant-design-vue';
+import { Divider, message, Modal } from 'ant-design-vue';
 import { DownOutlined, SettingOutlined, SyncOutlined, QuestionCircleOutlined } from "@ant-design/icons-vue";
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { accountCache } from "../config/api/product";
