@@ -70,6 +70,7 @@
               style="width: 70%;"
               placeholder="" 
               ref="inputRef"
+              allowClear
               @blur="editFn"
             />
             <span class="node-name" v-else>{{ name }}</span>
@@ -92,7 +93,7 @@ import { PlusOutlined, FormOutlined, DeleteOutlined, CheckOutlined } from '@ant-
 import { message } from 'ant-design-vue';
 defineOptions({ name: "typeManage" })
 const { proxy: _this } = getCurrentInstance()
-const emit = defineEmits(['update:modalOpen'])
+const emit = defineEmits(['update:modalOpen', 'updateTree'])
 const props = defineProps({
   modalOpen: Boolean,
   platform: {
@@ -219,7 +220,10 @@ watch(() => props.modalOpen, val => {
 });
 // 关闭弹窗
 watch(() => modalOpen.value, val => {
-  !val && emit('update:modalOpen', false);
+  if (!val) {
+    emit('update:modalOpen', false);
+    emit('updateTree')
+  }
 });
 // 打开弹窗
 async function modalOpenFn() {
@@ -255,7 +259,7 @@ function setNodeKey(list, pNode = null) {
   list.forEach((item, index) => {
     if (!pNode) {
       item.level = 0
-      item._key = '0'
+      item._key = index + ''
     } else {
       item.level = pNode.level + 1
       item._key = `${pNode._key}-${index}`

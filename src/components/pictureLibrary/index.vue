@@ -3,7 +3,7 @@
   <div class="index-left">
     <div class="left-title box-title">图片空间的分类</div>
     <div class="left-tree-box">
-      <div class="box-input">
+      <!-- <div class="box-input">
         <a-input-search
           v-model:value="treeData.keyword"
           placeholder="input search text"
@@ -21,26 +21,33 @@
           <span v-if="key === '0-0-1-0'" style="color: #1890ff">{{ title }}</span>
           <template v-else>{{ title }}</template>
         </template>
-      </a-tree>
+      </a-tree> -->
+      <typeTree 
+        v-model:current-class="imgData.params.currentClass"
+        v-model:node-path="imgData.nodePath"
+        platform="ozon"
+        ref="typeTreeRef"
+      ></typeTree>
     </div>
   </div>
   <div class="index-right">
     <div class="right-btn">
       <a-space>
         <a-input-search
-          v-model:value="imgData.keyword"
+          v-model:value="imgData.params.keyword"
           style="width: 300px;"
           placeholder="input search text"
           enter-button="搜索"
           @search="imgSearch"
         />
-        <a-button type="primary">上传图片</a-button>
+        <a-button type="primary" @click="imgData.uploadImgOpen = !imgData.uploadImgOpen">上传图片</a-button>
+        <a-button type="primary" @click="imgData.typeManageOpen = !imgData.typeManageOpen">分类管理</a-button>
       </a-space>
     </div>
     <div class="right-box">
       <div class="right-box-title box-title">
-        <span>图片>{{ 'sdgsdfsdfgs' }}</span>
-        <span>已选中{{ 56 }}张图片</span>
+        <span>图片>{{ imgData.nodePath }}</span>
+        <span>已选中{{ imgData.selectedImgList.length }}张图片</span>
       </div>
       <div class="right-box-content">
         <div class="img-box"
@@ -110,84 +117,40 @@
       </div>
     </div>
   </div>
+  <typeManage 
+    v-model:modal-open="imgData.typeManageOpen" 
+    :platform="'ozon'"
+    @updateTree="updateTree"
+  ></typeManage>
+  <uploadImg 
+    v-model:modal-open="imgData.uploadImgOpen" 
+    :platform="'ozon'"
+  ></uploadImg>
 </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { DeleteOutlined } from '@ant-design/icons-vue';
+import typeTree from '@/components/classificationTree/typeTree.vue';
+import typeManage from '@/components/classificationTree/typeManage.vue';
+import uploadImg from './uploadImg.vue';
 defineOptions({ name: "pictureLibrary_index" })
 const { proxy: _this } = getCurrentInstance()
-// const treeData = [
-
-// ];
-const expandedKeys = ref(['0-0-0', '0-0-1']);
-const selectedKeys = ref(['0-0-0', '0-0-1']);
-const checkedKeys = ref(['0-0-0', '0-0-1']);
-const value = ref('');
-const onSearch = searchValue => {
-  console.log('use value', searchValue);
-  console.log('or use this.value', value.value);
-};
-watch(expandedKeys, () => {
-  console.log('expandedKeys', expandedKeys);
-});
-watch(selectedKeys, () => {
-  console.log('selectedKeys', selectedKeys);
-});
-watch(checkedKeys, () => {
-  console.log('checkedKeys', checkedKeys);
-});
-
-const treeData = reactive({
-  tree: [
-    {
-      title: 'parent 1',
-      key: '0-0',
-      children: [
-        {
-          title: 'parent 1-0',
-          key: '0-0-0',
-          disabled: true,
-          children: [
-            {
-              title: 'leaf',
-              key: '0-0-0-0',
-              disableCheckbox: true,
-            },
-            {
-              title: 'leaf',
-              key: '0-0-0-1',
-            },
-          ],
-        },
-        {
-          title: 'parent 1-1',
-          key: '0-0-1',
-          children: [
-            {
-              key: '0-0-1-0',
-              title: 'sss',
-            },
-          ],
-        },
-      ],
-    },
-  ],
-  keyword: ''
-})
 const imgData = reactive({
   data: [],
   selectedImgList: [],
-  keyword: '',
   total: 200,
-  pageNum: 1, // 分页参数
-  pageSize: 20 // 每页数量
+  typeManageOpen: false,
+  uploadImgOpen: false,
+  nodePath: '',
+  params: {
+    currentClass: '',
+    keyword: '',
+    pageNum: 1, // 分页参数
+    pageSize: 20 // 每页数量
+  }
 })
-// 树搜索
-function treeSearch(val) {
-
-}
 // 图片搜索
 async function imgSearch(val) { 
   for (let index = 0; index < 100; index++) {
@@ -205,7 +168,7 @@ async function imgSearch(val) {
 }
 // 页码变化
 function pageChange(val) {
-  
+
 }
 // 浮层
 function onVisibleChange(img) {
@@ -226,6 +189,10 @@ function delSelectImg(val) {
 function delImg(val) {
   console.log({val});
 }
+// 更新树数据
+function updateTree() {
+  _this.$refs.typeTreeRef.updateTree()
+}
 
 </script>
 <style lang="less" scoped>
@@ -235,15 +202,16 @@ function delImg(val) {
   padding: 10px;
   width: 1200px;
   .index-left {
-    width: 300px;
+    width: 250px;
     margin-right: 15px;
     .left-tree-box {
-      width: 80%;
+      width: 100%;
+      height: 100%;
       margin: 10px 0;
     }
   }
   .index-right {
-    width: 850px;
+    width: 900px;
     .right-btn {
       display: flex;
       // justify-content: space-between;
