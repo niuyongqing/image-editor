@@ -3,7 +3,7 @@
   <!-- <a-input-search v-model:value="treeData.keyword" style="margin-bottom: 8px" placeholder="Search" /> -->
   <a-input-search
     v-model:value="treeData.keyword"
-    placeholder="input search text"
+    placeholder="类别关键词"
     style="margin-bottom: 8px"
     @search="treeSearch(treeData.keyword)"
   />
@@ -181,7 +181,7 @@ function getNodePath(node) {
   height: 100%;
   .box-tree {
     width: 100%;
-    height: 100%;
+    height: calc(100% - 40px);
     overflow-y: auto;
     :deep(.ant-tree-treenode) {
       width: 100%;

@@ -5,10 +5,11 @@
     title="分类管理"
     :width="500"
     :keyboard="true"
+    :maskClosable="false"
   >
     <a-input-search
       v-model:value="treeData.keyword"
-      placeholder="input search text"
+      placeholder="类别关键词"
       style="margin-bottom: 8px"
       @search="treeSearch(treeData.keyword)"
     />
@@ -30,51 +31,54 @@
         @select="selectNode"
       >
         <template #title="{ id, name, parentId, level }">
-          <a-popover placement="right" overlayClassName="typeManage-popover">
-            <template #content>
-              <div class="btn-content">
-                <CheckOutlined 
-                  v-if="treeData.editNode && id === treeData.editNode.id" 
-                  @click="editFn"
-                  class="typeManage-btn-icon"
+          <div 
+            class="node-template-box" 
+            @mouseenter="nodeMouseenter(id)" 
+            @mouseleave="nodeMouseleave(id)"
+          >
+            <div class="title-content">
+              <a-input 
+                v-if="treeData.editNode && id === treeData.editNode.id"
+                v-model:value="treeData.editNode.name" 
+                style="width: 70%;"
+                placeholder="" 
+                ref="inputRef"
+                allowClear
+                @blur="editFn"
+              />
+              <div class="node-name" v-else>{{ name }}</div>
+            </div>
+            <div class="btn-content" v-show="treeData.hoverId === id">
+              <CheckOutlined 
+                v-if="treeData.editNode && id === treeData.editNode.id" 
+                @click="editFn"
+                class="typeManage-btn-icon"
+              />
+              <a-space v-else>
+                <PlusOutlined 
+                  class="typeManage-btn-icon" 
+                  @click="addIcon({ id, name, parentId })" 
+                  v-if="level < 3"
                 />
-                <a-space v-else>
-                  <PlusOutlined 
+                <FormOutlined 
+                  class="typeManage-btn-icon" 
+                  @click="editIcon({ id, name, parentId })" 
+                  v-if="id !== '0'"
+                />
+                <a-popconfirm
+                  v-if="id !== '0'"
+                  title="是否删除该节点？"
+                  ok-text="是"
+                  cancel-text="否"
+                  @confirm="delIcon({ id, name, parentId })"
+                >
+                  <DeleteOutlined 
                     class="typeManage-btn-icon" 
-                    @click="addIcon({ id, name, parentId })" 
-                    v-if="level < 3"
                   />
-                  <FormOutlined 
-                    class="typeManage-btn-icon" 
-                    @click="editIcon({ id, name, parentId })" 
-                    v-if="id !== '0'"
-                  />
-                  <a-popconfirm
-                    v-if="id !== '0'"
-                    title="是否删除该节点？"
-                    ok-text="是"
-                    cancel-text="否"
-                    @confirm="delIcon({ id, name, parentId })"
-                  >
-                    <DeleteOutlined 
-                      class="typeManage-btn-icon" 
-                    />
-                  </a-popconfirm>
-                </a-space>
-              </div>
-            </template>
-            <!-- <a-button>Right</a-button> -->
-            <a-input 
-              v-if="treeData.editNode && id === treeData.editNode.id"
-              v-model:value="treeData.editNode.name" 
-              style="width: 70%;"
-              placeholder="" 
-              ref="inputRef"
-              allowClear
-              @blur="editFn"
-            />
-            <span class="node-name" v-else>{{ name }}</span>
-          </a-popover>
+                </a-popconfirm>
+              </a-space>
+            </div>
+          </div>
         </template>
       </a-tree>
     </div>
@@ -204,6 +208,7 @@ const treeData = reactive({
   nodeList: [],         // 所有节点的数据，用于
   keyword: '',          // 搜索关键词
 
+  hoverId: '',
   editNode: null,       // 正在编辑的
 })
 
@@ -318,6 +323,12 @@ function selectNode(expandedKeys, { expanded: bool, node }) {
   // console.log({expandedKeys,bool,node});
   treeData.selectedKeys = []
 }
+function nodeMouseenter(id) {
+  treeData.hoverId = id
+}
+function nodeMouseleave(id) {
+  treeData.hoverId = ''
+}
 // 新增节点
 async function addIcon({ id, name, parentId }) {
   try {
@@ -354,9 +365,7 @@ function editIcon({ id, name, parentId }) {
 async function editFn() {
   try {
     await editClass(treeData.editNode)
-    let res = await getClassListFn(treeData.editNode.parentId)
-    let val = treeData.nodeList.find(i => i.id === treeData.editNode.parentId)
-    val.childList = res.data
+    await getAllData();
     // message.success('修改成功！')
   } catch (error) {
     console.error(error)
@@ -396,21 +405,33 @@ async function delIcon({ id, name, parentId }) {
       }
     }
   }
-  .node-name {
-    font-weight: 500;
-    font-size: 16px;
+  .node-template-box {
+    display: flex;
+    // justify-content: space-between;
+    width: 100%;
+    .title-content {
+      // width: calc(100% - 80px);
+      .node-name {
+        font-weight: 500;
+        font-size: 16px;
+      }
+    }
+    .btn-content {
+      margin-left: 28px;
+      .typeManage-btn-icon {
+        cursor: pointer;
+        font-size: 16px;
+        :hover {
+          color: rgb(84, 103, 248);
+        }
+      }
+      // background: red;
+      padding: 0;
+    }
   }
 }
 </style>
 <style lang="less">
-.btn-content {
-  .typeManage-btn-icon {
-    cursor: pointer;
-    font-size: 20px;
-  }
-  // background: red;
-  padding: 0;
-}
 .typeManage-popover {
   .ant-popover-content .ant-popover-inner {
     padding: 4px 8px !important;

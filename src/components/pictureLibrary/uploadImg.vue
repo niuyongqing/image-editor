@@ -32,7 +32,11 @@
       <div class="index-right">
         <div class="index-right-title">{{ `服务 > 上传至：图片空间 > ${updateInfo.nodePath}` }}</div>
         <a-tabs v-model:activeKey="updateInfo.activeKey">
-          <a-tab-pane :key="1" tab="本地上传">
+          <a-tab-pane 
+            tab="本地上传" 
+            :key="1" 
+            :disabled="uploading"
+          >
             <div class="tab-pane-box">
               <div class="local-upload-btn">
                 <a-upload 
@@ -79,7 +83,12 @@
               </a-table>
             </div>
           </a-tab-pane>
-          <a-tab-pane :key="2" tab="网络上传" force-render>
+          <a-tab-pane 
+            tab="网络上传" 
+            :key="2" 
+            force-render 
+            :disabled="uploading"
+          >
             <div class="tab-pane-box">
               <div class="url-upload-btn">
                 <a-space>
