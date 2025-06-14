@@ -111,7 +111,6 @@ const selectActive = (e) => {
 }
 
 const selectNode = (keys, info) => {
-
     selectedKeys.value = [info.node.key];
     active.value = '';
     emits('search', { deptId: info.node.key });

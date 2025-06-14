@@ -34,7 +34,7 @@
                                         @click="selectFirstItem(item)">
                                         <div flex>
                                             <div w-250px overflow-hidden text-ellipsis whitespace-nowrap> {{ item.label
-                                            }}
+                                                }}
                                             </div>
                                             <div>
                                                 <RightOutlined />
@@ -59,7 +59,7 @@
                                         @click="selectSecondItem(item)">
                                         <div flex>
                                             <div w-250px overflow-hidden text-ellipsis whitespace-nowrap> {{ item.label
-                                            }}
+                                                }}
                                             </div>
                                             <div>
                                                 <RightOutlined />
@@ -72,7 +72,6 @@
                     </div>
                 </a-card>
 
-
                 <a-card v-if="thirdState.options.length">
                     <div w-320px h-300px>
                         <a-dropdown v-model:open="thirdState.open" trigger="">
@@ -84,7 +83,7 @@
                                     <a-menu-item v-for="item in thirdState.options" :key="item.value"
                                         @click="selectThirdItem(item)">
                                         <div w-250px overflow-hidden text-ellipsis whitespace-nowrap> {{ item.label
-                                        }}
+                                            }}
                                         </div>
                                     </a-menu-item>
                                 </a-menu>
@@ -104,18 +103,15 @@
 
 <script setup>
 import { categoryTree } from '@/pages/ozon/config/api/product.js';
-import { data } from './data.js';
 import { message } from 'ant-design-vue';
 import { RightOutlined } from '@ant-design/icons-vue';
 import { cloneDeep } from 'lodash'
-
 const { account } = defineProps({
     account: {
         type: String,
         default: ''
     }
-})
-
+});
 const searchValue = ref('');
 const openSelect = ref(false); // 是否展开下拉菜单
 const selectItem = ref({}); // 选中的历史分类
@@ -160,24 +156,29 @@ function filterTreeWithParents(nodes, predicate) {
 const searchHistory = () => {
     if (searchValue.value) {
         openSelect.value = true;
-        const filterData = filterTreeWithParents(data, node =>
+        const filterData = filterTreeWithParents(treeData.value, node =>
             node.categoryName && node.categoryName.includes(searchValue.value)
         );
-        function treeToList(tree, path = [], result = []) {
+        function treeToList(tree, path = [], result = [], ids = []) {
             tree.forEach(node => {
                 const newPath = [...path, node.categoryName];
+                const newIds = [...ids, node.descriptionCategoryId];
                 if (node.children && node.children.length > 0) {
-                    treeToList(node.children, newPath, result);
+                    treeToList(node.children, newPath, result, newIds);
                 } else {
                     result.push({
                         label: newPath.join(' / '),
-                        value: node.typeId || node.descriptionCategoryId
+                        value: node.typeId,
+                        ids: newIds,
                     });
                 }
             });
             return result;
         };
-        historyCategoryList.value = treeToList(filterData) || [];
+        const list = treeToList(filterData) || [];
+        historyCategoryList.value = list.filter((item) => {
+            return item.label.split(' / ').length === 3
+        })
     } else {
         message.info('请输入搜索条件');
     }
@@ -215,8 +216,6 @@ const onSearchThird = (value) => {
     }
 };
 
-
-// 分类数据
 function getCategoryTree() {
     categoryTree({
         "account": account
@@ -251,13 +250,52 @@ function getCategoryTree() {
         copyThirdOpts.value = cloneDeep(thirdState.options);
     })
 };
-const handleSave = (value) => {
+const handleSave = () => {
+    if (!thirdState.selectValue.typeId) {
+        message.info('请选择最后一级类目');
+        return
+    }
     openSelect.value = false;
-    emits('select')
+    const findPathById = (id, tree) => {
+        for (let item of tree) {
+            if (item.descriptionCategoryId === id) {
+                return {
+                    ids: [item.descriptionCategoryId],
+                    labels: [item.categoryName],
+                };
+            }
+            if (item.children) {
+                const path = findPathById(id, item.children);
+                if (path) {
+                    return {
+                        ids: [item.descriptionCategoryId, ...path.ids],
+                        labels: [item.categoryName, ...path.labels],
+                    };
+                }
+            }
+        }
+        return null;
+    };
+    const path = findPathById(thirdState.selectValue.typeId, treeData.value);
+    emits('select', {
+        "label": path.labels,
+        "value": thirdState.selectValue.typeId,
+        "ids": path.ids
+    })
 };
 const selectMenu = (item) => {
     selectItem.value = item;
-    handleClose();
+    emits('select', item)
+    openSelect.value = false;
+    searchValue.value = '';
+    firstReset();
+    secondReset();
+    thirdReset();
+    firstState.open = false;
+    secondState.open = false;
+    thirdState.open = false;
+    historyCategoryList.value = [];
+    visible.value = false;
 };
 const selectFirstItem = (item) => {
     firstState.selectKeys = [item.value];
@@ -299,8 +337,6 @@ const open = () => {
 };
 
 const handleClose = () => {
-    console.log('openSelect', openSelect.value);
-
     if (openSelect.value === true) {
         openSelect.value = false;
         return
@@ -317,16 +353,8 @@ const handleClose = () => {
     visible.value = false;
 };
 
-onMounted(() => {
-    getCategoryTree();
-})
-
 const emits = defineEmits(['select']);
 defineExpose({
     open,
 })
-
-
-
-
 </script>

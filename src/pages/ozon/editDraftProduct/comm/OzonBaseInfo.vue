@@ -358,9 +358,25 @@ const changeCategory = () => {
 };
 
 const handleSelect = (data) => {
-    console.log('data ->>>>>>>>', data);
-
-    // form.categoryId = data.value
+    form.categoryId = data.value;
+    hisAttrObj.value = {
+        "categoryId": data.ids[0],
+        "secondCategoryId": data.ids[1],
+        "threeCategoryId": data.ids[2],
+        "categoryName": data.label[0],
+        "secondCategoryName": data.label[1],
+        "threeCategoryName": data.label[2]
+    };
+    secondCategoryId.value = data.ids[1];
+    let params = {
+        account: form.shortCode,
+        secondCategoryId: data.ids[1],
+        threeCategoryId: data.ids[2],
+    };
+    addHistoryCategory(params).then((res) => {
+        getHistoryList(form.shortCode, data.value);
+    });
+    emits("getAttributes", form.shortCode, form.categoryId);
 }
 
 // 抛出数据和方法，可以让父级用ref获取

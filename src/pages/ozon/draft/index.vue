@@ -1,10 +1,9 @@
 <template>
     <div flex>
-        <!-- <div w-210px>
+        <div w-210px>
             <draftSidebar />
-        </div> -->
-        <!-- ml-15px -->
-        <div id="draft" w-full>
+        </div>
+        <div id="draft" w-full ml-15px>
             <a-card>
                 <a-form ref="ruleForm2" :model="formData">
                     <a-form-item label="店铺账号：">
@@ -66,8 +65,6 @@
                                     <a-menu-item :key="10"> 批量修改库存 </a-menu-item>
                                     <a-menu-item :key="11"> 全属性修改 </a-menu-item>
                                 </a-menu>
-
-
                             </template>
                         </a-dropdown>
 
@@ -135,67 +132,83 @@
                                         style="overflow-wrap: break-word">
                                         <div>{{ record.name }}</div>
                                     </a-tooltip>
-                                    <div style="color: #999; float: left">
-                                        店铺: {{ record.simpleName }}
+                                    <div style="color: #999;">
+                                        「{{ accountName(record.account) }}」
                                     </div>
                                     <br />
                                     <div :style="{
                                         color: record.remarkColor ? 'green' : 'red',
-                                        float: 'left',
-                                    }"> 备注:{{ record.remark }}
+                                    }"> {{ record.remark }}
                                     </div>
                                 </div>
                             </div>
                         </template>
                         <template v-if="column.dataIndex === 'sku'">
-                            <div class="text-left">
-                                <div v-for="(item, index) in displayedSkus(record)" :key="index">
-                                    SKU： <span>{{ item.offerId }}</span>
-                                    <a-tooltip style="margin-right: 10px" effect="dark" placement="top"
-                                        v-if="item.warehouseList">
-                                        <template #title>
-                                            <div v-for="(el, ind) in item.warehouseList" :key="ind">
-                                                <span>{{ el.warehouseName }}</span>:
-                                                <span>{{ el.present ? el.present : 0 }}</span>
-                                            </div>
-                                        </template>
-                                        <span style="color: #1677ff">{{ item.stock }}</span>
-                                    </a-tooltip>
-                                </div>
-                                <div v-if="record.skuList && record.skuList.length > 3">
-                                    <a-button type="text" @click="record.show = !record.show">
-                                        共{{ record.skuList && record.skuList.length }}条SKU，{{ !record.show ? "展开" : "收起"
-                                        }}
-                                    </a-button>
+                            <div class="record-sku-container pb-30px">
+                                <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
+                                    <div text-left>
+                                        <a-tooltip placement="top">
+                                            <template #title>
+                                                <span>复制</span>
+                                            </template>
+                                            <span @click="copyText(item.offerId)"> {{ item.offerId }} </span>
+                                        </a-tooltip>
+                                    </div>
                                 </div>
                             </div>
                         </template>
+
                         <template v-if="column.dataIndex === 'price'">
-                            <div class="flex items-start flex-col">
-                                price
+                            <div class="pb-30px">
+                                <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
+                                    <div class="sku-price">
+                                        <span>{{ item.price ? item.price : '-' }} </span>
+                                    </div>
+                                </div>
                             </div>
                         </template>
                         <template v-if="column.dataIndex === 'oldPrice'">
-                            <div class="flex items-start flex-col">
-                                oldPrice
+                            <div class="pb-30px">
+                                <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
+                                    <div class="sku-price">
+                                        <span>{{ item.oldPrice ? item.oldPrice : '-' }} </span>
+                                    </div>
+                                </div>
                             </div>
                         </template>
                         <template v-if="column.dataIndex === 'stock'">
-                            <div class="flex items-start flex-col">
-                                stock
+                            <div class="pb-30px">
+                                <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
+                                    <div class="sku-price">
+                                        <a-tooltip placement="top">
+                                            <template #title>
+                                                <span>{{ warehouseName(item.offerId, item.warehouseList) }}</span>
+                                            </template>
+                                            <span> {{ item.stock }} </span>
+                                        </a-tooltip>
+                                        <!-- <span>{{ item.stock ? item.stock : '-' }} </span> -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-if="record.skuList.length > 5"
+                                class="w-full flex flex-end flex-end more pr-15px pb-10px">
+                                <a-button type="link" @click="record.show = !record.show">
+                                    {{ !record.show ? '+ 展开' : '- 收起' }}
+                                </a-button>
                             </div>
                         </template>
                         <template v-if="column.dataIndex === 'createTime'">
                             <div class="flex items-start flex-col">
                                 <div>
-                                    创建时间：
-                                    <span style="color: #9e9f9e">
+                                    <span style="color: #9e9f9e"> 创建： </span>
+                                    <span>
                                         {{ record.createTime }}
                                     </span>
                                 </div>
                                 <div>
-                                    更新时间：
-                                    <span style="color: #9e9f9e">
+                                    <span style="color: #9e9f9e"> 更新：</span>
+                                    <span>
                                         {{ record.updateTime }}
                                     </span>
                                 </div>
@@ -230,7 +243,6 @@
                     v-model:current="paginations.pageNum" v-model:pageSize="paginations.pageSize"
                     :total="paginations.total" class="pages" :show-quick-jumper="true" @change="getList"
                     :showSizeChanger="true" :pageSizeOptions="[50, 100, 200]" />
-                <template #cover></template>
             </a-card>
         </div>
 
@@ -254,7 +266,7 @@ import { Divider, message, Modal } from 'ant-design-vue';
 import { DownOutlined, SettingOutlined, SyncOutlined, QuestionCircleOutlined } from "@ant-design/icons-vue";
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { accountCache } from "../config/api/product";
-import { ozonProductList, ozonProductDel, ozonProductPublish } from "../config/api/waitProduct";
+import { ozonDraftList } from "../config/api/draft";
 import tableHeard from "../config/tabColumns/draft"
 import { processImageSource } from "~/pages/ozon/config/commJs/index"
 import draftSidebar from './comm/draftSidebar.vue';
@@ -264,7 +276,8 @@ import EditPrompt from './comm/editPrompt.vue';
 import BatchEdit from './batchComponent/batchEdit.vue';
 import remarkModal from './batchComponent/remarkModal.vue';
 
-let columns = tableHeard
+let columns = tableHeard;
+const { copy } = useClipboard();
 const editPromptEl = useTemplateRef('editPromptRef');
 const batchEditEl = useTemplateRef('batchEditRef'); // 批量编辑-弹窗
 const remarkModalEl = useTemplateRef('remarkModalRef'); // 批量备注-弹窗
@@ -427,7 +440,7 @@ const strList = ref([
     {
         label: "按更新时间",
         type: "bottom",
-        value: "update_tiem",
+        value: "update_time",
         prop: 2,
         isDefault: false,
     },
@@ -452,6 +465,17 @@ const rowSelection = {
         selectedRowList.value = selectedRows;
     },
 };
+const accountName = (account) => {
+    return shopAccount.value.find(item => item.account === account)?.simpleName
+}
+// 复制
+const copyText = (text) => {
+    copy(text);
+    message.success(`复制成功：${text}`);
+};
+const warehouseName = (offerId, warehouseList) => {
+    return warehouseList.find(item => item.offerId === offerId)?.warehouseName
+}
 
 // 店铺设置
 const shopSet = () => {
@@ -521,12 +545,16 @@ const getAccount = () => {
 
 const displayedSkus = (row) => {
     return row.show ? row?.skuList : row?.skuList?.slice(0, 3);
-}
-
+};
 
 const getList = () => {
     loading.value = true;
-    ozonProductList(formData)
+    ozonDraftList({
+        ...formData,
+        ...sortObj,
+        pageNum: paginations.pageNum,
+        pageSize: paginations.pageSize
+    })
         .then((res) => {
             tableData.value =
                 res?.rows.map((item) => {
@@ -681,5 +709,29 @@ const show = ref(false);
 <style lang="less" scoped>
 :deep(.ant-space-item) {
     text-align: left;
+}
+
+.record-sku-container {
+    width: 100%;
+}
+
+.record-sku {
+    color: rgb(35, 82, 124);
+    cursor: pointer;
+    border-bottom: 1px dashed #e8e8e8;
+    padding-bottom: 6px;
+}
+
+.date {
+    color: #999;
+    margin-bottom: 4px;
+}
+
+.more {
+    position: absolute;
+    height: 30px;
+    bottom: 0px;
+    display: flex;
+    justify-content: end;
 }
 </style>

@@ -2,7 +2,7 @@
     <div mb-15px>
         <a-card style="text-align: left;">
             <template #title>
-                ERP信息 <span style="color: #9fa0a2">（注：下列信息，仅在店小秘系统生效）</span>
+                ERP信息 <span style="color: #9fa0a2">（注：下列信息，仅在本系统生效）</span>
             </template>
             <a-form :model="formData" ref="formRef" :label-col="{ span: 3 }">
                 <a-form-item label="ERP分类" name="erpProductId">

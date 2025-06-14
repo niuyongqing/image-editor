@@ -34,7 +34,7 @@
                                         @click="selectFirstItem(item)">
                                         <div flex>
                                             <div w-250px overflow-hidden text-ellipsis whitespace-nowrap> {{ item.label
-                                                }}
+                                            }}
                                             </div>
                                             <div>
                                                 <RightOutlined />
@@ -59,7 +59,7 @@
                                         @click="selectSecondItem(item)">
                                         <div flex>
                                             <div w-250px overflow-hidden text-ellipsis whitespace-nowrap> {{ item.label
-                                                }}
+                                            }}
                                             </div>
                                             <div>
                                                 <RightOutlined />
@@ -83,7 +83,7 @@
                                     <a-menu-item v-for="item in thirdState.options" :key="item.value"
                                         @click="selectThirdItem(item)">
                                         <div w-250px overflow-hidden text-ellipsis whitespace-nowrap> {{ item.label
-                                            }}
+                                        }}
                                         </div>
                                     </a-menu-item>
                                 </a-menu>
@@ -170,7 +170,6 @@ const searchHistory = () => {
                         label: newPath.join(' / '),
                         value: node.typeId,
                         ids: newIds,
-                        // descriptionCategoryId: newIdPath
                     });
                 }
             });
@@ -251,9 +250,39 @@ function getCategoryTree() {
         copyThirdOpts.value = cloneDeep(thirdState.options);
     })
 };
-const handleSave = (value) => {
+const handleSave = () => {
+    if (!thirdState.selectValue.typeId) {
+        message.info('请选择最后一级类目');
+        return
+    }
     openSelect.value = false;
-    emits('select')
+    const findPathById = (id, tree) => {
+        for (let item of tree) {
+            if (item.descriptionCategoryId === id) {
+                return {
+                    ids: [item.descriptionCategoryId],
+                    labels: [item.categoryName],
+                };
+            }
+            if (item.children) {
+                const path = findPathById(id, item.children);
+                if (path) {
+                    return {
+                        ids: [item.descriptionCategoryId, ...path.ids],
+                        labels: [item.categoryName, ...path.labels],
+                    };
+                }
+            }
+        }
+        return null;
+    };
+    const path = findPathById(thirdState.selectValue.typeId, treeData.value);
+    emits('select', {
+        "label": path.labels,
+        "value": thirdState.selectValue.typeId,
+        "ids": path.ids
+    });
+    handleClose();
 };
 const selectMenu = (item) => {
     selectItem.value = item;

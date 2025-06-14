@@ -14,7 +14,7 @@ export default [
     {
       title: 'SKU',
       dataIndex: 'sku',
-      align: "center",
+      align: "left",
       width: 350,
     },
     {
