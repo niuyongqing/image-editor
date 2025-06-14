@@ -19,7 +19,7 @@ function getParamsFn(data) {
  */
 export function getClassList(data) {
   return request({
-    url: '/platform-common/platform/common/collect/imageClass/list-tree?parentId=0',
+    url: '/platform-common/platform/common/imageClass/list-tree',
     method: 'post',
     data: data
   })
@@ -31,7 +31,7 @@ export function getClassList(data) {
  */
 export function detailClass(data) {
   return request({
-    url: '/platform-common/platform/common/collect/imageClass/detail/' + data,
+    url: '/platform-common/platform/common/imageClass/detail/' + data,
     method: 'post',
   })
 }
@@ -42,7 +42,7 @@ export function detailClass(data) {
  */
 export function addClass(data) {
   return request({
-    url: '/platform-common/platform/common/collect/imageClass/add',
+    url: '/platform-common/platform/common/imageClass/add',
     method: 'post',
     data: data
   })
@@ -54,7 +54,7 @@ export function addClass(data) {
  */
 export function editClass(data) {
   return request({
-    url: '/platform-common/platform/common/collect/imageClass/edit',
+    url: '/platform-common/platform/common/imageClass/edit',
     method: 'post',
     data: data,
   })
@@ -65,9 +65,8 @@ export function editClass(data) {
  * @returns 
  */
 export function delClass(data) {
-  let params = getParamsFn(data)
   return request({
-    url: '/platform-common/platform/common/collect/imageClass/del' + params,
+    url: '/platform-common/platform/common/imageClass/del/' + data,
     method: 'post',
   })
 }
