@@ -6,6 +6,7 @@
     :maskClosable="false"
     :width="1250"
     :footer="false"
+    @ok="modalClose"
   >
     <div class="pictureLibrary_index-modal-box">
       <div class="index-left">
@@ -48,13 +49,13 @@
                   visible: false,
                   onVisibleChange: (visible, prevVisible) => onVisibleChange(item),
                 }"  
-                :src="item.path"
+                :src="item.src"
               >
                 <template #previewMask>点击{{ item.checked ? '取消':'选中' }}</template>
               </a-image>
               <div class="img-size">
                 <span>{{ `${item.width} × ${item.height}` }}</span>
-                <span>{{ item.size }}</span>
+                <span>{{ (item.size/1024).toFixed(2) }}KB</span>
               </div>
               <div class="img-box-foot">
                 <a-checkbox v-model:checked="item.checked"></a-checkbox>
@@ -77,8 +78,8 @@
           </div>
           <div class="right-box-pagination">
             <a-pagination 
-              v-model:current="imgData.pageNum" 
-              v-model:page-size="imgData.pageSize"
+              v-model:current="tableParams.pageNum" 
+              v-model:page-size="tableParams.pageSize"
               :pageSizeOptions="[20, 40]"
               show-quick-jumper 
               :total="imgData.total" 
@@ -91,7 +92,7 @@
               <a-image
                 :width="70"
                 :preview="false"  
-                :src="item.path"
+                :src="item.src"
               >
               </a-image>
               <div class="item-icon" @click="delSelectImg(item)">×</div>
@@ -99,8 +100,8 @@
           </div>
           <div class="right-box-foot">
             <a-space>
-              <a-button type="primary">确定</a-button>
-              <a-button type="primary" >取消</a-button>
+              <a-button type="primary" @click="confirm">确定</a-button>
+              <a-button type="primary" @click="modalClose">取消</a-button>
             </a-space>
           </div>
         </div>
@@ -120,19 +121,16 @@ import { DeleteOutlined } from '@ant-design/icons-vue';
 import typeTree from '@/components/classificationTree/typeTree.vue';
 import typeManage from '@/components/classificationTree/typeManage.vue';
 import uploadImg from './uploadImg.vue';
+import { imageSpaceList } from '../classificationTree/api';
 defineOptions({ name: "pictureLibrary_index" })
 const { proxy: _this } = getCurrentInstance()
-const emit = defineEmits(['update:modalOpen', 'update:imageList']);
+const emit = defineEmits(['update:modalOpen', 'imageListConfirm']);
 const props = defineProps({
   modalOpen: Boolean,
   platform: {
     type: String,
     default: ''
   },
-  imageList: {
-    type: Array,
-    default: () => []
-  }
 })
 const modalOpen = ref(false)
 const imgData = reactive({
@@ -144,49 +142,101 @@ const imgData = reactive({
   params: {
     currentClass: '',
     keyword: '',
-    pageNum: 1, // 分页参数
-    pageSize: 20 // 每页数量
   }
+})
+const tableParams = reactive({
+  classId: '',
+  keyword: '',
+
+  pageNum: 1, // 分页参数
+  pageSize: 20 // 每页数量
 })
 // 打开弹窗
 watch(() => props.modalOpen, val => {
   // console.log({val});
   modalOpen.value = val;
-  val && modalOpenFn()
+  nextTick(() => {
+    val && modalOpenFn()
+  })
 });
 // 关闭弹窗
 watch(() => modalOpen.value, val => {
   if (!val) {
+    clearData()
     emit('update:modalOpen', false);
-    console.log(val);
+    // console.log(val);
   }
 });
+// 监听类型变化
+watch(() => imgData.params.currentClass, (val, oldValue) => {
+  val && imgSearch()
+})
 // 弹窗打开的回调
 function modalOpenFn() {
-  
+  // 更新树的数据，分类id变化会请求图片列表数据
+  _this.$refs.typeTreeRef.updateTree('all')
 }
 // 关闭弹窗
-function handleOk() {
+function modalClose() {
   modalOpen.value = false
+}
+function clearData() {
+  imgData.data = []
+  imgData.selectedImgList = []
+  imgData.params.keyword = ''
+  imgData.params.currentClass = ''
+  tableParams.keyword = ''
+  tableParams.classId = ''
+  tableParams.pageNum = 1
+  tableParams.pageSize = 20
+}
+// 确认
+function confirm() {
+  emit('imageListConfirm', imgData.selectedImgList)
+  modalClose()
 }
 // 图片搜索
 async function imgSearch(val) { 
-  for (let index = 0; index < 100; index++) {
-    let obj = {
-      path: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-      name: '的若干似懂非sdgasdgfsdfasfda懂',
-      width: 200 + index,
-      height: 200 + index,
-      size: 4331,
-      checked: false,
-      id: index + '',
-    }
-    imgData.data.push(obj)
-  }
+  // for (let index = 0; index < 100; index++) {
+  //   let obj = {
+  //     path: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
+  //     name: '的若干似懂非sdgasdgfsdfasfda懂',
+  //     width: 200 + index,
+  //     height: 200 + index,
+  //     size: 4331,
+  //     checked: false,
+  //     id: index + '',
+  //   }
+  //   imgData.data.push(obj)
+  // }
+  tableParams.keyword = imgData.params.keyword
+  tableParams.classId = imgData.params.currentClass
+  pageChange(1)
 }
+// 获取数据
+async function getImageSpaceList() {
+  let params = {
+    platform: props.platform,
+    ...tableParams,
+  }
+  try {
+    let res = await imageSpaceList(params)
+    console.log({res});
+    
+    res.data.forEach(item => {
+      item.src = (import.meta.env.VITE_APP_BASE_API + item.path)
+    })
+    imgData.data = res.data
+    imgData.total = res.total
+  } catch (error) {
+    console.error(error)
+  }
+} 
 // 页码变化
 function pageChange(val) {
-  
+  // console.log({val});
+  tableParams.pageNum = val
+  getImageSpaceList()
 }
 // 浮层
 function onVisibleChange(img) {
@@ -274,6 +324,9 @@ function delImg(val) {
         display: flex;
         justify-content: flex-end;
         margin-top: 10px;
+        :deep(.ant-select-selector) {
+          width: 80px;
+        }
       }
       .selectedImg-content {
         width: 100%;

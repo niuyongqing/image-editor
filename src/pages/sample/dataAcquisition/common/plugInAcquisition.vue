@@ -59,7 +59,11 @@
       </div>
     </div>
   </div>
-  <pictureLibrary></pictureLibrary>
+  <a-button type="primary" @click="pluginData.modalOpen = !pluginData.modalOpen">图片空间</a-button>
+  <pictureLibrary
+    platform="ozon"
+    v-model:modal-open="pluginData.modalOpen"
+  ></pictureLibrary>
 </div>
 </template>
 
@@ -70,6 +74,10 @@ import pictureLibrary from '@/components/pictureLibrary/index.vue'
 defineOptions({ name: "plugInAcquisition" })
 const { proxy: _this } = getCurrentInstance()
 const platformList = dataGathe
+const pluginData = reactive({
+  modalOpen: false,
+  imageList: [],
+})
 function loadDescribe(key) {
   console.log('下载对应插件' + key);
   
