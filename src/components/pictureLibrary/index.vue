@@ -1,192 +1,173 @@
 <template>
 <div id="pictureLibrary_index" class="pictureLibrary_index">
-  <div class="index-left">
-    <div class="left-title box-title">图片空间的分类</div>
-    <div class="left-tree-box">
-      <div class="box-input">
-        <a-input-search
-          v-model:value="treeData.keyword"
-          placeholder="input search text"
-          @search="treeSearch"
-        />
+  <a-modal 
+    v-model:open="modalOpen" 
+    title="图片空间"
+    :maskClosable="false"
+    :width="1250"
+    :footer="false"
+  >
+    <div class="pictureLibrary_index-modal-box">
+      <div class="index-left">
+        <div class="left-title box-title">图片空间的分类</div>
+        <div class="left-tree-box">
+          <typeTree 
+            v-model:current-class="imgData.params.currentClass"
+            v-model:node-path="imgData.nodePath"
+            platform="ozon"
+            ref="typeTreeRef"
+          ></typeTree>
+        </div>
       </div>
-      <a-tree
-        v-model:expandedKeys="expandedKeys"
-        v-model:selectedKeys="selectedKeys"
-        v-model:checkedKeys="checkedKeys"
-        checkable
-        :tree-data="treeData.tree"
-      >
-        <template #title="{ title, key }">
-          <span v-if="key === '0-0-1-0'" style="color: #1890ff">{{ title }}</span>
-          <template v-else>{{ title }}</template>
-        </template>
-      </a-tree>
-    </div>
-  </div>
-  <div class="index-right">
-    <div class="right-btn">
-      <a-space>
-        <a-input-search
-          v-model:value="imgData.keyword"
-          style="width: 300px;"
-          placeholder="input search text"
-          enter-button="搜索"
-          @search="imgSearch"
-        />
-        <a-button type="primary">上传图片</a-button>
-      </a-space>
-    </div>
-    <div class="right-box">
-      <div class="right-box-title box-title">
-        <span>图片>{{ 'sdgsdfsdfgs' }}</span>
-        <span>已选中{{ 56 }}张图片</span>
-      </div>
-      <div class="right-box-content">
-        <div class="img-box"
-          v-for="item in imgData.data"
-          :key="item.id"
-        >
-          <a-image
-            :width="150"
-            :preview="{
-              visible: false,
-              onVisibleChange: (visible, prevVisible) => onVisibleChange(item),
-            }"  
-            :src="item.path"
-          >
-            <template #previewMask>点击{{ item.checked ? '取消':'选中' }}</template>
-          </a-image>
-          <div class="img-size">
-            <span>{{ `${item.width} × ${item.height}` }}</span>
-            <span>{{ item.size }}</span>
+      <div class="index-right">
+        <div class="right-btn">
+          <a-space>
+            <a-input-search
+              v-model:value="imgData.params.keyword"
+              style="width: 300px;"
+              placeholder="input search text"
+              enter-button="搜索"
+              @search="imgSearch"
+            />
+            <a-button type="primary" @click="imgData.uploadImgOpen = !imgData.uploadImgOpen">上传图片</a-button>
+          </a-space>
+        </div>
+        <div class="right-box">
+          <div class="right-box-title box-title">
+            <span>图片>{{ imgData.nodePath }}</span>
+            <span>已选中{{ imgData.selectedImgList.length }}张图片</span>
           </div>
-          <div class="img-box-foot">
-            <a-checkbox v-model:checked="item.checked"></a-checkbox>
-            <div class="img-name">
-              <a-tooltip>
-                <template #title>{{ item.name }}</template>
-                {{ item.name }}
-              </a-tooltip>
-            </div>
-            <a-popconfirm
-              title="是否删除！"
-              ok-text="是"
-              cancel-text="否"
-              @confirm="delImg(item)"
+          <div class="right-box-content">
+            <div class="img-box"
+              v-for="item in imgData.data"
+              :key="item.id"
             >
-              <DeleteOutlined style="color: red; cursor: pointer;" />
-            </a-popconfirm>
+              <a-image
+                :width="150"
+                :preview="{
+                  visible: false,
+                  onVisibleChange: (visible, prevVisible) => onVisibleChange(item),
+                }"  
+                :src="item.path"
+              >
+                <template #previewMask>点击{{ item.checked ? '取消':'选中' }}</template>
+              </a-image>
+              <div class="img-size">
+                <span>{{ `${item.width} × ${item.height}` }}</span>
+                <span>{{ item.size }}</span>
+              </div>
+              <div class="img-box-foot">
+                <a-checkbox v-model:checked="item.checked"></a-checkbox>
+                <div class="img-name">
+                  <a-tooltip>
+                    <template #title>{{ item.name }}</template>
+                    {{ item.name }}
+                  </a-tooltip>
+                </div>
+                <a-popconfirm
+                  title="是否删除！"
+                  ok-text="是"
+                  cancel-text="否"
+                  @confirm="delImg(item)"
+                >
+                  <DeleteOutlined style="color: red; cursor: pointer;" />
+                </a-popconfirm>
+              </div>
+            </div>
+          </div>
+          <div class="right-box-pagination">
+            <a-pagination 
+              v-model:current="imgData.pageNum" 
+              v-model:page-size="imgData.pageSize"
+              :pageSizeOptions="[20, 40]"
+              show-quick-jumper 
+              :total="imgData.total" 
+              :show-total="total => `共 ${imgData.total} 张`"
+              @change="pageChange" 
+            />
+          </div>
+          <div class="selectedImg-content">
+            <div class="selectedImg-content-item" v-for="item in imgData.selectedImgList" :key="item.id">
+              <a-image
+                :width="70"
+                :preview="false"  
+                :src="item.path"
+              >
+              </a-image>
+              <div class="item-icon" @click="delSelectImg(item)">×</div>
+            </div>
+          </div>
+          <div class="right-box-foot">
+            <a-space>
+              <a-button type="primary">确定</a-button>
+              <a-button type="primary" >取消</a-button>
+            </a-space>
           </div>
         </div>
       </div>
-      <div class="right-box-pagination">
-        <a-pagination 
-          v-model:current="imgData.pageNum" 
-          v-model:page-size="imgData.pageSize"
-          :pageSizeOptions="[20, 40]"
-          show-quick-jumper 
-          :total="imgData.total" 
-          :show-total="total => `共 ${imgData.total} 张`"
-          @change="pageChange" 
-        />
-      </div>
-      <div class="selectedImg-content">
-        <div class="selectedImg-content-item" v-for="item in imgData.selectedImgList" :key="item.id">
-          <a-image
-            :width="70"
-            :preview="false"  
-            :src="item.path"
-          >
-          </a-image>
-          <div class="item-icon" @click="delSelectImg(item)">×</div>
-        </div>
-      </div>
-      <div class="right-box-foot">
-        <a-space>
-          <a-button type="primary">确定</a-button>
-          <a-button type="primary">取消</a-button>
-        </a-space>
-      </div>
+      <uploadImg 
+        v-model:modal-open="imgData.uploadImgOpen" 
+        :platform="props.platform"
+      ></uploadImg>
     </div>
-  </div>
+  </a-modal>
 </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { DeleteOutlined } from '@ant-design/icons-vue';
+import typeTree from '@/components/classificationTree/typeTree.vue';
+import typeManage from '@/components/classificationTree/typeManage.vue';
+import uploadImg from './uploadImg.vue';
 defineOptions({ name: "pictureLibrary_index" })
 const { proxy: _this } = getCurrentInstance()
-// const treeData = [
-
-// ];
-const expandedKeys = ref(['0-0-0', '0-0-1']);
-const selectedKeys = ref(['0-0-0', '0-0-1']);
-const checkedKeys = ref(['0-0-0', '0-0-1']);
-const value = ref('');
-const onSearch = searchValue => {
-  console.log('use value', searchValue);
-  console.log('or use this.value', value.value);
-};
-watch(expandedKeys, () => {
-  console.log('expandedKeys', expandedKeys);
-});
-watch(selectedKeys, () => {
-  console.log('selectedKeys', selectedKeys);
-});
-watch(checkedKeys, () => {
-  console.log('checkedKeys', checkedKeys);
-});
-
-const treeData = reactive({
-  tree: [
-    {
-      title: 'parent 1',
-      key: '0-0',
-      children: [
-        {
-          title: 'parent 1-0',
-          key: '0-0-0',
-          disabled: true,
-          children: [
-            {
-              title: 'leaf',
-              key: '0-0-0-0',
-              disableCheckbox: true,
-            },
-            {
-              title: 'leaf',
-              key: '0-0-0-1',
-            },
-          ],
-        },
-        {
-          title: 'parent 1-1',
-          key: '0-0-1',
-          children: [
-            {
-              key: '0-0-1-0',
-              title: 'sss',
-            },
-          ],
-        },
-      ],
-    },
-  ],
-  keyword: ''
+const emit = defineEmits(['update:modalOpen', 'update:imageList']);
+const props = defineProps({
+  modalOpen: Boolean,
+  platform: {
+    type: String,
+    default: ''
+  },
+  imageList: {
+    type: Array,
+    default: () => []
+  }
 })
+const modalOpen = ref(false)
 const imgData = reactive({
   data: [],
   selectedImgList: [],
-  keyword: '',
   total: 200,
-  pageNum: 1, // 分页参数
-  pageSize: 20 // 每页数量
+  uploadImgOpen: false,
+  nodePath: '',
+  params: {
+    currentClass: '',
+    keyword: '',
+    pageNum: 1, // 分页参数
+    pageSize: 20 // 每页数量
+  }
 })
-// 树搜索
-function treeSearch(val) {
-
+// 打开弹窗
+watch(() => props.modalOpen, val => {
+  // console.log({val});
+  modalOpen.value = val;
+  val && modalOpenFn()
+});
+// 关闭弹窗
+watch(() => modalOpen.value, val => {
+  if (!val) {
+    emit('update:modalOpen', false);
+    console.log(val);
+  }
+});
+// 弹窗打开的回调
+function modalOpenFn() {
+  
+}
+// 关闭弹窗
+function handleOk() {
+  modalOpen.value = false
 }
 // 图片搜索
 async function imgSearch(val) { 
@@ -229,21 +210,21 @@ function delImg(val) {
 
 </script>
 <style lang="less" scoped>
-.pictureLibrary_index {
+.pictureLibrary_index-modal-box {
   display: flex;
-  border: 1px solid red; 
-  padding: 10px;
+  justify-content: space-between;
   width: 1200px;
   .index-left {
-    width: 300px;
+    width: 280px;
     margin-right: 15px;
     .left-tree-box {
-      width: 80%;
+      width: 100%;
+      height: calc(100% - 50px);
       margin: 10px 0;
     }
   }
   .index-right {
-    width: 850px;
+    width: 900px;
     .right-btn {
       display: flex;
       // justify-content: space-between;
