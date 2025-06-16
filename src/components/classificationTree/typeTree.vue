@@ -39,7 +39,7 @@ defineOptions({ name: "typeTree" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:currentClass', 'update:nodePath'])
 const props = defineProps({
-  currentClass: {
+  currentClass: {       // 类型
     type: String,
     default: '0'
   },
@@ -53,7 +53,7 @@ const props = defineProps({
   }
 })
 defineExpose({
-  updateTree
+  updateTree,         // 更新数据方法
 })
 const treeData = reactive({
   tree: [],
@@ -66,17 +66,20 @@ const treeData = reactive({
 
 onMounted(() => {
   getClassListFn()
-  // treeData.showTree = cloneDeep(treeData.tree)
 })
 watch(() => treeData.keyword, value => {
   treeSearch(value) 
 });
-watch(() => treeData.currentClass, value => {
-  emit('update:currentClass', value)
-});
-// 更新数据
-function updateTree() {
-  getClassListFn(treeData.currentClass)
+/**
+ * // 更新数据
+ * @param val 入参为 ‘all’ 更新后重置勾选状态， 不入参或其他参数更新后保持选中状态
+ */
+async function updateTree(val) {
+  if (val === 'all') {
+    await getClassListFn()
+  } else {
+    await getClassListFn(treeData.currentClass)
+  }
 }
 // 获取树数据
 async function getClassListFn(id = '0') {
@@ -158,6 +161,7 @@ function selectNode(expandedKeys, { expanded: bool, node }) {
   treeData.currentClass = node.id
   let path = getNodePath(node)
   // console.log({path});
+  emit('update:currentClass', node.id)
   emit('update:nodePath', path)
 }
 // 生成节点路径
