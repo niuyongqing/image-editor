@@ -193,7 +193,7 @@ function modalOpenFn() {
 }
 // 更新类别树数据
 function updateTree() {
-  console.log(_this.$refs.typeTreeRef);
+  // console.log(_this.$refs.typeTreeRef);
   _this.$refs.typeTreeRef.updateTree()
 }
 // 关闭弹窗
