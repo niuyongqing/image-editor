@@ -76,3 +76,12 @@ export function saveTowaitProduct(data) {
     data:data
   })
 }
+
+// 待发布数量统计
+export function statistics(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/wait/product/statistics/state',
+    method: 'post',
+    data:data
+  })
+}
