@@ -116,13 +116,12 @@
                         </a-space>
                     </div>
                 </div>
-                <a-table :row-selection="rowSelection" rowKey="waitId" :data-source="tableData" bordered
-                    :columns="columns" :pagination="false">
+                <a-table :row-selection="rowSelection" rowKey="gatherProductId" :data-source="tableData" bordered
+                    :columns="columns" :pagination="false" :loading="loading">
                     <template #bodyCell="{ column, record }">
                         <template v-if="column.dataIndex === 'image'">
                             <div class="flex items-center justify-center">
-                                <a-image
-                                    :src="record?.skuList[0]?.primaryImage && record?.skuList[0]?.primaryImage.length > 0 ? processImageSource(record?.skuList[0]?.primaryImage[0]) : processImageSource(record?.skuList[0]?.images[0])" />
+                                <a-image :src="primaryImage(record.primaryImage)" />
                             </div>
                         </template>
                         <template v-if="column.dataIndex === 'name'">
@@ -132,7 +131,7 @@
                                         style="overflow-wrap: break-word">
                                         <div>{{ record.name }}</div>
                                     </a-tooltip>
-                                    <div style="color: #999;">
+                                    <div class="account">
                                         「{{ accountName(record.account) }}」
                                     </div>
                                     <br />
@@ -157,12 +156,14 @@
                                 </div>
                             </div>
                         </template>
-
                         <template v-if="column.dataIndex === 'price'">
                             <div class="pb-30px">
                                 <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
                                     <div class="sku-price">
-                                        <span>{{ item.price ? item.price : '-' }} </span>
+                                        <span pr-5px>{{ record.currencyCode }} </span>
+                                        <span>
+                                            {{ item.price ? item.price : '-' }}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -171,6 +172,7 @@
                             <div class="pb-30px">
                                 <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
                                     <div class="sku-price">
+                                        <span pr-5px>{{ record.currencyCode }} </span>
                                         <span>{{ item.oldPrice ? item.oldPrice : '-' }} </span>
                                     </div>
                                 </div>
@@ -186,7 +188,6 @@
                                             </template>
                                             <span> {{ item.stock }} </span>
                                         </a-tooltip>
-                                        <!-- <span>{{ item.stock ? item.stock : '-' }} </span> -->
                                     </div>
                                 </div>
                             </div>
@@ -268,7 +269,6 @@ import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { accountCache } from "../config/api/product";
 import { ozonDraftList } from "../config/api/draft";
 import tableHeard from "../config/tabColumns/draft"
-import { processImageSource } from "~/pages/ozon/config/commJs/index"
 import draftSidebar from './comm/draftSidebar.vue';
 import ShopSetModal from "@/pages/ozon/product/comm/shopSetModal.vue";
 import { shopCurrency } from "../config/api/product"
@@ -277,6 +277,7 @@ import BatchEdit from './batchComponent/batchEdit.vue';
 import remarkModal from './batchComponent/remarkModal.vue';
 
 let columns = tableHeard;
+const baseApi = import.meta.env.VITE_APP_BASE_API;
 const { copy } = useClipboard();
 const editPromptEl = useTemplateRef('editPromptRef');
 const batchEditEl = useTemplateRef('batchEditRef'); // 批量编辑-弹窗
@@ -467,7 +468,11 @@ const rowSelection = {
 };
 const accountName = (account) => {
     return shopAccount.value.find(item => item.account === account)?.simpleName
-}
+};
+
+const primaryImage = (primaryImage) => {
+    return baseApi + primaryImage
+};
 // 复制
 const copyText = (text) => {
     copy(text);
@@ -716,8 +721,6 @@ const show = ref(false);
 }
 
 .record-sku {
-    color: rgb(35, 82, 124);
-    cursor: pointer;
     border-bottom: 1px dashed #e8e8e8;
     padding-bottom: 6px;
 }
@@ -733,5 +736,10 @@ const show = ref(false);
     bottom: 0px;
     display: flex;
     justify-content: end;
+}
+
+.account {
+    color: #999;
+    margin-top: 5px;
 }
 </style>

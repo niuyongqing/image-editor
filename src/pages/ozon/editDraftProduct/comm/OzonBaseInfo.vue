@@ -354,7 +354,7 @@ const childForm = async () => {
 
 // 打开选择分类弹窗
 const changeCategory = () => {
-    categoryModalEl.value.open()
+    categoryModalEl.value.open(form.categoryId)
 };
 
 const handleSelect = (data) => {

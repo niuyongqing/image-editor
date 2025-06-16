@@ -1,6 +1,7 @@
 <template>
     <div>
-        <a-modal v-model:open="dialogVisible" title="提示" width="1000px" @cancel="cancel" :footer="null">
+        <a-modal v-model:open="dialogVisible" title="提示" width="1000px" @cancel="cancel" :footer="null"
+            :maskClosable="false">
 
             <div flex justify-between mb-15px>
                 <div>
@@ -18,17 +19,16 @@
                     </a-space>
                 </div>
             </div>
-
             <a-table :columns="columns" :data-source="tableData" bordered :pagination="false">
                 <template #bodyCell="{ column, record }">
-                    <template v-if="column.dataIndex === 'productInfo'">
+                    <template v-if="column.dataIndex === 'primaryImage'">
                         <div class="flex items-center">
                             <div class="w-70px h-70px">
-                                <img :src="record.image" class="w-full h-full" alt="商品图片">
+                                <img :src="primaryImage(record.primaryImage)" class="imgCss">
                             </div>
                             <div class="ml-5">
-                                <div class="font-bold">{{ record.title }}</div>
-                                <div class="text-gray-500">来源: {{ record.source }}</div>
+                                <div class="font-bold">{{ record.name }}</div>
+                                <!-- <div class="text-gray-500">来源: {{ record.source }}</div> -->
                             </div>
                         </div>
                     </template>
@@ -36,29 +36,38 @@
                         >>
                     </template>
                     <template v-if="column.dataIndex === 'ozonCategory'">
-                        <a-select v-model:value="form.categoryId" allowClear showSearch labelInValue placeholder="请选择"
+                        <a-select v-model:value="form.categoryId" allowClear showSearch placeholder="请选择"
                             style="width: 300px;" :options="historyCategoryList" @change="selectAttributes" :fieldNames="{
                                 label: 'threeCategoryName', value: 'threeCategoryId',
                             }">
                         </a-select>
-
-                        <!-- <a-button type="link" @click="selectVisible = true">更换分类</a-button> -->
                         <a-button type="link" @click="changeCategory">更换分类</a-button>
-                        <div text-gray-600 v-if="hisAttrObj.length != 0">
-                            <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{
-                                hisAttrObj[0].secondCategoryName }}</span>/
-                            <span>{{ hisAttrObj[0].threeCategoryName }}</span>
-                        </div>
+                        <p class="tooltip-text" v-if="hisAttrObj && JSON.stringify(hisAttrObj) != '{}'">{{
+                            hisAttrObj.categoryName
+                        }} > {{
+                                hisAttrObj.secondCategoryName }} > {{
+                                hisAttrObj.threeCategoryName }} </p>
+
+                        <!-- 表格 -->
+                        <a-table :columns="innerColumns" :data-source="innerTableData" bordered :pagination="false"
+                            style="margin-top: 10px;">
+                            <template #bodyCell="{ column, record }">
+                                <template v-if="column.dataIndex === 'catTheme'">
+                                    {{ record.catTheme }}
+                                </template>
+                                <template v-if="column.dataIndex === 'ozonTheme'">
+                                    <a-select v-model:value="record.ozonTheme" allowClear placeholder="请选择"
+                                        style="width: 180px;" :options="filterAttrOptions">
+                                    </a-select>
+                                </template>
+                            </template>
+                        </a-table>
+
                     </template>
                 </template>
             </a-table>
         </a-modal>
-
-        <CategoryDialog :selectVisible="selectVisible" :categoryTreeList="categoryTreeList"
-            @getAttributesID="getAttributesID" @handleEditClose="selectVisible = false"></CategoryDialog>
-
-
-        <CategoryModal ref="categoryModalRef"></CategoryModal>
+        <CategoryModal ref="categoryModalRef" :account="form.shortCode" @select="handleSelect"></CategoryModal>
     </div>
 
 </template>
@@ -67,15 +76,18 @@
 import CategoryDialog from "@/pages/ozon/productPublish/comm/categoryDialog.vue";
 import CategoryModal from "./categoryModal.vue";
 import {
+    categoryTree,
     historyCategory,
     addHistoryCategory,
+    categoryAttributes,
 } from "@/pages/ozon/config/api/product.js";
 
+const baseApi = import.meta.env.VITE_APP_BASE_API;
 const columns = [
     {
         title: '产品信息',
-        dataIndex: 'productInfo',
-        key: 'productInfo',
+        dataIndex: 'primaryImage',
+        key: 'primaryImage',
         width: 300
 
     },
@@ -92,32 +104,58 @@ const columns = [
         width: 400
     },
 ];
+const innerColumns = [
+    {
+        title: '天猫变种主题',
+        dataIndex: 'catTheme',
+        key: 'catTheme',
+        width: 150
+    },
+    {
+        title: '对应Ozon变种主题',
+        dataIndex: 'ozonTheme',
+        key: 'ozonTheme',
+        width: 150
+    },
+];
 
 const categoryTableData = ref([
     {
-        productInfo: '机身颜色',
+        primaryImage: '机身颜色',
         theme: undefined,
     }
 ]);
+
 const categoryModalEl = useTemplateRef('categoryModalRef');
 const categoryOptions = ref([]);
 const selectVisible = ref(false);
 const categoryTreeList = ref([]);
 const historyCategoryList = ref([]);
-const hisAttrObj = ref([]) //选中的三级
-
+const hisAttrObj = ref({}) //选中的三级
+const secondCategoryId = ref(undefined);
+const treeData = ref([]); // 分类tree数据
+const attributes = ref([]);
+const filterAttrOptions = ref([]); // 过滤后的属性
 const tableData = ref([
     {
-        productInfo: '',
+        primaryImage: '',
         category: '',
         ozonCategory: '',
+    }
+]);
+const innerTableData = ref([
+    {
+        catTheme: '机身颜色',
+        ozonTheme: undefined,
+    },
+    {
+        catTheme: '存储容量',
+        ozonTheme: undefined,
     }
 ]);
 
 const dialogVisible = ref(false);
 const acceptParams = ref({});
-
-
 const form = reactive({
     name: "",
     shortCode: "",
@@ -127,33 +165,24 @@ const form = reactive({
     storeHistoryCategoryId: "", //资料库分类ID
 })
 
-// 根据分类弹窗中选择的分类去查询属性
-const getAttributesID = (ids) => {
+const primaryImage = (primaryImage) => {
+    return baseApi + primaryImage
+};
 
-    console.log('ids', ids);
-    let params = {
-        account: form.shortCode,
-        secondCategoryId: ids.secondCategoryId,
-        threeCategoryId: ids.value,
-    };
-    addHistoryCategory(params).then((res) => {
-        getHistoryList(form.shortCode);
+function getFilterAttrs() {
+    const filterAttr = attributes.value.filter((attrItem) => {
+        return attrItem.isAspect
     });
-    form.categoryId = {
-        threeCategoryId: ids.value,
-        threeCategoryName: "",
-        secondCategoryId: ids.secondCategoryId,
-        label: ids.label,
-        value: ids.value
-    };
-    console.log('form', form.categoryId);
-
-    emits("getAttributes", form.shortCode, form.categoryId);
+    filterAttrOptions.value = filterAttr.map((attrItem) => {
+        return {
+            label: attrItem.name.replace(/\(.*\)/, ""), // 去掉（）里面的
+            value: attrItem.id,
+        }
+    });
 }
 
-
 // 历史分类
-const getHistoryList = (account) => {
+const getHistoryList = (account, categoryId) => {
     if (!form.shortCode) {
         return;
     }
@@ -161,55 +190,97 @@ const getHistoryList = (account) => {
     historyCategory({ account })
         .then((res) => {
             historyCategoryList.value = res?.data || [];
-            if (
-                historyCategoryList.value.length != 0 &&
-                JSON.stringify(form.categoryId) != "{}"
-            ) {
-                hisAttrObj.value = historyCategoryList.value.filter(
-                    (item) =>
-                        item.threeCategoryId ==
-                        form?.categoryId?.threeCategoryId
-                );
+            const findItem = historyCategoryList.value.find((item) => {
+                return item.threeCategoryId === categoryId
+            });
+            hisAttrObj.value = findItem || {};
+            secondCategoryId.value = findItem?.secondCategoryId;
+            if (findItem) {
+                categoryAttributes({
+                    account,
+                    descriptionCategoryId: findItem.secondCategoryId,
+                    typeId: findItem.threeCategoryId,
+                }).then((res) => {
+                    if (res.code === 200) {
+                        attributes.value = res.data || [];
+                        getFilterAttrs();
+                    }
+                })
             }
         })
 };
 
 // 选中的分类
-const selectAttributes = (e) => {
-    if (e) {
+const selectAttributes = (value) => {
+    console.log('selectAttributes', value);
+    if (value) {
         if (historyCategoryList.value.length != 0) {
-            hisAttrObj.value = historyCategoryList.value.filter(
-                (item) =>
-                    item.threeCategoryId ==
-                    e.option.threeCategoryId
-            );
+            hisAttrObj.value = historyCategoryList.value.find((item) => item.threeCategoryId === value);
+            secondCategoryId.value = hisAttrObj.value.secondCategoryId;
+            categoryAttributes({
+                account: form.shortCode,
+                descriptionCategoryId: hisAttrObj.value.secondCategoryId,
+                typeId: hisAttrObj.value.threeCategoryId,
+            }).then((res) => {
+                if (res.code === 200) {
+                    attributes.value = res.data || [];
+                    getFilterAttrs();
+                }
+            })
+
         }
-        form.categoryId = {
-            threeCategoryId: e.option.threeCategoryId,
-            threeCategoryName: "",
-            secondCategoryId: e.option.secondCategoryId,
-            label: e.option.threeCategoryName,
-            value: e.option.threeCategoryId
-        }
-        emit("getAttributes", form.shortCode, e.option);
     }
-}
+};
 
 // 更换分类
 const changeCategory = () => {
     dialogVisible.value = false;
     nextTick(() => {
-        categoryModalEl.value.open();
+        categoryModalEl.value.open(form.categoryId);
     })
-}
+};
 
+const handleSelect = (data) => {
+    dialogVisible.value = true;
+    form.categoryId = data.value;
+    hisAttrObj.value = {
+        "categoryId": data.ids[0],
+        "secondCategoryId": data.ids[1],
+        "threeCategoryId": data.ids[2],
+        "categoryName": data.label[0],
+        "secondCategoryName": data.label[1],
+        "threeCategoryName": data.label[2]
+    };
+    secondCategoryId.value = data.ids[1];
+    let params = {
+        account: form.shortCode,
+        secondCategoryId: data.ids[1],
+        threeCategoryId: data.ids[2],
+    };
+    addHistoryCategory(params).then((res) => {
+        getHistoryList(form.shortCode, data.value);
+    });
+    emits("getAttributes", form.shortCode, form.categoryId);
+}
 
 
 const open = (data) => {
     acceptParams.value = data;
     dialogVisible.value = true;
+    tableData.value = [{
+        primaryImage: data.primaryImage,
+        name: data.name,
+        category: data.categoryId,
+    }];
 
+    form.shortCode = data.account;
 
+    // form.categoryId = data.typeId;
+    // getHistoryList(data.account, data.typeId);
+
+    //  todo 
+    form.categoryId = 91672;
+    getHistoryList('160318262', 91672);
 };
 
 const cancel = () => {
@@ -258,5 +329,10 @@ defineExpose({
     p {
         margin: 0;
     }
+}
+
+.tooltip-text {
+    color: #a0a3a6;
+    padding-top: 5px;
 }
 </style>

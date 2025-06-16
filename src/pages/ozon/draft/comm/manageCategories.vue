@@ -14,6 +14,7 @@
                     }">
                         <a-input v-if="node.edit" v-model:value="node.title" @blur="blurNode(node)" ref="inputRef" />
                         <span v-else> {{ node.title }} </span>
+
                     </div>
 
                     <div style="width:150px; overflow: hidden">
@@ -141,9 +142,9 @@ const addNode = (node) => {
         title: 'new node',
         key: node.key + '-' + children.length,
         level: node.level + 1,
+        edit: true,
     })
     data.children = children;
-    data.edit = true;
 };
 
 const editNode = (node) => {
@@ -203,6 +204,7 @@ const handleCancel = () => {
 
 const onSubmit = () => {
     visible.value = false;
+    emits('success');
 };
 
 const openModal = () => {

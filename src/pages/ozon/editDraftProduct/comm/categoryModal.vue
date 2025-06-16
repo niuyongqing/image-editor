@@ -58,8 +58,8 @@
                                     <a-menu-item v-for="item in secondState.options" :key="item.value"
                                         @click="selectSecondItem(item)">
                                         <div flex>
-                                            <div w-250px overflow-hidden text-ellipsis whitespace-nowrap> {{ item.label
-                                            }}
+                                            <div w-250px overflow-hidden text-ellipsis whitespace-nowrap>
+                                                {{ item.label }}
                                             </div>
                                             <div>
                                                 <RightOutlined />
@@ -82,8 +82,8 @@
                                     v-model:selected-keys="thirdState.selectKeys">
                                     <a-menu-item v-for="item in thirdState.options" :key="item.value"
                                         @click="selectThirdItem(item)">
-                                        <div w-250px overflow-hidden text-ellipsis whitespace-nowrap> {{ item.label
-                                        }}
+                                        <div w-250px overflow-hidden text-ellipsis whitespace-nowrap>
+                                            {{ item.label }}
                                         </div>
                                     </a-menu-item>
                                 </a-menu>
@@ -216,11 +216,40 @@ const onSearchThird = (value) => {
     }
 };
 
+const findPathById = (id, tree) => {
+    for (let item of tree) {
+        if (item.descriptionCategoryId === id) {
+            return {
+                ids: [item.descriptionCategoryId],
+                labels: [item.categoryName],
+            };
+        }
+        if (item.children) {
+            const path = findPathById(id, item.children);
+            if (path) {
+                return {
+                    ids: [item.descriptionCategoryId, ...path.ids],
+                    labels: [item.categoryName, ...path.labels],
+                };
+            }
+        }
+    }
+    return null;
+};
+
+
 function getCategoryTree() {
     categoryTree({
         "account": account
     }).then(res => {
         treeData.value = res.data || [];
+        const path = findPathById(thirdState.selectKeys[0], treeData.value);
+        selectItem.value = {
+            label: path.labels.join(' / '),
+            value: thirdState.selectKeys[0],
+            ids: path.ids
+        };
+
         firstState.options = treeData.value.map((item) => {
             return {
                 ...item,
@@ -250,32 +279,14 @@ function getCategoryTree() {
         copyThirdOpts.value = cloneDeep(thirdState.options);
     })
 };
+
 const handleSave = () => {
     if (!thirdState.selectValue.typeId) {
         message.info('请选择最后一级类目');
         return
     }
     openSelect.value = false;
-    const findPathById = (id, tree) => {
-        for (let item of tree) {
-            if (item.descriptionCategoryId === id) {
-                return {
-                    ids: [item.descriptionCategoryId],
-                    labels: [item.categoryName],
-                };
-            }
-            if (item.children) {
-                const path = findPathById(id, item.children);
-                if (path) {
-                    return {
-                        ids: [item.descriptionCategoryId, ...path.ids],
-                        labels: [item.categoryName, ...path.labels],
-                    };
-                }
-            }
-        }
-        return null;
-    };
+
     const path = findPathById(thirdState.selectValue.typeId, treeData.value);
     emits('select', {
         "label": path.labels,
@@ -330,10 +341,12 @@ const selectSecondItem = (item) => {
 const selectThirdItem = (item) => {
     thirdState.selectKeys = [item.value];
     thirdState.selectValue = item;
-}
+};
 
-const open = () => {
+//  打开弹窗
+const open = (categoryId) => {
     visible.value = true;
+    thirdState.selectKeys = [categoryId];
     getCategoryTree();
 };
 
@@ -357,5 +370,5 @@ const handleClose = () => {
 const emits = defineEmits(['select']);
 defineExpose({
     open,
-})
+});
 </script>
