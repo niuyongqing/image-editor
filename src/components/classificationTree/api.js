@@ -13,18 +13,6 @@ function getParamsFn(data) {
   return params
 }
 /**
- * // 图片空间列表
- * @param {*} data 
- * @returns 
- */
-export function imageSpaceList(data) {
-  return request({
-    url: '/platform-common/platform/common/imageSpace/list',
-    method: 'post',
-    data: data
-  })
-}
-/**
  * // 获取分类树
  * @param {*} data 
  * @returns 

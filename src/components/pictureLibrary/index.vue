@@ -45,6 +45,7 @@
             >
               <a-image
                 :width="150"
+                :height="150"
                 :preview="{
                   visible: false,
                   onVisibleChange: (visible, prevVisible) => onVisibleChange(item),
@@ -55,7 +56,7 @@
               </a-image>
               <div class="img-size">
                 <span>{{ `${item.width} × ${item.height}` }}</span>
-                <span>{{ (item.size/1024).toFixed(2) }}KB</span>
+                <span>{{ (item.size/1024).toFixed() }}KB</span>
               </div>
               <div class="img-box-foot">
                 <a-checkbox v-model:checked="item.checked"></a-checkbox>
@@ -91,6 +92,7 @@
             <div class="selectedImg-content-item" v-for="item in imgData.selectedImgList" :key="item.id">
               <a-image
                 :width="70"
+                :height="70"
                 :preview="false"  
                 :src="item.src"
               >
@@ -109,6 +111,7 @@
       <uploadImg 
         v-model:modal-open="imgData.uploadImgOpen" 
         :platform="props.platform"
+        @uploadDone="uploadDone"
       ></uploadImg>
     </div>
   </a-modal>
@@ -121,7 +124,8 @@ import { DeleteOutlined } from '@ant-design/icons-vue';
 import typeTree from '@/components/classificationTree/typeTree.vue';
 import typeManage from '@/components/classificationTree/typeManage.vue';
 import uploadImg from './uploadImg.vue';
-import { imageSpaceList } from '../classificationTree/api';
+import { imageSpaceList } from './js/api';
+import { cloneDeep } from 'lodash-es';
 defineOptions({ name: "pictureLibrary_index" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:modalOpen', 'imageListConfirm']);
@@ -136,7 +140,7 @@ const modalOpen = ref(false)
 const imgData = reactive({
   data: [],
   selectedImgList: [],
-  total: 200,
+  total: 0,
   uploadImgOpen: false,
   nodePath: '',
   params: {
@@ -180,6 +184,7 @@ function modalOpenFn() {
 function modalClose() {
   modalOpen.value = false
 }
+// 清空数据
 function clearData() {
   imgData.data = []
   imgData.selectedImgList = []
@@ -190,25 +195,18 @@ function clearData() {
   tableParams.pageNum = 1
   tableParams.pageSize = 20
 }
+// 上传完成
+function uploadDone() {
+  imgSearch()
+}
 // 确认
 function confirm() {
-  emit('imageListConfirm', imgData.selectedImgList)
+  let list = cloneDeep(imgData.selectedImgList)
+  emit('imageListConfirm', list)
   modalClose()
 }
 // 图片搜索
 async function imgSearch(val) { 
-  // for (let index = 0; index < 100; index++) {
-  //   let obj = {
-  //     path: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-  //     name: '的若干似懂非sdgasdgfsdfasfda懂',
-  //     width: 200 + index,
-  //     height: 200 + index,
-  //     size: 4331,
-  //     checked: false,
-  //     id: index + '',
-  //   }
-  //   imgData.data.push(obj)
-  // }
   tableParams.keyword = imgData.params.keyword
   tableParams.classId = imgData.params.currentClass
   pageChange(1)
@@ -290,6 +288,7 @@ function delImg(val) {
         flex-wrap: wrap;
         .img-box {
           width: 150px;
+          height: 180px;
           margin: 0 10px 10px 0;
           position: relative;
           .img-size {
@@ -307,8 +306,9 @@ function delImg(val) {
           }
           .img-box-foot {
             width: 100%;
-            height: 22px;
+            height: 24px;
             display: flex;
+            align-items: center;
             justify-content: space-between;
             .img-name {
               width: calc(100% - 45px);
