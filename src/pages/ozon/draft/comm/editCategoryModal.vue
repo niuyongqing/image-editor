@@ -117,13 +117,6 @@ const innerColumns = [
     },
 ];
 
-const categoryTableData = ref([
-    {
-        primaryImage: '机身颜色',
-        theme: undefined,
-    }
-]);
-
 const categoryModalEl = useTemplateRef('categoryModalRef');
 const historyCategoryList = ref([]);
 const hisAttrObj = ref({}) //选中的三级
@@ -146,9 +139,6 @@ const form = reactive({
     name: "",
     shortCode: "",
     categoryId: null,
-    vat: "", //税
-    attributes: {}, //产品属性
-    storeHistoryCategoryId: "", //资料库分类ID
 })
 
 const primaryImage = (primaryImage) => {
@@ -177,7 +167,7 @@ function getFilterAttrs() {
 }
 
 // 历史分类
-const getHistoryList = (account, categoryId) => {
+const getHistoryList = (account, typeId, categoryId = '') => {
     if (!form.shortCode) {
         return;
     }
@@ -186,7 +176,7 @@ const getHistoryList = (account, categoryId) => {
         .then((res) => {
             historyCategoryList.value = res?.data || [];
             const findItem = historyCategoryList.value.find((item) => {
-                return item.threeCategoryId === categoryId
+                return item.threeCategoryId === typeId
             });
             hisAttrObj.value = findItem || {};
             secondCategoryId.value = findItem?.secondCategoryId;
@@ -198,6 +188,7 @@ const getHistoryList = (account, categoryId) => {
                     })
                 });
             };
+
             if (findItem) {
                 categoryAttributes({
                     account,
@@ -208,6 +199,15 @@ const getHistoryList = (account, categoryId) => {
                         attributes.value = res.data || [];
                         getFilterAttrs();
                     }
+                })
+            } else {
+                // 没找到 加入历史分类记录里面
+                addHistoryCategory({
+                    account: form.shortCode,
+                    secondCategoryId: categoryId,
+                    threeCategoryId: typeId,
+                }).then((res) => {
+                    getHistoryList(form.shortCode, typeId);
                 })
             }
         })
@@ -278,11 +278,7 @@ const open = (data) => {
     form.shortCode = data.account;
 
     form.categoryId = data.typeId;
-    getHistoryList(data.account, data.typeId);
-
-    //  todo 
-    // form.categoryId = 91672;
-    // getHistoryList('160318262', 91672);
+    getHistoryList(data.account, data.typeId, data.categoryId);
 };
 
 const cancel = () => {

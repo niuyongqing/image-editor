@@ -85,7 +85,7 @@
                                         v-model:value="form.attributes[item.name]" v-if="item.selectType === 'select'"
                                         labelInValue style="width: 80%" allowClear>
                                         <a-select-option :value="v" v-for="(v, i) in item.options" :key="i">{{ v.label
-                                        }}</a-select-option>
+                                            }}</a-select-option>
                                     </a-select>
                                 </a-form-item>
                             </div>
@@ -175,17 +175,30 @@ const operationLine = ref([]) //取消的
 const hisAttrObj = ref({}) //选中的三级
 const secondCategoryId = ref(undefined);
 
-const getHistoryList = async (account, categoryId) => {
+const getHistoryList = async (account, typeId, descriptionCategoryId = '') => {
 
     historyCategory({ account: account })
         .then((res) => {
             historyCategoryList.value = res?.data || [];
-            form.categoryId = categoryId;
+            form.categoryId = typeId;
             const findItem = historyCategoryList.value.find((item) => {
-                return item.threeCategoryId === categoryId
+                return item.threeCategoryId === typeId
             });
-            hisAttrObj.value = findItem;
-            secondCategoryId.value = findItem?.secondCategoryId;
+            if (findItem) {
+                hisAttrObj.value = findItem || {};
+                secondCategoryId.value = findItem?.secondCategoryId;
+            } else {
+
+                // 没找到 加入历史分类记录里面
+                addHistoryCategory({
+                    account: form.shortCode,
+                    secondCategoryId: descriptionCategoryId,
+                    threeCategoryId: typeId,
+                }).then((res) => {
+                    getHistoryList(form.shortCode, typeId);
+                })
+            }
+
         })
 }
 
@@ -376,7 +389,7 @@ const handleSelect = (data) => {
     addHistoryCategory(params).then((res) => {
         getHistoryList(form.shortCode, data.value);
     });
-    emits("getAttributes", form.shortCode, form.categoryId);
+    // emits("getAttributes", form.shortCode, form.categoryId);
 }
 
 // 抛出数据和方法，可以让父级用ref获取
@@ -388,19 +401,24 @@ defineExpose({
 
 watch(() => props.productDetail, val => {
     if (Object.keys(val).length > 0) {
-        const { simpleName, account, name, vat, typeId, descriptionCategoryId } = val;
+        const { simpleName, account, name, vat, typeId, categoryId } = val;
         // 修改响应式对象的属性
         form.shortCode = account;
         form.name = name;
         form.vat = vat === "0.00" ? vat.split(".")[0] : vat;
 
-        getHistoryList("160318262", 96814)
-        // getHistoryList(account, form.categoryId)
+        // getHistoryList("160318262", 96814)
+        // console.log('account', account);
+        // console.log('typeId', typeId);
+
+        getHistoryList(account, typeId, categoryId)
     }
 })
 
 
 watch(() => props.attributesCache, (val) => {
+    console.log('attributesCache', val);
+
     if (val) {
         /**
          *  "URL"  4080
@@ -483,6 +501,10 @@ watch(() => props.attributesCache, (val) => {
             // this.$set(rules2.value, noThemeAttributesCache[i].name, obj);
             // console.log("rules2", rules2.value);
             loopAttributes.value = noThemeAttributesCache;
+
+            console.log('loopAttributes ->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', loopAttributes.value);
+
+
             // 赋值
             const { attributes: oldAttributes } = props.productDetail.attributes[0];
             // console.log('loopAttributes', oldAttributes);

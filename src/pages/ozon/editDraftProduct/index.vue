@@ -202,8 +202,11 @@ const getProductDetail = (gatherProductId, account) => {
     formData.shortCode = account
     ozonDraftDetail({ gatherProductId, account }).then(res => {
 
-        productDetail.value = res.data || {}
-        // getAttributes(res?.data?.account, res?.data?.typeId, res?.data?.descriptionCategoryId)
+        productDetail.value = res.data || {};
+        console.log('productDetail.value ->>>>>>>>>>>>>>>>>>>>>>>>>>', productDetail.value);
+
+        const { account, typeId, categoryId } = productDetail.value;
+        getAttributes(account, typeId, categoryId); ///to do descriptionCategoryId?
     })
 }
 const backToTop = () => {
@@ -225,6 +228,7 @@ const getAttributes = (account, typeId, descriptionCategoryId) => {
     }).then((res) => {
         if (res.data) {
             attributes.value = res?.data ?? [];
+            console.log('attributes.value ->>>>>>>>>>>>>>>>>>>>>>>>>>', attributes.value);
             const ozonStore = useOzonProductStore()
             ozonStore.$patch(state => {
                 state.attributes = attributes.value
