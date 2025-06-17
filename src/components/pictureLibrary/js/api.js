@@ -51,3 +51,15 @@ export function urlUpload(data) {
     data: data,
   })
 }
+/**
+ * // 图片删除
+ * @param {*} data 
+ * @returns 
+ */
+export function deleteImage(data) {
+  let params = getParamsFn(data)
+  return request({
+    url: '/platform-common/platform/common/imageSpace/deleteImage' + params,
+    method: 'post',
+  })
+}

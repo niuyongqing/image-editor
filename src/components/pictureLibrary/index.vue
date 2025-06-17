@@ -59,7 +59,7 @@
                 <span>{{ (item.size/1024).toFixed() }}KB</span>
               </div>
               <div class="img-box-foot">
-                <a-checkbox v-model:checked="item.checked"></a-checkbox>
+                <a-checkbox v-model:checked="item.checked" @change="event => onVisibleChange(item, event)"></a-checkbox>
                 <div class="img-name">
                   <a-tooltip>
                     <template #title>{{ item.name }}</template>
@@ -84,7 +84,7 @@
               :pageSizeOptions="[20, 40]"
               show-quick-jumper 
               :total="imgData.total" 
-              :show-total="total => `共 ${imgData.total} 张`"
+              :show-total="total => `共 ${total} 张`"
               @change="pageChange" 
             />
           </div>
@@ -97,7 +97,8 @@
                 :src="item.src"
               >
               </a-image>
-              <div class="item-icon" @click="delSelectImg(item)">×</div>
+              <div class="item-icon" @click="onVisibleChange(item)">×</div>
+              <!-- <div class="item-icon" @click="delSelectImg(item)">×</div> -->
             </div>
           </div>
           <div class="right-box-foot">
@@ -124,7 +125,7 @@ import { DeleteOutlined } from '@ant-design/icons-vue';
 import typeTree from '@/components/classificationTree/typeTree.vue';
 import typeManage from '@/components/classificationTree/typeManage.vue';
 import uploadImg from './uploadImg.vue';
-import { imageSpaceList } from './js/api';
+import { deleteImage, imageSpaceList } from './js/api';
 import { cloneDeep } from 'lodash-es';
 defineOptions({ name: "pictureLibrary_index" })
 const { proxy: _this } = getCurrentInstance()
@@ -219,12 +220,12 @@ async function getImageSpaceList() {
   }
   try {
     let res = await imageSpaceList(params)
-    console.log({res});
-    
-    res.data.forEach(item => {
+    let idList = imgData.selectedImgList.map(i => i.id)
+    res.rows.forEach(item => {
       item.src = (import.meta.env.VITE_APP_BASE_API + item.path)
+      item.checked = idList.includes(item.id)
     })
-    imgData.data = res.data
+    imgData.data = res.rows
     imgData.total = res.total
   } catch (error) {
     console.error(error)
@@ -236,24 +237,25 @@ function pageChange(val) {
   tableParams.pageNum = val
   getImageSpaceList()
 }
-// 浮层
-function onVisibleChange(img) {
-  img.checked = !img.checked;
+// 关于图片选中变化
+function onVisibleChange(img, event) {
+  if (!event) {
+    img.checked = !img.checked;
+  }
   if (img.checked) {
     imgData.selectedImgList.push(img)
   } else {
     imgData.selectedImgList = imgData.selectedImgList.filter(i => i.id !== img.id)
   }
 }
-// 删除选中照片
-function delSelectImg(val) {
-  let obj = imgData.data.find(i => i.id === val.id)
-  obj.checked = false
-  imgData.selectedImgList = imgData.selectedImgList.filter(i => i.id !== val.id)
-}
 // 删除空间图片
-function delImg(val) {
-  console.log({val});
+async function delImg(val) {
+  // console.log({ val });
+  let params = {
+    ids: val.id
+  }
+  await deleteImage(params)
+  getImageSpaceList()
 }
 
 </script>
