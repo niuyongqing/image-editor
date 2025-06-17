@@ -14,8 +14,9 @@
                                 :options="item.option" />
                         </div>
                     </div>
+                    <div><a-tag color="green">说明</a-tag><span>已归档的产品不支持修改产品相关信息！</span></div>
                 </a-col>
-                <a-col :flex="4">
+                <a-col :flex="4" style="max-height: 600px;overflow-y: auto;">
                     <a-form :model="form" :layout="'vertical'" ref="ruleForm" style="margin-top: 20px;">
                         <div class="rounded-md p-2.5 mb-2.5" style="border: 1px solid #ccc;overflow-y: auto;"
                             v-if="checkedListAll.includes('oldPrice')">
@@ -207,6 +208,17 @@
                                 </div>
                             </a-form-item>
                         </div>
+                        <div class="rounded-md p-2.5 mb-2.5" style="border: 1px solid #ccc;"
+                            v-if="checkedListAll.includes('attr')">
+                            <a-form-item label="合并属性：">
+                                <a-form-item label="品牌：">
+                                    <div class="flex">
+                                        <a-select v-model:value="form.attr" class="mr-2.5" style="width: 200px"
+                                            :options="commList[4].option"></a-select>
+                                    </div>
+                                </a-form-item>
+                            </a-form-item>
+                        </div>
                     </a-form>
                 </a-col>
             </a-row>
@@ -239,7 +251,7 @@ const getInitialFormData = () => ({
     oldPriceValue: 1,
     oldPrice: "",
     toOldPrice: "",
-    oldSelect1: "",    // 修正拼写错误 Selct -> Select
+    oldSelect1: "",
     oldSelect2: "",
     priceValue: 1,
     price: "",
@@ -264,6 +276,7 @@ const getInitialFormData = () => ({
     textRemove: "",
     capitalCase: false,
     vat: "",
+    attr: "",
     packageLength: null,
     packageWidth: null,
     packageHeight: null,
@@ -359,6 +372,14 @@ const commList = [
                 value: '0.2'
             }
         ]
+    },
+    {
+        option: [
+            {
+                label: '无品牌',
+                value: '无品牌'
+            }
+        ]
     }
 ]
 const leftList = reactive([
@@ -372,6 +393,10 @@ const leftList = reactive([
             {
                 label: 'VAT',
                 value: 'vat'
+            },
+            {
+                label: '合并属性',
+                value: 'attr'
             }
         ],
         indeterminate: false,
@@ -524,7 +549,7 @@ const onSubmit = () => {
             console.log('priceList', priceList);
         }
     });
-    
+
     const fieldsToCompare = ['name', 'price', 'oldPrice', 'minPrice'];
     const packageFields = [
         { key: 'packageWeight', path: 'attributes.0.weight' },
@@ -541,7 +566,7 @@ const onSubmit = () => {
                     itemA[field] = '';
                 }
             }
-            
+
             if (itemA.vat === itemB.vat) {
                 itemA.vat = "";
             }
