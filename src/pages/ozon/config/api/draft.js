@@ -8,3 +8,12 @@ export function ozonDraftList(data) {
     data: data,
   });
 };
+
+//  采集箱产品详情
+export function ozonDraftDetail(data) {
+    return request({
+        url: "/platform-ozon/platform/ozon/gather/product/detail",
+        method: "post",
+        data: data,
+    });
+};

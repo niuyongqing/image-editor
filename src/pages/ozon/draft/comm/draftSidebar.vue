@@ -28,7 +28,7 @@
             <a-tree show-line :tree-data="waitPublishTreeData" defaultExpandAll v-if="waitPublishTreeData.length"
                 v-model:selected-keys="selectedKeys" @select="selectNode">
                 <template #title="{ title }">
-                    <span>{{ title }}</span>
+                    <span class="node-name">{{ title }}</span>
                 </template>
             </a-tree>
 
@@ -54,25 +54,34 @@
             <div flex justify-between class="nav-title">
                 <div> 在线产品 </div>
                 <div>
-                    <a-button type="link" @click="setting">
+                    <a-button type="link" @click="typeManageOpen = true">
                         <SettingOutlined />
                     </a-button>
                 </div>
             </div>
         </template>
         <div py-10px px-5px>
-            <a-input-search v-model:value="onlineTreeValue" style="margin-bottom: 8px" placeholder="搜索分类名称"
+            <!-- <a-input-search v-model:value="onlineTreeValue" style="margin-bottom: 8px" placeholder="搜索分类名称"
                 @search="onlineSearch" />
             <a-tree show-line :tree-data="onlineTreeData" defaultExpandAll v-if="onlineTreeData.length"
                 v-model:selected-keys="selectedKeys" @select="selectNode">
                 <template #title="{ title }">
                     <span>{{ title }}</span>
                 </template>
-            </a-tree>
+            </a-tree> -->
+            <!-- {{ currentClass }} ---- {{ nodePath }} -->
+            <typeTree v-model:current-class="currentClass" v-model:node-path="nodePath" platform="ozon"
+                @update:currentClass="updateCurrentClass" ref="typeTreeRef">
+            </typeTree>
         </div>
     </a-card>
 
-    <ManageCategories ref="manageCategoriesRef" />
+    <!--  待发布产品分类管理 -->
+    <ManageCategories ref="waitPublishManageRef" v-model:modal-open="waitPublishManageOpen" platform="ozon"
+        @updateTree="waitPublishUpdateTree" />
+    <!-- 在线产品分类管理 -->
+    <typeManage v-model:modal-open="typeManageOpen" platform="ozon" @updateTree="updateTree">
+    </typeManage>
 </template>
 
 <script setup>
@@ -80,6 +89,15 @@ import { SettingOutlined } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
 import { cloneDeep } from 'lodash';
 import ManageCategories from './manageCategories.vue';
+import typeTree from '@/components/classificationTree/typeTree.vue';
+import typeManage from '@/components/classificationTree/typeManage.vue';
+
+const typeTreeEl = useTemplateRef('typeTreeRef');
+const currentClass = ref(0);
+const nodePath = ref('');
+const typeManageOpen = ref(false);
+
+const waitPublishManageOpen = ref(false);
 
 const active = ref('all');
 const selectedKeys = ref([]);
@@ -92,7 +110,7 @@ const onlineTreeValue = ref(''); // 在线产品搜索
 const onlineTreeData = ref([]);
 const copyOnlineTreeData = ref([]);
 
-const manageCategoriesEl = useTemplateRef('manageCategoriesRef');
+const waitPublishManageEl = useTemplateRef('waitPublishManageRef');
 
 function filterTreeWithParents(nodes, predicate) {
     return nodes
@@ -105,6 +123,14 @@ function filterTreeWithParents(nodes, predicate) {
         });
 };
 
+//  更新在线产品信息
+const updateTree = () => {
+    typeTreeEl.value.updateTree();
+};
+
+const waitPublishUpdateTree = () => {
+    waitPublishManageEl.value.updateTree();
+};
 
 const selectActive = (e) => {
     active.value = e;
@@ -117,7 +143,8 @@ const selectNode = (keys, info) => {
 };
 // 管理分类设置
 const setting = () => {
-    manageCategoriesEl.value.openModal();
+    waitPublishManageOpen.value = true;
+    // manageCategoriesEl.value.openModal();
 };
 
 watch(waitPublishTreeValue, () => {
@@ -128,6 +155,12 @@ watch(onlineTreeValue, () => {
     onlineSearch();
 });
 
+// 更新当前选中节点
+const updateCurrentClass = (value) => {
+    if (value !== 0) {
+        emits('search');
+    }
+};
 
 // 待发布产品搜索
 const onSearch = () => {
@@ -298,5 +331,11 @@ onMounted(() => {
 
 .text-color {
     color: #737679;
+}
+
+.node-name {
+    font-size: 16px;
+    font-weight: 500;
+    width: 100%;
 }
 </style>

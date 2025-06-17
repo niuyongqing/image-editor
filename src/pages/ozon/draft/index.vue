@@ -1,6 +1,6 @@
 <template>
     <div flex>
-        <div w-210px>
+        <div w-300px>
             <draftSidebar />
         </div>
         <div id="draft" w-full ml-15px>
@@ -87,7 +87,6 @@
                             </template>
                         </a-dropdown>
                     </div>
-
                     <div>
                         <a-space>
                             <a-button type="link" style="height: 32px;" @click="shopSet">
@@ -184,7 +183,8 @@
                                     <div class="sku-price">
                                         <a-tooltip placement="top">
                                             <template #title>
-                                                <span>{{ warehouseName(item.offerId, item.warehouseList) }}</span>
+                                                <span>{{ warehouseName(item.offerId, item.warehouseList) }}: {{
+                                                    item.stock }}</span>
                                             </template>
                                             <span> {{ item.stock }} </span>
                                         </a-tooltip>

@@ -1,6 +1,7 @@
 <template>
     <div>
-        <a-modal title="选择类目" v-model:open="visible" :maskClosable="false" @cancel="handleClose" :width="1100">
+        <a-modal title="选择类目" v-model:open="visible" :maskClosable="false" @cancel="handleClose" :width="1100"
+            :mask="false">
             <div :style="{ height: openSelect ? '420px' : 'auto' }">
                 <div flex gap-10px>
                     <a-dropdown v-model:open="openSelect" trigger="">
@@ -34,7 +35,7 @@
                                         @click="selectFirstItem(item)">
                                         <div flex>
                                             <div w-250px overflow-hidden text-ellipsis whitespace-nowrap> {{ item.label
-                                                }}
+                                            }}
                                             </div>
                                             <div>
                                                 <RightOutlined />

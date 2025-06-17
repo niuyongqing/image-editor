@@ -151,7 +151,8 @@
 
 <script setup name='editProductPublish'>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-import { getDetail, categoryAttributes, add, accountCache } from "../config/api/product"
+import { categoryAttributes, add, accountCache } from "../config/api/product"
+import { ozonDraftDetail } from "../config/api/draft"
 import OzonBaseInfo from './comm/OzonBaseInfo.vue';
 import OzonVariantInfo from './comm/OzonVariantInfo.vue';
 import OzonNewImageInfo from "./comm/OzonNewImageInfo.vue";
@@ -165,6 +166,7 @@ import { message, Modal } from "ant-design-vue";
 import { UploadOutlined, DownOutlined } from '@ant-design/icons-vue';
 import ErpInfo from './comm/erpInfo.vue';
 
+const route = useRoute();
 const ozonBaseInfoRef = ref(null)
 const ozonImageInfoRef = ref(null)
 const ozonNewVariantInfoRef = ref(null)
@@ -196,11 +198,12 @@ const formData = reactive({
     shortCode: ""
 })
 
-const getProductDetail = (offerId, account) => {
+const getProductDetail = (gatherProductId, account) => {
     formData.shortCode = account
-    getDetail({ account, offerId }).then(res => {
-        productDetail.value = res?.data ?? {}
-        getAttributes(res?.data?.account, res?.data?.typeId, res?.data?.descriptionCategoryId)
+    ozonDraftDetail({ gatherProductId, account }).then(res => {
+
+        productDetail.value = res.data || {}
+        // getAttributes(res?.data?.account, res?.data?.typeId, res?.data?.descriptionCategoryId)
     })
 }
 const backToTop = () => {
@@ -249,7 +252,6 @@ const getAccount = () => {
                     value: item.account
                 }
             }) ?? [];
-
         }
     });
 }
@@ -561,11 +563,8 @@ const handleOk = () => {
 }
 
 onMounted(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const rowId = urlParams.get('id');
-    const decodedId = decodeURIComponent(rowId); //解译
-    const rowAccount = urlParams.get('account');
-    getProductDetail(decodedId, rowAccount)
+    const { id, account } = route.query;
+    getProductDetail(id, account)
     getAccount()
 })
 </script>

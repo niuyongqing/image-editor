@@ -44,10 +44,8 @@
                         <a-button type="link" @click="changeCategory">更换分类</a-button>
                         <p class="tooltip-text" v-if="hisAttrObj && JSON.stringify(hisAttrObj) != '{}'">{{
                             hisAttrObj.categoryName
-                        }} > {{
-                                hisAttrObj.secondCategoryName }} > {{
+                            }} > {{ hisAttrObj.secondCategoryName }} > {{
                                 hisAttrObj.threeCategoryName }} </p>
-
                         <!-- 表格 -->
                         <a-table :columns="innerColumns" :data-source="innerTableData" bordered :pagination="false"
                             style="margin-top: 10px;">
@@ -127,13 +125,9 @@ const categoryTableData = ref([
 ]);
 
 const categoryModalEl = useTemplateRef('categoryModalRef');
-const categoryOptions = ref([]);
-const selectVisible = ref(false);
-const categoryTreeList = ref([]);
 const historyCategoryList = ref([]);
 const hisAttrObj = ref({}) //选中的三级
 const secondCategoryId = ref(undefined);
-const treeData = ref([]); // 分类tree数据
 const attributes = ref([]);
 const filterAttrOptions = ref([]); // 过滤后的属性
 const tableData = ref([
@@ -144,14 +138,6 @@ const tableData = ref([
     }
 ]);
 const innerTableData = ref([
-    {
-        catTheme: '机身颜色',
-        ozonTheme: undefined,
-    },
-    {
-        catTheme: '存储容量',
-        ozonTheme: undefined,
-    }
 ]);
 
 const dialogVisible = ref(false);
@@ -179,6 +165,15 @@ function getFilterAttrs() {
             value: attrItem.id,
         }
     });
+    innerTableData.value = [];
+    if (acceptParams.value.variantAttr && Object.keys(acceptParams.value.variantAttr).length > 0) {
+        Object.keys(acceptParams.value.variantAttr).forEach((key) => {
+            innerTableData.value.push({
+                catTheme: key,
+                ozonTheme: undefined,
+            })
+        });
+    };
 }
 
 // 历史分类
@@ -195,6 +190,14 @@ const getHistoryList = (account, categoryId) => {
             });
             hisAttrObj.value = findItem || {};
             secondCategoryId.value = findItem?.secondCategoryId;
+            if (acceptParams.value.variantAttr && Object.keys(acceptParams.value.variantAttr).length > 0) {
+                Object.keys(acceptParams.value.variantAttr).forEach((key) => {
+                    innerTableData.value.push({
+                        catTheme: key,
+                        ozonTheme: undefined,
+                    })
+                });
+            };
             if (findItem) {
                 categoryAttributes({
                     account,
@@ -212,7 +215,6 @@ const getHistoryList = (account, categoryId) => {
 
 // 选中的分类
 const selectAttributes = (value) => {
-    console.log('selectAttributes', value);
     if (value) {
         if (historyCategoryList.value.length != 0) {
             hisAttrObj.value = historyCategoryList.value.find((item) => item.threeCategoryId === value);
@@ -227,14 +229,13 @@ const selectAttributes = (value) => {
                     getFilterAttrs();
                 }
             })
-
         }
     }
 };
 
 // 更换分类
 const changeCategory = () => {
-    dialogVisible.value = false;
+    // dialogVisible.value = false;
     nextTick(() => {
         categoryModalEl.value.open(form.categoryId);
     })
@@ -265,6 +266,7 @@ const handleSelect = (data) => {
 
 
 const open = (data) => {
+    console.log('open -》》》》》》》', data);
     acceptParams.value = data;
     dialogVisible.value = true;
     tableData.value = [{
@@ -275,22 +277,26 @@ const open = (data) => {
 
     form.shortCode = data.account;
 
-    // form.categoryId = data.typeId;
-    // getHistoryList(data.account, data.typeId);
+    form.categoryId = data.typeId;
+    getHistoryList(data.account, data.typeId);
 
     //  todo 
-    form.categoryId = 91672;
-    getHistoryList('160318262', 91672);
+    // form.categoryId = 91672;
+    // getHistoryList('160318262', 91672);
 };
 
 const cancel = () => {
     dialogVisible.value = false;
+    innerTableData.value = [];
 };
 
 // 编辑分类
 const editCategory = () => {
     emits('edit');
     cancel();
+
+    window.open(`/platform/ozon/editDraftProduct?account=${acceptParams.value.account}&id=${acceptParams.value.gatherProductId}`, '_blank')
+
 };
 
 //  跳过
@@ -298,20 +304,10 @@ const skip = () => {
     emits('skip');
     cancel();
 };
-
-// 更换分类
-const handleCategoryChange = () => {
-
-};
-
 const emits = defineEmits(['cancel', 'edit', 'skip', "sendShortCode", "getAttributes"]);
-
-
 defineExpose({
     open
 });
-
-
 </script>
 <style scoped>
 .card {
