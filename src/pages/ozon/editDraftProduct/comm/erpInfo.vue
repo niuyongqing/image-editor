@@ -55,6 +55,7 @@
 </template>
 
 <script setup>
+import { message } from 'ant-design-vue';
 import { DownOutlined, PlusOutlined, CloseOutlined } from '@ant-design/icons-vue';
 import typeTree from '@/components/classificationTree/typeTree.vue';
 import typeManage from '@/components/classificationTree/typeManage.vue';
@@ -106,6 +107,10 @@ const selectNode = (keys, info) => {
 };
 
 const visitUrl = (sourceUrl) => {
+    if (!sourceUrl) {
+        message.info('请先输入来源URL');
+        return;
+    }
     window.open(sourceUrl);
 };
 

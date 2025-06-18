@@ -69,7 +69,6 @@
                     <span>{{ title }}</span>
                 </template>
             </a-tree> -->
-            <!-- {{ currentClass }} ---- {{ nodePath }} -->
             <typeTree v-model:current-class="currentClass" v-model:node-path="nodePath" platform="ozon"
                 @update:currentClass="updateCurrentClass" ref="typeTreeRef">
             </typeTree>
@@ -157,9 +156,8 @@ watch(onlineTreeValue, () => {
 
 // 更新当前选中节点
 const updateCurrentClass = (value) => {
-    if (value !== 0) {
-        emits('search');
-    }
+    if (!value) return;
+    emits('updateClass', value);
 };
 
 // 待发布产品搜索
@@ -186,7 +184,7 @@ const onlineSearch = () => {
     }
 };
 
-const emits = defineEmits(['search']);
+const emits = defineEmits(['updateClass']);
 
 onMounted(() => {
     waitPublishTreeData.value = [

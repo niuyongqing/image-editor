@@ -1,250 +1,255 @@
 <template>
     <div flex>
         <div w-300px>
-            <draftSidebar />
+            <draftSidebar @updateClass="updateClass" />
         </div>
-        <div id="draft" w-full ml-15px>
-            <a-card>
-                <a-form ref="ruleForm2" :model="formData">
-                    <a-form-item label="店铺账号：">
-                        <selectComm :options="shopAccount" :fieldObj="shopObj" @backSelectAll="selectAll"
-                            @backSelectItem="selectItem"></selectComm>
-                    </a-form-item>
-                    <a-form-item label="搜索类型:">
-                        <div class="fBox flex align-start gap-10px">
-                            <a-button @click="selectTypes(item.prop)" :type="item.prop === actives ? 'primary' : ''"
-                                v-for="(item, index) in searchType" :key="index">{{ item.label }}</a-button>
-                        </div>
-                    </a-form-item>
-                    <a-form-item label="搜索内容：">
-                        <div class="flex">
-                            <div class="flex align-start">
-                                <a-input v-if="actives === 1" style="width: 400px;" v-model:value="formData.name"
-                                    placeholder="请输入标题查询" clearable @clear="onSubmit"></a-input>
-                                <a-input v-if="actives === 2" style="width: 400px;" v-model:value="formData.sku"
-                                    clearable @clear="onSubmit" placeholder="请输入SKU查询,多个SKU间用逗号隔开，最多支持200个"></a-input>
+
+        <div v-if="showDraftTable">
+            <div id="draft" w-full ml-15px>
+                <a-card>
+                    <a-form ref="ruleForm2" :model="formData">
+                        <a-form-item label="店铺账号：">
+                            <selectComm :options="shopAccount" :fieldObj="shopObj" @backSelectAll="selectAll"
+                                @backSelectItem="selectItem"></selectComm>
+                        </a-form-item>
+                        <a-form-item label="搜索类型:">
+                            <div class="fBox flex align-start gap-10px">
+                                <a-button @click="selectTypes(item.prop)" :type="item.prop === actives ? 'primary' : ''"
+                                    v-for="(item, index) in searchType" :key="index">{{ item.label }}</a-button>
                             </div>
-                            <a-button type="primary" class="ml-[10px]" @click="onSubmit()">查询</a-button>
-                        </div>
-                    </a-form-item>
-                    <a-form-item label="排序方式：">
-                        <div class="flex align-start gap-10px">
-                            <a-button v-for="item in strList" :key="item.prop"
-                                :type="item.prop === active.prop ? 'primary' : ''" @click="storChange(item)">
-                                <span>{{ item.label }}</span>
-                                <AsyncIcon icon="CaretUpOutlined"
-                                    v-if="item.prop === active.prop && active.type === 'bottom'" />
-                                <AsyncIcon icon="CaretDownOutlined"
-                                    v-if="item.prop === active.prop && active.type === 'top'" />
-                            </a-button>
-                        </div>
-                    </a-form-item>
-                </a-form>
-            </a-card>
-            <a-card class="my-2.5">
-                <div class="w-full flex justify-between items-center mb-10px">
-                    <div class="flex">
-                        <a-dropdown>
-                            <a-button type="primary" style="height: 32px;">
-                                批量操作
-                                <DownOutlined />
-                            </a-button>
-                            <template #overlay>
-                                <a-menu @click="handleMenuClick">
-                                    <a-menu-item :key="0">批量编辑</a-menu-item>
-                                    <a-menu-item :key="1">批量移入待发布</a-menu-item>
-                                    <a-menu-item :key="2">批量发布</a-menu-item>
-                                    <a-menu-item :key="3">批量加水印</a-menu-item>
-                                    <a-menu-item :key="4">批量归档</a-menu-item>
-                                    <a-menu-item :key="5">批量备注</a-menu-item>
-                                    <a-menu-item :key="6">批量删除</a-menu-item>
-
-                                    <a-menu-item :key="7" disabled> 快捷操作 </a-menu-item>
-                                    <a-menu-item :key="8"> 批量修改售价 </a-menu-item>
-                                    <a-menu-item :key="9"> 批量修改原价 </a-menu-item>
-                                    <a-menu-item :key="10"> 批量修改库存 </a-menu-item>
-                                    <a-menu-item :key="11"> 全属性修改 </a-menu-item>
-                                </a-menu>
-                            </template>
-                        </a-dropdown>
-
-                        <a-dropdown trigger="click">
-                            <a-button type="primary" style="height: 32px;  margin-left: 10px;">
-                                分类管理
-                                <DownOutlined />
-                            </a-button>
-                            <template #overlay>
-                                <a-menu>
-                                    <a-input-search v-model:value="treeValue" style="margin-bottom: 8px"
-                                        placeholder="搜索分类名称" @search="onSearch" />
-                                    <a-tree show-line :tree-data="treeData" defaultExpandAll v-if="treeData.length"
-                                        v-model:selected-keys="selectedKeys" @select="selectNode">
-                                        <template #title="{ title }">
-                                            <span>{{ title }}</span>
-                                        </template>
-                                    </a-tree>
-                                </a-menu>
-                            </template>
-                        </a-dropdown>
-                    </div>
-                    <div>
-                        <a-space>
-                            <a-button type="link" style="height: 32px;" @click="shopSet">
-                                <SettingOutlined />
-                                店铺设置
-                            </a-button>
-                            <a-button type="primary" style="height: 32px;">
-                                采集数据
-                            </a-button>
-                            <a-button type="primary" style="height: 32px;" @click="createProduct">
-                                创建产品
-                            </a-button>
-                            <a-tooltip>
-                                <template #title>
-                                    <p mb-0>【 同步产品 】按钮：</p>
-                                    <p mb-0 text-gray-400>
-                                        仅从平台后台同步产品，产品的信息将会被更新至最新
-                                    </p>
-                                </template>
-                                <a-button type="primary" style="height: 32px;">
-                                    同步产品
-                                    <QuestionCircleOutlined />
+                        </a-form-item>
+                        <a-form-item label="搜索内容：">
+                            <div class="flex">
+                                <div class="flex align-start">
+                                    <a-input v-if="actives === 1" style="width: 400px;" v-model:value="formData.name"
+                                        placeholder="请输入标题查询" clearable @clear="onSubmit"></a-input>
+                                    <a-input v-if="actives === 2" style="width: 400px;" v-model:value="formData.sku"
+                                        clearable @clear="onSubmit"
+                                        placeholder="请输入SKU查询,多个SKU间用逗号隔开，最多支持200个"></a-input>
+                                </div>
+                                <a-button type="primary" class="ml-[10px]" @click="onSubmit()">查询</a-button>
+                            </div>
+                        </a-form-item>
+                        <a-form-item label="排序方式：">
+                            <div class="flex align-start gap-10px">
+                                <a-button v-for="item in strList" :key="item.prop"
+                                    :type="item.prop === active.prop ? 'primary' : ''" @click="storChange(item)">
+                                    <span>{{ item.label }}</span>
+                                    <AsyncIcon icon="CaretUpOutlined"
+                                        v-if="item.prop === active.prop && active.type === 'bottom'" />
+                                    <AsyncIcon icon="CaretDownOutlined"
+                                        v-if="item.prop === active.prop && active.type === 'top'" />
                                 </a-button>
-                            </a-tooltip>
+                            </div>
+                        </a-form-item>
+                    </a-form>
+                </a-card>
+                <a-card class="my-2.5">
+                    <div class="w-full flex justify-between items-center mb-10px">
+                        <div class="flex">
+                            <a-dropdown>
+                                <a-button type="primary" style="height: 32px;">
+                                    批量操作
+                                    <DownOutlined />
+                                </a-button>
+                                <template #overlay>
+                                    <a-menu @click="handleMenuClick">
+                                        <a-menu-item :key="0">批量编辑</a-menu-item>
+                                        <a-menu-item :key="1">批量移入待发布</a-menu-item>
+                                        <a-menu-item :key="2">批量发布</a-menu-item>
+                                        <a-menu-item :key="3">批量加水印</a-menu-item>
+                                        <a-menu-item :key="4">批量归档</a-menu-item>
+                                        <a-menu-item :key="5">批量备注</a-menu-item>
+                                        <a-menu-item :key="6">批量删除</a-menu-item>
+                                        <a-menu-item :key="7" disabled> 快捷操作 </a-menu-item>
+                                        <a-menu-item :key="8"> 批量修改售价 </a-menu-item>
+                                        <a-menu-item :key="9"> 批量修改原价 </a-menu-item>
+                                        <a-menu-item :key="10"> 批量修改库存 </a-menu-item>
+                                        <a-menu-item :key="11"> 全属性修改 </a-menu-item>
+                                    </a-menu>
+                                </template>
+                            </a-dropdown>
 
-                        </a-space>
+                            <a-dropdown trigger="click">
+                                <a-button type="primary" style="height: 32px;  margin-left: 10px;">
+                                    分类管理
+                                    <DownOutlined />
+                                </a-button>
+                                <template #overlay>
+                                    <a-menu>
+                                        <typeTree v-model:current-class="currentClass" v-model:node-path="nodePath"
+                                            platform="ozon" @update:currentClass="updateCurrentClass" ref="typeTreeRef">
+                                        </typeTree>
+                                    </a-menu>
+                                </template>
+                            </a-dropdown>
+                        </div>
+                        <div>
+                            <a-space>
+                                <a-button type="link" style="height: 32px;" @click="shopSet">
+                                    <SettingOutlined />
+                                    店铺设置
+                                </a-button>
+                                <a-button type="primary" style="height: 32px;">
+                                    采集数据
+                                </a-button>
+                                <a-button type="primary" style="height: 32px;" @click="createProduct">
+                                    创建产品
+                                </a-button>
+                                <a-tooltip>
+                                    <template #title>
+                                        <p mb-0>【 同步产品 】按钮：</p>
+                                        <p mb-0 text-gray-400>
+                                            仅从平台后台同步产品，产品的信息将会被更新至最新
+                                        </p>
+                                    </template>
+                                    <a-button type="primary" style="height: 32px;">
+                                        同步产品
+                                        <QuestionCircleOutlined />
+                                    </a-button>
+                                </a-tooltip>
+
+                            </a-space>
+                        </div>
                     </div>
-                </div>
-                <a-table :row-selection="rowSelection" rowKey="gatherProductId" :data-source="tableData" bordered
-                    :columns="columns" :pagination="false" :loading="loading">
-                    <template #bodyCell="{ column, record }">
-                        <template v-if="column.dataIndex === 'image'">
-                            <div class="flex items-center justify-center">
-                                <a-image :src="primaryImage(record.primaryImage)" />
-                            </div>
-                        </template>
-                        <template v-if="column.dataIndex === 'name'">
-                            <div class="flex text-left">
-                                <div class="ml-2.5 block">
-                                    <a-tooltip class="item" effect="dark" :title="record.name" placement="top"
-                                        style="overflow-wrap: break-word">
-                                        <div>{{ record.name }}</div>
-                                    </a-tooltip>
-                                    <div class="account">
-                                        「{{ accountName(record.account) }}」
-                                    </div>
-                                    <br />
-                                    <div :style="{
-                                        color: record.remarkColor ? 'green' : 'red',
-                                    }"> {{ record.remark }}
-                                    </div>
+                    <a-table :row-selection="rowSelection" rowKey="gatherProductId" :data-source="tableData" bordered
+                        :columns="columns" :pagination="false" :loading="loading">
+                        <template #bodyCell="{ column, record }">
+                            <template v-if="column.dataIndex === 'image'">
+                                <div class="">
+                                    <a-image :src="primaryImage(record.primaryImage)" />
+                                    <p class="platform-name" @click="visitUrl(record.sourceUrlList)">
+                                        {{ platformName(record.gatherPlatformName) }}</p>
                                 </div>
-                            </div>
-                        </template>
-                        <template v-if="column.dataIndex === 'sku'">
-                            <div class="record-sku-container pb-30px">
-                                <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
-                                    <div text-left>
-                                        <a-tooltip placement="top">
-                                            <template #title>
-                                                <span>复制</span>
-                                            </template>
-                                            <span @click="copyText(item.offerId)"> {{ item.offerId }} </span>
+                            </template>
+                            <template v-if="column.dataIndex === 'name'">
+                                <div class="flex text-left">
+                                    <div class="ml-2.5 block">
+                                        <a-tooltip class="item" effect="dark" :title="record.name" placement="top"
+                                            style="overflow-wrap: break-word">
+                                            <div>{{ record.name }}</div>
                                         </a-tooltip>
+                                        <div class="account">
+                                            「{{ accountName(record.account) }}」
+                                        </div>
+                                        <br />
+                                        <div :style="{
+                                            color: record.remarkColor ? 'green' : 'red',
+                                        }"> {{ record.remark }}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </template>
-                        <template v-if="column.dataIndex === 'price'">
-                            <div class="pb-30px">
-                                <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
-                                    <div class="sku-price">
-                                        <span pr-5px>{{ record.currencyCode }} </span>
+                            </template>
+                            <template v-if="column.dataIndex === 'sku'">
+                                <div class="record-sku-container pb-30px">
+                                    <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
+                                        <div text-left>
+                                            <a-tooltip placement="top">
+                                                <template #title>
+                                                    <span>复制</span>
+                                                </template>
+                                                <span @click="copyText(item.offerId)"> {{ item.offerId }} </span>
+                                            </a-tooltip>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                            <template v-if="column.dataIndex === 'price'">
+                                <div class="pb-30px">
+                                    <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
+                                        <div class="sku-price">
+                                            <span pr-5px>{{ record.currencyCode }} </span>
+                                            <span>
+                                                {{ item.price ? item.price : '-' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                            <template v-if="column.dataIndex === 'oldPrice'">
+                                <div class="pb-30px">
+                                    <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
+                                        <div class="sku-price">
+                                            <span pr-5px>{{ record.currencyCode }} </span>
+                                            <span>{{ item.oldPrice ? item.oldPrice : '-' }} </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                            <template v-if="column.dataIndex === 'stock'">
+                                <div class="pb-30px">
+                                    <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
+                                        <div class="sku-price">
+                                            <a-tooltip placement="top">
+                                                <template #title>
+                                                    <span>{{ warehouseName(item.offerId, item.warehouseList) }}: {{
+                                                        item.stock }}</span>
+                                                </template>
+                                                <span> {{ item.stock }} </span>
+                                            </a-tooltip>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div v-if="record.skuList.length > 5"
+                                    class="w-full flex flex-end flex-end more pr-15px pb-10px">
+                                    <a-button type="link" @click="record.show = !record.show">
+                                        {{ !record.show ? '+ 展开' : '- 收起' }}
+                                    </a-button>
+                                </div>
+                            </template>
+                            <template v-if="column.dataIndex === 'createTime'">
+                                <div class="flex items-start flex-col">
+                                    <div>
+                                        <span style="color: #9e9f9e"> 创建：</span>
                                         <span>
-                                            {{ item.price ? item.price : '-' }}
+                                            {{ record.createTime }}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span style="color: #9e9f9e"> 更新：</span>
+                                        <span>
+                                            {{ record.updateTime }}
                                         </span>
                                     </div>
                                 </div>
-                            </div>
+                            </template>
+                            <template v-if="column.dataIndex === 'option'">
+                                <a-space direction="vertical">
+                                    <a-button type="link" @click="moveToPending(record)"> 移入待发布 </a-button>
+                                    <a-button type="link" @click="editProduct(record)"> 编辑 </a-button>
+                                    <a-button type="link" @click="publishProduct(record)"> 发布 </a-button>
+                                    <a-dropdown>
+                                        <a-button type="link">
+                                            更多
+                                            <DownOutlined />
+                                        </a-button>
+                                        <template #overlay>
+                                            <a-menu>
+                                                <a-menu-item @click="addRemark(record)">
+                                                    添加备注
+                                                </a-menu-item>
+                                                <a-menu-item @click="delProduct(record)">
+                                                    删除产品
+                                                </a-menu-item>
+                                            </a-menu>
+                                        </template>
+                                    </a-dropdown>
+                                </a-space>
+                            </template>
                         </template>
-                        <template v-if="column.dataIndex === 'oldPrice'">
-                            <div class="pb-30px">
-                                <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
-                                    <div class="sku-price">
-                                        <span pr-5px>{{ record.currencyCode }} </span>
-                                        <span>{{ item.oldPrice ? item.oldPrice : '-' }} </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </template>
-                        <template v-if="column.dataIndex === 'stock'">
-                            <div class="pb-30px">
-                                <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
-                                    <div class="sku-price">
-                                        <a-tooltip placement="top">
-                                            <template #title>
-                                                <span>{{ warehouseName(item.offerId, item.warehouseList) }}: {{
-                                                    item.stock }}</span>
-                                            </template>
-                                            <span> {{ item.stock }} </span>
-                                        </a-tooltip>
-                                    </div>
-                                </div>
-                            </div>
+                    </a-table>
+                    <a-pagination style="margin: 20px 0 10px 0; text-align: right"
+                        :show-total="(total) => `共 ${total} 条`" v-model:current="paginations.pageNum"
+                        v-model:pageSize="paginations.pageSize" :total="paginations.total" class="pages"
+                        :show-quick-jumper="true" @change="getList" :showSizeChanger="true"
+                        :pageSizeOptions="[50, 100, 200]" />
+                </a-card>
+            </div>
+        </div>
 
-                            <div v-if="record.skuList.length > 5"
-                                class="w-full flex flex-end flex-end more pr-15px pb-10px">
-                                <a-button type="link" @click="record.show = !record.show">
-                                    {{ !record.show ? '+ 展开' : '- 收起' }}
-                                </a-button>
-                            </div>
-                        </template>
-                        <template v-if="column.dataIndex === 'createTime'">
-                            <div class="flex items-start flex-col">
-                                <div>
-                                    <span style="color: #9e9f9e"> 创建： </span>
-                                    <span>
-                                        {{ record.createTime }}
-                                    </span>
-                                </div>
-                                <div>
-                                    <span style="color: #9e9f9e"> 更新：</span>
-                                    <span>
-                                        {{ record.updateTime }}
-                                    </span>
-                                </div>
-                            </div>
-                        </template>
-                        <template v-if="column.dataIndex === 'option'">
-                            <a-space direction="vertical">
-                                <a-button type="link" @click="moveToPending(record)"> 移入待发布 </a-button>
-                                <a-button type="link" @click="editProduct(record)"> 编辑 </a-button>
-                                <a-button type="link" @click="publishProduct(record)"> 发布 </a-button>
-                                <a-dropdown>
-                                    <a-button type="link">
-                                        更多
-                                        <DownOutlined />
-                                    </a-button>
-                                    <template #overlay>
-                                        <a-menu>
-                                            <a-menu-item @click="addRemark(record)">
-                                                添加备注
-                                            </a-menu-item>
-                                            <a-menu-item @click="delProduct(record)">
-                                                删除产品
-                                            </a-menu-item>
-                                        </a-menu>
-                                    </template>
-                                </a-dropdown>
-                            </a-space>
-                        </template>
-                    </template>
-                </a-table>
-                <a-pagination style="margin: 20px 0 10px 0; text-align: right" :show-total="(total) => `共 ${total} 条`"
-                    v-model:current="paginations.pageNum" v-model:pageSize="paginations.pageSize"
-                    :total="paginations.total" class="pages" :show-quick-jumper="true" @change="getList"
-                    :showSizeChanger="true" :pageSizeOptions="[50, 100, 200]" />
-            </a-card>
+        <div v-else w-full ml-15px>
+            <OzonProduct></OzonProduct>
         </div>
 
         <!-- 店铺设置 -->
@@ -252,129 +257,53 @@
             @handleShopSetClose="shopSetVisible = false" @refreshShopSet="getShopSet"></ShopSetModal>
 
         <!--编辑提示 弹窗-->
-        <EditPrompt ref="editPromptRef"></EditPrompt>
+        <EditPrompt ref="editPromptRef" :shopAccount="shopAccount"></EditPrompt>
 
         <!-- 批量编辑 -->
         <BatchEdit ref="batchEditRef"></BatchEdit>
 
         <!-- 批量备注 -->
-        <remarkModal ref="remarkModalRef"></remarkModal>
+        <RemarkModal ref="remarkModalRef"></RemarkModal>
+
+        <!-- 批量加水印 -->
+        <BatchWatermark ref="batchWatermarkRef"></BatchWatermark>
     </div>
 </template>
 
 <script setup name='draft'>
 import { Divider, message, Modal } from 'ant-design-vue';
 import { DownOutlined, SettingOutlined, SyncOutlined, QuestionCircleOutlined } from "@ant-design/icons-vue";
-import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { accountCache } from "../config/api/product";
 import { ozonDraftList } from "../config/api/draft";
+import { shopCurrency } from "../config/api/product";
 import tableHeard from "../config/tabColumns/draft"
+import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import draftSidebar from './comm/draftSidebar.vue';
 import ShopSetModal from "@/pages/ozon/product/comm/shopSetModal.vue";
-import { shopCurrency } from "../config/api/product"
+import typeTree from '@/components/classificationTree/typeTree.vue';
 import EditPrompt from './comm/editPrompt.vue';
 import BatchEdit from './batchComponent/batchEdit.vue';
-import remarkModal from './batchComponent/remarkModal.vue';
+import RemarkModal from './batchComponent/remarkModal.vue';
+import BatchWatermark from './batchComponent/batchWatermark.vue';
+import OzonProduct from '@/pages/ozon/product/index.vue';
 
 let columns = tableHeard;
+const showDraftTable = ref(true);
+
 const baseApi = import.meta.env.VITE_APP_BASE_API;
 const { copy } = useClipboard();
 const editPromptEl = useTemplateRef('editPromptRef');
 const batchEditEl = useTemplateRef('batchEditRef'); // 批量编辑-弹窗
 const remarkModalEl = useTemplateRef('remarkModalRef'); // 批量备注-弹窗
+const batchWatermarkEl = useTemplateRef('batchWatermarkRef'); // 批量加水印-弹窗
+
+const typeTreeEl = useTemplateRef('typeTreeRef');
+const currentClass = ref(0);
+const nodePath = ref('');
+const typeManageOpen = ref(false);
 
 const shopSetVisible = ref(false);
 const shopCurryList = ref([]);
-const selectedKeys = ref([]);
-const treeValue = ref(''); // 待发布产品搜索
-const treeData = ref([
-    {
-        title: '所有分类',
-        key: '0-0',
-        children: [
-            {
-                title: 'parent 1-0',
-                key: '0-0-0',
-                children: [
-                    {
-                        title: 'leaf',
-                        key: '0-0-0-0',
-                    },
-                    {
-                        title: 'leaf',
-                        key: '0-0-0-1',
-                    },
-                ],
-            },
-            {
-                title: 'parent 1-1',
-                key: '0-0-1',
-                children: [
-                    {
-                        key: '0-0-1-0',
-                        title: 'sss',
-                    },
-                ],
-            },
-        ],
-    },
-]);
-const copyTreeData = ref([{
-    title: '所有分类',
-    key: '0-0',
-    children: [
-        {
-            title: 'parent 1-0',
-            key: '0-0-0',
-            children: [
-                {
-                    title: 'leaf',
-                    key: '0-0-0-0',
-                },
-                {
-                    title: 'leaf',
-                    key: '0-0-0-1',
-                },
-            ],
-        },
-        {
-            title: 'parent 1-1',
-            key: '0-0-1',
-            children: [
-                {
-                    key: '0-0-1-0',
-                    title: 'sss',
-                },
-            ],
-        },
-    ],
-}]);
-
-
-function filterTreeWithParents(nodes, predicate) {
-    return nodes
-        .map(node => ({ ...node }))
-        .filter(node => {
-            if (node.children) {
-                node.children = filterTreeWithParents(node.children, predicate);
-            }
-            return predicate(node) || (node.children && node.children.length > 0);
-        });
-};
-// 待发布产品搜索
-const onSearch = () => {
-    if (treeValue.value) {
-        const result = filterTreeWithParents(treeData.value, node =>
-            node.title && node.title.includes(treeValue.value)
-        );
-        treeData.value = result;
-    } else {
-        treeData.value = copyTreeData.value;
-    }
-};
-watch(treeValue, () => {
-    onSearch();
-});
 
 const formData = reactive({
     offerId: "",
@@ -429,7 +358,8 @@ const active = ref({
     type: "top",
     prop: 1,
     isDefault: true,
-}); // 默认按创建时间查询
+});
+// 默认按创建时间查询
 const strList = ref([
     {
         label: "按创建时间",
@@ -470,9 +400,26 @@ const accountName = (account) => {
     return shopAccount.value.find(item => item.account === account)?.simpleName
 };
 
+
 const primaryImage = (primaryImage) => {
     return baseApi + primaryImage
 };
+
+const platformName = (platform) => {
+    const platNames = {
+        Ozon: 'Ozon',
+        Tmall: '天猫',
+        AliExpress: '速卖通',
+    };
+    return platNames[platform] ?? platform
+};
+
+const visitUrl = (sourceUrlList) => {
+    if (sourceUrlList && sourceUrlList.length > 0) {
+        window.open(sourceUrlList[0])
+    }
+};
+
 // 复制
 const copyText = (text) => {
     copy(text);
@@ -548,6 +495,7 @@ const getAccount = () => {
     });
 };
 
+
 const displayedSkus = (row) => {
     return row.show ? row?.skuList : row?.skuList?.slice(0, 3);
 };
@@ -572,6 +520,12 @@ const getList = () => {
             loading.value = false;
         });
 };
+
+const updateClass = (value) => {
+    showDraftTable.value = false;
+}
+
+
 
 //  移入待发布
 const moveToPending = (row = {}) => {
@@ -624,6 +578,10 @@ const createProduct = () => {
     window.open("/platform/ozon/productPublish", '_blank');
 };
 
+const updateCurrentClass = (value) => {
+    console.log(value);
+};
+
 //  批量操作
 const handleMenuClick = (e) => {
     console.log(e, selectedRowList.value);
@@ -658,6 +616,7 @@ const handleMenuClick = (e) => {
             console.log('批量发布');
             break;
         case 3:
+            batchWatermarkEl.value.open(selectedRowList.value);
             console.log('批量加水印');
             break;
         case 4:
@@ -736,6 +695,11 @@ const show = ref(false);
     bottom: 0px;
     display: flex;
     justify-content: end;
+}
+
+.platform-name {
+    padding-top: 5px;
+    color: #428bca;
 }
 
 .account {

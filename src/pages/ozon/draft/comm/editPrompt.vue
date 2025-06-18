@@ -31,15 +31,20 @@
 
             </template>
         </a-modal>
-
-        <!-- 编辑分类 -->
-        <EditCategoryModal ref="editCategoryModalRef" />
+        <EditCategoryModal ref="editCategoryModalRef" :shopAccount="shopAccount" />
     </div>
 
 </template>
 
 <script setup>
 import EditCategoryModal from './editCategoryModal.vue';
+
+const { shopAccount } = defineProps({
+    shopAccount: {
+        type: String,
+        default: ''
+    }
+})
 
 const baseApi = import.meta.env.VITE_APP_BASE_API;
 const editCategoryModalEl = useTemplateRef('editCategoryModalRef');

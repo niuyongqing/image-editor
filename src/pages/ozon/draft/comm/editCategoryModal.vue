@@ -22,15 +22,20 @@
             <a-table :columns="columns" :data-source="tableData" bordered :pagination="false">
                 <template #bodyCell="{ column, record }">
                     <template v-if="column.dataIndex === 'primaryImage'">
-                        <div class="flex items-center">
-                            <div class="w-70px h-70px">
-                                <img :src="primaryImage(record.primaryImage)" class="imgCss">
+
+                        <div class="flex">
+                            <div w-80px>
+                                <a-image :src="primaryImage(record.primaryImage)" class="imgCss" />
                             </div>
-                            <div class="ml-5">
+                            <div class="flex-1 ml-5px">
                                 <div class="font-bold">{{ record.name }}</div>
-                                <!-- <div class="text-gray-500">来源: {{ record.source }}</div> -->
+                                <div class="text-gray-500"> 「{{ accountName(record.account) }}」 </div>
+                                <div class="text-gray-500">来源: {{ platformName(record.gatherPlatformName) }}
+                                </div>
                             </div>
+
                         </div>
+                        <!-- -->
                     </template>
                     <template v-if="column.dataIndex === 'category'">
                         >>
@@ -44,7 +49,7 @@
                         <a-button type="link" @click="changeCategory">更换分类</a-button>
                         <p class="tooltip-text" v-if="hisAttrObj && JSON.stringify(hisAttrObj) != '{}'">{{
                             hisAttrObj.categoryName
-                            }} > {{ hisAttrObj.secondCategoryName }} > {{
+                        }} > {{ hisAttrObj.secondCategoryName }} > {{
                                 hisAttrObj.threeCategoryName }} </p>
                         <!-- 表格 -->
                         <a-table :columns="innerColumns" :data-source="innerTableData" bordered :pagination="false"
@@ -79,6 +84,13 @@ import {
     addHistoryCategory,
     categoryAttributes,
 } from "@/pages/ozon/config/api/product.js";
+
+const { shopAccount } = defineProps({
+    shopAccount: {
+        type: String,
+        default: ''
+    }
+});
 
 const baseApi = import.meta.env.VITE_APP_BASE_API;
 const columns = [
@@ -128,6 +140,8 @@ const tableData = ref([
         primaryImage: '',
         category: '',
         ozonCategory: '',
+        gatherPlatformName: '',
+        account: ''
     }
 ]);
 const innerTableData = ref([
@@ -262,17 +276,22 @@ const handleSelect = (data) => {
         getHistoryList(form.shortCode, data.value);
     });
     emits("getAttributes", form.shortCode, form.categoryId);
-}
+};
+
+const accountName = (account) => {
+    return shopAccount.find(item => item.account === account)?.simpleName
+};
 
 
 const open = (data) => {
-    console.log('open -》》》》》》》', data);
     acceptParams.value = data;
     dialogVisible.value = true;
     tableData.value = [{
         primaryImage: data.primaryImage,
         name: data.name,
         category: data.categoryId,
+        gatherPlatformName: data.gatherPlatformName,
+        account: data.account,
     }];
 
     form.shortCode = data.account;
@@ -285,14 +304,20 @@ const cancel = () => {
     dialogVisible.value = false;
     innerTableData.value = [];
 };
+const platformName = (platform) => {
+    const platNames = {
+        Ozon: 'Ozon',
+        Tmall: '天猫',
+        AliExpress: '速卖通',
+    };
+    return platNames[platform] ?? platform
+};
 
 // 编辑分类
 const editCategory = () => {
     emits('edit');
     cancel();
-
     window.open(`/platform/ozon/editDraftProduct?account=${acceptParams.value.account}&id=${acceptParams.value.gatherProductId}`, '_blank')
-
 };
 
 //  跳过
@@ -311,8 +336,8 @@ defineExpose({
 }
 
 .imgCss {
-    width: 68px;
-    height: 68px;
+    width: 80px;
+    height: 80px;
 }
 
 .info {
