@@ -8,25 +8,27 @@
     @search="treeSearch(treeData.keyword)"
   />
   <div class="box-tree">
-    <a-tree
-      v-if="treeData.showTree.length > 0"
-      key="classificationTree_typeTree"
-      defaultExpandAll
-      :tree-data="treeData.showTree"
-      :selectedKeys="treeData.selectedKeys"
-      :fieldNames="{
-        children:'childList', 
-        title:'name', 
-        key:'id'
-      }"
-      :show-line="true"
-      :show-icon="false"
-      @select="selectNode"
-    >
-      <template #title="{ name }">
-        <div class="node-name">{{ name }}</div>
-      </template>
-    </a-tree>
+    <a-spin :spinning="treeData.loading">
+      <a-tree
+        v-if="treeData.showTree.length > 0"
+        key="classificationTree_typeTree"
+        defaultExpandAll
+        :tree-data="treeData.showTree"
+        :selectedKeys="treeData.selectedKeys"
+        :fieldNames="{
+          children:'childList', 
+          title:'name', 
+          key:'id'
+        }"
+        :show-line="true"
+        :show-icon="false"
+        @select="selectNode"
+      >
+        <template #title="{ name }">
+          <div class="node-name">{{ name }}</div>
+        </template>
+      </a-tree>
+    </a-spin>
   </div>
 </div>
 </template>
@@ -62,7 +64,9 @@ const treeData = reactive({
   currentClass: '',
   showTree: [],
   nodeList: [],
-  keyword: '',        
+  keyword: '',       
+
+  loading: false
 })
 
 onMounted(() => {
@@ -76,12 +80,6 @@ watch(() => treeData.keyword, value => {
  * @param val 入参为 ‘all’ 更新后重置勾选状态为全部分类， 不入参或其他参数更新后保持选中状态， props.defaultCLass属性为true的时候生效
  */
 async function updateTree(val) {
-  treeData.currentClass = ''
-  treeData.tree = []
-  treeData.selectedKeys = []
-  treeData.showTree = []
-  treeData.nodeList = []
-  treeData.keyword = ''
   if (val === 'all') {
     await getClassListFn()
   } else {
@@ -90,6 +88,7 @@ async function updateTree(val) {
 }
 // 获取树数据
 async function getClassListFn(id = '0') {
+  treeData.loading = true;
   try {
     let params = {
       "platform": props.platform,//平台
@@ -106,21 +105,23 @@ async function getClassListFn(id = '0') {
     ]
     data = setNodeKey(data)
     treeData.tree = data
-    treeData.showTree = cloneDeep(data)
+    treeSearch(treeData.keyword)
     treeData.nodeList = getNodeList(data)
     if (props.defaultClass) {
-      // 如果是删除后更新树数据，那么默认选择全部分类
+      // 如果是删除当前节点后更新树数据，那么默认选择全部分类
       let node = treeData.nodeList.find(i => i.id === id) || treeData.tree[0];
       nextTick(() => {
         selectNode([node.id], { expanded: undefined, node })
       })
     } else {
+      treeData.currentClass = ''
       emit('update:currentClass', '')
       emit('update:nodePath', '')
     }
   } catch (error) {
     console.error(error)
   }
+  treeData.loading = false;
 }
 // 树节点属性处理
 function setNodeKey(list, pNode = null) {
