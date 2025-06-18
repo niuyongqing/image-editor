@@ -57,12 +57,12 @@
                     :loading="uploading"
                     @click="handleUpload"
                   >上传</a-button>
-                  <a-button @click="handleOk">返回</a-button>
+                  <a-button @click="modalCloseFn">返回</a-button>
                 </a-space>
               </div>
               <a-table 
                 :columns="columns" 
-                :data-source="updateInfo.fileList"
+                :data-source="updateInfo.tableData"
                 :pagination="false"
                 :scroll="{ y: 580 }"
               >
@@ -94,11 +94,11 @@
                 <a-space>
                   <a-button 
                     type="primary"
-                    :disabled="updateInfo.urlUploadList.length === 0"
+                    :disabled="(updateInfo.urlUploadList.filter(i => i.url)).length < 1"
                     :loading="uploading"
-                    @click="handleUpload"
+                    @click="urlUploadFn"
                   >上传</a-button>
-                  <a-button @click="handleOk">返回</a-button>
+                  <a-button @click="modalCloseFn">返回</a-button>
                 </a-space>
               </div>
               <div class="url-upload-content">
@@ -135,7 +135,7 @@
       ></typeManage>
     </div>
     <template #footer>
-      <a-button key="submit" type="primary" @click="handleOk">关闭</a-button>
+      <a-button key="submit" type="primary" @click="modalCloseFn">关闭</a-button>
     </template>
   </a-modal>
 </div>
@@ -148,9 +148,12 @@ import typeTree from '@/components/classificationTree/typeTree.vue';
 import typeManage from '@/components/classificationTree/typeManage.vue';
 import kong from './img/kong.png'
 import { uploadListHeader } from './js/header';
+import { imageUpload, urlUpload } from './js/api';
+import { size } from 'lodash';
+import { message } from 'ant-design-vue';
 defineOptions({ name: "uploadImg" })
 const { proxy: _this } = getCurrentInstance();
-const emit = defineEmits(['update:modalOpen']);
+const emit = defineEmits(['update:modalOpen', 'uploadDone']);
 const props = defineProps({
   modalOpen: Boolean,
   platform: {
@@ -162,10 +165,11 @@ const modalOpen = ref(false);
 const uploading = ref(false);
 const columns = uploadListHeader
 const updateInfo = reactive({
-  currentClass: '0',
+  currentClass: '',
   nodePath: '',
   activeKey: 1,
   fileList: [],
+  tableData: [],
   urlUploadList: [],
 
   typeManageOpen: false,
@@ -178,7 +182,11 @@ watch(() => props.modalOpen, val => {
 });
 // 关闭弹窗
 watch(() => modalOpen.value, val => {
-  !val && emit('update:modalOpen', false);
+  if (!val) {
+    clearData();
+    emit('update:modalOpen', false);
+    emit('uploadDone')
+  }
 });
 // 弹窗打开的回调
 function modalOpenFn() {
@@ -190,32 +198,100 @@ function modalOpenFn() {
     }
     updateInfo.urlUploadList.push(obj)
   }
+  nextTick(() => {
+    _this.$refs.typeTreeRef.updateTree('all')
+  })
 }
 // 更新类别树数据
 function updateTree() {
   // console.log(_this.$refs.typeTreeRef);
-  _this.$refs.typeTreeRef.updateTree()
+  nextTick(() => {
+    _this.$refs.typeTreeRef.updateTree()
+  })
 }
 // 关闭弹窗
-function handleOk() {
+function modalCloseFn() {
   modalOpen.value = false
+}
+// 清空数据
+function clearData() {
+  updateInfo.currentClass = ''
+  updateInfo.nodePath = ''
+  updateInfo.activeKey = 1
+  updateInfo.fileList = []
+  updateInfo.tableData = []
+  updateInfo.urlUploadList = []
 }
 function beforeUpload(file) {
   updateInfo.fileList = [...(updateInfo.fileList || []), file];
   updateInfo.fileList.forEach(item => {
     // state: 1未上传  2上传中  3上传完成  4上传失败
-    item.state = 1
+    item.state = item.state ? item.state : 1;
+  });
+  updateInfo.tableData = updateInfo.fileList.map(item => {
+    let obj = {
+      name: item.name,
+      size: item.size,
+      type: item.type,
+      uid: item.uid,
+      state: item.state ? item.state : 1,
+      file: item,
+    };
+    return obj;
   })
-  console.log(updateInfo.fileList);
   return false;
 }
-// 上传
-async function handleUpload(params) {
-  
+// 本地上传
+async function handleUpload() {
+  uploading.value = true;
+  let list = updateInfo.tableData.filter(i => i.state === 1);
+  // console.log(list);
+  // return;
+  for (let index = 0; index < list.length; index++) {
+    const item = list[index];
+    let formData = new FormData();
+    formData.append('platform', props.platform);
+    formData.append('classId', updateInfo.currentClass);
+    formData.append('file', item.file);
+    try {
+      item.state = 2
+      item.file.state = 2
+      await imageUpload(formData)
+      item.state = 3
+      item.file.state = 3
+    } catch (error) {
+      item.state = 4
+      item.file.state = 4
+      console.error(error)
+    }
+  }
+  uploading.value = false;
+}
+// 网络上传
+async function urlUploadFn() {
+  for (let index = 0; index < updateInfo.urlUploadList.length; index++) {
+    const item = updateInfo.urlUploadList[index];
+    if (item.url) {
+      let params = {
+        "classId": updateInfo.currentClass,
+        "platform": props.platform,
+        "url": item.url
+      }
+      try {
+        await urlUpload(params)
+        message.success(`URL ${item.id} 上传成功！`)
+        item.url = ''
+      } catch (error) {
+        console.error(error)
+        message.error(`URL ${item.id} 上传失败！`)
+      }
+    }
+  }
 }
 // 删除表中的图片
 function delImg(row) {
   updateInfo.fileList = updateInfo.fileList.filter(i => i.uid !== row.uid)
+  updateInfo.tableData = updateInfo.tableData.filter(i => i.uid !== row.uid)
 }
 </script>
 <style lang="less" scoped>
