@@ -29,8 +29,6 @@
           <div class="item-i-text">三、安装完成，进行数据采集，采集时注意需要登录当前需要采集的平台，否则会采集失败！</div>
           <a-image width="900" :src="Snipaste_2025_06_17_15_33_58" alt="" />
           <a-image width="900" :src="Snipaste_2025_06_17_15_40_37" alt="" />
-          <a-image width="900" :src="Snipaste_2025_06_17_15_41_25" alt="" />
-          <a-image width="900" :src="Snipaste_2025_06_17_15_42_09" alt="" />
         </div>
       </div>
       <div class="process-item">

@@ -24,7 +24,7 @@
         <a-icon type="safety-certificate" />
       </template> -->
       <template #description>
-        <div class="custom-content">
+        <div>
           <p>点击下载插件并安装</p>
           <a-button @click="getTutorial">查看安装教程</a-button>
         </div>
@@ -35,7 +35,7 @@
         <a-icon type="safety-certificate" />
       </template> -->
       <template #description>
-        <div class="custom-content">
+        <div>
           <p>在已安装插件的浏览器中打开要采集的货源平台，选择要采集的产品使用插件采集</p>
         </div>
       </template>
@@ -44,6 +44,16 @@
       <template #description>
         <div class="custom-content">
           <p>采集的产品自动放入采集箱，根据需求自行领取到指定平台</p>
+          <img 
+            class="custom-content-img" 
+            src="../common/plugInTutorial/img/Snipaste_2025-06-17_15-41-25.png" 
+            alt=""
+          >
+          <img 
+            class="custom-content-img" 
+            src="../common/plugInTutorial/img/Snipaste_2025-06-17_15-42-09.png" 
+            alt=""
+          >
         </div>
       </template>
     </a-step>
@@ -77,7 +87,36 @@ import plugInTutorial from '@/pages/sample/dataAcquisition/common/plugInTutorial
 import download from '~@/api/common/download';
 defineOptions({ name: "plugInAcquisition" })
 const { proxy: _this } = getCurrentInstance()
-const platformList = dataGathe
+const platformList = [
+  {
+    account: "shopee",
+    simpleName: "Shopee"
+  },
+  {
+    account: "al",
+    simpleName: "阿里巴巴国际站"
+  },
+  {
+    account: "amazon",
+    simpleName: "Amazon"
+  },
+  {
+    account: "tb",
+    simpleName: "淘宝"
+  },
+  {
+    account: "tm",
+    simpleName: "天猫"
+  },
+  {
+    account: "smt",
+    simpleName: "速卖通"
+  },
+  {
+    account: "lazada",
+    simpleName: "Lazada"
+  },
+]
 const pluginData = reactive({
   modalOpen: false,
   imageList: [],
@@ -146,6 +185,15 @@ const description = 'This is a description.';
       .ant-steps-item-description {
         background: #fff !important;
         color: rgba(0, 0, 0, 0.25) !important;
+      }
+    }
+    .custom-content {
+      display: flex;
+      flex-direction: column;
+      .custom-content-img {
+        width: 500px;
+        margin: 10px 0;
+        border: 1px black solid;
       }
     }
   }

@@ -119,7 +119,6 @@
   </a-modal>
 </div>
 </template>
-
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { DeleteOutlined } from '@ant-design/icons-vue';
@@ -152,7 +151,7 @@ const imgData = reactive({
 })
 const tableParams = reactive({
   classId: '',
-  keyword: '',
+  name: '',
 
   pageNum: 1, // 分页参数
   pageSize: 20 // 每页数量
@@ -192,7 +191,7 @@ function clearData() {
   imgData.selectedImgList = []
   imgData.params.keyword = ''
   imgData.params.currentClass = ''
-  tableParams.keyword = ''
+  tableParams.name = ''
   tableParams.classId = ''
   tableParams.pageNum = 1
   tableParams.pageSize = 20
@@ -209,7 +208,7 @@ function confirm() {
 }
 // 图片搜索
 async function imgSearch(val) { 
-  tableParams.keyword = imgData.params.keyword
+  tableParams.name = imgData.params.keyword
   tableParams.classId = imgData.params.currentClass
   pageChange(1)
 }
