@@ -8,25 +8,27 @@
     @search="treeSearch(treeData.keyword)"
   />
   <div class="box-tree">
-    <a-tree
-      v-if="treeData.showTree.length > 0"
-      key="classificationTree_typeTree"
-      defaultExpandAll
-      :tree-data="treeData.showTree"
-      :selectedKeys="treeData.selectedKeys"
-      :fieldNames="{
-        children:'childList', 
-        title:'name', 
-        key:'id'
-      }"
-      :show-line="true"
-      :show-icon="false"
-      @select="selectNode"
-    >
-      <template #title="{ name }">
-        <div class="node-name">{{ name }}</div>
-      </template>
-    </a-tree>
+    <a-spin :spinning="treeData.loading">
+      <a-tree
+        v-if="treeData.showTree.length > 0"
+        key="classificationTree_typeTree"
+        defaultExpandAll
+        :tree-data="treeData.showTree"
+        :selectedKeys="treeData.selectedKeys"
+        :fieldNames="{
+          children:'childList', 
+          title:'name', 
+          key:'id'
+        }"
+        :show-line="true"
+        :show-icon="false"
+        @select="selectNode"
+      >
+        <template #title="{ name }">
+          <div class="node-name">{{ name }}</div>
+        </template>
+      </a-tree>
+    </a-spin>
   </div>
 </div>
 </template>
@@ -39,7 +41,7 @@ defineOptions({ name: "typeTree" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:currentClass', 'update:nodePath'])
 const props = defineProps({
-  currentClass: {
+  currentClass: {       // 类型
     type: String,
     default: '0'
   },
@@ -50,36 +52,43 @@ const props = defineProps({
   nodePath: {     // 节点路径  全部分类 > 下一级 > 下一级
     type: String,
     default: '全部分类',
-  }
+  },
+  defaultClass: Boolean,      // 更新数据后默认选中节点
 })
 defineExpose({
-  updateTree
+  updateTree,         // 更新数据方法
 })
 const treeData = reactive({
   tree: [],
-  selectedKeys: ['0'],
+  selectedKeys: [],
   currentClass: '',
   showTree: [],
   nodeList: [],
-  keyword: '',        
+  keyword: '',       
+
+  loading: false
 })
 
 onMounted(() => {
   getClassListFn()
-  // treeData.showTree = cloneDeep(treeData.tree)
 })
 watch(() => treeData.keyword, value => {
   treeSearch(value) 
 });
-watch(() => treeData.currentClass, value => {
-  emit('update:currentClass', value)
-});
-// 更新数据
-function updateTree() {
-  getClassListFn(treeData.currentClass)
+/**
+ * // 更新数据
+ * @param val 入参为 ‘all’ 更新后重置勾选状态为全部分类， 不入参或其他参数更新后保持选中状态， props.defaultCLass属性为true的时候生效
+ */
+async function updateTree(val) {
+  if (val === 'all') {
+    await getClassListFn()
+  } else {
+    await getClassListFn(treeData.currentClass)
+  }
 }
 // 获取树数据
 async function getClassListFn(id = '0') {
+  treeData.loading = true;
   try {
     let params = {
       "platform": props.platform,//平台
@@ -96,15 +105,23 @@ async function getClassListFn(id = '0') {
     ]
     data = setNodeKey(data)
     treeData.tree = data
-    treeData.showTree = cloneDeep(data)
+    treeSearch(treeData.keyword)
     treeData.nodeList = getNodeList(data)
-    let node = treeData.nodeList.find(i => i.id === id)
-    nextTick(() => {
-      selectNode([id], { expanded: undefined, node })
-    })
+    if (props.defaultClass) {
+      // 如果是删除当前节点后更新树数据，那么默认选择全部分类
+      let node = treeData.nodeList.find(i => i.id === id) || treeData.tree[0];
+      nextTick(() => {
+        selectNode([node.id], { expanded: undefined, node })
+      })
+    } else {
+      treeData.currentClass = ''
+      emit('update:currentClass', '')
+      emit('update:nodePath', '')
+    }
   } catch (error) {
     console.error(error)
   }
+  treeData.loading = false;
 }
 // 树节点属性处理
 function setNodeKey(list, pNode = null) {
@@ -158,6 +175,7 @@ function selectNode(expandedKeys, { expanded: bool, node }) {
   treeData.currentClass = node.id
   let path = getNodePath(node)
   // console.log({path});
+  emit('update:currentClass', node.id)
   emit('update:nodePath', path)
 }
 // 生成节点路径

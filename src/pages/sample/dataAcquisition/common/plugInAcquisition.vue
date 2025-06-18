@@ -26,7 +26,7 @@
       <template #description>
         <div class="custom-content">
           <p>点击下载插件并安装</p>
-          <a-button @click="getTutorial">获取安装教程</a-button>
+          <a-button @click="getTutorial">查看安装教程</a-button>
         </div>
       </template>
     </a-step>
@@ -59,7 +59,13 @@
       </div>
     </div>
   </div>
-  <pictureLibrary></pictureLibrary>
+  <!-- <a-button type="primary" @click="pluginData.modalOpen = !pluginData.modalOpen">图片空间</a-button> -->
+  <pictureLibrary
+    platform="ozon"
+    v-model:modal-open="pluginData.modalOpen"
+    @imageListConfirm="imageListConfirm"
+  ></pictureLibrary>
+  <plugInTutorial v-model:modal-open="plugInTutorialOpen"></plugInTutorial>
 </div>
 </template>
 
@@ -67,16 +73,29 @@
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { dataGathe } from "../../../ozon/config/commDic/defDic"
 import pictureLibrary from '@/components/pictureLibrary/index.vue'
+import plugInTutorial from '@/pages/sample/dataAcquisition/common/plugInTutorial/index.vue'
+import download from '~@/api/common/download';
 defineOptions({ name: "plugInAcquisition" })
 const { proxy: _this } = getCurrentInstance()
 const platformList = dataGathe
+const pluginData = reactive({
+  modalOpen: false,
+  imageList: [],
+})
+const plugInTutorialOpen = ref(false)
 function loadDescribe(key) {
   console.log('下载对应插件' + key);
-  
+  download.name('chrome-plugin.rar')
 }
 // todo 下载教程视频
 function getTutorial() {
-  console.log('下载教程视频');
+  // console.log('下载教程视频');
+  plugInTutorialOpen.value = !plugInTutorialOpen.value
+}
+// 图片空间选择
+function imageListConfirm(val) {
+  console.log('list', val);
+  
 }
 
 const description = 'This is a description.';
