@@ -243,6 +243,7 @@ function beforeUpload(file) {
 }
 // 本地上传
 async function handleUpload() {
+  if (!updateInfo.currentClass) return message.error('请选择分类！');
   uploading.value = true;
   let list = updateInfo.tableData.filter(i => i.state === 1);
   // console.log(list);
@@ -269,6 +270,7 @@ async function handleUpload() {
 }
 // 网络上传
 async function urlUploadFn() {
+  if (!updateInfo.currentClass) return message.error('请选择分类！');
   for (let index = 0; index < updateInfo.urlUploadList.length; index++) {
     const item = updateInfo.urlUploadList[index];
     if (item.url) {

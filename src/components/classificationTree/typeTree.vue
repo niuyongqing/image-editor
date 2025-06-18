@@ -50,14 +50,15 @@ const props = defineProps({
   nodePath: {     // 节点路径  全部分类 > 下一级 > 下一级
     type: String,
     default: '全部分类',
-  }
+  },
+  defaultClass: Boolean,      // 更新数据后默认选中节点
 })
 defineExpose({
   updateTree,         // 更新数据方法
 })
 const treeData = reactive({
   tree: [],
-  selectedKeys: ['0'],
+  selectedKeys: [],
   currentClass: '',
   showTree: [],
   nodeList: [],
@@ -72,9 +73,15 @@ watch(() => treeData.keyword, value => {
 });
 /**
  * // 更新数据
- * @param val 入参为 ‘all’ 更新后重置勾选状态， 不入参或其他参数更新后保持选中状态
+ * @param val 入参为 ‘all’ 更新后重置勾选状态为全部分类， 不入参或其他参数更新后保持选中状态， props.defaultCLass属性为true的时候生效
  */
 async function updateTree(val) {
+  treeData.currentClass = ''
+  treeData.tree = []
+  treeData.selectedKeys = []
+  treeData.showTree = []
+  treeData.nodeList = []
+  treeData.keyword = ''
   if (val === 'all') {
     await getClassListFn()
   } else {
@@ -101,10 +108,16 @@ async function getClassListFn(id = '0') {
     treeData.tree = data
     treeData.showTree = cloneDeep(data)
     treeData.nodeList = getNodeList(data)
-    let node = treeData.nodeList.find(i => i.id === id)
-    nextTick(() => {
-      selectNode([id], { expanded: undefined, node })
-    })
+    if (props.defaultClass) {
+      // 如果是删除后更新树数据，那么默认选择全部分类
+      let node = treeData.nodeList.find(i => i.id === id) || treeData.tree[0];
+      nextTick(() => {
+        selectNode([node.id], { expanded: undefined, node })
+      })
+    } else {
+      emit('update:currentClass', '')
+      emit('update:nodePath', '')
+    }
   } catch (error) {
     console.error(error)
   }
