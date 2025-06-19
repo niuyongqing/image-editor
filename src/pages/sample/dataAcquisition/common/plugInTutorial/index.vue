@@ -82,8 +82,6 @@ import Snipaste_2025_06_17_15_20_27 from '@/pages/sample/dataAcquisition/common/
 import Snipaste_2025_06_17_15_23_47 from '@/pages/sample/dataAcquisition/common/plugInTutorial/img/Snipaste_2025-06-17_15-23-47.png'
 import Snipaste_2025_06_17_15_33_58 from '@/pages/sample/dataAcquisition/common/plugInTutorial/img/Snipaste_2025-06-17_15-33-58.png'
 import Snipaste_2025_06_17_15_40_37 from '@/pages/sample/dataAcquisition/common/plugInTutorial/img/Snipaste_2025-06-17_15-40-37.png'
-import Snipaste_2025_06_17_15_41_25 from '@/pages/sample/dataAcquisition/common/plugInTutorial/img/Snipaste_2025-06-17_15-41-25.png'
-import Snipaste_2025_06_17_15_42_09 from '@/pages/sample/dataAcquisition/common/plugInTutorial/img/Snipaste_2025-06-17_15-42-09.png'
 // 360浏览器
 import Snipaste_2025_06_17_16_33_04 from '@/pages/sample/dataAcquisition/common/plugInTutorial/img/Snipaste_2025-06-17_16-33-04.png'
 import Snipaste_2025_06_17_16_52_23 from '@/pages/sample/dataAcquisition/common/plugInTutorial/img/Snipaste_2025-06-17_16-52-23.png'

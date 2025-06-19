@@ -52,7 +52,7 @@ const tabsData = reactive({
   list: [
     {
       key: 'urlAcquisition',
-      tab: '链接采集'
+      tab: '采集数据'
     },
     {
       key: 'plugInAcquisition',

@@ -2,7 +2,7 @@
 <div id="urlAcquisition" class="urlAcquisition">
   
   <a-card title="采集地址--单品采集" class="text-left my-2.5">
-    <a-textarea v-model:value="dataUrl.url" placeholder="请填写产品的网址,多个网址用Enter换行" :auto-size="{ minRows: 7 }" />
+    <!-- <a-textarea v-model:value="dataUrl.url" placeholder="请填写产品的网址,多个网址用Enter换行" :auto-size="{ minRows: 7 }" />
     <div class="flex mt-2.5 justify-between">
       <div>
         <span style="color: #999;">您还未安装采集插件，建议使用</span>
@@ -13,7 +13,7 @@
         <a-button type="primary" @click="acquisition">开始采集</a-button>
         <a-button class="ml-2.5" @click="clearArea">清空</a-button>
       </div>
-    </div>
+    </div> -->
     <div class="mt-2.5">
       <a-form ref="ruleForm" :model="formData" :labelCol="{ span: 1 }">
         <a-form-item label="数据来源：">
@@ -180,7 +180,37 @@ const isShowSearch = ref(false)
 const showTeps = ref(false)
 const tableData = ref([])
 const selectedRowKeys = ref([])
-const shopAccount = dataGathe
+const shopAccount = [
+{
+    account: "shopee",
+    simpleName: "Shopee"
+  },
+  {
+    account: "al",
+    simpleName: "阿里巴巴国际站"
+  },
+  {
+    account: "amazon",
+    simpleName: "Amazon"
+  },
+  {
+    account: "tb",
+    simpleName: "淘宝"
+  },
+  {
+    account: "tm",
+    simpleName: "天猫"
+  },
+  {
+    account: "smt",
+    simpleName: "速卖通"
+  },
+  {
+    account: "lazada",
+    simpleName: "Lazada"
+  },
+]
+// const shopAccount = dataGathe
 const columns = [
   {
     title: '图片',
@@ -230,10 +260,10 @@ const searchType = [
     label: "标题",
     prop: 1,
   },
-  {
-    label: "来源URL",
-    prop: 2,
-  }
+  // {
+  //   label: "来源URL",
+  //   prop: 2,
+  // }
 ]
 const resperson = [
   {
