@@ -18,44 +18,71 @@
       <a-form ref="ruleForm" :model="formData" :labelCol="{ span: 1 }">
         <a-form-item label="数据来源：">
           <div class="flex justify-between">
-            <selectComm class="ml-2.5" :options="shopAccount" :fieldObj="shopObj" @backSelectAll="selectAll"
-              @backSelectItem="selectItem"></selectComm>
+            <selectComm 
+              class="ml-2.5" 
+              :options="formBtnInfo.shopAccount" 
+              :fieldObj="shopObj" 
+              @backSelectAll="selectAll"
+              @backSelectItem="selectItem"
+            ></selectComm>
             <a-button @click="isShowSearch = !isShowSearch">{{ isShowSearch ? '收起' : '展开' }}</a-button>
           </div>
         </a-form-item>
         <a-form-item label="搜索类型:" v-show="isShowSearch">
           <div class="fBox flex align-start ml-2.5">
-            <a-button @click="selectTypes(item.prop)" class="mr-2.5" :type="item.prop === actives ? 'primary' : ''"
-              v-for="(item, index) in searchType" :key="index">{{
-                item.label }}</a-button>
+            <a-button 
+              @click="selectTypes(item.prop)" 
+              class="mr-2.5" 
+              :type="item.prop === actives ? 'primary' : ''"
+              v-for="(item, index) in formBtnInfo.searchType" 
+              :key="index"
+            >{{ item.label }}</a-button>
           </div>
         </a-form-item>
         <a-form-item label="搜索内容：" v-show="isShowSearch">
           <div class="searchs flex">
             <div class="searchInputs flex align-start ml-2.5">
-              <a-input v-if="actives == 1" style="width: 400px;" v-model:value="formData.name" placeholder="请输入标题查询"
-                allowClear @clear="onSubmit"></a-input>
-              <a-input v-if="actives == 2" style="width: 400px;" v-model:value="formData.url" allowClear
-                @clear="onSubmit" placeholder="请输入url"></a-input>
+              <a-input 
+                v-if="actives == 1" 
+                style="width: 400px;" 
+                v-model:value="formData.name" 
+                placeholder="请输入标题查询"
+                allowClear 
+                @clear="onSubmit"
+              ></a-input>
+              <a-input 
+                v-if="actives == 2" 
+                style="width: 400px;" 
+                v-model:value="formData.url" 
+                allowClear
+                @clear="onSubmit" 
+                placeholder="请输入url"
+              ></a-input>
             </div>
             <a-button type="primary" class="ml-2.5" @click="onSubmit(true)">查询</a-button>
           </div>
         </a-form-item>
         <a-form-item label="采集时间：" v-show="isShowSearch">
-          <selectComm class="ml-2.5" :options="acquisitionTimes" :fieldObj="timeObj" @backSelectAll="selectTimeAll"
-            @backSelectItem="selectTimeItem"></selectComm>
+          <selectComm 
+            class="ml-2.5" :options="formBtnInfo.acquisitionTimes" 
+            :fieldObj="timeObj" 
+            @backSelectAll="selectTimeAll"
+            @backSelectItem="selectTimeItem"
+          ></selectComm>
         </a-form-item>
-        <a-form-item label="时间选择：" v-show="formData.time === 5">
-          <a-range-picker class="ml-2.5" v-model:value="formData.searchTime" />
+        <a-form-item label="时间选择：" v-show="formData.time === 'all'">
+          <a-range-picker 
+            class="ml-2.5" 
+            v-model:value="formData.searchTime" 
+            format="YYYY-MM-DD"
+            value-format="YYYY-MM-DD"
+            @change="pickerChange"
+          />
         </a-form-item>
         <a-form-item label="备注：" v-show="isShowSearch">
           <a-select v-model:value="formData.isRemark" class="ml-2.5" style="width: 150px">
             <a-select-option value="1">有备注</a-select-option>
             <a-select-option value="0">无备注</a-select-option>
-          </a-select>
-        </a-form-item>
-        <a-form-item label="责任人员：" v-show="isShowSearch">
-          <a-select v-model:value="formData.isRemark" :options="resperson" class="ml-2.5" style="width: 150px">
           </a-select>
         </a-form-item>
       </a-form>
@@ -66,7 +93,7 @@
       <a-button type="primary">批量认领</a-button>
     </div>
     <a-tabs v-model:activeKey="activeName" style="width: 800px;">
-      <a-tab-pane :key="item.prop" v-for="item in tabList">
+      <a-tab-pane :key="item.prop" v-for="item in formBtnInfo.tabList">
         <template #tab>
           {{ item.label + `(${item.value})` }}
           <a-tooltip :overlayInnerStyle="{ width: '300px' }" color="#fff" placement="right">
@@ -80,227 +107,200 @@
       </a-tab-pane>
     </a-tabs>
 
-    <a-table :data-source="tableData" style="width: 100%;" bordered :columns="columns" :pagination="false"
-      ref="OzonProduct" :row-selection="rowSelection" :rowKey="(row) => row">
+    <a-table 
+      :data-source="tableInfo.data" 
+      style="width: 100%;" 
+      bordered 
+      :columns="columns" 
+      :pagination="false"
+      ref="OzonProduct" 
+      :row-selection="rowSelection" 
+      :rowKey="(row) => row"
+    >
       <template #bodyCell="{ column, record }">
-        <template v-if="column.dataIndex == 'imageURLs'">
-          <a-image :width="100" :src="record.imageURLs.split(';')[0]" />
-        </template>
-        <template v-if="column.dataIndex == 'subjectList'">
-          <span>{{ record.subjectList[0].value }}</span>
-        </template>
-        <template v-if="column.dataIndex == 'detailSourceList'">
-          <span></span>
-        </template>
-        <template v-if="column.dataIndex == 'aeopAeProductSKUs'">
-          <div v-for="(SKU, index) in displayedSkus(record)" :key="index">
-            <span>{{ SKU.aeopSKUPropertyList && SKU.aeopSKUPropertyList[0].propertyValueDefinitionName }}</span>
-            <a-divider type="vertical" />
-            SKU编码： <span style="color: #9e9f9e">{{ SKU.skuCode }}</span>
-            <a-divider type="vertical" />
-            零售价：<span style="color: #9e9f9e">{{ SKU.skuPrice }}</span>
-            <a-divider type="vertical" />
-            库存：<span style="color: #9e9f9e">{{ SKU.ipmSkuStock }}</span>
-            <a-divider class="my-3" />
-          </div>
-          <div v-if="record.aeopAeProductSKUs.length > 3">
-            <a-button type="link" @click="record.SKUExpand = !record.SKUExpand">共{{ record.aeopAeProductSKUs.length
-              }}条SKU，{{ !record.SKUExpand ? '展开' : '收起' }}</a-button>
+        <template v-if="column.dataIndex == 'imageList'">
+          <div style="display: flex; flex-direction: column; align-items: center;">
+            <a-image :width="100" :src="record.imageList[0]" />
+            <a-button @click="openUrl(record.originUrl)" type="link">{{ getSimpleName(record.platform) }}</a-button>
           </div>
         </template>
-        <template v-if="column.dataIndex === 'time'">
-          <div>
-            <div>
-              创建时间: <span class="text-gray">{{ record.gmtCreate || '--' }}</span>
+        <template v-else-if="column.dataIndex == 'simpleDesc'">
+          <a-tooltip 
+            overlayClassName="rowBox-simpleDesc"
+          >
+            <template #title>
+              <div 
+                v-for="(val, key) in record.simpleDescTips"
+                :key="key"
+                class="rowBox-simpleDesc-tip-item"
+              >
+                {{ `${key}： ${val}` }}
+              </div>
+            </template>
+            <div style="width: 200px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+              {{ record.simpleDesc }}
             </div>
-            <div>
-              编辑时间: <span class="text-gray">{{ record.gmtModified || '--' }}</span>
-            </div>
-          </div>
+          </a-tooltip>
+        </template>
+        <template v-else-if="column.dataIndex === 'currentPrice'">
+          <span>{{ `${record.priceInfo.currencySymbol ? record.priceInfo.currencySymbol:''}${record.priceInfo.currentPrice}(${record.priceInfo.currency})` }}</span>
+        </template>
+        <template v-else>
+          <span>{{ record[column.dataIndex] }}</span>
         </template>
       </template>
     </a-table>
-    <a-pagination style="margin-top: 20px;text-align: right;" :show-total="(total) => `共 ${total} 条`"
-      v-model:current="pages.pageNum" v-model:pageSize="pages.pageSize" :total="pages.total" class="pages"
-      :defaultPageSize="50" :showSizeChanger="true" :pageSizeOptions="[50, 100, 200]" />
+    <a-pagination 
+      style="margin-top: 20px;text-align: right;" 
+      :show-total="(total) => `共 ${total} 条`"
+      v-model:current="pages.pageNum" 
+      v-model:pageSize="pages.pageSize" 
+      :total="tableInfo.total" 
+      class="pages"
+      :defaultPageSize="50" 
+      :showSizeChanger="true" 
+      :pageSizeOptions="[50, 100, 200]" 
+      @change="pageChange"
+    />
   </a-card>
-  <a-modal v-model:open="showTeps" :width="'30%'" title="采集插件使用流程" @ok="handleOk">
-
-  </a-modal>
 </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue';
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
-import { dataGathe } from "../../../ozon/config/commDic/defDic"
-import { productListApi } from "~/pages/aliexpress/apis/product"
+// import { dataGathe } from "../../../ozon/config/commDic/defDic"
+import { collectProductList } from '../js/api';
+import { acquisitionHeader } from '../js/header';
+import { timestampToDateTime } from '~@/pages/lazada/fullyProduct/common';
+import dayjs from 'dayjs';
 defineOptions({ name: "urlAcquisition" })
 const { proxy: _this } = getCurrentInstance()
 
+const formBtnInfo = {
+  tabList: [
+    {
+      label: "全部",
+      code: "all",
+      value: "0",
+      prop: 1,
+    },
+    {
+      label: "未认领",
+      code: "insale",
+      value: "0",
+      prop: 2,
+    },
+    {
+      label: "已认领",
+      code: "inreview",
+      value: "0",
+      prop: 3,
+    },
+  ],
+  shopAccount: [
+    {
+      account: "shopee",
+      simpleName: "Shopee"
+    },
+    {
+      account: "alibaba",
+      simpleName: "阿里巴巴国际站"
+    },
+    {
+      account: "amazaon",
+      simpleName: "Amazon"
+    },
+    {
+      account: "taobao",
+      simpleName: "淘宝"
+    },
+    {
+      account: "tmall",
+      simpleName: "天猫"
+    },
+    {
+      account: "aliexpress",
+      simpleName: "速卖通"
+    },
+    {
+      account: "lazada",
+      simpleName: "Lazada"
+    },
+  ],
+  searchType: [
+    {
+      label: "标题",
+      prop: 1,
+    },
+    {
+      label: "来源URL",
+      prop: 2,
+    }
+  ],
+  acquisitionTimes: [
+    {
+      label: "昨天",
+      value: 1,
+    },
+    {
+      label: "今天",
+      value: 0,
+    },
+    {
+      label: "7天以内",
+      value: 7,
+    },
+    {
+      label: "30天以内",
+      value: 30,
+    },
+    {
+      label: "自定义",
+      value: 'all',
+    }
+  ]
+}
+
 const activeName = ref(2)
 const actives = ref(1)
-const tabList = [
-  {
-    label: "全部",
-    code: "all",
-    value: "0",
-    prop: 1,
-  },
-  {
-    label: "未认领",
-    code: "insale",
-    value: "0",
-    prop: 2,
-  },
-  {
-    label: "已认领",
-    code: "inreview",
-    value: "0",
-    prop: 3,
-  },
-]
 const formData = reactive({
+  platform: '',
   url: "",
   name: "",
   isRemark: "",
   time: "",
   searchTime: [],
+  collectTimeStart: null, 
+  collectTimeEnd: null, 
+})
+const formParams = reactive({
+  platform: '',
+  url: "",
+  name: "",
+  isRemark: "",
+  time: "",
+  searchTime: [],
+  collectTimeStart: null, 
+  collectTimeEnd: null, 
+})
+const tableInfo = reactive({
+  data: [],
+  total: 0,
+
+  selectedRowKeys: [],
 })
 const pages = reactive({
   pageNum: 1,
   pageSize: 50,
-  total: 0
 });
 const dataUrl = reactive({
   url: '',
   iframeList: []
 })
-const isShowSearch = ref(false)
-const showTeps = ref(false)
-const tableData = ref([])
-const selectedRowKeys = ref([])
-const shopAccount = [
-{
-    account: "shopee",
-    simpleName: "Shopee"
-  },
-  {
-    account: "al",
-    simpleName: "阿里巴巴国际站"
-  },
-  {
-    account: "amazon",
-    simpleName: "Amazon"
-  },
-  {
-    account: "tb",
-    simpleName: "淘宝"
-  },
-  {
-    account: "tm",
-    simpleName: "天猫"
-  },
-  {
-    account: "smt",
-    simpleName: "速卖通"
-  },
-  {
-    account: "lazada",
-    simpleName: "Lazada"
-  },
-]
+// 搜索表单展开收起
+const isShowSearch = ref(true)
 // const shopAccount = dataGathe
-const columns = [
-  {
-    title: '图片',
-    dataIndex: 'imageURLs',
-    align: "center",
-    width: 200,
-  },
-  {
-    title: '标题',
-    dataIndex: 'subjectList',
-    align: "center",
-    width: 400,
-  },
-  {
-    title: '描述',
-    dataIndex: 'detailSourceList',
-    align: "center",
-    width: 100,
-  },
-  {
-    title: '售价(USD)',
-    dataIndex: 'aeopAeProductSKUs',
-    align: "center",
-    width: 300,
-  },
-  {
-    title: '责任人',
-    dataIndex: 'people',
-    align: "center",
-    width: 200,
-  },
-  {
-    title: '创建时间',
-    dataIndex: 'time',
-    align: "center",
-    width: 150,
-  },
-  {
-    title: '操作',
-    dataIndex: 'options',
-    align: "center",
-    width: 300
-  },
-]
-const searchType = [
-  {
-    label: "标题",
-    prop: 1,
-  },
-  // {
-  //   label: "来源URL",
-  //   prop: 2,
-  // }
-]
-const resperson = [
-  {
-    label: "张三",
-    value: 1
-  },
-  {
-    label: "李四",
-    value: 2
-  },
-  {
-    label: "王五",
-    value: 3
-  }
-]
-const acquisitionTimes = [
-  {
-    label: "昨天",
-    value: 1,
-  },
-  {
-    label: "今天",
-    value: 2,
-  },
-  {
-    label: "7天以内",
-    value: 3,
-  },
-  {
-    label: "30天以内",
-    value: 4,
-  },
-  {
-    label: "自定义",
-    value: 5,
-  }
-]
 const timeObj = {
   fieldKey: "value",
   fieldLabel: "label",
@@ -309,20 +309,33 @@ const shopObj = {
   fieldKey: "account",
   fieldLabel: "simpleName",
 }
-function acquisition() {
-  let list = dataUrl.url.split('\n')
-  let iframeList = list.map(i => {
-    console.log(i);
-    
-    let obj = {
-      url: i,
-      id: (Math.floor(Math.random() * 10000000)) + '',
-      iframeRef: null,
-      isLoad: false
-    }
-    return obj
+const columns = computed(() => {
+  return acquisitionHeader
+})
+onMounted(() => {
+  getList()
+})
+// 获取数据列表
+async function getList() {
+  let params = {
+    "platform": formData.platform, //平台名称
+    "productTitle": formData.name, // 产品标题
+    "originUrl": formData.url, // 来源URL
+    "collectTimeStart": formData.collectTimeStart, // 采集时间-开始
+    "collectTimeEnd": formData.collectTimeEnd, // 采集时间-结束
+    "isRemark": formData.isRemark, // 有无备注   1:有备注  0:无备注
+    // "order": "DESC", // 排序规则   ASC；正序，DESC；倒序
+    // "prop": "create_time", // 排序字段   create_time ...
+    "pageNum": pages.pageNum, // 分页参数
+    "pageSize": pages.pageSize // 每页数量
+  }
+  let res = await collectProductList(params)
+  console.log({ res });
+  res.data.forEach(item => {
+    item.simpleDescTips = JSON.parse(item.simpleDesc)
   })
-  dataUrl.iframeList = iframeList
+  tableInfo.data = res.data;
+  tableInfo.total = res.total;
 }
 const clearArea = () => {
   dataUrl.value = ""
@@ -343,12 +356,40 @@ const displayedSkus = (record) => {
 
 // 采集时间
 const selectTimeAll = () => {
-  formData.time = ""
-
+  formData.collectTimeStart = null
+  formData.collectTimeEnd = null
+  // timestampToDateTime()
 }
 const selectTimeItem = (val) => {
   formData.time = val
-
+  let end = ''
+  let start = ''
+  switch (val) {
+    case 1:
+      start = dayjs().add((0 - val), 'day').format('YYYY-MM-DD') + '00:00:00'
+      end = dayjs().add((0 - val), 'day').format('YYYY-MM-DD') + '23:59:59'
+      break;
+    case 0:
+      start = dayjs().format('YYYY-MM-DD') + '00:00:00'
+      end = dayjs().format('YYYY-MM-DD') + '23:59:59'
+      break;
+    case 7:
+    case 30:
+      start = dayjs().add((0 - val), 'day').format('YYYY-MM-DD') + '00:00:00'
+      end = dayjs().format('YYYY-MM-DD') + '23:59:59'
+      break;
+    default:
+      break;
+  }
+  formData.collectTimeEnd = end
+  formData.collectTimeStart = start
+  onSubmit()
+}
+function pickerChange(val) {
+  // console.log({val});
+  formData.collectTimeStart = val[0] + '00:00:00'
+  formData.collectTimeEnd = val[1] + '23:59:59'
+  onSubmit()
 }
 // 搜索内容
 const selectTypes = (index) => {
@@ -366,29 +407,55 @@ const selectTypes = (index) => {
 }
 
 // 表单搜索
-const onSubmit = () => { }
-
+function onSubmit() {
+  Object.keys(formParams).forEach(key => {
+    formParams[key] = formData[key]
+  })
+  pageChange(1)
+}
+function pageChange(val) {
+  pages.pageNum = val
+  getList()
+}
+// 表格复选框
 const rowSelection = {
   onChange: (selectedRow) => {
-    selectedRowKeys.value = selectedRow;
+    tableInfo.selectedRowKeys = selectedRow;
   },
 };
+// 跳转商品页面
+function openUrl(url) {
+  window.open(url)
+}
+// 展示平台名称
+function getSimpleName(account) {
+  return formBtnInfo.shopAccount.find(i => i.account === account)?.simpleName ?? ''
+}
 
 const handleOk = () => { }
-const getList = () => {
-  productListApi({
-    pageNum: pages.pageNum,
-    pageSize: pages.pageSize,
-  }).then(res => {
-    console.log(res);
-    tableData.value = res.rows ?? []
-    pages.total = res.total ?? 0
-  })
-}
-onMounted(() => {
-  getList()
-})
 </script>
 <style lang="less" scoped>
 
+</style>
+<style lang="less">
+.rowBox-simpleDesc {
+  max-width: 400px !important;
+  .ant-tooltip-content {
+    width: 100%;
+    .rowBox-simpleDesc-tip-item {
+      width: 100%;
+      word-wrap:break-word; 
+      word-break:break-all; 
+      display: flex;
+      justify-content: space-between;
+      justify-items: center;
+      .simpleDesc-tip-item-key {
+        width: 120px;
+      }
+      .simpleDesc-tip-item-val {
+        width: calc(100% - 130px);
+      }
+    }
+  }
+}
 </style>
