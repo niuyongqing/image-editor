@@ -72,7 +72,7 @@
                     </div>
                 </a-card>
 
-                <a-card v-if="thirdState.options.length">
+                <a-card>
                     <div w-320px h-300px>
                         <a-dropdown v-model:open="thirdState.open" trigger="">
                             <a-input-search v-model:value="thirdState.value" placeholder="搜索" style="width: 320px"
@@ -87,7 +87,6 @@
                                         </div>
                                     </a-menu-item>
                                 </a-menu>
-
                             </template>
                         </a-dropdown>
                     </div>
@@ -210,7 +209,7 @@ const onSearchThird = (value) => {
         const data = copyThirdOpts.value.filter((item) => {
             return item.label.includes(value)
         })
-        thirdState.options = data;
+        thirdState.options = data || [];
     } else {
         thirdState.options = copyThirdOpts.value;
     }
@@ -274,6 +273,12 @@ function getCategoryTree() {
         firstState.open = true;
         secondState.open = true;
         thirdState.open = true;
+        firstState.selectKeys = [path.ids[0]];
+        secondState.selectKeys = [path.ids[1]];
+        thirdState.selectKeys = [path.ids[2]];
+        firstState.selectValue = firstState.options.find((item) => item.value === path.ids[0]);
+        secondState.selectValue = secondState.options.find((item) => item.value === path.ids[1]);
+        thirdState.selectValue = thirdState.options.find((item) => item.value === path.ids[2]);
         copyFirstOpts.value = cloneDeep(firstState.options);
         copySecondOpts.value = cloneDeep(secondState.options);
         copyThirdOpts.value = cloneDeep(thirdState.options);

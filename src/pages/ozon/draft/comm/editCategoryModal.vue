@@ -2,7 +2,6 @@
     <div>
         <a-modal v-model:open="dialogVisible" title="提示" width="1000px" @cancel="cancel" :footer="null"
             :maskClosable="false">
-
             <div flex justify-between mb-15px>
                 <div>
                     <a-breadcrumb separator=">">
@@ -60,7 +59,7 @@
                                 </template>
                                 <template v-if="column.dataIndex === 'ozonTheme'">
                                     <a-select v-model:value="record.ozonTheme" allowClear placeholder="请选择"
-                                        style="width: 180px;" :options="filterAttrOptions">
+                                        style="width: 180px;" :options="attrOptions(record.filterAttrOptions)">
                                     </a-select>
                                 </template>
                             </template>
@@ -76,6 +75,7 @@
 </template>
 
 <script setup>
+import { message } from 'ant-design-vue';
 import CategoryDialog from "@/pages/ozon/productPublish/comm/categoryDialog.vue";
 import CategoryModal from "./categoryModal.vue";
 import {
@@ -84,6 +84,7 @@ import {
     addHistoryCategory,
     categoryAttributes,
 } from "@/pages/ozon/config/api/product.js";
+import { ozonRelationDetail, ozonRelationSave } from "@/pages/ozon/config/api/draft.js";
 
 const { shopAccount } = defineProps({
     shopAccount: {
@@ -92,7 +93,13 @@ const { shopAccount } = defineProps({
     }
 });
 
+const platNames = {
+    Ozon: 'Ozon',
+    Tmall: '天猫',
+    AliExpress: '速卖通',
+};
 const baseApi = import.meta.env.VITE_APP_BASE_API;
+const relationDetail = ref({});
 const columns = [
     {
         title: '产品信息',
@@ -114,20 +121,22 @@ const columns = [
         width: 400
     },
 ];
-const innerColumns = [
-    {
-        title: '天猫变种主题',
-        dataIndex: 'catTheme',
-        key: 'catTheme',
-        width: 150
-    },
-    {
-        title: '对应Ozon变种主题',
-        dataIndex: 'ozonTheme',
-        key: 'ozonTheme',
-        width: 150
-    },
-];
+const innerColumns = computed(() => {
+    const title = platNames[acceptParams.value.gatherPlatformName] || '';
+    return [
+        {
+            title: `${title}变种主题`,
+            dataIndex: 'catTheme',
+            key: 'catTheme',
+            width: 150
+        },
+        {
+            title: '对应Ozon变种主题',
+            dataIndex: 'ozonTheme',
+            key: 'ozonTheme',
+            width: 150
+        }]
+});
 
 const categoryModalEl = useTemplateRef('categoryModalRef');
 const historyCategoryList = ref([]);
@@ -144,8 +153,7 @@ const tableData = ref([
         account: ''
     }
 ]);
-const innerTableData = ref([
-]);
+const innerTableData = ref([]);
 
 const dialogVisible = ref(false);
 const acceptParams = ref({});
@@ -163,18 +171,28 @@ function getFilterAttrs() {
     const filterAttr = attributes.value.filter((attrItem) => {
         return attrItem.isAspect
     });
+
     filterAttrOptions.value = filterAttr.map((attrItem) => {
         return {
             label: attrItem.name.replace(/\(.*\)/, ""), // 去掉（）里面的
             value: attrItem.id,
+            attrLabel: attrItem.name,
         }
     });
     innerTableData.value = [];
     if (acceptParams.value.variantAttr && Object.keys(acceptParams.value.variantAttr).length > 0) {
         Object.keys(acceptParams.value.variantAttr).forEach((key) => {
+            const platformVariantName = relationDetail.value.variantRelationList.find((item) => {
+                return item.originalVariantName === key
+            })?.platformVariantName
+
             innerTableData.value.push({
                 catTheme: key,
-                ozonTheme: undefined,
+                attrLabel: platformVariantName ? platformVariantName.replace(/\(.*\)/, "") : undefined,
+                ozonTheme: relationDetail.value.variantRelationList.find((item) => {
+                    return item.originalVariantName === key
+                })?.attributeId,
+                filterAttrOptions: filterAttrOptions.value,
             })
         });
     };
@@ -199,6 +217,8 @@ const getHistoryList = (account, typeId, categoryId = '') => {
                     innerTableData.value.push({
                         catTheme: key,
                         ozonTheme: undefined,
+                        attrLabel: undefined,
+                        filterAttrOptions: filterAttrOptions.value,
                     })
                 });
             };
@@ -249,7 +269,6 @@ const selectAttributes = (value) => {
 
 // 更换分类
 const changeCategory = () => {
-    // dialogVisible.value = false;
     nextTick(() => {
         categoryModalEl.value.open(form.categoryId);
     })
@@ -286,18 +305,26 @@ const accountName = (account) => {
 const open = (data) => {
     acceptParams.value = data;
     dialogVisible.value = true;
-    tableData.value = [{
-        primaryImage: data.primaryImage,
-        name: data.name,
-        category: data.categoryId,
-        gatherPlatformName: data.gatherPlatformName,
-        account: data.account,
-    }];
+    ozonRelationDetail({
+        platformName: 'ozon',
+        productCollectId: data.gatherProductId,
+    }).then((res) => {
+        if (res.code === 200) {
+            relationDetail.value = res.data || {};
 
-    form.shortCode = data.account;
+            tableData.value = [{
+                primaryImage: data.primaryImage,
+                name: data.name,
+                category: data.categoryId,
+                gatherPlatformName: data.gatherPlatformName,
+                account: data.account,
+            }];
 
-    form.categoryId = data.typeId;
-    getHistoryList(data.account, data.typeId, data.categoryId);
+            form.shortCode = data.account;
+            form.categoryId = data.typeId;
+            getHistoryList(data.account, data.typeId, data.categoryId);
+        }
+    })
 };
 
 const cancel = () => {
@@ -305,19 +332,50 @@ const cancel = () => {
     innerTableData.value = [];
 };
 const platformName = (platform) => {
-    const platNames = {
-        Ozon: 'Ozon',
-        Tmall: '天猫',
-        AliExpress: '速卖通',
-    };
     return platNames[platform] ?? platform
 };
 
+// 从filterAttrOptions中找到attrLabel
+const getAttrLabel = (value) => {
+    return filterAttrOptions.value.find(item => item.value === value)?.attrLabel
+}
+
 // 编辑分类
 const editCategory = () => {
-    emits('edit');
-    cancel();
-    window.open(`/platform/ozon/editDraftProduct?account=${acceptParams.value.account}&id=${acceptParams.value.gatherProductId}`, '_blank')
+    let variantRelationList = innerTableData.value.map(item => {
+        return {
+            "originalVariantName": item.catTheme,
+            "platformVariantName": getAttrLabel(item.ozonTheme),
+            "attributeId": item.ozonTheme
+        }
+    });
+    const params = {
+        typeId: form.categoryId,
+        "productCollectId": acceptParams.value.gatherProductId, //数据采集产品id或者采集箱产品id
+        "platformName": "ozon",//所属平台
+        "categoryId": acceptParams.value.categoryId,
+        "variantRelationList": variantRelationList
+    };
+
+    // 对应Ozon变种主题 选择不能有一样的
+    const attributeIdList = variantRelationList.map(item => item.attributeId);
+    const hasRepeat = attributeIdList.some((item, index) => attributeIdList.indexOf(item) !== index);
+    if (hasRepeat) {
+        message.error('对应Ozon变种主题，选择不能有重复');
+        return;
+    }
+    ozonRelationSave(params).then((res) => {
+        if (res.code === 200) {
+            message.success('保存成功');
+            emits('edit');
+            cancel();
+            window.open(`/platform/ozon/editDraftProduct?account=${acceptParams.value.account}&id=${acceptParams.value.gatherProductId}`, '_blank')
+        }
+    })
+};
+
+const attrOptions = (options) => {
+    return options
 };
 
 //  跳过

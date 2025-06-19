@@ -15,8 +15,8 @@
                     <a-space>
                         <a-button @click="onSubmit(2)"
                             style="height: 32px; background-color: #F5F5F5; color: #434649ff;">一键翻译</a-button>
-                        <a-button type="default" style="height: 32px; background-color: #F5F5F5; color: #434649ff;"
-                            @click="onSubmit(1)">存为模板</a-button>
+                        <!-- <a-button type="default" style="height: 32px; background-color: #F5F5F5; color: #434649ff;"
+                            @click="onSubmit(1)">存为模板</a-button> -->
                         <a-dropdown>
                             <a-button style="height: 32px; background-color: #FF8345; color: #fff;">
                                 引用产品

@@ -85,7 +85,7 @@
                                         v-model:value="form.attributes[item.name]" v-if="item.selectType === 'select'"
                                         labelInValue style="width: 80%" allowClear>
                                         <a-select-option :value="v" v-for="(v, i) in item.options" :key="i">{{ v.label
-                                            }}</a-select-option>
+                                        }}</a-select-option>
                                     </a-select>
                                 </a-form-item>
                             </div>
@@ -501,10 +501,6 @@ watch(() => props.attributesCache, (val) => {
             // this.$set(rules2.value, noThemeAttributesCache[i].name, obj);
             // console.log("rules2", rules2.value);
             loopAttributes.value = noThemeAttributesCache;
-
-            console.log('loopAttributes ->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', loopAttributes.value);
-
-
             // 赋值
             const { attributes: oldAttributes } = props.productDetail.attributes[0];
             // console.log('loopAttributes', oldAttributes);

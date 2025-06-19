@@ -105,10 +105,6 @@ const waitPublishTreeValue = ref(''); // 待发布产品搜索
 const waitPublishTreeData = ref([]);
 const copyTreeData = ref([]);
 
-const onlineTreeValue = ref(''); // 在线产品搜索
-const onlineTreeData = ref([]);
-const copyOnlineTreeData = ref([]);
-
 const waitPublishManageEl = useTemplateRef('waitPublishManageRef');
 
 function filterTreeWithParents(nodes, predicate) {
@@ -143,15 +139,10 @@ const selectNode = (keys, info) => {
 // 管理分类设置
 const setting = () => {
     waitPublishManageOpen.value = true;
-    // manageCategoriesEl.value.openModal();
 };
 
 watch(waitPublishTreeValue, () => {
     onSearch();
-});
-
-watch(onlineTreeValue, () => {
-    onlineSearch();
 });
 
 // 更新当前选中节点
@@ -169,18 +160,6 @@ const onSearch = () => {
         waitPublishTreeData.value = result;
     } else {
         waitPublishTreeData.value = copyTreeData.value;
-    }
-};
-
-// 在线产品搜索
-const onlineSearch = () => {
-    if (onlineTreeValue.value) {
-        const result = filterTreeWithParents(onlineTreeData.value, node =>
-            node.title && node.title.includes(onlineTreeValue.value)
-        );
-        onlineTreeData.value = result;
-    } else {
-        onlineTreeData.value = copyOnlineTreeData.value;
     }
 };
 
@@ -252,42 +231,6 @@ onMounted(() => {
             ],
         },
     ];
-
-    onlineTreeData.value = [
-        {
-            title: '所有分类',
-            key: '0-0',
-            children: [
-                {
-                    title: 'parent 1-0',
-                    key: '0-0-01',
-                    children: [
-                        {
-                            title: 'leaf',
-                            key: '0-0-0-01',
-                        },
-                        {
-                            title: 'leaf',
-                            key: '0-0-0-111',
-                        },
-                    ],
-                },
-                {
-                    title: 'parent 1-1',
-                    key: '0-0-11',
-                    children: [
-                        {
-                            key: '0-0-1-0',
-                            title: 'sss1',
-                        },
-                    ],
-                },
-            ],
-        },
-    ];
-    copyOnlineTreeData.value = cloneDeep(onlineTreeData.value);
-
-    selectedKeys.value = [copyTreeData.value[0].key];
 });
 </script>
 <style lang="less" scoped>

@@ -17,3 +17,22 @@ export function ozonDraftDetail(data) {
         data: data,
     });
 };
+
+
+// 查询变种关联关系
+export function ozonRelationDetail(data) {
+    return request({
+        url: "/platform-common/platform/common/variant/relation/detail",
+        method: "post",
+        data: data,
+    });
+};
+
+//  保存或更新变种关联关系
+export function ozonRelationSave(data) {
+    return request({
+        url: "/platform-common/platform/common/variant/relation/save",
+        method: "post",
+        data: data,
+    });
+};

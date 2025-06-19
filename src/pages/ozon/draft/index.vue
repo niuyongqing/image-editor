@@ -3,8 +3,7 @@
         <div w-300px>
             <draftSidebar @updateClass="updateClass" />
         </div>
-
-        <div v-if="showDraftTable">
+        <div v-if="showDraftTable" w-full>
             <div id="draft" w-full ml-15px>
                 <a-card>
                     <a-form ref="ruleForm2" :model="formData">
@@ -267,15 +266,17 @@
 
         <!-- 批量加水印 -->
         <BatchWatermark ref="batchWatermarkRef"></BatchWatermark>
+
+        <!-- 全属性修改 -->
+        <BatchAttribute ref="batchAttributeRef"></BatchAttribute>
     </div>
 </template>
 
 <script setup name='draft'>
 import { Divider, message, Modal } from 'ant-design-vue';
 import { DownOutlined, SettingOutlined, SyncOutlined, QuestionCircleOutlined } from "@ant-design/icons-vue";
-import { accountCache } from "../config/api/product";
+import { accountCache, shopCurrency } from "../config/api/product";
 import { ozonDraftList } from "../config/api/draft";
-import { shopCurrency } from "../config/api/product";
 import tableHeard from "../config/tabColumns/draft"
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import draftSidebar from './comm/draftSidebar.vue';
@@ -286,6 +287,7 @@ import BatchEdit from './batchComponent/batchEdit.vue';
 import RemarkModal from './batchComponent/remarkModal.vue';
 import BatchWatermark from './batchComponent/batchWatermark.vue';
 import OzonProduct from '@/pages/ozon/product/index.vue';
+import BatchAttribute from './batchComponent/batchAttribute.vue';
 
 let columns = tableHeard;
 const showDraftTable = ref(true);
@@ -296,6 +298,7 @@ const editPromptEl = useTemplateRef('editPromptRef');
 const batchEditEl = useTemplateRef('batchEditRef'); // 批量编辑-弹窗
 const remarkModalEl = useTemplateRef('remarkModalRef'); // 批量备注-弹窗
 const batchWatermarkEl = useTemplateRef('batchWatermarkRef'); // 批量加水印-弹窗
+const batchAttributeEl = useTemplateRef('batchAttributeRef'); // 批量属性-弹窗
 
 const typeTreeEl = useTemplateRef('typeTreeRef');
 const currentClass = ref(0);
@@ -660,6 +663,21 @@ const handleMenuClick = (e) => {
                 }
             })
             console.log('批量删除');
+            break;
+        case 8:
+            console.log('批量修改售价');
+            break;
+        case 9:
+            console.log('批量修改原价');
+            break;
+        case 10:
+            console.log('批量修改库存');
+            break;
+        case 11:
+            batchAttributeEl.value.open({ title: '批量修改属性', data: selectedRowList.value });
+            console.log('批量修改全属性');
+            break;
+        default:
             break;
     }
 };
