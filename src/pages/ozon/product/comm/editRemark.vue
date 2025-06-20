@@ -10,10 +10,18 @@
                     </a-textarea>
                 </a-form-item>
                 <a-form-item label="备注颜色:" name="remarkColor">
-                    <a-radio-group v-model:value="editForm.remarkColor">
+                    <!-- <a-radio-group v-model:value="editForm.remarkColor">
                         <a-radio-button :value="false">红</a-radio-button>
                         <a-radio-button :value="true">绿</a-radio-button>
-                    </a-radio-group>
+                    </a-radio-group> -->
+                    <div>
+                        <!-- 颜色列表 -->
+                        <div class="color-list">
+                            <div class="color-item" v-for="(item, index) in colorList" :key="index"
+                                :class="item.id === seletColorId ? 'color-active' : ''"
+                                :style="{ background: item.color }" @click="remarkColorSelect(item)"></div>
+                        </div>
+                    </div>
                 </a-form-item>
             </a-form>
             <template #footer>
@@ -28,6 +36,10 @@
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { remark } from "../../config/api/product";
 import { message } from "ant-design-vue";
+import { colors } from "../../config/commDic/defDic"
+
+const colorList = colors;
+const seletColorId = ref(0);
 const props = defineProps({
     remarkVisible: Boolean,
     remarkId: Array,
@@ -37,15 +49,30 @@ const loading = ref(false)
 const ruleForm = ref()
 const editForm = reactive({
     remark: "",
-    remarkColor: false,
+    remarkColor: "",
 })
+
+const remarkColorSelect = (item) => {
+    editForm.remarkColor = item.id;
+    seletColorId.value = item.id;
+}
 
 const handleCancel = () => {
     emit("backCloseRemark")
-    ruleForm.value.resetFields();
+    editForm.remark = ""
+    editForm.remarkColor = ""
+    seletColorId.value = 0
 }
 
 const onSubmit = () => {
+    if (!editForm.remark) {
+        message.error("请填写备注信息！");
+        return
+    }
+    if (!editForm.remarkColor) {
+        message.error("请选择备注颜色！");
+        return
+    }
     loading.value = true
     let remarks = props.remarkId.map(e => {
         return {
@@ -61,8 +88,29 @@ const onSubmit = () => {
     }).finally(() => {
         loading.value = false
         emit("backCloseRemark")
-        ruleForm.value.resetFields();
+        editForm.remark = ""
+        editForm.remarkColor = ""
+        seletColorId.value = 0
     });
 }
 </script>
-<style lang="less" scoped></style>
+<style lang="less" scoped>
+.color-item {
+    width: 20px;
+    height: 20px;
+    border-radius: 2px;
+    margin-right: 10px;
+    cursor: pointer;
+    border: 3px solid #ccc;
+}
+
+.color-list {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.color-active {
+    border: 2px solid #000;
+}
+</style>

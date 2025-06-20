@@ -15,17 +15,59 @@
         <a-form-item label="搜索内容：">
           <div class="searchs flex">
             <div class="searchInputs flex align-start ml-[10px]">
-              <a-input v-if="actives == 1" style="width: 400px;" v-model:value="formData.name" placeholder="请输入标题查询"
+              <a-input v-if="actives == 1" style="width: 400px" v-model:value="formData.name" placeholder="请输入标题查询"
                 clearable @clear="onSubmit"></a-input>
-              <a-input v-if="actives == 2" style="width: 400px;" v-model:value="formData.sku" clearable
-                @clear="onSubmit" placeholder="请输入SKU查询,多个SKU间用逗号隔开，最多支持200个"></a-input>
+              <a-input v-if="actives == 2" style="width: 400px" v-model:value="formData.sku" clearable @clear="onSubmit"
+                placeholder="请输入SKU查询,多个SKU间用逗号隔开，最多支持200个"></a-input>
             </div>
-            <a-button type="primary" class="ml-[10px]" @click="onSubmit()">查询</a-button>
+            <a-button type="primary" class="ml-[10px]" @click="onSubmit">查询</a-button>
+            <a-button type="link" class="ml-[10px]" @click="advancedType = !advancedType">高级搜索</a-button>
           </div>
+        </a-form-item>
+        <a-form-item v-if="advancedType">
+          <a-form :model="advancedForm" ref="formRef" class="text-left w-133 ml-20 py-5"
+            style="background-color: rgb(245, 245, 245);" :labelAlign="'right'" :labelCol="{ span: 7 }">
+            <a-form-item label="售价：">
+              <a-input style="width: 150px;" v-model:value="advancedForm.minPrice" allowClear></a-input>
+              <span class="mx-2.5">-</span>
+              <a-input style="width: 150px;" v-model:value="advancedForm.maxPrice" allowClear></a-input>
+            </a-form-item>
+            <a-form-item label="原价：">
+              <a-input style="width: 150px;" v-model:value="advancedForm.minOldPrice" allowClear></a-input>
+              <span class="mx-2.5">-</span>
+              <a-input style="width: 150px;" v-model:value="advancedForm.maxOldPrice" allowClear></a-input>
+            </a-form-item>
+            <a-form-item label="总库存：">
+              <a-input style="width: 150px;" v-model:value="advancedForm.minStock" allowClear></a-input>
+              <span class="mx-2.5">-</span>
+              <a-input style="width: 150px;" v-model:value="advancedForm.maxStock" allowClear></a-input>
+            </a-form-item>
+            <!-- <a-form-item label="备注：">
+                            <a-select ref="select" v-model:value="advancedForm.isRemark" style="width: 150px">
+                                <a-select-option value="1">有备注</a-select-option>
+                                <a-select-option value="0">无备注</a-select-option>
+                            </a-select>
+                        </a-form-item> -->
+            <a-form-item>
+              <a-select ref="select" v-model:value="advancedForm.timeSort" class="ml-6.5" style="width: 120px">
+                <a-select-option value="update_time">更新时间</a-select-option>
+                <a-select-option value="created_time">创建时间</a-select-option>
+              </a-select>
+              <a-range-picker class="ml-2.5" style="width: 320px;" valueFormat="YYYY-MM-DD"
+                v-model:value="advancedForm.time" />
+            </a-form-item>
+            <a-form-item>
+              <div class="text-right mr-15">
+                <a-button type="link" @click="resetForm(1)">取消</a-button>
+                <a-button type="link" class="mx-2.5" @click="resetForm">重置</a-button>
+                <a-button type="primary" @click="onSubmit">搜索</a-button>
+              </div>
+            </a-form-item>
+          </a-form>
         </a-form-item>
         <a-form-item label="排序方式：">
           <div class="flex align-start">
-            <a-button v-for="item in strList" :key="item.prop" style="margin: 0 10px;"
+            <a-button v-for="item in strList" :key="item.prop" style="margin: 0 10px"
               :type="item.prop === active.prop ? 'primary' : ''" @click="storChange(item)">
               <span>{{ item.label }}</span>
               <AsyncIcon icon="CaretUpOutlined" v-if="item.prop === active.prop && active.type == 'bottom'" />
@@ -36,21 +78,25 @@
       </a-form>
     </a-card>
     <a-card class="my-2.5">
-      <div style="width: 100%; height: 38px">
-        <a-row :gutter="10" class="mb8">
-          <a-col :span="1.5">
-            <a-button type="primary" @click="add">创建产品</a-button>
-          </a-col>
-          <!-- <a-col :span="1.5">
+      <div style="width: 100%; height: 40px" class="flex justify-between">
+        <div>
+          <a-space :size="10">
             <a-dropdown :disabled="selectedRowList.length === 0">
               <template #overlay>
                 <a-menu @click="handleMenuClick">
-                  <a-menu-item key="title">
-                    批量修改标题
+                  <a-menu-item key="publish">
+                    批量发布
                   </a-menu-item>
-                  <a-menu-item key="vat">
-                    批量修改税额
+                  <!-- <a-menu-item key="deactivate">
+                    批量归档
+                  </a-menu-item> -->
+                  <a-menu-item key="remark">
+                    批量备注
                   </a-menu-item>
+                  <a-menu-item key="delete">
+                    批量删除
+                  </a-menu-item>
+                  <a-menu-divider />
                   <a-menu-item key="stock">
                     批量修改库存
                   </a-menu-item>
@@ -60,47 +106,63 @@
                   <a-menu-item key="oldPrice">
                     批量修改原价
                   </a-menu-item>
-                  <a-menu-item key="minPrice">
-                    批量修改最低价
+
+                </a-menu>
+              </template>
+              <a-button>
+                批量操作
+                <DownOutlined />
+              </a-button>
+            </a-dropdown>
+          </a-space>
+        </div>
+        <div>
+          <a-space :size="10">
+            <a-button type="link" @click="shopSet">
+              <AsyncIcon icon="SettingOutlined" />
+              店铺设置
+            </a-button>
+            <a-button type="primary" @click="add">创建产品</a-button>
+            <a-dropdown>
+              <template #overlay>
+                <a-menu @click="handleExport">
+                  <a-menu-item key="page">
+                    按页导出
                   </a-menu-item>
-                  <a-menu-item key="weight">
-                    批量修改重量
-                  </a-menu-item>
-                  <a-menu-item key="size">
-                    批量修改尺寸
+                  <a-menu-item key="number" :disabled="selectedRowList.length === 0">
+                    按勾选导出
                   </a-menu-item>
                 </a-menu>
               </template>
-<a-button>
-  批量操作
-</a-button>
-</a-dropdown>
-</a-col> -->
-          <a-col :span="1.5">
-            <a-button type="primary" @click="addRemark()" :disabled="selectedRowList.length === 0">批量修改备注</a-button>
-          </a-col>
-          <a-col :span="1.5">
-            <a-button type="primary" :disabled="selectedRowList.length !== 1">编 辑</a-button>
-          </a-col>
-
-          <a-col :span="1.5">
-            <a-popconfirm title="删除代表该产品在ozon平台删除，确定删除吗？" @confirm="del()">
-              <a-button type="primary" danger :disabled="selectedRowList.length === 0" :loading="delLoading">删
-                除</a-button>
-            </a-popconfirm>
-          </a-col>
-          <a-col :span="1.5">
-            <a-button type="primary" @click="editPriceVisible = true">数据采集</a-button>
-          </a-col>
-        </a-row>
+              <a-button type="primary">
+                导出
+                <DownOutlined />
+              </a-button>
+            </a-dropdown>
+          </a-space>
+        </div>
       </div>
-      <a-table :row-selection="rowSelection" :rowKey="(row) => row" :data-source="tableData" bordered :columns="columns"
+      <div class="flex items-baseline justify-between">
+        <a-tabs v-model:activeKey="activeName" type="card" style="width: 800px;" @tab-click="handleClick">
+          <a-tab-pane :key="item.name" v-for="item in tabList" :tab="item.label + `(${item.value})`">
+          </a-tab-pane>
+        </a-tabs>
+        <a-pagination style="margin: 20px 0 10px 0; text-align: right" :show-total="(total) => `共 ${total} 条`"
+          v-model:current="paginations.pageNum" v-model:pageSize="paginations.pageSize" :total="paginations.total"
+          class="pages" :show-quick-jumper="true" @change="getList" :showSizeChanger="true"
+          :pageSizeOptions="[50, 100, 200]" />
+      </div>
+      <!-- :rowKey="(row) => row" -->
+      <a-table :row-selection="rowSelection" rowKey="waitId" :data-source="tableData" :columns="columns"
         :pagination="false">
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'name'">
             <div class="flex text-left">
-              <a-image :width="100"
-                :src="record?.skuList[0]?.primaryImage && record?.skuList[0]?.primaryImage.length > 0 ? processImageSource(record?.skuList[0]?.primaryImage[0]) : processImageSource(record?.skuList[0]?.images[0])" />
+              <a-image style="width: 100px; height: 100px;" :src="record?.skuList[0]?.primaryImage &&
+                record?.skuList[0]?.primaryImage.length > 0
+                ? processImageSource(record?.skuList[0]?.primaryImage[0])
+                : processImageSource(record?.skuList[0]?.images[0])
+                " />
               <div class="ml-2.5 block">
                 <a-tooltip class="item" effect="dark" :title="record.name" placement="top"
                   style="overflow-wrap: break-word">
@@ -111,7 +173,7 @@
                 </div>
                 <br />
                 <div :style="{
-                  color: record.remarkColor ? 'green' : 'red',
+                  color: remarkColor(record.remarkColor),
                   float: 'left',
                 }">
                   备注:{{ record.remark }}
@@ -120,73 +182,91 @@
             </div>
           </template>
           <template v-if="column.dataIndex === 'waitState'">
-            <a-tag color="success" v-if="record.waitState == 'published'">{{ state[record.waitState] }}</a-tag>
-            <a-tag color="warning" v-else-if="record.waitState == 'wait_publish'">{{ state[record.waitState]
+            <a-tag color="success" v-if="record.waitState == 'published'">{{
+              state[record.waitState]
             }}</a-tag>
-            <a-tag color="error" v-else-if="record.waitState == 'publish_failed'">{{ state[record.waitState]
-            }}</a-tag>
+            <a-tag color="warning" v-else-if="record.waitState == 'wait_publish'">{{ state[record.waitState] }}</a-tag>
+            <a-tag color="error" v-else-if="record.waitState == 'publish_failed'">{{ state[record.waitState] }}</a-tag>
           </template>
           <template v-if="column.dataIndex === 'sku'">
-            <div class="text-left">
-              <div v-for="(item, index) in displayedSkus(record)" :key="index">
-                SKU： <span>{{ item.offerId }}</span>
-                <a-divider type="vertical"></a-divider>
-                原价：<span style="color: #9e9f9e">{{ item.oldPrice }}</span>
-                当前售价：<span style="color: #9e9f9e">{{ item.price }}</span>
-                <a-divider type="vertical"></a-divider>
-                库存：
-                <a-tooltip style="margin-right: 10px" effect="dark" placement="top" v-if="item.warehouseList">
+            <div class="record-sku-container pb-30px" text-center>
+              <div v-for="(item, index) in displayedSkus(record)" :key="index" class="record-sku">
+                <span>{{ item.offerId }}</span>
+              </div>
+            </div>
+          </template>
+          <template v-if="column.dataIndex === 'price'">
+            <div class="record-sku-container pb-30px" text-center>
+              <div v-for="(item, index) in displayedSkus(record)" :key="index" class="record-sku">
+                <span style="color: #9e9f9e">{{ item.price }}</span>
+              </div>
+            </div>
+          </template>
+          <template v-if="column.dataIndex === 'oldPrice'">
+            <div class="record-sku-container pb-30px" text-center>
+              <div v-for="(item, index) in displayedSkus(record)" :key="index" class="record-sku">
+                <span style="color: #9e9f9e">{{ item.oldPrice }}</span>
+              </div>
+            </div>
+          </template>
+          <template v-if="column.dataIndex === 'warehouseList'">
+            <div class="record-sku-container pb-30px" text-center>
+              <div v-for="(item, index) in displayedSkus(record)" :key="index" class="record-sku">
+                <a-tooltip style="margin-right: 10px" effect="dark" placement="top">
                   <template #title>
                     <div v-for="(el, ind) in item.warehouseList" :key="ind">
                       <span>{{ el.warehouseName }}</span>:
-                      <span>{{ el.present ? el.present : 0 }}</span>
+                      <span>{{ el.present || 0 }}</span>
                     </div>
                   </template>
                   <span style="color: #1677ff">{{ item.stock }}</span>
                 </a-tooltip>
               </div>
-              <div v-if="record.skuList && record.skuList.length > 3">
-                <a-button type="text" @click="record.show = !record.show">共{{ record.skuList && record.skuList.length
-                }}条SKU，{{
-                    !record.show ? "展开" : "收起"
-                  }}</a-button>
-              </div>
+            </div>
+            <div v-if="record.skuList.length > 5" class="w-full flex flex-end flex-end more">
+              <a-button type="link" @click="record.show = !record.show">{{ !record.show ? '展开' : '收起' }}
+              </a-button>
             </div>
           </template>
           <template v-if="column.dataIndex === 'createTime'">
             <div class="flex items-start flex-col">
-
-              <div>
-                创建时间：<span style="color: #9e9f9e">{{
+              <div class="flex items-start flex-col">
+                创建时间：<div style="color: #9e9f9e">{{
                   record.createTime
-                }}</span>
+                }}</div>
               </div>
-              <div>
-                更新时间：<span style="color: #9e9f9e">{{
+              <div class="flex items-start flex-col">
+                更新时间：<div style="color: #9e9f9e">{{
                   record.updateTime
-                }}</span>
+                }}</div>
               </div>
             </div>
-
-
           </template>
           <template v-if="column.dataIndex === 'option'">
-            <a-row :gutter="3">
-              <a-col :span="8">
-                <a-button type="link" @click.stop="publish(record)">发布</a-button>
-              </a-col>
-              <a-col :span="8">
-                <a-button @click.stop="edit(record)" type="text" v-if="record.listState !== '档案'">编辑</a-button>
-              </a-col>
-              <a-col :span="8">
-                <a-button type="text" @click="addRemark(record)">备注</a-button>
-              </a-col>
-              <a-col :span="8">
-                <a-popconfirm title="确定删除吗？" @confirm="del(record)">
-                  <a-button type="link" danger>删除</a-button>
-                </a-popconfirm>
-              </a-col>
-            </a-row>
+            <div>
+              <a-button @click.stop="edit(record)" type="link" v-if="record.listState !== '档案'">编辑</a-button>
+            </div>
+            <div>
+              <a-button type="link" @click.stop="publish(record)">发布</a-button>
+            </div>
+            <a-dropdown>
+              <a class="ant-dropdown-link">
+                更多
+                <DownOutlined />
+              </a>
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item @click="addRemark(record)">
+                    <a-button type="link">添加备注</a-button>
+                  </a-menu-item>
+                  <a-menu-item>
+                    <a-popconfirm title="确定删除吗？" @confirm="del(record)">
+                      <a-button type="link" danger>删除产品</a-button>
+                    </a-popconfirm>
+                  </a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
           </template>
         </template>
       </a-table>
@@ -196,59 +276,98 @@
         :pageSizeOptions="[50, 100, 200]" />
     </a-card>
     <editRemark :remarkVisible="remarkVisible" :remarkId="remarkId" @backCloseRemark="backCloseRemark"></editRemark>
-    <dataCrawli :editPriceVisible="editPriceVisible" @handleDataCrawliClose="editPriceVisible = false"></dataCrawli>
+    <!-- 店铺设置 -->
+    <shopSetModal :shopSetVisible="shopSetVisible" :shopCurryList="shopCurryList"
+      @handleShopSetClose="shopSetVisible = false" @refreshShopSet="getShopSet"></shopSetModal>
+
+    <!-- 统一修改价格库存等 -->
+    <editPriceModal :selectedRows="selectedRowList" :editPriceVisible="editPriceVisible"
+      @handleEditPriceClose="handleEditPriceClose" :editStockList="editStockList" :defType="defType">
+    </editPriceModal>
   </div>
 </template>
 
-<script setup name='waitPublish'>
-import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
+<script setup>
+import { ref, reactive, onMounted, computed, watchPostEffect } from "vue";
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
-import { accountCache } from "../config/api/product";
-import { ozonProductList, ozonProductDel, ozonProductPublish } from "../config/api/waitProduct";
-import tableHeard from "../config/tabColumns/waitPublish"
-import editRemark from './comm/editRemark.vue';
-import { message } from 'ant-design-vue';
-import dataCrawli from './comm/dataCrawli.vue';
-import { processImageSource } from "~/pages/ozon/config/commJs/index"
+import { accountCache, shopCurrency, productWarehouse } from "../config/api/product";
+import {
+  ozonProductList,
+  ozonProductDel,
+  ozonProductPublish,
+  statistics, waitExport
+} from "../config/api/waitProduct";
+import tableHeard from "../config/tabColumns/waitPublish";
+import editRemark from "./comm/editRemark.vue";
+import { message, Modal } from "ant-design-vue";
+import dayjs from 'dayjs'
+import { processImageSource } from "~/pages/ozon/config/commJs/index";
+import { SettingOutlined, DownOutlined } from '@ant-design/icons-vue';
+import shopSetModal from "../product/comm/shopSetModal.vue";
+import { tabAllDicList, colors } from "../config/commDic/defDic"
+import download from "~/api/common/download";
+import editPriceModal from "./comm/editPriceModal.vue";
 
 const formData = reactive({
   offerId: "",
   account: "",
   sku: "",
   name: "",
-  prop: "created_time",
+  prop: "create_time",
   order: "desc",
-  state: ""
-})
+  state: "",
+});
 const paginations = reactive({
   pageNum: 1,
   pageSize: 50,
   total: 0,
 });
-const shopAccount = ref([])
+const shopAccount = ref([]);
 const actives = ref(1);
-const selectedRowList = ref([])
-const tableData = ref([])
-let columns = tableHeard
-const deactivateLoading = ref(false)
-const delLoading = ref(false)
-const loading = ref(false)
-const remarkVisible = ref(false)
-const editPriceVisible = ref(false)
-const remarkId = ref([])
+const selectedRowList = ref([]);
+const selectedRowKeys = ref([]);
+const tableData = ref([]);
+let columns = tableHeard;
+const deactivateLoading = ref(false);
+const delLoading = ref(false);
+const loading = ref(false);
+const remarkVisible = ref(false);
+const shopSetVisible = ref(false)
+const advancedType = ref(false)
+const editPriceVisible = ref(false) //全属性
+const editStockList = ref([])  //修改库存
+const remarkId = ref([]);
+const shopCurryList = ref([])
+const tabList = ref(tabAllDicList)
+const activeName = ref(" ")
+const tabQuantity = ref([])
+const defType = ref([])
+const stockShops = ref([])
+const advancedForm = reactive({
+  minPrice: "",
+  maxPrice: "",
+  minOldPrice: "",
+  maxOldPrice: "",
+  minStock: null,
+  maxStock: null,
+  // isRemark: "",
+  timeSort: "update_time",
+  time: []
+})
+
 const state = {
   wait_publish: "待发布",
   published: "已发布",
   publish_failed: "发布失败",
-}
+};
 const shopObj = {
   fieldKey: "account",
   fieldLabel: "simpleName",
-}
+};
 const sortObj = reactive({
-  sortField: "created_time",
-  sortType: "desc"
-})
+  sortField: "create_time",
+  sortType: "desc",
+});
 const searchType = [
   {
     label: "标题",
@@ -257,11 +376,11 @@ const searchType = [
   {
     label: "SKU",
     prop: 2,
-  }
-]
+  },
+];
 const active = ref({
   label: "按创建时间",
-  value: "created_time",
+  value: "create_time",
   type: "top",
   prop: 1,
   isDefault: true,
@@ -269,7 +388,7 @@ const active = ref({
 const strList = ref([
   {
     label: "按创建时间",
-    value: "created_time",
+    value: "create_time",
     type: "top",
     prop: 1,
     isDefault: true,
@@ -297,25 +416,79 @@ const strList = ref([
   },
 ]);
 
-const rowSelection = {
-  onChange: (selectedRow) => {
-    console.log('selectedRow', selectedRow);
+const rowSelection = computed(() => {
+  return {
+    selectedRowKeys: selectedRowKeys.value,
+    onChange: (rowKeys, rows) => {
+      selectedRowKeys.value = rowKeys; //只接收ID
+      selectedRowList.value = rows; //接收每一行
+    }
+  }
+})
 
-    selectedRowList.value = selectedRow;
-  },
-};
 const add = () => {
-  window.open("productPublish", '_blank');
+  window.open("productPublish", "_blank");
+};
+
+// 标签页切换
+const handleClick = activeKey => {
+  formData.state = activeKey
+  getList()
 }
+
+// 高级搜索重置
+const resetForm = (type = 0) => {
+  formData.sku = "";
+  formData.id = "";
+  formData.name = "";
+  advancedForm.minPrice = ""
+  advancedForm.maxPrice = ""
+  advancedForm.minOldPrice = ""
+  advancedForm.maxOldPrice = ""
+  advancedForm.minStock = null
+  advancedForm.maxStock = null
+  // advancedForm.isRemark = ""
+  advancedForm.timeSort = "update_time"
+  advancedForm.time = []
+  advancedType.value = type == 1 ? false : true
+  getList();
+}
+
+
+const remarkColor = (param) => {
+  const findItem = colors.find((item) => {
+    return item.id === param
+  });
+  return findItem ? findItem.color : '#000000';
+}
+
+// 库存
+const getStore = () => {
+  let params = {
+    account: stockShops.value,
+  };
+  productWarehouse(params).then((res) => {
+    editStockList.value =
+      res?.data?.map((item) => {
+        return {
+          account: item.account,
+          simpleName: item.simpleName,
+          children: item.children,
+          allStock: "",
+        };
+      }) ?? [];
+  });
+}
+
 // 店铺单选多选
 const selectAll = () => {
-  formData.account = ""
+  formData.account = "";
   getList();
-}
+};
 const selectItem = (val) => {
-  formData.account = val
+  formData.account = val;
   getList();
-}
+};
 
 // 搜索内容
 const selectTypes = (index) => {
@@ -336,21 +509,34 @@ const selectTypes = (index) => {
     default:
       break;
   }
-}
+};
 
 // 排序方式
 const storChange = (item) => {
   item.type = item.type === "top" ? "bottom" : "top";
   active.value = item;
-  sortObj.sortField = item.value
-  sortObj.sortType = item.type === "top" ? "desc" : "asc"
-  formData.order = item.type === "top" ? "desc" : "asc"
-  formData.prop = item.value
+  sortObj.sortField = item.value;
+  sortObj.sortType = item.type === "top" ? "desc" : "asc";
+  formData.order = item.type === "top" ? "desc" : "asc";
+  formData.prop = item.value;
   getList();
 };
 
+const shopSet = () => {
+  shopSetVisible.value = true
+  getShopSet()
+}
+
+const getShopSet = () => {
+  shopCurrency().then(res => {
+    shopCurryList.value = res?.data ?? []
+  })
+}
+
 // 表单搜索
-const onSubmit = () => { getList() }
+const onSubmit = () => {
+  getList();
+};
 
 // 店铺数据
 const getAccount = () => {
@@ -360,66 +546,176 @@ const getAccount = () => {
       getList();
     }
   });
-}
-
+};
 
 // 单个和批量删除
 const del = (row = {}) => {
-  console.log('row', row);
-
   loading.value = true;
   let waitIds = [];
   if (Object.keys(row).length != 0) {
     waitIds.push(row.waitId);
   } else {
-    waitIds = selectedRowList.value.map((item) => item.waitId);
+    waitIds = selectedRowKeys.value;
   }
   ozonProductDel({ waitIds })
     .then((res) => {
       message.success("操作成功");
       getList();
+      clearSelectList();
     })
     .finally(() => {
       loading.value = false;
     });
-}
+};
 
 const displayedSkus = (row) => {
-  return row.show ? row?.skuList : row?.skuList?.slice(0, 3);
-}
+  return row.show ? row?.skuList : row?.skuList?.slice(0, 5);
+};
 
 // 备注
 const addRemark = (row = {}) => {
-  console.log('row', row);
-
-  remarkVisible.value = true
+  remarkVisible.value = true;
   if (Object.keys(row).length == 0) {
-    remarkId.value = selectedRowList.value;
+    const matchSet = new Set(selectedRowKeys.value);
+    remarkId.value = tableData.value.filter(item => matchSet.has(item.waitId))
+      .map(({ waitId, account }) => ({ waitId, account }))
   } else {
     let remarkObj = {
       account: row.account,
-      waitIds: [row.waitId],
+      waitId: row.waitId,
     };
     remarkId.value.push(remarkObj);
   }
-}
+};
 
 // 备注弹窗关闭
 const backCloseRemark = () => {
   remarkVisible.value = false;
-  selectedRowList.value = [];
   remarkId.value = [];
+  clearSelectList();
   getList();
-}
+};
+
 const edit = (row = {}) => {
   let newRow = Object.keys(row).length != 0 ? row : selectedRowList.value[0];
-  console.log('newRow', newRow);
-  window.open("editWaitProduct" + `?id=${newRow.waitId}&account=${newRow.account}`, '_blank');
+  console.log("newRow", newRow);
+  window.open(
+    "editWaitProduct" + `?id=${newRow.waitId}&account=${newRow.account}`,
+    "_blank"
+  );
+};
+
+// 批量操作
+const handleMenuClick = (e) => {
+  console.log('e', e);
+  if (e.key == "remark") {
+    addRemark();
+  } else if(e.key === "publish") {
+    Modal.confirm({
+      title: '是否批量发布？',
+      onOk: () => {
+        publish();
+      },
+      onCancel: () => {
+        clearSelectList();
+      }
+    })
+  }
+  // else if(e.key === "deactivate") {
+  //   Modal.confirm({
+  //     title: '是否批量归档？',
+  //     onOk: () => {
+  //       // del();
+  //     },
+  //     onCancel: () => {
+  //       clearSelectList();
+  //     }
+  //   })
+  // }
+  else if (e.key == "delete") {
+    Modal.confirm({
+      title: '确定在待发布删除吗？',
+      onOk: () => {
+        del();
+      },
+      onCancel: () => {
+        clearSelectList();
+      }
+    })
+  } else {
+    defType.value = e.keyPath
+    editPriceVisible.value = true;
+    stockShops.value = selectedRowList.value.map((e) => e.account);
+    getStore();
+  }
 
 }
+
+// 关闭价格
+const handleEditPriceClose = () => {
+  clearSelectList();
+  editPriceVisible.value = false;
+  getList();
+  editStockList.value = clearStock(editStockList.value)
+}
+
+function clearStock(data) {
+  if (Array.isArray(data)) {
+    data.forEach(item => {
+      if (item.children) {
+        clearStock(item.children);
+      }
+      if (item.hasOwnProperty('stock')) {
+        item.stock = null;
+      }
+    });
+  }
+  return data;
+}
+
+// 导出
+const handleExport = (e) => {
+  let waitIds = []
+  if (e.key == 'page') {
+    waitIds = tableData.value.map((e) => e.waitId);
+  } else {
+    waitIds = selectedRowKeys.value;
+  }
+  waitExport({ waitIds }).then(res => {
+    download.name(res.msg);
+    message.success("下载任务已开始！请耐心等待完成");
+    clearSelectList();
+  })
+}
+
+const clearSelectList = () => {
+  selectedRowList.value = [];
+  selectedRowKeys.value = [];
+}
+ 
 const getList = () => {
+  if (advancedForm.minPrice > advancedForm.maxPrice) {
+    message.error("最大售价必须大于最小售价！");
+    return;
+  }
+  if (advancedForm.minOldPrice > advancedForm.maxOldPrice) {
+    message.error("最大原价必须大于最小原价！");
+    return;
+  }
+  if (advancedForm.minStock > advancedForm.maxStock) {
+    message.error("最大库存必须大于最小库存！");
+    return;
+  }
   loading.value = true;
-  ozonProductList(formData)
+  let params = {
+    ...formData,
+    ...advancedForm,
+    startDateTime: advancedForm.time.length ? dayjs(advancedForm.time[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+    endDateTime: advancedForm.time.length ? dayjs(advancedForm.time[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+    pageNum: paginations.pageNum,
+    pageSize: paginations.pageSize,
+  }
+  ozonProductList(params)
     .then((res) => {
       tableData.value =
         res?.rows.map((item) => {
@@ -431,22 +727,74 @@ const getList = () => {
     .finally(() => {
       loading.value = false;
     });
-}
+  statistics({ account: formData.account }).then(res => {
+    tabQuantity.value = res?.data || [];
+  })
+};
 
+// tabs的商品统计条数赋值
+watch(tabQuantity, (newValue, oldValue) => {
+  if (newValue.length === 0) {
+    tabList.value = [...tabAllDicList];
+  } else {
+    tabList.value = tabAllDicList.map(item => {
+      const match = newValue.find(q => q.state === item.code);
+      return {
+        ...item,
+        value: match ? match.count.toString() : "0"
+      };
+    });
+  }
+})
+
+// 单个发布
 const publish = (row = {}) => {
-  let params = {
-    account: row.account,
-    waitId: [row.waitId]
+  let params = []
+  if (Object.keys(row).length != 0) {
+    params = [{
+      account: row.account,
+      waitId: row.waitId,
+    }]
+  } else {
+    params = selectedRowList.value.map(item => {
+      return {
+        account: item.account,
+        waitId: item.waitId,
+      }
+    })
   }
   loading.value = true;
-  ozonProductPublish(params).then(res => {
-    message.success(res.msg)
-  }).finally(() => {
-    loading.value = false;
-  });
-}
+  ozonProductPublish(params)
+    .then((res) => {
+      message.success(res.msg);
+      getList();
+    })
+    .finally(() => {
+      loading.value = false;
+      clearSelectList();
+    });
+};
 onMounted(() => {
-  getAccount()
-})
+  getAccount();
+});
 </script>
-<style lang="less" scoped></style>
+<style lang="less" scoped>
+.record-sku-container {
+  width: 100%;
+}
+
+.record-sku {
+  color: rgb(35, 82, 124);
+  cursor: pointer;
+  border-bottom: 1px dashed #e8e8e8;
+  padding-bottom: 6px;
+}
+
+.more {
+  position: absolute;
+  height: 30px;
+  bottom: 0px;
+  display: flex;
+  justify-content: end;
+}
+</style>

@@ -11,9 +11,28 @@ export default [
     width: 200,
   },
   {
-    title: 'SKU信息',
+    title: 'SKU',
     dataIndex: 'sku',
     align: "center",
+    width: 500,
+  },
+  {
+    title: '售价',
+    dataIndex: 'price',
+    align: "center",
+    width: 300,
+  },
+  {
+    title: '原价',
+    dataIndex: 'oldPrice',
+    align: "center",
+    width: 300,
+  },
+  {
+    title: '总库存',
+    dataIndex: 'warehouseList',
+    align: "center",
+    width: 300,
   },
   {
     title: '时间',

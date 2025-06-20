@@ -1,5 +1,5 @@
 <template>
-    <div id="productCont" :loding="loading">
+    <div id="productCont">
         <a-card class="mt-2.5">
             <a-form ref="ruleForm" :model="formData" class="form-padding">
                 <a-form-item label="店铺账号：">
@@ -95,22 +95,37 @@
                         <a-dropdown :disabled="selectedRows.length === 0">
                             <template #overlay>
                                 <a-menu @click="handleMenuClick">
-                                    <a-menu-item key="title">
+                                    <a-menu-item key="deactivate" v-if="activeName !== '已归档'">
+                                        批量归档
+                                    </a-menu-item>
+                                    <a-menu-item key="remark">
+                                        批量备注
+                                    </a-menu-item>
+                                    <a-menu-item key="delete">
+                                        批量删除
+                                    </a-menu-item>
+
+                                    <a-menu-divider />
+
+                                    <!-- <a-menu-item key="title">
                                         批量修改标题
                                     </a-menu-item>
                                     <a-menu-item key="vat">
                                         批量修改税额
-                                    </a-menu-item>
-                                    <a-menu-item key="stock">
-                                        批量修改库存
-                                    </a-menu-item>
+                                    </a-menu-item> -->
                                     <a-menu-item key="price">
                                         批量修改售价
                                     </a-menu-item>
                                     <a-menu-item key="oldPrice">
                                         批量修改原价
                                     </a-menu-item>
-                                    <a-menu-item key="minPrice">
+                                    <a-menu-item key="stock">
+                                        批量修改库存
+                                    </a-menu-item>
+                                    <a-menu-item key="all">
+                                        全属性修改
+                                    </a-menu-item>
+                                    <!-- <a-menu-item key="minPrice">
                                         批量修改最低价
                                     </a-menu-item>
                                     <a-menu-item key="weight">
@@ -118,7 +133,7 @@
                                     </a-menu-item>
                                     <a-menu-item key="size">
                                         批量修改尺寸
-                                    </a-menu-item>
+                                    </a-menu-item> -->
                                 </a-menu>
                             </template>
                             <a-button>
@@ -126,10 +141,10 @@
                             </a-button>
                         </a-dropdown>
                     </a-col>
-                    <a-col :span="1.5">
+                    <!-- <a-col :span="1.5">
                         <a-button type="primary" @click="addRemark()"
                             :disabled="selectedRows.length === 0">批量修改备注</a-button>
-                    </a-col>
+                    </a-col> -->
                     <a-col :span="1.5">
                         <a-button type="primary" @click="edit()" :disabled="selectedRows.length !== 1">编 辑</a-button>
                     </a-col>
@@ -144,21 +159,21 @@
                         <a-button type="primary" @click="syncOne()" :disabled="selectedRows.length === 0"
                             :loading="syncLoading">同步当前商品</a-button>
                     </a-col>
-                    <a-col :span="1.5">
+                    <!-- <a-col :span="1.5">
                         <a-popconfirm title="确定下架吗？" @confirm="deactivate()">
                             <a-button type="primary" :disabled="selectedRows.length === 0"
                                 :loading="deactivateLoading">批量归档</a-button>
                         </a-popconfirm>
-                    </a-col>
+                    </a-col> -->
                     <a-col :span="1.5">
                         <a-button type="primary" @click="syncHisAttr()" :loading="syncLoading">同步历史分类</a-button>
                     </a-col>
-                    <a-col :span="1.5">
+                    <!-- <a-col :span="1.5">
                         <a-popconfirm title="删除代表该产品在ozon平台删除，确定删除吗？" @confirm="deleteItem()">
                             <a-button type="primary" danger :disabled="selectedRows.length === 0"
                                 :loading="delLoading">删 除</a-button>
                         </a-popconfirm>
-                    </a-col>
+                    </a-col> -->
                     <a-col :span="1.5">
                         <a-button type="primary" @click="shopSet">
                             <AsyncIcon icon="SettingOutlined" />
@@ -198,7 +213,7 @@
                                 tbItem.count }})</span>
                     </div>
                     <a-table :data-source="tbItem.children" style="width: 100%;" row-key="id" :showHeader="false"
-                        bordered :columns="dropCol" :pagination="false" :data-index="index" ref="OzonProduct">
+                        :columns="dropCol" :pagination="false" :data-index="index" ref="OzonProduct">
                         <template #bodyCell="{ column, record }">
                             <div v-if="column.dataIndex === 'name'" class="flex">
                                 <a-checkbox style="margin:0 10px;" @change="handelChecked($event, tbItem, record)"
@@ -212,13 +227,14 @@
                                             <template #title>
                                                 <span>{{ record.name }}</span>
                                             </template>
-                                            <div class="w-110 truncate">{{ record.name }}</div>
+                                            <div class="truncate prodTitle">{{ record.name }}</div>
                                         </a-tooltip>
                                         <div style="color: #999; float: left">
                                             产品ID：
                                             <a-tooltip placement="top">
                                                 <template #title>
-                                                    <span style="cursor: pointer" @click="copyText(record.sku)">复制</span>
+                                                    <span style="cursor: pointer"
+                                                        @click="copyText(record.sku)">复制</span>
                                                 </template>
                                                 <a style="color: #1677ff" href="#" @click="jumpTo(record.sku)">{{
                                                     record.sku }}</a>
@@ -232,34 +248,25 @@
                                         <br />
 
                                         <div :style="{
-                                            color: record.remarkColor ? 'green' : 'red',
+                                            color: remarkColor(record.remarkColor),
                                             float: 'left',
                                         }">
                                             备注:{{ record.remark }}
                                         </div>
-                                        <div style="color: red;" v-if="record.bathErrorInfo">
+                                        <!-- <div style="color: red;" v-if="record.bathErrorInfo">
                                             失败原因:{{ record.bathErrorInfo }}
-                                        </div>
+                                        </div> -->
                                     </div>
                                 </div>
                             </div>
-                            <div v-if="column.dataIndex === 'state'">
-                                <a-tag :bordered="false" color="processing" v-if="record.state === '平台审核'">{{
-                                    record.state
-                                    }}</a-tag>
-                                <a-tag :bordered="false" color="success" v-if="record.state === '在售'">{{ record.state
-                                }}</a-tag>
-                                <a-tag :bordered="false" color="warning" v-if="record.state === '审核不通过'">{{ record.state
-                                }}</a-tag>
-                                <a-tag :bordered="false" color="error" v-if="record.state === '准备出售'">{{ record.state
-                                }}</a-tag>
-                                <a-tag :bordered="false" color="default" v-if="record.state === '已归档'">{{ record.state
-                                }}</a-tag>
+                            <div v-else-if="column.dataIndex === 'state'">
+                                <a-tag :bordered="false" :color="getStateColor(record.state)">
+                                    {{ record.state || ' ' }}
+                                </a-tag>
                             </div>
-                            <div v-if="column.dataIndex === 'sku'" style="text-align: left">
+                            <div v-else-if="column.dataIndex === 'sku'" style="text-align: left">
                                 <div>
                                     <div style="color: #1677ff;cursor: pointer">
-                                        <!-- SKU: {{ record.offerId }} -->
                                         <a-tooltip placement="topLeft">
                                             <template #title>
                                                 <span style="cursor: pointer"
@@ -279,8 +286,8 @@
                                     </div>
                                     <div>
                                         促销活动价：<span style="color: #1677ff">{{
-                                            record.marketingPrice ? record.marketingPrice : "暂未参加活动"
-                                            }}</span>
+                                            record.marketingPrice || "暂未参加活动"
+                                        }}</span>
                                     </div>
                                     <div>
                                         <div style="display: flex">
@@ -316,7 +323,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[0].score
-                                                                        }}分</span>
+                                                                    }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -359,7 +366,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[1].score
-                                                                        }}分</span>
+                                                                    }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -402,7 +409,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[2].score
-                                                                        }}分</span>
+                                                                    }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -445,7 +452,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[3].score
-                                                                        }}分</span>
+                                                                    }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -462,7 +469,7 @@
                                                     </template>
                                                     <span style="margin-left: 10px;color: #1677ff;cursor: pointer;">{{
                                                         record.productsScore[0].rating
-                                                        }}分</span>
+                                                    }}分</span>
                                                 </a-popover>
                                             </div>
                                             <span v-else class="ml-2.5">{{ 0.0 }}分</span>
@@ -470,7 +477,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div v-if="column.dataIndex === 'price'">
+                            <div v-else-if="column.dataIndex === 'price'">
                                 <span style="color: #1677ff" v-if="!(priceVisible && itemId == record.id)">{{
                                     record.currencyCode }} {{
                                         record.price
@@ -479,15 +486,14 @@
                                     <a-input type="number" class="mr-2.5 w-30" v-model:value="record.price"
                                         placeholder="请输原价格"></a-input>
                                     <a-button class="mr-2.5" @click="priceVisible = false">取消</a-button>
-                                    <a-button type="primary" :loading="loading"
-                                        @click="checkOldPrice(record)">确定</a-button>
+                                    <a-button type="primary" @click="checkOldPrice(record)">确定</a-button>
                                 </div>
                                 <AsyncIcon v-if="!(priceVisible && itemId == record.id)" icon="EditOutlined"
                                     style="cursor: pointer; color: #1677ff" @click="editSinglePrice(record)">
                                 </AsyncIcon>
 
                             </div>
-                            <div v-if="column.dataIndex === 'oldPrice'">
+                            <div v-else-if="column.dataIndex === 'oldPrice'">
                                 <span style="color: #1677ff" v-if="!(singleVisible && itemId == record.id)">{{
                                     record.currencyCode }} {{
                                         record.oldPrice
@@ -496,15 +502,14 @@
                                     <a-input type="number" class="mr-2.5 w-30" v-model:value="record.oldPrice"
                                         placeholder="请输原价格"></a-input>
                                     <a-button class="mr-2.5" @click="singleVisible = false">取消</a-button>
-                                    <a-button type="primary" :loading="loading"
-                                        @click="checkOldPrice(record)">确定</a-button>
+                                    <a-button type="primary" @click="checkOldPrice(record)">确定</a-button>
                                 </div>
                                 <AsyncIcon v-if="!(singleVisible && itemId == record.id)"
                                     style="cursor: pointer; color: #1677ff" icon="EditOutlined"
                                     @click="handelEditPrice(record)">
                                 </AsyncIcon>
                             </div>
-                            <div v-if="column.dataIndex === 'minPrice'">
+                            <div v-else-if="column.dataIndex === 'minPrice'">
                                 <span style="color: #1677ff"
                                     v-if="record.minPrice && !(minPriceVisible && itemId == record.id)">CNY {{
                                         record.minPrice
@@ -513,40 +518,33 @@
                                     <a-input type="number" class="mr-2.5 w-30" v-model:value="record.minPrice"
                                         placeholder="请输原价格"></a-input>
                                     <a-button class="mr-2.5" @click="minPriceVisible = false">取消</a-button>
-                                    <a-button type="primary" :loading="loading"
-                                        @click="checkOldPrice(record)">确定</a-button>
+                                    <a-button type="primary" @click="checkOldPrice(record)">确定</a-button>
                                 </div>
                                 <AsyncIcon v-if="!(minPriceVisible && itemId == record.id) && record.minPrice"
                                     style="cursor: pointer; color: #1677ff" icon="EditOutlined"
                                     @click="handelEditminPrice(record)">
                                 </AsyncIcon>
                             </div>
-                            <div v-if="column.dataIndex === 'stock'">
+                            <div v-else-if="column.dataIndex === 'stock'">
                                 <a-tooltip style="margin-right: 10px" effect="dark" placement="top"
                                     v-if="record.warehouseList">
                                     <template #title>
                                         <div v-for="(item, index) in record.warehouseList" :key="index">
                                             <span>{{ item.warehouseName }}</span>:
-                                            <span>{{ item.present ? item.present : 0 }}</span>
+                                            <span>{{ item.present || 0 }}</span>
                                         </div>
                                     </template>
                                     <span style="color: #1677ff">{{ record.stock }}</span>
                                 </a-tooltip>
                                 <span v-else style="color: #1677ff; margin-right: 10px">{{
                                     record.stock
-                                }}</span>
+                                    }}</span>
                                 <AsyncIcon style="cursor: pointer; color: #1677ff" icon="EditOutlined" v-if="
                                     record.state != '审核不通过' && record.state != '已归档'
                                 " @click="editStock(record)"></AsyncIcon>
                             </div>
-                            <div v-if="column.dataIndex === 'errorInfo'">
+                            <div v-else-if="column.dataIndex === 'errorInfo'">
                                 <div v-if="record.errors != null">
-                                    <!-- <div style="display: flex">
-                                        <div>商品状态描述:</div>
-                                        <div style="margin-left: 20px; color: red">
-                                            {{ record.errorInfo.stateDescription }}
-                                        </div>
-                                    </div> -->
                                     <div style="display: flex">
                                         <div>
                                             详细描述:
@@ -565,20 +563,20 @@
                                     </div>
                                 </div>
                             </div>
-                            <div v-if="column.dataIndex === 'createdAt'"
+                            <div v-else-if="column.dataIndex === 'createdAt'"
                                 style="display: flex;flex-direction: column;align-items: flex-start;">
                                 <div>
                                     创建时间：<span style="color: #9e9f9e">{{
                                         timestampToDateTime(record.createdTime)
-                                        }}</span>
+                                    }}</span>
                                 </div>
                                 <div>
                                     更新时间：<span style="color: #9e9f9e">{{
                                         timestampToDateTime(record.updatedTime)
-                                        }}</span>
+                                    }}</span>
                                 </div>
                             </div>
-                            <div v-if="column.dataIndex === 'option'">
+                            <div v-else-if="column.dataIndex === 'option'">
                                 <a-row>
                                     <a-col :span="11" v-if="record.state !== '已归档'">
                                         <a-button @click.stop="edit(record)" type="text"
@@ -608,10 +606,11 @@
                                                     </a-menu-item>
                                                     <a-popconfirm ok-text="YES" cancel-text="NO"
                                                         title="删除代表该产品在ozon平台删除，确定删除吗？" @confirm="deleteItem(record)">
-                                                        <a-menu-item type="text" v-if="
-                                                            record.sku === 'sku未创建' && record.state === '已归档'
-                                                        " style="color: red">删除</a-menu-item>
+                                                        <a-menu-item type="text" style="color: red">删除</a-menu-item>
                                                     </a-popconfirm>
+                                                    <!-- v-if="
+                                                            record.sku === 'sku未创建' && record.state === '已归档'
+                                                        " -->
                                                 </a-menu>
                                             </template>
                                         </a-dropdown>
@@ -664,7 +663,8 @@
         <editQuantity :editQuantityVis="editQuantityVis" :editStockList="editStockList" :selectOzonId="selectOzonId"
             @backCloseQuantity="backCloseQuantity"></editQuantity>
         <!-- 进度条 -->
-        <progressBar :showOpen="showOpen" @handleProgressBarClose="handleProgressBarClose" :percentage="percentage">
+        <progressBar :showOpen="showOpen" :asyncErrData="asyncErrData" @handleProgressBarClose="handleProgressBarClose"
+            :percentage="percentage">
         </progressBar>
         <!-- 复制 -->
         <copyProduct :copyProductVis="copyProductVis" :copyList="copyList"
@@ -680,17 +680,18 @@
     </div>
 </template>
 
-<script setup lang="js">
+<script setup>
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import {
     accountCache, list, batchArchive, syncOneProduct, syncHistoryCategory, mergeList, asyncProgress,
-    updatePrices, productWarehouse, del, syncShopProductAll, syncShopProduct
+    updatePrices, productWarehouse, del, syncShopProductAll, syncShopProduct,
+    byState, shopAsyncProgress
 } from '../config/api/product';
 import { warehouseList } from "../config/api/storeManagement"
 import { shopCurrency } from "../config/api/product"
-import { tabDicList, attrList } from "../config/commDic/defDic"
+import { tabDicList, attrList, colors } from "../config/commDic/defDic"
 import tableHead from "../config/tabColumns/product"
-import { message } from "ant-design-vue";
+import { message, Modal } from "ant-design-vue";
 import editRemark from "./comm/editRemark.vue";
 import editPriceModal from "./comm/editPriceModal.vue";
 import editQuantity from "./comm/editQuantity.vue";
@@ -768,6 +769,7 @@ const childList = ref([])
 const copyList = ref([])
 const storeOption = ref([])
 const shopCurryList = ref([])
+const asyncErrData = ref([])
 const errorColumns = [
     {
         title: "错误字段",
@@ -846,6 +848,17 @@ const strList = ref([
     },
 ]);
 
+const getStateColor = (state) => {
+    const colorMap = {
+        '平台审核': 'processing',
+        '在售': 'success',
+        '审核不通过': 'warning',
+        '准备出售': 'error',
+        '': 'default'
+    };
+    return colorMap[state] || 'default';
+}
+
 // 复制
 const copyText = (text) => {
     copy(text);
@@ -879,6 +892,14 @@ const backToTop = () => {
         });
     }
 }
+
+const remarkColor = (param) => {
+    const findItem = colors.find((item) => {
+        return item.id === param
+    });
+    return findItem ? findItem.color : '#000000';
+}
+
 // 搜索内容
 const selectTypes = (index) => {
     actives.value = index;
@@ -1099,19 +1120,48 @@ const getEditStore = (account) => {
 // 批量修改库存、重量、尺寸等
 const handleMenuClick = (e) => {
     console.log('e', e);
-    defType.value = e.keyPath
-    editPriceVisible.value = true;
-    // selectOzonId.value = syncOneList.value;
-    // console.log('selectedRows',selectedRows.value);
+    if (e.key === 'remark') {
+        addRemark();
+    } else if (e.key === "delete") {
+        Modal.confirm({
+            title: '删除',
+            content: "请确认是否删除(此删除仅代表在erp上删除)？",
+            onOk: () => {
+                deleteItem();
+                setUncheck();
+            },
+            onCancel: () => {
+                setUncheck();
+            }
+        })
+    } else if (e.key === "deactivate") {
+        Modal.confirm({
+            title: '移入归档',
+            content: "请确认是否将产品移入已归档？",
+            onOk: () => {
+                deactivate();
+                setUncheck();
+            },
+            onCancel: () => {
+                setUncheck();
+            }
+        })
 
-    for (let i = 0; i < selectedRows.value.length; i++) {
-        if (selectedRows.value[i].state == "已归档") {
-            message.error("归档商品不可修改库存，请取消！");
-            return;
+    } else {
+        defType.value = e.keyPath
+        editPriceVisible.value = true;
+        // selectOzonId.value = syncOneList.value;
+        // console.log('selectedRows',selectedRows.value);
+
+        for (let i = 0; i < selectedRows.value.length; i++) {
+            if (selectedRows.value[i].state == "已归档") {
+                message.error("归档商品不可修改库存，请取消！");
+                return;
+            }
         }
+        stockShops.value = syncOneList.value.map((e) => e.account);
+        getStore();
     }
-    stockShops.value = syncOneList.value.map((e) => e.account);
-    getStore();
 
 }
 
@@ -1250,7 +1300,7 @@ const backCloseRemark = () => {
     syncOneList.value = [];
     allChecked.value = false
     getList();
-    // setUncheck()
+    setUncheck()
 }
 
 const handleCopyProductClose = () => {
@@ -1347,60 +1397,38 @@ const sync = () => {
         syncShopProductAll()
             .then((res) => {
                 interval.value = setInterval(() => {
-                    asyncProgress(res.msg).then(res => {
-                        percentage.value = parseInt(res.data);
-                        if (res.data >= 100) {
-                            clearInterval(interval.value)
-                            message.success("同步成功！");
-                            syncLoading.value = false;
-                            showOpen.value = false;
-                            getList();
-                            setTimeout(() => {
-                                percentage.value = 0;
-                            }, 300);
-                        }
+                    shopAsyncProgress(res.msg).then(res => {
+                        asyncErrData.value = res.data
+                        // percentage.value = parseInt(res.data);
+                        // if (res.data >= 100) {
+                        //     clearInterval(interval.value)
+                        //     message.success("同步成功！");
+                        //     syncLoading.value = false;
+                        //     showOpen.value = false;
+                        //     getList();
+                        //     setTimeout(() => {
+                        //         percentage.value = 0;
+                        //     }, 300);
+                        // }
                     })
                 }, 5000);
             })
-        // .finally(() => {
-        //     syncLoading.value = false;
-        //     showOpen.value = false;
-        //     getList();
-        //     setTimeout(() => {
-        //         percentage.value = 0;
-        //     }, 300);
-        // });
-    } else {
-        syncShopProduct({ account: formData.account })
-            .then((res) => {
-                message.success("同步成功！");
-                // percentage.value = 100;
-                // interval.value = setInterval(() => {
-                //     asyncProgress(res.msg).then(res => {
-                //         percentage.value = parseInt(res.data);
-                //         if (res.data >= 100) {
-                //             clearInterval(interval.value)
-
-                //             syncLoading.value = false;
-                //             showOpen.value = false;
-                //             getList();
-                //             setTimeout(() => {
-                //                 percentage.value = 0;
-                //             }, 300);
-                //         }
-                //     })
-                // }, 5000);
-            })
-            // .catch(() => {
-            //     percentage.value = 0;
-            // })
             .finally(() => {
                 syncLoading.value = false;
                 // showOpen.value = false;
                 getList();
-                // setTimeout(() => {
-                //     percentage.value = 0;
-                // }, 300);
+                setTimeout(() => {
+                    percentage.value = 0;
+                }, 300);
+            });
+    } else {
+        syncShopProduct({ account: formData.account })
+            .then((res) => {
+                message.success("同步成功！");
+            })
+            .finally(() => {
+                syncLoading.value = false;
+                getList();
             });
     }
 }
@@ -1488,7 +1516,7 @@ const getList = (isSearch = false) => {
     list(params)
         .then((res) => {
             tableData.value =
-                res?.rows[0]?.productList?.map((item) => {
+                res.data.map((item) => {
                     item.show = false;
                     item.children.forEach(e => {
                         e.errors = e?.errors?.map(el => {
@@ -1501,13 +1529,14 @@ const getList = (isSearch = false) => {
                     })
                     return item;
                 }) ?? [];
-            tabQuantity.value = res?.rows[0]?.quantity ?? [];
-            paginations.total = res?.total ?? 0;
         })
         .finally(() => {
             loading.value = false;
         });
-
+    byState(params).then(res => {
+        tabQuantity.value = res?.data?.rows ?? [];
+        paginations.total = res?.data?.total ?? 0;
+    })
 }
 
 const shopSet = () => {
@@ -1595,8 +1624,20 @@ onMounted(() => {
         }
     }
 
-    .el-table {
+    .ant-table {
         border-bottom: none;
+
+        @media (min-width: 1920px) {
+            .prodTitle {
+                width: 220px !important;
+            }
+        }
+
+        @media (min-width: 2560px) {
+            .prodTitle {
+                width: 440px !important;
+            }
+        }
     }
 }
 

@@ -96,7 +96,7 @@ const beforeUpload = (file) => {
     return false;
   };
   // 不能超过最大限制
-  if (images.value.length >= 15) {
+  if (images.value.length >= 30) {
     message.error(`最多上传15张图片`);
     return false;
   }

@@ -239,7 +239,7 @@ export function mergeList(data) {
 // 获取修改仓库数据的列表
 export function productWarehouse(data) {
   return request({
-    url: '/platform-ozon//platform/ozon/product/warehouse',
+    url: '/platform-ozon/platform/ozon/warehouse/query/warehouse',
     method: 'post',
     data: data
   })
@@ -256,7 +256,7 @@ export function asyncProgress(data) {
 // 获取设置店铺币种列表
 export function shopCurrency(data) {
   return request({
-    url: "/platform-ozon/platform/ozon/product/find/shop/currency",
+    url: "/platform-ozon/platform/ozon/shop/setting",
     method: 'get',
   })
 }
@@ -264,7 +264,7 @@ export function shopCurrency(data) {
 // 获取修改仓库数据的列表
 export function updateCurrency(data) {
   return request({
-    url: '/platform-ozon/platform/ozon/product/update/currency',
+    url: '/platform-ozon/platform/ozon/shop/update/currency',
     method: 'post',
     data: data
   })
@@ -285,5 +285,23 @@ export function batchUpdate(data) {
     url: '/platform-ozon/platform/ozon/product/batch/update',
     method: 'post',
     data: data
+  })
+}
+
+
+// 拆分在线商品列表数据统计接口
+export function byState(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/product/statistics/by/state',
+    method: 'post',
+    data: data
+  })
+}
+
+// 进度条接口
+export function shopAsyncProgress(data) {
+  return request({
+    url: "/platform-ozon/platform/ozon/product/get/sync/process?progressId=" + data,
+    method: 'get',
   })
 }

@@ -428,4 +428,81 @@ const dataGathe = [
     simpleName: "Miravia"
   }
 ]
-export { orderStatus, storeStatus, tradStatus, tabDicList, attrList,productBatchPrice,dataMove,dataGathe }
+
+const colors = [
+  {
+    id: 1,
+    color: "#009926",
+  },
+  {
+    id: 2,
+    color: "#F00",
+    name: "红色",
+  },
+  {
+    id: 3,
+    color: "#0005FD",
+  },
+  {
+    id: 4,
+    color: "#FF5800",
+  },
+  {
+    id: 5,
+    color: "#8E0075",
+  },
+  {
+    id: 6,
+    color: "#FF6666",
+  },
+  {
+    id: 7,
+    color: "#FFCAC5",
+  },
+  {
+    id: 8,
+    color: "#00D0FF",
+  },
+];
+
+
+const tabAllDicList = [
+  {
+    label: "全部",
+    name: " ",
+    code: "ALL",
+    value: "0",
+    prop: 1,
+  },
+  {
+    label: "待发布",
+    name: "wait_publish",
+    code: "wait_publish",
+    value: "0",
+    prop: 2,
+  },
+  {
+    label: "已发布",
+    name: "published",
+    code: "published",
+    value: "0",
+    prop: 3,
+  },
+  {
+    label: "发布失败",
+    name: "publish_failed",
+    code: "publish_failed",
+    value: "0",
+    prop: 4,
+  }
+  // ,
+  // {
+  //   label: "已归档",
+  //   name: "publish_failed",
+  //   code: "publish_failed",
+  //   value: "0",
+  //   prop: 5,
+  // }
+]
+export { orderStatus, storeStatus, tradStatus, tabDicList, 
+  attrList,productBatchPrice,dataMove,dataGathe, colors, tabAllDicList }

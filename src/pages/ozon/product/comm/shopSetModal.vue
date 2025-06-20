@@ -1,7 +1,7 @@
 <template>
   <a-modal :open="shopSetVisible" :maskClosable="false" @cancel="handleCancel" :width="'40%'" :keyboard="false"
     title="店铺设置" destroy-on-close>
-    <a-table bordered :columns="HeaderList" :loading="loading" :scroll="{ y: 300 }" :data-source="tableData"
+    <a-table bordered :columns="HeaderList" :loading="loading" :scroll="{ y: 500 }" :data-source="tableData"
       :pagination="false">
       <template #headerCell="{ column }">
         <template v-if="column.dataIndex === 'warehouseList'">
@@ -22,7 +22,9 @@
         </template>
       </template>
     </a-table>
-
+    <div class="mt-5">
+      <a-tag color="green">说明</a-tag><span>请选择与平台店铺设置相同的币种，否则会影响产品发布！</span>
+    </div>
     <template #footer>
       <a-button @click="handleCancel">取消</a-button>
       <a-button type="primary" :loading="loading" @click="onSubmit">确定</a-button>

@@ -14,7 +14,6 @@
                                 :options="item.option" />
                         </div>
                     </div>
-                    <div><a-tag color="green">说明</a-tag><span>已归档的产品不支持修改产品相关信息！</span></div>
                 </a-col>
                 <a-col :flex="4" style="max-height: 600px;overflow-y: auto;">
                     <a-form :model="form" :layout="'vertical'" ref="ruleForm" style="margin-top: 20px;">
@@ -222,6 +221,7 @@
                     </a-form>
                 </a-col>
             </a-row>
+            <div><a-tag color="green">说明</a-tag><span>已归档的产品不支持修改产品相关信息！</span></div>
 
             <template #footer>
                 <a-button :loading="loading" @click="handleCancel">取消</a-button>
@@ -233,7 +233,7 @@
 
 <script setup name='editPriceModal'>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-import { batchUpdate } from "../../config/api/product";
+import { waitBathUpdate } from "../../config/api/waitProduct";
 import { endResult } from "../../config/commJs/index"
 import { message } from "ant-design-vue";
 
@@ -383,26 +383,26 @@ const commList = [
     }
 ]
 const leftList = reactive([
-    {
-        title: "产品信息",
-        option: [
-            {
-                label: '产品标题',
-                value: 'title'
-            },
-            {
-                label: 'VAT',
-                value: 'vat'
-            },
-            {
-                label: '合并属性',
-                value: 'attr'
-            }
-        ],
-        indeterminate: false,
-        checkAll: false,
-        checkedList: [],
-    },
+    // {
+    //     title: "产品信息",
+    //     option: [
+    //         {
+    //             label: '产品标题',
+    //             value: 'title'
+    //         },
+    //         {
+    //             label: 'VAT',
+    //             value: 'vat'
+    //         },
+    //         {
+    //             label: '合并属性',
+    //             value: 'attr'
+    //         }
+    //     ],
+    //     indeterminate: false,
+    //     checkAll: false,
+    //     checkedList: [],
+    // },
     {
         title: "价格与库存",
         option: [
@@ -418,31 +418,31 @@ const leftList = reactive([
                 label: '库存',
                 value: 'stock'
             },
-            {
-                label: '最低价',
-                value: 'minPrice'
-            }
+            // {
+            //     label: '最低价',
+            //     value: 'minPrice'
+            // }
         ],
         indeterminate: false,
         checkAll: false,
         checkedList: [],
     },
-    {
-        title: "重量和尺寸",
-        option: [
-            {
-                label: '重量',
-                value: 'weight'
-            },
-            {
-                label: '尺寸',
-                value: 'size'
-            }
-        ],
-        indeterminate: false,
-        checkAll: false,
-        checkedList: [],
-    }
+    // {
+    //     title: "重量和尺寸",
+    //     option: [
+    //         {
+    //             label: '重量',
+    //             value: 'weight'
+    //         },
+    //         {
+    //             label: '尺寸',
+    //             value: 'size'
+    //         }
+    //     ],
+    //     indeterminate: false,
+    //     checkAll: false,
+    //     checkedList: [],
+    // }
 ])
 
 const onProductAllChange = (e, item) => {
@@ -500,21 +500,25 @@ const changeInputNumber = (item) => {
 const onSubmit = () => {
     if (props.selectedRows.length == 0) return;
     loading.value = true;
+    console.log("selectedRows", props.selectedRows);
+
     // 标题数据处理
     let priceList = props.selectedRows.map((item) => {
         return {
-            name: item.name,
-            vat: item.vat,
+            waitId: item.waitId,
+            // name: item.name,
+            // vat: item.vat,
             price: item.price,
             oldPrice: item.oldPrice,
-            minPrice: item.minPrice,
+            // minPrice: item.minPrice,
             warehouseList: [],
-            offerId: item.offerId,
-            packageWeight: item?.attributes[0]?.weight,
-            packageWidth: item?.attributes[0]?.width,
-            packageHeight: item?.attributes[0]?.height,
-            packageLength: item?.attributes[0]?.depth,
-            productIds: item.id,
+            // offerId: item.offerId,
+            // offerIds: item.skuList.map(item => item.offerId),
+            // packageWeight: item?.attributes[0]?.weight,
+            // packageWidth: item?.attributes[0]?.width,
+            // packageHeight: item?.attributes[0]?.height,
+            // packageLength: item?.attributes[0]?.depth,
+            // productIds: item.id,
             account: item.account
         };
     });
@@ -524,39 +528,50 @@ const onSubmit = () => {
             priceList = priceList.map((row) => fieldHandlers[field](row, form));
         }
         // 对于尺寸处理，单独判断，因为逻辑复用了 weight 的判断条件
-        if (field === 'weight') {
-            priceList = priceList.map((row) => fieldHandlers.dimensions(row, form));
-        }
+        // if (field === 'weight') {
+        //     priceList = priceList.map((row) => fieldHandlers.dimensions(row, form));
+        // }
         if (field === 'stock') {
+            console.log("editStockList", props.editStockList);
+
             // 遍历数组 a
             priceList.forEach(itemA => {
-                // 查找 b 数组中 account 匹配的元素
+
+            //     // 查找 b 数组中 account 匹配的元素
                 const matchingItemB = props.editStockList.find(itemB => itemB.account === itemA.account);
-                if (matchingItemB) {
-                    // 过滤掉 children 中 stock 为空的元素
-                    const validChildren = matchingItemB.children.filter(child => child.stock !== null && child.stock !== '');
-                    // 生成新数组，包含 name、warehouseId 和 stock
-                    const newStockArray = validChildren.map(child => ({
-                        warehouseName: child.name,
-                        warehouseId: child.warehouseId,
-                        present: child.stock,
-                        offerId: itemA.offerId
-                    }));
-                    // 将新数组赋值给 a 数组中对应元素的 stock 属性
-                    itemA.warehouseList = newStockArray;
-                }
+                console.log("matchingItemB", matchingItemB);
+
+                    if (matchingItemB) {
+                        // 过滤掉 children 中 stock 为空的元素
+                        const validChildren = matchingItemB.children.filter(child => child.stock !== null && child.stock !== '');
+                        console.log("validChildren",validChildren);
+
+                        // 生成新数组，包含 name、warehouseId 和 stock
+                        const newStockArray = validChildren.map(child => ({
+                            warehouseName: child.name,
+                            warehouseId: child.warehouseId,
+                            present: child.stock,
+                            // offerId: itemA.offerId
+                        }));
+                        console.log("newStockArray");
+                        
+                        // 将新数组赋值给 a 数组中对应元素的 stock 属性
+                        itemA.warehouseList = newStockArray;
+                    }else {
+                        itemA.warehouseList = []
+                    }
             });
             console.log('priceList', priceList);
         }
     });
 
-    const fieldsToCompare = ['name', 'price', 'oldPrice', 'minPrice'];
-    const packageFields = [
-        { key: 'packageWeight', path: 'attributes.0.weight' },
-        { key: 'packageWidth', path: 'attributes.0.width' },
-        { key: 'packageHeight', path: 'attributes.0.height' },
-        { key: 'packageLength', path: 'attributes.0.depth' }
-    ];
+    const fieldsToCompare = ['name', 'price', 'oldPrice' ]; //'minPrice'
+    // const packageFields = [
+    //     { key: 'packageWeight', path: 'attributes.0.weight' },
+    //     { key: 'packageWidth', path: 'attributes.0.width' },
+    //     { key: 'packageHeight', path: 'attributes.0.height' },
+    //     { key: 'packageLength', path: 'attributes.0.depth' }
+    // ];
 
     priceList.forEach(itemA => {
         for (const itemB of props.selectedRows) {
@@ -567,21 +582,21 @@ const onSubmit = () => {
                 }
             }
 
-            if (itemA.vat === itemB.vat) {
-                itemA.vat = "";
-            }
+            // if (itemA.vat === itemB.vat) {
+            //     itemA.vat = "";
+            // }
 
             // 处理包装属性
-            for (const { key, path } of packageFields) {
-                const value = path.split('.').reduce((obj, p) => obj?.[p], itemB);
-                if (itemA[key] === value) {
-                    itemA[key] = "";  // 修正原代码错误：原逻辑错误地修改vat字段
-                }
-            }
+            // for (const { key, path } of packageFields) {
+            //     const value = path.split('.').reduce((obj, p) => obj?.[p], itemB);
+            //     if (itemA[key] === value) {
+            //         itemA[key] = "";  // 修正原代码错误：原逻辑错误地修改vat字段
+            //     }
+            // }
         }
     });
     console.log('priceList--', priceList);
-    batchUpdate(priceList).then(res => {
+    waitBathUpdate(priceList).then(res => {
         message.success(res.msg)
     }).finally(() => {
         emit("handleEditPriceClose")
