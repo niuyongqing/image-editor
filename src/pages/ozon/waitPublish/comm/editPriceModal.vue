@@ -511,7 +511,7 @@ const onSubmit = () => {
             price: item.price,
             oldPrice: item.oldPrice,
             // minPrice: item.minPrice,
-            warehouseList: props.editStockList,
+            warehouseList: [],
             // offerId: item.offerId,
             // offerIds: item.skuList.map(item => item.offerId),
             // packageWeight: item?.attributes[0]?.weight,
@@ -539,7 +539,7 @@ const onSubmit = () => {
 
             //     // 查找 b 数组中 account 匹配的元素
                 const matchingItemB = props.editStockList.find(itemB => itemB.account === itemA.account);
-            //     console.log("matchingItemB", matchingItemB);
+                console.log("matchingItemB", matchingItemB);
 
                     if (matchingItemB) {
                         // 过滤掉 children 中 stock 为空的元素
@@ -557,6 +557,8 @@ const onSubmit = () => {
                         
                         // 将新数组赋值给 a 数组中对应元素的 stock 属性
                         itemA.warehouseList = newStockArray;
+                    }else {
+                        itemA.warehouseList = []
                     }
             });
             console.log('priceList', priceList);

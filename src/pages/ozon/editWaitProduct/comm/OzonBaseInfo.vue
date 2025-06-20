@@ -26,26 +26,34 @@
                         @click="selectVisible = true">选择分类</a-button>
                     <p v-if="hisAttrObj.length != 0" style="color: #933">
                         <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{ hisAttrObj[0].secondCategoryName
-                            }}</span>/
+                        }}</span>/
                         <span>{{ hisAttrObj[0].threeCategoryName }}</span>
                     </p>
                 </a-form-item>
                 <a-form-item label="产品属性：">
-                    <a-card shadow="never" v-loading="categoryAttributesLoading" style="
+                    <a-card shadow="never" :loading="categoryAttributesLoading" style="
               position: relative;
               width: 90%;
-              height: 600px;
+              max-height: 600px;
               overflow-y: auto;
             ">
+                        <!-- 展开收起 -->
+                        <div w-full sticky top-2 right-0 z-2 v-if="loopAttributes.length">
+                            <a-button class="flex justify-end" type="link" @click="isExpand = !isExpand"> {{ isExpand
+                                ?
+                                '- 收起'
+                                : '+ 展开'
+                            }}</a-button>
+                        </div>
                         <a-form ref="ruleForm2" :model="form.attributes" :label-col="{ span: 5 }" :rules="rules2"
                             style="margin-top: 25px">
-                            <div v-for="(item, index) in loopAttributes" :key="index"
+                            <div v-for="(item, index) in sortAttrs(loopAttributes)" :key="index"
                                 style="margin: 10px; flex: 0 0 auto">
                                 <a-form-item :name="item.name" v-if="item.show">
                                     <template #label>
                                         <span class="mr-2.5 truncate">{{
                                             item.label ? item.label : item.name
-                                            }}</span>
+                                        }}</span>
                                         <a-tooltip class="tooltipStyle" effect="dark" :title="item.description"
                                             popper-class="ozonTooltip" placement="top">
                                             <AsyncIcon icon="QuestionCircleOutlined"></AsyncIcon>
@@ -54,10 +62,10 @@
                                     <a-input v-if="item.selectType === 'input'"
                                         v-model:value="form.attributes[item.name]" :style="'width: 80%'" allow-clear
                                         :maxlength="item.name == '海关编码' || item.name == 'IKP公司'
-                                                ? 17
-                                                : item.name == '海关编码'
-                                                    ? 9999999
-                                                    : 100
+                                            ? 17
+                                            : item.name == '海关编码'
+                                                ? 9999999
+                                                : 100
                                             " :minlength="1000000"></a-input>
                                     <div v-if="
                                         item.type == 'String' &&
@@ -96,7 +104,7 @@
                                             :label="'无品牌'">无品牌</a-select-option> -->
 
                                         <a-select-option :value="v" v-for="(v, i) in item.options" :key="i">{{ v.label
-                                            }}</a-select-option>
+                                        }}</a-select-option>
                                     </a-select>
                                 </a-form-item>
                             </div>
@@ -165,6 +173,7 @@ const rules2 = ref({});
 const loopAttributes = ref({});
 const categoryTreeList = ref([]);
 const historyCategoryList = ref([]);
+const isExpand = ref(false)
 const vatList = [
     {
         label: "免税",
@@ -190,6 +199,15 @@ const getCategoryTree = () => {
         let result = res?.data || [];
         categoryTreeList.value = filterEmptyChildren(result);
     });
+};
+
+const sortAttrs = (attrs) => {
+    // 如果是展开
+    if (isExpand.value) {
+        return attrs
+    } else {
+        return attrs?.filter(item => item.isRequired)
+    }
 };
 
 // 根据分类弹窗中选择的分类去查询属性
@@ -385,7 +403,7 @@ const addItemValues = (obj) => {
     //!  判断搜索出来的是否在初始的数组中显示
     if (isExist) {
         // attributes[obj.name].push(obj.selectDate.value);
-        const attr =  attributes[obj.name] || [];
+        const attr = attributes[obj.name] || [];
         attr?.push(obj.selectDate.value);
         attributes[obj.name] = attr
     } else {

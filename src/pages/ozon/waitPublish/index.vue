@@ -614,7 +614,7 @@ const handleMenuClick = (e) => {
     Modal.confirm({
       title: '是否批量发布？',
       onOk: () => {
-        // del();
+        publish();
       },
       onCancel: () => {
         clearSelectList();
@@ -653,7 +653,6 @@ const handleMenuClick = (e) => {
 
 // 关闭价格
 const handleEditPriceClose = () => {
-  // selectOzonId.value = [];
   clearSelectList();
   editPriceVisible.value = false;
   getList();
@@ -682,7 +681,6 @@ const handleExport = (e) => {
   } else {
     waitIds = selectedRowKeys.value;
   }
-  console.log(waitIds, "11");
   waitExport({ waitIds }).then(res => {
     download.name(res.msg);
     message.success("下载任务已开始！请耐心等待完成");
@@ -751,17 +749,29 @@ watch(tabQuantity, (newValue, oldValue) => {
 
 // 单个发布
 const publish = (row = {}) => {
-  let params = {
-    account: row.account,
-    waitId: [row.waitId],
-  };
+  let params = []
+  if (Object.keys(row).length != 0) {
+    params = [{
+      account: row.account,
+      waitId: row.waitId,
+    }]
+  } else {
+    params = selectedRowList.value.map(item => {
+      return {
+        account: item.account,
+        waitId: item.waitId,
+      }
+    })
+  }
   loading.value = true;
   ozonProductPublish(params)
     .then((res) => {
       message.success(res.msg);
+      getList();
     })
     .finally(() => {
       loading.value = false;
+      clearSelectList();
     });
 };
 onMounted(() => {
