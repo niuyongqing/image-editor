@@ -36,3 +36,12 @@ export function ozonRelationSave(data) {
         data: data,
     });
 };
+
+// 产品信息明细查询接口本
+export function ozonCollectDetail(data) {
+    return request({
+        url: "/platform-common/platform/common/collect/product/detail",
+        method: "post",
+        data: data,
+    });
+};

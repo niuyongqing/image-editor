@@ -23,7 +23,7 @@
                     <template v-if="column.dataIndex === 'primaryImage'">
                         <div class="flex">
                             <div w-80px>
-                                <a-image :src="primaryImage(record.primaryImage)" class="imgCss" />
+                                <a-image :src="record.primaryImage" class="imgCss" />
                             </div>
                             <div class="flex-1 ml-5px">
                                 <div class="font-bold">{{ record.name }}</div>
@@ -46,7 +46,7 @@
                         <a-button type="link" @click="changeCategory">更换分类</a-button>
                         <p class="tooltip-text" v-if="hisAttrObj && JSON.stringify(hisAttrObj) != '{}'">{{
                             hisAttrObj.categoryName
-                        }} > {{ hisAttrObj.secondCategoryName }} > {{
+                            }} > {{ hisAttrObj.secondCategoryName }} > {{
                                 hisAttrObj.threeCategoryName }} </p>
                         <!-- 表格 -->
                         <a-table :columns="innerColumns" :data-source="innerTableData" bordered :pagination="false"
@@ -74,21 +74,17 @@
 <script setup>
 import { message } from 'ant-design-vue';
 import CategoryDialog from "@/pages/ozon/productPublish/comm/categoryDialog.vue";
-import CategoryModal from "./categoryModal.vue";
 import {
     categoryTree,
     historyCategory,
     addHistoryCategory,
     categoryAttributes,
 } from "@/pages/ozon/config/api/product.js";
-import { ozonRelationDetail, ozonRelationSave } from "@/pages/ozon/config/api/draft.js";
+import { ozonCollectDetail, ozonRelationSave } from "@/pages/ozon/config/api/draft.js";
+import CategoryModal from "@/pages/ozon/draft/comm/categoryModal.vue";
+import { accountCache } from "@/pages/ozon/config/api/product.js";
 
-const { shopAccount } = defineProps({
-    shopAccount: {
-        type: Array,
-        default: () => []
-    }
-});
+const shopAccount = ref([]); // 店铺列表
 
 const platNames = {
     Ozon: 'Ozon',
@@ -178,9 +174,9 @@ function getFilterAttrs() {
         }
     });
     innerTableData.value = [];
-    if (acceptParams.value.variantAttr && Object.keys(acceptParams.value.variantAttr).length > 0) {
-        Object.keys(acceptParams.value.variantAttr).forEach((key) => {
-            const platformVariantName = relationDetail.value.variantRelationList.find((item) => {
+    if (relationDetail.value.variantAttr && Object.keys(relationDetail.value.variantAttr).length > 0) {
+        Object.keys(relationDetail.value.variantAttr).forEach((key) => {
+            const platformVariantName = relationDetail.value.variantInfoList.find((item) => {
                 return item.originalVariantName === key
             })?.platformVariantName
 
@@ -195,7 +191,7 @@ function getFilterAttrs() {
                 innerTableData.value.push({
                     catTheme: key,
                     attrLabel: platformVariantName ? platformVariantName.replace(/\(.*\)/, "") : undefined,
-                    ozonTheme: relationDetail.value.variantRelationList.find((item) => {
+                    ozonTheme: relationDetail.value.variantInfoList.find((item) => {
                         return item.originalVariantName === key
                     })?.attributeId,
                     filterAttrOptions: filterAttrOptions.value,
@@ -206,51 +202,11 @@ function getFilterAttrs() {
     };
 }
 
-// 历史分类
-const getHistoryList = (account, typeId, categoryId = '') => {
-    if (!form.shortCode) {
-        return;
-    }
+// 历史分类  typeId, categoryId = ''
+const getHistoryList = (account) => {
     historyCategory({ account })
         .then((res) => {
             historyCategoryList.value = res?.data || [];
-            const findItem = historyCategoryList.value.find((item) => {
-                return item.threeCategoryId === typeId
-            });
-            hisAttrObj.value = findItem || {};
-            secondCategoryId.value = findItem?.secondCategoryId;
-            if (acceptParams.value.variantAttr && Object.keys(acceptParams.value.variantAttr).length > 0) {
-                Object.keys(acceptParams.value.variantAttr).forEach((key) => {
-                    innerTableData.value.push({
-                        catTheme: key,
-                        ozonTheme: undefined,
-                        attrLabel: undefined,
-                        filterAttrOptions: filterAttrOptions.value,
-                    })
-                });
-            };
-
-            if (findItem) {
-                categoryAttributes({
-                    account,
-                    descriptionCategoryId: findItem.secondCategoryId,
-                    typeId: findItem.threeCategoryId,
-                }).then((res) => {
-                    if (res.code === 200) {
-                        attributes.value = res.data || [];
-                        getFilterAttrs();
-                    }
-                })
-            } else {
-                // 没找到 加入历史分类记录里面
-                addHistoryCategory({
-                    account: form.shortCode,
-                    secondCategoryId: categoryId,
-                    threeCategoryId: typeId,
-                }).then((res) => {
-                    getHistoryList(form.shortCode, typeId);
-                })
-            }
         })
 };
 
@@ -306,46 +262,61 @@ const handleSelect = (data) => {
 };
 
 const accountName = (account) => {
-    return shopAccount.find(item => item.account === account)?.simpleName
+    return shopAccount.value.find(item => item.account === account)?.simpleName
+};
+
+
+// 店铺列表
+const getAccount = () => {
+    accountCache().then((res) => {
+        if (res.code === 200) {
+            shopAccount.value = res.data || [];
+        }
+    });
 };
 
 
 const open = (data) => {
     isClear.value = false;
-    acceptParams.value = data;
+    // acceptParams.value = data;
     dialogVisible.value = true;
-    ozonRelationDetail({
-        platformName: 'ozon',
-        productCollectId: data.gatherProductId,
+    getAccount();
+    form.shortCode = data.account;
+    console.log('data', data);
+
+    ozonCollectDetail({
+        // "id": data.id // 产品主键ID
+        id: '317d619123724cca80e0e7c69bc60248',
+        // platformName: 'ozon',
+        // productCollectId: data.gatherProductId,
     }).then((res) => {
         if (res.code === 200) {
             relationDetail.value = res.data || {};
 
             if (relationDetail.value) {
                 tableData.value = [{
-                    primaryImage: data.primaryImage,
-                    name: data.name,
+                    primaryImage: relationDetail.value.imageList[0],
+                    name: relationDetail.value.productTitle,
                     category: relationDetail.value.typeId,
-                    gatherPlatformName: data.gatherPlatformName,
+                    gatherPlatformName: relationDetail.value.platform,
                     account: data.account,
                 }];
 
                 form.shortCode = data.account;
                 form.categoryId = relationDetail.value.typeId;
-                getHistoryList(data.account, relationDetail.value.typeId, relationDetail.value.categoryId);
+                getHistoryList(data.account);
             } else {
+                // tableData.value = [{
+                //     primaryImage: data.primaryImage,
+                //     name: data.name,
+                //     category: data.categoryId,
+                //     gatherPlatformName: data.gatherPlatformName,
+                //     account: data.account,
+                // }];
 
-                tableData.value = [{
-                    primaryImage: data.primaryImage,
-                    name: data.name,
-                    category: data.categoryId,
-                    gatherPlatformName: data.gatherPlatformName,
-                    account: data.account,
-                }];
-
-                form.shortCode = data.account;
-                form.categoryId = data.typeId;
-                getHistoryList(data.account, data.typeId, data.categoryId);
+                // form.shortCode = data.account;
+                // form.categoryId = data.typeId;
+                // getHistoryList(data.account, data.typeId, data.categoryId);
             }
         }
     })
