@@ -906,6 +906,7 @@ watch(() => useOzonProductStore().attributes, val => {
         attributeList.value = [];
         tableData.value = [];
         imgHeaderList.value = [];
+        addHeaderList.value = []; //清空自定义变种信息
         headerList.value = [...publishHead] //重新赋值
         let editRes = []
         // 提取变种主题

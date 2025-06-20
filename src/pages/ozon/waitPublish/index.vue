@@ -83,27 +83,27 @@
           <a-space :size="10">
             <a-dropdown :disabled="selectedRowList.length === 0">
               <template #overlay>
-                <a-menu>
-                  <a-menu-item>
+                <a-menu @click="handleMenuClick">
+                  <a-menu-item key="publish">
                     批量发布
                   </a-menu-item>
-                  <a-menu-item>
+                  <!-- <a-menu-item key="deactivate">
                     批量归档
-                  </a-menu-item>
-                  <a-menu-item @click="addRemark()">
+                  </a-menu-item> -->
+                  <a-menu-item key="remark">
                     批量备注
                   </a-menu-item>
-                  <a-menu-item>
+                  <a-menu-item key="delete">
                     批量删除
                   </a-menu-item>
                   <a-menu-divider />
-                  <a-menu-item>
+                  <a-menu-item key="stock">
                     批量修改库存
                   </a-menu-item>
-                  <a-menu-item>
+                  <a-menu-item key="price">
                     批量修改售价
                   </a-menu-item>
-                  <a-menu-item>
+                  <a-menu-item key="oldPrice">
                     批量修改原价
                   </a-menu-item>
 
@@ -125,11 +125,11 @@
             <a-button type="primary" @click="add">创建产品</a-button>
             <a-dropdown>
               <template #overlay>
-                <a-menu>
-                  <a-menu-item>
+                <a-menu @click="handleExport">
+                  <a-menu-item key="page">
                     按页导出
                   </a-menu-item>
-                  <a-menu-item :disabled="selectedRowList.length === 0">
+                  <a-menu-item key="number" :disabled="selectedRowList.length === 0">
                     按勾选导出
                   </a-menu-item>
                 </a-menu>
@@ -142,16 +142,23 @@
           </a-space>
         </div>
       </div>
-      <a-tabs v-model:activeKey="activeName" type="card" style="width: 800px;" @tab-click="handleClick">
-        <a-tab-pane :key="item.name" v-for="item in tabList" :tab="item.label + `(${item.value})`">
-        </a-tab-pane>
-      </a-tabs>
-      <a-table :row-selection="rowSelection" :rowKey="(row) => row" :data-source="tableData" :columns="columns"
+      <div class="flex items-baseline justify-between">
+        <a-tabs v-model:activeKey="activeName" type="card" style="width: 800px;" @tab-click="handleClick">
+          <a-tab-pane :key="item.name" v-for="item in tabList" :tab="item.label + `(${item.value})`">
+          </a-tab-pane>
+        </a-tabs>
+        <a-pagination style="margin: 20px 0 10px 0; text-align: right" :show-total="(total) => `共 ${total} 条`"
+          v-model:current="paginations.pageNum" v-model:pageSize="paginations.pageSize" :total="paginations.total"
+          class="pages" :show-quick-jumper="true" @change="getList" :showSizeChanger="true"
+          :pageSizeOptions="[50, 100, 200]" />
+      </div>
+      <!-- :rowKey="(row) => row" -->
+      <a-table :row-selection="rowSelection" rowKey="waitId" :data-source="tableData" :columns="columns"
         :pagination="false">
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'name'">
             <div class="flex text-left">
-              <a-image :width="100" :src="record?.skuList[0]?.primaryImage &&
+              <a-image style="width: 100px; height: 100px;" :src="record?.skuList[0]?.primaryImage &&
                 record?.skuList[0]?.primaryImage.length > 0
                 ? processImageSource(record?.skuList[0]?.primaryImage[0])
                 : processImageSource(record?.skuList[0]?.images[0])
@@ -166,7 +173,7 @@
                 </div>
                 <br />
                 <div :style="{
-                  color: record.remarkColor ? 'green' : 'red',
+                  color: remarkColor(record.remarkColor),
                   float: 'left',
                 }">
                   备注:{{ record.remark }}
@@ -223,12 +230,12 @@
           </template>
           <template v-if="column.dataIndex === 'createTime'">
             <div class="flex items-start flex-col">
-              <div>
+              <div class="flex items-start flex-col">
                 创建时间：<div style="color: #9e9f9e">{{
                   record.createTime
                 }}</div>
               </div>
-              <div>
+              <div class="flex items-start flex-col">
                 更新时间：<div style="color: #9e9f9e">{{
                   record.updateTime
                 }}</div>
@@ -272,34 +279,41 @@
     <!-- 店铺设置 -->
     <shopSetModal :shopSetVisible="shopSetVisible" :shopCurryList="shopCurryList"
       @handleShopSetClose="shopSetVisible = false" @refreshShopSet="getShopSet"></shopSetModal>
+
+    <!-- 统一修改价格库存等 -->
+    <editPriceModal :selectedRows="selectedRowList" :editPriceVisible="editPriceVisible"
+      @handleEditPriceClose="handleEditPriceClose" :editStockList="editStockList" :defType="defType">
+    </editPriceModal>
   </div>
 </template>
 
-<script setup name="waitPublish">
+<script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from "vue";
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
-import { accountCache, shopCurrency } from "../config/api/product";
+import { accountCache, shopCurrency, productWarehouse } from "../config/api/product";
 import {
   ozonProductList,
   ozonProductDel,
   ozonProductPublish,
-  statistics
+  statistics, waitExport
 } from "../config/api/waitProduct";
 import tableHeard from "../config/tabColumns/waitPublish";
 import editRemark from "./comm/editRemark.vue";
-import { message } from "ant-design-vue";
+import { message, Modal } from "ant-design-vue";
 import dayjs from 'dayjs'
 import { processImageSource } from "~/pages/ozon/config/commJs/index";
 import { SettingOutlined, DownOutlined } from '@ant-design/icons-vue';
 import shopSetModal from "../product/comm/shopSetModal.vue";
-import { tabAllDicList } from "../config/commDic/defDic"
+import { tabAllDicList, colors } from "../config/commDic/defDic"
+import download from "~/api/common/download";
+import editPriceModal from "./comm/editPriceModal.vue";
 
 const formData = reactive({
   offerId: "",
   account: "",
   sku: "",
   name: "",
-  prop: "created_time",
+  prop: "create_time",
   order: "desc",
   state: "",
 });
@@ -311,6 +325,7 @@ const paginations = reactive({
 const shopAccount = ref([]);
 const actives = ref(1);
 const selectedRowList = ref([]);
+const selectedRowKeys = ref([]);
 const tableData = ref([]);
 let columns = tableHeard;
 const deactivateLoading = ref(false);
@@ -319,11 +334,15 @@ const loading = ref(false);
 const remarkVisible = ref(false);
 const shopSetVisible = ref(false)
 const advancedType = ref(false)
+const editPriceVisible = ref(false) //全属性
+const editStockList = ref([])  //修改库存
 const remarkId = ref([]);
 const shopCurryList = ref([])
 const tabList = ref(tabAllDicList)
 const activeName = ref(" ")
 const tabQuantity = ref([])
+const defType = ref([])
+const stockShops = ref([])
 const advancedForm = reactive({
   minPrice: "",
   maxPrice: "",
@@ -346,7 +365,7 @@ const shopObj = {
   fieldLabel: "simpleName",
 };
 const sortObj = reactive({
-  sortField: "created_time",
+  sortField: "create_time",
   sortType: "desc",
 });
 const searchType = [
@@ -361,7 +380,7 @@ const searchType = [
 ];
 const active = ref({
   label: "按创建时间",
-  value: "created_time",
+  value: "create_time",
   type: "top",
   prop: 1,
   isDefault: true,
@@ -369,7 +388,7 @@ const active = ref({
 const strList = ref([
   {
     label: "按创建时间",
-    value: "created_time",
+    value: "create_time",
     type: "top",
     prop: 1,
     isDefault: true,
@@ -397,13 +416,16 @@ const strList = ref([
   },
 ]);
 
-const rowSelection = {
-  onChange: (selectedRow) => {
-    console.log("selectedRow", selectedRow);
+const rowSelection = computed(() => {
+  return {
+    selectedRowKeys: selectedRowKeys.value,
+    onChange: (rowKeys, rows) => {
+      selectedRowKeys.value = rowKeys; //只接收ID
+      selectedRowList.value = rows; //接收每一行
+    }
+  }
+})
 
-    selectedRowList.value = selectedRow;
-  },
-};
 const add = () => {
   window.open("productPublish", "_blank");
 };
@@ -430,6 +452,32 @@ const resetForm = (type = 0) => {
   advancedForm.time = []
   advancedType.value = type == 1 ? false : true
   getList();
+}
+
+
+const remarkColor = (param) => {
+  const findItem = colors.find((item) => {
+    return item.id === param
+  });
+  return findItem ? findItem.color : '#000000';
+}
+
+// 库存
+const getStore = () => {
+  let params = {
+    account: stockShops.value,
+  };
+  productWarehouse(params).then((res) => {
+    editStockList.value =
+      res?.data?.map((item) => {
+        return {
+          account: item.account,
+          simpleName: item.simpleName,
+          children: item.children,
+          allStock: "",
+        };
+      }) ?? [];
+  });
 }
 
 // 店铺单选多选
@@ -502,19 +550,18 @@ const getAccount = () => {
 
 // 单个和批量删除
 const del = (row = {}) => {
-  console.log("row", row);
-
   loading.value = true;
   let waitIds = [];
   if (Object.keys(row).length != 0) {
     waitIds.push(row.waitId);
   } else {
-    waitIds = selectedRowList.value.map((item) => item.waitId);
+    waitIds = selectedRowKeys.value;
   }
   ozonProductDel({ waitIds })
     .then((res) => {
       message.success("操作成功");
       getList();
+      clearSelectList();
     })
     .finally(() => {
       loading.value = false;
@@ -527,15 +574,15 @@ const displayedSkus = (row) => {
 
 // 备注
 const addRemark = (row = {}) => {
-  console.log("row", row);
-
   remarkVisible.value = true;
   if (Object.keys(row).length == 0) {
-    remarkId.value = selectedRowList.value;
+    const matchSet = new Set(selectedRowKeys.value);
+    remarkId.value = tableData.value.filter(item => matchSet.has(item.waitId))
+      .map(({ waitId, account }) => ({ waitId, account }))
   } else {
     let remarkObj = {
       account: row.account,
-      waitIds: [row.waitId],
+      waitId: row.waitId,
     };
     remarkId.value.push(remarkObj);
   }
@@ -544,10 +591,11 @@ const addRemark = (row = {}) => {
 // 备注弹窗关闭
 const backCloseRemark = () => {
   remarkVisible.value = false;
-  selectedRowList.value = [];
   remarkId.value = [];
+  clearSelectList();
   getList();
 };
+
 const edit = (row = {}) => {
   let newRow = Object.keys(row).length != 0 ? row : selectedRowList.value[0];
   console.log("newRow", newRow);
@@ -556,6 +604,97 @@ const edit = (row = {}) => {
     "_blank"
   );
 };
+
+// 批量操作
+const handleMenuClick = (e) => {
+  console.log('e', e);
+  if (e.key == "remark") {
+    addRemark();
+  } else if(e.key === "publish") {
+    Modal.confirm({
+      title: '是否批量发布？',
+      onOk: () => {
+        // del();
+      },
+      onCancel: () => {
+        clearSelectList();
+      }
+    })
+  }
+  // else if(e.key === "deactivate") {
+  //   Modal.confirm({
+  //     title: '是否批量归档？',
+  //     onOk: () => {
+  //       // del();
+  //     },
+  //     onCancel: () => {
+  //       clearSelectList();
+  //     }
+  //   })
+  // }
+  else if (e.key == "delete") {
+    Modal.confirm({
+      title: '确定在待发布删除吗？',
+      onOk: () => {
+        del();
+      },
+      onCancel: () => {
+        clearSelectList();
+      }
+    })
+  } else {
+    defType.value = e.keyPath
+    editPriceVisible.value = true;
+    stockShops.value = selectedRowList.value.map((e) => e.account);
+    getStore();
+  }
+
+}
+
+// 关闭价格
+const handleEditPriceClose = () => {
+  // selectOzonId.value = [];
+  clearSelectList();
+  editPriceVisible.value = false;
+  getList();
+  editStockList.value = clearStock(editStockList.value)
+}
+
+function clearStock(data) {
+  if (Array.isArray(data)) {
+    data.forEach(item => {
+      if (item.children) {
+        clearStock(item.children);
+      }
+      if (item.hasOwnProperty('stock')) {
+        item.stock = null;
+      }
+    });
+  }
+  return data;
+}
+
+// 导出
+const handleExport = (e) => {
+  let waitIds = []
+  if (e.key == 'page') {
+    waitIds = tableData.value.map((e) => e.waitId);
+  } else {
+    waitIds = selectedRowKeys.value;
+  }
+  console.log(waitIds, "11");
+  waitExport({ waitIds }).then(res => {
+    download.name(res.msg);
+    message.success("下载任务已开始！请耐心等待完成");
+    clearSelectList();
+  })
+}
+
+const clearSelectList = () => {
+  selectedRowList.value = [];
+  selectedRowKeys.value = [];
+}
+ 
 const getList = () => {
   if (advancedForm.minPrice > advancedForm.maxPrice) {
     message.error("最大售价必须大于最小售价！");
@@ -597,19 +736,20 @@ const getList = () => {
 
 // tabs的商品统计条数赋值
 watch(tabQuantity, (newValue, oldValue) => {
-    if (newValue.length === 0) {
-        tabList.value = [...tabAllDicList];
-    } else {
-        tabList.value = tabAllDicList.map(item => {
-            const match = newValue.find(q => q.state === item.code);
-            return {
-                ...item,
-                value: match ? match.count.toString() : "0"
-            };
-        });
-    }
+  if (newValue.length === 0) {
+    tabList.value = [...tabAllDicList];
+  } else {
+    tabList.value = tabAllDicList.map(item => {
+      const match = newValue.find(q => q.state === item.code);
+      return {
+        ...item,
+        value: match ? match.count.toString() : "0"
+      };
+    });
+  }
 })
 
+// 单个发布
 const publish = (row = {}) => {
   let params = {
     account: row.account,

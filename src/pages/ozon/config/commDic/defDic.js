@@ -495,6 +495,14 @@ const tabAllDicList = [
     value: "0",
     prop: 4,
   }
+  // ,
+  // {
+  //   label: "已归档",
+  //   name: "publish_failed",
+  //   code: "publish_failed",
+  //   value: "0",
+  //   prop: 5,
+  // }
 ]
 export { orderStatus, storeStatus, tradStatus, tabDicList, 
   attrList,productBatchPrice,dataMove,dataGathe, colors, tabAllDicList }
