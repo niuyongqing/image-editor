@@ -1,8 +1,7 @@
 <template>
-  <div id="urlAcquisition" class="urlAcquisition">
-
-    <a-card title="采集地址--单品采集" class="text-left my-2.5">
-      <!-- <a-textarea v-model:value="dataUrl.url" placeholder="请填写产品的网址,多个网址用Enter换行" :auto-size="{ minRows: 7 }" />
+<div id="urlAcquisition" class="urlAcquisition text-left">
+  <a-card title="采集地址--单品采集" class="text-left my-2.5">
+    <!-- <a-textarea v-model:value="dataUrl.url" placeholder="请填写产品的网址,多个网址用Enter换行" :auto-size="{ minRows: 7 }" />
     <div class="flex mt-2.5 justify-between">
       <div>
         <span style="color: #999;">您还未安装采集插件，建议使用</span>
@@ -96,7 +95,7 @@
   <a-card>
     <div class="flex my-2.5">
       <a-space>
-        <a-button type="primary">批量认领</a-button>
+        <a-button @click="claim('acquisition')" type="primary">批量认领</a-button>
         <a-dropdown :trigger="['click']">
           <a-button type="primary" @click.prevent>
             批量操作
@@ -235,9 +234,6 @@ import { acquisitionHeader } from '../js/header';
 import { timestampToDateTime } from '~@/pages/lazada/fullyProduct/common';
 import dayjs from 'dayjs';
 import { message, Modal } from 'ant-design-vue';
-import ClaimModal from './ClaimModal.vue'
-import EditCategoryModal from './editCategoryModal.vue';
-
 defineOptions({ name: "urlAcquisition" })
 const { proxy: _this } = getCurrentInstance()
 
@@ -325,8 +321,7 @@ const formBtnInfo = {
     }
   ]
 }
-const editCategoryModalRef = ref(null);
-const rowId = ref('');
+
 const activeName = ref(2)
 const actives = ref(1)
 const formData = reactive({
@@ -337,8 +332,8 @@ const formData = reactive({
   isRemark: "",
   time: "",
   searchTime: [],
-  collectTimeStart: null,
-  collectTimeEnd: null,
+  collectTimeStart: null, 
+  collectTimeEnd: null, 
 })
 const formParams = reactive({
   platform: '',
@@ -348,8 +343,8 @@ const formParams = reactive({
   isRemark: "",
   time: "",
   searchTime: [],
-  collectTimeStart: null,
-  collectTimeEnd: null,
+  collectTimeStart: null, 
+  collectTimeEnd: null, 
 })
 const tableInfo = reactive({
   data: [],
@@ -542,7 +537,7 @@ function dropdownClick(key, selectedRow) {
         onOk() {
           deleteProductFn(selectedRow)
         },
-        onCancel() { }
+        onCancel() {}
       })
       break;
     default:
@@ -587,38 +582,26 @@ function getSimpleName(account) {
   return formBtnInfo.shopAccount.find(i => i.account === account)?.simpleName ?? ''
 }
 
+const handleOk = () => {  }
 
-const handleOk = () => { }
 /** 认领 */
 const openClaimModal = ref(false)
 const claimType = ref('acquisition')
+
 /** 
  * 打开认领弹窗
  * @param {string} type acquisition - 采集箱; draft - 待发布;
  * @returns {void}
  */
-function claim(type = 'acquisition', record) {
-  rowId.value = record.id
+function claim(type = 'acquisition') {
   claimType.value = type
   openClaimModal.value = true
 }
-/** 
- * 打开编辑采集箱弹窗
- * @returns {void}
- */
-function showEditCategoryModal(checkList) {
-  editCategoryModalRef.value.open({
-    account: checkList[0].shopId,
-    id: rowId.value,
-  })
-}
-
 </script>
 <style lang="less" scoped>
 .option-btn-box {
   display: flex;
   flex-direction: column;
-
   .option-btn {
     cursor: pointer;
     color: #428bca;
