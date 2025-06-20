@@ -1,6 +1,7 @@
 <template>
-<div id="urlAcquisition" class="urlAcquisition">
-  
+<div id="urlAcquisition" class="urlAcquisition text-left">
+  <!-- FIXME: 测试用, 后期删 -->
+  <a-button type="primary" @click="claim('acquisition')">采集</a-button>
   <a-card title="采集地址--单品采集" class="text-left my-2.5">
     <!-- <a-textarea v-model:value="dataUrl.url" placeholder="请填写产品的网址,多个网址用Enter换行" :auto-size="{ minRows: 7 }" />
     <div class="flex mt-2.5 justify-between">
@@ -163,12 +164,16 @@
       @change="pageChange"
     />
   </a-card>
+
+  <!-- 认领弹窗 -->
+  <ClaimModal v-model:open="openClaimModal" :claim-type="claimType" />
 </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue';
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
+import ClaimModal from './ClaimModal.vue'
 // import { dataGathe } from "../../../ozon/config/commDic/defDic"
 import { collectProductList } from '../js/api';
 import { acquisitionHeader } from '../js/header';
@@ -433,6 +438,20 @@ function getSimpleName(account) {
 }
 
 const handleOk = () => { }
+
+  /** 认领 */
+  const openClaimModal = ref(false)
+  const claimType = ref('acquisition')
+
+  /** 
+   * 打开认领弹窗
+   * @param {string} type acquisition - 采集箱; draft - 待发布;
+   * @returns {void}
+   */
+  function claim(type = 'acquisition') {
+    claimType.value = type
+    openClaimModal.value = true
+  }
 </script>
 <style lang="less" scoped>
 

@@ -53,7 +53,7 @@ export function ozonProductDetail(data) {
 // 待发布--发布
 export function ozonProductPublish(data) {
   return request({
-    url: "/platform-ozon/platform/ozon/wait/product/publish",
+    url: "/platform-ozon/platform/ozon/wait/product/batch/publish",
     method: "post",
     data: data,
   });

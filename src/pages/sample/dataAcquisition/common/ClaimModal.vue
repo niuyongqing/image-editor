@@ -20,6 +20,8 @@
         ></a-tab-pane>
       </a-tabs>
     </div>
+    <!-- FIXME: del -->
+    <a-tag color="warning" class="mb-2">TIPS: 目前只支持单选; 多选开发中...</a-tag>
     <div class="flex h-120">
       <!-- LEFT -->
       <a-card class="flex-[3] mr-4 overflow-auto">
@@ -33,6 +35,7 @@
             <a-checkbox
               v-model:checked="item.checkAll"
               :indeterminate="item.indeterminate"
+              disabled
               @change="e => onCheckAllChange(e, item)"
             >
               全选
@@ -41,6 +44,7 @@
           <div>
             <a-checkbox-group
               v-model:value="item.innerCheckedList"
+              :disabled="checkedList.length > 0"
               @change="checkedValue => checkboxChange(checkedValue, item)"
             >
               <a-checkbox
@@ -188,6 +192,7 @@
   /** 弹窗 footer */
   function handleCancel() {
     activeKey.value = '全部'
+    reset()
     emit('update:open', false)
   }
 
@@ -197,7 +202,7 @@
     } else {
       // 待发布
     }
-    
+
     handleCancel()
   }
 </script>
