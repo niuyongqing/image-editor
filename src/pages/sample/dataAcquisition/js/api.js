@@ -25,3 +25,38 @@ export function collectProductList(data) {
     data: data
   })
 }
+/**
+ * // 产品信息列表统计接口
+ * @param {*} data 
+ * @returns 
+ */
+export function productStatCount(data) {
+  return request({
+    url: '/platform-common/platform/common/collect/product/stat',
+    method: 'get',
+  })
+}
+/**
+ * // 添加备注
+ * @param {*} data 
+ * @returns 
+ */
+export function addRemark(data) {
+  return request({
+    url: '/platform-common/remote/platform/common/collect/product/addRemark',
+    method: 'post',
+    data: data
+  })
+}
+/**
+ * // 删除商品
+ * @param {*} data 
+ * @returns 
+ */
+export function deleteProduct(data) {
+  return request({
+    url: '/platform-common/platform/common/collect/product/delete',
+    method: 'post',
+    data: data
+  })
+}
