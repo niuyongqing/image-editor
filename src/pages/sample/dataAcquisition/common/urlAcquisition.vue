@@ -80,7 +80,12 @@
           />
         </a-form-item>
         <a-form-item label="备注：" v-show="isShowSearch">
-          <a-select v-model:value="formData.isRemark" class="ml-2.5" style="width: 150px">
+          <a-select 
+            v-model:value="formData.isRemark" 
+            class="ml-2.5" 
+            style="width: 150px"
+            @select="isRemarkSelect"
+          >
             <a-select-option value="1">有备注</a-select-option>
             <a-select-option value="0">无备注</a-select-option>
           </a-select>
@@ -90,12 +95,30 @@
   </a-card>
   <a-card>
     <div class="flex my-2.5">
-      <a-button type="primary">批量认领</a-button>
+      <a-space>
+        <a-button type="primary">批量认领</a-button>
+        <a-dropdown :trigger="['click']">
+          <a-button type="primary" @click.prevent>
+            批量操作
+            <AsyncIcon icon="DownOutlined" class="ml-2.5" />
+          </a-button>
+          <template #overlay>
+            <a-menu @click="dropdownClick">
+              <a-menu-item key="remarkModal">批量备注</a-menu-item>
+              <a-menu-item key="2">批量删除</a-menu-item>
+            </a-menu>
+          </template>
+        </a-dropdown>
+      </a-space>
     </div>
-    <a-tabs v-model:activeKey="activeName" style="width: 800px;">
+    <a-tabs 
+      v-model:activeKey="activeName" 
+      style="width: 800px;"
+      @change="tabsChange"
+    >
       <a-tab-pane :key="item.prop" v-for="item in formBtnInfo.tabList">
         <template #tab>
-          {{ item.label + `(${item.value})` }}
+          {{ item.label + `(${item.prop === activeName ? tableInfo.total : 0})` }}
           <a-tooltip :overlayInnerStyle="{ width: '300px' }" color="#fff" placement="right">
             <template #title>
               <span class=" text-black">通用采集箱超过180天的采集数据将会被删除，请及时认领
@@ -120,7 +143,7 @@
       <template #bodyCell="{ column, record }">
         <template v-if="column.dataIndex == 'imageList'">
           <div style="display: flex; flex-direction: column; align-items: center;">
-            <a-image :width="100" :src="record.imageList[0]" />
+            <a-image :width="60" :src="record.imageList[0]" />
             <a-button @click="openUrl(record.originUrl)" type="link">{{ getSimpleName(record.platform) }}</a-button>
           </div>
         </template>
@@ -163,12 +186,18 @@
       @change="pageChange"
     />
   </a-card>
+  <component 
+    :is="modalInfo.name" 
+    v-model:modalOpen="modalInfo.open"
+    :modalData="modalInfo.data"
+  ></component>
 </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue';
+import { ref, reactive, onMounted, computed, watchPostEffect, markRaw } from 'vue';
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
+import remarkModal from './modal/remarkModal.vue';
 // import { dataGathe } from "../../../ozon/config/commDic/defDic"
 import { collectProductList } from '../js/api';
 import { acquisitionHeader } from '../js/header';
@@ -182,19 +211,19 @@ const formBtnInfo = {
     {
       label: "全部",
       code: "all",
-      value: "0",
+      value: 0,
       prop: 1,
     },
     {
       label: "未认领",
       code: "insale",
-      value: "0",
+      value: 0,
       prop: 2,
     },
     {
       label: "已认领",
       code: "inreview",
-      value: "0",
+      value: 0,
       prop: 3,
     },
   ],
@@ -266,6 +295,7 @@ const activeName = ref(2)
 const actives = ref(1)
 const formData = reactive({
   platform: '',
+  status: 0,
   url: "",
   name: "",
   isRemark: "",
@@ -276,6 +306,7 @@ const formData = reactive({
 })
 const formParams = reactive({
   platform: '',
+  status: 0,
   url: "",
   name: "",
   isRemark: "",
@@ -289,6 +320,16 @@ const tableInfo = reactive({
   total: 0,
 
   selectedRowKeys: [],
+})
+const modalInfo = reactive({
+  open: false,
+  name: null,
+  components: {
+    remarkModal: markRaw(remarkModal)
+  },
+  data: {
+    selectedRow: []
+  }
 })
 const pages = reactive({
   pageNum: 1,
@@ -318,19 +359,20 @@ onMounted(() => {
 // 获取数据列表
 async function getList() {
   let params = {
-    "platform": formData.platform, //平台名称
+    "platform": formParams.platform, //平台名称
+    "status": formParams.status,      // 状态
     "productTitle": formData.name, // 产品标题
-    "originUrl": formData.url, // 来源URL
-    "collectTimeStart": formData.collectTimeStart, // 采集时间-开始
-    "collectTimeEnd": formData.collectTimeEnd, // 采集时间-结束
-    "isRemark": formData.isRemark, // 有无备注   1:有备注  0:无备注
+    "originUrl": formParams.url, // 来源URL
+    "collectTimeStart": formParams.collectTimeStart, // 采集时间-开始
+    "collectTimeEnd": formParams.collectTimeEnd, // 采集时间-结束
+    "isRemark": formParams.isRemark, // 有无备注   1:有备注  0:无备注
     // "order": "DESC", // 排序规则   ASC；正序，DESC；倒序
     // "prop": "create_time", // 排序字段   create_time ...
     "pageNum": pages.pageNum, // 分页参数
     "pageSize": pages.pageSize // 每页数量
   }
   let res = await collectProductList(params)
-  console.log({ res });
+  // console.log({ res });
   res.data.forEach(item => {
     item.simpleDescTips = JSON.parse(item.simpleDesc)
   })
@@ -343,21 +385,23 @@ const clearArea = () => {
 
 // 店铺单选多选
 const selectAll = () => {
-  formData.account = ""
-
+  formData.platform = ""
+  onSubmit()
 }
 const selectItem = (val) => {
-  formData.account = val
-
+  formData.platform = val
+  onSubmit()
 }
-const displayedSkus = (record) => {
-  return record.SKUExpand ? record.aeopAeProductSKUs : record.aeopAeProductSKUs.slice(0, 3)
+function isRemarkSelect(val) {
+  // console.log(val, formData.isRemark);
+  formData.isRemark = val
+  onSubmit()
 }
-
 // 采集时间
 const selectTimeAll = () => {
   formData.collectTimeStart = null
   formData.collectTimeEnd = null
+  onSubmit()
   // timestampToDateTime()
 }
 const selectTimeItem = (val) => {
@@ -366,17 +410,17 @@ const selectTimeItem = (val) => {
   let start = ''
   switch (val) {
     case 1:
-      start = dayjs().add((0 - val), 'day').format('YYYY-MM-DD') + '00:00:00'
-      end = dayjs().add((0 - val), 'day').format('YYYY-MM-DD') + '23:59:59'
+      start = dayjs().add((0 - val), 'day').format('YYYY-MM-DD')  + ' ' + '00:00:00'
+      end = dayjs().add((0 - val), 'day').format('YYYY-MM-DD')  + ' ' + '23:59:59'
       break;
     case 0:
-      start = dayjs().format('YYYY-MM-DD') + '00:00:00'
-      end = dayjs().format('YYYY-MM-DD') + '23:59:59'
+      start = dayjs().format('YYYY-MM-DD')  + ' ' + '00:00:00'
+      end = dayjs().format('YYYY-MM-DD')  + ' ' + '23:59:59'
       break;
     case 7:
     case 30:
-      start = dayjs().add((0 - val), 'day').format('YYYY-MM-DD') + '00:00:00'
-      end = dayjs().format('YYYY-MM-DD') + '23:59:59'
+      start = dayjs().add((0 - val), 'day').format('YYYY-MM-DD')  + ' ' + '00:00:00'
+      end = dayjs().format('YYYY-MM-DD')  + ' ' + '23:59:59'
       break;
     default:
       break;
@@ -387,8 +431,8 @@ const selectTimeItem = (val) => {
 }
 function pickerChange(val) {
   // console.log({val});
-  formData.collectTimeStart = val[0] + '00:00:00'
-  formData.collectTimeEnd = val[1] + '23:59:59'
+  formData.collectTimeStart = val[0] + ' ' + '00:00:00'
+  formData.collectTimeEnd = val[1] + ' ' + '23:59:59'
   onSubmit()
 }
 // 搜索内容
@@ -409,13 +453,46 @@ const selectTypes = (index) => {
 // 表单搜索
 function onSubmit() {
   Object.keys(formParams).forEach(key => {
+    console.log({key});
+    
     formParams[key] = formData[key]
   })
   pageChange(1)
 }
+function tabsChange(activeKey) {
+  console.log(activeKey);
+  switch (activeKey) {
+    case 1:
+      formData.status = null;
+      break;
+    case 2:
+      formData.status = 0;
+      break;
+    case 3:
+      formData.status = 1;
+      break;
+    default:
+      console.log(11);
+      
+      break;
+  }
+  onSubmit()
+}
 function pageChange(val) {
   pages.pageNum = val
   getList()
+}
+// 下拉菜单选项
+function dropdownClick({ key }) {
+  let selectedRow = [...tableInfo.selectedRowKeys];
+  openModal(key, selectedRow);
+}
+function openModal(key, rowList) {
+  modalInfo.name = modalInfo.components[key];
+  modalInfo.data.selectedRow = rowList;
+  nextTick(() => {
+    modalInfo.open = !modalInfo.open;
+  })
 }
 // 表格复选框
 const rowSelection = {
