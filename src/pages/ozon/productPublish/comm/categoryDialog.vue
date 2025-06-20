@@ -3,18 +3,18 @@
     <a-modal title="选择类目" :open="selectVisible" :maskClosable="false" @cancel="handleClose" :width="'53%'"
       :keyboard="false" class="cascaderModal" :footer="null">
       <div class="flex">
-        <div class="mt-5" style="margin-bottom: 30%;width: 90%;">
+        <div class="mt-5" style="margin-bottom: 30%;width: 80%;">
           <!-- @change="getAttributes" filterable -->
-          <a-cascader style="width: 80%; margin-bottom: 5px" clearable v-model:value="attributesValue"
+          <a-cascader style="width: 100%; margin-bottom: 5px" clearable v-model:value="attributesValue"
             :options="categoryTreeList" ref="cascaderNode" showSearch @change="getAttributes" :fieldNames="{
               value: 'descriptionCategoryId',
               label: 'categoryName',
               children: 'children',
             }" :open="setOpen" popupClassName="popupCascaderModal"></a-cascader>
         </div>
-        <div class="mt-5">
+        <div class="mt-5 ml-2.5">
           <a-button @click="handleClose">取 消</a-button>
-          <a-button class="ml-5" type="primary" @click="submit">确定</a-button>
+          <a-button class="ml-2.5" type="primary" @click="submit">确定</a-button>
         </div>
       </div>
       <!-- <template #footer>

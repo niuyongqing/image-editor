@@ -95,22 +95,37 @@
                         <a-dropdown :disabled="selectedRows.length === 0">
                             <template #overlay>
                                 <a-menu @click="handleMenuClick">
-                                    <a-menu-item key="title">
+                                    <a-menu-item key="deactivate" v-if="activeName !== '已归档'">
+                                        批量归档
+                                    </a-menu-item>
+                                    <a-menu-item key="remark">
+                                        批量备注
+                                    </a-menu-item>
+                                    <a-menu-item key="delete">
+                                        批量删除
+                                    </a-menu-item>
+
+                                    <a-menu-divider />
+
+                                    <!-- <a-menu-item key="title">
                                         批量修改标题
                                     </a-menu-item>
                                     <a-menu-item key="vat">
                                         批量修改税额
-                                    </a-menu-item>
-                                    <a-menu-item key="stock">
-                                        批量修改库存
-                                    </a-menu-item>
+                                    </a-menu-item> -->
                                     <a-menu-item key="price">
                                         批量修改售价
                                     </a-menu-item>
                                     <a-menu-item key="oldPrice">
                                         批量修改原价
                                     </a-menu-item>
-                                    <a-menu-item key="minPrice">
+                                    <a-menu-item key="stock">
+                                        批量修改库存
+                                    </a-menu-item>
+                                    <a-menu-item key="all">
+                                        全属性修改
+                                    </a-menu-item>
+                                    <!-- <a-menu-item key="minPrice">
                                         批量修改最低价
                                     </a-menu-item>
                                     <a-menu-item key="weight">
@@ -118,7 +133,7 @@
                                     </a-menu-item>
                                     <a-menu-item key="size">
                                         批量修改尺寸
-                                    </a-menu-item>
+                                    </a-menu-item> -->
                                 </a-menu>
                             </template>
                             <a-button>
@@ -126,10 +141,10 @@
                             </a-button>
                         </a-dropdown>
                     </a-col>
-                    <a-col :span="1.5">
+                    <!-- <a-col :span="1.5">
                         <a-button type="primary" @click="addRemark()"
                             :disabled="selectedRows.length === 0">批量修改备注</a-button>
-                    </a-col>
+                    </a-col> -->
                     <a-col :span="1.5">
                         <a-button type="primary" @click="edit()" :disabled="selectedRows.length !== 1">编 辑</a-button>
                     </a-col>
@@ -144,21 +159,21 @@
                         <a-button type="primary" @click="syncOne()" :disabled="selectedRows.length === 0"
                             :loading="syncLoading">同步当前商品</a-button>
                     </a-col>
-                    <a-col :span="1.5">
+                    <!-- <a-col :span="1.5">
                         <a-popconfirm title="确定下架吗？" @confirm="deactivate()">
                             <a-button type="primary" :disabled="selectedRows.length === 0"
                                 :loading="deactivateLoading">批量归档</a-button>
                         </a-popconfirm>
-                    </a-col>
+                    </a-col> -->
                     <a-col :span="1.5">
                         <a-button type="primary" @click="syncHisAttr()" :loading="syncLoading">同步历史分类</a-button>
                     </a-col>
-                    <a-col :span="1.5">
+                    <!-- <a-col :span="1.5">
                         <a-popconfirm title="删除代表该产品在ozon平台删除，确定删除吗？" @confirm="deleteItem()">
                             <a-button type="primary" danger :disabled="selectedRows.length === 0"
                                 :loading="delLoading">删 除</a-button>
                         </a-popconfirm>
-                    </a-col>
+                    </a-col> -->
                     <a-col :span="1.5">
                         <a-button type="primary" @click="shopSet">
                             <AsyncIcon icon="SettingOutlined" />
@@ -233,7 +248,7 @@
                                         <br />
 
                                         <div :style="{
-                                            color: record.remarkColor ? 'green' : 'red',
+                                            color: remarkColor(record.remarkColor),
                                             float: 'left',
                                         }">
                                             备注:{{ record.remark }}
@@ -272,7 +287,7 @@
                                     <div>
                                         促销活动价：<span style="color: #1677ff">{{
                                             record.marketingPrice || "暂未参加活动"
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                     <div>
                                         <div style="display: flex">
@@ -308,7 +323,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[0].score
-                                                                        }}分</span>
+                                                                    }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -351,7 +366,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[1].score
-                                                                        }}分</span>
+                                                                    }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -394,7 +409,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[2].score
-                                                                        }}分</span>
+                                                                    }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -437,7 +452,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[3].score
-                                                                        }}分</span>
+                                                                    }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -454,7 +469,7 @@
                                                     </template>
                                                     <span style="margin-left: 10px;color: #1677ff;cursor: pointer;">{{
                                                         record.productsScore[0].rating
-                                                        }}分</span>
+                                                    }}分</span>
                                                 </a-popover>
                                             </div>
                                             <span v-else class="ml-2.5">{{ 0.0 }}分</span>
@@ -523,7 +538,7 @@
                                 </a-tooltip>
                                 <span v-else style="color: #1677ff; margin-right: 10px">{{
                                     record.stock
-                                }}</span>
+                                    }}</span>
                                 <AsyncIcon style="cursor: pointer; color: #1677ff" icon="EditOutlined" v-if="
                                     record.state != '审核不通过' && record.state != '已归档'
                                 " @click="editStock(record)"></AsyncIcon>
@@ -553,12 +568,12 @@
                                 <div>
                                     创建时间：<span style="color: #9e9f9e">{{
                                         timestampToDateTime(record.createdTime)
-                                        }}</span>
+                                    }}</span>
                                 </div>
                                 <div>
                                     更新时间：<span style="color: #9e9f9e">{{
                                         timestampToDateTime(record.updatedTime)
-                                        }}</span>
+                                    }}</span>
                                 </div>
                             </div>
                             <div v-else-if="column.dataIndex === 'option'">
@@ -591,10 +606,11 @@
                                                     </a-menu-item>
                                                     <a-popconfirm ok-text="YES" cancel-text="NO"
                                                         title="删除代表该产品在ozon平台删除，确定删除吗？" @confirm="deleteItem(record)">
-                                                        <a-menu-item type="text" v-if="
-                                                            record.sku === 'sku未创建' && record.state === '已归档'
-                                                        " style="color: red">删除</a-menu-item>
+                                                        <a-menu-item type="text" style="color: red">删除</a-menu-item>
                                                     </a-popconfirm>
+                                                    <!-- v-if="
+                                                            record.sku === 'sku未创建' && record.state === '已归档'
+                                                        " -->
                                                 </a-menu>
                                             </template>
                                         </a-dropdown>
@@ -673,9 +689,9 @@ import {
 } from '../config/api/product';
 import { warehouseList } from "../config/api/storeManagement"
 import { shopCurrency } from "../config/api/product"
-import { tabDicList, attrList } from "../config/commDic/defDic"
+import { tabDicList, attrList, colors } from "../config/commDic/defDic"
 import tableHead from "../config/tabColumns/product"
-import { message } from "ant-design-vue";
+import { message, Modal } from "ant-design-vue";
 import editRemark from "./comm/editRemark.vue";
 import editPriceModal from "./comm/editPriceModal.vue";
 import editQuantity from "./comm/editQuantity.vue";
@@ -876,6 +892,14 @@ const backToTop = () => {
         });
     }
 }
+
+const remarkColor = (param) => {
+    const findItem = colors.find((item) => {
+        return item.id === param
+    });
+    return findItem ? findItem.color : '#000000';
+}
+
 // 搜索内容
 const selectTypes = (index) => {
     actives.value = index;
@@ -1096,19 +1120,48 @@ const getEditStore = (account) => {
 // 批量修改库存、重量、尺寸等
 const handleMenuClick = (e) => {
     console.log('e', e);
-    defType.value = e.keyPath
-    editPriceVisible.value = true;
-    // selectOzonId.value = syncOneList.value;
-    // console.log('selectedRows',selectedRows.value);
+    if (e.key === 'remark') {
+        addRemark();
+    } else if (e.key === "delete") {
+        Modal.confirm({
+            title: '删除',
+            content: "请确认是否删除(此删除仅代表在erp上删除)？",
+            onOk: () => {
+                deleteItem();
+                setUncheck();
+            },
+            onCancel: () => {
+                setUncheck();
+            }
+        })
+    } else if (e.key === "deactivate") {
+        Modal.confirm({
+            title: '移入归档',
+            content: "请确认是否将产品移入已归档？",
+            onOk: () => {
+                deactivate();
+                setUncheck();
+            },
+            onCancel: () => {
+                setUncheck();
+            }
+        })
 
-    for (let i = 0; i < selectedRows.value.length; i++) {
-        if (selectedRows.value[i].state == "已归档") {
-            message.error("归档商品不可修改库存，请取消！");
-            return;
+    } else {
+        defType.value = e.keyPath
+        editPriceVisible.value = true;
+        // selectOzonId.value = syncOneList.value;
+        // console.log('selectedRows',selectedRows.value);
+
+        for (let i = 0; i < selectedRows.value.length; i++) {
+            if (selectedRows.value[i].state == "已归档") {
+                message.error("归档商品不可修改库存，请取消！");
+                return;
+            }
         }
+        stockShops.value = syncOneList.value.map((e) => e.account);
+        getStore();
     }
-    stockShops.value = syncOneList.value.map((e) => e.account);
-    getStore();
 
 }
 
@@ -1247,7 +1300,7 @@ const backCloseRemark = () => {
     syncOneList.value = [];
     allChecked.value = false
     getList();
-    // setUncheck()
+    setUncheck()
 }
 
 const handleCopyProductClose = () => {
@@ -1372,33 +1425,10 @@ const sync = () => {
         syncShopProduct({ account: formData.account })
             .then((res) => {
                 message.success("同步成功！");
-                // percentage.value = 100;
-                // interval.value = setInterval(() => {
-                //     asyncProgress(res.msg).then(res => {
-                //         percentage.value = parseInt(res.data);
-                //         if (res.data >= 100) {
-                //             clearInterval(interval.value)
-
-                //             syncLoading.value = false;
-                //             showOpen.value = false;
-                //             getList();
-                //             setTimeout(() => {
-                //                 percentage.value = 0;
-                //             }, 300);
-                //         }
-                //     })
-                // }, 5000);
             })
-            // .catch(() => {
-            //     percentage.value = 0;
-            // })
             .finally(() => {
                 syncLoading.value = false;
-                // showOpen.value = false;
                 getList();
-                // setTimeout(() => {
-                //     percentage.value = 0;
-                // }, 300);
             });
     }
 }

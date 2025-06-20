@@ -85,3 +85,22 @@ export function statistics(data) {
     data:data
   })
 }
+
+
+// 待发布导出
+export function waitExport(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/wait/product/export',
+    method: 'post',
+    data:data
+  })
+}
+
+// 批量修改售价、原价等
+export function waitBathUpdate(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/wait/product/bath/update',
+    method: 'post',
+    data:data
+  })
+}
