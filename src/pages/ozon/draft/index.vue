@@ -500,7 +500,6 @@ const getAccount = () => {
 
 
 const displayedSkus = (row) => {
-    0
     return row.show ? row?.skuList : row?.skuList?.slice(0, 3);
 };
 

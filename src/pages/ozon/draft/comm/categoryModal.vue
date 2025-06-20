@@ -35,7 +35,7 @@
                                         @click="selectFirstItem(item)">
                                         <div flex>
                                             <div w-250px overflow-hidden text-ellipsis whitespace-nowrap> {{ item.label
-                                            }}
+                                                }}
                                             </div>
                                             <div>
                                                 <RightOutlined />
@@ -245,11 +245,8 @@ function getCategoryTree() {
     }).then(res => {
         treeData.value = res.data || [];
         const path = findPathById(thirdState.selectKeys[0], treeData.value);
-        selectItem.value = {
-            label: path.labels.join(' / '),
-            value: thirdState.selectKeys[0],
-            ids: path.ids
-        };
+
+
 
         firstState.options = treeData.value.map((item) => {
             return {
@@ -272,18 +269,31 @@ function getCategoryTree() {
                 value: item.descriptionCategoryId,
             }
         });
-        firstState.open = true;
-        secondState.open = true;
-        thirdState.open = true;
-        firstState.selectKeys = [path.ids[0]];
-        secondState.selectKeys = [path.ids[1]];
-        thirdState.selectKeys = [path.ids[2]];
-        firstState.selectValue = firstState.options.find((item) => item.value === path.ids[0]);
-        secondState.selectValue = secondState.options.find((item) => item.value === path.ids[1]);
-        thirdState.selectValue = thirdState.options.find((item) => item.value === path.ids[2]);
-        copyFirstOpts.value = cloneDeep(firstState.options);
-        copySecondOpts.value = cloneDeep(secondState.options);
-        copyThirdOpts.value = cloneDeep(thirdState.options);
+
+        if (path) {
+            selectItem.value = {
+                label: path.labels.join(' / '),
+                value: thirdState.selectKeys[0],
+                ids: path.ids
+            };
+
+            firstState.selectKeys = [path.ids[0]];
+            secondState.selectKeys = [path.ids[1]];
+            thirdState.selectKeys = [path.ids[2]];
+
+            firstState.selectValue = firstState.options.find((item) => item.value === path.ids[0]);
+            secondState.selectValue = secondState.options.find((item) => item.value === path.ids[1]);
+            thirdState.selectValue = thirdState.options.find((item) => item.value === path.ids[2]);
+            copyFirstOpts.value = cloneDeep(firstState.options);
+            copySecondOpts.value = cloneDeep(secondState.options);
+            copyThirdOpts.value = cloneDeep(thirdState.options);
+            firstState.open = true;
+            secondState.open = true;
+            thirdState.open = true;
+        } else {
+            firstState.open = true;
+            secondState.open = true;
+        }
     })
 };
 
@@ -293,7 +303,6 @@ const handleSave = () => {
         return
     }
     openSelect.value = false;
-
     const path = findPathById(thirdState.selectValue.typeId, treeData.value);
     emits('select', {
         "label": path.labels,
@@ -304,7 +313,13 @@ const handleSave = () => {
 };
 const selectMenu = (item) => {
     selectItem.value = item;
-    emits('select', item)
+    console.log('item', item);
+    // emits('select', item)
+    emits('select', {
+        "label": item.label.split(' / '),
+        "value": item.value,
+        "ids": item.ids
+    })
     openSelect.value = false;
     searchValue.value = '';
     firstReset();
@@ -353,7 +368,7 @@ const selectThirdItem = (item) => {
 //  打开弹窗
 const open = (categoryId) => {
     visible.value = true;
-    thirdState.selectKeys = [categoryId];
+    thirdState.selectKeys = categoryId ? [categoryId] : [];
     getCategoryTree();
 };
 

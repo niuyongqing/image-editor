@@ -67,7 +67,8 @@
                 </template>
             </a-table>
         </a-modal>
-        <CategoryModal ref="categoryModalRef" :account="form.shortCode" @select="handleSelect"></CategoryModal>
+        <CategoryModal ref="categoryModalRef" :account="acceptParams.account" @select="handleSelect">
+        </CategoryModal>
     </div>
 </template>
 
@@ -85,7 +86,7 @@ import CategoryModal from "@/pages/ozon/draft/comm/categoryModal.vue";
 import { accountCache } from "@/pages/ozon/config/api/product.js";
 
 const shopAccount = ref([]); // 店铺列表
-
+const acceptParams = ref({});// 表格行ID
 const platNames = {
     Ozon: 'Ozon',
     Tmall: '天猫',
@@ -150,7 +151,6 @@ const tableData = ref([
 const innerTableData = ref([]);
 
 const dialogVisible = ref(false);
-const acceptParams = ref({});
 const form = reactive({
     name: "",
     shortCode: "",
@@ -207,6 +207,10 @@ const getHistoryList = (account) => {
     historyCategory({ account })
         .then((res) => {
             historyCategoryList.value = res?.data || [];
+            innerTableData.value.forEach((item) => {
+                item.ozonTheme = undefined;
+                item.attrLabel = undefined;
+            })
         })
 };
 
@@ -251,13 +255,13 @@ const handleSelect = (data) => {
     };
     secondCategoryId.value = data.ids[1];
     let params = {
-        account: form.shortCode,
+        account: acceptParams.value.account,
         secondCategoryId: data.ids[1],
         threeCategoryId: data.ids[2],
     };
     isClear.value = true;
     addHistoryCategory(params).then((res) => {
-        getHistoryList(form.shortCode, data.value);
+        getHistoryList(acceptParams.value.account, data.value);
     });
 };
 
@@ -278,21 +282,15 @@ const getAccount = () => {
 
 const open = (data) => {
     isClear.value = false;
-    // acceptParams.value = data;
+    acceptParams.value = data;
     dialogVisible.value = true;
     getAccount();
     form.shortCode = data.account;
-    console.log('data', data);
-
     ozonCollectDetail({
-        // "id": data.id // 产品主键ID
-        id: '317d619123724cca80e0e7c69bc60248',
-        // platformName: 'ozon',
-        // productCollectId: data.gatherProductId,
+        "id": data.id // 产品主键ID
     }).then((res) => {
         if (res.code === 200) {
             relationDetail.value = res.data || {};
-
             if (relationDetail.value) {
                 tableData.value = [{
                     primaryImage: relationDetail.value.imageList[0],
@@ -305,18 +303,6 @@ const open = (data) => {
                 form.shortCode = data.account;
                 form.categoryId = relationDetail.value.typeId;
                 getHistoryList(data.account);
-            } else {
-                // tableData.value = [{
-                //     primaryImage: data.primaryImage,
-                //     name: data.name,
-                //     category: data.categoryId,
-                //     gatherPlatformName: data.gatherPlatformName,
-                //     account: data.account,
-                // }];
-
-                // form.shortCode = data.account;
-                // form.categoryId = data.typeId;
-                // getHistoryList(data.account, data.typeId, data.categoryId);
             }
         }
     })
@@ -346,7 +332,7 @@ const editCategory = () => {
     });
     const params = {
         typeId: form.categoryId,
-        "productCollectId": acceptParams.value.gatherProductId, //数据采集产品id或者采集箱产品id
+        "productCollectId": acceptParams.value.id, //数据采集产品id或者采集箱产品id
         "platformName": "ozon",//所属平台
         "categoryId": form.categoryId,
         "variantRelationList": variantRelationList
@@ -364,7 +350,9 @@ const editCategory = () => {
             message.success('保存成功');
             emits('edit');
             cancel();
-            window.open(`/platform/ozon/editDraftProduct?account=${acceptParams.value.account}&id=${acceptParams.value.gatherProductId}`, '_blank')
+
+            //  to do ....  跳转
+
         }
     })
 };
