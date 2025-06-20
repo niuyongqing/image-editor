@@ -253,7 +253,7 @@
 
         <!-- 店铺设置 -->
         <ShopSetModal :shopSetVisible="shopSetVisible" :shopCurryList="shopCurryList"
-            @handleShopSetClose="shopSetVisible = false" @refreshShopSet="getShopSet"></ShopSetModal>
+            @handleShopSetClose="handleShopSetClose" @refreshShopSet="getShopSet"></ShopSetModal>
 
         <!--编辑提示 弹窗-->
         <EditPrompt ref="editPromptRef" :shopAccount="shopAccount"></EditPrompt>
@@ -576,6 +576,11 @@ const delProduct = (row = {}) => {
 
 };
 
+const handleShopSetClose = () => {
+    shopSetVisible.value = false;
+    getList();
+};
+
 // 创建产品
 const createProduct = () => {
     window.open("/platform/ozon/productPublish", '_blank');
@@ -584,6 +589,7 @@ const createProduct = () => {
 const updateCurrentClass = (value) => {
     console.log(value);
 };
+
 
 //  批量操作
 const handleMenuClick = (e) => {

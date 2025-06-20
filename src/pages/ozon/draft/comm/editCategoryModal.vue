@@ -21,7 +21,6 @@
             <a-table :columns="columns" :data-source="tableData" bordered :pagination="false">
                 <template #bodyCell="{ column, record }">
                     <template v-if="column.dataIndex === 'primaryImage'">
-
                         <div class="flex">
                             <div w-80px>
                                 <a-image :src="primaryImage(record.primaryImage)" class="imgCss" />
@@ -34,7 +33,6 @@
                             </div>
 
                         </div>
-                        <!-- -->
                     </template>
                     <template v-if="column.dataIndex === 'category'">
                         >>
@@ -48,7 +46,7 @@
                         <a-button type="link" @click="changeCategory">更换分类</a-button>
                         <p class="tooltip-text" v-if="hisAttrObj && JSON.stringify(hisAttrObj) != '{}'">{{
                             hisAttrObj.categoryName
-                        }} > {{ hisAttrObj.secondCategoryName }} > {{
+                            }} > {{ hisAttrObj.secondCategoryName }} > {{
                                 hisAttrObj.threeCategoryName }} </p>
                         <!-- 表格 -->
                         <a-table :columns="innerColumns" :data-source="innerTableData" bordered :pagination="false"
@@ -71,7 +69,6 @@
         </a-modal>
         <CategoryModal ref="categoryModalRef" :account="form.shortCode" @select="handleSelect"></CategoryModal>
     </div>
-
 </template>
 
 <script setup>
