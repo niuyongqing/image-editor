@@ -11,20 +11,26 @@
                     </template>
                     <template v-if="column.dataIndex === 'salesPrice'">
                         <div>
-                            <a-input-number v-model:value="record.salesPrice" :controls="false" :precision="2" :min="0"
-                                :placeholder="type !== 'default' ? 'lazada自动转换' : ''" style="width: 80%;" />
+                            <a-form-item-rest>
+                                <a-input-number v-model:value="record.salesPrice" :controls="false" :precision="2" :min="0"
+                                    :placeholder="type !== 'default' ? 'lazada自动转换' : ''" style="width: 80%;" />
+                            </a-form-item-rest>
                         </div>
                     </template>
                     <template v-if="column.dataIndex === 'retailPrice'">
                         <div>
-                            <a-input-number v-model:value="record.retailPrice" :precision="2" :min="0"
-                                :placeholder="type !== 'default' ? 'lazada自动转换' : ''" style="width: 80%;" />
+                            <a-form-item-rest>
+                                <a-input-number v-model:value="record.retailPrice" :precision="2" :min="0"
+                                    :placeholder="type !== 'default' ? 'lazada自动转换' : ''" style="width: 80%;" />
+                            </a-form-item-rest>
                         </div>
                     </template>
                     <template v-if="column.dataIndex === 'postPrices'">
                         <div v-if="record.enSite === 'MY' || record.enSite === 'ID' || record.site === '默认'">
-                            <a-input-number v-model:value="record.postPrices" :precision="2" :min="0"
-                                :placeholder="type !== 'default' ? 'lazada自动转换' : ''" style="width: 80%;" />
+                            <a-form-item-rest>
+                                <a-input-number v-model:value="record.postPrices" :precision="2" :min="0"
+                                    :placeholder="type !== 'default' ? 'lazada自动转换' : ''" style="width: 80%;" />
+                            </a-form-item-rest>
                         </div>
                         <div v-else>
                             --

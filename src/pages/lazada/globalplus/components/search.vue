@@ -41,7 +41,7 @@ const baseFormEl = useTemplateRef('baseFormRef')
 
 const loading = defineModel()
 const { state, reset } = useResetReactive({
-    sellerSku: undefined,
+    sellerSku: "",
     type: 'global',
     shortCode: "",
 });

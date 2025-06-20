@@ -2,7 +2,8 @@
     <div w-full>
         <div flex justify-between w-full>
             <a-upload name="file" :customRequest="customRequest" :before-upload="beforeUpload" :headers="headers"
-                :disabled="disabled" :accept="getProps.accept" :action="getProps.actionUrl" :showUploadList="false">
+                :disabled="disabled" :maxCount="getProps.maxCount" :accept="getProps.accept"
+                :action="getProps.actionUrl" :showUploadList="false" :multiple="true">
                 <a-button type="primary" v-if="fileList.length <= getProps.maxCount" style="width: 90px; height: 31px;">
                     <UploadOutlined></UploadOutlined>
                     选择图片
@@ -164,6 +165,7 @@ const getProps = computed(() => {
         ...unref(props)
     }
 });
+
 const customRequest = (options) => {
     if (!options.file) return;
     const formData = new FormData();
@@ -282,6 +284,14 @@ const watermark = async (item) => {
     }
 };
 
+
+watch(() => fileList.value, (newVal) => {
+    if (newVal.length > getProps.value.maxCount) {
+        const overCount = newVal.length - getProps.value.maxCount;
+        fileList.value = newVal.slice(0, getProps.value.maxCount);
+        message.warning(`最多上传 ${getProps.value.maxCount} 张，已自动移除最后 ${overCount} 张`);
+    }
+}, { deep: true })
 </script>
 
 <style scoped lang="less">

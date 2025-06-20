@@ -57,39 +57,32 @@
                     </template>
 
                     <template v-if="column && column.dataIndex === 'stock'">
-                        <div> stock: {{ record.stock }} </div>
                         <a-input-number :controls="false" :precision="0" :min="0" v-model:value="record.stock"
                             placeholder="请输入库存" style="width: 80%;" />
                     </template>
                     <template v-if="column && column.dataIndex === 'supplyPrice'">
-                        <div> supplyPrice: {{ record.supplyPrice }} </div>
                         <a-input-number :controls="false" :precision="0" :min="0" v-model:value="record.supplyPrice"
                             placeholder="请输入价格" style="width: 80%;" />
                     </template>
                     <template v-if="column && column.dataIndex === 'price'">
-                        <div> price: {{ record.price }} </div>
                         <a-input-number :controls="false" :precision="2" :min="0.01" v-model:value="record.price"
                             placeholder="请输入价格" style="width: 80%;" />
                     </template>
 
                     <template v-if="column && column.dataIndex === 'specialPrice'">
-                        <div> specialPrice: {{ record.specialPrice }} </div>
                         <a-input-number :controls="false" :precision="0" v-model:value="record.specialPrice" :min="0.01"
                             :max="record.price" placeholder="请输入促销价" style="width: 80%;" disabled />
                     </template>
 
                     <template v-if="column && column.dataIndex === 'specialDate'">
-                        <div> specialDate: {{ record.specialDate }} </div>
                         <a-range-picker v-model:value="record.specialDate" format="YYYY-MM-DD" style="width: 80%;" />
                     </template>
                     <template v-if="column && column.dataIndex === 'package_weight'">
-                        <div> package_weight: {{ record.packageWeight }} </div>
                         <a-input-number :controls="false" :precision="2" v-model:value="record.packageWeight"
                             :min="0.001" :max="20" placeholder="请输入重量" style="width: 80%;" />
                     </template>
 
                     <template v-if="column && column.dataIndex === 'package'">
-                        <div> package: </div>
                         <a-input-number v-model:value="record.packageLength" :min="0.01" :max="110" :precision="2"
                             placeholder="长"></a-input-number>
                         <a-input-number v-model:value="record.packageWidth" :min="0.01" :max="110" :precision="2"
@@ -350,6 +343,9 @@ const generateTable = () => {
             }
         })
     }
+
+    console.log("---",tableData.value);
+    
 };
 //  编辑回显
 watch(() => {
@@ -403,7 +399,8 @@ watch(() => {
             }
         });
     }
-
+    console.log("tableData",tableData.value);
+    
 }, {
     deep: true
 });
@@ -545,6 +542,8 @@ const specialPriceSuccess = (evt) => {
             }
         }
     });
+    console.log("tableData",tableData.value);
+    
 };
 
 // 批量修改促销时间
@@ -682,6 +681,8 @@ onMounted(() => {
         if (lazadaAttrsState.selectTheme.length > 1) {
             theme.themeTwo = lazadaAttrsState.selectTheme[1].checkedList || [];
         };
+        console.log("theme",theme.themeOne);
+        
         generateTable();
     });
 });

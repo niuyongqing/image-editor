@@ -81,7 +81,7 @@ export function lazadaEdit(data) {
 
 // lazada 添加全球商品
 export function lazadaGlobalAdd(data) {
-  return usePost("/platform-lazada/platform/lazada/product/global", data);
+  return usePost("/platform-lazada/platform/lazada/product/global/new", data);
 }
 
 // lazada 商品详情
@@ -104,8 +104,8 @@ export function syncOne(data) {
   return usePost("/platform-lazada/platform/lazada/product/sync-one", data);
 }
 // 同步所有店铺商品
-export function syncAll() {
-  return useGet("/platform-lazada/platform/lazada/product/sync-all");
+export function syncAll(data) {
+  return usePost("/platform-lazada/platform/lazada/product/sync-all",data);
 }
 // 同步店铺商品
 export function sync(data) {
@@ -147,6 +147,14 @@ export function batchStore(data) {
 export function batchPrice(data) {
   return usePost(
     "/platform-lazada/platform/lazada/product/batch/price/new",
+    data
+  );
+}
+
+// 根据商品名获取建议类别
+export function categorySuggestion(data) {
+  return usePost(
+    "/platform-lazada/platform/lazada/attribute/category/suggestion",
     data
   );
 }
