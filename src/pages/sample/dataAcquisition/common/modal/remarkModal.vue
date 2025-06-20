@@ -5,7 +5,7 @@
       <div class="remarkModal-modal-box">
         <a-form :label-col="{ span: 6 }" :wrapper-col="{ span: 18 }">
           <a-form-item label="内容:">
-            <a-contentarea v-model:value="formData.content" :rows="4" allow-clear />
+            <a-textarea v-model:value="formData.content" :rows="4" allow-clear />
           </a-form-item>
           <a-form-item label="颜色:">
             <div>
@@ -24,7 +24,12 @@
         </a-form>
       </div>
       <template #footer>
-        <a-button key="submit" type="primary" @click="modalOk">确定</a-button>
+        <a-button 
+          key="submit" 
+          type="primary" 
+          @click="modalOk" 
+          :loading="loading"
+        >确定</a-button>
         <a-button key="submit" @click="modalCloseFn">关闭</a-button>
       </template>
     </a-modal>
@@ -33,6 +38,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
+import { addRemark } from '../../js/api';
 defineOptions({ name: "remarkModal" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:modalOpen', 'addRemark'])
@@ -54,18 +60,36 @@ const colorList = [
   '#00D0FF'
 ]
 const modalOpen = ref(false)
+const loading = ref(false)
 const formData = reactive({
   content: '',
   color: ''
 })
 watch(() => props.modalOpen, (val, oldVal) => {
-  val && (modalOpen.value = val)
+  if (val) {
+    modalOpen.value = val
+    modalOpenFn()
+  }
 })
 watch(() => modalOpen.value, (val, oldVal) => {
   !val && emit('update:modalOpen', false)
 })
-function modalOk() {
-  emit('addRemark', {...formData})
+function modalOpenFn() {
+  let row = props.modalData.selectedRow[0]
+  formData.content = row.remark?.content || '';
+  formData.color = row.remark?.color || colorList[0];
+}
+async function modalOk() {
+  loading.value = true
+  let ids = props.modalData.selectedRow.map(i => i.id)
+  let params = {
+    ids,
+    remark: { ...formData }
+  }
+  await addRemark(params)
+  emit('addRemark')
+  loading.value = false
+  modalCloseFn()
 }
 function modalCloseFn() {
   modalOpen.value = false
