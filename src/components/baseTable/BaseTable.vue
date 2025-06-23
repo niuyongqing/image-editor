@@ -29,7 +29,7 @@
                         showTotal: (total, range) => `第${range[0]}-${range[1]}条, 共${total}条`
                     }" ellipsis bordered @change="handleChange">
                     <template #headerCell="{ column }">
-                        <slot v-if="column.headerCell" name="headerCell" :column="column"></slot>
+                        <slot v-if="column.headerCell" :name="column.headerCell" :column="column"></slot>
                     </template>
                     <template #bodyCell="{ column, record, index }">
                         <template

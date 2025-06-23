@@ -91,7 +91,7 @@
                                             :label="'无品牌'">无品牌</a-select-option> -->
 
                                         <a-select-option :value="v" v-for="(v, i) in item.options" :key="i">{{ v.label
-                                            }}</a-select-option>
+                                        }}</a-select-option>
                                     </a-select>
                                 </a-form-item>
                             </div>
@@ -285,7 +285,7 @@ const assignValues = (a, b) => {
 }
 
 const findMatchedOption = (attributeId, data, options) => {
-    
+
     const matchedOption = options?.find(option => option.id === data.id);
     if (attributeId == 9070) {
         return {

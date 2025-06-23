@@ -479,6 +479,9 @@ const generateTable = () => {
     }
 };
 
+const onChangeCheckAll = () => {}
+
+const onChangeCheck = () => {}
 //  编辑回显
 watch(() => {
     return detailData

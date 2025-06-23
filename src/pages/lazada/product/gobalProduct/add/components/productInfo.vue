@@ -13,6 +13,37 @@
                         class="flex  justify-start">
                     </a-input>
                 </a-form-item>
+                <a-form-item label="分类:" name="primaryCategory" :rules="[{ required: true, message: '请选择分类' }]">
+                    <a-form-item-rest>
+                        <a-cascader :showSearch="showSearchConfig" class="flex w-full justify-start"
+                            v-model:value="state.primaryCategory" :options="primaryCategoryOptions" placeholder="请先选择店铺"
+                            allowClear :fieldNames="{ label: 'name', value: 'categoryId', children: 'children' }"
+                            @change="changePrimaryCategory">
+                            <template #notFoundContent>
+                                <div w-full h-300px flex items-center justify-center m-auto>
+                                    <a-spin :spinning="true" tip="正在加载中..." m-auto>
+                                    </a-spin>
+                                </div>
+                            </template>
+                        </a-cascader>
+                    </a-form-item-rest>
+                    <div v-show="lazadaAttrsState.productName && suggestion.length > 0">
+                        <a-form-item-rest>
+                            <a-card style="width: 50%;margin: 10px 0;text-align: left;" title="分类建议">
+                                <div v-for="(item, index) in suggestion" :key="index" style="margin-bottom: 10px">
+                                    <a-form-item-rest>
+                                        <a-cascader :showSearch="showSearchConfig"
+                                            style="background-color: #ffffff;width: 80%;" filterable
+                                            v-model:value="item.categoryIds" :options="primaryCategoryOptions"
+                                            @change="changePrimaryCategory"
+                                            :fieldNames="{ label: 'name', value: 'categoryId', children: 'children' }"></a-cascader>
+                                    </a-form-item-rest>
+                                    <a-button @click="fillCategory(item.categoryIds)">自动填充</a-button>
+                                </div>
+                            </a-card>
+                        </a-form-item-rest>
+                    </div>
+                </a-form-item>
                 <a-form-item label="品牌:" name="brandId"
                     :rules="[{ required: true, message: '请选择品牌', trigger: ['change'] }]">
                     <a-select allowClear show-search @search="search" :filter-option="false"
@@ -67,7 +98,7 @@
                                     </a-tag>
 
                                     <a-input v-if="item.input_type === 'text'" v-model:value="item.value" placeholder=""
-                                        allowClear></a-input>
+                                        allowClear @change="changeValue(item)"></a-input>
 
                                     <!--  enuminput： 单选和可自定义输入; -->
                                     <a-select v-if="item.input_type === 'enumInput'" v-model:value="item.value"
@@ -123,7 +154,7 @@
                                 ?
                                 '- 收起'
                                 : '+ 展开'
-                                }}</a-button>
+                            }}</a-button>
                         </div>
 
                     </a-card>
@@ -137,25 +168,29 @@
 <script setup>
 import { DownOutlined } from "@ant-design/icons-vue";
 import { useResetReactive } from '@/composables/reset';
-import { accountCache, categoryTree, getBrandList, hasValueAttributes } from '@/pages/lazada/product/api';
+import { accountCache, categoryTree, getBrandList, hasValueAttributes,categorySuggestion,categoryAttributesApi } from '@/pages/lazada/product/api';
 import EventBus from "~/utils/event-bus";
 import { debounce } from "lodash-es";
 import { message } from "ant-design-vue";
-
-const { state: lazadaAttrsState, } = useLazadaGobalAttrs();
+import { findParentIds } from '../../../common/index'
+const { state: lazadaAttrsState, setLazadaAttrs, setLoading, setPrimaryCategory } = useLazadaGobalAttrs();
 const disableAttributeAutoFill = ref(true); // 自动填充
 const isExpand = ref(false); // 展开收起
 const attributesLoading = ref(false);
 const shortCode = ref('');
 const shortCodes = ref([]); // 店铺列表
+const primaryCategoryLoading = ref(false);
+const attributes = ref([]); // 分类 属性列表
+const suggestion = ref([]); // 根据标题推荐分类
 const formEl = useTemplateRef('formRef');
 const attrsFormEl = useTemplateRef('attrsFormRef');
 const primaryCategoryOptions = ref([]); // 分类列表
 const { state } = useResetReactive({
-    title: undefined,
+    title: lazadaAttrsState.productName,
     brandId: undefined,
     warranty_type: undefined,
     warranty: undefined,
+    primaryCategory: [],
 });
 const brandIdSelction = reactive({
     data: [],
@@ -165,6 +200,12 @@ const brandIdSelction = reactive({
 const productAtrrsform = reactive({});
 const itemRules = (item) => {
     return [{ required: item.is_mandatory === 1, trigger: ['change'], message: item.is_mandatory === 1 ? '必填项，请填写' : '' }]
+};
+
+const showSearchConfig = {
+    filter: (inputValue, path) => {
+        return path.some(option => option.name.toLowerCase().includes(inputValue.toLowerCase()));
+    }
 };
 
 const changeValue = (item) => {
@@ -237,6 +278,81 @@ const clearValidate = () => {
     attrsFormEl.value.clearValidate();
 };
 
+
+async function getCategorys() {
+    primaryCategoryLoading.value = true;
+    const categoryTreeRes = await categoryTree({ shortCode: lazadaAttrsState.shortCode });
+    if (categoryTreeRes.code === 200) {
+        primaryCategoryLoading.value = false;
+        const data = categoryTreeRes.data || [];
+        function treeToArr(arr) {
+            arr.forEach(item => {
+                item.name = item.name + ' ( ' + item.translateName + ' )' 
+                if (item.children && item.children.length > 0) {
+                    treeToArr(item.children)
+                }
+                if (!item.children || item.children.length === 0) {
+                    delete item.children
+                }
+            })
+            return arr
+        };
+        primaryCategoryOptions.value = treeToArr(data)
+    };
+};
+
+// 获取分类属性
+async function getAttributes() {
+    if (!state.primaryCategory.length) return;
+    setLoading(true);
+    categoryAttributesApi({
+        shortCode: lazadaAttrsState.shortCode,
+        primaryCategoryId: state.primaryCategory[state.primaryCategory.length - 1]
+    }).then((res) => {
+        if (res.code === 200) {
+            attributes.value = res.data || [];
+            setLazadaAttrs(attributes.value);
+            EventBus.emit('gobalAddAttrsEmit');
+        }
+    })
+};
+
+const changePrimaryCategory = (value) => {
+    console.log("value222",value);
+    
+    setPrimaryCategory(value);
+    getAttributes(value)
+};
+
+const fillCategory = (value) => {
+    console.log("value333",value);
+    state.primaryCategory = value
+    setPrimaryCategory(state.primaryCategory);
+}
+
+const getCategorySuggestion = debounce(() => {
+    categorySuggestion({ shortCode: lazadaAttrsState.shortCode, name: lazadaAttrsState.productName }).then(res => {
+        if (res.data) {
+            suggestion.value = res.data.categorySuggestions.map(item => {
+                return {
+                    ...item,
+                    categoryIds: findParentIds(primaryCategoryOptions.value, item.categoryId),
+                }
+            })
+        } else {
+            suggestion.value = []
+        }
+        console.log("suggestion",suggestion.value);
+        
+    })
+}, 300)
+
+watch(() => state.title, (newValue) => {
+    if (newValue && lazadaAttrsState.shortCode) {
+        getCategorySuggestion();
+    }
+}, { deep: true })
+
 watch(() => lazadaAttrsState.loading, (newValue) => {
     clearValidate();
 })
@@ -244,7 +360,6 @@ watch(() => lazadaAttrsState.loading, (newValue) => {
 //  产品资料库回显
 watch(() => lazadaAttrsState.product, (newValue) => {
     if (newValue && JSON.stringify(newValue) !== '{}') {
-        console.log('newValue', newValue);
         clearValidate();
         state.title = newValue.tradeName; // 产品标题
         //lazada 资料库数据回显
@@ -272,6 +387,29 @@ watch(() => lazadaAttrsState.product, (newValue) => {
     }
 });
 
+
+watch(() => state.title, (newValue) => {
+    if(newValue) {
+        lazadaAttrsState.productName = newValue;
+    }
+})
+
+watch(() => lazadaAttrsState.shortCode, (newValue) => {
+    if(newValue) {
+        getCategorys();
+        setLazadaAttrs([])
+        state.primaryCategory = undefined;
+    }
+},{deep: true})
+
+
+watch(() => state.primaryCategory, (newValue) => {
+    if(newValue) {
+        getAttributes()
+    }
+})
+
+
 defineExpose({
     state,
     validateForm
@@ -297,6 +435,8 @@ onMounted(() => {
     });
 
     EventBus.on('gobalAddAttrsEmit', () => {
+        console.log("primaryCategory",lazadaAttrsState.primaryCategory);
+        
         //  根据分类回显属性
         if (!disableAttributeAutoFill.value) return;
         hasValueAttributes({

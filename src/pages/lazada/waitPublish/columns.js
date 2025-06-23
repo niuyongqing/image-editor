@@ -35,11 +35,11 @@ export const columns = [
     key: "special_price",
     slot: "special_price",
   },
-  // {
-  //   title: "不含邮价格",
-  //   dataIndex: "shortCode",
-  //   key: "shortCode",
-  // },
+  {
+    title: "不含邮价格",
+    dataIndex: "postPrices",
+    key: "postPrices",
+  },
   {
     title: "库存",
     dataIndex: "quantity",

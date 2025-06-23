@@ -163,6 +163,9 @@ const disabledTheme = (item) => {
     return false
 }
 
+console.log("lazadaAttrsState",lazadaAttrsState.skuAttrs);
+
+
 const handleSelectTheme = (item) => {
     selectThemeList.value.push({
         ...item,
@@ -424,7 +427,8 @@ watch(() => lazadaAttrsState.product, (newValue) => {
                     selectThemeList.value = lazadaAttrsState.skuAttrs; // 更新selectThemeList
                 }
             }
-
+            console.log("selectThemeList",selectThemeList.value);
+            
             setSelectTheme(selectThemeList.value); // 设置选择主题
         });
     }

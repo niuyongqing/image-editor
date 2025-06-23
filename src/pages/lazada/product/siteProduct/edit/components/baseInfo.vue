@@ -82,15 +82,18 @@ watch(() => {
     EventBus.emit('siteEditShortCodeEmit', state.shortCode);
     setShortCode(state.shortCode);
     await getCategorys();
-    const data = findCategoryPath(primaryCategoryOptions.value, newVal.primaryCategory);
+    const data = findCategoryPath(primaryCategoryOptions.value, Number(newVal.primaryCategory));
     state.primaryCategory = data || [];
     validateCodeRule();
     setPrimaryCategory(state.primaryCategory);
     loading.value = false;
     await getAttributes();
+    console.log("attributes",lazadaAttrsState.skuAttrs);
+    
     setProductClassifyAtrrs(newVal.attributes); // 回显详情的分类属性值
     const skus = newVal.skus || [];
     const keys = Object.keys(skus[0].saleProp);
+    console.log("keys",skus[0].saleProp);
     let values = [];
     skus.forEach((item) => {
         const vals = Object.values(item.saleProp);
@@ -103,6 +106,8 @@ watch(() => {
     const selectThemeList = lazadaAttrsState.skuAttrs.filter((item) => {
         return keys.includes(item.name)
     });
+    console.log("selectThemeList",selectThemeList);
+    
     const result = saleProps.reduce((acc, item) => {
         Object.keys(item).forEach(key => {
             if (!acc[key]) {
@@ -122,6 +127,8 @@ watch(() => {
         if (findItem) {
             let itemOptions = findItem?.options ?? [];
             const has = itemOptions.find((option) => {
+                
+                
                 return formattedResult[key] === option.en_name
             });
             if (!has) {
@@ -134,6 +141,8 @@ watch(() => {
         } else {
             options = (formattedResult[key].map((keyItem) => ({ name: keyItem, en_name: keyItem })) || [])
         }
+        console.log("option",findItem);
+        
         const optionsUnique = unique('en_name', options); // 去重
         return {
             name: findItem ? findItem.name : key,
@@ -147,7 +156,9 @@ watch(() => {
         }
     });
     setSelectTheme(resultData);
+    console.log("resultData---",resultData);
     if (lazadaAttrsState.skuAttrs.length === 0) {
+        
         setSkuAttrs(resultData);
     };
     EventBus.emit('siteEditSelectThemeEmit', resultData);

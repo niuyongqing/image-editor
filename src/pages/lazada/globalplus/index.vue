@@ -63,7 +63,7 @@
             </template>
         </BaseTable>
         <UpgradeGP ref="upgradeGPRef" @success="reload"></UpgradeGP>
-        <ExcelUpgradeGP ref="ExcelUpgradeGPRef" @success="reload"></ExcelUpgradeGP>
+        <ExcelUpgradeGP ref="ExcelUpgradeGPRef" :searchData="searchData" @success="reload"></ExcelUpgradeGP>
         <SyncProductGP ref="syncProductGPRef" :account="account" @success="reload"></SyncProductGP>
         <LogIndexUpgradeGP ref="logIndexUpgradeGPRef"></LogIndexUpgradeGP>
     </div>
@@ -91,6 +91,11 @@ const initSearchParam = {
 };
 const account = ref([]);
 const searchLoading = ref(false);
+const searchData = reactive({
+    sellerSku: "",
+    type: 'global',
+    shortCode: "",
+})
 const addModalEl = useTemplateRef('addModalRef');
 const baseTableEl = useTemplateRef('baseTableRef');
 const upgradeGPEl = useTemplateRef('upgradeGPRef');
@@ -114,6 +119,10 @@ const reload = () => {
 };
 // 查询
 const handleSearch = async (state) => {
+    console.log("state",state);
+    searchData.sellerSku = state.sellerSku
+    searchData.type = state.type
+    searchData.shortCode = state.shortCode
     await baseTableEl.value.search(state);
     searchLoading.value = false;
 };

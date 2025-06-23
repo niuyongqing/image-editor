@@ -27,8 +27,8 @@ import { message } from 'ant-design-vue';
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { remark } from '@/pages/lazada/product/api';
 import { colors } from '@/pages/lazada/product/common';
-import _ from 'lodash';
 
+const emits = defineEmits(['success'])
 const acceptParams = ref({});
 const isBatch = ref(false);
 const dialogVisible = ref(false);
@@ -57,7 +57,10 @@ const open = (record, batch) => {
     };
     modelMethods.value.openModal();
 };
-const cancel = () => { };
+const cancel = () => {
+    row.value.remark = "";
+    row.value.remarkColor = "";
+};
 const submit = () => {
     if (!row.value.remark) {
         message.error('请输入备注');
@@ -82,13 +85,13 @@ const submit = () => {
     remark(requestParams)
         .then(() => {
             message.success('备注成功');
-            modelMethods.value.closeModal();
+            console.log("11");
             emits('success');
+            modelMethods.value.closeModal();
         });
 };
 
 
-const emits = defineEmits(['success'])
 defineExpose({
     open,
 })

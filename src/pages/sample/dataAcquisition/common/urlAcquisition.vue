@@ -1,7 +1,5 @@
 <template>
 <div id="urlAcquisition" class="urlAcquisition text-left">
-  <!-- FIXME: 测试用, 后期删 -->
-  <a-button type="primary" @click="claim('acquisition')">采集</a-button>
   <a-card title="采集地址--单品采集" class="text-left my-2.5">
     <!-- <a-textarea v-model:value="dataUrl.url" placeholder="请填写产品的网址,多个网址用Enter换行" :auto-size="{ minRows: 7 }" />
     <div class="flex mt-2.5 justify-between">
@@ -97,16 +95,16 @@
   <a-card>
     <div class="flex my-2.5">
       <a-space>
-        <a-button type="primary">批量认领</a-button>
+        <a-button @click="claim('acquisition')" type="primary">批量认领</a-button>
         <a-dropdown :trigger="['click']">
           <a-button type="primary" @click.prevent>
             批量操作
             <AsyncIcon icon="DownOutlined" class="ml-2.5" />
           </a-button>
           <template #overlay>
-            <a-menu @click="dropdownClick">
+            <a-menu @click="({key}) => dropdownClick(key, tableInfo.selectedRowKeys)">
               <a-menu-item key="remarkModal">批量备注</a-menu-item>
-              <a-menu-item key="2">批量删除</a-menu-item>
+              <a-menu-item key="del">批量删除</a-menu-item>
             </a-menu>
           </template>
         </a-dropdown>
@@ -119,7 +117,7 @@
     >
       <a-tab-pane :key="item.prop" v-for="item in formBtnInfo.tabList">
         <template #tab>
-          {{ item.label + `(${item.prop === activeName ? tableInfo.total : 0})` }}
+          {{ item.label + `(${item.value})` }}
           <a-tooltip :overlayInnerStyle="{ width: '300px' }" color="#fff" placement="right">
             <template #title>
               <span class=" text-black">通用采集箱超过180天的采集数据将会被删除，请及时认领
@@ -148,6 +146,12 @@
             <a-button @click="openUrl(record.originUrl)" type="link">{{ getSimpleName(record.platform) }}</a-button>
           </div>
         </template>
+        <template v-else-if="column.dataIndex == 'productTitle'">
+          <div style="display: flex; flex-direction: column;">
+            <div>{{ record[column.dataIndex] }}</div>
+            <div :style="record.remark ? `color: ${record.remark?.color};`:''">{{ record.remark ? `备注：${record.remark.content}`:'' }}</div>
+          </div>
+        </template>
         <template v-else-if="column.dataIndex == 'simpleDesc'">
           <a-tooltip 
             overlayClassName="rowBox-simpleDesc"
@@ -168,6 +172,25 @@
         </template>
         <template v-else-if="column.dataIndex === 'currentPrice'">
           <span>{{ `${record.priceInfo.currencySymbol ? record.priceInfo.currencySymbol:''}${record.priceInfo.currentPrice}(${record.priceInfo.currency})` }}</span>
+        </template>
+        <template v-else-if="column.dataIndex === 'option'">
+          <div class="option-btn-box">
+            <div class="option-btn">认领</div>
+            <div class="option-btn">编辑</div>
+            
+            <a-dropdown>
+              <div class="option-btn" type="link" @click.prevent>
+                更多
+                <AsyncIcon icon="DownOutlined" />
+              </div>
+              <template #overlay>
+                <a-menu @click="({ key }) => dropdownClick(key, [record])">
+                  <a-menu-item key="remarkModal">添加备注</a-menu-item>
+                  <a-menu-item key="del">删除</a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
+          </div>
         </template>
         <template v-else>
           <span>{{ record[column.dataIndex] }}</span>
@@ -192,6 +215,7 @@
     :is="modalInfo.name" 
     v-model:modalOpen="modalInfo.open"
     :modalData="modalInfo.data"
+    @addRemark="addRemark"
   ></component>
   
   <!-- 认领弹窗 -->
@@ -205,10 +229,11 @@ import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import ClaimModal from './ClaimModal.vue'
 import remarkModal from './modal/remarkModal.vue';
 // import { dataGathe } from "../../../ozon/config/commDic/defDic"
-import { collectProductList } from '../js/api';
+import { collectProductList, deleteProduct, productStatCount } from '../js/api';
 import { acquisitionHeader } from '../js/header';
 import { timestampToDateTime } from '~@/pages/lazada/fullyProduct/common';
 import dayjs from 'dayjs';
+import { message, Modal } from 'ant-design-vue';
 defineOptions({ name: "urlAcquisition" })
 const { proxy: _this } = getCurrentInstance()
 
@@ -216,19 +241,19 @@ const formBtnInfo = {
   tabList: [
     {
       label: "全部",
-      code: "all",
+      code: "allCount",
       value: 0,
       prop: 1,
     },
     {
       label: "未认领",
-      code: "insale",
+      code: "notReceiveCount",
       value: 0,
       prop: 2,
     },
     {
       label: "已认领",
-      code: "inreview",
+      code: "receiveCount",
       value: 0,
       prop: 3,
     },
@@ -360,8 +385,16 @@ const columns = computed(() => {
   return acquisitionHeader
 })
 onMounted(() => {
-  getList()
+  tabsChange(activeName.value)
+  getProductStatCount()
 })
+async function getProductStatCount() {
+  let res = await productStatCount()
+  // console.log({res});
+  formBtnInfo.tabList.forEach(item => {
+    item.value = res.data[item.code]
+  })
+}
 // 获取数据列表
 async function getList() {
   let params = {
@@ -416,17 +449,17 @@ const selectTimeItem = (val) => {
   let start = ''
   switch (val) {
     case 1:
-      start = dayjs().add((0 - val), 'day').format('YYYY-MM-DD')  + ' ' + '00:00:00'
-      end = dayjs().add((0 - val), 'day').format('YYYY-MM-DD')  + ' ' + '23:59:59'
+      start = dayjs().add((0 - val), 'day').format('YYYY-MM-DD') + ' ' + '00:00:00'
+      end = dayjs().add((0 - val), 'day').format('YYYY-MM-DD') + ' ' + '23:59:59'
       break;
     case 0:
-      start = dayjs().format('YYYY-MM-DD')  + ' ' + '00:00:00'
-      end = dayjs().format('YYYY-MM-DD')  + ' ' + '23:59:59'
+      start = dayjs().format('YYYY-MM-DD') + ' ' + '00:00:00'
+      end = dayjs().format('YYYY-MM-DD') + ' ' + '23:59:59'
       break;
     case 7:
     case 30:
-      start = dayjs().add((0 - val), 'day').format('YYYY-MM-DD')  + ' ' + '00:00:00'
-      end = dayjs().format('YYYY-MM-DD')  + ' ' + '23:59:59'
+      start = dayjs().add((0 - val), 'day').format('YYYY-MM-DD') + ' ' + '00:00:00'
+      end = dayjs().format('YYYY-MM-DD') + ' ' + '23:59:59'
       break;
     default:
       break;
@@ -459,27 +492,25 @@ const selectTypes = (index) => {
 // 表单搜索
 function onSubmit() {
   Object.keys(formParams).forEach(key => {
-    console.log({key});
-    
+    // console.log({key});
     formParams[key] = formData[key]
   })
   pageChange(1)
 }
+// 表格tabs切换
 function tabsChange(activeKey) {
-  console.log(activeKey);
+  // console.log(activeKey);
   switch (activeKey) {
     case 1:
       formData.status = null;
       break;
     case 2:
-      formData.status = 0;
+      formData.status = 'un_receive';
       break;
     case 3:
-      formData.status = 1;
+      formData.status = 'receive';
       break;
     default:
-      console.log(11);
-      
       break;
   }
   onSubmit()
@@ -488,10 +519,42 @@ function pageChange(val) {
   pages.pageNum = val
   getList()
 }
-// 下拉菜单选项
-function dropdownClick({ key }) {
+function batchDropdownClick({ key }) {
   let selectedRow = [...tableInfo.selectedRowKeys];
   openModal(key, selectedRow);
+}
+// 下拉菜单选项
+function dropdownClick(key, selectedRow) {
+  // console.log({ key, selectedRow });
+  if (selectedRow.length < 1) return message.warning('请选择商品！')
+  switch (key) {
+    case 'del':
+      Modal.confirm({
+        content: '是否删除？',
+        cancelText: '取消',
+        okText: '确认',
+        closable: true,
+        onOk() {
+          deleteProductFn(selectedRow)
+        },
+        onCancel() {}
+      })
+      break;
+    default:
+      openModal(key, selectedRow);
+      break;
+  }
+}
+// 删除商品
+async function deleteProductFn(rowList) {
+  try {
+    let ids = rowList.map(i => i.id).join()
+    await deleteProduct({ ids })
+    onSubmit();
+    tabsChange(activeName.value)
+  } catch (error) {
+    console.error(error)
+  }
 }
 function openModal(key, rowList) {
   modalInfo.name = modalInfo.components[key];
@@ -499,6 +562,10 @@ function openModal(key, rowList) {
   nextTick(() => {
     modalInfo.open = !modalInfo.open;
   })
+}
+// 添加备注完成
+function addRemark() {
+  getList()
 }
 // 表格复选框
 const rowSelection = {
@@ -515,40 +582,51 @@ function getSimpleName(account) {
   return formBtnInfo.shopAccount.find(i => i.account === account)?.simpleName ?? ''
 }
 
-const handleOk = () => { }
+const handleOk = () => {  }
 
-  /** 认领 */
-  const openClaimModal = ref(false)
-  const claimType = ref('acquisition')
+/** 认领 */
+const openClaimModal = ref(false)
+const claimType = ref('acquisition')
 
-  /** 
-   * 打开认领弹窗
-   * @param {string} type acquisition - 采集箱; draft - 待发布;
-   * @returns {void}
-   */
-  function claim(type = 'acquisition') {
-    claimType.value = type
-    openClaimModal.value = true
-  }
+/** 
+ * 打开认领弹窗
+ * @param {string} type acquisition - 采集箱; draft - 待发布;
+ * @returns {void}
+ */
+function claim(type = 'acquisition') {
+  claimType.value = type
+  openClaimModal.value = true
+}
 </script>
 <style lang="less" scoped>
-
+.option-btn-box {
+  display: flex;
+  flex-direction: column;
+  .option-btn {
+    cursor: pointer;
+    color: #428bca;
+  }
+}
 </style>
 <style lang="less">
 .rowBox-simpleDesc {
   max-width: 400px !important;
+
   .ant-tooltip-content {
     width: 100%;
+
     .rowBox-simpleDesc-tip-item {
       width: 100%;
-      word-wrap:break-word; 
-      word-break:break-all; 
+      word-wrap: break-word;
+      word-break: break-all;
       display: flex;
       justify-content: space-between;
       justify-items: center;
+
       .simpleDesc-tip-item-key {
         width: 120px;
       }
+
       .simpleDesc-tip-item-val {
         width: calc(100% - 130px);
       }

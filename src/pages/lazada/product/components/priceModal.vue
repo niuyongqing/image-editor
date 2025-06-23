@@ -22,23 +22,25 @@
         </div>
         <p class="pull-left p-top8 f-red f13">注：所有SKU信息将同步更改</p>
         <template #footer>
-            <a-button @click="cancel">取 消</a-button>
-            <a-button type="primary" @click="save">确定</a-button>
+            <a-button :loading="loading" @click="cancel">取 消</a-button>
+            <a-button type="primary" :loading="loading" @click="save">确定</a-button>
         </template>
     </a-modal>
 </template>
 
 <script setup>
 import { batchPrice } from '@/pages/lazada/product/api';
+import { message } from 'ant-design-vue';
 
 const acceptParams = ref({});
 const isBatch = ref(false);
 const dialogVisible = ref(false);
+const loading = ref(false);
 const radio = ref(1);
 const setNum = ref(null);
 const stockRule = ref(null);
 const setRuleNum = ref(null);
-
+const skuItem = ref({})
 // const stockRuleList = [
 //     { value: 1, label: '加' },
 //     { value: 2, label: '减' },
@@ -46,7 +48,8 @@ const setRuleNum = ref(null);
 //     { value: 4, label: '除' },
 // ];
 
-const open = (record, batch = false) => {
+const open = (record, item = {}, batch = false) => {
+    skuItem.value = item;
     acceptParams.value = record;
     isBatch.value = batch;
     dialogVisible.value = true;
@@ -62,22 +65,24 @@ const cancel = () => {
 };
 
 const save = () => {
+    loading.value = true;
     const requestParams = isBatch.value
-        ? acceptParams.value.map((item) => ({
-            shortCode: item.shortCode,
-            itemId: item.itemId,
-            sku: item.skus.map((item) => item.SellerSku).join(','),
-            price: setNum.value,
-            specialPrice: item.special_price
-        }))
+        ? acceptParams.value.flatMap(item =>
+            item.skus.map(sku => ({
+                shortCode: item.shortCode,
+                itemId: item.itemId,
+                skuId: sku.SkuId,
+                price: setNum.value,
+                specialPrice: null
+            }))
+        )
         : [{
             shortCode: acceptParams.value.shortCode,
             itemId: acceptParams.value.itemId,
-            sku: acceptParams.value.skus.map((item) => item.SellerSku).join(','),
+            skuId: skuItem.value.SkuId,
             price: setNum.value,
-            specialPrice: acceptParams.value.special_price
+            specialPrice: null
         }];
-
     batchPrice(requestParams)
         .then((res) => {
             if (res.code === 200) {
@@ -85,6 +90,8 @@ const save = () => {
                 emit('success');
                 cancel();
             }
+        }).finally(() => {
+            loading.value = false;
         });
 };
 
