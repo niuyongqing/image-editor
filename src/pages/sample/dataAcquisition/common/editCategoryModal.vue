@@ -214,6 +214,29 @@ function getFilterAttrs() {
 //             })
 //         })
 // };
+
+const findPathById = (id, tree) => {
+    for (let item of tree) {
+        if (item.descriptionCategoryId === id) {
+            return {
+                ids: [item.descriptionCategoryId],
+                labels: [item.categoryName],
+            };
+        }
+        if (item.children) {
+            const path = findPathById(id, item.children);
+            if (path) {
+                return {
+                    ids: [item.descriptionCategoryId, ...path.ids],
+                    labels: [item.categoryName, ...path.labels],
+                };
+            }
+        }
+    }
+    return null;
+};
+
+
 // 历史分类
 const getHistoryList = (account, typeId, categoryId = '') => {
     if (!typeId) {
@@ -261,18 +284,24 @@ const getHistoryList = (account, typeId, categoryId = '') => {
                 })
             } else {
                 // 没找到 加入历史分类记录里面
-                addHistoryCategory({
-                    account: form.shortCode,
-                    secondCategoryId: categoryId,
-                    threeCategoryId: typeId,
-                }).then((res) => {
-                    getHistoryList(form.shortCode, typeId);
+                categoryTree({
+                    "account": form.shortCode
+                }).then(res => {
+                    //  从tree种找到二级
+                    const path = findPathById(typeId, res.data);
+                    addHistoryCategory({
+                        account: form.shortCode,
+                        secondCategoryId: path.ids[1],
+                        threeCategoryId: typeId,
+                    }).then((res) => {
+                        getHistoryList(form.shortCode, typeId);
+                    })
+
                 })
+
             }
         })
 };
-
-
 
 // 选中的分类
 const selectAttributes = (value) => {
@@ -287,8 +316,25 @@ const selectAttributes = (value) => {
             }).then((res) => {
                 if (res.code === 200) {
                     attributes.value = res.data || [];
+                    const filterAttr = attributes.value.filter((attrItem) => {
+                        return attrItem.isAspect
+                    });
+                    filterAttrOptions.value = filterAttr.map((attrItem) => {
+                        return {
+                            label: attrItem.name.replace(/\(.*\)/, ""), // 去掉（）里面的
+                            value: attrItem.id,
+                            attrLabel: attrItem.name,
+                        }
+                    });
+                    innerTableData.value = innerTableData.value.map((item) => {
+                        return {
+                            catTheme: item.catTheme,
+                            ozonTheme: undefined,
+                            attrLabel: undefined,
+                            filterAttrOptions: filterAttrOptions.value,
+                        }
+                    })
                     isClear.value = true;
-                    getFilterAttrs();
                 }
             })
         }
@@ -315,20 +361,28 @@ const handleSelect = (data) => {
     };
     secondCategoryId.value = data.ids[1];
     let params = {
-        account: acceptParams.value.account,
+        account: form.shortCode,
         secondCategoryId: data.ids[1],
         threeCategoryId: data.ids[2],
     };
     isClear.value = true;
     addHistoryCategory(params).then((res) => {
-        getHistoryList(acceptParams.value.account, data.value);
+        // getHistoryList(acceptParams.value.account, data.value);
+        historyCategory({ account: form.shortCode })
+            .then((res) => {
+                historyCategoryList.value = res?.data || [];
+                innerTableData.value.forEach((item) => {
+                    item.ozonTheme = undefined;
+                    item.attrLabel = undefined;
+                })
+            })
+
     });
 };
 
 const accountName = (account) => {
     return shopAccount.value.find(item => item.account === account)?.simpleName
 };
-
 
 // 店铺列表
 const getAccount = () => {
@@ -338,7 +392,6 @@ const getAccount = () => {
         }
     });
 };
-
 
 const open = (data) => {
     isClear.value = false;
@@ -351,14 +404,14 @@ const open = (data) => {
     }).then((res) => {
         if (res.code === 200) {
             collectData.value = res.data;
-
             ozonRelationDetail({
                 platformName: 'ozon',
                 productCollectId: collectData.value.id,
             }).then((res) => {
+
                 if (res.data) {
                     relationDetail.value = res.data || {};
-
+                    //  编辑过
                     tableData.value = [{
                         primaryImage: collectData.value.imageList[0],
                         name: collectData.value.productTitle,
@@ -372,7 +425,6 @@ const open = (data) => {
                     getHistoryList(data.account, relationDetail.value.typeId, relationDetail.value.categoryId);
                 } else {
                     // 没有编辑过
-
                     tableData.value = [{
                         primaryImage: collectData.value.imageList[0],
                         name: collectData.value.productTitle,
@@ -380,22 +432,36 @@ const open = (data) => {
                         gatherPlatformName: undefined,
                         account: data.account,
                     }];
+                    if (collectData.value.variantAttr && Object.keys(collectData.value.variantAttr).length > 0) {
+                        innerTableData.value = Object.keys(collectData.value.variantAttr).map(item => {
+                            return {
+                                catTheme: item,
+                                ozonTheme: undefined,
+                                attrLabel: undefined,
+                                filterAttrOptions: []
+                            }
+                        })
+                    };
                     form.shortCode = data.account;
                     form.categoryId = undefined;
                     getHistoryList(data.account);
                 }
             })
-
-
-
-
         }
     })
 };
 
 const cancel = () => {
-    dialogVisible.value = false;
+    secondCategoryId.value = undefined;
+    attributes.value = [];
+    hisAttrObj.value = {};
+    isClear.value = false;
+    collectData.value = {};
+    relationDetail.value = {};
+    filterAttrOptions.value = [];
     innerTableData.value = [];
+    dialogVisible.value = false;
+
 };
 const platformName = (platform) => {
     return platNames[platform] ?? platform
