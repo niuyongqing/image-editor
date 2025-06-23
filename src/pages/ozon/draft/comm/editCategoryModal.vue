@@ -46,7 +46,7 @@
                         <a-button type="link" @click="changeCategory">更换分类</a-button>
                         <p class="tooltip-text" v-if="hisAttrObj && JSON.stringify(hisAttrObj) != '{}'">{{
                             hisAttrObj.categoryName
-                        }} > {{ hisAttrObj.secondCategoryName }} > {{
+                            }} > {{ hisAttrObj.secondCategoryName }} > {{
                                 hisAttrObj.threeCategoryName }} </p>
                         <!-- 表格 -->
                         <a-table :columns="innerColumns" :data-source="innerTableData" bordered :pagination="false"
@@ -382,8 +382,7 @@ const editCategory = () => {
     };
 
     // 对应Ozon变种主题 选择不能有一样的
-    const attributeIdList = variantRelationList.map(item => item.attributeId);
-    console.log('attributeIdList', attributeIdList);
+    const attributeIdList = variantRelationList.map(item => item.attributeId).filter(item => item !== undefined);
     if (attributeIdList.every(item => item === undefined)) {
         message.error('请选择变种主题选择属性');
         return;

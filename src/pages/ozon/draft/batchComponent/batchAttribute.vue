@@ -28,7 +28,7 @@
 const searchValue = ref('');
 const title = ref('批量修改属性');
 const seelctRows = ref({});
-const visible = ref(true);
+const visible = ref(false);
 
 const plainOptions = ['Apple', 'Pear', 'Orange'];
 const state = reactive({
