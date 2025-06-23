@@ -9,28 +9,35 @@
                 scrollToFirstError>
                 <a-form-item label="税: " name="taxClass"
                     :rules="[{ required: true, message: '请选择税', trigger: ['change'] }]">
-                    <a-select v-model:value="state.taxClass" placeholder="请选择税" allowClear class="flex justify-start"
-                        :options="taxClassOptions" style="width: 150px;">
-                    </a-select>
+                    <a-form-item-rest>
+                        <a-select v-model:value="state.taxClass" placeholder="请选择税" allowClear class="flex justify-start"
+                            :options="taxClassOptions" style="width: 150px;">
+                        </a-select>
+                    </a-form-item-rest>
                 </a-form-item>
                 <a-form-item label="包装重量: " name="packageWeight"
                     :rules="[{ required: true, message: '请输入包装重量', trigger: ['change'] }]">
                     <div class="flex">
-                        <a-input-number placeholder="请输入包装重量" v-model:value="state.packageWeight" :precision="2"
-                            addon-after="Kg" :controls="false"></a-input-number>
+                        <a-form-item-rest>
+                            <a-input-number placeholder="请输入包装重量" v-model:value="state.packageWeight" :precision="2"
+                                addon-after="Kg" :controls="false"></a-input-number>
+                        </a-form-item-rest>
                     </div>
                 </a-form-item>
                 <a-form-item label="包装尺寸: " name="package" :rules="packageRules">
                     <div class="flex gap-10px items-center">
-
-                        <a-input-number placeholder="长" v-model:value="state.packageLength" addon-after="cm"
-                            :precision="2" :controls="false"></a-input-number>
-
-                        <a-input-number placeholder="宽" v-model:value="state.packageWidth" addon-after="cm"
-                            :precision="2" :controls="false"></a-input-number>
-
-                        <a-input-number placeholder="高" v-model:value="state.packageHeight" addon-after="cm"
-                            :precision="2" :controls="false"></a-input-number>
+                        <a-form-item-rest>
+                            <a-input-number placeholder="长" v-model:value="state.packageLength" addon-after="cm"
+                                :precision="2" :controls="false"></a-input-number>
+                        </a-form-item-rest>
+                        <a-form-item-rest>
+                            <a-input-number placeholder="宽" v-model:value="state.packageWidth" addon-after="cm"
+                                :precision="2" :controls="false"></a-input-number>
+                        </a-form-item-rest>
+                        <a-form-item-rest>
+                            <a-input-number placeholder="高" v-model:value="state.packageHeight" addon-after="cm"
+                                :precision="2" :controls="false"></a-input-number>
+                        </a-form-item-rest>
                     </div>
                 </a-form-item>
 

@@ -19,7 +19,8 @@ export const useLazadaGobalAttrs = defineStore("lazadaGobalAttrs", () => {
     loading: false, // 加载状态
     product: {}, // 选择资料库产品信息
     productSkus: [], // 选中资料库中产品sku列表
-    ventures: [], // 同步发布到其他站点
+    productName: "",
+    ventures: ["MY", "ID", "PH", "SG", "TH", "VN"], // 同步发布到其他站点
   });
   const setShortCode = (shortCode = "") => {
     state.shortCode = shortCode;
@@ -33,7 +34,9 @@ export const useLazadaGobalAttrs = defineStore("lazadaGobalAttrs", () => {
   const setSelectTheme = (list) => {
     state.selectTheme = list;
   };
-
+  const setProductName = (name) => {
+    state.productName = name;
+  };
   const setSkuTable = (skuTable = []) => {
     state.skuTable = skuTable;
   };
@@ -136,6 +139,7 @@ export const useLazadaGobalAttrs = defineStore("lazadaGobalAttrs", () => {
     state.product = {};
     state.productSkus = [];
     state.ventures = [];
+    state.productName = "";
   };
   return {
     state,
@@ -149,5 +153,6 @@ export const useLazadaGobalAttrs = defineStore("lazadaGobalAttrs", () => {
     reset,
     setProductSkus,
     setVentures,
+    setProductName
   };
 });

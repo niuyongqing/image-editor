@@ -41,3 +41,4 @@ export function syncProductGP(shortCode, type) {
     `/platform-lazada/platform/lazada/gp/product/syncProduct/${shortCode}/${type}`
   );
 }
+

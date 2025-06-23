@@ -61,6 +61,7 @@
 </template>
 
 <script setup>
+import { useAuthorization } from '~/composables/authorization'
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { message } from "ant-design-vue";
 import download from '@/api/common/download';
@@ -94,12 +95,23 @@ const columns = [
     },
 ];
 
+const props = defineProps({
+    searchData: {
+        type: Object,
+        default: () => {}
+    }
+})
+
 const baseFormEl = useTemplateRef('baseFormRef')
 const modalMethods = ref();
 const rowData = ref({});
 const submitBtnLoading = ref(false);
 const active = ref(0);
 const fileList = ref([]);
+const UploadTable = ref([]);
+const url = import.meta.env.VITE_APP_BASE_API + '/platform-lazada/platform/lazada/gp/product/importExcelUpgradeProduct';
+const header = ref({ Authorization: useAuthorization().value });
+const UploadTableType = ref(false);
 const tableParms = reactive({
     taskName: "",
     type: "GpExcelGetNoFeePrice",
@@ -114,7 +126,7 @@ const tableParms = reactive({
 // 导出表格
 const copyData = () => {
     active.value = 1;
-    exportExcelGP(this.searchData).then((res) => {
+    exportExcelGP(props.searchData).then((res) => {
         download.name(res.msg);
         message.success("下载任务已开始！请耐心等待完成");
     });
@@ -134,6 +146,13 @@ const close = () => {
     customColor.value = '#f56c6c';
 };
 
+const cancel = () => {
+
+};
+
+const submit = () => {
+
+};
 
 const register = (methods) => {
     modalMethods.value = methods
