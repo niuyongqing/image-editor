@@ -33,7 +33,8 @@ export function collectProductList(data) {
 export function productStatCount(data) {
   return request({
     url: '/platform-common/platform/common/collect/product/stat',
-    method: 'get',
+    method: 'post',
+    data: data
   })
 }
 /**
@@ -56,6 +57,18 @@ export function addRemark(data) {
 export function deleteProduct(data) {
   return request({
     url: '/platform-common/platform/common/collect/product/delete',
+    method: 'post',
+    data: data
+  })
+}
+/**
+ * // 产品分配修改接口
+ * @param {*} data 
+ * @returns 
+ */
+export function updateCategoryProduct(data) {
+  return request({
+    url: '/platform-common/platform/common/collect/product/update-category',
     method: 'post',
     data: data
   })

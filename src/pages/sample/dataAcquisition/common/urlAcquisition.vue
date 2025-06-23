@@ -69,7 +69,7 @@
             @backSelectItem="selectTimeItem"
           ></selectComm>
         </a-form-item>
-        <a-form-item label="时间选择：" v-show="formData.time === 'all'">
+        <a-form-item label="时间选择：" v-show="formData.time === 'customize'">
           <a-range-picker 
             class="ml-2.5" 
             v-model:value="formData.searchTime" 
@@ -79,7 +79,7 @@
           />
         </a-form-item>
         <a-form-item label="备注：" v-show="isShowSearch">
-          <a-select 
+          <a-select
             v-model:value="formData.isRemark" 
             class="ml-2.5" 
             style="width: 150px"
@@ -108,6 +108,19 @@
             </a-menu>
           </template>
         </a-dropdown>
+        <a-dropdown 
+          :trigger="['click']"
+          :destroyPopupOnHide="true"
+          overlayClassName="urlAcquisition-typeTree_overlay"
+        >
+          <a-button type="primary" @click.prevent>
+            移动分类
+            <AsyncIcon icon="DownOutlined" class="ml-2.5" />
+          </a-button>
+          <template #overlay>
+            <typeTree :platform="'ozon'" @nodeClick="typeNodeClick"></typeTree>
+          </template>
+        </a-dropdown>
       </a-space>
     </div>
     <a-tabs 
@@ -129,7 +142,7 @@
       </a-tab-pane>
     </a-tabs>
 
-    <a-table 
+    <a-table
       :data-source="tableInfo.data" 
       style="width: 100%;" 
       bordered 
@@ -175,7 +188,7 @@
         </template>
         <template v-else-if="column.dataIndex === 'option'">
           <div class="option-btn-box">
-            <div class="option-btn">认领</div>
+            <div class="option-btn" @click="claim('acquisition')">认领</div>
             <div class="option-btn">编辑</div>
             
             <a-dropdown>
@@ -211,7 +224,7 @@
     />
   </a-card>
 
-  <component 
+  <component
     :is="modalInfo.name" 
     v-model:modalOpen="modalInfo.open"
     :modalData="modalInfo.data"
@@ -228,8 +241,9 @@ import { ref, reactive, onMounted, computed, watchPostEffect, markRaw } from 'vu
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import ClaimModal from './ClaimModal.vue'
 import remarkModal from './modal/remarkModal.vue';
+import typeTree from '~@/components/classificationTree/typeTree.vue';
 // import { dataGathe } from "../../../ozon/config/commDic/defDic"
-import { collectProductList, deleteProduct, productStatCount } from '../js/api';
+import { collectProductList, deleteProduct, productStatCount, updateCategoryProduct } from '../js/api';
 import { acquisitionHeader } from '../js/header';
 import { timestampToDateTime } from '~@/pages/lazada/fullyProduct/common';
 import dayjs from 'dayjs';
@@ -317,7 +331,7 @@ const formBtnInfo = {
     },
     {
       label: "自定义",
-      value: 'all',
+      value: 'customize',
     }
   ]
 }
@@ -386,7 +400,7 @@ const columns = computed(() => {
 })
 onMounted(() => {
   tabsChange(activeName.value)
-  getProductStatCount()
+  // getProductStatCount()
 })
 async function getProductStatCount() {
   let res = await productStatCount()
@@ -417,6 +431,11 @@ async function getList() {
   })
   tableInfo.data = res.data;
   tableInfo.total = res.total;
+  let CountRes = await productStatCount(params)
+  // console.log({res});
+  formBtnInfo.tabList.forEach(item => {
+    item.value = CountRes.data[item.code]
+  })
 }
 const clearArea = () => {
   dataUrl.value = ""
@@ -464,6 +483,7 @@ const selectTimeItem = (val) => {
     default:
       break;
   }
+  if (val === 'customize') return;
   formData.collectTimeEnd = end
   formData.collectTimeStart = start
   onSubmit()
@@ -545,13 +565,31 @@ function dropdownClick(key, selectedRow) {
       break;
   }
 }
+// 批量移动分类
+async function typeNodeClick(node) {
+  if (tableInfo.selectedRowKeys.length < 1) return message.warning('请选择商品！')
+  // console.log({ node });
+  try {
+    let ids = tableInfo.selectedRowKeys.map(i => i.id);
+    
+    let params = {
+      "ids": ids.join(), // 商品信息的唯一标识(多个用英文逗号分割)
+      "productCategoryId": node.id   //分类ID
+    }
+    await updateCategoryProduct(params)
+    getList()
+  } catch (error) {
+    console.error(error)
+  }
+}
 // 删除商品
 async function deleteProductFn(rowList) {
   try {
     let ids = rowList.map(i => i.id).join()
     await deleteProduct({ ids })
+    message.success('删除成功！')
     onSubmit();
-    tabsChange(activeName.value)
+    // getProductStatCount();
   } catch (error) {
     console.error(error)
   }
@@ -611,10 +649,8 @@ function claim(type = 'acquisition') {
 <style lang="less">
 .rowBox-simpleDesc {
   max-width: 400px !important;
-
   .ant-tooltip-content {
     width: 100%;
-
     .rowBox-simpleDesc-tip-item {
       width: 100%;
       word-wrap: break-word;
@@ -622,15 +658,19 @@ function claim(type = 'acquisition') {
       display: flex;
       justify-content: space-between;
       justify-items: center;
-
       .simpleDesc-tip-item-key {
         width: 120px;
       }
-
       .simpleDesc-tip-item-val {
         width: calc(100% - 130px);
       }
     }
   }
+}
+.urlAcquisition-typeTree_overlay {
+  max-width: 300px;
+  height: 300px;
+  background: #fff;
+  padding: 10px;
 }
 </style>
