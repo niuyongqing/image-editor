@@ -46,7 +46,7 @@
                         <a-button type="link" @click="changeCategory">更换分类</a-button>
                         <p class="tooltip-text" v-if="hisAttrObj && JSON.stringify(hisAttrObj) != '{}'">{{
                             hisAttrObj.categoryName
-                            }} > {{ hisAttrObj.secondCategoryName }} > {{
+                        }} > {{ hisAttrObj.secondCategoryName }} > {{
                                 hisAttrObj.threeCategoryName }} </p>
                         <!-- 表格 -->
                         <a-table :columns="innerColumns" :data-source="innerTableData" bordered :pagination="false"
@@ -526,7 +526,7 @@ defineExpose({
     open
 });
 </script>
-<style scoped>
+<style scoped lang="less">
 .card {
     background-color: #f9f9f9;
 }
