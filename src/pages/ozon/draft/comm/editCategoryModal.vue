@@ -46,7 +46,7 @@
                         <a-button type="link" @click="changeCategory">更换分类</a-button>
                         <p class="tooltip-text" v-if="hisAttrObj && JSON.stringify(hisAttrObj) != '{}'">{{
                             hisAttrObj.categoryName
-                            }} > {{ hisAttrObj.secondCategoryName }} > {{
+                        }} > {{ hisAttrObj.secondCategoryName }} > {{
                                 hisAttrObj.threeCategoryName }} </p>
                         <!-- 表格 -->
                         <a-table :columns="innerColumns" :data-source="innerTableData" bordered :pagination="false"
@@ -320,8 +320,7 @@ const open = (data) => {
     }).then((res) => {
         if (res.code === 200) {
             relationDetail.value = res.data || {};
-
-            if (relationDetail.value) {
+            if (JSON.stringify(relationDetail.value) != '{}') {
                 tableData.value = [{
                     primaryImage: data.primaryImage,
                     name: data.name,
