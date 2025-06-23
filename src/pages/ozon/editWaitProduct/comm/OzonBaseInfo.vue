@@ -100,10 +100,10 @@
                                     <a-select optionFilterProp="label" show-search
                                         v-model:value="form.attributes[item.name]" v-if="item.selectType === 'select'"
                                         labelInValue :style="'width: 80%'" allowClear>
-                                        <!-- <a-select-option v-if="item.name == '品牌(Бренд)'" :value="'无品牌'"
-                                            :label="'无品牌'">无品牌</a-select-option> -->
-
-                                        <a-select-option :value="v" v-for="(v, i) in item.options" :key="i">{{ v.label
+                                        <a-select-option v-if="item.id == 85" :value="'无品牌'"
+                                            :label="'无品牌'">无品牌</a-select-option>
+                                        
+                                        <a-select-option v-else :value="v" v-for="(v, i) in item.options" :key="i">{{ v.label
                                         }}</a-select-option>
                                     </a-select>
                                 </a-form-item>
@@ -170,7 +170,7 @@ const rules = {
     },
 };
 const rules2 = ref({});
-const loopAttributes = ref({});
+const loopAttributes = ref([]);
 const categoryTreeList = ref([]);
 const historyCategoryList = ref([]);
 const isExpand = ref(false)
@@ -204,9 +204,9 @@ const getCategoryTree = () => {
 const sortAttrs = (attrs) => {
     // 如果是展开
     if (isExpand.value) {
-        return attrs
+        return attrs || []
     } else {
-        return attrs?.filter(item => item.isRequired)
+        return attrs?.filter(item => item.isRequired) || []
     }
 };
 

@@ -119,10 +119,12 @@ const processResult = (productList) => {
       id: Math.random().toString(36).substring(2, 10),
     };
     product.forEach((item) => {
+      console.log("item",item.modelValue);
+      
       let values =
         item.selectType === "multSelect"
           ? item?.modelValue?.map((val) => val.label).join(",")
-          : item.selectType === "select" ? item.modelValue.value : item.modelValue;
+          : item.selectType === "select" ? item.modelValue.label : item.modelValue;  //原写法 item.modelValue.value 
       output[item.name] = values;
       output['secondName'] = item?.secondModelValue || "";
       output[item.secondName] = item?.secondModelValue || "";

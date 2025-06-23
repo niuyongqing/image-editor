@@ -26,21 +26,21 @@
         </a-form-item>
         <a-form-item v-if="advancedType">
           <a-form :model="advancedForm" ref="formRef" class="text-left w-133 ml-20 py-5"
-            style="background-color: rgb(245, 245, 245);" :labelAlign="'right'" :labelCol="{ span: 7 }">
+            style="background-color: rgb(245, 245, 245)" :labelAlign="'right'" :labelCol="{ span: 7 }">
             <a-form-item label="售价：">
-              <a-input style="width: 150px;" v-model:value="advancedForm.minPrice" allowClear></a-input>
+              <a-input style="width: 150px" v-model:value="advancedForm.minPrice" allowClear></a-input>
               <span class="mx-2.5">-</span>
-              <a-input style="width: 150px;" v-model:value="advancedForm.maxPrice" allowClear></a-input>
+              <a-input style="width: 150px" v-model:value="advancedForm.maxPrice" allowClear></a-input>
             </a-form-item>
             <a-form-item label="原价：">
-              <a-input style="width: 150px;" v-model:value="advancedForm.minOldPrice" allowClear></a-input>
+              <a-input style="width: 150px" v-model:value="advancedForm.minOldPrice" allowClear></a-input>
               <span class="mx-2.5">-</span>
-              <a-input style="width: 150px;" v-model:value="advancedForm.maxOldPrice" allowClear></a-input>
+              <a-input style="width: 150px" v-model:value="advancedForm.maxOldPrice" allowClear></a-input>
             </a-form-item>
             <a-form-item label="总库存：">
-              <a-input style="width: 150px;" v-model:value="advancedForm.minStock" allowClear></a-input>
+              <a-input style="width: 150px" v-model:value="advancedForm.minStock" allowClear></a-input>
               <span class="mx-2.5">-</span>
-              <a-input style="width: 150px;" v-model:value="advancedForm.maxStock" allowClear></a-input>
+              <a-input style="width: 150px" v-model:value="advancedForm.maxStock" allowClear></a-input>
             </a-form-item>
             <!-- <a-form-item label="备注：">
                             <a-select ref="select" v-model:value="advancedForm.isRemark" style="width: 150px">
@@ -53,7 +53,7 @@
                 <a-select-option value="update_time">更新时间</a-select-option>
                 <a-select-option value="created_time">创建时间</a-select-option>
               </a-select>
-              <a-range-picker class="ml-2.5" style="width: 320px;" valueFormat="YYYY-MM-DD"
+              <a-range-picker class="ml-2.5" style="width: 320px" valueFormat="YYYY-MM-DD"
                 v-model:value="advancedForm.time" />
             </a-form-item>
             <a-form-item>
@@ -84,29 +84,16 @@
             <a-dropdown :disabled="selectedRowList.length === 0">
               <template #overlay>
                 <a-menu @click="handleMenuClick">
-                  <a-menu-item key="publish">
-                    批量发布
-                  </a-menu-item>
+                  <a-menu-item key="publish"> 批量发布 </a-menu-item>
                   <!-- <a-menu-item key="deactivate">
                     批量归档
                   </a-menu-item> -->
-                  <a-menu-item key="remark">
-                    批量备注
-                  </a-menu-item>
-                  <a-menu-item key="delete">
-                    批量删除
-                  </a-menu-item>
+                  <a-menu-item key="remark"> 批量备注 </a-menu-item>
+                  <a-menu-item key="delete"> 批量删除 </a-menu-item>
                   <a-menu-divider />
-                  <a-menu-item key="stock">
-                    批量修改库存
-                  </a-menu-item>
-                  <a-menu-item key="price">
-                    批量修改售价
-                  </a-menu-item>
-                  <a-menu-item key="oldPrice">
-                    批量修改原价
-                  </a-menu-item>
-
+                  <a-menu-item key="stock"> 批量修改库存 </a-menu-item>
+                  <a-menu-item key="price"> 批量修改售价 </a-menu-item>
+                  <a-menu-item key="oldPrice"> 批量修改原价 </a-menu-item>
                 </a-menu>
               </template>
               <a-button>
@@ -126,9 +113,7 @@
             <a-dropdown>
               <template #overlay>
                 <a-menu @click="handleExport">
-                  <a-menu-item key="page">
-                    按页导出
-                  </a-menu-item>
+                  <a-menu-item key="page"> 按页导出 </a-menu-item>
                   <a-menu-item key="number" :disabled="selectedRowList.length === 0">
                     按勾选导出
                   </a-menu-item>
@@ -143,7 +128,7 @@
         </div>
       </div>
       <div class="flex items-baseline justify-between">
-        <a-tabs v-model:activeKey="activeName" type="card" style="width: 800px;" @tab-click="handleClick">
+        <a-tabs v-model:activeKey="activeName" type="card" style="width: 800px" @tab-click="handleClick">
           <a-tab-pane :key="item.name" v-for="item in tabList" :tab="item.label + `(${item.value})`">
           </a-tab-pane>
         </a-tabs>
@@ -158,10 +143,10 @@
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'name'">
             <div class="flex text-left">
-              <a-image style="width: 100px; height: 100px;" :src="record?.skuList[0]?.primaryImage &&
-                record?.skuList[0]?.primaryImage.length > 0
-                ? processImageSource(record?.skuList[0]?.primaryImage[0])
-                : processImageSource(record?.skuList[0]?.images[0])
+              <a-image style="width: 100px; height: 100px" :src="record?.skuList[0]?.primaryImage &&
+                  record?.skuList[0]?.primaryImage.length > 0
+                  ? processImageSource(record?.skuList[0]?.primaryImage[0])
+                  : processImageSource(record?.skuList[0]?.images[0])
                 " />
               <div class="ml-2.5 block">
                 <a-tooltip class="item" effect="dark" :title="record.name" placement="top"
@@ -224,21 +209,19 @@
               </div>
             </div>
             <div v-if="record.skuList.length > 5" class="w-full flex flex-end flex-end more">
-              <a-button type="link" @click="record.show = !record.show">{{ !record.show ? '展开' : '收起' }}
+              <a-button type="link" @click="record.show = !record.show">{{ !record.show ? "展开" : "收起" }}
               </a-button>
             </div>
           </template>
           <template v-if="column.dataIndex === 'createTime'">
             <div class="flex items-start flex-col">
               <div class="flex items-start flex-col">
-                创建时间：<div style="color: #9e9f9e">{{
-                  record.createTime
-                }}</div>
+                创建时间：
+                <div style="color: #9e9f9e">{{ record.createTime }}</div>
               </div>
               <div class="flex items-start flex-col">
-                更新时间：<div style="color: #9e9f9e">{{
-                  record.updateTime
-                }}</div>
+                更新时间：
+                <div style="color: #9e9f9e">{{ record.updateTime }}</div>
               </div>
             </div>
           </template>
@@ -290,21 +273,26 @@
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from "vue";
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
-import { accountCache, shopCurrency, productWarehouse } from "../config/api/product";
+import {
+  accountCache,
+  shopCurrency,
+  productWarehouse,
+} from "../config/api/product";
 import {
   ozonProductList,
   ozonProductDel,
   ozonProductPublish,
-  statistics, waitExport
+  statistics,
+  waitExport,
 } from "../config/api/waitProduct";
 import tableHeard from "../config/tabColumns/waitPublish";
 import editRemark from "./comm/editRemark.vue";
 import { message, Modal } from "ant-design-vue";
-import dayjs from 'dayjs'
+import dayjs from "dayjs";
 import { processImageSource } from "~/pages/ozon/config/commJs/index";
-import { SettingOutlined, DownOutlined } from '@ant-design/icons-vue';
+import { SettingOutlined, DownOutlined } from "@ant-design/icons-vue";
 import shopSetModal from "../product/comm/shopSetModal.vue";
-import { tabAllDicList, colors } from "../config/commDic/defDic"
+import { tabAllDicList, colors } from "../config/commDic/defDic";
 import download from "~/api/common/download";
 import editPriceModal from "./comm/editPriceModal.vue";
 
@@ -332,17 +320,17 @@ const deactivateLoading = ref(false);
 const delLoading = ref(false);
 const loading = ref(false);
 const remarkVisible = ref(false);
-const shopSetVisible = ref(false)
-const advancedType = ref(false)
-const editPriceVisible = ref(false) //全属性
-const editStockList = ref([])  //修改库存
+const shopSetVisible = ref(false);
+const advancedType = ref(false);
+const editPriceVisible = ref(false); //全属性
+const editStockList = ref([]); //修改库存
 const remarkId = ref([]);
-const shopCurryList = ref([])
-const tabList = ref(tabAllDicList)
-const activeName = ref(" ")
-const tabQuantity = ref([])
-const defType = ref([])
-const stockShops = ref([])
+const shopCurryList = ref([]);
+const tabList = ref(tabAllDicList);
+const activeName = ref(" ");
+const tabQuantity = ref([]);
+const defType = ref([]);
+const stockShops = ref([]);
 const advancedForm = reactive({
   minPrice: "",
   maxPrice: "",
@@ -352,8 +340,8 @@ const advancedForm = reactive({
   maxStock: null,
   // isRemark: "",
   timeSort: "update_time",
-  time: []
-})
+  time: [],
+});
 
 const state = {
   wait_publish: "待发布",
@@ -422,45 +410,44 @@ const rowSelection = computed(() => {
     onChange: (rowKeys, rows) => {
       selectedRowKeys.value = rowKeys; //只接收ID
       selectedRowList.value = rows; //接收每一行
-    }
-  }
-})
+    },
+  };
+});
 
 const add = () => {
   window.open("productPublish", "_blank");
 };
 
 // 标签页切换
-const handleClick = activeKey => {
-  formData.state = activeKey
-  getList()
-}
+const handleClick = (activeKey) => {
+  formData.state = activeKey;
+  getList();
+};
 
 // 高级搜索重置
 const resetForm = (type = 0) => {
   formData.sku = "";
   formData.id = "";
   formData.name = "";
-  advancedForm.minPrice = ""
-  advancedForm.maxPrice = ""
-  advancedForm.minOldPrice = ""
-  advancedForm.maxOldPrice = ""
-  advancedForm.minStock = null
-  advancedForm.maxStock = null
+  advancedForm.minPrice = "";
+  advancedForm.maxPrice = "";
+  advancedForm.minOldPrice = "";
+  advancedForm.maxOldPrice = "";
+  advancedForm.minStock = null;
+  advancedForm.maxStock = null;
   // advancedForm.isRemark = ""
-  advancedForm.timeSort = "update_time"
-  advancedForm.time = []
-  advancedType.value = type == 1 ? false : true
+  advancedForm.timeSort = "update_time";
+  advancedForm.time = [];
+  advancedType.value = type == 1 ? false : true;
   getList();
-}
-
+};
 
 const remarkColor = (param) => {
   const findItem = colors.find((item) => {
-    return item.id === param
+    return item.id === param;
   });
-  return findItem ? findItem.color : '#000000';
-}
+  return findItem ? findItem.color : "#000000";
+};
 
 // 库存
 const getStore = () => {
@@ -478,7 +465,7 @@ const getStore = () => {
         };
       }) ?? [];
   });
-}
+};
 
 // 店铺单选多选
 const selectAll = () => {
@@ -523,15 +510,15 @@ const storChange = (item) => {
 };
 
 const shopSet = () => {
-  shopSetVisible.value = true
-  getShopSet()
-}
+  shopSetVisible.value = true;
+  getShopSet();
+};
 
 const getShopSet = () => {
-  shopCurrency().then(res => {
-    shopCurryList.value = res?.data ?? []
-  })
-}
+  shopCurrency().then((res) => {
+    shopCurryList.value = res?.data ?? [];
+  });
+};
 
 // 表单搜索
 const onSubmit = () => {
@@ -577,8 +564,9 @@ const addRemark = (row = {}) => {
   remarkVisible.value = true;
   if (Object.keys(row).length == 0) {
     const matchSet = new Set(selectedRowKeys.value);
-    remarkId.value = tableData.value.filter(item => matchSet.has(item.waitId))
-      .map(({ waitId, account }) => ({ waitId, account }))
+    remarkId.value = tableData.value
+      .filter((item) => matchSet.has(item.waitId))
+      .map(({ waitId, account }) => ({ waitId, account }));
   } else {
     let remarkObj = {
       account: row.account,
@@ -607,19 +595,19 @@ const edit = (row = {}) => {
 
 // 批量操作
 const handleMenuClick = (e) => {
-  console.log('e', e);
+  console.log("e", e);
   if (e.key == "remark") {
     addRemark();
-  } else if(e.key === "publish") {
+  } else if (e.key === "publish") {
     Modal.confirm({
-      title: '是否批量发布？',
+      title: "是否批量发布？",
       onOk: () => {
         publish();
       },
       onCancel: () => {
         clearSelectList();
-      }
-    })
+      },
+    });
   }
   // else if(e.key === "deactivate") {
   //   Modal.confirm({
@@ -634,38 +622,37 @@ const handleMenuClick = (e) => {
   // }
   else if (e.key == "delete") {
     Modal.confirm({
-      title: '确定在待发布删除吗？',
+      title: "确定在待发布删除吗？",
       onOk: () => {
         del();
       },
       onCancel: () => {
         clearSelectList();
-      }
-    })
+      },
+    });
   } else {
-    defType.value = e.keyPath
+    defType.value = e.keyPath;
     editPriceVisible.value = true;
     stockShops.value = selectedRowList.value.map((e) => e.account);
     getStore();
   }
-
-}
+};
 
 // 关闭价格
 const handleEditPriceClose = () => {
   clearSelectList();
   editPriceVisible.value = false;
   getList();
-  editStockList.value = clearStock(editStockList.value)
-}
+  editStockList.value = clearStock(editStockList.value);
+};
 
 function clearStock(data) {
   if (Array.isArray(data)) {
-    data.forEach(item => {
+    data.forEach((item) => {
       if (item.children) {
         clearStock(item.children);
       }
-      if (item.hasOwnProperty('stock')) {
+      if (item.hasOwnProperty("stock")) {
         item.stock = null;
       }
     });
@@ -675,24 +662,24 @@ function clearStock(data) {
 
 // 导出
 const handleExport = (e) => {
-  let waitIds = []
-  if (e.key == 'page') {
+  let waitIds = [];
+  if (e.key == "page") {
     waitIds = tableData.value.map((e) => e.waitId);
   } else {
     waitIds = selectedRowKeys.value;
   }
-  waitExport({ waitIds }).then(res => {
+  waitExport({ waitIds }).then((res) => {
     download.name(res.msg);
     message.success("下载任务已开始！请耐心等待完成");
     clearSelectList();
-  })
-}
+  });
+};
 
 const clearSelectList = () => {
   selectedRowList.value = [];
   selectedRowKeys.value = [];
-}
- 
+};
+
 const getList = () => {
   if (advancedForm.minPrice > advancedForm.maxPrice) {
     message.error("最大售价必须大于最小售价！");
@@ -710,11 +697,15 @@ const getList = () => {
   let params = {
     ...formData,
     ...advancedForm,
-    startDateTime: advancedForm.time.length ? dayjs(advancedForm.time[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
-    endDateTime: advancedForm.time.length ? dayjs(advancedForm.time[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+    startDateTime: advancedForm.time.length
+      ? dayjs(advancedForm.time[0]).startOf("day").format("YYYY-MM-DD HH:mm:ss")
+      : undefined,
+    endDateTime: advancedForm.time.length
+      ? dayjs(advancedForm.time[1]).endOf("day").format("YYYY-MM-DD HH:mm:ss")
+      : undefined,
     pageNum: paginations.pageNum,
     pageSize: paginations.pageSize,
-  }
+  };
   ozonProductList(params)
     .then((res) => {
       tableData.value =
@@ -727,9 +718,9 @@ const getList = () => {
     .finally(() => {
       loading.value = false;
     });
-  statistics({ account: formData.account }).then(res => {
+  statistics({ account: formData.account }).then((res) => {
     tabQuantity.value = res?.data || [];
-  })
+  });
 };
 
 // tabs的商品统计条数赋值
@@ -737,31 +728,33 @@ watch(tabQuantity, (newValue, oldValue) => {
   if (newValue.length === 0) {
     tabList.value = [...tabAllDicList];
   } else {
-    tabList.value = tabAllDicList.map(item => {
-      const match = newValue.find(q => q.state === item.code);
+    tabList.value = tabAllDicList.map((item) => {
+      const match = newValue.find((q) => q.state === item.code);
       return {
         ...item,
-        value: match ? match.count.toString() : "0"
+        value: match ? match.count.toString() : "0",
       };
     });
   }
-})
+});
 
 // 单个发布
 const publish = (row = {}) => {
-  let params = []
+  let params = [];
   if (Object.keys(row).length != 0) {
-    params = [{
-      account: row.account,
-      waitId: row.waitId,
-    }]
+    params = [
+      {
+        account: row.account,
+        waitId: row.waitId,
+      },
+    ];
   } else {
-    params = selectedRowList.value.map(item => {
+    params = selectedRowList.value.map((item) => {
       return {
         account: item.account,
         waitId: item.waitId,
-      }
-    })
+      };
+    });
   }
   loading.value = true;
   ozonProductPublish(params)

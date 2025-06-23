@@ -417,9 +417,9 @@ const childForm = async () => {
 const sortAttrs = (attrs) => {
     // 如果是展开
     if (isExpand.value) {
-        return attrs
+        return attrs || []
     } else {
-        return attrs?.filter(item => item.isRequired)
+        return attrs?.filter(item => item.isRequired) || []
     }
 };
 
