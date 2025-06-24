@@ -462,6 +462,7 @@ async function getList() {
       item.value = CountRes.data[item.code]
     })
     formBtnInfo.tabList = [...formBtnInfo.tabList]
+    tableInfo.selectedRowKeys = []
   } catch (error) {
     console.error(error)
   }
