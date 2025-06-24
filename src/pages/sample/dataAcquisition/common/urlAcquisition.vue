@@ -197,7 +197,7 @@
         <template v-else-if="column.dataIndex === 'option'">
           <div class="option-btn-box">
             <div class="option-btn" @click="claim('acquisition')">认领</div>
-            <div class="option-btn" @click="openModal('acquisitionEdit', [record])">编辑</div>
+            <div class="option-btn" @click="acquisitionEdit('acquisitionEdit', [record])">编辑</div>
             
             <a-dropdown>
               <div class="option-btn" type="link" @click.prevent>
@@ -249,7 +249,6 @@ import { ref, reactive, onMounted, computed, watchPostEffect, markRaw } from 'vu
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import ClaimModal from './ClaimModal.vue'
 import remarkModal from './remarkModal.vue';
-import acquisitionEdit from '@/pages/sample/dataAcquisition/common/acquisitionEdit/index.vue'
 import typeTree from '~@/components/classificationTree/typeTree.vue';
 // import { dataGathe } from "../../../ozon/config/commDic/defDic"
 import { collectProductList, deleteProduct, productStatCount, updateCategoryProduct } from '../js/api';
@@ -381,7 +380,6 @@ const modalInfo = reactive({
   name: null,
   components: {
     remarkModal: markRaw(remarkModal),
-    acquisitionEdit: markRaw(acquisitionEdit),
   },
   data: {
     selectedRow: []
@@ -624,6 +622,7 @@ function openModal(key, rowList) {
     modalInfo.open = !modalInfo.open;
   })
 }
+function acquisitionEdit() {}
 // 添加备注完成
 function addRemark() {
   getList()
