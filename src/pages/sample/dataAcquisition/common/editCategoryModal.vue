@@ -46,7 +46,7 @@
                         <a-button type="link" @click="changeCategory">更换分类</a-button>
                         <p class="tooltip-text" v-if="hisAttrObj && JSON.stringify(hisAttrObj) != '{}'">{{
                             hisAttrObj.categoryName
-                            }} > {{ hisAttrObj.secondCategoryName }} > {{
+                        }} > {{ hisAttrObj.secondCategoryName }} > {{
                                 hisAttrObj.threeCategoryName }} </p>
                         <!-- 表格 -->
                         <a-table :columns="innerColumns" :data-source="innerTableData" bordered :pagination="false"
@@ -201,19 +201,7 @@ function getFilterAttrs() {
         }
 
     };
-}
-
-// // 历史分类  typeId, categoryId = ''
-// const getHistoryList = (account) => {
-//     historyCategory({ account })
-//         .then((res) => {
-//             historyCategoryList.value = res?.data || [];
-//             innerTableData.value.forEach((item) => {
-//                 item.ozonTheme = undefined;
-//                 item.attrLabel = undefined;
-//             })
-//         })
-// };
+};
 
 const findPathById = (id, tree) => {
     for (let item of tree) {
@@ -367,7 +355,6 @@ const handleSelect = (data) => {
     };
     isClear.value = true;
     addHistoryCategory(params).then((res) => {
-        // getHistoryList(acceptParams.value.account, data.value);
         historyCategory({ account: form.shortCode })
             .then((res) => {
                 historyCategoryList.value = res?.data || [];
@@ -481,11 +468,14 @@ const editCategory = () => {
             "attributeId": item.ozonTheme
         }
     });
+
+    console.log('hisAttrObj', hisAttrObj.value);
+
     const params = {
-        typeId: form.categoryId,
+        typeId: form.categoryId, // 三级分类id
         "productCollectId": acceptParams.value.id, //数据采集产品id或者采集箱产品id
         "platformName": "ozon",//所属平台
-        "categoryId": form.categoryId,
+        "categoryId": hisAttrObj.value.categoryId, // 二级分类id
         "variantRelationList": variantRelationList
     };
 

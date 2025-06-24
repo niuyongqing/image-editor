@@ -17,6 +17,7 @@
                             <a-empty v-else />
                         </template>
                     </a-dropdown>
+
                     <a-button type="primary" @click="searchHistory">搜索</a-button>
                 </div>
                 <p> {{ selectItem.label }} </p>
@@ -256,29 +257,35 @@ function getCategoryTree() {
                 value: item.descriptionCategoryId,
             }
         });
-        secondState.options = treeData.value[0].children.map((item) => {
+        firstState.selectValue = firstState.options.find((item) => item.value === path.ids[0]);
+
+        secondState.options = firstState.selectValue.children.map((item) => {
             return {
                 ...item,
                 label: item.categoryName,
                 value: item.descriptionCategoryId,
             }
         });
-        thirdState.options = treeData.value[0].children[0].children.map((item) => {
+        secondState.selectValue = secondState.options.find((item) => item.value === path.ids[1]);
+
+        thirdState.options = secondState.selectValue.children.map((item) => {
             return {
                 ...item,
                 label: item.categoryName,
                 value: item.descriptionCategoryId,
             }
         });
+        thirdState.selectValue = thirdState.options.find((item) => item.value === path.ids[2]);
+
         firstState.open = true;
         secondState.open = true;
         thirdState.open = true;
+
         firstState.selectKeys = [path.ids[0]];
         secondState.selectKeys = [path.ids[1]];
         thirdState.selectKeys = [path.ids[2]];
-        firstState.selectValue = firstState.options.find((item) => item.value === path.ids[0]);
-        secondState.selectValue = secondState.options.find((item) => item.value === path.ids[1]);
-        thirdState.selectValue = thirdState.options.find((item) => item.value === path.ids[2]);
+
+
         copyFirstOpts.value = cloneDeep(firstState.options);
         copySecondOpts.value = cloneDeep(secondState.options);
         copyThirdOpts.value = cloneDeep(thirdState.options);

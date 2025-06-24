@@ -167,44 +167,60 @@ defineExpose({
 })
 
 watch(() => props.productDetail, val => {
-    if (Object.keys(val).length > 0) {
+    console.log('val -》》》》》》》》》》》》', Object.keys(val).length);
+
+    if (JSON.stringify(val) != '{}') {
+
+
+        console.log(' ----------------- ', val);
         const { attributes, complexAttributes } = val.attributes[0];
+        console.log('attributes', attributes);
+        console.log('complexAttributes', complexAttributes);
 
-        if (attributes?.length == 0 || attributes == null) return;
-        const copyAttr = attributes?.filter(
-            (a) => a.id == 11254 || a.id == 4191
-        );
-        complexAttributes && complexAttributes.forEach((item) => {
-            // item.forEach((attribute) => {
-            // });
-            // console.log('item',item);
-            
-            if (item.id === 21841) {
-                form.video.push({
-                    url: processImageSource(item.values[0].value),
-                    name: item.values[0].value.substring(
-                        item.values[0].value.lastIndexOf("/") + 1
-                    ),
-                })
-            } else if (item.id === 21845) {
-                form.coverUrl = {
-                    url: processImageSource(item.values[0].value),
-                    name: item.values[0].value.substring(
-                        item.values[0].value.lastIndexOf("/") + 1
-                    ),
-                };
-            }
-        });
-        copyAttr.forEach(e => {
-            if (e.id === 11254) {
-                form.jsons = e.values[0].value
-            } else {
-                form.description = e.values[0].value
-            }
-        })
-        // console.log('form', form);
+    };
 
-    }
+    // if (Object.keys(val).length > 0) {
+    //     // console.log('val.attributes[0];', val.attributes[0]);
+
+    //     // debugger
+    //     // const { attributes, complexAttributes } = val.attributes[0];
+
+    //     // if (attributes?.length == 0 || attributes == null) return;
+    //     // const copyAttr = attributes?.filter(
+    //     //     (a) => a.id == 11254 || a.id == 4191
+    //     // );
+    //     // complexAttributes && complexAttributes.forEach((item) => {
+    //     //     // item.forEach((attribute) => {
+    //     //     // });
+    //     //     // console.log('item',item);
+
+    //     //     if (item.id === 21841) {
+    //     //         form.video.push({
+    //     //             url: processImageSource(item.values[0].value),
+    //     //             name: item.values[0].value.substring(
+    //     //                 item.values[0].value.lastIndexOf("/") + 1
+    //     //             ),
+    //     //         })
+    //     //     } else if (item.id === 21845) {
+    //     //         form.coverUrl = {
+    //     //             url: processImageSource(item.values[0].value),
+    //     //             name: item.values[0].value.substring(
+    //     //                 item.values[0].value.lastIndexOf("/") + 1
+    //     //             ),
+    //     //         };
+    //     //     }
+    //     // });
+    //     // console.log('copyAttr -', copyAttr);
+
+    //     // copyAttr.forEach(e => {
+    //     //     if (e.id === 11254) {
+    //     //         form.jsons = e.values[0].value
+    //     //     } else {
+    //     //         form.description = e.values[0].value
+    //     //     }
+    //     // })
+    //     // console.log('form', form);
+    // }
 })
 </script>
 <style lang="less" scoped>
