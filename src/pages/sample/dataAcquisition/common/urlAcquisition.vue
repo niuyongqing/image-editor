@@ -1,6 +1,14 @@
 <template>
 <div id="urlAcquisition" class="urlAcquisition text-left">
-  <a-card title="采集地址--单品采集" class="text-left my-2.5">
+  <a-card class="text-left my-2.5">
+    <template #title>
+      采集地址--单品采集（目前仅支持插件采集，请
+      <span 
+        style="font-weight: 700; color: #1677ff; cursor: pointer;"
+        @click="loadDescribe"
+      >下载采集插件</span>
+      ！）
+    </template>
     <!-- <a-textarea v-model:value="dataUrl.url" placeholder="请填写产品的网址,多个网址用Enter换行" :auto-size="{ minRows: 7 }" />
     <div class="flex mt-2.5 justify-between">
       <div>
@@ -69,7 +77,7 @@
             @backSelectItem="selectTimeItem"
           ></selectComm>
         </a-form-item>
-        <a-form-item label="时间选择：" v-show="formData.time === 'all'">
+        <a-form-item label="时间选择：" v-show="formData.time === 'customize'">
           <a-range-picker 
             class="ml-2.5" 
             v-model:value="formData.searchTime" 
@@ -79,7 +87,7 @@
           />
         </a-form-item>
         <a-form-item label="备注：" v-show="isShowSearch">
-          <a-select 
+          <a-select
             v-model:value="formData.isRemark" 
             class="ml-2.5" 
             style="width: 150px"
@@ -92,7 +100,7 @@
       </a-form>
     </div>
   </a-card>
-  <a-card>
+  <a-card :loading="tableInfo.spinning">
     <div class="flex my-2.5">
       <a-space>
         <a-button @click="claim('acquisition')" type="primary">批量认领</a-button>
@@ -106,6 +114,19 @@
               <a-menu-item key="remarkModal">批量备注</a-menu-item>
               <a-menu-item key="del">批量删除</a-menu-item>
             </a-menu>
+          </template>
+        </a-dropdown>
+        <a-dropdown 
+          :trigger="['click']"
+          :destroyPopupOnHide="true"
+          overlayClassName="urlAcquisition-typeTree_overlay"
+        >
+          <a-button type="primary" @click.prevent>
+            移动分类
+            <AsyncIcon icon="DownOutlined" class="ml-2.5" />
+          </a-button>
+          <template #overlay>
+            <typeTree :platform="'ozon'" @nodeClick="typeNodeClick"></typeTree>
           </template>
         </a-dropdown>
       </a-space>
@@ -129,7 +150,7 @@
       </a-tab-pane>
     </a-tabs>
 
-    <a-table 
+    <a-table
       :data-source="tableInfo.data" 
       style="width: 100%;" 
       bordered 
@@ -175,8 +196,8 @@
         </template>
         <template v-else-if="column.dataIndex === 'option'">
           <div class="option-btn-box">
-            <div class="option-btn">认领</div>
-            <div class="option-btn">编辑</div>
+            <div class="option-btn" @click="claim('acquisition')">认领</div>
+            <div class="option-btn" @click="openModal('acquisitionEdit', [record])">编辑</div>
             
             <a-dropdown>
               <div class="option-btn" type="link" @click.prevent>
@@ -210,8 +231,8 @@
       @change="pageChange"
     />
   </a-card>
-
-  <component 
+  <!-- 弹窗组件 -->
+  <component
     :is="modalInfo.name" 
     v-model:modalOpen="modalInfo.open"
     :modalData="modalInfo.data"
@@ -227,16 +248,18 @@
 import { ref, reactive, onMounted, computed, watchPostEffect, markRaw } from 'vue';
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import ClaimModal from './ClaimModal.vue'
-import remarkModal from './modal/remarkModal.vue';
+import remarkModal from './remarkModal.vue';
+import acquisitionEdit from '@/pages/sample/dataAcquisition/common/acquisitionEdit/index.vue'
+import typeTree from '~@/components/classificationTree/typeTree.vue';
 // import { dataGathe } from "../../../ozon/config/commDic/defDic"
-import { collectProductList, deleteProduct, productStatCount } from '../js/api';
+import { collectProductList, deleteProduct, productStatCount, updateCategoryProduct } from '../js/api';
 import { acquisitionHeader } from '../js/header';
 import { timestampToDateTime } from '~@/pages/lazada/fullyProduct/common';
 import dayjs from 'dayjs';
 import { message, Modal } from 'ant-design-vue';
 defineOptions({ name: "urlAcquisition" })
 const { proxy: _this } = getCurrentInstance()
-
+const emit = defineEmits(['loadDescribe'])
 const formBtnInfo = {
   tabList: [
     {
@@ -317,7 +340,7 @@ const formBtnInfo = {
     },
     {
       label: "自定义",
-      value: 'all',
+      value: 'customize',
     }
   ]
 }
@@ -351,12 +374,14 @@ const tableInfo = reactive({
   total: 0,
 
   selectedRowKeys: [],
+  spinning: false,
 })
 const modalInfo = reactive({
   open: false,
   name: null,
   components: {
-    remarkModal: markRaw(remarkModal)
+    remarkModal: markRaw(remarkModal),
+    acquisitionEdit: markRaw(acquisitionEdit),
   },
   data: {
     selectedRow: []
@@ -386,14 +411,18 @@ const columns = computed(() => {
 })
 onMounted(() => {
   tabsChange(activeName.value)
-  getProductStatCount()
+  // getProductStatCount()
 })
-async function getProductStatCount() {
-  let res = await productStatCount()
-  // console.log({res});
-  formBtnInfo.tabList.forEach(item => {
-    item.value = res.data[item.code]
-  })
+// async function getProductStatCount() {
+//   let res = await productStatCount()
+//   // console.log({res});
+//   formBtnInfo.tabList.forEach(item => {
+//     item.value = res.data[item.code]
+//   })
+// }
+// 下载采集插件
+function loadDescribe() {
+  emit('loadDescribe')
 }
 // 获取数据列表
 async function getList() {
@@ -410,13 +439,26 @@ async function getList() {
     "pageNum": pages.pageNum, // 分页参数
     "pageSize": pages.pageSize // 每页数量
   }
-  let res = await collectProductList(params)
-  // console.log({ res });
-  res.data.forEach(item => {
-    item.simpleDescTips = JSON.parse(item.simpleDesc)
-  })
-  tableInfo.data = res.data;
-  tableInfo.total = res.total;
+  try {
+    tableInfo.spinning = true;
+    let res = await collectProductList(params);
+    // console.log({ res });
+    res.data.forEach(item => {
+      item.simpleDescTips = JSON.parse(item.simpleDesc)
+    })
+    tableInfo.data = res.data;
+    tableInfo.total = res.total;
+    let CountRes = await productStatCount(params)
+    // console.log({res});
+    formBtnInfo.tabList.forEach(item => {
+      item.value = CountRes.data[item.code]
+    })
+    formBtnInfo.tabList = [...formBtnInfo.tabList]
+  } catch (error) {
+    console.error(error)
+  }
+  tableInfo.spinning = false;
+  // _this.$forceUpdate()
 }
 const clearArea = () => {
   dataUrl.value = ""
@@ -464,6 +506,7 @@ const selectTimeItem = (val) => {
     default:
       break;
   }
+  if (val === 'customize') return;
   formData.collectTimeEnd = end
   formData.collectTimeStart = start
   onSubmit()
@@ -545,13 +588,31 @@ function dropdownClick(key, selectedRow) {
       break;
   }
 }
+// 批量移动分类
+async function typeNodeClick(node) {
+  if (tableInfo.selectedRowKeys.length < 1) return message.warning('请选择商品！')
+  // console.log({ node });
+  try {
+    let ids = tableInfo.selectedRowKeys.map(i => i.id);
+    
+    let params = {
+      "ids": ids.join(), // 商品信息的唯一标识(多个用英文逗号分割)
+      "productCategoryId": node.id   //分类ID
+    }
+    await updateCategoryProduct(params)
+    getList()
+  } catch (error) {
+    console.error(error)
+  }
+}
 // 删除商品
 async function deleteProductFn(rowList) {
   try {
     let ids = rowList.map(i => i.id).join()
     await deleteProduct({ ids })
+    message.success('删除成功！')
     onSubmit();
-    tabsChange(activeName.value)
+    // getProductStatCount();
   } catch (error) {
     console.error(error)
   }
@@ -604,17 +665,15 @@ function claim(type = 'acquisition') {
   flex-direction: column;
   .option-btn {
     cursor: pointer;
-    color: #428bca;
+    color: #1677ff;
   }
 }
 </style>
 <style lang="less">
 .rowBox-simpleDesc {
   max-width: 400px !important;
-
   .ant-tooltip-content {
     width: 100%;
-
     .rowBox-simpleDesc-tip-item {
       width: 100%;
       word-wrap: break-word;
@@ -622,15 +681,19 @@ function claim(type = 'acquisition') {
       display: flex;
       justify-content: space-between;
       justify-items: center;
-
       .simpleDesc-tip-item-key {
         width: 120px;
       }
-
       .simpleDesc-tip-item-val {
         width: calc(100% - 130px);
       }
     }
   }
+}
+.urlAcquisition-typeTree_overlay {
+  max-width: 300px;
+  height: 300px;
+  background: #fff;
+  padding: 10px;
 }
 </style>

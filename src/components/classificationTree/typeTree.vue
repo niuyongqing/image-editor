@@ -39,7 +39,7 @@ import { cloneDeep } from 'lodash-es';
 import { getClassList } from './api';
 defineOptions({ name: "typeTree" })
 const { proxy: _this } = getCurrentInstance()
-const emit = defineEmits(['update:currentClass', 'update:nodePath'])
+const emit = defineEmits(['update:currentClass', 'update:nodePath', 'nodeClick'])
 const props = defineProps({
   currentClass: {       // 类型
     type: String,
@@ -111,7 +111,13 @@ async function getClassListFn(id = '0') {
       // 如果是删除当前节点后更新树数据，那么默认选择全部分类
       let node = treeData.nodeList.find(i => i.id === id) || treeData.tree[0];
       nextTick(() => {
-        selectNode([node.id], { expanded: undefined, node })
+        treeData.selectedKeys = [node.id]
+        treeData.currentClass = node.id
+        let path = getNodePath(node)
+        // console.log({path});
+        emit('update:currentClass', node.id)
+        emit('update:nodePath', path)
+        // selectNode([node.id], { expanded: undefined, node })
       })
     } else {
       treeData.currentClass = ''
@@ -177,6 +183,7 @@ function selectNode(expandedKeys, { expanded: bool, node }) {
   // console.log({path});
   emit('update:currentClass', node.id)
   emit('update:nodePath', path)
+  emit('nodeClick', {...node})
 }
 // 生成节点路径
 function getNodePath(node) {
