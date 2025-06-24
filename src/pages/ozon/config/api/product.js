@@ -305,3 +305,12 @@ export function shopAsyncProgress(data) {
     method: 'get',
   })
 }
+
+// 导出
+export function exportProduct(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/product/export/product',
+    method: 'post',
+    data
+  })
+}
