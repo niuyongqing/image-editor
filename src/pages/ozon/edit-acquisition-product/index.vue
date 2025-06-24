@@ -71,8 +71,7 @@
   </div>
 </template>
 
-<script setup name="editWaitProduct">
-  import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
+<script setup>
   import { ozonProductDetail, categoryAttributes, ozonProductEdit } from '../config/api/waitProduct'
   import { accountCache } from '../config/api/product'
   import OzonBaseInfo from './components/OzonBaseInfo.vue'
@@ -349,4 +348,3 @@
     getAccount()
   })
 </script>
-<style lang="less" scoped></style>

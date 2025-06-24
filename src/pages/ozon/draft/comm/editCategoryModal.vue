@@ -376,7 +376,7 @@ const editCategory = () => {
         typeId: form.categoryId,
         "productCollectId": acceptParams.value.gatherProductId, //数据采集产品id或者采集箱产品id
         "platformName": "ozon",//所属平台
-        "categoryId": hisAttrObj.value.categoryId, // 二级分类id
+        "categoryId": hisAttrObj.value.secondCategoryId, // 二级分类id
         "variantRelationList": variantRelationList
     };
 

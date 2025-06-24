@@ -15,7 +15,7 @@
                 @sendShortCode="sendShortCode" :categoryAttributesLoading="categoryAttributesLoading"></ozon-base-info>
             <br />
             <!-- 图片信息 -->
-            <ozon-new-image-info ref="ozonImageInfoRef" id="OzonNewImageInfo"
+            <ozon-new-image-info ref="ozonImageInfoRef" id="ozonNewImageInfo"
                 :shopCode="formData.shortCode"></ozon-new-image-info>
             <br />
             <!-- sku :attributes="attributes" -->
@@ -103,6 +103,10 @@ const backToTop = () => {
             behavior: 'smooth'
         });
     }
+}
+// 锚点滚动
+const scroll = (id) => {
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth' })
 }
 // 资料库点击
 const selectProduct = () => { }
