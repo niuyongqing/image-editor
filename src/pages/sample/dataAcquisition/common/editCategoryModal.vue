@@ -46,7 +46,7 @@
                         <a-button type="link" @click="changeCategory">更换分类</a-button>
                         <p class="tooltip-text" v-if="hisAttrObj && JSON.stringify(hisAttrObj) != '{}'">{{
                             hisAttrObj.categoryName
-                        }} > {{ hisAttrObj.secondCategoryName }} > {{
+                            }} > {{ hisAttrObj.secondCategoryName }} > {{
                                 hisAttrObj.threeCategoryName }} </p>
                         <!-- 表格 -->
                         <a-table :columns="innerColumns" :data-source="innerTableData" bordered :pagination="false"
@@ -475,7 +475,7 @@ const editCategory = () => {
         typeId: form.categoryId, // 三级分类id
         "productCollectId": acceptParams.value.id, //数据采集产品id或者采集箱产品id
         "platformName": "ozon",//所属平台
-        "categoryId": hisAttrObj.value.categoryId, // 二级分类id
+        "categoryId": hisAttrObj.value.secondCategoryId, // 二级分类id
         "variantRelationList": variantRelationList
     };
 
