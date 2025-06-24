@@ -3,6 +3,7 @@
     <div class="w-19/20">
       <div class="flex justify-end mt-5">
         <a-button :loading="loading" class="ml-2.5" @click="onSubmit(2)">保存</a-button>
+        <a-button :loading="loading" class="ml-2.5" @click="publish" type="primary">发布</a-button>
       </div>
       <br />
       <!-- 基本信息 -->
@@ -11,14 +12,15 @@
         @getAttributes="getAttributes"></ozon-base-info>
       <br />
       <!-- 描述信息 -->
-      <ozon-new-image-info ref="ozonImageInfoRef" id="OzonNewImageInfo" :shopCode="formData.shortCode"
+      <ozon-new-image-info ref="ozonImageInfoRef" id="ozonNewImageInfo" :shopCode="formData.shortCode"
         :productDetail="productDetail"></ozon-new-image-info>
 
       <!-- 变种信息. -->
       <OzonNewVariantInfo ref="ozonNewVariantInfoRef" id="ozonNewVariantInfo" :productDetail="productDetail"
-        :shopCode="formData.shortCode"></OzonNewVariantInfo>
+        :shopCode="formData.shortCode" class="mt-5"></OzonNewVariantInfo>
       <div class="flex justify-end mt-5">
         <a-button :loading="loading" class="ml-2.5" @click="onSubmit(2)">保存</a-button>
+        <a-button :loading="loading" class="ml-2.5" @click="publish" type="primary">发布</a-button>
       </div>
     </div>
     <div style="position: fixed;top: 10%;right: 3%;">
@@ -62,7 +64,7 @@ const anchorList = ref([
   {
     turnRed: false,
     id: 'ozonNewImageInfo',
-    label: '图片信息',
+    label: '描述信息',
   },
   {
     turnRed: false,
@@ -77,12 +79,18 @@ const formData = reactive({
 })
 const backToTop = () => {
   let elements = document.getElementsByClassName('ant-layout-content');
+  console.log("elements", elements);
+
   if (elements) {
     elements[0].scrollTo({
       top: 0,
       behavior: 'smooth'
     });
   }
+}
+// 锚点滚动
+const scroll = (id) => {
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth' })
 }
 const getProductDetail = (waitId, account) => {
   ozonProductDetail({ account, waitId }).then(res => {
@@ -327,6 +335,10 @@ const onSubmit = async (type) => {
     .finally(() => {
       loading.value = false;
     });
+}
+// 发布按钮
+const publish = () => {
+
 }
 
 onMounted(() => {

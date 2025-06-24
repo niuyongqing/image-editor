@@ -548,8 +548,7 @@
   </div>
 </template>
 
-<script setup name="OzonNewVariantInfo">
-  import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
+<script setup>
   import AsyncIcon from '~/layouts/components/menu/async-icon.vue'
   import { message, Modal } from 'ant-design-vue'
   import EditProdQuantity from '../../productPublish/comm/EditProdQuantity.vue'

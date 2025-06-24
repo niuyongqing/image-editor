@@ -223,8 +223,7 @@
   </div>
 </template>
 
-<script setup name="OzonBaseInfo">
-  import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
+<script setup>
   import { categoryTree, historyCategory, addHistoryCategory, historyAttribute } from '../../config/api/product'
   import categoryDialog from '../../productPublish/comm/categoryDialog.vue'
   import AsyncIcon from '~/layouts/components/menu/async-icon.vue'

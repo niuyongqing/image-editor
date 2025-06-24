@@ -84,7 +84,7 @@
                         style="margin-left: 10px"
                         v-if="requiredList.length !== 0 || themeBtns.length !== 0">添加自定义变种属性</a-button>
                 </div>
-                <a-table bordered :columns="filteredHeaderList" :data-source="tableData" :pagination="false">
+                <a-table bordered :columns="filteredHeaderList" :data-source="tableData" :pagination="false" :scroll="{ x: 2000 }">
                     <template #headerCell="{ column }">
                         <template v-if="column.dataIndex === 'sellerSKU'">
                             <span><span style="color: #ff0a37;">*</span>
@@ -126,67 +126,73 @@
                             </a-upload>
                         </template>
                         <template v-if="column.dataIndex === 'skuTitle'">
-                            <a-input v-model:value="record.skuTitle"></a-input>
+                            <a-input v-model:value="record.skuTitle" style="min-width: 200px"></a-input>
                         </template>
                         <template v-if="column.dataIndex === 'secondName'">
                             <span>{{ record.secondName }}</span>
                         </template>
                         <template v-if="column.dataIndex === 'sellerSKU'">
-                            <a-input v-model:value="record.sellerSKU"></a-input>
+                            <a-input v-model:value="record.sellerSKU" style="min-width: 200px"></a-input>
                         </template>
                         <template v-if="!otherHeader.includes(column.dataIndex)">
                             <a-input v-if="column.selectType === 'input'"
-                                v-model:value="record[column.dataIndex]"></a-input>
+                                v-model:value="record[column.dataIndex]" style="min-width: 200px"></a-input>
                             <a-select v-if="column.selectType === 'select'" v-model:value="record[column.dataIndex]"
-                                style="width: 200px" :options="column.options"></a-select>
+                                style="min-width: 200px" :options="column.options"></a-select>
                             <a-select v-if="column.selectType === 'multSelect'" :maxTagCount="2"
-                                v-model:value="record[column.dataIndex]" style="width: 200px" :options="column.options"
+                                v-model:value="record[column.dataIndex]" style="min-width: 200px" :options="column.options"
                                 mode="tags"></a-select>
                         </template>
                         <template v-if="column.dataIndex === 'price'">
-                            <a-input-number style="width: 80%" :min="0" :max="99999999" :precision="2"
-                                v-model:value="record.price" @blur="judgeMax(record)"></a-input-number>
-                            <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.price, 'price')"
-                                class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
+                            <div class="flex">
+                                <a-input-number style="min-width: 150px" :min="0" :max="99999999" :precision="2"
+                                    v-model:value="record.price" @blur="judgeMax(record)"></a-input-number>
+                                <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.price, 'price')"
+                                    class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
+                            </div>
                         </template>
                         <template v-if="column.dataIndex === 'oldPrice'">
-                            <a-input-number style="width: 80%" :min="0" :max="99999999" v-model:value="record.oldPrice"
-                                :precision="2" @blur="judgeMax(record)"></a-input-number>
-                            <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.oldPrice, 'oldPrice')"
-                                class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
+                            <div class="flex">
+                                <a-input-number style="min-width: 150px" :min="0" :max="99999999" v-model:value="record.oldPrice"
+                                    :precision="2" @blur="judgeMax(record)"></a-input-number>
+                                <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.oldPrice, 'oldPrice')"
+                                    class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
+                            </div>
                         </template>
                         <template v-if="column.dataIndex === 'quantity'">
-                            <span>{{ record.quantity === undefined ? 0 : record.quantity }}</span>
-                            <AsyncIcon icon="EditOutlined" @click="batchStock('single', record)"></AsyncIcon>
+                            <div class="flex">
+                                <span>{{ record.quantity === undefined ? 0 : record.quantity }}</span>
+                                <AsyncIcon icon="EditOutlined" @click="batchStock('single', record)"></AsyncIcon>
+                            </div>
                         </template>
                         <template v-if="column.dataIndex === 'packageLength'">
                             <div class="flex justify-center">
                                 <div>
                                     <div style="display: flex">
-                                        长度：
-                                        <a-input-number controls-position="right" :min="0" style="width: 80%"
+                                        <div class="w-13 block">长度：</div>
+                                        <a-input-number controls-position="right" :min="0" style="min-width: 150px"
                                             v-model:value="record.packageLength" placeholder="长度">
                                             <template #addonAfter>mm</template>
                                         </a-input-number>
                                     </div>
                                     <div style="display: flex; margin-top: 5px">
-                                        宽度：
-                                        <a-input-number controls-position="right" :min="0" style="width: 80%"
+                                        <div class="w-13 block">宽度：</div>
+                                        <a-input-number controls-position="right" :min="0" style="min-width: 150px"
                                             v-model:value="record.packageWidth" placeholder="宽度">
                                             <template #addonAfter>mm</template>
                                         </a-input-number>
                                     </div>
                                     <div style="display: flex; margin-top: 5px">
-                                        高度：
-                                        <a-input-number controls-position="right" :min="0" style="width: 80%"
+                                        <div class="w-13 block">高度：</div>
+                                        <a-input-number controls-position="right" :min="0" style="min-width: 150px"
                                             v-model:value="record.packageHeight" placeholder="高度">
                                             <template #addonAfter>mm</template>
                                         </a-input-number>
                                     </div>
                                     <div style="display: flex; margin-top: 5px">
-                                        重量：
+                                        <div class="w-13 block">重量：</div>
                                         <a-input-number controls-position="right" :precision="0" :min="0"
-                                            style="width: 80%" v-model:value="record.packageWeight" placeholder="重量">
+                                            style="min-width: 150px" v-model:value="record.packageWeight" placeholder="重量">
                                             <!-- @blur="handleInput(record.packageWeight, record)" -->
                                             <template #addonAfter>g</template>
                                         </a-input-number>
@@ -1016,6 +1022,8 @@ watch(() => useOzonProductStore().attributes, val => {
             sortArr.forEach((attr) => {
                 // 遍历sku的attributes中的每个attributes
                 sku.attributes.forEach((subAttr) => {
+                    // console.log("",subAttr, attr);
+                    
                     if (subAttr.id == attr.id) {
                         if (attr.selectType === "multSelect" && attr.options) {
                             let values = subAttr.values.map((val) => {
@@ -1023,7 +1031,14 @@ watch(() => useOzonProductStore().attributes, val => {
                                 return option ? option.value : val.value;
                             });
                             newItem[attr.name] = values.join(', ');
-                        } else {
+                        } else if (attr.selectType === "select" && attr.options) {
+                            let values = subAttr.values.map((val) => {
+                                let option = attr.options.find((opt) => opt.id == val.dictionaryValueId);
+                                return option ? option.value : val.value;
+                            });
+                            newItem[attr.name] = values.join(', ');
+                        }
+                         else {
                             newItem[attr.name] = subAttr.values[0].value;
                         }
                         attrHeaderList.push({
@@ -1098,7 +1113,6 @@ watch(() => useOzonProductStore().attributes, val => {
         themeBtns.value = themeBtns.value.filter(item => !aIds.includes(item.id));
         attributeList.value = matchAndAssignValues(echoThemeList, skuList)
         console.log('attributeList',attributeList.value);
-        
     }
 
 })
