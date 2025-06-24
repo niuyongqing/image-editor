@@ -70,7 +70,10 @@ const treeData = reactive({
 })
 
 onMounted(() => {
-  getClassListFn()
+  nextTick(() => {
+    // console.log(props.currentClass);
+    getClassListFn(props.currentClass)
+  })
 })
 watch(() => treeData.keyword, value => {
   treeSearch(value) 
