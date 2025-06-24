@@ -1,6 +1,14 @@
 <template>
 <div id="urlAcquisition" class="urlAcquisition text-left">
-  <a-card title="采集地址--单品采集" class="text-left my-2.5">
+  <a-card class="text-left my-2.5">
+    <template #title>
+      采集地址--单品采集（目前仅支持插件采集，请
+      <span 
+        style="font-weight: 700; color: #1677ff; cursor: pointer;"
+        @click="loadDescribe"
+      >下载采集插件</span>
+      ！）
+    </template>
     <!-- <a-textarea v-model:value="dataUrl.url" placeholder="请填写产品的网址,多个网址用Enter换行" :auto-size="{ minRows: 7 }" />
     <div class="flex mt-2.5 justify-between">
       <div>
@@ -92,7 +100,7 @@
       </a-form>
     </div>
   </a-card>
-  <a-card>
+  <a-card :loading="tableInfo.spinning">
     <div class="flex my-2.5">
       <a-space>
         <a-button @click="claim('acquisition')" type="primary">批量认领</a-button>
@@ -189,7 +197,7 @@
         <template v-else-if="column.dataIndex === 'option'">
           <div class="option-btn-box">
             <div class="option-btn" @click="claim('acquisition')">认领</div>
-            <div class="option-btn">编辑</div>
+            <div class="option-btn" @click="openModal('acquisitionEdit', [record])">编辑</div>
             
             <a-dropdown>
               <div class="option-btn" type="link" @click.prevent>
@@ -223,7 +231,7 @@
       @change="pageChange"
     />
   </a-card>
-
+  <!-- 弹窗组件 -->
   <component
     :is="modalInfo.name" 
     v-model:modalOpen="modalInfo.open"
@@ -240,7 +248,8 @@
 import { ref, reactive, onMounted, computed, watchPostEffect, markRaw } from 'vue';
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import ClaimModal from './ClaimModal.vue'
-import remarkModal from './modal/remarkModal.vue';
+import remarkModal from './remarkModal.vue';
+import acquisitionEdit from '@/pages/sample/dataAcquisition/common/acquisitionEdit/index.vue'
 import typeTree from '~@/components/classificationTree/typeTree.vue';
 // import { dataGathe } from "../../../ozon/config/commDic/defDic"
 import { collectProductList, deleteProduct, productStatCount, updateCategoryProduct } from '../js/api';
@@ -250,7 +259,7 @@ import dayjs from 'dayjs';
 import { message, Modal } from 'ant-design-vue';
 defineOptions({ name: "urlAcquisition" })
 const { proxy: _this } = getCurrentInstance()
-
+const emit = defineEmits(['loadDescribe'])
 const formBtnInfo = {
   tabList: [
     {
@@ -365,12 +374,14 @@ const tableInfo = reactive({
   total: 0,
 
   selectedRowKeys: [],
+  spinning: false,
 })
 const modalInfo = reactive({
   open: false,
   name: null,
   components: {
-    remarkModal: markRaw(remarkModal)
+    remarkModal: markRaw(remarkModal),
+    acquisitionEdit: markRaw(acquisitionEdit),
   },
   data: {
     selectedRow: []
@@ -402,12 +413,16 @@ onMounted(() => {
   tabsChange(activeName.value)
   // getProductStatCount()
 })
-async function getProductStatCount() {
-  let res = await productStatCount()
-  // console.log({res});
-  formBtnInfo.tabList.forEach(item => {
-    item.value = res.data[item.code]
-  })
+// async function getProductStatCount() {
+//   let res = await productStatCount()
+//   // console.log({res});
+//   formBtnInfo.tabList.forEach(item => {
+//     item.value = res.data[item.code]
+//   })
+// }
+// 下载采集插件
+function loadDescribe() {
+  emit('loadDescribe')
 }
 // 获取数据列表
 async function getList() {
@@ -424,18 +439,26 @@ async function getList() {
     "pageNum": pages.pageNum, // 分页参数
     "pageSize": pages.pageSize // 每页数量
   }
-  let res = await collectProductList(params)
-  // console.log({ res });
-  res.data.forEach(item => {
-    item.simpleDescTips = JSON.parse(item.simpleDesc)
-  })
-  tableInfo.data = res.data;
-  tableInfo.total = res.total;
-  let CountRes = await productStatCount(params)
-  // console.log({res});
-  formBtnInfo.tabList.forEach(item => {
-    item.value = CountRes.data[item.code]
-  })
+  try {
+    tableInfo.spinning = true;
+    let res = await collectProductList(params);
+    // console.log({ res });
+    res.data.forEach(item => {
+      item.simpleDescTips = JSON.parse(item.simpleDesc)
+    })
+    tableInfo.data = res.data;
+    tableInfo.total = res.total;
+    let CountRes = await productStatCount(params)
+    // console.log({res});
+    formBtnInfo.tabList.forEach(item => {
+      item.value = CountRes.data[item.code]
+    })
+    formBtnInfo.tabList = [...formBtnInfo.tabList]
+  } catch (error) {
+    console.error(error)
+  }
+  tableInfo.spinning = false;
+  // _this.$forceUpdate()
 }
 const clearArea = () => {
   dataUrl.value = ""
@@ -642,7 +665,7 @@ function claim(type = 'acquisition') {
   flex-direction: column;
   .option-btn {
     cursor: pointer;
-    color: #428bca;
+    color: #1677ff;
   }
 }
 </style>
