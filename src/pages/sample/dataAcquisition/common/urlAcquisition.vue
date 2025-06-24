@@ -91,7 +91,8 @@
             v-model:value="formData.isRemark" 
             class="ml-2.5" 
             style="width: 150px"
-            @select="isRemarkSelect"
+            allowClear
+            @change="isRemarkSelect"
           >
             <a-select-option value="1">有备注</a-select-option>
             <a-select-option value="0">无备注</a-select-option>
@@ -103,7 +104,7 @@
   <a-card :loading="tableInfo.spinning">
     <div class="flex my-2.5">
       <a-space>
-        <a-button @click="claim('acquisition')" type="primary">批量认领</a-button>
+        <!-- <a-button @click="claim('acquisition')" type="primary">批量认领</a-button> -->
         <a-dropdown :trigger="['click']">
           <a-button type="primary" @click.prevent>
             批量操作
@@ -197,7 +198,7 @@
         <template v-else-if="column.dataIndex === 'option'">
           <div class="option-btn-box">
             <div class="option-btn" @click="claim('acquisition', record)">认领</div>
-            <div class="option-btn" @click="openModal('acquisitionEdit', [record])">编辑</div>
+            <div class="option-btn" @click="acquisitionEdit(record)">编辑</div>
             
             <a-dropdown>
               <div class="option-btn" type="link" @click.prevent>
@@ -253,7 +254,7 @@ import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import ClaimModal from './ClaimModal.vue';
 import EditCategoryModal from './editCategoryModal.vue';
 import remarkModal from './remarkModal.vue';
-import acquisitionEdit from '@/pages/sample/dataAcquisition/common/acquisitionEdit/index.vue'
+// import acquisitionEdit from '@/pages/sample/dataAcquisition/common/acquisitionEdit/index.vue'
 import typeTree from '~@/components/classificationTree/typeTree.vue';
 // import { dataGathe } from "../../../ozon/config/commDic/defDic"
 import { collectProductList, deleteProduct, productStatCount, updateCategoryProduct } from '../js/api';
@@ -389,7 +390,6 @@ const modalInfo = reactive({
   name: null,
   components: {
     remarkModal: markRaw(remarkModal),
-    acquisitionEdit: markRaw(acquisitionEdit),
   },
   data: {
     selectedRow: []
@@ -481,9 +481,9 @@ const selectItem = (val) => {
   formData.platform = val
   onSubmit()
 }
-function isRemarkSelect(val) {
-  // console.log(val, formData.isRemark);
-  formData.isRemark = val
+function isRemarkSelect(val, option) {
+  formData.isRemark = val ?? ''
+  // console.log({val, option}, formData.isRemark);
   onSubmit()
 }
 // 采集时间
@@ -650,7 +650,11 @@ function openUrl(url) {
 function getSimpleName(account) {
   return formBtnInfo.shopAccount.find(i => i.account === account)?.simpleName ?? ''
 }
-
+// 数据采集编辑
+function acquisitionEdit(row) {
+  let query = '?id=' + row.id
+  window.open('/platform/dev/sample/acquisitionEdit' + query)
+}
 const handleOk = () => {  }
 
 /** 认领 */
