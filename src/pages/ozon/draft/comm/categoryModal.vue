@@ -35,7 +35,7 @@
                                         @click="selectFirstItem(item)">
                                         <div flex>
                                             <div w-250px overflow-hidden text-ellipsis whitespace-nowrap> {{ item.label
-                                                }}
+                                            }}
                                             </div>
                                             <div>
                                                 <RightOutlined />
@@ -246,29 +246,8 @@ function getCategoryTree() {
         treeData.value = res.data || [];
         const path = findPathById(thirdState.selectKeys[0], treeData.value);
 
+        console.log('path', path);
 
-
-        firstState.options = treeData.value.map((item) => {
-            return {
-                ...item,
-                label: item.categoryName,
-                value: item.descriptionCategoryId,
-            }
-        });
-        secondState.options = treeData.value[0].children.map((item) => {
-            return {
-                ...item,
-                label: item.categoryName,
-                value: item.descriptionCategoryId,
-            }
-        });
-        thirdState.options = treeData.value[0].children[0].children.map((item) => {
-            return {
-                ...item,
-                label: item.categoryName,
-                value: item.descriptionCategoryId,
-            }
-        });
 
         if (path) {
             selectItem.value = {
@@ -277,13 +256,37 @@ function getCategoryTree() {
                 ids: path.ids
             };
 
+            firstState.options = treeData.value.map((item) => {
+                return {
+                    ...item,
+                    label: item.categoryName,
+                    value: item.descriptionCategoryId,
+                }
+            });
+            firstState.selectValue = firstState.options.find((item) => item.value === path.ids[0]);
+
+            secondState.options = firstState.selectValue.children.map((item) => {
+                return {
+                    ...item,
+                    label: item.categoryName,
+                    value: item.descriptionCategoryId,
+                }
+            });
+            secondState.selectValue = secondState.options.find((item) => item.value === path.ids[1]);
+
+            thirdState.options = secondState.selectValue.children.map((item) => {
+                return {
+                    ...item,
+                    label: item.categoryName,
+                    value: item.descriptionCategoryId,
+                }
+            });
+            thirdState.selectValue = thirdState.options.find((item) => item.value === path.ids[2]);
+
             firstState.selectKeys = [path.ids[0]];
             secondState.selectKeys = [path.ids[1]];
             thirdState.selectKeys = [path.ids[2]];
 
-            firstState.selectValue = firstState.options.find((item) => item.value === path.ids[0]);
-            secondState.selectValue = secondState.options.find((item) => item.value === path.ids[1]);
-            thirdState.selectValue = thirdState.options.find((item) => item.value === path.ids[2]);
             copyFirstOpts.value = cloneDeep(firstState.options);
             copySecondOpts.value = cloneDeep(secondState.options);
             copyThirdOpts.value = cloneDeep(thirdState.options);
@@ -291,8 +294,34 @@ function getCategoryTree() {
             secondState.open = true;
             thirdState.open = true;
         } else {
+
+
+            firstState.options = treeData.value.map((item) => {
+                return {
+                    ...item,
+                    label: item.categoryName,
+                    value: item.descriptionCategoryId,
+                }
+            });
+            secondState.options = treeData.value[0].children.map((item) => {
+                return {
+                    ...item,
+                    label: item.categoryName,
+                    value: item.descriptionCategoryId,
+                }
+            });
+
+            thirdState.options = treeData.value[0].children[0].children.map((item) => {
+                return {
+                    ...item,
+                    label: item.categoryName,
+                    value: item.descriptionCategoryId,
+                }
+            });
             firstState.open = true;
             secondState.open = true;
+            thirdState.open = true;
+
         }
     })
 };
