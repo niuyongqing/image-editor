@@ -16,7 +16,7 @@
                     </div>
                 </template>
                 <a-table :scroll="{ y: 'calc(100vh - 300px)', virtual: true }" :columns="columns"
-                    :dataSource="rowData.skus || []" :pagination="false">
+                    :dataSource="rowData || []" :pagination="false">
                     <template #headerCell="{ column }">
                         <template v-if="column.key === 'sellerSku'">
                             <div>
@@ -81,7 +81,7 @@
                                 <div style="display: flex;gap: 10px;align-content: center;margin-top: 10px">
                                     <span style="font-weight: bold"></span><span>{{ item.currency }}</span>
                                     <span style="font-weight: bold;margin-left: 10px">价格:</span><a-input-number
-                                        :controls="false" v-model="item.noFeePrice"></a-input-number>
+                                        :controls="false" v-model:value="item.noFeePrice"></a-input-number>
                                 </div>
                             </div>
                         </template>
@@ -141,6 +141,12 @@
                 </a-table>
             </a-card>
         </BaseModal>
+        <a-modal v-model:open="noFeePriceOpen" title="批量修改不含邮价格" @ok="handleOk">
+            <a-input-number style="width: 300px" :controls="false" v-model:value="noFeePriceValue"></a-input-number>
+        </a-modal>
+        <a-modal v-model:open="quantityOpen" title="批量修改库存" @ok="handleQuantityOk">
+            <a-input-number style="width: 300px" :controls="false" v-model:value="quantityValue"></a-input-number>
+        </a-modal>
     </div>
 </template>
 
@@ -148,6 +154,7 @@
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { message } from "ant-design-vue";
 import { getNoFeePriceApi, productUpgrade } from '@/pages/lazada/globalplus/api';
+
 const columns = [
     {
         title: '商家SKU',
@@ -205,18 +212,63 @@ const checkedCities = ref([])
 const cities = ref([]) // 假设的城市列表
 const countryPriceType = ref(false)
 const modalMethods = ref();
-
+const noFeePriceOpen = ref(false);
+const noFeePriceValue = ref(null);
+const quantityOpen = ref(false);
+const quantityValue = ref(null);
 const submitBtnLoading = ref(false);
 const register = (methods) => {
     modalMethods.value = methods
 };
 
 // 不含邮价格批量
-const batchNoFeePrice = () => { };
-const batchQuantity = () => { };
+const batchNoFeePrice = () => {
+    noFeePriceOpen.value = true;
+};
+const handleOk = () => {
+    rowData.value.forEach((item,index) => {
+        item.countryInfo.forEach(items => {
+            items.noFeePrice = noFeePriceValue.value
+        })
+    })
+    noFeePriceOpen.value = false;
+    noFeePriceValue.value = null
+};
+
+const batchQuantity = () => { 
+    quantityOpen.value = true;
+};
+const handleQuantityOk = () => {
+    rowData.value.forEach((item,index) => {
+        item.countryInfo.forEach(items => {
+            items.quantity = quantityValue.value
+        })
+    })
+    quantityOpen.value = false;
+    quantityValue.value = null
+}
+
 
 const open = (row) => {
-    rowData.value = row;
+    let skuData = [];
+    for (let j = 0; j < row.skus.length; j++) {
+        let obj = {
+            id: row.id,
+            packageHeight: row.skus[j].packageHeight,
+            packageLength: row.skus[j].packageLength,
+            packageWeight: row.skus[j].packageWeight,
+            packageWidth: row.skus[j].packageWidth,
+            sellerSku: row.skus[j].sellerSku,
+            countryInfo: row.skus[j].countryInfo.map(e => {
+                return {
+                    ...e,
+                    noFeePrice: null
+                }
+            }),
+        };
+        skuData.push(obj);
+    }
+    rowData.value = skuData;
     cities.value = row.skus[0].countryInfo.map(item => item.currency);
     checkedCities.value = row.skus[0].countryInfo.map(item => item.currency);
     modalMethods.value.openModal();
@@ -227,7 +279,7 @@ const cancel = (data) => {
 
 const submit = async () => {
     submitBtnLoading.value = true;
-    productUpgrade(data).then(res => {
+    productUpgrade(rowData.value).then(res => {
         if (res.data === true) {
             message.success('升级成功');
             emits('success');
@@ -242,6 +294,7 @@ const submit = async () => {
 };
 
 const getNoFeePrice = (row) => {
+    console.log(row, "row");
     let data = {
         id: row.id,
         abs: row.absNumber,

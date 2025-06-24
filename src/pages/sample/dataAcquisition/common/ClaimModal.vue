@@ -69,7 +69,7 @@ const props = defineProps({
 
 })
 
-const emit = defineEmits(['update:open', ''])
+const emit = defineEmits(['update:open', 'draft'])
 const editCategoryModalRef = ref(null)
 /** tabs */
 const activeKey = ref('全部')

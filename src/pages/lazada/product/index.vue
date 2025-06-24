@@ -169,6 +169,7 @@
         <SpecialPriceModal ref="specialPriceModalRef" @success="reload"></SpecialPriceModal>
         <CopyGlobalModal ref="copyGlobalModalRef" :account="accountDetail" @success="reload"></CopyGlobalModal>
         <CopySiteModal ref="copySiteModalRef" :account="accountDetail" @success="reload"></CopySiteModal>
+        <a-back-top :visibility-height="0" style="margin-right: 10px;" @click="backToTop" />
     </div>
 </template>
 
@@ -274,6 +275,7 @@ const copyText = (text) => {
 const displayedSkus = (record) => {
     return record.show ? record.skus : record.skus.slice(0, 5);
 };
+
 //  重新刷新
 const reload = () => {
     baseTableEl.value.reload();
@@ -344,7 +346,7 @@ const handleDeactivated = (record) => {
         confirmLoading: true,
         onOk: async () => {
             baseTableEl.value.setLoading(true);
-            const res = await deactivate({ itemId: record.itemId });
+            const res = await deactivate({ itemId: record.itemId.toString() });
             if (res.code === 200) {
                 message.success('下架成功');
                 reload();
@@ -385,17 +387,33 @@ const mouseLeaveQuantity = (item) => {
     item.editQuantity = false;
 };
 
-const editPrice = (item) => {
-    priceModalEl.value.open(item, false);
+/**
+ * 
+ * @param row 当前行
+ * @param item 当前修改的sku行
+ */
+const editPrice = (row, item) => {
+    priceModalEl.value.open(row, item, false);
 };
 
-const editSpecialPrice = (item) => {
-    specialPriceModalEl.value.open(item, false);
+const editSpecialPrice = (row, item) => {
+    specialPriceModalEl.value.open(row, item, false);
 };
 
-const editQuantity = (item) => {
-    stockModalEl.value.open(item, false);
+const editQuantity = (row, item) => {
+    stockModalEl.value.open(row, item, false);
 };
+
+
+const backToTop = () => {
+    let elements = document.getElementsByClassName('ant-layout-content');
+    if (elements) {
+        elements[0].scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }
+}
 
 onMounted(async () => {
     const accountCacheRes = await accountCache();

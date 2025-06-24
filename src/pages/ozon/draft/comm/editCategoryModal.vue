@@ -46,7 +46,7 @@
                         <a-button type="link" @click="changeCategory">更换分类</a-button>
                         <p class="tooltip-text" v-if="hisAttrObj && JSON.stringify(hisAttrObj) != '{}'">{{
                             hisAttrObj.categoryName
-                        }} > {{ hisAttrObj.secondCategoryName }} > {{
+                            }} > {{ hisAttrObj.secondCategoryName }} > {{
                                 hisAttrObj.threeCategoryName }} </p>
                         <!-- 表格 -->
                         <a-table :columns="innerColumns" :data-source="innerTableData" bordered :pagination="false"
@@ -320,8 +320,7 @@ const open = (data) => {
     }).then((res) => {
         if (res.code === 200) {
             relationDetail.value = res.data || {};
-
-            if (relationDetail.value) {
+            if (JSON.stringify(relationDetail.value) != '{}') {
                 tableData.value = [{
                     primaryImage: data.primaryImage,
                     name: data.name,
@@ -377,13 +376,12 @@ const editCategory = () => {
         typeId: form.categoryId,
         "productCollectId": acceptParams.value.gatherProductId, //数据采集产品id或者采集箱产品id
         "platformName": "ozon",//所属平台
-        "categoryId": form.categoryId,
+        "categoryId": hisAttrObj.value.categoryId, // 二级分类id
         "variantRelationList": variantRelationList
     };
 
     // 对应Ozon变种主题 选择不能有一样的
-    const attributeIdList = variantRelationList.map(item => item.attributeId);
-    console.log('attributeIdList', attributeIdList);
+    const attributeIdList = variantRelationList.map(item => item.attributeId).filter(item => item !== undefined);
     if (attributeIdList.every(item => item === undefined)) {
         message.error('请选择变种主题选择属性');
         return;

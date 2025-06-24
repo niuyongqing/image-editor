@@ -4,7 +4,7 @@
             <template #title>
                 <div text-left> 变种信息 </div>
             </template>
-            <div text-left mb-10px>
+            <!-- <div text-left mb-10px>
                 升级为Global Plus：
                 <a-checkbox v-model:checked="checkState.checkAll" @change="onChangeCheckAll"> 全部 </a-checkbox>
                 <a-checkbox-group v-model:value="checkState.checkedList" :options="checkState.options"
@@ -13,7 +13,7 @@
                         {{ label }}
                     </template>
                 </a-checkbox-group>
-            </div>
+            </div> -->
             <!-- {{ tableData }} -->
             <a-table :columns="columns" :data-source="tableData" bordered :pagination="false" id="tableId">
                 <template #headerCell="{ title, column }">
@@ -143,7 +143,7 @@
         <SpecialDateModal ref="specialDateModalRef" @success="specialDateSuccess"></SpecialDateModal>
         <WeightModal ref="weightModalRef" @success="weightSuccess"></WeightModal>
         <PackageModal ref="packageModalRef" @success="packageSuccess"></PackageModal>
-        <EditPriceModal ref="editPriceModalRef" @success="editPriceSuccess" :checkedList="checkState.checkedList">
+        <EditPriceModal ref="editPriceModalRef" @success="editPriceSuccess" :checkedList="lazadaAttrsState.ventures">
         </EditPriceModal>
     </div>
 </template>
@@ -163,44 +163,45 @@ import PackageModal from "../../batchModal/packageModal.vue";
 import EditPriceModal from './editPriceModal.vue';
 const { state: lazadaAttrsState, setSkuTable } = useLazadaGobalAttrs();
 const skus = ref([]); // 属性中所有的 SKU
-const { state: checkState, reset } = useResetReactive({
-    checkAll: false,
-    checkedList: [],
-    options: computed(() => {
-        return [
-            {
-                label: "马来",
-                value: "MY",
-                disabled: false
-            }, {
-                label: "印度尼西亚",
-                value: "ID",
-                disabled: !lazadaAttrsState.ventures.includes('ID')
-            },
-            {
-                label: "菲律宾",
-                value: "PH",
-                disabled: !lazadaAttrsState.ventures.includes('PH')
-            },
-            {
-                label: "新加坡",
-                value: "SG",
-                disabled: !lazadaAttrsState.ventures.includes('SG')
-            },
-            {
-                label: "泰国",
-                value: "TH",
-                disabled: !lazadaAttrsState.ventures.includes('TH')
-            },
-            {
-                label: "越南",
-                value: "VN",
-                disabled: !lazadaAttrsState.ventures.includes('VN')
-            },
-        ]
-    })
 
-});
+// const { state: checkState, reset } = useResetReactive({
+//     checkAll: true,
+//     checkedList: lazadaAttrsState.ventures,
+//     options: computed(() => {
+//         return [
+//             {
+//                 label: "马来",
+//                 value: "MY",
+//                 disabled: false
+//             }, {
+//                 label: "印度尼西亚",
+//                 value: "ID",
+//                 disabled: !lazadaAttrsState.ventures.includes('ID')
+//             },
+//             {
+//                 label: "菲律宾",
+//                 value: "PH",
+//                 disabled: !lazadaAttrsState.ventures.includes('PH')
+//             },
+//             {
+//                 label: "新加坡",
+//                 value: "SG",
+//                 disabled: !lazadaAttrsState.ventures.includes('SG')
+//             },
+//             {
+//                 label: "泰国",
+//                 value: "TH",
+//                 disabled: !lazadaAttrsState.ventures.includes('TH')
+//             },
+//             {
+//                 label: "越南",
+//                 value: "VN",
+//                 disabled: !lazadaAttrsState.ventures.includes('VN')
+//             },
+//         ]
+//     })
+
+// });
 
 const theme = reactive({
     themeOne: [],
@@ -255,13 +256,13 @@ let baseColumns = [
     },
 ];
 
-const onChangeCheckAll = (e) => {
-    const selectOptions = checkState.options.map(item => item.value);
-    checkState.checkedList = e.target.checked ? selectOptions : [];
-};
-const onChangeCheck = (checkedList) => {
-    checkState.checkAll = checkedList.length === checkState.options.length;
-};
+// const onChangeCheckAll = (e) => {
+//     const selectOptions = checkState.options.map(item => item.value);
+//     checkState.checkedList = e.target.checked ? selectOptions : [];
+// };
+// const onChangeCheck = (checkedList) => {
+//     checkState.checkAll = checkedList.length === checkState.options.length;
+// };
 
 const columns = computed(() => {
     const names = selectTheme.value.map((item) => {
@@ -285,8 +286,10 @@ const columns = computed(() => {
             },
         ] : []
     };
+    console.log("lazadaAttrsState--",lazadaAttrsState.ventures);
+    
     const postPricesColoumns = () => {
-        return checkState.checkedList.length ? [
+        return lazadaAttrsState.ventures.length ? [
             {
                 title: '不含邮价格',
                 dataIndex: 'postPrices',
@@ -488,7 +491,7 @@ const settingPrice = (record, index) => {
     //     themeTwo.value = record[lazadaAttrsState.selectTheme[1].name];
     // }
     currentIndex.value = index;
-    editPriceModalEl.value.open({ record: record, checkedList: checkState.checkedList });
+    editPriceModalEl.value.open({ record: record, checkedList: lazadaAttrsState.ventures });
 };
 
 const priceSuccess = (evt) => {
@@ -614,7 +617,7 @@ const editPriceSuccess = (evt) => {
     const vnSite = evt.find((item) => item.enSite === 'VN') // 越南
     tableData.value[currentIndex.value].price = defaultSite.retailPrice;
     tableData.value[currentIndex.value].specialPrice = defaultSite.salesPrice;
-    if (checkState.checkedList.length > 0) {
+    if (lazadaAttrsState.ventures.length > 0) {
         tableData.value[currentIndex.value].postPrices = evt.postPrices;
     }
 
@@ -624,24 +627,24 @@ const editPriceSuccess = (evt) => {
             item.my_sales_price = mySite?.salesPrice ?? undefined; // 促销价
         };
 
-        if (checkState.checkedList.includes('ID') && (currentIndex.value === index)) {
+        if (lazadaAttrsState.ventures.includes('ID') && (currentIndex.value === index)) {
             item.id_retail_price = idSite?.retailPrice ?? undefined;// 销售价 
             item.id_sales_price = idSite?.salesPrice ?? undefined; // 促销价
         };
-        if (checkState.checkedList.includes('PH') && (currentIndex.value === index)) {
+        if (lazadaAttrsState.ventures.includes('PH') && (currentIndex.value === index)) {
             item.ph_retail_price = phSite?.retailPrice ?? undefined;// 销售价 
             item.ph_sales_price = phSite?.salesPrice ?? undefined; // 促销价
         };
-        if (checkState.checkedList.includes('TH') && (currentIndex.value === index)) {
+        if (lazadaAttrsState.ventures.includes('TH') && (currentIndex.value === index)) {
             item.th_retail_price = phSite?.retailPrice ?? undefined;// 销售价 
             item.th_sales_price = phSite?.salesPrice ?? undefined; // 促销价
         }
 
-        if (checkState.checkedList.includes('SG') && (currentIndex.value === index)) {
+        if (lazadaAttrsState.ventures.includes('SG') && (currentIndex.value === index)) {
             item.sg_retail_price = sgSite?.retailPrice ?? undefined;// 销售价 
             item.sg_sales_price = sgSite?.salesPrice ?? undefined; // 促销价
         }
-        if (checkState.checkedList.includes('VN') && (currentIndex.value === index)) {
+        if (lazadaAttrsState.ventures.includes('VN') && (currentIndex.value === index)) {
             item.vn_retail_price = vnSite?.retailPrice ?? undefined;// 销售价 
             item.vn_sales_price = vnSite?.salesPrice ?? undefined; // 促销价
         }
@@ -689,7 +692,7 @@ const validateForm = () => {
                 emits('valid', false);
                 return false;
             };
-            if (checkState.checkedList.length) {
+            if (lazadaAttrsState.ventures.length) {
                 if (!item.postPrices) {
                     message.warning(`第${index + 1}行不含邮价格不能为空`);
                     document.querySelector('#tableId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -707,7 +710,7 @@ const validateForm = () => {
 const emits = defineEmits(['valid']);
 defineExpose({
     tableData,
-    checkState,
+    // checkState,
     validateForm
 });
 

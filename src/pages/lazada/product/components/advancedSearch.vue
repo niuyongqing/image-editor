@@ -47,12 +47,12 @@
                     @change="changeMaxValue"></a-input-number>
             </a-form-item>
 
-            <a-form-item label="备注:">
+            <!-- <a-form-item label="备注:">
                 <a-select v-model:value="state.hasRemark" allowClear @change="change">
                     <a-select-option :value="true">有备注</a-select-option>
                     <a-select-option :value="false">无备注</a-select-option>
                 </a-select>
-            </a-form-item>
+            </a-form-item> -->
 
             <!-- <a-form-item label="六合一发布:">
                 <a-select v-model:value="state.hasRemark" allowClear @change="change">
@@ -86,7 +86,6 @@
 import { useResetReactive } from '@/composables/reset';
 import dayjs from 'dayjs';
 import { lazadaCategoryTree } from '@/pages/lazada/product/api';
-
 const { shortCodes = [] } = defineProps({
     shortCodes: {
         type: Array
@@ -117,7 +116,7 @@ const { state, reset } = useResetReactive({
     createBefore: undefined,
     updateAfter: undefined,
     updateBefore: undefined,
-    hasRemark: undefined,
+    // hasRemark: undefined,
 });
 
 const emits = defineEmits(['submit', 'change']);
@@ -190,7 +189,7 @@ const getParams = () => {
         updateBefore: state.updateBefore,
         createAfter: state.createAfter,
         createBefore: state.createBefore,
-        hasRemark: state.hasRemark,
+        // hasRemark: state.hasRemark,
     };
     return params;
 };

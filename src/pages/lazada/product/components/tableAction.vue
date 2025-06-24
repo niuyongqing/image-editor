@@ -9,18 +9,9 @@
                     </a-button>
                     <template #overlay>
                         <a-menu>
-                            <!-- <a-menu-item @click="handleEdit()">
-                                批量编辑
-                            </a-menu-item> 
-                            <a-menu-item @click="handleGobalPlus()">
-                                批量升级Gobal Plus
-                            </a-menu-item>-->
                             <a-menu-item @click="handleDeactivated()">
                                 批量下架
                             </a-menu-item>
-                            <!-- <a-menu-item @click="handleWater()">
-                                营销水印
-                            </a-menu-item> -->
                             <a-menu-item @click="handleRemark()">
                                 批量备注
                             </a-menu-item>
@@ -34,16 +25,6 @@
                             <a-menu-item @click="handleBatchSpecialPrice()">
                                 批量修改促销价格
                             </a-menu-item>
-
-                            <!-- <a-menu-item @click="handleRemark()">
-                                批量修改短描述
-                            </a-menu-item>
-                            <a-menu-item @click="handleRemark()">
-                                批量修改产品描述
-                            </a-menu-item>
-                            <a-menu-item @click="handleRemark()">
-                                全属性修改
-                            </a-menu-item> -->
                         </a-menu>
                     </template>
                 </a-dropdown>
@@ -112,9 +93,9 @@
                             <a-menu-item @click="syncSelectProduct">
                                 同步选中产品
                             </a-menu-item>
-                            <a-menu-item @click="syncShortCodeProduct">
+                            <!-- <a-menu-item @click="syncShortCodeProduct">
                                 同步店铺产品
-                            </a-menu-item>
+                            </a-menu-item> -->
                             <a-menu-item @click="syncUpProduct">
                                 同步可升级产品
                             </a-menu-item>
@@ -126,7 +107,7 @@
     </div>
     <WarehouseSetting ref="warehouseSettingRef" />
     <PriceModal ref="priceModalRef" @success="priceSuccess"></PriceModal>
-    <RemarkModal ref="remarkModalRef" @search="remarkSuccess"></RemarkModal>
+    <RemarkModal ref="remarkModalRef" @success="remarkSuccess"></RemarkModal>
     <StockModal ref="stockModalRef" @success="stockSuccess"></StockModal>
     <SpecialPriceModal ref="specialPriceModalRef" @success="specialPriceSuccess"></SpecialPriceModal>
     <BaseProgess ref="baseProgessRef" v-model:percent="percent" v-model:open="progessOpen" :showSaveBtn="false"
@@ -138,7 +119,7 @@ import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { DownOutlined, SettingOutlined, PlusOutlined } from "@ant-design/icons-vue";
 import WarehouseSetting from './warehouseSetting.vue';
 import { useLadazaAttrs } from "@/stores/lazadaAttrs";
-import { syncAll, sync, deactivate } from '@/pages/lazada/product/api';
+import { syncAll, sync, deactivate, syncOne } from '@/pages/lazada/product/api';
 import { message, Modal } from 'ant-design-vue';
 import PriceModal from './priceModal.vue';
 import RemarkModal from './remarkModal.vue';
@@ -167,23 +148,25 @@ const remarkModalEl = useTemplateRef('remarkModalRef');
 const stockModalEl = useTemplateRef('stockModalRef');
 const specialPriceModalEl = useTemplateRef('specialPriceModalRef');
 const { state: lazadaAttrsState, setShortCode, setLazadaAttrs, setLoading, reset } = useLadazaAttrs();
-// const handleEdit = () => {
-// };
-// const handleGobalPlus = () => {
-// };
-// 
+
 const handleDeactivated = () => {
+    if (!selectedRows.length) {
+        message.error('请选择需要下架的产品');
+        return
+    }
+    console.log("selectedRows", selectedRows);
+    let ids = selectedRows.map(item => item.itemId);
     Modal.confirm({
         title: '下架',
         content: '是否确认下架？',
         onOk: async () => {
-            // const res = await deactivate({ itemId: record.itemId });
-            // if (res.code === 200) {
-            //     message.success('下架成功');
-            //     emits('success');
-            // } else {
-            //     message.error(res.msg);
-            // }
+            const res = await deactivate({ itemId: ids.join(",") });
+            if (res.code === 200) {
+                message.success('下架成功');
+                emits('success');
+            } else {
+                message.error(res.msg);
+            }
         },
     })
 };
@@ -193,40 +176,39 @@ watch(() => shortCode, (newVal) => {
     percent.value = 0;
 })
 
-const syncShortCodeProduct = () => {
-    if (!shortCode) {
-        message.error('请选择店铺');
-        return
-    }
-    progessOpen.value = true;
-    timer.value = setInterval(() => {
-        if (percent.value < 80) {
-            percent.value++;
-        }
-    }, 800);
-    sync({
-        "shortCode": shortCode
-    }).then((res) => {
-        percent.value = 100;
-        progessOpen.value = false;
-        message.success('同步成功');
-        clearInterval(timer.value);
-        percent.value = 0;
-        emits('success');
-    }).catch((err) => {
-        percent.value = 0;
-        progessOpen.value = false;
-    })
-};
-
-// const handleWater = () => {
+// const syncShortCodeProduct = () => {
+//     if (!shortCode) {
+//         message.error('请选择店铺');
+//         return
+//     }
+//     progessOpen.value = true;
+//     timer.value = setInterval(() => {
+//         if (percent.value < 80) {
+//             percent.value++;
+//         }
+//     }, 800);
+//     sync({
+//         "shortCode": shortCode
+//     }).then((res) => {
+//         percent.value = 100;
+//         progessOpen.value = false;
+//         message.success('同步成功');
+//         clearInterval(timer.value);
+//         percent.value = 0;
+//         emits('success');
+//     }).catch((err) => {
+//         percent.value = 0;
+//         progessOpen.value = false;
+//     })
 // };
+
+
 const handleRemark = () => {
     if (!selectedRows.length) {
         message.error('请选择需要备注的产品');
         return
     }
-    remarkModalEl.value.open(selectedRows, ture);
+    remarkModalEl.value.open(selectedRows, true);
 };
 
 const handleBatchPrice = () => {
@@ -234,7 +216,7 @@ const handleBatchPrice = () => {
         message.error('请选择产品');
         return
     }
-    priceModalEl.value.open(selectedRows, true);
+    priceModalEl.value.open(selectedRows, {}, true);
 };
 
 const handleBatchStock = () => {
@@ -242,14 +224,14 @@ const handleBatchStock = () => {
         message.error('请选择产品');
         return
     }
-    stockModalEl.value.open(selectedRows, true);
+    stockModalEl.value.open(selectedRows, {}, true);
 };
 const handleBatchSpecialPrice = () => {
     if (!selectedRows.length) {
         message.error('请选择产品');
         return
     }
-    specialPriceModalEl.value.open(selectedRows, true);
+    specialPriceModalEl.value.open(selectedRows, {}, true);
 }
 
 // 仓库管理
@@ -273,7 +255,31 @@ const createSiteProduct = () => {
 };
 //  同步所有产品
 const syncProduct = () => {
-    syncAll().then(res => {
+    // if(shortCode) {
+    //     progessOpen.value = true;
+    //     timer.value = setInterval(() => {
+    //         if (percent.value < 80) {
+    //             percent.value++;
+    //         }
+    //     }, 800);
+    //     sync({
+    //         "shortCode": shortCode
+    //     }).then((res) => {
+    //         percent.value = 100;
+    //         progessOpen.value = false;
+    //         message.success('同步成功');
+    //         clearInterval(timer.value);
+    //         percent.value = 0;
+    //         emits('success');
+    //     }).catch((err) => {
+    //         percent.value = 0;
+    //         progessOpen.value = false;
+    //     })
+    // }else {
+    message.warning('已开始同步，请稍后查看！');
+    syncAll({
+        "shortCode": shortCode
+    }).then(res => {
         console.log(res);
         message.success('同步成功');
         emits('success');
@@ -282,7 +288,16 @@ const syncProduct = () => {
 
 //  同步选中产品
 const syncSelectProduct = () => {
-
+    let ids = selectedRows.map(e => {
+        return {
+            itemId: e.itemId,
+            shortCode: e.shortCode
+        }
+    })
+    syncOne(ids).then(res => {
+        message.success('同步成功');
+        emits('success');
+    });
 };
 // 同步可升级产品
 const syncUpProduct = () => {

@@ -99,8 +99,8 @@ export function syncOne(data) {
   return usePost("/platform-lazada/platform/lazada/product/sync-one", data);
 }
 // 同步所有店铺商品
-export function syncAll() {
-  return useGet("/platform-lazada/platform/lazada/product/sync-all");
+export function syncAll(data) {
+  return usePost("/platform-lazada/platform/lazada/product/sync-all", data);
 }
 // 下架
 export function deactivate(data) {
