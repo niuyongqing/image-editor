@@ -25,3 +25,18 @@ export function productDetail(data) {
     data: data
   })
 }
+/**
+ * // 本地视频上传
+ * @param {*} data 
+ * @returns 
+ */
+export function videoUpload(data) {
+  return request({
+    url: '/platform-common/platform/common/video/upload',
+    method: 'post',
+    data: data,
+    headers: {  
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}

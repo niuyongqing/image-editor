@@ -9,97 +9,99 @@
       >下载采集插件</span>
       ！）
     </template>
-    <!-- <a-textarea v-model:value="dataUrl.url" placeholder="请填写产品的网址,多个网址用Enter换行" :auto-size="{ minRows: 7 }" />
-    <div class="flex mt-2.5 justify-between">
-      <div>
-        <span style="color: #999;">您还未安装采集插件，建议使用</span>
-        <span style="color: #1677ff;cursor: pointer;">采集插件</span><span style="color: #999;">，功能更稳定更快速！</span><span
-          style="color: #1677ff;cursor: pointer;" @click="showTeps = true">如何使用插件采集>></span>
-      </div>
-      <div>
-        <a-button type="primary" @click="acquisition">开始采集</a-button>
-        <a-button class="ml-2.5" @click="clearArea">清空</a-button>
-      </div>
-    </div> -->
-    <div class="mt-2.5">
-      <a-form ref="ruleForm" :model="formData" :labelCol="{ span: 1 }">
-        <a-form-item label="数据来源：">
-          <div class="flex justify-between">
-            <selectComm 
-              class="ml-2.5" 
-              :options="formBtnInfo.shopAccount" 
-              :fieldObj="shopObj" 
-              @backSelectAll="selectAll"
-              @backSelectItem="selectItem"
-            ></selectComm>
-            <a-button @click="isShowSearch = !isShowSearch">{{ isShowSearch ? '收起' : '展开' }}</a-button>
-          </div>
-        </a-form-item>
-        <a-form-item label="搜索类型:" v-show="isShowSearch">
-          <div class="fBox flex align-start ml-2.5">
-            <a-button 
-              @click="selectTypes(item.prop)" 
-              class="mr-2.5" 
-              :type="item.prop === actives ? 'primary' : ''"
-              v-for="(item, index) in formBtnInfo.searchType" 
-              :key="index"
-            >{{ item.label }}</a-button>
-          </div>
-        </a-form-item>
-        <a-form-item label="搜索内容：" v-show="isShowSearch">
-          <div class="searchs flex">
-            <div class="searchInputs flex align-start ml-2.5">
-              <a-input 
-                v-if="actives == 1" 
-                style="width: 400px;" 
-                v-model:value="formData.name" 
-                placeholder="请输入标题查询"
-                allowClear 
-                @clear="onSubmit"
-              ></a-input>
-              <a-input 
-                v-if="actives == 2" 
-                style="width: 400px;" 
-                v-model:value="formData.url" 
-                allowClear
-                @clear="onSubmit" 
-                placeholder="请输入url"
-              ></a-input>
+    <a-spin :spinning="tableInfo.spinning">
+      <!-- <a-textarea v-model:value="dataUrl.url" placeholder="请填写产品的网址,多个网址用Enter换行" :auto-size="{ minRows: 7 }" />
+      <div class="flex mt-2.5 justify-between">
+        <div>
+          <span style="color: #999;">您还未安装采集插件，建议使用</span>
+          <span style="color: #1677ff;cursor: pointer;">采集插件</span><span style="color: #999;">，功能更稳定更快速！</span><span
+            style="color: #1677ff;cursor: pointer;" @click="showTeps = true">如何使用插件采集>></span>
+        </div>
+        <div>
+          <a-button type="primary" @click="acquisition">开始采集</a-button>
+          <a-button class="ml-2.5" @click="clearArea">清空</a-button>
+        </div>
+      </div> -->
+      <div class="mt-2.5">
+        <a-form ref="ruleForm" :model="formData" :labelCol="{ span: 1 }">
+          <a-form-item label="数据来源：">
+            <div class="flex justify-between">
+              <selectComm 
+                class="ml-2.5" 
+                :options="formBtnInfo.shopAccount" 
+                :fieldObj="shopObj" 
+                @backSelectAll="selectAll"
+                @backSelectItem="selectItem"
+              ></selectComm>
+              <a-button @click="isShowSearch = !isShowSearch">{{ isShowSearch ? '收起' : '展开' }}</a-button>
             </div>
-            <a-button type="primary" class="ml-2.5" @click="onSubmit(true)">查询</a-button>
-          </div>
-        </a-form-item>
-        <a-form-item label="采集时间：" v-show="isShowSearch">
-          <selectComm 
-            class="ml-2.5" :options="formBtnInfo.acquisitionTimes" 
-            :fieldObj="timeObj" 
-            @backSelectAll="selectTimeAll"
-            @backSelectItem="selectTimeItem"
-          ></selectComm>
-        </a-form-item>
-        <a-form-item label="时间选择：" v-show="formData.time === 'customize'">
-          <a-range-picker 
-            class="ml-2.5" 
-            v-model:value="formData.searchTime" 
-            format="YYYY-MM-DD"
-            value-format="YYYY-MM-DD"
-            @change="pickerChange"
-          />
-        </a-form-item>
-        <a-form-item label="备注：" v-show="isShowSearch">
-          <a-select
-            v-model:value="formData.isRemark" 
-            class="ml-2.5" 
-            style="width: 150px"
-            allowClear
-            @change="isRemarkSelect"
-          >
-            <a-select-option value="1">有备注</a-select-option>
-            <a-select-option value="0">无备注</a-select-option>
-          </a-select>
-        </a-form-item>
-      </a-form>
-    </div>
+          </a-form-item>
+          <a-form-item label="搜索类型:" v-show="isShowSearch">
+            <div class="fBox flex align-start ml-2.5">
+              <a-button 
+                @click="selectTypes(item.prop)" 
+                class="mr-2.5" 
+                :type="item.prop === actives ? 'primary' : ''"
+                v-for="(item, index) in formBtnInfo.searchType" 
+                :key="index"
+              >{{ item.label }}</a-button>
+            </div>
+          </a-form-item>
+          <a-form-item label="搜索内容：" v-show="isShowSearch">
+            <div class="searchs flex">
+              <div class="searchInputs flex align-start ml-2.5">
+                <a-input 
+                  v-if="actives == 1" 
+                  style="width: 400px;" 
+                  v-model:value="formData.name" 
+                  placeholder="请输入标题查询"
+                  allowClear 
+                  @clear="onSubmit"
+                ></a-input>
+                <a-input 
+                  v-if="actives == 2" 
+                  style="width: 400px;" 
+                  v-model:value="formData.url" 
+                  allowClear
+                  @clear="onSubmit" 
+                  placeholder="请输入url"
+                ></a-input>
+              </div>
+              <a-button type="primary" class="ml-2.5" @click="onSubmit(true)">查询</a-button>
+            </div>
+          </a-form-item>
+          <a-form-item label="采集时间：" v-show="isShowSearch">
+            <selectComm 
+              class="ml-2.5" :options="formBtnInfo.acquisitionTimes" 
+              :fieldObj="timeObj" 
+              @backSelectAll="selectTimeAll"
+              @backSelectItem="selectTimeItem"
+            ></selectComm>
+          </a-form-item>
+          <a-form-item label="时间选择：" v-show="formData.time === 'customize'">
+            <a-range-picker 
+              class="ml-2.5" 
+              v-model:value="formData.searchTime" 
+              format="YYYY-MM-DD"
+              value-format="YYYY-MM-DD"
+              @change="pickerChange"
+            />
+          </a-form-item>
+          <a-form-item label="备注：" v-show="isShowSearch">
+            <a-select
+              v-model:value="formData.isRemark" 
+              class="ml-2.5" 
+              style="width: 150px"
+              allowClear
+              @change="isRemarkSelect"
+            >
+              <a-select-option value="1">有备注</a-select-option>
+              <a-select-option value="0">无备注</a-select-option>
+            </a-select>
+          </a-form-item>
+        </a-form>
+      </div>
+    </a-spin>
   </a-card>
   <a-card :loading="tableInfo.spinning">
     <div class="flex my-2.5">

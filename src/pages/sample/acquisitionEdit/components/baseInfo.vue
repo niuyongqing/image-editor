@@ -152,7 +152,6 @@ function openFn() {
   nextTick(() => {
     typeTreeDropdown.value = false
   })
-  
 }
 // 节点变化
 function updateNodePath(val) {

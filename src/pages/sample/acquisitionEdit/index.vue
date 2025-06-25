@@ -3,6 +3,9 @@
   <div class="title">数据采集>编辑</div>
   <!-- 基本信息 -->
   <baseInfo :product-data="productInfo.data" v-model:base-info-data="formData.baseInfoData"></baseInfo>
+  <br>
+  <!-- 图片信息 -->
+  <imageInfo></imageInfo>
 </div>
 </template>
 
@@ -12,6 +15,7 @@ import { useRoute } from 'vue-router';
 import { productDetail } from './js/api';
 
 import baseInfo from './components/baseInfo.vue';
+import imageInfo from './components/imageInfo.vue';
 defineOptions({ name: "acquisitionEdit_index" })
 const { proxy: _this } = getCurrentInstance()
 const route = useRoute();
@@ -30,7 +34,7 @@ onMounted(() => {
 async function productDetailFn(params) {
   try {
     let res = await productDetail({ id: productInfo.id });
-    console.log({ res });
+    // console.log({ res });
     productInfo.data = res.data
   } catch (error) {
     console.error(error)
