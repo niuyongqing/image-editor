@@ -84,8 +84,6 @@ watch(() => props.classifyTreeData, value => {
   treeSearch(treeData.keyword)
   treeData.nodeList = getNodeList(data)
   treeData.showTree = data
-
-
 });
 /**
  * // 更新数据
@@ -202,8 +200,6 @@ function selectNode(expandedKeys, { expanded: bool, node }) {
 }
 // 生成节点路径
 function getNodePath(node) {
-  console.log('node222222222222', node, node._key);
-
   let pathArr = node._key.split('-');
   let nameList = []
   for (let index = 0; index < pathArr.length; index++) {

@@ -48,19 +48,15 @@
                         <div class="ml-7.5 flex flex-col">
                             <p m-10px>详情描述视频：</p>
                             <div flex gap-10px>
-                                <div v-for="item in detailVideoList" :key="item.url">
+                                <div v-for="item in form.detailVideoList" :key="item.url">
                                     <a-upload name="file" :customRequest="customRequestDetailVideo" :headers="headers"
                                         accept="video/*" :showUploadList="false" :file-list="form.detailVideoList"
                                         :maxCount="1" :disabled="item.url ? true : false" v-if="item.url">
-                                        <a-button v-if="!item.url" style=" width: 120px; height: 140px;">
-                                            <plus-outlined></plus-outlined>
-                                            <p> 上传视频 </p>
-                                        </a-button>
-                                        <div v-else class="productVideoIcon">
+                                        <div class="productVideoIcon">
                                             <img src="@/assets/images/productVideoIcon.png" alt="" />
                                             <div flex justify-end class="del-icon">
                                                 <span @click="detailVideoPreview(item)">播放</span>
-                                                <DeleteOutlined @click="videoDelete">
+                                                <DeleteOutlined @click="detailVideoDelete(item)">
                                                 </DeleteOutlined>
                                             </div>
                                         </div>
@@ -238,11 +234,9 @@ const customRequestDetailVideo = (options) => {
     formData.append('shortCode', props.shopCode);
     formData.append('file', options.file);
     videoUpload(formData, options.headers).then(res => {
-        videoFile.value = [{
-            url: res.url,
-            coverUrl: res.coverUrl,
-        }];
-        form.video.url = import.meta.env.VITE_APP_BASE_API + res.url;
+        form.detailVideoList.push({
+            url: import.meta.env.VITE_APP_BASE_API + res.url
+        })
     })
 };
 
@@ -262,19 +256,24 @@ watch(() => props.productDetail, val => {
         );
         complexAttributes && complexAttributes.forEach((item) => {
             if (item.id === 21841) {
+                // form.video.push({
+                //     url: processImageSource(item.values[0].value),
+                //     name: item.values[0].value.substring(
+                //         item.values[0].value.lastIndexOf("/") + 1
+                //     ),
+                // })
                 form.video.push({
-                    url: processImageSource(item.values[0].value),
-                    name: item.values[0].value.substring(
-                        item.values[0].value.lastIndexOf("/") + 1
-                    ),
+                    url: processImageSource(item.values[0].value)
                 })
             } else if (item.id === 21845) {
-                form.coverUrl = {
-                    url: processImageSource(item.values[0].value),
-                    name: item.values[0].value.substring(
-                        item.values[0].value.lastIndexOf("/") + 1
-                    ),
-                };
+
+                form.coverVideoUrl = processImageSource(item.values[0].value)
+                // form.coverUrl = {
+                //     url: processImageSource(item.values[0].value),
+                //     name: item.values[0].value.substring(
+                //         item.values[0].value.lastIndexOf("/") + 1
+                //     ),
+                // };
             }
         });
         copyAttr.forEach(e => {
