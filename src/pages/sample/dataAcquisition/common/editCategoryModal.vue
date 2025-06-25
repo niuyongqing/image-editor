@@ -41,7 +41,7 @@
                         <a-select v-model:value="form.categoryId" allowClear showSearch placeholder="请选择"
                             style="width: 300px;" :options="historyCategoryList" @change="selectAttributes" :fieldNames="{
                                 label: 'threeCategoryName', value: 'threeCategoryId',
-                            }">
+                            }" :filter-option="filterOption">
                         </a-select>
                         <a-button type="link" @click="changeCategory">更换分类</a-button>
                         <p class="tooltip-text" v-if="hisAttrObj && JSON.stringify(hisAttrObj) != '{}'">{{
@@ -157,6 +157,12 @@ const form = reactive({
     shortCode: "",
     categoryId: null,
 })
+
+
+function filterOption(input, option) {
+    return option.threeCategoryName.indexOf(input) >= 0;
+}
+
 
 const primaryImage = (primaryImage) => {
     return baseApi + primaryImage
@@ -358,9 +364,33 @@ const handleSelect = (data) => {
         historyCategory({ account: form.shortCode })
             .then((res) => {
                 historyCategoryList.value = res?.data || [];
-                innerTableData.value.forEach((item) => {
-                    item.ozonTheme = undefined;
-                    item.attrLabel = undefined;
+                categoryAttributes({
+                    account: form.shortCode,
+                    descriptionCategoryId: data.ids[1],
+                    typeId: data.ids[2],
+                }).then((attrRes) => {
+                    if (attrRes.code === 200) {
+                        attributes.value = attrRes.data || [];
+                        // getFilterAttrs();
+                        const filterAttr = attributes.value.filter((attrItem) => {
+                            return attrItem.isAspect
+                        });
+                        filterAttrOptions.value = filterAttr.map((attrItem) => {
+                            return {
+                                label: attrItem.name.replace(/\(.*\)/, ""), // 去掉（）里面的
+                                value: attrItem.id,
+                                attrLabel: attrItem.name,
+                            }
+                        });
+                        innerTableData.value = innerTableData.value.map((item) => {
+                            return {
+                                catTheme: item.catTheme,
+                                ozonTheme: undefined,
+                                attrLabel: undefined,
+                                filterAttrOptions: filterAttrOptions.value,
+                            }
+                        });
+                    }
                 })
             })
 
@@ -480,11 +510,11 @@ const editCategory = () => {
     };
 
     // 对应Ozon变种主题 选择不能有一样的
-    const attributeIdList = variantRelationList.map(item => item.attributeId).filter(item => item !== undefined);
+    const attributeIdList = variantRelationList.map(item => item.attributeId).filter(Boolean);
     if (attributeIdList.every(item => item === undefined)) {
         message.error('请选择变种主题选择属性');
         return;
-    }
+    };
     const hasRepeat = attributeIdList.some((item, index) => attributeIdList.indexOf(item) !== index);
     if (hasRepeat) {
         message.error('对应Ozon变种主题，选择不能有重复');
