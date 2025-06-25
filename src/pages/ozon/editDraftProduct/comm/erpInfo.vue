@@ -16,7 +16,8 @@
                         <template #overlay>
                             <a-menu>
                                 <typeTree v-model:current-class="currentClass" v-model:node-path="nodePath"
-                                    platform="ozon" ref="typeTreeRef" @update:nodePath="updateNodePath">
+                                    :classifyTreeData="treeData" platform="ozon" ref="typeTreeRef"
+                                    @update:nodePath="updateNodePath" default-class>
                                 </typeTree>
                             </a-menu>
                         </template>
@@ -57,12 +58,13 @@
 <script setup>
 import { message } from 'ant-design-vue';
 import { DownOutlined, PlusOutlined, CloseOutlined } from '@ant-design/icons-vue';
-import typeTree from '@/components/classificationTree/typeTree.vue';
+import typeTree from './typeTree.vue';
 import typeManage from '@/components/classificationTree/typeManage.vue';
+import { getClassList } from '@/components/classificationTree/api.js';
 
 const updateNodePath = (nodePath) => {
     const nodePaths = nodePath.split(' > ');
-    nodeName.value = nodePaths[nodePaths.length - 1];
+    nodeName.value = nodePaths[nodePaths.length - 1]
 };
 
 const formRef = ref(null)
@@ -75,18 +77,15 @@ const openDropdown = ref(false); // 下拉框是否打开
 
 const typeTreeEl = useTemplateRef('typeTreeRef');
 const currentClass = ref(0);
+const treeData = ref([]);
 const nodePath = ref('');
 const typeManageOpen = ref(false);
 const nodeName = ref('');
 const selectedKeys = ref([]);
 
 // 更新当前选中节点
-const updateTree = () => {
-    typeTreeEl.value.updateTree();
-    const nodePaths = nodePath.value.split(' > ');
-    setTimeout(() => {
-        nodeName.value = nodePaths[nodePaths.length - 1]
-    }, 100);
+const updateTree = async () => {
+    getTreeData();
 };
 
 function filterTreeWithParents(nodes, predicate) {
@@ -126,4 +125,36 @@ const handleMinus = (index) => {
 const showCategoryModal = () => {
     typeManageOpen.value = true;
 };
+// 获取tree数据
+const getTreeData = () => {
+    let params = {
+        "platform": 'ozon',//平台
+        parentId: '0',
+    }
+    getClassList(params).then(res => {
+        const dataRes = res.data || [];
+        treeData.value = dataRes
+        const findItemById = (id, tree) => {
+            for (let item of tree) {
+                if (item.id === id) {
+                    return item;
+                }
+                if (item.childList && item.childList.length > 0) {
+                    const found = findItemById(id, item.childList);
+                    if (found) {
+                        return found;
+                    }
+                }
+            }
+            return null;
+        };
+        const item = findItemById(currentClass.value, treeData.value);
+        nodeName.value = item?.name ?? '';
+        currentClass.value = item?.id ?? '';
+    })
+};
+onMounted(() => {
+    currentClass.value = '9be6ba3bd96d4a05ae742d207d44e6b6';
+    getTreeData();
+})
 </script>

@@ -77,7 +77,8 @@
                                 <template #overlay>
                                     <a-menu>
                                         <typeTree v-model:current-class="currentClass" v-model:node-path="nodePath"
-                                            platform="ozon" @update:currentClass="updateCurrentClass" ref="typeTreeRef">
+                                            platform="ozon" @update:currentClass="updateCurrentClass" ref="typeTreeRef"
+                                            @nodeClick="typeNodeClick">
                                         </typeTree>
                                     </a-menu>
                                 </template>
@@ -288,7 +289,7 @@ import RemarkModal from './batchComponent/remarkModal.vue';
 import BatchWatermark from './batchComponent/batchWatermark.vue';
 import OzonProduct from '@/pages/ozon/product/index.vue';
 import BatchAttribute from './batchComponent/batchAttribute.vue';
-
+import { updateCategoryProduct } from "~/pages/sample/dataAcquisition/js/api.js";
 let columns = tableHeard;
 const showDraftTable = ref(true);
 
@@ -526,13 +527,28 @@ const getList = () => {
 
 const updateClass = (value) => {
     showDraftTable.value = false;
+};
+
+// 批量移动分类
+async function typeNodeClick(node) {
+    if (selectedRowList.value.length < 1) return message.warning('请选择商品！')
+    // console.log({ node });
+    try {
+        let ids = selectedRowList.value.map(i => i.gatherProductId);
+
+        let params = {
+            "ids": ids.join(), // 商品信息的唯一标识(多个用英文逗号分割)
+            "productCategoryId": node.id   //分类ID
+        }
+        await updateCategoryProduct(params)
+        getList()
+    } catch (error) {
+        console.error(error)
+    }
 }
-
-
-
 //  移入待发布
 const moveToPending = (row = {}) => {
-
+    window.open(`/platform/ozon/editWaitProduct?id=${row.gatherProductId}&account=${row.account}`, '_blank');
 };
 
 //  编辑

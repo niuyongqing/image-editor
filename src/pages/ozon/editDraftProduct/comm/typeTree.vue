@@ -1,42 +1,29 @@
 <template>
-<div id="typeTree" class="typeTree">
-  <!-- <a-input-search v-model:value="treeData.keyword" style="margin-bottom: 8px" placeholder="Search" /> -->
-  <a-input-search
-    v-model:value="treeData.keyword"
-    placeholder="类别关键词"
-    style="margin-bottom: 8px"
-    @search="treeSearch(treeData.keyword)"
-  />
-  <div class="box-tree">
-    <a-spin :spinning="treeData.loading">
-      <a-tree
-        v-if="treeData.showTree.length > 0"
-        key="classificationTree_typeTree"
-        defaultExpandAll
-        :tree-data="treeData.showTree"
-        :selectedKeys="treeData.selectedKeys"
-        :fieldNames="{
-          children:'childList', 
-          title:'name', 
-          key:'id'
-        }"
-        :show-line="true"
-        :show-icon="false"
-        @select="selectNode"
-      >
-        <template #title="{ name }">
-          <div class="node-name">{{ name }}</div>
-        </template>
-      </a-tree>
-    </a-spin>
+  <div id="typeTree" class="typeTree">
+    <!-- <a-input-search v-model:value="treeData.keyword" style="margin-bottom: 8px" placeholder="Search" /> -->
+    <a-input-search v-model:value="treeData.keyword" placeholder="类别关键词" style="margin-bottom: 8px"
+      @search="treeSearch(treeData.keyword)" />
+    <div class="box-tree">
+      <a-spin :spinning="treeData.loading">
+        <a-tree v-if="treeData.showTree.length > 0" key="classificationTree_typeTree" defaultExpandAll
+          :tree-data="treeData.showTree" :selectedKeys="treeData.selectedKeys" :fieldNames="{
+            children: 'childList',
+            title: 'name',
+            key: 'id'
+          }" :show-line="true" :show-icon="false" @select="selectNode">
+          <template #title="{ name }">
+            <div class="node-name">{{ name }}</div>
+          </template>
+        </a-tree>
+      </a-spin>
+    </div>
   </div>
-</div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { cloneDeep } from 'lodash-es';
-import { getClassList } from './api';
+import { getClassList } from '@/components/classificationTree/api.js';
 defineOptions({ name: "typeTree" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:currentClass', 'update:nodePath', 'nodeClick'])
@@ -53,7 +40,12 @@ const props = defineProps({
     type: String,
     default: '全部分类',
   },
+  classifyTreeData: {
+    type: Array,
+    default: () => []
+  },
   defaultClass: Boolean,      // 更新数据后默认选中节点
+
 })
 defineExpose({
   updateTree,         // 更新数据方法
@@ -64,7 +56,7 @@ const treeData = reactive({
   currentClass: '',
   showTree: [],
   nodeList: [],
-  keyword: '',       
+  keyword: '',
 
   loading: false
 })
@@ -76,7 +68,22 @@ onMounted(() => {
   })
 })
 watch(() => treeData.keyword, value => {
-  treeSearch(value) 
+  treeSearch(value)
+});
+
+watch(() => props.classifyTreeData, value => {
+  let data = [
+    {
+      id: '0',
+      name: '全部分类',
+      parentId: '',
+      childList: [...props.classifyTreeData]
+    }
+  ]
+  data = setNodeKey(data)
+  treeSearch(treeData.keyword)
+  treeData.nodeList = getNodeList(data)
+  treeData.showTree = data
 });
 /**
  * // 更新数据
@@ -89,6 +96,8 @@ async function updateTree(val) {
     await getClassListFn(treeData.currentClass)
   }
 }
+
+
 // 获取树数据
 async function getClassListFn(id = '0') {
   treeData.loading = true;
@@ -97,13 +106,14 @@ async function getClassListFn(id = '0') {
       "platform": props.platform,//平台
       parentId: '0',
     }
-    let res = await getClassList(params)
+    // let res = await getClassList(params)
     let data = [
       {
         id: '0',
         name: '全部分类',
         parentId: '',
-        childList: [...res.data]
+        // childList: [...res.data]
+        childList: [...props.classifyTreeData]
       }
     ]
     data = setNodeKey(data)
@@ -173,7 +183,7 @@ function filterTreeNode(data, keyword) {
     } else if (item.childList && item.childList.length > 0) {
       item.childList = filterTreeNode(item.childList, keyword)
       return item.childList.length > 0
-    } 
+    }
   })
   return list
 }
@@ -186,7 +196,7 @@ function selectNode(expandedKeys, { expanded: bool, node }) {
   // console.log({path});
   emit('update:currentClass', node.id)
   emit('update:nodePath', path)
-  emit('nodeClick', {...node})
+  emit('nodeClick', { ...node })
 }
 // 生成节点路径
 function getNodePath(node) {
@@ -207,15 +217,19 @@ function getNodePath(node) {
 .typeTree {
   width: 100%;
   height: 100%;
+
   .box-tree {
     width: 100%;
     height: calc(100% - 40px);
     overflow-y: auto;
+
     :deep(.ant-tree-treenode) {
       width: 100%;
+
       .ant-tree-node-content-wrapper {
         display: inline-block;
         flex: 1;
+
         .ant-tree-title {
           display: inline-block;
           width: 100%;
@@ -223,6 +237,7 @@ function getNodePath(node) {
         }
       }
     }
+
     .node-name {
       font-size: 16px;
       font-weight: 500;
