@@ -84,7 +84,8 @@
                         style="margin-left: 10px"
                         v-if="requiredList.length !== 0 || themeBtns.length !== 0">添加自定义变种属性</a-button>
                 </div>
-                <a-table bordered :columns="filteredHeaderList" :data-source="tableData" :pagination="false">
+                <a-table bordered :columns="filteredHeaderList" :data-source="tableData" :pagination="false"
+                    :scroll="{ x: 2000 }">
                     <template #headerCell="{ column }">
                         <template v-if="column.dataIndex === 'sellerSKU'">
                             <span><span style="color: #ff0a37;">*</span>
@@ -138,20 +139,21 @@
                             <a-input v-if="column.selectType === 'input'"
                                 v-model:value="record[column.dataIndex]"></a-input>
                             <a-select v-if="column.selectType === 'select'" v-model:value="record[column.dataIndex]"
-                                style="width: 200px" :options="column.options"></a-select>
+                                style="min-width: 200px" :options="column.options"></a-select>
                             <a-select v-if="column.selectType === 'multSelect'" :maxTagCount="2"
-                                v-model:value="record[column.dataIndex]" style="width: 200px" :options="column.options"
-                                mode="tags"></a-select>
+                                v-model:value="record[column.dataIndex]" style="min-width: 200px"
+                                :options="column.options" mode="tags"></a-select>
                         </template>
                         <template v-if="column.dataIndex === 'price'">
-                            <a-input-number style="width: 80%" :min="0" :max="99999999" :precision="2"
+                            <a-input-number style="min-width: 200px" :min="0" :max="99999999" :precision="2"
                                 v-model:value="record.price" @blur="judgeMax(record)"></a-input-number>
                             <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.price, 'price')"
                                 class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
                         </template>
                         <template v-if="column.dataIndex === 'oldPrice'">
-                            <a-input-number style="width: 80%" :min="0" :max="99999999" v-model:value="record.oldPrice"
-                                :precision="2" @blur="judgeMax(record)"></a-input-number>
+                            <a-input-number style="min-width: 200px" :min="0" :max="99999999"
+                                v-model:value="record.oldPrice" :precision="2"
+                                @blur="judgeMax(record)"></a-input-number>
                             <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.oldPrice, 'oldPrice')"
                                 class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
                         </template>
@@ -164,28 +166,28 @@
                                 <div>
                                     <div style="display: flex">
                                         长度：
-                                        <a-input-number controls-position="right" :min="0" style="width: 80%"
+                                        <a-input-number controls-position="right" :min="0" style="min-width: 200px"
                                             v-model:value="record.packageLength" placeholder="长度">
                                             <template #addonAfter>mm</template>
                                         </a-input-number>
                                     </div>
                                     <div style="display: flex; margin-top: 5px">
                                         宽度：
-                                        <a-input-number controls-position="right" :min="0" style="width: 80%"
+                                        <a-input-number controls-position="right" :min="0" style="min-width: 200px"
                                             v-model:value="record.packageWidth" placeholder="宽度">
                                             <template #addonAfter>mm</template>
                                         </a-input-number>
                                     </div>
                                     <div style="display: flex; margin-top: 5px">
                                         高度：
-                                        <a-input-number controls-position="right" :min="0" style="width: 80%"
+                                        <a-input-number controls-position="right" :min="0" style="min-width: 200px"
                                             v-model:value="record.packageHeight" placeholder="高度">
                                             <template #addonAfter>mm</template>
                                         </a-input-number>
                                     </div>
                                     <div style="display: flex; margin-top: 5px">
                                         重量：
-                                        <a-input-number controls-position="right" :min="0" style="width: 80%"
+                                        <a-input-number controls-position="right" :min="0" style="min-width: 200px"
                                             v-model:value="record.packageWeight" placeholder="重量" :precision="0">
                                             <template #addonAfter>g</template>
                                         </a-input-number>
@@ -208,7 +210,7 @@
                     </template>
                 </a-table>
             </a-card>
-            <a-card title="变种图片" class="text-left mx-50 mt-5">
+            <!-- <a-card title="变种图片" class="text-left mx-50 mt-5">
                 <template #extra>
                     <div style="padding: 3px 0;color: #99999a;" class="mr-2.5 float-right">
                         <a-select v-model:value="watermarkValue" :disabled="!shopCode" class="w-50" placeholder="请选择水印"
@@ -253,12 +255,54 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- <div v-if="item && item.detail">{{ item.detail.attr }}</div> -->
                                 <span v-if="item.imageUrl" class="block mt-2.5">{{ item.imageUrl.length
                                 }}/30</span>
                                 <dragUpload @changeImg="(list) => changeImg(list, item)"
-                                    @singleSelectImg="(e) => singleSelectImg(e, item)"></dragUpload>
+                                    @singleSelectImg="(e) => singleSelectImg(e, item)" :imageList="item.imageUrl">
+                                </dragUpload>
 
+                            </a-card>
+                        </div>
+                    </div>
+                </div>
+            </a-card> -->
+
+            <a-card title="变种图片" class="text-left mx-50 mt-5">
+                <div>
+                    <div v-for="item in tableData" :key="item.id">
+                        <div v-if="tableData.length > 0">
+                            <a-card class="mb-2.5 ml-2.5">
+                                <div>
+                                    <a-tag color="warning">！说明</a-tag>
+                                    <span style="color: #9fa0a2">
+                                        第一张图片默认为主图，点击图片拖动，即可调整图片顺序！
+                                        单张不超过2M，只支持jpg、.png、.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3：4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)</span>
+                                </div>
+
+                                <SkuDragUpload v-model:file-list="item.imageUrl" :maxCount="30" :showUploadList="false"
+                                    accept=".jpg,.png" :api="uploadImage" :waterList="watermark">
+                                    <template #default>
+                                        <div flex flex-col w-full justify-start mb-4px text-left>
+                                            <p>
+                                                <a-tag color="#00AEB3">说明！</a-tag>
+                                                <span class="text-#999"> 第一张图片默认为主图，点击图片拖动，即可调整图片顺序。
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </template>
+                                    <template #variantInfo>
+                                        <!-- <div v-if="lazadaAttrsState.selectTheme.length === 1">
+                                            {{ variantInfo(item) }}
+                                        </div>
+                                        <div text-left v-if="lazadaAttrsState.selectTheme.length === 2">
+                                            <p pb-1px mb-0> {{ variantInfo(item) }} </p>
+                                            <p> {{ variantInfoTwo(item) }} </p>
+                                        </div> -->
+                                    </template>
+                                    <template #skuInfo>
+                                        {{ `【${item.imageUrl.length}/30】图片 ` }}
+                                    </template>
+                                </SkuDragUpload>
                             </a-card>
                         </div>
                     </div>
@@ -290,11 +334,17 @@ import { useOzonProductStore } from '~@/stores/ozon-product'
 import batchEditModal from "~/pages/ozon/config/component/batchEditModal/index.vue"
 import {
     updatePrice, processAttributesCache,
-    reorderArray, cartesianProduct, processResult,
+    reorderArray, cartesianProduct,
+    processResult,
     processData, checkSellerSKU, hasDuplicateModelValues,
     checkData, handleTheme
 } from "../../config/commJs/index"
 import { publishHead, otherList } from '../../config/tabColumns/skuHead';
+import { uploadImage } from '@/pages/ozon/config/api/draft';
+import SkuDragUpload from '@/components/skuDragUpload/index.vue';
+
+
+
 const props = defineProps({
     categoryAttributesLoading: Boolean,
     storeOption: Array,
@@ -322,7 +372,6 @@ const headerList = ref([]) //动态表头
 const imgHeaderList = ref([])
 const addHeaderList = ref([])
 const requireColumns = ref([])
-const imageList = ref([])
 const quantityRow = ref({})
 const types = ref("")
 const editStockList = ref([])
@@ -497,6 +546,8 @@ const removeVariantType = (item, index) => {
 }
 // 添加多个属性操作
 const addItem = (item, row) => {
+    console.log("//", item, row);
+
     let ele = {}
     if (isConform.value && item.id === 10096) {
         ele = {
@@ -529,7 +580,9 @@ const addItem = (item, row) => {
             name: item.name,
             modelValue: item.selectType === 'multSelect' ? [] : undefined,
             selectType: item.selectType,
-            details: item.details
+            details: item.details,
+            isCollection: item.isCollection,
+            isRequired: item.isRequired,
         };
     }
     row.tableData.push(ele)
@@ -540,16 +593,15 @@ const addItem = (item, row) => {
 // 移除多个属性操作
 const removeItem = (item, row) => {
     console.log('removeItem', item, row);
+    let ind = row.tableData.indexOf(item)
     if (item.id === 10096) {
-        let ind = row.tableData.indexOf(item)
         row.tableData.splice(ind, 1);
     } else if (item.id === 4295) {
-        let ind = row.tableData.indexOf(item)
         row.tableData.splice(ind, 1);
     } else {
         row.tableData = row.tableData.filter(el => el.id !== item.id);
     }
-    const newData = [];
+    let newData = [];
     for (let i = 0; i < tableData.value.length; i++) {
         let hasValueFour = false;
         for (let key in tableData.value[i]) {
@@ -563,6 +615,8 @@ const removeItem = (item, row) => {
         }
         if (!hasValueFour) {
             newData.push(tableData.value[i]);
+        } else {
+            newData = [...tableData.value]
         }
     }
     console.log('newData', newData);
@@ -570,9 +624,41 @@ const removeItem = (item, row) => {
     tableData.value = newData
 }
 
+// 笛卡尔算法步骤1 初始写法
+// const processResult = (productList) => {
+//     return productList.map((product) => {
+//         let output = {
+//             skuTitle: "",
+//             sellerSKU: "",
+//             price: "",
+//             oldPrice: "",
+//             quantity: undefined,
+//             warehouseList: [],
+//             packageLength: undefined,
+//             packageWidth: undefined,
+//             packageHeight: undefined,
+//             packageWeight: undefined,
+//             imageUrl: [],
+//             colorImg: [],
+//             id: Math.random().toString(36).substring(2, 10),
+//         };
+//         product.forEach((item) => {
+//             let values =
+//                 item.selectType === "multSelect"
+//                     ? item?.modelValue?.map((val) => val.label).join(",")
+//                     : item.selectType === "select" ? item.modelValue?.label : item.modelValue;  //原写法 item.modelValue.value 
+//             output[item.name] = values;
+//             output['secondName'] = item?.secondModelValue || "";
+//             output[item.secondName] = item?.secondModelValue || "";
+//         });
+//         return output;
+//     });
+// }
+
+
 // 将根据主题中选择的数据进行添加到表格中
 const pushValue = (index, item) => {
-    console.log("ele", index, item);
+    console.log("attributeList.value", attributeList.value);
     let flog = hasDuplicateModelValues(attributeList.value)
     if (flog) {
         message.error("变种属性值不能有相同的，请修改")
@@ -580,8 +666,13 @@ const pushValue = (index, item) => {
     }
     // 处理表格数据
     let cartesianProducts = cartesianProduct(attributeList.value);
+    console.log("cartesianProducts", cartesianProducts);
+
     let newTableData = processResult(cartesianProducts);
+    console.log("newTableData", newTableData);
     let minLength = Math.min(newTableData.length, tableData.value.length);
+    console.log("newTableData1", newTableData);
+
     console.log("newTableData", tableData.value);
     for (let i = 0; i < minLength; i++) {
         // 将b数组中对应下标的数据赋值到a数组中
@@ -599,6 +690,9 @@ const pushValue = (index, item) => {
         newTableData[i].packageWeight = tableData.value[i].packageWeight;
     }
     tableData.value = newTableData
+
+    console.log("111", tableData.value);
+
 }
 
 
@@ -668,6 +762,7 @@ const batchStock = (type, row = {}) => {
         message.warning("请先添加sku！");
         return;
     }
+    getEditStore(props.shopCode);
     quantityRow.value = row;
     editQuantityVis.value = true;
     types.value = type
@@ -740,12 +835,13 @@ const backValue = (batchFields) => {
             break;
         case 'packLength':
             tableData.value.forEach((item) => {
-                Object.assign(item, batchFields.batchValue);
+                Object.assign(item, batchFields.packageSize);
             });
             break;
         default:
             break;
     }
+
     batchOpen.value = false;
 }
 
@@ -999,11 +1095,7 @@ watch(() => useOzonProductStore().attributes, val => {
     }
 
 })
-watch(() => props.shopCode, val => {
-    if (val) {
-        getEditStore(val)
-    }
-})
+
 const submitForm = () => {
     // 参数校验
     if (tableData.value.length === 0) {
@@ -1020,7 +1112,7 @@ const submitForm = () => {
         for (let j = 0; j < attributeList.value[i].tableData.length; j++) {
             const row = attributeList.value[i].tableData[j];
             if (!validateRow(row)) {
-                message.error("请填写变体主题！");
+                message.error("请填写变种主题！");
                 return false;
             }
         }
@@ -1052,8 +1144,12 @@ const submitForm = () => {
     return true;
 }
 function validateRow(row) {
-    if (row.isRequired) {
+    if (row.isRequired && row.selectType === "select") {
+        return Object.keys(row.modelValue).length > 0;
+    } else if (row.isRequired && row.selectType === "multSelect") {
         return row.modelValue && row.modelValue.length > 0;
+    } else if (row.selectType === "select") {
+        return Object.keys(row.modelValue).length > 0;
     } else {
         return (row.modelValue && row.modelValue.length > 0) || (row.secondModelValue && row.secondModelValue.length > 0);
     }

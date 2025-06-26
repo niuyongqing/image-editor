@@ -3,7 +3,7 @@
     <div class="w-19/20">
       <div class="flex justify-end mt-5">
         <a-button :loading="loading" class="ml-2.5" @click="onSubmit(2)">保存</a-button>
-        <a-button :loading="loading" class="ml-2.5" @click="publish" type="primary">发布</a-button>
+        <a-button :loading="loading" class="ml-2.5" @click="onSubmit(1)" type="primary">发布</a-button>
       </div>
       <br />
       <!-- 基本信息 -->
@@ -20,7 +20,7 @@
         :shopCode="formData.shortCode" class="mt-5"></OzonNewVariantInfo>
       <div class="flex justify-end mt-5">
         <a-button :loading="loading" class="ml-2.5" @click="onSubmit(2)">保存</a-button>
-        <a-button :loading="loading" class="ml-2.5" @click="publish" type="primary">发布</a-button>
+        <a-button :loading="loading" class="ml-2.5" @click="onSubmit(1)" type="primary">发布</a-button>
       </div>
     </div>
     <div style="position: fixed;top: 10%;right: 3%;">
@@ -35,7 +35,7 @@
 
 <script setup name='editWaitProduct'>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-import { ozonProductDetail, categoryAttributes, ozonProductEdit } from "../config/api/waitProduct"
+import { ozonProductDetail, categoryAttributes, ozonProductEdit,productPublish } from "../config/api/waitProduct"
 import { accountCache } from "../config/api/product";
 import OzonBaseInfo from './comm/OzonBaseInfo.vue';
 import OzonNewImageInfo from './comm/OzonNewImageInfo.vue';
@@ -79,8 +79,6 @@ const formData = reactive({
 })
 const backToTop = () => {
   let elements = document.getElementsByClassName('ant-layout-content');
-  console.log("elements", elements);
-
   if (elements) {
     elements[0].scrollTo({
       top: 0,
@@ -209,12 +207,11 @@ const onSubmit = async (type) => {
       },
     ],
   };
-  console.log('image222', image.coverUrl !== "" && image.video.length > 0, image.coverUrl !== "");
 
   if (image.coverUrl !== "" && image.video.length > 0) {
     // 创建video对应的baseObj副本并更新value值
     let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
-    videoBaseObj = createAndUpdateBaseObj(image.video, 100002, 21845, type);
+    videoBaseObj = createAndUpdateBaseObj(image.video, 100002, 21845, 2);
     newComplexAttributes.push(videoBaseObj);
 
     // 创建coverUrl对应的baseObj副本并更新value值
@@ -222,7 +219,7 @@ const onSubmit = async (type) => {
     coverUrlBaseObj = createAndUpdateBaseObj(
       image.coverUrl,
       100001,
-      21841, type
+      21841, 2
     );
     newComplexAttributes.push(coverUrlBaseObj);
   } else if (image.coverUrl !== "") {
@@ -230,20 +227,20 @@ const onSubmit = async (type) => {
     coverUrlBaseObj = createAndUpdateBaseObj(
       image.coverUrl,
       100001,
-      21841, type
+      21841, 2
     );
     newComplexAttributes.push(coverUrlBaseObj);
   } else if (image.video.length > 0) {
     let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
-    videoBaseObj = createAndUpdateBaseObj(image.video, 100002, 21845, type);
+    videoBaseObj = createAndUpdateBaseObj(image.video, 100002, 21845, 2);
     newComplexAttributes.push(videoBaseObj);
   }
   console.log("newComplexAttributes", newComplexAttributes);
 
   const resItem = tableDatas.map((item) => {
     const moditAttributes = [];
-    const getDictionaryIdKey = type === 1 ? 'dictionary_value_id' : 'dictionaryValueId';
-    const getComplexIdKey = type === 1 ? 'complex_id' : 'complexId';
+    const getDictionaryIdKey = 'dictionaryValueId';
+    const getComplexIdKey =  'complexId';
     const createValueObj = (newId, newVal) => ({
       [getDictionaryIdKey]: newId || 0,
       value: newVal instanceof Array ? newVal.split(",") : newVal || "",
@@ -267,7 +264,7 @@ const onSubmit = async (type) => {
           }
           break;
         case "select":
-          [newId, newVal] = getSelectValue(attr, base);
+          [newId, newVal] = getSelectValue(attr, base,item);
           if (isNotEmpty(newVal)) {
             const selectValueObj = createValueObj(newId, newVal);
             moditAttributes.push(createAttrItem(attr, [selectValueObj]));
@@ -278,7 +275,7 @@ const onSubmit = async (type) => {
             attr,
             item,
             base,
-            createValueObj, type
+            createValueObj, 2
           );
           const filteredMSlect = mSlect.filter(
             (obj) => obj.value || obj?.dictionary_value_id !== 0 || obj?.dictionaryValueid !== 0
@@ -326,20 +323,30 @@ const onSubmit = async (type) => {
   }
   console.log('params', params);
   loading.value = true;
-  ozonProductEdit(params).then(res => {
-    message.success(res.msg)
-    setTimeout(() => {
-      window.close();
-    }, 2000);
-  })
-    .finally(() => {
-      loading.value = false;
-    });
-}
-// 发布按钮
-const publish = () => {
 
+  if(type === 2){
+    ozonProductEdit(params).then(res => {
+      message.success(res.msg)
+      setTimeout(() => {
+        window.close();
+      }, 2000);
+    })
+      .finally(() => {
+        loading.value = false;
+      });
+  }else {
+    productPublish(params).then(res => {
+      message.success(res.msg)
+      setTimeout(() => {
+        window.close();
+      }, 2000);
+    })
+      .finally(() => {
+        loading.value = false;
+      });
+  }
 }
+
 
 onMounted(() => {
   const urlParams = new URLSearchParams(window.location.search);

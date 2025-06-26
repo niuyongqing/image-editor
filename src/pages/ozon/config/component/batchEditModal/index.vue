@@ -68,6 +68,8 @@
 
 <script setup name='batchEditModal'>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
+import { cloneDeep } from 'lodash'
+import { deepClone } from '~@/utils';
 
 const props = defineProps({
   batchOpen: Boolean,
@@ -141,7 +143,7 @@ const cancel = () => {
 }
 const handleOk = () => {
   let batchFields = {
-    packageSize,
+    packageSize: deepClone(packageSize),
     batchValue: batchValue.value,
     priceValue: priceValue.value,
     batchComputeValue: batchComputeValue.value,

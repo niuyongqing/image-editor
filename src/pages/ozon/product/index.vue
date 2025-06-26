@@ -7,15 +7,15 @@
                         @backSelectAll="selectAll" @backSelectItem="selectItem"></selectComm>
                 </a-form-item>
                 <a-form-item label="搜索类型:">
-                    <div class="fBox flex align-start ml-[10px]">
-                        <a-button @click="selectTypes(item.prop)" class="mr-[10px]"
+                    <div class="fBox flex align-start ml-2.5">
+                        <a-button @click="selectTypes(item.prop)" class="mr-2.5"
                             :type="item.prop === actives ? 'primary' : ''" v-for="(item, index) in searchType"
                             :key="index">{{ item.label }}</a-button>
                     </div>
                 </a-form-item>
                 <a-form-item label="搜索内容：">
                     <div class="searchs flex">
-                        <div class="searchInputs flex align-start ml-[10px]">
+                        <div class="searchInputs flex align-start ml-2.5">
                             <a-input v-if="actives == 1" style="width: 400px;" v-model:value="formData.name"
                                 placeholder="请输入标题查询" allowClear @clear="onSubmit"></a-input>
                             <a-input v-if="actives == 2" style="width: 400px;" v-model:value="formData.sku" allowClear
@@ -23,29 +23,33 @@
                             <a-input v-if="actives == 3" style="width: 400px;" allowClear v-model:value="formData.id"
                                 @clear="onSubmit" placeholder="请输入产品ID查询,多个ID间用逗号隔开，最多支持200个"></a-input>
                         </div>
-                        <a-button type="primary" class="ml-[10px]" @click="onSubmit(true)">查询</a-button>
-                        <a-button type="link" class="ml-[10px]" @click="advancedType = !advancedType">高级搜索</a-button>
+                        <a-button type="primary" class="ml-2.5" @click="onSubmit(true)">查询</a-button>
+                        <a-button type="link" class="ml-2.5" @click="advancedType = !advancedType">高级搜索</a-button>
                     </div>
                 </a-form-item>
                 <a-form-item v-if="advancedType">
                     <a-form :model="advancedForm" ref="formRef" class="text-left w-133 ml-20 py-5"
                         style="background-color: rgb(245, 245, 245);" :labelAlign="'right'" :labelCol="{ span: 7 }">
                         <a-form-item label="售价：">
-                            <a-input style="width: 150px;" v-model:value="advancedForm.minPrice" allowClear></a-input>
+                            <a-input-number style="width: 150px;" :min="0" :max="99999999" :controls="false"
+                                v-model:value="advancedForm.minPrice" allowClear></a-input-number>
                             <span class="mx-2.5">-</span>
-                            <a-input style="width: 150px;" v-model:value="advancedForm.maxPrice" allowClear></a-input>
+                            <a-input-number style="width: 150px;" :min="0" :max="99999999" :controls="false"
+                                v-model:value="advancedForm.maxPrice" allowClear></a-input-number>
                         </a-form-item>
                         <a-form-item label="原价：">
-                            <a-input style="width: 150px;" v-model:value="advancedForm.minOldPrice"
-                                allowClear></a-input>
+                            <a-input-number style="width: 150px;" :min="0" :max="99999999" :controls="false"
+                                v-model:value="advancedForm.minOldPrice" allowClear></a-input-number>
                             <span class="mx-2.5">-</span>
-                            <a-input style="width: 150px;" v-model:value="advancedForm.maxOldPrice"
-                                allowClear></a-input>
+                            <a-input-number style="width: 150px;" :min="0" :max="99999999" :controls="false"
+                                v-model:value="advancedForm.maxOldPrice" allowClear></a-input-number>
                         </a-form-item>
                         <a-form-item label="总库存：">
-                            <a-input style="width: 150px;" v-model:value="advancedForm.minStock" allowClear></a-input>
+                            <a-input-number style="width: 150px;" :min="0" :max="99999999" :controls="false"
+                                v-model:value="advancedForm.minStock" allowClear></a-input-number>
                             <span class="mx-2.5">-</span>
-                            <a-input style="width: 150px;" v-model:value="advancedForm.maxStock" allowClear></a-input>
+                            <a-input-number style="width: 150px;" :min="0" :max="99999999" :controls="false"
+                                v-model:value="advancedForm.maxStock" allowClear></a-input-number>
                         </a-form-item>
                         <!-- <a-form-item label="备注：">
                             <a-select ref="select" v-model:value="advancedForm.isRemark" style="width: 150px">
@@ -158,7 +162,7 @@
                             <AsyncIcon icon="SettingOutlined" />
                             店铺设置
                         </a-button>
-                        <a-button type="primary" @click="add()">新增站点产品</a-button>
+                        <a-button type="primary" @click="add()">创建产品</a-button>
                         <a-dropdown>
                             <template #overlay>
                                 <a-menu @click="handleExport">
@@ -214,7 +218,7 @@
                 <div v-else v-for="(tbItem, index) in tableData" :key="tbItem.id" class="loopTable">
                     <div class="loopTable-head" :key="tbItem.id">
                         <a-checkbox v-model:checked="tbItem.tabAllChecked" @change="changeBox($event, tbItem, index)"
-                            class="mr-[10px]"></a-checkbox><span>总产品({{
+                            class="mr-2.5"></a-checkbox><span>总产品({{
                                 tbItem.count }})</span>
                     </div>
                     <a-table :data-source="tbItem.children" style="width: 100%;" row-key="id" :showHeader="false"
@@ -292,7 +296,7 @@
                                     <div>
                                         促销活动价：<span style="color: #1677ff">{{
                                             record.marketingPrice || "暂未参加活动"
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                     <div>
                                         <div style="display: flex">
@@ -328,7 +332,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[0].score
-                                                                        }}分</span>
+                                                                    }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -371,7 +375,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[1].score
-                                                                        }}分</span>
+                                                                    }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -414,7 +418,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[2].score
-                                                                        }}分</span>
+                                                                    }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -457,7 +461,7 @@
                                                                 <div>
                                                                     <span>分数:</span><span>{{
                                                                         record.productsScore[0].groups[3].score
-                                                                        }}分</span>
+                                                                    }}分</span>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -474,7 +478,7 @@
                                                     </template>
                                                     <span style="margin-left: 10px;color: #1677ff;cursor: pointer;">{{
                                                         record.productsScore[0].rating
-                                                        }}分</span>
+                                                    }}分</span>
                                                 </a-popover>
                                             </div>
                                             <span v-else class="ml-2.5">{{ 0.0 }}分</span>
@@ -543,7 +547,7 @@
                                 </a-tooltip>
                                 <span v-else style="color: #1677ff; margin-right: 10px">{{
                                     record.stock
-                                }}</span>
+                                    }}</span>
                                 <AsyncIcon style="cursor: pointer; color: #1677ff" icon="EditOutlined" v-if="
                                     record.state != '审核不通过' && record.state != '已归档'
                                 " @click="editStock(record)"></AsyncIcon>
@@ -573,12 +577,12 @@
                                 <div>
                                     创建时间：<span style="color: #9e9f9e">{{
                                         timestampToDateTime(record.createdTime)
-                                        }}</span>
+                                    }}</span>
                                 </div>
                                 <div>
                                     更新时间：<span style="color: #9e9f9e">{{
                                         timestampToDateTime(record.updatedTime)
-                                        }}</span>
+                                    }}</span>
                                 </div>
                             </div>
                             <div v-else-if="column.dataIndex === 'option'">
@@ -1439,33 +1443,34 @@ const edit = (row = {}) => {
 const sync = () => {
     syncLoading.value = true;
     if (formData.account == null || formData.account == "") {
-        showOpen.value = true;
+        // showOpen.value = true;
         syncShopProductAll()
             .then((res) => {
-                interval.value = setInterval(() => {
-                    shopAsyncProgress(res.msg).then(res => {
-                        asyncErrData.value = res.data
-                        // percentage.value = parseInt(res.data);
-                        // if (res.data >= 100) {
-                        //     clearInterval(interval.value)
-                        //     message.success("同步成功！");
-                        //     syncLoading.value = false;
-                        //     showOpen.value = false;
-                        //     getList();
-                        //     setTimeout(() => {
-                        //         percentage.value = 0;
-                        //     }, 300);
-                        // }
-                    })
-                }, 5000);
+                message.success("正在同步店铺所有商品，请稍后！");
+                // interval.value = setInterval(() => {
+                //     shopAsyncProgress(res.msg).then(res => {
+                //         asyncErrData.value = res.data
+                //         // percentage.value = parseInt(res.data);
+                //         // if (res.data >= 100) {
+                //         //     clearInterval(interval.value)
+                //         //     message.success("同步成功！");
+                //         //     syncLoading.value = false;
+                //         //     showOpen.value = false;
+                //         //     getList();
+                //         //     setTimeout(() => {
+                //         //         percentage.value = 0;
+                //         //     }, 300);
+                //         // }
+                //     })
+                // }, 5000);
             })
             .finally(() => {
-                syncLoading.value = false;
+                // syncLoading.value = false;
                 // showOpen.value = false;
                 getList();
-                setTimeout(() => {
-                    percentage.value = 0;
-                }, 300);
+                // setTimeout(() => {
+                //     percentage.value = 0;
+                // }, 300);
             });
     } else {
         syncShopProduct({ account: formData.account })

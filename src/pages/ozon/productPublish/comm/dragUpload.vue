@@ -59,7 +59,17 @@ const uploadUrl =
 
 const handleChange = info => {
   if (info.file.status === 'done') {
-    images.value.push(
+    // images.value.push(
+    //   {
+    //     name: info.file.response.originalFilename,
+    //     url: '/prod-api' + info.file.response.url,
+    //     checked: false,
+    //     width: info.file.response.width,
+    //     height: info.file.response.height,
+    //   }
+    // )
+    images.value = [
+      ...images.value,
       {
         name: info.file.response.originalFilename,
         url: '/prod-api' + info.file.response.url,
@@ -67,12 +77,14 @@ const handleChange = info => {
         width: info.file.response.width,
         height: info.file.response.height,
       }
-    )
+    ]
+    emit('changeImg', JSON.parse(JSON.stringify(images.value)))
   }
   if (info.file.status === 'error') {
     message.error('图片上传有误！');
   }
   emit('changeImg', images)
+  // emit('changeImg', JSON.parse(JSON.stringify(images.value)))
 }
 
 const handleImageLoad = (el, event) => {
@@ -97,7 +109,7 @@ const beforeUpload = (file) => {
   };
   // 不能超过最大限制
   if (images.value.length >= 30) {
-    message.error(`最多上传15张图片`);
+    message.error(`最多上传30张图片`);
     return false;
   }
   return true;
@@ -108,32 +120,94 @@ const handleRemove = (file) => {
 }
 
 const handleSelectImg = (e) => {
-  console.log('e', e);
+  // console.log('e', e);
   emit("singleSelectImg", e)
 }
 
-watch(() => props.imageList, val => {
+// 新增图片加载方法
+const loadImage = (item) => {
+  return new Promise(resolve => {
+    const image = new Image();
+    image.src = item.url;
+    
+    image.onload = () => {
+      resolve({
+        ...item,
+        width: image.width,
+        height: image.height
+      });
+    };
+    
+    image.onerror = () => {
+      console.error(`图片加载失败: ${item.url}`);
+      resolve(null);
+    };
+  });
+};
+
+// 新增合并方法
+const mergeImages = (existing, newImages) => {
+  const existingUrls = new Set(existing.map(img => img.url))
+  return [
+    ...existing,
+    ...newImages.filter(img => !existingUrls.has(img.url))
+  ]
+}
+
+// 分块函数
+const chunk = (arr, size) => 
+  Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
+    arr.slice(i * size, i * size + size)
+  )
+
+
+watch(() => props.imageList, async (val) => {
+
   if (val.length) {
-    const promiseList1 = val.map(item => {
-      return new Promise(resolve => {
-        const image = new Image()
-        image.src = item.url ?? ""
-        image.onload = () => {
-          resolve({
-            url: item.url ?? "",
-            width: image.width,
-            height: image.height,
-            checked: item.checked,
-          })
-        }
-      })
-    })
-    Promise.all(promiseList1).then(list => {
-      images.value = list
-      console.log('images', images.value);
-    })
+    // 合并新旧图片（关键修复）
+    const mergedImages = mergeImages(images.value, val)
+    
+    // 过滤无效URL并创建映射
+    const urlMap = new Map(mergedImages.map(img => [img.url, img]))
+    
+    // 分批次加载
+    const BATCH_SIZE = 5;
+    const loadedImages = [];
+    
+    for (const batch of chunk([...urlMap.values()], BATCH_SIZE)) {
+      const results = await Promise.allSettled(
+        batch.map(item => loadImage(item))
+      )
+      loadedImages.push(...results.filter(r => r.status === 'fulfilled').map(r => r.value))
+    }
+    
+    // 原子更新
+    images.value = loadedImages
   }
+
+  // if (val.length) {
+  //   const promiseList1 = val.map(item => {
+  //     return new Promise(resolve => {
+  //       const image = new Image()
+  //       image.src = item.url ?? ""
+  //       image.onload = () => {
+  //         resolve({
+  //           url: item.url ?? "",
+  //           width: image.width,
+  //           height: image.height,
+  //           checked: item.checked,
+  //         })
+  //       }
+  //     })
+  //   })
+  //   Promise.all(promiseList1).then(list => {
+  //     images.value = list
+  //     console.log('images', images.value);
+  //   })
+  // }
 }, { immediate: true, deep: true })
+
+
 </script>
 
 <style scoped></style>
