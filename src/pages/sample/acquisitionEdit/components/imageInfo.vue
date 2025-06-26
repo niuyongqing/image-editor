@@ -36,35 +36,48 @@
               </template>
             </a-dropdown>
           </div>
-          <div class="image-content">
-            <div class="img-box"
-              v-for="item in formData.image_list"
-              :key="item.id"
-            >
-              <a-image
-                :width="150"
-                :height="150"
-                :src="item.src"
-                :preview="false"
-              />
-              <div class="img-size">
-                <span>{{ `${item.width} × ${item.height}` }}</span>
-                <span>{{ (item.size/1024).toFixed() }}KB</span>
-              </div>
-              <div class="img-box-foot">
-                <div class="img-name">
+          <div class="box-tagTips">
+            <a-tag color="green">说明</a-tag>
+            点击图片拖动，即可调整图片顺序！
+          </div>
+          <draggable
+            v-model="formData.image_list"
+            @end="handleDragEnd" 
+            tag="div" 
+            class="image-content"
+            item-key="id"
+            v-if="formData.image_list.length > 0"
+          >
+            <template #item="{ element: item }">
+              <div class="img-box">
+                <a-image
+                  :width="150"
+                  :height="150"
+                  :src="item.src"
+                  :preview="false"
+                />
+                <div class="img-size">
+                  <span>{{ `${item.width} × ${item.height}` }}</span>
+                  <!-- <span>{{ (item.size/1024).toFixed() }}KB</span> -->
+                </div>
+                <div class="img-box-foot">
+                  <div class="img-name">
+                    <a-tooltip>
+                      <template #title>{{ item.name }}</template>
+                      {{ item.name }}
+                    </a-tooltip>
+                  </div>
                   <a-tooltip>
-                    <template #title>{{ item.name }}</template>
-                    {{ item.name }}
+                    <template #title>删除</template>
+                    <AsyncIcon @click="delImg(item)" icon="DeleteOutlined" style="color: red; cursor: pointer;"/>
                   </a-tooltip>
                 </div>
-                <a-tooltip>
-                  <template #title>删除</template>
-                  <AsyncIcon @click="delImg(item)" icon="DeleteOutlined" style="color: red; cursor: pointer;"/>
-                </a-tooltip>
               </div>
-            </div>
-            <div class="img-box" v-if="formData.image_list.length < 1">
+            </template>
+          </draggable>
+          <div class="image-content" v-else>
+            <!-- 没有图片占位 -->
+            <div class="img-box">
               <a-image
                 :width="150"
                 :height="150"
@@ -79,7 +92,7 @@
         <div class="box">
           <a-dropdown :trigger="['click']">
             <a-button type="primary" @click.prevent :loading="uploading.video">
-                {{ uploading.video ? '上传中...' : '视频上传' }}
+                {{ uploading.video ? '上传中...' : playVideoUrl ? '重新上传':'上传视频' }}
                 <AsyncIcon icon="DownOutlined" class="ml-2.5" />
             </a-button>
             <template #overlay>
@@ -103,9 +116,9 @@
             <div class="content-image">
               <img src="../img/productVideoIcon.png" alt="">
             </div>
-            <div class="video-name" v-if="playVideoUrl">
+            <!-- <div class="video-name" v-if="playVideoUrl">
               {{ formData.video_list[0]?.originalFilename }}
-            </div>
+            </div> -->
             <div class="content-foot" v-if="playVideoUrl">
               <a-button 
                 type="text" 
@@ -137,10 +150,13 @@
         :src="playVideoUrl"
         type="video/mp4"
         controls
+        autoplay
+        id="acquisitionEdit-video"
+        ref="acquisitionEdit_video"
       />
     </div>
     <template #footer>
-      <a-button type="primary" @click="uploadInfo.playOpen = !uploadInfo.playOpen">关闭</a-button>
+      <a-button type="primary" @click="modalClose">关闭</a-button>
     </template>
   </a-modal>
   <!-- 图片网络上传 -->
@@ -185,6 +201,7 @@ import { message } from 'ant-design-vue';
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import kong from '@/assets/images/kong.png'
 import download from '~@/api/common/download';
+import draggable from 'vuedraggable';
 import { imageUpload, imageUrlUpload, videoDelete, videoUpload, videoUrlUpload } from '../js/api';
 import AsyncIcon from '~@/layouts/components/menu/async-icon.vue'
 import pictureLibrary from '@/components/pictureLibrary/index.vue'
@@ -235,7 +252,43 @@ watch(() => formData, (val) => {
 })
 // 页面赋值
 function openFn() {
-  
+  formData.image_list = props.productData.imageList.map(item => {
+    let src = item
+    if (!item.includes('http')) {
+      src = import.meta.env.VITE_APP_BASE_API + item
+    }
+    let obj = {
+      name: '',
+      url: item,
+      id: createRandom(),
+      width: '',
+      height: '',
+      src
+    }
+    return obj
+  })
+  formData.image_list.forEach(item => {
+    let img = new Image()
+    img.onload = (e) => {
+      item.width = img.naturalWidth
+      item.height = img.naturalHeight
+      // formData.image_list = [...formData.image_list]
+    }
+    img.src = item.src
+  })
+  formData.video_list = props.productData.videoList.map(item => {
+    let url = item
+    if (!item.includes('http')) {
+      url = import.meta.env.VITE_APP_BASE_API + item
+    }
+    let obj = {
+      fileName: item,
+      newFileName: item,
+      originalFilename: '',
+      url
+    }
+    return obj;
+  })
 }
 // 视频播放链接
 const playVideoUrl = computed(() => {
@@ -258,6 +311,10 @@ function dropdownClick({ key }) {
       break;
   }
 }
+// 拖拽结束
+const handleDragEnd = (event) => {
+  // console.log('拖拽结束', event);
+};
 
 // 图片网络上传
 async function imageUrlUploadFn() {
@@ -281,11 +338,13 @@ async function imageUrlUploadFn() {
 }
 // 弹窗关闭
 function modalClose() {
+  uploadInfo.playOpen = false;
   uploadInfo.imageUrlUpload = false;
   uploadInfo.videoUrlUpload = false;
   uploadInfo.pictureLibraryOpen = false;
   uploadInfo.imageUrl = '';
   uploadInfo.videoUrl = '';
+  _this.$refs.acquisitionEdit_video?.pause()
 }
 // 图片空间上传
 function imageListConfirm(val) {
@@ -365,9 +424,11 @@ async function videoUrlUploadFn() {
 async function videoDeleteFn() {
   try {
     let filePath = formData.video_list[0].fileName
-    let params = new FormData()
-    params.append('filePath', filePath)
-    await videoDelete(params);
+    if (!filePath.includes('http')) {
+      let params = new FormData()
+      params.append('filePath', filePath)
+      await videoDelete(params);
+    }
     formData.video_list = []
     message.success('视频删除成功！')
   } catch (error) {
@@ -384,6 +445,11 @@ function createRandom() {
   .box {
     .box-btn {
       width: 100%;
+    }
+    .box-tagTips {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
     }
     .image-content {
       width: 100%;
