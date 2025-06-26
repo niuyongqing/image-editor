@@ -40,10 +40,6 @@
                                         <a-select v-model:value="record.modelValue" class="w-full"
                                             optionFilterProp="label" allowClear mode="multiple" placeholder="请选择"
                                             labelInValue @change="pushValue(index, items)" :options="record.details">
-                                            <!-- <a-select-option v-for="items in record.details" :key="items.id"
-                                                :label="items.label" :value="items">{{ items.label
-                                                }}
-                                            </a-select-option> -->
                                         </a-select>
                                     </div>
                                     <!-- 输入框 -->
@@ -219,29 +215,21 @@
                 </a-table>
             </a-card>
             <a-card title="变种图片" class="text-left mx-50 mt-5">
-
-                <div>
-                    <a-tag color="warning">！说明</a-tag>
-                    <span style="color: #9fa0a2">
-                        第一张图片默认为主图，点击图片拖动，即可调整图片顺序！
-                        单张不超过2M，只支持jpg、.png、.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3：4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)</span>
-                </div>
                 <div>
                     <div v-for="item in tableData" :key="item.id">
                         <div v-if="tableData.length > 0">
                             <a-card class="mb-2.5 ml-2.5">
-                                <div v-if="imgHeaderList.length > 0">
-                                    <div v-for="(e, i) in imgHeaderList" :key="i">
-                                        <div>
-                                            <span>{{ e.title }}:</span><span style="margin-left: 10px;">{{ item[e.title]
-                                                }}</span>
-                                        </div>
-                                    </div>
+                                <div>
+                                    <a-tag color="warning">！说明</a-tag>
+                                    <span style="color: #9fa0a2">
+                                        第一张图片默认为主图，点击图片拖动，即可调整图片顺序！
+                                        单张不超过2M，只支持jpg、.png、.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3：4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)</span>
                                 </div>
+
                                 <!-- <span v-if="item.imageUrl" class="block mt-2.5">{{ item.imageUrl.length
                                 }}/30</span> -->
-                                <SkuDragUpload :actionUrl="actionUrl" v-model:file-list="item.imageUrl" :maxCount="8"
-                                    :showUploadList="false" accept=".jpg,.png" :api="uploadImage" :apiParams="{}"
+                                <SkuDragUpload :actionUrl="actionUrl" v-model:file-list="item.imageUrl" :maxCount="30"
+                                    :showUploadList="false" accept=".jpg,.png" :api="uploadImage"
                                     :waterList="watermark">
                                     <template #default>
                                         <div flex flex-col w-full justify-start mb-4px text-left>
@@ -262,7 +250,7 @@
                                         </div> -->
                                     </template>
                                     <template #skuInfo>
-                                        {{ `【${item.imageUrl.length}/8】图片 ` }}
+                                        {{ `【${item.imageUrl.length}/30】图片 ` }}
                                     </template>
                                 </SkuDragUpload>
 
@@ -329,7 +317,7 @@ const batchTitle = ref("")
 const batchType = ref('')
 const currentNumber = ref(0);
 const headerList = ref([]) //动态表头
-const imgHeaderList = ref([])
+// const imgHeaderList = ref([])
 const addHeaderList = ref([])
 const requireColumns = ref([])
 const imageList = ref([])
@@ -455,9 +443,9 @@ const processDataFormat = (list = []) => {
             show: true,
             align: 'center'
         });
-        imgHeaderList.value.push({
-            title: list[i].name
-        })
+        // imgHeaderList.value.push({
+        //     title: list[i].name
+        // })
     }
     attributeList.value = [...attributeList.value, ...newHeaderList]
 }
@@ -498,7 +486,7 @@ const removeVariantType = (item, index) => {
     console.log('item', item, index);
 
     attributeList.value.splice(index, 1);
-    imgHeaderList.value.splice(index, 1);
+    // imgHeaderList.value.splice(index, 1);
     // 循环删除表格内容数据
     for (let i = 0; i < tableData.value.length; i++) {
         if (item.name == tableData.value[i][item.name]) {
@@ -923,7 +911,7 @@ watch(() => useOzonProductStore().attributes, val => {
         requiredList.value = [];
         attributeList.value = [];
         tableData.value = [];
-        imgHeaderList.value = [];
+        // imgHeaderList.value = [];
         addHeaderList.value = []; //清空自定义变种信息
         headerList.value = [...publishHead] //重新赋值
         let editRes = []
@@ -1080,7 +1068,7 @@ watch(() => useOzonProductStore().attributes, val => {
         // console.log('uniqueArr',uniqueArr);
 
         headerList.value = uniqueArr //表格主题标题赋值       
-        imgHeaderList.value = attrHeaderList  //图片标题赋值
+        // imgHeaderList.value = attrHeaderList  //图片标题赋值
         if (result.some(item => item.colorImg.length !== 0)) {
             headerList.value.unshift({
                 title: "颜色样本",
