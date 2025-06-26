@@ -104,8 +104,8 @@
           </div>
           <div class="right-box-foot">
             <a-space>
+              <a-button @click="modalClose">取消</a-button>
               <a-button type="primary" @click="confirm">确定</a-button>
-              <a-button type="primary" @click="modalClose">取消</a-button>
             </a-space>
           </div>
         </div>

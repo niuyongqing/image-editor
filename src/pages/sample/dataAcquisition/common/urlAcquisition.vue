@@ -107,7 +107,7 @@
     <div class="flex my-2.5">
       <a-space>
         <!-- <a-button @click="claim('acquisition')" type="primary">批量认领</a-button> -->
-        <a-dropdown :trigger="['click']">
+        <a-dropdown :trigger="['click']" :disabled="tableInfo.selectedRowKeys.length < 1">
           <a-button type="primary" @click.prevent>
             批量操作
             <AsyncIcon icon="DownOutlined" class="ml-2.5" />
@@ -123,6 +123,7 @@
           :trigger="['click']"
           :destroyPopupOnHide="true"
           overlayClassName="urlAcquisition-typeTree_overlay"
+          :disabled="tableInfo.selectedRowKeys.length < 1"
         >
           <a-button type="primary" @click.prevent>
             移动分类
@@ -318,6 +319,10 @@ const formBtnInfo = {
     {
       account: "lazada",
       simpleName: "Lazada"
+    },
+    {
+      account: "wb",
+      simpleName: "野莓（Wildberries）"
     },
   ],
   searchType: [

@@ -5,7 +5,7 @@
   <baseInfo :product-data="productInfo.data" v-model:base-info-data="formData.baseInfoData"></baseInfo>
   <br>
   <!-- 图片信息 -->
-  <imageInfo></imageInfo>
+  <imageInfo :product-data="productInfo.data" v-model:image-info-data="formData.imageInfoData"></imageInfo>
 </div>
 </template>
 
@@ -25,6 +25,7 @@ const productInfo = reactive({
 })
 const formData = reactive({
   baseInfoData: {},
+  imageInfoData: {},
 })
 onMounted(() => {
   // console.log(route.query);
