@@ -84,7 +84,8 @@
                         style="margin-left: 10px"
                         v-if="requiredList.length !== 0 || themeBtns.length !== 0">添加自定义变种属性</a-button>
                 </div>
-                <a-table bordered :columns="filteredHeaderList" :data-source="tableData" :pagination="false" :scroll="{ x: 2000 }">
+                <a-table bordered :columns="filteredHeaderList" :data-source="tableData" :pagination="false"
+                    :scroll="{ x: 2000 }">
                     <template #headerCell="{ column }">
                         <template v-if="column.dataIndex === 'sellerSKU'">
                             <span><span style="color: #ff0a37;">*</span>
@@ -135,13 +136,13 @@
                             <a-input v-model:value="record.sellerSKU" style="min-width: 200px"></a-input>
                         </template>
                         <template v-if="!otherHeader.includes(column.dataIndex)">
-                            <a-input v-if="column.selectType === 'input'"
-                                v-model:value="record[column.dataIndex]" style="min-width: 200px"></a-input>
+                            <a-input v-if="column.selectType === 'input'" v-model:value="record[column.dataIndex]"
+                                style="min-width: 200px"></a-input>
                             <a-select v-if="column.selectType === 'select'" v-model:value="record[column.dataIndex]"
                                 style="min-width: 200px" :options="column.options"></a-select>
                             <a-select v-if="column.selectType === 'multSelect'" :maxTagCount="2"
-                                v-model:value="record[column.dataIndex]" style="min-width: 200px" :options="column.options"
-                                mode="tags"></a-select>
+                                v-model:value="record[column.dataIndex]" style="min-width: 200px"
+                                :options="column.options" mode="tags"></a-select>
                         </template>
                         <template v-if="column.dataIndex === 'price'">
                             <div class="flex">
@@ -153,8 +154,9 @@
                         </template>
                         <template v-if="column.dataIndex === 'oldPrice'">
                             <div class="flex">
-                                <a-input-number style="min-width: 150px" :min="0" :max="99999999" v-model:value="record.oldPrice"
-                                    :precision="2" @blur="judgeMax(record)"></a-input-number>
+                                <a-input-number style="min-width: 150px" :min="0" :max="99999999"
+                                    v-model:value="record.oldPrice" :precision="2"
+                                    @blur="judgeMax(record)"></a-input-number>
                                 <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.oldPrice, 'oldPrice')"
                                     class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
                             </div>
@@ -192,7 +194,8 @@
                                     <div style="display: flex; margin-top: 5px">
                                         <div class="w-13 block">重量：</div>
                                         <a-input-number controls-position="right" :precision="0" :min="0"
-                                            style="min-width: 150px" v-model:value="record.packageWeight" placeholder="重量">
+                                            style="min-width: 150px" v-model:value="record.packageWeight"
+                                            placeholder="重量">
                                             <!-- @blur="handleInput(record.packageWeight, record)" -->
                                             <template #addonAfter>g</template>
                                         </a-input-number>
@@ -433,7 +436,12 @@ const filteredHeaderList = computed(() => {
 
 // 处理数据格式
 const processDataFormat = (list = []) => {
-    let newHeaderList = handleTheme(list)  
+    console.log('list -->>', list);
+
+    let newHeaderList = handleTheme(list);
+
+    console.log('newHeaderList -->>', newHeaderList);
+
     const insertIndex = headerList.value.length - 6;
     for (let i = list.length - 1; i >= 0; i--) {
         // reversedArray.push(originalArray[i]);
@@ -1023,7 +1031,7 @@ watch(() => useOzonProductStore().attributes, val => {
                 // 遍历sku的attributes中的每个attributes
                 sku.attributes.forEach((subAttr) => {
                     // console.log("",subAttr, attr);
-                    
+
                     if (subAttr.id == attr.id) {
                         if (attr.selectType === "multSelect" && attr.options) {
                             let values = subAttr.values.map((val) => {
@@ -1038,7 +1046,7 @@ watch(() => useOzonProductStore().attributes, val => {
                             });
                             newItem[attr.name] = values.join(', ');
                         }
-                         else {
+                        else {
                             newItem[attr.name] = subAttr.values[0].value;
                         }
                         attrHeaderList.push({
@@ -1048,7 +1056,7 @@ watch(() => useOzonProductStore().attributes, val => {
                             show: true,
                             align: 'center'
                         })
-                    } 
+                    }
                 });
             });
             console.log('newItem', newItem);
@@ -1066,7 +1074,7 @@ watch(() => useOzonProductStore().attributes, val => {
             }
         });
         // console.log('uniqueArr',uniqueArr);
-        
+
         headerList.value = uniqueArr //表格主题标题赋值       
         imgHeaderList.value = attrHeaderList  //图片标题赋值
         if (result.some(item => item.colorImg.length !== 0)) {
@@ -1083,8 +1091,8 @@ watch(() => useOzonProductStore().attributes, val => {
         tableData.value = result
         // 将不匹配的主题过滤掉
         console.log('sortArr', sortArr);
-        let comAttrList = [10096,4295]
-        let comAttrs = [10096,10097]
+        let comAttrList = [10096, 4295]
+        let comAttrs = [10096, 10097]
         // 从数组 a 中提取所有的 id
         const idsInA = sortArr.map(item => item.id);
         // 使用 every 方法检查 comAttrList 中的每个元素是否都在 idsInA 中
@@ -1093,14 +1101,14 @@ watch(() => useOzonProductStore().attributes, val => {
         let filteredB = sortArr.filter(itemB => uniqueArr.some(itemA => itemA.id === itemB.id));
         // console.log('isAllMatched',isAllMatched);
         // console.log('111', isAllMatche);
-        let echoThemeList= []
+        let echoThemeList = []
         let isModelValueList = []
         // 判断sortArr中是否有组合数据
-        if(isAllMatched) {
+        if (isAllMatched) {
             echoThemeList = handleTheme(sortArr)  //handleTheme方法可以将属性转换成主题数据格式
-        }else if(isAllMatche) {
+        } else if (isAllMatche) {
             echoThemeList = handleTheme(filteredB)
-        }else {
+        } else {
             isModelValueList = filterModelValues(sortArr, skuList);
             echoThemeList = handleTheme(isModelValueList)
         }
@@ -1112,7 +1120,7 @@ watch(() => useOzonProductStore().attributes, val => {
         // 过滤 有数据的主题
         themeBtns.value = themeBtns.value.filter(item => !aIds.includes(item.id));
         attributeList.value = matchAndAssignValues(echoThemeList, skuList)
-        console.log('attributeList',attributeList.value);
+        console.log('attributeList', attributeList.value);
     }
 
 })
