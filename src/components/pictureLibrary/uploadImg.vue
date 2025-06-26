@@ -43,6 +43,7 @@
                   :file-list="updateInfo.fileList" 
                   :before-upload="beforeUpload" 
                   :showUploadList="false"
+                  accept=".jpg, .jpeg, .png, .webp"
                   multiple
                 >
                   <a-button key="submit" type="primary">

@@ -15,7 +15,7 @@
           <typeTree 
             v-model:current-class="imgData.params.currentClass"
             v-model:node-path="imgData.nodePath"
-            platform="ozon"
+            :platform="platform"
             default-class
             ref="typeTreeRef"
           ></typeTree>
