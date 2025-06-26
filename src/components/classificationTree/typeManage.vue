@@ -164,7 +164,7 @@ async function getAllData() {
         id: '0',
         name: '全部分类',
         parentId: '',
-        childList: [...res.data]
+        childList: [...res.data || []]
       }
     ]
     treeData.tree = data

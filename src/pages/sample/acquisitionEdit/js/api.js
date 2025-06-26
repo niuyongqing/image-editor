@@ -40,3 +40,63 @@ export function videoUpload(data) {
     }
   })
 }
+/**
+ * // 网络视频上传
+ * @param {*} data 
+ * @returns 
+ */
+export function videoUrlUpload(data) {
+  return request({
+    url: '/platform-common/platform/common/video/upload-url',
+    method: 'post',
+    data: data,
+    headers: {  
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+/**
+ * // 视频删除
+ * @param {*} data 
+ * @returns 
+ */
+export function videoDelete(data) {
+  let params = getParamsFn(data)
+  return request({
+    url: '/platform-common/platform/common/video/delete',
+    method: 'delete',
+    data: data,
+    headers: {  
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+
+/**
+ * // 网络图片上传
+ * @param {*} data 
+ * @returns 
+ */
+export function imageUrlUpload(data) {
+  let params = getParamsFn(data)
+  return request({
+    url: '/platform-common/platform/common/file/uploadFromUrl' + params,
+    method: 'post'
+  })
+}
+/**
+ * // 本地图片上传
+ * @param {*} data 
+ * @returns 
+ */
+export function imageUpload(data) {
+  return request({
+    url: '/platform-common/platform/common/file/uploadImage',
+    method: 'post',
+    data: data,
+    headers: {  
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}

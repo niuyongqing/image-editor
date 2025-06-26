@@ -103,7 +103,7 @@ async function getClassListFn(id = '0') {
         id: '0',
         name: '全部分类',
         parentId: '',
-        childList: [...res.data]
+        childList: [...(res.data || [])]
       }
     ]
     data = setNodeKey(data)
