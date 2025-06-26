@@ -260,7 +260,7 @@ watch(() => copyModuleList.value, val => {
 watch(() => props.moduleList, val => {
   const uniqueSet = new Set();
   if (val.length) {
-    console.log('va', val);
+    // console.log('va', val);
     val.forEach(item => {
       if (item.type === "text-image") {
         item.imgText.dataList.forEach(data => {

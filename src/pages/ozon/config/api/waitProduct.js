@@ -50,7 +50,7 @@ export function ozonProductDetail(data) {
   });
 }
 
-// 待发布--发布
+// 待发布--批量发布
 export function ozonProductPublish(data) {
   return request({
     url: "/platform-ozon/platform/ozon/wait/product/batch/publish",
@@ -102,5 +102,14 @@ export function waitBathUpdate(data) {
     url: '/platform-ozon/platform/ozon/wait/product/bath/update',
     method: 'post',
     data:data
+  })
+}
+
+// 编辑页面发布
+export function productPublish(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/wait/product/publish',
+    method: 'post',
+    data
   })
 }

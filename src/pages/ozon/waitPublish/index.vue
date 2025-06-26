@@ -7,40 +7,46 @@
             @backSelectItem="selectItem"></selectComm>
         </a-form-item>
         <a-form-item label="搜索类型:">
-          <div class="fBox flex align-start ml-[10px]">
-            <a-button @click="selectTypes(item.prop)" class="mr-[10px]" :type="item.prop === actives ? 'primary' : ''"
+          <div class="fBox flex align-start ml-2.5">
+            <a-button @click="selectTypes(item.prop)" class="mr-2.5" :type="item.prop === actives ? 'primary' : ''"
               v-for="(item, index) in searchType" :key="index">{{ item.label }}</a-button>
           </div>
         </a-form-item>
         <a-form-item label="搜索内容：">
           <div class="searchs flex">
-            <div class="searchInputs flex align-start ml-[10px]">
+            <div class="searchInputs flex align-start ml-2.5">
               <a-input v-if="actives == 1" style="width: 400px" v-model:value="formData.name" placeholder="请输入标题查询"
                 clearable @clear="onSubmit"></a-input>
               <a-input v-if="actives == 2" style="width: 400px" v-model:value="formData.sku" clearable @clear="onSubmit"
                 placeholder="请输入SKU查询,多个SKU间用逗号隔开，最多支持200个"></a-input>
             </div>
-            <a-button type="primary" class="ml-[10px]" @click="onSubmit">查询</a-button>
-            <a-button type="link" class="ml-[10px]" @click="advancedType = !advancedType">高级搜索</a-button>
+            <a-button type="primary" class="ml-2.5" @click="onSubmit">查询</a-button>
+            <a-button type="link" class="ml-2.5" @click="advancedType = !advancedType">高级搜索</a-button>
           </div>
         </a-form-item>
         <a-form-item v-if="advancedType">
           <a-form :model="advancedForm" ref="formRef" class="text-left w-133 ml-20 py-5"
             style="background-color: rgb(245, 245, 245)" :labelAlign="'right'" :labelCol="{ span: 7 }">
             <a-form-item label="售价：">
-              <a-input style="width: 150px" v-model:value="advancedForm.minPrice" allowClear></a-input>
+              <a-input-number style="width: 150px" :min="0" :max="99999999" :controls="false"
+                v-model:value="advancedForm.minPrice" allowClear></a-input-number>
               <span class="mx-2.5">-</span>
-              <a-input style="width: 150px" v-model:value="advancedForm.maxPrice" allowClear></a-input>
+              <a-input-number style="width: 150px" :min="0" :max="99999999" :controls="false"
+                v-model:value="advancedForm.maxPrice" allowClear></a-input-number>
             </a-form-item>
             <a-form-item label="原价：">
-              <a-input style="width: 150px" v-model:value="advancedForm.minOldPrice" allowClear></a-input>
+              <a-input-number style="width: 150px" :min="0" :max="99999999" :controls="false"
+                v-model:value="advancedForm.minOldPrice" allowClear></a-input-number>
               <span class="mx-2.5">-</span>
-              <a-input style="width: 150px" v-model:value="advancedForm.maxOldPrice" allowClear></a-input>
+              <a-input-number style="width: 150px" :min="0" :max="99999999" :controls="false"
+                v-model:value="advancedForm.maxOldPrice" allowClear></a-input-number>
             </a-form-item>
             <a-form-item label="总库存：">
-              <a-input style="width: 150px" v-model:value="advancedForm.minStock" allowClear></a-input>
+              <a-input-number style="width: 150px" :min="0" :max="99999999" :controls="false"
+                v-model:value="advancedForm.minStock" allowClear></a-input-number>
               <span class="mx-2.5">-</span>
-              <a-input style="width: 150px" v-model:value="advancedForm.maxStock" allowClear></a-input>
+              <a-input-number style="width: 150px" :min="0" :max="99999999" :controls="false"
+                v-model:value="advancedForm.maxStock" allowClear></a-input-number>
             </a-form-item>
             <!-- <a-form-item label="备注：">
                             <a-select ref="select" v-model:value="advancedForm.isRemark" style="width: 150px">
@@ -51,7 +57,7 @@
             <a-form-item>
               <a-select ref="select" v-model:value="advancedForm.timeSort" class="ml-6.5" style="width: 120px">
                 <a-select-option value="update_time">更新时间</a-select-option>
-                <a-select-option value="created_time">创建时间</a-select-option>
+                <a-select-option value="create_time">创建时间</a-select-option>
               </a-select>
               <a-range-picker class="ml-2.5" style="width: 320px" valueFormat="YYYY-MM-DD"
                 v-model:value="advancedForm.time" />
@@ -143,8 +149,7 @@
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'name'">
             <div class="flex text-left">
-              <a-image style="width: 100px; height: 100px" :src="record?.skuList[0]?.primaryImage &&
-                  record?.skuList[0]?.primaryImage.length > 0
+              <a-image style="width: 100px; height: 100px" :src="record?.skuList[0]?.primaryImage?.length > 0
                   ? processImageSource(record?.skuList[0]?.primaryImage[0])
                   : processImageSource(record?.skuList[0]?.images[0])
                 " />
@@ -204,7 +209,7 @@
                       <span>{{ el.present || 0 }}</span>
                     </div>
                   </template>
-                  <span style="color: #1677ff">{{ item.stock }}</span>
+                  <span style="color: #1677ff">{{ item.stock || 0 }}</span>
                 </a-tooltip>
               </div>
             </div>
@@ -390,14 +395,14 @@ const strList = ref([
   },
   {
     label: "按售价",
-    value: "old_price",
+    value: "sku.price",
     type: "top",
     prop: 3,
     isDefault: false,
   },
   {
     label: "按总库存量",
-    value: "stock",
+    value: "sku.stock",
     type: "top",
     prop: 4,
     isDefault: false,
@@ -697,10 +702,10 @@ const getList = () => {
   let params = {
     ...formData,
     ...advancedForm,
-    startDateTime: advancedForm.time.length
+    startDateTime: advancedForm.time?.length
       ? dayjs(advancedForm.time[0]).startOf("day").format("YYYY-MM-DD HH:mm:ss")
       : undefined,
-    endDateTime: advancedForm.time.length
+    endDateTime: advancedForm.time?.length
       ? dayjs(advancedForm.time[1]).endOf("day").format("YYYY-MM-DD HH:mm:ss")
       : undefined,
     pageNum: paginations.pageNum,
@@ -709,18 +714,19 @@ const getList = () => {
   ozonProductList(params)
     .then((res) => {
       tableData.value =
-        res?.rows.map((item) => {
+        res?.rows[0]?.waitPublishProductList?.map((item) => {
           item.show = false;
           return item;
         }) || [];
       paginations.total = res?.total || 0;
+      tabQuantity.value = res?.rows[0]?.aggregationList || [];
     })
     .finally(() => {
       loading.value = false;
     });
-  statistics({ account: formData.account }).then((res) => {
-    tabQuantity.value = res?.data || [];
-  });
+  // statistics({ account: formData.account }).then((res) => {
+  //   tabQuantity.value = res?.data || [];
+  // });
 };
 
 // tabs的商品统计条数赋值

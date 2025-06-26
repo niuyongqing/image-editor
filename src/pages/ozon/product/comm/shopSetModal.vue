@@ -4,7 +4,7 @@
     <a-table bordered :columns="HeaderList" :loading="loading" :scroll="{ y: 500 }" :data-source="tableData"
       :pagination="false">
       <template #headerCell="{ column }">
-        <template v-if="column.dataIndex === 'warehouseList'">
+        <template v-if="column.dataIndex === 'warehouseName'">
           <span>{{ column.title }}</span>
           <a-tooltip>
             <template #title>仅同步在活跃状态的仓库</template>
@@ -17,8 +17,8 @@
         <template v-if="column.dataIndex === 'currency'">
           <a-select v-model:value="record.currency" class="w-50" :options="options"></a-select>
         </template>
-        <template v-if="column.dataIndex === 'warehouseList'">
-          <span>{{ record.warehouseList.join(',') }}</span>
+        <template v-if="column.dataIndex === 'warehouseName'">
+          <span>{{ record.warehouseName }}</span>
         </template>
       </template>
     </a-table>
@@ -58,7 +58,7 @@ const HeaderList = [
   },
   {
     title: '仓库',
-    dataIndex: 'warehouseList',
+    dataIndex: 'warehouseName',
   }
 ]
 const tableData = ref([])
@@ -95,7 +95,7 @@ const handleCancel = () => {
 
 const onSubmit = () => {
   let tList = tableData.value.filter(item => item.currency).map(item => ({
-    account: item.simpleName,
+    account: item.account,
     currency: item.currency
   }));
   loading.value = true

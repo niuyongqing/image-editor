@@ -50,3 +50,18 @@ export function ozonCollectDetail(data) {
 export function receiveProductToWaitPublishApi(params) {
   return usePost('/platform-ozon/platform/ozon/gather/product/receiveProductToWaitPublish', params)
 }
+
+// 视频 
+export function videoUpload(params, headers) {
+    return usePost('/platform-ozon/platform/ozon/file/upload/video', params,{
+        headers,
+      })
+  }
+  
+
+// 上传图片
+export function uploadImage(params, headers) {
+    return usePost("/platform-ozon/platform/ozon/file/upload/img", params,{
+        headers,
+      })
+}

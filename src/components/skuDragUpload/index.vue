@@ -58,7 +58,7 @@
 
 
         <div flex flex-wrap mt-10px>
-            <draggable v-if="fileList.length > 0" v-model="fileList" @end="handleDragEnd" tag="div" class="flex"
+            <draggable v-if="fileList.length > 0" v-model="fileList" @end="handleDragEnd" tag="div" class="flex flex-wrap w-1600px mt-2.5"
                 item-key="url">
                 <template #item="{ element }">
                     <a-card ml-10px p-0px rounded-none class="file-card" hoverable>

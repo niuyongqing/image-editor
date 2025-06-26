@@ -41,7 +41,7 @@
                         <a-select v-model:value="form.categoryId" allowClear showSearch placeholder="请选择"
                             style="width: 300px;" :options="historyCategoryList" @change="selectAttributes" :fieldNames="{
                                 label: 'threeCategoryName', value: 'threeCategoryId',
-                            }">
+                            }" :filter-option="filterOption">
                         </a-select>
                         <a-button type="link" @click="changeCategory">更换分类</a-button>
                         <p class="tooltip-text" v-if="hisAttrObj && JSON.stringify(hisAttrObj) != '{}'">{{
@@ -160,6 +160,11 @@ const form = reactive({
     shortCode: "",
     categoryId: null,
 })
+
+function filterOption(input, option) {
+    return option.threeCategoryName.indexOf(input) >= 0;
+}
+
 
 const primaryImage = (primaryImage) => {
     return baseApi + primaryImage
