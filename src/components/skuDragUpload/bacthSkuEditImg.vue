@@ -1,6 +1,6 @@
 <template>
   <div>
-    <a-modal @ok="handleOk" @cancel="cancel" title="批量修改图片尺寸" width="1000px">
+    <BaseModal @register="register" @close="cancel" title="批量修改图片尺寸" width="1000px">
       <div>
         <a-form layout="inline" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }" labelAlign="">
           <a-form-item label="宽度:">
@@ -50,7 +50,7 @@
           <template #tabBarExtraContent></template>
         </a-card>
       </div>
-    </a-modal>
+    </BaseModal>
   </div>
 </template>
 <script setup>
@@ -77,7 +77,7 @@ const { state, reset } = useResetReactive({
 
 const fileList = ref([]); // 图片列表
 const modalMethods = ref();
-const handleOk = (modal) => {
+const register = (modal) => {
   modalMethods.value = modal;
 }
 

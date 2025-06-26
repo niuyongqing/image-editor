@@ -219,39 +219,14 @@
                 </a-table>
             </a-card>
             <a-card title="变种图片" class="text-left mx-50 mt-5">
-                <template #extra>
-                    <div style="padding: 3px 0;color: #99999a;" class="mr-2.5 float-right">
-                        <a-select v-model:value="watermarkValue" :disabled="!shopCode" class="w-50" placeholder="请选择水印"
-                            @change="selectWaterMark">
-                            <a-select-option v-for="wa in watermark" :key="wa.id" :label="wa.title" :value="wa.id">
-                                <div>
-                                    <span>{{ wa.title }} </span>
-                                    <a-image v-if="wa.type === 1" :src="wa.content"
-                                        style="width: 20px; height: 20px; margin-top: -10px"></a-image>
-                                    <span v-else>{{ wa.content }}</span>
-                                </div>
-                            </a-select-option>
-                        </a-select>
-                    </div>
-                    <span style="padding: 3px 0;color: #99999a;" class="mr-5 float-right">
-                        <a-input-number v-model:value="cropWidth" :disabled="!shopCode" placeholder="宽"
-                            controls-position="right" :controls="false"></a-input-number>
-                        X
-                        <a-input-number v-model:value="cropHeight" :disabled="!shopCode" placeholder="高"
-                            controls-position="right" :controls="false"></a-input-number>
-                        <a-button @click="crop" class="ml-2.5" :disabled="!shopCode">裁剪</a-button>
-                    </span>
-                    <a-button @click="selectAllImg" class="mr-5 mt-1" :disabled="!shopCode">{{ selectAll ? '取消选择全部图片' :
-                        '选择全部图片'
-                        }}</a-button>
-                </template>
+
                 <div>
                     <a-tag color="warning">！说明</a-tag>
                     <span style="color: #9fa0a2">
                         第一张图片默认为主图，点击图片拖动，即可调整图片顺序！
                         单张不超过2M，只支持jpg、.png、.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3：4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)</span>
                 </div>
-                <div class="mt-5">
+                <div>
                     <div v-for="item in tableData" :key="item.id">
                         <div v-if="tableData.length > 0">
                             <a-card class="mb-2.5 ml-2.5">
@@ -263,11 +238,34 @@
                                         </div>
                                     </div>
                                 </div>
-                                <span v-if="item.imageUrl" class="block mt-2.5">{{ item.imageUrl.length
-                                    }}/30</span>
-                                <dragUpload @changeImg="(list) => changeImg(list, item)"
-                                    @singleSelectImg="(e) => singleSelectImg(e, item)" :imageList="item.imageUrl">
-                                </dragUpload>
+                                <!-- <span v-if="item.imageUrl" class="block mt-2.5">{{ item.imageUrl.length
+                                }}/30</span> -->
+                                <SkuDragUpload :actionUrl="actionUrl" v-model:file-list="item.imageUrl" :maxCount="8"
+                                    :showUploadList="false" accept=".jpg,.png" :api="uploadImage" :apiParams="{}"
+                                    :waterList="watermark">
+                                    <template #default>
+                                        <div flex flex-col w-full justify-start mb-4px text-left>
+                                            <p>
+                                                <a-tag color="#00AEB3">说明！</a-tag>
+                                                <span class="text-#999"> 第一张图片默认为主图，点击图片拖动，即可调整图片顺序。
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </template>
+                                    <template #variantInfo>
+                                        <!-- <div v-if="lazadaAttrsState.selectTheme.length === 1">
+                                            {{ variantInfo(item) }}
+                                        </div>
+                                        <div text-left v-if="lazadaAttrsState.selectTheme.length === 2">
+                                            <p pb-1px mb-0> {{ variantInfo(item) }} </p>
+                                            <p> {{ variantInfoTwo(item) }} </p>
+                                        </div> -->
+                                    </template>
+                                    <template #skuInfo>
+                                        {{ `【${item.imageUrl.length}/8】图片 ` }}
+                                    </template>
+                                </SkuDragUpload>
+
 
                             </a-card>
                         </div>
@@ -305,10 +303,14 @@ import {
     checkData, rearrangeColorFields, handleTheme, processImageSource
 } from "../../config/commJs/index"
 import { publishHead, otherList } from '../../config/tabColumns/skuHead';
+
+import { uploadImage } from '@/pages/ozon/config/api/draft';
+import SkuDragUpload from '@/components/skuDragUpload/index.vue';
+
 const props = defineProps({
     categoryAttributesLoading: Boolean,
     productDetail: Object,
-    shopCode: String
+    shopCode: String,
 });
 const themeList = ref([]) //主题数据
 const themeBtns = ref([]) //主题按钮
@@ -361,7 +363,8 @@ const handleChangeColroImg = (info, record) => {
         record.colorImg.push(
             {
                 name: info.file.response.originalFilename,
-                url: '/prod-api' + info.file.response.url,
+                // url: '/prod-api' + info.file.response.url,
+                url: import.meta.env.VITE_APP_BASE_API + info.file.response.url,
                 checked: false,
                 width: info.file.response.width,
                 height: info.file.response.height,
@@ -856,6 +859,7 @@ const getWatermark = () => {
 }
 // 图片上传
 const changeImg = (list, item) => {
+    console.log('list --------------------- ', list);
     item.imageUrl = list
 }
 
