@@ -463,8 +463,6 @@ watch(() => props.attributesCache, (val) => {
             });
 
             let data = noThemeAttributesCache.filter((a) => a.isRequired);
-            // console.log("data", data);
-            // console.log("rules2", this.rules2);
             rules2.value = {};
             let attributes = {};
             // 属性类型处理
@@ -502,8 +500,8 @@ watch(() => props.attributesCache, (val) => {
             // console.log("rules2", rules2.value);
             loopAttributes.value = noThemeAttributesCache;
             // 赋值
-            const { attributes: oldAttributes } = props.productDetail.attributes[0];
-            // console.log('loopAttributes', oldAttributes);
+            const { attributes: oldAttributes } = props.productDetail.skuList[0];
+
             const proceRes = assignValues(oldAttributes, loopAttributes.value);
             form.attributes = proceRes;
             console.log('proceRes0', proceRes);

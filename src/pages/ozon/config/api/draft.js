@@ -45,3 +45,16 @@ export function ozonCollectDetail(data) {
         data: data,
     });
 };
+
+// 认领采集产品至待发布
+export function receiveProductToWaitPublishApi(params) {
+  return usePost('/platform-ozon/platform/ozon/gather/product/receiveProductToWaitPublish', params)
+}
+
+// 视频 
+export function videoUpload(params, headers) {
+    return usePost('/platform-ozon/platform/ozon/file/upload/video', params,{
+        headers,
+      })
+  }
+  

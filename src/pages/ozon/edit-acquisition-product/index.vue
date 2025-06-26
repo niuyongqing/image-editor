@@ -11,6 +11,13 @@
           @click="onSubmit(2)"
           >保存</a-button
         >
+        <!-- <a-button
+          :loading="loading"
+          class="ml-2.5"
+          @click="publish"
+          type="primary"
+          >发布</a-button
+        > -->
       </div>
       <br />
       <!-- 基本信息 -->
@@ -46,6 +53,13 @@
           @click="onSubmit(2)"
           >保存</a-button
         >
+        <!-- <a-button
+          :loading="loading"
+          class="ml-2.5"
+          @click="publish"
+          type="primary"
+          >发布</a-button
+        > -->
       </div>
     </div>
     <div style="position: fixed; top: 10%; right: 3%">
@@ -98,7 +112,7 @@
     {
       turnRed: false,
       id: 'ozonNewImageInfo',
-      label: '图片信息'
+      label: '描述信息'
     },
     {
       turnRed: false,

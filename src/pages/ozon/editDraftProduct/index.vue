@@ -75,8 +75,8 @@
             </OzonNewImageInfo>
 
             <!-- 变种信息. -->
-            <OzonVariantInfo ref="ozonNewVariantInfoRef" :attributesCache="attributes" :productDetail="productDetail">
-            </OzonVariantInfo>
+            <!-- <OzonVariantInfo ref="ozonNewVariantInfoRef" :attributesCache="attributes" :productDetail="productDetail">
+            </OzonVariantInfo> -->
 
             <div flex w-full justify-end items-center>
                 <div mt-15px mb-30px>

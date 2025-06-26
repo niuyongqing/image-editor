@@ -1,7 +1,11 @@
 <template>
   <div id="remarkModal" class="remarkModal">
-    <a-modal v-model:open="modalOpen" :title="props.modalData.selectedRow.length > 1 ? '批量备注':'备注'"
-      :maskClosable="false" :width="600">
+    <a-modal 
+      v-model:open="modalOpen" 
+      :title="props.modalData.selectedRow.length > 1 ? '批量备注':'备注'"
+      :maskClosable="false" 
+      :width="600"
+    >
       <div class="remarkModal-modal-box">
         <a-form :label-col="{ span: 6 }" :wrapper-col="{ span: 18 }">
           <a-form-item label="内容:">
@@ -38,7 +42,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-import { addRemark } from '../../js/api';
+import { addRemark } from '../js/api';
 defineOptions({ name: "remarkModal" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:modalOpen', 'addRemark'])
@@ -49,6 +53,8 @@ const props = defineProps({
     default: () => {}
   }
 })
+const modalOpen = ref(false)
+const loading = ref(false)
 const colorList = [
   '#009926', 
   '#F00', 
@@ -59,8 +65,6 @@ const colorList = [
   '#FFCAC5', 
   '#00D0FF'
 ]
-const modalOpen = ref(false)
-const loading = ref(false)
 const formData = reactive({
   content: '',
   color: ''

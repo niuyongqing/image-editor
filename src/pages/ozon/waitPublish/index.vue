@@ -149,10 +149,9 @@
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'name'">
             <div class="flex text-left">
-              <a-image style="width: 100px; height: 100px" :src="record?.skuList[0]?.primaryImage &&
-                record?.skuList[0]?.primaryImage.length > 0
-                ? processImageSource(record?.skuList[0]?.primaryImage[0])
-                : processImageSource(record?.skuList[0]?.images[0])
+              <a-image v-if="record.skuList[0].primaryImage" style="width: 100px; height: 100px" :src="record?.skuList[0]?.primaryImage.length > 0
+                  ? processImageSource(record?.skuList[0]?.primaryImage[0])
+                  : processImageSource(record?.skuList[0]?.images[0])
                 " />
               <div class="ml-2.5 block">
                 <a-tooltip class="item" effect="dark" :title="record.name" placement="top"

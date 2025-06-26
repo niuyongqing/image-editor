@@ -10,7 +10,10 @@
           :key="item.key" 
           :tab="item.tab"
         >
-          <component :is="tabsData.activeComponent"></component>
+          <component 
+            :is="tabsData.activeComponent"
+            @loadDescribe="loadDescribe"
+          ></component>
         </a-tab-pane>
       </a-tabs>
     </a-card>
@@ -71,6 +74,10 @@ onMounted(() => {
 function tabsChange(key) {
   // console.log({key});
   tabsData.activeComponent = tabsData.components[key]
+}
+function loadDescribe() {
+  tabsData.activeKey = 'plugInAcquisition'
+  tabsChange(tabsData.activeKey)
 }
 </script>
 <style lang="less" scoped></style>
