@@ -207,6 +207,8 @@ function getNodePath(node) {
 .typeTree {
   width: 100%;
   height: 100%;
+  // padding: 10px;
+  // background: #fff;
   .box-tree {
     width: 100%;
     height: calc(100% - 40px);

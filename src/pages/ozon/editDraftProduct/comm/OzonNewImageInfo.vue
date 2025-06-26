@@ -77,8 +77,6 @@
                 </a-form-item>
             </a-form>
         </a-card>
-
-        <!-- 视频预览 -->
         <a-modal v-model:open="videoPreviewVisible" :footer="null" width="600px">
             <template #title>
                 <div flex justify-between>
@@ -90,7 +88,6 @@
                     <source :src="videoUrl" type="video/mp4">
                 </video>
             </div>
-
         </a-modal>
     </div>
 </template>
@@ -115,15 +112,12 @@ const form = reactive({
     coverUrl: "",
     description: "",
     jsons: "",
-
-    //  封面视频 /prod-api/profile/upload/shopeeFile/2025-06-24/2025/06/24/20250317_869d414412494af7_512043488690_tb_seller_vsucai_publish_mp4_264_hd_wm_invisible_taobao_20250624174424A027.mp4
     coverVideoUrl: '',
-    // 详情描述视频
     detailVideoList: [],
 
 });
 
-const videoUrl = ref('');// 预览的
+const videoUrl = ref('');
 const copyJson = ref([])
 const headers = {
     'Content-Type': 'multipart/form-data',
@@ -131,7 +125,6 @@ const headers = {
 }
 const uploadUrl =
     import.meta.env.VITE_APP_BASE_API +
-    // "/platform-ozon/platform/ozon/file/upload/json/img",
     "/platform-ozon/platform/ozon/file/upload/img"
 const uploadVideoUrl =
     import.meta.env.VITE_APP_BASE_API +
@@ -141,9 +134,9 @@ const uploadImageVideoUrl =
     "/platform-ozon/platform/ozon/file/upload/video"
 const uploadVideoLoading = ref(false)
 
-const videoImageFile = ref([]); // 视频封面
-const videoFile = ref([]); // 视频
-const videoPreviewVisible = ref(false); // 视频预览
+const videoImageFile = ref([]);
+const videoFile = ref([]);
+const videoPreviewVisible = ref(false);
 
 const rules = {
     jsons: [{ required: true }],
@@ -177,7 +170,6 @@ const removeVideoList = (index) => {
 }
 const backResult = (res) => {
     form.jsons = res
-    // console.log('p', form.jsons);
 }
 
 const submitForm = () => {
@@ -239,8 +231,6 @@ const customRequestDetailVideo = (options) => {
         })
     })
 };
-
-// 抛出数据和方法，可以让父级用ref获取
 defineExpose({
     form,
     submitForm
@@ -256,24 +246,11 @@ watch(() => props.productDetail, val => {
         );
         complexAttributes && complexAttributes.forEach((item) => {
             if (item.id === 21841) {
-                // form.video.push({
-                //     url: processImageSource(item.values[0].value),
-                //     name: item.values[0].value.substring(
-                //         item.values[0].value.lastIndexOf("/") + 1
-                //     ),
-                // })
                 form.video.push({
                     url: processImageSource(item.values[0].value)
                 })
             } else if (item.id === 21845) {
-
                 form.coverVideoUrl = processImageSource(item.values[0].value)
-                // form.coverUrl = {
-                //     url: processImageSource(item.values[0].value),
-                //     name: item.values[0].value.substring(
-                //         item.values[0].value.lastIndexOf("/") + 1
-                //     ),
-                // };
             }
         });
         copyAttr.forEach(e => {
@@ -287,6 +264,10 @@ watch(() => props.productDetail, val => {
 })
 </script>
 <style lang="less" scoped>
+#OzonNewImageInfoCont {
+    margin-bottom: 15px;
+}
+
 .cover-item {
     position: relative;
 

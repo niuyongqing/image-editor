@@ -1,6 +1,6 @@
 <template>
   <div>
-    <a-modal @ok="handleOk" @cancel="cancel" title="批量修改图片尺寸" width="1000px">
+    <BaseModal @register="register" @close="cancel" title="批量修改图片尺寸" width="1000px" @submit="submit">
       <div>
         <a-form layout="inline" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }" labelAlign="">
           <a-form-item label="宽度:">
@@ -50,13 +50,14 @@
           <template #tabBarExtraContent></template>
         </a-card>
       </div>
-    </a-modal>
+    </BaseModal>
   </div>
 </template>
 <script setup>
 import BaseModal from '@/components/baseModal/BaseModal.vue';
 import { DeleteOutlined, CheckOutlined } from '@ant-design/icons-vue';
 import { useResetReactive } from '@/composables/reset';
+import { scaleApi, watermarkApi } from '@/api/common/water-mark.js';
 import { message } from "ant-design-vue";
 
 const props = defineProps({
@@ -77,7 +78,7 @@ const { state, reset } = useResetReactive({
 
 const fileList = ref([]); // 图片列表
 const modalMethods = ref();
-const handleOk = (modal) => {
+const register = (modal) => {
   modalMethods.value = modal;
 }
 
@@ -114,6 +115,44 @@ const check = (element) => {
   });
   const isAllChecked = list.every(item => item.checked);
   checkedAll.value = isAllChecked;
+};
+
+//  点击确定
+const submit = async () => {
+  if (!state.imgW || !state.imgH) {
+    message.error('请选择图片宽高');
+    return
+  }
+  const checkedList = fileList.value.filter(item => item.checked);
+  if (checkedList.length === 0) {
+    message.error('请选择图片');
+    return
+  };
+  const imagePathList = checkedList.map((item) => {
+    return item.url
+  });
+  const scaleRes = await scaleApi({
+    imagePathList: imagePathList,
+    newWidth: state.imgW,
+    newHeight: state.imgH,
+  });
+  if (scaleRes.code === 200) {
+    const data = scaleRes.data || [];
+    data.forEach((item) => {
+      fileList.value.forEach(v => {
+        if (item.originalFilename === v.url) {
+          v.url = item.fileName
+          v.name = item.newFileName
+          v.checked = false
+          v.width = state.imgW
+          v.height = state.imgH
+        }
+      })
+    })
+  };
+
+  checkedAll.value = false;
+  modalMethods.value.closeModal();
 };
 
 defineExpose({

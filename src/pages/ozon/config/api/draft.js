@@ -58,3 +58,10 @@ export function videoUpload(params, headers) {
       })
   }
   
+
+// 上传图片
+export function uploadImage(params, headers) {
+    return usePost("/platform-ozon/platform/ozon/file/upload/img", params,{
+        headers,
+      })
+}
