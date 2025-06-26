@@ -436,7 +436,12 @@ const filteredHeaderList = computed(() => {
 
 // 处理数据格式
 const processDataFormat = (list = []) => {
-    let newHeaderList = handleTheme(list)
+    console.log('list -->>', list);
+
+    let newHeaderList = handleTheme(list);
+
+    console.log('newHeaderList -->>', newHeaderList);
+
     const insertIndex = headerList.value.length - 6;
     for (let i = list.length - 1; i >= 0; i--) {
         // reversedArray.push(originalArray[i]);
