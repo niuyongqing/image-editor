@@ -389,8 +389,8 @@ const uploadUrl =
   "/platform-ozon/platform/ozon/file/upload/img"
 
 
-watch(() => props.content, val => {
-  if (val.length > 0) {
+  watch(() => props.content, val => {
+  if (val?.length > 0) {
     // console.log('val', val);
     finallyObj.value = JSON.parse(val)
     const { content } = JSON.parse(val)

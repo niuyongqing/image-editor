@@ -264,6 +264,10 @@ watch(() => props.productDetail, val => {
 })
 </script>
 <style lang="less" scoped>
+#OzonNewImageInfoCont {
+    margin-bottom: 15px;
+}
+
 .cover-item {
     position: relative;
 

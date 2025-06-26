@@ -183,6 +183,7 @@
           :columns="filteredHeaderList"
           :data-source="tableData"
           :pagination="false"
+          :scroll="{ x: 2000 }"
         >
           <template #headerCell="{ column }">
             <template v-if="column.dataIndex === 'sellerSKU'">
@@ -580,7 +581,7 @@
     productDetail: Object,
     shopCode: String
   })
-  
+
   const themeList = ref([]) //主题数据
   const themeBtns = ref([]) //主题按钮
   const requiredList = ref([]) //必填变种主题
@@ -751,7 +752,6 @@
   }
   // 移除主题操作
   const removeVariantType = (item, index) => {
-
     attributeList.value.splice(index, 1)
     imgHeaderList.value.splice(index, 1)
     // 循环删除表格内容数据
@@ -997,7 +997,7 @@
         break
       case 'packLength':
         tableData.value.forEach(item => {
-          Object.assign(item, batchFields.batchValue)
+          Object.assign(item, batchFields.packageSize)
         })
         break
       default:
@@ -1265,6 +1265,12 @@
             sku.attributes.forEach(subAttr => {
               if (subAttr.id == attr.id) {
                 if (attr.selectType === 'multSelect' && attr.options) {
+                  let values = subAttr.values.map(val => {
+                    let option = attr.options.find(opt => opt.id == val.dictionaryValueId)
+                    return option ? option.value : val.value
+                  })
+                  newItem[attr.name] = values.join(', ')
+                } else if (attr.selectType === 'select' && attr.options) {
                   let values = subAttr.values.map(val => {
                     let option = attr.options.find(opt => opt.id == val.dictionaryValueId)
                     return option ? option.value : val.value
