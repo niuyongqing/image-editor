@@ -70,11 +70,6 @@
     </div>
   </div>
   <!-- <a-button type="primary" @click="pluginData.modalOpen = !pluginData.modalOpen">图片空间</a-button> -->
-  <pictureLibrary
-    platform="ozon"
-    v-model:modal-open="pluginData.modalOpen"
-    @imageListConfirm="imageListConfirm"
-  ></pictureLibrary>
   <plugInTutorial v-model:modal-open="plugInTutorialOpen"></plugInTutorial>
 </div>
 </template>
@@ -123,18 +118,13 @@ const pluginData = reactive({
 })
 const plugInTutorialOpen = ref(false)
 function loadDescribe(key) {
-  console.log('下载对应插件' + key);
-  download.name('chrome-plugin.rar')
+  // console.log('下载对应插件' + key);
+  download.url('/profile/static/chrome-plugin.rar')
 }
 // todo 下载教程视频
 function getTutorial() {
   // console.log('下载教程视频');
   plugInTutorialOpen.value = !plugInTutorialOpen.value
-}
-// 图片空间选择
-function imageListConfirm(val) {
-  console.log('list', val);
-  
 }
 
 const description = 'This is a description.';

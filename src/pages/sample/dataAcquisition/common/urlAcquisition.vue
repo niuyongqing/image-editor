@@ -9,101 +9,104 @@
       >下载采集插件</span>
       ！）
     </template>
-    <!-- <a-textarea v-model:value="dataUrl.url" placeholder="请填写产品的网址,多个网址用Enter换行" :auto-size="{ minRows: 7 }" />
-    <div class="flex mt-2.5 justify-between">
-      <div>
-        <span style="color: #999;">您还未安装采集插件，建议使用</span>
-        <span style="color: #1677ff;cursor: pointer;">采集插件</span><span style="color: #999;">，功能更稳定更快速！</span><span
-          style="color: #1677ff;cursor: pointer;" @click="showTeps = true">如何使用插件采集>></span>
-      </div>
-      <div>
-        <a-button type="primary" @click="acquisition">开始采集</a-button>
-        <a-button class="ml-2.5" @click="clearArea">清空</a-button>
-      </div>
-    </div> -->
-    <div class="mt-2.5">
-      <a-form ref="ruleForm" :model="formData" :labelCol="{ span: 1 }">
-        <a-form-item label="数据来源：">
-          <div class="flex justify-between">
-            <selectComm 
-              class="ml-2.5" 
-              :options="formBtnInfo.shopAccount" 
-              :fieldObj="shopObj" 
-              @backSelectAll="selectAll"
-              @backSelectItem="selectItem"
-            ></selectComm>
-            <a-button @click="isShowSearch = !isShowSearch">{{ isShowSearch ? '收起' : '展开' }}</a-button>
-          </div>
-        </a-form-item>
-        <a-form-item label="搜索类型:" v-show="isShowSearch">
-          <div class="fBox flex align-start ml-2.5">
-            <a-button 
-              @click="selectTypes(item.prop)" 
-              class="mr-2.5" 
-              :type="item.prop === actives ? 'primary' : ''"
-              v-for="(item, index) in formBtnInfo.searchType" 
-              :key="index"
-            >{{ item.label }}</a-button>
-          </div>
-        </a-form-item>
-        <a-form-item label="搜索内容：" v-show="isShowSearch">
-          <div class="searchs flex">
-            <div class="searchInputs flex align-start ml-2.5">
-              <a-input 
-                v-if="actives == 1" 
-                style="width: 400px;" 
-                v-model:value="formData.name" 
-                placeholder="请输入标题查询"
-                allowClear 
-                @clear="onSubmit"
-              ></a-input>
-              <a-input 
-                v-if="actives == 2" 
-                style="width: 400px;" 
-                v-model:value="formData.url" 
-                allowClear
-                @clear="onSubmit" 
-                placeholder="请输入url"
-              ></a-input>
+    <a-spin :spinning="tableInfo.spinning">
+      <!-- <a-textarea v-model:value="dataUrl.url" placeholder="请填写产品的网址,多个网址用Enter换行" :auto-size="{ minRows: 7 }" />
+      <div class="flex mt-2.5 justify-between">
+        <div>
+          <span style="color: #999;">您还未安装采集插件，建议使用</span>
+          <span style="color: #1677ff;cursor: pointer;">采集插件</span><span style="color: #999;">，功能更稳定更快速！</span><span
+            style="color: #1677ff;cursor: pointer;" @click="showTeps = true">如何使用插件采集>></span>
+        </div>
+        <div>
+          <a-button type="primary" @click="acquisition">开始采集</a-button>
+          <a-button class="ml-2.5" @click="clearArea">清空</a-button>
+        </div>
+      </div> -->
+      <div class="mt-2.5">
+        <a-form ref="ruleForm" :model="formData" :labelCol="{ span: 1 }">
+          <a-form-item label="数据来源：">
+            <div class="flex justify-between">
+              <selectComm 
+                class="ml-2.5" 
+                :options="formBtnInfo.shopAccount" 
+                :fieldObj="shopObj" 
+                @backSelectAll="selectAll"
+                @backSelectItem="selectItem"
+              ></selectComm>
+              <a-button @click="isShowSearch = !isShowSearch">{{ isShowSearch ? '收起' : '展开' }}</a-button>
             </div>
-            <a-button type="primary" class="ml-2.5" @click="onSubmit(true)">查询</a-button>
-          </div>
-        </a-form-item>
-        <a-form-item label="采集时间：" v-show="isShowSearch">
-          <selectComm 
-            class="ml-2.5" :options="formBtnInfo.acquisitionTimes" 
-            :fieldObj="timeObj" 
-            @backSelectAll="selectTimeAll"
-            @backSelectItem="selectTimeItem"
-          ></selectComm>
-        </a-form-item>
-        <a-form-item label="时间选择：" v-show="formData.time === 'customize'">
-          <a-range-picker 
-            class="ml-2.5" 
-            v-model:value="formData.searchTime" 
-            format="YYYY-MM-DD"
-            value-format="YYYY-MM-DD"
-            @change="pickerChange"
-          />
-        </a-form-item>
-        <a-form-item label="备注：" v-show="isShowSearch">
-          <a-select
-            v-model:value="formData.isRemark" 
-            class="ml-2.5" 
-            style="width: 150px"
-            @select="isRemarkSelect"
-          >
-            <a-select-option value="1">有备注</a-select-option>
-            <a-select-option value="0">无备注</a-select-option>
-          </a-select>
-        </a-form-item>
-      </a-form>
-    </div>
+          </a-form-item>
+          <a-form-item label="搜索类型:" v-show="isShowSearch">
+            <div class="fBox flex align-start ml-2.5">
+              <a-button 
+                @click="selectTypes(item.prop)" 
+                class="mr-2.5" 
+                :type="item.prop === actives ? 'primary' : ''"
+                v-for="(item, index) in formBtnInfo.searchType" 
+                :key="index"
+              >{{ item.label }}</a-button>
+            </div>
+          </a-form-item>
+          <a-form-item label="搜索内容：" v-show="isShowSearch">
+            <div class="searchs flex">
+              <div class="searchInputs flex align-start ml-2.5">
+                <a-input 
+                  v-if="actives == 1" 
+                  style="width: 400px;" 
+                  v-model:value="formData.name" 
+                  placeholder="请输入标题查询"
+                  allowClear 
+                  @clear="onSubmit"
+                ></a-input>
+                <a-input 
+                  v-if="actives == 2" 
+                  style="width: 400px;" 
+                  v-model:value="formData.url" 
+                  allowClear
+                  @clear="onSubmit" 
+                  placeholder="请输入url"
+                ></a-input>
+              </div>
+              <a-button type="primary" class="ml-2.5" @click="onSubmit(true)">查询</a-button>
+            </div>
+          </a-form-item>
+          <a-form-item label="采集时间：" v-show="isShowSearch">
+            <selectComm 
+              class="ml-2.5" :options="formBtnInfo.acquisitionTimes" 
+              :fieldObj="timeObj" 
+              @backSelectAll="selectTimeAll"
+              @backSelectItem="selectTimeItem"
+            ></selectComm>
+          </a-form-item>
+          <a-form-item label="时间选择：" v-show="formData.time === 'customize'">
+            <a-range-picker 
+              class="ml-2.5" 
+              v-model:value="formData.searchTime" 
+              format="YYYY-MM-DD"
+              value-format="YYYY-MM-DD"
+              @change="pickerChange"
+            />
+          </a-form-item>
+          <a-form-item label="备注：" v-show="isShowSearch">
+            <a-select
+              v-model:value="formData.isRemark" 
+              class="ml-2.5" 
+              style="width: 150px"
+              allowClear
+              @change="isRemarkSelect"
+            >
+              <a-select-option value="1">有备注</a-select-option>
+              <a-select-option value="0">无备注</a-select-option>
+            </a-select>
+          </a-form-item>
+        </a-form>
+      </div>
+    </a-spin>
   </a-card>
   <a-card :loading="tableInfo.spinning">
     <div class="flex my-2.5">
       <a-space>
-        <a-button @click="claim('acquisition')" type="primary">批量认领</a-button>
+        <!-- <a-button @click="claim('acquisition')" type="primary">批量认领</a-button> -->
         <a-dropdown :trigger="['click']">
           <a-button type="primary" @click.prevent>
             批量操作
@@ -196,8 +199,8 @@
         </template>
         <template v-else-if="column.dataIndex === 'option'">
           <div class="option-btn-box">
-            <div class="option-btn" @click="claim('acquisition')">认领</div>
-            <div class="option-btn" @click="openModal('acquisitionEdit', [record])">编辑</div>
+            <div class="option-btn" @click="claim('acquisition', record)">认领</div>
+            <div class="option-btn" @click="acquisitionEdit(record)">编辑</div>
             
             <a-dropdown>
               <div class="option-btn" type="link" @click.prevent>
@@ -240,23 +243,29 @@
   ></component>
   
   <!-- 认领弹窗 -->
-  <ClaimModal v-model:open="openClaimModal" :claim-type="claimType" />
+  <ClaimModal v-model:open="openClaimModal" :claim-type="claimType" @draft="showEditCategoryModal" />
+
+  <!-- 编辑采集箱弹窗 -->
+  <EditCategoryModal ref="editCategoryModalRef" @edit="receiveProductToWaitPublish" />
 </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect, markRaw } from 'vue';
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
-import ClaimModal from './ClaimModal.vue'
+import ClaimModal from './ClaimModal.vue';
+import EditCategoryModal from './editCategoryModal.vue';
 import remarkModal from './remarkModal.vue';
-import acquisitionEdit from '@/pages/sample/dataAcquisition/common/acquisitionEdit/index.vue'
+// import acquisitionEdit from '@/pages/sample/dataAcquisition/common/acquisitionEdit/index.vue'
 import typeTree from '~@/components/classificationTree/typeTree.vue';
 // import { dataGathe } from "../../../ozon/config/commDic/defDic"
 import { collectProductList, deleteProduct, productStatCount, updateCategoryProduct } from '../js/api';
+import { receiveProductToWaitPublishApi } from '@/pages/ozon/config/api/draft.js';
 import { acquisitionHeader } from '../js/header';
 import { timestampToDateTime } from '~@/pages/lazada/fullyProduct/common';
 import dayjs from 'dayjs';
 import { message, Modal } from 'ant-design-vue';
+
 defineOptions({ name: "urlAcquisition" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['loadDescribe'])
@@ -345,6 +354,8 @@ const formBtnInfo = {
   ]
 }
 
+const editCategoryModalRef = ref(null);
+const rowId = ref('');
 const activeName = ref(2)
 const actives = ref(1)
 const formData = reactive({
@@ -381,7 +392,6 @@ const modalInfo = reactive({
   name: null,
   components: {
     remarkModal: markRaw(remarkModal),
-    acquisitionEdit: markRaw(acquisitionEdit),
   },
   data: {
     selectedRow: []
@@ -454,6 +464,7 @@ async function getList() {
       item.value = CountRes.data[item.code]
     })
     formBtnInfo.tabList = [...formBtnInfo.tabList]
+    tableInfo.selectedRowKeys = []
   } catch (error) {
     console.error(error)
   }
@@ -473,9 +484,9 @@ const selectItem = (val) => {
   formData.platform = val
   onSubmit()
 }
-function isRemarkSelect(val) {
-  // console.log(val, formData.isRemark);
-  formData.isRemark = val
+function isRemarkSelect(val, option) {
+  formData.isRemark = val ?? ''
+  // console.log({val, option}, formData.isRemark);
   onSubmit()
 }
 // 采集时间
@@ -642,23 +653,65 @@ function openUrl(url) {
 function getSimpleName(account) {
   return formBtnInfo.shopAccount.find(i => i.account === account)?.simpleName ?? ''
 }
-
+// 数据采集编辑
+function acquisitionEdit(row) {
+  let query = '?id=' + row.id
+  window.open('/platform/dev/sample/acquisitionEdit' + query)
+}
 const handleOk = () => {  }
 
 /** 认领 */
 const openClaimModal = ref(false)
 const claimType = ref('acquisition')
+// 认领采集产品至待发布接口数据
+let claimModalParams = {}
+let collectProductIdList = []
 
 /** 
  * 打开认领弹窗
  * @param {string} type acquisition - 采集箱; draft - 待发布;
  * @returns {void}
  */
-function claim(type = 'acquisition') {
+  function claim(type = 'acquisition', record) {
+  collectProductIdList = []
+  collectProductIdList.push(record.id)
+  rowId.value = record.id
   claimType.value = type
   openClaimModal.value = true
 }
+
+/** 
+ * 打开编辑采集箱弹窗
+ * @returns {void}
+ */
+  function showEditCategoryModal(params) {
+  claimModalParams = params
+  editCategoryModalRef.value.open({
+    account: params.checkedList[0].shopId,
+    id: rowId.value
+  })
+}
+
+function receiveProductToWaitPublish() {
+const shopIdList = claimModalParams.checkedList.map(item => item.shopId)
+const params = {
+  shopIdList,
+  repeatReceiveFlag: claimModalParams.repeatReceiveFlag,
+  collectProductIdList
+}
+receiveProductToWaitPublishApi(params)
+  .then(res => {
+    message.success('认领至待发布成功')
+
+    const query = `?id=${collectProductIdList[0]}&account=${shopIdList[0]}`
+    window.open('/platform/ozon/edit-acquisition-product' + query)
+  })
+  .catch(err => {
+    message.warning('认领至待发布失败')
+  })
+}
 </script>
+
 <style lang="less" scoped>
 .option-btn-box {
   display: flex;
