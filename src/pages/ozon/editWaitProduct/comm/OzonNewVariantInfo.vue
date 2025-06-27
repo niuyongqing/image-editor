@@ -287,7 +287,6 @@ import { uploadImage } from '@/pages/ozon/config/api/draft';
 import SkuDragUpload from '@/components/skuDragUpload/index.vue';
 
 
-
 const props = defineProps({
   categoryAttributesLoading: Boolean,
   productDetail: Object,
@@ -497,7 +496,6 @@ const removeVariantType = (item, index) => {
 };
 // 添加多个属性操作
 const addItem = (item, row) => {
-  console.log("item属性", item);
   let ele = {};
   if (isConform.value && item.id === 10096) {
     ele = {
@@ -775,110 +773,6 @@ const backValue = (batchFields) => {
   }
   batchOpen.value = false;
 };
-
-// // 选择水印
-// const selectWaterMark = () => {
-//   let res = [];
-//   for (let i = 0; i < tableData.value.length; i++) {
-//     for (let j = 0; j < tableData.value[i].imageUrl.length; j++) {
-//       if (tableData.value[i].imageUrl[j].checked) {
-//         res.push(tableData.value[i].imageUrl[j].url);
-//       }
-//     }
-//   }
-//   if (res.length === 0) {
-//     message.error("打水印前请选择需要打水印的文件！");
-//     return;
-//   }
-//   watermarkApi({ id: watermarkValue.value, imagePathList: res })
-//     .then((res) => {
-//       res.data.forEach((value) => {
-//         for (let i = 0; i < tableData.value.length; i++) {
-//           for (let j = 0; j < tableData.value[i].imageUrl.length; j++) {
-//             if (tableData.value[i].imageUrl[j].url === value.originalFilename) {
-//               tableData.value[i].imageUrl[j].url = value.fileName;
-//               tableData.value[i].imageUrl[j].name = value.newFileName;
-//               tableData.value[i].imageUrl[j].checked = false;
-//             }
-//           }
-//         }
-//       });
-//     })
-//     .finally(() => {
-//       watermarkValue.value = "";
-//       selectAll.value = false;
-//     });
-// };
-// // 裁剪
-// const crop = () => {
-//   let res = [];
-
-//   for (let i = 0; i < tableData.value.length; i++) {
-//     for (let j = 0; j < tableData.value[i].imageUrl.length; j++) {
-//       if (tableData.value[i].imageUrl[j].checked) {
-//         res.push(tableData.value[i].imageUrl[j].url);
-//       }
-//     }
-//   }
-//   if (res.length === 0) {
-//     message.error("裁剪前请选择需要裁剪的文件！");
-//     return;
-//   }
-//   scaleApi({
-//     newWidth: cropWidth.value,
-//     newHeight: cropHeight.value,
-//     imagePathList: res,
-//   })
-//     .then((res) => {
-//       res.data.forEach((value) => {
-//         for (let i = 0; i < tableData.value.length; i++) {
-//           for (let j = 0; j < tableData.value[i].imageUrl.length; j++) {
-//             if (tableData.value[i].imageUrl[j].url === value.originalFilename) {
-//               tableData.value[i].imageUrl[j].url = value.fileName;
-//               tableData.value[i].imageUrl[j].name = value.newFileName;
-//               tableData.value[i].imageUrl[j].checked = false;
-//               tableData.value[i].imageUrl[j].width = cropWidth.value;
-//               tableData.value[i].imageUrl[j].height = cropHeight.value;
-//             }
-//           }
-//         }
-//       });
-//     })
-//     .finally(() => {
-//       watermarkValue.value = "";
-//       selectAll.value = false;
-//       // ++this.refreshKey;
-//     });
-// };
-// // 图片全选
-// const selectAllImg = () => {
-//   selectAll.value = !selectAll.value;
-//   for (let i = 0; i < tableData.value.length; i++) {
-//     for (let j = 0; j < tableData.value[i].imageUrl.length; j++) {
-//       tableData.value[i].imageUrl[j].checked = selectAll.value;
-//     }
-//   }
-// };
-
-// // 获取水印列表
-// const getWatermark = () => {
-//   watermarkListApi().then((res) => {
-//     watermark.value = res.data;
-//   });
-// };
-// // 图片上传
-// const changeImg = (list, item) => {
-//   item.imageUrl = list;
-// };
-
-// const singleSelectImg = (e, item) => {
-//   // 查找符合条件的元素
-//   const targetItem = item.imageUrl.find((item) => item.url === e.url);
-//   // 如果找到符合条件的元素，则修改其 checked 属性的值
-//   if (targetItem) {
-//     targetItem.checked = e.checked;
-//   }
-// };
 
 const getEditStore = (account) => {
   let params = {
