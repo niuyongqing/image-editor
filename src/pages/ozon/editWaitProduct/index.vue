@@ -35,7 +35,7 @@
 
 <script setup name='editWaitProduct'>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-import { ozonProductDetail, categoryAttributes, ozonProductEdit,productPublish } from "../config/api/waitProduct"
+import { ozonProductDetail, categoryAttributes, ozonProductEdit, productPublish } from "../config/api/waitProduct"
 import { accountCache } from "../config/api/product";
 import OzonBaseInfo from './comm/OzonBaseInfo.vue';
 import OzonNewImageInfo from './comm/OzonNewImageInfo.vue';
@@ -211,13 +211,13 @@ const onSubmit = async (type) => {
   if (image.coverUrl !== "" && image.video.length > 0) {
     // 创建video对应的baseObj副本并更新value值
     let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
-    videoBaseObj = createAndUpdateBaseObj(image.video, 100002, 21845, 2);
+    videoBaseObj = createAndUpdateBaseObj(image.coverUrl, 100002, 21845, 2);
     newComplexAttributes.push(videoBaseObj);
 
     // 创建coverUrl对应的baseObj副本并更新value值
     let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
     coverUrlBaseObj = createAndUpdateBaseObj(
-      image.coverUrl,
+      image.video,
       100001,
       21841, 2
     );
@@ -240,7 +240,7 @@ const onSubmit = async (type) => {
   const resItem = tableDatas.map((item) => {
     const moditAttributes = [];
     const getDictionaryIdKey = 'dictionaryValueId';
-    const getComplexIdKey =  'complexId';
+    const getComplexIdKey = 'complexId';
     const createValueObj = (newId, newVal) => ({
       [getDictionaryIdKey]: newId || 0,
       value: newVal instanceof Array ? newVal.split(",") : newVal || "",
@@ -264,7 +264,7 @@ const onSubmit = async (type) => {
           }
           break;
         case "select":
-          [newId, newVal] = getSelectValue(attr, base,item);
+          [newId, newVal] = getSelectValue(attr, base, item);
           if (isNotEmpty(newVal)) {
             const selectValueObj = createValueObj(newId, newVal);
             moditAttributes.push(createAttrItem(attr, [selectValueObj]));
@@ -324,7 +324,7 @@ const onSubmit = async (type) => {
   console.log('params', params);
   loading.value = true;
 
-  if(type === 2){
+  if (type === 2) {
     ozonProductEdit(params).then(res => {
       message.success(res.msg)
       setTimeout(() => {
@@ -334,7 +334,7 @@ const onSubmit = async (type) => {
       .finally(() => {
         loading.value = false;
       });
-  }else {
+  } else {
     productPublish(params).then(res => {
       message.success(res.msg)
       setTimeout(() => {
