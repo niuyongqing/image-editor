@@ -80,38 +80,10 @@ import { dataGathe } from "../../../ozon/config/commDic/defDic"
 import pictureLibrary from '@/components/pictureLibrary/index.vue'
 import plugInTutorial from '@/pages/sample/dataAcquisition/common/plugInTutorial/index.vue'
 import download from '~@/api/common/download';
+import { platformList } from '../js/data';
 defineOptions({ name: "plugInAcquisition" })
 const { proxy: _this } = getCurrentInstance()
-const platformList = [
-  {
-    account: "shopee",
-    simpleName: "Shopee"
-  },
-  {
-    account: "al",
-    simpleName: "阿里巴巴国际站"
-  },
-  {
-    account: "amazon",
-    simpleName: "Amazon"
-  },
-  {
-    account: "tb",
-    simpleName: "淘宝"
-  },
-  {
-    account: "tm",
-    simpleName: "天猫"
-  },
-  {
-    account: "smt",
-    simpleName: "速卖通"
-  },
-  {
-    account: "lazada",
-    simpleName: "Lazada"
-  },
-]
+
 const pluginData = reactive({
   modalOpen: false,
   imageList: [],
@@ -119,7 +91,7 @@ const pluginData = reactive({
 const plugInTutorialOpen = ref(false)
 function loadDescribe(key) {
   // console.log('下载对应插件' + key);
-  download.url('/profile/static/chrome-plugin.rar')
+  download.url('/profile/static/chrome-plugin.zip');
 }
 // todo 下载教程视频
 function getTutorial() {

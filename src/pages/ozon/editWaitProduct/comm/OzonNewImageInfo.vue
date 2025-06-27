@@ -28,8 +28,8 @@
                     <div class="flex mt-2.5">
                         <div>
                             封面视频：
-                            <a-upload v-if="!form.coverUrl" :maxCount="1" :action="uploadImageVideoUrl" accept=".mp4,.mov"
-                                list-type="picture-card" @change="handleChange" :data="{
+                            <a-upload v-if="!form.coverUrl" :maxCount="1" :action="uploadImageVideoUrl"
+                                accept=".mp4,.mov" list-type="picture-card" @change="handleChange" :data="{
                                     shortCode: shopCode
                                 }" :headers="headers" :showUploadList="false">
                                 <div>
@@ -125,7 +125,7 @@ const rules = {
 const handleChange = info => {
     if (info.file.status === 'done') {
         if (info.file.response.code == 200) {
-            form.coverUrl = info.file.response.url
+            form.coverUrl = processImageSource(info.file.response.url)
         } else {
             message.error(info.file.response.msg)
         }
@@ -135,7 +135,7 @@ const msgHandleChange = info => {
     if (info.file.status === 'done') {
         if (info.file.response.code == 200) {
             form.video.push({
-                url: info.file.response.url
+                url: processImageSource(info.file.response.url)
             })
         } else {
             message.error(info.file.response.msg)
@@ -177,34 +177,28 @@ watch(() => props.productDetail, val => {
         const copyAttr = attributes?.filter(
             (a) => a.id == 11254 || a.id == 4191
         );
+        console.log("copyAttr", copyAttr);
+
         complexAttributes && complexAttributes.forEach((item) => {
-            // item.attributes.forEach((attribute) => {
-            // });
-            if (item.id === 21841) {
-                form.video.push({
-                    url: processImageSource(item.values[0].value),
-                    name: item.values[0].value.substring(
-                        item.values[0].value.lastIndexOf("/") + 1
-                    ),
-                })
-            } else if (item.id === 21845) {
-                form.coverUrl = {
-                    url: processImageSource(item.values[0].value),
-                    name: item.values[0].value.substring(
-                        item.values[0].value.lastIndexOf("/") + 1
-                    ),
-                };
-            }
+            item.attributes.forEach((attr) => {
+                if (attr.id === 21841) {
+                    form.video = attr.values.map((e) => {
+                        return {
+                            url: processImageSource(e.value),
+                        }
+                    })
+                } else if (attr.id === 21845) {
+                    form.coverUrl = processImageSource(attr.values[0].value)
+                }
+            });
         });
         copyAttr.forEach(e => {
             if (e.id === 11254) {
-                form.jsons = e.values[0].value 
+                form.jsons = e.values[0].value
             } else {
                 form.description = e.values[0].value
             }
         })
-        // console.log('form',form);
-        
     }
 })
 

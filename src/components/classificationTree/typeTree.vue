@@ -94,7 +94,8 @@ async function getClassListFn(id = '0') {
   treeData.loading = true;
   try {
     let params = {
-      "platform": props.platform,//平台
+      // "platform": props.platform,//平台
+      "platform": 'public',   //公共平台
       parentId: '0',
     }
     let res = await getClassList(params)

@@ -612,22 +612,23 @@ const createAndUpdateBaseObj = (targetObj, complexId, id, type) => {
     dictionaryValueId:
       keyStyle === "snake" ? "dictionary_value_id" : "dictionaryValueId",
   };
-
+  // 100001 多个视频
+  // 100002 单个视频
   // 通用值处理逻辑
   const processValues = () => {
-    if (complexId === 100001) {
+    if (complexId === 100002) {
       // return [{ [keyMap.dictionaryValueId]: 0, value: targetObj.replace('/prod-api', '') }];
       return [
         {
           [keyMap.dictionaryValueId]: 0,
-          value: processImageSource(targetObj.url),
+          value: targetObj,
         },
       ];
     }
     return (Array.isArray(targetObj) ? targetObj : []).map((item) => ({
       [keyMap.dictionaryValueId]: 0,
       // value: item?.url?.replace('/prod-api', '') || null // 添加空值保护
-      value: processImageSource(item?.url) || null,
+      value: item?.url || null,
     }));
   };
 
@@ -646,7 +647,7 @@ const processImageSource = (source) => {
   if (source === undefined || source === null || source === "") return;
   const processUrl = (url) => {
     // 检查是否以 https:// 开头
-    if (url.startsWith("https://")) {
+    if (url.startsWith("https://") || url.includes('/prod-api')) {
       return url;
     } else {
       // 移除开头的斜杠以避免重复，并拼接 /prod-api/
