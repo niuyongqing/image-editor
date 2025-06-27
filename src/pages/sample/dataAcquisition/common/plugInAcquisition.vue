@@ -119,7 +119,7 @@ const pluginData = reactive({
 const plugInTutorialOpen = ref(false)
 function loadDescribe(key) {
   // console.log('下载对应插件' + key);
-  download.url('/profile/static/chrome-plugin.rar')
+  download.url('/profile/static/chrome-plugin.zip');
 }
 // todo 下载教程视频
 function getTutorial() {
