@@ -145,7 +145,7 @@ const rules = {
 const handleChange = info => {
     if (info.file.status === 'done') {
         if (info.file.response.code == 200) {
-            form.coverUrl = info.file.response.url
+            form.coverUrl = processImageSource(info.file.response.url)
         } else {
             message.error(info.file.response.msg)
         }
@@ -155,7 +155,7 @@ const msgHandleChange = info => {
     if (info.file.status === 'done') {
         if (info.file.response.code == 200) {
             form.video.push({
-                url: info.file.response.url
+                url: processImageSource(info.file.response.url)
             })
         } else {
             message.error(info.file.response.msg)
@@ -245,13 +245,17 @@ watch(() => props.productDetail, val => {
             (a) => a.id == 11254 || a.id == 4191
         );
         complexAttributes && complexAttributes.forEach((item) => {
-            if (item.id === 21841) {
-                form.video.push({
-                    url: processImageSource(item.values[0].value)
-                })
-            } else if (item.id === 21845) {
-                form.coverVideoUrl = processImageSource(item.values[0].value)
-            }
+            item.forEach((attribute) => {
+                if (attr.id === 21841) {
+                    form.video = attr.values.map((e) => {
+                        return {
+                            url: processImageSource(e.value),
+                        }
+                    })
+                } else if (attr.id === 21845) {
+                    form.coverUrl = processImageSource(attr.values[0].value)
+                }
+            });
         });
         copyAttr.forEach(e => {
             if (e.id === 11254) {

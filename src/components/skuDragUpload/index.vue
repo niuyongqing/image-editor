@@ -51,9 +51,9 @@
             </div>
             <div>
                 <slot name="skuInfo"> </slot>
+                <div></div>
             </div>
-            <div></div>
-            <div></div>
+            <!-- <div></div> -->
         </div>
 
 

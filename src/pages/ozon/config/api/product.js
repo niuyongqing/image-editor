@@ -37,7 +37,7 @@ export function historyCategory(data) {
 // 保存历史分类
 export function addHistoryCategory(data) {
   return request({
-    url: "/platform-ozon/platform/ozon/attribute/add/historyCategory",
+    url: "/platform-ozon/platform/ozon/attribute/add/history/category",
     method: "post",
     data: data,
   });
@@ -46,7 +46,7 @@ export function addHistoryCategory(data) {
 // 历史属性
 export function historyAttribute(data) {
   return request({
-    url: "/platform-ozon/platform/ozon/attribute/historyAttribute",
+    url: "/platform-ozon/platform/ozon/attribute/history/attribute",
     method: "post",
     data: data,
   });
@@ -118,7 +118,7 @@ export function getWarehouses(data) {
 // 批量修改库存
 export function updateStock(data) {
   return request({
-    url: '/platform-ozon/platform/ozon/product/batch/updateStock',
+    url: '/platform-ozon/platform/ozon/product/batch/update/stock',
     method: 'post',
     data: data
   })
@@ -127,7 +127,7 @@ export function updateStock(data) {
 // 同步当前产品
 export function syncOneProduct(data) {
   return request({
-    url: '/platform-ozon/platform/ozon/product/syncOneProduct',
+    url: '/platform-ozon/platform/ozon/product/sync/product',
     method: 'post',
     data: data
   })
@@ -144,7 +144,7 @@ export function syncShopProductAll(data) {
 
 export function syncShopProduct(data) {
   return request({
-    url: '/platform-ozon/platform/ozon/product/syncShopProduct',
+    url: '/platform-ozon/platform/ozon/product/sync/shop/product',
     method: 'post',
     data: data
   })
@@ -198,7 +198,7 @@ export function copyList(data) {
 // 修改价格
 export function updatePrices(data) {
   return request({
-    url: '/platform-ozon/platform/ozon/product/batch/updatePrices',
+    url: '/platform-ozon/platform/ozon/product/batch/update/price',
     method: 'post',
     data: data
   })
@@ -220,7 +220,7 @@ export function downloadImgs(data) {
 // 同步历史分类
 export function syncHistoryCategory(data) {
   return request({
-    url: '/platform-ozon/platform/ozon/attribute/syncHistoryCategory',
+    url: '/platform-ozon/platform/ozon/attribute/sync/history/category',
     method: 'post',
     data: data
   })

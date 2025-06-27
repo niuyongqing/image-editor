@@ -2,10 +2,10 @@
 <div id="acquisitionEdit_index" class="acquisitionEdit_index">
   <div class="title">数据采集>编辑</div>
   <!-- 基本信息 -->
-  <baseInfo :product-data="productInfo.data" v-model:base-info-data="formData.baseInfoData"></baseInfo>
+  <baseInfo :product-data="productInfo.data" v-model:base-info-data="formData.baseInfoData"/>
   <br>
   <!-- 图片信息 -->
-  <imageInfo :product-data="productInfo.data" v-model:image-info-data="formData.imageInfoData"></imageInfo>
+  <imageInfo :product-data="productInfo.data" v-model:image-info-data="formData.imageInfoData"/>
 </div>
 </template>
 
@@ -36,6 +36,7 @@ async function productDetailFn(params) {
   try {
     let res = await productDetail({ id: productInfo.id });
     // console.log({ res });
+    res.data.classPlatform = 'public';     // 统一将所属平台改为公共平台
     productInfo.data = res.data
   } catch (error) {
     console.error(error)

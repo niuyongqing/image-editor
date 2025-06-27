@@ -337,10 +337,10 @@ const tabQuantity = ref([]);
 const defType = ref([]);
 const stockShops = ref([]);
 const advancedForm = reactive({
-  minPrice: "",
-  maxPrice: "",
-  minOldPrice: "",
-  maxOldPrice: "",
+  minPrice: null,
+  maxPrice: null,
+  minOldPrice: null,
+  maxOldPrice: null,
   minStock: null,
   maxStock: null,
   // isRemark: "",
@@ -434,10 +434,10 @@ const resetForm = (type = 0) => {
   formData.sku = "";
   formData.id = "";
   formData.name = "";
-  advancedForm.minPrice = "";
-  advancedForm.maxPrice = "";
-  advancedForm.minOldPrice = "";
-  advancedForm.maxOldPrice = "";
+  advancedForm.minPrice = null;
+  advancedForm.maxPrice = null;
+  advancedForm.minOldPrice = null;
+  advancedForm.maxOldPrice = null;
   advancedForm.minStock = null;
   advancedForm.maxStock = null;
   // advancedForm.isRemark = ""
@@ -701,7 +701,17 @@ const getList = () => {
   loading.value = true;
   let params = {
     ...formData,
-    ...advancedForm,
+    // ...advancedForm,
+    ...Object.entries(advancedForm).reduce((acc, [key, value]) => {
+        // 过滤掉 timeSort 和 time 字段
+        if (["timeSort", "time"].includes(key)) return acc;
+
+        // 保留原有转换逻辑并添加字符串转换
+        if (value !== null && value !== undefined && value !== '') {
+            acc[key] = typeof value === 'number' ? String(value) : value;
+        }
+        return acc;
+    }, {}),
     startDateTime: advancedForm.time?.length
       ? dayjs(advancedForm.time[0]).startOf("day").format("YYYY-MM-DD HH:mm:ss")
       : undefined,

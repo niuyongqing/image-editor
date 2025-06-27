@@ -13,8 +13,8 @@
         <div class="box">
           <div class="box-btn">
             <a-dropdown :trigger="['click']">
-              <a-button type="primary" @click.prevent :loading="uploading.image">
-                {{ uploading.image ? '上传中...' : '图片上传' }}
+              <a-button type="primary" @click.prevent :loading="loading.image">
+                {{ loading.image ? '上传中...' : '图片上传' }}
                 <AsyncIcon icon="DownOutlined" class="ml-2.5" />
               </a-button>
               <template #overlay>
@@ -24,7 +24,7 @@
                       :file-list="uploadInfo.imageFileList" 
                       :before-upload="imageBeforeUpload" 
                       :showUploadList="false"
-                      accept=".jpg, .jpeg, .png, .webp, .avif"
+                      accept=".jpg, .jpeg, .png, .webp"
                       multiple
                     >
                       <span>本地上传</span>
@@ -35,6 +35,36 @@
                 </a-menu>
               </template>
             </a-dropdown>
+            <a-space v-if="false">
+              <a-dropdown :trigger="['click']" :disabled="loading.watermark">
+                <a-button @click.prevent :loading="loading.watermark">
+                  {{ loading.watermark ? '正在添加水印...':'添加水印' }}
+                  <AsyncIcon icon="DownOutlined" class="ml-2.5" />
+                </a-button>
+                <template #overlay>
+                  <a-menu @click="watermarkClick">
+                    <a-menu-item 
+                      v-for="item in watermarkList"
+                      :key="item.id"
+                    >
+                      <div class="watermark-item">
+                        <a-image
+                          :width="20"
+                          :height="20"
+                          :src="item.content"
+                          v-if="item.type === 1"
+                        />
+                        {{ item.title }}
+                      </div>
+                    </a-menu-item>
+                  </a-menu>
+                </template>
+              </a-dropdown>
+              <a-button type="primary" @click="downloadAllImageFn" :loading="loading.download">
+                <AsyncIcon icon="DownloadOutlined" />
+                {{ loading.download ? '正在导出...':'导出全部图片' }}
+              </a-button>
+            </a-space>
           </div>
           <div class="box-tagTips">
             <a-tag color="green">说明</a-tag>
@@ -54,7 +84,6 @@
                   :width="150"
                   :height="150"
                   :src="item.src"
-                  :preview="false"
                 />
                 <div class="img-size">
                   <span>{{ `${item.width} × ${item.height}` }}</span>
@@ -91,8 +120,8 @@
       <a-form-item label="产品视频" name="video_list">
         <div class="box">
           <a-dropdown :trigger="['click']">
-            <a-button type="primary" @click.prevent :loading="uploading.video">
-                {{ uploading.video ? '上传中...' : playVideoUrl ? '重新上传':'上传视频' }}
+            <a-button type="primary" @click.prevent :loading="loading.video">
+                {{ loading.video ? '上传中...' : playVideoUrl ? '重新上传':'上传视频' }}
                 <AsyncIcon icon="DownOutlined" class="ml-2.5" />
             </a-button>
             <template #overlay>
@@ -112,38 +141,29 @@
               </a-menu>
             </template>
           </a-dropdown>
-          <div class="video-content">
+          <div class="video-content" v-if="playVideoUrl">
             <div class="content-image">
               <img src="../img/productVideoIcon.png" alt="">
             </div>
-            <!-- <div class="video-name" v-if="playVideoUrl">
-              {{ formData.video_list[0]?.originalFilename }}
-            </div> -->
-            <div class="content-foot" v-if="playVideoUrl">
+            <div class="content-foot">
               <a-button 
                 type="text" 
                 style="color: #4096ff;"
                 @click="uploadInfo.playOpen = !uploadInfo.playOpen"
               >播放</a-button>
-              <a-popconfirm
-                title="是否删除视频？"
-                ok-text="是"
-                cancel-text="否"
-                @confirm="videoDeleteFn"
-              >
-                <a-button type="text" danger>删除</a-button>
-              </a-popconfirm>
+              <a-button type="text" danger @click="videoDeleteFn(formData.video_list[0].fileName)">删除</a-button>  
             </div>
           </div>
         </div>
       </a-form-item>
     </a-form>
   </a-card>
+
   <!-- 播放弹窗 -->
   <a-modal 
     v-model:open="uploadInfo.playOpen" 
     title="播放"
-    width="400px"
+    width="500px"
   >
     <div class="modal-box">
       <video 
@@ -170,7 +190,7 @@
     </div>
     <template #footer>
       <a-button @click="modalClose">关闭</a-button>
-      <a-button type="primary" @click="imageUrlUploadFn" :loading="uploading.image">确定</a-button>
+      <a-button type="primary" @click="imageUrlConfirm" :loading="loading.image">确定</a-button>
     </template>
   </a-modal>
   <!-- 视频网络上传 -->
@@ -184,12 +204,12 @@
     </div>
     <template #footer>
       <a-button @click="modalClose">关闭</a-button>
-      <a-button type="primary" @click="videoUrlUploadFn" :loading="uploading.video">确定</a-button>
+      <a-button type="primary" @click="videoUrlUploadFn" :loading="loading.video">确定</a-button>
     </template>
   </a-modal>
   <!-- 图片空间 -->
   <pictureLibrary 
-    :platform="props.productData?.platform"
+    :platform="props.productData?.classPlatform"
     v-model:modal-open="uploadInfo.pictureLibraryOpen"
     @imageListConfirm="imageListConfirm"
   ></pictureLibrary>
@@ -202,9 +222,10 @@ import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import kong from '@/assets/images/kong.png'
 import download from '~@/api/common/download';
 import draggable from 'vuedraggable';
-import { imageUpload, imageUrlUpload, videoDelete, videoUpload, videoUrlUpload } from '../js/api';
+import { downloadAllImage, imageUpload, imageUrlUpload, videoDelete, videoUpload, videoUrlUpload } from '../js/api';
 import AsyncIcon from '~@/layouts/components/menu/async-icon.vue'
 import pictureLibrary from '@/components/pictureLibrary/index.vue'
+import { scaleApi, watermarkApi, watermarkListApi } from '~@/api/common/water-mark';
 defineOptions({ name: "acquisitionEdit_imageInfo" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:imageInfoData'])
@@ -234,14 +255,17 @@ const uploadInfo = reactive({
   imageUrlUpload: false,
   pictureLibraryOpen: false,
 })
-const uploading = reactive({
+const loading = reactive({
   image: false,
-  video: false
+  video: false,
+  watermark: false,
+  download: false,
 })
 
 watch(() => props.productData?.id, (val) => {
   // console.log(111);
   openFn()
+  getWatermarkList()
 })
 watch(() => formData, (val) => {
   // console.log({ val });
@@ -252,7 +276,9 @@ watch(() => formData, (val) => {
 })
 // 页面赋值
 function openFn() {
-  formData.image_list = props.productData.imageList.map(item => {
+  // 生成图片列表和视频列表
+  const { localVideoList, videoList, imageList } = props.productData;
+  formData.image_list = imageList.map(item => {
     let src = item
     if (!item.includes('http')) {
       src = import.meta.env.VITE_APP_BASE_API + item
@@ -276,7 +302,8 @@ function openFn() {
     }
     img.src = item.src
   })
-  formData.video_list = props.productData.videoList.map(item => {
+  let video_list = (localVideoList?.length ? localVideoList : videoList) || [];
+  formData.video_list = video_list.map(item => {
     let url = item
     if (!item.includes('http')) {
       url = import.meta.env.VITE_APP_BASE_API + item
@@ -290,6 +317,75 @@ function openFn() {
     return obj;
   })
 }
+
+const watermarkList = ref([])
+async function getWatermarkList() {
+  try {
+    let res = await watermarkListApi()
+    // console.log({ res });
+    watermarkList.value = res.data
+  } catch (error) {
+    console.error(error)
+  }
+  // watermarkApi
+  // scaleApi
+}
+// 添加水印
+async function watermarkClick({ key }) {
+  // console.log({key});
+  loading.watermark = true
+  try {
+    // 筛选出网图
+    let urlImageList = formData.image_list.filter(item => item.src.includes('http'))
+    // 网图先走一遍上传再去打水印
+    for (let index = 0; index < urlImageList.length; index++) {
+      const item = urlImageList[index];
+      try {
+        const url = item.url;
+        let res = await imageUrlUpload({ url })
+        formData.image_list.forEach(i => {
+          if (i.url === url) {
+            i.url = res.data.url
+          }
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    }
+    let imagePathList = formData.image_list.map(i => i.url)
+    let params = {
+      id: key,
+      imagePathList
+    }
+    let res = await watermarkApi(params)
+    // 更新打了水印的图片src
+    formData.image_list.forEach(item => {
+      let val = (res?.data || []).find(i => i.originalFilename === item.url)
+      // console.log({val});
+      if (val) {
+        item.url = val.url.replace('/prod-api', ''),
+        item.src = val.url
+      }
+    })
+  } catch (error) {
+    console.error(error)
+  }
+  loading.watermark = false;
+}
+// 导出全部图片
+async function downloadAllImageFn() {
+  loading.download = true;
+  try {
+    let imageList = formData.image_list.map(i => i.url)
+    let res = await downloadAllImage({ imageList })
+    // console.log(res);
+    download.name(res.data)
+  } catch (error) {
+    console.error(error)
+  }
+  loading.download = false
+}
+
 // 视频播放链接
 const playVideoUrl = computed(() => {
   return formData.video_list[0]?.url
@@ -315,26 +411,32 @@ function dropdownClick({ key }) {
 const handleDragEnd = (event) => {
   // console.log('拖拽结束', event);
 };
-
-// 图片网络上传
-async function imageUrlUploadFn() {
-  uploading.image = true;
+// 网络上传图片弹窗确认
+async function imageUrlConfirm() {
+  loading.image = true;
   let urlList = uploadInfo.imageUrl.split('\n')
-  // console.log(uploadInfo.imageUrl, urlList);
+  let res = await imageUrlUploadFn(urlList)
+  // console.log({res}, 22);
+  formData.image_list = [...res]
+  loading.image = false
+  modalClose()
+}
+// 图片网络上传
+async function imageUrlUploadFn(urlList) {
+  // console.log('/* uploadInfo.imageUrl */', urlList);
+  let imageList = []
   for (let index = 0; index < urlList.length; index++) {
     try {
       const url = urlList[index];
       let res = await imageUrlUpload({ url })
       res.data.id = createRandom()
       res.data.src = import.meta.env.VITE_APP_BASE_API + res.data.url
-      formData.image_list = [...(formData.image_list || []), (res.data)]
+      imageList.push(res.data)
     } catch (error) {
-      message.error(`链接${url}上传失败！`)
       console.error(error)
     }
   }
-  uploading.image = false
-  modalClose()
+  return imageList;
 }
 // 弹窗关闭
 function modalClose() {
@@ -359,8 +461,8 @@ function imageListConfirm(val) {
 function imageBeforeUpload(file) {
   uploadInfo.videoFileList = [file];
   let suffix = file.name.split('.')[file.name.split('.').length - 1].toLowerCase()
-  console.log({suffix});
-  let suffixList = ['jpg', 'jpeg', 'png', 'webp', 'avif']
+  // console.log({suffix});
+  let suffixList = ['jpg', 'jpeg', 'png', 'webp']
   if (!suffixList.includes(suffix)) {
     message.warning(`仅支持上传${suffixList.join()}格式图片！`);
   } else {
@@ -369,7 +471,7 @@ function imageBeforeUpload(file) {
   return false;
 }
 async function imageHandleUpload(file) {
-  uploading.image = true;
+  loading.image = true;
   let params = new FormData();
   params.append('file', file);
   let res = await imageUpload(params)
@@ -377,7 +479,7 @@ async function imageHandleUpload(file) {
   res.data.id = createRandom()
   res.data.src = import.meta.env.VITE_APP_BASE_API + res.data.url
   formData.image_list = [...(formData.image_list || []), (res.data)]
-  uploading.image = false;
+  loading.image = false;
 }
 function delImg(val) {
   formData.image_list = formData.image_list.filter(i => i.id !== val.id)
@@ -396,41 +498,52 @@ function videoBeforeUpload(file) {
   return false;
 }
 async function videoHandleUpload(file) {
-  uploading.video = true;
-  let params = new FormData();
-  params.append('file', file);
-  let res = await videoUpload(params)
-  // console.log({res});
-  res.data.url = import.meta.env.VITE_APP_BASE_API + res.data.fileName
-  formData.video_list = [res.data]
-  uploading.video = false;
+  loading.video = true;
+  try {
+    let oldFileName = formData.video_list[0]?.fileName
+    let params = new FormData();
+    params.append('file', file);
+    let res = await videoUpload(params)
+    // console.log({res});
+    res.data.url = import.meta.env.VITE_APP_BASE_API + res.data.fileName
+    formData.video_list = [res.data]
+    if (oldFileName) {
+      await videoDeleteFn(oldFileName)
+    }
+  } catch (error) {
+    console.error(error);
+  }
+  loading.video = false;
 }
 // 视频网络上传
 async function videoUrlUploadFn() {
-  uploading.video = true;
+  loading.video = true;
   try {
+    let oldFileName = formData.video_list[0]?.fileName
     let params = new FormData()
     params.append('url', uploadInfo.videoUrl)
     let res = await videoUrlUpload(params)
     res.data.url = import.meta.env.VITE_APP_BASE_API + res.data.fileName
     formData.video_list = [res.data]
-    uploadInfo.videoUrlUpload = !uploadInfo.videoUrlUpload
+    if (oldFileName) {
+      await videoDeleteFn(oldFileName)
+    }
   } catch (error) {
     console.error(error)
   }
-  uploading.video = false;
+  loading.video = false;
+  modalClose()
 }
 // 视频删除
-async function videoDeleteFn() {
+async function videoDeleteFn(filePath) {
   try {
-    let filePath = formData.video_list[0].fileName
     if (!filePath.includes('http')) {
       let params = new FormData()
       params.append('filePath', filePath)
       await videoDelete(params);
     }
     formData.video_list = []
-    message.success('视频删除成功！')
+    // message.success('视频删除成功！')
   } catch (error) {
     console.error(error)
   }
@@ -445,6 +558,9 @@ function createRandom() {
   .box {
     .box-btn {
       width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding-right: 40px;
     }
     .box-tagTips {
       margin-top: 10px;
@@ -524,8 +640,8 @@ function createRandom() {
   justify-content: center;
   align-items: center;
   video {
-    width: 300px;
-    height: 300px;
+    width: 400px;
+    height: 400px;
   }
 }
 </style>
