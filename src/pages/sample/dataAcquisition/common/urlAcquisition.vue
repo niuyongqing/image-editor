@@ -706,10 +706,14 @@
   }
   receiveProductToWaitPublishApi(params)
     .then(res => {
-      message.success('认领至待发布成功')
-  
-      const query = `?id=${collectProductIdList[0]}&account=${shopIdList[0]}`
-      window.open('/platform/ozon/edit-acquisition-product' + query)
+      if (res.msg) {
+        message.success('认领至待发布成功')
+    
+        const query = `?id=${res.msg}&account=${shopIdList[0]}`
+        window.open('/platform/ozon/edit-acquisition-product' + query)
+      } else {
+        message.warning('已认领过该数据')
+      }
     })
     .catch(err => {
       message.warning('认领至待发布失败')
