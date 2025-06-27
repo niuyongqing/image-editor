@@ -126,8 +126,12 @@ const treeData = reactive({
   hoverId: '',
   editNode: null,       // 正在编辑的
 })
+const currentPlatform = computed(() => {
+  // return props. platform;      // 分类对应平台
+  return 'public';      // 当前使用同一个公共平台
+})
 
-onMounted(() => {})
+onMounted(() => { });
 // 搜索
 watch(() => treeData.keyword, value => {
   treeSearch(value) 
@@ -196,7 +200,7 @@ async function getClassListFn(parentId) {
   try {
     let params = {
       "parentId": parentId,
-      "platform": props.platform,//平台
+      "platform": currentPlatform.value,//平台
     }
     let res = await getClassList(params);
     return res;
@@ -250,7 +254,7 @@ async function addIcon({ id, name, parentId }) {
     let params = {
       name: '新分类',
       parentId: id,
-      platform: props.platform
+      platform: currentPlatform.value
     }
     let { data: { data: editNode } } = await addClass(params);
     await getAllData();
@@ -270,7 +274,7 @@ async function addIcon({ id, name, parentId }) {
 }
 // 修改节点
 function editIcon({ id, name, parentId }) {
-  let obj = { id, name, parentId, platform: props.platform }
+  let obj = { id, name, parentId, platform: currentPlatform.value }
   treeData.editNode = obj
   nextTick(() => {
     _this.$refs.inputRef.focus()
