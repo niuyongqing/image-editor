@@ -174,7 +174,10 @@
           <template v-else-if="column.dataIndex == 'productTitle'">
             <div style="display: flex; flex-direction: column;">
               <div>{{ record[column.dataIndex] }}</div>
-              <div :style="record.remark ? `color: ${record.remark?.color};`:''">{{ record.remark ? `备注：${record.remark.content}`:'' }}</div>
+              <div 
+                :style="`color: ${record.remark.color};`"
+                v-if="record.remark?.content"
+              >{{ `备注：${record.remark.content}` }}</div>
             </div>
           </template>
           <template v-else-if="column.dataIndex == 'simpleDesc'">
@@ -201,7 +204,7 @@
           <template v-else-if="column.dataIndex === 'option'">
             <div class="option-btn-box">
               <div class="option-btn" @click="claim('acquisition', record)">认领</div>
-              <!-- <div class="option-btn" @click="acquisitionEdit(record)">编辑</div> -->
+              <div class="option-btn" @click="acquisitionEdit(record)">编辑</div>
               
               <a-dropdown>
                 <div class="option-btn" type="link" @click.prevent>
@@ -263,6 +266,7 @@
   import { collectProductList, deleteProduct, productStatCount, updateCategoryProduct } from '../js/api';
   import { receiveProductToWaitPublishApi } from '@/pages/ozon/config/api/draft.js';
   import { acquisitionHeader } from '../js/header';
+  import { platformList } from '../js/data';
   import { timestampToDateTime } from '~@/pages/lazada/fullyProduct/common';
   import dayjs from 'dayjs';
   import { message, Modal } from 'ant-design-vue';
@@ -291,40 +295,7 @@
         prop: 3,
       },
     ],
-    shopAccount: [
-      {
-        account: "shopee",
-        simpleName: "Shopee"
-      },
-      {
-        account: "alibaba",
-        simpleName: "阿里巴巴国际站"
-      },
-      {
-        account: "amazaon",
-        simpleName: "Amazon"
-      },
-      {
-        account: "taobao",
-        simpleName: "淘宝"
-      },
-      {
-        account: "tmall",
-        simpleName: "天猫"
-      },
-      {
-        account: "aliexpress",
-        simpleName: "速卖通"
-      },
-      {
-        account: "lazada",
-        simpleName: "Lazada"
-      },
-      {
-        account: "wb",
-        simpleName: "野莓（Wildberries）"
-      },
-    ],
+    shopAccount: platformList,
     searchType: [
       {
         label: "标题",
