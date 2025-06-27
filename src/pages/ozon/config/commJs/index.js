@@ -612,7 +612,7 @@ const createAndUpdateBaseObj = (targetObj, complexId, id, type) => {
     dictionaryValueId:
       keyStyle === "snake" ? "dictionary_value_id" : "dictionaryValueId",
   };
-
+ 
   // 通用值处理逻辑
   const processValues = () => {
     if (complexId === 100001) {
@@ -620,7 +620,7 @@ const createAndUpdateBaseObj = (targetObj, complexId, id, type) => {
       return [
         {
           [keyMap.dictionaryValueId]: 0,
-          value: processImageSource(targetObj.url),
+          value: processImageSource(targetObj),
         },
       ];
     }

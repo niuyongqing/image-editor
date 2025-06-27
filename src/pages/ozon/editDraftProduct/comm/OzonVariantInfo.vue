@@ -681,6 +681,7 @@ const batchStock = (type, row = {}) => {
         message.warning("请先添加sku！");
         return;
     }
+    getEditStore(props.shopCode);
     quantityRow.value = row;
     editQuantityVis.value = true;
     types.value = type
@@ -1141,11 +1142,6 @@ const checkOtherData = (data) => {
     return hasColorName && hasProductColor;
 }
 
-watch(() => props.shopCode, val => {
-    if (val) {
-        getEditStore(val)
-    }
-})
 const submitForm = () => {
     // 参数校验
     if (tableData.value.length === 0) {
