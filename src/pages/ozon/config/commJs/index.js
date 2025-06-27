@@ -276,7 +276,7 @@ const handleTheme = (list) => {
         isRequired: item.isRequired,
         id: item.id,
         name: item.name,
-        isRequired: item.isRequired,
+        isAspect: item.isAspect,
         categoryDependent: item.categoryDependent,
         isCollection: item.isCollection,
         selectType: item.selectType,

@@ -40,10 +40,6 @@
                                         <a-select v-model:value="record.modelValue" class="w-full"
                                             optionFilterProp="label" allowClear mode="multiple" placeholder="请选择"
                                             labelInValue @change="pushValue(index, items)" :options="record.details">
-                                            <!-- <a-select-option v-for="items in record.details" :key="items.id"
-                                                :label="items.label" :value="items">{{ items.label
-                                                }}
-                                            </a-select-option> -->
                                         </a-select>
                                     </div>
                                     <!-- 输入框 -->
@@ -210,63 +206,6 @@
                     </template>
                 </a-table>
             </a-card>
-            <!-- <a-card title="变种图片" class="text-left mx-50 mt-5">
-                <template #extra>
-                    <div style="padding: 3px 0;color: #99999a;" class="mr-2.5 float-right">
-                        <a-select v-model:value="watermarkValue" :disabled="!shopCode" class="w-50" placeholder="请选择水印"
-                            @change="selectWaterMark">
-                            <a-select-option v-for="wa in watermark" :key="wa.id" :label="wa.title" :value="wa.id">
-                                <div>
-                                    <span>{{ wa.title }} </span>
-                                    <a-image v-if="wa.type === 1" :src="wa.content"
-                                        style="width: 20px; height: 20px; margin-top: -10px"></a-image>
-                                    <span v-else>{{ wa.content }}</span>
-                                </div>
-                            </a-select-option>
-                        </a-select>
-                    </div>
-                    <span style="padding: 3px 0;color: #99999a;" class="mr-5 float-right">
-                        <a-input-number v-model:value="cropWidth" :disabled="!shopCode" placeholder="宽"
-                            controls-position="right" :controls="false"></a-input-number>
-                        X
-                        <a-input-number v-model:value="cropHeight" :disabled="!shopCode" placeholder="高"
-                            controls-position="right" :controls="false"></a-input-number>
-                        <a-button @click="crop" class="ml-2.5" :disabled="!shopCode">裁剪</a-button>
-                    </span>
-                    <a-button @click="selectAllImg" class="mr-5 mt-1" :disabled="!shopCode">{{ selectAll ? '取消选择全部图片' :
-                        '选择全部图片'
-                    }}</a-button>
-                </template>
-                <div>
-                    <a-tag color="warning">！说明</a-tag>
-                    <span style="color: #9fa0a2">
-                        第一张图片默认为主图，点击图片拖动，即可调整图片顺序！
-                        单张不超过2M，只支持jpg、.png、.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3：4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)</span>
-                </div>
-                <div class="mt-5">
-                    <div v-for="item in tableData" :key="item.id">
-                        <div v-if="tableData.length > 0">
-                            <a-card class="mb-2.5 ml-2.5">
-                                <div v-if="imgHeaderList.length > 0">
-                                    <div v-for="(e, i) in imgHeaderList" :key="i">
-                                        <div>
-                                            <span>{{ e.title }}:</span><span style="margin-left: 10px;">{{ item[e.title]
-                                            }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <span v-if="item.imageUrl" class="block mt-2.5">{{ item.imageUrl.length
-                                }}/30</span>
-                                <dragUpload @changeImg="(list) => changeImg(list, item)"
-                                    @singleSelectImg="(e) => singleSelectImg(e, item)" :imageList="item.imageUrl">
-                                </dragUpload>
-
-                            </a-card>
-                        </div>
-                    </div>
-                </div>
-            </a-card> -->
-
             <a-card title="变种图片" class="text-left mx-50 mt-5">
                 <div>
                     <div v-for="item in tableData" :key="item.id">
@@ -291,13 +230,6 @@
                                         </div>
                                     </template>
                                     <template #variantInfo>
-                                        <!-- <div v-if="lazadaAttrsState.selectTheme.length === 1">
-                                            {{ variantInfo(item) }}
-                                        </div>
-                                        <div text-left v-if="lazadaAttrsState.selectTheme.length === 2">
-                                            <p pb-1px mb-0> {{ variantInfo(item) }} </p>
-                                            <p> {{ variantInfoTwo(item) }} </p>
-                                        </div> -->
                                     </template>
                                     <template #skuInfo>
                                         {{ `【${item.imageUrl.length}/30】图片 ` }}
@@ -326,7 +258,6 @@ import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { message, Modal } from "ant-design-vue";
 import EditProdQuantity from './EditProdQuantity.vue';
-import dragUpload from './dragUpload.vue';
 import { scaleApi, watermarkListApi, watermarkApi } from "~/api/common/water-mark";
 import { productWarehouse } from "../../config/api/product"
 import SelectAttr from './SelectAttr.vue';
@@ -542,7 +473,18 @@ const removeVariantType = (item, index) => {
     headerList.value = headerList.value.filter(
         (e) => !(e.title == item.title)
     );
-    themeBtns.value.unshift(item);
+    let newThem = {
+        options: item.details,
+        show: false,
+        selectType: item.selectType,
+        id: item.id,
+        isRequired: item.isRequired,
+        categoryDependent: item.categoryDependent,
+        isCollection: item.isCollection,
+        name: item.name,
+        isAspect: item.isAspect,
+    }
+    themeBtns.value.unshift(newThem);
 }
 // 添加多个属性操作
 const addItem = (item, row) => {
