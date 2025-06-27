@@ -44,7 +44,7 @@ export function productStatCount(data) {
  */
 export function addRemark(data) {
   return request({
-    url: '/platform-common/remote/platform/common/collect/product/addRemark',
+    url: '/platform-common/platform/common/collect/product/addRemark',
     method: 'post',
     data: data
   })

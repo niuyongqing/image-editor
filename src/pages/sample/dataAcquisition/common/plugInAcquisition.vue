@@ -111,6 +111,10 @@ const platformList = [
     account: "lazada",
     simpleName: "Lazada"
   },
+  {
+    account: "wb",
+    simpleName: "野莓（Wildberries）"
+  },
 ]
 const pluginData = reactive({
   modalOpen: false,
