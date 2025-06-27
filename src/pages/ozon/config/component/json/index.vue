@@ -389,17 +389,15 @@ const uploadUrl =
   "/platform-ozon/platform/ozon/file/upload/img"
 
 
-watch(() => props.content, val => {
-  if (val.length > 0) {
+  watch(() => props.content, val => {
+  if (val?.length > 0) {
     // console.log('val', val);
     finallyObj.value = JSON.parse(val)
     const { content } = JSON.parse(val)
     // console.log('content',content);
-    let textObj = deepClone(textDefault)
-    let imgObj = deepClone(imgDefaulet)
-    let imgTextObj = deepClone(imgTextDefaulet)
     content?.forEach(item => {
       if (item.widgetName === 'raTextBlock') {
+        let textObj = deepClone(textDefault)
         item.title.content.join('\n')
         // console.log('content', typeof item.title.content.join('\n'));
         if (item.title.content.join('\n').length > 0) {
@@ -418,23 +416,24 @@ watch(() => props.content, val => {
         textObj.type = 'text'
         moduleList.value.push(textObj)
       } else if (item.widgetName === 'raShowcase') {
+        let imgObj = deepClone(imgDefaulet)
         if (item.type === 'roll') {
-          imgObj.img = item.blocks.map(item => {
+          imgObj.img = item.blocks.map(blockItem => {
             return {
               src: [
                 {
-                  url: processImageSource(item.img.src),
+                  url: processImageSource(blockItem.img.src),
                   checked: true,
                   id: uuidv4(),
-                  width: item.img.widthMobile,
-                  height: item.img.heightMobile,
+                  width: blockItem.img.widthMobile,
+                  height: blockItem.img.heightMobile,
                 }
               ],
               open: true,
-              jumpUrl: item.imgLink,
-              alt: item.img.alt,
+              jumpUrl: blockItem.imgLink,
+              alt: blockItem.img.alt,
               style: {
-                width: getKeyByValue(picPosition, item.img.position),
+                width: getKeyByValue(picPosition, blockItem.img.position),
                 select: 0,
                 margin: "0 auto",
                 display: "block"
@@ -445,47 +444,48 @@ watch(() => props.content, val => {
           imgObj.type = 'image'
           moduleList.value.push(imgObj)
         } else {
+          let imgTextObj = deepClone(imgTextDefaulet)
           imgObj.id = uuidv4()
           imgObj.type = 'text-image'
           imgTextObj.imgText.dataType = item.type
-          imgTextObj.imgText.dataList = item.blocks.map(item => {
+          imgTextObj.imgText.dataList = item.blocks.map(e => {
             return {
               src: [
                 {
-                  url: processImageSource(item.img.src),
+                  url: processImageSource(e.img.src),
                   checked: true,
                   id: uuidv4(),
-                  width: item.img.widthMobile,
-                  height: item.img.heightMobile,
+                  width: e.img.widthMobile,
+                  height: e.img.heightMobile,
                 }
               ],
               open: true,
               imgTextStyle: {
-                width: getKeyByValue(picPosition, item.img.position),
+                width: getKeyByValue(picPosition, e.img.position),
                 height: "100%",
                 select: 0,
                 margin: "0 auto",
                 display: "block"
               },
               title: {
-                content: item.title.content.join('\n').length > 0 ? item.title.content.join('\n') : "",
+                content: e.title.content.join('\n').length > 0 ? e.title.content.join('\n') : "",
                 active: "",
                 styles: {
-                  fontSize: getKeyByValue(sizeEnumObj, item.title.size),
-                  color: getKeyByValue(colorEnumObj, item.title.color),
-                  textAlign: item.title.align,
+                  fontSize: getKeyByValue(sizeEnumObj, e.title.size),
+                  color: getKeyByValue(colorEnumObj, e.title.color),
+                  textAlign: e.title.align,
                   width: '100%',
                   height: '100px',
                   marginTop: "20px"
                 },
               },
               text: {
-                content: item.text.content.join('\n').length > 0 ? item.text.content.join('\n') : "",
+                content: e.text.content.join('\n').length > 0 ? e.text.content.join('\n') : "",
                 active: "",
                 cStyles: {
-                  fontSize: getKeyByValue(sizeEnumObj, item.text.size),
-                  color: getKeyByValue(colorEnumObj, item.text.color),
-                  textAlign: item.text.align,
+                  fontSize: getKeyByValue(sizeEnumObj, e.text.size),
+                  color: getKeyByValue(colorEnumObj, e.text.color),
+                  textAlign: e.text.align,
                   width: '100%',
                   height: '100px',
                   marginTop: "20px"
@@ -498,7 +498,6 @@ watch(() => props.content, val => {
       }
     })
 
-    // console.log('moduleList', moduleList.value);
   }
 })
 
@@ -1269,7 +1268,6 @@ let tImgMenu = {
 }
 
 function rebackList(list) {
-  console.log('list', list);
   const aMap = list.reduce((acc, item) => {
     acc[item.id] = item;
     return acc;
@@ -1400,7 +1398,7 @@ function save() {
         break;
     }
   })
-  
+
   const newData = res.map(item => {
     return {
       ...item,
@@ -1409,10 +1407,10 @@ function save() {
           ...block,
           img: {
             ...block.img,
-            src: block.img.src.replace('/prod-api', ''),
-            srcMobile: block.img.srcMobile.replace('/prod-api', '')
-            // src: "https://www.xzerp.com/file/wish/upload/2025-03-22/2025/03/22/1_20250322160125A002.jpg",
-            // srcMobile: "https://www.xzerp.com/file/wish/upload/2025-03-22/2025/03/22/1_20250322160125A002.jpg"
+            // src: block.img.src.replace('/prod-api', ''),
+            // srcMobile: block.img.srcMobile.replace('/prod-api', '')
+            src: "https://www.xzerp.com/file/wish/upload/2025-06-24/2025/06/24/7017600413_20250624134545A024.jpg",
+            srcMobile: "https://www.xzerp.com/file/wish/upload/2025-06-24/2025/06/24/7017600413_20250624134545A024.jpg"
           }
         };
       })

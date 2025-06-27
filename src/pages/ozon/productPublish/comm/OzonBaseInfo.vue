@@ -33,15 +33,23 @@
                     </p>
                 </a-form-item>
                 <a-form-item label="产品属性：">
-                    <a-card shadow="never" v-loading="categoryAttributesLoading" style="
+                    <a-card shadow="never" :loading="categoryAttributesLoading" style="
                     position: relative;
                     width: 90%;
-                    height: 600px;
+                    max-height: 600px;
                     overflow-y: auto;
                     ">
+                        <!-- 展开收起 -->
+                        <div w-full sticky top-2 right-0 z-2 v-if="loopAttributes.length">
+                            <a-button class="flex justify-end" type="link" @click="isExpand = !isExpand"> {{ isExpand
+                                ?
+                                '- 收起'
+                                : '+ 展开'
+                            }}</a-button>
+                        </div>
                         <a-form ref="ruleForm2" :model="form.attributes" :label-col="{ span: 5 }" :rules="rules2"
                             style="margin-top: 25px">
-                            <div v-for="(item, index) in loopAttributes" :key="index"
+                            <div v-for="(item, index) in sortAttrs(loopAttributes)" :key="index"
                                 style="margin: 10px; flex: 0 0 auto">
                                 <a-form-item :name="item.name" v-if="item.show">
                                     <template #label>
@@ -66,8 +74,9 @@
                                     ">
                                         <div v-if="item.options && item.options.length > 25">
                                             <a-select optionFilterProp="label" show-search
-                                                v-model:value="item.selectDate" allowClear style="width: 200px"
-                                                placeholder="请输入内容" labelInValue>
+                                                v-model:value="item.selectDate" allowClear
+                                                style="width: 200px;margin-bottom: 5px;" placeholder="请输入内容"
+                                                labelInValue>
                                                 <!-- :options="item.options" @change="handlerChangeSelectDate"-->
                                                 <a-select-option :value="v" :label="v.label"
                                                     v-for="(v, i) in item.options" :key="i">{{ v.label
@@ -78,7 +87,8 @@
                                         </div>
                                         <a-form-item-rest>
                                             <a-checkbox-group v-model:value="form.attributes[item.name]"
-                                                style="width: 80%;" @change="changeRule(form.attributes, item.name)"
+                                                style="width: 80%;" class="boxGroup"
+                                                @change="changeRule(form.attributes, item.name)"
                                                 :options="item.acquiesceList">
                                                 <!--  :options="item.acquiesceList" v-model:checked="option.value" -->
                                                 <!-- <a-checkbox v-for="option in item.acquiesceList" :key="option.value">
@@ -92,7 +102,7 @@
                                     <a-select optionFilterProp="label" show-search
                                         v-model:value="form.attributes[item.name]" v-if="item.selectType === 'select'"
                                         labelInValue :style="'width: 80%'" allowClear>
-                                        <a-select-option v-if="item.name == '品牌(Бренд)'" :value="'无品牌'"
+                                        <a-select-option v-if="item.id == 85" :value="'无品牌'"
                                             :label="'无品牌'">无品牌</a-select-option>
 
                                         <a-select-option :value="v" :label="v.label" v-else
@@ -102,6 +112,7 @@
                                 </a-form-item>
                             </div>
                         </a-form>
+
                     </a-card>
                 </a-form-item>
             </a-form>
@@ -163,9 +174,10 @@ const rules = {
     },
 }
 const rules2 = ref({})
-const loopAttributes = ref({})
+const loopAttributes = ref([])
 const categoryTreeList = ref([])
 const historyCategoryList = ref([])
+const isExpand = ref(false)
 const vatList = [
     {
         label: "免税",
@@ -221,6 +233,7 @@ const getHistoryList = (shortCode) => {
     if (!form.shortCode) {
         return;
     }
+    form.vat = "0"
     emit("sendShortCode", shortCode);
     historyCategory({ account: form.shortCode })
         .then((res) => {
@@ -309,9 +322,9 @@ const getHistoryAttr = (historyCategoryId, account) => {
         let resObj = (res?.data && JSON.parse(res?.data)) || {};
         // this.$set(this.form, "attributes", resObj);
         // form.attributes = resObj
-        form.attributes = assignValues(resObj,loopAttributes.value)
-        console.log('attributes',form.attributes);
-        
+        form.attributes = assignValues(resObj, loopAttributes.value)
+        console.log('attributes', form.attributes);
+
         // // this.form.attributes = res?.data
         // //   ? JSON.parse(res?.data)
         // //   : this.form.attributes;
@@ -341,13 +354,13 @@ const assignValues = (a, b) => {
                     });
                     result[name] = filteredItems.map((e) => e.value);
                 } else if (selectType === "select") {
-                    console.log('sss',a,key,a[key]);
+                    console.log('sss', a, key, a[key]);
                     let filteredItems =
                         item?.options &&
-                        item?.options?.find((e) =>e.value === a[key] || e.value === a[key].value);
+                        item?.options?.find((e) => e.value === a[key] || e.value === a[key].value);
                     result[name] = name == "品牌(Бренд)" ? {
                         label: "无品牌",
-                        value:{
+                        value: {
                             label: "无品牌",
                             value: "无品牌"
                         }
@@ -369,8 +382,11 @@ const addItemValues = (obj) => {
     );
     //!  判断搜索出来的是否在初始的数组中显示
     if (isExist) {
-        attributes[obj.name]?.push(obj.selectDate.value);
+        const attr =  attributes[obj.name] || [];
+        attr?.push(obj.selectDate.value);
+        attributes[obj.name] = attr
     } else {
+        attributes[obj.name] = attributes[obj.name] || []
         attributes[obj.name]?.push(obj.selectDate.value);
         obj.acquiesceList.push(obj.selectDate);
     }
@@ -397,6 +413,15 @@ const childForm = async () => {
     // 所有表单都校验通过，返回 true
     return true;
 }
+
+const sortAttrs = (attrs) => {
+    // 如果是展开
+    if (isExpand.value) {
+        return attrs || []
+    } else {
+        return attrs?.filter(item => item.isRequired) || []
+    }
+};
 
 // 抛出数据和方法，可以让父级用ref获取
 defineExpose({
@@ -444,7 +469,7 @@ watch(() => useOzonProductStore().attributes, (val) => {
                     a.attributeComplexId == "100002"
                 )
         );
-   
+
         let noThemeAttributesCache = newAttributesCache.filter(
             (a) => !a.isAspect
         );
@@ -466,7 +491,7 @@ watch(() => useOzonProductStore().attributes, (val) => {
                     label: "",
                     value: ""
                 };
-                if(item.id === 9070) {
+                if (item.id === 9070) {
                     item.options = item?.options?.map(item => {
                         return {
                             ...item,
@@ -474,7 +499,7 @@ watch(() => useOzonProductStore().attributes, (val) => {
                             value: item.value,
                         }
                     })
-                }else {
+                } else {
                     item.options = item?.options?.map(item => {
                         return {
                             ...item,
@@ -486,6 +511,10 @@ watch(() => useOzonProductStore().attributes, (val) => {
                 item.acquiesceList =
                     (item.options && item.options.slice(0, 25)) ?? [];
                 attributes[item.name] = item.selectType === "multSelect" ? [] : undefined;
+                // attributes["品牌(Бренд)"] = {
+                //     label: "无品牌",
+                //     value: "无品牌"
+                // }
             });
             // console.log("filterAttributesCache", noThemeAttributesCache);
 
@@ -509,6 +538,8 @@ watch(() => useOzonProductStore().attributes, (val) => {
             form.attributes = attributes;
             loopAttributes.value = noThemeAttributesCache;
 
+            // console.log("noThemeAttributesCache", form.attributes);
+            // console.log("loopAttributes.value", loopAttributes.value);
         }
         if (!form.shortCode || !form.categoryId) return;
         getHistoryAttr(
@@ -517,5 +548,36 @@ watch(() => useOzonProductStore().attributes, (val) => {
         );
     }
 })
+
+watch(() => form.attributes, (val) => {
+    form.attributes["品牌(Бренд)"] = {
+        label: "无品牌",
+        value: "无品牌"
+    }
+})
 </script>
-<style lang="less" scoped></style>
+<style lang="less" scoped>
+:deep(.ant-form) {
+    .ant-form-item {
+        margin-bottom: 30px;
+    }
+}
+
+:deep(.boxGroup) {
+    .ant-checkbox-wrapper {
+        margin-bottom: 5px;
+
+        &>span {
+            &:last-child {
+                width: 130px;
+                overflow: hidden;
+                /* 隐藏溢出内容 */
+                text-overflow: ellipsis;
+                /* 当文本溢出时显示省略号 */
+                white-space: nowrap;
+                /* 禁止文本换行 */
+            }
+        }
+    }
+}
+</style>

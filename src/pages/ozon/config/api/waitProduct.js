@@ -50,10 +50,10 @@ export function ozonProductDetail(data) {
   });
 }
 
-// 待发布--发布
+// 待发布--批量发布
 export function ozonProductPublish(data) {
   return request({
-    url: "/platform-ozon/platform/ozon/wait/product/publish",
+    url: "/platform-ozon/platform/ozon/wait/product/batch/publish",
     method: "post",
     data: data,
   });
@@ -74,5 +74,42 @@ export function saveTowaitProduct(data) {
     url: '/platform-ozon/platform/ozon/wait/product/save',
     method: 'post',
     data:data
+  })
+}
+
+// 待发布数量统计
+export function statistics(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/wait/product/statistics/state',
+    method: 'post',
+    data:data
+  })
+}
+
+
+// 待发布导出
+export function waitExport(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/wait/product/export',
+    method: 'post',
+    data:data
+  })
+}
+
+// 批量修改售价、原价等
+export function waitBathUpdate(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/wait/product/bath/update',
+    method: 'post',
+    data:data
+  })
+}
+
+// 编辑页面发布
+export function productPublish(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/wait/product/publish',
+    method: 'post',
+    data
   })
 }

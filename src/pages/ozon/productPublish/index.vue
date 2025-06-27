@@ -15,7 +15,7 @@
                 @sendShortCode="sendShortCode" :categoryAttributesLoading="categoryAttributesLoading"></ozon-base-info>
             <br />
             <!-- 图片信息 -->
-            <ozon-new-image-info ref="ozonImageInfoRef" id="OzonNewImageInfo"
+            <ozon-new-image-info ref="ozonImageInfoRef" id="ozonNewImageInfo"
                 :shopCode="formData.shortCode"></ozon-new-image-info>
             <br />
             <!-- sku :attributes="attributes" -->
@@ -103,6 +103,10 @@ const backToTop = () => {
             behavior: 'smooth'
         });
     }
+}
+// 锚点滚动
+const scroll = (id) => {
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth' })
 }
 // 资料库点击
 const selectProduct = () => { }
@@ -223,7 +227,7 @@ const onSubmit = async (type = 1) => {
                 a.attributeComplexId == "100001" || a.attributeComplexId == "100002"
             )
     );
-    // console.log('newList',newList);
+    console.log('newList',newList);
 
     let warehouse = []
     tableDatas.forEach((item) => {
@@ -311,11 +315,9 @@ const onSubmit = async (type = 1) => {
                     }
                     break;
                 case "select":
-                    [newId, newVal] = getSelectValue(attr, base);
+                    [newId, newVal] = getSelectValue(attr, base,item);
                     if (isNotEmpty(newVal)) {
                         const selectValueObj = createValueObj(newId, newVal);
-                        console.log('selectValueObj', selectValueObj);
-
                         moditAttributes.push(createAttrItem(attr, [selectValueObj]));
                     }
                     break;
@@ -374,10 +376,10 @@ const onSubmit = async (type = 1) => {
                 color_image: item?.colorImg[0]?.url.replace('/prod-api', '') ?? "", // 非必填
                 // color_image: "https://www.xzerp.com/file/wish/upload/2025-03-22/2025/03/22/2_20250322160055A001.jpg",
                 images: item.imageUrl && item?.imageUrl?.map(e => e.url.replace('/prod-api', '')),
-                // images: [
-                //     "https://www.xzerp.com/file/wish/upload/2025-03-22/2025/03/22/7017600413_20250322155935A001.jpg ",
-                //     "https://www.xzerp.com/file/wish/upload/2025-03-22/2025/03/22/3_20250322160037A001.jpg"
-                // ],
+                images: [
+                    "https://www.xzerp.com/file/wish/upload/2025-06-24/2025/06/24/2_20250624134556A024.jpg",
+                    "https://www.xzerp.com/file/wish/upload/2025-06-24/2025/06/24/7017600413_20250624134545A024.jpg"
+                ],
                 offer_id: item.sellerSKU,
                 old_price: item.oldPrice, // 非必填
                 price: item.price,
@@ -412,7 +414,7 @@ const onSubmit = async (type = 1) => {
             }
         }
     });
-
+    console.log('resItem', resItem);
     if (type == 1) {
         let params = {
             account: base.shortCode,

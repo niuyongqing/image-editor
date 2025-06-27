@@ -149,6 +149,20 @@ export default {
         let downloader = new FileDownloader(params)
         downloader.startDownload()
     },
+    /**
+     * 
+     * @param {*} name 下载之后的文件名
+     * @param {*} path 目标文件路径
+     */
+    url(path) {
+        let fileName = path.split('/')[path.split('/').length - 1]
+        let params = {
+            url: (baseURL + path),
+            fileName,
+        }
+        let downloader = new FileDownloader(params)
+        downloader.startDownload()
+    },
     resource(resource) {
         var url = baseURL + "/common/download/resource?resource=" + encodeURI(resource);
         axios({
