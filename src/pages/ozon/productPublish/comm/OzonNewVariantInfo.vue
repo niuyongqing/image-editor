@@ -599,62 +599,48 @@ const removeItem = (item, row) => {
     } else if (item.id === 4295) {
         row.tableData.splice(ind, 1);
     } else {
-        row.tableData = row.tableData.filter(el => el.id !== item.id);
-    }
-    let newData = [];
-    for (let i = 0; i < tableData.value.length; i++) {
-        let hasValueFour = false;
-        for (let key in tableData.value[i]) {
-            if ((item.selectType === 'input' && tableData.value[i][key] === item.modelValue) ||
-                (item.selectType === 'multSelect' &&
-                    tableData.value[i][key] === item?.modelValue?.map((val) => val.label).join(","))) {
-
-                hasValueFour = true;
-                break;
-            }
-        }
-        if (!hasValueFour) {
-            newData.push(tableData.value[i]);
+        if (item.selectType === "select") {
+            row.tableData = row.tableData.filter(tableItem => {
+                // 检查当前项的modelValue是否包含排除ID
+                return tableItem.modelValue.value != item.modelValue.value;
+            });
+        } else if (item.selectType === "input") {  // 新增input类型处理
+            row.tableData = row.tableData.filter(tableItem =>
+                tableItem.modelValue !== item.modelValue
+            );
         } else {
-            newData = [...tableData.value]
+            // 获取需要排除的ID集合
+            const excludeIds = item.modelValue.map(mv => mv.id); // [971918068]
+            // 过滤掉包含这些ID的项
+            row.tableData = row.tableData.filter(tableItem => {
+                // 检查当前项的modelValue是否包含排除ID
+                return !tableItem.modelValue.some(mv => excludeIds.includes(mv.id));
+            });
         }
     }
-    console.log('newData', newData);
+    let newData = tableData.value.filter(row => {
+    // 获取所有需要删除的标签
+    const deletedLabels = item.selectType === 'multSelect'
+      ? item.modelValue.map(v => v.label)
+      : [];
+
+    // 检查行数据是否包含要删除的属性值
+    return !Object.values(row).some(value => {
+      if (item.selectType === 'multSelect') {
+        // 统一处理数组和字符串类型的值
+        const currentValues = Array.isArray(value)
+          ? value.map(v => v?.label || '')
+          : String(value || '').split(',');
+        return currentValues.some(v => deletedLabels.includes(v));
+      }
+      return item.selectType === 'input' ? value === item.modelValue
+        : item.selectType === 'select' ? value === item?.modelValue?.label
+          : false;
+    });
+  });
 
     tableData.value = newData
-}
-
-// 笛卡尔算法步骤1 初始写法
-// const processResult = (productList) => {
-//     return productList.map((product) => {
-//         let output = {
-//             skuTitle: "",
-//             sellerSKU: "",
-//             price: "",
-//             oldPrice: "",
-//             quantity: undefined,
-//             warehouseList: [],
-//             packageLength: undefined,
-//             packageWidth: undefined,
-//             packageHeight: undefined,
-//             packageWeight: undefined,
-//             imageUrl: [],
-//             colorImg: [],
-//             id: Math.random().toString(36).substring(2, 10),
-//         };
-//         product.forEach((item) => {
-//             let values =
-//                 item.selectType === "multSelect"
-//                     ? item?.modelValue?.map((val) => val.label).join(",")
-//                     : item.selectType === "select" ? item.modelValue?.label : item.modelValue;  //原写法 item.modelValue.value 
-//             output[item.name] = values;
-//             output['secondName'] = item?.secondModelValue || "";
-//             output[item.secondName] = item?.secondModelValue || "";
-//         });
-//         return output;
-//     });
-// }
-
+};
 
 // 将根据主题中选择的数据进行添加到表格中
 const pushValue = (index, item) => {
@@ -666,14 +652,8 @@ const pushValue = (index, item) => {
     }
     // 处理表格数据
     let cartesianProducts = cartesianProduct(attributeList.value);
-    console.log("cartesianProducts", cartesianProducts);
-
     let newTableData = processResult(cartesianProducts);
-    console.log("newTableData", newTableData);
     let minLength = Math.min(newTableData.length, tableData.value.length);
-    console.log("newTableData1", newTableData);
-
-    console.log("newTableData", tableData.value);
     for (let i = 0; i < minLength; i++) {
         // 将b数组中对应下标的数据赋值到a数组中
         newTableData[i].skuTitle = tableData.value[i].skuTitle;

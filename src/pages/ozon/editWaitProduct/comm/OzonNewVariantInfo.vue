@@ -649,66 +649,10 @@ const removeItem = (item, row) => {
     });
   });
 
-
-  // let newData = [];
-  // for (let i = 0; i < tableData.value.length; i++) {
-  //   let hasValueFour = false;
-  //   for (let key in tableData.value[i]) {
-  //     if (
-  //       (item.selectType === "input" &&tableData.value[i][key] === item.modelValue) ||
-  //       (item.selectType === "multSelect" && tableData.value[i][key] ===
-  //         item?.modelValue?.map((val) => val.label).join(",")) ||
-  //       (item.selectType === "select" &&
-  //         tableData.value[i][key] ===
-  //         item?.modelValue?.label)
-  //     ) {
-  //       hasValueFour = true;
-  //       break;
-  //     }
-  //   }
-  //   if (!hasValueFour) {
-  //     newData.push(tableData.value[i]);
-  //   } else {
-  //     newData = [...tableData.value]
-  //   }
-  // }
   console.log("newData", newData);
 
   tableData.value = newData;
 };
-
-// 笛卡尔算法步骤1 初始写法
-// const processResult = (productList) => {
-//   return productList.map((product) => {
-//     let output = {
-//       skuTitle: "",
-//       sellerSKU: "",
-//       price: "",
-//       oldPrice: "",
-//       quantity: undefined,
-//       warehouseList: [],
-//       packageLength: undefined,
-//       packageWidth: undefined,
-//       packageHeight: undefined,
-//       packageWeight: undefined,
-//       imageUrl: [],
-//       colorImg: [],
-//       id: Math.random().toString(36).substring(2, 10),
-//     };
-//     product.forEach((item) => {
-//       console.log("item方法", item);
-
-//       let values =
-//         item.selectType === "multSelect"
-//           ? item?.modelValue?.map((val) => val.label).join(",")
-//           : item.selectType === "select" ? item.modelValue.label : item.modelValue;  //原写法 item.modelValue.value 
-//       output[item.name] = values;
-//       output['secondName'] = item?.secondModelValue || "";
-//       output[item.secondName] = item?.secondModelValue || "";
-//     });
-//     return output;
-//   });
-// }
 
 // 将根据主题中选择的数据进行添加到表格中
 const pushValue = (index, item) => {
@@ -719,13 +663,8 @@ const pushValue = (index, item) => {
   }
   // 处理表格数据
   let cartesianProducts = cartesianProduct(attributeList.value);
-  console.log("cartesianProducts", cartesianProducts);
-
   let newTableData = processResult(cartesianProducts);
-  console.log("111newTableData", newTableData);
-
   let minLength = Math.min(newTableData.length, tableData.value.length);
-  console.log("newTableData", newTableData, headerList.value, minLength);
   for (let i = 0; i < minLength; i++) {
     // 将b数组中对应下标的数据赋值到a数组中
     newTableData[i].skuTitle = tableData.value[i].skuTitle;
