@@ -456,6 +456,12 @@ const getEditStore = (account) => {
     });
 }
 
+// 获取水印列表
+const getWatermark = () => {
+  watermarkListApi().then((res) => {
+    watermark.value = res.data;
+  });
+};
 
 const judgeMax = (item) => {
     const { price, oldPrice } = item;
@@ -681,6 +687,8 @@ watch(() => useOzonProductStore().attributes, val => {
         console.log("tableData", item);
     }
 })
-
+onMounted(() => {
+  getWatermark();
+});
 </script>
 <style lang="less" scoped></style>

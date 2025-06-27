@@ -791,6 +791,13 @@ const getEditStore = (account) => {
   });
 };
 
+// 获取水印列表
+const getWatermark = () => {
+  watermarkListApi().then((res) => {
+    watermark.value = res.data;
+  });
+};
+
 const judgeMax = (item) => {
   const { price, oldPrice } = item;
   // 检查 price 和 oldPrice 是否为空或 null
@@ -1282,6 +1289,9 @@ function validateRow(row) {
 defineExpose({
   tableData,
   submitForm,
+});
+onMounted(() => {
+  getWatermark();
 });
 </script>
 <style lang="less" scoped>

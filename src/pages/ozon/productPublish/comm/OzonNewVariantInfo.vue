@@ -989,6 +989,13 @@ const judgeMax = (item) => {
   }
 };
 
+// 获取水印列表
+const getWatermark = () => {
+  watermarkListApi().then((res) => {
+    watermark.value = res.data;
+  });
+};
+
 const getEditStore = (account) => {
   let params = {
     account: [account],
@@ -1188,6 +1195,9 @@ function validateRow(row) {
 defineExpose({
   tableData,
   submitForm,
+});
+onMounted(() => {
+  getWatermark();
 });
 </script>
 <style lang="less" scoped>
