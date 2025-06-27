@@ -26,21 +26,27 @@
                 <a-form-item label="店铺: " name="shortCode"
                     :rules="[{ required: true, message: '请选择店铺', trigger: ['change'] }]">
                     <div flex>
-                        <a-select class="flex w-full justify-start" v-model:value="state.shortCode" placeholder="请选择店铺"
-                            @change="changeShortCode" allowClear :options="shortCodes"
-                            :fieldNames="{ label: 'simpleName', value: 'shortCode' }" style="width: 250px;">
-                        </a-select>
+                        <a-form-item-rest>
+                            <a-select class="flex w-full justify-start" v-model:value="state.shortCode" placeholder="请选择店铺"
+                                @change="changeShortCode" allowClear :options="shortCodes"
+                                :fieldNames="{ label: 'simpleName', value: 'shortCode' }" style="width: 250px;">
+                            </a-select>
+                        </a-form-item-rest>
                         <div flex ml-10px v-if="type">
                             <span> 同步发布到其他站点： </span>
-                            <a-checkbox style="margin-right: 10px" v-model:checked="checkAll"
-                                @change="handleCheckAllChange">
-                                全部
-                            </a-checkbox>
-                            <a-checkbox-group v-model:value="state.ventures" @change="checkedCitiesChange">
-                                <a-checkbox v-for="item in globalArea" :value="item.value" :key="item.value">
-                                    {{ item.label }}
+                            <a-form-item-rest>
+                                <a-checkbox style="margin-right: 10px" v-model:checked="checkAll"
+                                    @change="handleCheckAllChange">
+                                    全部
                                 </a-checkbox>
-                            </a-checkbox-group>
+                            </a-form-item-rest>
+                            <a-form-item-rest>
+                                <a-checkbox-group v-model:value="state.ventures" @change="checkedCitiesChange">
+                                    <a-checkbox v-for="item in globalArea" :value="item.value" :key="item.value">
+                                        {{ item.label }}
+                                    </a-checkbox>
+                                </a-checkbox-group>
+                            </a-form-item-rest>
                         </div>
                     </div>
                 </a-form-item>

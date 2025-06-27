@@ -86,6 +86,7 @@
 import { useResetReactive } from '@/composables/reset';
 import dayjs from 'dayjs';
 import { lazadaCategoryTree } from '@/pages/lazada/product/api';
+import { message } from "ant-design-vue";
 
 const { shortCodes = [] } = defineProps({
     shortCodes: {
@@ -201,9 +202,13 @@ const changeSite = (value) => {
     const findItem = shortCodes.find((item) => {
         return item.country === value
     })
+    console.log("shortCodes", findItem, value);
+
     if (!findItem) {
         state.primaryCategoryId = undefined;
         primaryCategoryOptions.value = [];
+        message.error("站点下没有产品分类，请重新选择！")
+        return
     };
     lazadaCategoryTree({ shortCode: findItem.shortCode }).then((categoryTreeRes) => {
         if (categoryTreeRes.code === 200) {

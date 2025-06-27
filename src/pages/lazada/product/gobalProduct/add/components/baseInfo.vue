@@ -1,7 +1,7 @@
 <template>
     <div class="mt-10px">
         <!-- 基本信息 -->
-        <a-tag color="orange" style="width: 100%;" v-show="state.shortCode">
+        <a-tag color="orange" style="width: 100%;">
             <div class="tag-title"> 6合1发布功能——特别说明： </div>
             <div pt-5px>
                 <p class="tag-content">
@@ -26,37 +26,46 @@
                 <a-form-item label="店铺: " name="shortCode"
                     :rules="[{ required: true, message: '请选择店铺', trigger: ['change'] }]">
                     <div flex>
-                        <a-select class="flex w-full justify-start" v-model:value="state.shortCode" placeholder="请选择店铺"
-                            @change="changeShortCode" allowClear :options="shortCodes"
-                            :fieldNames="{ label: 'simpleName', value: 'shortCode' }" style="width: 250px;">
-                        </a-select>
+                        <a-form-item-rest>
+                            <a-select class="flex w-full justify-start" v-model:value="state.shortCode"
+                                placeholder="请选择店铺" @change="changeShortCode" allowClear :options="shortCodes"
+                                :fieldNames="{ label: 'simpleName', value: 'shortCode' }" style="width: 250px;">
+                            </a-select>
+                        </a-form-item-rest>
                         <div flex ml-10px>
                             <span> 同步发布到其他站点： </span>
-                            <a-checkbox style="margin-right: 10px" v-model:checked="checkAll"
-                                @change="handleCheckAllChange">
-                                全部
-                            </a-checkbox>
-                            <a-checkbox-group v-model:value="state.ventures" @change="checkedCitiesChange">
-                                <a-checkbox v-for="item in globalArea" :value="item.value" :key="item.value">{{
-                                    item.label
-                                }}</a-checkbox>
-                            </a-checkbox-group>
+                            <a-form-item-rest>
+                                <a-checkbox style="margin-right: 10px" v-model:checked="checkAll"
+                                    @change="handleCheckAllChange">
+                                    全部
+                                </a-checkbox>
+                            </a-form-item-rest>
+                            <a-form-item-rest>
+                                <a-checkbox-group v-model:value="state.ventures" @change="checkedCitiesChange">
+                                    <a-checkbox v-for="item in globalArea" :value="item.value" :key="item.value">{{
+                                        item.label
+                                        }}</a-checkbox>
+                                </a-checkbox-group>
+                            </a-form-item-rest>
                         </div>
                     </div>
                 </a-form-item>
-                {{ state.primaryCategory }}
-                <a-form-item label="分类:" name="primaryCategory" :rules="[{ required: true, message: '请选择分类' }]">
-                    <a-cascader :showSearch="showSearchConfig" class="flex w-full justify-start"
-                        v-model:value="state.primaryCategory" :options="primaryCategoryOptions" placeholder="请先选择店铺"
-                        allowClear :fieldNames="{ label: 'name2', value: 'categoryId', children: 'children' }"
-                        @change="changePrimaryCategory">
-                        <template #notFoundContent>
-                            <div w-full h-300px flex items-center justify-center m-auto>
-                                <a-spin :spinning="true" tip="正在加载中..." m-auto>
-                                </a-spin>
-                            </div>
-                        </template>
-                    </a-cascader>
+                <a-form-item label="Global Plus：" name="gpList">
+                    <div text-left ml-1>
+                        <a-form-item-rest>
+                            <a-checkbox style="margin-right: 10px" v-model:checked="checkSkuVAll"
+                                @change="onChangeCheckAll">
+                                全部
+                            </a-checkbox>
+                        </a-form-item-rest>
+                        <a-form-item-rest>
+                            <a-checkbox-group v-model:value="state.skuVentures" @change="onChangeCheck">
+                                <a-checkbox v-for="item in globalArea" :value="item.value" :key="item.value">{{
+                                    item.label
+                                    }}</a-checkbox>
+                            </a-checkbox-group>
+                        </a-form-item-rest>
+                    </div>
                 </a-form-item>
             </a-form>
         </a-card>
@@ -66,59 +75,69 @@
 <script setup>
 import { DownOutlined } from "@ant-design/icons-vue";
 import { useResetReactive } from '@/composables/reset';
-import { accountCache, categoryTree, categoryAttributesApi } from '@/pages/lazada/product/api';
+import { accountCache, categoryTree } from '@/pages/lazada/product/api';
 import EventBus from "~/utils/event-bus";
 import { useLazadaGobalAttrs } from "~@/stores/lazadaGobalAttrs";
-const { state: lazadaAttrsState, setShortCode, setPrimaryCategory, setLazadaAttrs, setLoading, setVentures } = useLazadaGobalAttrs();
+import { debounce } from "lodash-es";
 
-const checkAll = ref(false);
-const globalArea = [{
-    label: "印度尼西亚",
-    value: "ID"
-},
-{
-    label: "菲律宾",
-    value: "PH"
-},
-{
-    label: "新加坡",
-    value: "SG"
-},
-{
-    label: "泰国",
-    value: "TH"
-},
-{
-    label: "越南",
-    value: "VN"
-},
-    // {
-    //     label: "马来西亚",
-    //     value: "MY"
-    // }
+const { state: lazadaAttrsState, setShortCode, setVentures } = useLazadaGobalAttrs();
+
+const checkAll = ref(true);
+const checkSkuVAll = ref(true);
+const globalArea = [
+    {
+        label: "马来西亚",
+        value: "MY"
+    },
+    {
+        label: "印度尼西亚",
+        value: "ID"
+    },
+    {
+        label: "菲律宾",
+        value: "PH"
+    },
+    {
+        label: "新加坡",
+        value: "SG"
+    },
+    {
+        label: "泰国",
+        value: "TH"
+    },
+    {
+        label: "越南",
+        value: "VN"
+    }
 ];
 const shortCodes = ref([]); // 店铺列表
 const formEl = useTemplateRef('formRef');
-const primaryCategoryLoading = ref(false);
-const primaryCategoryOptions = ref([]); // 分类列表
-const attributes = ref([]); // 分类 属性列表
 const { state } = useResetReactive({
     shortCode: undefined,
-    primaryCategory: undefined,
-    ventures: [],
+    primaryCategory: [],
+    ventures: ["MY", "ID", "PH", "SG", "TH", "VN"],
+    skuVentures: ["MY", "ID", "PH", "SG", "TH", "VN"]
 });
-const showSearchConfig = {
-    filter: (inputValue, path) => {
-        return path.some(option => option.name2.toLowerCase().includes(inputValue.toLowerCase()));
-    }
+
+const onChangeCheckAll = (e) => {
+    const selectOptions = globalArea.map(item => item.value);
+    state.skuVentures = e.target.checked ? selectOptions : [];
+    setVentures(state.skuVentures);
 };
+const onChangeCheck = (checkedList) => {
+    checkSkuVAll.value = checkedList.length === globalArea.length;
+    setVentures(checkedList);
+};
+
 const handleCheckAllChange = (value) => {
     if (checkAll.value) {
         state.ventures = globalArea.map(v => v.value)
+        state.skuVentures = globalArea.map(v => v.value)
     } else {
         state.ventures = []
+        state.skuVentures = []
     };
-    setVentures(state.ventures);
+    setVentures(state.skuVentures);
 };
 
 const checkedCitiesChange = (value) => {
@@ -127,7 +146,8 @@ const checkedCitiesChange = (value) => {
     } else {
         checkAll.value = false
     };
-    setVentures(state.ventures);
+    state.skuVentures = value;
+    setVentures(state.skuVentures);
 };
 
 async function getShortCodes() {
@@ -141,60 +161,11 @@ async function getShortCodes() {
     };
 };
 
-async function getCategorys() {
-    primaryCategoryLoading.value = true;
-    const categoryTreeRes = await categoryTree({ shortCode: state.shortCode });
-    if (categoryTreeRes.code === 200) {
-        primaryCategoryLoading.value = false;
-        const data = categoryTreeRes.data || [];
-        function treeToArr(arr) {
-            arr.forEach(item => {
-                item.name2 = item.name + ' ( ' + item.translateName + ' )'
-                if (item.children && item.children.length > 0) {
-                    treeToArr(item.children)
-                }
-                if (!item.children || item.children.length === 0) {
-                    delete item.children
-                }
-            })
-            return arr
-        };
-        primaryCategoryOptions.value = treeToArr(data)
-    };
-};
 
-// 获取分类属性
-async function getAttributes() {
-    if (!state.primaryCategory.length) return;
-    setLoading(true);
-    categoryAttributesApi({
-        shortCode: state.shortCode,
-        primaryCategoryId: state.primaryCategory[state.primaryCategory.length - 1]
-    }).then((res) => {
-        if (res.code === 200) {
-            attributes.value = res.data || [];
-            setLazadaAttrs(attributes.value);
-            EventBus.emit('gobalAddAttrsEmit');
-        }
-    })
-};
 
 const changeShortCode = (value) => {
-    getCategorys();
     setShortCode(value);
-    state.primaryCategory = undefined;
-    setLazadaAttrs([])
     EventBus.emit('gobalAddShortCodeEmit', value);
-};
-
-const changePrimaryCategory = (value) => {
-    setPrimaryCategory(value);
-    getAttributes(value)
-};
-
-// 分类校验
-async function validateCodeRule() {
-    return await formEl.value.validateFields(['primaryCategory']);
 };
 
 // 表单校验
@@ -210,6 +181,10 @@ async function validateForm() {
         })
     })
 }
+
+
+
+
 const emits = defineEmits(['valid']);
 defineExpose({
     state,
@@ -218,7 +193,6 @@ defineExpose({
 
 onMounted(() => {
     getShortCodes();
-    validateCodeRule();
 });
 </script>
 

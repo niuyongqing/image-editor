@@ -23,19 +23,21 @@
         </div>
         <p class="pull-left p-top8 f-red f13">注：批量修改后,变种信息将同步更改</p>
         <template #footer>
-            <a-button @click="cancel">取 消</a-button>
-            <a-button type="primary" @click="save">确定</a-button>
+            <a-button :loading="loading" @click="cancel">取 消</a-button>
+            <a-button :loading="loading" type="primary" @click="save">确定</a-button>
         </template>
     </a-modal>
 </template>
 
 <script setup>
-import { batchStore } from '@/pages/lazada/product/api';
+import { batchPrice } from '@/pages/lazada/product/api';
 import { message } from 'ant-design-vue';
 
 const acceptParams = ref({});
+const skuItem = ref({});
 const isBatch = ref(false);
 const dialogVisible = ref(false);
+const loading = ref(false);
 const radio = ref(1);
 const setNum = ref(null);
 const stockRule = ref(null);
@@ -47,8 +49,9 @@ const setRuleNum = ref(null);
 //     { value: 3, label: '乘' },
 // ];
 
-const open = (record, batch) => {
+const open = (record, item = {}, batch) => {
     acceptParams.value = record;
+    skuItem.value = item
     isBatch.value = batch;
     dialogVisible.value = true;
 };
@@ -63,27 +66,36 @@ const cancel = () => {
 };
 
 const save = () => {
+    loading.value = true
     const requestParams = isBatch.value
-        ? acceptParams.value.map((item) => ({
-            shortCode: item.shortCode,
-            itemId: item.itemId,
-            sku: item.skus.map((item) => item.SellerSku).join(','),
-            quantity: setNum.value
-        }))
+        ? acceptParams.value.flatMap(item =>
+            item.skus.map(sku => ({
+                shortCode: item.shortCode,
+                itemId: item.itemId,
+                skuId: sku.SkuId,
+                price: null,
+                quantity: setNum.value,
+                specialPrice: null
+            }))
+        )
         : [{
             shortCode: acceptParams.value.shortCode,
             itemId: acceptParams.value.itemId,
-            sku: acceptParams.value.skus.map((item) => item.SellerSku).join(','),
-            quantity: setNum.value
+            skuId: skuItem.value.SkuId,
+            quantity: setNum.value,
+            specialPrice: null,
+            price: null
         }];
 
-    batchStore(requestParams)
+    batchPrice(requestParams)
         .then((res) => {
             if (res.code === 200) {
                 message.success('操作成功');
                 emit('success');
                 cancel();
             }
+        }).finally(() => {
+            loading.value = false;
         });
 };
 

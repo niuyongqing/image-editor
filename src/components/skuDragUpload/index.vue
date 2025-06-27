@@ -36,11 +36,11 @@
         <div>
             <slot></slot>
         </div>
-        <!-- SKU 图片上传可拖拽 -->
+        <!-- SKU 图片上传可拖拽 :multiple="true" -->
         <div flex justify-between w-full>
             <a-upload name="file" :customRequest="customRequest" :before-upload="beforeUpload" :headers="headers"
-                :accept="getProps.accept" :action="getProps.actionUrl" :showUploadList="false" :disabled="disabled">
-                <a-button type="primary" v-if="fileList.length <= getProps.maxCount" style="width: 90px; height: 31px;">
+                :accept="getProps.accept" :multiple="true" :maxCount="getProps.maxCount" :action="getProps.actionUrl" :showUploadList="false" :disabled="disabled">
+                <a-button type="primary" v-if="fileList.length < getProps.maxCount" style="width: 90px; height: 31px;">
                     <UploadOutlined></UploadOutlined>
                     选择图片
                 </a-button>
@@ -212,6 +212,7 @@ const beforeUpload = (file) => {
         message.error('上传图片大小不能超过 2MB!');
         return false;
     };
+
     // 不能超过最大限制
     if (fileList.value.length >= getProps.value.maxCount) {
         message.error(`最多上传${getProps.value.maxCount}张图片`);
@@ -222,6 +223,7 @@ const beforeUpload = (file) => {
     }
     return true;
 };
+
 
 
 const handleImageLoad = (el, event) => {
@@ -277,6 +279,14 @@ const watermark = async (item) => {
         })
     }
 };
+
+watch(() => fileList.value, (newVal) => {
+    if (newVal.length > getProps.value.maxCount) {
+        const overCount = newVal.length - getProps.value.maxCount;
+        fileList.value = newVal.slice(0, getProps.value.maxCount);
+        message.warning(`最多上传 ${getProps.value.maxCount} 张，已自动移除最后 ${overCount} 张`);
+    }
+}, { deep: true })
 </script>
 
 <style scoped lang="less">
