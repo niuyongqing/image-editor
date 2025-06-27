@@ -125,7 +125,7 @@ const rules = {
 const handleChange = info => {
   if (info.file.status === 'done') {
       if (info.file.response.code == 200) {
-          form.coverUrl = info.file.response.url
+          form.coverUrl = processImageSource(info.file.response.url)
       } else {
           message.error(info.file.response.msg)
       }
@@ -135,7 +135,7 @@ const msgHandleChange = info => {
   if (info.file.status === 'done') {
       if (info.file.response.code == 200) {
           form.video.push({
-              url: info.file.response.url
+              url: processImageSource(info.file.response.url)
           })
       } else {
           message.error(info.file.response.msg)
@@ -165,8 +165,6 @@ defineExpose({
 
 const backResult = (res) => {
   form.jsons = res
-  // console.log('p', form.jsons);
-
 }
 
 watch(() => props.productDetail, val => {
