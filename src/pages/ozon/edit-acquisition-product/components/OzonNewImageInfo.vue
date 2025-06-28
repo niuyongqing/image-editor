@@ -175,17 +175,17 @@ watch(() => props.productDetail, val => {
             (a) => a.id == 11254 || a.id == 4191
         );
         complexAttributes && complexAttributes.forEach((item) => {
-            // item.attributes.forEach((attribute) => {
-            // });
-            if (item.id === 21841) {
-                form.video = item.values.map((e) => {
-                    return {
-                        url: processImageSource(e.value),
-                    }
-                })
-            } else if (item.id === 21845) {
-                form.coverUrl = processImageSource(item.values[0].value)
-            }
+          item.attributes.forEach((attr) => {
+                if (attr.id === 21841) {
+                    form.video = attr.values.map((e) => {
+                        return {
+                            url: processImageSource(e.value),
+                        }
+                    })
+                } else if (attr.id === 21845) {
+                    form.coverUrl = processImageSource(attr.values[0].value)
+                }
+            });
         });
         copyAttr.forEach(e => {
             if (e.id === 11254) {
@@ -194,8 +194,6 @@ watch(() => props.productDetail, val => {
                 form.description = e.values[0].value
             }
         })
-        // console.log('form',form);
-
     }
 })
 

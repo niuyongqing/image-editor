@@ -120,12 +120,12 @@ const check = (element) => {
 //  点击确定
 const submit = async () => {
   if (!state.imgW || !state.imgH) {
-    message.error('请选择图片宽高');
+    message.error('请输入图片宽高');
     return
   }
   const checkedList = fileList.value.filter(item => item.checked);
   if (checkedList.length === 0) {
-    message.error('请选择图片');
+    message.error('请选择图片; 只能选中本地上传的图片');
     return
   };
   const imagePathList = checkedList.map((item) => {
