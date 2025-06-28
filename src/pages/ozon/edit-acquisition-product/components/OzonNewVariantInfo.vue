@@ -285,7 +285,7 @@
                     <div flex flex-col w-full justify-start mb-4px text-left>
                       <p>
                         <a-tag color="#00AEB3">说明！</a-tag>
-                        <span class="text-#999"> 第一张图片默认为主图，点击图片拖动，即可调整图片顺序。
+                        <span class="text-#999"> 第一张图片默认为主图，点击图片拖动，即可调整图片顺序。只能对本地上传的图片进行添加水印和修改尺寸
                         </span>
                       </p>
                     </div>
