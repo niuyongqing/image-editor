@@ -622,7 +622,7 @@ const removeItem = (item, row) => {
     if (item.selectType === "select") {
       row.tableData = row.tableData.filter(tableItem => {
         // 检查当前项的modelValue是否包含排除ID
-        return tableItem.modelValue.value != item.modelValue.value;
+        return tableItem.modelValue?.value != item.modelValue?.value;
       });
     } else if (item.selectType === "input") {  // 新增input类型处理
       row.tableData = row.tableData.filter(tableItem =>

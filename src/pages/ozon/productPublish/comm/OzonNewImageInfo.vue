@@ -6,7 +6,6 @@
             </template>
             <a-form ref="ruleForm" :model="form" :label-col="{ span: 2 }" :rules="rules">
                 <a-form-item label="产品描述：" name="description">
-                    <span style="color: #ff0a37;">说明：描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M</span>
                     <div style="width: 90%;margin-top: 10px;">
                         <a-textarea v-model:value="form.description" :rows="10" :maxlength="6000" showCount />
                     </div>

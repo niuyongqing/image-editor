@@ -396,6 +396,7 @@ const moveMatchedItemForward = (data, arr) => {
 };
 
 const addItemValues = (obj) => {
+    if(!obj.selectDate.value) return;
     const { attributes } = form;
     const isExist = obj.acquiesceList.some(
         (item) => item.value === obj.selectDate.value

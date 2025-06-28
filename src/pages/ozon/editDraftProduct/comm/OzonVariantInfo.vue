@@ -764,7 +764,7 @@ const backValue = (batchFields) => {
             break;
         case 'packLength':
             tableData.value.forEach((item) => {
-                Object.assign(item, batchFields.batchValue);
+                Object.assign(item, batchFields.packageSize);
             });
             break;
         default:

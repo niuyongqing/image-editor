@@ -56,7 +56,7 @@ const handleCancel = () => {
     })
 }
 const onSubmit = () => {
-    emit("backQuantity", quantities.value)
+    emit("backQuantity", quantities.value,copyList.value)
     handleCancel()
 }
 
