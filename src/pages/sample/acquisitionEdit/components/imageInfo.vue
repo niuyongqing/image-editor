@@ -21,7 +21,7 @@
                 <a-menu @click="dropdownClick">
                   <a-menu-item key="local">
                     <a-upload 
-                      :file-list="uploadInfo.imageFileList" 
+                      :file-list="uploadModalInfo.imageFileList" 
                       :before-upload="imageBeforeUpload" 
                       :showUploadList="false"
                       accept=".jpg, .jpeg, .png, .webp"
@@ -35,8 +35,8 @@
                 </a-menu>
               </template>
             </a-dropdown>
-            <a-space v-if="false">
-              <a-dropdown :trigger="['click']" :disabled="loading.watermark">
+            <a-space v-if="true">
+              <a-dropdown :trigger="['click']" :disabled="loading.watermark || formData.image_list.length < 1">
                 <a-button @click.prevent :loading="loading.watermark">
                   {{ loading.watermark ? '正在添加水印...':'添加水印' }}
                   <AsyncIcon icon="DownOutlined" class="ml-2.5" />
@@ -60,7 +60,24 @@
                   </a-menu>
                 </template>
               </a-dropdown>
-              <a-button type="primary" @click="downloadAllImageFn" :loading="loading.download">
+              <a-dropdown :trigger="['click']" :disabled="formData.image_list.length < 1">
+                <a-button type="primary" @click.prevent :loading="loading.watermark">
+                  {{ '编辑图片' }}
+                  <AsyncIcon icon="DownOutlined" class="ml-2.5" />
+                </a-button>
+                <template #overlay>
+                  <a-menu @click="dropdownClick">
+                    <a-menu-item key="bacthEditSize">批量改图片尺寸</a-menu-item>
+                    <a-menu-item key="clear">清空图片</a-menu-item>
+                  </a-menu>
+                </template>
+              </a-dropdown>
+              <a-button 
+                type="primary" 
+                @click="downloadAllImageFn" 
+                :loading="loading.download"
+                :disabled="formData.image_list.length < 1"
+              >
                 <AsyncIcon icon="DownloadOutlined" />
                 {{ loading.download ? '正在导出...':'导出全部图片' }}
               </a-button>
@@ -128,7 +145,7 @@
               <a-menu @click="dropdownClick">
                 <a-menu-item key="local">
                   <a-upload 
-                    :file-list="uploadInfo.videoFileList" 
+                    :file-list="uploadModalInfo.videoFileList" 
                     :before-upload="videoBeforeUpload" 
                     :showUploadList="false"
                     :maxCount="1"
@@ -149,7 +166,7 @@
               <a-button 
                 type="text" 
                 style="color: #4096ff;"
-                @click="uploadInfo.playOpen = !uploadInfo.playOpen"
+                @click="uploadModalInfo.playOpen = !uploadModalInfo.playOpen"
               >播放</a-button>
               <a-button type="text" danger @click="videoDeleteFn(formData.video_list[0].fileName)">删除</a-button>  
             </div>
@@ -161,7 +178,7 @@
 
   <!-- 播放弹窗 -->
   <a-modal 
-    v-model:open="uploadInfo.playOpen" 
+    v-model:open="uploadModalInfo.playOpen" 
     title="播放"
     width="500px"
   >
@@ -181,12 +198,12 @@
   </a-modal>
   <!-- 图片网络上传 -->
   <a-modal 
-    v-model:open="uploadInfo.imageUrlUpload" 
+    v-model:open="uploadModalInfo.imageUrlUpload" 
     title="从网络地址(URL)选择图片"
     width="500px"
   >
     <div class="modal-box">
-      <a-textarea v-model:value="uploadInfo.imageUrl" placeholder="请填写图片URL地址，多个地址用回车换行" :rows="4" />
+      <a-textarea v-model:value="uploadModalInfo.imageUrl" placeholder="请填写图片URL地址，多个地址用回车换行" :rows="4" />
     </div>
     <template #footer>
       <a-button @click="modalClose">关闭</a-button>
@@ -195,12 +212,12 @@
   </a-modal>
   <!-- 视频网络上传 -->
   <a-modal 
-    v-model:open="uploadInfo.videoUrlUpload" 
+    v-model:open="uploadModalInfo.videoUrlUpload" 
     title="视频地址"
     width="500px"
   >
     <div class="modal-box">
-      <a-textarea v-model:value="uploadInfo.videoUrl" placeholder="仅支持mp4文件格式后缀，其他格式视频会上传失败！" :rows="4" />
+      <a-textarea v-model:value="uploadModalInfo.videoUrl" placeholder="仅支持mp4文件格式后缀，其他格式视频会上传失败！" :rows="4" />
     </div>
     <template #footer>
       <a-button @click="modalClose">关闭</a-button>
@@ -210,9 +227,15 @@
   <!-- 图片空间 -->
   <pictureLibrary 
     :platform="props.productData?.classPlatform"
-    v-model:modal-open="uploadInfo.pictureLibraryOpen"
+    v-model:modal-open="uploadModalInfo.pictureLibraryOpen"
     @imageListConfirm="imageListConfirm"
   ></pictureLibrary>
+  <!-- 批量修改图片尺寸 -->
+  <bacthImageEdit 
+    v-model:modal-open="uploadModalInfo.bacthImageSize"
+    :iamge-list="formData.image_list"
+    @bacthImageEditSize="bacthImageEditSize"
+  ></bacthImageEdit>
 </div>
 </template>
 
@@ -225,6 +248,7 @@ import draggable from 'vuedraggable';
 import { downloadAllImage, imageUpload, imageUrlUpload, videoDelete, videoUpload, videoUrlUpload } from '../js/api';
 import AsyncIcon from '~@/layouts/components/menu/async-icon.vue'
 import pictureLibrary from '@/components/pictureLibrary/index.vue'
+import bacthImageEdit from './modal/bacthImageEdit.vue';
 import { scaleApi, watermarkApi, watermarkListApi } from '~@/api/common/water-mark';
 defineOptions({ name: "acquisitionEdit_imageInfo" })
 const { proxy: _this } = getCurrentInstance()
@@ -243,7 +267,7 @@ const formData = reactive({
   image_list: [],
   video_list: [],
 })
-const uploadInfo = reactive({
+const uploadModalInfo = reactive({
   videoFileList: [],
   imageFileList: [],
   playOpen: false,
@@ -253,7 +277,10 @@ const uploadInfo = reactive({
   
   imageUrl: '',
   imageUrlUpload: false,
+
   pictureLibraryOpen: false,
+
+  bacthImageSize: false,
 })
 const loading = reactive({
   image: false,
@@ -269,7 +296,10 @@ watch(() => props.productData?.id, (val) => {
 })
 watch(() => formData, (val) => {
   // console.log({ val });
-  let obj = {...val}
+  let obj = { ...val }
+  if (val.image_list.length > 0) {
+    _this.$refs.ERPformRef?.clearValidate()
+  }
   emit('update:imageInfoData', obj)
 }, {
   deep: true
@@ -293,15 +323,7 @@ function openFn() {
     }
     return obj
   })
-  formData.image_list.forEach(item => {
-    let img = new Image()
-    img.onload = (e) => {
-      item.width = img.naturalWidth
-      item.height = img.naturalHeight
-      // formData.image_list = [...formData.image_list]
-    }
-    img.src = item.src
-  })
+  formData.image_list.forEach(item => getImageSize(item))
   let video_list = (localVideoList?.length ? localVideoList : videoList) || [];
   formData.video_list = video_list.map(item => {
     let url = item
@@ -357,10 +379,10 @@ async function watermarkClick({ key }) {
       id: key,
       imagePathList
     }
-    let res = await watermarkApi(params)
+    let newImage = await watermarkApi(params)
     // 更新打了水印的图片src
     formData.image_list.forEach(item => {
-      let val = (res?.data || []).find(i => i.originalFilename === item.url)
+      let val = (newImage?.data || []).find(i => i.originalFilename === item.url)
       // console.log({val});
       if (val) {
         item.url = val.url.replace('/prod-api', ''),
@@ -394,18 +416,35 @@ function dropdownClick({ key }) {
   // console.log({key});
   // download
   switch (key) {
-    case 'imageUrl':
-      uploadInfo.imageUrlUpload = !uploadInfo.imageUrlUpload
+    case 'imageUrl':      // 上传网络图片
+      uploadModalInfo.imageUrlUpload = !uploadModalInfo.imageUrlUpload
+      break;  
+    case 'videoUrl':      // 上传网络视频
+      uploadModalInfo.videoUrlUpload = !uploadModalInfo.videoUrlUpload
       break;
-    case 'videoUrl':
-      uploadInfo.videoUrlUpload = !uploadInfo.videoUrlUpload
+    case 'pictureLibrary':    // 图片空间上传
+      uploadModalInfo.pictureLibraryOpen = !uploadModalInfo.pictureLibraryOpen
       break;
-    case 'pictureLibrary':
-      uploadInfo.pictureLibraryOpen = !uploadInfo.pictureLibraryOpen
+    case 'bacthEditSize':    // 图片批量尺寸
+      uploadModalInfo.bacthImageSize = !uploadModalInfo.bacthImageSize
+      break;
+    case 'clear':    // 清空图片
+      formData.image_list = []
       break;
     default:
       break;
   }
+}
+// 批量修改图片尺寸
+function bacthImageEditSize(newImage) {
+  formData.image_list.forEach(item => {
+    let val = (newImage || []).find(i => i.id === item.id)
+    if (val) {
+      item.url = val.url,
+      item.src = val.src
+      getImageSize(item)
+    }
+  })
 }
 // 拖拽结束
 const handleDragEnd = (event) => {
@@ -414,7 +453,7 @@ const handleDragEnd = (event) => {
 // 网络上传图片弹窗确认
 async function imageUrlConfirm() {
   loading.image = true;
-  let urlList = uploadInfo.imageUrl.split('\n')
+  let urlList = uploadModalInfo.imageUrl.split('\n')
   let res = await imageUrlUploadFn(urlList)
   // console.log({res}, 22);
   formData.image_list = [...res]
@@ -423,7 +462,7 @@ async function imageUrlConfirm() {
 }
 // 图片网络上传
 async function imageUrlUploadFn(urlList) {
-  // console.log('/* uploadInfo.imageUrl */', urlList);
+  // console.log('/* uploadModalInfo.imageUrl */', urlList);
   let imageList = []
   for (let index = 0; index < urlList.length; index++) {
     try {
@@ -440,26 +479,34 @@ async function imageUrlUploadFn(urlList) {
 }
 // 弹窗关闭
 function modalClose() {
-  uploadInfo.playOpen = false;
-  uploadInfo.imageUrlUpload = false;
-  uploadInfo.videoUrlUpload = false;
-  uploadInfo.pictureLibraryOpen = false;
-  uploadInfo.imageUrl = '';
-  uploadInfo.videoUrl = '';
+  uploadModalInfo.playOpen = false;
+  uploadModalInfo.imageUrlUpload = false;
+  uploadModalInfo.videoUrlUpload = false;
+  uploadModalInfo.pictureLibraryOpen = false;
+  uploadModalInfo.imageUrl = '';
+  uploadModalInfo.videoUrl = '';
   _this.$refs.acquisitionEdit_video?.pause()
 }
 // 图片空间上传
 function imageListConfirm(val) {
   // console.log({val}, 'imageListConfirm');
   let list = val.map(item => {
-    const {name, id, width, height, path: url, src, size} = item
-    return { name, id, width, height, url, src, size };
+    const {name, width, height, path: url, src, size} = item
+    return {
+      name,
+      id: createRandom(),
+      width,
+      height,
+      url,
+      src,
+      size
+    };
   })
   formData.image_list = [...(formData.image_list || []), ...list]
 }
 // 图片本地上传
 function imageBeforeUpload(file) {
-  uploadInfo.videoFileList = [file];
+  uploadModalInfo.videoFileList = [file];
   let suffix = file.name.split('.')[file.name.split('.').length - 1].toLowerCase()
   // console.log({suffix});
   let suffixList = ['jpg', 'jpeg', 'png', 'webp']
@@ -487,7 +534,7 @@ function delImg(val) {
 
 // 视频本地上传
 function videoBeforeUpload(file) {
-  uploadInfo.videoFileList = [file];
+  uploadModalInfo.videoFileList = [file];
   let suffix = file.name.split('.')[file.name.split('.').length - 1].toUpperCase()
   // console.log({suffix});
   if (suffix !== 'MP4') {
@@ -521,7 +568,7 @@ async function videoUrlUploadFn() {
   try {
     let oldFileName = formData.video_list[0]?.fileName
     let params = new FormData()
-    params.append('url', uploadInfo.videoUrl)
+    params.append('url', uploadModalInfo.videoUrl)
     let res = await videoUrlUpload(params)
     res.data.url = import.meta.env.VITE_APP_BASE_API + res.data.fileName
     formData.video_list = [res.data]
@@ -548,6 +595,16 @@ async function videoDeleteFn(filePath) {
     console.error(error)
   }
 }
+// 获取图片宽高
+function getImageSize(item) {
+  let img = new Image()
+  img.onload = (e) => {
+    item.width = img.naturalWidth
+    item.height = img.naturalHeight
+    // formData.image_list = [...formData.image_list]
+  }
+  img.src = item.src
+}
 // 生成一个随机数
 function createRandom() {
   return Math.floor(Math.random() * 100000000) + ''
@@ -569,7 +626,7 @@ function createRandom() {
     }
     .image-content {
       width: 100%;
-      max-height: 500px;
+      max-height: 700px;
       margin: 10px 0;
       overflow-y: auto;
       display: flex;
