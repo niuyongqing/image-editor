@@ -50,12 +50,12 @@
                                             placeholder="示例：1.00" :min="0"></a-input-number>
                                     </div>
                                     <div class="mt-2.5">
-                                        <a-radio :value="2">按现有原价：</a-radio><a-select v-model:value="form.priceSelct1"
+                                        <a-radio :value="2">按现有原价：</a-radio><a-select v-model:value="form.priceSelect1"
                                             :disabled="form.priceValue == 1" class="mr-2.5" style="width: 110px"
                                             :options="commList[0].option"></a-select><a-input-number class="mr-2.5"
                                             style="width: 150px;" :disabled="form.priceValue == 1"
                                             v-model:value="form.toPrice" placeholder="请输原价格" :precision="2"
-                                            :min="0"></a-input-number><a-select v-model:value="form.priceSelct2"
+                                            :min="0"></a-input-number><a-select v-model:value="form.priceSelect2"
                                             style="width: 120px" :options="commList[1].option"
                                             :disabled="form.priceValue == 1"></a-select>
                                     </div>
@@ -234,8 +234,8 @@
 <script setup name='editPriceModal'>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { waitBathUpdate } from "../../config/api/waitProduct";
-import { endResult } from "../../config/commJs/index"
 import { message } from "ant-design-vue";
+import { cloneDeep } from 'lodash'
 
 const props = defineProps({
     editPriceVisible: Boolean,
@@ -251,12 +251,12 @@ const getInitialFormData = () => ({
     oldPriceValue: 1,
     oldPrice: "",
     toOldPrice: "",
-    oldSelect1: "",
-    oldSelect2: "",
+    oldSelect1: "add",
+    oldSelect2: "keepTwo",
     priceValue: 1,
     price: "",
-    priceSelect1: "",
-    priceSelect2: "",
+    priceSelect1: "add",
+    priceSelect2: "keepTwo",
     toPrice: "",
     minPrice: "",
     minValue: 1,
@@ -497,31 +497,93 @@ const changeInputNumber = (item) => {
     // quantities.value = count
     item.allStock = count;
 }
+
+// 提取更新价格的公共逻辑
+const updatePrice = (items, priceKey, batchFields) => {
+    items.forEach((item) => {
+        if (batchFields.priceValue === 1) {
+            item[priceKey] = batchFields.batchValue;
+        } else {
+            item[priceKey] = endResult(
+                Number(item[priceKey]),
+                Number(batchFields.batchComputeValue),
+                batchFields.computeValue,
+                batchFields.roundValue
+            );
+        }
+    });
+};
+//
+const endResult = (oldPrice, batchComputeValue, computeValue, roundValue) => {
+    // 处理数组类型的oldPrice
+    if (Array.isArray(oldPrice)) {
+        return oldPrice.map(price =>
+            computeSingleValue(price, batchComputeValue, computeValue, roundValue)
+        );
+    }
+    return computeSingleValue(oldPrice, batchComputeValue, computeValue, roundValue);
+};
+
+// 新增辅助函数处理单个价格
+const computeSingleValue = (price, batchValue, computeType, roundType) => {
+    const computeFunc = computeFunctions[computeType];
+    const roundFunc = roundFunctions[roundType];
+
+    if (!computeFunc) return 0;
+
+    console.log("singlePrice", price);
+    console.log("batchValue", batchValue);
+
+    const computed = computeFunc(Number(price), Number(batchValue));
+    console.log("computedResult", computed);
+
+    return roundFunc(computed);
+};
+
+
+// 定义取整函数对象，包含保留两位小数、四舍五入、向上取整操作
+const roundFunctions = {
+    keepTwo: (value) => value.toFixed(2),
+    roundUp: Math.round,
+    carry: Math.ceil,
+};
+// 定义计算函数对象，包含加、减、乘、除、百分比加、百分比减操作
+const computeFunctions = {
+    add: (oldPrice, batchComputeValue) => oldPrice + batchComputeValue,
+    reduction: (oldPrice, batchComputeValue) => oldPrice - batchComputeValue,
+    take: (oldPrice, batchComputeValue) => oldPrice * batchComputeValue,
+    divide: (oldPrice, batchComputeValue) => oldPrice / batchComputeValue,
+    percentAdd: (oldPrice, batchComputeValue) =>
+        oldPrice * ((batchComputeValue + 100) / 100),
+    percentReduction: (oldPrice, batchComputeValue) =>
+        oldPrice * ((100 - batchComputeValue) / 100),
+};
+
+
+
 const onSubmit = () => {
     if (props.selectedRows.length == 0) return;
-    loading.value = true;
+    // loading.value = true;
     console.log("selectedRows", props.selectedRows);
 
     // 标题数据处理
-    let priceList = props.selectedRows.map((item) => {
+    let arr = props.selectedRows.map((item) => {
         return {
             waitId: item.waitId,
             // name: item.name,
             // vat: item.vat,
-            price: item.price,
-            oldPrice: item.oldPrice,
-            // minPrice: item.minPrice,
-            warehouseList: [],
-            // offerId: item.offerId,
-            // offerIds: item.skuList.map(item => item.offerId),
-            // packageWeight: item?.attributes[0]?.weight,
-            // packageWidth: item?.attributes[0]?.width,
-            // packageHeight: item?.attributes[0]?.height,
-            // packageLength: item?.attributes[0]?.depth,
-            // productIds: item.id,
+            skuList: item.skuList.map(e => {
+                return {
+                    price: e.price,
+                    oldPrice: e.oldPrice,
+                    offerId: e.offerId,
+                    warehouseList: null
+                }
+            }),
             account: item.account
         };
     });
+    let priceList = cloneDeep(arr)
     // 遍历 checkedListAll 中的每个字段，调用对应的处理函数
     checkedListAll.value.forEach((field) => {
         if (fieldHandlers[field]) {
@@ -533,68 +595,52 @@ const onSubmit = () => {
         // }
         if (field === 'stock') {
             console.log("editStockList", props.editStockList);
-
             // 遍历数组 a
             priceList.forEach(itemA => {
-
-            //     // 查找 b 数组中 account 匹配的元素
+                // 查找 b 数组中 account 匹配的元素
                 const matchingItemB = props.editStockList.find(itemB => itemB.account === itemA.account);
                 console.log("matchingItemB", matchingItemB);
 
-                    if (matchingItemB) {
-                        // 过滤掉 children 中 stock 为空的元素
-                        const validChildren = matchingItemB.children.filter(child => child.stock !== null && child.stock !== '');
-                        console.log("validChildren",validChildren);
+                if (matchingItemB) {
+                    // 过滤掉 children 中 stock 为空的元素
+                    const validChildren = matchingItemB.children.filter(child => child.stock !== null && child.stock !== '');
+                    console.log("validChildren", validChildren);
 
-                        // 生成新数组，包含 name、warehouseId 和 stock
-                        const newStockArray = validChildren.map(child => ({
-                            warehouseName: child.name,
-                            warehouseId: child.warehouseId,
-                            present: child.stock,
-                            // offerId: itemA.offerId
-                        }));
-                        console.log("newStockArray");
-                        
-                        // 将新数组赋值给 a 数组中对应元素的 stock 属性
-                        itemA.warehouseList = newStockArray;
-                    }else {
-                        itemA.warehouseList = []
-                    }
+                    // 生成新数组，包含 name、warehouseId 和 stock
+                    const newStockArray = validChildren.map(child => ({
+                        warehouseName: child.name,
+                        warehouseId: child.warehouseId,
+                        present: child.stock,
+                        // offerId: itemA.offerId
+                    }));
+                    console.log("newStockArray");
+
+                    // 将新数组赋值给 a 数组中对应元素的 stock 属性
+                    itemA.skuList.forEach(e => {
+                        e.warehouseList = newStockArray
+                    });
+                } else {
+                    itemA.skuList.forEach(e => {
+                        e.warehouseList = null
+                    });
+                }
             });
             console.log('priceList', priceList);
         }
     });
 
-    const fieldsToCompare = ['name', 'price', 'oldPrice' ]; //'minPrice'
-    // const packageFields = [
-    //     { key: 'packageWeight', path: 'attributes.0.weight' },
-    //     { key: 'packageWidth', path: 'attributes.0.width' },
-    //     { key: 'packageHeight', path: 'attributes.0.height' },
-    //     { key: 'packageLength', path: 'attributes.0.depth' }
-    // ];
-
+    const fieldsToCompare = ['price', 'oldPrice']; //'minPrice'
     priceList.forEach(itemA => {
-        for (const itemB of props.selectedRows) {
-            // 通用字段比较
-            for (const field of fieldsToCompare) {
-                if (itemA[field] === itemB[field]) {
-                    itemA[field] = '';
-                }
+        itemA.skuList.forEach(e => {
+            if (!form.oldPrice && !form.toOldPrice) {
+                e.oldPrice = null
             }
-
-            // if (itemA.vat === itemB.vat) {
-            //     itemA.vat = "";
-            // }
-
-            // 处理包装属性
-            // for (const { key, path } of packageFields) {
-            //     const value = path.split('.').reduce((obj, p) => obj?.[p], itemB);
-            //     if (itemA[key] === value) {
-            //         itemA[key] = "";  // 修正原代码错误：原逻辑错误地修改vat字段
-            //     }
-            // }
-        }
+            if(!form.price && !form.toPrice) {
+                e.price = null
+            }
+        })
     });
+
     console.log('priceList--', priceList);
     waitBathUpdate(priceList).then(res => {
         message.success(res.msg)
@@ -642,21 +688,44 @@ const handleVat = (row, form) => {
 
 // 封装处理价格的函数
 const handlePrice = (row, form) => {
+    console.log("form.toPrice", form.toPrice);
     if (form.priceValue === 1) {
-        row.price = form.price;
+        // 直接修改每个SKU的价格
+        row.skuList.forEach(sku => {
+            sku.price = form.price.toString();
+        });
     } else {
-        row.price = endResult(Number(row.price), Number(form.toPrice), form.priceSelct1, form.priceSelct2);
+        // 批量计算每个SKU的价格
+        row.skuList.forEach(sku => {
+            sku.price = endResult(
+                sku.price,
+                Number(form.toPrice),
+                form.priceSelect1,
+                form.priceSelect2
+            ).toString();
+        });
     }
-
     return row;
 };
 
 // 封装处理原价的函数
 const handleOldPrice = (row, form) => {
+    console.log("form.toOldPrice", form.toOldPrice);
     if (form.oldPriceValue === 1) {
-        row.oldPrice = form.oldPrice;
+        // 直接修改每个SKU的原价
+        row.skuList.forEach(sku => {
+            sku.oldPrice = form.oldPrice.toString();
+        });
     } else {
-        row.oldPrice = endResult(Number(row.oldPrice), Number(form.toOldPrice), form.oldSelect1, form.oldSelect2);
+        // 批量计算每个SKU的原价
+        row.skuList.forEach(sku => {
+            sku.oldPrice = endResult(
+                sku.oldPrice,
+                Number(form.toOldPrice),
+                form.oldSelect1,
+                form.oldSelect2
+            ).toString();
+        });
     }
     return row;
 };

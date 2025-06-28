@@ -860,6 +860,7 @@ watch(() => useOzonProductStore().attributes, val => {
                 )
                 requiredList.value = reorderArray(requiredList.value)
             } else {
+                themeBtns.value = arr.filter((obj) => !obj.isRequired);
                 requiredList.value = arr.filter((obj) => obj.isRequired);
             }
         } else {
