@@ -3,7 +3,7 @@
     <div class="w-19/20">
       <div class="flex justify-end mt-5">
         <a-button :loading="loading" class="ml-2.5" @click="onSubmit(2)">保存</a-button>
-        <a-button :loading="loading" class="ml-2.5" @click="onSubmit(1)" type="primary">发布</a-button>
+        <!-- <a-button :loading="loading" class="ml-2.5" @click="onSubmit(1)" type="primary">发布</a-button> -->
       </div>
       <br />
       <!-- 基本信息 -->
@@ -20,7 +20,7 @@
         :shopCode="formData.shortCode" class="mt-5"></OzonNewVariantInfo>
       <div class="flex justify-end mt-5">
         <a-button :loading="loading" class="ml-2.5" @click="onSubmit(2)">保存</a-button>
-        <a-button :loading="loading" class="ml-2.5" @click="onSubmit(1)" type="primary">发布</a-button>
+        <!-- <a-button :loading="loading" class="ml-2.5" @click="onSubmit(1)" type="primary">发布</a-button> -->
       </div>
     </div>
     <div style="position: fixed;top: 10%;right: 3%;">
