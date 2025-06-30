@@ -3,7 +3,7 @@
     <div class="w-19/20">
       <div class="flex justify-end mt-5">
         <a-button :loading="loading" class="ml-2.5" @click="onSubmit(2)">保存</a-button>
-        <a-button :loading="loading" class="ml-2.5" @click="onSubmit(1)" type="primary">发布</a-button>
+        <!-- <a-button :loading="loading" class="ml-2.5" @click="onSubmit(1)" type="primary">发布</a-button> -->
       </div>
       <br />
       <!-- 基本信息 -->
@@ -20,7 +20,7 @@
         :shopCode="formData.shortCode" class="mt-5"></OzonNewVariantInfo>
       <div class="flex justify-end mt-5">
         <a-button :loading="loading" class="ml-2.5" @click="onSubmit(2)">保存</a-button>
-        <a-button :loading="loading" class="ml-2.5" @click="onSubmit(1)" type="primary">发布</a-button>
+        <!-- <a-button :loading="loading" class="ml-2.5" @click="onSubmit(1)" type="primary">发布</a-button> -->
       </div>
     </div>
     <div style="position: fixed;top: 10%;right: 3%;">
@@ -211,13 +211,13 @@ const onSubmit = async (type) => {
   if (image.coverUrl !== "" && image.video.length > 0) {
     // 创建video对应的baseObj副本并更新value值
     let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
-    videoBaseObj = createAndUpdateBaseObj(image.video, 100002, 21845, 2);
+    videoBaseObj = createAndUpdateBaseObj(image.coverUrl, 100002, 21845, 2);
     newComplexAttributes.push(videoBaseObj);
 
     // 创建coverUrl对应的baseObj副本并更新value值
     let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
     coverUrlBaseObj = createAndUpdateBaseObj(
-      image.coverUrl,
+      image.video,
       100001,
       21841, 2
     );
@@ -226,13 +226,13 @@ const onSubmit = async (type) => {
     let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
     coverUrlBaseObj = createAndUpdateBaseObj(
       image.coverUrl,
-      100001,
-      21841, 2
+      100002,
+      21845, 2
     );
     newComplexAttributes.push(coverUrlBaseObj);
   } else if (image.video.length > 0) {
     let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
-    videoBaseObj = createAndUpdateBaseObj(image.video, 100002, 21845, 2);
+    videoBaseObj = createAndUpdateBaseObj(image.video, 100001, 21841, 2);
     newComplexAttributes.push(videoBaseObj);
   }
   console.log("newComplexAttributes", newComplexAttributes);

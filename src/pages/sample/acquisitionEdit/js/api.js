@@ -100,3 +100,15 @@ export function imageUpload(data) {
     }
   })
 }
+/**
+ * // 图片全部导出
+ * @param {*} data 
+ * @returns 
+ */
+export function downloadAllImage(data) {
+  return request({
+    url: '/platform-common/platform/common/file/downloadAllImage',
+    method: 'post',
+    data: data,
+  })
+}

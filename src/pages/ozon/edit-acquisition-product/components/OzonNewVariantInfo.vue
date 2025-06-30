@@ -126,7 +126,7 @@
               <span>{{ record.secondName }}</span>
             </template>
             <template v-if="column.dataIndex === 'sellerSKU'">
-              <a-input v-model:value="record.sellerSKU" style="min-width: 200px"></a-input>
+              <a-input v-model:value="record.sellerSKU" style="min-width: 200px" @change="sellerSKUChange(record)"></a-input>
             </template>
             <template v-if="!otherHeader.includes(column.dataIndex)">
               <a-input v-if="column.selectType === 'input'" v-model:value="record[column.dataIndex]"
@@ -285,7 +285,7 @@
                     <div flex flex-col w-full justify-start mb-4px text-left>
                       <p>
                         <a-tag color="#00AEB3">说明！</a-tag>
-                        <span class="text-#999"> 第一张图片默认为主图，点击图片拖动，即可调整图片顺序。
+                        <span class="text-#999"> 第一张图片默认为主图，点击图片拖动，即可调整图片顺序。只能对本地上传的图片进行添加水印和修改尺寸
                         </span>
                       </p>
                     </div>
@@ -356,6 +356,7 @@ import {
 import { publishHead, otherList } from "../../config/tabColumns/skuHead";
 import { uploadImage } from '@/pages/ozon/config/api/draft';
 import SkuDragUpload from '@/components/skuDragUpload/index.vue';
+import { debounce } from "lodash";
 
 
 
@@ -396,10 +397,10 @@ const plainOptions = [
     label: "颜色样本",
     value: "colorImg",
   },
-  {
-    label: "设置SKU标题",
-    value: "skuTitle",
-  },
+  // {
+  //   label: "设置SKU标题",
+  //   value: "skuTitle",
+  // },
 ];
 const otherHeader = otherList;
 const isConform = ref(false);
@@ -611,17 +612,16 @@ const addItem = (item, row) => {
 // 移除多个属性操作
 const removeItem = (item, row) => {
   console.log("removeItem", item, row);
-  if (item.id === 10096) {
-    let ind = row.tableData.indexOf(item);
-    row.tableData.splice(ind, 1);
-  } else if (item.id === 4295) {
-    let ind = row.tableData.indexOf(item);
+  let ind = row.tableData.indexOf(item);
+  if (item.id === 10096 || item.name == "商品颜色(Цвет товара)") {
+    row.tableData.splice(ind, 1); 
+  } else if (item.id === 4295 || item.name == "俄罗斯尺码") {
     row.tableData.splice(ind, 1);
   } else {
     if (item.selectType === "select") {
       row.tableData = row.tableData.filter(tableItem => {
         // 检查当前项的modelValue是否包含排除ID
-        return tableItem.modelValue.value != item.modelValue.value;
+        return tableItem.modelValue?.value != item.modelValue?.value;
       });
     } else if (item.selectType === "input") {  // 新增input类型处理
       row.tableData = row.tableData.filter(tableItem =>
@@ -818,6 +818,14 @@ const batchSKU = () => {
   batchTitle.value = "批量修改SKU";
   batchType.value = "sku";
 };
+
+  // 修改 SKU 时同步修改 warehouseList 里的 offerId
+  const sellerSKUChange = debounce(record => {
+    record.warehouseList.forEach(item => {
+      item.offerId = record.sellerSKU
+    })
+  }, 200)
+
 // 批量修改库存
 const batchStock = (type, row = {}) => {
   if (tableData.value.length == 0) {
@@ -892,6 +900,10 @@ const backValue = (batchFields) => {
     case "sku":
       tableData.value.forEach((item) => {
         item.sellerSKU = batchFields.batchValue;
+
+        item.warehouseList.forEach(warehouse => {
+          warehouse.offerId = item.sellerSKU
+        })
       });
       break;
     case "price":

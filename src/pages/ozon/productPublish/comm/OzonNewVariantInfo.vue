@@ -233,7 +233,7 @@
               <span>{{ record.secondName }}</span>
             </template>
             <template v-if="column.dataIndex === 'sellerSKU'">
-              <a-input v-model:value="record.sellerSKU"></a-input>
+              <a-input v-model:value="record.sellerSKU" @change="sellerSKUChange(record)"></a-input>
             </template>
             <template v-if="!otherHeader.includes(column.dataIndex)">
               <a-input
@@ -472,6 +472,7 @@ import {
 import { publishHead, otherList } from "../../config/tabColumns/skuHead";
 import { uploadImage } from "@/pages/ozon/config/api/draft";
 import SkuDragUpload from "@/components/skuDragUpload/index.vue";
+import { debounce } from "lodash";
 
 const props = defineProps({
   categoryAttributesLoading: Boolean,
@@ -511,10 +512,10 @@ const plainOptions = [
     label: "颜色样本",
     value: "colorImg",
   },
-  {
-    label: "设置SKU标题",
-    value: "skuTitle",
-  },
+  // {
+  //   label: "设置SKU标题",
+  //   value: "skuTitle",
+  // },
 ];
 let otherHeader = otherList;
 const isConform = ref(false);
@@ -661,10 +662,11 @@ const removeVariantType = (item, index) => {
   imgHeaderList.value.splice(index, 1);
   // 循环删除表格内容数据
   for (let i = 0; i < tableData.value.length; i++) {
-    if (item.name == tableData.value[i][item.name]) {
-      let newObj = { ...tableData.value[i] };
-      delete newObj[item.name];
-    }
+    delete tableData.value[i][item.name];
+    // if (item.name == tableData.value[i][item.name]) {
+    //   let newObj = { ...tableData.value[i] };
+    //   delete newObj[item.name];
+    // }
   }
   // 表头删除
   headerList.value = headerList.value.filter((e) => !(e.title == item.title));
@@ -729,15 +731,15 @@ const addItem = (item, row) => {
 const removeItem = (item, row) => {
   console.log("removeItem", item, row);
   let ind = row.tableData.indexOf(item);
-  if (item.id === 10096) {
-    row.tableData.splice(ind, 1);
-  } else if (item.id === 4295) {
+  if (item.id === 10096 || item.name == "商品颜色(Цвет товара)") {
+    row.tableData.splice(ind, 1); 
+  } else if (item.id === 4295 || item.name == "俄罗斯尺码") {
     row.tableData.splice(ind, 1);
   } else {
     if (item.selectType === "select") {
       row.tableData = row.tableData.filter((tableItem) => {
         // 检查当前项的modelValue是否包含排除ID
-        return tableItem.modelValue.value != item.modelValue.value;
+        return tableItem.modelValue?.value != item.modelValue?.value;
       });
     } else if (item.selectType === "input") {
       // 新增input类型处理
@@ -874,6 +876,13 @@ const batchSKU = () => {
   batchTitle.value = "批量修改SKU";
   batchType.value = "sku";
 };
+
+  // 修改 SKU 时同步修改 warehouseList 里的 offerId
+  const sellerSKUChange = debounce(record => {
+    record.warehouseList.forEach(item => {
+      item.offerId = record.sellerSKU
+    })
+  }, 200)
 // 批量修改库存
 const batchStock = (type, row = {}) => {
   if (tableData.value.length == 0) {
@@ -948,6 +957,9 @@ const backValue = (batchFields) => {
     case "sku":
       tableData.value.forEach((item) => {
         item.sellerSKU = batchFields.batchValue;
+        item.warehouseList.forEach(warehouse => {
+          warehouse.offerId = item.sellerSKU
+        })
       });
       break;
     case "price":
@@ -1067,6 +1079,7 @@ watch(
           );
           requiredList.value = reorderArray(requiredList.value);
         } else {
+          themeBtns.value = arr.filter((obj) => !obj.isRequired);
           requiredList.value = arr.filter((obj) => obj.isRequired);
         }
       } else {

@@ -226,13 +226,13 @@ const onSubmit = async (type) => {
     let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
     coverUrlBaseObj = createAndUpdateBaseObj(
       image.coverUrl,
-      100001,
-      21841, 2
+      100002,
+      21845, 2
     );
     newComplexAttributes.push(coverUrlBaseObj);
   } else if (image.video.length > 0) {
     let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
-    videoBaseObj = createAndUpdateBaseObj(image.video, 100002, 21845, 2);
+    videoBaseObj = createAndUpdateBaseObj(image.video, 100001, 21841, 2);
     newComplexAttributes.push(videoBaseObj);
   }
   console.log("newComplexAttributes", newComplexAttributes);

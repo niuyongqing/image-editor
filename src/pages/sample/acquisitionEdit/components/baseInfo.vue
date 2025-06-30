@@ -16,7 +16,7 @@
           </a-button>
           <template #overlay>
             <typeTree 
-              :platform="'ozon'" 
+              :platform="props.productData.classPlatform" 
               v-model:current-class="formData.productCategoryId"
               v-model:nodePath="formData.nodePath"
               ref="typeTreeRef"
@@ -87,7 +87,12 @@
       </a-form-item>
     </a-form>
   </a-card>
-  <typeManage v-model:modal-open="typeManageOpen" platform="ozon" @updateTree="updateTree"></typeManage>
+  <!-- 分类管理 -->
+  <typeManage 
+    v-model:modal-open="typeManageOpen" 
+    :platform="props.productData?.classPlatform" 
+    @updateTree="updateTree"
+  ></typeManage>
 </div>
 </template>
 
@@ -113,7 +118,7 @@ const typeTreeDropdown = ref(false)
 const typeManageOpen = ref(false);
 //  管理分类-弹窗
 const showCategoryModal = () => {
-    typeManageOpen.value = true;
+  typeManageOpen.value = true;
 };
 
 

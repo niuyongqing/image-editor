@@ -60,7 +60,7 @@
                             <span>{{ record.secondName }}</span>
                         </template>
                         <template v-if="column.dataIndex === 'sellerSKU'">
-                            <a-input disabled v-model:value="record.sellerSKU"></a-input>
+                            <a-input disabled v-model:value="record.sellerSKU" @change="sellerSKUChange(record)"></a-input>
                         </template>
                         <template v-if="!otherHeader.includes(column.dataIndex)">
                             <a-input v-if="column.selectType === 'input'"
@@ -184,7 +184,7 @@ import { scaleApi, watermarkListApi, watermarkApi } from "~/api/common/water-mar
 import EditProdQuantity from '../../productPublish/comm/EditProdQuantity.vue';
 import { uploadImage } from '@/pages/ozon/config/api/draft';
 import SkuDragUpload from '@/components/skuDragUpload/index.vue';
-
+import { debounce } from "lodash";
 
 const props = defineProps({
     productDetail: Object,
@@ -354,6 +354,14 @@ const batchSKU = () => {
     batchTitle.value = "批量修改SKU"
     batchType.value = 'sku'
 }
+
+  // 修改 SKU 时同步修改 warehouseList 里的 offerId
+  const sellerSKUChange = debounce(record => {
+    record.warehouseList.forEach(item => {
+      item.offerId = record.sellerSKU
+    })
+  }, 200)
+
 // 批量修改库存
 const batchStock = (row = {}) => {
     if (tableData.value.length == 0) {
@@ -420,6 +428,9 @@ const backValue = (batchFields) => {
         case 'sku':
             tableData.value.forEach((item) => {
                 item.sellerSKU = batchFields.batchValue;
+                item.warehouseList.forEach(warehouse => {
+                    warehouse.offerId = item.sellerSKU
+                })
             });
             break;
         case 'price':
@@ -430,7 +441,7 @@ const backValue = (batchFields) => {
             break;
         case 'packLength':
             tableData.value.forEach((item) => {
-                Object.assign(item, batchFields.batchValue);
+                Object.assign(item, batchFields.packageSize);
             });
             break;
         default:

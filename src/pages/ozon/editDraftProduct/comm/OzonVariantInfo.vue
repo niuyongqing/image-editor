@@ -129,7 +129,7 @@
                             <span>{{ record.secondName }}</span>
                         </template>
                         <template v-if="column.dataIndex === 'sellerSKU'">
-                            <a-input v-model:value="record.sellerSKU" style="min-width: 200px"></a-input>
+                            <a-input v-model:value="record.sellerSKU" style="min-width: 200px" @change="sellerSKUChange(record)"></a-input>
                         </template>
                         <template v-if="!otherHeader.includes(column.dataIndex)">
                             <a-input v-if="column.selectType === 'input'" v-model:value="record[column.dataIndex]"
@@ -291,7 +291,7 @@ import {
     checkData, rearrangeColorFields, handleTheme, processImageSource
 } from "../../config/commJs/index"
 import { publishHead, otherList } from '../../config/tabColumns/skuHead';
-
+import { debounce } from "lodash";
 import { uploadImage } from '@/pages/ozon/config/api/draft';
 import SkuDragUpload from '@/components/skuDragUpload/index.vue';
 
@@ -675,6 +675,13 @@ const batchSKU = () => {
     batchTitle.value = "批量修改SKU"
     batchType.value = 'sku'
 }
+
+  // 修改 SKU 时同步修改 warehouseList 里的 offerId
+  const sellerSKUChange = debounce(record => {
+    record.warehouseList.forEach(item => {
+      item.offerId = record.sellerSKU
+    })
+  }, 200)
 // 批量修改库存
 const batchStock = (type, row = {}) => {
     if (tableData.value.length == 0) {
@@ -744,6 +751,9 @@ const backValue = (batchFields) => {
         case 'sku':
             tableData.value.forEach((item) => {
                 item.sellerSKU = batchFields.batchValue;
+                item.warehouseList.forEach(warehouse => {
+                    warehouse.offerId = item.sellerSKU
+                })
             });
             break;
         case 'price':
@@ -754,7 +764,7 @@ const backValue = (batchFields) => {
             break;
         case 'packLength':
             tableData.value.forEach((item) => {
-                Object.assign(item, batchFields.batchValue);
+                Object.assign(item, batchFields.packageSize);
             });
             break;
         default:
@@ -860,6 +870,7 @@ watch(() => useOzonProductStore().attributes, val => {
                 )
                 requiredList.value = reorderArray(requiredList.value)
             } else {
+                themeBtns.value = arr.filter((obj) => !obj.isRequired);
                 requiredList.value = arr.filter((obj) => obj.isRequired);
             }
         } else {
