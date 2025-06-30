@@ -1,131 +1,62 @@
 <template>
   <div id="OzonNewVariantInfoCont">
-    <a-card
-      title="SKU信息"
-      class="text-left"
-      :loading="categoryAttributesLoading"
-    >
+    <a-card title="SKU信息" class="text-left" :loading="categoryAttributesLoading">
       <a-card title="变种属性" class="text-left mx-50">
         <div>
           <span>变种主题：</span>
-          <a-button
-            type="primary"
-            v-for="(item, index) in themeBtns"
-            class="mr-2.5"
-            :key="'add' + index + item.name"
-            @click="enterVariantType(item)"
-          >
+          <a-button type="primary" v-for="(item, index) in themeBtns" class="mr-2.5" :key="'add' + index + item.name"
+            @click="enterVariantType(item)">
             <AsyncIcon icon="PlusCircleOutlined"></AsyncIcon>
             {{ item.name }}
           </a-button>
 
-          <a-card
-            v-for="(items, index) in attributeList"
-            :key="items.id"
-            style="margin-top: 10px"
-          >
+          <a-card v-for="(items, index) in attributeList" :key="items.id" style="margin-top: 10px">
             <template #title>
-              <span style="font-weight: bolder"
-                >变种主题{{ index + 1 }}：
-                <i v-if="items.isRequired" style="color: red; margin-right: 2px"
-                  >*</i
-                >
+              <span style="font-weight: bolder">变种主题{{ index + 1 }}：
+                <i v-if="items.isRequired" style="color: red; margin-right: 2px">*</i>
                 <span>{{ items.name }}</span>
               </span>
-              <a-popconfirm
-                icon-color="red"
-                title="确定要删除这个变种主题吗？"
-                @confirm="removeVariantType(items, index)"
-              >
-                <a-button
-                  type="text"
-                  danger
-                  v-if="!items.isRequired"
-                  style="float: right"
-                  >移除</a-button
-                >
+              <a-popconfirm icon-color="red" title="确定要删除这个变种主题吗？" @confirm="removeVariantType(items, index)">
+                <a-button type="text" danger v-if="!items.isRequired" style="float: right">移除</a-button>
               </a-popconfirm>
             </template>
-            <a-table
-              :columns="items.tableColumns"
-              :data-source="items.tableData"
-              :pagination="false"
-            >
+            <a-table :columns="items.tableColumns" :data-source="items.tableData" :pagination="false">
               <template #bodyCell="{ column, record }">
                 <template v-if="column.dataIndex === record.name">
                   <!-- 单选 -->
                   <div v-if="record.selectType == 'select'" class="w-4/5">
-                    <a-select
-                      v-model:value="record.modelValue"
-                      class="w-full"
-                      optionFilterProp="label"
-                      labelInValue
-                      allowClear
-                      placeholder="请选择"
-                      @change="pushValue(index, items)"
-                    >
-                      <a-select-option
-                        v-for="items in record.details"
-                        :key="items.id"
-                        :label="items.label"
-                        :value="items"
-                        >{{ items.label }}
+                    <a-select v-model:value="record.modelValue" class="w-full" optionFilterProp="label" labelInValue
+                      allowClear placeholder="请选择" @change="pushValue(index, items)">
+                      <a-select-option v-for="items in record.details" :key="items.id" :label="items.label"
+                        :value="items">{{ items.label }}
                       </a-select-option>
                     </a-select>
                   </div>
                   <!-- 多选 -->
                   <div v-if="record.selectType == 'multSelect'" class="w-4/5">
-                    <a-select
-                      v-model:value="record.modelValue"
-                      class="w-full"
-                      optionFilterProp="label"
-                      allowClear
-                      mode="multiple"
-                      placeholder="请选择"
-                      labelInValue
-                      @change="pushValue(index, items)"
-                      :options="record.details"
-                    >
+                    <a-select v-model:value="record.modelValue" class="w-full" optionFilterProp="label" allowClear
+                      mode="multiple" placeholder="请选择" labelInValue @change="pushValue(index, items)"
+                      :options="record.details">
                     </a-select>
                   </div>
                   <!-- 输入框 -->
                   <div v-if="record.selectType == 'input'" class="w-4/5">
-                    <a-input-number
-                      v-if="record.type == 'Integer'"
-                      allowClear
-                      v-model:value="record.modelValue"
-                      @blur="index, items"
-                      placeholder="请输入内容"
-                      class="w-full"
-                    ></a-input-number>
-                    <a-input
-                      v-model:value="record.modelValue"
-                      allowClear
-                      v-else
-                      class="w-full"
-                      placeholder="请输入内容"
-                      @blur="pushValue(index, items)"
-                    ></a-input>
+                    <a-input-number v-if="record.type == 'Integer'" allowClear v-model:value="record.modelValue"
+                      @blur="index, items" placeholder="请输入内容" class="w-full"></a-input-number>
+                    <a-input v-model:value="record.modelValue" allowClear v-else class="w-full" placeholder="请输入内容"
+                      @blur="pushValue(index, items)"></a-input>
                   </div>
                 </template>
                 <template v-if="column.dataIndex === record[column.dataIndex]">
-                  <a-input
-                    v-model:value="record.secondModelValue"
-                    allowClear
-                    class="w-4/5"
-                    placeholder="请输入内容"
-                    @blur="pushValue(index, items)"
-                  ></a-input>
+                  <a-input v-model:value="record.secondModelValue" allowClear class="w-4/5" placeholder="请输入内容"
+                    @blur="pushValue(index, items)"></a-input>
                 </template>
                 <template v-if="column.dataIndex === 'options'">
                   <div>
                     <a-button class="mr-2.5" @click="addItem(record, items)">
                       <AsyncIcon icon="PlusCircleOutlined"></AsyncIcon>
                     </a-button>
-                    <a-button
-                      v-if="items.tableData.length != 1"
-                      @click="removeItem(record, items)"
-                    >
+                    <a-button v-if="items.tableData.length != 1" @click="removeItem(record, items)">
                       <AsyncIcon icon="MinusCircleOutlined"></AsyncIcon>
                     </a-button>
                   </div>
@@ -138,88 +69,46 @@
       <a-card title="变种信息" class="text-left mx-50 mt-5">
         <!-- 自定义变种信息 -->
         <div class="flex mb-2.5">
-          <a-checkbox-group
-            v-model:value="addHeaderList"
-            @change="changeHeade"
-            :disabled="tableData.length == 0"
-            :options="plainOptions"
-          >
+          <a-checkbox-group v-model:value="addHeaderList" @change="changeHeade" :disabled="tableData.length == 0"
+            :options="plainOptions">
           </a-checkbox-group>
-          <a-button
-            :disabled="custAttr.length == 0"
-            @click="attrVisible = true"
-            type="primary"
-            style="margin-left: 10px"
-            v-if="requiredList.length !== 0 || themeBtns.length !== 0"
-            >添加自定义变种属性</a-button
-          >
+          <!-- <a-button :disabled="custAttr.length == 0" @click="attrVisible = true" type="primary"
+            style="margin-left: 10px" v-if="requiredList.length !== 0 || themeBtns.length !== 0">添加自定义变种属性</a-button> -->
         </div>
-        <a-table
-          bordered
-          :columns="filteredHeaderList"
-          :data-source="tableData"
-          :pagination="false"
-          :scroll="{ x: 2000 }"
-        >
+        <a-table bordered :columns="filteredHeaderList" :data-source="tableData" :pagination="false"
+          :scroll="{ x: 2000 }">
           <template #headerCell="{ column }">
             <template v-if="column.dataIndex === 'sellerSKU'">
-              <span
-                ><span style="color: #ff0a37">*</span> {{ column.title }}</span
-              ><a class="ml-1.25" @click="batchSKU">批量</a>
+              <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
+                @click="batchSKU">批量</a>
             </template>
             <template v-if="column.dataIndex === 'price'">
-              <span
-                ><span style="color: #ff0a37">*</span> {{ column.title }}</span
-              ><a class="ml-1.25" @click="batchPrice">批量</a>
+              <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
+                @click="batchPrice">批量</a>
             </template>
             <template v-if="column.dataIndex === 'oldPrice'">
-              <span
-                ><span style="color: #ff0a37">*</span> {{ column.title }}</span
-              ><a class="ml-1.25" @click="batcholdPricebatchPrice">批量</a>
+              <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
+                @click="batcholdPricebatchPrice">批量</a>
             </template>
             <template v-if="column.dataIndex === 'quantity'">
-              <span
-                ><span style="color: #ff0a37">*</span> {{ column.title }}</span
-              ><a class="ml-1.25" @click="batchStock('all')">批量</a>
+              <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
+                @click="batchStock('all')">批量</a>
             </template>
             <template v-if="column.dataIndex === 'packageLength'">
-              <span
-                ><span style="color: #ff0a37">*</span>
-                {{ column.title }}(mm)</span
-              ><a class="ml-1.25" @click="batchPackLength">批量</a>
+              <span><span style="color: #ff0a37">*</span>
+                {{ column.title }}(mm)</span><a class="ml-1.25" @click="batchPackLength">批量</a>
             </template>
           </template>
           <template #bodyCell="{ column, record, index }">
             <template v-if="column.dataIndex === 'colorImg'">
-              <a-image
-                v-if="record.colorImg.length > 0"
-                style="position: relative"
-                :width="100"
-                :src="record.colorImg[0].url"
-              />
-              <div
-                v-if="record.colorImg.length > 0"
-                style="position: absolute; top: 5px; right: 5px"
-              >
-                <AsyncIcon
-                  icon="CloseCircleOutlined"
-                  size="20px"
-                  color="black"
-                  @click="record.colorImg = []"
-                />
+              <a-image v-if="record.colorImg.length > 0" style="position: relative" :width="100"
+                :src="record.colorImg[0].url" />
+              <div v-if="record.colorImg.length > 0" style="position: absolute; top: 5px; right: 5px">
+                <AsyncIcon icon="CloseCircleOutlined" size="20px" color="black" @click="record.colorImg = []" />
               </div>
-              <a-upload
-                name="file"
-                v-if="record.colorImg.length == 0"
-                class="h-20 w-20 headerImg"
-                :headers="headers"
-                accept=".jpg,.jpeg,.png"
-                :action="uploadUrl"
-                :showUploadList="false"
-                list-type="picture-card"
-                @change="(e) => handleChangeColroImg(e, record)"
-                :max-count="1"
-              >
+              <a-upload name="file" v-if="record.colorImg.length == 0" class="h-20 w-20 headerImg" :headers="headers"
+                accept=".jpg,.jpeg,.png" :action="uploadUrl" :showUploadList="false" list-type="picture-card"
+                @change="(e) => handleChangeColroImg(e, record)" :max-count="1">
                 <div>
                   <AsyncIcon icon="PlusOutlined" />
                   <div>上传图片</div>
@@ -233,142 +122,77 @@
               <span>{{ record.secondName }}</span>
             </template>
             <template v-if="column.dataIndex === 'sellerSKU'">
-              <a-input v-model:value="record.sellerSKU" @change="sellerSKUChange(record)"></a-input>
+              <a-input v-model:value.trim="record.sellerSKU" @change="sellerSKUChange(record)"></a-input>
             </template>
             <template v-if="!otherHeader.includes(column.dataIndex)">
-              <a-input
-                v-if="column.selectType === 'input'"
-                v-model:value="record[column.dataIndex]"
-              ></a-input>
-              <a-select
-                v-if="column.selectType === 'select'"
-                v-model:value="record[column.dataIndex]"
-                style="min-width: 200px"
-                :options="column.options"
-              ></a-select>
-              <a-select
-                v-if="column.selectType === 'multSelect'"
-                :maxTagCount="2"
-                v-model:value="record[column.dataIndex]"
-                style="min-width: 200px"
-                :options="column.options"
-                mode="tags"
-              ></a-select>
+              <a-input v-if="column.selectType === 'input'" v-model:value="record[column.dataIndex]"></a-input>
+              <a-select v-if="column.selectType === 'select'" v-model:value="record[column.dataIndex]"
+                style="min-width: 200px" :options="column.options"></a-select>
+              <a-select v-if="column.selectType === 'multSelect'" :maxTagCount="2"
+                v-model:value="record[column.dataIndex]" style="min-width: 200px" :options="column.options"
+                mode="tags"></a-select>
             </template>
             <template v-if="column.dataIndex === 'price'">
-              <a-input-number
-                style="min-width: 200px"
-                :min="0"
-                :max="99999999"
-                :precision="2"
-                v-model:value="record.price"
-                @blur="judgeMax(record)"
-              ></a-input-number>
-              <AsyncIcon
-                icon="CopyOutlined"
-                @click="applyAllValues(record.price, 'price')"
-                class="ml-2.5 cursor-pointer"
-                size="15px"
-              ></AsyncIcon>
+              <a-input-number style="min-width: 200px" :min="0" :max="99999999" :precision="2"
+                v-model:value="record.price" @blur="judgeMax(record)"></a-input-number>
+              <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.price, 'price')"
+                class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
             </template>
             <template v-if="column.dataIndex === 'oldPrice'">
-              <a-input-number
-                style="min-width: 200px"
-                :min="0"
-                :max="99999999"
-                v-model:value="record.oldPrice"
-                :precision="2"
-                @blur="judgeMax(record)"
-              ></a-input-number>
-              <AsyncIcon
-                icon="CopyOutlined"
-                @click="applyAllValues(record.oldPrice, 'oldPrice')"
-                class="ml-2.5 cursor-pointer"
-                size="15px"
-              ></AsyncIcon>
+              <a-input-number style="min-width: 200px" :min="0" :max="99999999" v-model:value="record.oldPrice"
+                :precision="2" @blur="judgeMax(record)"></a-input-number>
+              <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.oldPrice, 'oldPrice')"
+                class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
             </template>
             <template v-if="column.dataIndex === 'quantity'">
               <span>{{
                 record.quantity === undefined ? 0 : record.quantity
-              }}</span>
-              <AsyncIcon
-                icon="EditOutlined"
-                @click="batchStock('single', record)"
-              ></AsyncIcon>
+                }}</span>
+              <AsyncIcon icon="EditOutlined" @click="batchStock('single', record)"></AsyncIcon>
             </template>
             <template v-if="column.dataIndex === 'packageLength'">
               <div class="flex justify-center">
                 <div>
                   <div style="display: flex">
                     长度：
-                    <a-input-number
-                      controls-position="right"
-                      :min="0"
-                      style="min-width: 200px"
-                      v-model:value="record.packageLength"
-                      placeholder="长度"
-                    >
+                    <a-input-number controls-position="right" :min="0" style="min-width: 200px"
+                      v-model:value="record.packageLength" placeholder="长度">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div style="display: flex; margin-top: 5px">
                     宽度：
-                    <a-input-number
-                      controls-position="right"
-                      :min="0"
-                      style="min-width: 200px"
-                      v-model:value="record.packageWidth"
-                      placeholder="宽度"
-                    >
+                    <a-input-number controls-position="right" :min="0" style="min-width: 200px"
+                      v-model:value="record.packageWidth" placeholder="宽度">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div style="display: flex; margin-top: 5px">
                     高度：
-                    <a-input-number
-                      controls-position="right"
-                      :min="0"
-                      style="min-width: 200px"
-                      v-model:value="record.packageHeight"
-                      placeholder="高度"
-                    >
+                    <a-input-number controls-position="right" :min="0" style="min-width: 200px"
+                      v-model:value="record.packageHeight" placeholder="高度">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div style="display: flex; margin-top: 5px">
                     重量：
-                    <a-input-number
-                      controls-position="right"
-                      :min="0"
-                      style="min-width: 200px"
-                      v-model:value="record.packageWeight"
-                      placeholder="重量"
-                      :precision="0"
-                    >
+                    <a-input-number controls-position="right" :min="0" style="min-width: 200px"
+                      v-model:value="record.packageWeight" placeholder="重量" :precision="0">
                       <template #addonAfter>g</template>
                     </a-input-number>
                   </div>
                 </div>
                 <div class="flex">
-                  <AsyncIcon
-                    icon="CopyOutlined"
-                    @click="applyAllSize(record)"
-                    class="ml-2.5 cursor-pointer"
-                    size="15px"
-                  >
+                  <AsyncIcon icon="CopyOutlined" @click="applyAllSize(record)" class="ml-2.5 cursor-pointer"
+                    size="15px">
                   </AsyncIcon>
                 </div>
               </div>
             </template>
             <template v-if="column.dataIndex === 'options'">
               <div>
-                <a-popconfirm
-                  title="确定要删除这个SKU吗？"
-                  @confirm="deleteVariable(record, index)"
-                >
-                  <a-button v-if="tableData.length != 1" type="text" danger
-                    >删除</a-button
-                  >
+                <a-popconfirm title="确定要删除这个SKU吗？" @confirm="deleteVariable(record, index)">
+                  <a-button v-if="tableData.length != 1" type="text" danger>删除</a-button>
                 </a-popconfirm>
               </div>
             </template>
@@ -384,18 +208,11 @@
                   <a-tag color="warning">！说明</a-tag>
                   <span style="color: #9fa0a2">
                     第一张图片默认为主图，点击图片拖动，即可调整图片顺序！
-                    单张不超过2M，只支持jpg、.png、.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3：4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)</span
-                  >
+                    单张不超过2M，只支持jpg、.png、.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3：4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)</span>
                 </div>
 
-                <SkuDragUpload
-                  v-model:file-list="item.imageUrl"
-                  :maxCount="30"
-                  :showUploadList="false"
-                  accept=".jpg,.png"
-                  :api="uploadImage"
-                  :waterList="watermark"
-                >
+                <SkuDragUpload v-model:file-list="item.imageUrl" :maxCount="30" :showUploadList="false"
+                  accept=".jpg,.png" :api="uploadImage" :waterList="watermark">
                   <template #default>
                     <div flex flex-col w-full justify-start mb-4px text-left>
                       <p>
@@ -418,28 +235,14 @@
       </a-card>
     </a-card>
     <!-- 修改库存 -->
-    <EditProdQuantity
-      @backQuantity="backQuantity"
-      :editQuantityVis="editQuantityVis"
-      :editStockList="editStockList"
-      @backCloseQuantity="editQuantityVis = false"
-    ></EditProdQuantity>
+    <EditProdQuantity @backQuantity="backQuantity" :editQuantityVis="editQuantityVis" :editStockList="editStockList"
+      @backCloseQuantity="editQuantityVis = false"></EditProdQuantity>
     <!-- 批量修改 -->
-    <batchEditModal
-      :batchOpen="batchOpen"
-      :batchTitle="batchTitle"
-      :batchType="batchType"
-      @batchEditModalClose="batchOpen = false"
-      @backValue="backValue"
-    ></batchEditModal>
+    <batchEditModal :batchOpen="batchOpen" :batchTitle="batchTitle" :batchType="batchType"
+      @batchEditModalClose="batchOpen = false" @backValue="backValue"></batchEditModal>
     <!-- 选择自定义属性  -->
-    <SelectAttr
-      @selectAttrList="selectAttrList"
-      :attrVisible="attrVisible"
-      :custAttr="custAttr"
-      :newAttribute="newAttribute"
-      @handleStatsModalClose="attrVisible = false"
-    ></SelectAttr>
+    <SelectAttr @selectAttrList="selectAttrList" :attrVisible="attrVisible" :custAttr="custAttr"
+      :newAttribute="newAttribute" @handleStatsModalClose="attrVisible = false"></SelectAttr>
   </div>
 </template>
 
@@ -732,7 +535,7 @@ const removeItem = (item, row) => {
   console.log("removeItem", item, row);
   let ind = row.tableData.indexOf(item);
   if (item.id === 10096 || item.name == "商品颜色(Цвет товара)") {
-    row.tableData.splice(ind, 1); 
+    row.tableData.splice(ind, 1);
   } else if (item.id === 4295 || item.name == "俄罗斯尺码") {
     row.tableData.splice(ind, 1);
   } else {
@@ -775,8 +578,8 @@ const removeItem = (item, row) => {
       return item.selectType === "input"
         ? value === item.modelValue
         : item.selectType === "select"
-        ? value === item?.modelValue?.label
-        : false;
+          ? value === item?.modelValue?.label
+          : false;
     });
   });
 
@@ -877,12 +680,12 @@ const batchSKU = () => {
   batchType.value = "sku";
 };
 
-  // 修改 SKU 时同步修改 warehouseList 里的 offerId
-  const sellerSKUChange = debounce(record => {
-    record.warehouseList.forEach(item => {
-      item.offerId = record.sellerSKU
-    })
-  }, 200)
+// 修改 SKU 时同步修改 warehouseList 里的 offerId
+const sellerSKUChange = debounce(record => {
+  record.warehouseList.forEach(item => {
+    item.offerId = record.sellerSKU
+  })
+}, 200)
 // 批量修改库存
 const batchStock = (type, row = {}) => {
   if (tableData.value.length == 0) {
@@ -1217,7 +1020,6 @@ onMounted(() => {
 .headerImg {
   :deep(.ant-upload) {
     width: 80px !important;
-    height: 80px !important;
-  }
+    height: 80px !important; }
 }
 </style>

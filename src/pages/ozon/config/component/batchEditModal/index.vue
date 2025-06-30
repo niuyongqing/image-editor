@@ -1,7 +1,7 @@
 <template>
   <a-modal :open="batchOpen" :title="batchTitle" @cancel="cancel" @ok="handleOk" :width="'25%'">
     <div v-if="batchType === 'sku'">
-      <a-input v-model:value="batchValue" style="width: 80%"></a-input>
+      <a-input v-model:value.trim="batchValue" style="width: 80%"></a-input>
     </div>
     <div v-if="batchType === 'price'">
       <a-radio-group v-model:value="priceValue" @change="handleChangeOldPrice" style="width: 100%;" name="radioGroup">

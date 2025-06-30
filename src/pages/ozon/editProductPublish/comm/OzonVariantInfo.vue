@@ -5,8 +5,8 @@
                 <div class="flex mb-2.5">
                     <a-checkbox-group @change="changeHeade" v-model:value="addHeaderList" :options="plainOptions">
                     </a-checkbox-group>
-                    <a-button type="primary" :disabled="custAttr.length == 0" @click="attrVisible = true"
-                        class="mx-2.5">添加自定义变种属性</a-button>
+                    <!-- <a-button type="primary" :disabled="custAttr.length == 0" @click="attrVisible = true"
+                        class="mx-2.5">添加自定义变种属性</a-button> -->
                 </div>
                 <a-table bordered :columns="filteredHeaderList" :data-source="tableData" :pagination="false">
                     <template #headerCell="{ column }">
@@ -213,10 +213,10 @@ const plainOptions = [
         label: '颜色样本',
         value: 'colorImg',
     },
-    {
-        label: '设置SKU标题',
-        value: 'skuTitle',
-    },
+    // {
+    //     label: '设置SKU标题',
+    //     value: 'skuTitle',
+    // },
 ]
 const isConform = ref(false)
 const attrVisible = ref(false)

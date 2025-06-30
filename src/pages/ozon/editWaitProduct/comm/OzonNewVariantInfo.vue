@@ -72,8 +72,8 @@
           <a-checkbox-group v-model:value="addHeaderList" @change="changeHeade" :disabled="tableData.length == 0"
             :options="plainOptions">
           </a-checkbox-group>
-          <a-button :disabled="custAttr.length == 0" @click="attrVisible = true" type="primary"
-            style="margin-left: 10px" v-if="requiredList.length !== 0 || themeBtns.length !== 0">添加自定义变种属性</a-button>
+          <!-- <a-button :disabled="custAttr.length == 0" @click="attrVisible = true" type="primary"
+            style="margin-left: 10px" v-if="requiredList.length !== 0 || themeBtns.length !== 0">添加自定义变种属性</a-button> -->
         </div>
         <a-table bordered :columns="filteredHeaderList" :data-source="tableData" :pagination="false"
           :scroll="{ x: 2000 }">
@@ -122,7 +122,7 @@
               <span>{{ record.secondName }}</span>
             </template>
             <template v-if="column.dataIndex === 'sellerSKU'">
-              <a-input v-model:value="record.sellerSKU" style="min-width: 200px" @change="sellerSKUChange(record)"></a-input>
+              <a-input v-model:value.trim="record.sellerSKU" style="min-width: 200px" @change="sellerSKUChange(record)"></a-input>
             </template>
             <template v-if="!otherHeader.includes(column.dataIndex)">
               <a-input v-if="column.selectType === 'input'" v-model:value="record[column.dataIndex]"

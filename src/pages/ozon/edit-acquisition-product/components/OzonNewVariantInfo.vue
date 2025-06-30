@@ -76,8 +76,8 @@
           <a-checkbox-group v-model:value="addHeaderList" @change="changeHeade" :disabled="tableData.length == 0"
             :options="plainOptions">
           </a-checkbox-group>
-          <a-button :disabled="custAttr.length == 0" @click="attrVisible = true" type="primary"
-            style="margin-left: 10px" v-if="requiredList.length !== 0 || themeBtns.length !== 0">添加自定义变种属性</a-button>
+          <!-- <a-button :disabled="custAttr.length == 0" @click="attrVisible = true" type="primary"
+            style="margin-left: 10px" v-if="requiredList.length !== 0 || themeBtns.length !== 0">添加自定义变种属性</a-button> -->
         </div>
         <a-table bordered :columns="filteredHeaderList" :data-source="tableData" :pagination="false"
           :scroll="{ x: 2000 }">

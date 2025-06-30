@@ -87,10 +87,9 @@
                                     <a-select optionFilterProp="label" show-search
                                         v-model:value="form.attributes[item.name]" v-if="item.selectType === 'select'"
                                         labelInValue :style="'width: 80%'" allowClear>
-                                        <!-- <a-select-option v-if="item.name == '品牌(Бренд)'" :value="'无品牌'"
-                                            :label="'无品牌'">无品牌</a-select-option> -->
+                                        <a-select-option v-if="item.id == 85" :value="'无品牌'">无品牌</a-select-option>
 
-                                        <a-select-option :value="v" v-for="(v, i) in item.options" :key="i">{{ v.label
+                                        <a-select-option v-else :value="v" v-for="(v, i) in item.options" :key="i">{{ v.label
                                         }}</a-select-option>
                                     </a-select>
                                 </a-form-item>
