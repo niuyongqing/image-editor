@@ -110,7 +110,7 @@ import BaseModal from '@/components/baseModal/BaseModal.vue'
 import BacthEditImgSize from './bacthEditImgSize.vue';
 import { message } from "ant-design-vue";
 import { watermarkApi } from '@/api/common/water-mark.js';
-import router from '~@/router';
+
 const props = defineProps({
     disabled: {
         type: Boolean,
@@ -147,6 +147,8 @@ const props = defineProps({
         default: true
     }
 });
+
+const router = useRouter();
 const bacthEditImgSizeEl = useTemplateRef('BacthEditImgSizeRef');
 const attrs = useAttrs();
 const fileList = defineModel('file-list'); // 图片列表

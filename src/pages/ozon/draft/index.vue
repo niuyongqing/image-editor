@@ -118,8 +118,8 @@
                             <template v-if="column.dataIndex === 'image'">
                                 <div class="">
                                     <a-image :src="primaryImage(record.primaryImage)" />
-                                    <p class="platform-name" @click="visitUrl(record.sourceUrlList)">
-                                        {{ platformName(record.gatherPlatformName) }}</p>
+                                    <a-button type="link" class="platform-name" @click="visitUrl(record.sourceUrlList)">
+                                        {{ platformName(record.gatherPlatformName) }}</a-button>
                                 </div>
                             </template>
                             <template v-if="column.dataIndex === 'name'">
@@ -408,6 +408,9 @@ const accountName = (account) => {
 
 
 const primaryImage = (primaryImage) => {
+    if (primaryImage.includes('https')) {
+        return primaryImage
+    }
     return baseApi + primaryImage
 };
 

@@ -167,9 +167,11 @@ function filterOption(input, option) {
 
 
 const primaryImage = (primaryImage) => {
+    if (primaryImage.includes('https')) {
+        return primaryImage
+    }
     return baseApi + primaryImage
 };
-
 function getFilterAttrs() {
     const filterAttr = attributes.value.filter((attrItem) => {
         return attrItem.isAspect
