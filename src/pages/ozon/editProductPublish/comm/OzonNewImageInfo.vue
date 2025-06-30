@@ -174,17 +174,17 @@ watch(() => props.productDetail, val => {
             (a) => a.id == 11254 || a.id == 4191
         );
         complexAttributes && complexAttributes.forEach((item) => {
-            item.forEach((attribute) => {
-                if (attr.id === 21841) {
-                    form.video = attr.values.map((e) => {
-                        return {
-                            url: processImageSource(e.value),
-                        }
-                    })
-                } else if (attr.id === 21845) {
-                    form.coverUrl = processImageSource(attr.values[0].value)
-                }
-            });
+            // item.forEach((attribute) => {
+            // });
+            if (item.id === 21841) {
+                form.video = item.values.map((e) => {
+                    return {
+                        url: processImageSource(e.value),
+                    }
+                })
+            } else if (item.id === 21845) {
+                form.coverUrl = processImageSource(item.values[0].value)
+            }
             // console.log('item',item);
             
         });

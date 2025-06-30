@@ -397,10 +397,10 @@ const plainOptions = [
     label: "颜色样本",
     value: "colorImg",
   },
-  {
-    label: "设置SKU标题",
-    value: "skuTitle",
-  },
+  // {
+  //   label: "设置SKU标题",
+  //   value: "skuTitle",
+  // },
 ];
 const otherHeader = otherList;
 const isConform = ref(false);
@@ -612,11 +612,10 @@ const addItem = (item, row) => {
 // 移除多个属性操作
 const removeItem = (item, row) => {
   console.log("removeItem", item, row);
-  if (item.id === 10096) {
-    let ind = row.tableData.indexOf(item);
-    row.tableData.splice(ind, 1);
-  } else if (item.id === 4295) {
-    let ind = row.tableData.indexOf(item);
+  let ind = row.tableData.indexOf(item);
+  if (item.id === 10096 || item.name == "商品颜色(Цвет товара)") {
+    row.tableData.splice(ind, 1); 
+  } else if (item.id === 4295 || item.name == "俄罗斯尺码") {
     row.tableData.splice(ind, 1);
   } else {
     if (item.selectType === "select") {

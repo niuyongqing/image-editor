@@ -324,10 +324,10 @@ const plainOptions = [
     label: "颜色样本",
     value: "colorImg",
   },
-  {
-    label: "设置SKU标题",
-    value: "skuTitle",
-  },
+  // {
+  //   label: "设置SKU标题",
+  //   value: "skuTitle",
+  // },
 ];
 const otherHeader = otherList;
 const isConform = ref(false);
@@ -471,16 +471,23 @@ const enterVariantType = (item) => {
 const removeVariantType = (item, index) => {
   attributeList.value.splice(index, 1);
   imgHeaderList.value.splice(index, 1);
+  console.log("item---",item);
+  let name = item.tableData[0].name
+  let secondName = item.tableData[0]?.secondName
+  
+  
   // 循环删除表格内容数据
   for (let i = 0; i < tableData.value.length; i++) {
-    if (item.name == tableData.value[i][item.name]) {
-      let newObj = { ...tableData.value[i] };
-      delete newObj[item.name];
-    }
+    delete tableData.value[i][item.name];
+    delete tableData.value[i][secondName];
   }
   // 表头删除
   // headerList.value.splice(index, 1); !(item.prop == item.name && item.label == item.name)
-  headerList.value = headerList.value.filter((e) => !(e.title == item.title));
+  headerList.value = headerList.value.filter((e) => e.title != item.title);
+  if(secondName) {
+    headerList.value = headerList.value.filter((e) => e.title != secondName);
+  }
+  console.log("headerList",headerList.value);
   let newThem = {
     options: item.details,
     show: false,
@@ -493,6 +500,8 @@ const removeVariantType = (item, index) => {
     isAspect: item.isAspect,
   }
   themeBtns.value.unshift(newThem);
+  console.log("tableData----",tableData.value);
+  
 };
 // 添加多个属性操作
 const addItem = (item, row) => {
@@ -536,11 +545,10 @@ const addItem = (item, row) => {
 // 移除多个属性操作
 const removeItem = (item, row) => {
   console.log("removeItem", item, row);
-  if (item.id === 10096) {
-    let ind = row.tableData.indexOf(item);
-    row.tableData.splice(ind, 1);
-  } else if (item.id === 4295) {
-    let ind = row.tableData.indexOf(item);
+  let ind = row.tableData.indexOf(item);
+  if (item.id === 10096 || item.name == "商品颜色(Цвет товара)") {
+    row.tableData.splice(ind, 1); 
+  } else if (item.id === 4295 || item.name == "俄罗斯尺码") {
     row.tableData.splice(ind, 1);
   } else {
     if (item.selectType === "select") {
