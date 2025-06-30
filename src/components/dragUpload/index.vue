@@ -51,8 +51,8 @@
         </div>
 
         <div flex flex-wrap>
-            <draggable v-if="fileList.length > 0" v-model="fileList" @end="handleDragEnd" tag="div" class="flex"
-                item-key="url">
+            <draggable v-if="fileList.length > 0" v-model="fileList" @end="handleDragEnd" tag="div"
+                class="flex flex-wrap w-1600px gap-10px" item-key="url">
                 <template #item="{ element }">
                     <a-card ml-10px p-0px rounded-none class="file-card" hoverable>
                         <div :key="element.uid">
@@ -110,7 +110,7 @@ import BaseModal from '@/components/baseModal/BaseModal.vue'
 import BacthEditImgSize from './bacthEditImgSize.vue';
 import { message } from "ant-design-vue";
 import { watermarkApi } from '@/api/common/water-mark.js';
-import router from '~@/router';
+
 const props = defineProps({
     disabled: {
         type: Boolean,
@@ -147,6 +147,8 @@ const props = defineProps({
         default: true
     }
 });
+
+const router = useRouter();
 const bacthEditImgSizeEl = useTemplateRef('BacthEditImgSizeRef');
 const attrs = useAttrs();
 const fileList = defineModel('file-list'); // 图片列表

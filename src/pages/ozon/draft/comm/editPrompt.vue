@@ -74,6 +74,9 @@ const acceptParams = ref({});
 
 
 const primaryImage = (primaryImage) => {
+    if (primaryImage.includes('https')) {
+        return primaryImage
+    }
     return baseApi + primaryImage
 };
 
