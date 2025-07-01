@@ -321,7 +321,6 @@ const onSubmit = async (type) => {
       base.categoryId.secondCategoryId, // 二级id
     typeId: base.categoryId.threeCategoryId, // 三级分id
   }
-  console.log('params', params);
   loading.value = true;
 
   if(type === 2){

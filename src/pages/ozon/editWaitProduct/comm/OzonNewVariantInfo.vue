@@ -541,7 +541,6 @@ const addItem = (item, row) => {
 
 // 移除多个属性操作
 const removeItem = (item, row) => {
-  console.log("removeItem", item, row);
   let ind = row.tableData.indexOf(item);
   if (item.id === 10096 || item.name == "商品颜色(Цвет товара)") {
     row.tableData.splice(ind, 1); 
@@ -555,7 +554,7 @@ const removeItem = (item, row) => {
       });
     } else if (item.selectType === "input") {  // 新增input类型处理
       row.tableData = row.tableData.filter(tableItem =>
-        tableItem.modelValue !== item.modelValue
+        tableItem.id !== item.id
       );
     } else {
       // 获取需要排除的ID集合
@@ -568,13 +567,12 @@ const removeItem = (item, row) => {
     }
   }
 
+  // 获取所有需要删除的标签
+  const deletedLabels = item.selectType === 'multSelect'
+    ? item.modelValue.map(v => v.label)
+    : [];
 
   let newData = tableData.value.filter(row => {
-    // 获取所有需要删除的标签
-    const deletedLabels = item.selectType === 'multSelect'
-      ? item.modelValue.map(v => v.label)
-      : [];
-
     // 检查行数据是否包含要删除的属性值
     return !Object.values(row).some(value => {
       if (item.selectType === 'multSelect') {
@@ -584,7 +582,7 @@ const removeItem = (item, row) => {
           : String(value || '').split(',');
         return currentValues.some(v => deletedLabels.includes(v));
       }
-      return item.selectType === 'input' ? value === item.modelValue
+      return item.selectType === 'input' ? row.attrIdList.includes(item.id)
         : item.selectType === 'select' ? value === item?.modelValue?.label
           : false;
     });

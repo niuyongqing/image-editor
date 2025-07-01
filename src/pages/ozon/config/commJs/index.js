@@ -123,6 +123,7 @@ const processResult = (productList) => {
       imageUrl: [],
       colorImg: [],
       id: Math.random().toString(36).substring(2, 10),
+      attrIdList: [] // 变种属性 Id 合集
     };
     product.forEach((item) => {
       let values =
@@ -130,7 +131,8 @@ const processResult = (productList) => {
           ? item?.modelValue?.map((val) => val.label).join(",")
           : item.selectType === "select"
           ? item.modelValue?.label
-          : item.modelValue; //原写法 item.modelValue.value
+            : item.modelValue; //原写法 item.modelValue.value
+      output.attrIdList.push(item.id)
       output[item.name] = values;
       output["secondName"] = item?.secondModelValue || "";
       output[item.secondName] = item?.secondModelValue || "";
