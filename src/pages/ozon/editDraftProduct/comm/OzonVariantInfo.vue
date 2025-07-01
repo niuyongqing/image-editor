@@ -129,7 +129,8 @@
                             <span>{{ record.secondName }}</span>
                         </template>
                         <template v-if="column.dataIndex === 'sellerSKU'">
-                            <a-input v-model:value="record.sellerSKU" style="min-width: 200px" @change="sellerSKUChange(record)"></a-input>
+                            <a-input v-model:value="record.sellerSKU" style="min-width: 200px"
+                                @change="sellerSKUChange(record)"></a-input>
                         </template>
                         <template v-if="!otherHeader.includes(column.dataIndex)">
                             <a-input v-if="column.selectType === 'input'" v-model:value="record[column.dataIndex]"
@@ -228,9 +229,8 @@
 
                                 <!-- <span v-if="item.imageUrl" class="block mt-2.5">{{ item.imageUrl.length
                                 }}/30</span> -->
-                                <SkuDragUpload :actionUrl="actionUrl" v-model:file-list="item.imageUrl" :maxCount="30"
-                                    :showUploadList="false" accept=".jpg,.png" :api="uploadImage"
-                                    :waterList="watermark">
+                                <SkuDragUpload v-model:file-list="item.imageUrl" :maxCount="30" :showUploadList="false"
+                                    accept=".jpg,.png" :api="uploadImage" :waterList="watermark">
                                     <template #default>
                                         <div flex flex-col w-full justify-start mb-4px text-left>
                                             <p>
@@ -484,8 +484,8 @@ const enterVariantType = (item) => {
 // 移除主题操作
 const removeVariantType = (item, index) => {
     console.log('item', item, index);
-
     attributeList.value.splice(index, 1);
+
     // imgHeaderList.value.splice(index, 1);
     // 循环删除表格内容数据
     for (let i = 0; i < tableData.value.length; i++) {
@@ -500,17 +500,19 @@ const removeVariantType = (item, index) => {
         (e) => !(e.title == item.title)
     );
     let newThem = {
-    options: item.details,
-    show: false,
-    selectType: item.selectType,
-    id: item.id,
-    isRequired: item.isRequired,
-    categoryDependent: item.categoryDependent,
-    isCollection: item.isCollection,
-    name: item.name,
-    isAspect: item.isAspect,
-  }
-  themeBtns.value.unshift(newThem);
+        options: item.details,
+        show: false,
+        selectType: item.selectType,
+        id: item.id,
+        isRequired: item.isRequired,
+        categoryDependent: item.categoryDependent,
+        isCollection: item.isCollection,
+        name: item.name,
+        isAspect: item.isAspect,
+    }
+    themeBtns.value.unshift(newThem);
+    console.log('tableData.value', tableData.value);
+
 }
 // 添加多个属性操作
 const addItem = (item, row) => {
@@ -676,12 +678,12 @@ const batchSKU = () => {
     batchType.value = 'sku'
 }
 
-  // 修改 SKU 时同步修改 warehouseList 里的 offerId
-  const sellerSKUChange = debounce(record => {
+// 修改 SKU 时同步修改 warehouseList 里的 offerId
+const sellerSKUChange = debounce(record => {
     record.warehouseList.forEach(item => {
-      item.offerId = record.sellerSKU
+        item.offerId = record.sellerSKU
     })
-  }, 200)
+}, 200)
 // 批量修改库存
 const batchStock = (type, row = {}) => {
     if (tableData.value.length == 0) {
@@ -793,9 +795,9 @@ const getEditStore = (account) => {
 
 // 获取水印列表
 const getWatermark = () => {
-  watermarkListApi().then((res) => {
-    watermark.value = res.data;
-  });
+    watermarkListApi().then((res) => {
+        watermark.value = res.data;
+    });
 };
 
 const judgeMax = (item) => {
@@ -1215,7 +1217,7 @@ defineExpose({
     submitForm
 })
 onMounted(() => {
-  getWatermark();
+    getWatermark();
 });
 </script>
 <style lang="less" scoped>

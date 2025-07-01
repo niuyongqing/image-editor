@@ -46,7 +46,7 @@
                         <a-button type="link" @click="changeCategory">更换分类</a-button>
                         <p class="tooltip-text" v-if="hisAttrObj && JSON.stringify(hisAttrObj) != '{}'">{{
                             hisAttrObj.categoryName
-                            }} > {{ hisAttrObj.secondCategoryName }} > {{
+                        }} > {{ hisAttrObj.secondCategoryName }} > {{
                                 hisAttrObj.threeCategoryName }} </p>
                         <!-- 表格 -->
                         <a-table :columns="innerColumns" :data-source="innerTableData" bordered :pagination="false"
@@ -95,6 +95,7 @@ const platNames = {
     Tmall: '天猫',
     AliExpress: '速卖通',
 };
+const resData = ref(null);
 const baseApi = import.meta.env.VITE_APP_BASE_API;
 const relationDetail = ref({});
 const columns = [
@@ -185,32 +186,49 @@ function getFilterAttrs() {
         }
     });
     innerTableData.value = [];
-    if (acceptParams.value.variantAttr && Object.keys(acceptParams.value.variantAttr).length > 0) {
+
+    if (resData.value) {
+        if (acceptParams.value.variantAttr && Object.keys(acceptParams.value.variantAttr).length > 0) {
+            Object.keys(acceptParams.value.variantAttr).forEach((key) => {
+                const variantRelationList = relationDetail.value.variantRelationList || [];
+                const platformVariantName = variantRelationList.find((item) => {
+                    return item.originalVariantName === key
+                })?.platformVariantName;
+
+
+
+                if (isClear.value) {
+                    innerTableData.value.push({
+                        catTheme: key,
+                        attrLabel: undefined,
+                        ozonTheme: undefined,
+                        filterAttrOptions: filterAttrOptions.value,
+                    })
+                } else {
+                    innerTableData.value.push({
+                        catTheme: key,
+                        attrLabel: platformVariantName ? platformVariantName.replace(/\(.*\)/, "") : undefined,
+                        ozonTheme: relationDetail.value.variantRelationList.find((item) => {
+                            return item.originalVariantName === key
+                        })?.attributeId,
+                        filterAttrOptions: filterAttrOptions.value,
+                    })
+                }
+
+            });
+        }
+
+    } else {
         Object.keys(acceptParams.value.variantAttr).forEach((key) => {
-            const platformVariantName = relationDetail.value.variantRelationList.find((item) => {
-                return item.originalVariantName === key
-            })?.platformVariantName
+            innerTableData.value.push({
+                catTheme: key,
+                attrLabel: undefined,
+                ozonTheme: undefined,
+                filterAttrOptions: filterAttrOptions.value,
+            })
+        })
 
-            if (isClear.value) {
-                innerTableData.value.push({
-                    catTheme: key,
-                    attrLabel: undefined,
-                    ozonTheme: undefined,
-                    filterAttrOptions: filterAttrOptions.value,
-                })
-            } else {
-                innerTableData.value.push({
-                    catTheme: key,
-                    attrLabel: platformVariantName ? platformVariantName.replace(/\(.*\)/, "") : undefined,
-                    ozonTheme: relationDetail.value.variantRelationList.find((item) => {
-                        return item.originalVariantName === key
-                    })?.attributeId,
-                    filterAttrOptions: filterAttrOptions.value,
-                })
-            }
-
-        });
-    };
+    }
 }
 
 // 历史分类
@@ -326,6 +344,7 @@ const open = (data) => {
         productCollectId: data.gatherProductId,
     }).then((res) => {
         if (res.code === 200) {
+            resData.value = res.data;
             relationDetail.value = res.data || {};
             if (JSON.stringify(relationDetail.value) != '{}') {
                 tableData.value = [{

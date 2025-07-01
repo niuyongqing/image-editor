@@ -1,7 +1,7 @@
 <template>
     <div flex>
         <div w-300px>
-            <draftSidebar @updateClass="updateClass" />
+            <draftSidebar @updateClass="updateClass" :count="paginations.total" />
         </div>
         <div v-if="showDraftTable" w-full>
             <div id="draft" w-full ml-15px>
@@ -305,7 +305,7 @@ const remarkModalEl = useTemplateRef('remarkModalRef'); // 批量备注-弹窗
 const batchWatermarkEl = useTemplateRef('batchWatermarkRef'); // 批量加水印-弹窗
 const batchAttributeEl = useTemplateRef('batchAttributeRef'); // 批量属性-弹窗
 const typeTreeEl = useTemplateRef('typeTreeRef');
-const currentClass = ref(0);
+const currentClass = ref('0');
 const nodePath = ref('');
 const typeManageOpen = ref(false);
 const shopSetVisible = ref(false);

@@ -8,7 +8,7 @@
 
         <div :class="active === 'all' ? 'ozon-active' : 'default'">
             <div text-left pl-10px cursor-pointer @click="selectActive('all')">
-                「ozon」采集箱(<span>112</span>)</div>
+                「ozon」采集箱(<span>{{ count }}</span>)</div>
         </div>
     </a-card>
     <a-card :bordered="true" style="margin: 0 auto; border-radius: 0px">
@@ -16,21 +16,25 @@
             <div flex justify-between class="nav-title">
                 <div> 待发布产品 </div>
                 <div>
-                    <a-button type="link" @click="setting">
+                    <a-button type="link" @click="typeManageOpen = true">
                         <SettingOutlined />
                     </a-button>
                 </div>
             </div>
         </template>
         <div py-10px px-5px>
-            <a-input-search v-model:value="waitPublishTreeValue" style="margin-bottom: 8px" placeholder="搜索分类名称"
+            <!-- <a-input-search v-model:value="waitPublishTreeValue" style="margin-bottom: 8px" placeholder="搜索分类名称"
                 @search="onSearch" />
             <a-tree show-line :tree-data="waitPublishTreeData" defaultExpandAll v-if="waitPublishTreeData.length"
                 v-model:selected-keys="selectedKeys" @select="selectNode">
                 <template #title="{ title }">
                     <span class="node-name">{{ title }}</span>
                 </template>
-            </a-tree>
+            </a-tree> -->
+
+            <typeTree v-model:current-class="currentClass" v-model:node-path="nodePath" platform="ozon"
+                @update:currentClass="updateCurrentClass" ref="typeTreeRef">
+            </typeTree>
 
             <div :class="active === 'wait' ? 'ozon-active' : 'default'">
                 <div text-left pl-10px cursor-pointer @click="selectActive('wait')">
@@ -91,6 +95,13 @@ import ManageCategories from './manageCategories.vue';
 import typeTree from '@/components/classificationTree/typeTree.vue';
 import typeManage from '@/components/classificationTree/typeManage.vue';
 
+
+const { count } = defineProps({
+    count: {
+        type: Number,
+        default: 0
+    }
+})
 const typeTreeEl = useTemplateRef('typeTreeRef');
 const currentClass = ref(0);
 const nodePath = ref('');
