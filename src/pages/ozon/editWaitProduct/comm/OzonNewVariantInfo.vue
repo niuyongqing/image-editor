@@ -309,7 +309,7 @@ const batchTitle = ref("");
 const batchType = ref("");
 const currentNumber = ref(0);
 const headerList = ref([]); //动态表头
-const imgHeaderList = ref([]);
+// const imgHeaderList = ref([]);
 const addHeaderList = ref([]);
 const requireColumns = ref([]);
 const imageList = ref([]);
@@ -330,7 +330,7 @@ const plainOptions = [
   // },
 ];
 const otherHeader = otherList;
-const isConform = ref(false);
+const isConform = false;
 const headers = {
   Authorization: "Bearer " + useAuthorization().value,
 };
@@ -429,9 +429,9 @@ const processDataFormat = (list = []) => {
       show: true,
       align: "center",
     });
-    imgHeaderList.value.push({
-      title: list[i].name,
-    });
+    // imgHeaderList.value.push({
+    //   title: list[i].name,
+    // });
   }
   attributeList.value = [...attributeList.value, ...newHeaderList];
 };
@@ -439,7 +439,7 @@ const processDataFormat = (list = []) => {
 // 手动添加多个变种主题
 const enterVariantType = (item) => {
   let arr = [];
-  if (isConform.value && item.id === 10096) {
+  if (isConform && item.id === 10096) {
     arr = [
       {
         ...item,
@@ -470,24 +470,18 @@ const enterVariantType = (item) => {
 // 移除主题操作
 const removeVariantType = (item, index) => {
   attributeList.value.splice(index, 1);
-  imgHeaderList.value.splice(index, 1);
-  console.log("item---",item);
+  // imgHeaderList.value.splice(index, 1);
   let name = item.tableData[0].name
-  let secondName = item.tableData[0]?.secondName
+  let secondName = item.tableData[0].secondName
   
   
-  // 循环删除表格内容数据
-  for (let i = 0; i < tableData.value.length; i++) {
-    delete tableData.value[i][item.name];
-    delete tableData.value[i][secondName];
-  }
   // 表头删除
   // headerList.value.splice(index, 1); !(item.prop == item.name && item.label == item.name)
   headerList.value = headerList.value.filter((e) => e.title != item.title);
   if(secondName) {
     headerList.value = headerList.value.filter((e) => e.title != secondName);
   }
-  console.log("headerList",headerList.value);
+
   let newThem = {
     options: item.details,
     show: false,
@@ -500,13 +494,13 @@ const removeVariantType = (item, index) => {
     isAspect: item.isAspect,
   }
   themeBtns.value.unshift(newThem);
-  console.log("tableData----",tableData.value);
-  
+
+  /** 移除变种主题后需要重新生成变种信息 table 数据 */
 };
 // 添加多个属性操作
 const addItem = (item, row) => {
   let ele = {};
-  if (isConform.value && item.id === 10096) {
+  if (isConform && item.id === 10096) {
     ele = {
       id: item.id,
       name: item.name,
@@ -518,7 +512,7 @@ const addItem = (item, row) => {
       secondId: 10097,
       secondModelValue: "",
     };
-  } else if (isConform.value && item.id === 4295) {
+  } else if (isConform && item.id === 4295) {
     ele = {
       id: item.id,
       name: item.name,
@@ -851,18 +845,18 @@ watch(
       requiredList.value = [];
       attributeList.value = [];
       tableData.value = [];
-      imgHeaderList.value = [];
+      // imgHeaderList.value = [];
       addHeaderList.value = []; //清空自定义变种信息
       headerList.value = [...publishHead]; //重新赋值
       let editRes = [];
       // 提取变种主题
       let arr = val.filter((obj) => obj.isAspect);
-      isConform.value = checkData(arr);
+      isConform = checkData(arr);
       const requiredItem = arr.some((item) => item.isRequired === true);
       let sortArr = rearrangeColorFields(arr);
       //判断主题中是否有颜色名称，且商品颜色是不是必填项
       if (requiredItem) {
-        if (isConform.value) {
+        if (isConform) {
           requiredList.value = arr.filter((obj) => obj.isRequired);
           // 将arr转换为ID索引对象，提高查找效率
           const arrById = arr.reduce((acc, item) => {
@@ -896,7 +890,7 @@ watch(
           requiredList.value = arr.filter((obj) => obj.isRequired);
         }
       } else {
-        if (isConform.value) {
+        if (isConform) {
           themeBtns.value = arr.filter(
             (obj) => !(obj.isRequired || obj.id === 10097)
           );
@@ -1022,7 +1016,7 @@ watch(
       // console.log('uniqueArr',uniqueArr);
 
       headerList.value = uniqueArr; //表格主题标题赋值
-      imgHeaderList.value = attrHeaderList; //图片标题赋值
+      // imgHeaderList.value = attrHeaderList; //图片标题赋值
       if (result.some((item) => item.colorImg.length !== 0)) {
         headerList.value.unshift({
           title: "颜色样本",
