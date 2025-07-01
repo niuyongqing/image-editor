@@ -148,7 +148,7 @@ const removeVideoList = (index) => {
     form.video.splice(index, 1)
 }
 const submitForm = () => {
-    if (Object.keys(form.jsons).length == 0) {
+    if (!form.jsons || Object.keys(form.jsons).length == 0) {
         message.error("JSON富文本未填写！")
         return false;
     }
