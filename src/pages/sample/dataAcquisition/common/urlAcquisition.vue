@@ -204,7 +204,7 @@
           <template v-else-if="column.dataIndex === 'option'">
             <div class="option-btn-box">
               <div class="option-btn" @click="claim('acquisition', record)">认领</div>
-              <!-- <div class="option-btn" @click="acquisitionEdit(record)">编辑</div> -->
+              <div class="option-btn" @click="acquisitionEdit(record)">编辑</div>
               
               <a-dropdown>
                 <div class="option-btn" type="link" @click.prevent>
