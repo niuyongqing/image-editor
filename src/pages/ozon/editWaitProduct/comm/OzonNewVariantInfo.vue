@@ -330,7 +330,7 @@ const plainOptions = [
   // },
 ];
 const otherHeader = otherList;
-const isConform = false;
+let isConform = false;
 const headers = {
   Authorization: "Bearer " + useAuthorization().value,
 };
@@ -496,6 +496,9 @@ const removeVariantType = (item, index) => {
   themeBtns.value.unshift(newThem);
 
   /** 移除变种主题后需要重新生成变种信息 table 数据 */
+  let cartesianProducts = cartesianProduct(attributeList.value);
+  let newTableData = processResult(cartesianProducts);
+  tableData.value = newTableData;
 };
 // 添加多个属性操作
 const addItem = (item, row) => {
@@ -594,8 +597,8 @@ const removeItem = (item, row) => {
 
 // 将根据主题中选择的数据进行添加到表格中
 const pushValue = (index, item) => {
-  let flog = hasDuplicateModelValues(attributeList.value);
-  if (flog) {
+  let flag = hasDuplicateModelValues(attributeList.value);
+  if (flag) {
     message.error("变种属性值不能有相同的，请修改");
     return;
   }
