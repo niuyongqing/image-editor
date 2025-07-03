@@ -456,7 +456,7 @@ async function imageUrlConfirm() {
   let urlList = uploadModalInfo.imageUrl.split('\n')
   let res = await imageUrlUploadFn(urlList)
   // console.log({res}, 22);
-  formData.image_list = [...res]
+  formData.image_list = [...formData.image_list, ...res]
   loading.image = false
   modalClose()
 }
