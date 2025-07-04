@@ -211,7 +211,7 @@ const onSubmit = async (type) => {
   if (image.coverUrl !== "" && image.video.length > 0) {
     // 创建video对应的baseObj副本并更新value值
     let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
-    videoBaseObj = createAndUpdateBaseObj(image.coverUrl, 100002, 21845, 2);
+    videoBaseObj = createAndUpdateBaseObj(image.coverUrl, 100002, 21845, type === 1 ? 1 : 2);
     newComplexAttributes.push(videoBaseObj);
 
     // 创建coverUrl对应的baseObj副本并更新value值
@@ -219,7 +219,7 @@ const onSubmit = async (type) => {
     coverUrlBaseObj = createAndUpdateBaseObj(
       image.video,
       100001,
-      21841, 2
+      21841, type === 1 ? 1 : 2
     );
     newComplexAttributes.push(coverUrlBaseObj);
   } else if (image.coverUrl !== "") {
@@ -227,12 +227,12 @@ const onSubmit = async (type) => {
     coverUrlBaseObj = createAndUpdateBaseObj(
       image.coverUrl,
       100002,
-      21845, 2
+      21845, type === 1 ? 1 : 2
     );
     newComplexAttributes.push(coverUrlBaseObj);
   } else if (image.video.length > 0) {
     let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
-    videoBaseObj = createAndUpdateBaseObj(image.video, 100001, 21841, 2);
+    videoBaseObj = createAndUpdateBaseObj(image.video, 100001, 21841, type === 1 ? 1 : 2);
     newComplexAttributes.push(videoBaseObj);
   }
   console.log("newComplexAttributes", newComplexAttributes);
