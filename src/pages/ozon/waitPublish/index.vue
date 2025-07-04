@@ -154,9 +154,9 @@
                   : processImageSource(record?.skuList[0]?.images[0])
                 " />
               <div class="ml-2.5 block">
-                <a-tooltip class="item" effect="dark" :title="record.name" placement="top"
+                <a-tooltip class="item" effect="dark" :title="record.skuList[0].name" placement="top"
                   style="overflow-wrap: break-word">
-                  <div>{{ record.name }}</div>
+                  <div>{{ record.skuList[0].name }}</div>
                 </a-tooltip>
                 <div style="color: #999; float: left">
                   店铺: {{ record.simpleName }}
@@ -704,7 +704,7 @@ const getList = () => {
     // ...advancedForm,
     ...Object.entries(advancedForm).reduce((acc, [key, value]) => {
         // 过滤掉 timeSort 和 time 字段
-        if (["timeSort", "time"].includes(key)) return acc;
+        if (["time"].includes(key)) return acc;
 
         // 保留原有转换逻辑并添加字符串转换
         if (value !== null && value !== undefined && value !== '') {

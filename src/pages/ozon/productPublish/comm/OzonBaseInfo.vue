@@ -8,7 +8,7 @@
                     </a-select>
                 </a-form-item>
                 <a-form-item label="商品标题：" name="name">
-                    <a-input style="width: 90%" v-model:value="form.name" placeholder="请输入产品名称(用俄语或英语)" :maxlength="255"
+                    <a-input style="width: 90%" :disabled="idHave" v-model:value="form.name" placeholder="请输入产品名称(用俄语或英语)" :maxlength="255"
                         showCount></a-input>
                     <!-- :autofocus="true" -->
                 </a-form-item>
@@ -428,6 +428,10 @@ const sortAttrs = (attrs) => {
 defineExpose({
     form,
     childForm
+})
+// useOzonProductStore().addHeaderList
+const idHave = computed(() => {
+    return useOzonProductStore().addHeaderList.includes('skuTitle');
 })
 
 watch(() => form.shortCode, val => {

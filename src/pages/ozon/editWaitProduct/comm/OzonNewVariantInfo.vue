@@ -82,6 +82,10 @@
               <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
                 @click="batchSKU">批量</a>
             </template>
+            <template v-if="column.dataIndex === 'skuTitle'">
+              <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
+                @click="batchSkuTitle">批量</a>
+            </template>
             <template v-if="column.dataIndex === 'price'">
               <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
                 @click="batchPrice">批量</a>
@@ -122,7 +126,8 @@
               <span>{{ record.secondName }}</span>
             </template>
             <template v-if="column.dataIndex === 'sellerSKU'">
-              <a-input v-model:value.trim="record.sellerSKU" style="min-width: 200px" @change="sellerSKUChange(record)"></a-input>
+              <a-input v-model:value.trim="record.sellerSKU" style="min-width: 200px"
+                @change="sellerSKUChange(record)"></a-input>
             </template>
             <template v-if="!otherHeader.includes(column.dataIndex)">
               <a-input v-if="column.selectType === 'input'" v-model:value="record[column.dataIndex]"
@@ -218,8 +223,8 @@
                     第一张图片默认为主图，点击图片拖动，即可调整图片顺序！
                     单张不超过2M，只支持jpg、.png、.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3：4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)</span>
                 </div>
-                <SkuDragUpload v-model:file-list="item.imageUrl" :maxCount="30"
-                  :showUploadList="false" accept=".jpg,.png" :api="uploadImage" :waterList="watermark">
+                <SkuDragUpload v-model:file-list="item.imageUrl" :maxCount="30" :showUploadList="false"
+                  accept=".jpg,.png" :api="uploadImage" :waterList="watermark">
                   <template #default>
                     <div flex flex-col w-full justify-start mb-4px text-left>
                       <p>
@@ -324,10 +329,10 @@ const plainOptions = [
     label: "颜色样本",
     value: "colorImg",
   },
-  // {
-  //   label: "设置SKU标题",
-  //   value: "skuTitle",
-  // },
+  {
+    label: "设置SKU标题",
+    value: "skuTitle",
+  },
 ];
 const otherHeader = otherList;
 let isConform = false;
@@ -473,12 +478,12 @@ const removeVariantType = (item, index) => {
   // imgHeaderList.value.splice(index, 1);
   let name = item.tableData[0].name
   let secondName = item.tableData[0].secondName
-  
-  
+
+
   // 表头删除
   // headerList.value.splice(index, 1); !(item.prop == item.name && item.label == item.name)
   headerList.value = headerList.value.filter((e) => e.title != item.title);
-  if(secondName) {
+  if (secondName) {
     headerList.value = headerList.value.filter((e) => e.title != secondName);
   }
 
@@ -522,8 +527,8 @@ const addItem = (item, row) => {
       modelValue: item.selectType === "multSelect" ? [] : undefined,
       selectType: item.selectType,
       details: item.details,
-      secondName: "制造商尺码(Размер производителя)",
-      "制造商尺码(Размер производителя)": "制造商尺码(Размер производителя)",
+      secondName: "由制造商规定尺码(Размер производителя)",
+      "由制造商规定尺码(Размер производителя)": "由制造商规定尺码(Размер производителя)",
       secondId: 9533,
       secondModelValue: "",
     };
@@ -541,18 +546,15 @@ const addItem = (item, row) => {
 
 // 移除多个属性操作
 const removeItem = (item, row) => {
+  console.log("item", item, row);
+
   let ind = row.tableData.indexOf(item);
   if (item.id === 10096 || item.name == "商品颜色(Цвет товара)") {
-    row.tableData.splice(ind, 1); 
+    row.tableData.splice(ind, 1);
   } else if (item.id === 4295 || item.name == "俄罗斯尺码") {
     row.tableData.splice(ind, 1);
   } else {
-    if (item.selectType === "select") {
-      row.tableData = row.tableData.filter(tableItem => {
-        // 检查当前项的modelValue是否包含排除ID
-        return tableItem.modelValue?.value != item.modelValue?.value;
-      });
-    } else if (item.selectType === "input") {  // 新增input类型处理
+    if (item.selectType === "select" || item.selectType === "input") {
       row.tableData = row.tableData.filter(tableItem =>
         tableItem.id !== item.id
       );
@@ -657,6 +659,11 @@ const changeHeade = () => {
       }
     }
   });
+
+  const ozonStore = useOzonProductStore()
+  ozonStore.$patch(state => {
+    state.addHeaderList = addHeaderList.value
+  })
 };
 
 // 删除表格数据
@@ -685,12 +692,22 @@ const batchSKU = () => {
   batchTitle.value = "批量修改SKU";
   batchType.value = "sku";
 };
- // 修改 SKU 时同步修改 warehouseList 里的 offerId
- const sellerSKUChange = debounce(record => {
-    record.warehouseList.forEach(item => {
-      item.offerId = record.sellerSKU
-    })
-  }, 200)
+// 批量修改SKU标题
+const batchSkuTitle = () => {
+  if (tableData.value.length == 0) {
+    message.warning("请先添加sku！");
+    return;
+  }
+  batchOpen.value = true;
+  batchTitle.value = "批量修改SKU标题";
+  batchType.value = "skuTitle";
+}
+// 修改 SKU 时同步修改 warehouseList 里的 offerId
+const sellerSKUChange = debounce(record => {
+  record.warehouseList.forEach(item => {
+    item.offerId = record.sellerSKU
+  })
+}, 200)
 // 批量修改库存
 const batchStock = (type, row = {}) => {
   if (tableData.value.length == 0) {
@@ -768,6 +785,11 @@ const backValue = (batchFields) => {
         item.warehouseList.forEach(warehouse => {
           warehouse.offerId = item.sellerSKU
         })
+      });
+      break;
+    case "skuTitle":
+      tableData.value.forEach((item) => {
+        item.skuTitle = batchFields.batchValue;
       });
       break;
     case "price":
@@ -901,6 +923,9 @@ watch(
       }
 
       const { skuList } = props.productDetail;
+      // 处理自定义属性数据
+      // let customArr = findCommonByIdOptimized(val, skuList[0].attributes)
+      // console.log('customArr', customArr);
       const newAttributesCache = processAttributesCache(val);
       const list = newAttributesCache.filter((a) => !a.isRequired);
       custAttr.value = list.filter(
@@ -936,6 +961,7 @@ watch(
           packageLength: sku.depth,
           packageWeight: sku.weight,
           packageWidth: sku.width,
+          skuTitle: sku.name,
           colorImg: sku?.colorImage
             ? [
               {
@@ -964,8 +990,6 @@ watch(
         sortArr.forEach((attr) => {
           // 遍历sku的attributes中的每个attributes
           sku.attributes.forEach((subAttr) => {
-            // console.log("",subAttr, attr);
-
             if (subAttr.id == attr.id) {
               if (attr.selectType === "multSelect" && attr.options) {
                 let values = subAttr.values.map((val) => {
@@ -1029,9 +1053,26 @@ watch(
         });
         addHeaderList.value.push("colorImg");
       }
+      if (result.some((item) => item.name !== "")) {
+        let skuIndex = headerList.value.findIndex(
+          (item) => item.title === "SKU"
+        );
+        let obj = {
+          title: "SKU标题",
+          dataIndex: "skuTitle",
+          selectType: "input",
+          type: 1,
+          options: null,
+          show: true,
+          align: "center",
+        }
+        headerList.value.splice(skuIndex + 1, 0, obj);
+        addHeaderList.value.push("skuTitle");
+      }
+      
       tableData.value = result;
       // 将不匹配的主题过滤掉
-      // console.log("sortArr", sortArr);
+      console.log("sortArr", tableData.value);
       let comAttrList = [10096, 4295];
       let comAttrs = [10096, 10097];
       // 从数组 a 中提取所有的 id
@@ -1059,7 +1100,7 @@ watch(
 
       // 处理到数据回显到主题
       const aIds = echoThemeList.map((item) => item.id);
-      // console.log('aIds', echoThemeList);
+      console.log('aIds', echoThemeList);
       // 过滤 有数据的主题
       themeBtns.value = themeBtns.value.filter(
         (item) => !aIds.includes(item.id)
@@ -1069,6 +1110,42 @@ watch(
     }
   }
 );
+
+// 方法2：使用Map优化性能（推荐）提取自定义属性
+// const findCommonByIdOptimized = (arr1, arr2) => {
+//   const map = new Map(arr2.map(item => [item.id, item]));
+//   return arr1.filter(item => map.has(item.id));
+// };
+
+// // 将skuList中每个attributes中的值进行比较将不相同的数据进行返回
+// const filterUniqueAttributes = (skuList) => {
+//   // 创建属性值统计Map {id: {hashes: Set, count: number}}
+//   const attributeStats = new Map();
+
+//   // 遍历所有SKU统计属性值
+//   skuList.forEach(sku => {
+//     sku.attributes.forEach(attr => {
+//       const valueHash = JSON.stringify(attr.values);
+//       if (!attributeStats.has(attr.id)) {
+//         attributeStats.set(attr.id, { hashes: new Set(), count: 0 });
+//       }
+//       const stat = attributeStats.get(attr.id);
+//       stat.hashes.add(valueHash);
+//       stat.count++;
+//     });
+//   });
+
+//   // 找出需要移除的属性ID（存在重复值的属性）
+//   const idsToRemove = Array.from(attributeStats.entries())
+//     .filter(([id, stat]) => stat.hashes.size < stat.count) // 存在重复值
+//     .map(([id]) => id);
+
+//   // 过滤所有SKU的attributes
+//   return skuList.map(sku => ({
+//     ...sku,
+//     attributes: sku.attributes.filter(attr => !idsToRemove.includes(attr.id))
+//   }));
+// };
 
 const filterModelValues = (a, b) => {
   const allAttributeIds = b.flatMap((item) =>
@@ -1235,8 +1312,6 @@ const submitForm = () => {
   for (let i = 0; i < attributeList.value.length; i++) {
     for (let j = 0; j < attributeList.value[i].tableData.length; j++) {
       const row = attributeList.value[i].tableData[j];
-      // console.log("row11", row)
-      // console.log("row", validateRow(row));
 
       if (!validateRow(row)) {
         message.error("请填写变种主题！");

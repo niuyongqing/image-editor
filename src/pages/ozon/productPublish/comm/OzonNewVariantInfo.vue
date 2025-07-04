@@ -72,8 +72,8 @@
           <a-checkbox-group v-model:value="addHeaderList" @change="changeHeade" :disabled="tableData.length == 0"
             :options="plainOptions">
           </a-checkbox-group>
-          <!-- <a-button :disabled="custAttr.length == 0" @click="attrVisible = true" type="primary"
-            style="margin-left: 10px" v-if="requiredList.length !== 0 || themeBtns.length !== 0">添加自定义变种属性</a-button> -->
+          <a-button :disabled="custAttr.length == 0" @click="attrVisible = true" type="primary"
+            style="margin-left: 10px" v-if="requiredList.length !== 0 || themeBtns.length !== 0">添加自定义变种属性</a-button>
         </div>
         <a-table bordered :columns="filteredHeaderList" :data-source="tableData" :pagination="false"
           :scroll="{ x: 2000 }">
@@ -81,6 +81,10 @@
             <template v-if="column.dataIndex === 'sellerSKU'">
               <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
                 @click="batchSKU">批量</a>
+            </template>
+            <template v-if="column.dataIndex === 'skuTitle'">
+              <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
+                @click="batchSkuTitle">批量</a>
             </template>
             <template v-if="column.dataIndex === 'price'">
               <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
@@ -147,7 +151,7 @@
             <template v-if="column.dataIndex === 'quantity'">
               <span>{{
                 record.quantity === undefined ? 0 : record.quantity
-                }}</span>
+              }}</span>
               <AsyncIcon icon="EditOutlined" @click="batchStock('single', record)"></AsyncIcon>
             </template>
             <template v-if="column.dataIndex === 'packageLength'">
@@ -315,10 +319,10 @@ const plainOptions = [
     label: "颜色样本",
     value: "colorImg",
   },
-  // {
-  //   label: "设置SKU标题",
-  //   value: "skuTitle",
-  // },
+  {
+    label: "设置SKU标题",
+    value: "skuTitle",
+  },
 ];
 let otherHeader = otherList;
 const isConform = ref(false);
@@ -462,15 +466,18 @@ const enterVariantType = (item) => {
 // 移除主题操作
 const removeVariantType = (item, index) => {
   attributeList.value.splice(index, 1);
-  imgHeaderList.value.splice(index, 1);
+  // imgHeaderList.value.splice(index, 1);
+
+  let name = item.tableData[0].name
+  let secondName = item.tableData[0].secondName
   // 循环删除表格内容数据
-  for (let i = 0; i < tableData.value.length; i++) {
-    delete tableData.value[i][item.name];
-    // if (item.name == tableData.value[i][item.name]) {
-    //   let newObj = { ...tableData.value[i] };
-    //   delete newObj[item.name];
-    // }
-  }
+  // for (let i = 0; i < tableData.value.length; i++) {
+  //   delete tableData.value[i][item.name];
+  //   // if (item.name == tableData.value[i][item.name]) {
+  //   //   let newObj = { ...tableData.value[i] };
+  //   //   delete newObj[item.name];
+  //   // }
+  // }
   // 表头删除
   headerList.value = headerList.value.filter((e) => !(e.title == item.title));
   let newThem = {
@@ -485,6 +492,11 @@ const removeVariantType = (item, index) => {
     isAspect: item.isAspect,
   };
   themeBtns.value.unshift(newThem);
+
+  /** 移除变种主题后需要重新生成变种信息 table 数据 */
+  let cartesianProducts = cartesianProduct(attributeList.value);
+  let newTableData = processResult(cartesianProducts);
+  tableData.value = newTableData;
 };
 // 添加多个属性操作
 const addItem = (item, row) => {
@@ -510,8 +522,8 @@ const addItem = (item, row) => {
       modelValue: item.selectType === "multSelect" ? [] : undefined,
       selectType: item.selectType,
       details: item.details,
-      secondName: "制造商尺码(Размер производителя)",
-      "制造商尺码(Размер производителя)": "制造商尺码(Размер производителя)",
+      secondName: "由制造商规定尺码(Размер производителя)",
+      "由制造商规定尺码(Размер производителя)": "由制造商规定尺码(Размер производителя)",
       secondId: 9533,
       secondModelValue: "",
     };
@@ -532,22 +544,18 @@ const addItem = (item, row) => {
 
 // 移除多个属性操作
 const removeItem = (item, row) => {
-  console.log("removeItem", item, row);
+  console.log("removeItem", item, tableData.value);
   let ind = row.tableData.indexOf(item);
+  console.log("ind", ind);
+
   if (item.id === 10096 || item.name == "商品颜色(Цвет товара)") {
     row.tableData.splice(ind, 1);
   } else if (item.id === 4295 || item.name == "俄罗斯尺码") {
     row.tableData.splice(ind, 1);
   } else {
-    if (item.selectType === "select") {
-      row.tableData = row.tableData.filter((tableItem) => {
-        // 检查当前项的modelValue是否包含排除ID
-        return tableItem.modelValue?.value != item.modelValue?.value;
-      });
-    } else if (item.selectType === "input") {
-      // 新增input类型处理
-      row.tableData = row.tableData.filter(
-        (tableItem) => tableItem.modelValue !== item.modelValue
+    if (item.selectType === "select" || item.selectType === "input") {
+      row.tableData = row.tableData.filter(tableItem =>
+        tableItem.id !== item.id
       );
     } else {
       // 获取需要排除的ID集合
@@ -559,28 +567,64 @@ const removeItem = (item, row) => {
       });
     }
   }
-  let newData = tableData.value.filter((row) => {
-    // 获取所有需要删除的标签
-    const deletedLabels =
-      item.selectType === "multSelect"
-        ? item.modelValue.map((v) => v.label)
-        : [];
+  // const deletedLabels = item.selectType === 'multSelect'
+  //   ? item.modelValue.map(v => v.label)
+  //   : [];
 
-    // 检查行数据是否包含要删除的属性值
-    return !Object.values(row).some((value) => {
-      if (item.selectType === "multSelect") {
-        // 统一处理数组和字符串类型的值
-        const currentValues = Array.isArray(value)
-          ? value.map((v) => v?.label || "")
-          : String(value || "").split(",");
-        return currentValues.some((v) => deletedLabels.includes(v));
-      }
-      return item.selectType === "input"
-        ? value === item.modelValue
-        : item.selectType === "select"
-          ? value === item?.modelValue?.label
-          : false;
-    });
+  // let newData = tableData.value.filter(row => {
+  //   // 检查行数据是否包含要删除的属性值
+  //   return !Object.values(row).some(value => {
+  //     if (item.selectType === 'multSelect') {
+  //       // 统一处理数组和字符串类型的值
+  //       const currentValues = Array.isArray(value)
+  //         ? value.map(v => v?.label || '')
+  //         : String(value || '').split(',');
+  //       return currentValues.some(v => deletedLabels.includes(v));
+  //     }
+  //     return item.selectType === 'input' || item.selectType === 'select' ? row.attrIdList.includes(item.id)
+  //       // : item.selectType === 'select' ? value === item?.modelValue?.label
+  //         : false;
+  //   });
+  // });
+
+  const deletedLabels = item.selectType === 'multSelect'
+    ? item.modelValue.map(v => v.label?.trim()) // 增加trim处理
+    : [];
+  const deletedSet = new Set(deletedLabels); // 改用Set提高查询效率
+  console.log("deletedLabels", deletedLabels);
+
+  let newData = tableData.value.filter(row => {
+    // 直接访问对应属性
+    const rowValue = row[item.name];
+    if (item.selectType === 'select' || item.selectType === 'input') {
+      return !row.attrIdList?.some(id => id === item.id);
+    } else {
+      console.log("row.multId", row.multId);
+      console.log("item.multId", item.multId);
+      return row.multId === item.multId;
+    }
+    // if (item.selectType === 'multSelect') {
+    //   // 统一处理数组/字符串值
+    //   const currentValues = Array.isArray(rowValue)
+    //     ? rowValue.map(v => v?.label?.trim() || '')
+    //     : typeof rowValue === 'string'
+    //       ? rowValue.split(',').map(s => s.trim())
+    //       : [];
+    //   return !currentValues.some(v => deletedSet.has(v));
+    // }
+
+    // if (item.selectType === 'select') {
+    //   // 精确匹配select的label值
+    //   const currentLabel = rowValue?.label?.trim();
+    //   return !deletedSet.has(currentLabel);
+    // }
+
+    // if (item.selectType === 'input') {
+    //   // 精确匹配attrIdList中的ID
+    //   return !row.attrIdList?.some(id => id === item.id);
+    // }
+
+    return true;
   });
 
   tableData.value = newData;
@@ -589,8 +633,8 @@ const removeItem = (item, row) => {
 // 将根据主题中选择的数据进行添加到表格中
 const pushValue = (index, item) => {
   console.log("attributeList.value", attributeList.value);
-  let flog = hasDuplicateModelValues(attributeList.value);
-  if (flog) {
+  let flag = hasDuplicateModelValues(attributeList.value);
+  if (flag) {
     message.error("变种属性值不能有相同的，请修改");
     return;
   }
@@ -651,6 +695,11 @@ const changeHeade = () => {
       }
     }
   });
+
+  const ozonStore = useOzonProductStore()
+  ozonStore.$patch(state => {
+      state.addHeaderList = addHeaderList.value
+  })
 };
 
 // 删除表格数据
@@ -679,6 +728,17 @@ const batchSKU = () => {
   batchTitle.value = "批量修改SKU";
   batchType.value = "sku";
 };
+
+// 批量修改SKU标题
+const batchSkuTitle = () => {
+  if (tableData.value.length == 0) {
+    message.warning("请先添加sku！");
+    return;
+  }
+  batchOpen.value = true;
+  batchTitle.value = "批量修改SKU标题";
+  batchType.value = "skuTitle";
+}
 
 // 修改 SKU 时同步修改 warehouseList 里的 offerId
 const sellerSKUChange = debounce(record => {
@@ -763,6 +823,11 @@ const backValue = (batchFields) => {
         item.warehouseList.forEach(warehouse => {
           warehouse.offerId = item.sellerSKU
         })
+      });
+      break;
+    case "skuTitle":
+      tableData.value.forEach((item) => {
+        item.skuTitle = batchFields.batchValue;
       });
       break;
     case "price":
@@ -917,8 +982,6 @@ watch(
       if (requiredList.value.length != 0) {
         processDataFormat(requiredList.value);
       }
-      // console.log('themeBtns', tableData.value);
-
       tableData.value.push({
         skuTitle: "",
         sellerSKU: "",
@@ -1020,6 +1083,7 @@ onMounted(() => {
 .headerImg {
   :deep(.ant-upload) {
     width: 80px !important;
-    height: 80px !important; }
+    height: 80px !important;
+  }
 }
 </style>

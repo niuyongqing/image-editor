@@ -343,10 +343,10 @@ const plainOptions = [
     label: "颜色样本",
     value: "colorImg",
   },
-  // {
-  //   label: "设置SKU标题",
-  //   value: "skuTitle",
-  // },
+  {
+    label: "设置SKU标题",
+    value: "skuTitle",
+  },
 ];
 const otherHeader = otherList;
 let isConform = false;
@@ -539,8 +539,8 @@ const addItem = (item, row) => {
       modelValue: item.selectType === "multSelect" ? [] : undefined,
       selectType: item.selectType,
       details: item.details,
-      secondName: "制造商尺码(Размер производителя)",
-      "制造商尺码(Размер производителя)": "制造商尺码(Размер производителя)",
+      secondName: "由制造商规定尺码(Размер производителя)",
+      "由制造商规定尺码(Размер производителя)": "由制造商规定尺码(Размер производителя)",
       secondId: 9533,
       secondModelValue: "",
     };
@@ -564,12 +564,7 @@ const removeItem = (item, row) => {
   } else if (item.id === 4295 || item.name == "俄罗斯尺码") {
     row.tableData.splice(ind, 1);
   } else {
-    if (item.selectType === "select") {
-      row.tableData = row.tableData.filter(tableItem => {
-        // 检查当前项的modelValue是否包含排除ID
-        return tableItem.modelValue?.value != item.modelValue?.value;
-      });
-    } else if (item.selectType === "input") {  // 新增input类型处理
+    if (item.selectType === "select" || item.selectType === "input") {
       row.tableData = row.tableData.filter(tableItem =>
         tableItem.id !== item.id
       );
@@ -670,6 +665,11 @@ const changeHeade = () => {
       }
     }
   });
+
+  const ozonStore = useOzonProductStore()
+  ozonStore.$patch(state => {
+    state.addHeaderList = addHeaderList.value
+  })
 };
 
 // 删除表格数据
@@ -698,7 +698,16 @@ const batchSKU = () => {
   batchTitle.value = "批量修改SKU";
   batchType.value = "sku";
 };
-
+// 批量修改SKU标题
+const batchSkuTitle = () => {
+  if (tableData.value.length == 0) {
+    message.warning("请先添加sku！");
+    return;
+  }
+  batchOpen.value = true;
+  batchTitle.value = "批量修改SKU标题";
+  batchType.value = "skuTitle";
+}
   // 修改 SKU 时同步修改 warehouseList 里的 offerId
   const sellerSKUChange = debounce(record => {
     record.warehouseList.forEach(item => {
@@ -784,6 +793,11 @@ const backValue = (batchFields) => {
         item.warehouseList.forEach(warehouse => {
           warehouse.offerId = item.sellerSKU
         })
+      });
+      break;
+    case "skuTitle":
+      tableData.value.forEach((item) => {
+        item.skuTitle = batchFields.batchValue;
       });
       break;
     case "price":
@@ -1039,6 +1053,22 @@ watch(
           align: "center",
         });
         addHeaderList.value.push("colorImg");
+      }
+      if (result.some((item) => item.name !== "")) {
+        let skuIndex = headerList.value.findIndex(
+          (item) => item.title === "SKU"
+        );
+        let obj = {
+          title: "SKU标题",
+          dataIndex: "skuTitle",
+          selectType: "input",
+          type: 1,
+          options: null,
+          show: true,
+          align: "center",
+        }
+        headerList.value.splice(skuIndex + 1, 0, obj);
+        addHeaderList.value.push("skuTitle");
       }
       tableData.value = result;
       // 将不匹配的主题过滤掉

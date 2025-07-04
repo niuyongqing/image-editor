@@ -236,7 +236,7 @@ const onSubmit = async (type) => {
     newComplexAttributes.push(videoBaseObj);
   }
   console.log("newComplexAttributes", newComplexAttributes);
-
+  const addHeaderList = useOzonProductStore().addHeaderList
   const resItem = tableDatas.map((item) => {
     const moditAttributes = [];
     const getDictionaryIdKey = 'dictionaryValueId';
@@ -299,6 +299,7 @@ const onSubmit = async (type) => {
       price: item.price,
       weightUnit: "g",
       dimensionUnit: "mm",
+      name: addHeaderList.includes("skuTitle") ? item.name : base.name,
       weight: item.packageWeight,
       height: item.packageHeight,
       depth: item.packageLength,
@@ -309,7 +310,7 @@ const onSubmit = async (type) => {
   let params = {
     account: base.shortCode,
     vat: base.vat,
-    name: base.name,
+    // name: base.name,
     skuList: resItem,
     waitId: waitId.value,
     // historyCategoryId: base?.categoryId?.threeCategoryId, //平台分类ID
