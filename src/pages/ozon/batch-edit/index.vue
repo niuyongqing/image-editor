@@ -100,7 +100,7 @@
             size="large"
             class="text-base"
           >
-            <a-tooltip title="修改"><FormOutlined /></a-tooltip>
+            <a-tooltip title="修改"><FormOutlined @click="titleModalOpen = true" /></a-tooltip>
             <a-tooltip title="还原"><UndoOutlined @click="restore(column.key)" /></a-tooltip>
             <a-tooltip title="删除"><DeleteOutlined @click="del(column.key)" /></a-tooltip>
           </a-space>
@@ -462,6 +462,13 @@
         </template>
       </template>
     </a-table>
+
+    <!-- 弹窗 -->
+    <TitleModal
+      v-model:open="titleModalOpen"
+      ref="titleModal"
+      @ok="titleOk"
+    />
   </div>
 </template>
 
@@ -469,6 +476,8 @@
   import { DownOutlined, FormOutlined, UndoOutlined, DeleteOutlined, CheckOutlined } from '@ant-design/icons-vue'
   import { cloneDeep } from 'lodash'
   import { dataSource } from './config'
+
+  import TitleModal from './components/TitleModal.vue'
 
   /** 选择批量编辑的信息 checkbox */
   // 超级全选
@@ -705,6 +714,14 @@
     nextTick(() => {
       document.getElementById(cellAddress.value).focus()
     })
+  }
+
+  // 产品标题弹窗
+  const titleModalOpen = ref(false)
+  const titleModalRef = useTemplateRef('titleModal')
+
+  function titleOk() {
+    titleModalRef.value.modify(tableData.value)
   }
 
   // 打开变种图片弹窗
