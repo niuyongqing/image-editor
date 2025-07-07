@@ -2,11 +2,11 @@ import request from "@/utils/request";
 
 // 店铺列表查询
 export function ozonDraftList(data) {
-  return request({
-    url: "/platform-ozon/platform/ozon/gather/product/list",
-    method: "post",
-    data: data,
-  });
+    return request({
+        url: "/platform-ozon/platform/ozon/gather/product/list",
+        method: "post",
+        data: data,
+    });
 };
 
 //  采集箱产品详情
@@ -48,20 +48,25 @@ export function ozonCollectDetail(data) {
 
 // 认领采集产品至待发布
 export function receiveProductToWaitPublishApi(params) {
-  return usePost('/platform-ozon/platform/ozon/gather/product/receiveProductToWaitPublish', params)
+    return usePost('/platform-ozon/platform/ozon/gather/product/receiveProductToWaitPublish', params)
 }
 
 // 视频 
 export function videoUpload(params, headers) {
-    return usePost('/platform-ozon/platform/ozon/file/upload/video', params,{
+    return usePost('/platform-ozon/platform/ozon/file/upload/video', params, {
         headers,
-      })
-  }
-  
+    })
+}
+
 
 // 上传图片
 export function uploadImage(params, headers) {
-    return usePost("/platform-ozon/platform/ozon/file/upload/img", params,{
+    return usePost("/platform-ozon/platform/ozon/file/upload/img", params, {
         headers,
-      })
+    })
+}
+
+// 批量认领至采集箱
+export function receiveProductToGatherBox(params) {
+    return usePost('/platform-ozon/platform/ozon/gather/product/receiveProductToGatherBox', params)
 }

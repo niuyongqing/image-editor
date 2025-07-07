@@ -123,6 +123,7 @@ const processResult = (productList) => {
       imageUrl: [],
       colorImg: [],
       id: Math.random().toString(36).substring(2, 10),
+      attrIdList: [] // 变种属性 Id 合集
     };
     product.forEach((item) => {
       let values =
@@ -130,7 +131,8 @@ const processResult = (productList) => {
           ? item?.modelValue?.map((val) => val.label).join(",")
           : item.selectType === "select"
           ? item.modelValue?.label
-          : item.modelValue; //原写法 item.modelValue.value
+            : item.modelValue; //原写法 item.modelValue.value
+      output.attrIdList.push(item.id)
       output[item.name] = values;
       output["secondName"] = item?.secondModelValue || "";
       output[item.secondName] = item?.secondModelValue || "";
@@ -193,6 +195,7 @@ const hasDuplicateModelValues = (arr) => {
       const valueMap = new Map();
       for (const dataItem of item.tableData) {
         // 统一处理modelValue为特征字符串
+        if (dataItem.modelValue === undefined || dataItem.modelValue.length === 0) continue;
         let modelValue;
         if (Array.isArray(dataItem.modelValue)) {
           // 处理数组类型：提取label并排序
@@ -276,7 +279,7 @@ const handleTheme = (list) => {
         isRequired: item.isRequired,
         id: item.id,
         name: item.name,
-        isRequired: item.isRequired,
+        isAspect: item.isAspect,
         categoryDependent: item.categoryDependent,
         isCollection: item.isCollection,
         selectType: item.selectType,
@@ -386,8 +389,8 @@ const rebackHeadList = (id, item) => {
         width: 900,
       },
       {
-        dataIndex: "制造商尺码(Размер производителя)",
-        title: "制造商尺码(Размер производителя)",
+        dataIndex: "由制造商规定尺码(Размер производителя)",
+        title: "由制造商规定尺码(Размер производителя)",
         selectType: "input",
         show: true,
         type: 2,
@@ -476,8 +479,8 @@ const rebackDataList = (id, item) => {
             : item.selectType === "multSelect"
             ? []
             : undefined,
-        secondName: "制造商尺码(Размер производителя)",
-        "制造商尺码(Размер производителя)": "制造商尺码(Размер производителя)",
+        secondName: "由制造商规定尺码(Размер производителя)",
+        "由制造商规定尺码(Размер производителя)": "由制造商规定尺码(Размер производителя)",
         secondId: 9533,
         secondModelValue: "",
       },
@@ -567,22 +570,30 @@ const getSelectValue = (attr, base, item) => {
 // 获取multSelect类型属性的值
 const getMultiSelectValue = (attr, item, base, createValueObj, type) => {
   if (item[attr.name]) {
-
-    const colorList = item[attr.name]?.split(",");
-    return colorList.map((color) => {
-      const foundOption = attr.options.find((option) => option.value === color);
-      if (type === 1) {
+    if(item[attr.name] instanceof Array) {
+      return item[attr.name]?.map((item) => {
         return {
-          dictionary_value_id: foundOption ? foundOption.id : "",
-          value: color,
+          dictionary_value_id: "",
+          value: item,
         };
-      } else {
-        return {
-          dictionaryValueId: foundOption ? foundOption.id : "",
-          value: color,
-        };
-      }
-    });
+      });
+    }else {
+      const colorList = item[attr.name]?.split(",");
+      return colorList.map((color) => {
+        const foundOption = attr.options.find((option) => option.value === color);
+        if (type === 1) {
+          return {
+            dictionary_value_id: foundOption ? foundOption.id : "",
+            value: color,
+          };
+        } else {
+          return {
+            dictionaryValueId: foundOption ? foundOption.id : "",
+            value: color,
+          };
+        }
+      });
+    }
   } else {
     let filteredData = attr.options.filter((item) =>
       base.attributes[attr.name]?.includes(item.id)
@@ -612,22 +623,23 @@ const createAndUpdateBaseObj = (targetObj, complexId, id, type) => {
     dictionaryValueId:
       keyStyle === "snake" ? "dictionary_value_id" : "dictionaryValueId",
   };
-
+  // 100001 多个视频
+  // 100002 单个视频
   // 通用值处理逻辑
   const processValues = () => {
-    if (complexId === 100001) {
+    if (complexId === 100002) {
       // return [{ [keyMap.dictionaryValueId]: 0, value: targetObj.replace('/prod-api', '') }];
       return [
         {
           [keyMap.dictionaryValueId]: 0,
-          value: processImageSource(targetObj.url),
+          value: targetObj,
         },
       ];
     }
     return (Array.isArray(targetObj) ? targetObj : []).map((item) => ({
       [keyMap.dictionaryValueId]: 0,
       // value: item?.url?.replace('/prod-api', '') || null // 添加空值保护
-      value: processImageSource(item?.url) || null,
+      value: item?.url || null,
     }));
   };
 
@@ -646,7 +658,7 @@ const processImageSource = (source) => {
   if (source === undefined || source === null || source === "") return;
   const processUrl = (url) => {
     // 检查是否以 https:// 开头
-    if (url.startsWith("https://")) {
+    if (url.startsWith("https://") || url.includes('/prod-api')) {
       return url;
     } else {
       // 移除开头的斜杠以避免重复，并拼接 /prod-api/

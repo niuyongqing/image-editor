@@ -6,7 +6,6 @@
             </template>
             <a-form ref="ruleForm" :model="form" :label-col="{ span: 2 }" :rules="rules">
                 <a-form-item label="产品描述：" name="description">
-                    <span style="color: #ff0a37;">说明：描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M</span>
                     <div style="width: 90%;margin-top: 10px;">
                         <a-textarea v-model:value="form.description" :rows="10" :maxlength="6000" showCount />
                     </div>
@@ -124,7 +123,7 @@ const rules = {
 const handleChange = info => {
     if (info.file.status === 'done') {
         if (info.file.response.code == 200) {
-            form.coverUrl = info.file.response.url
+            form.coverUrl = processImageSource(info.file.response.url)
         } else {
             message.error(info.file.response.msg)
         }
@@ -134,7 +133,7 @@ const msgHandleChange = info => {
     if (info.file.status === 'done') {
         if (info.file.response.code == 200) {
             form.video.push({
-                url: info.file.response.url
+                url: processImageSource(info.file.response.url)
             })
         } else {
             message.error(info.file.response.msg)
@@ -177,23 +176,17 @@ watch(() => props.productDetail, val => {
         complexAttributes && complexAttributes.forEach((item) => {
             // item.forEach((attribute) => {
             // });
-            // console.log('item',item);
-            
             if (item.id === 21841) {
-                form.video.push({
-                    url: processImageSource(item.values[0].value),
-                    name: item.values[0].value.substring(
-                        item.values[0].value.lastIndexOf("/") + 1
-                    ),
+                form.video = item.values.map((e) => {
+                    return {
+                        url: processImageSource(e.value),
+                    }
                 })
             } else if (item.id === 21845) {
-                form.coverUrl = {
-                    url: processImageSource(item.values[0].value),
-                    name: item.values[0].value.substring(
-                        item.values[0].value.lastIndexOf("/") + 1
-                    ),
-                };
+                form.coverUrl = processImageSource(item.values[0].value)
             }
+            // console.log('item',item);
+            
         });
         copyAttr.forEach(e => {
             if (e.id === 11254) {

@@ -6,7 +6,6 @@
             </template>
             <a-form ref="ruleForm" :model="form" :label-col="{ span: 2 }" :rules="rules">
                 <a-form-item label="产品描述：" name="description">
-                    <span style="color: #ff0a37;">说明：描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M</span>
                     <div style="width: 90%;margin-top: 10px;">
                         <a-textarea v-model:value="form.description" :rows="10" :maxlength="6000" showCount />
                     </div>
@@ -91,6 +90,7 @@ import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { message } from "ant-design-vue";
 import jsonForm from "../../config/component/json/index.vue"
+import { processImageSource } from "~/pages/ozon/config/commJs/index"
 
 const ruleForm = ref(null)
 const props = defineProps({
@@ -124,7 +124,7 @@ const rules = {
 const handleChange = info => {
     if (info.file.status === 'done') {
         if (info.file.response.code == 200) {
-            form.coverUrl = '/prod-api' + info.file.response.url
+            form.coverUrl = processImageSource(info.file.response.url)
         } else {
             message.error(info.file.response.msg)
         }
@@ -134,7 +134,7 @@ const msgHandleChange = info => {
     if (info.file.status === 'done') {
         if (info.file.response.code == 200) {
             form.video.push({
-                url: '/prod-api' + info.file.response.url
+                url: processImageSource(info.file.response.url)
             })
         } else {
             message.error(info.file.response.msg)

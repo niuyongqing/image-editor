@@ -106,7 +106,7 @@ const backToTop = () => {
 }
 // 锚点滚动
 const scroll = (id) => {
-  document.getElementById(id).scrollIntoView({ behavior: 'smooth' })
+    document.getElementById(id).scrollIntoView({ behavior: 'smooth' })
 }
 // 资料库点击
 const selectProduct = () => { }
@@ -207,7 +207,7 @@ const onSubmit = async (type = 1) => {
 
             // 过滤无效值
             if (value != null && value !== '') {
-                hisAttr[key] =  key === '品牌(Бренд)' ? '无品牌' : value;
+                hisAttr[key] = key === '品牌(Бренд)' ? '无品牌' : value;
             }
         }
     }
@@ -227,7 +227,7 @@ const onSubmit = async (type = 1) => {
                 a.attributeComplexId == "100001" || a.attributeComplexId == "100002"
             )
     );
-    console.log('newList',newList);
+    console.log('newList', newList);
 
     let warehouse = []
     tableDatas.forEach((item) => {
@@ -253,36 +253,34 @@ const onSubmit = async (type = 1) => {
         ],
     };
     if (image.coverUrl !== "" && image.video.length > 0) {
-        // 创建video对应的baseObj副本并更新value值
-        // let videoBaseObj = deepClone(baseObj);
-        let videoBaseObj = createAndUpdateBaseObj(image.video, 100002, 21845, type);
-        newComplexAttributes.push(videoBaseObj);
+    // 创建video对应的baseObj副本并更新value值
+    let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
+    videoBaseObj = createAndUpdateBaseObj(image.coverUrl, 100002, 21845, type === 1 ? 1 : 2);
+    newComplexAttributes.push(videoBaseObj);
 
-        // 创建coverUrl对应的baseObj副本并更新value值
-        // let coverUrlBaseObj = deepClone(baseObj);
-        let coverUrlBaseObj = createAndUpdateBaseObj(
-            image.coverUrl,
-            100001,
-            21841,
-            type
-        );
-        newComplexAttributes.push(coverUrlBaseObj);
-    } else if (image.coverUrl !== "") {
-        // let coverUrlBaseObj = deepClone(baseObj);
-        let coverUrlBaseObj = createAndUpdateBaseObj(
-            image.coverUrl,
-            100001,
-            21841,
-            type
-        );
-        newComplexAttributes.push(coverUrlBaseObj);
-    } else if (image.video.length > 0) {
-        // let videoBaseObj = deepClone(baseObj);
-        let videoBaseObj = createAndUpdateBaseObj(image.video, 100002, 21845, type);
-        newComplexAttributes.push(videoBaseObj);
-    }
+    // 创建coverUrl对应的baseObj副本并更新value值
+    let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
+    coverUrlBaseObj = createAndUpdateBaseObj(
+      image.video,
+      100001,
+      21841, type === 1 ? 1 : 2
+    );
+    newComplexAttributes.push(coverUrlBaseObj);
+  } else if (image.coverUrl !== "") {
+    let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
+    coverUrlBaseObj = createAndUpdateBaseObj(
+      image.coverUrl,
+      100002,
+      21845, type === 1 ? 1 : 2
+    );
+    newComplexAttributes.push(coverUrlBaseObj);
+  } else if (image.video.length > 0) {
+    let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
+    videoBaseObj = createAndUpdateBaseObj(image.video, 100001, 21841, type === 1 ? 1 : 2);
+    newComplexAttributes.push(videoBaseObj);
+  }
     console.log("newComplexAttributes", newComplexAttributes);
-
+    const addHeaderList = useOzonProductStore().addHeaderList
     const resItem = tableDatas.map((item) => {
         const moditAttributes = [];
         const getDictionaryIdKey = type === 1 ? 'dictionary_value_id' : 'dictionaryValueId';
@@ -315,7 +313,7 @@ const onSubmit = async (type = 1) => {
                     }
                     break;
                 case "select":
-                    [newId, newVal] = getSelectValue(attr, base,item);
+                    [newId, newVal] = getSelectValue(attr, base, item);
                     if (isNotEmpty(newVal)) {
                         const selectValueObj = createValueObj(newId, newVal);
                         moditAttributes.push(createAttrItem(attr, [selectValueObj]));
@@ -376,10 +374,10 @@ const onSubmit = async (type = 1) => {
                 color_image: item?.colorImg[0]?.url.replace('/prod-api', '') ?? "", // 非必填
                 // color_image: "https://www.xzerp.com/file/wish/upload/2025-03-22/2025/03/22/2_20250322160055A001.jpg",
                 images: item.imageUrl && item?.imageUrl?.map(e => e.url.replace('/prod-api', '')),
-                images: [
-                    "https://www.xzerp.com/file/wish/upload/2025-06-24/2025/06/24/2_20250624134556A024.jpg",
-                    "https://www.xzerp.com/file/wish/upload/2025-06-24/2025/06/24/7017600413_20250624134545A024.jpg"
-                ],
+                // images: [
+                //     "https://www.xzerp.com/file/wish/upload/2025-06-24/2025/06/24/2_20250624134556A024.jpg",
+                //     "https://www.xzerp.com/file/wish/upload/2025-06-24/2025/06/24/7017600413_20250624134545A024.jpg"
+                // ],
                 offer_id: item.sellerSKU,
                 old_price: item.oldPrice, // 非必填
                 price: item.price,
@@ -390,7 +388,7 @@ const onSubmit = async (type = 1) => {
                 weight: item.packageWeight,
                 width: item.packageWidth,
                 vat: base.vat,
-                name: base.name,
+                name: addHeaderList.includes("skuTitle") ? item.skuTitle : base.name,
                 description_category_id:
                     base.categoryId.secondCategoryId, // 二级id
                 type_id: base.categoryId.threeCategoryId, // 三级分id
@@ -407,6 +405,7 @@ const onSubmit = async (type = 1) => {
                 price: item.price,
                 weightUnit: "g",
                 dimensionUnit: "mm",
+                name: addHeaderList.includes("skuTitle") ? item.skuTitle : base.name,
                 weight: item.packageWeight,
                 height: item.packageHeight,
                 depth: item.packageLength,
@@ -440,7 +439,6 @@ const onSubmit = async (type = 1) => {
         let waitParams = {
             account: base.shortCode,
             vat: base.vat,
-            name: base.name,
             skuList: resItem,
             historyCategoryId: base?.categoryId?.threeCategoryId, //平台分类ID
             // storeHistoryCategoryId: base?.categoryId?.storeHistoryCategoryId

@@ -340,7 +340,6 @@ const videoPreview = () => {
 };
 
 //   导出全部图片
-0
 
 // 校验
 const validateForm = async () => {

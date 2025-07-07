@@ -41,8 +41,8 @@ import EditCategoryModal from './editCategoryModal.vue';
 
 const { shopAccount } = defineProps({
     shopAccount: {
-        type: String,
-        default: ''
+        type: Array,
+        default: () => []
     }
 })
 
@@ -74,6 +74,9 @@ const acceptParams = ref({});
 
 
 const primaryImage = (primaryImage) => {
+    if (primaryImage.includes('https')) {
+        return primaryImage
+    }
     return baseApi + primaryImage
 };
 

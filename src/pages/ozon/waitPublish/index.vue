@@ -154,9 +154,9 @@
                   : processImageSource(record?.skuList[0]?.images[0])
                 " />
               <div class="ml-2.5 block">
-                <a-tooltip class="item" effect="dark" :title="record.name" placement="top"
+                <a-tooltip class="item" effect="dark" :title="record.skuList[0].name" placement="top"
                   style="overflow-wrap: break-word">
-                  <div>{{ record.name }}</div>
+                  <div>{{ record.skuList[0].name }}</div>
                 </a-tooltip>
                 <div style="color: #999; float: left">
                   店铺: {{ record.simpleName }}
@@ -337,10 +337,10 @@ const tabQuantity = ref([]);
 const defType = ref([]);
 const stockShops = ref([]);
 const advancedForm = reactive({
-  minPrice: "",
-  maxPrice: "",
-  minOldPrice: "",
-  maxOldPrice: "",
+  minPrice: null,
+  maxPrice: null,
+  minOldPrice: null,
+  maxOldPrice: null,
   minStock: null,
   maxStock: null,
   // isRemark: "",
@@ -389,7 +389,7 @@ const strList = ref([
   {
     label: "按更新时间",
     type: "bottom",
-    value: "update_tiem",
+    value: "update_time",
     prop: 2,
     isDefault: false,
   },
@@ -434,10 +434,10 @@ const resetForm = (type = 0) => {
   formData.sku = "";
   formData.id = "";
   formData.name = "";
-  advancedForm.minPrice = "";
-  advancedForm.maxPrice = "";
-  advancedForm.minOldPrice = "";
-  advancedForm.maxOldPrice = "";
+  advancedForm.minPrice = null;
+  advancedForm.maxPrice = null;
+  advancedForm.minOldPrice = null;
+  advancedForm.maxOldPrice = null;
   advancedForm.minStock = null;
   advancedForm.maxStock = null;
   // advancedForm.isRemark = ""
@@ -701,7 +701,17 @@ const getList = () => {
   loading.value = true;
   let params = {
     ...formData,
-    ...advancedForm,
+    // ...advancedForm,
+    ...Object.entries(advancedForm).reduce((acc, [key, value]) => {
+        // 过滤掉 timeSort 和 time 字段
+        if (["time"].includes(key)) return acc;
+
+        // 保留原有转换逻辑并添加字符串转换
+        if (value !== null && value !== undefined && value !== '') {
+            acc[key] = typeof value === 'number' ? String(value) : value;
+        }
+        return acc;
+    }, {}),
     startDateTime: advancedForm.time?.length
       ? dayjs(advancedForm.time[0]).startOf("day").format("YYYY-MM-DD HH:mm:ss")
       : undefined,

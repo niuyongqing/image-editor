@@ -5,8 +5,8 @@
                 <div class="flex mb-2.5">
                     <a-checkbox-group @change="changeHeade" v-model:value="addHeaderList" :options="plainOptions">
                     </a-checkbox-group>
-                    <a-button type="primary" :disabled="custAttr.length == 0" @click="attrVisible = true"
-                        class="mx-2.5">添加自定义变种属性</a-button>
+                    <!-- <a-button type="primary" :disabled="custAttr.length == 0" @click="attrVisible = true"
+                        class="mx-2.5">添加自定义变种属性</a-button> -->
                 </div>
                 <a-table bordered :columns="filteredHeaderList" :data-source="tableData" :pagination="false">
                     <template #headerCell="{ column }">
@@ -60,7 +60,7 @@
                             <span>{{ record.secondName }}</span>
                         </template>
                         <template v-if="column.dataIndex === 'sellerSKU'">
-                            <a-input disabled v-model:value="record.sellerSKU"></a-input>
+                            <a-input disabled v-model:value="record.sellerSKU" @change="sellerSKUChange(record)"></a-input>
                         </template>
                         <template v-if="!otherHeader.includes(column.dataIndex)">
                             <a-input v-if="column.selectType === 'input'"
@@ -124,61 +124,38 @@
                 </a-table>
             </a-card>
             <a-card title="变种图片" class="text-left mx-50 mt-5">
-                <template #extra>
-                    <div style="padding: 3px 0;color: #99999a;" class="mr-2.5 float-right">
-                        <a-select v-model:value="watermarkValue" :disabled="!shopCode" class="w-50" placeholder="请选择水印"
-                            @change="selectWaterMark">
-                            <a-select-option v-for="wa in watermark" :key="wa.id" :label="wa.title" :value="wa.id">
-                                <div>
-                                    <span>{{ wa.title }} </span>
-                                    <a-image v-if="wa.type === 1" :src="wa.content"
-                                        style="width: 20px; height: 20px; margin-top: -10px"></a-image>
-                                    <span v-else>{{ wa.content }}</span>
-                                </div>
-                            </a-select-option>
-                        </a-select>
-                    </div>
-                    <span style="padding: 3px 0;color: #99999a;" class="mr-5 float-right">
-                        <a-input-number v-model:value="cropWidth" :disabled="!shopCode" placeholder="宽"
-                            controls-position="right" :controls="false"></a-input-number>
-                        X
-                        <a-input-number v-model:value="cropHeight" :disabled="!shopCode" placeholder="高"
-                            controls-position="right" :controls="false"></a-input-number>
-                        <a-button @click="crop" class="ml-2.5" :disabled="!shopCode">裁剪</a-button>
-                    </span>
-                    <a-button @click="selectAllImg" class="mr-5 mt-1" :disabled="!shopCode">{{ selectAll ? '取消选择全部图片' :
-                        '选择全部图片'
-                        }}</a-button>
-                </template>
+        <div>
+          <div v-for="item in tableData" :key="item.id">
+            <div v-if="tableData.length > 0">
+              <a-card class="mb-2.5 ml-2.5">
                 <div>
-                    <a-tag color="warning">！说明</a-tag>
-                    <span style="color: #9fa0a2">
-                        第一张图片默认为主图，点击图片拖动，即可调整图片顺序！
-                        单张不超过2M，只支持jpg、.png、.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3：4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)</span>
+                  <a-tag color="warning">！说明</a-tag>
+                  <span style="color: #9fa0a2">
+                    第一张图片默认为主图，点击图片拖动，即可调整图片顺序！
+                    单张不超过2M，只支持jpg、.png、.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3：4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)</span>
                 </div>
-                <div class="mt-5">
-                    <div v-for="item in tableData" :key="item.id">
-                        <div v-if="tableData.length > 0">
-                            <a-card class="mb-2.5 ml-2.5">
-                                <div v-if="imgHeaderList.length > 0">
-                                    <div v-for="(e, i) in imgHeaderList" :key="i">
-                                        <div>
-                                            <span>{{ e.title }}:</span><span style="margin-left: 10px;">{{ item[e.title]
-                                                }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <span v-if="item.imageUrl" class="block mt-2.5">{{ item.imageUrl.length
-                                    }}/30</span>
-                                <dragUpload @changeImg="(list) => changeImg(list, item)"
-                                    @singleSelectImg="(e) => singleSelectImg(e, item)" :imageList="item.imageUrl">
-                                </dragUpload>
-
-                            </a-card>
-                        </div>
+                <SkuDragUpload v-model:file-list="item.imageUrl" :maxCount="30"
+                  :showUploadList="false" accept=".jpg,.png" :api="uploadImage" :waterList="watermark">
+                  <template #default>
+                    <div flex flex-col w-full justify-start mb-4px text-left>
+                      <p>
+                        <a-tag color="#00AEB3">说明！</a-tag>
+                        <span class="text-#999"> 第一张图片默认为主图，点击图片拖动，即可调整图片顺序。
+                        </span>
+                      </p>
                     </div>
-                </div>
-            </a-card>
+                  </template>
+                  <template #variantInfo>
+                  </template>
+                  <template #skuInfo>
+                    {{ `【${item.imageUrl.length}/30】图片 ` }}
+                  </template>
+                </SkuDragUpload>
+              </a-card>
+            </div>
+          </div>
+        </div>
+      </a-card>
         </a-card>
         <!-- 修改库存 -->
         <EditProdQuantity @backQuantity="backQuantity" :editQuantityVis="editQuantityVis" :editStockList="editStockList"
@@ -205,6 +182,10 @@ import { useOzonProductStore } from '~@/stores/ozon-product'
 import dragUpload from '../../productPublish/comm/dragUpload.vue';
 import { scaleApi, watermarkListApi, watermarkApi } from "~/api/common/water-mark";
 import EditProdQuantity from '../../productPublish/comm/EditProdQuantity.vue';
+import { uploadImage } from '@/pages/ozon/config/api/draft';
+import SkuDragUpload from '@/components/skuDragUpload/index.vue';
+import { debounce } from "lodash";
+
 const props = defineProps({
     productDetail: Object,
 });
@@ -232,10 +213,10 @@ const plainOptions = [
         label: '颜色样本',
         value: 'colorImg',
     },
-    {
-        label: '设置SKU标题',
-        value: 'skuTitle',
-    },
+    // {
+    //     label: '设置SKU标题',
+    //     value: 'skuTitle',
+    // },
 ]
 const isConform = ref(false)
 const attrVisible = ref(false)
@@ -373,6 +354,14 @@ const batchSKU = () => {
     batchTitle.value = "批量修改SKU"
     batchType.value = 'sku'
 }
+
+  // 修改 SKU 时同步修改 warehouseList 里的 offerId
+  const sellerSKUChange = debounce(record => {
+    record.warehouseList.forEach(item => {
+      item.offerId = record.sellerSKU
+    })
+  }, 200)
+
 // 批量修改库存
 const batchStock = (row = {}) => {
     if (tableData.value.length == 0) {
@@ -439,6 +428,9 @@ const backValue = (batchFields) => {
         case 'sku':
             tableData.value.forEach((item) => {
                 item.sellerSKU = batchFields.batchValue;
+                item.warehouseList.forEach(warehouse => {
+                    warehouse.offerId = item.sellerSKU
+                })
             });
             break;
         case 'price':
@@ -449,7 +441,7 @@ const backValue = (batchFields) => {
             break;
         case 'packLength':
             tableData.value.forEach((item) => {
-                Object.assign(item, batchFields.batchValue);
+                Object.assign(item, batchFields.packageSize);
             });
             break;
         default:
@@ -475,116 +467,12 @@ const getEditStore = (account) => {
     });
 }
 
-// 选择水印
-const selectWaterMark = () => {
-    let res = [];
-    for (let i = 0; i < tableData.value.length; i++) {
-        for (let j = 0; j < tableData.value[i].imageUrl.length; j++) {
-            if (tableData.value[i].imageUrl[j].checked) {
-                res.push(tableData.value[i].imageUrl[j].url);
-            }
-        }
-    }
-    if (res.length === 0) {
-        message.error("打水印前请选择需要打水印的文件！");
-        return;
-    }
-    watermarkApi({ id: watermarkValue.value, imagePathList: res })
-        .then((res) => {
-            res.data.forEach((value) => {
-                for (let i = 0; i < tableData.value.length; i++) {
-                    for (let j = 0; j < tableData.value[i].imageUrl.length; j++) {
-                        if (
-                            tableData.value[i].imageUrl[j].url === value.originalFilename
-                        ) {
-                            tableData.value[i].imageUrl[j].url = value.fileName;
-                            tableData.value[i].imageUrl[j].name = value.newFileName;
-                            tableData.value[i].imageUrl[j].checked = false;
-                        }
-                    }
-                }
-            });
-        })
-        .finally(() => {
-            watermarkValue.value = "";
-            selectAll.value = false
-        });
-}
-// 裁剪
-const crop = () => {
-    let res = [];
-
-    for (let i = 0; i < tableData.value.length; i++) {
-        for (let j = 0; j < tableData.value[i].imageUrl.length; j++) {
-            if (tableData.value[i].imageUrl[j].checked) {
-                res.push(tableData.value[i].imageUrl[j].url);
-            }
-        }
-    }
-    if (res.length === 0) {
-        message.error("裁剪前请选择需要裁剪的文件！");
-        return;
-    }
-    scaleApi({
-        newWidth: cropWidth.value,
-        newHeight: cropHeight.value,
-        imagePathList: res,
-    })
-        .then((res) => {
-            res.data.forEach((value) => {
-                for (let i = 0; i < tableData.value.length; i++) {
-                    for (let j = 0; j < tableData.value[i].imageUrl.length; j++) {
-                        if (
-                            tableData.value[i].imageUrl[j].url === value.originalFilename
-                        ) {
-                            tableData.value[i].imageUrl[j].url = value.fileName;
-                            tableData.value[i].imageUrl[j].name = value.newFileName;
-                            tableData.value[i].imageUrl[j].checked = false;
-                            tableData.value[i].imageUrl[j].width = cropWidth.value;
-                            tableData.value[i].imageUrl[j].height = cropHeight.value;
-                        }
-                    }
-                }
-            });
-        })
-        .finally(() => {
-            watermarkValue.value = "";
-            selectAll.value = false
-            // ++this.refreshKey;
-        });
-}
-// 图片全选
-const selectAllImg = () => {
-    selectAll.value = !selectAll.value
-    for (let i = 0; i < tableData.value.length; i++) {
-        for (let j = 0; j < tableData.value[i].imageUrl.length; j++) {
-            console.log('***', tableData.value[i].imageUrl, selectAll.value);
-
-            tableData.value[i].imageUrl[j].checked = selectAll.value
-        }
-    }
-}
-
 // 获取水印列表
 const getWatermark = () => {
-    watermarkListApi().then((res) => {
-        watermark.value = res.data;
-    });
-}
-
-// 图片上传
-const changeImg = (list, item) => {
-    item.imageUrl = list
-}
-
-const singleSelectImg = (e, item) => {
-    // 查找符合条件的元素
-    const targetItem = item.imageUrl.find(item => item.url === e.url);
-    // 如果找到符合条件的元素，则修改其 checked 属性的值
-    if (targetItem) {
-        targetItem.checked = e.checked;
-    }
-}
+  watermarkListApi().then((res) => {
+    watermark.value = res.data;
+  });
+};
 
 const judgeMax = (item) => {
     const { price, oldPrice } = item;
@@ -810,10 +698,8 @@ watch(() => useOzonProductStore().attributes, val => {
         console.log("tableData", item);
     }
 })
-
-
 onMounted(() => {
-    getWatermark()
-})
+  getWatermark();
+});
 </script>
 <style lang="less" scoped></style>

@@ -6,7 +6,6 @@
             </template>
             <a-form ref="ruleForm" :model="form" :label-col="{ span: 2 }" :rules="rules">
                 <a-form-item label="产品描述：" name="description">
-                    <span style="color: #ff0a37;">说明：描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M</span>
                     <div style="width: 90%;margin-top: 10px;">
                         <a-textarea v-model:value="form.description" :rows="10" :maxlength="6000" showCount />
                     </div>
@@ -28,8 +27,8 @@
                     <div class="flex mt-2.5">
                         <div>
                             封面视频：
-                            <a-upload v-if="!form.coverUrl" :maxCount="1" :action="uploadImageVideoUrl" accept=".mp4,.mov"
-                                list-type="picture-card" @change="handleChange" :data="{
+                            <a-upload v-if="!form.coverUrl" :maxCount="1" :action="uploadImageVideoUrl"
+                                accept=".mp4,.mov" list-type="picture-card" @change="handleChange" :data="{
                                     shortCode: shopCode
                                 }" :headers="headers" :showUploadList="false">
                                 <div>
@@ -100,8 +99,7 @@ const form = reactive({
     video: [],
     coverUrl: "",
     description: "",
-    jsons: "",
-    jsonDes: "",
+    jsons: ""
 })
 const headers = {
     'Authorization': 'Bearer ' + useAuthorization().value,
@@ -125,7 +123,7 @@ const rules = {
 const handleChange = info => {
     if (info.file.status === 'done') {
         if (info.file.response.code == 200) {
-            form.coverUrl = info.file.response.url
+            form.coverUrl = processImageSource(info.file.response.url)
         } else {
             message.error(info.file.response.msg)
         }
@@ -135,7 +133,7 @@ const msgHandleChange = info => {
     if (info.file.status === 'done') {
         if (info.file.response.code == 200) {
             form.video.push({
-                url: info.file.response.url
+                url: processImageSource(info.file.response.url)
             })
         } else {
             message.error(info.file.response.msg)
@@ -149,7 +147,7 @@ const removeVideoList = (index) => {
     form.video.splice(index, 1)
 }
 const submitForm = () => {
-    if (Object.keys(form.jsons).length == 0) {
+    if (!form.jsons || Object.keys(form.jsons).length == 0) {
         message.error("JSON富文本未填写！")
         return false;
     }
@@ -177,34 +175,28 @@ watch(() => props.productDetail, val => {
         const copyAttr = attributes?.filter(
             (a) => a.id == 11254 || a.id == 4191
         );
+        console.log("copyAttr", copyAttr);
+
         complexAttributes && complexAttributes.forEach((item) => {
-            // item.attributes.forEach((attribute) => {
+            // item.attributes.forEach((attr) => {
             // });
             if (item.id === 21841) {
-                form.video.push({
-                    url: processImageSource(item.values[0].value),
-                    name: item.values[0].value.substring(
-                        item.values[0].value.lastIndexOf("/") + 1
-                    ),
+                form.video = item.values.map((e) => {
+                    return {
+                        url: processImageSource(e.value),
+                    }
                 })
             } else if (item.id === 21845) {
-                form.coverUrl = {
-                    url: processImageSource(item.values[0].value),
-                    name: item.values[0].value.substring(
-                        item.values[0].value.lastIndexOf("/") + 1
-                    ),
-                };
+                form.coverUrl = processImageSource(item.values[0].value)
             }
         });
         copyAttr.forEach(e => {
             if (e.id === 11254) {
-                form.jsons = e.values[0].value 
+                form.jsons = e.values[0].value
             } else {
                 form.description = e.values[0].value
             }
         })
-        // console.log('form',form);
-        
     }
 })
 

@@ -1,58 +1,51 @@
 <template>
     <div w-full>
-        <div flex justify-between w-full>
-            <a-upload name="file" :customRequest="customRequest" :before-upload="beforeUpload" :headers="headers"
-                :disabled="disabled" :maxCount="getProps.maxCount" :accept="getProps.accept"
-                :action="getProps.actionUrl" :showUploadList="false" :multiple="true">
-                <a-button type="primary" v-if="fileList.length <= getProps.maxCount" style="width: 90px; height: 31px;">
-                    <UploadOutlined></UploadOutlined>
-                    选择图片
-                </a-button>
-            </a-upload>
-            <div flex items-center mt-15px v-if="showRightTool">
-                <a-dropdown>
-                    <a-button type="link" link style="width: 90px; height: 31px;">
-                        普通水印
-                        <DownOutlined />
-                    </a-button>
-                    <template #overlay>
-                        <a-menu>
-                            <a-menu-item v-for="item in waterList" :key="item.id" @click="watermark(item)">
-                                {{ item.title }}
-                            </a-menu-item>
-                        </a-menu>
-                    </template>
-                </a-dropdown>
-                <span pl-10px>|</span>
-                <a-dropdown>
-                    <a-button type="link" style="width: 90px; height: 31px; margin-left: 10px;">
-                        编辑图片
-                        <DownOutlined />
-                    </a-button>
-                    <template #overlay>
-                        <a-menu>
-                            <a-menu-item @click="handleEditImagesSize">
-                                批量修改图片尺寸
-                            </a-menu-item>
-                            <a-menu-item @click="clearAllImages">
-                                清空图片
-                            </a-menu-item>
-                        </a-menu>
-                    </template>
-                </a-dropdown>
-                <!-- <a-button type="link" link style="height: 31px; margin-left: 10px;" @click="downloadAllImages">
-                <DownloadOutlined />
-                导出全部图片
-            </a-button> -->
-            </div>
-        </div>
         <div>
             <slot></slot>
         </div>
+        <!-- SKU 图片上传可拖拽 :multiple="true" -->
+        <div flex justify-between w-full>
+            <a-dropdown>
+                <a-button type="primary" style="width: 90px; height: 31px;">
+                    选择图片
+                    <DownOutlined />
+                </a-button>
+                <template #overlay>
+                    <a-menu>
+                        <a-menu-item>
+                            <a-upload name="file" :customRequest="customRequest" :before-upload="beforeUpload"
+                                :headers="headers" :accept="getProps.accept" :multiple="true"
+                                :maxCount="getProps.maxCount" :action="getProps.actionUrl" :showUploadList="false"
+                                :disabled="disabled">
+                                <a-button type="link" v-if="fileList.length < getProps.maxCount"
+                                    style="width: 90px; height: 31px; text-align: center; color: #000">
+                                    选择图片
+                                </a-button>
+                            </a-upload>
+                        </a-menu-item>
+                        <a-menu-item>
+                            <div style="text-align: center; color: #000" @click="handleSpaceImages">空间图片</div>
+                        </a-menu-item>
 
-        <div flex flex-wrap>
+                        <a-menu-item>
+                            <div style="text-align: center; color: #000" @click="handleNetImages">网络图片</div>
+                        </a-menu-item>
+                    </a-menu>
+                </template>
+            </a-dropdown>
+            <div>
+                <slot name="variantInfo"> </slot>
+            </div>
+            <div>
+                <slot name="skuInfo"> </slot>
+                <div></div>
+            </div>
+        </div>
+
+
+        <div flex flex-wrap mt-10px>
             <draggable v-if="fileList.length > 0" v-model="fileList" @end="handleDragEnd" tag="div"
-                class="flex flex-wrap w-1600px gap-10px" item-key="url">
+                class="flex flex-wrap w-1600px mt-2.5" item-key="url">
                 <template #item="{ element }">
                     <a-card ml-10px p-0px rounded-none class="file-card" hoverable>
                         <div :key="element.uid">
@@ -62,18 +55,14 @@
                                 </div>
                                 <div v-else class="file-img">
                                     <img :src="element.url" alt="" class="file-img"
-                                        @load="handleImageLoad(element, $event)" @click="handlePreview(element)" />
+                                        @load="handleImageLoad(element, $event)" @click="handlePreview(element)"
+                                        :key="element.key" />
                                     <div class="image-mask"> {{ element.height }} X {{ element.width }} </div>
                                 </div>
                             </div>
                         </div>
                         <div w-full>
-                            <div flex justify-between w-full>
-                                <div>
-                                    <!-- <a-button type="text" color="#428bca" @click="navSample(element)">
-                                        <EditOutlined />
-                                    </a-button> -->
-                                </div>
+                            <div flex justify-end w-full>
                                 <a-button type="text" color="#428bca" @click="handleRemove(element)">
                                     <DeleteOutlined />
                                 </a-button>
@@ -97,19 +86,36 @@
             </a-modal>
         </div>
         <!-- 批量修改图片尺寸弹窗 -->
-        <BacthEditImgSize ref="BacthEditImgSizeRef" :fileList="fileList" :waterList="waterList" />
+        <BacthSkuEditImg ref="bacthEditImgSizeRef" />
+
+        <!-- 图片翻译弹窗 -->
+        <ImageTranslation ref="imageTranslationRef" @singleSubmit="handleSingleSubmit"
+            @multiSubmit="handleMultiSubmit" />
+
+        <!-- 空间图片弹窗 -->
+        <PictureLibrary v-model:modal-open="pictureLibraryOpen" platform="ozon" @imageListConfirm="imageListConfirm" />
+
+        <!-- 网络图片弹窗 -->
+        <NetImageModal ref="netImageModalRef" @submit="handleNetImageSubmit" />
+
     </div>
 </template>
 
 <script setup>
 import draggable from 'vuedraggable';
-import { UploadOutlined, DownOutlined, DownloadOutlined, DeleteOutlined, LoadingOutlined, EditOutlined } from '@ant-design/icons-vue';
+import { UploadOutlined, DownOutlined, DownloadOutlined, DeleteOutlined, LoadingOutlined } from '@ant-design/icons-vue';
 import { useAuthorization } from '~/composables/authorization'
 import { getBase64 } from '@/pages/lazada/product/common'
-import BaseModal from '@/components/baseModal/BaseModal.vue'
-import BacthEditImgSize from './bacthEditImgSize.vue';
 import { message } from "ant-design-vue";
-import { watermarkApi } from '@/api/common/water-mark.js';
+import { scaleApi, watermarkApi } from '@/api/common/water-mark.js';
+import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
+import BaseModal from '@/components/baseModal/BaseModal.vue'
+import BacthSkuEditImg from './bacthSkuEditImg.vue';
+import NetImageModal from './netImageModal.vue';
+import ImageTranslation from './imageTranslation.vue';
+import download from '~@/api/common/download';
+import { downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js';
+import PictureLibrary from '@/components/pictureLibrary/index.vue';
 
 const props = defineProps({
     disabled: {
@@ -147,9 +153,10 @@ const props = defineProps({
         default: true
     }
 });
-
-const router = useRouter();
-const bacthEditImgSizeEl = useTemplateRef('BacthEditImgSizeRef');
+const bacthEditImgSizeEl = useTemplateRef('bacthEditImgSizeRef');
+const netImageModalEl = useTemplateRef('netImageModalRef');
+const imageTranslationEl = useTemplateRef('imageTranslationRef');
+const pictureLibraryOpen = ref(false); // 空间图片弹窗
 const attrs = useAttrs();
 const fileList = defineModel('file-list'); // 图片列表
 const previewVisible = ref(false);
@@ -167,7 +174,6 @@ const getProps = computed(() => {
         ...unref(props)
     }
 });
-
 const customRequest = (options) => {
     if (!options.file) return;
     const formData = new FormData();
@@ -213,6 +219,7 @@ const beforeUpload = (file) => {
         message.error('上传图片大小不能超过 2MB!');
         return false;
     };
+
     // 不能超过最大限制
     if (fileList.value.length >= getProps.value.maxCount) {
         message.error(`最多上传${getProps.value.maxCount}张图片`);
@@ -224,17 +231,23 @@ const beforeUpload = (file) => {
     return true;
 };
 
-
 const handleImageLoad = (el, event) => {
     nextTick(() => {
         const img = event.target;
         el.width = img ? img.naturalWidth : '';
         el.height = img ? img.naturalHeight : '';
-    })
+        el.key = 1;
+    });
 };
 // 导出全部图片
-const downloadAllImages = () => {
-
+const handleExportAllImages = async () => {
+    try {
+        let imageList = fileList.value.map(i => i.url)
+        let res = await downloadAllImage({ imageList })
+        download.name(res.data)
+    } catch (error) {
+        console.error(error)
+    }
 };
 
 // 批量修改图片尺寸
@@ -242,6 +255,13 @@ const handleEditImagesSize = () => {
     console.log('批量修改图片尺寸');
     bacthEditImgSizeEl.value.showModal(fileList.value);
 };
+
+// 图片翻译
+const handleImageTranslation = () => {
+    console.log('图片翻译');
+    imageTranslationEl.value.showModal(fileList.value);
+};
+
 //  清空图片
 const clearAllImages = () => {
     fileList.value = [];
@@ -250,42 +270,63 @@ const clearAllImages = () => {
 const handleDragEnd = (event) => {
     console.log('拖拽结束', event);
 };
-// 跳转到在线P图
-// const navSample = (element) => {
-//     console.log('跳转到在线P图', element);
-//     message.error('暂未开放在线P图功能');
-//     return;
-//     router.push({ path: '/platform/dev/sample/table', query: { url: element.url } });
-// }
 
-// 点击水印
-const watermark = async (item) => {
-    //  添加水印
-    const imagePathList = fileList.value.filter((file) => !file.url.includes('http')).map((item) => {
-        return item.url
-    });
-    if (!imagePathList.length) {
-        message.error('请先上传本地图片');
-        return
-    }
-    const waterRes = await watermarkApi({
-        imagePathList: imagePathList,
-        id: item.id,
-    });
-    if (waterRes.code === 200) {
-        const data = waterRes.data || [];
-        data.forEach((item) => {
-            fileList.value.forEach(v => {
-                if (item.originalFilename === v.url) {
-                    v.url = item.url
-                    v.name = item.newFileName
-                    v.checked = false
-                }
-            })
-        })
-    }
+// 空间图片  
+const handleSpaceImages = () => {
+    pictureLibraryOpen.value = !pictureLibraryOpen.value
 };
 
+// 网络图片
+const handleNetImages = () => {
+    netImageModalEl.value.open();
+};
+
+// 单张图片翻译
+const handleSingleSubmit = (checkedImg) => {
+    fileList.value.forEach(v => {
+        if (v.url === checkedImg.oldUrl) {
+            v.url = checkedImg.newUrl
+        }
+    })
+};
+
+// 多张图片翻译
+const handleMultiSubmit = (checkedImgs) => {
+    fileList.value.forEach(v => {
+        checkedImgs.forEach(item => {
+            if (v.url === item.oldUrl) {
+                v.url = item.newUrl
+            }
+        })
+
+    })
+
+};
+
+// 图片空间上传
+function imageListConfirm(val) {
+    // console.log({val}, 'imageListConfirm');
+    let list = val.map(item => {
+        const { name, width, height, path: url, src, size } = item;
+        return {
+            name,
+            width,
+            height,
+            url: src,
+            src,
+            size,
+        };
+    });
+    console.log('采集的图片list --->>>', list);
+    fileList.value.push(...list)
+}
+
+const handleNetImageSubmit = (img) => {
+    fileList.value.push({
+        url: img.url,
+        checked: false,
+    })
+};
 
 watch(() => fileList.value, (newVal) => {
     if (newVal.length > getProps.value.maxCount) {

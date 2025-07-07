@@ -1,7 +1,7 @@
 <template>
     <div flex>
         <div w-300px>
-            <draftSidebar @updateClass="updateClass" />
+            <draftSidebar @updateClass="updateClass" :count="paginations.total" />
         </div>
         <div v-if="showDraftTable" w-full>
             <div id="draft" w-full ml-15px>
@@ -90,7 +90,7 @@
                                     <SettingOutlined />
                                     店铺设置
                                 </a-button>
-                                <a-button type="primary" style="height: 32px;">
+                                <a-button type="primary" style="height: 32px;" @click="navDataCrawli">
                                     采集数据
                                 </a-button>
                                 <a-button type="primary" style="height: 32px;" @click="createProduct">
@@ -118,8 +118,8 @@
                             <template v-if="column.dataIndex === 'image'">
                                 <div class="">
                                     <a-image :src="primaryImage(record.primaryImage)" />
-                                    <p class="platform-name" @click="visitUrl(record.sourceUrlList)">
-                                        {{ platformName(record.gatherPlatformName) }}</p>
+                                    <a-button type="link" class="platform-name" @click="visitUrl(record.sourceUrlList)">
+                                        {{ platformName(record.gatherPlatformName) }}</a-button>
                                 </div>
                             </template>
                             <template v-if="column.dataIndex === 'name'">
@@ -179,7 +179,7 @@
                             <template v-if="column.dataIndex === 'stock'">
                                 <div class="pb-30px">
                                     <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
-                                        <div class="sku-price">
+                                        <div class="sku-price  h-21px">
                                             <a-tooltip placement="top">
                                                 <template #title>
                                                     <span>{{ warehouseName(item.offerId, item.warehouseList) }}: {{
@@ -278,6 +278,8 @@ import { Divider, message, Modal } from 'ant-design-vue';
 import { DownOutlined, SettingOutlined, SyncOutlined, QuestionCircleOutlined } from "@ant-design/icons-vue";
 import { accountCache, shopCurrency } from "../config/api/product";
 import { ozonDraftList } from "../config/api/draft";
+import { updateCategoryProduct } from "~/pages/sample/dataAcquisition/js/api.js";
+import { useRouter } from 'vue-router';
 import tableHeard from "../config/tabColumns/draft"
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import draftSidebar from './comm/draftSidebar.vue';
@@ -289,23 +291,23 @@ import RemarkModal from './batchComponent/remarkModal.vue';
 import BatchWatermark from './batchComponent/batchWatermark.vue';
 import OzonProduct from '@/pages/ozon/product/index.vue';
 import BatchAttribute from './batchComponent/batchAttribute.vue';
-import { updateCategoryProduct } from "~/pages/sample/dataAcquisition/js/api.js";
+
+
 let columns = tableHeard;
 const showDraftTable = ref(true);
-
 const baseApi = import.meta.env.VITE_APP_BASE_API;
+
 const { copy } = useClipboard();
+const router = useRouter();
 const editPromptEl = useTemplateRef('editPromptRef');
 const batchEditEl = useTemplateRef('batchEditRef'); // 批量编辑-弹窗
 const remarkModalEl = useTemplateRef('remarkModalRef'); // 批量备注-弹窗
 const batchWatermarkEl = useTemplateRef('batchWatermarkRef'); // 批量加水印-弹窗
 const batchAttributeEl = useTemplateRef('batchAttributeRef'); // 批量属性-弹窗
-
 const typeTreeEl = useTemplateRef('typeTreeRef');
-const currentClass = ref(0);
+const currentClass = ref('0');
 const nodePath = ref('');
 const typeManageOpen = ref(false);
-
 const shopSetVisible = ref(false);
 const shopCurryList = ref([]);
 
@@ -314,7 +316,7 @@ const formData = reactive({
     account: "",
     sku: "",
     name: "",
-    prop: "created_time",
+    prop: "create_time",
     order: "desc",
     state: ""
 })
@@ -406,6 +408,9 @@ const accountName = (account) => {
 
 
 const primaryImage = (primaryImage) => {
+    if (primaryImage.includes('https')) {
+        return primaryImage
+    }
     return baseApi + primaryImage
 };
 
@@ -501,7 +506,7 @@ const getAccount = () => {
 
 
 const displayedSkus = (row) => {
-    return row.show ? row?.skuList : row?.skuList?.slice(0, 3);
+    return row.show ? row?.skuList : row?.skuList?.slice(0, 5);
 };
 
 const getList = () => {
@@ -526,7 +531,7 @@ const getList = () => {
 };
 
 const updateClass = (value) => {
-    showDraftTable.value = false;
+    showDraftTable.value = value;
 };
 
 // 批量移动分类
@@ -545,7 +550,14 @@ async function typeNodeClick(node) {
     } catch (error) {
         console.error(error)
     }
+};
+
+//  采集数据
+const navDataCrawli = () => {
+    router.push('/platform/dev/sample/dataAcquisition')
 }
+
+
 //  移入待发布
 const moveToPending = (row = {}) => {
     window.open(`/platform/ozon/editWaitProduct?id=${row.gatherProductId}&account=${row.account}`, '_blank');

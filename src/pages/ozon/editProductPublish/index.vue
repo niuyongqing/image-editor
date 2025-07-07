@@ -230,29 +230,34 @@ const onSubmit = async (type = 1) => {
             },
         ],
     };
-    if (image.coverUrl !== "" && image.video.length > 0) {
-        // 创建video对应的baseObj副本并更新value值
-        let videoBaseObj = createAndUpdateBaseObj(image.video, 100002, 21845, type);
-        newComplexAttributes.push(videoBaseObj);
 
-        // 创建coverUrl对应的baseObj副本并更新value值
-        let coverUrlBaseObj = createAndUpdateBaseObj(
-            image.coverUrl,
-            100001,
-            21841, type
-        );
-        newComplexAttributes.push(coverUrlBaseObj);
-    } else if (image.coverUrl !== "") {
-        let coverUrlBaseObj = createAndUpdateBaseObj(
-            image.coverUrl,
-            100001,
-            21841, type
-        );
-        newComplexAttributes.push(coverUrlBaseObj);
-    } else if (image.video.length > 0) {
-        let videoBaseObj = createAndUpdateBaseObj(image.video, 100002, 21845, type);
-        newComplexAttributes.push(videoBaseObj);
-    }
+    if (image.coverUrl !== "" && image.video.length > 0) {
+    // 创建video对应的baseObj副本并更新value值
+    let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
+    videoBaseObj = createAndUpdateBaseObj(image.coverUrl, 100002, 21845, type === 1 ? 1 : 2);
+    newComplexAttributes.push(videoBaseObj);
+
+    // 创建coverUrl对应的baseObj副本并更新value值
+    let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
+    coverUrlBaseObj = createAndUpdateBaseObj(
+      image.video,
+      100001,
+      21841, type === 1 ? 1 : 2
+    );
+    newComplexAttributes.push(coverUrlBaseObj);
+  } else if (image.coverUrl !== "") {
+    let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
+    coverUrlBaseObj = createAndUpdateBaseObj(
+      image.coverUrl,
+      100002,
+      21845, type === 1 ? 1 : 2
+    );
+    newComplexAttributes.push(coverUrlBaseObj);
+  } else if (image.video.length > 0) {
+    let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
+    videoBaseObj = createAndUpdateBaseObj(image.video, 100001, 21841, type === 1 ? 1 : 2);
+    newComplexAttributes.push(videoBaseObj);
+  }
     console.log("newComplexAttributes", newComplexAttributes);
 
     const resItem = tableDatas.map((item) => {
@@ -286,7 +291,7 @@ const onSubmit = async (type = 1) => {
                     }
                     break;
                 case "select":
-                    [newId, newVal] = getSelectValue(attr, base);
+                    [newId, newVal] = getSelectValue(attr, base, item);
                     if (isNotEmpty(newVal)) {
                         const selectValueObj = createValueObj(newId, newVal);
                         moditAttributes.push(createAttrItem(attr, [selectValueObj]));
@@ -298,7 +303,7 @@ const onSubmit = async (type = 1) => {
                         item,
                         base,
                         createValueObj,
-                        type
+                        2
                     );
                     const filteredMSlect = mSlect.filter(
                         (obj) => obj.value || obj?.dictionary_value_id !== 0 || obj?.dictionaryValueid !== 0

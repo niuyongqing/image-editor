@@ -1,7 +1,6 @@
 <template>
     <div id="editDraftProduct" class="pr-14">
         <div class="w-19/20">
-
             <div flex w-full justify-between items-center>
                 <div>
                     <a-breadcrumb separator=">">
@@ -13,8 +12,22 @@
 
                 <div>
                     <a-space>
-                        <a-button @click="onSubmit(2)"
-                            style="height: 32px; background-color: #F5F5F5; color: #434649ff;">一键翻译</a-button>
+                        <a-dropdown>
+                            <a-button style="height: 32px; background-color: #F5F5F5; color: #434649ff;">
+                                一键翻译
+                                <DownOutlined />
+                            </a-button>
+                            <template #overlay>
+                                <a-menu @click="handleTranslationMenu">
+                                    <a-menu-item :key="1">
+                                        中文—>英文
+                                    </a-menu-item>
+                                    <a-menu-item :key="2">
+                                        中文—>俄语
+                                    </a-menu-item>
+                                </a-menu>
+                            </template>
+                        </a-dropdown>
                         <!-- <a-button type="default" style="height: 32px; background-color: #F5F5F5; color: #434649ff;"
                             @click="onSubmit(1)">存为模板</a-button> -->
                         <a-dropdown>
@@ -137,7 +150,8 @@
                         }}</a-button></a-timeline-item>
             </a-timeline>
         </div>
-        <a-back-top :visibility-height="0" style="margin-right: 10px;" @click="backToTop" />
+        <a-back-top :visibility-height="0" style="margin-right: 10px;" @click="backToTop" />.
+
         <a-modal :open="publishVis" title="消息提示" @cancel="handleCancel" :width="'20%'" :maskClosable="false"
             :keyboard="false">
             <span>产品已提交发布，请在发布中、发布失败或在线产品中查看！</span>
@@ -165,6 +179,7 @@ import { saveTowaitProduct } from "../config/api/waitProduct"
 import { message, Modal } from "ant-design-vue";
 import { UploadOutlined, DownOutlined } from '@ant-design/icons-vue';
 import ErpInfo from './comm/erpInfo.vue';
+import { translationApi } from '~/api/common/translation';
 
 const route = useRoute();
 const ozonBaseInfoRef = ref(null)
@@ -201,10 +216,7 @@ const formData = reactive({
 const getProductDetail = (gatherProductId, account) => {
     formData.shortCode = account
     ozonDraftDetail({ gatherProductId, account }).then(res => {
-
         productDetail.value = res.data || {};
-        console.log('productDetail.value ->>>>>>>>>>>>>>>>>>>>>>>>>>', productDetail.value);
-
         const { account, typeId, categoryId } = productDetail.value;
         getAttributes(account, typeId, categoryId); ///to do descriptionCategoryId?
     })
@@ -228,11 +240,10 @@ const getAttributes = (account, typeId, descriptionCategoryId) => {
     }).then((res) => {
         if (res.data) {
             attributes.value = res?.data ?? [];
-            console.log('attributes.value ->>>>>>>>>>>>>>>>>>>>>>>>>>', attributes.value);
             const ozonStore = useOzonProductStore()
             ozonStore.$patch(state => {
                 state.attributes = attributes.value
-            })
+            });
         }
     })
         .finally(() => {
@@ -349,25 +360,29 @@ const onSubmit = async (type = 1) => {
     };
     if (image.coverUrl !== "" && image.video.length > 0) {
         // 创建video对应的baseObj副本并更新value值
-        let videoBaseObj = createAndUpdateBaseObj(image.video, 100002, 21845, type);
+        let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
+        videoBaseObj = createAndUpdateBaseObj(image.coverUrl, 100002, 21845, 2);
         newComplexAttributes.push(videoBaseObj);
 
         // 创建coverUrl对应的baseObj副本并更新value值
-        let coverUrlBaseObj = createAndUpdateBaseObj(
-            image.coverUrl,
+        let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
+        coverUrlBaseObj = createAndUpdateBaseObj(
+            image.video,
             100001,
-            21841, type
+            21841, 2
         );
         newComplexAttributes.push(coverUrlBaseObj);
     } else if (image.coverUrl !== "") {
-        let coverUrlBaseObj = createAndUpdateBaseObj(
+        let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
+        coverUrlBaseObj = createAndUpdateBaseObj(
             image.coverUrl,
-            100001,
-            21841, type
+            100002,
+            21845, 2
         );
         newComplexAttributes.push(coverUrlBaseObj);
     } else if (image.video.length > 0) {
-        let videoBaseObj = createAndUpdateBaseObj(image.video, 100002, 21845, type);
+        let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
+        videoBaseObj = createAndUpdateBaseObj(image.video, 100001, 21841, 2);
         newComplexAttributes.push(videoBaseObj);
     }
     console.log("newComplexAttributes", newComplexAttributes);
@@ -565,6 +580,79 @@ const handleOk = () => {
     publishVis.value = false
     location.reload();
 }
+
+//  翻译
+const handleTranslationMenu = (e) => {
+    const key = e.key;
+    const form = ozonBaseInfoRef.value.form || {};
+    const descriptionForm = ozonImageInfoRef.value.form || {};
+    switch (key) {
+        case 1:
+            console.log('中文—>英文');
+            if (form.name) {
+                translationApi({
+                    "content": form.name, // 商品标题
+                    "destCode": "en",
+                    "sourceCode": "zh",
+                    "scene": "title"
+                }).then(res => {
+                    console.log('res', res);
+                    if (res.code === 200) {
+                        form.name = res.msg;
+                    }
+                })
+            };
+            if (descriptionForm.description) {
+                translationApi({
+                    "content": descriptionForm.description, // 产品描述
+                    "destCode": "en",
+                    "sourceCode": "zh",
+                    "scene": "description"
+                }).then(res => {
+                    console.log('res', res);
+                    if (res.code === 200) {
+                        descriptionForm.description = res.msg;
+                    }
+                })
+            };
+
+            break;
+        case 2:
+            console.log('中文—>俄语');
+            if (form.name) {
+                translationApi({
+                    "content": form.name, // 商品标题
+                    "destCode": "en",
+                    "sourceCode": "zh",
+                    "scene": "title"
+                }).then(res => {
+                    console.log('res', res);
+                    if (res.code === 200) {
+                        form.name = res.msg;
+                    }
+                })
+            };
+
+            if (descriptionForm.description) {
+                translationApi({
+                    "content": descriptionForm.description, // 产品描述
+                    "destCode": "ru",
+                    "sourceCode": "zh",
+                    "scene": "description"
+                }).then(res => {
+                    console.log('res', res);
+                    if (res.code === 200) {
+                        descriptionForm.description = res.msg;
+                    }
+                })
+            };
+            break;
+        default:
+            break;
+    }
+}
+
+
 
 onMounted(() => {
     const { id, account } = route.query;
