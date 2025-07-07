@@ -2,11 +2,13 @@
 <div id="acquisitionEdit_variantInfo" class="acquisitionEdit_variantInfo">
   <a-card style="text-align: left;">
     <template #title>
-      <span>变种属性</span>
-      <a-button @click="openModal('bacthVariantStringEdit')" type="link">
-        <async-icon :icon="'SettingOutlined'"></async-icon>
-        批量设置
-      </a-button>
+      <div class="variantInfo-card-title">
+        <span>变种属性</span>
+        <a-button @click="openModal('bacthVariantStringEdit')" type="link">
+          <async-icon :icon="'SettingOutlined'"></async-icon>
+          批量设置
+        </a-button>
+      </div>
     </template>
     <a-form :model="variantTheme" ref="ERPformRef" :laba-col="{ span: 3 }">
       <a-form-item 
@@ -78,10 +80,10 @@
                   v-model:checked="i.checked"
                   class="item-check" 
                   @change="(e) => variantItemChange(i.checked, i, form[item.id])" 
-                ></a-checkbox>
+                >{{ i.name }}</a-checkbox>
                 <span v-if="i.color" :style="`width: 12px; height: 12px; background-color: ${i.color};`"></span>
                 <div v-show="!i.isEditVal">
-                  {{ i.name }}
+                  
                   <async-icon :icon="'EditOutlined'" @click.stop="itemIconClick('edit', i, form[item.id])"></async-icon>
                 </div>
                 <div v-show="i.isEditVal">
@@ -575,10 +577,18 @@ function createRandom() {
 </script>
 <style lang="less" scoped>
 .acquisitionEdit_variantInfo {
+  .variantInfo-card-title {
+    display: flex;
+    justify-content: space-between;
+  }
   .addVariant-btn {
     display: flex;
     .addVariant-btn-input {
       margin-left: 16px;
+    }
+    .anticon {
+      margin-left: 6px;
+      cursor: pointer;
     }
   }
   .variant-attribute-box {
@@ -602,6 +612,10 @@ function createRandom() {
         .variant-title-text {
           margin-right: 6px;
         }
+        .anticon {
+          margin-left: 6px;
+          cursor: pointer;
+        }
       }
     }
     .variant-content {
@@ -613,7 +627,7 @@ function createRandom() {
         align-items: center;
         margin: 0 24px 20px 0;
         .item-check {
-          margin-right: 6px;
+          // margin-right: 6px;
         }
       }
     }
@@ -623,10 +637,6 @@ function createRandom() {
   }
   .variantInfo-box {
     padding: 20px;
-  }
-  .anticon {
-    margin-left: 6px;
-    cursor: pointer;
   }
 }
 </style>

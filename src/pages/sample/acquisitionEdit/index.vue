@@ -5,8 +5,8 @@
   <baseInfo :product-data="productInfo.data" v-model:base-info-data="formData.baseInfoData"/>
   <br>
   <!-- 图片信息 -->
-  <imageInfo :product-data="productInfo.data" v-model:image-info-data="formData.imageInfoData"/>
-  <br>
+  <!-- <imageInfo :product-data="productInfo.data" v-model:image-info-data="formData.imageInfoData"/>
+  <br> -->
   <!-- 变种信息 -->
   <variantInfo :product-data="productInfo.data" v-model:variant-info-data="formData.variantInfoData"></variantInfo>
 </div>
