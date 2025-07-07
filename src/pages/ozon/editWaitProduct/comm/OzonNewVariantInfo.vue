@@ -570,26 +570,40 @@ const removeItem = (item, row) => {
   }
 
   // 获取所有需要删除的标签
+  // const deletedLabels = item.selectType === 'multSelect'
+  //   ? item.modelValue.map(v => v.label)
+  //   : [];
+
+  // let newData = tableData.value.filter(row => {
+  //   // 检查行数据是否包含要删除的属性值
+  //   return !Object.values(row).some(value => {
+  //     if (item.selectType === 'multSelect') {
+  //       // 统一处理数组和字符串类型的值
+  //       const currentValues = Array.isArray(value)
+  //         ? value.map(v => v?.label || '')
+  //         : String(value || '').split(',');
+  //       return currentValues.some(v => deletedLabels.includes(v));
+  //     }
+  //     return item.selectType === 'input' ? row.attrIdList.includes(item.id)
+  //       : item.selectType === 'select' ? value === item?.modelValue?.label
+  //         : false;
+  //   });
+  // });
+
   const deletedLabels = item.selectType === 'multSelect'
-    ? item.modelValue.map(v => v.label)
+    ? item.modelValue.map(v => v.label?.trim()) // 增加trim处理
     : [];
-
+  const deletedSet = new Set(deletedLabels); // 改用Set提高查询效率
+  
   let newData = tableData.value.filter(row => {
-    // 检查行数据是否包含要删除的属性值
-    return !Object.values(row).some(value => {
-      if (item.selectType === 'multSelect') {
-        // 统一处理数组和字符串类型的值
-        const currentValues = Array.isArray(value)
-          ? value.map(v => v?.label || '')
-          : String(value || '').split(',');
-        return currentValues.some(v => deletedLabels.includes(v));
-      }
-      return item.selectType === 'input' ? row.attrIdList.includes(item.id)
-        : item.selectType === 'select' ? value === item?.modelValue?.label
-          : false;
-    });
+    // 直接访问对应属性
+    const rowValue = row[item.name];
+    if (item.selectType === 'select' || item.selectType === 'input') {
+      return !row.attrIdList?.some(id => id === item.id);
+    } else {
+      return !deletedLabels?.some(val => val === rowValue)
+    }
   });
-
   console.log("newData", newData);
 
   tableData.value = newData;
