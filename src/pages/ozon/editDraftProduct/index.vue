@@ -181,9 +181,6 @@ import { UploadOutlined, DownOutlined } from '@ant-design/icons-vue';
 import ErpInfo from './comm/erpInfo.vue';
 import { translationApi } from '~/api/common/translation';
 
-const ozonAttrsStore = useOzonAttrs();
-const { setOzonAttrs } = ozonAttrsStore;
-
 const route = useRoute();
 const ozonBaseInfoRef = ref(null)
 const ozonImageInfoRef = ref(null)
@@ -247,7 +244,6 @@ const getAttributes = (account, typeId, descriptionCategoryId) => {
             ozonStore.$patch(state => {
                 state.attributes = attributes.value
             });
-            setOzonAttrs(attributes.value)
         }
     })
         .finally(() => {
