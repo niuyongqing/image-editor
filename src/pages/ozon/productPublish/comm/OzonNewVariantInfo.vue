@@ -599,32 +599,8 @@ const removeItem = (item, row) => {
     if (item.selectType === 'select' || item.selectType === 'input') {
       return !row.attrIdList?.some(id => id === item.id);
     } else {
-      console.log("row.multId", row.multId);
-      console.log("item.multId", item.multId);
-      return row.multId === item.multId;
+      return !deletedLabels?.some(val => val === rowValue)
     }
-    // if (item.selectType === 'multSelect') {
-    //   // 统一处理数组/字符串值
-    //   const currentValues = Array.isArray(rowValue)
-    //     ? rowValue.map(v => v?.label?.trim() || '')
-    //     : typeof rowValue === 'string'
-    //       ? rowValue.split(',').map(s => s.trim())
-    //       : [];
-    //   return !currentValues.some(v => deletedSet.has(v));
-    // }
-
-    // if (item.selectType === 'select') {
-    //   // 精确匹配select的label值
-    //   const currentLabel = rowValue?.label?.trim();
-    //   return !deletedSet.has(currentLabel);
-    // }
-
-    // if (item.selectType === 'input') {
-    //   // 精确匹配attrIdList中的ID
-    //   return !row.attrIdList?.some(id => id === item.id);
-    // }
-
-    return true;
   });
 
   tableData.value = newData;
