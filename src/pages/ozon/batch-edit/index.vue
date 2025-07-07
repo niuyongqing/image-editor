@@ -111,7 +111,7 @@
             size="large"
             class="text-base"
           >
-            <a-tooltip title="修改"><FormOutlined /></a-tooltip>
+            <a-tooltip title="修改"><FormOutlined @click="descModalOpen = true" /></a-tooltip>
             <a-tooltip title="还原"><UndoOutlined @click="restore(column.key)" /></a-tooltip>
             <a-tooltip title="删除"><DeleteOutlined @click="del(column.key)" /></a-tooltip>
           </a-space>
@@ -469,6 +469,11 @@
       ref="titleModal"
       @ok="titleOk"
     />
+    <DescModal
+      v-model:open="descModalOpen"
+      ref="descModal"
+      @ok="descOk"
+    />
   </div>
 </template>
 
@@ -478,6 +483,7 @@
   import { dataSource } from './config'
 
   import TitleModal from './components/TitleModal.vue'
+  import DescModal from './components/DescModal.vue'
 
   /** 选择批量编辑的信息 checkbox */
   // 超级全选
@@ -722,6 +728,14 @@
 
   function titleOk() {
     titleModalRef.value.modify(tableData.value)
+  }
+
+  // 产品描述弹窗
+  const descModalOpen = ref(false)
+  const descModalRef = useTemplateRef('descModal')
+
+  function descOk() {
+    descModalRef.value.modify(tableData.value)
   }
 
   // 打开变种图片弹窗
