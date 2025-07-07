@@ -122,7 +122,7 @@
             size="large"
             class="text-base"
           >
-            <a-tooltip title="修改"><FormOutlined /></a-tooltip>
+            <a-tooltip title="修改"><FormOutlined @click="VATModalOpen = true" /></a-tooltip>
             <a-tooltip title="还原"><UndoOutlined @click="restore(column.key)" /></a-tooltip>
             <a-tooltip title="删除"><DeleteOutlined @click="del(column.key)" /></a-tooltip>
           </a-space>
@@ -469,10 +469,17 @@
       ref="titleModal"
       @ok="titleOk"
     />
+
     <DescModal
       v-model:open="descModalOpen"
       ref="descModal"
       @ok="descOk"
+    />
+
+    <VATModal
+      v-model:open="VATModalOpen"
+      ref="VAT_Modal"
+      @ok="VATOk"
     />
   </div>
 </template>
@@ -484,6 +491,7 @@
 
   import TitleModal from './components/TitleModal.vue'
   import DescModal from './components/DescModal.vue'
+  import VATModal from './components/VATModal.vue'
 
   /** 选择批量编辑的信息 checkbox */
   // 超级全选
@@ -736,6 +744,14 @@
 
   function descOk() {
     descModalRef.value.modify(tableData.value)
+  }
+
+  // VAT 弹窗
+  const VATModalOpen = ref(false)
+  const VATModalRef = useTemplateRef('VAT_Modal')
+
+  function VATOk() {
+    VATModalRef.value.modify(tableData.value)
   }
 
   // 打开变种图片弹窗
