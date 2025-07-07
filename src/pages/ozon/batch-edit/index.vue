@@ -229,17 +229,36 @@
           <a-textarea
             v-if="cellAddress === `${index}_${column.key}`"
             v-model:value="record.title"
-            autofocus
+            :id="`${index}_${column.key}`"
             :rows="4"
             show-count
             :maxlength="255"
             @blur="cellAddress = ''"
           />
-          <div v-else @click="cellAddress = `${index}_${column.key}`">{{ record.title }}</div>
+          <div
+            v-else
+            @click="cellActived(index, column.key)"
+          >
+            {{ record.title }}
+          </div>
           <div class="text-gray">「{{ record.simpleName }}」</div>
         </template>
         <template v-else-if="column.title === '产品描述'">
-          <div>{{ record.desc }}</div>
+          <a-textarea
+            v-if="cellAddress === `${index}_${column.key}`"
+            v-model:value="record.desc"
+            :id="`${index}_${column.key}`"
+            :rows="4"
+            show-count
+            :maxlength="255"
+            @blur="cellAddress = ''"
+          />
+          <div
+            v-else
+            @click="cellActived(index, column.key)"
+          >
+            {{ record.desc }}
+          </div>
         </template>
         <template v-else-if="column.title === 'VAT'">
           <a-select
@@ -251,19 +270,19 @@
         <template v-else-if="column.title === '变种图片'">
           <div
             v-for="(item, i) in record.skuList"
-            :key="i"
+            :key="`${column.key}_${i}`"
             :border="i === record.skuList.length - 1 ? '' : '0 b white solid'"
           >
             <FormOutlined
               class="text-base"
-              @click="showImagesModal(record)"
+              @click="showImagesModal(record, item)"
             />&nbsp;&nbsp;({{ item.images.length }}张)
           </div>
         </template>
         <template v-else-if="column.title === '变种名称'">
           <div
             v-for="(item, i) in record.skuList"
-            :key="i"
+            :key="`${column.key}_${i}`"
             :border="i === record.skuList.length - 1 ? '' : '0 b white solid'"
             class="text-gray cursor-not-allowed min-h-7"
           >
@@ -273,74 +292,165 @@
         <template v-else-if="column.title === '变种SKU'">
           <div
             v-for="(item, i) in record.skuList"
-            :key="i"
+            :key="`${column.key}_${i}`"
             :border="i === record.skuList.length - 1 ? '' : '0 b white solid'"
             min-h-7
           >
-            {{ item.offerId }}
+            <a-input
+              v-if="cellAddress === `${index}_${column.key}_${i}`"
+              v-model:value="item.offerId"
+              :id="`${index}_${column.key}_${i}`"
+              @blur="cellAddress = ''"
+            />
+            <div
+              v-else
+              @click="cellActived(index, column.key, i)"
+            >
+              {{ item.offerId }}
+            </div>
           </div>
         </template>
         <template v-else-if="column.title === 'SKU标题'">
           <div
             v-for="(item, i) in record.skuList"
-            :key="i"
+            :key="`${column.key}_${i}`"
             :border="i === record.skuList.length - 1 ? '' : '0 b white solid'"
             min-h-7
           >
-            {{ item.SKUTitle }}
+            <a-input
+              v-if="cellAddress === `${index}_${column.key}_${i}`"
+              v-model:value="item.SKUTitle"
+              :id="`${index}_${column.key}_${i}`"
+              @blur="cellAddress = ''"
+            />
+            <div
+              v-else
+              @click="cellActived(index, column.key, i)"
+            >
+              {{ item.SKUTitle }}
+            </div>
           </div>
         </template>
         <template v-else-if="column.title === '售价'">
           <div
             v-for="(item, i) in record.skuList"
-            :key="i"
+            :key="`${column.key}_${i}`"
             :border="i === record.skuList.length - 1 ? '' : '0 b white solid'"
             min-h-7
           >
-            {{ item.price }}
+            <a-input-number
+              v-if="cellAddress === `${index}_${column.key}_${i}`"
+              v-model:value="item.price"
+              :id="`${index}_${column.key}_${i}`"
+              :precision="2"
+              :controls="false"
+              @blur="cellAddress = ''"
+            />
+            <div
+              v-else
+              @click="cellActived(index, column.key, i)"
+            >
+              {{ item.price }}
+            </div>
           </div>
         </template>
         <template v-else-if="column.title === '原价'">
           <div
             v-for="(item, i) in record.skuList"
-            :key="i"
+            :key="`${column.key}_${i}`"
             :border="i === record.skuList.length - 1 ? '' : '0 b white solid'"
             min-h-7
           >
-            {{ item.oldPrice }}
+            <a-input-number
+              v-if="cellAddress === `${index}_${column.key}_${i}`"
+              v-model:value="item.oldPrice"
+              :id="`${index}_${column.key}_${i}`"
+              :precision="2"
+              :controls="false"
+              @blur="cellAddress = ''"
+            />
+            <div
+              v-else
+              @click="cellActived(index, column.key, i)"
+            >
+              {{ item.oldPrice }}
+            </div>
           </div>
         </template>
         <template v-else-if="column.title === '库存'">
           <div
             v-for="(item, i) in record.skuList"
-            :key="i"
+            :key="`${column.key}_${i}`"
             :border="i === record.skuList.length - 1 ? '' : '0 b white solid'"
             min-h-7
           >
-            {{ item.stock }}
+            {{ item.stock || 0 }}&nbsp;&nbsp;<FormOutlined
+              class="text-base"
+              @click="showImagesModal(record, item)"
+            />
           </div>
         </template>
         <template v-else-if="column.title === '尺寸'">
-          <template
+          <div
             v-for="(item, i) in record.skuList"
-            :key="i"
+            :key="`${column.key}_${i}`"
           >
+            <div v-if="cellAddress === `${index}_${column.key}_${i}`">
+              <a-input-number
+                v-model:value="item.depth"
+                :id="`${index}_${column.key}_${i}`"
+                :precision="0"
+                :controls="false"
+                class="w-14 mr-3"
+              />
+              <a-input-number
+                v-model:value="item.width"
+                :precision="0"
+                :controls="false"
+                class="w-14 mr-3"
+              />
+              <a-input-number
+                v-model:value="item.height"
+                :precision="0"
+                :controls="false"
+                class="w-14 mr-3"
+              />
+              <CheckOutlined
+                class="text-base"
+                @click="cellAddress = ''"
+              />
+            </div>
             <div
+              v-else
               :border="i === record.skuList.length - 1 ? '' : '0 b white solid'"
               min-h-7
+              @click="cellActived(index, column.key, i)"
             >
               <span v-if="item.depth && item.width && item.height">{{ `${item.depth} * ${item.width} * ${item.height}` }}</span>
             </div>
-          </template>
+          </div>
         </template>
         <template v-else-if="column.title === '重量'">
           <div
             v-for="(item, i) in record.skuList"
-            :key="i"
+            :key="`${column.key}_${i}`"
             :border="i === record.skuList.length - 1 ? '' : '0 b white solid'"
             min-h-7
           >
-            {{ item.weight }}
+            <a-input-number
+              v-if="cellAddress === `${index}_${column.key}_${i}`"
+              v-model:value="item.weight"
+              :id="`${index}_${column.key}_${i}`"
+              :precision="2"
+              :controls="false"
+              @blur="cellAddress = ''"
+            />
+            <div
+              v-else
+              @click="cellActived(index, column.key, i)"
+            >
+              {{ item.weight }}
+            </div>
           </div>
         </template>
         <template v-else-if="column.title === '操作'">
@@ -356,7 +466,7 @@
 </template>
 
 <script setup>
-  import { DownOutlined, FormOutlined, UndoOutlined, DeleteOutlined } from '@ant-design/icons-vue'
+  import { DownOutlined, FormOutlined, UndoOutlined, DeleteOutlined, CheckOutlined } from '@ant-design/icons-vue'
   import { cloneDeep } from 'lodash'
   import { dataSource } from './config'
 
@@ -583,9 +693,25 @@
 
   // 单元格地址(用来匹配正在编辑的那个单元格或者单元格里的某一项)
   const cellAddress = ref('')
+  /**
+   * 点击单元格内容激活编辑状态
+   * @param {number} index 每行的索引
+   * @param {string} key 每列的 key
+   * @param? {number} i 单元格内 v-for 循环出来的索引
+   */
+  function cellActived(index, key, i) {
+    cellAddress.value = i === undefined ? `${index}_${key}` : `${index}_${key}_${i}`
+
+    nextTick(() => {
+      document.getElementById(cellAddress.value).focus()
+    })
+  }
 
   // 打开变种图片弹窗
-  function showImagesModal(record) {}
+  function showImagesModal(record, item) {}
+
+  // 打开修改库存弹窗
+  function showStockModal(record, item) {}
 
   // 移除
   function removeRecord(id) {
