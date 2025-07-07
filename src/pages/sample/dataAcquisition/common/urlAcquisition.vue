@@ -516,10 +516,10 @@ function dropdownClick(key, selectedRow) {
       })
       break;
     case 'draft':
-      claim('draft', selectedRow[0])
+      claim(key, selectedRow[0])
       break;
     case 'acquisition':
-      batchClaim('acquisition', selectedRow[0])
+      batchClaim(key, selectedRow[0])
       break;
     case 'remarkModal':
       openModal(key, selectedRow);
