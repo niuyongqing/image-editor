@@ -280,7 +280,7 @@ const onSubmit = async (type = 1) => {
     newComplexAttributes.push(videoBaseObj);
   }
     console.log("newComplexAttributes", newComplexAttributes);
-
+    const addHeaderList = useOzonProductStore().addHeaderList
     const resItem = tableDatas.map((item) => {
         const moditAttributes = [];
         const getDictionaryIdKey = type === 1 ? 'dictionary_value_id' : 'dictionaryValueId';
@@ -388,7 +388,7 @@ const onSubmit = async (type = 1) => {
                 weight: item.packageWeight,
                 width: item.packageWidth,
                 vat: base.vat,
-                name: base.name,
+                name: addHeaderList.includes("skuTitle") ? item.skuTitle : base.name,
                 description_category_id:
                     base.categoryId.secondCategoryId, // 二级id
                 type_id: base.categoryId.threeCategoryId, // 三级分id
@@ -405,6 +405,7 @@ const onSubmit = async (type = 1) => {
                 price: item.price,
                 weightUnit: "g",
                 dimensionUnit: "mm",
+                name: addHeaderList.includes("skuTitle") ? item.skuTitle : base.name,
                 weight: item.packageWeight,
                 height: item.packageHeight,
                 depth: item.packageLength,
@@ -438,7 +439,6 @@ const onSubmit = async (type = 1) => {
         let waitParams = {
             account: base.shortCode,
             vat: base.vat,
-            name: base.name,
             skuList: resItem,
             historyCategoryId: base?.categoryId?.threeCategoryId, //平台分类ID
             // storeHistoryCategoryId: base?.categoryId?.storeHistoryCategoryId

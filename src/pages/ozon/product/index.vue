@@ -137,7 +137,7 @@
             <a-form-item>
               <a-select
                 ref="select"
-                v-model:value="advancedForm.timeSort"
+                v-model:value="advancedForm.timeSearch"
                 class="ml-6.5"
                 style="width: 120px"
               >
@@ -900,12 +900,12 @@
               >
                 <div>
                   创建时间：<span style="color: #9e9f9e">{{
-                    timestampToDateTime(record.createdTime)
+                    timestampToDateTime(record.createTime)
                   }}</span>
                 </div>
                 <div>
                   更新时间：<span style="color: #9e9f9e">{{
-                    timestampToDateTime(record.updatedTime)
+                    timestampToDateTime(record.updateTime)
                   }}</span>
                 </div>
               </div>
@@ -1145,7 +1145,7 @@ const advancedForm = reactive({
   minStock: null,
   maxStock: null,
   // isRemark: "",
-  timeSort: "update_time",
+  timeSearch: "update_time",
   time: [],
 });
 const dropCol = tableHead;
@@ -1349,7 +1349,7 @@ const resetForm = (type = 0) => {
   advancedForm.minStock = null;
   advancedForm.maxStock = null;
   // advancedForm.isRemark = ""
-  advancedForm.timeSort = "update_time";
+  advancedForm.timeSearch = "update_time";
   advancedForm.time = [];
   advancedType.value = type == 1 ? false : true;
   getList();
@@ -1894,8 +1894,8 @@ const sync = () => {
         let params = {
           ...formData,
           ...Object.entries(advancedForm).reduce((acc, [key, value]) => {
-            // 过滤掉 timeSort 和 time 字段
-            if (["timeSort", "time"].includes(key)) return acc;
+            // 过滤掉 timeSearch 和 time 字段
+            if (["time"].includes(key)) return acc;
 
             // 保留原有转换逻辑并添加字符串转换
             if (value !== null && value !== undefined && value !== "") {
@@ -2016,8 +2016,8 @@ const getList = (isSearch = false) => {
     ...formData,
     // ...advancedForm,
     ...Object.entries(advancedForm).reduce((acc, [key, value]) => {
-        // 过滤掉 timeSort 和 time 字段
-        if (["timeSort", "time"].includes(key)) return acc;
+        // 过滤掉 timeSearch 和 time 字段
+        if (["time"].includes(key)) return acc;
 
         // 保留原有转换逻辑并添加字符串转换
         if (value !== null && value !== undefined && value !== '') {

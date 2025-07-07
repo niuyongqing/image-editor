@@ -35,9 +35,9 @@ export const acquisitionHeader = [
   //   width: 200
   // },
   {
-    title: '创建时间',
-    dataIndex: 'createTime',
-    key:"createTime",
+    title: '采集时间',
+    dataIndex: 'collectTime',
+    key:"collectTime",
     align:"left",
     width: 200
   },

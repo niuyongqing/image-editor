@@ -291,7 +291,7 @@ const onSubmit = async (type = 1) => {
                     }
                     break;
                 case "select":
-                    [newId, newVal] = getSelectValue(attr, base);
+                    [newId, newVal] = getSelectValue(attr, base, item);
                     if (isNotEmpty(newVal)) {
                         const selectValueObj = createValueObj(newId, newVal);
                         moditAttributes.push(createAttrItem(attr, [selectValueObj]));
@@ -303,7 +303,7 @@ const onSubmit = async (type = 1) => {
                         item,
                         base,
                         createValueObj,
-                        type
+                        2
                     );
                     const filteredMSlect = mSlect.filter(
                         (obj) => obj.value || obj?.dictionary_value_id !== 0 || obj?.dictionaryValueid !== 0
