@@ -46,7 +46,7 @@
                         <a-button type="link" @click="changeCategory">更换分类</a-button>
                         <p class="tooltip-text" v-if="hisAttrObj && JSON.stringify(hisAttrObj) != '{}'">{{
                             hisAttrObj.categoryName
-                        }} > {{ hisAttrObj.secondCategoryName }} > {{
+                            }} > {{ hisAttrObj.secondCategoryName }} > {{
                                 hisAttrObj.threeCategoryName }} </p>
                         <!-- 表格 -->
                         <a-table :columns="innerColumns" :data-source="innerTableData" bordered :pagination="false"
@@ -56,9 +56,21 @@
                                     {{ record.catTheme }}
                                 </template>
                                 <template v-if="column.dataIndex === 'ozonTheme'">
-                                    <a-select v-model:value="record.ozonTheme" allowClear placeholder="请选择"
-                                        style="width: 180px;" :options="attrOptions(record.filterAttrOptions)">
-                                    </a-select>
+                                    <div>
+                                        <a-select v-model:value="record.ozonTheme" allowClear placeholder="请选择"
+                                            style="width: 180px;" :options="filterAttrOptions">
+                                            <template #notFoundContent>
+                                                <div v-if="optionsLoading" w-180px h-150px flex justify-center
+                                                    items-center>
+                                                    <a-spin />
+                                                </div>
+                                                <div v-else flex justify-center items-center>
+                                                    <a-empty />
+                                                </div>
+                                            </template>
+                                        </a-select>
+                                    </div>
+
                                 </template>
                             </template>
                         </a-table>
@@ -95,6 +107,7 @@ const platNames = {
     Tmall: '天猫',
     AliExpress: '速卖通',
 };
+
 const resData = ref(null);
 const baseApi = import.meta.env.VITE_APP_BASE_API;
 const relationDetail = ref({});
@@ -143,6 +156,7 @@ const hisAttrObj = ref({}) //选中的三级
 const secondCategoryId = ref(undefined);
 const attributes = ref([]);
 const filterAttrOptions = ref([]); // 过滤后的属性
+const optionsLoading = ref(false); // 下拉框loading
 const tableData = ref([
     {
         primaryImage: '',
@@ -196,7 +210,6 @@ function getFilterAttrs() {
                 })?.platformVariantName;
 
 
-
                 if (isClear.value) {
                     innerTableData.value.push({
                         catTheme: key,
@@ -244,6 +257,7 @@ const getHistoryList = (account, typeId, categoryId = '') => {
             });
             hisAttrObj.value = findItem || {};
             secondCategoryId.value = findItem?.secondCategoryId;
+
             if (acceptParams.value.variantAttr && Object.keys(acceptParams.value.variantAttr).length > 0) {
                 Object.keys(acceptParams.value.variantAttr).forEach((key) => {
                     innerTableData.value.push({
@@ -256,6 +270,8 @@ const getHistoryList = (account, typeId, categoryId = '') => {
             };
 
             if (findItem) {
+                optionsLoading.value = true;
+                filterAttrOptions.value = [];
                 categoryAttributes({
                     account,
                     descriptionCategoryId: findItem.secondCategoryId,
@@ -264,9 +280,13 @@ const getHistoryList = (account, typeId, categoryId = '') => {
                     if (res.code === 200) {
                         attributes.value = res.data || [];
                         getFilterAttrs();
+                        optionsLoading.value = false;
                     }
                 })
             } else {
+                if (!categoryId) {
+                    return;
+                }
                 // 没找到 加入历史分类记录里面
                 addHistoryCategory({
                     account: form.shortCode,
@@ -285,6 +305,8 @@ const selectAttributes = (value) => {
         if (historyCategoryList.value.length != 0) {
             hisAttrObj.value = historyCategoryList.value.find((item) => item.threeCategoryId === value);
             secondCategoryId.value = hisAttrObj.value.secondCategoryId;
+            optionsLoading.value = true;
+            filterAttrOptions.value = [];
             categoryAttributes({
                 account: form.shortCode,
                 descriptionCategoryId: hisAttrObj.value.secondCategoryId,
@@ -294,6 +316,7 @@ const selectAttributes = (value) => {
                     attributes.value = res.data || [];
                     isClear.value = true;
                     getFilterAttrs();
+                    optionsLoading.value = false;
                 }
             })
         }

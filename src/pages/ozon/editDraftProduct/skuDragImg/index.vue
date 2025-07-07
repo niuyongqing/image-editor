@@ -93,7 +93,7 @@
             @multiSubmit="handleMultiSubmit" />
 
         <!-- 空间图片弹窗 -->
-        <PictureLibrary v-model:modal-open="plugInTutorialOpen" />
+        <PictureLibrary v-model:modal-open="pictureLibraryOpen" platform="ozon" @imageListConfirm="imageListConfirm" />
 
         <!-- 网络图片弹窗 -->
         <NetImageModal ref="netImageModalRef" @submit="handleNetImageSubmit" />
@@ -156,7 +156,7 @@ const props = defineProps({
 const bacthEditImgSizeEl = useTemplateRef('bacthEditImgSizeRef');
 const netImageModalEl = useTemplateRef('netImageModalRef');
 const imageTranslationEl = useTemplateRef('imageTranslationRef');
-const plugInTutorialOpen = ref(false); // 空间图片弹窗
+const pictureLibraryOpen = ref(false); // 空间图片弹窗
 const attrs = useAttrs();
 const fileList = defineModel('file-list'); // 图片列表
 const previewVisible = ref(false);
@@ -273,7 +273,7 @@ const handleDragEnd = (event) => {
 
 // 空间图片  
 const handleSpaceImages = () => {
-    plugInTutorialOpen.value = !plugInTutorialOpen.value
+    pictureLibraryOpen.value = !pictureLibraryOpen.value
 };
 
 // 网络图片
@@ -302,6 +302,24 @@ const handleMultiSubmit = (checkedImgs) => {
     })
 
 };
+
+// 图片空间上传
+function imageListConfirm(val) {
+    // console.log({val}, 'imageListConfirm');
+    let list = val.map(item => {
+        const { name, width, height, path: url, src, size } = item;
+        return {
+            name,
+            width,
+            height,
+            url: src,
+            src,
+            size,
+        };
+    });
+    console.log('采集的图片list --->>>', list);
+    fileList.value.push(...list)
+}
 
 const handleNetImageSubmit = (img) => {
     fileList.value.push({
