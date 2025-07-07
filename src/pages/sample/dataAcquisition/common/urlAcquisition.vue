@@ -207,7 +207,7 @@
               <div class="option-btn" @click="acquisitionEdit(record)">编辑</div>
               
               <a-dropdown>
-                <div class="option-btn" type="link" @click.prevent>
+                <div class="option-btn" @click.prevent>
                   更多
                   <AsyncIcon icon="DownOutlined" />
                 </div>
@@ -693,6 +693,7 @@
     display: flex;
     flex-direction: column;
     .option-btn {
+      width: 60px;
       cursor: pointer;
       color: #1677ff;
     }

@@ -2,7 +2,11 @@
 <div id="acquisitionEdit_variantInfo" class="acquisitionEdit_variantInfo">
   <a-card style="text-align: left;">
     <template #title>
-      变种属性
+      <span>变种属性</span>
+      <a-button @click="openModal('bacthVariantStringEdit')" type="link">
+        <async-icon :icon="'SettingOutlined'"></async-icon>
+        批量设置
+      </a-button>
     </template>
     <a-form :model="variantTheme" ref="ERPformRef" :laba-col="{ span: 3 }">
       <a-form-item 
@@ -112,7 +116,12 @@
       >
         <a-form-item-rest>
           <div class="variantInfo-box">
-            <a-table :columns="header" :data-source="variantTheme.tableData">
+            <a-table 
+              :columns="header" 
+              :data-source="variantTheme.tableData"
+              :pagination="false"
+              rowKey="id"
+            >
               <template #headerCell="{ column }">
                 {{ column.title }}
                 <!-- <template>
@@ -121,7 +130,7 @@
 
               <template #bodyCell="{ column, record: row }">
                 <template v-if="variantTheme.header.some(i => i.key === column.key)">
-                  <span>{{ row[column.key].name }}</span>
+                  <span>{{ row[column.key]?.name }}</span>
                 </template>
                 <template v-else-if="column.key === 'skuCode'">
                   <div class="row-input-content">
@@ -147,12 +156,22 @@
       </a-form-item>
     </a-form>
   </a-card>
+
+  <!-- 弹窗组件 -->
+  <component
+    :is="modalInfo.name" 
+    v-model:modalOpen="modalInfo.open"
+    :modalData="modalInfo.data"
+    @confirm="modalConfirm"
+  ></component>
 </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from '~@/layouts/components/menu/async-icon.vue'
+import bacthVariantStringEdit from './modal/bacthVariantStringEdit.vue'
+import { cloneDeep } from 'lodash-es';
 defineOptions({ name: "acquisitionEdit_variantInfo" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:variantInfoData'])
@@ -174,6 +193,21 @@ const variantTheme = reactive({
   header: [],
   tableData: [],
 })
+// 弹窗相关
+const modalInfo = reactive({
+    open: false,
+    name: null,
+    components: {
+      bacthVariantStringEdit: markRaw(bacthVariantStringEdit),
+    },
+    data: {
+      key: '',
+      type: '',
+      headerList: [],
+      variantList: [],
+      variantInfo: []
+    }
+  })
 
 const header = computed(() => {
   let fixedHeader = [
@@ -213,13 +247,47 @@ watch(() => props.productData?.id, (val) => {
   openFn();
 })
 function openFn() {
-  
+  let { variantAttr, variantInfoList: _variantInfoList } = props.productData
+  let variantInfoList = cloneDeep((_variantInfoList ?? []));
+  variantAttr = (variantAttr ?? {});
+  // 生成主题
+  let variantList = Object.keys(variantAttr).forEach(key => {
+    let val = {
+      id: `${key}_add_xinZhan_${createRandom()}`,
+      name: key,
+      values: [],
+    }
+    val.values = variantAttr[key].map(item => {
+      let variantItem = {
+        id: `${item}_add_xinZhan_${createRandom()}`,
+        name: item,
+        isEdit: false,
+        editValue: '',
+        checked: true,
+      }
+      variantInfoList.forEach(i => {
+        if (i[key] === item) {
+          i.skuCode = ''
+          i.inventory = 0
+          i[val.id] = {...variantItem}
+        }
+      })
+      return variantItem;
+    })
+    addVariant('check', val)
+    form[val.id].params = [...val.values]
+  })
+  createHeaderList()
+  variantInfoList.forEach((item, index) => item.rowId = index)
+  variantTheme.tableData = variantInfoList
 }
 // 添加主题
 function addVariant(key, val = {}) {
+  let obj = null;
+  let formItem = null;
   switch (key) {
     case 'check':
-      let obj = {
+      obj = {
         id: (val && val.id) || `${variantTheme.addVariantTitle}_add_xinZhan_${createRandom()}`,
         name: (val && val.name) || variantTheme.addVariantTitle,
         values: (val && val.values) || [],
@@ -229,7 +297,7 @@ function addVariant(key, val = {}) {
       }
       if (!obj.name) return;
       variantTheme.variantList.push(obj)
-      let formItem = {
+      formItem = {
         id: obj.id,
         name: obj.name,
         params: []
@@ -244,6 +312,10 @@ function addVariant(key, val = {}) {
   }
   variantTheme.addVariantTitle = ''
   variantTheme.isAddVariant = false
+  return {
+    variant: obj,
+    formItem
+  }
 }
 // 主题名称编辑
 function titleIconClick(key, data, formItem) {
@@ -354,7 +426,8 @@ function itemIconClick(key, data, formItem) {
 }
 // 主题选项勾选
 function variantItemChange(e, val, formItem) {
-  // console.log({e, val, formItem});
+  // console.log({ e, val, formItem });
+  // return
   if (e) {
     formItem.params.push(val)
   } else {
@@ -455,10 +528,44 @@ function generateVariantInfo(e, val, formItem) {
       })
       // 将创建的信息添加到数据中
       variantTheme.tableData = [...variantTheme.tableData, ...list];
+      // 排序
+      // let attId = variantTheme.variantList[0].id
+      // let sortList = []
+      // form[attId].params.forEach(item => {
+      //   let arr = variantTheme.tableData.filter(i => i[attId].id === item.id)
+      //   sortList = [...sortList, ...arr]
+      // })
+      // variantTheme.tableData = [...sortList]
       variantTheme.tableData.forEach((item, index) => {
         item.rowId = index
       })
     }
+  }
+}
+// 打开弹窗
+function openModal(component, type = '', key = '') {
+  modalInfo.name = modalInfo.components[component];
+  modalInfo.data = {
+    key,
+    type,
+    headerList: variantTheme.header,
+    variantList: variantTheme.variantList,
+    variantInfo: variantTheme.tableData
+  };
+  nextTick(() => {
+    modalInfo.open = !modalInfo.open;
+  })
+}
+function modalConfirm(val) {
+  console.log(val);
+  if (val.component === "bacthVariantStringEdit") {
+    variantTheme.variantList = [...val.variantList]
+    variantTheme.variantList.forEach(variantItem => {
+      titleIconClick('check', variantItem, form[variantItem.id])
+      variantItem.values.forEach(item => {
+        itemIconClick('check', item, form[variantItem.id])
+      })
+    })
   }
 }
 // 生成一个随机数
