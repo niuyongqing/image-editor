@@ -16,6 +16,8 @@
                 <i v-if="items.isRequired" style="color: red; margin-right: 2px">*</i>
                 <span>{{ items.name }}</span>
               </span>
+              <a-button type="link" v-if="[10096, 4295].includes(items.id)" @click="setColor(items)"
+                style="float: right">批量设置</a-button>
               <a-popconfirm icon-color="red" title="确定要删除这个变种主题吗？" @confirm="removeVariantType(items, index)">
                 <a-button type="text" danger v-if="!items.isRequired" style="float: right">移除</a-button>
               </a-popconfirm>
@@ -255,6 +257,9 @@
     <!-- 选择自定义属性  -->
     <SelectAttr @selectAttrList="selectAttrList" :attrVisible="attrVisible" :custAttr="custAttr"
       :newAttribute="newAttribute" @handleStatsModalClose="attrVisible = false"></SelectAttr>
+    <!-- 批量设置变种属性 -->
+    <batchSetColor :setValueVis="setValueVis" @closeColorModal="setValueVis = false" @confirm="confirm"
+      :setColorOption="setColorOption" @handleCancel="handleColorCancel"></batchSetColor>
   </div>
 </template>
 
@@ -290,7 +295,8 @@ import {
 import { publishHead, otherList } from "../../config/tabColumns/skuHead";
 import { uploadImage } from '@/pages/ozon/config/api/draft';
 import SkuDragUpload from '@/components/skuDragUpload/index.vue';
-import { debounce } from "lodash";
+import { debounce, forEach } from "lodash";
+import batchSetColor from "./batchSetColor.vue";
 
 const props = defineProps({
   categoryAttributesLoading: Boolean,
@@ -322,7 +328,10 @@ const quantityRow = ref({});
 const types = ref("");
 const editStockList = ref([]);
 const attrVisible = ref(false);
+const setValueVis = ref(false); //批量设置属性
 const newAttribute = ref([]);
+const setColorOption = ref([]);
+const colorRow = ref({});
 const custAttr = ref([]); //可控制属性
 const plainOptions = [
   {
@@ -357,6 +366,79 @@ const handleChangeColroImg = (info, record) => {
     message.error("图片上传有误！");
   }
 };
+
+const setColor = (row) => {
+  colorRow.value = row;
+  setValueVis.value = true;
+  setColorOption.value = row.details.map(item => {
+    return {
+      label: item.value,
+      value: item.id,
+    }
+  });
+};
+
+const handleColorCancel = () => {
+  setValueVis.value = false;
+  setColorOption.value = [];
+}
+// 批量设置属性
+const confirm = (selectedValues) => {
+  console.log("selectedValues", selectedValues);
+  const { categoryDependent, details, id, isCollection, isRequired, name, secondId, secondModelValue, secondName, selectType } = colorRow.value.tableData[0];
+  const aSet = new Set(selectedValues);
+  const result = details.filter(item => aSet.has(item.id));
+  console.log("result", result);
+  // let ele = {};
+  // result.forEach(item => {
+  //   if (isConform && id === 10096) {
+  //     ele = {
+  //       categoryDependent,
+  //       details,
+  //       id,
+  //       isCollection,
+  //       isRequired,
+  //       name,
+  //       secondId,
+  //       secondModelValue,
+  //       secondName,
+  //       selectType,
+  //       modelValue: [item],
+  //       "颜色名称(Название цвета)": "颜色名称(Название цвета)",
+  //     }
+  //   } else if (isConform && id === 4295) {
+  //     ele = {
+  //       categoryDependent,
+  //       id,
+  //       name,
+  //       isCollection,
+  //       isRequired,
+  //       modelValue: [item],
+  //       selectType,
+  //       details,
+  //       secondName: "由制造商规定尺码(Размер производителя)",
+  //       "由制造商规定尺码(Размер производителя)": "由制造商规定尺码(Размер производителя)",
+  //       secondId,
+  //       secondModelValue: "",
+  //     };
+  //   } else {
+  //     ele = {
+  //       categoryDependent,
+  //       details,
+  //       id,
+  //       isCollection,
+  //       isRequired,
+  //       name,
+  //       selectType,
+  //       modelValue: [item],
+  //     }
+  //   }
+  //   colorRow.value.tableData.push(ele)
+  // })
+  // 处理表格数据
+  tableData.value = commProceData();
+  console.log("attributeList", colorRow.value);
+}
 
 // 添加自定义属性
 const selectAttrList = (list) => {
@@ -603,6 +685,30 @@ const pushValue = (index, item) => {
     return;
   }
   // 处理表格数据
+  // let cartesianProducts = cartesianProduct(attributeList.value);
+  // let newTableData = processResult(cartesianProducts);
+  // let minLength = Math.min(newTableData.length, tableData.value.length);
+  // for (let i = 0; i < minLength; i++) {
+  //   // 将b数组中对应下标的数据赋值到a数组中
+  //   newTableData[i].skuTitle = tableData.value[i].skuTitle;
+  //   newTableData[i].sellerSKU = tableData.value[i].sellerSKU;
+  //   newTableData[i].price = tableData.value[i].price;
+  //   newTableData[i].oldPrice = tableData.value[i].oldPrice;
+  //   newTableData[i].colorImg = tableData.value[i].colorImg;
+  //   newTableData[i].imageUrl = tableData.value[i].imageUrl;
+  //   newTableData[i].quantity = tableData.value[i].quantity;
+  //   newTableData[i].warehouseList = tableData.value[i].warehouseList;
+  //   newTableData[i].packageHeight = tableData.value[i].packageHeight;
+  //   newTableData[i].packageLength = tableData.value[i].packageLength;
+  //   newTableData[i].packageWidth = tableData.value[i].packageWidth;
+  //   newTableData[i].packageWeight = tableData.value[i].packageWeight;
+  // }
+  tableData.value = commProceData();
+  console.log("newTableData", newTableData);
+
+};
+
+const commProceData = () => {
   let cartesianProducts = cartesianProduct(attributeList.value);
   let newTableData = processResult(cartesianProducts);
   let minLength = Math.min(newTableData.length, tableData.value.length);
@@ -621,9 +727,7 @@ const pushValue = (index, item) => {
     newTableData[i].packageWidth = tableData.value[i].packageWidth;
     newTableData[i].packageWeight = tableData.value[i].packageWeight;
   }
-  tableData.value = newTableData;
-  console.log("newTableData", newTableData);
-
+  return newTableData
 };
 
 // 动态添加表头数据
@@ -1069,7 +1173,7 @@ watch(
         headerList.value.splice(skuIndex + 1, 0, obj);
         addHeaderList.value.push("skuTitle");
       }
-      
+
       tableData.value = result;
       // 将不匹配的主题过滤掉
       console.log("sortArr", tableData.value);

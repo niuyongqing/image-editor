@@ -16,6 +16,8 @@
                 <i v-if="items.isRequired" style="color: red; margin-right: 2px">*</i>
                 <span>{{ items.name }}</span>
               </span>
+              <a-button type="link" v-if="[10096, 4295].includes(items.id)" @click="setColor(items)"
+                style="float: right">批量设置</a-button>
               <a-popconfirm icon-color="red" title="确定要删除这个变种主题吗？" @confirm="removeVariantType(items, index)">
                 <a-button type="text" danger v-if="!items.isRequired" style="float: right">移除</a-button>
               </a-popconfirm>
@@ -247,6 +249,9 @@
     <!-- 选择自定义属性  -->
     <SelectAttr @selectAttrList="selectAttrList" :attrVisible="attrVisible" :custAttr="custAttr"
       :newAttribute="newAttribute" @handleStatsModalClose="attrVisible = false"></SelectAttr>
+      <!-- 批量设置变种属性 -->
+    <batchSetColor :setValueVis="setValueVis" @closeColorModal="setValueVis = false" @confirm="confirm"
+      :setColorOption="setColorOption" @handleCancel="handleColorCancel"></batchSetColor>
   </div>
 </template>
 
@@ -279,7 +284,9 @@ import {
 import { publishHead, otherList } from "../../config/tabColumns/skuHead";
 import { uploadImage } from "@/pages/ozon/config/api/draft";
 import SkuDragUpload from "@/components/skuDragUpload/index.vue";
-import { debounce } from "lodash";
+import { debounce, cloneDeep } from "lodash";
+import batchSetColor from "../../editWaitProduct/comm/batchSetColor.vue";
+
 
 const props = defineProps({
   categoryAttributesLoading: Boolean,
@@ -314,6 +321,9 @@ const editStockList = ref([]);
 const attrVisible = ref(false);
 const newAttribute = ref([]);
 const custAttr = ref([]); //可控制属性
+const setValueVis = ref(false); //批量设置属性
+const setColorOption = ref([]);
+const colorRow = ref({});
 const plainOptions = [
   {
     label: "颜色样本",
@@ -347,6 +357,74 @@ const handleChangeColroImg = (info, record) => {
     message.error("图片上传有误！");
   }
 };
+
+const setColor = (row) => {
+  colorRow.value = row;
+  setValueVis.value = true;
+  setColorOption.value = row.details.map(item => {
+    return {
+      label: item.value,
+      value: item.id,
+    }
+  });
+};
+
+const handleColorCancel = () => {
+  setValueVis.value = false;
+  setColorOption.value = [];
+}
+// 批量设置属性
+const confirm = (selectedValues) => {
+  console.log("selectedValues", selectedValues);
+  console.log("*/*",colorRow.value.tableData);
+  
+  const { categoryDependent, details, id, isCollection, isRequired, name, secondId, secondModelValue, secondName, selectType } = colorRow.value.tableData[0];
+  const aSet = new Set(selectedValues);
+  const result = details.filter(item => aSet.has(item.id));
+  console.log("result", result);
+  let newTableData = cloneDeep(colorRow.value.tableData);
+  colorRow.value.tableData =  procTableData(newTableData, result)
+  console.log("colorRow", colorRow.value);
+  // 处理表格数据
+  tableData.value = commProceData();
+  console.log("attributeList", colorRow.value);
+}
+
+const procTableData =(newData, a) => {
+    // 创建映射表记录已处理元素
+    const processedIds = new Set();
+    
+    // 第一阶段：填充空modelValue
+    const updatedData = newData.map(item => {
+        if (item.modelValue.length === 0 && a.length > 0) {
+            const [firstItem, ...rest] = a;
+            processedIds.add(firstItem.id);
+            return { 
+                ...cloneDeep(item), 
+                modelValue: [cloneDeep(firstItem)],
+                // uniqueId: Date.now() + Math.random() // 添加唯一标识
+            };
+        }
+        return item;
+    });
+
+    // 第二阶段：处理剩余元素
+    const remainingItems = a.filter(item => !processedIds.has(item.id));
+    remainingItems.forEach(item => {
+        const baseItem = cloneDeep(newData[0]);
+        updatedData.push({
+            ...baseItem,
+            modelValue: [cloneDeep(item)],
+            // uniqueId: Date.now() + Math.random() // 唯一标识防止重复key
+        });
+    });
+
+    return updatedData.filter(item => 
+        item.modelValue.length > 0 
+        // || 
+        // item.uniqueId // 保留新生成的条目
+    );
+}
 
 // 添加自定义属性
 const selectAttrList = (list) => {
@@ -639,6 +717,30 @@ const pushValue = (index, item) => {
     return;
   }
   // 处理表格数据
+  // let cartesianProducts = cartesianProduct(attributeList.value);
+  // let newTableData = processResult(cartesianProducts);
+  // let minLength = Math.min(newTableData.length, tableData.value.length);
+  // for (let i = 0; i < minLength; i++) {
+  //   // 将b数组中对应下标的数据赋值到a数组中
+  //   newTableData[i].skuTitle = tableData.value[i].skuTitle;
+  //   newTableData[i].sellerSKU = tableData.value[i].sellerSKU;
+  //   newTableData[i].price = tableData.value[i].price;
+  //   newTableData[i].oldPrice = tableData.value[i].oldPrice;
+  //   newTableData[i].colorImg = tableData.value[i].colorImg;
+  //   newTableData[i].quantity = tableData.value[i].quantity;
+  //   newTableData[i].imageUrl = tableData.value[i].imageUrl;
+  //   newTableData[i].warehouseList = tableData.value[i].warehouseList;
+  //   newTableData[i].packageHeight = tableData.value[i].packageHeight;
+  //   newTableData[i].packageLength = tableData.value[i].packageLength;
+  //   newTableData[i].packageWidth = tableData.value[i].packageWidth;
+  //   newTableData[i].packageWeight = tableData.value[i].packageWeight;
+  // }
+  tableData.value = commProceData();
+
+  console.log("111", tableData.value);
+};
+
+const commProceData = () => {
   let cartesianProducts = cartesianProduct(attributeList.value);
   let newTableData = processResult(cartesianProducts);
   let minLength = Math.min(newTableData.length, tableData.value.length);
@@ -649,17 +751,15 @@ const pushValue = (index, item) => {
     newTableData[i].price = tableData.value[i].price;
     newTableData[i].oldPrice = tableData.value[i].oldPrice;
     newTableData[i].colorImg = tableData.value[i].colorImg;
-    newTableData[i].quantity = tableData.value[i].quantity;
     newTableData[i].imageUrl = tableData.value[i].imageUrl;
+    newTableData[i].quantity = tableData.value[i].quantity;
     newTableData[i].warehouseList = tableData.value[i].warehouseList;
     newTableData[i].packageHeight = tableData.value[i].packageHeight;
     newTableData[i].packageLength = tableData.value[i].packageLength;
     newTableData[i].packageWidth = tableData.value[i].packageWidth;
     newTableData[i].packageWeight = tableData.value[i].packageWeight;
   }
-  tableData.value = newTableData;
-
-  console.log("111", tableData.value);
+  return newTableData
 };
 
 // 动态添加表头数据

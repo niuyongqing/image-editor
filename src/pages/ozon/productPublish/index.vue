@@ -6,8 +6,54 @@
             <br /> -->
             <br />
             <div class="flex justify-end">
-                <a-button :loading="loading" @click="onSubmit(2)">保存待发布</a-button>
-                <a-button type="primary" :loading="loading" class="ml-2.5" @click="onSubmit(1)">发布</a-button>
+                <a-dropdown>
+                    <template #overlay>
+                        <a-menu @click="handleMenuClick">
+                            <a-menu-item key="1">
+                                中文
+                                <ArrowRightOutlined /> 英文
+                            </a-menu-item>
+                            <a-menu-item key="2">
+                                英文
+                                <ArrowRightOutlined /> 中文
+                            </a-menu-item>
+                            <a-menu-item key="3">
+                                英文
+                                <ArrowRightOutlined /> 俄语
+                            </a-menu-item>
+                            <a-menu-item key="4">
+                                自定义翻译
+                                <SettingOutlined />
+                            </a-menu-item>
+                        </a-menu>
+                    </template>
+                    <a-button>
+                        一键翻译
+                        <DownOutlined />
+                    </a-button>
+                </a-dropdown>
+                <a-button class="mx-2.5" :loading="loading">存为模板</a-button>
+                <a-dropdown>
+                    <template #overlay>
+                        <a-menu @click="handleMenuClick">
+                            <a-menu-item key="1">
+                                引用现有产品
+                            </a-menu-item>
+                            <a-menu-item key="2">
+                                引用产品模板
+                            </a-menu-item>
+                            <a-menu-item key="3">
+                                引用资料库产品
+                            </a-menu-item>
+                        </a-menu>
+                    </template>
+                    <a-button>
+                        引用产品
+                        <DownOutlined />
+                    </a-button>
+                </a-dropdown>
+                <a-button class="mx-2.5" :loading="loading" @click="onSubmit(2)">保存待发布</a-button>
+                <a-button type="primary" :loading="loading" @click="onSubmit(1)">发布</a-button>
             </div>
             <br />
             <!-- 基本信息 -->
@@ -23,15 +69,62 @@
                 :shopCode="formData.shortCode"></ozon-new-variant-info>
             <br />
             <div class="flex justify-end">
-                <a-button :loading="loading" @click="onSubmit(2)">保存待发布</a-button>
-                <a-button type="primary" class="ml-2.5" :loading="loading" @click="onSubmit(1)">发布</a-button>
+                <a-dropdown>
+                    <template #overlay>
+                        <a-menu @click="handleMenuClick">
+                            <a-menu-item key="1">
+                                中文
+                                <ArrowRightOutlined /> 英文
+                            </a-menu-item>
+                            <a-menu-item key="2">
+                                英文
+                                <ArrowRightOutlined /> 中文
+                            </a-menu-item>
+                            <a-menu-item key="3">
+                                英文
+                                <ArrowRightOutlined /> 俄语
+                            </a-menu-item>
+                            <a-menu-item key="4">
+                                自定义翻译
+                                <SettingOutlined />
+                            </a-menu-item>
+                        </a-menu>
+                    </template>
+                    <a-button>
+                        一键翻译
+                        <DownOutlined />
+                    </a-button>
+                </a-dropdown>
+                <a-button class="mx-2.5" :loading="loading">存为模板</a-button>
+                <a-dropdown>
+                    <template #overlay>
+                        <a-menu @click="handleMenuClick">
+                            <a-menu-item key="1">
+                                引用现有产品
+                            </a-menu-item>
+                            <a-menu-item key="2">
+                                引用产品模板
+                            </a-menu-item>
+                            <a-menu-item key="3">
+                                引用资料库产品
+                            </a-menu-item>
+                        </a-menu>
+                    </template>
+                    <a-button>
+                        引用产品
+                        <DownOutlined />
+                    </a-button>
+                </a-dropdown>
+                <a-button class="mx-2.5" :loading="loading" @click="onSubmit(2)">保存待发布</a-button>
+                <a-button type="primary" :loading="loading" @click="onSubmit(1)">发布</a-button>
             </div>
         </div>
         <div style="position: fixed;top: 11%;right: 3%;">
             <a-timeline>
                 <a-timeline-item v-for="item in anchorList" :key="item.id"
                     :color="item.turnRed ? 'red' : 'blue'"><a-button type="text" :danger="item.turnRed"
-                        @click="scroll(item.id)">{{ item.label }}</a-button></a-timeline-item>
+                        @click="scroll(item.id)">{{ item.label
+                        }}</a-button></a-timeline-item>
             </a-timeline>
         </div>
         <a-back-top :visibility-height="0" style="margin-right: 10px;" @click="backToTop" />
@@ -60,6 +153,7 @@ import {
 } from '~/pages/ozon/config/commJs/index';
 import { deepClone } from '~@/utils'
 import { saveTowaitProduct } from "../config/api/waitProduct"
+import { DownOutlined, ArrowRightOutlined, SettingOutlined } from '@ant-design/icons-vue';
 
 const formData = reactive({
     shortCode: ""
@@ -253,32 +347,32 @@ const onSubmit = async (type = 1) => {
         ],
     };
     if (image.coverUrl !== "" && image.video.length > 0) {
-    // 创建video对应的baseObj副本并更新value值
-    let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
-    videoBaseObj = createAndUpdateBaseObj(image.coverUrl, 100002, 21845, type === 1 ? 1 : 2);
-    newComplexAttributes.push(videoBaseObj);
+        // 创建video对应的baseObj副本并更新value值
+        let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
+        videoBaseObj = createAndUpdateBaseObj(image.coverUrl, 100002, 21845, type === 1 ? 1 : 2);
+        newComplexAttributes.push(videoBaseObj);
 
-    // 创建coverUrl对应的baseObj副本并更新value值
-    let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
-    coverUrlBaseObj = createAndUpdateBaseObj(
-      image.video,
-      100001,
-      21841, type === 1 ? 1 : 2
-    );
-    newComplexAttributes.push(coverUrlBaseObj);
-  } else if (image.coverUrl !== "") {
-    let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
-    coverUrlBaseObj = createAndUpdateBaseObj(
-      image.coverUrl,
-      100002,
-      21845, type === 1 ? 1 : 2
-    );
-    newComplexAttributes.push(coverUrlBaseObj);
-  } else if (image.video.length > 0) {
-    let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
-    videoBaseObj = createAndUpdateBaseObj(image.video, 100001, 21841, type === 1 ? 1 : 2);
-    newComplexAttributes.push(videoBaseObj);
-  }
+        // 创建coverUrl对应的baseObj副本并更新value值
+        let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
+        coverUrlBaseObj = createAndUpdateBaseObj(
+            image.video,
+            100001,
+            21841, type === 1 ? 1 : 2
+        );
+        newComplexAttributes.push(coverUrlBaseObj);
+    } else if (image.coverUrl !== "") {
+        let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
+        coverUrlBaseObj = createAndUpdateBaseObj(
+            image.coverUrl,
+            100002,
+            21845, type === 1 ? 1 : 2
+        );
+        newComplexAttributes.push(coverUrlBaseObj);
+    } else if (image.video.length > 0) {
+        let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
+        videoBaseObj = createAndUpdateBaseObj(image.video, 100001, 21841, type === 1 ? 1 : 2);
+        newComplexAttributes.push(videoBaseObj);
+    }
     console.log("newComplexAttributes", newComplexAttributes);
     const addHeaderList = useOzonProductStore().addHeaderList
     const resItem = tableDatas.map((item) => {
