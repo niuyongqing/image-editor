@@ -16,8 +16,8 @@
                         <template #overlay>
                             <a-menu>
                                 <typeTree v-model:current-class="currentClass" v-model:node-path="nodePath"
-                                    :classifyTreeData="treeData" platform="ozon" ref="typeTreeRef"
-                                    @update:nodePath="updateNodePath" default-class>
+                                    :classifyTreeData="treeData" ref="typeTreeRef" @update:nodePath="updateNodePath"
+                                    default-class platform="ozon">
                                 </typeTree>
                             </a-menu>
                         </template>
@@ -76,7 +76,7 @@ const sourceUrlList = ref([{}]); // 来源URL列表
 const openDropdown = ref(false); // 下拉框是否打开
 
 const typeTreeEl = useTemplateRef('typeTreeRef');
-const currentClass = ref(0);
+const currentClass = ref('');
 const treeData = ref([]);
 const nodePath = ref('');
 const typeManageOpen = ref(false);
@@ -128,7 +128,7 @@ const showCategoryModal = () => {
 // 获取tree数据
 const getTreeData = () => {
     let params = {
-        "platform": 'ozon',//平台
+        "platform": 'public',//平台
         parentId: '0',
     }
     getClassList(params).then(res => {
@@ -154,7 +154,7 @@ const getTreeData = () => {
     })
 };
 onMounted(() => {
-    currentClass.value = '9be6ba3bd96d4a05ae742d207d44e6b6';
+    currentClass.value = '';
     getTreeData();
 })
 </script>

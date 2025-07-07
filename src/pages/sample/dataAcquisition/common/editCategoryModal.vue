@@ -509,8 +509,14 @@ const editCategory = () => {
         "variantRelationList": variantRelationList
     };
 
+
     // 对应Ozon变种主题 选择不能有一样的
     const attributeIdList = variantRelationList.map(item => item.attributeId).filter(Boolean);
+    if (!innerTableData.value.length) {
+        // window.open('/platform/ozon/edit-acquisition-product')
+        emits('edit');
+        return
+    };
     if (attributeIdList.every(item => item === undefined)) {
         message.error('请选择变种主题选择属性');
         return;

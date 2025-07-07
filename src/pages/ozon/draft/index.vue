@@ -179,7 +179,7 @@
                             <template v-if="column.dataIndex === 'stock'">
                                 <div class="pb-30px">
                                     <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
-                                        <div class="sku-price">
+                                        <div class="sku-price  h-21px">
                                             <a-tooltip placement="top">
                                                 <template #title>
                                                     <span>{{ warehouseName(item.offerId, item.warehouseList) }}: {{
@@ -316,7 +316,7 @@ const formData = reactive({
     account: "",
     sku: "",
     name: "",
-    prop: "created_time",
+    prop: "create_time",
     order: "desc",
     state: ""
 })
@@ -506,7 +506,7 @@ const getAccount = () => {
 
 
 const displayedSkus = (row) => {
-    return row.show ? row?.skuList : row?.skuList?.slice(0, 3);
+    return row.show ? row?.skuList : row?.skuList?.slice(0, 5);
 };
 
 const getList = () => {
@@ -531,7 +531,7 @@ const getList = () => {
 };
 
 const updateClass = (value) => {
-    showDraftTable.value = false;
+    showDraftTable.value = value;
 };
 
 // 批量移动分类

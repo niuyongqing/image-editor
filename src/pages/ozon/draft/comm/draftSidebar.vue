@@ -23,15 +23,6 @@
             </div>
         </template>
         <div py-10px px-5px>
-            <!-- <a-input-search v-model:value="waitPublishTreeValue" style="margin-bottom: 8px" placeholder="搜索分类名称"
-                @search="onSearch" />
-            <a-tree show-line :tree-data="waitPublishTreeData" defaultExpandAll v-if="waitPublishTreeData.length"
-                v-model:selected-keys="selectedKeys" @select="selectNode">
-                <template #title="{ title }">
-                    <span class="node-name">{{ title }}</span>
-                </template>
-            </a-tree> -->
-
             <typeTree v-model:current-class="currentClass" v-model:node-path="nodePath" platform="ozon"
                 @update:currentClass="updateCurrentClass" ref="typeTreeRef">
             </typeTree>
@@ -65,14 +56,6 @@
             </div>
         </template>
         <div py-10px px-5px>
-            <!-- <a-input-search v-model:value="onlineTreeValue" style="margin-bottom: 8px" placeholder="搜索分类名称"
-                @search="onlineSearch" />
-            <a-tree show-line :tree-data="onlineTreeData" defaultExpandAll v-if="onlineTreeData.length"
-                v-model:selected-keys="selectedKeys" @select="selectNode">
-                <template #title="{ title }">
-                    <span>{{ title }}</span>
-                </template>
-            </a-tree> -->
             <typeTree v-model:current-class="currentClass" v-model:node-path="nodePath" platform="ozon"
                 @update:currentClass="updateCurrentClass" ref="typeTreeRef">
             </typeTree>
@@ -103,7 +86,7 @@ const { count } = defineProps({
     }
 })
 const typeTreeEl = useTemplateRef('typeTreeRef');
-const currentClass = ref(0);
+const currentClass = ref('0');
 const nodePath = ref('');
 const typeManageOpen = ref(false);
 
@@ -140,6 +123,8 @@ const waitPublishUpdateTree = () => {
 
 const selectActive = (e) => {
     active.value = e;
+    currentClass.value = '0';
+    emits('updateClass', true);
 }
 
 const selectNode = (keys, info) => {
@@ -159,7 +144,8 @@ watch(waitPublishTreeValue, () => {
 // 更新当前选中节点
 const updateCurrentClass = (value) => {
     if (!value) return;
-    emits('updateClass', value);
+    active.value = '';
+    emits('updateClass', false);
 };
 
 // 待发布产品搜索
@@ -175,74 +161,6 @@ const onSearch = () => {
 };
 
 const emits = defineEmits(['updateClass']);
-
-onMounted(() => {
-    waitPublishTreeData.value = [
-        {
-            title: '所有分类',
-            key: '0-0',
-            children: [
-                {
-                    title: 'parent 1-0',
-                    key: '0-0-0',
-                    children: [
-                        {
-                            title: 'leaf',
-                            key: '0-0-0-0',
-                        },
-                        {
-                            title: 'leaf',
-                            key: '0-0-0-1',
-                        },
-                    ],
-                },
-                {
-                    title: 'parent 1-1',
-                    key: '0-0-1',
-                    children: [
-                        {
-                            key: '0-0-1-0',
-                            title: 'sss',
-                        },
-                    ],
-                },
-            ],
-        },
-    ];
-
-    copyTreeData.value = [
-        {
-            title: '所有分类',
-            key: '0-0',
-            children: [
-                {
-                    title: 'parent 1-0',
-                    key: '0-0-0',
-                    children: [
-                        {
-                            title: 'leaf',
-                            key: '0-0-0-0',
-                        },
-                        {
-                            title: 'leaf',
-                            key: '0-0-0-1',
-                        },
-                    ],
-                },
-                {
-                    title: 'parent 1-1',
-                    key: '0-0-1',
-                    children: [
-                        {
-                            key: '0-0-1-0',
-                            title: 'sss',
-                        },
-                    ],
-                },
-            ],
-        },
-    ];
-});
 </script>
 <style lang="less" scoped>
 :deep(.ant-card-body) {

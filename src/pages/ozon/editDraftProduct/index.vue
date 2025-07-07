@@ -1,7 +1,6 @@
 <template>
     <div id="editDraftProduct" class="pr-14">
         <div class="w-19/20">
-
             <div flex w-full justify-between items-center>
                 <div>
                     <a-breadcrumb separator=">">
@@ -13,8 +12,22 @@
 
                 <div>
                     <a-space>
-                        <a-button @click="onSubmit(2)"
-                            style="height: 32px; background-color: #F5F5F5; color: #434649ff;">一键翻译</a-button>
+                        <a-dropdown>
+                            <a-button style="height: 32px; background-color: #F5F5F5; color: #434649ff;">
+                                一键翻译
+                                <DownOutlined />
+                            </a-button>
+                            <template #overlay>
+                                <a-menu @click="handleTranslationMenu">
+                                    <a-menu-item :key="1">
+                                        中文—>英文
+                                    </a-menu-item>
+                                    <a-menu-item :key="2">
+                                        中文—>俄语
+                                    </a-menu-item>
+                                </a-menu>
+                            </template>
+                        </a-dropdown>
                         <!-- <a-button type="default" style="height: 32px; background-color: #F5F5F5; color: #434649ff;"
                             @click="onSubmit(1)">存为模板</a-button> -->
                         <a-dropdown>
@@ -137,7 +150,8 @@
                         }}</a-button></a-timeline-item>
             </a-timeline>
         </div>
-        <a-back-top :visibility-height="0" style="margin-right: 10px;" @click="backToTop" />
+        <a-back-top :visibility-height="0" style="margin-right: 10px;" @click="backToTop" />.
+
         <a-modal :open="publishVis" title="消息提示" @cancel="handleCancel" :width="'20%'" :maskClosable="false"
             :keyboard="false">
             <span>产品已提交发布，请在发布中、发布失败或在线产品中查看！</span>
@@ -165,6 +179,10 @@ import { saveTowaitProduct } from "../config/api/waitProduct"
 import { message, Modal } from "ant-design-vue";
 import { UploadOutlined, DownOutlined } from '@ant-design/icons-vue';
 import ErpInfo from './comm/erpInfo.vue';
+import { translationApi } from '~/api/common/translation';
+
+const ozonAttrsStore = useOzonAttrs();
+const { setOzonAttrs } = ozonAttrsStore;
 
 const route = useRoute();
 const ozonBaseInfoRef = ref(null)
@@ -228,7 +246,8 @@ const getAttributes = (account, typeId, descriptionCategoryId) => {
             const ozonStore = useOzonProductStore()
             ozonStore.$patch(state => {
                 state.attributes = attributes.value
-            })
+            });
+            setOzonAttrs(attributes.value)
         }
     })
         .finally(() => {
@@ -565,6 +584,79 @@ const handleOk = () => {
     publishVis.value = false
     location.reload();
 }
+
+//  翻译
+const handleTranslationMenu = (e) => {
+    const key = e.key;
+    const form = ozonBaseInfoRef.value.form || {};
+    const descriptionForm = ozonImageInfoRef.value.form || {};
+    switch (key) {
+        case 1:
+            console.log('中文—>英文');
+            if (form.name) {
+                translationApi({
+                    "content": form.name, // 商品标题
+                    "destCode": "en",
+                    "sourceCode": "zh",
+                    "scene": "title"
+                }).then(res => {
+                    console.log('res', res);
+                    if (res.code === 200) {
+                        form.name = res.msg;
+                    }
+                })
+            };
+            if (descriptionForm.description) {
+                translationApi({
+                    "content": descriptionForm.description, // 产品描述
+                    "destCode": "en",
+                    "sourceCode": "zh",
+                    "scene": "description"
+                }).then(res => {
+                    console.log('res', res);
+                    if (res.code === 200) {
+                        descriptionForm.description = res.msg;
+                    }
+                })
+            };
+
+            break;
+        case 2:
+            console.log('中文—>俄语');
+            if (form.name) {
+                translationApi({
+                    "content": form.name, // 商品标题
+                    "destCode": "en",
+                    "sourceCode": "zh",
+                    "scene": "title"
+                }).then(res => {
+                    console.log('res', res);
+                    if (res.code === 200) {
+                        form.name = res.msg;
+                    }
+                })
+            };
+
+            if (descriptionForm.description) {
+                translationApi({
+                    "content": descriptionForm.description, // 产品描述
+                    "destCode": "ru",
+                    "sourceCode": "zh",
+                    "scene": "description"
+                }).then(res => {
+                    console.log('res', res);
+                    if (res.code === 200) {
+                        descriptionForm.description = res.msg;
+                    }
+                })
+            };
+            break;
+        default:
+            break;
+    }
+}
+
+
 
 onMounted(() => {
     const { id, account } = route.query;

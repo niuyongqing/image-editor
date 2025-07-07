@@ -1,45 +1,5 @@
 <template>
     <div w-full>
-        <div flex justify-end items-center mt-15px v-if="showRightTool">
-            <a-dropdown>
-                <a-button type="link" link style="width: 90px; height: 31px;">
-                    普通水印
-                    <DownOutlined />
-                </a-button>
-                <template #overlay>
-                    <a-menu>
-                        <a-menu-item v-for="item in waterList" :key="item" @click="watermark(item)">
-                            {{ item.title }}
-                        </a-menu-item>
-                    </a-menu>
-                </template>
-            </a-dropdown>
-            <span pl-10px>|</span>
-            <a-dropdown>
-                <a-button type="link" style="width: 90px; height: 31px; margin-left: 10px;">
-                    编辑图片
-                    <DownOutlined />
-                </a-button>
-                <template #overlay>
-                    <a-menu>
-                        <a-menu-item @click="handleEditImagesSize">
-                            批量修改图片尺寸
-                        </a-menu-item>
-                        <a-menu-item @click="handleImageTranslation">
-                            图片翻译
-                        </a-menu-item>
-                        <a-menu-item @click="clearAllImages">
-                            清空图片
-                        </a-menu-item>
-                    </a-menu>
-                </template>
-            </a-dropdown>
-            <span pl-10px>|</span>
-            <a-button type="link" style="width: 90px; height: 31px; margin-right: 25px;" @click="handleExportAllImages">
-                <DownloadOutlined /> 导出全部图片
-            </a-button>
-        </div>
-
         <div>
             <slot></slot>
         </div>
@@ -59,7 +19,6 @@
                                 :disabled="disabled">
                                 <a-button type="link" v-if="fileList.length < getProps.maxCount"
                                     style="width: 90px; height: 31px; text-align: center; color: #000">
-                                    <UploadOutlined></UploadOutlined>
                                     选择图片
                                 </a-button>
                             </a-upload>
@@ -81,7 +40,6 @@
                 <slot name="skuInfo"> </slot>
                 <div></div>
             </div>
-            <!-- <div></div> -->
         </div>
 
 
@@ -128,14 +86,17 @@
             </a-modal>
         </div>
         <!-- 批量修改图片尺寸弹窗 -->
-        <BacthSkuEditImg ref="BacthEditImgSizeRef" />
+        <BacthSkuEditImg ref="bacthEditImgSizeRef" />
 
         <!-- 图片翻译弹窗 -->
         <ImageTranslation ref="imageTranslationRef" @singleSubmit="handleSingleSubmit"
             @multiSubmit="handleMultiSubmit" />
 
+        <!-- 空间图片弹窗 -->
+        <PictureLibrary v-model:modal-open="plugInTutorialOpen" />
+
         <!-- 网络图片弹窗 -->
-        <NetImageModal ref="NetImageModalRef" @submit="handleNetImageSubmit" />
+        <NetImageModal ref="netImageModalRef" @submit="handleNetImageSubmit" />
 
     </div>
 </template>
@@ -154,6 +115,7 @@ import NetImageModal from './netImageModal.vue';
 import ImageTranslation from './imageTranslation.vue';
 import download from '~@/api/common/download';
 import { downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js';
+import PictureLibrary from '@/components/pictureLibrary/index.vue';
 
 const props = defineProps({
     disabled: {
@@ -191,9 +153,10 @@ const props = defineProps({
         default: true
     }
 });
-const bacthEditImgSizeEl = useTemplateRef('BacthEditImgSizeRef');
-const netImageModalEl = useTemplateRef('NetImageModalRef');
+const bacthEditImgSizeEl = useTemplateRef('bacthEditImgSizeRef');
+const netImageModalEl = useTemplateRef('netImageModalRef');
 const imageTranslationEl = useTemplateRef('imageTranslationRef');
+const plugInTutorialOpen = ref(false); // 空间图片弹窗
 const attrs = useAttrs();
 const fileList = defineModel('file-list'); // 图片列表
 const previewVisible = ref(false);
@@ -307,75 +270,10 @@ const clearAllImages = () => {
 const handleDragEnd = (event) => {
     console.log('拖拽结束', event);
 };
-// 点击水印
-const watermark = async (item) => {
-    const netPathList = fileList.value.filter((file) => file.url.includes('http')).map((item) => {
-        return item.url
-    });
-
-    //  只有本地图片
-    if (netPathList.length === 0) {
-        const imagePathList = fileList.value.filter((file) => !file.url.includes('http')).map((item) => {
-            return item.url
-        });
-        const waterRes = await watermarkApi({
-            imagePathList: imagePathList, //
-            id: item.id,
-        });
-        if (waterRes.code === 200) {
-            const data = waterRes.data || [];
-            data.forEach((item) => {
-                fileList.value.forEach(v => {
-                    if (item.originalFilename === v.url) {
-                        v.url = item.url
-                        v.name = item.newFileName
-                        v.checked = false
-                    }
-                })
-            })
-        }
-    } else {
-        //  有网络图片
-        // uploadImgFromNetApi({
-        //     imgUrls: netPathList.join(','),
-        // }).then(async res => {
-        //     if (res.code === 200) {
-        //         const data = res.data || [];
-        //         const imagePathList = data.map((item) => {
-        //             return item.url
-        //         });
-        //         const imgs = fileList.value.filter((file) => file.code).map((item) => {
-        //             return item.url
-        //         });
-
-        //         const waterRes = await watermarkApi({
-        //             imagePathList: [...imagePathList, ...imgs],
-        //             id: item.id,
-        //         });
-
-        //         if (waterRes.code === 200) {
-        //             const waterData = waterRes.data || [];
-        //             waterData.forEach((item) => {
-        //                 fileList.value.forEach(v => {
-        //                     const urlSplit = v.url.split('/')
-        //                     const fileName = urlSplit[urlSplit.length - 1].split('.')[0]
-        //                     if (item.originalFilename.includes(fileName)) {
-        //                         v.url = item.url
-        //                         v.name = item.newFileName
-        //                         v.checked = false
-        //                     }
-        //                 })
-        //             })
-        //         }
-
-        //     }
-        // })
-    }
-};
 
 // 空间图片  
 const handleSpaceImages = () => {
-
+    plugInTutorialOpen.value = !plugInTutorialOpen.value
 };
 
 // 网络图片
@@ -400,7 +298,9 @@ const handleMultiSubmit = (checkedImgs) => {
                 v.url = item.newUrl
             }
         })
+
     })
+
 };
 
 const handleNetImageSubmit = (img) => {
