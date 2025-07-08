@@ -63,7 +63,6 @@ const treeData = reactive({
 
 onMounted(() => {
   nextTick(() => {
-    // console.log(props.currentClass);
     getClassListFn(props.currentClass)
   })
 })
@@ -99,11 +98,12 @@ async function updateTree(val) {
 
 
 // 获取树数据
-async function getClassListFn(id = '0') {
+async function getClassListFn(id = '') {
   treeData.loading = true;
   try {
     let params = {
-      "platform": props.platform,//平台
+      // "platform": props.platform,//平台
+      "platform": 'public',   //公共平台
       parentId: '0',
     }
     // let res = await getClassList(params)
@@ -122,14 +122,20 @@ async function getClassListFn(id = '0') {
     treeData.nodeList = getNodeList(data)
     if (props.defaultClass) {
       // 如果是删除当前节点后更新树数据，那么默认选择全部分类
-      let node = treeData.nodeList.find(i => i.id === id) || treeData.tree[0];
+      let node = treeData.nodeList.find(i => i.id === id);
       nextTick(() => {
-        treeData.selectedKeys = [node.id]
-        treeData.currentClass = node.id
-        let path = getNodePath(node)
-        // console.log({path});
-        emit('update:currentClass', node.id)
-        emit('update:nodePath', path)
+        treeData.selectedKeys = node ? [node.id] : []
+        treeData.currentClass = node ? node.id : ''
+        if (node) {
+          let path = getNodePath(node)
+          // console.log({path});
+          emit('update:currentClass', node.id)
+          emit('update:nodePath', path)
+        } else {
+          emit('update:currentClass', '')
+          emit('update:nodePath', '')
+        }
+
         // selectNode([node.id], { expanded: undefined, node })
       })
     } else {

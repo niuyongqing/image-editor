@@ -8,7 +8,7 @@
 
         <div :class="active === 'all' ? 'ozon-active' : 'default'">
             <div text-left pl-10px cursor-pointer @click="selectActive('all')">
-                「ozon」采集箱(<span>112</span>)</div>
+                「ozon」采集箱(<span>{{ count }}</span>)</div>
         </div>
     </a-card>
     <a-card :bordered="true" style="margin: 0 auto; border-radius: 0px">
@@ -16,21 +16,16 @@
             <div flex justify-between class="nav-title">
                 <div> 待发布产品 </div>
                 <div>
-                    <a-button type="link" @click="setting">
+                    <a-button type="link" @click="typeManageOpen = true">
                         <SettingOutlined />
                     </a-button>
                 </div>
             </div>
         </template>
         <div py-10px px-5px>
-            <a-input-search v-model:value="waitPublishTreeValue" style="margin-bottom: 8px" placeholder="搜索分类名称"
-                @search="onSearch" />
-            <a-tree show-line :tree-data="waitPublishTreeData" defaultExpandAll v-if="waitPublishTreeData.length"
-                v-model:selected-keys="selectedKeys" @select="selectNode">
-                <template #title="{ title }">
-                    <span class="node-name">{{ title }}</span>
-                </template>
-            </a-tree>
+            <typeTree v-model:current-class="currentClass" v-model:node-path="nodePath" platform="ozon"
+                @update:currentClass="updateCurrentClass" ref="typeTreeRef">
+            </typeTree>
 
             <div :class="active === 'wait' ? 'ozon-active' : 'default'">
                 <div text-left pl-10px cursor-pointer @click="selectActive('wait')">
@@ -61,14 +56,6 @@
             </div>
         </template>
         <div py-10px px-5px>
-            <!-- <a-input-search v-model:value="onlineTreeValue" style="margin-bottom: 8px" placeholder="搜索分类名称"
-                @search="onlineSearch" />
-            <a-tree show-line :tree-data="onlineTreeData" defaultExpandAll v-if="onlineTreeData.length"
-                v-model:selected-keys="selectedKeys" @select="selectNode">
-                <template #title="{ title }">
-                    <span>{{ title }}</span>
-                </template>
-            </a-tree> -->
             <typeTree v-model:current-class="currentClass" v-model:node-path="nodePath" platform="ozon"
                 @update:currentClass="updateCurrentClass" ref="typeTreeRef">
             </typeTree>
@@ -91,8 +78,15 @@ import ManageCategories from './manageCategories.vue';
 import typeTree from '@/components/classificationTree/typeTree.vue';
 import typeManage from '@/components/classificationTree/typeManage.vue';
 
+
+const { count } = defineProps({
+    count: {
+        type: Number,
+        default: 0
+    }
+})
 const typeTreeEl = useTemplateRef('typeTreeRef');
-const currentClass = ref(0);
+const currentClass = ref('0');
 const nodePath = ref('');
 const typeManageOpen = ref(false);
 
@@ -129,6 +123,8 @@ const waitPublishUpdateTree = () => {
 
 const selectActive = (e) => {
     active.value = e;
+    currentClass.value = '0';
+    emits('updateClass', true);
 }
 
 const selectNode = (keys, info) => {
@@ -148,7 +144,8 @@ watch(waitPublishTreeValue, () => {
 // 更新当前选中节点
 const updateCurrentClass = (value) => {
     if (!value) return;
-    emits('updateClass', value);
+    active.value = '';
+    emits('updateClass', false);
 };
 
 // 待发布产品搜索
@@ -164,74 +161,6 @@ const onSearch = () => {
 };
 
 const emits = defineEmits(['updateClass']);
-
-onMounted(() => {
-    waitPublishTreeData.value = [
-        {
-            title: '所有分类',
-            key: '0-0',
-            children: [
-                {
-                    title: 'parent 1-0',
-                    key: '0-0-0',
-                    children: [
-                        {
-                            title: 'leaf',
-                            key: '0-0-0-0',
-                        },
-                        {
-                            title: 'leaf',
-                            key: '0-0-0-1',
-                        },
-                    ],
-                },
-                {
-                    title: 'parent 1-1',
-                    key: '0-0-1',
-                    children: [
-                        {
-                            key: '0-0-1-0',
-                            title: 'sss',
-                        },
-                    ],
-                },
-            ],
-        },
-    ];
-
-    copyTreeData.value = [
-        {
-            title: '所有分类',
-            key: '0-0',
-            children: [
-                {
-                    title: 'parent 1-0',
-                    key: '0-0-0',
-                    children: [
-                        {
-                            title: 'leaf',
-                            key: '0-0-0-0',
-                        },
-                        {
-                            title: 'leaf',
-                            key: '0-0-0-1',
-                        },
-                    ],
-                },
-                {
-                    title: 'parent 1-1',
-                    key: '0-0-1',
-                    children: [
-                        {
-                            key: '0-0-1-0',
-                            title: 'sss',
-                        },
-                    ],
-                },
-            ],
-        },
-    ];
-});
 </script>
 <style lang="less" scoped>
 :deep(.ant-card-body) {

@@ -5,7 +5,10 @@
   <baseInfo :product-data="productInfo.data" v-model:base-info-data="formData.baseInfoData"/>
   <br>
   <!-- 图片信息 -->
-  <imageInfo :product-data="productInfo.data" v-model:image-info-data="formData.imageInfoData"/>
+  <!-- <imageInfo :product-data="productInfo.data" v-model:image-info-data="formData.imageInfoData"/>
+  <br> -->
+  <!-- 变种信息 -->
+  <variantInfo :product-data="productInfo.data" v-model:variant-info-data="formData.variantInfoData"></variantInfo>
 </div>
 </template>
 
@@ -16,6 +19,7 @@ import { productDetail } from './js/api';
 
 import baseInfo from './components/baseInfo.vue';
 import imageInfo from './components/imageInfo.vue';
+import variantInfo from './components/variantInfo.vue';
 defineOptions({ name: "acquisitionEdit_index" })
 const { proxy: _this } = getCurrentInstance()
 const route = useRoute();
@@ -26,6 +30,7 @@ const productInfo = reactive({
 const formData = reactive({
   baseInfoData: {},
   imageInfoData: {},
+  variantInfoData: {},
 })
 onMounted(() => {
   // console.log(route.query);

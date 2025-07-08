@@ -1,7 +1,7 @@
 <template>
     <div flex>
         <div w-300px>
-            <draftSidebar @updateClass="updateClass" />
+            <draftSidebar @updateClass="updateClass" :count="paginations.total" />
         </div>
         <div v-if="showDraftTable" w-full>
             <div id="draft" w-full ml-15px>
@@ -179,7 +179,7 @@
                             <template v-if="column.dataIndex === 'stock'">
                                 <div class="pb-30px">
                                     <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
-                                        <div class="sku-price">
+                                        <div class="sku-price  h-21px">
                                             <a-tooltip placement="top">
                                                 <template #title>
                                                     <span>{{ warehouseName(item.offerId, item.warehouseList) }}: {{
@@ -305,7 +305,7 @@ const remarkModalEl = useTemplateRef('remarkModalRef'); // 批量备注-弹窗
 const batchWatermarkEl = useTemplateRef('batchWatermarkRef'); // 批量加水印-弹窗
 const batchAttributeEl = useTemplateRef('batchAttributeRef'); // 批量属性-弹窗
 const typeTreeEl = useTemplateRef('typeTreeRef');
-const currentClass = ref(0);
+const currentClass = ref('0');
 const nodePath = ref('');
 const typeManageOpen = ref(false);
 const shopSetVisible = ref(false);
@@ -316,7 +316,7 @@ const formData = reactive({
     account: "",
     sku: "",
     name: "",
-    prop: "created_time",
+    prop: "create_time",
     order: "desc",
     state: ""
 })
@@ -506,7 +506,7 @@ const getAccount = () => {
 
 
 const displayedSkus = (row) => {
-    return row.show ? row?.skuList : row?.skuList?.slice(0, 3);
+    return row.show ? row?.skuList : row?.skuList?.slice(0, 5);
 };
 
 const getList = () => {
@@ -531,7 +531,7 @@ const getList = () => {
 };
 
 const updateClass = (value) => {
-    showDraftTable.value = false;
+    showDraftTable.value = value;
 };
 
 // 批量移动分类
