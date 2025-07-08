@@ -288,6 +288,9 @@
                                     </template>
                                     <template #variantInfo>
                                         <!-- 变种主题信息 -->
+                                        <div v-for="(nameItem, nameIndex) in skuThemeNames(item)" :key="nameIndex">
+                                            {{ nameItem[0] }}: {{ item[nameItem[0]] }}
+                                        </div>
                                     </template>
                                     <template #skuInfo>
                                         {{ `【${item.imageUrl.length}/30】图片 ` }}
@@ -509,12 +512,7 @@ const filteredHeaderList = computed(() => {
 
 // 处理数据格式
 const processDataFormat = (list = []) => {
-    console.log('list -->>', list);
-
     let newHeaderList = handleTheme(list);
-
-    console.log('newHeaderList -->>', newHeaderList);
-
     const insertIndex = headerList.value.length - 6;
     for (let i = list.length - 1; i >= 0; i--) {
         // reversedArray.push(originalArray[i]);
@@ -632,7 +630,6 @@ const addItem = (item, row) => {
     row.tableData.push(ele)
 }
 const removeItem = (item, row) => {
-    console.log("removeItem", item, row);
     let ind = row.tableData.indexOf(item);
     if (item.id === 10096 || item.name == "商品颜色(Цвет товара)") {
         row.tableData.splice(ind, 1);
@@ -680,6 +677,8 @@ const removeItem = (item, row) => {
                     : false;
         });
     });
+    console.log('removeItem', newData);
+
     tableData.value = newData;
 };
 // 将根据主题中选择的数据进行添加到表格中
@@ -917,7 +916,6 @@ const judgeMax = (item) => {
 
 // 点击水印
 const handleWatermark = async (item) => {
-    console.log('item', item, tableData.value);
     for (const tabbleItem of tableData.value) {
         const fileList = tabbleItem.imageUrl || [];
         if (fileList.length === 0) {
@@ -1051,24 +1049,30 @@ const applyImage = (item) => {
 
 //  批量修改图片尺寸
 const handleEditImagesSize = () => {
-    console.log('handleEditImagesSize', tableData.value);
     bacthSkuEditImgRef.value.showModal(tableData.value)
 };
 
 
 //  图片翻译弹窗
 const handleImageTranslation = () => {
-    console.log('handleImageTranslation', tableData.value);
     imageTranslationRef.value.showModal(tableData.value)
-}
-
+};
 
 // 清空图片
 const clearAllImages = () => {
     tableData.value.forEach((tableItem) => {
         tableItem.imageUrl = []
     })
-}
+};
+const skuThemeNames = (item) => {
+    const tableColumns = attributeList.value[0].tableColumns;
+    const themeNames = tableColumns.map((column) => {
+        return column.title
+    }).filter((nameItem) => nameItem !== '操作')
+    const obj = pick(item, themeNames)
+    const entries = Object.entries(obj);
+    return entries
+};
 
 
 // 变种主题中是组合在一起的主题
@@ -1327,7 +1331,6 @@ watch(() => useOzonProductStore().attributes, val => {
         // 过滤 有数据的主题
         themeBtns.value = themeBtns.value.filter(item => !aIds.includes(item.id));
         attributeList.value = matchAndAssignValues(echoThemeList, skuList)
-        console.log('attributeList', attributeList.value);
     }
 
 })

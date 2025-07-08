@@ -5,36 +5,38 @@
         </div>
         <!-- SKU 图片上传可拖拽 :multiple="true" -->
         <div flex justify-between w-full>
-            <a-dropdown>
-                <a-button type="primary" style="width: 90px; height: 31px;">
-                    选择图片
-                    <DownOutlined />
-                </a-button>
-                <template #overlay>
-                    <a-menu>
-                        <a-menu-item>
-                            <a-upload name="file" :customRequest="customRequest" :before-upload="beforeUpload"
-                                :headers="headers" :accept="getProps.accept" :multiple="true"
-                                :maxCount="getProps.maxCount" :action="getProps.actionUrl" :showUploadList="false"
-                                :disabled="disabled">
-                                <a-button type="link" v-if="fileList.length < getProps.maxCount"
-                                    style="width: 90px; height: 31px; text-align: center; color: #000">
-                                    选择图片
-                                </a-button>
-                            </a-upload>
-                        </a-menu-item>
-                        <a-menu-item>
-                            <div style="text-align: center; color: #000" @click="handleSpaceImages">空间图片</div>
-                        </a-menu-item>
+            <div flex gap-20px>
+                <a-dropdown>
+                    <a-button type="primary" style="width: 90px; height: 31px;">
+                        选择图片
+                        <DownOutlined />
+                    </a-button>
+                    <template #overlay>
+                        <a-menu>
+                            <a-menu-item>
+                                <a-upload name="file" :customRequest="customRequest" :before-upload="beforeUpload"
+                                    :headers="headers" :accept="getProps.accept" :multiple="true"
+                                    :maxCount="getProps.maxCount" :action="getProps.actionUrl" :showUploadList="false"
+                                    :disabled="disabled">
+                                    <a-button type="link" v-if="fileList.length < getProps.maxCount"
+                                        style="width: 90px; height: 31px; text-align: center; color: #000">
+                                        选择图片
+                                    </a-button>
+                                </a-upload>
+                            </a-menu-item>
+                            <a-menu-item>
+                                <div style="text-align: center; color: #000" @click="handleSpaceImages">空间图片</div>
+                            </a-menu-item>
 
-                        <a-menu-item>
-                            <div style="text-align: center; color: #000" @click="handleNetImages">网络图片</div>
-                        </a-menu-item>
-                    </a-menu>
-                </template>
-            </a-dropdown>
-            <div>
-                <slot name="variantInfo"> </slot>
+                            <a-menu-item>
+                                <div style="text-align: center; color: #000" @click="handleNetImages">网络图片</div>
+                            </a-menu-item>
+                        </a-menu>
+                    </template>
+                </a-dropdown>
+                <div>
+                    <slot name="variantInfo"> </slot>
+                </div>
             </div>
             <div>
                 <slot name="skuInfo"> </slot>
