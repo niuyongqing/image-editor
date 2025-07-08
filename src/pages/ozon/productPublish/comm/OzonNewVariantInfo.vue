@@ -184,28 +184,28 @@
                   <div style="display: flex">
                     长度：
                     <a-input-number controls-position="right" :min="0" style="min-width: 200px"
-                      v-model:value="record.packageLength" placeholder="长度">
+                      v-model:value="record.packageLength" placeholder="长度" :controls="false">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div style="display: flex; margin-top: 5px">
                     宽度：
                     <a-input-number controls-position="right" :min="0" style="min-width: 200px"
-                      v-model:value="record.packageWidth" placeholder="宽度">
+                      v-model:value="record.packageWidth" placeholder="宽度" :controls="false">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div style="display: flex; margin-top: 5px">
                     高度：
                     <a-input-number controls-position="right" :min="0" style="min-width: 200px"
-                      v-model:value="record.packageHeight" placeholder="高度">
+                      v-model:value="record.packageHeight" placeholder="高度" :controls="false">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div style="display: flex; margin-top: 5px">
                     重量：
                     <a-input-number controls-position="right" :min="0" style="min-width: 200px"
-                      v-model:value="record.packageWeight" placeholder="重量" :precision="0">
+                      v-model:value="record.packageWeight" placeholder="重量" :precision="0" :controls="false">
                       <template #addonAfter>g</template>
                     </a-input-number>
                   </div>
@@ -229,15 +229,58 @@
       </a-card>
       <a-card title="变种图片" class="text-left mx-50 mt-5">
         <div>
+          <div w-full ml-25px>
+            <div>
+              <a-tag color="warning">！说明</a-tag>
+              <span style="color: #9fa0a2">
+                第一张图片默认为主图，点击图片拖动，即可调整图片顺序！
+                单张不超过2M，只支持jpg、.png、.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3：4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)</span>
+            </div>
+            <div flex justify-end items-center mt-15px>
+              <a-dropdown>
+                <a-button type="link" link style="width: 90px; height: 31px;">
+                  普通水印
+                  <DownOutlined />
+                </a-button>
+                <template #overlay>
+                  <a-menu>
+                    <a-menu-item v-for="item in watermark" :key="item" @click="handleWatermark(item)">
+                      {{ item.title }}
+                    </a-menu-item>
+                  </a-menu>
+                </template>
+              </a-dropdown>
+              <span pl-10px>|</span>
+              <a-dropdown>
+                <a-button type="link" style="width: 90px; height: 31px; margin-left: 10px;">
+                  编辑图片
+                  <DownOutlined />
+                </a-button>
+                <template #overlay>
+                  <a-menu>
+                    <a-menu-item @click="handleEditImagesSize">
+                      批量修改图片尺寸
+                    </a-menu-item>
+                    <a-menu-item @click="handleImageTranslation">
+                      图片翻译
+                    </a-menu-item>
+                    <a-menu-item @click="clearAllImages">
+                      清空图片
+                    </a-menu-item>
+                  </a-menu>
+                </template>
+              </a-dropdown>
+              <span pl-10px>|</span>
+              <a-button type="link" style="width: 90px; height: 31px; margin-right: 70px;" :loading="downloadLoading"
+                @click="handleExportAllImages">
+                <DownloadOutlined /> 导出全部图片
+              </a-button>
+            </div>
+          </div>
+
           <div v-for="item in tableData" :key="item.id">
             <div v-if="tableData.length > 0">
-              <a-card class="mb-2.5 ml-2.5">
-                <div>
-                  <a-tag color="warning">！说明</a-tag>
-                  <span style="color: #9fa0a2">
-                    第一张图片默认为主图，点击图片拖动，即可调整图片顺序！
-                    单张不超过2M，只支持jpg、.png、.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3：4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)</span>
-                </div>
+              <a-card class="mb-2.5 ml-2.5" :bordered="false">
 
                 <SkuDragUpload v-model:file-list="item.imageUrl" :maxCount="30" :showUploadList="false"
                   accept=".jpg,.png" :api="uploadImage" :waterList="watermark">
@@ -245,15 +288,39 @@
                     <div flex flex-col w-full justify-start mb-4px text-left>
                       <p>
                         <a-tag color="#00AEB3">说明！</a-tag>
-                        <span class="text-#999">
-                          第一张图片默认为主图，点击图片拖动，即可调整图片顺序。
+                        <span class="text-#999"> 第一张图片默认为主图，点击图片拖动，即可调整图片顺序。
                         </span>
                       </p>
                     </div>
                   </template>
-                  <template #variantInfo> </template>
+                  <template #variantInfo>
+                    <!-- 变种主题信息 -->
+                    <div v-for="(nameItem, nameIndex) in skuThemeNames(item)" :key="nameIndex">
+                      {{ nameItem[0] }}: {{ item[nameItem[0]] }}
+                    </div>
+                  </template>
                   <template #skuInfo>
                     {{ `【${item.imageUrl.length}/30】图片 ` }}
+                    <a-dropdown>
+                      <a-button type="link" link style="width: 90px; height: 31px;">
+                        图片应用到
+                        <DownOutlined />
+                      </a-button>
+                      <template #overlay>
+                        <a-menu>
+                          <a-menu-item @click="applyAllImage(item)">
+                            所有变种
+                          </a-menu-item>
+                          <!-- <a-menu-item v-for="item in applyMenuList" :key="item.value"
+                                                        @click="applyImage(item)">
+                                                        <span>同</span>
+                                                        <span px-3px>{{ item.title }}</span>
+                                                        <span>的变种</span>
+                                                    </a-menu-item> -->
+                        </a-menu>
+                      </template>
+                    </a-dropdown>
+
                   </template>
                 </SkuDragUpload>
               </a-card>
@@ -274,6 +341,10 @@
     <!-- 批量设置变种属性 -->
     <batchSetColor :setValueVis="setValueVis" @closeColorModal="setValueVis = false" @confirm="confirm"
       :setColorOption="setColorOption" @handleCancel="handleColorCancel"></batchSetColor>
+    <!-- 批量编辑图片 -->
+    <bacthSkuEditImg ref="bacthSkuEditImgRef"></bacthSkuEditImg>
+    <!-- 图片翻译弹窗 -->
+    <ImageTranslation ref="imageTranslationRef"></ImageTranslation>
   </div>
 </template>
 
@@ -282,7 +353,7 @@ import { ref, reactive, onMounted, computed, watchPostEffect } from "vue";
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { message, Modal } from "ant-design-vue";
 import EditProdQuantity from "./EditProdQuantity.vue";
-import { FileOutlined, SettingOutlined } from '@ant-design/icons-vue';
+import { FileOutlined, SettingOutlined, DownOutlined, DownloadOutlined } from '@ant-design/icons-vue';
 import {
   scaleApi,
   watermarkListApi,
@@ -306,10 +377,14 @@ import {
 } from "../../config/commJs/index";
 import { publishHead, otherList } from "../../config/tabColumns/skuHead";
 import { uploadImage } from "@/pages/ozon/config/api/draft";
-import SkuDragUpload from "@/components/skuDragUpload/index.vue";
+import { omit, pick } from 'lodash'
+import SkuDragUpload from '../skuDragImg/index.vue';
+import bacthSkuEditImg from '../skuDragImg/bacthSkuEditImg.vue';
+import ImageTranslation from '../skuDragImg/imageTranslation.vue';
+import { downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js';
 import { debounce, cloneDeep } from "lodash";
 import batchSetColor from "../../editWaitProduct/comm/batchSetColor.vue";
-
+import download from '~@/api/common/download';
 
 const props = defineProps({
   categoryAttributesLoading: Boolean,
@@ -329,6 +404,10 @@ const VNodes = defineComponent({
     return this.vnodes;
   },
 });
+const downloadLoading = ref(false); //导出按钮loading
+const bacthSkuEditImgRef = ref();
+const imageTranslationRef = ref();
+
 const themeList = ref([]); //主题数据
 const themeBtns = ref([]); //主题按钮
 const requiredList = ref([]); //必填变种主题
@@ -1027,6 +1106,171 @@ const dependencyMap = new Map([
   [10096, 10097], // 商品颜色和颜色名称
   [4295, 9533], // 俄罗斯尺码和制造商尺码
 ]);
+
+// 点击水印
+const handleWatermark = async (item) => {
+  for (const tabbleItem of tableData.value) {
+    const fileList = tabbleItem.imageUrl || [];
+    if (fileList.length === 0) {
+      continue;
+    }
+    const netPathList = fileList.filter((file) => file.url.includes('http')).map((item) => {
+      return item.url
+    });
+    // 只有本地图片
+    if (netPathList.length === 0) {
+      const imagePathList = fileList.filter((file) => !file.url.includes('http')).map((item) => {
+        return item.url
+      });
+      const waterRes = await watermarkApi({
+        imagePathList: imagePathList, //
+        id: item.id,
+      });
+      if (waterRes.code === 200) {
+        const data = waterRes.data || [];
+        data.forEach((item) => {
+          fileList.forEach(v => {
+            if (item.originalFilename === v.url) {
+              v.url = item.url
+              v.name = item.newFileName
+              v.checked = false
+            }
+          })
+        })
+      }
+    } else {
+      // 有网络图片
+      console.log('有网络图片');
+      const fileList = tabbleItem.imageUrl || [];
+      for (let index = 0; index < fileList.length; index++) {
+        const fileItem = fileList[index];
+        try {
+          let netImgs = [];
+          const url = fileItem.url;
+          if (url.includes('http')) {
+            let res = await imageUrlUpload({ url });
+            netImgs.push(res.data);
+            fileList.forEach(i => {
+              if (i.url === url) {
+                i.url = res.data.url
+              }
+            });
+            const waterRes = await watermarkApi({
+              imagePathList: netImgs.map((img) => img.url),
+              id: item.id,
+            });
+            if (waterRes.code === 200) {
+              const data = waterRes.data || [];
+              data.forEach((_item) => {
+                fileList.forEach(v => {
+                  if (_item.originalFilename.includes(v.url)) {
+                    v.url = _item.url
+                    v.name = _item.newFileName
+                    v.checked = false
+                  }
+                });
+              })
+            }
+          } else {
+            const imagePathList = fileList.filter((file) => !file.url.includes('http')).map((item) => {
+              return item.url
+            });
+            const waterRes = await watermarkApi({
+              imagePathList: imagePathList, //
+              id: item.id,
+            });
+            if (waterRes.code === 200) {
+              const data = waterRes.data || [];
+              data.forEach((item) => {
+                fileList.forEach(v => {
+                  if (item.originalFilename === v.url) {
+                    v.url = item.url
+                    v.name = item.newFileName
+                    v.checked = false
+                  }
+                })
+              })
+            }
+          }
+        } catch (error) {
+          console.error(error)
+        }
+      }
+    }
+  }
+};
+
+// 导出全部图片
+const handleExportAllImages = async () => {
+  try {
+    const imageList = tableData.value
+      .map(item => item.imageUrl)
+      .map((imgItem) => imgItem
+        .map((i) => i.url
+          .replace(import.meta.env.VITE_APP_BASE_API, "")));
+    downloadLoading.value = true;
+    let res = await downloadAllImage({ imageList: imageList.flat() });
+    message.success('导出成功');
+    download.name(res.data)
+    downloadLoading.value = false;
+  } catch (error) {
+    console.error(error)
+  }
+};
+
+//  图片应用到所有变种
+const applyAllImage = (item) => {
+  tableData.value.forEach((tableItem) => {
+    tableItem.imageUrl = cloneDeep(item.imageUrl)
+  })
+};
+
+//  图片应用到同主题的变种
+const applyImage = (item) => {
+  const titles = item.title.split('-');
+  console.log('item', item, titles);
+  console.log('applyImage', tableData.value);
+  const tableDataList = tableData.value.filter((tableItem) => {
+    return titles.includes(String(tableItem.id))
+  })
+
+  // tableData.value.forEach((tableItem) => {
+  //     console.log('tableItem', tableItem);
+
+  //     // if (titles.includes(String(tableItem.id))) {
+  //     //     tableItem.imageUrl = item.imageUrl
+  //     // }
+  // })
+
+};
+
+//  批量修改图片尺寸
+const handleEditImagesSize = () => {
+  bacthSkuEditImgRef.value.showModal(tableData.value)
+};
+
+
+//  图片翻译弹窗
+const handleImageTranslation = () => {
+  imageTranslationRef.value.showModal(tableData.value)
+};
+
+// 清空图片
+const clearAllImages = () => {
+  tableData.value.forEach((tableItem) => {
+    tableItem.imageUrl = []
+  })
+};
+const skuThemeNames = (item) => {
+  const tableColumns = attributeList.value[0].tableColumns;
+  const themeNames = tableColumns.map((column) => {
+    return column.title
+  }).filter((nameItem) => nameItem !== '操作')
+  const obj = pick(item, themeNames)
+  const entries = Object.entries(obj);
+  return entries
+};
+
 
 watch(
   () => useOzonProductStore().attributes,
