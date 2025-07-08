@@ -161,9 +161,6 @@
                 <a-button type="primary" @click="handleOk">继续刊登</a-button>
             </template>
         </a-modal>
-
-        <!-- 引用模板弹窗 -->
-        <ProductTemplate ref="productTemplateRef" />
     </div>
 </template>
 
@@ -184,13 +181,11 @@ import { message, Modal } from "ant-design-vue";
 import { UploadOutlined, DownOutlined } from '@ant-design/icons-vue';
 import ErpInfo from './comm/erpInfo.vue';
 import { translationApi } from '~/api/common/translation';
-import ProductTemplate from './comm/productTemplate.vue';
 
 const route = useRoute();
 const ozonBaseInfoRef = ref(null)
 const ozonImageInfoRef = ref(null)
 const ozonNewVariantInfoRef = ref(null)
-const productTemplateRef = ref(null);
 const erpInfoRef = ref(null) // erp信息Dom
 const attributes = ref([])
 const shopList = ref([])
@@ -572,7 +567,6 @@ const handleApplyMenu = (e) => {
             console.log('引用现有产品');
             break;
         case 2:
-            productTemplateRef.value.openModal();
             console.log('引用产品模板');
             break;
         case 3:
