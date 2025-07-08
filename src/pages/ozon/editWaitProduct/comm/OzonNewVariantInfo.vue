@@ -295,7 +295,7 @@ import {
 import { publishHead, otherList } from "../../config/tabColumns/skuHead";
 import { uploadImage } from '@/pages/ozon/config/api/draft';
 import SkuDragUpload from '@/components/skuDragUpload/index.vue';
-import { debounce, forEach } from "lodash";
+import { debounce, cloneDeep } from "lodash";
 import batchSetColor from "./batchSetColor.vue";
 
 const props = defineProps({
@@ -384,60 +384,59 @@ const handleColorCancel = () => {
 }
 // 批量设置属性
 const confirm = (selectedValues) => {
-  console.log("selectedValues", selectedValues);
-  const { categoryDependent, details, id, isCollection, isRequired, name, secondId, secondModelValue, secondName, selectType } = colorRow.value.tableData[0];
-  const aSet = new Set(selectedValues);
-  const result = details.filter(item => aSet.has(item.id));
-  console.log("result", result);
-  // let ele = {};
-  // result.forEach(item => {
-  //   if (isConform && id === 10096) {
-  //     ele = {
-  //       categoryDependent,
-  //       details,
-  //       id,
-  //       isCollection,
-  //       isRequired,
-  //       name,
-  //       secondId,
-  //       secondModelValue,
-  //       secondName,
-  //       selectType,
-  //       modelValue: [item],
-  //       "颜色名称(Название цвета)": "颜色名称(Название цвета)",
-  //     }
-  //   } else if (isConform && id === 4295) {
-  //     ele = {
-  //       categoryDependent,
-  //       id,
-  //       name,
-  //       isCollection,
-  //       isRequired,
-  //       modelValue: [item],
-  //       selectType,
-  //       details,
-  //       secondName: "由制造商规定尺码(Размер производителя)",
-  //       "由制造商规定尺码(Размер производителя)": "由制造商规定尺码(Размер производителя)",
-  //       secondId,
-  //       secondModelValue: "",
-  //     };
-  //   } else {
-  //     ele = {
-  //       categoryDependent,
-  //       details,
-  //       id,
-  //       isCollection,
-  //       isRequired,
-  //       name,
-  //       selectType,
-  //       modelValue: [item],
-  //     }
-  //   }
-  //   colorRow.value.tableData.push(ele)
-  // })
-  // 处理表格数据
+  // 解构只需要用到的details属性
+  const { details } = colorRow.value.tableData[0] || {};
+  const result = details?.filter(item => new Set(selectedValues).has(item.id)) || [];
+  
+  // 获取已存在的属性并去重
+  const existingAttributes = colorRow.value.tableData
+    .flatMap(item => item?.modelValue?.map(v => v) || [])
+    .filter(Boolean);
+  
+  // 根据是否存在已有属性进行过滤
+  const filteredResult = existingAttributes.length > 0 
+    ? result.filter(item => !new Set(existingAttributes.map(a => a.id)).has(item.id))
+    : result;
+
+  // 统一处理表格更新
+  colorRow.value.tableData = procTableData(colorRow.value.tableData, filteredResult);
   tableData.value = commProceData();
-  console.log("attributeList", colorRow.value);
+}
+
+// 此方法用于处理属性批量添加到主题中
+const procTableData = (newData, newItems) => {
+
+// 深拷贝原始数据避免污染
+const processedData = cloneDeep(newData)
+const usedIds = new Set()
+
+// 第一阶段：填充空值项
+let itemIndex = 0
+for (const item of processedData) {
+  if (item.modelValue.length === 0 && newItems[itemIndex]) {
+    item.modelValue = [cloneDeep(newItems[itemIndex])]
+    usedIds.add(newItems[itemIndex].id)
+    itemIndex++
+  }
+}
+
+// 第二阶段：创建新条目
+const remainingItems = newItems.filter(item => !usedIds.has(item.id))
+const baseTemplate = processedData[0] ? cloneDeep(processedData[0]) : {}
+delete baseTemplate.uniqueId // 清除可能存在的临时ID
+
+remainingItems.forEach(item => {
+  processedData.push({
+    ...baseTemplate,
+    modelValue: [cloneDeep(item)],
+    uniqueId: Date.now() + Math.random().toString(36).slice(2)
+  })
+})
+
+return processedData.filter(item => 
+  item.modelValue.length > 0 || 
+  item.uniqueId // 保留新创建的空条目
+)
 }
 
 // 添加自定义属性

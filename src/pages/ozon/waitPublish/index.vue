@@ -100,6 +100,7 @@
                   <a-menu-item key="stock"> 批量修改库存 </a-menu-item>
                   <a-menu-item key="price"> 批量修改售价 </a-menu-item>
                   <a-menu-item key="oldPrice"> 批量修改原价 </a-menu-item>
+                  <a-menu-item key="all"> 全属性修改 </a-menu-item>
                 </a-menu>
               </template>
               <a-button>

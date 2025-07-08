@@ -440,6 +440,33 @@ watch(() => form.shortCode, val => {
         hisAttrObj.value = []
     }
 })
+// 引用产品模板
+watch(() => useOzonProductStore().productTemplate, (val) => {
+    if (val) {
+        const { account, content:{
+            productTemplate: {
+                categoryId: {
+                    threeCategoryId,
+                    secondCategoryId,
+                    value
+                },
+                productAttr
+            }
+        } } = val;
+        form.shortCode = val.account;
+        form.categoryId = {
+            threeCategoryId,
+            threeCategoryName: "",
+            secondCategoryId,
+            label: undefined,
+            value
+        };
+        // getHistoryList(account);
+        emit("getAttributes", form.shortCode, form.categoryId);
+        form.attributes = assignValues(productAttr, loopAttributes.value)
+    }
+})
+
 // props.attributesCache,
 watch(() => useOzonProductStore().attributes, (val) => {
     if (val) {

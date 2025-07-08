@@ -1,7 +1,29 @@
 <template>
   <div id="OzonNewVariantInfoCont">
     <a-card title="SKU信息" class="text-left" :loading="categoryAttributesLoading">
-      <a-card title="变种属性" class="text-left mx-50">
+      <a-card class="mx-50">
+        <template #title>
+          <div class="flex align-center justify-between">
+            <span class="text-left">变种属性</span>
+            <div>
+              <FileOutlined /><a-select v-model:value="templateValue" show-search placeholder="请选择引用模板"
+                class="w300px mx10px" :options="templateList" :filter-option="filterOption">
+                <template #dropdownRender="{ menuNode: menu }">
+                  <v-nodes :vnodes="menu" />
+                  <a-divider style="margin: 4px 0" />
+                  <a-space style="padding: 4px 8px">
+                    <a-button type="link">
+                      <template #icon>
+                        <SettingOutlined />
+                      </template>
+                      管理模板
+                    </a-button>
+                  </a-space>
+                </template>
+              </a-select>
+            </div>
+          </div>
+        </template>
         <div>
           <span>变种主题：</span>
           <a-button type="primary" v-for="(item, index) in themeBtns" class="mr-2.5" :key="'add' + index + item.name"
@@ -249,7 +271,7 @@
     <!-- 选择自定义属性  -->
     <SelectAttr @selectAttrList="selectAttrList" :attrVisible="attrVisible" :custAttr="custAttr"
       :newAttribute="newAttribute" @handleStatsModalClose="attrVisible = false"></SelectAttr>
-      <!-- 批量设置变种属性 -->
+    <!-- 批量设置变种属性 -->
     <batchSetColor :setValueVis="setValueVis" @closeColorModal="setValueVis = false" @confirm="confirm"
       :setColorOption="setColorOption" @handleCancel="handleColorCancel"></batchSetColor>
   </div>
@@ -260,6 +282,7 @@ import { ref, reactive, onMounted, computed, watchPostEffect } from "vue";
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { message, Modal } from "ant-design-vue";
 import EditProdQuantity from "./EditProdQuantity.vue";
+import { FileOutlined, SettingOutlined } from '@ant-design/icons-vue';
 import {
   scaleApi,
   watermarkListApi,
@@ -295,6 +318,17 @@ const props = defineProps({
   editData: Object,
   shopCode: String,
 });
+const VNodes = defineComponent({
+  props: {
+    vnodes: {
+      type: Object,
+      required: true,
+    },
+  },
+  render() {
+    return this.vnodes;
+  },
+});
 const themeList = ref([]); //主题数据
 const themeBtns = ref([]); //主题按钮
 const requiredList = ref([]); //必填变种主题
@@ -324,6 +358,17 @@ const custAttr = ref([]); //可控制属性
 const setValueVis = ref(false); //批量设置属性
 const setColorOption = ref([]);
 const colorRow = ref({});
+const templateValue = ref("")
+const templateList = ref([
+  {
+    label: "模板名称1",
+    value: "1",
+  },
+  {
+    label: "模板名称2",
+    value: "2",
+  }
+]);
 const plainOptions = [
   {
     label: "颜色样本",
@@ -357,6 +402,10 @@ const handleChangeColroImg = (info, record) => {
     message.error("图片上传有误！");
   }
 };
+// 模板搜索
+const filterOption = (input, option) => {
+  return option.value.toLowerCase().indexOf(input.toLowerCase()) >= 0;
+};
 
 const setColor = (row) => {
   colorRow.value = row;
@@ -375,55 +424,59 @@ const handleColorCancel = () => {
 }
 // 批量设置属性
 const confirm = (selectedValues) => {
-  console.log("selectedValues", selectedValues);
-  console.log("*/*",colorRow.value.tableData);
-  
-  const { categoryDependent, details, id, isCollection, isRequired, name, secondId, secondModelValue, secondName, selectType } = colorRow.value.tableData[0];
-  const aSet = new Set(selectedValues);
-  const result = details.filter(item => aSet.has(item.id));
-  console.log("result", result);
-  let newTableData = cloneDeep(colorRow.value.tableData);
-  colorRow.value.tableData =  procTableData(newTableData, result)
-  console.log("colorRow", colorRow.value);
-  // 处理表格数据
+  // 解构只需要用到的details属性
+  const { details } = colorRow.value.tableData[0] || {};
+  const result = details?.filter(item => new Set(selectedValues).has(item.id)) || [];
+
+  // 获取已存在的属性并去重
+  const existingAttributes = colorRow.value.tableData
+    .flatMap(item => item?.modelValue?.map(v => v) || [])
+    .filter(Boolean);
+
+  // 根据是否存在已有属性进行过滤
+  const filteredResult = existingAttributes.length > 0
+    ? result.filter(item => !new Set(existingAttributes.map(a => a.id)).has(item.id))
+    : result;
+
+  // 统一处理表格更新
+  colorRow.value.tableData = procTableData(colorRow.value.tableData, filteredResult);
   tableData.value = commProceData();
-  console.log("attributeList", colorRow.value);
 }
 
-const procTableData =(newData, a) => {
-    // 创建映射表记录已处理元素
-    const processedIds = new Set();
-    
-    // 第一阶段：填充空modelValue
-    const updatedData = newData.map(item => {
-        if (item.modelValue.length === 0 && a.length > 0) {
-            const [firstItem, ...rest] = a;
-            processedIds.add(firstItem.id);
-            return { 
-                ...cloneDeep(item), 
-                modelValue: [cloneDeep(firstItem)],
-                // uniqueId: Date.now() + Math.random() // 添加唯一标识
-            };
-        }
-        return item;
-    });
+// 此方法用于处理属性批量添加到主题中
+const procTableData = (newData, newItems) => {
 
-    // 第二阶段：处理剩余元素
-    const remainingItems = a.filter(item => !processedIds.has(item.id));
-    remainingItems.forEach(item => {
-        const baseItem = cloneDeep(newData[0]);
-        updatedData.push({
-            ...baseItem,
-            modelValue: [cloneDeep(item)],
-            // uniqueId: Date.now() + Math.random() // 唯一标识防止重复key
-        });
-    });
+  // 深拷贝原始数据避免污染
+  const processedData = cloneDeep(newData)
+  const usedIds = new Set()
 
-    return updatedData.filter(item => 
-        item.modelValue.length > 0 
-        // || 
-        // item.uniqueId // 保留新生成的条目
-    );
+  // 第一阶段：填充空值项
+  let itemIndex = 0
+  for (const item of processedData) {
+    if (item.modelValue.length === 0 && newItems[itemIndex]) {
+      item.modelValue = [cloneDeep(newItems[itemIndex])]
+      usedIds.add(newItems[itemIndex].id)
+      itemIndex++
+    }
+  }
+
+  // 第二阶段：创建新条目
+  const remainingItems = newItems.filter(item => !usedIds.has(item.id))
+  const baseTemplate = processedData[0] ? cloneDeep(processedData[0]) : {}
+  delete baseTemplate.uniqueId // 清除可能存在的临时ID
+
+  remainingItems.forEach(item => {
+    processedData.push({
+      ...baseTemplate,
+      modelValue: [cloneDeep(item)],
+      uniqueId: Date.now() + Math.random().toString(36).slice(2)
+    })
+  })
+
+  return processedData.filter(item =>
+    item.modelValue.length > 0 ||
+    item.uniqueId // 保留新创建的空条目
+  )
 }
 
 // 添加自定义属性
@@ -677,32 +730,8 @@ const removeItem = (item, row) => {
     if (item.selectType === 'select' || item.selectType === 'input') {
       return !row.attrIdList?.some(id => id === item.id);
     } else {
-      console.log("row.multId", row.multId);
-      console.log("item.multId", item.multId);
-      return row.multId === item.multId;
+      return !deletedLabels?.some(val => val === rowValue);
     }
-    // if (item.selectType === 'multSelect') {
-    //   // 统一处理数组/字符串值
-    //   const currentValues = Array.isArray(rowValue)
-    //     ? rowValue.map(v => v?.label?.trim() || '')
-    //     : typeof rowValue === 'string'
-    //       ? rowValue.split(',').map(s => s.trim())
-    //       : [];
-    //   return !currentValues.some(v => deletedSet.has(v));
-    // }
-
-    // if (item.selectType === 'select') {
-    //   // 精确匹配select的label值
-    //   const currentLabel = rowValue?.label?.trim();
-    //   return !deletedSet.has(currentLabel);
-    // }
-
-    // if (item.selectType === 'input') {
-    //   // 精确匹配attrIdList中的ID
-    //   return !row.attrIdList?.some(id => id === item.id);
-    // }
-
-    return true;
   });
 
   tableData.value = newData;
@@ -798,7 +827,7 @@ const changeHeade = () => {
 
   const ozonStore = useOzonProductStore()
   ozonStore.$patch(state => {
-      state.addHeaderList = addHeaderList.value
+    state.addHeaderList = addHeaderList.value
   })
 };
 
@@ -1013,8 +1042,7 @@ watch(
       let arr = val.filter((obj) => obj.isAspect);
       isConform.value = checkData(arr);
       const requiredItem = arr.some((item) => item.isRequired === true);
-      // console.log('arr', arr);
-      // console.log('requiredItem', attributeList.value);
+
       //判断主题中是否有颜色名称，且商品颜色是不是必填项
       if (requiredItem) {
         if (isConform.value) {
@@ -1039,9 +1067,7 @@ watch(
               }
             }
           });
-          // if (requiredList.value.some(item => (item.id === 10096))) {
-          //     requiredList.value.push(arr.find(obj => obj.id === 10097))
-          // }
+
           themeBtns.value = arr.filter(
             (obj) => !(obj.isRequired || obj.id === 10097 || obj.id === 9533) //obj.id === 9533
           );

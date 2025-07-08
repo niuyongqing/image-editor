@@ -14,7 +14,7 @@
                     <span
                         style="color: #ff0a37;margin-bottom: 10px;display: block;">说明：保存发布后，手机端的图片及文字信息将跟PC端保持一致</span>
                     <a-form-item-rest>
-                        <jsonForm @backResult="backResult" :shop="shopCode"></jsonForm>
+                        <jsonForm @backResult="backResult" :content="form.jsons" :shop="shopCode"></jsonForm>
                     </a-form-item-rest>
                 </a-form-item>
                 <a-form-item label="视频：">
@@ -91,6 +91,7 @@ import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { message } from "ant-design-vue";
 import jsonForm from "../../config/component/json/index.vue"
 import { processImageSource } from "~/pages/ozon/config/commJs/index"
+import { useOzonProductStore } from '~@/stores/ozon-product'
 
 const ruleForm = ref(null)
 const props = defineProps({
@@ -100,7 +101,7 @@ const form = reactive({
     video: [],
     coverUrl: "",
     description: "",
-    jsons: {},
+    jsons: "",
 })
 const headers = {
     'Authorization': 'Bearer ' + useAuthorization().value,
@@ -149,7 +150,6 @@ const removeVideoList = (index) => {
 }
 const backResult = (res) => {
     form.jsons = res
-    // console.log('p', props.shopCode);
 }
 const submitForm = () => {
     if (Object.keys(form.jsons).length == 0) {
@@ -158,6 +158,21 @@ const submitForm = () => {
     }
     return true;
 }
+// 引用产品模板
+watch(() => useOzonProductStore().productTemplate, (val) => {
+    if (val) {
+        const { account, content: {
+            productTemplate: {
+                productDesc
+            },
+            jsonRich
+        } } = val;
+        form.description = productDesc
+        form.jsons = JSON.stringify(jsonRich)
+    }
+
+})
+
 // 抛出数据和方法，可以让父级用ref获取
 defineExpose({
     form,

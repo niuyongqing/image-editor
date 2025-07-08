@@ -314,3 +314,21 @@ export function exportProduct(data) {
     data
   })
 }
+
+// 存为产品模板
+export function tempSaveOrUpdate(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/template/saveOrUpdate',
+    method: 'post',
+    data
+  })
+}
+
+// 引用产品模板
+export function templateList(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/template/list',
+    method: 'post',
+    data
+  })
+}

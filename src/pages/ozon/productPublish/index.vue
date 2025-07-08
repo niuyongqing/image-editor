@@ -8,7 +8,7 @@
             <div class="flex justify-end">
                 <a-dropdown>
                     <template #overlay>
-                        <a-menu @click="handleMenuClick">
+                        <a-menu @click="handleInterpret">
                             <a-menu-item key="1">
                                 中文
                                 <ArrowRightOutlined /> 英文
@@ -32,7 +32,7 @@
                         <DownOutlined />
                     </a-button>
                 </a-dropdown>
-                <a-button class="mx-2.5" :loading="loading">存为模板</a-button>
+                <a-button class="mx-2.5" :loading="loading" @click="showTempModal">存为模板</a-button>
                 <a-dropdown>
                     <template #overlay>
                         <a-menu @click="handleMenuClick">
@@ -71,7 +71,7 @@
             <div class="flex justify-end">
                 <a-dropdown>
                     <template #overlay>
-                        <a-menu @click="handleMenuClick">
+                        <a-menu @click="handleInterpret">
                             <a-menu-item key="1">
                                 中文
                                 <ArrowRightOutlined /> 英文
@@ -95,7 +95,7 @@
                         <DownOutlined />
                     </a-button>
                 </a-dropdown>
-                <a-button class="mx-2.5" :loading="loading">存为模板</a-button>
+                <a-button class="mx-2.5" :loading="loading" @click="showTempModal">存为模板</a-button>
                 <a-dropdown>
                     <template #overlay>
                         <a-menu @click="handleMenuClick">
@@ -136,6 +136,32 @@
                 <a-button type="primary" @click="handleOk">继续刊登</a-button>
             </template>
         </a-modal>
+        <a-modal :open="tempVis" title="存为模板" @cancel="closeModal" :width="'20%'" :maskClosable="false"
+            :keyboard="false">
+            <div class="my30px"><span>模板名称：</span><a-input style="width: 300px;" v-model:value="templateName"
+                    placeholder="请输入" /></div>
+            <template #footer>
+                <a-button @click="closeModal">取消</a-button>
+                <a-button type="primary" @click="saveTemplate">确定</a-button>
+            </template>
+        </a-modal>
+        <a-modal :open="quoteVis" title="引用产品模板" :footer="null" @cancel="quoteVis = false" :width="'30%'" :maskClosable="false"
+            :keyboard="false">
+            <div class="my30px"><span>模板名称：</span><a-input style="width: 300px;" v-model:value="quoteTemplateName"
+                    placeholder="请输入" /><a-button class="ml-20px" type="primary">搜索</a-button></div>
+            <a-divider />
+            <a-table :dataSource="dataSource" :columns="columns" :pagination="false">
+                <template #bodyCell="{ column, record }">
+                    <template v-if="column.dataIndex === 'option'">
+                        <a-button type="link" @click="quoteTemp(record)">引用</a-button>
+                    </template>
+                </template>
+            </a-table>
+            <a-pagination style="margin: 20px 0 10px 0; text-align: right" :show-total="(total) => `共 ${total} 条`"
+        v-model:current="paginations.pageNum" v-model:pageSize="paginations.pageSize" :total="paginations.total"
+        class="pages" :show-quick-jumper="true" @change="getTemplateList" :showSizeChanger="true"
+        :pageSizeOptions="[50, 100, 200]" />
+        </a-modal>
     </div>
 </template>
 
@@ -144,7 +170,7 @@ import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import OzonBaseInfo from './comm/OzonBaseInfo.vue';
 import OzonNewImageInfo from './comm/OzonNewImageInfo.vue';
 import OzonNewVariantInfo from './comm/OzonNewVariantInfo.vue';
-import { accountCache, categoryAttributes, add } from "../config/api/product";
+import { accountCache, categoryAttributes, add, tempSaveOrUpdate, templateList } from "../config/api/product";
 import { message, Modal } from "ant-design-vue";
 import { useOzonProductStore } from '~@/stores/ozon-product'
 import {
@@ -162,14 +188,46 @@ const targetOffset = ref(undefined);
 const ozonBaseInfoRef = ref(null)
 const ozonImageInfoRef = ref(null)
 const ozonNewVariantInfoRef = ref(null)
+const templateName = ref("")
+const quoteTemplateName = ref("")
 const shopList = ref([])
 const attributes = ref([])
+const columns = [
+    {
+        title: '模板名称',
+        dataIndex: 'name',
+        key: 'name',
+    },
+    {
+        title: '引用模块',
+        dataIndex: 'fieldValue',
+        key: 'fieldValue',
+    },
+    {
+        title: '创建时间',
+        dataIndex: 'gmtCreate',
+        key: 'gmtCreate',
+    },
+    {
+        title: '操作',
+        dataIndex: 'option',
+        key: 'option',
+    },
+]
+const dataSource = ref([])
 // 校验状态
 const baseInfoValid = ref(true);
 const imgInfoValid = ref(true);
 const skuValid = ref(true);
 const loading = ref(false)
 const publishVis = ref(false)
+const tempVis = ref(false)
+const quoteVis = ref(false)
+const paginations = reactive({
+    pageNum: 1,
+    pageSize: 10,
+    total: 0,
+})
 const anchorList = ref([
     {
         turnRed: false,
@@ -261,6 +319,99 @@ const isObjectProperty = (obj, prop) => {
     return value instanceof Object && !(value instanceof Array);
 }
 
+
+const showTempModal = () => {
+    if (!formData.shortCode) {
+        message.error("请先选择店铺！");
+        return
+    }
+    tempVis.value = true;
+}
+
+const saveTemplate = async () => {
+    if (!templateName.value) {
+        message.error("请输入模板名称！");
+        return
+    }
+    let base = ozonBaseInfoRef.value.form;
+    console.log("base", base);
+    let image = ozonImageInfoRef.value.form;
+    console.log("image", image);
+    let tableDatas = ozonNewVariantInfoRef.value.tableData;
+    let params = {
+        type: 1, //模板类型 1-产品模板  2-尺码模板 3-变种模板 4-富内容模板
+        id: null, // id 为null  新增  不为null 是修改
+        name: templateName.value, // 模板名称
+        state: 1, // 状态是否生效  0-不生效 1-生效
+        account: formData.shortCode,
+        content: {
+            productTemplate: {
+                categoryId: base.categoryId || {},
+                productAttr: base.attributes || {},
+                productDesc: image.description || ""
+            },
+            jsonRich: image.jsons || {}
+        }
+    }
+    console.log("params", params);
+
+    tempSaveOrUpdate(params).then(res => {
+        if (res.code == 200) {
+            message.success("保存成功！");
+        }
+    }).finally(() => {
+        tempVis.value = false;
+    })
+}
+
+const closeModal = () => {
+    tempVis.value = false;
+    templateName.value = "";
+}
+// 一键翻译
+const handleInterpret = () => { }
+
+// 引用产品
+const handleMenuClick = (e) => {
+    if (e.key === '2') {
+        if (!formData.shortCode) {
+            message.error("请先选择店铺！");
+            return
+        }
+        getTemplateList();
+    }
+}
+
+const getTemplateList = () => {
+    templateList({
+        account: formData.shortCode,
+        type: 1,
+        name: quoteTemplateName.value,
+        pageNum: paginations.pageNum,
+        pageSize: paginations.pageSize,
+
+    }).then(res => {
+        if (res.code == 200) {
+            message.success("查询成功！");
+            dataSource.value = res.rows || []
+            quoteVis.value = true;
+            paginations.total = res.total || 0;
+        }
+    })
+}
+
+// 引用模板
+const quoteTemp = (record) => {
+    const ozonStore = useOzonProductStore()
+    ozonStore.$patch(state => {
+        state.productTemplate = {
+            account: record.account,
+            content: record.content
+        }
+    })
+    quoteTemplateName.value = "";
+    quoteVis.value = false;
+}
 // 发布
 const onSubmit = async (type = 1) => {
     const ozonBaseInfo = await ozonBaseInfoRef.value.childForm();
