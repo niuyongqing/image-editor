@@ -13,7 +13,7 @@
         <div class="flex flex-wrap  mt-10px h-900px overflow-y-auto">
 
             <div v-for="(item, index) in tableData" :key="index" flex gap-15px h-150px>
-                <a-card v-for="(element, i) in item.imageUrl" :key="element.url" mb-10px ml-10px p-0px rounded-none
+                <a-card v-for="(element, i) in item.colorImg" :key="element.url" mb-10px ml-10px p-0px rounded-none
                     class="file-card flex" hoverable style="width: 125px;">
                     <div :key="element.uid" @click="tabCheck(element)">
                         <div class="file-item">
@@ -64,7 +64,7 @@ const timer = ref(null);
 const showModal = (list = []) => {
     tableData.value = list || [];
     tableData.value.forEach((item) => {
-        item.imageUrl.forEach((v) => {
+        item.colorImg.forEach((v) => {
             v.checked = false
         })
     });
@@ -80,7 +80,7 @@ const close = () => {
 
 const handleCheckAllChange = () => {
     tableData.value.forEach(item => {
-        item.imageUrl.forEach(v => {
+        item.colorImg.forEach(v => {
             v.checked = checkedAll.value
         })
     })
@@ -93,18 +93,18 @@ const tabCheck = (element) => {
     } else {
         message.error('只能选择网络图片');
     }
-    const isAllChecked = tableData.value.every(item => item.imageUrl.every(v => v.checked));
+    const isAllChecked = tableData.value.every(item => item.colorImg.every(v => v.checked));
     checkedAll.value = isAllChecked;
 };
 
 const check = () => {
-    const isAllChecked = tableData.value.every(item => item.imageUrl.every(v => v.checked));
+    const isAllChecked = tableData.value.every(item => item.colorImg.every(v => v.checked));
     checkedAll.value = isAllChecked;
 };
 
 
 const submit = async () => {
-    const checkedList = tableData.value.flatMap((item, index) => item.imageUrl.filter(v => v.checked).map((img) => {
+    const checkedList = tableData.value.flatMap((item, index) => item.colorImg.filter(v => v.checked).map((img) => {
         return {
             ...img,
             index: index
@@ -130,7 +130,7 @@ const submit = async () => {
                 //     newUrl: finalImageUrl,
                 //     oldUrl: checkedList[0].url,
                 // });
-                tableData.value[checkedList[0].index].imageUrl.forEach((v) => {
+                tableData.value[checkedList[0].index].colorImg.forEach((v) => {
                     if (checkedList[0].url === v.url) {
                         v.url = finalImageUrl
                     }
@@ -177,7 +177,7 @@ const submit = async () => {
 
                                 console.log('urls', list);
                                 tableData.value.forEach((item) => {
-                                    item.imageUrl.forEach((v) => {
+                                    item.colorImg.forEach((v) => {
                                         list.forEach(item => {
                                             if (v.url === item.oldUrl) {
                                                 v.url = item.newUrl

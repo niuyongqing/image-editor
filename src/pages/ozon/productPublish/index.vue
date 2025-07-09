@@ -145,8 +145,8 @@
                 <a-button type="primary" @click="saveTemplate">确定</a-button>
             </template>
         </a-modal>
-        <a-modal :open="quoteVis" title="引用产品模板" :footer="null" @cancel="quoteVis = false" :width="'30%'" :maskClosable="false"
-            :keyboard="false">
+        <a-modal :open="quoteVis" title="引用产品模板" :footer="null" @cancel="quoteVis = false" :width="'30%'"
+            :maskClosable="false" :keyboard="false">
             <div class="my30px"><span>模板名称：</span><a-input style="width: 300px;" v-model:value="quoteTemplateName"
                     placeholder="请输入" /><a-button class="ml-20px" type="primary">搜索</a-button></div>
             <a-divider />
@@ -158,9 +158,9 @@
                 </template>
             </a-table>
             <a-pagination style="margin: 20px 0 10px 0; text-align: right" :show-total="(total) => `共 ${total} 条`"
-        v-model:current="paginations.pageNum" v-model:pageSize="paginations.pageSize" :total="paginations.total"
-        class="pages" :show-quick-jumper="true" @change="getTemplateList" :showSizeChanger="true"
-        :pageSizeOptions="[50, 100, 200]" />
+                v-model:current="paginations.pageNum" v-model:pageSize="paginations.pageSize" :total="paginations.total"
+                class="pages" :show-quick-jumper="true" @change="getTemplateList" :showSizeChanger="true"
+                :pageSizeOptions="[50, 100, 200]" />
         </a-modal>
     </div>
 </template>

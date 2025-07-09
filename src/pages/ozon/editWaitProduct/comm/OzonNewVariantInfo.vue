@@ -89,15 +89,33 @@
                 </a>
                 <template #overlay>
                   <a-menu>
+                    <a-menu-item @click="bigImgvisible = true" :preview="{ visible: false }">
+                      查看大图
+                      <div style="display: none">
+                        <a-image-preview-group style="width: 90% !important;" :preview="{ visible: bigImgvisible, onVisibleChange: vis => (bigImgvisible = vis) }">
+                          <a-image v-for="(item, index) in tableData" :key="index" :src="item.colorImg[0].url" />
+                        </a-image-preview-group>
+                      </div>
+                    </a-menu-item>
                     <a-menu-item @click="changeImgSize">
                       批量改图片尺寸
                     </a-menu-item>
                     <a-menu-item @click="changeImgTranslation">
                       图片翻译
                     </a-menu-item>
-                    <a-menu-item @click="changeImgWater">
+                    <a-sub-menu key="sub1" title="添加水印">
+                      <a-menu-item v-for="item in watermark" :key="item" @click="changeImgWater(item)">
+                          {{ item.title }}
+                      </a-menu-item>
+                    </a-sub-menu>
+                    <!-- <a-menu-item @click="changeImgWater">
                       添加水印
-                    </a-menu-item>
+                      <template #overlay>
+                        <a-menu>
+                          
+                        </a-menu>
+                      </template>
+                    </a-menu-item> -->
                     <a-menu-item @click="clearImg">
                       清空图片
                     </a-menu-item>
@@ -356,11 +374,9 @@
     <batchSetColor :setValueVis="setValueVis" @closeColorModal="setValueVis = false" @confirm="confirm"
       :setColorOption="setColorOption" @handleCancel="handleColorCancel"></batchSetColor>
     <!-- 批量修改颜色样本大小 -->
-    <bacthEditColorImg :bacthOpen="bacthOpen" :bacthTitle="bacthTitle" :bacthType="bacthType"
-      @bacthEditModalClose="bacthOpen = false" @backValue="backValue"></bacthEditColorImg>
+     <bacthEditColorImg ref="bacthEditColorImgRef"></bacthEditColorImg>
     <!-- 颜色样本翻译 -->
-    <colorImgTranslation :bacthOpen="bacthOpen" :bacthTitle="bacthTitle" :bacthType="bacthType"
-      @bacthEditModalClose="bacthOpen = false" @backValue="backValue"></colorImgTranslation>
+    <colorImgTranslation ref="colorImgTranslationRef"></colorImgTranslation> 
   </div>
 </template>
 
@@ -417,7 +433,10 @@ const props = defineProps({
 const downloadLoading = ref(false); //导出按钮loading
 const bacthSkuEditImgRef = ref();
 const imageTranslationRef = ref();
+const bacthEditColorImgRef = ref();
+const colorImgTranslationRef = ref();
 
+const bigImgvisible = ref(false);
 const themeList = ref([]); //主题数据
 const themeBtns = ref([]); //主题按钮
 const requiredList = ref([]); //必填变种主题
@@ -556,11 +575,99 @@ const procTableData = (newData, newItems) => {
 
 // 颜色样本- 批量改图片尺寸
 const changeImgSize = () => {
-  // bacthSkuEditImgRef.value.show();
+  bacthEditColorImgRef.value.showModal(tableData.value)
 }
 // 颜色样本- 添加水印
-const changeImgWater = () => {
-  watermarkRef.value.show();
+const changeImgWater = async (item) => {
+  for (const tabbleItem of tableData.value) {
+    const fileList = tabbleItem.colorImg || [];
+    if (fileList.length === 0) {
+      continue;
+    }
+    const netPathList = fileList.filter((file) => file.url.includes('http')).map((item) => {
+      return item.url
+    });
+    // 只有本地图片
+    if (netPathList.length === 0) {
+      const imagePathList = fileList.filter((file) => !file.url.includes('http')).map((item) => {
+        return item.url
+      });
+      const waterRes = await watermarkApi({
+        imagePathList: imagePathList, //
+        id: item.id,
+      });
+      if (waterRes.code === 200) {
+        const data = waterRes.data || [];
+        data.forEach((item) => {
+          fileList.forEach(v => {
+            if (item.originalFilename === v.url) {
+              v.url = item.url
+              v.name = item.newFileName
+              v.checked = false
+            }
+          })
+        })
+      }
+    } else {
+      // 有网络图片
+      console.log('有网络图片');
+      const fileList = tabbleItem.colorImg || [];
+      for (let index = 0; index < fileList.length; index++) {
+        const fileItem = fileList[index];
+        try {
+          let netImgs = [];
+          const url = fileItem.url;
+          if (url.includes('http')) {
+            let res = await imageUrlUpload({ url });
+            netImgs.push(res.data);
+            fileList.forEach(i => {
+              if (i.url === url) {
+                i.url = res.data.url
+              }
+            });
+            const waterRes = await watermarkApi({
+              imagePathList: netImgs.map((img) => img.url),
+              id: item.id,
+            });
+            if (waterRes.code === 200) {
+              const data = waterRes.data || [];
+              data.forEach((_item) => {
+                fileList.forEach(v => {
+                  if (_item.originalFilename.includes(v.url)) {
+                    v.url = _item.url
+                    v.name = _item.newFileName
+                    v.checked = false
+                  }
+                });
+              })
+            }
+          } else {
+            const imagePathList = fileList.filter((file) => !file.url.includes('http')).map((item) => {
+              return item.url
+            });
+            const waterRes = await watermarkApi({
+              imagePathList: imagePathList, //
+              id: item.id,
+            });
+            if (waterRes.code === 200) {
+              const data = waterRes.data || [];
+              data.forEach((item) => {
+                fileList.forEach(v => {
+                  if (item.originalFilename === v.url) {
+                    v.url = item.url
+                    v.name = item.newFileName
+                    v.checked = false
+                  }
+                })
+              })
+            }
+          }
+        } catch (error) {
+          console.error(error)
+        }
+      }
+    }
+  }
 }
 // 颜色样本- 清空图片
 const clearImg = () => {
@@ -570,7 +677,7 @@ const clearImg = () => {
 }
 
 const changeImgTranslation = () => {
-
+  colorImgTranslationRef.value.showModal(tableData.value)
 }
 
 
@@ -819,28 +926,7 @@ const pushValue = (index, item) => {
     message.error("变种属性值不能有相同的，请修改");
     return;
   }
-  // 处理表格数据
-  // let cartesianProducts = cartesianProduct(attributeList.value);
-  // let newTableData = processResult(cartesianProducts);
-  // let minLength = Math.min(newTableData.length, tableData.value.length);
-  // for (let i = 0; i < minLength; i++) {
-  //   // 将b数组中对应下标的数据赋值到a数组中
-  //   newTableData[i].skuTitle = tableData.value[i].skuTitle;
-  //   newTableData[i].sellerSKU = tableData.value[i].sellerSKU;
-  //   newTableData[i].price = tableData.value[i].price;
-  //   newTableData[i].oldPrice = tableData.value[i].oldPrice;
-  //   newTableData[i].colorImg = tableData.value[i].colorImg;
-  //   newTableData[i].imageUrl = tableData.value[i].imageUrl;
-  //   newTableData[i].quantity = tableData.value[i].quantity;
-  //   newTableData[i].warehouseList = tableData.value[i].warehouseList;
-  //   newTableData[i].packageHeight = tableData.value[i].packageHeight;
-  //   newTableData[i].packageLength = tableData.value[i].packageLength;
-  //   newTableData[i].packageWidth = tableData.value[i].packageWidth;
-  //   newTableData[i].packageWeight = tableData.value[i].packageWeight;
-  // }
   tableData.value = commProceData();
-  console.log("newTableData", newTableData);
-
 };
 
 const commProceData = () => {
@@ -1456,7 +1542,7 @@ watch(
         });
         addHeaderList.value.push("colorImg");
       }
-      if (result.some((item) => item.name !== "")) {
+      if (result.some((item) => item.name !== "" && result.length > 1)) {
         let skuIndex = headerList.value.findIndex(
           (item) => item.title === "SKU"
         );
