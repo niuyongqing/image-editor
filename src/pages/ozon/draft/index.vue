@@ -259,8 +259,9 @@
         <!--编辑提示 弹窗-->
         <EditPrompt ref="editPromptRef" :shopAccount="shopAccount"></EditPrompt>
 
-        <!-- 批量编辑 -->
-        <BatchEdit ref="batchEditRef"></BatchEdit>
+        <!-- 批量编辑-提示弹窗 -->
+        <BatchEditPrompt ref="batchEditPromptRef" :shopAccount="shopAccount"></BatchEditPrompt>
+        <!-- <BatchEdit ref="batchEditRef"></BatchEdit> -->
 
         <!-- 批量备注 -->
         <RemarkModal ref="remarkModalRef"></RemarkModal>
@@ -291,7 +292,7 @@ import RemarkModal from './batchComponent/remarkModal.vue';
 import BatchWatermark from './batchComponent/batchWatermark.vue';
 import OzonProduct from '@/pages/ozon/product/index.vue';
 import BatchAttribute from './batchComponent/batchAttribute.vue';
-
+import BatchEditPrompt from './batchComponent/batchEditPrompt.vue';
 
 let columns = tableHeard;
 const showDraftTable = ref(true);
@@ -300,7 +301,7 @@ const baseApi = import.meta.env.VITE_APP_BASE_API;
 const { copy } = useClipboard();
 const router = useRouter();
 const editPromptEl = useTemplateRef('editPromptRef');
-const batchEditEl = useTemplateRef('batchEditRef'); // 批量编辑-弹窗
+const batchEditPromptEl = useTemplateRef('batchEditPromptRef'); // 批量编辑-弹窗
 const remarkModalEl = useTemplateRef('remarkModalRef'); // 批量备注-弹窗
 const batchWatermarkEl = useTemplateRef('batchWatermarkRef'); // 批量加水印-弹窗
 const batchAttributeEl = useTemplateRef('batchAttributeRef'); // 批量属性-弹窗
@@ -555,8 +556,7 @@ async function typeNodeClick(node) {
 //  采集数据
 const navDataCrawli = () => {
     router.push('/platform/dev/sample/dataAcquisition')
-}
-
+};
 
 //  移入待发布
 const moveToPending = (row = {}) => {
@@ -618,7 +618,6 @@ const updateCurrentClass = (value) => {
     console.log(value);
 };
 
-
 //  批量操作
 const handleMenuClick = (e) => {
     console.log(e, selectedRowList.value);
@@ -629,7 +628,7 @@ const handleMenuClick = (e) => {
     switch (e.key) {
         case 0:
             console.log('批量编辑');
-            batchEditEl.value.open(selectedRowList.value);
+            batchEditPromptEl.value.open(selectedRowList.value);
             break;
         case 1:
             Modal.confirm({

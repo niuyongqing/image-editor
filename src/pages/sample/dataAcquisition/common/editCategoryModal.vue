@@ -46,11 +46,11 @@
                         <a-button type="link" @click="changeCategory">更换分类</a-button>
                         <p class="tooltip-text" v-if="hisAttrObj && JSON.stringify(hisAttrObj) != '{}'">{{
                             hisAttrObj.categoryName
-                        }} > {{ hisAttrObj.secondCategoryName }} > {{
+                            }} > {{ hisAttrObj.secondCategoryName }} > {{
                                 hisAttrObj.threeCategoryName }} </p>
                         <!-- 表格 -->
                         <a-table :columns="innerColumns" :data-source="innerTableData" bordered :pagination="false"
-                            style="margin-top: 10px;">
+                            style="margin-top: 10px;" :loading="optionsLoading">
                             <template #bodyCell="{ column, record }">
                                 <template v-if="column.dataIndex === 'catTheme'">
                                     {{ record.catTheme }}

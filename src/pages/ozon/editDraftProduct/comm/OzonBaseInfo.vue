@@ -25,7 +25,7 @@
                     <a-button style="margin-left: 20px" @click="changeCategory">选择分类</a-button>
                     <p v-if="hisAttrObj.length != 0" style="color: #933">
                         <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{ hisAttrObj[0].secondCategoryName
-                            }}</span>/
+                        }}</span>/
                         <span>{{ hisAttrObj[0].threeCategoryName }}</span>
                     </p>
                 </a-form-item>
@@ -52,7 +52,7 @@
                                     <template #label>
                                         <span class="mr-2.5 truncate">{{
                                             item.label ? item.label : item.name
-                                            }}</span>
+                                        }}</span>
                                         <a-tooltip class="tooltipStyle" effect="dark" :title="item.description"
                                             popper-class="ozonTooltip" placement="top">
                                             <AsyncIcon icon="QuestionCircleOutlined"></AsyncIcon>
@@ -114,8 +114,6 @@
         </a-card>
 
         <CategoryModal ref="categoryModalRef" :account="form.shortCode" @select="handleSelect"></CategoryModal>
-        <!-- <categoryDialog @getAttributesID="getAttributesID" :categoryTreeList="categoryTreeList"
-            :selectVisible="selectVisible" @handleEditClose="selectVisible = false"></categoryDialog> -->
     </div>
 </template>
 
@@ -130,7 +128,6 @@ import {
 import categoryDialog from "../../productPublish/comm/categoryDialog.vue";
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import CategoryModal from "./categoryModal.vue";
-
 
 const props = defineProps({
     categoryAttributesLoading: Boolean,
@@ -230,14 +227,12 @@ const getAttributesID = (ids) => {
         label: ids.label,
         value: ids.value,
     };
-    console.log("form", form.categoryId);
-
     emit("getAttributes", form.shortCode, form.categoryId);
 };
 
 // 打开选择分类弹窗
 const changeCategory = () => {
-    categoryModalEl.value.open(form.categoryId)
+    categoryModalEl.value.open(form.categoryId.threeCategoryId)
 };
 
 // 历史分类
@@ -266,7 +261,7 @@ const selectAttributes = (e) => {
             hisAttrObj.value = historyCategoryList.value.filter(
                 (item) => item.threeCategoryId == e.option.threeCategoryId
             );
-        }
+        };
         form.categoryId = {
             threeCategoryId: e.option.threeCategoryId,
             threeCategoryName: "",
@@ -274,7 +269,10 @@ const selectAttributes = (e) => {
             label: e.option.threeCategoryName,
             value: e.option.threeCategoryId,
         };
-        emit("getAttributes", form.shortCode, e.option);
+        emit("getAttributes", form.shortCode, {
+            categoryId: e.option.secondCategoryId,
+            typeId: e.option.threeCategoryId,
+        });
     }
 };
 
@@ -446,16 +444,19 @@ const childForm = async () => {
 };
 
 const handleSelect = (data) => {
-    form.categoryId = data.value;
-    hisAttrObj.value = {
+    form.categoryId = {
+        "threeCategoryId": data.value,
+        "threeCategoryName": data.label[2],
+        "value": data.value
+    }
+    hisAttrObj.value = [{
         "categoryId": data.ids[0],
         "secondCategoryId": data.ids[1],
         "threeCategoryId": data.ids[2],
         "categoryName": data.label[0],
         "secondCategoryName": data.label[1],
         "threeCategoryName": data.label[2]
-    };
-    secondCategoryId.value = data.ids[1];
+    }];
     let params = {
         account: form.shortCode,
         secondCategoryId: data.ids[1],
@@ -464,10 +465,12 @@ const handleSelect = (data) => {
     addHistoryCategory(params).then((res) => {
         getHistoryList(form.shortCode, data.value);
     });
-    // emits("getAttributes", form.shortCode, form.categoryId);
+    emit("getAttributes", form.shortCode, {
+        categoryId: data.ids[0],
+        secondCategoryId: data.ids[1],
+        threeCategoryId: data.ids[2],
+    });
 }
-
-
 
 // 抛出数据和方法，可以让父级用ref获取
 defineExpose({
@@ -488,11 +491,11 @@ watch(
     () => props.productDetail,
     (val) => {
         if (val) {
-            const { simpleName, account, skuList, vat, typeId, descriptionCategoryId } =
+            const { simpleName, account, skuList, vat, typeId, descriptionCategoryId, name } =
                 val;
             // 修改响应式对象的属性
             form.shortCode = account;
-            form.name = skuList[0].name;
+            form.name = name;
             form.vat = vat === "0.0" || vat === "0.00" ? "0" : vat;
             form.categoryId = {
                 threeCategoryId: typeId,

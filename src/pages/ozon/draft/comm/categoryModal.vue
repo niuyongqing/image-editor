@@ -35,7 +35,7 @@
                                         @click="selectFirstItem(item)">
                                         <div flex>
                                             <div w-250px overflow-hidden text-ellipsis whitespace-nowrap> {{ item.label
-                                            }}
+                                                }}
                                             </div>
                                             <div>
                                                 <RightOutlined />
@@ -245,10 +245,6 @@ function getCategoryTree() {
     }).then(res => {
         treeData.value = res.data || [];
         const path = findPathById(thirdState.selectKeys[0], treeData.value);
-
-        console.log('path', path);
-
-
         if (path) {
             selectItem.value = {
                 label: path.labels.join(' / '),
