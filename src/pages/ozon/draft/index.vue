@@ -327,6 +327,7 @@ const paginations = reactive({
 });
 const shopAccount = ref([])
 const actives = ref(1);
+const selectedRowKeys = ref([]);
 const selectedRowList = ref([]);
 const tableData = ref([])
 const deactivateLoading = ref(false)
@@ -398,7 +399,8 @@ const strList = ref([
 ]);
 
 const rowSelection = {
-    onChange: (selectedRowKeys, selectedRows) => {
+  onChange: (keys, selectedRows) => {
+        selectedRowKeys.value = keys
         selectedRowList.value = selectedRows;
     },
 };
@@ -628,8 +630,11 @@ const handleMenuClick = (e) => {
     }
     switch (e.key) {
         case 0:
-            console.log('批量编辑');
-            batchEditEl.value.open(selectedRowList.value);
+            // console.log('批量编辑');
+            // batchEditEl.value.open(selectedRowList.value);
+            // 跳转到采集箱批量编辑页
+            window.open('/platform/ozon/batch-edit')
+            localStorage.setItem('ids', JSON.stringify(selectedRowKeys.value))
             break;
         case 1:
             Modal.confirm({

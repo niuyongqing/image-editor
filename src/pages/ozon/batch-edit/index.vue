@@ -90,7 +90,7 @@
       :data-source="tableData"
       :pagination="false"
       bordered
-      row-key="id"
+      row-key="gatherProductId"
       :scroll="{ x: 'max-content' }"
     >
       <template #headerCell="{ column }">
@@ -144,7 +144,7 @@
             size="large"
             class="text-base"
           >
-            <a-tooltip title="一键生成"><FormOutlined /></a-tooltip>
+            <a-tooltip title="一键生成"><FormOutlined @click="SKUTitleModalOpen = true" /></a-tooltip>
             <a-tooltip title="还原"><UndoOutlined @click="restore(column.key)" /></a-tooltip>
             <a-tooltip title="删除"><DeleteOutlined @click="del(column.key)" /></a-tooltip>
           </a-space>
@@ -246,7 +246,7 @@
         <template v-else-if="column.title === '产品描述'">
           <a-textarea
             v-if="cellAddress === `${index}_${column.key}`"
-            v-model:value="record.desc"
+            v-model:value="record.detailDesc"
             :id="`${index}_${column.key}`"
             :rows="4"
             show-count
@@ -257,7 +257,7 @@
             v-else
             @click="cellActived(index, column.key)"
           >
-            {{ record.desc }}
+            {{ record.detailDesc }}
           </div>
         </template>
         <template v-else-if="column.title === 'VAT'">
@@ -386,7 +386,7 @@
           >
             {{ item.stock || 0 }}&nbsp;&nbsp;<FormOutlined
               class="text-base"
-              @click="showImagesModal(record, item)"
+              @click="showStockModal(record, item)"
             />
           </div>
         </template>
@@ -466,20 +466,33 @@
     <!-- 弹窗 -->
     <TitleModal
       v-model:open="titleModalOpen"
-      ref="titleModal"
+      ref="title_modal"
       @ok="titleOk"
     />
 
     <DescModal
       v-model:open="descModalOpen"
-      ref="descModal"
+      ref="desc_modal"
       @ok="descOk"
     />
 
     <VATModal
       v-model:open="VATModalOpen"
-      ref="VAT_Modal"
+      ref="VAT_modal"
       @ok="VATOk"
+    />
+
+    <SKUTitleModal
+      v-model:open="SKUTitleModalOpen"
+      :attr-count-max-length="attrCountMaxLength"
+      ref="SKU_title_modal"
+      @ok="SKUTitleOk"
+    />
+
+    <VariantImageModal
+      v-model:open="variantImageModalOpen"
+      ref="variant_image_modal"
+      @ok="variantImageOk"
     />
   </div>
 </template>
@@ -487,11 +500,58 @@
 <script setup>
   import { DownOutlined, FormOutlined, UndoOutlined, DeleteOutlined, CheckOutlined } from '@ant-design/icons-vue'
   import { cloneDeep } from 'lodash'
+  import { batchQueryDetailApi, batchUpdateProductApi } from '../config/api/batch-edit'
   import { dataSource } from './config'
 
   import TitleModal from './components/TitleModal.vue'
   import DescModal from './components/DescModal.vue'
   import VATModal from './components/VATModal.vue'
+  import SKUTitleModal from './components/SKUTitleModal.vue'
+  import VariantImageModal from './components/VariantImageModal.vue'
+
+  // 取出产品 id
+  const ids = JSON.parse(localStorage.getItem('ids'))
+  /** 获取产品详情 */
+  let rawTableData = []
+  const tableData = ref(dataSource)
+  const tableData2 = ref([])
+  getDetails()
+  function getDetails() {
+    batchQueryDetailApi({ ids }).then(res => {
+      rawTableData = res.data || []
+      const list = res.data || []
+      const list2 = list.map(item => {
+        const mainImage = item.skuList[0].primaryImage[0]
+        item.skuList.forEach(sku => {
+          sku.SKUTitle = sku.name
+
+          const attrList = sku.attributes ? sku.attributes.filter(attr => attr.values[0].value) : []
+          sku.attrList = attrList.map(attr => attr.values[0].value)
+          sku.attrName = sku.attrList.join('/')
+        })
+        const obj = {
+          ...item,
+          title: item.name,
+          mainImage,
+          VAT: item.vat
+        }
+
+        return obj
+      })
+      tableData2.value = list2
+    })
+  }
+  // 变种主题数量(max)
+  const attrCountMaxLength = computed(() => {
+    const attrCountList = []
+    tableData2.value.forEach(item => {
+      item.skuList.forEach(sku => {
+        attrCountList.push(sku.attrList.length)
+      })
+    })
+
+    return Math.max(...attrCountList)
+  })
 
   /** 选择批量编辑的信息 checkbox */
   // 超级全选
@@ -502,7 +562,7 @@
     {
       title: '产品信息',
       attrList: [
-        { label: '产品描述', value: 'desc' },
+        { label: '产品描述', value: 'detailDesc' },
         { label: 'VAT', value: 'VAT' }
       ],
       isIndeterminate: false,
@@ -583,7 +643,7 @@
       children: [
         { title: '图片', key: 'mainImage', width: 90 },
         { title: '产品标题', key: 'title', width: 200 },
-        { title: '产品描述', key: 'desc', width: 200 },
+        { title: '产品描述', key: 'detailDesc', width: 200 },
         { title: 'VAT', key: 'VAT', width: 100 }
       ]
     },
@@ -643,10 +703,9 @@
     { label: '10%', value: 0.1 },
     { label: '20%', value: 0.2 }
   ]
-  const tableData = ref(dataSource)
 
   // 需要备份的字段
-  const COPY_KEY_LIST = ['title', 'desc', 'VAT', 'skuList']
+  const COPY_KEY_LIST = ['title', 'detailDesc', 'VAT', 'skuList']
   // 在 SKUList 里的字段
   const SKU_ATTR_LIST = ['images', 'offerId', 'SKUTitle', 'price', 'oldPrice', 'stock', 'size', 'weight']
   // 备份数据
@@ -732,7 +791,7 @@
 
   // 产品标题弹窗
   const titleModalOpen = ref(false)
-  const titleModalRef = useTemplateRef('titleModal')
+  const titleModalRef = useTemplateRef('title_modal')
 
   function titleOk() {
     titleModalRef.value.modify(tableData.value)
@@ -740,7 +799,7 @@
 
   // 产品描述弹窗
   const descModalOpen = ref(false)
-  const descModalRef = useTemplateRef('descModal')
+  const descModalRef = useTemplateRef('desc_modal')
 
   function descOk() {
     descModalRef.value.modify(tableData.value)
@@ -748,14 +807,31 @@
 
   // VAT 弹窗
   const VATModalOpen = ref(false)
-  const VATModalRef = useTemplateRef('VAT_Modal')
+  const VATModalRef = useTemplateRef('VAT_modal')
 
   function VATOk() {
     VATModalRef.value.modify(tableData.value)
   }
 
+  // SKU 标题 弹窗
+  const SKUTitleModalOpen = ref(false)
+  const SKUTitleModalRef = useTemplateRef('SKU_title_modal')
+
+  function SKUTitleOk() {
+    SKUTitleModalRef.value.submit(tableData.value)
+  }
+
   // 打开变种图片弹窗
-  function showImagesModal(record, item) {}
+  const variantImageModalOpen = ref(false)
+  const variantImageModalRef = useTemplateRef('variant_image_modal')
+
+  function showImagesModal(record, item) {
+    variantImageModalOpen.value = true
+  }
+
+  function variantImageOk() {
+    variantImageModalRef.value.submit(tableData.value)
+  }
 
   // 打开修改库存弹窗
   function showStockModal(record, item) {}
@@ -773,6 +849,7 @@
   /** 保存 */
   function submit() {
     console.log('submit')
+    localStorage.removeItem('ids')
   }
 </script>
 
