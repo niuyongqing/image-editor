@@ -67,8 +67,6 @@ const showModal = (list = []) => {
             v.checked = false
         })
     });
-    console.log('tableData.value', tableData.value);
-
     visible.value = true;
 };
 

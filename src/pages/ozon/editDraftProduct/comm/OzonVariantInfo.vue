@@ -304,12 +304,12 @@
                                                     <a-menu-item @click="applyAllImage(item)">
                                                         所有变种
                                                     </a-menu-item>
-                                                    <!-- <a-menu-item v-for="item in applyMenuList" :key="item.value"
+                                                    <a-menu-item v-for="item in applyMenuList" :key="item.value"
                                                         @click="applyImage(item)">
                                                         <span>同</span>
                                                         <span px-3px>{{ item.title }}</span>
                                                         <span>的变种</span>
-                                                    </a-menu-item> -->
+                                                    </a-menu-item>
                                                 </a-menu>
                                             </template>
                                         </a-dropdown>
@@ -1010,7 +1010,9 @@ const handleWatermark = async (item) => {
 // 导出全部图片
 const handleExportAllImages = async () => {
     try {
-        const imageList = tableData.value.map(item => item.imageUrl).map((imgItem) => imgItem.map((i) => i.url));
+        const imageList = tableData.value
+            .map(item => item.imageUrl)
+            .map((imgItem) => imgItem.map((i) => i.url.replace(import.meta.env.VITE_APP_BASE_API, '')));
         downloadLoading.value = true;
         let res = await downloadAllImage({ imageList: imageList.flat() });
         message.success('导出成功');

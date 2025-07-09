@@ -22,8 +22,7 @@
                             value: 'threeCategoryId',
                         }">
                     </a-select>
-                    <a-button style="margin-left: 20px" :disabled="categoryTreeList.length == 0"
-                        @click="selectVisible = true">选择分类</a-button>
+                    <a-button style="margin-left: 20px" @click="changeCategory">选择分类</a-button>
                     <p v-if="hisAttrObj.length != 0" style="color: #933">
                         <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{ hisAttrObj[0].secondCategoryName
                             }}</span>/
@@ -113,8 +112,10 @@
                 </a-form-item>
             </a-form>
         </a-card>
-        <categoryDialog @getAttributesID="getAttributesID" :categoryTreeList="categoryTreeList"
-            :selectVisible="selectVisible" @handleEditClose="selectVisible = false"></categoryDialog>
+
+        <CategoryModal ref="categoryModalRef" :account="form.shortCode" @select="handleSelect"></CategoryModal>
+        <!-- <categoryDialog @getAttributesID="getAttributesID" :categoryTreeList="categoryTreeList"
+            :selectVisible="selectVisible" @handleEditClose="selectVisible = false"></categoryDialog> -->
     </div>
 </template>
 
@@ -128,6 +129,8 @@ import {
 } from "../../config/api/product";
 import categoryDialog from "../../productPublish/comm/categoryDialog.vue";
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
+import CategoryModal from "./categoryModal.vue";
+
 
 const props = defineProps({
     categoryAttributesLoading: Boolean,
@@ -135,7 +138,7 @@ const props = defineProps({
     shopList: Array,
 });
 const emit = defineEmits(["sendShortCode", "getAttributes"]);
-
+const categoryModalEl = useTemplateRef('categoryModalRef');
 const ruleForm = ref(null);
 const ruleForm2 = ref(null);
 const form = reactive({
@@ -230,6 +233,11 @@ const getAttributesID = (ids) => {
     console.log("form", form.categoryId);
 
     emit("getAttributes", form.shortCode, form.categoryId);
+};
+
+// 打开选择分类弹窗
+const changeCategory = () => {
+    categoryModalEl.value.open(form.categoryId)
 };
 
 // 历史分类
@@ -436,6 +444,30 @@ const childForm = async () => {
     // 所有表单都校验通过，返回 true
     return true;
 };
+
+const handleSelect = (data) => {
+    form.categoryId = data.value;
+    hisAttrObj.value = {
+        "categoryId": data.ids[0],
+        "secondCategoryId": data.ids[1],
+        "threeCategoryId": data.ids[2],
+        "categoryName": data.label[0],
+        "secondCategoryName": data.label[1],
+        "threeCategoryName": data.label[2]
+    };
+    secondCategoryId.value = data.ids[1];
+    let params = {
+        account: form.shortCode,
+        secondCategoryId: data.ids[1],
+        threeCategoryId: data.ids[2],
+    };
+    addHistoryCategory(params).then((res) => {
+        getHistoryList(form.shortCode, data.value);
+    });
+    // emits("getAttributes", form.shortCode, form.categoryId);
+}
+
+
 
 // 抛出数据和方法，可以让父级用ref获取
 defineExpose({

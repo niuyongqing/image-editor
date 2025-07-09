@@ -46,7 +46,7 @@
                         <a-button type="link" @click="changeCategory">更换分类</a-button>
                         <p class="tooltip-text" v-if="hisAttrObj && JSON.stringify(hisAttrObj) != '{}'">{{
                             hisAttrObj.categoryName
-                            }} > {{ hisAttrObj.secondCategoryName }} > {{
+                        }} > {{ hisAttrObj.secondCategoryName }} > {{
                                 hisAttrObj.threeCategoryName }} </p>
                         <!-- 表格 -->
                         <a-table :columns="innerColumns" :data-source="innerTableData" bordered :pagination="false"
@@ -375,6 +375,8 @@ const handleSelect = (data) => {
         threeCategoryId: data.ids[2],
     };
     isClear.value = true;
+    optionsLoading.value = true;
+    filterAttrOptions.value = [];
     addHistoryCategory(params).then((res) => {
         historyCategory({ account: form.shortCode })
             .then((res) => {
@@ -405,6 +407,7 @@ const handleSelect = (data) => {
                                 filterAttrOptions: filterAttrOptions.value,
                             }
                         });
+                        optionsLoading.value = false;
                     }
                 })
             })
