@@ -83,8 +83,7 @@
                 >{{ i.name }}</a-checkbox>
                 <span v-if="i.color" :style="`width: 12px; height: 12px; background-color: ${i.color};`"></span>
                 <div v-show="!i.isEditVal">
-                  
-                  <async-icon :icon="'EditOutlined'" @click.stop="itemIconClick('edit', i, form[item.id])"></async-icon>
+                  <async-icon style="margin-left: 0;" :icon="'EditOutlined'" @click.stop="itemIconClick('edit', i, form[item.id])"></async-icon>
                 </div>
                 <div v-show="i.isEditVal">
                   <a-input 
@@ -125,9 +124,16 @@
               rowKey="id"
             >
               <template #headerCell="{ column }">
-                {{ column.title }}
-                <!-- <template>
-                </template> -->
+                <div>
+                  {{ column.title }}
+                </div>
+                <div v-if="column.key === 'skuCode'">
+                  (
+                    <a-button @click="openModal('sukModal', 'foundation', column.key)" type="link" >一键生成</a-button>
+                    ·
+                    <a-button @click="openModal('sukModal', 'senior', column.key)" type="link">高级</a-button>
+                  )
+                </div>
               </template>
 
               <template #bodyCell="{ column, record: row }">
@@ -173,6 +179,7 @@
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from '~@/layouts/components/menu/async-icon.vue'
 import bacthVariantStringEdit from './modal/bacthVariantStringEdit.vue'
+import sukModal from './modal/sukModal.vue';
 import { cloneDeep } from 'lodash-es';
 defineOptions({ name: "acquisitionEdit_variantInfo" })
 const { proxy: _this } = getCurrentInstance()
@@ -201,6 +208,7 @@ const modalInfo = reactive({
     name: null,
     components: {
       bacthVariantStringEdit: markRaw(bacthVariantStringEdit),
+      sukModal: markRaw(sukModal),
     },
     data: {
       key: '',
@@ -543,12 +551,16 @@ function generateVariantInfo(e, val, formItem) {
       })
     }
   }
-}
-// 打开弹窗
+}/**
+ * // 打开弹窗
+ * @param component 组件名称
+ * @param type 弹窗类型
+ * @param key 当前列字段
+ */
 function openModal(component, type = '', key = '') {
   modalInfo.name = modalInfo.components[component];
   modalInfo.data = {
-    key,
+    prop: key,
     type,
     headerList: variantTheme.header,
     variantList: variantTheme.variantList,
@@ -560,14 +572,21 @@ function openModal(component, type = '', key = '') {
 }
 function modalConfirm(val) {
   console.log(val);
-  if (val.component === "bacthVariantStringEdit") {
-    variantTheme.variantList = [...val.variantList]
-    variantTheme.variantList.forEach(variantItem => {
-      titleIconClick('check', variantItem, form[variantItem.id])
-      variantItem.values.forEach(item => {
-        itemIconClick('check', item, form[variantItem.id])
+  switch (val.component) {
+    case 'bacthVariantStringEdit':
+      variantTheme.variantList = [...val.variantList]
+      variantTheme.variantList.forEach(variantItem => {
+        titleIconClick('check', variantItem, form[variantItem.id])
+        variantItem.values.forEach(item => {
+          itemIconClick('check', item, form[variantItem.id])
+        })
       })
-    })
+      break;
+    case 'sukModal':
+      variantTheme.tableData = val.variantInfo
+      break;
+    default:
+      break;
   }
 }
 // 生成一个随机数
@@ -585,10 +604,6 @@ function createRandom() {
     display: flex;
     .addVariant-btn-input {
       margin-left: 16px;
-    }
-    .anticon {
-      margin-left: 6px;
-      cursor: pointer;
     }
   }
   .variant-attribute-box {
@@ -612,10 +627,6 @@ function createRandom() {
         .variant-title-text {
           margin-right: 6px;
         }
-        .anticon {
-          margin-left: 6px;
-          cursor: pointer;
-        }
       }
     }
     .variant-content {
@@ -634,6 +645,10 @@ function createRandom() {
     .item-add-value {
       padding: 0 20px 20px;
     }
+  }
+  .anticon {
+    margin-left: 6px;
+    cursor: pointer;
   }
   .variantInfo-box {
     padding: 20px;
