@@ -117,6 +117,8 @@ const handleRemove = (element) => {
 
 // 点击选中
 const tabCheck = (element) => {
+  console.log('111111111111', element);
+
   element.checked = !element.checked;
   const isAllChecked = tableData.value.every(item => item.imageUrl.every(v => v.checked));
   checkedAll.value = isAllChecked;

@@ -80,6 +80,33 @@
         <a-table bordered :columns="filteredHeaderList" :data-source="tableData" :pagination="false"
           :scroll="{ x: 2000 }">
           <template #headerCell="{ column }">
+            <template v-if="column.dataIndex === 'colorImg'">
+              <span><span style="color: #ff0a37">*</span> {{ column.title }}</span>
+              <a-dropdown>
+                <a class="ant-dropdown-link" @click.prevent>
+                  批量
+                  <DownOutlined />
+                </a>
+                <template #overlay>
+                  <a-menu>
+                    <a-menu-item @click="changeImgSize">
+                      批量改图片尺寸
+                    </a-menu-item>
+                    <a-menu-item @click="changeImgTranslation">
+                      图片翻译
+                    </a-menu-item>
+                    <a-menu-item @click="changeImgWater">
+                      添加水印
+                    </a-menu-item>
+                    <a-menu-item @click="clearImg">
+                      清空图片
+                    </a-menu-item>
+                  </a-menu>
+                </template>
+              </a-dropdown>
+              <!-- <a class="ml-1.25"
+                @click="batchSKU">批量</a> -->
+            </template>
             <template v-if="column.dataIndex === 'sellerSKU'">
               <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
                 @click="batchSKU">批量</a>
@@ -328,6 +355,12 @@
     <!-- 批量设置变种属性 -->
     <batchSetColor :setValueVis="setValueVis" @closeColorModal="setValueVis = false" @confirm="confirm"
       :setColorOption="setColorOption" @handleCancel="handleColorCancel"></batchSetColor>
+    <!-- 批量修改颜色样本大小 -->
+    <bacthEditColorImg :bacthOpen="bacthOpen" :bacthTitle="bacthTitle" :bacthType="bacthType"
+      @bacthEditModalClose="bacthOpen = false" @backValue="backValue"></bacthEditColorImg>
+    <!-- 颜色样本翻译 -->
+    <colorImgTranslation :bacthOpen="bacthOpen" :bacthTitle="bacthTitle" :bacthType="bacthType"
+      @bacthEditModalClose="bacthOpen = false" @backValue="backValue"></colorImgTranslation>
   </div>
 </template>
 
@@ -368,8 +401,11 @@ import { omit, pick } from 'lodash'
 import SkuDragUpload from '../skuDragImg/index.vue';
 import bacthSkuEditImg from '../skuDragImg/bacthSkuEditImg.vue';
 import ImageTranslation from '../skuDragImg/imageTranslation.vue';
+import colorImgTranslation from "./colorImgTranslation.vue";
+import bacthEditColorImg from "./bacthEditColorImg.vue";
 import download from '~@/api/common/download';
 import { downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js';
+import { FileOutlined, SettingOutlined, DownOutlined, DownloadOutlined } from '@ant-design/icons-vue';
 
 const props = defineProps({
   categoryAttributesLoading: Boolean,
@@ -517,6 +553,27 @@ const procTableData = (newData, newItems) => {
     item.uniqueId // 保留新创建的空条目
   )
 }
+
+// 颜色样本- 批量改图片尺寸
+const changeImgSize = () => {
+  // bacthSkuEditImgRef.value.show();
+}
+// 颜色样本- 添加水印
+const changeImgWater = () => {
+  watermarkRef.value.show();
+}
+// 颜色样本- 清空图片
+const clearImg = () => {
+  tableData.value.forEach((item) => {
+    item.colorImg = [];
+  });
+}
+
+const changeImgTranslation = () => {
+
+}
+
+
 
 // 添加自定义属性
 const selectAttrList = (list) => {
