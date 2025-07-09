@@ -64,12 +64,21 @@
             </div>
             <div class="box-setSUK">
               <div class="box-content-title">设置SKU格式</div>
-              <div class="box-setSUK-tags">
-                <div class="label-tag" v-for="item in skuEditData.variantAttribute" :key="item.id">
-                  <span>{{ item.name }}</span>
-                  <CloseOutlined style="margin-left: 6px; font-size: 16px;" @click="removeTag(item)"/>
-                </div>
-              </div>
+              <draggable
+                v-model="skuEditData.variantAttribute"
+                @end="handleDragEnd" 
+                tag="div" 
+                class="box-setSUK-tags"
+                item-key="id"
+                v-if="skuEditData.variantAttribute.length > 0"
+              >
+                <template #item="{ element: item }">
+                  <div class="label-tag">
+                    <span>{{ item.name }}</span>
+                    <CloseOutlined style="margin-left: 6px; font-size: 16px;" @click="removeTag(item)"/>
+                  </div>
+                </template>
+              </draggable>
             </div>
             <div class="box-setVariant">
               <div class="box-content-title">设置变种代码</div>
@@ -166,6 +175,7 @@
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue' 
 import { CloseOutlined } from '@ant-design/icons-vue';
 import Sortable from 'sortablejs'
+import draggable from 'vuedraggable';
 defineOptions({ name: "sukModal" })
 const { proxy: _this } = getCurrentInstance();
 const emit = defineEmits(['update:modalOpen', 'confirm']);
@@ -229,7 +239,6 @@ watch(() => props.modalOpen, (val, old) => {
     skuEditData.variantInfo = JSON.parse(JSON.stringify(props.modalData.variantInfo))
     skuEditData.prop = props.modalData.prop
     nextTick(() => {
-      tagDrop()
       creatVariantAttribute()
     })
   }
@@ -363,26 +372,7 @@ function seniorFn() {
   })
 }
 // 标签拖拽
-function tagDrop() {
-  const tagBox = document.querySelector('.box-setSUK-tags')
-  if (!tagBox) return;
-
-  let sortable = Sortable.create(tagBox, {
-    animation: 300,
-    delay: 0,
-    onEnd: evt => {
-      const oldItem = skuEditData.variantAttribute[evt.oldIndex]
-      skuEditData.variantAttribute.splice(evt.oldIndex, 1)
-      skuEditData.variantAttribute.splice(evt.newIndex, 0, oldItem)
-      // 在组件移除后，重新渲染组件
-      // this.$nextTick可实现在DOM 状态更新后，执行传入的方法。
-      nextTick(() => {
-        setTimeout(() => {
-          tagDrop() // 重新加载这个方法，否则刷新后无法使用
-        }, 200)
-      });
-    }
-  })
+function handleDragEnd() {
   // console.log(11, {tagBox, sortable});
 }
 function selectChange(val, key) {

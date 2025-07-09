@@ -125,14 +125,17 @@
             >
               <template #headerCell="{ column }">
                 <div>
-                  {{ column.title }}
+                  {{ column.title + (['originalPrice', 'currentPrice'].includes(column.key) ? `(${props.productData?.priceInfo?.currency})` : '') }}
                 </div>
                 <div v-if="column.key === 'skuCode'">
                   (
-                    <a-button @click="openModal('sukModal', 'foundation', column.key)" type="link" >一键生成</a-button>
+                    <a-button @click="openModal('sukModal', column, 'foundation')" type="link" >一键生成</a-button>
                     ·
-                    <a-button @click="openModal('sukModal', 'senior', column.key)" type="link">高级</a-button>
+                    <a-button @click="openModal('sukModal', column, 'senior')" type="link">高级</a-button>
                   )
+                </div>
+                <div v-else-if="['originalPrice', 'currentPrice', 'inventory'].includes(column.key)">
+                  (<a-button @click="openModal('numberEditModal', column)" type="link">批量</a-button>)
                 </div>
               </template>
 
@@ -180,6 +183,7 @@ import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from '~@/layouts/components/menu/async-icon.vue'
 import bacthVariantStringEdit from './modal/bacthVariantStringEdit.vue'
 import sukModal from './modal/sukModal.vue';
+import numberEditModal from './modal/numberEditModal.vue';
 import { cloneDeep } from 'lodash-es';
 defineOptions({ name: "acquisitionEdit_variantInfo" })
 const { proxy: _this } = getCurrentInstance()
@@ -209,6 +213,7 @@ const modalInfo = reactive({
     components: {
       bacthVariantStringEdit: markRaw(bacthVariantStringEdit),
       sukModal: markRaw(sukModal),
+      numberEditModal: markRaw(numberEditModal),
     },
     data: {
       key: '',
@@ -229,14 +234,14 @@ const header = computed(() => {
       width: 200
     },
     {
-      title: `价格（${props.productData?.priceInfo?.currency}）`,
+      title: '价格',
       dataIndex: 'originalPrice',
       key: "originalPrice",
       align: "center",
       width: 200
     },
     {
-      title: `促销价（${props.productData?.priceInfo?.currency}）`,
+      title: '促销价',
       dataIndex: 'currentPrice',
       key: "currentPrice",
       align: "center",
@@ -551,27 +556,29 @@ function generateVariantInfo(e, val, formItem) {
       })
     }
   }
-}/**
+};
+/**
  * // 打开弹窗
  * @param component 组件名称
+ * @param column 当前表头列
  * @param type 弹窗类型
- * @param key 当前列字段
  */
-function openModal(component, type = '', key = '') {
+function openModal(component, column, type = '') {
   modalInfo.name = modalInfo.components[component];
   modalInfo.data = {
-    prop: key,
+    prop: column.key,
     type,
+    title: column.title,
     headerList: variantTheme.header,
     variantList: variantTheme.variantList,
-    variantInfo: variantTheme.tableData
+    variantInfo: variantTheme.tableData,
   };
   nextTick(() => {
     modalInfo.open = !modalInfo.open;
   })
 }
 function modalConfirm(val) {
-  console.log(val);
+  // console.log(val);
   switch (val.component) {
     case 'bacthVariantStringEdit':
       variantTheme.variantList = [...val.variantList]
@@ -583,6 +590,7 @@ function modalConfirm(val) {
       })
       break;
     case 'sukModal':
+    case 'numberEditModal':
       variantTheme.tableData = val.variantInfo
       break;
     default:
