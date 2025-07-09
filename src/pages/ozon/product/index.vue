@@ -1128,7 +1128,7 @@ const formData = reactive({
   account: "",
   sku: "",
   name: "",
-  prop: "created_time",
+  prop: "create_time",
   order: "desc",
   state: "",
 });
@@ -1205,7 +1205,7 @@ const errorColumns = [
 ];
 const actives = ref(1);
 const sortObj = reactive({
-  sortField: "created_time",
+  sortField: "create_time",
   sortType: "desc",
 });
 const searchType = [
@@ -1228,7 +1228,7 @@ const shopObj = {
 };
 const active = ref({
   label: "按创建时间",
-  value: "created_time",
+  value: "create_time",
   type: "top",
   prop: 1,
   isDefault: true,
@@ -1236,7 +1236,7 @@ const active = ref({
 const strList = ref([
   {
     label: "按创建时间",
-    value: "created_time",
+    value: "create_time",
     type: "top",
     prop: 1,
     isDefault: true,
