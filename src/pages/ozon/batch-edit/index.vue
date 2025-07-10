@@ -482,17 +482,18 @@
       @ok="VATOk"
     />
 
+    <VariantImageModal
+      v-model:open="variantImageModalOpen"
+      ref="variant_image_modal"
+      :raw-variant-images="curVariantImages"
+      @ok="variantImageOk"
+    />
+
     <SKUTitleModal
       v-model:open="SKUTitleModalOpen"
       :attr-count-max-length="attrCountMaxLength"
       ref="SKU_title_modal"
       @ok="SKUTitleOk"
-    />
-
-    <VariantImageModal
-      v-model:open="variantImageModalOpen"
-      ref="variant_image_modal"
-      @ok="variantImageOk"
     />
   </div>
 </template>
@@ -506,8 +507,8 @@
   import TitleModal from './components/TitleModal.vue'
   import DescModal from './components/DescModal.vue'
   import VATModal from './components/VATModal.vue'
-  import SKUTitleModal from './components/SKUTitleModal.vue'
   import VariantImageModal from './components/VariantImageModal.vue'
+  import SKUTitleModal from './components/SKUTitleModal.vue'
 
   // 取出产品 id
   const ids = JSON.parse(localStorage.getItem('ids'))
@@ -518,7 +519,7 @@
   getDetails()
   function getDetails() {
     batchQueryDetailApi({ ids }).then(res => {
-      rawTableData = res.data || []
+      /* rawTableData = res.data || []
       const list = res.data || []
       const list2 = list.map(item => {
         const mainImage = item.skuList[0].primaryImage[0]
@@ -538,7 +539,7 @@
 
         return obj
       })
-      tableData2.value = list2
+      tableData2.value = list2 */
     })
   }
   // 变种主题数量(max)
@@ -813,24 +814,24 @@
     VATModalRef.value.modify(tableData.value)
   }
 
+  // 打开变种图片弹窗
+  const variantImageModalOpen = ref(false)
+  const variantImageModalRef = useTemplateRef('variant_image_modal')
+  const curVariantImages = ref([])
+
+  function showImagesModal(record, item) {
+    variantImageModalOpen.value = true
+    curVariantImages.value = item.images || []
+  }
+
+  function variantImageOk() {}
+
   // SKU 标题 弹窗
   const SKUTitleModalOpen = ref(false)
   const SKUTitleModalRef = useTemplateRef('SKU_title_modal')
 
   function SKUTitleOk() {
     SKUTitleModalRef.value.submit(tableData.value)
-  }
-
-  // 打开变种图片弹窗
-  const variantImageModalOpen = ref(false)
-  const variantImageModalRef = useTemplateRef('variant_image_modal')
-
-  function showImagesModal(record, item) {
-    variantImageModalOpen.value = true
-  }
-
-  function variantImageOk() {
-    variantImageModalRef.value.submit(tableData.value)
   }
 
   // 打开修改库存弹窗
