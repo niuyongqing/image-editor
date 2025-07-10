@@ -1,7 +1,7 @@
 <template>
     <div>
         <a-modal v-model:open="dialogVisible" title="提示" width="1000px" @cancel="cancel" :footer="null"
-            :maskClosable="false">
+            :maskClosable="false" :style="{ top: '10px' }">
             <div flex justify-between mb-15px>
                 <div>
                     <a-breadcrumb separator=">">
@@ -46,19 +46,31 @@
                         <a-button type="link" @click="changeCategory">更换分类</a-button>
                         <p class="tooltip-text" v-if="hisAttrObj && JSON.stringify(hisAttrObj) != '{}'">{{
                             hisAttrObj.categoryName
-                            }} > {{ hisAttrObj.secondCategoryName }} > {{
+                        }} > {{ hisAttrObj.secondCategoryName }} > {{
                                 hisAttrObj.threeCategoryName }} </p>
                         <!-- 表格 -->
                         <a-table :columns="innerColumns" :data-source="innerTableData" bordered :pagination="false"
-                            style="margin-top: 10px;">
+                            :loading="optionsLoading" style="margin-top: 10px;">
                             <template #bodyCell="{ column, record }">
                                 <template v-if="column.dataIndex === 'catTheme'">
                                     {{ record.catTheme }}
                                 </template>
                                 <template v-if="column.dataIndex === 'ozonTheme'">
-                                    <a-select v-model:value="record.ozonTheme" allowClear placeholder="请选择"
-                                        style="width: 180px;" :options="attrOptions(record.filterAttrOptions)">
-                                    </a-select>
+                                    <div>
+                                        <a-select v-model:value="record.ozonTheme" allowClear placeholder="请选择"
+                                            style="width: 180px;" :options="filterAttrOptions">
+                                            <template #notFoundContent>
+                                                <div v-if="optionsLoading" w-180px h-150px flex justify-center
+                                                    items-center>
+                                                    <a-spin />
+                                                </div>
+                                                <div v-else flex justify-center items-center>
+                                                    <a-empty />
+                                                </div>
+                                            </template>
+                                        </a-select>
+                                    </div>
+
                                 </template>
                             </template>
                         </a-table>
@@ -95,6 +107,8 @@ const platNames = {
     Tmall: '天猫',
     AliExpress: '速卖通',
 };
+
+const resData = ref(null);
 const baseApi = import.meta.env.VITE_APP_BASE_API;
 const relationDetail = ref({});
 const columns = [
@@ -142,6 +156,7 @@ const hisAttrObj = ref({}) //选中的三级
 const secondCategoryId = ref(undefined);
 const attributes = ref([]);
 const filterAttrOptions = ref([]); // 过滤后的属性
+const optionsLoading = ref(false); // 下拉框loading
 const tableData = ref([
     {
         primaryImage: '',
@@ -185,32 +200,48 @@ function getFilterAttrs() {
         }
     });
     innerTableData.value = [];
-    if (acceptParams.value.variantAttr && Object.keys(acceptParams.value.variantAttr).length > 0) {
+
+    if (resData.value) {
+        if (acceptParams.value.variantAttr && Object.keys(acceptParams.value.variantAttr).length > 0) {
+            Object.keys(acceptParams.value.variantAttr).forEach((key) => {
+                const variantRelationList = relationDetail.value.variantRelationList || [];
+                const platformVariantName = variantRelationList.find((item) => {
+                    return item.originalVariantName === key
+                })?.platformVariantName;
+
+
+                if (isClear.value) {
+                    innerTableData.value.push({
+                        catTheme: key,
+                        attrLabel: undefined,
+                        ozonTheme: undefined,
+                        filterAttrOptions: filterAttrOptions.value,
+                    })
+                } else {
+                    innerTableData.value.push({
+                        catTheme: key,
+                        attrLabel: platformVariantName ? platformVariantName.replace(/\(.*\)/, "") : undefined,
+                        ozonTheme: relationDetail.value.variantRelationList.find((item) => {
+                            return item.originalVariantName === key
+                        })?.attributeId,
+                        filterAttrOptions: filterAttrOptions.value,
+                    })
+                }
+
+            });
+        }
+
+    } else {
         Object.keys(acceptParams.value.variantAttr).forEach((key) => {
-            const platformVariantName = relationDetail.value.variantRelationList.find((item) => {
-                return item.originalVariantName === key
-            })?.platformVariantName
+            innerTableData.value.push({
+                catTheme: key,
+                attrLabel: undefined,
+                ozonTheme: undefined,
+                filterAttrOptions: filterAttrOptions.value,
+            })
+        })
 
-            if (isClear.value) {
-                innerTableData.value.push({
-                    catTheme: key,
-                    attrLabel: undefined,
-                    ozonTheme: undefined,
-                    filterAttrOptions: filterAttrOptions.value,
-                })
-            } else {
-                innerTableData.value.push({
-                    catTheme: key,
-                    attrLabel: platformVariantName ? platformVariantName.replace(/\(.*\)/, "") : undefined,
-                    ozonTheme: relationDetail.value.variantRelationList.find((item) => {
-                        return item.originalVariantName === key
-                    })?.attributeId,
-                    filterAttrOptions: filterAttrOptions.value,
-                })
-            }
-
-        });
-    };
+    }
 }
 
 // 历史分类
@@ -226,7 +257,9 @@ const getHistoryList = (account, typeId, categoryId = '') => {
             });
             hisAttrObj.value = findItem || {};
             secondCategoryId.value = findItem?.secondCategoryId;
+
             if (acceptParams.value.variantAttr && Object.keys(acceptParams.value.variantAttr).length > 0) {
+                innerTableData.value = [];
                 Object.keys(acceptParams.value.variantAttr).forEach((key) => {
                     innerTableData.value.push({
                         catTheme: key,
@@ -238,6 +271,8 @@ const getHistoryList = (account, typeId, categoryId = '') => {
             };
 
             if (findItem) {
+                optionsLoading.value = true;
+                filterAttrOptions.value = [];
                 categoryAttributes({
                     account,
                     descriptionCategoryId: findItem.secondCategoryId,
@@ -246,9 +281,13 @@ const getHistoryList = (account, typeId, categoryId = '') => {
                     if (res.code === 200) {
                         attributes.value = res.data || [];
                         getFilterAttrs();
+                        optionsLoading.value = false;
                     }
                 })
             } else {
+                if (!categoryId) {
+                    return;
+                }
                 // 没找到 加入历史分类记录里面
                 addHistoryCategory({
                     account: form.shortCode,
@@ -267,6 +306,8 @@ const selectAttributes = (value) => {
         if (historyCategoryList.value.length != 0) {
             hisAttrObj.value = historyCategoryList.value.find((item) => item.threeCategoryId === value);
             secondCategoryId.value = hisAttrObj.value.secondCategoryId;
+            optionsLoading.value = true;
+            filterAttrOptions.value = [];
             categoryAttributes({
                 account: form.shortCode,
                 descriptionCategoryId: hisAttrObj.value.secondCategoryId,
@@ -276,6 +317,7 @@ const selectAttributes = (value) => {
                     attributes.value = res.data || [];
                     isClear.value = true;
                     getFilterAttrs();
+                    optionsLoading.value = false;
                 }
             })
         }
@@ -326,6 +368,7 @@ const open = (data) => {
         productCollectId: data.gatherProductId,
     }).then((res) => {
         if (res.code === 200) {
+            resData.value = res.data;
             relationDetail.value = res.data || {};
             if (JSON.stringify(relationDetail.value) != '{}') {
                 tableData.value = [{
@@ -388,7 +431,8 @@ const editCategory = () => {
     };
 
     // 对应Ozon变种主题 选择不能有一样的
-    const attributeIdList = variantRelationList.map(item => item.attributeId).filter(item => item !== undefined);
+    const attributeIdList = variantRelationList.map(item => item.attributeId).filter(Boolean);
+
     if (attributeIdList.every(item => item === undefined)) {
         message.error('请选择变种主题选择属性');
         return;

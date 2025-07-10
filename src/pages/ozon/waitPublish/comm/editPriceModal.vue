@@ -383,26 +383,26 @@ const commList = [
     }
 ]
 const leftList = reactive([
-    // {
-    //     title: "产品信息",
-    //     option: [
-    //         {
-    //             label: '产品标题',
-    //             value: 'title'
-    //         },
-    //         {
-    //             label: 'VAT',
-    //             value: 'vat'
-    //         },
-    //         {
-    //             label: '合并属性',
-    //             value: 'attr'
-    //         }
-    //     ],
-    //     indeterminate: false,
-    //     checkAll: false,
-    //     checkedList: [],
-    // },
+    {
+        title: "产品信息",
+        option: [
+            {
+                label: '产品标题',
+                value: 'title'
+            },
+            {
+                label: 'VAT',
+                value: 'vat'
+            },
+            {
+                label: '合并属性',
+                value: 'attr'
+            }
+        ],
+        indeterminate: false,
+        checkAll: false,
+        checkedList: [],
+    },
     {
         title: "价格与库存",
         option: [
@@ -427,22 +427,22 @@ const leftList = reactive([
         checkAll: false,
         checkedList: [],
     },
-    // {
-    //     title: "重量和尺寸",
-    //     option: [
-    //         {
-    //             label: '重量',
-    //             value: 'weight'
-    //         },
-    //         {
-    //             label: '尺寸',
-    //             value: 'size'
-    //         }
-    //     ],
-    //     indeterminate: false,
-    //     checkAll: false,
-    //     checkedList: [],
-    // }
+    {
+        title: "重量和尺寸",
+        option: [
+            {
+                label: '重量',
+                value: 'weight'
+            },
+            {
+                label: '尺寸',
+                value: 'size'
+            }
+        ],
+        indeterminate: false,
+        checkAll: false,
+        checkedList: [],
+    }
 ])
 
 const onProductAllChange = (e, item) => {

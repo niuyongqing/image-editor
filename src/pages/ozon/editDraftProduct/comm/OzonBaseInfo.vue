@@ -1,10 +1,10 @@
 <template>
     <div id="OzonBaseInfoCont">
-        <a-card title="基本信息" style="text-align: left;">
+        <a-card title="基本信息" style="text-align: left">
             <a-form :label-col="{ span: 3 }" ref="ruleForm" :model="form" class="mt-5" :rules="rules">
                 <a-form-item label="店铺：" name="shortCode">
-                    <a-select v-model:value="form.shortCode" placeholder="请选择店铺" disabled style="width: 90%" allowClear
-                        showSearch optionFilterProp="label" :options="shopList">
+                    <a-select v-model:value="form.shortCode" placeholder="请选择店铺" style="width: 90%" allowClear
+                        showSearch optionFilterProp="label" :options="shopList" @change="getHistoryList">
                     </a-select>
                 </a-form-item>
                 <a-form-item label="商品标题：" name="name">
@@ -16,35 +16,49 @@
                     </a-select>
                 </a-form-item>
                 <a-form-item label="分类：" name="categoryId">
-                    <a-select v-model:value="form.categoryId" allowClear showSearch placeholder="请选择"
-                        style="width: 200px;" :options="historyCategoryList" :fieldNames="{
-                            label: 'threeCategoryName', value: 'threeCategoryId',
+                    <a-select v-model:value="form.categoryId" allowClear showSearch labelInValue placeholder="请选择"
+                        style="width: 200px" :options="historyCategoryList" @change="selectAttributes" :fieldNames="{
+                            label: 'threeCategoryName',
+                            value: 'threeCategoryId',
                         }">
                     </a-select>
                     <a-button style="margin-left: 20px" @click="changeCategory">选择分类</a-button>
-                    <p class="tooltip-text" v-if="JSON.stringify(hisAttrObj) != '{}'">{{ hisAttrObj.categoryName }}/{{
-                        hisAttrObj.secondCategoryName }}/{{
-                            hisAttrObj.threeCategoryName }} </p>
+                    <p v-if="hisAttrObj.length != 0" style="color: #933">
+                        <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{ hisAttrObj[0].secondCategoryName
+                        }}</span>/
+                        <span>{{ hisAttrObj[0].threeCategoryName }}</span>
+                    </p>
                 </a-form-item>
                 <a-form-item label="产品属性：">
-                    <a-card shadow="never" v-loading="categoryAttributesLoading" style="
-                    width: 90%;
-                    height: 600px;
-                    overflow-y: auto;
-                    ">
+                    <a-card shadow="never" :loading="categoryAttributesLoading" style="
+              position: relative;
+              width: 90%;
+              max-height: 600px;
+              overflow-y: auto;
+            ">
+                        <!-- 展开收起 -->
+                        <div w-full sticky top-2 right-0 z-2 v-if="loopAttributes.length">
+                            <a-button class="flex justify-end" type="link" @click="isExpand = !isExpand"> {{ isExpand
+                                ?
+                                '- 收起'
+                                : '+ 展开'
+                            }}</a-button>
+                        </div>
                         <a-form ref="ruleForm2" :model="form.attributes" :label-col="{ span: 5 }" :rules="rules2"
                             style="margin-top: 25px">
-                            <div v-for="(item, index) in loopAttributes" :key="index"
+                            <div v-for="(item, index) in sortAttrs(loopAttributes)" :key="index"
                                 style="margin: 10px; flex: 0 0 auto">
                                 <a-form-item :name="item.name" v-if="item.show">
                                     <template #label>
-                                        <span class="mr-2.5 truncate">{{ item.label ? item.label : item.name }}</span>
+                                        <span class="mr-2.5 truncate">{{
+                                            item.label ? item.label : item.name
+                                        }}</span>
                                         <a-tooltip class="tooltipStyle" effect="dark" :title="item.description"
                                             popper-class="ozonTooltip" placement="top">
                                             <AsyncIcon icon="QuestionCircleOutlined"></AsyncIcon>
                                         </a-tooltip>
                                     </template>
-                                    <a-input v-if="item.selectType === 'input' && item.type == 'String'"
+                                    <a-input v-if="item.selectType === 'input'"
                                         v-model:value="form.attributes[item.name]" :style="'width: 80%'" allow-clear
                                         :maxlength="item.name == '海关编码' || item.name == 'IKP公司'
                                             ? 17
@@ -52,13 +66,6 @@
                                                 ? 9999999
                                                 : 100
                                             " :minlength="1000000"></a-input>
-                                    <a-input-number v-if="item.selectType === 'input' && item.type == 'Decimal'"
-                                        v-model:value="form.attributes[item.name]" :precision="2"
-                                        style="width: 80%"></a-input-number>
-                                    <a-input-number v-if="item.selectType === 'input' && item.type == 'Integer'"
-                                        v-model:value="form.attributes[item.name]" :precision="0"
-                                        style="width: 80%"></a-input-number>
-
                                     <div v-if="
                                         item.type == 'String' &&
                                         item.isCollection &&
@@ -66,8 +73,10 @@
                                     ">
                                         <div v-if="item.options && item.options.length > 25">
                                             <a-select optionFilterProp="label" show-search
-                                                v-model:value="item.selectDate" allowClear style="width: 200px"
-                                                placeholder="请输入内容" labelInValue>
+                                                v-model:value="item.selectDate" allowClear
+                                                style="width: 200px; margin-bottom: 5px" placeholder="请输入内容"
+                                                labelInValue>
+                                                <!-- :options="item.options" @change="handlerChangeSelectDate"-->
                                                 <a-select-option :value="v" :label="v.label"
                                                     v-for="(v, i) in item.options" :key="i">{{ v.label
                                                     }}</a-select-option>
@@ -77,15 +86,24 @@
                                         </div>
                                         <a-form-item-rest>
                                             <a-checkbox-group v-model:value="form.attributes[item.name]"
-                                                style="width: 80%;" :options="item.acquiesceList">
+                                                style="width: 80%" :options="item.acquiesceList" class="boxGroup">
+                                                <!--  :options="item.acquiesceList" v-model:checked="option.value" -->
+                                                <!-- <a-checkbox v-for="option in item.acquiesceList" :key="option.value">
+                                                    {{ option.label }}
+                                                </a-checkbox> -->
                                             </a-checkbox-group>
                                         </a-form-item-rest>
+                                        <!-- <a-checkbox v-for="i in item.acquiesceList" :label="i.value"
+                                            :key="i.value">{{ i.value }}</a-checkbox> @change="handlerSelectDate"-->
                                     </div>
                                     <a-select optionFilterProp="label" show-search
                                         v-model:value="form.attributes[item.name]" v-if="item.selectType === 'select'"
-                                        labelInValue style="width: 80%" allowClear>
-                                        <a-select-option :value="v" v-for="(v, i) in item.options" :key="i">{{ v.label
-                                        }}</a-select-option>
+                                        labelInValue :style="'width: 80%'" allowClear>
+                                        <a-select-option v-if="item.id == 85" :value="'无品牌'">无品牌</a-select-option>
+
+                                        <a-select-option v-else :value="v" v-for="(v, i) in item.options" :key="i">
+                                            {{ v.label }}
+                                        </a-select-option>
                                     </a-select>
                                 </a-form-item>
                             </div>
@@ -94,31 +112,32 @@
                 </a-form-item>
             </a-form>
         </a-card>
+
         <CategoryModal ref="categoryModalRef" :account="form.shortCode" @select="handleSelect"></CategoryModal>
     </div>
 </template>
 
-<script setup name='OzonBaseInfo'>
-import { ref, reactive, onMounted, computed } from 'vue'
+<script setup name="OzonBaseInfo">
+import { ref, reactive, onMounted, computed, watchPostEffect } from "vue";
 import {
     categoryTree,
     historyCategory,
     addHistoryCategory,
     historyAttribute,
 } from "../../config/api/product";
+import categoryDialog from "../../productPublish/comm/categoryDialog.vue";
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import CategoryModal from "./categoryModal.vue";
 
 const props = defineProps({
     categoryAttributesLoading: Boolean,
-    attributesCache: Array,
     productDetail: Object,
     shopList: Array,
 });
 const emit = defineEmits(["sendShortCode", "getAttributes"]);
 const categoryModalEl = useTemplateRef('categoryModalRef');
-const ruleForm = ref(null)
-const ruleForm2 = ref(null)
+const ruleForm = ref(null);
+const ruleForm2 = ref(null);
 const form = reactive({
     name: "",
     shortCode: "",
@@ -126,8 +145,8 @@ const form = reactive({
     vat: "", //税
     attributes: {}, //产品属性
     storeHistoryCategoryId: "", //资料库分类ID
-})
-const selectVisible = ref(false)
+});
+const selectVisible = ref(false);
 const rules = {
     shortCode: {
         required: true,
@@ -149,13 +168,12 @@ const rules = {
         message: "必填项，请填写",
         trigger: ["blur", "change"],
     },
-}
-const rules2 = ref({})
-const loopAttributes = ref({})
-const foldStatus = ref(true)
-const categoryTreeLoading = ref(false)
-const categoryTreeList = ref([])
-const historyCategoryList = ref([])
+};
+const rules2 = ref({});
+const loopAttributes = ref([]);
+const categoryTreeList = ref([]);
+const historyCategoryList = ref([]);
+const isExpand = ref(false)
 const vatList = [
     {
         label: "免税",
@@ -169,39 +187,94 @@ const vatList = [
         label: "20%",
         value: "0.2",
     },
-]
-const filterAttrList = ref([])
-const operationLine = ref([]) //取消的
-const hisAttrObj = ref({}) //选中的三级
-const secondCategoryId = ref(undefined);
+];
+const hisAttrObj = ref([]); //选中的三级
 
-const getHistoryList = async (account, typeId, descriptionCategoryId = '') => {
+// 获取选择树
+const getCategoryTree = () => {
+    if (!form.shortCode) {
+        return;
+    }
+    categoryTree({ account: form.shortCode }).then((res) => {
+        let result = res?.data || [];
+        categoryTreeList.value = filterEmptyChildren(result);
+    });
+};
 
-    historyCategory({ account: account })
-        .then((res) => {
-            historyCategoryList.value = res?.data || [];
-            form.categoryId = typeId;
-            const findItem = historyCategoryList.value.find((item) => {
-                return item.threeCategoryId === typeId
-            });
-            if (findItem) {
-                hisAttrObj.value = findItem || {};
-                secondCategoryId.value = findItem?.secondCategoryId;
-            } else {
+const sortAttrs = (attrs) => {
+    // 如果是展开
+    if (isExpand.value) {
+        return attrs || []
+    } else {
+        return attrs?.filter(item => item.isRequired) || []
+    }
+};
 
-                // 没找到 加入历史分类记录里面
-                addHistoryCategory({
-                    account: form.shortCode,
-                    secondCategoryId: descriptionCategoryId,
-                    threeCategoryId: typeId,
-                }).then((res) => {
-                    getHistoryList(form.shortCode, typeId);
-                })
-            }
+// 根据分类弹窗中选择的分类去查询属性
+const getAttributesID = (ids) => {
+    let params = {
+        account: form.shortCode,
+        secondCategoryId: ids.secondCategoryId,
+        threeCategoryId: ids.value,
+    };
+    addHistoryCategory(params).then((res) => {
+        getHistoryList(form.shortCode);
+    });
+    form.categoryId = {
+        threeCategoryId: ids.value,
+        threeCategoryName: "",
+        secondCategoryId: ids.secondCategoryId,
+        label: ids.label,
+        value: ids.value,
+    };
+    emit("getAttributes", form.shortCode, form.categoryId);
+};
 
-        })
-}
+// 打开选择分类弹窗
+const changeCategory = () => {
+    categoryModalEl.value.open(form.categoryId.threeCategoryId)
+};
 
+// 历史分类
+const getHistoryList = (account) => {
+    if (!form.shortCode) {
+        return;
+    }
+    emit("sendShortCode", form.shortCode);
+    historyCategory({ account }).then((res) => {
+        historyCategoryList.value = res?.data || [];
+        if (
+            historyCategoryList.value.length != 0 &&
+            JSON.stringify(form.categoryId) != "{}"
+        ) {
+            hisAttrObj.value = historyCategoryList.value.filter(
+                (item) => item.threeCategoryId == form?.categoryId?.threeCategoryId
+            );
+        }
+    });
+};
+
+// 选中的分类
+const selectAttributes = (e) => {
+    if (e) {
+        if (historyCategoryList.value.length != 0) {
+            hisAttrObj.value = historyCategoryList.value.filter(
+                (item) => item.threeCategoryId == e.option.threeCategoryId
+            );
+        };
+        form.categoryId = {
+            threeCategoryId: e.option.threeCategoryId,
+            threeCategoryName: "",
+            secondCategoryId: e.option.secondCategoryId,
+            label: e.option.threeCategoryName,
+            value: e.option.threeCategoryId,
+        };
+        emit("getAttributes", form.shortCode, {
+            categoryId: e.option.secondCategoryId,
+            typeId: e.option.threeCategoryId,
+        });
+    }
+};
 
 // 递归清除最后一级的空的Children
 const filterEmptyChildren = (data) => {
@@ -216,7 +289,7 @@ const filterEmptyChildren = (data) => {
             return item;
         }
     });
-}
+};
 
 const processAttributesCache = (attributesCache) => {
     return attributesCache.map((item) => {
@@ -226,7 +299,7 @@ const processAttributesCache = (attributesCache) => {
         }
         return item;
     });
-}
+};
 const shouldHideItem = (item) => {
     return (
         item.id === 4080 ||
@@ -242,7 +315,7 @@ const shouldHideItem = (item) => {
         (item.isAspect && !item.isRequired) ||
         (item.isAspect && item.isCollection)
     );
-}
+};
 
 // 此方法将历史缓存中的属性值进行重新赋值
 const assignValues = (a, b) => {
@@ -255,7 +328,7 @@ const assignValues = (a, b) => {
                     id: Number(value.dictionaryValueId),
                     info: "",
                     picture: "",
-                    label: ""
+                    label: "",
                 };
             }),
         };
@@ -270,45 +343,48 @@ const assignValues = (a, b) => {
             const allValidItems = resItem.values.every((item) => item.value !== "");
             if (attributeId === item.id && allValidItems) {
                 if (selectType === "multSelect") {
-                    // result[name] = resItem.values.map(item => item.id); 旧写法
-                    result[name] = resItem.values.map(item => Number(item.dictionaryValueId)); // 新
-                    // item.acquiesceList = moveMatchedItemForward(item.options, resItem.values.map(item => item.id))
-                    item.acquiesceList = moveMatchedItemForward(item.options, resItem.values.map(item => item.value))
-                }
-                else if (selectType === "select") {
-                    result[name] = findMatchedOption(attributeId, resItem.values[0], item.options)
-                }
-                else {
+                    result[name] = resItem.values.map((item) => item.id);
+                    item.acquiesceList = moveMatchedItemForward(
+                        item.options,
+                        resItem.values.map((item) => item.id)
+                    );
+                } else if (selectType === "select") {
+                    result[name] = findMatchedOption(
+                        attributeId,
+                        resItem.values[0],
+                        item.options
+                    );
+                } else {
                     result[name] = resItem.values[0].value;
                 }
             }
         });
     });
+
     return result;
-}
+};
 
 const findMatchedOption = (attributeId, data, options) => {
-
-    const matchedOption = options?.find(option => option.id === data.id);
+    const matchedOption = options?.find((option) => option.id === data.id);
     if (attributeId == 9070) {
         return {
-            label: JSON.parse(data.value) == true ? "是" : '否',
-            value: JSON.parse(data.value)
-        }
+            label: JSON.parse(data.value) == true ? "是" : "否",
+            value: JSON.parse(data.value),
+        };
     } else if (attributeId == 85) {
         return {
-            label: '无品牌',
-            value: data.id
-        }
+            label: "无品牌",
+            value: data.id,
+        };
     } else if (matchedOption) {
         return {
             id: matchedOption.id,
             value: matchedOption.value,
-            label: matchedOption.label
+            label: matchedOption.label,
         };
     }
     return null;
-}
+};
 const moveMatchedItemForward = (data, arr) => {
     const newData = [];
     const remainingData = [];
@@ -323,7 +399,7 @@ const moveMatchedItemForward = (data, arr) => {
     }
 
     return newData.concat(remainingData).slice(0, 25);
-}
+};
 
 const addItemValues = (obj) => {
     if (!obj.selectDate.value) return;
@@ -333,20 +409,23 @@ const addItemValues = (obj) => {
     );
     //!  判断搜索出来的是否在初始的数组中显示
     if (isExist) {
-        const attr = attributes[obj.name] || []
-        attr.push(obj.selectDate.value)
+        // attributes[obj.name].push(obj.selectDate.value);
+        const attr = attributes[obj.name] || [];
+        attr?.push(obj.selectDate.value);
         attributes[obj.name] = attr
     } else {
+        // attributes[obj.name].push(obj.selectDate.value);
         attributes[obj.name] = attributes[obj.name] || []
-        attributes[obj.name].push(obj.selectDate.value);
+        attributes[obj.name]?.push(obj.selectDate.value);
         obj.acquiesceList.push(obj.selectDate);
     }
-    obj.selectDate = undefined
-}
+    obj.selectDate = undefined;
+};
 
 const childForm = async () => {
     // 收集需要校验的表单引用
     const formRefs = [ruleForm, ruleForm2];
+
     // 循环遍历表单引用数组进行校验
     for (const formRef of formRefs) {
         try {
@@ -360,27 +439,24 @@ const childForm = async () => {
             return false;
         }
     }
-
     // 所有表单都校验通过，返回 true
     return true;
-}
-
-// 打开选择分类弹窗
-const changeCategory = () => {
-    categoryModalEl.value.open(form.categoryId)
 };
 
 const handleSelect = (data) => {
-    form.categoryId = data.value;
-    hisAttrObj.value = {
+    form.categoryId = {
+        "threeCategoryId": data.value,
+        "threeCategoryName": data.label[2],
+        "value": data.value
+    }
+    hisAttrObj.value = [{
         "categoryId": data.ids[0],
         "secondCategoryId": data.ids[1],
         "threeCategoryId": data.ids[2],
         "categoryName": data.label[0],
         "secondCategoryName": data.label[1],
         "threeCategoryName": data.label[2]
-    };
-    secondCategoryId.value = data.ids[1];
+    }];
     let params = {
         account: form.shortCode,
         secondCategoryId: data.ids[1],
@@ -389,129 +465,182 @@ const handleSelect = (data) => {
     addHistoryCategory(params).then((res) => {
         getHistoryList(form.shortCode, data.value);
     });
-    // emits("getAttributes", form.shortCode, form.categoryId);
+    emit("getAttributes", form.shortCode, {
+        categoryId: data.ids[0],
+        secondCategoryId: data.ids[1],
+        threeCategoryId: data.ids[2],
+    });
 }
 
 // 抛出数据和方法，可以让父级用ref获取
 defineExpose({
     form,
-    childForm
-})
+    childForm,
+});
 
-
-watch(() => props.productDetail, val => {
-    if (Object.keys(val).length > 0) {
-        const { simpleName, account, name, vat, typeId, categoryId } = val;
-        // 修改响应式对象的属性
-        form.shortCode = account;
-        form.name = name;
-        form.vat = vat === "0.00" ? vat.split(".")[0] : vat;
-
-        // getHistoryList("160318262", 96814)
-        // console.log('account', account);
-        // console.log('typeId', typeId);
-
-        getHistoryList(account, typeId, categoryId)
-    }
-})
-
-
-watch(() => props.attributesCache, (val) => {
-    console.log('attributesCache', val);
-
-    if (val) {
-        /**
-         *  "URL"  4080
-         *  "类型" 8229
-         *  "PDF文件名称" 8789
-         *   PDF 文件  8790
-         *  "名称" 4180
-         *  "简介" 4191
-         *  "JSON 丰富内容"  11254
-         *  "卖家代码" 9024
-         */
-        const newAttributesCache = processAttributesCache(val);
-        const custAttr = newAttributesCache.filter((a) => !a.isRequired);
-        const filterAttributesCache = custAttr.filter(
-            (a) =>
-                !(a.isAspect && !a.isRequired) &&
-                !(a.isAspect && a.isCollection) &&
-                !(
-                    a.id === 4080 ||
-                    a.id == 8229 ||
-                    a.id == 8789 ||
-                    a.id == 8790 ||
-                    a.id == 4180 ||
-                    a.id == 4191 ||
-                    a.id == 11254 ||
-                    a.id == 9024
-                ) &&
-                !(
-                    a.attributeComplexId == "100001" ||
-                    a.attributeComplexId == "100002"
-                )
-        );
-
-        let noThemeAttributesCache = newAttributesCache.filter(
-            (a) => !a.isAspect
-        );
-        if (noThemeAttributesCache) {
-            noThemeAttributesCache.sort((a, b) => {
-                if (a.isRequired && !b.isRequired) return -1;
-                if (!a.isRequired && b.isRequired) return 1;
-                return 0;
-            });
-
-            let data = noThemeAttributesCache.filter((a) => a.isRequired);
-            rules2.value = {};
-            let attributes = {};
-            // 属性类型处理
-            noThemeAttributesCache.forEach((item) => {
-                item.selectDate = {
-                    label: "",
-                    value: ""
-                };
-                item.options = item?.options?.map(item => {
-                    return {
-                        ...item,
-                        label: item?.label == '否' || item?.label == '是' ? item.label : item.value,
-                        value: item?.label == '否' || item?.label == '是' ? JSON.parse(item.value) : item.id,
-                    }
-                })
-                item.acquiesceList =
-                    (item.options && item.options.slice(0, 25)) ?? [];
-                attributes[item.name] = item.selectType === "multSelect" ? [] : undefined;
-            });
-
-            // 属性校验
-            for (let i = 0; i < data.length; i++) {
-                let obj = {
-                    required: true,
-                    message: `${data[i].name} 为必填项，请填写`,
-                    trigger:
-                        noThemeAttributesCache[i].selectType == "input"
-                            ? "blur"
-                            : "change",
-                };
-                // Object.assign(rules2.value, { [noThemeAttributesCache[i].name]: obj })
-                rules2.value[noThemeAttributesCache[i].name] = obj
-            }
-            // this.$set(rules2.value, noThemeAttributesCache[i].name, obj);
-            // console.log("rules2", rules2.value);
-            loopAttributes.value = noThemeAttributesCache;
-            // 赋值
-            const { attributes: oldAttributes } = props.productDetail.skuList[0];
-
-            const proceRes = assignValues(oldAttributes, loopAttributes.value);
-            form.attributes = proceRes;
-            console.log('proceRes0', proceRes);
+watch(
+    () => form.shortCode,
+    (val) => {
+        if (val) {
+            getCategoryTree();
+            hisAttrObj.value = [];
         }
     }
-})
+);
+watch(
+    () => props.productDetail,
+    (val) => {
+        if (val) {
+            const { simpleName, account, skuList, vat, typeId, descriptionCategoryId, name } =
+                val;
+            // 修改响应式对象的属性
+            form.shortCode = account;
+            form.name = name;
+            form.vat = vat === "0.0" || vat === "0.00" ? "0" : vat;
+            form.categoryId = {
+                threeCategoryId: typeId,
+                threeCategoryName: "",
+                secondCategoryId: descriptionCategoryId,
+                label: undefined,
+                value: typeId,
+            };
+            getHistoryList(account);
+        }
+    }
+);
+
+// console.log('props',props);
+
+watch(
+    () => useOzonProductStore().attributes,
+    (val) => {
+        if (val) {
+            /**
+             *  "URL"  4080
+             *  "类型" 8229
+             *  "PDF文件名称" 8789
+             *   PDF 文件  8790
+             *  "名称" 4180
+             *  "简介" 4191
+             *  "JSON 丰富内容"  11254
+             *  "卖家代码" 9024
+             */
+            const newAttributesCache = processAttributesCache(val);
+            const custAttr = newAttributesCache.filter((a) => !a.isRequired);
+            const filterAttributesCache = custAttr.filter(
+                (a) =>
+                    !(a.isAspect && !a.isRequired) &&
+                    !(a.isAspect && a.isCollection) &&
+                    !(
+                        a.id === 4080 ||
+                        a.id == 8229 ||
+                        a.id == 8789 ||
+                        a.id == 8790 ||
+                        a.id == 4180 ||
+                        a.id == 4191 ||
+                        a.id == 11254 ||
+                        a.id == 9024
+                    ) &&
+                    !(
+                        a.attributeComplexId == "100001" || a.attributeComplexId == "100002"
+                    )
+            );
+
+            let noThemeAttributesCache = newAttributesCache.filter(
+                (a) => !a.isAspect
+            );
+            if (noThemeAttributesCache) {
+                noThemeAttributesCache.sort((a, b) => {
+                    if (a.isRequired && !b.isRequired) return -1;
+                    if (!a.isRequired && b.isRequired) return 1;
+                    return 0;
+                });
+
+                let data = noThemeAttributesCache.filter((a) => a.isRequired);
+                // console.log("data", data);
+                // console.log("rules2", this.rules2);
+                rules2.value = {};
+                let attributes = {};
+                // 属性类型处理
+                noThemeAttributesCache.forEach((item) => {
+                    item.selectDate = {
+                        label: "",
+                        value: "",
+                    };
+                    item.options = item?.options?.map((item) => {
+                        return {
+                            ...item,
+                            label:
+                                item?.label == "否" || item?.label == "是"
+                                    ? item.label
+                                    : item.value,
+                            value:
+                                item?.label == "否" || item?.label == "是"
+                                    ? JSON.parse(item.value)
+                                    : item.id,
+                        };
+                    });
+                    item.acquiesceList =
+                        (item.options && item.options.slice(0, 25)) ?? [];
+                    attributes[item.name] =
+                        item.selectType === "multSelect" ? [] : undefined;
+                });
+
+                // 属性校验
+                for (let i = 0; i < data.length; i++) {
+                    let obj = {
+                        required: true,
+                        message: `${data[i].name} 为必填项，请填写`,
+                        trigger:
+                            noThemeAttributesCache[i].selectType == "input"
+                                ? "blur"
+                                : "change",
+                    };
+                    // Object.assign(rules2.value, { [noThemeAttributesCache[i].name]: obj })
+                    rules2.value[noThemeAttributesCache[i].name] = obj;
+                }
+                // this.$set(rules2.value, noThemeAttributesCache[i].name, obj);
+                // console.log("rules2", rules2.value);
+                loopAttributes.value = noThemeAttributesCache;
+                // 赋值
+                const { attributes: oldAttributes } = props.productDetail?.skuList[0];
+
+                // const groupedAttributes = props.productDetail?.skuList.reduce((acc, item) => {
+                //     item.attributes.forEach(attr => {
+                //         // 添加值序列化比较
+                //         const valueHash = JSON.stringify(attr.values);
+                //         const key = `${attr.id}_${attr.complexId}_${valueHash}`;
+                //         (acc[key] || (acc[key] = [])).push(attr);
+                //     });
+                //     return acc;
+                // }, {});
+
+                // // 转换为二维数组并过滤唯一项
+                // // result将重复属性值去重过后的最终结果
+                // const result = Object.values(groupedAttributes)
+                //     .filter(group => group.length > 1).flat()
+                //     .filter((obj, index, self) =>
+                //         index === self.findIndex(item =>
+                //             JSON.stringify(item) === JSON.stringify(obj)
+                //         )
+                //     );
+
+                // console.log('oldAttributes',oldAttributes);
+                // console.log('loopAttributes',loopAttributes.value);
+                const proceRes = assignValues(oldAttributes, loopAttributes.value); // 旧写法
+                // const proceRes = assignValues(result, loopAttributes.value); //最新写法
+                form.attributes = proceRes;
+                // console.log('proceRes0', proceRes);
+            }
+        }
+    }
+);
 </script>
 <style lang="less" scoped>
 :deep(.ant-checkbox-group) {
     .ant-checkbox-wrapper {
+        margin-bottom: 5px;
+
         span:nth-of-type(2) {
             white-space: nowrap;
             /* 确保文本在一行内显示 */
@@ -523,10 +652,5 @@ watch(() => props.attributesCache, (val) => {
             /* 设置容器宽度 */
         }
     }
-}
-
-.tooltip-text {
-    color: #933;
-    padding-top: 5px;
 }
 </style>

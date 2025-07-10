@@ -50,14 +50,22 @@
                                 hisAttrObj.threeCategoryName }} </p>
                         <!-- 表格 -->
                         <a-table :columns="innerColumns" :data-source="innerTableData" bordered :pagination="false"
-                            style="margin-top: 10px;">
+                            style="margin-top: 10px;" :loading="optionsLoading">
                             <template #bodyCell="{ column, record }">
                                 <template v-if="column.dataIndex === 'catTheme'">
                                     {{ record.catTheme }}
                                 </template>
                                 <template v-if="column.dataIndex === 'ozonTheme'">
                                     <a-select v-model:value="record.ozonTheme" allowClear placeholder="请选择"
-                                        style="width: 180px;" :options="attrOptions(record.filterAttrOptions)">
+                                        style="width: 180px;" :options="filterAttrOptions">
+                                        <template #notFoundContent>
+                                            <div v-if="optionsLoading" w-180px h-150px flex justify-center items-center>
+                                                <a-spin />
+                                            </div>
+                                            <div v-else flex justify-center items-center>
+                                                <a-empty />
+                                            </div>
+                                        </template>
                                     </a-select>
                                 </template>
                             </template>
@@ -140,6 +148,7 @@ const hisAttrObj = ref({}) //选中的三级
 const secondCategoryId = ref(undefined);
 const attributes = ref([]);
 const filterAttrOptions = ref([]); // 过滤后的属性
+const optionsLoading = ref(false); // 下拉框loading
 const tableData = ref([
     {
         primaryImage: '',
@@ -266,6 +275,8 @@ const getHistoryList = (account, typeId, categoryId = '') => {
                 })
             };
             if (findItem) {
+                optionsLoading.value = true;
+                filterAttrOptions.value = [];
                 categoryAttributes({
                     account,
                     descriptionCategoryId: findItem.secondCategoryId,
@@ -274,6 +285,7 @@ const getHistoryList = (account, typeId, categoryId = '') => {
                     if (res.code === 200) {
                         attributes.value = res.data || [];
                         getFilterAttrs();
+                        optionsLoading.value = false;
                     }
                 })
             } else {
@@ -303,6 +315,8 @@ const selectAttributes = (value) => {
         if (historyCategoryList.value.length != 0) {
             hisAttrObj.value = historyCategoryList.value.find((item) => item.threeCategoryId === value);
             secondCategoryId.value = hisAttrObj.value.secondCategoryId;
+            optionsLoading.value = true;
+            filterAttrOptions.value = [];
             categoryAttributes({
                 account: form.shortCode,
                 descriptionCategoryId: hisAttrObj.value.secondCategoryId,
@@ -329,6 +343,7 @@ const selectAttributes = (value) => {
                         }
                     })
                     isClear.value = true;
+                    optionsLoading.value = false;
                 }
             })
         }
@@ -360,6 +375,8 @@ const handleSelect = (data) => {
         threeCategoryId: data.ids[2],
     };
     isClear.value = true;
+    optionsLoading.value = true;
+    filterAttrOptions.value = [];
     addHistoryCategory(params).then((res) => {
         historyCategory({ account: form.shortCode })
             .then((res) => {
@@ -390,6 +407,7 @@ const handleSelect = (data) => {
                                 filterAttrOptions: filterAttrOptions.value,
                             }
                         });
+                        optionsLoading.value = false;
                     }
                 })
             })
@@ -509,8 +527,14 @@ const editCategory = () => {
         "variantRelationList": variantRelationList
     };
 
+
     // 对应Ozon变种主题 选择不能有一样的
     const attributeIdList = variantRelationList.map(item => item.attributeId).filter(Boolean);
+    if (!innerTableData.value.length) {
+        // window.open('/platform/ozon/edit-acquisition-product')
+        emits('edit');
+        return
+    };
     if (attributeIdList.every(item => item === undefined)) {
         message.error('请选择变种主题选择属性');
         return;

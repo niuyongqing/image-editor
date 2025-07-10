@@ -41,8 +41,8 @@ import EditCategoryModal from './editCategoryModal.vue';
 
 const { shopAccount } = defineProps({
     shopAccount: {
-        type: String,
-        default: ''
+        type: Array,
+        default: () => []
     }
 })
 

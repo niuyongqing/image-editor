@@ -8,7 +8,7 @@
                     </a-select>
                 </a-form-item>
                 <a-form-item label="商品标题：" name="name">
-                    <a-input style="width: 90%" v-model:value="form.name" placeholder="请输入产品名称(用俄语或英语)" :maxlength="255"
+                    <a-input style="width: 90%" :disabled="idHave" v-model:value="form.name" placeholder="请输入产品名称(用俄语或英语)" :maxlength="255"
                         showCount></a-input>
                     <!-- :autofocus="true" -->
                 </a-form-item>
@@ -429,6 +429,10 @@ defineExpose({
     form,
     childForm
 })
+// useOzonProductStore().addHeaderList
+const idHave = computed(() => {
+    return useOzonProductStore().addHeaderList.includes('skuTitle');
+})
 
 watch(() => form.shortCode, val => {
     if (val) {
@@ -436,6 +440,33 @@ watch(() => form.shortCode, val => {
         hisAttrObj.value = []
     }
 })
+// 引用产品模板
+watch(() => useOzonProductStore().productTemplate, (val) => {
+    if (val) {
+        const { account, content:{
+            productTemplate: {
+                categoryId: {
+                    threeCategoryId,
+                    secondCategoryId,
+                    value
+                },
+                productAttr
+            }
+        } } = val;
+        form.shortCode = val.account;
+        form.categoryId = {
+            threeCategoryId,
+            threeCategoryName: "",
+            secondCategoryId,
+            label: undefined,
+            value
+        };
+        // getHistoryList(account);
+        emit("getAttributes", form.shortCode, form.categoryId);
+        form.attributes = assignValues(productAttr, loopAttributes.value)
+    }
+})
+
 // props.attributesCache,
 watch(() => useOzonProductStore().attributes, (val) => {
     if (val) {

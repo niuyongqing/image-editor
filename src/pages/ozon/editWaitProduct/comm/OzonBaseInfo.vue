@@ -26,7 +26,7 @@
                         @click="selectVisible = true">选择分类</a-button>
                     <p v-if="hisAttrObj.length != 0" style="color: #933">
                         <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{ hisAttrObj[0].secondCategoryName
-                            }}</span>/
+                        }}</span>/
                         <span>{{ hisAttrObj[0].threeCategoryName }}</span>
                     </p>
                 </a-form-item>
@@ -53,7 +53,7 @@
                                     <template #label>
                                         <span class="mr-2.5 truncate">{{
                                             item.label ? item.label : item.name
-                                            }}</span>
+                                        }}</span>
                                         <a-tooltip class="tooltipStyle" effect="dark" :title="item.description"
                                             popper-class="ozonTooltip" placement="top">
                                             <AsyncIcon icon="QuestionCircleOutlined"></AsyncIcon>
@@ -354,7 +354,7 @@ const assignValues = (a, b) => {
             }
         });
     });
-   
+
     return result;
 };
 
@@ -396,7 +396,7 @@ const moveMatchedItemForward = (data, arr) => {
 };
 
 const addItemValues = (obj) => {
-    if(!obj.selectDate.value) return;
+    if (!obj.selectDate.value) return;
     const { attributes } = form;
     const isExist = obj.acquiesceList.some(
         (item) => item.value === obj.selectDate.value
@@ -456,11 +456,11 @@ watch(
     () => props.productDetail,
     (val) => {
         if (val) {
-            const { simpleName, account, name, vat, typeId, descriptionCategoryId } =
+            const { simpleName, account, skuList, vat, typeId, descriptionCategoryId } =
                 val;
             // 修改响应式对象的属性
             form.shortCode = account;
-            form.name = name;
+            form.name = skuList[0].name;
             form.vat = vat === "0.0" || vat === "0.00" ? "0" : vat;
             form.categoryId = {
                 threeCategoryId: typeId,
@@ -569,9 +569,31 @@ watch(
                 loopAttributes.value = noThemeAttributesCache;
                 // 赋值
                 const { attributes: oldAttributes } = props.productDetail?.skuList[0];
+
+                // const groupedAttributes = props.productDetail?.skuList.reduce((acc, item) => {
+                //     item.attributes.forEach(attr => {
+                //         // 添加值序列化比较
+                //         const valueHash = JSON.stringify(attr.values);
+                //         const key = `${attr.id}_${attr.complexId}_${valueHash}`;
+                //         (acc[key] || (acc[key] = [])).push(attr);
+                //     });
+                //     return acc;
+                // }, {});
+
+                // // 转换为二维数组并过滤唯一项
+                // // result将重复属性值去重过后的最终结果
+                // const result = Object.values(groupedAttributes)
+                //     .filter(group => group.length > 1).flat()
+                //     .filter((obj, index, self) =>
+                //         index === self.findIndex(item =>
+                //             JSON.stringify(item) === JSON.stringify(obj)
+                //         )
+                //     );
+
                 // console.log('oldAttributes',oldAttributes);
                 // console.log('loopAttributes',loopAttributes.value);
-                const proceRes = assignValues(oldAttributes, loopAttributes.value);
+                const proceRes = assignValues(oldAttributes, loopAttributes.value); // 旧写法
+                // const proceRes = assignValues(result, loopAttributes.value); //最新写法
                 form.attributes = proceRes;
                 // console.log('proceRes0', proceRes);
             }

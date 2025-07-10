@@ -25,12 +25,19 @@
                         <a-menu-item @click="handleEditImagesSize">
                             批量修改图片尺寸
                         </a-menu-item>
+                        <a-menu-item @click="handleImageTranslation">
+                            图片翻译
+                        </a-menu-item>
                         <a-menu-item @click="clearAllImages">
                             清空图片
                         </a-menu-item>
                     </a-menu>
                 </template>
             </a-dropdown>
+            <span pl-10px>|</span>
+            <a-button type="link" style="width: 90px; height: 31px; margin-right: 25px;" @click="handleExportAllImages">
+                <DownloadOutlined /> 导出全部图片
+            </a-button>
         </div>
 
         <div>
@@ -38,14 +45,35 @@
         </div>
         <!-- SKU 图片上传可拖拽 :multiple="true" -->
         <div flex justify-between w-full>
-            <a-upload name="file" :customRequest="customRequest" :before-upload="beforeUpload" :headers="headers"
-                :accept="getProps.accept" :multiple="true" :maxCount="getProps.maxCount" :action="getProps.actionUrl" :showUploadList="false" :disabled="disabled">
-                <a-button type="primary" v-if="fileList.length < getProps.maxCount" style="width: 90px; height: 31px;">
-                    <UploadOutlined></UploadOutlined>
+            <a-dropdown>
+                <a-button type="primary" style="width: 90px; height: 31px;">
                     选择图片
+                    <DownOutlined />
                 </a-button>
-            </a-upload>
+                <template #overlay>
+                    <a-menu>
+                        <a-menu-item>
+                            <a-upload name="file" :customRequest="customRequest" :before-upload="beforeUpload"
+                                :headers="headers" :accept="getProps.accept" :multiple="true"
+                                :maxCount="getProps.maxCount" :action="getProps.actionUrl" :showUploadList="false"
+                                :disabled="disabled">
+                                <a-button type="link" v-if="fileList.length < getProps.maxCount"
+                                    style="width: 90px; height: 31px; text-align: center; color: #000">
+                                    <UploadOutlined></UploadOutlined>
+                                    选择图片
+                                </a-button>
+                            </a-upload>
+                        </a-menu-item>
+                        <a-menu-item>
+                            <div style="text-align: center; color: #000" @click="handleSpaceImages">空间图片</div>
+                        </a-menu-item>
 
+                        <a-menu-item>
+                            <div style="text-align: center; color: #000" @click="handleNetImages">网络图片</div>
+                        </a-menu-item>
+                    </a-menu>
+                </template>
+            </a-dropdown>
             <div>
                 <slot name="variantInfo"> </slot>
             </div>
@@ -58,8 +86,8 @@
 
 
         <div flex flex-wrap mt-10px>
-            <draggable v-if="fileList.length > 0" v-model="fileList" @end="handleDragEnd" tag="div" class="flex flex-wrap w-1600px mt-2.5"
-                item-key="url">
+            <draggable v-if="fileList.length > 0" v-model="fileList" @end="handleDragEnd" tag="div"
+                class="flex flex-wrap w-1600px mt-2.5" item-key="url">
                 <template #item="{ element }">
                     <a-card ml-10px p-0px rounded-none class="file-card" hoverable>
                         <div :key="element.uid">
@@ -100,7 +128,15 @@
             </a-modal>
         </div>
         <!-- 批量修改图片尺寸弹窗 -->
-        <BacthSkuEditImg ref="BacthEditImgSizeRef" :fileList="fileList" />
+        <BacthSkuEditImg ref="BacthEditImgSizeRef" />
+
+        <!-- 图片翻译弹窗 -->
+        <ImageTranslation ref="imageTranslationRef" @singleSubmit="handleSingleSubmit"
+            @multiSubmit="handleMultiSubmit" />
+
+        <!-- 网络图片弹窗 -->
+        <NetImageModal ref="NetImageModalRef" @submit="handleNetImageSubmit" />
+
     </div>
 </template>
 
@@ -109,10 +145,16 @@ import draggable from 'vuedraggable';
 import { UploadOutlined, DownOutlined, DownloadOutlined, DeleteOutlined, LoadingOutlined } from '@ant-design/icons-vue';
 import { useAuthorization } from '~/composables/authorization'
 import { getBase64 } from '@/pages/lazada/product/common'
-import BaseModal from '@/components/baseModal/BaseModal.vue'
-import BacthSkuEditImg from './bacthSkuEditImg.vue';
 import { message } from "ant-design-vue";
 import { scaleApi, watermarkApi } from '@/api/common/water-mark.js';
+import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
+import BaseModal from '@/components/baseModal/BaseModal.vue'
+import BacthSkuEditImg from './bacthSkuEditImg.vue';
+import NetImageModal from './netImageModal.vue';
+import ImageTranslation from './imageTranslation.vue';
+import download from '~@/api/common/download';
+import { downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js';
+
 const props = defineProps({
     disabled: {
         type: Boolean,
@@ -150,6 +192,8 @@ const props = defineProps({
     }
 });
 const bacthEditImgSizeEl = useTemplateRef('BacthEditImgSizeRef');
+const netImageModalEl = useTemplateRef('NetImageModalRef');
+const imageTranslationEl = useTemplateRef('imageTranslationRef');
 const attrs = useAttrs();
 const fileList = defineModel('file-list'); // 图片列表
 const previewVisible = ref(false);
@@ -224,8 +268,6 @@ const beforeUpload = (file) => {
     return true;
 };
 
-
-
 const handleImageLoad = (el, event) => {
     nextTick(() => {
         const img = event.target;
@@ -235,8 +277,14 @@ const handleImageLoad = (el, event) => {
     });
 };
 // 导出全部图片
-const downloadAllImages = () => {
-
+const handleExportAllImages = async () => {
+    try {
+        let imageList = fileList.value.map(i => i.url)
+        let res = await downloadAllImage({ imageList })
+        download.name(res.data)
+    } catch (error) {
+        console.error(error)
+    }
 };
 
 // 批量修改图片尺寸
@@ -244,6 +292,13 @@ const handleEditImagesSize = () => {
     console.log('批量修改图片尺寸');
     bacthEditImgSizeEl.value.showModal(fileList.value);
 };
+
+// 图片翻译
+const handleImageTranslation = () => {
+    console.log('图片翻译');
+    imageTranslationEl.value.showModal(fileList.value);
+};
+
 //  清空图片
 const clearAllImages = () => {
     fileList.value = [];
@@ -254,30 +309,105 @@ const handleDragEnd = (event) => {
 };
 // 点击水印
 const watermark = async (item) => {
-    //  添加水印
-    const imagePathList = fileList.value.filter((file) => !file.url.includes('http')).map((item) => {
+    const netPathList = fileList.value.filter((file) => file.url.includes('http')).map((item) => {
         return item.url
     });
-    if (!imagePathList.length) {
-        message.error('请先本地上传图片');
-        return
-    }
-    const waterRes = await watermarkApi({
-        imagePathList: imagePathList,
-        id: item.id,
-    });
-    if (waterRes.code === 200) {
-        const data = waterRes.data || [];
-        data.forEach((item) => {
-            fileList.value.forEach(v => {
-                if (item.originalFilename === v.url) {
-                    v.url = item.url
-                    v.name = item.newFileName
-                    v.checked = false
-                }
+
+    //  只有本地图片
+    if (netPathList.length === 0) {
+        const imagePathList = fileList.value.filter((file) => !file.url.includes('http')).map((item) => {
+            return item.url
+        });
+        const waterRes = await watermarkApi({
+            imagePathList: imagePathList, //
+            id: item.id,
+        });
+        if (waterRes.code === 200) {
+            const data = waterRes.data || [];
+            data.forEach((item) => {
+                fileList.value.forEach(v => {
+                    if (item.originalFilename === v.url) {
+                        v.url = item.url
+                        v.name = item.newFileName
+                        v.checked = false
+                    }
+                })
             })
-        })
+        }
+    } else {
+        //  有网络图片
+        // uploadImgFromNetApi({
+        //     imgUrls: netPathList.join(','),
+        // }).then(async res => {
+        //     if (res.code === 200) {
+        //         const data = res.data || [];
+        //         const imagePathList = data.map((item) => {
+        //             return item.url
+        //         });
+        //         const imgs = fileList.value.filter((file) => file.code).map((item) => {
+        //             return item.url
+        //         });
+
+        //         const waterRes = await watermarkApi({
+        //             imagePathList: [...imagePathList, ...imgs],
+        //             id: item.id,
+        //         });
+
+        //         if (waterRes.code === 200) {
+        //             const waterData = waterRes.data || [];
+        //             waterData.forEach((item) => {
+        //                 fileList.value.forEach(v => {
+        //                     const urlSplit = v.url.split('/')
+        //                     const fileName = urlSplit[urlSplit.length - 1].split('.')[0]
+        //                     if (item.originalFilename.includes(fileName)) {
+        //                         v.url = item.url
+        //                         v.name = item.newFileName
+        //                         v.checked = false
+        //                     }
+        //                 })
+        //             })
+        //         }
+
+        //     }
+        // })
     }
+};
+
+// 空间图片  
+const handleSpaceImages = () => {
+
+};
+
+// 网络图片
+const handleNetImages = () => {
+    netImageModalEl.value.open();
+};
+
+// 单张图片翻译
+const handleSingleSubmit = (checkedImg) => {
+    fileList.value.forEach(v => {
+        if (v.url === checkedImg.oldUrl) {
+            v.url = checkedImg.newUrl
+        }
+    })
+};
+
+// 多张图片翻译
+const handleMultiSubmit = (checkedImgs) => {
+    fileList.value.forEach(v => {
+        checkedImgs.forEach(item => {
+            if (v.url === item.oldUrl) {
+                v.url = item.newUrl
+            }
+        })
+    })
+};
+
+const handleNetImageSubmit = (img) => {
+    fileList.value.push({
+        url: img.url,
+        checked: false,
+    })
 };
 
 watch(() => fileList.value, (newVal) => {

@@ -16,6 +16,8 @@
                 <i v-if="items.isRequired" style="color: red; margin-right: 2px">*</i>
                 <span>{{ items.name }}</span>
               </span>
+              <a-button type="link" v-if="[10096, 4295].includes(items.id)" @click="setColor(items)"
+                style="float: right">批量设置</a-button>
               <a-popconfirm icon-color="red" title="确定要删除这个变种主题吗？" @confirm="removeVariantType(items, index)">
                 <a-button type="text" danger v-if="!items.isRequired" style="float: right">移除</a-button>
               </a-popconfirm>
@@ -82,6 +84,10 @@
               <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
                 @click="batchSKU">批量</a>
             </template>
+            <template v-if="column.dataIndex === 'skuTitle'">
+              <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
+                @click="batchSkuTitle">批量</a>
+            </template>
             <template v-if="column.dataIndex === 'price'">
               <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
                 @click="batchPrice">批量</a>
@@ -122,7 +128,8 @@
               <span>{{ record.secondName }}</span>
             </template>
             <template v-if="column.dataIndex === 'sellerSKU'">
-              <a-input v-model:value.trim="record.sellerSKU" style="min-width: 200px" @change="sellerSKUChange(record)"></a-input>
+              <a-input v-model:value.trim="record.sellerSKU" style="min-width: 200px"
+                @change="sellerSKUChange(record)"></a-input>
             </template>
             <template v-if="!otherHeader.includes(column.dataIndex)">
               <a-input v-if="column.selectType === 'input'" v-model:value="record[column.dataIndex]"
@@ -163,28 +170,28 @@
                   <div style="display: flex">
                     <div class="w-13 block">长度：</div>
                     <a-input-number controls-position="right" :min="0" style="min-width: 150px"
-                      v-model:value="record.packageLength" placeholder="长度">
+                      v-model:value="record.packageLength" placeholder="长度" :controls="false">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div style="display: flex; margin-top: 5px">
                     <div class="w-13 block">宽度：</div>
                     <a-input-number controls-position="right" :min="0" style="min-width: 150px"
-                      v-model:value="record.packageWidth" placeholder="宽度">
+                      v-model:value="record.packageWidth" placeholder="宽度" :controls="false">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div style="display: flex; margin-top: 5px">
                     <div class="w-13 block">高度：</div>
                     <a-input-number controls-position="right" :min="0" style="min-width: 150px"
-                      v-model:value="record.packageHeight" placeholder="高度">
+                      v-model:value="record.packageHeight" placeholder="高度" :controls="false">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div style="display: flex; margin-top: 5px">
                     <div class="w-13 block">重量：</div>
                     <a-input-number controls-position="right" :precision="0" :min="0" style="min-width: 150px"
-                      v-model:value="record.packageWeight" placeholder="重量">
+                      v-model:value="record.packageWeight" placeholder="重量" :controls="false">
                       <!-- @blur="handleInput(record.packageWeight, record)" -->
                       <template #addonAfter>g</template>
                     </a-input-number>
@@ -209,17 +216,61 @@
       </a-card>
       <a-card title="变种图片" class="text-left mx-50 mt-5">
         <div>
+          <div w-full ml-25px>
+            <div>
+              <a-tag color="warning">！说明</a-tag>
+              <span style="color: #9fa0a2">
+                第一张图片默认为主图，点击图片拖动，即可调整图片顺序！
+                单张不超过2M，只支持jpg、.png、.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3：4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)</span>
+            </div>
+            <div flex justify-end items-center mt-15px>
+              <a-dropdown>
+                <a-button type="link" link style="width: 90px; height: 31px;">
+                  普通水印
+                  <DownOutlined />
+                </a-button>
+                <template #overlay>
+                  <a-menu>
+                    <a-menu-item v-for="item in watermark" :key="item" @click="handleWatermark(item)">
+                      {{ item.title }}
+                    </a-menu-item>
+                  </a-menu>
+                </template>
+              </a-dropdown>
+              <span pl-10px>|</span>
+              <a-dropdown>
+                <a-button type="link" style="width: 90px; height: 31px; margin-left: 10px;">
+                  编辑图片
+                  <DownOutlined />
+                </a-button>
+                <template #overlay>
+                  <a-menu>
+                    <a-menu-item @click="handleEditImagesSize">
+                      批量修改图片尺寸
+                    </a-menu-item>
+                    <a-menu-item @click="handleImageTranslation">
+                      图片翻译
+                    </a-menu-item>
+                    <a-menu-item @click="clearAllImages">
+                      清空图片
+                    </a-menu-item>
+                  </a-menu>
+                </template>
+              </a-dropdown>
+              <span pl-10px>|</span>
+              <a-button type="link" style="width: 90px; height: 31px; margin-right: 70px;" :loading="downloadLoading"
+                @click="handleExportAllImages">
+                <DownloadOutlined /> 导出全部图片
+              </a-button>
+            </div>
+          </div>
+
           <div v-for="item in tableData" :key="item.id">
             <div v-if="tableData.length > 0">
-              <a-card class="mb-2.5 ml-2.5">
-                <div>
-                  <a-tag color="warning">！说明</a-tag>
-                  <span style="color: #9fa0a2">
-                    第一张图片默认为主图，点击图片拖动，即可调整图片顺序！
-                    单张不超过2M，只支持jpg、.png、.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3：4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)</span>
-                </div>
-                <SkuDragUpload v-model:file-list="item.imageUrl" :maxCount="30"
-                  :showUploadList="false" accept=".jpg,.png" :api="uploadImage" :waterList="watermark">
+              <a-card class="mb-2.5 ml-2.5" :bordered="false">
+
+                <SkuDragUpload v-model:file-list="item.imageUrl" :maxCount="30" :showUploadList="false"
+                  accept=".jpg,.png" :api="uploadImage" :waterList="watermark">
                   <template #default>
                     <div flex flex-col w-full justify-start mb-4px text-left>
                       <p>
@@ -230,9 +281,33 @@
                     </div>
                   </template>
                   <template #variantInfo>
+                    <!-- 变种主题信息 -->
+                    <div v-for="(nameItem, nameIndex) in skuThemeNames(item)" :key="nameIndex">
+                      {{ nameItem[0] }}: {{ item[nameItem[0]] }}
+                    </div>
                   </template>
                   <template #skuInfo>
                     {{ `【${item.imageUrl.length}/30】图片 ` }}
+                    <a-dropdown>
+                      <a-button type="link" link style="width: 90px; height: 31px;">
+                        图片应用到
+                        <DownOutlined />
+                      </a-button>
+                      <template #overlay>
+                        <a-menu>
+                          <a-menu-item @click="applyAllImage(item)">
+                            所有变种
+                          </a-menu-item>
+                          <!-- <a-menu-item v-for="item in applyMenuList" :key="item.value"
+                                                        @click="applyImage(item)">
+                                                        <span>同</span>
+                                                        <span px-3px>{{ item.title }}</span>
+                                                        <span>的变种</span>
+                                                    </a-menu-item> -->
+                        </a-menu>
+                      </template>
+                    </a-dropdown>
+
                   </template>
                 </SkuDragUpload>
               </a-card>
@@ -250,6 +325,9 @@
     <!-- 选择自定义属性  -->
     <SelectAttr @selectAttrList="selectAttrList" :attrVisible="attrVisible" :custAttr="custAttr"
       :newAttribute="newAttribute" @handleStatsModalClose="attrVisible = false"></SelectAttr>
+    <!-- 批量设置变种属性 -->
+    <batchSetColor :setValueVis="setValueVis" @closeColorModal="setValueVis = false" @confirm="confirm"
+      :setColorOption="setColorOption" @handleCancel="handleColorCancel"></batchSetColor>
   </div>
 </template>
 
@@ -284,14 +362,26 @@ import {
 } from "../../config/commJs/index";
 import { publishHead, otherList } from "../../config/tabColumns/skuHead";
 import { uploadImage } from '@/pages/ozon/config/api/draft';
-import SkuDragUpload from '@/components/skuDragUpload/index.vue';
-import { debounce } from "lodash";
+import { debounce, cloneDeep } from "lodash";
+import batchSetColor from "./batchSetColor.vue";
+import { omit, pick } from 'lodash'
+import SkuDragUpload from '../skuDragImg/index.vue';
+import bacthSkuEditImg from '../skuDragImg/bacthSkuEditImg.vue';
+import ImageTranslation from '../skuDragImg/imageTranslation.vue';
+import download from '~@/api/common/download';
+import { downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js';
 
 const props = defineProps({
   categoryAttributesLoading: Boolean,
   productDetail: Object,
   shopCode: String,
 });
+
+
+const downloadLoading = ref(false); //导出按钮loading
+const bacthSkuEditImgRef = ref();
+const imageTranslationRef = ref();
+
 const themeList = ref([]); //主题数据
 const themeBtns = ref([]); //主题按钮
 const requiredList = ref([]); //必填变种主题
@@ -317,17 +407,20 @@ const quantityRow = ref({});
 const types = ref("");
 const editStockList = ref([]);
 const attrVisible = ref(false);
+const setValueVis = ref(false); //批量设置属性
 const newAttribute = ref([]);
+const setColorOption = ref([]);
+const colorRow = ref({});
 const custAttr = ref([]); //可控制属性
 const plainOptions = [
   {
     label: "颜色样本",
     value: "colorImg",
   },
-  // {
-  //   label: "设置SKU标题",
-  //   value: "skuTitle",
-  // },
+  {
+    label: "设置SKU标题",
+    value: "skuTitle",
+  },
 ];
 const otherHeader = otherList;
 let isConform = false;
@@ -352,6 +445,78 @@ const handleChangeColroImg = (info, record) => {
     message.error("图片上传有误！");
   }
 };
+
+const setColor = (row) => {
+  colorRow.value = row;
+  setValueVis.value = true;
+  setColorOption.value = row.details.map(item => {
+    return {
+      label: item.value,
+      value: item.id,
+    }
+  });
+};
+
+const handleColorCancel = () => {
+  setValueVis.value = false;
+  setColorOption.value = [];
+}
+// 批量设置属性
+const confirm = (selectedValues) => {
+  // 解构只需要用到的details属性
+  const { details } = colorRow.value.tableData[0] || {};
+  const result = details?.filter(item => new Set(selectedValues).has(item.id)) || [];
+
+  // 获取已存在的属性并去重
+  const existingAttributes = colorRow.value.tableData
+    .flatMap(item => item?.modelValue?.map(v => v) || [])
+    .filter(Boolean);
+
+  // 根据是否存在已有属性进行过滤
+  const filteredResult = existingAttributes.length > 0
+    ? result.filter(item => !new Set(existingAttributes.map(a => a.id)).has(item.id))
+    : result;
+
+  // 统一处理表格更新
+  colorRow.value.tableData = procTableData(colorRow.value.tableData, filteredResult);
+  tableData.value = commProceData();
+}
+
+// 此方法用于处理属性批量添加到主题中
+const procTableData = (newData, newItems) => {
+
+  // 深拷贝原始数据避免污染
+  const processedData = cloneDeep(newData)
+  const usedIds = new Set()
+
+  // 第一阶段：填充空值项
+  let itemIndex = 0
+  for (const item of processedData) {
+    if (item.modelValue.length === 0 && newItems[itemIndex]) {
+      item.modelValue = [cloneDeep(newItems[itemIndex])]
+      usedIds.add(newItems[itemIndex].id)
+      itemIndex++
+    }
+  }
+
+  // 第二阶段：创建新条目
+  const remainingItems = newItems.filter(item => !usedIds.has(item.id))
+  const baseTemplate = processedData[0] ? cloneDeep(processedData[0]) : {}
+  delete baseTemplate.uniqueId // 清除可能存在的临时ID
+
+  remainingItems.forEach(item => {
+    processedData.push({
+      ...baseTemplate,
+      modelValue: [cloneDeep(item)],
+      uniqueId: Date.now() + Math.random().toString(36).slice(2)
+    })
+  })
+
+  return processedData.filter(item =>
+    item.modelValue.length > 0 ||
+    item.uniqueId // 保留新创建的空条目
+  )
+}
 
 // 添加自定义属性
 const selectAttrList = (list) => {
@@ -473,12 +638,12 @@ const removeVariantType = (item, index) => {
   // imgHeaderList.value.splice(index, 1);
   let name = item.tableData[0].name
   let secondName = item.tableData[0].secondName
-  
-  
+
+
   // 表头删除
   // headerList.value.splice(index, 1); !(item.prop == item.name && item.label == item.name)
   headerList.value = headerList.value.filter((e) => e.title != item.title);
-  if(secondName) {
+  if (secondName) {
     headerList.value = headerList.value.filter((e) => e.title != secondName);
   }
 
@@ -522,8 +687,8 @@ const addItem = (item, row) => {
       modelValue: item.selectType === "multSelect" ? [] : undefined,
       selectType: item.selectType,
       details: item.details,
-      secondName: "制造商尺码(Размер производителя)",
-      "制造商尺码(Размер производителя)": "制造商尺码(Размер производителя)",
+      secondName: "由制造商规定尺码(Размер производителя)",
+      "由制造商规定尺码(Размер производителя)": "由制造商规定尺码(Размер производителя)",
       secondId: 9533,
       secondModelValue: "",
     };
@@ -541,18 +706,15 @@ const addItem = (item, row) => {
 
 // 移除多个属性操作
 const removeItem = (item, row) => {
+  console.log("item", item, row);
+
   let ind = row.tableData.indexOf(item);
   if (item.id === 10096 || item.name == "商品颜色(Цвет товара)") {
-    row.tableData.splice(ind, 1); 
+    row.tableData.splice(ind, 1);
   } else if (item.id === 4295 || item.name == "俄罗斯尺码") {
     row.tableData.splice(ind, 1);
   } else {
-    if (item.selectType === "select") {
-      row.tableData = row.tableData.filter(tableItem => {
-        // 检查当前项的modelValue是否包含排除ID
-        return tableItem.modelValue?.value != item.modelValue?.value;
-      });
-    } else if (item.selectType === "input") {  // 新增input类型处理
+    if (item.selectType === "select" || item.selectType === "input") {
       row.tableData = row.tableData.filter(tableItem =>
         tableItem.id !== item.id
       );
@@ -601,6 +763,30 @@ const pushValue = (index, item) => {
     return;
   }
   // 处理表格数据
+  // let cartesianProducts = cartesianProduct(attributeList.value);
+  // let newTableData = processResult(cartesianProducts);
+  // let minLength = Math.min(newTableData.length, tableData.value.length);
+  // for (let i = 0; i < minLength; i++) {
+  //   // 将b数组中对应下标的数据赋值到a数组中
+  //   newTableData[i].skuTitle = tableData.value[i].skuTitle;
+  //   newTableData[i].sellerSKU = tableData.value[i].sellerSKU;
+  //   newTableData[i].price = tableData.value[i].price;
+  //   newTableData[i].oldPrice = tableData.value[i].oldPrice;
+  //   newTableData[i].colorImg = tableData.value[i].colorImg;
+  //   newTableData[i].imageUrl = tableData.value[i].imageUrl;
+  //   newTableData[i].quantity = tableData.value[i].quantity;
+  //   newTableData[i].warehouseList = tableData.value[i].warehouseList;
+  //   newTableData[i].packageHeight = tableData.value[i].packageHeight;
+  //   newTableData[i].packageLength = tableData.value[i].packageLength;
+  //   newTableData[i].packageWidth = tableData.value[i].packageWidth;
+  //   newTableData[i].packageWeight = tableData.value[i].packageWeight;
+  // }
+  tableData.value = commProceData();
+  console.log("newTableData", newTableData);
+
+};
+
+const commProceData = () => {
   let cartesianProducts = cartesianProduct(attributeList.value);
   let newTableData = processResult(cartesianProducts);
   let minLength = Math.min(newTableData.length, tableData.value.length);
@@ -619,9 +805,7 @@ const pushValue = (index, item) => {
     newTableData[i].packageWidth = tableData.value[i].packageWidth;
     newTableData[i].packageWeight = tableData.value[i].packageWeight;
   }
-  tableData.value = newTableData;
-  console.log("newTableData", newTableData);
-
+  return newTableData
 };
 
 // 动态添加表头数据
@@ -657,6 +841,11 @@ const changeHeade = () => {
       }
     }
   });
+
+  const ozonStore = useOzonProductStore()
+  ozonStore.$patch(state => {
+    state.addHeaderList = addHeaderList.value
+  })
 };
 
 // 删除表格数据
@@ -685,12 +874,22 @@ const batchSKU = () => {
   batchTitle.value = "批量修改SKU";
   batchType.value = "sku";
 };
- // 修改 SKU 时同步修改 warehouseList 里的 offerId
- const sellerSKUChange = debounce(record => {
-    record.warehouseList.forEach(item => {
-      item.offerId = record.sellerSKU
-    })
-  }, 200)
+// 批量修改SKU标题
+const batchSkuTitle = () => {
+  if (tableData.value.length == 0) {
+    message.warning("请先添加sku！");
+    return;
+  }
+  batchOpen.value = true;
+  batchTitle.value = "批量修改SKU标题";
+  batchType.value = "skuTitle";
+}
+// 修改 SKU 时同步修改 warehouseList 里的 offerId
+const sellerSKUChange = debounce(record => {
+  record.warehouseList.forEach(item => {
+    item.offerId = record.sellerSKU
+  })
+}, 200)
 // 批量修改库存
 const batchStock = (type, row = {}) => {
   if (tableData.value.length == 0) {
@@ -770,6 +969,11 @@ const backValue = (batchFields) => {
         })
       });
       break;
+    case "skuTitle":
+      tableData.value.forEach((item) => {
+        item.skuTitle = batchFields.batchValue;
+      });
+      break;
     case "price":
       updatePrice(tableData.value, "price", batchFields);
       break;
@@ -838,6 +1042,170 @@ const dependencyMap = new Map([
   [4295, 9533], // 俄罗斯尺码和制造商尺码
 ]);
 
+// 点击水印
+const handleWatermark = async (item) => {
+  for (const tabbleItem of tableData.value) {
+    const fileList = tabbleItem.imageUrl || [];
+    if (fileList.length === 0) {
+      continue;
+    }
+    const netPathList = fileList.filter((file) => file.url.includes('http')).map((item) => {
+      return item.url
+    });
+    // 只有本地图片
+    if (netPathList.length === 0) {
+      const imagePathList = fileList.filter((file) => !file.url.includes('http')).map((item) => {
+        return item.url
+      });
+      const waterRes = await watermarkApi({
+        imagePathList: imagePathList, //
+        id: item.id,
+      });
+      if (waterRes.code === 200) {
+        const data = waterRes.data || [];
+        data.forEach((item) => {
+          fileList.forEach(v => {
+            if (item.originalFilename === v.url) {
+              v.url = item.url
+              v.name = item.newFileName
+              v.checked = false
+            }
+          })
+        })
+      }
+    } else {
+      // 有网络图片
+      console.log('有网络图片');
+      const fileList = tabbleItem.imageUrl || [];
+      for (let index = 0; index < fileList.length; index++) {
+        const fileItem = fileList[index];
+        try {
+          let netImgs = [];
+          const url = fileItem.url;
+          if (url.includes('http')) {
+            let res = await imageUrlUpload({ url });
+            netImgs.push(res.data);
+            fileList.forEach(i => {
+              if (i.url === url) {
+                i.url = res.data.url
+              }
+            });
+            const waterRes = await watermarkApi({
+              imagePathList: netImgs.map((img) => img.url),
+              id: item.id,
+            });
+            if (waterRes.code === 200) {
+              const data = waterRes.data || [];
+              data.forEach((_item) => {
+                fileList.forEach(v => {
+                  if (_item.originalFilename.includes(v.url)) {
+                    v.url = _item.url
+                    v.name = _item.newFileName
+                    v.checked = false
+                  }
+                });
+              })
+            }
+          } else {
+            const imagePathList = fileList.filter((file) => !file.url.includes('http')).map((item) => {
+              return item.url
+            });
+            const waterRes = await watermarkApi({
+              imagePathList: imagePathList, //
+              id: item.id,
+            });
+            if (waterRes.code === 200) {
+              const data = waterRes.data || [];
+              data.forEach((item) => {
+                fileList.forEach(v => {
+                  if (item.originalFilename === v.url) {
+                    v.url = item.url
+                    v.name = item.newFileName
+                    v.checked = false
+                  }
+                })
+              })
+            }
+          }
+        } catch (error) {
+          console.error(error)
+        }
+      }
+    }
+  }
+};
+
+// 导出全部图片
+const handleExportAllImages = async () => {
+  try {
+    const imageList = tableData.value
+      .map(item => item.imageUrl)
+      .map((imgItem) => imgItem
+        .map((i) => i.url
+          .replace(import.meta.env.VITE_APP_BASE_API, "")));
+    downloadLoading.value = true;
+    let res = await downloadAllImage({ imageList: imageList.flat() });
+    message.success('导出成功');
+    download.name(res.data)
+    downloadLoading.value = false;
+  } catch (error) {
+    console.error(error)
+  }
+};
+
+//  图片应用到所有变种
+const applyAllImage = (item) => {
+  tableData.value.forEach((tableItem) => {
+    tableItem.imageUrl = cloneDeep(item.imageUrl)
+  })
+};
+
+//  图片应用到同主题的变种
+const applyImage = (item) => {
+  const titles = item.title.split('-');
+  console.log('item', item, titles);
+  console.log('applyImage', tableData.value);
+  const tableDataList = tableData.value.filter((tableItem) => {
+    return titles.includes(String(tableItem.id))
+  })
+
+  // tableData.value.forEach((tableItem) => {
+  //     console.log('tableItem', tableItem);
+
+  //     // if (titles.includes(String(tableItem.id))) {
+  //     //     tableItem.imageUrl = item.imageUrl
+  //     // }
+  // })
+
+};
+
+//  批量修改图片尺寸
+const handleEditImagesSize = () => {
+  bacthSkuEditImgRef.value.showModal(tableData.value)
+};
+
+
+//  图片翻译弹窗
+const handleImageTranslation = () => {
+  imageTranslationRef.value.showModal(tableData.value)
+};
+
+// 清空图片
+const clearAllImages = () => {
+  tableData.value.forEach((tableItem) => {
+    tableItem.imageUrl = []
+  })
+};
+const skuThemeNames = (item) => {
+  const tableColumns = attributeList.value[0].tableColumns;
+  const themeNames = tableColumns.map((column) => {
+    return column.title
+  }).filter((nameItem) => nameItem !== '操作')
+  const obj = pick(item, themeNames)
+  const entries = Object.entries(obj);
+  return entries
+};
+
 watch(
   () => useOzonProductStore().attributes,
   (val) => {
@@ -901,6 +1269,9 @@ watch(
       }
 
       const { skuList } = props.productDetail;
+      // 处理自定义属性数据
+      // let customArr = findCommonByIdOptimized(val, skuList[0].attributes)
+      // console.log('customArr', customArr);
       const newAttributesCache = processAttributesCache(val);
       const list = newAttributesCache.filter((a) => !a.isRequired);
       custAttr.value = list.filter(
@@ -936,6 +1307,7 @@ watch(
           packageLength: sku.depth,
           packageWeight: sku.weight,
           packageWidth: sku.width,
+          skuTitle: sku.name,
           colorImg: sku?.colorImage
             ? [
               {
@@ -964,8 +1336,6 @@ watch(
         sortArr.forEach((attr) => {
           // 遍历sku的attributes中的每个attributes
           sku.attributes.forEach((subAttr) => {
-            // console.log("",subAttr, attr);
-
             if (subAttr.id == attr.id) {
               if (attr.selectType === "multSelect" && attr.options) {
                 let values = subAttr.values.map((val) => {
@@ -1029,9 +1399,26 @@ watch(
         });
         addHeaderList.value.push("colorImg");
       }
+      if (result.some((item) => item.name !== "")) {
+        let skuIndex = headerList.value.findIndex(
+          (item) => item.title === "SKU"
+        );
+        let obj = {
+          title: "SKU标题",
+          dataIndex: "skuTitle",
+          selectType: "input",
+          type: 1,
+          options: null,
+          show: true,
+          align: "center",
+        }
+        headerList.value.splice(skuIndex + 1, 0, obj);
+        addHeaderList.value.push("skuTitle");
+      }
+
       tableData.value = result;
       // 将不匹配的主题过滤掉
-      // console.log("sortArr", sortArr);
+      console.log("sortArr", tableData.value);
       let comAttrList = [10096, 4295];
       let comAttrs = [10096, 10097];
       // 从数组 a 中提取所有的 id
@@ -1059,7 +1446,7 @@ watch(
 
       // 处理到数据回显到主题
       const aIds = echoThemeList.map((item) => item.id);
-      // console.log('aIds', echoThemeList);
+      console.log('aIds', echoThemeList);
       // 过滤 有数据的主题
       themeBtns.value = themeBtns.value.filter(
         (item) => !aIds.includes(item.id)
@@ -1069,6 +1456,42 @@ watch(
     }
   }
 );
+
+// 方法2：使用Map优化性能（推荐）提取自定义属性
+// const findCommonByIdOptimized = (arr1, arr2) => {
+//   const map = new Map(arr2.map(item => [item.id, item]));
+//   return arr1.filter(item => map.has(item.id));
+// };
+
+// // 将skuList中每个attributes中的值进行比较将不相同的数据进行返回
+// const filterUniqueAttributes = (skuList) => {
+//   // 创建属性值统计Map {id: {hashes: Set, count: number}}
+//   const attributeStats = new Map();
+
+//   // 遍历所有SKU统计属性值
+//   skuList.forEach(sku => {
+//     sku.attributes.forEach(attr => {
+//       const valueHash = JSON.stringify(attr.values);
+//       if (!attributeStats.has(attr.id)) {
+//         attributeStats.set(attr.id, { hashes: new Set(), count: 0 });
+//       }
+//       const stat = attributeStats.get(attr.id);
+//       stat.hashes.add(valueHash);
+//       stat.count++;
+//     });
+//   });
+
+//   // 找出需要移除的属性ID（存在重复值的属性）
+//   const idsToRemove = Array.from(attributeStats.entries())
+//     .filter(([id, stat]) => stat.hashes.size < stat.count) // 存在重复值
+//     .map(([id]) => id);
+
+//   // 过滤所有SKU的attributes
+//   return skuList.map(sku => ({
+//     ...sku,
+//     attributes: sku.attributes.filter(attr => !idsToRemove.includes(attr.id))
+//   }));
+// };
 
 const filterModelValues = (a, b) => {
   const allAttributeIds = b.flatMap((item) =>
@@ -1235,8 +1658,6 @@ const submitForm = () => {
   for (let i = 0; i < attributeList.value.length; i++) {
     for (let j = 0; j < attributeList.value[i].tableData.length; j++) {
       const row = attributeList.value[i].tableData[j];
-      // console.log("row11", row)
-      // console.log("row", validateRow(row));
 
       if (!validateRow(row)) {
         message.error("请填写变种主题！");

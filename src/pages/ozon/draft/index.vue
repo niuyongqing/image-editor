@@ -1,7 +1,7 @@
 <template>
     <div flex>
         <div w-300px>
-            <draftSidebar @updateClass="updateClass" />
+            <draftSidebar @updateClass="updateClass" :count="paginations.total" />
         </div>
         <div v-if="showDraftTable" w-full>
             <div id="draft" w-full ml-15px>
@@ -179,7 +179,7 @@
                             <template v-if="column.dataIndex === 'stock'">
                                 <div class="pb-30px">
                                     <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
-                                        <div class="sku-price">
+                                        <div class="sku-price  h-21px">
                                             <a-tooltip placement="top">
                                                 <template #title>
                                                     <span>{{ warehouseName(item.offerId, item.warehouseList) }}: {{
@@ -259,8 +259,9 @@
         <!--编辑提示 弹窗-->
         <EditPrompt ref="editPromptRef" :shopAccount="shopAccount"></EditPrompt>
 
-        <!-- 批量编辑 -->
-        <BatchEdit ref="batchEditRef"></BatchEdit>
+        <!-- 批量编辑-提示弹窗 -->
+        <BatchEditPrompt ref="batchEditPromptRef" :shopAccount="shopAccount"></BatchEditPrompt>
+        <!-- <BatchEdit ref="batchEditRef"></BatchEdit> -->
 
         <!-- 批量备注 -->
         <RemarkModal ref="remarkModalRef"></RemarkModal>
@@ -291,7 +292,7 @@ import RemarkModal from './batchComponent/remarkModal.vue';
 import BatchWatermark from './batchComponent/batchWatermark.vue';
 import OzonProduct from '@/pages/ozon/product/index.vue';
 import BatchAttribute from './batchComponent/batchAttribute.vue';
-
+import BatchEditPrompt from './batchComponent/batchEditPrompt.vue';
 
 let columns = tableHeard;
 const showDraftTable = ref(true);
@@ -300,12 +301,12 @@ const baseApi = import.meta.env.VITE_APP_BASE_API;
 const { copy } = useClipboard();
 const router = useRouter();
 const editPromptEl = useTemplateRef('editPromptRef');
-const batchEditEl = useTemplateRef('batchEditRef'); // 批量编辑-弹窗
+const batchEditPromptEl = useTemplateRef('batchEditPromptRef'); // 批量编辑-弹窗
 const remarkModalEl = useTemplateRef('remarkModalRef'); // 批量备注-弹窗
 const batchWatermarkEl = useTemplateRef('batchWatermarkRef'); // 批量加水印-弹窗
 const batchAttributeEl = useTemplateRef('batchAttributeRef'); // 批量属性-弹窗
 const typeTreeEl = useTemplateRef('typeTreeRef');
-const currentClass = ref(0);
+const currentClass = ref('0');
 const nodePath = ref('');
 const typeManageOpen = ref(false);
 const shopSetVisible = ref(false);
@@ -316,7 +317,7 @@ const formData = reactive({
     account: "",
     sku: "",
     name: "",
-    prop: "created_time",
+    prop: "create_time",
     order: "desc",
     state: ""
 })
@@ -508,7 +509,7 @@ const getAccount = () => {
 
 
 const displayedSkus = (row) => {
-    return row.show ? row?.skuList : row?.skuList?.slice(0, 3);
+    return row.show ? row?.skuList : row?.skuList?.slice(0, 5);
 };
 
 const getList = () => {
@@ -533,7 +534,7 @@ const getList = () => {
 };
 
 const updateClass = (value) => {
-    showDraftTable.value = false;
+    showDraftTable.value = value;
 };
 
 // 批量移动分类
@@ -557,8 +558,7 @@ async function typeNodeClick(node) {
 //  采集数据
 const navDataCrawli = () => {
     router.push('/platform/dev/sample/dataAcquisition')
-}
-
+};
 
 //  移入待发布
 const moveToPending = (row = {}) => {
@@ -619,7 +619,6 @@ const createProduct = () => {
 const updateCurrentClass = (value) => {
     console.log(value);
 };
-
 
 //  批量操作
 const handleMenuClick = (e) => {

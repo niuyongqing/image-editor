@@ -11,10 +11,10 @@ export const platformList = [
   //   account: "amazaon",
   //   simpleName: "Amazon"
   // },
-  // {
-  //   account: "taobao",
-  //   simpleName: "淘宝"
-  // },
+  {
+    account: "taobao",
+    simpleName: "淘宝"
+  },
   {
     account: "tmall",
     simpleName: "天猫"

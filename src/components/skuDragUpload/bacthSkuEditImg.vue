@@ -1,6 +1,7 @@
 <template>
   <div>
-    <BaseModal @register="register" @close="cancel" title="批量修改图片尺寸" width="1000px" @submit="submit">
+    <BaseModal @register="register" @close="cancel" title="批量修改图片尺寸" width="1000px" @submit="submit"
+      :submit-btn-loading="loading">
       <div>
         <a-form layout="inline" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }" labelAlign="">
           <a-form-item label="宽度:">
@@ -39,8 +40,8 @@
           </div>
           <div w-full>
             <div flex justify-between w-full>
-              <a-checkbox v-model:checked="element.checked" v-if="!element.url.includes('http')"
-                @change="check(element, $event)"></a-checkbox>
+              <!-- v-if="!element.url.includes('http')" -->
+              <a-checkbox v-model:checked="element.checked" @change="check(element, $event)"></a-checkbox>
               <div></div>
               <!-- <a-button type="text" color="#428bca" @click="handleRemove(element)">
                 <DeleteOutlined />
@@ -59,6 +60,8 @@ import { DeleteOutlined, CheckOutlined } from '@ant-design/icons-vue';
 import { useResetReactive } from '@/composables/reset';
 import { scaleApi, watermarkApi } from '@/api/common/water-mark.js';
 import { message } from "ant-design-vue";
+// import { uploadImgFromNetApi } from '@/pages/aliexpress/apis/media'
+import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
 
 const props = defineProps({
   shortCode: {
@@ -76,6 +79,7 @@ const { state, reset } = useResetReactive({
   imgH: undefined,
 });
 
+const loading = ref(false); // 提交按钮loading
 const fileList = ref([]); // 图片列表
 const modalMethods = ref();
 const register = (modal) => {
@@ -86,10 +90,11 @@ const checkedAll = ref(false);
 
 const handleCheckAllChange = (e) => {
   fileList.value.forEach(item => {
-    if (!item.url.includes('http')) {
-      item.checked = checkedAll.value
-    }
+    // if (!item.url.includes('http')) {
+    item.checked = checkedAll.value
+    // }
   })
+
 };
 
 const showModal = (list) => {
@@ -110,10 +115,12 @@ const handleRemove = (element) => {
 
 // 点击选中
 const check = (element) => {
-  const list = fileList.value.filter((item) => {
-    return !item.url.includes('http')
-  });
-  const isAllChecked = list.every(item => item.checked);
+  // const list = fileList.value.filter((item) => {
+  //   return !item.url.includes('http')
+  // });
+  console.log('element', element, fileList.value);
+
+  const isAllChecked = fileList.value.every(item => item.checked);
   checkedAll.value = isAllChecked;
 };
 
@@ -122,37 +129,82 @@ const submit = async () => {
   if (!state.imgW || !state.imgH) {
     message.error('请输入图片宽高');
     return
-  }
-  const checkedList = fileList.value.filter(item => item.checked);
-  if (checkedList.length === 0) {
-    message.error('请选择图片; 只能选中本地上传的图片');
-    return
-  };
-  const imagePathList = checkedList.map((item) => {
-    return item.url
-  });
-  const scaleRes = await scaleApi({
-    imagePathList: imagePathList,
-    newWidth: state.imgW,
-    newHeight: state.imgH,
-  });
-  if (scaleRes.code === 200) {
-    const data = scaleRes.data || [];
-    data.forEach((item) => {
-      fileList.value.forEach(v => {
-        if (item.originalFilename === v.url) {
-          v.url = item.fileName
-          v.name = item.newFileName
-          v.checked = false
-          v.width = state.imgW
-          v.height = state.imgH
-        }
-      })
-    })
   };
 
-  checkedAll.value = false;
-  modalMethods.value.closeModal();
+
+  const checkedList = fileList.value.filter(item => item.checked);
+
+  if (checkedList.length === 0) {
+    message.error('请选择图片');
+    return
+  };
+  //  选中的图片只有本地图片
+  const netPathList = checkedList.filter(item => item.url.includes('http')).map((img) => img.url);
+  if (netPathList.length === 0) {
+    loading.value = true;
+    const scaleRes = await scaleApi({
+      imagePathList: checkedList.map(img => img.url),
+      newWidth: state.imgW,
+      newHeight: state.imgH,
+    });
+    if (scaleRes.code === 200) {
+      const data = scaleRes.data || [];
+      data.forEach((item) => {
+        fileList.value.forEach(v => {
+          if (item.originalFilename === v.url) {
+            v.url = item.fileName
+            v.name = item.newFileName
+            v.checked = false
+            v.width = state.imgW
+            v.height = state.imgH
+          }
+        })
+      })
+    };
+    loading.value = false;
+    checkedAll.value = false;
+    modalMethods.value.closeModal();
+  } else {
+    loading.value = true;
+    //  有网络图片
+    uploadImgFromNetApi({
+      imgUrls: netPathList.join(','),
+    }).then(async res => {
+      if (res.code === 200) {
+        const data = res.data || [];
+        const imagePathList = data.map((item) => {
+          return item.url
+        });
+        const imgs = fileList.value.filter((file) => file.code).map((item) => {
+          return item.url
+        });
+        const scaleRes = await scaleApi({
+          imagePathList: [...imagePathList, ...imgs],
+          newWidth: state.imgW,
+          newHeight: state.imgH,
+        });
+
+        if (scaleRes.code === 200) {
+          const scaleData = scaleRes.data || [];
+          scaleData.forEach((item) => {
+            fileList.value.forEach(v => {
+              const urlSplit = v.url.split('/')
+              const fileName = urlSplit[urlSplit.length - 1].split('.')[0]
+              if (item.originalFilename.includes(fileName)) {
+                v.url = item.url
+                v.name = item.newFileName
+                v.checked = false
+              }
+            })
+          })
+        };
+
+        loading.value = false;
+        checkedAll.value = false;
+        modalMethods.value.closeModal();
+      }
+    })
+  }
 };
 
 defineExpose({
