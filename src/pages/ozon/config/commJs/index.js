@@ -128,7 +128,7 @@ const processResult = (productList) => {
     product.forEach((item) => {
       let values =
         item.selectType === "multSelect"
-          ? item?.modelValue?.map((val) => val.label).join(",")
+          ? item?.modelValue?.map((val) => val.label).join(";")
           : item.selectType === "select"
           ? item.modelValue?.label
             : item.modelValue; //原写法 item.modelValue.value
@@ -155,7 +155,7 @@ const processData = (a, b) => {
         : dataItem.selectType === 'select'
         ? dataItem.modelValue?.label
         : dataItem.selectType === 'multSelect'
-        ? dataItem?.modelValue?.map((val) => val.label).join(",") 
+        ? dataItem?.modelValue?.map((val) => val.label).join(";") 
         : null;
       // 判断 modelValue 是否在 b 数组中有匹配的值
       const isMatch = b.some((bItem) => {
@@ -569,6 +569,8 @@ const getSelectValue = (attr, base, item) => {
 };
 // 获取multSelect类型属性的值
 const getMultiSelectValue = (attr, item, base, createValueObj, type) => {
+  console.log("attr",attr);
+  console.log("item",item);
   if (item[attr.name]) {
     if(item[attr.name] instanceof Array) {
       return item[attr.name]?.map((item) => {
@@ -578,7 +580,7 @@ const getMultiSelectValue = (attr, item, base, createValueObj, type) => {
         };
       });
     }else {
-      const colorList = item[attr.name]?.split(",");
+      const colorList = item[attr.name]?.split(";");
       return colorList.map((color) => {
         const foundOption = attr.options.find((option) => option.value === color);
         if (type === 1) {
