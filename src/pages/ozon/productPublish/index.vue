@@ -6,7 +6,7 @@
             <br /> -->
             <br />
             <div class="flex justify-end">
-                <a-dropdown>
+                <!-- <a-dropdown>
                     <template #overlay>
                         <a-menu @click="handleInterpret">
                             <a-menu-item key="1">
@@ -31,7 +31,7 @@
                         一键翻译
                         <DownOutlined />
                     </a-button>
-                </a-dropdown>
+                </a-dropdown> -->
                 <a-button class="mx-2.5" :loading="loading" @click="showTempModal">存为模板</a-button>
                 <a-dropdown>
                     <template #overlay>
@@ -69,7 +69,7 @@
                 :shopCode="formData.shortCode"></ozon-new-variant-info>
             <br />
             <div class="flex justify-end">
-                <a-dropdown>
+                <!-- <a-dropdown>
                     <template #overlay>
                         <a-menu @click="handleInterpret">
                             <a-menu-item key="1">
@@ -94,7 +94,7 @@
                         一键翻译
                         <DownOutlined />
                     </a-button>
-                </a-dropdown>
+                </a-dropdown> -->
                 <a-button class="mx-2.5" :loading="loading" @click="showTempModal">存为模板</a-button>
                 <a-dropdown>
                     <template #overlay>

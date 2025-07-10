@@ -208,7 +208,7 @@
                             </a-form-item>
                         </div>
                         <div class="rounded-md p-2.5 mb-2.5" style="border: 1px solid #ccc;"
-                            v-if="checkedListAll.includes('attr')">
+                            v-if="checkedListAll.includes('all')">
                             <a-form-item label="合并属性：">
                                 <a-form-item label="品牌：">
                                     <div class="flex">
@@ -241,11 +241,13 @@ const props = defineProps({
     editPriceVisible: Boolean,
     selectedRows: Array,
     editStockList: Array,
-    defType: Array
+    defType: Array,
+    brandList: Array
 });
 const emit = defineEmits(["handleEditPriceClose"]);
 const loading = ref(false)
-const ruleForm = ref()
+const ruleForm = ref();
+const attrList = ref([])
 // 提取初始表单数据工厂函数
 const getInitialFormData = () => ({
     oldPriceValue: 1,
@@ -396,7 +398,7 @@ const leftList = reactive([
             },
             {
                 label: '合并属性',
-                value: 'attr'
+                value: 'all'
             }
         ],
         indeterminate: false,
@@ -476,6 +478,35 @@ watch(() => props.defType, val => {
     item.indeterminate = false
     item.checkedList = val
 })
+
+watch(() => props.brandList, val => {
+    if (val.length > 1) {
+        attrList.value = processData(val);
+    }else{
+        attrList.value = val.map(item => {
+            return {
+                ...item,
+                repeatCount: 1
+            }
+        })
+    }
+})
+// 去重数据
+function processData(originalData) {
+  const temp = {};
+  
+  originalData.forEach(item => {
+    const key = item.threeCategoryId;
+    if (temp[key]) {
+      temp[key].repeatCount += 1;
+    } else {
+      temp[key] = { ...item, repeatCount: 1 };
+    }
+  });
+
+  return Object.values(temp);
+}
+
 const handleCancel = () => {
     emit("handleEditPriceClose")
     ruleForm.value.resetFields();

@@ -92,7 +92,8 @@
                     <a-menu-item @click="bigImgvisible = true" :preview="{ visible: false }">
                       查看大图
                       <div style="display: none">
-                        <a-image-preview-group style="width: 90% !important;" :preview="{ visible: bigImgvisible, onVisibleChange: vis => (bigImgvisible = vis) }">
+                        <a-image-preview-group style="width: 90% !important;"
+                          :preview="{ visible: bigImgvisible, onVisibleChange: vis => (bigImgvisible = vis) }">
                           <a-image v-for="(item, index) in tableData" :key="index" :src="item.colorImg[0].url" />
                         </a-image-preview-group>
                       </div>
@@ -105,7 +106,7 @@
                     </a-menu-item>
                     <a-sub-menu key="sub1" title="添加水印">
                       <a-menu-item v-for="item in watermark" :key="item" @click="changeImgWater(item)">
-                          {{ item.title }}
+                        {{ item.title }}
                       </a-menu-item>
                     </a-sub-menu>
                     <!-- <a-menu-item @click="changeImgWater">
@@ -115,7 +116,7 @@
                           
                         </a-menu>
                       </template>
-                    </a-menu-item> -->
+    </a-menu-item> -->
                     <a-menu-item @click="clearImg">
                       清空图片
                     </a-menu-item>
@@ -374,9 +375,9 @@
     <batchSetColor :setValueVis="setValueVis" @closeColorModal="setValueVis = false" @confirm="confirm"
       :setColorOption="setColorOption" @handleCancel="handleColorCancel"></batchSetColor>
     <!-- 批量修改颜色样本大小 -->
-     <bacthEditColorImg ref="bacthEditColorImgRef"></bacthEditColorImg>
+    <bacthEditColorImg ref="bacthEditColorImgRef"></bacthEditColorImg>
     <!-- 颜色样本翻译 -->
-    <colorImgTranslation ref="colorImgTranslationRef"></colorImgTranslation> 
+    <colorImgTranslation ref="colorImgTranslationRef"></colorImgTranslation>
   </div>
 </template>
 
@@ -1509,6 +1510,7 @@ watch(
             }
           });
         });
+
         // console.log("newItem", newItem);
 
         result.push(newItem);

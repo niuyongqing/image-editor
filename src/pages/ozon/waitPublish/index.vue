@@ -270,7 +270,7 @@
       @handleShopSetClose="shopSetVisible = false" @refreshShopSet="getShopSet"></shopSetModal>
 
     <!-- 统一修改价格库存等 -->
-    <editPriceModal :selectedRows="selectedRowList" :editPriceVisible="editPriceVisible"
+    <editPriceModal :selectedRows="selectedRowList" :editPriceVisible="editPriceVisible" :brandList="brandList"
       @handleEditPriceClose="handleEditPriceClose" :editStockList="editStockList" :defType="defType">
     </editPriceModal>
   </div>
@@ -290,6 +290,7 @@ import {
   ozonProductPublish,
   statistics,
   waitExport,
+  brandCategory
 } from "../config/api/waitProduct";
 import tableHeard from "../config/tabColumns/waitPublish";
 import editRemark from "./comm/editRemark.vue";
@@ -337,6 +338,7 @@ const activeName = ref(" ");
 const tabQuantity = ref([]);
 const defType = ref([]);
 const stockShops = ref([]);
+const brandList = ref([])
 const advancedForm = reactive({
   minPrice: null,
   maxPrice: null,
@@ -641,8 +643,26 @@ const handleMenuClick = (e) => {
     editPriceVisible.value = true;
     stockShops.value = selectedRowList.value.map((e) => e.account);
     getStore();
+    getBrandList();
   }
 };
+
+// 获取品牌相关数据
+const getBrandList = () => {
+  
+  let list = selectedRowList.value.map((e) => {
+    return {
+      account:e.account,
+      typeId: e.typeId,
+      descriptionCategoryId: e.descriptionCategoryId
+    }
+  })
+  console.log("list",list);
+  brandCategory(list).then((res) => {
+    brandList.value = res?.data ?? [];
+  })
+};
+
 
 // 关闭价格
 const handleEditPriceClose = () => {
