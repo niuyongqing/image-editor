@@ -85,12 +85,18 @@
               <div class="box-setVariant-content">
                 <div class="setVariant-item" v-for="item in skuEditData.variantAttribute" :key="item.id">
                   <div class="setVariant-item-label">
-                    <span>{{ item.name }}</span>
+                    <div>
+                      <span>{{ item.name }}</span>
+                      <a-button @click="editToABC(item)" type="link">修改为abc</a-button>
+                    </div>
                     <a-button @click="variantAttributeShow(item)" type="link">{{ item.show ? '收起':'展开' }}</a-button>
                   </div>
                   <div class="setVariant-item-box" v-show="item.show">
                     <div class="setVariant-item-box-i" v-for="val in item.values">
-                      <span>{{ val.name }}</span>
+                      <a-tooltip>
+                        <template #title>{{ val.name }}</template>
+                        <div class="item-box-i-name">{{ val.name }}</div>
+                      </a-tooltip>
                       <a-input v-model:value="val.input" @change="variantItemChange(val, item.id)"></a-input>
                     </div>
                   </div>
@@ -154,7 +160,7 @@
                   <a-input v-model:value="addStr.oldValue"></a-input>
                 </div>
                 <div class="box-addStr-text-item sukReplace-item">
-                  <span class="item-label">替换为</span>
+                  <span class="item-label" style="margin-right: 20px;">替换为</span>
                   <a-input v-model:value="addStr.newValue"></a-input>
                 </div>
               </div>
@@ -270,6 +276,15 @@ function creatVariantAttribute() {
   })
   skuEditData.variantAttribute[0].show = true
 }
+// 包含26个小写字母
+const abc = Array.from({length: 26}, (_, i) => String.fromCharCode(i + 97));
+// 修改为abc
+function editToABC(val) {
+  console.log({val,abc});
+  val.values.forEach((item, index) => {
+    item.input = abc[index%26]
+  })
+}
 // 变种主题展开收起
 function variantAttributeShow(val) {
   skuEditData.variantAttribute.forEach(item => {
@@ -298,7 +313,9 @@ function handleClose(data) {
       addStr[item] = _addStr[item]
     }
   })
-  skuEditData.prefix = ''
+  skuEditData.activeKey = 'add';
+  skuEditData.prefix = '';
+  skuEditData.prop = '';
   modalOpen.value = false
 }
 function save() {
@@ -459,6 +476,7 @@ function handleSelect(index) {
           align-items: center;
           .item-label {
             white-space:nowrap;
+            // margin-right: 20px;
           }
           .ant-input {
             width: 130px;
@@ -530,12 +548,15 @@ function handleSelect(index) {
               align-items: center;
               margin: 0 15px 20px;
               color: #000;
+              .item-box-i-name {
+                max-width: 100px;
+                margin-right: 6px;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+              }
               :deep(.ant-input) {
                 width: 120px;
-              }
-              span {
-                white-space: nowrap;
-                margin-right: 6px;
               }
             }
           }

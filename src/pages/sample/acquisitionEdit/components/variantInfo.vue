@@ -128,15 +128,16 @@
                   {{ column.title + (['originalPrice', 'currentPrice'].includes(column.key) ? `(${props.productData?.priceInfo?.currency})` : '') }}
                 </div>
                 <div v-if="column.key === 'skuCode'">
-                  (
+                  (<a-button @click="openModal('sukModal', column, 'foundation')" type="link" >批量</a-button>)
+                  <!-- (
                     <a-button @click="openModal('sukModal', column, 'foundation')" type="link" >一键生成</a-button>
                     ·
                     <a-button @click="openModal('sukModal', column, 'senior')" type="link">高级</a-button>
-                  )
+                  ) -->
                 </div>
-                <div v-else-if="['originalPrice', 'currentPrice', 'inventory'].includes(column.key)">
+                <!-- <div v-else-if="['originalPrice', 'currentPrice', 'inventory'].includes(column.key)">
                   (<a-button @click="openModal('numberEditModal', column)" type="link">批量</a-button>)
-                </div>
+                </div> -->
               </template>
 
               <template #bodyCell="{ column, record: row }">
@@ -157,7 +158,30 @@
                       placeholder="" 
                       style="width: 100%;"
                       :min="0"
-                    />
+                    >
+                      <!-- <template #addonAfter>
+                        <a-dropdown>
+                          <AsyncIcon :icon="'SendOutlined'" style="margin-left: 6px; color: #69b1ff;"/>
+                          <template #overlay>
+                            <a-menu>
+                              <a-menu-item>
+                                <div class="dropdown-item" @click="shareData(row, '', column.key, 'all')">
+                                  {{ `应用到全部` }}
+                                </div>
+                              </a-menu-item>
+                              <a-menu-item 
+                                v-for="(dropdownItem, index) in variantTheme.header"
+                                :key="index + dropdownItem.key" 
+                              >
+                                <div class="dropdown-item" @click="shareData(row, dropdownItem.key, column.key, 'identical')">
+                                  {{ `应用到所有 ${row[dropdownItem.key].name} ` }}
+                                </div>
+                              </a-menu-item>
+                            </a-menu>
+                          </template>
+                        </a-dropdown>
+                      </template> -->
+                    </a-input-number>
                   </div>
                 </template>
               </template>
@@ -566,9 +590,9 @@ function generateVariantInfo(e, val, formItem) {
 function openModal(component, column, type = '') {
   modalInfo.name = modalInfo.components[component];
   modalInfo.data = {
-    prop: column.key,
+    prop: column?.key,
     type,
-    title: column.title,
+    title: column?.title,
     headerList: variantTheme.header,
     variantList: variantTheme.variantList,
     variantInfo: variantTheme.tableData,
@@ -596,6 +620,16 @@ function modalConfirm(val) {
     default:
       break;
   }
+}
+// 更改到其他sku
+function shareData(row, target, val, type) {
+  variantTheme.tableData.forEach(item => {
+    if (type === 'all') {
+      item[val] = row[val]
+    } else if (type === 'identical' && item[target].id === row[target].id) {
+      item[val] = row[val]
+    }
+  })
 }
 // 生成一个随机数
 function createRandom() {
@@ -660,6 +694,9 @@ function createRandom() {
   }
   .variantInfo-box {
     padding: 20px;
+    // .row-input-content {
+    //   display: flex;
+    // }
   }
 }
 </style>

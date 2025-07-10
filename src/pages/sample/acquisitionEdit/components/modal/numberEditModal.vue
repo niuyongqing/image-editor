@@ -28,6 +28,7 @@
             v-model:value="currentData.resultRule" 
             placeholder="请选择" 
             :disabled="currentData.radio!==2"
+            style="margin-left: 10px;"
             v-if="props.modalData.prop !== 'inventory'"
           >
             <a-select-option
@@ -140,6 +141,7 @@ function handleCancel() {
     setNum: '',           // 直接修改
     countNum: '',         // 计算修改
     countRule: '+',
+    resultRule: 'toFixed2',
     // conditionTypeList: [],
     tableData: []
   }
@@ -220,7 +222,7 @@ function save(params) {
 .count {
   :deep(.ant-input) {
     width: 180px;
-    margin: 0 10px;
+    margin-left: 10px;
   }
   :deep(.ant-select) {
     width: 120px;
