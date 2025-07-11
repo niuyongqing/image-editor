@@ -194,7 +194,7 @@
         if (numberList.length) {
           // 有 #变种主题n#
           numberList.forEach(number => {
-            const val = item.attrList[number - 1] ?? ''
+            const val = item.cookedAttrValueList[number - 1] ?? ''
             item.SKUTitle = item.SKUTitle.replace(`#变种主题${number}#`, val)
           })
         }

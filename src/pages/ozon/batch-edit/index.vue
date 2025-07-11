@@ -61,7 +61,7 @@
         </div>
       </div>
       <div>
-        <a-dropdown>
+        <!-- <a-dropdown>
           <a-button size="middle">
             一键翻译
             <DownOutlined />
@@ -72,7 +72,7 @@
               <a-menu-item key="2"> 英文 —> 俄语 </a-menu-item>
             </a-menu>
           </template>
-        </a-dropdown>
+        </a-dropdown> -->
 
         <a-button
           type="primary"
@@ -257,7 +257,7 @@
             v-else
             @click="cellActived(index, column.key)"
           >
-            {{ record.detailDesc }}
+            {{ record.detailDesc.slice(0, 255) }}
           </div>
         </template>
         <template v-else-if="column.title === 'VAT'">
@@ -486,6 +486,7 @@
       v-model:open="variantImageModalOpen"
       ref="variant_image_modal"
       :raw-variant-images="curVariantImages"
+      :cooked-attr-name-list="cookedAttrNameList"
       @ok="variantImageOk"
     />
 
@@ -502,7 +503,6 @@
   import { DownOutlined, FormOutlined, UndoOutlined, DeleteOutlined, CheckOutlined } from '@ant-design/icons-vue'
   import { cloneDeep } from 'lodash'
   import { batchQueryDetailApi, batchUpdateProductApi } from '../config/api/batch-edit'
-  import { dataSource } from './config'
 
   import TitleModal from './components/TitleModal.vue'
   import DescModal from './components/DescModal.vue'
@@ -512,23 +512,61 @@
 
   // 取出产品 id
   const ids = JSON.parse(localStorage.getItem('ids'))
+
+  // 关联的结对变种属性
+  const TWINS = [
+    [10096, 10097], // [商品颜色, 颜色名称]
+    [4295, 9533] // [俄罗斯尺码, 制造商尺码]
+  ]
+  // 需要备份的字段
+  const COPY_KEY_LIST = ['title', 'detailDesc', 'VAT', 'skuList']
+
   /** 获取产品详情 */
-  let rawTableData = []
-  const tableData = ref(dataSource)
-  const tableData2 = ref([])
+  // let rawTableData = []
+  const tableData = ref([])
   getDetails()
   function getDetails() {
     batchQueryDetailApi({ ids }).then(res => {
-      /* rawTableData = res.data || []
-      const list = res.data || []
-      const list2 = list.map(item => {
+      // rawTableData = res.data || []
+      const data = res.data || []
+      const list = data.map(item => {
         const mainImage = item.skuList[0].primaryImage[0]
         item.skuList.forEach(sku => {
           sku.SKUTitle = sku.name
 
-          const attrList = sku.attributes ? sku.attributes.filter(attr => attr.values[0].value) : []
-          sku.attrList = attrList.map(attr => attr.values[0].value)
-          sku.attrName = sku.attrList.join('/')
+          if (sku.attributes) {
+            const variantList = sku.attributes.filter(attr => attr.isVariant)
+
+            let variantIds = variantList.map(variant => variant.id)
+            let cookedAttrNameList = []
+            let cookedAttrValueList = []
+            TWINS.forEach(twin => {
+              if (twin.every(id => variantIds.includes(id))) {
+                // 移除对应 id
+                variantIds = variantIds.filter(id => !twin.includes(id))
+                // 添加联结属性
+                const attrNameList = []
+                const attrValueList = []
+                twin.forEach(id => {
+                  const obj = variantList.find(variant => variant.id === id)
+                  attrNameList.push(obj.attributeName)
+                  attrValueList.push(obj.values[0].value)
+                })
+                cookedAttrNameList.push(attrNameList.join('-'))
+                cookedAttrValueList.push(attrValueList.join(','))
+              }
+            })
+            variantList
+              .filter(variant => variantIds.includes(variant.id))
+              .forEach(variant => {
+                cookedAttrNameList.push(variant.attributeName)
+                cookedAttrValueList.push(variant.values[0].value)
+              })
+
+            sku.cookedAttrNameList = cookedAttrNameList
+            sku.cookedAttrValueList = cookedAttrValueList
+            sku.attrName = sku.cookedAttrValueList.join('/')
+          }
         })
         const obj = {
           ...item,
@@ -537,17 +575,22 @@
           VAT: item.vat
         }
 
+        // 备份数据
+        COPY_KEY_LIST.forEach(key => {
+          obj[`${key}Copy`] = key !== 'skuList' ? obj[key] : cloneDeep(obj.skuList)
+        })
+
         return obj
       })
-      tableData2.value = list2 */
+      tableData.value = list
     })
   }
   // 变种主题数量(max)
   const attrCountMaxLength = computed(() => {
     const attrCountList = []
-    tableData2.value.forEach(item => {
+    tableData.value.forEach(item => {
       item.skuList.forEach(sku => {
-        attrCountList.push(sku.attrList.length)
+        attrCountList.push(sku.cookedAttrValueList.length)
       })
     })
 
@@ -705,16 +748,8 @@
     { label: '20%', value: 0.2 }
   ]
 
-  // 需要备份的字段
-  const COPY_KEY_LIST = ['title', 'detailDesc', 'VAT', 'skuList']
   // 在 SKUList 里的字段
   const SKU_ATTR_LIST = ['images', 'offerId', 'SKUTitle', 'price', 'oldPrice', 'stock', 'size', 'weight']
-  // 备份数据
-  tableData.value.forEach(item => {
-    COPY_KEY_LIST.forEach(key => {
-      item[`${key}Copy`] = key !== 'skuList' ? item[key] : cloneDeep(item.skuList)
-    })
-  })
 
   // 还原一列值
   function restore(key) {
@@ -817,14 +852,33 @@
   // 打开变种图片弹窗
   const variantImageModalOpen = ref(false)
   const variantImageModalRef = useTemplateRef('variant_image_modal')
+  let curRecord = {}
+  let curItem = {}
   const curVariantImages = ref([])
+  const cookedAttrNameList = ref([])
 
   function showImagesModal(record, item) {
     variantImageModalOpen.value = true
+
+    curRecord = record
+    curItem = item
     curVariantImages.value = item.images || []
+    cookedAttrNameList.value = item.cookedAttrNameList
   }
 
-  function variantImageOk() {}
+  function variantImageOk(params) {
+    const { confirmKey, variantImages } = params
+    if (confirmKey === 'applyAll') {
+      curRecord.skuList.forEach(item => {
+        item.images = variantImages
+      })
+    } else if (confirmKey === 'applySelf') {
+      curItem.images = variantImages
+    } else {
+    }
+
+    curRecord = {}
+  }
 
   // SKU 标题 弹窗
   const SKUTitleModalOpen = ref(false)
