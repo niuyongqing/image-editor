@@ -12,11 +12,11 @@
 
                 <div>
                     <a-space>
-                        <a-dropdown>
-                            <a-button style="height: 32px; background-color: #F5F5F5; color: #434649ff;">
+                        <!-- <a-dropdown>
+                        <a-button style="height: 32px; background-color: #F5F5F5; color: #434649ff;">
                                 一键翻译
                                 <DownOutlined />
-                            </a-button>
+                            </a-button> 
                             <template #overlay>
                                 <a-menu @click="handleTranslationMenu">
                                     <a-menu-item :key="1">
@@ -27,7 +27,7 @@
                                     </a-menu-item>
                                 </a-menu>
                             </template>
-                        </a-dropdown>
+</a-dropdown>-->
                         <!-- <a-button type="default" style="height: 32px; background-color: #F5F5F5; color: #434649ff;"
                             @click="onSubmit(1)">存为模板</a-button> -->
                         <a-dropdown>
@@ -78,8 +78,8 @@
             <!-- 基本信息 -->
             <ozon-base-info ref="ozonBaseInfoRef" id="ozonBaseInfo"
                 :categoryAttributesLoading="categoryAttributesLoading" :shopList="shopList"
-                :attributesCache="attributes" :productDetail="productDetail"
-                @getAttributes="getAttributes"></ozon-base-info>
+                :attributesCache="attributes" :productDetail="productDetail" @getAttributes="getAttributes"
+                @sendShortCode="sendShortCode"></ozon-base-info>
             <br />
             <!-- ERP信息 -->
             <erp-info ref="erpInfoRef"></erp-info>
@@ -219,7 +219,10 @@ const categoryAttributesLoading = ref(false)
 const formData = reactive({
     shortCode: ""
 })
-
+// 根据是否选择店铺后选择资料库
+const sendShortCode = (shortCode) => {
+    formData.shortCode = shortCode ? shortCode : null;
+}
 const getProductDetail = (gatherProductId, account) => {
     formData.shortCode = account
     ozonDraftDetail({ gatherProductId, account }).then(res => {

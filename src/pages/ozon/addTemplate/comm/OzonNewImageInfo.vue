@@ -1,6 +1,9 @@
 <template>
-    <div id="OzonNewImageInfoCont">
+    <div id="OzonNewImageInfoCont" v-if="showDescription">
         <a-card class="text-left">
+            <template #extra>
+                <a-button type="link" @click="removeDescription"> - 移除 </a-button>
+            </template>
             <template #title>
                 <span>描述信息<span style="color: #9fa0a2">（编辑视频时请先选择店铺）</span></span>
             </template>
@@ -10,6 +13,7 @@
                         <a-textarea v-model:value="form.description" :rows="10" :maxlength="6000" showCount />
                     </div>
                 </a-form-item>
+                {{ shopCode }} -------- 21321321
                 <a-form-item label="JSON 丰富内容：" name="jsonDes">
                     <span style="color: #ff0a37">说明：描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M</span>
                     <a-form-item-rest>
@@ -94,6 +98,7 @@ const ruleForm = ref(null)
 const props = defineProps({
     shopCode: String,
     productDetail: Object,
+    showDescription: Boolean,
 });
 const form = reactive({
     video: [],
@@ -101,7 +106,13 @@ const form = reactive({
     description: "",
     jsons: "",
     jsonDes: "",
+});
+
+const showDescription = defineModel('showDescription', {
+    type: Boolean,
+    default: false,
 })
+
 const headers = {
     'Authorization': 'Bearer ' + useAuthorization().value,
 }
@@ -164,8 +175,15 @@ defineExpose({
 
 const backResult = (res) => {
     form.jsons = res
-    // console.log('p', form.jsons);
+}
 
+const removeDescription = () => {
+    form.description = "";
+    form.jsons = "";
+    form.jsonDes = "";
+    form.video = [];
+    form.coverUrl = "";
+    showDescription.value = false;
 }
 
 watch(() => props.productDetail, val => {

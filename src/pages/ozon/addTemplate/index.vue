@@ -17,16 +17,18 @@
             <!-- 基本信息 -->
             <ozon-base-info ref="ozonBaseInfoRef" id="ozonBaseInfo"
                 :categoryAttributesLoading="categoryAttributesLoading" :shopList="shopList"
-                :attributesCache="attributes" @getAttributes="getAttributes"
-                @emitAddDescription="addDescription"></ozon-base-info>
+                :attributesCache="attributes" @getAttributes="getAttributes" @emitAddDescription="addDescription"
+                @sendShortCode="sendShortCode" :showDescription="showDescription"></ozon-base-info>
             <br />
 
             <!-- 描述信息 -->
-            <OzonNewImageInfo ref="ozonImageInfoRef" :shopCode="formData.shortCode" v-if="showDescription">
+            <OzonNewImageInfo ref="ozonImageInfoRef" :shopCode="formData.shortCode" v-if="showDescription"
+                v-model:showDescription="showDescription">
             </OzonNewImageInfo>
             <div flex justify-end>
-                <a-button type="primary" @click="onSubmit"
-                    style="height: 32px; background-color: #FF8345; color: #fff;">保存</a-button>
+                <a-button type="primary" @click="onSubmit" :loading="loading"
+                    style="height: 32px; background-color: #FF8345; color: #fff;">保存
+                </a-button>
             </div>
         </div>
     </div>
@@ -46,12 +48,16 @@ import { saveTowaitProduct } from "../config/api/waitProduct"
 import { message, Modal } from "ant-design-vue";
 import { UploadOutlined, DownOutlined } from '@ant-design/icons-vue';
 import { translationApi } from '~/api/common/translation';
+import { templateSaveOrUpdate } from "../config/api/userTemplate";
+import { useRoute } from 'vue-router';
 
+const route = useRoute();
+const type = ref(null);
 const showDescription = ref(false);
 const ozonBaseInfoRef = ref(null)
 const ozonImageInfoRef = ref(null)
 const ozonNewVariantInfoRef = ref(null)
-
+const showDescriptionBtn = ref(false);
 const attributes = ref([])
 const shopList = ref([])
 const productDetail = ref({})
@@ -63,12 +69,11 @@ const anchorList = ref([
         id: 'ozonBaseInfo',
         label: '基本信息',
     },
-
     {
         turnRed: false,
-        id: 'ozonNewVariantInfo',
-        label: 'sku信息',
-    }
+        id: 'ozonNewImageInfo',
+        label: '图片信息',
+    },
 ])
 const categoryAttributesLoading = ref(false)
 const formData = reactive({
@@ -122,7 +127,10 @@ const getAccount = () => {
 const addDescription = () => {
     showDescription.value = true;
 }
-
+// 根据是否选择店铺后选择资料库
+const sendShortCode = (shortCode) => {
+    formData.shortCode = shortCode ? shortCode : null;
+}
 const onSubmit = async () => {
     const ozonBaseInfo = await ozonBaseInfoRef.value.childForm();
     const OzonNewImageInfo = await ozonImageInfoRef.value.submitForm();
@@ -200,20 +208,14 @@ const onSubmit = async () => {
     let params = {
         account: base.shortCode,
         vat: base.vat,
-        // skuList: resItem,
         waitId: waitId.value,
-        // historyCategoryId: base?.categoryId?.threeCategoryId, //平台分类ID
-        // storeHistoryCategoryId: base?.categoryId?.storeHistoryCategoryId
-        //   ? base?.categoryId?.storeHistoryCategoryId
-        //   : "", //资料库分类ID
-        // historyAttributes: base.attributes,
         descriptionCategoryId:
             base.categoryId.secondCategoryId, // 二级id
         typeId: base.categoryId.threeCategoryId, // 三级分id
     }
     console.log('params', params);
-    loading.value = true;
-    // ozonProductEdit(params).then(res => {
+    // loading.value = true;
+    // templateSaveOrUpdate(params).then(res => {
     //     message.success(res.msg)
     //     setTimeout(() => {
     //         window.close();
@@ -230,6 +232,7 @@ const handleOk = () => {
 }
 
 onMounted(() => {
+    type.value = route.query.type;
     getAccount()
 })
 </script>

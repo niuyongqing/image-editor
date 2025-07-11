@@ -68,6 +68,7 @@
                                 </template>
                             </template>
                         </a-table>
+                        <template #tabBarExtraContent></template>
                     </a-card>
                 </div>
             </a-card>
@@ -756,18 +757,19 @@ const removeItem = (item, row) => {
     tableData.value = newData;
 };
 // 将根据主题中选择的数据进行添加到表格中
-const pushValue = (index, item) => {
+const pushValue = (index, item, key, record) => {
     let flog = hasDuplicateModelValues(attributeList.value)
     if (flog) {
         message.error("变种属性值不能有相同的，请修改")
         return
     }
+
     // 处理表格数据
     let cartesianProducts = cartesianProduct(attributeList.value);
     let newTableData = processResult(cartesianProducts);
     let minLength = Math.min(newTableData.length, tableData.value.length);
-    console.log("newTableData", newTableData, headerList.value, minLength);
     for (let i = 0; i < minLength; i++) {
+        const name = tableData.value[i][keyName]
         // 将b数组中对应下标的数据赋值到a数组中
         newTableData[i].skuTitle = tableData.value[i].skuTitle;
         newTableData[i].sellerSKU = tableData.value[i].sellerSKU;
@@ -782,7 +784,8 @@ const pushValue = (index, item) => {
         newTableData[i].packageWidth = tableData.value[i].packageWidth;
         newTableData[i].packageWeight = tableData.value[i].packageWeight;
     }
-    tableData.value = newTableData
+    tableData.value = newTableData;
+
 }
 
 // 动态添加表头数据
@@ -1416,15 +1419,68 @@ watch(() => useOzonProductStore().attributes, val => {
             echoThemeList = handleTheme(isModelValueList)
         }
         // console.log('isModelValueList',isModelValueList);
-
         // 处理到数据回显到主题
         const aIds = echoThemeList.map(item => item.id);
-        // console.log('aIds', echoThemeList);
         // 过滤 有数据的主题
         themeBtns.value = themeBtns.value.filter(item => !aIds.includes(item.id));
-        attributeList.value = matchAndAssignValues(echoThemeList, skuList)
-    }
+        attributeList.value = matchAndAssignValues(echoThemeList, skuList);
 
+        // ----------------------------------------------------------------------------
+        const groupsFlat = groups.flat();
+        const ids = groupsFlat.map((item) => item.id);
+        themeBtns.value = themeBtns.value.filter(item => !ids.includes(item.id));
+        groupsFlat.forEach(group => {
+            if (!attributeList.value.some((item) => {
+                return (item.tableColumns.some((_item) => {
+                    return _item.id === group.id
+                }))
+            })) {
+                attributeList.value.push({
+                    ...group,
+                    tableData: [
+                        {
+                            "isRequired": group.isRequired,
+                            "categoryDependent": group.categoryDependent,
+                            "isCollection": group.isCollection,
+                            "id": group.id,
+                            "name": group.name,
+                            "selectType": group.selectType,
+                            "type": group.type,
+                            "modelValue": group.selectType === 'multSelect' ? [] : '',
+                            "options": group.options,
+                            "details": group.options.map((option) => {
+                                return {
+                                    ...option,
+                                    label: option.value,
+                                }
+                            })
+                        }
+                    ],
+                    tableColumns: [
+                        {
+                            "selectType": group.selectType,
+                            "dataIndex": group.name,
+                            "title": group.name,
+                            "type": group.type,
+                            "id": group.id,
+                            "show": true,
+                            "align": "center",
+                            "width": 900
+                        },
+                        {
+                            "dataIndex": "options",
+                            "title": "操作",
+                            "fixed": "right",
+                            "width": 200
+                        }
+                    ]
+                })
+            }
+        });
+
+        // console.log('btns ->>>>>>>>>>>', themeBtns.value);
+        // console.log('attributeList.value -》》》》》》》》》》》》》', attributeList.value);
+    }
 })
 
 const filterModelValues = (a, b) => {

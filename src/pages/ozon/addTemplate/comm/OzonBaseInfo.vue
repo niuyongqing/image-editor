@@ -107,7 +107,6 @@
                                         v-model:value="form.attributes[item.name]" v-if="item.selectType === 'select'"
                                         labelInValue :style="'width: 80%'" allowClear>
                                         <a-select-option v-if="item.id == 85" :value="'无品牌'">无品牌</a-select-option>
-
                                         <a-select-option v-else :value="v" v-for="(v, i) in item.options" :key="i">
                                             {{ v.label }}
                                         </a-select-option>
@@ -142,6 +141,7 @@ const props = defineProps({
     categoryAttributesLoading: Boolean,
     productDetail: Object,
     shopList: Array,
+    showDescription: Boolean,
 });
 const emit = defineEmits(["sendShortCode", "getAttributes", "emitAddDescription"]);
 
@@ -442,9 +442,11 @@ const addAttributes = () => {
 
 };
 const addDescription = () => {
-    showDescriptionBtn.value = true
+    showDescriptionBtn.value = true;
     emit('emitAddDescription', showDescriptionBtn.value)
 };
+
+
 
 const removeAttrs = () => {
     const attributes = form.attributes || {};
@@ -481,6 +483,12 @@ defineExpose({
     form,
     childForm,
 });
+
+watch(() => props.showDescription, (val) => {
+    showDescriptionBtn.value = val;
+}, {
+    immediate: true
+})
 
 watch(
     () => form.shortCode,

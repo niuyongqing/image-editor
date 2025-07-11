@@ -1,7 +1,7 @@
 <template>
     <div>
         <div flex gap-20px>
-            <SideBar v-model:activeId="activeId" />
+            <SideBar v-model:activeId="activeId" @search="getList" />
             <div w-full flex flex-col gap-12px pr-50px>
                 <a-breadcrumb separator=">">
                     <a-breadcrumb-item>Ozon产品</a-breadcrumb-item>
@@ -22,8 +22,8 @@
                         <a-form-item label="搜索内容：">
                             <div class="flex">
                                 <div class="flex align-start">
-                                    <a-input style="width: 400px;" v-model:value="formData.content"
-                                        placeholder="请输入模板名称" clearable></a-input>
+                                    <a-input style="width: 400px;" v-model:value="formData.name" allowClear
+                                        placeholder="请输入模板名称"></a-input>
                                 </div>
                                 <a-button type="primary" class="ml-[10px]" @click="onSubmit()">查询</a-button>
                             </div>
@@ -32,7 +32,8 @@
                 </a-card>
 
                 <div flex justify-between>
-                    <a-button type="primary" @click="handleDelete">批量删除</a-button>
+                    <a-button type="primary" @click="handleDelete"
+                        :disabled="selectedRowList.length === 0">批量删除</a-button>
                     <a-button type="primary" @click="navToCreateTemplate">创建模板</a-button>
                 </div>
 
@@ -62,9 +63,8 @@
                             showTotal: (total, range) => `第${range[0]}-${range[1]}条, 共${total}条`
                         }" :row-selection="rowSelection">
                         <template #bodyCell="{ column, record }">
-                            <template v-if="column.dataIndex === 'openAndClose'">
-                                <a-switch :checked="record.openAndClose"
-                                    @change="handleOpenAndClose(record)"></a-switch>
+                            <template v-if="column.dataIndex === 'state'">
+                                <a-switch :checked="record.state === 1" disabled></a-switch>
                             </template>
                             <template v-if="column.dataIndex === 'action'">
                                 <a-button type="link" @click="handleEdit(record)">编辑</a-button>
@@ -82,49 +82,41 @@
 <script lang="ts" setup>
 import SideBar from './components/sideBar.vue';
 import { accountCache } from "../config/api/product";
+import { templateList } from "../config/api/userTemplate";
 import { Modal } from 'ant-design-vue';
 
+
+const shopObj = {
+    fieldKey: "account",
+    fieldLabel: "simpleName",
+};
+const selectedRowKeys = ref([]);
+const selectedRowList = ref([]);
+const rowSelection = computed(() => {
+    return {
+        selectedRowKeys: selectedRowKeys.value,
+        onChange: (rowKeys, rows) => {
+            selectedRowKeys.value = rowKeys; //只接收ID
+            selectedRowList.value = rows; //接收每一行
+        },
+    };
+});
 const columns = computed(() => {
-    if (activeId.value === 3) {
-        return [
-            {
-                title: '模板名称',
-                dataIndex: 'templateName',
-                key: 'templateName',
-            },
-            {
-                title: '时间',
-                dataIndex: 'createTime',
-                key: 'createTime',
-            },
-            {
-                title: '开启和关闭',
-                dataIndex: 'openAndClose',
-                key: 'openAndClose',
-            },
-            {
-                title: '操作',
-                dataIndex: 'action',
-                key: 'action',
-            },
-        ]
-    }
     return [
         {
             title: '模板名称',
-            dataIndex: 'templateName',
-            key: 'templateName',
-        },
-
-        {
-            title: '引用模块',
-            dataIndex: 'module',
-            key: 'module',
+            dataIndex: 'name',
+            key: 'name',
         },
         {
-            title: '创建时间',
-            dataIndex: 'createTime',
-            key: 'createTime',
+            title: '时间',
+            dataIndex: 'gmtCreate',
+            key: 'gmtCreate',
+        },
+        {
+            title: '开启和关闭',
+            dataIndex: 'state',
+            key: 'state',
         },
         {
             title: '操作',
@@ -132,28 +124,13 @@ const columns = computed(() => {
             key: 'action',
         },
     ]
-})
-
-const selectedRowList = ref([]);
-const rowSelection = {
-    onChange: (_selectedRowKeys, selectedRows) => {
-        selectedRowList.value = selectedRows;
-    },
-};
-
-const shopObj = {
-    fieldKey: "account",
-    fieldLabel: "simpleName",
-};
-const sortObj = reactive({
-    sortField: "created_time",
-    sortType: "desc"
 });
+
 
 const shopAccount = ref([])
 const formData = reactive({
     account: '',
-    content: '',
+    name: '',
 });
 const tableData = ref([])
 const paginations = reactive({
@@ -164,34 +141,31 @@ const paginations = reactive({
 const loading = ref(false)
 const activeId = ref(1);
 
-const selectItem = () => {
-    console.log('selectItem');
+const selectItem = (e) => {
+    formData.account = e;
+    getList();
 };
 
-const handleOpenAndClose = (record) => {
-    console.log(record);
-}
-
 const getList = () => {
-    console.log(tableData.value, sortObj, paginations, loading.value);
-    // loading.value = true;
-    // ozonDraftList({
-    //     ...formData,
-    //     ...sortObj,
-    //     pageNum: paginations.pageNum,
-    //     pageSize: paginations.pageSize
-    // })
-    //     .then((res) => {
-    //         tableData.value =
-    //             res?.rows.map((item) => {
-    //                 item.show = false;
-    //                 return item;
-    //             }) || [];
-    //         paginations.total = res?.total || 0;
-    //     })
-    //     .finally(() => {
-    //         loading.value = false;
-    //     });
+    console.log(tableData.value, paginations, loading.value);
+    loading.value = true;
+    templateList({
+        ...formData,
+        type: activeId.value,
+        pageNum: paginations.pageNum,
+        pageSize: paginations.pageSize
+    })
+        .then((res) => {
+            tableData.value =
+                res?.rows.map((item) => {
+                    item.show = false;
+                    return item;
+                }) || [];
+            paginations.total = res?.total || 0;
+        })
+        .finally(() => {
+            loading.value = false;
+        });
 };
 
 const selectAll = () => {
@@ -222,11 +196,9 @@ const handleCopy = (record) => {
 }
 
 const handleDelete = (record) => {
-    console.log(record);
     Modal.confirm({
         title: '提示',
         content: '确定要删除吗？',
-
         onOk: () => {
             console.log('ok');
         },
@@ -237,7 +209,7 @@ const handleDelete = (record) => {
 };
 
 const navToCreateTemplate = () => {
-    window.open('/platform/ozon/addTemplate')
+    window.open(`/platform/ozon/addTemplate?type=${activeId.value}`, '_blank');
 };
 
 // 表单搜索
@@ -256,5 +228,60 @@ const getAccount = () => {
 onMounted(() => {
     getAccount()
 })
+/**
+ * 对于产品模板
+ * {
+ *     "type": 1,
+ *     "id": null,
+ *     "name": "模板名称1",
+ *     "state": 1,
+ *     "account": "2649641",
+ *     "content": {
+ *         "productTemplate": {
+ *             "categoryId": {
+ *                 "threeCategoryId": 95139,
+ *                 "threeCategoryName": "",
+ *                 "secondCategoryId": 15621050,
+ *                 "label": "智能手机(Смартфон)",
+ *                 "value": 95139
+ *             },
+ *             "productAttr": {
+ *                 "品牌(Бренд)": {
+ *                     "label": "无品牌",
+ *                     "value": "无品牌"
+ *                 },
+ *                 "型号名称（为了合并为一张商品卡）(Название модели (для объединения в одну карточку))": "123243123",
+ *                 "型号(Партномер)": "122131233123",
+ *                 "保修期(Гарантийный срок)": "123123"
+ *             },
+ *             "productDesc": "测试产品描述"
+ *         },
+ *         "jsonRich": {
+ *             "content": [
+ *                 {
+ *                     "widgetName": "raShowcase",
+ *                     "type": "roll",
+ *                     "blocks": [
+ *                         {
+ *                             "imgLink": "",
+ *                             "img": {
+ *                                 "src": "/profile/upload/shopeeFile/2025-07-08/2025/07/08/9640_20250708094913A002.jpg",
+ *                                 "srcMobile": "/profile/upload/shopeeFile/2025-07-08/2025/07/08/9640_20250708094913A002.jpg",
+ *                                 "alt": "",
+ *                                 "position": "width_full",
+ *                                 "positionMobile": "width_full",
+ *                                 "widthMobile": 690,
+ *                                 "heightMobile": 690
+ *                             }
+ *                         }
+ *                     ]
+ *                 }
+ *             ],
+ *             "version": 0.3
+ *         }
+ *     }
+ * }
+ */
+
 </script>
 <style lang="less" scoped></style>

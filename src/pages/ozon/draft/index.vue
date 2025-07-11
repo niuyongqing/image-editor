@@ -57,14 +57,19 @@
                                         <a-menu-item :key="1">批量移入待发布</a-menu-item>
                                         <a-menu-item :key="2">批量发布</a-menu-item>
                                         <a-menu-item :key="3">批量加水印</a-menu-item>
-                                        <a-menu-item :key="4">批量归档</a-menu-item>
+                                        <!-- <a-menu-item :key="4">批量归档</a-menu-item> -->
                                         <a-menu-item :key="5">批量备注</a-menu-item>
                                         <a-menu-item :key="6">批量删除</a-menu-item>
+                                        <a-menu-divider />
                                         <a-menu-item :key="7" disabled> 快捷操作 </a-menu-item>
-                                        <a-menu-item :key="8"> 批量修改售价 </a-menu-item>
+                                        <!-- <a-menu-item :key="8"> 批量修改售价 </a-menu-item>
                                         <a-menu-item :key="9"> 批量修改原价 </a-menu-item>
                                         <a-menu-item :key="10"> 批量修改库存 </a-menu-item>
-                                        <a-menu-item :key="11"> 全属性修改 </a-menu-item>
+                                        <a-menu-item :key="11"> 全属性修改 </a-menu-item> -->
+                                        <a-menu-item key="stock"> 批量修改库存 </a-menu-item>
+                                        <a-menu-item key="price"> 批量修改售价 </a-menu-item>
+                                        <a-menu-item key="oldPrice"> 批量修改原价 </a-menu-item>
+                                        <a-menu-item key="all"> 全属性修改 </a-menu-item>
                                     </a-menu>
                                 </template>
                             </a-dropdown>
@@ -264,21 +269,23 @@
         <!-- <BatchEdit ref="batchEditRef"></BatchEdit> -->
 
         <!-- 批量备注 -->
-        <RemarkModal ref="remarkModalRef"></RemarkModal>
+        <RemarkModal ref="remarkModalRef" @success="getList"></RemarkModal>
 
         <!-- 批量加水印 -->
         <BatchWatermark ref="batchWatermarkRef"></BatchWatermark>
 
-        <!-- 全属性修改 -->
-        <BatchAttribute ref="batchAttributeRef"></BatchAttribute>
+        <!-- 批量修改价格 -->
+        <EditAttribute ref="editAttributeRef" :selectedRows="selectedRowList" :editPriceVisible="editPriceVisible"
+            @handleEditPriceClose="handleEditPriceClose" :editStockList="editStockList" :defType="defType">
+        </EditAttribute>
     </div>
 </template>
 
 <script setup name='draft'>
 import { Divider, message, Modal } from 'ant-design-vue';
 import { DownOutlined, SettingOutlined, SyncOutlined, QuestionCircleOutlined } from "@ant-design/icons-vue";
-import { accountCache, shopCurrency } from "../config/api/product";
-import { ozonDraftList } from "../config/api/draft";
+import { accountCache, shopCurrency, productWarehouse } from "../config/api/product";
+import { ozonDraftList, ozonDeleteProduct, batchPublishToPlatform } from "../config/api/draft";
 import { updateCategoryProduct } from "~/pages/sample/dataAcquisition/js/api.js";
 import { useRouter } from 'vue-router';
 import tableHeard from "../config/tabColumns/draft"
@@ -291,8 +298,8 @@ import BatchEdit from './batchComponent/batchEdit.vue';
 import RemarkModal from './batchComponent/remarkModal.vue';
 import BatchWatermark from './batchComponent/batchWatermark.vue';
 import OzonProduct from '@/pages/ozon/product/index.vue';
-import BatchAttribute from './batchComponent/batchAttribute.vue';
 import BatchEditPrompt from './batchComponent/batchEditPrompt.vue';
+import EditAttribute from './batchComponent/editAttribute.vue';
 
 let columns = tableHeard;
 const showDraftTable = ref(true);
@@ -305,12 +312,17 @@ const batchEditPromptEl = useTemplateRef('batchEditPromptRef'); // 批量编辑-
 const remarkModalEl = useTemplateRef('remarkModalRef'); // 批量备注-弹窗
 const batchWatermarkEl = useTemplateRef('batchWatermarkRef'); // 批量加水印-弹窗
 const batchAttributeEl = useTemplateRef('batchAttributeRef'); // 批量属性-弹窗
+const editAttributeEl = useTemplateRef('editAttributeRef'); // 批量属性-弹窗
 const typeTreeEl = useTemplateRef('typeTreeRef');
 const currentClass = ref('0');
 const nodePath = ref('');
 const typeManageOpen = ref(false);
 const shopSetVisible = ref(false);
 const shopCurryList = ref([]);
+const editPriceVisible = ref(false); //全属性
+const editStockList = ref([]); //修改库存
+const defType = ref([]);
+const stockShops = ref([]);
 
 const formData = reactive({
     offerId: "",
@@ -328,6 +340,7 @@ const paginations = reactive({
 });
 const shopAccount = ref([])
 const actives = ref(1);
+const selectedRowKeys = ref([]);
 const selectedRowList = ref([]);
 const tableData = ref([])
 const deactivateLoading = ref(false)
@@ -398,11 +411,15 @@ const strList = ref([
     },
 ]);
 
-const rowSelection = {
-    onChange: (selectedRowKeys, selectedRows) => {
-        selectedRowList.value = selectedRows;
-    },
-};
+const rowSelection = computed(() => {
+    return {
+        selectedRowKeys: selectedRowKeys.value,
+        onChange: (rowKeys, rows) => {
+            selectedRowKeys.value = rowKeys; //只接收ID
+            selectedRowList.value = rows; //接收每一行
+        },
+    };
+});
 const accountName = (account) => {
     return shopAccount.value.find(item => item.account === account)?.simpleName
 };
@@ -538,10 +555,8 @@ const updateClass = (value) => {
 // 批量移动分类
 async function typeNodeClick(node) {
     if (selectedRowList.value.length < 1) return message.warning('请选择商品！')
-    // console.log({ node });
     try {
         let ids = selectedRowList.value.map(i => i.gatherProductId);
-
         let params = {
             "ids": ids.join(), // 商品信息的唯一标识(多个用英文逗号分割)
             "productCategoryId": node.id   //分类ID
@@ -578,30 +593,25 @@ const addRemark = (row = {}) => {
     remarkModalEl.value.open(row, false);
 };
 
-// 单个或批量删除产品
+// 单个删除产品
 const delProduct = (row = {}) => {
     Modal.confirm({
         title: '提示',
         content: '确定要删除吗？',
         onOk: async () => {
-            // loading.value = true;
-            // let waitIds = [];
-            // if (Object.keys(row).length != 0) {
-            //     waitIds.push(row.waitId);
-            // } else {
-            //     waitIds = selectedRowList.value.map((item) => item.waitId);
-            // }
-            // ozonProductDel({ waitIds })
-            //     .then((res) => {
-            //         message.success("操作成功");
-            //         getList();
-            //     })
-            //     .finally(() => {
-            //         loading.value = false;
-            //     });
+            ozonDeleteProduct({
+                "shopIdList": [row.account],    //店铺id列表
+                "gatherProductIdList": [   //采集箱商品id列表
+                    row.gatherProductId
+                ]
+            }).then((res) => {
+                message.success("操作成功");
+                getList();
+            }).finally(() => {
+                loading.value = false;
+            });
         }
     })
-
 };
 
 const handleShopSetClose = () => {
@@ -618,13 +628,59 @@ const updateCurrentClass = (value) => {
     console.log(value);
 };
 
+function clearStock(data) {
+    if (Array.isArray(data)) {
+        data.forEach((item) => {
+            if (item.children) {
+                clearStock(item.children);
+            }
+            if (item.hasOwnProperty("stock")) {
+                item.stock = null;
+            }
+        });
+    }
+    return data;
+};
+
+const clearSelectList = () => {
+    selectedRowList.value = [];
+    selectedRowKeys.value = [];
+};
+// 关闭价格
+const handleEditPriceClose = () => {
+    clearSelectList();
+    editPriceVisible.value = false;
+    getList();
+    editStockList.value = clearStock(editStockList.value);
+};
+
+// 库存
+const getStore = () => {
+    let params = {
+        account: stockShops.value,
+    };
+    productWarehouse(params).then((res) => {
+        editStockList.value =
+            res?.data?.map((item) => {
+                return {
+                    account: item.account,
+                    simpleName: item.simpleName,
+                    children: item.children,
+                    allStock: "",
+                };
+            }) ?? [];
+    });
+};
+
 //  批量操作
 const handleMenuClick = (e) => {
     console.log(e, selectedRowList.value);
     if (!selectedRowList.value.length) {
         message.warning("请至少选择一条数据");
         return;
-    }
+    };
+    defType.value = e.keyPath;
+    stockShops.value = selectedRowList.value.map((e) => e.account);
     switch (e.key) {
         case 0:
             console.log('批量编辑');
@@ -634,21 +690,35 @@ const handleMenuClick = (e) => {
             Modal.confirm({
                 title: '提示',
                 content: '确定要批量移入待发布吗？',
-                confirmLoading: true,
                 onOk: async () => {
-                    // baseTableEl.value.setLoading(true);
-                    // const res = await moveToPending({ itemId: record.itemId });
-                    // if (res.code === 200) {
-                    //     message.success('移入待发布成功');
+                    // const shopIdList = selectedRowList.value.map(item => item.account);
+                    // const gatherProductIdList = selectedRowList.value.map(item => item.gatherProductId);
+                    // ozonDeleteProduct({
+                    //     "shopIdList": shopIdList,
+                    //     "gatherProductIdList": gatherProductIdList,
+                    // }).then((res) => {
+                    //     message.success("操作成功");
                     //     getList();
-                    // } else {
-                    //     message.error(res.msg);
-                    //     baseTableEl.value.setLoading(false);
-                    // }
+                    // })
                 }
             });
             break;
         case 2:
+            Modal.confirm({
+                title: '提示',
+                content: '确定要批量发布吗？',
+                onOk: async () => {
+                    const shopIdList = selectedRowList.value.map(item => item.account);
+                    const gatherProductIdList = selectedRowList.value.map(item => item.gatherProductId);
+                    batchPublishToPlatform({
+                        "shopIdList": shopIdList,
+                        "gatherProductIdList": gatherProductIdList,
+                    }).then((res) => {
+                        message.success("操作成功");
+                        getList();
+                    })
+                }
+            })
             console.log('批量发布');
             break;
         case 3:
@@ -659,7 +729,6 @@ const handleMenuClick = (e) => {
             Modal.confirm({
                 title: '提示',
                 content: '确定要批量归档吗？',
-                confirmLoading: true,
                 onOk: async () => {
                     // baseTableEl.value.setLoading(true);
                     // const res = await moveToPending({ itemId: record.itemId });
@@ -684,31 +753,34 @@ const handleMenuClick = (e) => {
                 content: '确定要批量删除吗？',
                 confirmLoading: true,
                 onOk: async () => {
-                    // baseTableEl.value.setLoading(true);
-                    // const res = await moveToPending({ itemId: record.itemId });
-                    // if (res.code === 200) {
-                    //     message.success('删除成功');
-                    //     getList();
-                    // } else {
-                    //     message.error(res.msg);
-                    //     baseTableEl.value.setLoading(false);
-                    // }
+                    const shopIdList = selectedRowList.value.map(item => item.account);
+                    const gatherProductIdList = selectedRowList.value.map(item => item.gatherProductId);
+                    ozonDeleteProduct({
+                        "shopIdList": shopIdList,
+                        "gatherProductIdList": gatherProductIdList,
+                    }).then((res) => {
+                        message.success("操作成功");
+                        getList();
+                    })
                 }
             })
             console.log('批量删除');
             break;
-        case 8:
-            console.log('批量修改售价');
+        case 'stock':
+            editPriceVisible.value = true;
+            getStore();
             break;
-        case 9:
-            console.log('批量修改原价');
+        case 'price':
+            editPriceVisible.value = true;
+            getStore();
             break;
-        case 10:
-            console.log('批量修改库存');
+        case 'oldPrice':
+            editPriceVisible.value = true;
+            getStore();
             break;
-        case 11:
-            batchAttributeEl.value.open({ title: '批量修改属性', data: selectedRowList.value });
-            console.log('批量修改全属性');
+        case 'all':
+            editPriceVisible.value = true;
+            getStore();
             break;
         default:
             break;
