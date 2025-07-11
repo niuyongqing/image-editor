@@ -68,8 +68,6 @@ const showModal = (list = []) => {
             v.checked = false
         })
     });
-    console.log('tableData.value', tableData.value);
-
     visible.value = true;
 };
 
@@ -175,7 +173,6 @@ const submit = async () => {
                                 message.success('翻译成功');
                                 // emits('multiSubmit', list);
 
-                                console.log('urls', list);
                                 tableData.value.forEach((item) => {
                                     item.imageUrl.forEach((v) => {
                                         list.forEach(item => {

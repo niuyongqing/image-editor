@@ -1,30 +1,30 @@
 <template>
     <div id="OzonBaseInfoCont">
         <a-card title="基本信息" style="text-align: left">
-            <a-form :label-col="{ span: 3 }" ref="ruleForm" :model="form" class="mt-5" :rules="rules">
+            <a-form :label-col="{ span: 3 }" ref="ruleForm" :model="form" class="mt-5 shopForm" :rules="rules">
                 <a-form-item label="店铺：" name="shortCode">
-                    <a-select v-model:value="form.shortCode" placeholder="请选择店铺" style="width: 90%" allowClear
+                    <a-select v-model:value="form.shortCode" size="middle" placeholder="请选择店铺" style="width: 90%" allowClear
                         showSearch optionFilterProp="label" :options="shopList" @change="getHistoryList">
                     </a-select>
                 </a-form-item>
                 <a-form-item label="商品标题：" name="name">
-                    <a-input style="width: 90%" v-model:value="form.name" placeholder="请输入产品名称(用俄语或英语)" :maxlength="255"
+                    <a-input style="width: 90%" v-model:value="form.name" size="middle" placeholder="请输入产品名称(用俄语或英语)" :maxlength="255"
                         showCount></a-input>
                 </a-form-item>
                 <a-form-item label="VAT：" name="vat">
-                    <a-select v-model:value="form.vat" allowClear style="width: 90%" :options="vatList">
+                    <a-select v-model:value="form.vat" allowClear style="width: 90%" size="middle" :options="vatList">
                     </a-select>
                 </a-form-item>
                 <a-form-item label="分类：" name="categoryId">
-                    <a-select v-model:value="form.categoryId" allowClear showSearch labelInValue placeholder="请选择"
+                    <a-select v-model:value="form.categoryId" allowClear showSearch size="middle" labelInValue placeholder="请选择"
                         style="width: 200px" :options="historyCategoryList" @change="selectAttributes" :fieldNames="{
                             label: 'threeCategoryName',
                             value: 'threeCategoryId',
                         }">
                     </a-select>
                     <a-button style="margin-left: 20px" :disabled="categoryTreeList.length == 0"
-                        @click="selectVisible = true">选择分类</a-button>
-                    <p v-if="hisAttrObj.length != 0" style="color: #933">
+                        @click="selectVisible = true" size="middle">选择分类</a-button>
+                    <p v-if="hisAttrObj.length != 0" style="color: #933" class="text-16px">
                         <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{ hisAttrObj[0].secondCategoryName
                         }}</span>/
                         <span>{{ hisAttrObj[0].threeCategoryName }}</span>
@@ -66,7 +66,7 @@
                                             : item.name == '海关编码'
                                                 ? 9999999
                                                 : 100
-                                            " :minlength="1000000"></a-input>
+                                            " :minlength="1000000" size="middle"></a-input>
                                     <div v-if="
                                         item.type == 'String' &&
                                         item.isCollection &&
@@ -74,7 +74,7 @@
                                     ">
                                         <div v-if="item.options && item.options.length > 25">
                                             <a-select optionFilterProp="label" show-search
-                                                v-model:value="item.selectDate" allowClear
+                                                v-model:value="item.selectDate" allowClear size="middle"
                                                 style="width: 200px; margin-bottom: 5px" placeholder="请输入内容"
                                                 labelInValue>
                                                 <!-- :options="item.options" @change="handlerChangeSelectDate"-->
@@ -82,22 +82,19 @@
                                                     v-for="(v, i) in item.options" :key="i">{{ v.label
                                                     }}</a-select-option>
                                             </a-select>
-                                            <a-button style="margin-left: 10px" @click="addItemValues(item)"
+                                            <a-button style="margin-left: 10px" size="middle" @click="addItemValues(item)"
                                                 type="primary">添加</a-button>
                                         </div>
                                         <a-form-item-rest>
                                             <a-checkbox-group v-model:value="form.attributes[item.name]"
                                                 style="width: 80%" :options="item.acquiesceList" class="boxGroup">
-                                                <!--  :options="item.acquiesceList" v-model:checked="option.value" -->
-                                                <!-- <a-checkbox v-for="option in item.acquiesceList" :key="option.value">
-                                                    {{ option.label }}
-                                                </a-checkbox> -->
+                                                <template #label="{ label }">
+                                                    <span :title="label">{{ label }}</span>
+                                                </template>
                                             </a-checkbox-group>
                                         </a-form-item-rest>
-                                        <!-- <a-checkbox v-for="i in item.acquiesceList" :label="i.value"
-                                            :key="i.value">{{ i.value }}</a-checkbox> @change="handlerSelectDate"-->
                                     </div>
-                                    <a-select optionFilterProp="label" show-search
+                                    <a-select optionFilterProp="label" show-search size="middle"
                                         v-model:value="form.attributes[item.name]" v-if="item.selectType === 'select'"
                                         labelInValue :style="'width: 80%'" allowClear>
                                         <a-select-option v-if="item.id == 85" :value="'无品牌'">无品牌</a-select-option>
@@ -173,7 +170,7 @@ const rules2 = ref({});
 const loopAttributes = ref([]);
 const categoryTreeList = ref([]);
 const historyCategoryList = ref([]);
-const isExpand = ref(false)
+const isExpand = ref(true)
 const vatList = [
     {
         label: "免税",
@@ -640,6 +637,16 @@ watch(
             /* 使用省略号表示文本溢出 */
             width: 200px;
             /* 设置容器宽度 */
+        }
+    }
+}
+
+:deep(.shopForm) {
+    .ant-form-item {
+        .ant-row {
+            .ant-form-item-label>label {
+                font-size: 20px !important;
+            }
         }
     }
 }

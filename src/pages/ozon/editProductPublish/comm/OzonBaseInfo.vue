@@ -1,27 +1,27 @@
 <template>
     <div id="OzonBaseInfoCont">
         <a-card title="基本信息" style="text-align: left;">
-            <a-form :label-col="{ span: 3 }" ref="ruleForm" :model="form" class="mt-5" :rules="rules">
+            <a-form :label-col="{ span: 3 }" ref="ruleForm" :model="form" class="mt-5 shopForm" :rules="rules">
                 <a-form-item label="店铺：" name="shortCode">
-                    <a-select v-model:value="form.shortCode" placeholder="请选择店铺" disabled style="width: 90%" allowClear
+                    <a-select v-model:value="form.shortCode" size="middle" placeholder="请选择店铺" disabled style="width: 90%" allowClear
                         showSearch optionFilterProp="label" :options="shopList">
                     </a-select>
                 </a-form-item>
                 <a-form-item label="商品标题：" name="name">
-                    <a-input style="width: 90%" v-model:value="form.name" placeholder="请输入产品名称(用俄语或英语)" :maxlength="255"
+                    <a-input style="width: 90%" v-model:value="form.name" size="middle" placeholder="请输入产品名称(用俄语或英语)" :maxlength="255"
                         showCount></a-input>
                 </a-form-item>
                 <a-form-item label="VAT：" name="vat">
-                    <a-select v-model:value="form.vat" allowClear style="width: 90%" :options="vatList">
+                    <a-select v-model:value="form.vat" allowClear style="width: 90%" size="middle" :options="vatList">
                     </a-select>
                 </a-form-item>
                 <a-form-item label="分类：" name="categoryId">
-                    <a-select v-model:value="form.categoryId" disabled allowClear showSearch labelInValue
+                    <a-select v-model:value="form.categoryId" size="middle" disabled allowClear showSearch labelInValue
                         placeholder="请选择" style="width: 200px;" :options="historyCategoryList" :fieldNames="{
                             label: 'threeCategoryName', value: 'threeCategoryId',
                         }">
                     </a-select>
-                    <a-button style="margin-left: 20px" disabled @click="selectVisible = true">选择分类</a-button>
+                    <a-button style="margin-left: 20px" size="middle" disabled @click="selectVisible = true">选择分类</a-button>
                     <p v-if="hisAttrObj.length != 0" style="color: #933">
                         <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{
                             hisAttrObj[0].secondCategoryName }}</span>/
@@ -32,12 +32,19 @@
                     <a-card shadow="never" v-loading="categoryAttributesLoading" style="
                     position: relative;
                     width: 90%;
-                    height: 600px;
+                    max-height: 600px;
                     overflow-y: auto;
                     ">
+                        <div w-full sticky top-2 right-0 z-2 v-if="loopAttributes.length">
+                            <a-button class="flex justify-end" type="link" @click="isExpand = !isExpand"> {{ isExpand
+                                ?
+                                '- 收起'
+                                : '+ 展开'
+                            }}</a-button>
+                        </div>
                         <a-form ref="ruleForm2" :model="form.attributes" :label-col="{ span: 5 }" :rules="rules2"
                             style="margin-top: 25px">
-                            <div v-for="(item, index) in loopAttributes" :key="index"
+                            <div v-for="(item, index) in sortAttrs(loopAttributes)" :key="index"
                                 style="margin: 10px; flex: 0 0 auto">
                                 <a-form-item :name="item.name" v-if="item.show">
                                     <template #label>
@@ -47,7 +54,7 @@
                                             <AsyncIcon icon="QuestionCircleOutlined"></AsyncIcon>
                                         </a-tooltip>
                                     </template>
-                                    <a-input v-if="item.selectType === 'input'"
+                                    <a-input v-if="item.selectType === 'input'" size="middle"
                                         v-model:value="form.attributes[item.name]" :style="'width: 80%'" allow-clear
                                         :maxlength="item.name == '海关编码' || item.name == 'IKP公司'
                                             ? 17
@@ -61,7 +68,7 @@
                                         item.selectType == 'multSelect'
                                     ">
                                         <div v-if="item.options && item.options.length > 25">
-                                            <a-select optionFilterProp="label" show-search
+                                            <a-select optionFilterProp="label" show-search size="middle"
                                                 v-model:value="item.selectDate" allowClear style="width: 200px"
                                                 placeholder="请输入内容" labelInValue>
                                                 <!-- :options="item.options" @change="handlerChangeSelectDate"-->
@@ -69,22 +76,19 @@
                                                     v-for="(v, i) in item.options" :key="i">{{ v.label
                                                     }}</a-select-option>
                                             </a-select>
-                                            <a-button style="margin-left: 10px" @click="addItemValues(item)"
+                                            <a-button style="margin-left: 10px" size="middle" @click="addItemValues(item)"
                                                 type="primary">添加</a-button>
                                         </div>
                                         <a-form-item-rest>
                                             <a-checkbox-group v-model:value="form.attributes[item.name]"
                                                 style="width: 80%;" :options="item.acquiesceList">
-                                                <!--  :options="item.acquiesceList" v-model:checked="option.value" -->
-                                                <!-- <a-checkbox v-for="option in item.acquiesceList" :key="option.value">
-                                                    {{ option.label }}
-                                                </a-checkbox> -->
+                                                <template #label="{ label }">
+                                                    <span :title="label">{{ label }}</span>
+                                                </template>
                                             </a-checkbox-group>
                                         </a-form-item-rest>
-                                        <!-- <a-checkbox v-for="i in item.acquiesceList" :label="i.value"
-                                            :key="i.value">{{ i.value }}</a-checkbox> @change="handlerSelectDate"-->
                                     </div>
-                                    <a-select optionFilterProp="label" show-search
+                                    <a-select optionFilterProp="label" show-search size="middle"
                                         v-model:value="form.attributes[item.name]" v-if="item.selectType === 'select'"
                                         labelInValue :style="'width: 80%'" allowClear>
                                         <a-select-option v-if="item.id == 85" :value="'无品牌'">无品牌</a-select-option>
@@ -162,6 +166,7 @@ const foldStatus = ref(true)
 const categoryTreeLoading = ref(false)
 const categoryTreeList = ref([])
 const historyCategoryList = ref([])
+const isExpand = ref(true)
 const vatList = [
     {
         label: "免税",
@@ -364,6 +369,14 @@ const childForm = async () => {
     return true;
 }
 
+const sortAttrs = (attrs) => {
+    // 如果是展开
+    if (isExpand.value) {
+        return attrs || []
+    } else {
+        return attrs?.filter(item => item.isRequired) || []
+    }
+};
 
 // 抛出数据和方法，可以让父级用ref获取
 defineExpose({
@@ -496,6 +509,16 @@ watch(() => props.attributesCache, (val) => {
             /* 使用省略号表示文本溢出 */
             width: 200px;
             /* 设置容器宽度 */
+        }
+    }
+}
+
+:deep(.shopForm) {
+    .ant-form-item {
+        .ant-row {
+            .ant-form-item-label>label {
+                font-size: 20px !important;
+            }
         }
     }
 }

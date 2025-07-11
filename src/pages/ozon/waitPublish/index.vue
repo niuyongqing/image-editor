@@ -594,7 +594,6 @@ const backCloseRemark = () => {
 
 const edit = (row = {}) => {
   let newRow = Object.keys(row).length != 0 ? row : selectedRowList.value[0];
-  console.log("newRow", newRow);
   window.open(
     "editWaitProduct" + `?id=${newRow.waitId}&account=${newRow.account}`,
     "_blank"
@@ -603,7 +602,6 @@ const edit = (row = {}) => {
 
 // 批量操作
 const handleMenuClick = (e) => {
-  console.log("e", e);
   if (e.key == "remark") {
     addRemark();
   } else if (e.key === "publish") {
@@ -657,7 +655,6 @@ const getBrandList = () => {
       descriptionCategoryId: e.descriptionCategoryId
     }
   })
-  console.log("list",list);
   brandCategory(list).then((res) => {
     brandList.value = res?.data ?? [];
   })
@@ -666,6 +663,7 @@ const getBrandList = () => {
 
 // 关闭价格
 const handleEditPriceClose = () => {
+  defType.value = [];
   clearSelectList();
   editPriceVisible.value = false;
   getList();

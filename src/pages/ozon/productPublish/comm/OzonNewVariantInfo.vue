@@ -1,10 +1,10 @@
 <template>
   <div id="OzonNewVariantInfoCont">
-    <a-card title="SKU信息" class="text-left" :loading="categoryAttributesLoading">
+    <a-card title="SKU信息" class="text-left text-16px" :loading="categoryAttributesLoading">
       <a-card class="mx-50">
         <template #title>
           <div class="flex align-center justify-between">
-            <span class="text-left">变种属性</span>
+            <span class="text-left text-16px">变种属性</span>
             <div>
               <FileOutlined /><a-select v-model:value="templateValue" show-search placeholder="请选择引用模板"
                 class="w300px mx10px" :options="templateList" :filter-option="filterOption">
@@ -25,8 +25,8 @@
           </div>
         </template>
         <div>
-          <span>变种主题：</span>
-          <a-button type="primary" v-for="(item, index) in themeBtns" class="mr-2.5" :key="'add' + index + item.name"
+          <span text-16px>变种主题：</span>
+          <a-button type="primary" size="middle" v-for="(item, index) in themeBtns" class="mr-2.5" :key="'add' + index + item.name"
             @click="enterVariantType(item)">
             <AsyncIcon icon="PlusCircleOutlined"></AsyncIcon>
             {{ item.name }}
@@ -39,9 +39,9 @@
                 <span>{{ items.name }}</span>
               </span>
               <a-button type="link" v-if="[10096, 4295].includes(items.id)" @click="setColor(items)"
-                style="float: right">批量设置</a-button>
+                style="float: right" size="middle">批量设置</a-button>
               <a-popconfirm icon-color="red" title="确定要删除这个变种主题吗？" @confirm="removeVariantType(items, index)">
-                <a-button type="text" danger v-if="!items.isRequired" style="float: right">移除</a-button>
+                <a-button type="text" danger v-if="!items.isRequired" style="float: right" size="middle">移除</a-button>
               </a-popconfirm>
             </template>
             <a-table :columns="items.tableColumns" :data-source="items.tableData" :pagination="false">
@@ -49,7 +49,7 @@
                 <template v-if="column.dataIndex === record.name">
                   <!-- 单选 -->
                   <div v-if="record.selectType == 'select'" class="w-4/5">
-                    <a-select v-model:value="record.modelValue" class="w-full" optionFilterProp="label" labelInValue
+                    <a-select v-model:value="record.modelValue" size="middle" class="w-full" optionFilterProp="label" labelInValue
                       allowClear placeholder="请选择" @change="pushValue(index, items)">
                       <a-select-option v-for="items in record.details" :key="items.id" :label="items.label"
                         :value="items">{{ items.label }}
@@ -58,21 +58,21 @@
                   </div>
                   <!-- 多选 -->
                   <div v-if="record.selectType == 'multSelect'" class="w-4/5">
-                    <a-select v-model:value="record.modelValue" class="w-full" optionFilterProp="label" allowClear
+                    <a-select v-model:value="record.modelValue" size="middle" class="w-full" optionFilterProp="label" allowClear
                       mode="multiple" placeholder="请选择" labelInValue @change="pushValue(index, items)"
                       :options="record.details">
                     </a-select>
                   </div>
                   <!-- 输入框 -->
                   <div v-if="record.selectType == 'input'" class="w-4/5">
-                    <a-input-number v-if="record.type == 'Integer'" allowClear v-model:value="record.modelValue"
+                    <a-input-number v-if="record.type == 'Integer'" size="middle" allowClear v-model:value="record.modelValue"
                       @blur="index, items" placeholder="请输入内容" class="w-full"></a-input-number>
                     <a-input v-model:value="record.modelValue" allowClear v-else class="w-full" placeholder="请输入内容"
-                      @blur="pushValue(index, items)"></a-input>
+                      @blur="pushValue(index, items)" size="middle"></a-input>
                   </div>
                 </template>
                 <template v-if="column.dataIndex === record[column.dataIndex]">
-                  <a-input v-model:value="record.secondModelValue" allowClear class="w-4/5" placeholder="请输入内容"
+                  <a-input v-model:value="record.secondModelValue" size="middle" allowClear class="w-4/5" placeholder="请输入内容"
                     @blur="pushValue(index, items)"></a-input>
                 </template>
                 <template v-if="column.dataIndex === 'options'">
@@ -144,30 +144,30 @@
               </a-upload>
             </template>
             <template v-if="column.dataIndex === 'skuTitle'">
-              <a-input v-model:value="record.skuTitle"></a-input>
+              <a-input v-model:value="record.skuTitle" size="middle"></a-input>
             </template>
             <template v-if="column.dataIndex === 'secondName'">
               <span>{{ record.secondName }}</span>
             </template>
             <template v-if="column.dataIndex === 'sellerSKU'">
-              <a-input v-model:value.trim="record.sellerSKU" @change="sellerSKUChange(record)"></a-input>
+              <a-input v-model:value.trim="record.sellerSKU" @change="sellerSKUChange(record)" size="middle"></a-input>
             </template>
             <template v-if="!otherHeader.includes(column.dataIndex)">
-              <a-input v-if="column.selectType === 'input'" v-model:value="record[column.dataIndex]"></a-input>
-              <a-select v-if="column.selectType === 'select'" v-model:value="record[column.dataIndex]"
+              <a-input v-if="column.selectType === 'input'" size="middle" v-model:value="record[column.dataIndex]"></a-input>
+              <a-select v-if="column.selectType === 'select'" size="middle" v-model:value="record[column.dataIndex]"
                 style="min-width: 200px" :options="column.options"></a-select>
-              <a-select v-if="column.selectType === 'multSelect'" :maxTagCount="2"
+              <a-select v-if="column.selectType === 'multSelect'" :maxTagCount="2" size="middle"
                 v-model:value="record[column.dataIndex]" style="min-width: 200px" :options="column.options"
                 mode="tags"></a-select>
             </template>
             <template v-if="column.dataIndex === 'price'">
-              <a-input-number style="min-width: 200px" :min="0" :max="99999999" :precision="2"
+              <a-input-number style="min-width: 200px" :min="0" size="middle" :max="99999999" :precision="2"
                 v-model:value="record.price" @blur="judgeMax(record)"></a-input-number>
               <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.price, 'price')"
                 class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
             </template>
             <template v-if="column.dataIndex === 'oldPrice'">
-              <a-input-number style="min-width: 200px" :min="0" :max="99999999" v-model:value="record.oldPrice"
+              <a-input-number style="min-width: 200px" :min="0" size="middle" :max="99999999" v-model:value="record.oldPrice"
                 :precision="2" @blur="judgeMax(record)"></a-input-number>
               <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.oldPrice, 'oldPrice')"
                 class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
@@ -183,28 +183,28 @@
                 <div>
                   <div style="display: flex">
                     长度：
-                    <a-input-number controls-position="right" :min="0" style="min-width: 200px"
+                    <a-input-number controls-position="right" size="middle" :min="0" style="min-width: 200px"
                       v-model:value="record.packageLength" placeholder="长度" :controls="false">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div style="display: flex; margin-top: 5px">
                     宽度：
-                    <a-input-number controls-position="right" :min="0" style="min-width: 200px"
+                    <a-input-number controls-position="right" size="middle" :min="0" style="min-width: 200px"
                       v-model:value="record.packageWidth" placeholder="宽度" :controls="false">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div style="display: flex; margin-top: 5px">
                     高度：
-                    <a-input-number controls-position="right" :min="0" style="min-width: 200px"
+                    <a-input-number controls-position="right" size="middle" :min="0" style="min-width: 200px"
                       v-model:value="record.packageHeight" placeholder="高度" :controls="false">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div style="display: flex; margin-top: 5px">
                     重量：
-                    <a-input-number controls-position="right" :min="0" style="min-width: 200px"
+                    <a-input-number controls-position="right" size="middle" :min="0" style="min-width: 200px"
                       v-model:value="record.packageWeight" placeholder="重量" :precision="0" :controls="false">
                       <template #addonAfter>g</template>
                     </a-input-number>
@@ -231,8 +231,8 @@
         <div>
           <div w-full ml-25px>
             <div>
-              <a-tag color="warning">！说明</a-tag>
-              <span style="color: #9fa0a2">
+              <a-tag color="warning" class="text-16px">！说明</a-tag>
+              <span style="color: #9fa0a2" class="text-16px">
                 第一张图片默认为主图，点击图片拖动，即可调整图片顺序！
                 单张不超过2M，只支持jpg、.png、.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3：4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)</span>
             </div>
@@ -287,8 +287,8 @@
                   <template #default>
                     <div flex flex-col w-full justify-start mb-4px text-left>
                       <p>
-                        <a-tag color="#00AEB3">说明！</a-tag>
-                        <span class="text-#999"> 第一张图片默认为主图，点击图片拖动，即可调整图片顺序。
+                        <a-tag color="#00AEB3" class="text-16px">说明！</a-tag>
+                        <span class="text-#999 text-16px"> 第一张图片默认为主图，点击图片拖动，即可调整图片顺序。
                         </span>
                       </p>
                     </div>
@@ -385,6 +385,7 @@ import { downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js';
 import { debounce, cloneDeep } from "lodash";
 import batchSetColor from "../../editWaitProduct/comm/batchSetColor.vue";
 import download from '~@/api/common/download';
+import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
 
 const props = defineProps({
   categoryAttributesLoading: Boolean,

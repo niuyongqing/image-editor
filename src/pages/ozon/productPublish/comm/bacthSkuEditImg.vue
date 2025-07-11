@@ -96,7 +96,6 @@ const handleCheckAllChange = (e) => {
 };
 
 const showModal = (list) => {
-  console.log('tableData', list);
   tableData.value = list || [];
   tableData.value.forEach((item) => {
     item.imageUrl.forEach(v => {
@@ -146,7 +145,6 @@ const submit = async () => {
     message.error('请选择图片');
     return
   };
-  console.log('checkedList', checkedList);
   //  选中的图片只有本地图片
   const netPathList = checkedList.filter(item => item.url.includes('http')).map((img) => img.url);
   if (netPathList.length === 0) {
