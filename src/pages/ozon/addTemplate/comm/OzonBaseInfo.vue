@@ -2,6 +2,11 @@
     <div id="OzonBaseInfoCont">
         <a-card title="模板信息" style="text-align: left">
             <a-form :label-col="{ span: 3 }" ref="ruleForm" :model="form" class="mt-5" :rules="rules">
+                <a-form-item label="模板名称" name="templateName">
+                    <a-input style="width: 90%" v-model:value="form.templateName" placeholder="请输入模板名称" :maxlength="255"
+                        showCount></a-input>
+                </a-form-item>
+
                 <a-form-item label="店铺：" name="shortCode">
                     <a-select v-model:value="form.shortCode" placeholder="请选择店铺" style="width: 90%" allowClear
                         showSearch optionFilterProp="label" :options="shopList" @change="getHistoryList">
@@ -151,6 +156,7 @@ const showDescriptionBtn = ref(false);
 const ruleForm = ref(null);
 const ruleForm2 = ref(null);
 const form = reactive({
+    templateName: "", // 模板名称
     name: "",
     shortCode: "",
     categoryId: null,
@@ -160,6 +166,11 @@ const form = reactive({
 });
 const selectVisible = ref(false);
 const rules = {
+    templateName: {
+        required: true,
+        message: "必填项，请填写",
+        trigger: "blur",
+    },
     shortCode: {
         required: true,
         message: "必填项，请填写",

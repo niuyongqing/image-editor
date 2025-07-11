@@ -69,11 +69,11 @@ const anchorList = ref([
         id: 'ozonBaseInfo',
         label: '基本信息',
     },
-    {
-        turnRed: false,
-        id: 'ozonNewImageInfo',
-        label: '图片信息',
-    },
+    // {
+    //     turnRed: false,
+    //     id: 'ozonNewImageInfo',
+    //     label: '图片信息',
+    // },
 ])
 const categoryAttributesLoading = ref(false)
 const formData = reactive({
@@ -133,19 +133,20 @@ const sendShortCode = (shortCode) => {
 }
 const onSubmit = async () => {
     const ozonBaseInfo = await ozonBaseInfoRef.value.childForm();
-    const OzonNewImageInfo = await ozonImageInfoRef.value.submitForm();
-    const errorIndex = findFalseInArrayLikeObject({ ozonBaseInfo, OzonNewImageInfo })
-    anchorList.value.forEach(item => {
-        item.turnRed = errorIndex.includes(item.id)
-    })
-    if (errorIndex.length) {
-        scrollTo(errorIndex[0])
-        message.error("信息填写有误！");
-        return
-    }
+
+    // const OzonNewImageInfo = await ozonImageInfoRef.value.submitForm();
+    // const errorIndex = findFalseInArrayLikeObject({ ozonBaseInfo, OzonNewImageInfo })
+    // anchorList.value.forEach(item => {
+    //     item.turnRed = errorIndex.includes(item.id)
+    // })
+    // if (errorIndex.length) {
+    //     scrollTo(errorIndex[0])
+    //     message.error("信息填写有误！");
+    //     return
+    // }
 
     let base = ozonBaseInfoRef.value.form;
-    let image = ozonImageInfoRef.value.form;
+    let image = ozonImageInfoRef.value?.form;
     //! 过滤一些属性
     const newList = attributes.value.filter(
         (a) =>
@@ -176,54 +177,63 @@ const onSubmit = async () => {
         ],
     };
 
-    if (image.coverUrl !== "" && image.video.length > 0) {
-        // 创建video对应的baseObj副本并更新value值
-        let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
-        videoBaseObj = createAndUpdateBaseObj(image.coverUrl, 100002, 21845, type === 1 ? 1 : 2);
-        newComplexAttributes.push(videoBaseObj);
+    if (image) {
+        if (image.coverUrl !== "" && image.video.length > 0) {
+            // 创建video对应的baseObj副本并更新value值
+            let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
+            videoBaseObj = createAndUpdateBaseObj(image.coverUrl, 100002, 21845, type === 1 ? 1 : 2);
+            newComplexAttributes.push(videoBaseObj);
 
-        // 创建coverUrl对应的baseObj副本并更新value值
-        let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
-        coverUrlBaseObj = createAndUpdateBaseObj(
-            image.video,
-            100001,
-            21841, type === 1 ? 1 : 2
-        );
-        newComplexAttributes.push(coverUrlBaseObj);
-    } else if (image.coverUrl !== "") {
-        let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
-        coverUrlBaseObj = createAndUpdateBaseObj(
-            image.coverUrl,
-            100002,
-            21845, type === 1 ? 1 : 2
-        );
-        newComplexAttributes.push(coverUrlBaseObj);
-    } else if (image.video.length > 0) {
-        let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
-        videoBaseObj = createAndUpdateBaseObj(image.video, 100001, 21841, type === 1 ? 1 : 2);
-        newComplexAttributes.push(videoBaseObj);
+            // 创建coverUrl对应的baseObj副本并更新value值
+            let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
+            coverUrlBaseObj = createAndUpdateBaseObj(
+                image.video,
+                100001,
+                21841, type === 1 ? 1 : 2
+            );
+            newComplexAttributes.push(coverUrlBaseObj);
+        } else if (image.coverUrl !== "") {
+            let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
+            coverUrlBaseObj = createAndUpdateBaseObj(
+                image.coverUrl,
+                100002,
+                21845, type === 1 ? 1 : 2
+            );
+            newComplexAttributes.push(coverUrlBaseObj);
+        } else if (image.video.length > 0) {
+            let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
+            videoBaseObj = createAndUpdateBaseObj(image.video, 100001, 21841, type === 1 ? 1 : 2);
+            newComplexAttributes.push(videoBaseObj);
+        }
     }
+
 
     const addHeaderList = useOzonProductStore().addHeaderList
     let params = {
-        account: base.shortCode,
-        vat: base.vat,
-        waitId: waitId.value,
-        descriptionCategoryId:
-            base.categoryId.secondCategoryId, // 二级id
-        typeId: base.categoryId.threeCategoryId, // 三级分id
+        type: 1, //模板类型 1-产品模板  2-尺码模板 3-变种模板 4-富内容模板
+        id: null, // id 为null  新增  不为null 是修改
+        name: base.templateName, // 模板名称
+        state: 1, // 状态是否生效  0-不生效 1-生效
+        account: formData.shortCode,
+        content: {
+            productTemplate: {
+                categoryId: base.categoryId || {},
+                productAttr: base.attributes || {},
+                productDesc: image?.description || ""
+            },
+            jsonRich: image?.jsons ?? {}
+        }
     }
-    console.log('params', params);
-    // loading.value = true;
-    // templateSaveOrUpdate(params).then(res => {
-    //     message.success(res.msg)
-    //     setTimeout(() => {
-    //         window.close();
-    //     }, 2000);
-    // })
-    //     .finally(() => {
-    //         loading.value = false;
-    //     });
+    loading.value = true;
+    templateSaveOrUpdate(params).then(res => {
+        message.success(res.msg)
+        setTimeout(() => {
+            window.close();
+        }, 2000);
+    })
+        .finally(() => {
+            loading.value = false;
+        });
 };
 
 const handleOk = () => {
