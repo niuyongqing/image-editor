@@ -209,8 +209,8 @@
                   v-model:checked="record.checked"></a-checkbox>
                 <div class="flex text-left items-center">
                   <a-image style="width: 100px; height: 100px" :src="record.primaryImage && record.primaryImage.length > 0
-                      ? processImageSource(record.primaryImage[0])
-                      : processImageSource(record.images[0])
+                    ? processImageSource(record.primaryImage[0])
+                    : processImageSource(record.images[0])
                     ">
                   </a-image>
                   <div style="margin-left: 10px; display: block">
@@ -447,7 +447,7 @@
               <div v-else-if="column.dataIndex === 'price'">
                 <span style="color: #1677ff" v-if="!(priceVisible && itemId == record.id)">{{ record.currencyCode }} {{
                   record.price
-                  }}</span>
+                }}</span>
                 <div v-else class="inline-block">
                   <a-input type="number" class="mr-2.5 w-30" v-model:value="record.price" placeholder="请输原价格"></a-input>
                   <a-button class="mr-2.5" @click="priceVisible = false">取消</a-button>
@@ -1400,7 +1400,7 @@ const deactivate = (row = {}) => {
     return;
   }
   deactivateLoading.value = true;
-  batchArchive({ productArchive: id })
+  batchArchive(id)
     .then((res) => {
       message.success(res.msg);
     })
