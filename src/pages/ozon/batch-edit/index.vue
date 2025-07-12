@@ -272,11 +272,11 @@
             v-for="(item, i) in record.skuList"
             :key="`${column.key}_${i}`"
             :border="i === record.skuList.length - 1 ? '' : '0 b white solid'"
+            cursor-pointer
+            min-h-7
+            @click="showImagesModal(record, item)"
           >
-            <FormOutlined
-              class="text-base"
-              @click="showImagesModal(record, item)"
-            />&nbsp;&nbsp;({{ item.images.length }}张)
+            <FormOutlined class="text-base" />&nbsp;&nbsp;({{ item.images.length }}张)
           </div>
         </template>
         <template v-else-if="column.title === '变种名称'">
@@ -284,7 +284,8 @@
             v-for="(item, i) in record.skuList"
             :key="`${column.key}_${i}`"
             :border="i === record.skuList.length - 1 ? '' : '0 b white solid'"
-            class="text-gray cursor-not-allowed min-h-7"
+            :title="item.attrName"
+            class="text-gray cursor-not-allowed min-h-7 truncate"
           >
             {{ item.attrName }}
           </div>
@@ -394,6 +395,8 @@
           <div
             v-for="(item, i) in record.skuList"
             :key="`${column.key}_${i}`"
+            :border="i === record.skuList.length - 1 ? '' : '0 b white solid'"
+            min-h-7
           >
             <div v-if="cellAddress === `${index}_${column.key}_${i}`">
               <a-input-number
@@ -422,8 +425,7 @@
             </div>
             <div
               v-else
-              :border="i === record.skuList.length - 1 ? '' : '0 b white solid'"
-              min-h-7
+              class="h-6"
               @click="cellActived(index, column.key, i)"
             >
               <span v-if="item.depth && item.width && item.height">{{ `${item.depth} * ${item.width} * ${item.height}` }}</span>
@@ -447,6 +449,7 @@
             />
             <div
               v-else
+              class="h-6"
               @click="cellActived(index, column.key, i)"
             >
               {{ item.weight }}
@@ -713,7 +716,11 @@
     WHOLE_COLUMNS[i].customHeaderCell = () => ({ style: { backgroundColor: COLOR_LIST[i].headerColor } })
     WHOLE_COLUMNS[i].children.forEach(item => {
       item.customHeaderCell = () => ({ style: { backgroundColor: COLOR_LIST[i].bodyColor } })
-      item.customCell = () => ({ style: { backgroundColor: COLOR_LIST[i].bodyColor } })
+      if (item.title === '变种名称') {
+        item.customCell = () => ({ style: { backgroundColor: COLOR_LIST[i].bodyColor, maxWidth: '200px' } })
+      } else {
+        item.customCell = () => ({ style: { backgroundColor: COLOR_LIST[i].bodyColor } })
+      }
     })
   }
 
@@ -868,13 +875,21 @@
 
   function variantImageOk(params) {
     const { confirmKey, variantImages } = params
+    const images = variantImages.map(item => item.url)
     if (confirmKey === 'applyAll') {
       curRecord.skuList.forEach(item => {
-        item.images = variantImages
+        item.images = images
       })
     } else if (confirmKey === 'applySelf') {
-      curItem.images = variantImages
+      curItem.images = images
     } else {
+      const index = curItem.cookedAttrNameList.findIndex(attrName => attrName === confirmKey)
+      const attrValue = curItem.cookedAttrValueList[index]
+      curRecord.skuList.forEach(item => {
+        if (item.cookedAttrValueList.includes(attrValue)) {
+          item.images = images
+        }
+      })
     }
 
     curRecord = {}
@@ -923,5 +938,6 @@
   :deep(:where(.css-dev-only-do-not-override-1mphclt).ant-table-wrapper .ant-table.ant-table-bordered > .ant-table-container > .ant-table-content > table > thead > tr > th),
   :deep(:where(.css-dev-only-do-not-override-1mphclt).ant-table-wrapper .ant-table.ant-table-bordered > .ant-table-container > .ant-table-content > table > tbody > tr > td) {
     border-inline-end: 1px solid #fff;
+    vertical-align: top;
   }
 </style>

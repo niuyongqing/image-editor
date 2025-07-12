@@ -226,7 +226,7 @@
     { label: '应用到当前变种', key: 'applySelf' }
   ]
   const confirmMenuList = computed(() => {
-    const cookedAttrNameList = props.cookedAttrNameList.map(name => ({ label: name, key: name }))
+    const cookedAttrNameList = props.cookedAttrNameList.map(name => ({ label: `应用到相同 ${name} 的变种`, key: name }))
 
     return [...PERMANENT_LIST, ...cookedAttrNameList]
   })
