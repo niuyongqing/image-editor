@@ -205,7 +205,8 @@ const handleDelete = (record) => {
         title: '提示',
         content: '确定要删除吗？',
         onOk: () => {
-            templateDelete([record.id]).then(() => {
+            const params = record ? [record.id] : selectedRowList.value.map(item => item.id);
+            templateDelete(params).then(() => {
                 message.success('删除成功');
                 getList();
             })
