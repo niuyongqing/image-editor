@@ -35,7 +35,7 @@
                         <span>{{ hisAttrObj[0].threeCategoryName }}</span>
                     </p>
                 </a-form-item>
-                <a-form-item label="添加模块">
+                <a-form-item label="添加模块" v-if="type === '1'">
                     <a-space>
                         <a-button type="default" @click="addAttributes" v-if="!showAttrsBtn"> + 产品属性 </a-button>
                         <a-button type="default" @click="addDescription" v-if="form.categoryId && !showDescriptionBtn">
@@ -147,6 +147,7 @@ const props = defineProps({
     productDetail: Object,
     shopList: Array,
     showDescription: Boolean,
+    type: String,
 });
 const emit = defineEmits(["sendShortCode", "getAttributes", "emitAddDescription"]);
 

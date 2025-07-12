@@ -72,7 +72,7 @@
                     </a-card>
                 </div>
             </a-card>
-            <a-card title="变种信息" class="text-left mx-50 mt-5">
+            <!-- <a-card title="变种信息" class="text-left mx-50 mt-5">
                 <div class="flex mb-2.5">
                     <a-checkbox-group v-model:value="addHeaderList" @change="changeHeade"
                         :disabled="tableData.length == 0" :options="plainOptions">
@@ -221,7 +221,7 @@
                     </template>
                 </a-table>
                 <template #cover></template>
-            </a-card>
+            </a-card> -->
             <!-- <a-card title="变种图片" class="text-left mx-50 mt-5">
                 <div>
                     <div w-full ml-25px>
@@ -355,10 +355,10 @@ import { downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js';
 import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
 import download from '~@/api/common/download';
 
-import { omit, pick } from 'lodash'
-import SkuDragUpload from '../skuDragImg/index.vue';
-import bacthSkuEditImg from '../skuDragImg/bacthSkuEditImg.vue';
-import ImageTranslation from '../skuDragImg/imageTranslation.vue';
+// import { omit, pick } from 'lodash'
+// import SkuDragUpload from '../skuDragImg/index.vue';
+// import bacthSkuEditImg from '../skuDragImg/bacthSkuEditImg.vue';
+// import ImageTranslation from '../skuDragImg/imageTranslation.vue';
 
 const props = defineProps({
     categoryAttributesLoading: Boolean,
@@ -759,7 +759,6 @@ const pushValue = (index, item, key, record) => {
     let newTableData = processResult(cartesianProducts);
     let minLength = Math.min(newTableData.length, tableData.value.length);
     for (let i = 0; i < minLength; i++) {
-        const name = tableData.value[i][keyName]
         // 将b数组中对应下标的数据赋值到a数组中
         newTableData[i].skuTitle = tableData.value[i].skuTitle;
         newTableData[i].sellerSKU = tableData.value[i].sellerSKU;
@@ -972,11 +971,11 @@ const getEditStore = (account) => {
 }
 
 // 获取水印列表
-const getWatermark = () => {
-    watermarkListApi().then((res) => {
-        watermark.value = res.data;
-    });
-};
+// const getWatermark = () => {
+//     watermarkListApi().then((res) => {
+//         watermark.value = res.data;
+//     });
+// };
 
 const judgeMax = (item) => {
     const { price, oldPrice } = item;
@@ -1295,70 +1294,70 @@ watch(() => useOzonProductStore().attributes, val => {
         let result = [];
         let attrHeaderList = [];
         // 遍历b中的skuList
-        skuList.forEach((sku) => {
-            let newItem = {
-                oldPrice: sku.oldPrice,
-                price: sku.price,
-                quantity: sku.stock,
-                packageHeight: sku.height,
-                packageLength: sku.depth,
-                packageWeight: sku.weight,
-                packageWidth: sku.width,
-                colorImg: sku?.colorImage ? [{
-                    url: processImageSource(sku.colorImage),
-                    name: sku.colorImage.split('/').pop()
-                }] : [],
-                warehouseList: sku?.warehouseList?.map(item => {
-                    return {
-                        ...item,
-                        offerId: sku.offerId
-                    }
-                }),
-                sellerSKU: sku.offerId,
-                imageUrl: sku.images?.map(item => {
-                    return {
-                        url: processImageSource(item),
-                        checked: false,
-                    }
-                }) ?? []
-            };
+        // skuList.forEach((sku) => {
+        //     let newItem = {
+        //         oldPrice: sku.oldPrice,
+        //         price: sku.price,
+        //         quantity: sku.stock,
+        //         packageHeight: sku.height,
+        //         packageLength: sku.depth,
+        //         packageWeight: sku.weight,
+        //         packageWidth: sku.width,
+        //         colorImg: sku?.colorImage ? [{
+        //             url: processImageSource(sku.colorImage),
+        //             name: sku.colorImage.split('/').pop()
+        //         }] : [],
+        //         warehouseList: sku?.warehouseList?.map(item => {
+        //             return {
+        //                 ...item,
+        //                 offerId: sku.offerId
+        //             }
+        //         }),
+        //         sellerSKU: sku.offerId,
+        //         imageUrl: sku.images?.map(item => {
+        //             return {
+        //                 url: processImageSource(item),
+        //                 checked: false,
+        //             }
+        //         }) ?? []
+        //     };
 
-            // 遍历a数组
-            sortArr.forEach((attr) => {
-                // 遍历sku的attributes中的每个attributes
-                sku.attributes.forEach((subAttr) => {
-                    // console.log("",subAttr, attr);
+        //     // 遍历a数组
+        //     sortArr.forEach((attr) => {
+        //         // 遍历sku的attributes中的每个attributes
+        //         sku.attributes.forEach((subAttr) => {
+        //             // console.log("",subAttr, attr);
 
-                    if (subAttr.id == attr.id) {
-                        if (attr.selectType === "multSelect" && attr.options) {
-                            let values = subAttr.values.map((val) => {
-                                let option = attr.options.find((opt) => opt.id == val.dictionaryValueId);
-                                return option ? option.value : val.value;
-                            });
-                            newItem[attr.name] = values.join(', ');
-                        } else if (attr.selectType === "select" && attr.options) {
-                            let values = subAttr.values.map((val) => {
-                                let option = attr.options.find((opt) => opt.id == val.dictionaryValueId);
-                                return option ? option.value : val.value;
-                            });
-                            newItem[attr.name] = values.join(', ');
-                        }
-                        else {
-                            newItem[attr.name] = subAttr.values[0].value;
-                        }
-                        attrHeaderList.push({
-                            title: attr.name,
-                            dataIndex: attr.name,
-                            id: attr.id,
-                            show: true,
-                            align: 'center'
-                        })
-                    }
-                });
-            });
+        //             if (subAttr.id == attr.id) {
+        //                 if (attr.selectType === "multSelect" && attr.options) {
+        //                     let values = subAttr.values.map((val) => {
+        //                         let option = attr.options.find((opt) => opt.id == val.dictionaryValueId);
+        //                         return option ? option.value : val.value;
+        //                     });
+        //                     newItem[attr.name] = values.join(', ');
+        //                 } else if (attr.selectType === "select" && attr.options) {
+        //                     let values = subAttr.values.map((val) => {
+        //                         let option = attr.options.find((opt) => opt.id == val.dictionaryValueId);
+        //                         return option ? option.value : val.value;
+        //                     });
+        //                     newItem[attr.name] = values.join(', ');
+        //                 }
+        //                 else {
+        //                     newItem[attr.name] = subAttr.values[0].value;
+        //                 }
+        //                 attrHeaderList.push({
+        //                     title: attr.name,
+        //                     dataIndex: attr.name,
+        //                     id: attr.id,
+        //                     show: true,
+        //                     align: 'center'
+        //                 })
+        //             }
+        //         });
+        //     });
 
-            result.push(newItem);
-        });
+        //     result.push(newItem);
+        // });
         // 处理数据回显到表格
         attrHeaderList = [...new Map(attrHeaderList.map(item => [item.dataIndex, item])).values()];
         const uniqueArr = [];
@@ -1373,18 +1372,18 @@ watch(() => useOzonProductStore().attributes, val => {
 
         headerList.value = uniqueArr //表格主题标题赋值       
         // imgHeaderList.value = attrHeaderList  //图片标题赋值
-        if (result.some(item => item.colorImg.length !== 0)) {
-            headerList.value.unshift({
-                title: "颜色样本",
-                dataIndex: "colorImg",
-                selectType: "url",
-                type: 1,
-                show: true,
-                align: 'center',
-            })
-            addHeaderList.value.push("colorImg")
-        }
-        tableData.value = result
+        // if (result.some(item => item.colorImg.length !== 0)) {
+        //     headerList.value.unshift({
+        //         title: "颜色样本",
+        //         dataIndex: "colorImg",
+        //         selectType: "url",
+        //         type: 1,
+        //         show: true,
+        //         align: 'center',
+        //     })
+        //     addHeaderList.value.push("colorImg")
+        // }
+        // tableData.value = result
         // 将不匹配的主题过滤掉
         console.log('sortArr', sortArr);
         let comAttrList = [10096, 4295]
@@ -1416,60 +1415,57 @@ watch(() => useOzonProductStore().attributes, val => {
         attributeList.value = matchAndAssignValues(echoThemeList, skuList);
 
         // ----------------------------------------------------------------------------
-        const groupsFlat = groups.flat();
-        const ids = groupsFlat.map((item) => item.id);
-        themeBtns.value = themeBtns.value.filter(item => !ids.includes(item.id));
-        groupsFlat.forEach(group => {
-            if (!attributeList.value.some((item) => {
-                return (item.tableColumns.some((_item) => {
-                    return _item.id === group.id
-                }))
-            })) {
-                attributeList.value.push({
-                    ...group,
-                    tableData: [
-                        {
-                            "isRequired": group.isRequired,
-                            "categoryDependent": group.categoryDependent,
-                            "isCollection": group.isCollection,
-                            "id": group.id,
-                            "name": group.name,
-                            "selectType": group.selectType,
-                            "type": group.type,
-                            "modelValue": group.selectType === 'multSelect' ? [] : '',
-                            "options": group.options,
-                            "details": group.options.map((option) => {
-                                return {
-                                    ...option,
-                                    label: option.value,
-                                }
-                            })
-                        }
-                    ],
-                    tableColumns: [
-                        {
-                            "selectType": group.selectType,
-                            "dataIndex": group.name,
-                            "title": group.name,
-                            "type": group.type,
-                            "id": group.id,
-                            "show": true,
-                            "align": "center",
-                            "width": 900
-                        },
-                        {
-                            "dataIndex": "options",
-                            "title": "操作",
-                            "fixed": "right",
-                            "width": 200
-                        }
-                    ]
-                })
-            }
-        });
-
-        // console.log('btns ->>>>>>>>>>>', themeBtns.value);
-        // console.log('attributeList.value -》》》》》》》》》》》》》', attributeList.value);
+        // const groupsFlat = groups.flat();
+        // const ids = groupsFlat.map((item) => item.id);
+        // themeBtns.value = themeBtns.value.filter(item => !ids.includes(item.id));
+        // groupsFlat.forEach(group => {
+        //     if (!attributeList.value.some((item) => {
+        //         return (item.tableColumns.some((_item) => {
+        //             return _item.id === group.id
+        //         }))
+        //     })) {
+        //         attributeList.value.push({
+        //             ...group,
+        //             tableData: [
+        //                 {
+        //                     "isRequired": group.isRequired,
+        //                     "categoryDependent": group.categoryDependent,
+        //                     "isCollection": group.isCollection,
+        //                     "id": group.id,
+        //                     "name": group.name,
+        //                     "selectType": group.selectType,
+        //                     "type": group.type,
+        //                     "modelValue": group.selectType === 'multSelect' ? [] : '',
+        //                     "options": group.options,
+        //                     "details": group.options.map((option) => {
+        //                         return {
+        //                             ...option,
+        //                             label: option.value,
+        //                         }
+        //                     })
+        //                 }
+        //             ],
+        //             tableColumns: [
+        //                 {
+        //                     "selectType": group.selectType,
+        //                     "dataIndex": group.name,
+        //                     "title": group.name,
+        //                     "type": group.type,
+        //                     "id": group.id,
+        //                     "show": true,
+        //                     "align": "center",
+        //                     "width": 900
+        //                 },
+        //                 {
+        //                     "dataIndex": "options",
+        //                     "title": "操作",
+        //                     "fixed": "right",
+        //                     "width": 200
+        //                 }
+        //             ]
+        //         })
+        //     }
+        // });
     }
 })
 
@@ -1653,7 +1649,7 @@ defineExpose({
     submitForm
 })
 onMounted(() => {
-    getWatermark();
+    // getWatermark();
 });
 </script>
 <style lang="less" scoped>

@@ -233,60 +233,6 @@ const getAccount = () => {
 onMounted(() => {
     getAccount()
 })
-/**
- * 对于产品模板
- * {
- *     "type": 1,
- *     "id": null,
- *     "name": "模板名称1",
- *     "state": 1,
- *     "account": "2649641",
- *     "content": {
- *         "productTemplate": {
- *             "categoryId": {
- *                 "threeCategoryId": 95139,
- *                 "threeCategoryName": "",
- *                 "secondCategoryId": 15621050,
- *                 "label": "智能手机(Смартфон)",
- *                 "value": 95139
- *             },
- *             "productAttr": {
- *                 "品牌(Бренд)": {
- *                     "label": "无品牌",
- *                     "value": "无品牌"
- *                 },
- *                 "型号名称（为了合并为一张商品卡）(Название модели (для объединения в одну карточку))": "123243123",
- *                 "型号(Партномер)": "122131233123",
- *                 "保修期(Гарантийный срок)": "123123"
- *             },
- *             "productDesc": "测试产品描述"
- *         },
- *         "jsonRich": {
- *             "content": [
- *                 {
- *                     "widgetName": "raShowcase",
- *                     "type": "roll",
- *                     "blocks": [
- *                         {
- *                             "imgLink": "",
- *                             "img": {
- *                                 "src": "/profile/upload/shopeeFile/2025-07-08/2025/07/08/9640_20250708094913A002.jpg",
- *                                 "srcMobile": "/profile/upload/shopeeFile/2025-07-08/2025/07/08/9640_20250708094913A002.jpg",
- *                                 "alt": "",
- *                                 "position": "width_full",
- *                                 "positionMobile": "width_full",
- *                                 "widthMobile": 690,
- *                                 "heightMobile": 690
- *                             }
- *                         }
- *                     ]
- *                 }
- *             ],
- *             "version": 0.3
- *         }
- *     }
- * }
- */
 
 </script>
 <style lang="less" scoped></style>
