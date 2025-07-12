@@ -1557,8 +1557,8 @@ watch(
           align: "center",
         });
         addHeaderList.value.push("colorImg");
-      }
-      if (result.some((item) => item.name !== "" && result.length > 1)) {
+      }     
+      if (result.some((item) => item.skuTitle !== null && item.skuTitle !== "") && result.length > 1) {
         let skuIndex = headerList.value.findIndex(
           (item) => item.title === "SKU"
         );
