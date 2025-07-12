@@ -1,5 +1,5 @@
 <template>
-    <a-modal v-model:open="visible" title="图片翻译" width="1200px">
+    <a-modal v-model:open="visible" title="图片翻译" width="1250px">
         <a-checkbox v-model:checked="checkedAll" @change="handleCheckAllChange"> 选择全部</a-checkbox>
 
         <div flex text-left pt-15px>
@@ -10,37 +10,35 @@
             </div>
         </div>
 
-        <div class="flex flex-wrap  mt-10px h-1000px overflow-y-auto">
+        <div class="flex flex-wrap  mt-10px h-900px overflow-y-auto">
+            <div v-for="(item, index) in tableData" :key="index" flex gap-15px h-150px>
+                <a-card v-for="(element, i) in item.imageUrl" :key="element.url" mb-10px ml-10px p-0px rounded-none
+                    class="file-card flex" hoverable style="width: 125px;">
+                    <div :key="element.uid" @click="tabCheck(element)">
+                        <div class="file-item">
+                            <div class="file-img">
+                                <img :src="element.url" alt="" class="file-img" />
+                                <div class="image-mask"> {{ element.height }} X {{ element.width }} </div>
 
-            <a-card>
-                <div v-for="(item, index) in tableData" :key="index" flex gap-15px>
-                    <a-card v-for="(element, i) in item.imageUrl" :key="element.url" mb-10px ml-10px p-0px rounded-none
-                        class="file-card flex" hoverable style="width: 125px;">
-                        <div :key="element.uid" @click="tabCheck(element)">
-                            <div class="file-item">
-                                <div class="file-img">
-                                    <img :src="element.url" alt="" class="file-img" />
-                                    <div class="image-mask"> {{ element.height }} X {{ element.width }} </div>
+                                <div class="image-check" v-if="element.checked">
+                                    <CheckOutlined style="color: #00B903;font-size: 20px; font-weight: bold;" />
+                                </div>
 
-                                    <div class="image-check" v-if="element.checked">
-                                        <CheckOutlined style="color: #00B903;font-size: 20px; font-weight: bold;" />
-                                    </div>
-
-                                    <div class="image-tooltip" v-if="element.url.includes('http')">
-                                        点击{{ element.checked ? '取消' : '选中' }}
-                                    </div>
+                                <div class="image-tooltip" v-if="element.url.includes('http')">
+                                    点击{{ element.checked ? '取消' : '选中' }}
                                 </div>
                             </div>
                         </div>
-                        <div w-full>
-                            <div flex justify-between w-full>
-                                <a-checkbox v-if="element.url.includes('http')" v-model:checked="element.checked"
-                                    @change="check"></a-checkbox>
-                            </div>
+                    </div>
+                    <div w-full>
+                        <div flex justify-between w-full>
+                            <a-checkbox v-if="element.url.includes('http')" v-model:checked="element.checked"
+                                @change="check"></a-checkbox>
                         </div>
-                    </a-card>
-                </div>
-            </a-card>
+                    </div>
+                    <template #extra></template>
+                </a-card>
+            </div>
         </div>
 
         <div></div>
@@ -69,8 +67,6 @@ const showModal = (list = []) => {
             v.checked = false
         })
     });
-    console.log('tableData.value', tableData.value);
-
     visible.value = true;
 };
 

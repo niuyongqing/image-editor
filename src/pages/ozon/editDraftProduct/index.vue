@@ -12,11 +12,11 @@
 
                 <div>
                     <a-space>
-                        <a-dropdown>
-                            <a-button style="height: 32px; background-color: #F5F5F5; color: #434649ff;">
+                        <!-- <a-dropdown>
+                        <a-button style="height: 32px; background-color: #F5F5F5; color: #434649ff;">
                                 一键翻译
                                 <DownOutlined />
-                            </a-button>
+                            </a-button> 
                             <template #overlay>
                                 <a-menu @click="handleTranslationMenu">
                                     <a-menu-item :key="1">
@@ -27,7 +27,7 @@
                                     </a-menu-item>
                                 </a-menu>
                             </template>
-                        </a-dropdown>
+</a-dropdown>-->
                         <!-- <a-button type="default" style="height: 32px; background-color: #F5F5F5; color: #434649ff;"
                             @click="onSubmit(1)">存为模板</a-button> -->
                         <a-dropdown>
@@ -78,8 +78,8 @@
             <!-- 基本信息 -->
             <ozon-base-info ref="ozonBaseInfoRef" id="ozonBaseInfo"
                 :categoryAttributesLoading="categoryAttributesLoading" :shopList="shopList"
-                :attributesCache="attributes" :productDetail="productDetail"
-                @getAttributes="getAttributes"></ozon-base-info>
+                :attributesCache="attributes" :productDetail="productDetail" @getAttributes="getAttributes"
+                @sendShortCode="sendShortCode"></ozon-base-info>
             <br />
             <!-- ERP信息 -->
             <erp-info ref="erpInfoRef"></erp-info>
@@ -89,7 +89,8 @@
             </OzonNewImageInfo>
 
             <!-- 变种信息. -->
-            <OzonVariantInfo ref="ozonNewVariantInfoRef" :attributesCache="attributes" :productDetail="productDetail">
+            <OzonVariantInfo ref="ozonNewVariantInfoRef" :attributesCache="attributes" :productDetail="productDetail"
+                :shopCode="formData.shortCode">
             </OzonVariantInfo>
 
             <div flex w-full justify-end items-center>
@@ -105,14 +106,14 @@
                                 <DownOutlined />
                             </a-button>
                             <template #overlay>
-                                <a-menu>
-                                    <a-menu-item key="1">
+                                <a-menu @click="handleApplyMenu">
+                                    <a-menu-item :key="1">
                                         引用现有产品
                                     </a-menu-item>
-                                    <a-menu-item key="2">
+                                    <a-menu-item :key="2">
                                         引用产品模板
                                     </a-menu-item>
-                                    <a-menu-item key="3">
+                                    <a-menu-item :key="3">
                                         引用ERP产品
                                     </a-menu-item>
                                 </a-menu>
@@ -162,8 +163,8 @@
             </template>
         </a-modal>
 
-        <!-- 引用模板弹窗 -->
-        <ProductTemplate ref="productTemplateRef" />
+        <!-- 现在资料库产品 -->
+        <SelectProduct ref="selectProductRef" @select="handleSelect"></SelectProduct>
     </div>
 </template>
 
@@ -184,13 +185,13 @@ import { message, Modal } from "ant-design-vue";
 import { UploadOutlined, DownOutlined } from '@ant-design/icons-vue';
 import ErpInfo from './comm/erpInfo.vue';
 import { translationApi } from '~/api/common/translation';
-import ProductTemplate from './comm/productTemplate.vue';
+import SelectProduct from '@/components/selectProduct/index.vue';
 
 const route = useRoute();
 const ozonBaseInfoRef = ref(null)
 const ozonImageInfoRef = ref(null)
+const selectProductRef = ref(null)
 const ozonNewVariantInfoRef = ref(null)
-const productTemplateRef = ref(null);
 const erpInfoRef = ref(null) // erp信息Dom
 const attributes = ref([])
 const shopList = ref([])
@@ -218,7 +219,10 @@ const categoryAttributesLoading = ref(false)
 const formData = reactive({
     shortCode: ""
 })
-
+// 根据是否选择店铺后选择资料库
+const sendShortCode = (shortCode) => {
+    formData.shortCode = shortCode ? shortCode : null;
+}
 const getProductDetail = (gatherProductId, account) => {
     formData.shortCode = account
     ozonDraftDetail({ gatherProductId, account }).then(res => {
@@ -237,7 +241,7 @@ const backToTop = () => {
 }
 // 获取属性
 const getAttributes = (account, cId) => {
-    if (!account || !cId.categoryId || !cId.typeId) {
+    if (!account || !cId.typeId) {
         return;
     };
     categoryAttributesLoading.value = true;
@@ -569,10 +573,10 @@ const handleApplyMenu = (e) => {
     const key = e.key;
     switch (key) {
         case 1:
+            selectProductRef.value.openModal();
             console.log('引用现有产品');
             break;
         case 2:
-            productTemplateRef.value.openModal();
             console.log('引用产品模板');
             break;
         case 3:
@@ -583,6 +587,10 @@ const handleApplyMenu = (e) => {
     }
 };
 
+
+const handleSelect = (e) => {
+    console.log('handleSelect', e);
+};
 
 
 onMounted(() => {

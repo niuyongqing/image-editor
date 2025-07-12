@@ -1,7 +1,7 @@
 <template>
     <div>
         <a-modal v-model:open="dialogVisible" title="提示" width="1000px" @cancel="cancel" :footer="null"
-            :maskClosable="false">
+            :maskClosable="false" :style="{ top: '10px' }">
             <div flex justify-between mb-15px>
                 <div>
                     <a-breadcrumb separator=">">
@@ -46,11 +46,11 @@
                         <a-button type="link" @click="changeCategory">更换分类</a-button>
                         <p class="tooltip-text" v-if="hisAttrObj && JSON.stringify(hisAttrObj) != '{}'">{{
                             hisAttrObj.categoryName
-                            }} > {{ hisAttrObj.secondCategoryName }} > {{
+                        }} > {{ hisAttrObj.secondCategoryName }} > {{
                                 hisAttrObj.threeCategoryName }} </p>
                         <!-- 表格 -->
                         <a-table :columns="innerColumns" :data-source="innerTableData" bordered :pagination="false"
-                            style="margin-top: 10px;">
+                            :loading="optionsLoading" style="margin-top: 10px;">
                             <template #bodyCell="{ column, record }">
                                 <template v-if="column.dataIndex === 'catTheme'">
                                     {{ record.catTheme }}
@@ -259,6 +259,7 @@ const getHistoryList = (account, typeId, categoryId = '') => {
             secondCategoryId.value = findItem?.secondCategoryId;
 
             if (acceptParams.value.variantAttr && Object.keys(acceptParams.value.variantAttr).length > 0) {
+                innerTableData.value = [];
                 Object.keys(acceptParams.value.variantAttr).forEach((key) => {
                     innerTableData.value.push({
                         catTheme: key,
@@ -430,7 +431,8 @@ const editCategory = () => {
     };
 
     // 对应Ozon变种主题 选择不能有一样的
-    const attributeIdList = variantRelationList.map(item => item.attributeId).filter(item => item !== undefined);
+    const attributeIdList = variantRelationList.map(item => item.attributeId).filter(Boolean);
+
     if (attributeIdList.every(item => item === undefined)) {
         message.error('请选择变种主题选择属性');
         return;

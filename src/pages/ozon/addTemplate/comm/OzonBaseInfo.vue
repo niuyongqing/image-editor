@@ -1,7 +1,12 @@
 <template>
     <div id="OzonBaseInfoCont">
-        <a-card title="基本信息" style="text-align: left">
+        <a-card title="模板信息" style="text-align: left">
             <a-form :label-col="{ span: 3 }" ref="ruleForm" :model="form" class="mt-5" :rules="rules">
+                <a-form-item label="模板名称" name="templateName">
+                    <a-input style="width: 90%" v-model:value="form.templateName" placeholder="请输入模板名称" :maxlength="255"
+                        showCount></a-input>
+                </a-form-item>
+
                 <a-form-item label="店铺：" name="shortCode">
                     <a-select v-model:value="form.shortCode" placeholder="请选择店铺" style="width: 90%" allowClear
                         showSearch optionFilterProp="label" :options="shopList" @change="getHistoryList">
@@ -22,20 +27,33 @@
                             value: 'threeCategoryId',
                         }">
                     </a-select>
-                    <a-button style="margin-left: 20px" @click="changeCategory">选择分类</a-button>
+                    <a-button style="margin-left: 20px" :disabled="categoryTreeList.length == 0"
+                        @click="selectVisible = true">选择分类</a-button>
                     <p v-if="hisAttrObj.length != 0" style="color: #933">
                         <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{ hisAttrObj[0].secondCategoryName
                             }}</span>/
                         <span>{{ hisAttrObj[0].threeCategoryName }}</span>
                     </p>
                 </a-form-item>
+                <a-form-item label="添加模块" v-if="type === '1'">
+                    <a-space>
+                        <a-button type="default" @click="addAttributes" v-if="!showAttrsBtn"> + 产品属性 </a-button>
+                        <a-button type="default" @click="addDescription" v-if="form.categoryId && !showDescriptionBtn">
+                            +
+                            产品描述 </a-button>
+                    </a-space>
+                </a-form-item>
+            </a-form>
+        </a-card>
+
+        <a-card v-if="showAttrsBtn" title="产品属性" style="text-align: left; margin-top: 20px;">
+            <template #extra>
+                <a-button type="link" @click="removeAttrs"> - 移除 </a-button>
+            </template>
+            <a-form :label-col="{ span: 3 }" ref="ruleForm" :model="form" class="mt-5" :rules="rules">
                 <a-form-item label="产品属性：">
-                    <a-card shadow="never" :loading="categoryAttributesLoading" style="
-              position: relative;
-              width: 90%;
-              max-height: 600px;
-              overflow-y: auto;
-            ">
+                    <a-card shadow="never" :loading="categoryAttributesLoading"
+                        style="position: relative;width: 90%;  max-height: 600px; overflow-y: auto;">
                         <!-- 展开收起 -->
                         <div w-full sticky top-2 right-0 z-2 v-if="loopAttributes.length">
                             <a-button class="flex justify-end" type="link" @click="isExpand = !isExpand"> {{ isExpand
@@ -76,7 +94,6 @@
                                                 v-model:value="item.selectDate" allowClear
                                                 style="width: 200px; margin-bottom: 5px" placeholder="请输入内容"
                                                 labelInValue>
-                                                <!-- :options="item.options" @change="handlerChangeSelectDate"-->
                                                 <a-select-option :value="v" :label="v.label"
                                                     v-for="(v, i) in item.options" :key="i">{{ v.label
                                                     }}</a-select-option>
@@ -87,20 +104,14 @@
                                         <a-form-item-rest>
                                             <a-checkbox-group v-model:value="form.attributes[item.name]"
                                                 style="width: 80%" :options="item.acquiesceList" class="boxGroup">
-                                                <!--  :options="item.acquiesceList" v-model:checked="option.value" -->
-                                                <!-- <a-checkbox v-for="option in item.acquiesceList" :key="option.value">
-                                                    {{ option.label }}
-                                                </a-checkbox> -->
                                             </a-checkbox-group>
                                         </a-form-item-rest>
-                                        <!-- <a-checkbox v-for="i in item.acquiesceList" :label="i.value"
-                                            :key="i.value">{{ i.value }}</a-checkbox> @change="handlerSelectDate"-->
+
                                     </div>
                                     <a-select optionFilterProp="label" show-search
                                         v-model:value="form.attributes[item.name]" v-if="item.selectType === 'select'"
                                         labelInValue :style="'width: 80%'" allowClear>
                                         <a-select-option v-if="item.id == 85" :value="'无品牌'">无品牌</a-select-option>
-
                                         <a-select-option v-else :value="v" v-for="(v, i) in item.options" :key="i">
                                             {{ v.label }}
                                         </a-select-option>
@@ -111,9 +122,11 @@
                     </a-card>
                 </a-form-item>
             </a-form>
+
         </a-card>
 
-        <CategoryModal ref="categoryModalRef" :account="form.shortCode" @select="handleSelect"></CategoryModal>
+        <categoryDialog @getAttributesID="getAttributesID" :categoryTreeList="categoryTreeList"
+            :selectVisible="selectVisible" @handleEditClose="selectVisible = false"></categoryDialog>
     </div>
 </template>
 
@@ -127,18 +140,24 @@ import {
 } from "../../config/api/product";
 import categoryDialog from "../../productPublish/comm/categoryDialog.vue";
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
-import CategoryModal from "./categoryModal.vue";
+import { message } from "ant-design-vue";
 
 const props = defineProps({
     categoryAttributesLoading: Boolean,
     productDetail: Object,
     shopList: Array,
+    showDescription: Boolean,
+    type: String,
 });
-const emit = defineEmits(["sendShortCode", "getAttributes"]);
-const categoryModalEl = useTemplateRef('categoryModalRef');
+const emit = defineEmits(["sendShortCode", "getAttributes", "emitAddDescription"]);
+
+const showAttrsBtn = ref(false);
+const showDescriptionBtn = ref(false);
+
 const ruleForm = ref(null);
 const ruleForm2 = ref(null);
 const form = reactive({
+    templateName: "", // 模板名称
     name: "",
     shortCode: "",
     categoryId: null,
@@ -148,6 +167,11 @@ const form = reactive({
 });
 const selectVisible = ref(false);
 const rules = {
+    templateName: {
+        required: true,
+        message: "必填项，请填写",
+        trigger: "blur",
+    },
     shortCode: {
         required: true,
         message: "必填项，请填写",
@@ -230,11 +254,6 @@ const getAttributesID = (ids) => {
     emit("getAttributes", form.shortCode, form.categoryId);
 };
 
-// 打开选择分类弹窗
-const changeCategory = () => {
-    categoryModalEl.value.open(form.categoryId.threeCategoryId)
-};
-
 // 历史分类
 const getHistoryList = (account) => {
     if (!form.shortCode) {
@@ -256,12 +275,14 @@ const getHistoryList = (account) => {
 
 // 选中的分类
 const selectAttributes = (e) => {
+    console.log('e', e);
+
     if (e) {
         if (historyCategoryList.value.length != 0) {
             hisAttrObj.value = historyCategoryList.value.filter(
                 (item) => item.threeCategoryId == e.option.threeCategoryId
             );
-        };
+        }
         form.categoryId = {
             threeCategoryId: e.option.threeCategoryId,
             threeCategoryName: "",
@@ -269,10 +290,7 @@ const selectAttributes = (e) => {
             label: e.option.threeCategoryName,
             value: e.option.threeCategoryId,
         };
-        emit("getAttributes", form.shortCode, {
-            categoryId: e.option.secondCategoryId,
-            typeId: e.option.threeCategoryId,
-        });
+        emit("getAttributes", form.shortCode, e.option);
     }
 };
 
@@ -422,6 +440,35 @@ const addItemValues = (obj) => {
     obj.selectDate = undefined;
 };
 
+// 
+const addAttributes = () => {
+    if (!form.shortCode) {
+        message.error('请先选择店铺')
+        return
+    }
+    if (!form.categoryId) {
+        message.error('请先选择分类')
+        return
+    }
+    showAttrsBtn.value = true
+
+};
+const addDescription = () => {
+    showDescriptionBtn.value = true;
+    emit('emitAddDescription', showDescriptionBtn.value)
+};
+
+
+
+const removeAttrs = () => {
+    const attributes = form.attributes || {};
+    for (let key in attributes) {
+        attributes[key] = undefined
+    };
+    showAttrsBtn.value = false;
+
+};
+
 const childForm = async () => {
     // 收集需要校验的表单引用
     const formRefs = [ruleForm, ruleForm2];
@@ -443,40 +490,17 @@ const childForm = async () => {
     return true;
 };
 
-const handleSelect = (data) => {
-    form.categoryId = {
-        "threeCategoryId": data.value,
-        "threeCategoryName": data.label[2],
-        "value": data.value
-    }
-    hisAttrObj.value = [{
-        "categoryId": data.ids[0],
-        "secondCategoryId": data.ids[1],
-        "threeCategoryId": data.ids[2],
-        "categoryName": data.label[0],
-        "secondCategoryName": data.label[1],
-        "threeCategoryName": data.label[2]
-    }];
-    let params = {
-        account: form.shortCode,
-        secondCategoryId: data.ids[1],
-        threeCategoryId: data.ids[2],
-    };
-    addHistoryCategory(params).then((res) => {
-        getHistoryList(form.shortCode, data.value);
-    });
-    emit("getAttributes", form.shortCode, {
-        categoryId: data.ids[0],
-        secondCategoryId: data.ids[1],
-        threeCategoryId: data.ids[2],
-    });
-}
-
 // 抛出数据和方法，可以让父级用ref获取
 defineExpose({
     form,
     childForm,
 });
+
+watch(() => props.showDescription, (val) => {
+    showDescriptionBtn.value = val;
+}, {
+    immediate: true
+})
 
 watch(
     () => form.shortCode,
@@ -487,6 +511,7 @@ watch(
         }
     }
 );
+
 watch(
     () => props.productDetail,
     (val) => {
@@ -508,8 +533,6 @@ watch(
         }
     }
 );
-
-// console.log('props',props);
 
 watch(
     () => useOzonProductStore().attributes,
@@ -557,8 +580,7 @@ watch(
                 });
 
                 let data = noThemeAttributesCache.filter((a) => a.isRequired);
-                // console.log("data", data);
-                // console.log("rules2", this.rules2);
+
                 rules2.value = {};
                 let attributes = {};
                 // 属性类型处理
@@ -603,34 +625,9 @@ watch(
                 // console.log("rules2", rules2.value);
                 loopAttributes.value = noThemeAttributesCache;
                 // 赋值
-                const { attributes: oldAttributes } = props.productDetail?.skuList[0];
-
-                // const groupedAttributes = props.productDetail?.skuList.reduce((acc, item) => {
-                //     item.attributes.forEach(attr => {
-                //         // 添加值序列化比较
-                //         const valueHash = JSON.stringify(attr.values);
-                //         const key = `${attr.id}_${attr.complexId}_${valueHash}`;
-                //         (acc[key] || (acc[key] = [])).push(attr);
-                //     });
-                //     return acc;
-                // }, {});
-
-                // // 转换为二维数组并过滤唯一项
-                // // result将重复属性值去重过后的最终结果
-                // const result = Object.values(groupedAttributes)
-                //     .filter(group => group.length > 1).flat()
-                //     .filter((obj, index, self) =>
-                //         index === self.findIndex(item =>
-                //             JSON.stringify(item) === JSON.stringify(obj)
-                //         )
-                //     );
-
-                // console.log('oldAttributes',oldAttributes);
-                // console.log('loopAttributes',loopAttributes.value);
-                const proceRes = assignValues(oldAttributes, loopAttributes.value); // 旧写法
-                // const proceRes = assignValues(result, loopAttributes.value); //最新写法
-                form.attributes = proceRes;
-                // console.log('proceRes0', proceRes);
+                // const { attributes: oldAttributes } = props.productDetail?.skuList[0];
+                // const proceRes = assignValues(oldAttributes, loopAttributes.value); // 旧写法
+                // form.attributes = proceRes; 
             }
         }
     }
