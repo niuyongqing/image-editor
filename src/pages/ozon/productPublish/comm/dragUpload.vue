@@ -120,7 +120,6 @@ const handleRemove = (file) => {
 }
 
 const handleSelectImg = (e) => {
-  // console.log('e', e);
   emit("singleSelectImg", e)
 }
 

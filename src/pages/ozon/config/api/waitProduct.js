@@ -113,3 +113,12 @@ export function productPublish(data) {
     data
   })
 }
+
+// 获取修改品牌的分类
+export function brandCategory(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/attribute/list/history/category',
+    method: 'post',
+    data
+  })
+}

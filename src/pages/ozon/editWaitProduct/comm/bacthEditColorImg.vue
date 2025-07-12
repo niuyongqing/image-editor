@@ -23,7 +23,7 @@
 
       <div class="flex flex-wrap  mt-10px h-900px overflow-y-auto">
         <div v-for="(item, index) in tableData" :key="index" flex gap-15px h-150px>
-          <a-card v-for="(element, i) in item.imageUrl" :key="element.url" mb-10px ml-10px p-0px rounded-none
+          <a-card v-for="(element, i) in item.colorImg" :key="element.url" mb-10px ml-10px p-0px rounded-none
             class="file-card flex" hoverable style="width: 125px;">
             <div :key="element.uid" @click="tabCheck(element)">
               <div class="file-item">
@@ -88,7 +88,7 @@ const checkedAll = ref(false);
 
 const handleCheckAllChange = (e) => {
   tableData.value.forEach(item => {
-    item.imageUrl.forEach(v => {
+    item.colorImg.forEach(v => {
       v.checked = checkedAll.value
     })
   })
@@ -99,7 +99,7 @@ const showModal = (list) => {
   console.log('tableData', list);
   tableData.value = list || [];
   tableData.value.forEach((item) => {
-    item.imageUrl.forEach(v => {
+    item.colorImg.forEach(v => {
       v.checked = false
     })
   })
@@ -117,14 +117,16 @@ const handleRemove = (element) => {
 
 // 点击选中
 const tabCheck = (element) => {
+  console.log('111111111111', element);
+
   element.checked = !element.checked;
-  const isAllChecked = tableData.value.every(item => item.imageUrl.every(v => v.checked));
+  const isAllChecked = tableData.value.every(item => item.colorImg.every(v => v.checked));
   checkedAll.value = isAllChecked;
 };
 
 // 点击选中
 const check = (element) => {
-  const isAllChecked = tableData.value.every(item => item.imageUrl.every(v => v.checked));
+  const isAllChecked = tableData.value.every(item => item.colorImg.every(v => v.checked));
   checkedAll.value = isAllChecked;
 };
 
@@ -135,7 +137,7 @@ const submit = async () => {
     return
   };
 
-  const checkedList = tableData.value.flatMap((item, index) => item.imageUrl.filter(v => v.checked).map((img) => {
+  const checkedList = tableData.value.flatMap((item, index) => item.colorImg.filter(v => v.checked).map((img) => {
     return {
       ...img,
       index: index
@@ -160,7 +162,7 @@ const submit = async () => {
     if (scaleRes.code === 200) {
       const data = scaleRes.data || [];
       checkedList.forEach((item) => {
-        tableData.value[item.index].imageUrl.forEach((v) => {
+        tableData.value[item.index].colorImg.forEach((v) => {
           if (item.originalFilename === v.url) {
             v.url = item.fileName
             v.name = item.newFileName
@@ -172,7 +174,7 @@ const submit = async () => {
       })
       data.forEach((dataItem) => {
         checkedList.forEach((item) => {
-          tableData.value[item.index].imageUrl.forEach((v) => {
+          tableData.value[item.index].colorImg.forEach((v) => {
             if (dataItem.originalFilename === v.url) {
               v.url = dataItem.url
               v.name = dataItem.newFileName
@@ -194,7 +196,7 @@ const submit = async () => {
     loading.value = true;
     //   //  有网络图
     for (const tabbleItem of tableData.value) {
-      const fileList = tabbleItem.imageUrl || [];
+      const fileList = tabbleItem.colorImg || [];
       if (fileList.length === 0) {
         continue;
       }

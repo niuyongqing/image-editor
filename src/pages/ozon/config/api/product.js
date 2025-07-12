@@ -332,3 +332,12 @@ export function templateList(data) {
     data
   })
 }
+
+// 根据分类id查询分类用于修改属性品牌
+export function brandCategory(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/attribute/list/history/category',
+    method: 'post',
+    data
+  })
+}

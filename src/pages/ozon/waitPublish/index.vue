@@ -270,7 +270,7 @@
       @handleShopSetClose="shopSetVisible = false" @refreshShopSet="getShopSet"></shopSetModal>
 
     <!-- 统一修改价格库存等 -->
-    <editPriceModal :selectedRows="selectedRowList" :editPriceVisible="editPriceVisible"
+    <editPriceModal :selectedRows="selectedRowList" :editPriceVisible="editPriceVisible" :brandList="brandList"
       @handleEditPriceClose="handleEditPriceClose" :editStockList="editStockList" :defType="defType">
     </editPriceModal>
   </div>
@@ -290,6 +290,7 @@ import {
   ozonProductPublish,
   statistics,
   waitExport,
+  brandCategory
 } from "../config/api/waitProduct";
 import tableHeard from "../config/tabColumns/waitPublish";
 import editRemark from "./comm/editRemark.vue";
@@ -337,6 +338,7 @@ const activeName = ref(" ");
 const tabQuantity = ref([]);
 const defType = ref([]);
 const stockShops = ref([]);
+const brandList = ref([])
 const advancedForm = reactive({
   minPrice: null,
   maxPrice: null,
@@ -592,7 +594,6 @@ const backCloseRemark = () => {
 
 const edit = (row = {}) => {
   let newRow = Object.keys(row).length != 0 ? row : selectedRowList.value[0];
-  console.log("newRow", newRow);
   window.open(
     "editWaitProduct" + `?id=${newRow.waitId}&account=${newRow.account}`,
     "_blank"
@@ -601,7 +602,6 @@ const edit = (row = {}) => {
 
 // 批量操作
 const handleMenuClick = (e) => {
-  console.log("e", e);
   if (e.key == "remark") {
     addRemark();
   } else if (e.key === "publish") {
@@ -641,11 +641,29 @@ const handleMenuClick = (e) => {
     editPriceVisible.value = true;
     stockShops.value = selectedRowList.value.map((e) => e.account);
     getStore();
+    getBrandList();
   }
 };
 
+// 获取品牌相关数据
+const getBrandList = () => {
+  
+  let list = selectedRowList.value.map((e) => {
+    return {
+      account:e.account,
+      typeId: e.typeId,
+      descriptionCategoryId: e.descriptionCategoryId
+    }
+  })
+  brandCategory(list).then((res) => {
+    brandList.value = res?.data ?? [];
+  })
+};
+
+
 // 关闭价格
 const handleEditPriceClose = () => {
+  defType.value = [];
   clearSelectList();
   editPriceVisible.value = false;
   getList();

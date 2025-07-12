@@ -1,7 +1,7 @@
 <template>
     <div id="OzonVariantInfoCont">
-        <a-card title="产品信息" class="text-left mt-5">
-            <a-card title="变种信息" class="text-left mx-50">
+        <a-card title="产品信息" class="text-left mt-5 text-16px">
+            <a-card title="变种信息" class="text-left mx-50 text-16px">
                 <div class="flex mb-2.5">
                     <a-checkbox-group @change="changeHeade" v-model:value="addHeaderList" :options="plainOptions">
                     </a-checkbox-group>
@@ -54,33 +54,33 @@
                             </a-upload>
                         </template>
                         <template v-if="column.dataIndex === 'skuTitle'">
-                            <a-input v-model:value="record.skuTitle"></a-input>
+                            <a-input v-model:value="record.skuTitle" size="middle"></a-input>
                         </template>
                         <template v-if="column.dataIndex === 'secondName'">
                             <span>{{ record.secondName }}</span>
                         </template>
                         <template v-if="column.dataIndex === 'sellerSKU'">
-                            <a-input disabled v-model:value="record.sellerSKU" @change="sellerSKUChange(record)"></a-input>
+                            <a-input disabled v-model:value="record.sellerSKU" size="middle" @change="sellerSKUChange(record)"></a-input>
                         </template>
                         <template v-if="!otherHeader.includes(column.dataIndex)">
-                            <a-input v-if="column.selectType === 'input'"
+                            <a-input v-if="column.selectType === 'input'" size="middle"
                                 v-model:value="record[column.dataIndex]"></a-input>
-                            <a-select v-if="column.selectType === 'select'" v-model:value="record[column.dataIndex]"
+                            <a-select v-if="column.selectType === 'select'" size="middle" v-model:value="record[column.dataIndex]"
                                 style="width: 200px" :options="column.options"></a-select>
-                            <a-select v-if="column.selectType === 'multSelect'" :maxTagCount="2"
+                            <a-select v-if="column.selectType === 'multSelect'" size="middle" :maxTagCount="2"
                                 v-model:value="record[column.dataIndex]" style="width: 200px" :options="column.options"
                                 mode="tags"></a-select>
                         </template>
                         <template v-if="column.dataIndex === 'price'">
-                            <a-input-number style="width: 80%" v-model:value="record.price"
+                            <a-input-number style="width: 80%" size="middle" v-model:value="record.price"
                                 @blur="judgeMax(record)"></a-input-number>
                         </template>
                         <template v-if="column.dataIndex === 'oldPrice'">
-                            <a-input-number style="width: 80%" v-model:value="record.oldPrice"
+                            <a-input-number style="width: 80%" size="middle" v-model:value="record.oldPrice"
                                 @blur="judgeMax(record)"></a-input-number>
                         </template>
                         <template v-if="column.dataIndex === 'minPrice'">
-                            <a-input-number disabled style="width: 80%"
+                            <a-input-number disabled style="width: 80%" size="middle"
                                 v-model:value="record.minPrice"></a-input-number>
                         </template>
                         <template v-if="column.dataIndex === 'quantity'">
@@ -92,28 +92,28 @@
                             <div>
                                 <div style="display: flex">
                                     长度：
-                                    <a-input-number controls-position="right" style="width: 80%"
+                                    <a-input-number controls-position="right" size="middle" style="width: 80%"
                                         v-model:value="record.packageLength" placeholder="长度">
                                         <template #addonAfter>mm</template>
                                     </a-input-number>
                                 </div>
                                 <div style="display: flex; margin-top: 5px">
                                     宽度：
-                                    <a-input-number controls-position="right" style="width: 80%"
+                                    <a-input-number controls-position="right" size="middle" style="width: 80%"
                                         v-model:value="record.packageWidth" placeholder="宽度">
                                         <template #addonAfter>mm</template>
                                     </a-input-number>
                                 </div>
                                 <div style="display: flex; margin-top: 5px">
                                     高度：
-                                    <a-input-number controls-position="right" style="width: 80%"
+                                    <a-input-number controls-position="right" size="middle" style="width: 80%"
                                         v-model:value="record.packageHeight" placeholder="高度">
                                         <template #addonAfter>mm</template>
                                     </a-input-number>
                                 </div>
                                 <div style="display: flex; margin-top: 5px">
                                     重量：
-                                    <a-input-number controls-position="right" style="width: 80%"
+                                    <a-input-number controls-position="right" size="middle" style="width: 80%"
                                         v-model:value="record.packageWeight" :precision="0" placeholder="重量">
                                         <template #addonAfter>g</template>
                                     </a-input-number>
@@ -129,8 +129,8 @@
             <div v-if="tableData.length > 0">
               <a-card class="mb-2.5 ml-2.5">
                 <div>
-                  <a-tag color="warning">！说明</a-tag>
-                  <span style="color: #9fa0a2">
+                  <a-tag color="warning" class="text-16px">！说明</a-tag>
+                  <span style="color: #9fa0a2" class="text-16px">
                     第一张图片默认为主图，点击图片拖动，即可调整图片顺序！
                     单张不超过2M，只支持jpg、.png、.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3：4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)</span>
                 </div>
@@ -139,8 +139,8 @@
                   <template #default>
                     <div flex flex-col w-full justify-start mb-4px text-left>
                       <p>
-                        <a-tag color="#00AEB3">说明！</a-tag>
-                        <span class="text-#999"> 第一张图片默认为主图，点击图片拖动，即可调整图片顺序。
+                        <a-tag color="#00AEB3" class="text-16px">说明！</a-tag>
+                        <span class="text-#999 text-16px"> 第一张图片默认为主图，点击图片拖动，即可调整图片顺序。
                         </span>
                       </p>
                     </div>
