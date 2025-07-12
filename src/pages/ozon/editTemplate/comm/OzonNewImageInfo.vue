@@ -108,11 +108,9 @@ defineExpose({
     submitForm
 })
 
-
 const backResult = (res) => {
     form.jsons = res
 }
-
 const removeDescription = () => {
     form.description = "";
     form.jsons = "";
@@ -121,7 +119,6 @@ const removeDescription = () => {
     form.coverUrl = "";
     showDescription.value = false;
 }
-
 watch(() => props.productDetail, val => {
     if (val.content.productTemplate.productDesc) {
         form.description = val.content.productTemplate.productDesc

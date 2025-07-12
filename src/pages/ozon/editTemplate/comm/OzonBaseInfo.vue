@@ -516,12 +516,11 @@ watch(
     (val) => {
         if (val) {
             const { content, account, name } = val;
-            form.name = content.name;
+            form.name = content.productTemplate.name;
             form.templateName = name;
             // 修改响应式对象的属性
             form.shortCode = account;
-            form.name = name;
-            form.vat = content.productTemplate.productAttr.vat;
+            form.vat = content.productTemplate.vat;
             form.categoryId = content.productTemplate.categoryId;
             showAttrsBtn.value = true;
             getHistoryList(account);

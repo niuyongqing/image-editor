@@ -147,7 +147,7 @@ const selectItem = (e) => {
 };
 
 const getList = () => {
-    console.log(tableData.value, paginations, loading.value);
+    selectedRowKeys.value = [];
     loading.value = true;
     templateList({
         ...formData,
@@ -197,6 +197,11 @@ const handleEdit = (record) => {
 }
 
 const handleCopy = (record) => {
+    if (activeId.value === 4) {
+        // window.open(`/platform/ozon/editTemplate?type=${activeId.value}&id=${record.id}`, '_blank');
+        return;
+    }
+    window.open(`/platform/ozon/editTemplate?type=${activeId.value}&id=${record.id}&copy=${true}`, '_blank');
     console.log(record);
 }
 
@@ -205,7 +210,7 @@ const handleDelete = (record) => {
         title: '提示',
         content: '确定要删除吗？',
         onOk: () => {
-            const params = record ? [record.id] : selectedRowList.value.map(item => item.id);
+            const params = record.id ? [record.id] : selectedRowKeys.value;
             templateDelete(params).then(() => {
                 message.success('删除成功');
                 getList();
