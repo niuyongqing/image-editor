@@ -379,7 +379,7 @@ defineOptions({ name: 'MobileDetailEditor' })
 const emits = defineEmits(['backResult'])
 const props = defineProps({
   shop: String,
-  content: String
+  jsonContent: String
 });
 const headers = {
   'Authorization': 'Bearer ' + useAuthorization().value,
@@ -389,9 +389,9 @@ const uploadUrl =
   "/platform-ozon/platform/ozon/file/upload/img"
 
 
-  watch(() => props.content, val => {
-  if (val?.length > 0) {
-    // console.log('val', val);
+  watch(() => props.jsonContent, val => {
+  if (val) {
+    console.log('val', val);
     finallyObj.value = JSON.parse(val)
     const { content } = JSON.parse(val)
     // console.log('content',content);

@@ -12,9 +12,9 @@
                 </a-form-item>
                 <a-form-item label="JSON 丰富内容：" name="jsons">
                     <div>
-                        <a-select v-model:value="form.jsonTemp" size="large" allowClear style="width: 30%"
+                        <!-- <a-select v-model:value="form.jsonTemp" size="large" allowClear style="width: 30%"
                             :options="vatList">
-                        </a-select>
+                        </a-select> -->
                         <a-button type="link" size="middle" class="ml10px">
                             <SyncOutlined />
                             更新模板
@@ -23,7 +23,7 @@
                     <div class="my10px text-16px" style="color: #ff0a37">说明：描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M
                     </div>
                     <a-form-item-rest>
-                        <jsonForm @backResult="backResult" :content="form.jsons" :shop="shopCode"></jsonForm>
+                        <jsonForm @backResult="backResult" :jsonContent="form.jsons" :shop="shopCode"></jsonForm>
                     </a-form-item-rest>
                 </a-form-item>
                 <a-form-item label="视频：">
@@ -159,7 +159,7 @@ const removeVideoList = (index) => {
     form.video.splice(index, 1)
 }
 const backResult = (res) => {
-    form.jsons = res
+    form.jsons = JSON.stringify(res);
 }
 const submitForm = () => {
     if (Object.keys(form.jsons).length == 0) {

@@ -1168,304 +1168,96 @@ const dependencyMap = new Map([
 
 watch(() => useOzonProductStore().attributes, val => {
     if (val) {
-        // ----------------- 获取图片应用主题 ---------
-        const aspectList = val.filter(item => item.isAspect);
-        const otherList = aspectList.filter(item =>
-            item.id !== 10096 &&
-            item.id !== 10097 &&
-            item.id !== 4295 &&
-            item.id !== 9533
-        ).map(item => [item])
-        const groupList = [
-            // 商品颜色 + 颜色名称
-            aspectList.filter(item =>
-                item.id === 10096 ||
-                item.id === 10097
-            ),
-            // 俄罗斯尺码和制造商尺码
-            aspectList.filter(item =>
-                item.id === 4295 ||
-                item.id === 9533
-            ),
-            // 其他数据
-            ...otherList
-        ];
-        let groups = groupList.filter(group => group.length > 0);
-        applyMenuList.value = groups.map(group => {
-            if (group.length === 1) {
-                return {
-                    title: group[0].name.split('(')[0],
-                    name: group[0].name,
-                    value: String(group[0].id)
-                };
-            };
-            const titles = group.map(item => item.name.split('(')[0]);
-            const names = group.map(item => item.name);
-            const ids = group.map(item => item.id);
-            return {
-                title: titles.join('-'),
-                name: names,
-                value: ids.join('-')
-            };
-        });
-        // ------------------------------------------------------------------
-
         themeBtns.value = [];
-        requiredList.value = [];
-        attributeList.value = [];
-        tableData.value = [];
-        // imgHeaderList.value = [];
-        addHeaderList.value = []; //清空自定义变种信息
-        headerList.value = [...publishHead] //重新赋值
-        let editRes = []
-        // 提取变种主题
-        let arr = val.filter((obj) => obj.isAspect);
-        isConform.value = checkData(arr);
-        const requiredItem = arr.some(item => item.isRequired === true);
-        let sortArr = rearrangeColorFields(arr)
-        //判断主题中是否有颜色名称，且商品颜色是不是必填项
-        if (requiredItem) {
-            if (isConform.value) {
-                requiredList.value = arr.filter((obj) => obj.isRequired);
-                // 将arr转换为ID索引对象，提高查找效率
-                const arrById = arr.reduce((acc, item) => {
-                    acc[item.id] = item;
-                    return acc;
-                }, {});
-                // 检查并添加依赖项
-                dependencyMap.forEach((addId, targetId) => {
-                    // 检查目标ID是否存在
-                    if (requiredList.value.some(item => item.id === targetId)) {
-                        // 获取要添加的对象
-                        const itemToAdd = arrById[addId];
-                        // 检查是否已存在且对象存在
-                        if (itemToAdd && !requiredList.value.some(item => item.id === addId)) {
-                            requiredList.value.push(itemToAdd);
-                        }
-                    }
-                });
-                // if (requiredList.value.some(item => (item.id === 10096))) {
-                //     requiredList.value.push(arr.find(obj => obj.id === 10097))
-                // }
-                themeBtns.value = arr.filter(
-                    (obj) => !(obj.isRequired || obj.id === 10097 || obj.id === 9533) //obj.id === 9533
-                )
-                requiredList.value = reorderArray(requiredList.value)
-            } else {
-                themeBtns.value = arr.filter((obj) => !obj.isRequired);
-                requiredList.value = arr.filter((obj) => obj.isRequired);
+      requiredList.value = [];
+      attributeList.value = [];
+      tableData.value = [];
+      headerList.value = [...publishHead];
+      // 提取变种主题
+      let arr = val.filter((obj) => obj.isAspect);
+      isConform.value = checkData(arr);
+      const requiredItem = arr.some((item) => item.isRequired === true);
+
+      //判断主题中是否有颜色名称，且商品颜色是不是必填项
+      if (requiredItem) {
+        if (isConform.value) {
+          requiredList.value = arr.filter((obj) => obj.isRequired);
+          // 将arr转换为ID索引对象，提高查找效率
+          const arrById = arr.reduce((acc, item) => {
+            acc[item.id] = item;
+            return acc;
+          }, {});
+          // 检查并添加依赖项
+          dependencyMap.forEach((addId, targetId) => {
+            // 检查目标ID是否存在
+            if (requiredList.value.some((item) => item.id === targetId)) {
+              // 获取要添加的对象
+              const itemToAdd = arrById[addId];
+              // 检查是否已存在且对象存在
+              if (
+                itemToAdd &&
+                !requiredList.value.some((item) => item.id === addId)
+              ) {
+                requiredList.value.push(itemToAdd);
+              }
             }
+          });
+
+          themeBtns.value = arr.filter(
+            (obj) => !(obj.isRequired || obj.id === 10097 || obj.id === 9533) //obj.id === 9533
+          );
+          requiredList.value = reorderArray(requiredList.value);
         } else {
-            if (isConform.value) {
-                themeBtns.value = arr.filter(
-                    (obj) => !(obj.isRequired || obj.id === 10097)
-                )
-
-            } else {
-                themeBtns.value = arr.filter((obj) => !obj.isRequired)
-            }
+          themeBtns.value = arr.filter((obj) => !obj.isRequired);
+          requiredList.value = arr.filter((obj) => obj.isRequired);
         }
-
-        const { skuList } = props.productDetail || [];
-        const newAttributesCache = processAttributesCache(val);
-        const list = newAttributesCache.filter((a) => !a.isRequired);
-        custAttr.value = list.filter(
-            (a) =>
-                !(a.isAspect && !a.isRequired) &&
-                !(a.isAspect && a.isCollection) &&
-                !(
-                    a.id === 4080 ||
-                    a.id == 8229 ||
-                    a.id == 8789 ||
-                    a.id == 8790 ||
-                    a.id == 4180 ||
-                    a.id == 4191 ||
-                    a.id == 11254 ||
-                    a.id == 9024
-                ) &&
-                !(
-                    a.attributeComplexId == "100001" ||
-                    a.attributeComplexId == "100002"
-                )
-        )
-        if (requiredList.value.length != 0) {
-            processDataFormat(requiredList.value);
-        }
-        let result = [];
-        let attrHeaderList = [];
-        // 遍历b中的skuList
-        // skuList.forEach((sku) => {
-        //     let newItem = {
-        //         oldPrice: sku.oldPrice,
-        //         price: sku.price,
-        //         quantity: sku.stock,
-        //         packageHeight: sku.height,
-        //         packageLength: sku.depth,
-        //         packageWeight: sku.weight,
-        //         packageWidth: sku.width,
-        //         colorImg: sku?.colorImage ? [{
-        //             url: processImageSource(sku.colorImage),
-        //             name: sku.colorImage.split('/').pop()
-        //         }] : [],
-        //         warehouseList: sku?.warehouseList?.map(item => {
-        //             return {
-        //                 ...item,
-        //                 offerId: sku.offerId
-        //             }
-        //         }),
-        //         sellerSKU: sku.offerId,
-        //         imageUrl: sku.images?.map(item => {
-        //             return {
-        //                 url: processImageSource(item),
-        //                 checked: false,
-        //             }
-        //         }) ?? []
-        //     };
-
-        //     // 遍历a数组
-        //     sortArr.forEach((attr) => {
-        //         // 遍历sku的attributes中的每个attributes
-        //         sku.attributes.forEach((subAttr) => {
-        //             // console.log("",subAttr, attr);
-
-        //             if (subAttr.id == attr.id) {
-        //                 if (attr.selectType === "multSelect" && attr.options) {
-        //                     let values = subAttr.values.map((val) => {
-        //                         let option = attr.options.find((opt) => opt.id == val.dictionaryValueId);
-        //                         return option ? option.value : val.value;
-        //                     });
-        //                     newItem[attr.name] = values.join(', ');
-        //                 } else if (attr.selectType === "select" && attr.options) {
-        //                     let values = subAttr.values.map((val) => {
-        //                         let option = attr.options.find((opt) => opt.id == val.dictionaryValueId);
-        //                         return option ? option.value : val.value;
-        //                     });
-        //                     newItem[attr.name] = values.join(', ');
-        //                 }
-        //                 else {
-        //                     newItem[attr.name] = subAttr.values[0].value;
-        //                 }
-        //                 attrHeaderList.push({
-        //                     title: attr.name,
-        //                     dataIndex: attr.name,
-        //                     id: attr.id,
-        //                     show: true,
-        //                     align: 'center'
-        //                 })
-        //             }
-        //         });
-        //     });
-
-        //     result.push(newItem);
-        // });
-        // 处理数据回显到表格
-        attrHeaderList = [...new Map(attrHeaderList.map(item => [item.dataIndex, item])).values()];
-        const uniqueArr = [];
-        const titleSet = new Set();
-        [...attrHeaderList, ...headerList.value].forEach(item => {
-            if (!titleSet.has(item.title)) {
-                titleSet.add(item.title);
-                uniqueArr.push(item);
-            }
-        });
-        // console.log('uniqueArr',uniqueArr);
-
-        headerList.value = uniqueArr //表格主题标题赋值       
-        // imgHeaderList.value = attrHeaderList  //图片标题赋值
-        // if (result.some(item => item.colorImg.length !== 0)) {
-        //     headerList.value.unshift({
-        //         title: "颜色样本",
-        //         dataIndex: "colorImg",
-        //         selectType: "url",
-        //         type: 1,
-        //         show: true,
-        //         align: 'center',
-        //     })
-        //     addHeaderList.value.push("colorImg")
-        // }
-        // tableData.value = result
-        // 将不匹配的主题过滤掉
-        console.log('sortArr', sortArr);
-        let comAttrList = [10096, 4295]
-        let comAttrs = [10096, 10097]
-        // 从数组 a 中提取所有的 id
-        const idsInA = sortArr.map(item => item.id);
-        // 使用 every 方法检查 comAttrList 中的每个元素是否都在 idsInA 中
-        const isAllMatched = comAttrList.every(id => idsInA.includes(id)); //双组合主题
-        const isAllMatche = comAttrs.some(id => idsInA.includes(id)); //单组合主题
-        let filteredB = sortArr.filter(itemB => uniqueArr.some(itemA => itemA.id === itemB.id));
-        // console.log('isAllMatched',isAllMatched);
-        // console.log('111', isAllMatche);
-        let echoThemeList = []
-        let isModelValueList = []
-        // 判断sortArr中是否有组合数据
-        if (isAllMatched) {
-            echoThemeList = handleTheme(sortArr)  //handleTheme方法可以将属性转换成主题数据格式
-        } else if (isAllMatche) {
-            echoThemeList = handleTheme(filteredB)
+      } else {
+        if (isConform.value) {
+          themeBtns.value = arr.filter(
+            (obj) => !(obj.isRequired || obj.id === 10097)
+          );
         } else {
-            isModelValueList = filterModelValues(sortArr, skuList);
-            echoThemeList = handleTheme(isModelValueList)
+          themeBtns.value = arr.filter((obj) => !obj.isRequired);
         }
-        // console.log('isModelValueList',isModelValueList);
-        // 处理到数据回显到主题
-        const aIds = echoThemeList.map(item => item.id);
-        // 过滤 有数据的主题
-        themeBtns.value = themeBtns.value.filter(item => !aIds.includes(item.id));
-        attributeList.value = matchAndAssignValues(echoThemeList, skuList);
-
-        // ----------------------------------------------------------------------------
-        // const groupsFlat = groups.flat();
-        // const ids = groupsFlat.map((item) => item.id);
-        // themeBtns.value = themeBtns.value.filter(item => !ids.includes(item.id));
-        // groupsFlat.forEach(group => {
-        //     if (!attributeList.value.some((item) => {
-        //         return (item.tableColumns.some((_item) => {
-        //             return _item.id === group.id
-        //         }))
-        //     })) {
-        //         attributeList.value.push({
-        //             ...group,
-        //             tableData: [
-        //                 {
-        //                     "isRequired": group.isRequired,
-        //                     "categoryDependent": group.categoryDependent,
-        //                     "isCollection": group.isCollection,
-        //                     "id": group.id,
-        //                     "name": group.name,
-        //                     "selectType": group.selectType,
-        //                     "type": group.type,
-        //                     "modelValue": group.selectType === 'multSelect' ? [] : '',
-        //                     "options": group.options,
-        //                     "details": group.options.map((option) => {
-        //                         return {
-        //                             ...option,
-        //                             label: option.value,
-        //                         }
-        //                     })
-        //                 }
-        //             ],
-        //             tableColumns: [
-        //                 {
-        //                     "selectType": group.selectType,
-        //                     "dataIndex": group.name,
-        //                     "title": group.name,
-        //                     "type": group.type,
-        //                     "id": group.id,
-        //                     "show": true,
-        //                     "align": "center",
-        //                     "width": 900
-        //                 },
-        //                 {
-        //                     "dataIndex": "options",
-        //                     "title": "操作",
-        //                     "fixed": "right",
-        //                     "width": 200
-        //                 }
-        //             ]
-        //         })
-        //     }
-        // });
+      }
+      const newAttributesCache = processAttributesCache(val);
+      const list = newAttributesCache.filter((a) => !a.isRequired);
+      custAttr.value = list.filter(
+        (a) =>
+          !(a.isAspect && !a.isRequired) &&
+          !(a.isAspect && a.isCollection) &&
+          !(
+            a.id === 4080 ||
+            a.id == 8229 ||
+            a.id == 8789 ||
+            a.id == 8790 ||
+            a.id == 4180 ||
+            a.id == 4191 ||
+            a.id == 11254 ||
+            a.id == 9024
+          ) &&
+          !(
+            a.attributeComplexId == "100001" || a.attributeComplexId == "100002"
+          )
+      );
+      if (requiredList.value.length != 0) {
+        processDataFormat(requiredList.value);
+      }
+      tableData.value.push({
+        skuTitle: "",
+        sellerSKU: "",
+        price: "",
+        oldPrice: "",
+        quantity: undefined,
+        warehouseList: [],
+        packageLength: undefined,
+        packageWidth: undefined,
+        packageHeight: undefined,
+        packageWeight: undefined,
+        imageUrl: [],
+        colorImg: [],
+        id: Math.random().toString(36).substring(2, 10),
+      });
     }
 })
 
@@ -1584,46 +1376,11 @@ const checkOtherData = (data) => {
 }
 
 const submitForm = () => {
-    // 参数校验
-    if (tableData.value.length === 0) {
-        message.error("请编辑SKU信息！")
-        return false;
-    }
-    // sku校验
-    const result = checkSellerSKU(tableData.value);
-    if (result) {
-        message.error("SKU ID不能相同!")
-        return false;
-    }
     for (let i = 0; i < attributeList.value.length; i++) {
         for (let j = 0; j < attributeList.value[i].tableData.length; j++) {
             const row = attributeList.value[i].tableData[j];
             if (!validateRow(row)) {
                 message.error("请填写变体主题！");
-                return false;
-            }
-        }
-    }
-    const isEmpty = (value) => value == null || value === '' || value === 0;
-
-    const validations = [
-        { check: (row) => row.imageUrl == null, text: '请上传变体图片！' },
-        { check: (row) => row.imageUrl.length === 0, text: '请上传变体图片，变体图片最少一张！' },
-        { check: (row) => isEmpty(row.sellerSKU), text: '请填写SKU编号！' },
-        { check: (row) => isEmpty(row.price), text: '请填写售价！' },
-        { check: (row) => isEmpty(row.oldPrice), text: '请填写原价！' },
-        { check: (row) => isEmpty(row.quantity), text: '请填写库存！' },
-        {
-            check: (row) => [row.packageHeight, row.packageLength, row.packageWeight, row.packageWidth]
-                .some(v => v == null),
-            message: '请填写SKU包装信息！'
-        }
-    ];
-
-    for (const row of tableData.value) {
-        for (const { check, text } of validations) {
-            if (check(row)) {
-                message.error(text);
                 return false;
             }
         }
@@ -1646,7 +1403,8 @@ function validateRow(row) {
 // 抛出数据和方法，可以让父级用ref获取
 defineExpose({
     tableData,
-    submitForm
+    submitForm,
+    attributeList
 })
 onMounted(() => {
     // getWatermark();

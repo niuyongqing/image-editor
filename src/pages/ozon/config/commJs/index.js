@@ -520,11 +520,7 @@ const getInputValue = (attr, base, image, item) => {
       ? null
       : image.description;
   } else if (attr.id === 11254) {
-    return image.jsons
-      ? typeof image.jsons === "string"
-        ? image.jsons
-        : JSON.stringify(image.jsons)
-      : null;
+    return image.jsons ?? null;
   } else if (
     (attr.isAspect && !attr.isRequired) ||
     (attr.isAspect && attr.isCollection)

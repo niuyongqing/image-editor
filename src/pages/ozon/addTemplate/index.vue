@@ -146,7 +146,7 @@ const sendShortCode = (shortCode) => {
 const onSubmit = async () => {
     const ozonBaseInfo = await ozonBaseInfoRef.value.childForm();
     // const OzonNewImageInfo = await ozonImageInfoRef.value.submitForm();
-    // const ozonNewVariantInfo = await ozonNewVariantInfoRef.value.submitForm();
+    const ozonNewVariantInfo = await ozonNewVariantInfoRef.value.submitForm();
 
     // const errorIndex = findFalseInArrayLikeObject({ ozonBaseInfo, OzonNewImageInfo })
     // anchorList.value.forEach(item => {
@@ -161,7 +161,9 @@ const onSubmit = async () => {
     let base = ozonBaseInfoRef.value.form;
     let image = ozonImageInfoRef.value?.form;
 
-    let tableDatas = ozonNewVariantInfoRef.value.tableData;
+    let data = ozonNewVariantInfoRef.value;
+    const { attributeList: dataAttrs, tableData } = data;
+    console.log("dataAttrs", dataAttrs);
 
     //! 过滤一些属性
     const newList = attributes.value.filter(
@@ -177,57 +179,73 @@ const onSubmit = async () => {
             ) &&
             !(
                 a.attributeComplexId == "100001" || a.attributeComplexId == "100002"
-            )
+            ) && a.isAspect
     );
-    // let newComplexAttributes = [];
-    // //! 判断视频有没有上传
-    // const baseObj = {
-    //     attributes: [
-    //         {
-    //             complexId: null,
-    //             id: null,
-    //             values: [
-    //                 {
-    //                     value: "",
-    //                 },
-    //             ],
-    //         },
-    //     ],
-    // };
 
-    // if (image) {
-    //     if (image.coverUrl !== "" && image.video.length > 0) {
-    //         // 创建video对应的baseObj副本并更新value值
-    //         let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
-    //         videoBaseObj = createAndUpdateBaseObj(image.coverUrl, 100002, 21845, type === 1 ? 1 : 2);
-    //         newComplexAttributes.push(videoBaseObj);
+    // const resItem =  dataAttrs.map((item) => {
+    //     const moditAttributes = [];
+    //     const getDictionaryIdKey = 'dictionaryValueId';
+    //     const getComplexIdKey = 'complexId';
+    //     const createValueObj = (newId, newVal) => ({
+    //         [getDictionaryIdKey]: newId || 0,
+    //         value: newVal instanceof Array ? newVal.split(",") : newVal || "",
+    //     });
+    //     const createAttrItem = (attr, values) => ({
+    //         id: attr.id,
+    //         [getComplexIdKey]: attr.attributeComplexId,
+    //         values,
+    //     });
+    //     for (let attr of newList) {
+    //         let newId = null;
+    //         let newVal = "";
+    //         let mSlect = [];
+    //         console.log("attr", attr.id);
+    //         if (attr.id === item.id) {
+    //             console.log("item", item.tableData);
+    //             switch (attr.selectType) {
+    //                 case "input":
+    //                     newVal = getInputValue(attr, item.tableData);
+    //                     if (isNotEmpty(newVal)) {
+    //                         const inputValueObj = createValueObj(0, newVal);
+    //                         moditAttributes.push(createAttrItem(attr, [inputValueObj]));
+    //                     }
+    //                     break;
+    //                 case "select":
+    //                     [newId, newVal] = getSelectValue(attr, base, item);
+    //                     if (isNotEmpty(newVal)) {
+    //                         const selectValueObj = createValueObj(newId, newVal);
+    //                         moditAttributes.push(createAttrItem(attr, [selectValueObj]));
+    //                     }
+    //                     break;
+    //                 case "multSelect":
+    //                     mSlect = getMultiSelectValue(
+    //                         attr,
+    //                         item,
+    //                         base,
+    //                         createValueObj, 2
+    //                     );
+    //                     const filteredMSlect = mSlect.filter(
+    //                         (obj) => obj.value || obj?.dictionary_value_id !== 0 || obj?.dictionaryValueid !== 0
+    //                     );
+    //                     if (filteredMSlect.length) {
+    //                         moditAttributes.push(createAttrItem(attr, filteredMSlect));
+    //                     }
+    //                     break;
+    //             }
+    //         }
+    //         // let newId = null;
+    //         // let newVal = "";
+    //         // let mSlect = [];
+    //         // // 根据属性类型进行处理
 
-    //         // 创建coverUrl对应的baseObj副本并更新value值
-    //         let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
-    //         coverUrlBaseObj = createAndUpdateBaseObj(
-    //             image.video,
-    //             100001,
-    //             21841, type === 1 ? 1 : 2
-    //         );
-    //         newComplexAttributes.push(coverUrlBaseObj);
-    //     } else if (image.coverUrl !== "") {
-    //         let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
-    //         coverUrlBaseObj = createAndUpdateBaseObj(
-    //             image.coverUrl,
-    //             100002,
-    //             21845, type === 1 ? 1 : 2
-    //         );
-    //         newComplexAttributes.push(coverUrlBaseObj);
-    //     } else if (image.video.length > 0) {
-    //         let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
-    //         videoBaseObj = createAndUpdateBaseObj(image.video, 100001, 21841, type === 1 ? 1 : 2);
-    //         newComplexAttributes.push(videoBaseObj);
     //     }
-    // }
+    // })
 
+
+    console.log("newList", newList);
 
     const addHeaderList = useOzonProductStore().addHeaderList;
-    const resItem = tableDatas.map((item) => {
+    const resItem = tableData.map((item) => {
         const moditAttributes = [];
         const getDictionaryIdKey = 'dictionaryValueId';
         const getComplexIdKey = 'complexId';
@@ -247,14 +265,14 @@ const onSubmit = async () => {
             // 根据属性类型进行处理
             switch (attr.selectType) {
                 case "input":
-                    newVal = getInputValue(attr, base, image, item);
+                    newVal = getInputValue(attr, item);
                     if (isNotEmpty(newVal)) {
                         const inputValueObj = createValueObj(0, newVal);
                         moditAttributes.push(createAttrItem(attr, [inputValueObj]));
                     }
                     break;
                 case "select":
-                    [newId, newVal] = getSelectValue(attr, base, item);
+                    [newId, newVal] = getSelectValue(attr, item);
                     if (isNotEmpty(newVal)) {
                         const selectValueObj = createValueObj(newId, newVal);
                         moditAttributes.push(createAttrItem(attr, [selectValueObj]));
@@ -264,9 +282,10 @@ const onSubmit = async () => {
                     mSlect = getMultiSelectValue(
                         attr,
                         item,
-                        base,
                         createValueObj, 2
                     );
+                    console.log("mSlect", mSlect);
+
                     const filteredMSlect = mSlect.filter(
                         (obj) => obj.value || obj?.dictionary_value_id !== 0 || obj?.dictionaryValueid !== 0
                     );
@@ -280,22 +299,9 @@ const onSubmit = async () => {
 
         return {
             attributes: moditAttributes,
-            complexAttributes: newComplexAttributes ?? null, // 非必填 100002-21845-封面视频 100001-21841-视频
-            colorImage: item?.colorImg[0]?.url.replace('/prod-api', '') ?? "", // 非必填
-            images: item.imageUrl && item.imageUrl.map(item => item.url.replace('/prod-api', '')),
-            warehouseList: item?.warehouseList,
-            offerId: item.sellerSKU,
-            oldPrice: item.oldPrice, // 非必填
-            price: item.price,
-            weightUnit: "g",
-            dimensionUnit: "mm",
-            name: addHeaderList.includes("skuTitle") ? item.name : base.name,
-            weight: item.packageWeight,
-            height: item.packageHeight,
-            depth: item.packageLength,
-            width: item.packageWidth,
         };
     });
+    console.log("resItem", resItem);
 
 
     let params;
@@ -339,16 +345,16 @@ const onSubmit = async () => {
             }
         };
     };
-    loading.value = true;
-    templateSaveOrUpdate(params).then(res => {
-        message.success(res.msg)
-        setTimeout(() => {
-            window.close();
-        }, 2000);
-    })
-        .finally(() => {
-            loading.value = false;
-        });
+    // loading.value = true;
+    // templateSaveOrUpdate(params).then(res => {
+    //     message.success(res.msg)
+    //     setTimeout(() => {
+    //         window.close();
+    //     }, 2000);
+    // })
+    //     .finally(() => {
+    //         loading.value = false;
+    //     });
 };
 
 const handleOk = () => {
