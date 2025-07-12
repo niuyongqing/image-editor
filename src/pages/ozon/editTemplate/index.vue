@@ -15,7 +15,7 @@
                 </div>
             </div>
             <!-- 基本信息 -->
-            <ozon-base-info ref="ozonBaseInfoRef" id="ozonBaseInfo"
+            <ozon-base-info ref="ozonBaseInfoRef" id="ozonBaseInfo" :productDetail="productDetail"
                 :categoryAttributesLoading="categoryAttributesLoading" :shopList="shopList"
                 :attributesCache="attributes" @getAttributes="getAttributes" @emitAddDescription="addDescription"
                 @sendShortCode="sendShortCode" :showDescription="showDescription"></ozon-base-info>
@@ -23,7 +23,7 @@
 
             <!-- 描述信息 -->
             <OzonNewImageInfo ref="ozonImageInfoRef" :shopCode="formData.shortCode" v-if="showDescription"
-                v-model:showDescription="showDescription">
+                :productDetail="productDetail" v-model:showDescription="showDescription">
             </OzonNewImageInfo>
             <div flex justify-end>
                 <a-button type="primary" @click="onSubmit" :loading="loading"
@@ -248,10 +248,62 @@ const getTemplateDetail = () => {
     templateDetail({
         id: route.query.id
     }).then(res => {
-        if (res.data) {
-            console.log('-》》》》》》》》》》', res.data);
-            templateDetailData.value = res?.data ?? {};
-            productDetail.value = res?.data ?? {};
+        if (res.code === 200) {
+            // console.log('-》》》》》》》》》》', res.data);
+
+            productDetail.value = {
+                "type": 1,
+                "id": null,
+                "name": "模板名称12321",
+                "state": 1,
+                "account": "2649641",
+                "content": {
+                    "productTemplate": {
+                        "categoryId": {
+                            "threeCategoryId": 95139,
+                            "threeCategoryName": "",
+                            "secondCategoryId": 15621050,
+                            "label": "智能手机(Смартфон)",
+                            "value": 95139
+                        },
+                        "productAttr": {
+                            vat: '0'
+                        },
+                        "productDesc": "产品描述\n"
+                    },
+                    "jsonRich": '{"content":[{"widgetName":"raTextBlock","theme":"default","gapSize":"m","padding":"type2","title":{"size":"size5","ocolor":"color1","align":"left","content":["222"]},"text":{"size":"size2","color":"color1","align":"left","content":["222"]}}],"version":0.3}'
+                    // "jsonRich": {
+                    //     "content": [
+                    //         {
+                    //             "widgetName": "raTextBlock",
+                    //             "theme": "default",
+                    //             "gapSize": "m",
+                    //             "padding": "type2",
+                    //             "title": {
+                    //                 "size": "size5",
+                    //                 "ocolor": "color1",
+                    //                 "align": "left",
+                    //                 "content": [
+                    //                     "222"
+                    //                 ]
+                    //             },
+                    //             "text": {
+                    //                 "size": "size2",
+                    //                 "color": "color1",
+                    //                 "align": "left",
+                    //                 "content": [
+                    //                     "222"
+                    //                 ]
+                    //             }
+                    //         }
+                    //     ],
+                    //     "version": 0.3
+                    // }
+                }
+            }
+
+            // templateDetailData.value = res?.data ?? {};
+            // productDetail.value = res?.data ?? {};
         }
     })
 }

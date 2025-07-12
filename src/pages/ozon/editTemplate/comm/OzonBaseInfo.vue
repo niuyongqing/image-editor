@@ -515,20 +515,43 @@ watch(
     () => props.productDetail,
     (val) => {
         if (val) {
-            const { simpleName, account, skuList, vat, typeId, descriptionCategoryId, name } =
-                val;
+            // const { simpleName, account, skuList, vat, typeId, descriptionCategoryId, name } =
+            //     val;
+
+            // console.log('val ->>>>>>>>>>>', val);
+
+            // form.name = name;
+            // // 修改响应式对象的属性
+            // form.shortCode = account;
+            // form.name = name;
+            // form.vat = vat === "0.0" || vat === "0.00" ? "0" : vat;
+            // form.categoryId = {
+            //     threeCategoryId: typeId,
+            //     threeCategoryName: "",
+            //     secondCategoryId: descriptionCategoryId,
+            //     label: undefined,
+            //     value: typeId,
+            // };
+            // getHistoryList(account);
+
+            const { content, account, name } = val;
+
+            console.log('val ->>>>>>>>>>>', val);
+
+            form.name = content.name;
+            form.templateName = name;
             // 修改响应式对象的属性
             form.shortCode = account;
             form.name = name;
-            form.vat = vat === "0.0" || vat === "0.00" ? "0" : vat;
-            form.categoryId = {
-                threeCategoryId: typeId,
-                threeCategoryName: "",
-                secondCategoryId: descriptionCategoryId,
-                label: undefined,
-                value: typeId,
-            };
+            form.vat = content.productTemplate.productAttr.vat;
+            form.categoryId = content.productTemplate.categoryId;
             getHistoryList(account);
+
+            showAttrsBtn.value = true;
+
+            if (content.jsonRich != '{}') {
+                addDescription()
+            }
         }
     }
 );

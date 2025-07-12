@@ -82,8 +82,8 @@
 <script lang="ts" setup>
 import SideBar from './components/sideBar.vue';
 import { accountCache } from "../config/api/product";
-import { templateList } from "../config/api/userTemplate";
-import { Modal } from 'ant-design-vue';
+import { templateList, templateDelete } from "../config/api/userTemplate";
+import { Modal, message } from 'ant-design-vue';
 
 
 const shopObj = {
@@ -188,7 +188,11 @@ const handleChangePagination = (page, pageSize) => {
 };
 
 const handleEdit = (record) => {
-    window.open(`/platform/ozon/editTemplate?id=${record.id}`, '_blank');
+    if (activeId.value === 4) {
+        // window.open(`/platform/ozon/editTemplate?type=${activeId.value}&id=${record.id}`, '_blank');
+        return;
+    }
+    window.open(`/platform/ozon/editTemplate?type=${activeId.value}&id=${record.id}`, '_blank');
     console.log(record);
 }
 
@@ -201,7 +205,10 @@ const handleDelete = (record) => {
         title: '提示',
         content: '确定要删除吗？',
         onOk: () => {
-            console.log('ok', record);
+            templateDelete([record.id]).then(() => {
+                message.success('删除成功');
+                getList();
+            })
         },
         onCancel: () => {
             console.log('cancel');
@@ -210,8 +217,8 @@ const handleDelete = (record) => {
 };
 
 const navToCreateTemplate = () => {
-    if (activeId.value === 4) {
-        window.open(`/platform/ozon/productPublish`, '_blank');
+    if (activeId.value === 4) { // 富文本模板创建
+        // window.open(`/platform/ozon/productPublish`, '_blank');
         return;
     }
     window.open(`/platform/ozon/addTemplate?type=${activeId.value}`, '_blank');

@@ -13,3 +13,9 @@ export function templateSaveOrUpdate(params) {
 export function templateDetail(params) {
     return useGet('/platform-ozon/platform/ozon/template/detail', params)
 }
+
+
+// 模板删除
+export function templateDelete(params) {
+    return usePost('/platform-ozon/platform/ozon/template/delete', params)
+}

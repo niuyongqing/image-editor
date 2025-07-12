@@ -184,13 +184,14 @@
                             <template v-if="column.dataIndex === 'stock'">
                                 <div class="pb-30px">
                                     <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
-                                        <div class="sku-price  h-21px">
+                                        <div class="sku-price">
                                             <a-tooltip placement="top">
                                                 <template #title>
                                                     <span>{{ warehouseName(item.offerId, item.warehouseList) }}: {{
                                                         item.stock }}</span>
                                                 </template>
-                                                <span> {{ item.stock }} </span>
+                                                <span> {{ [null, undefined, ""].includes(item.stock) ? '-' : item.stock
+                                                    }} </span>
                                             </a-tooltip>
                                         </div>
                                     </div>
