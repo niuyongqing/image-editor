@@ -4,10 +4,14 @@
     v-model:open="modalOpen" 
     :title="'SKU一键生成'" 
     :closable="false"
-    style="width: 50%;"
+    :style="`width: ${type === 'foundation' ? '500px':'1000px'};`"
   >
     <div v-if="type === 'foundation'">
-      <a-input v-model:value="skuEditData.prefix" placeholder="输入前缀"></a-input>
+      <a-input 
+        v-model:value="skuEditData.prefix" 
+        placeholder="输入前缀"
+        style="width: 300px;"
+      ></a-input>
     </div>
     <div v-if="type === 'senior'" class="dialog-box">
       <a-tabs v-model:activeKey="skuEditData.activeKey" @change="handleSelect">

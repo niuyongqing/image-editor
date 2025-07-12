@@ -19,7 +19,23 @@
           <div class="box" style="width: 100%; display: flex; flex-direction: column;">
             <div class="addVariant-btn">
               <a-button @click="variantTheme.isAddVariant = !variantTheme.isAddVariant" style="width: 120px;" type="primary">添加自定义属性</a-button>
-              <div class="addVariant-btn-input" v-show="variantTheme.isAddVariant">
+              <a-modal 
+                v-model:open="variantTheme.isAddVariant" 
+                title="自定义属性" 
+                @ok="val => addVariant('check')"
+                @cancel="val => addVariant('refresh')"
+              >
+                <div class="addVariant-btn-input">
+                  <span>自定义属性名称：</span>
+                  <a-input 
+                    style="width: 300px;"  
+                    v-model:value="variantTheme.addVariantTitle" 
+                    placeholder="请输入自定义属性"
+                    ref="addVariantInputRef"
+                  ></a-input>
+                </div>
+              </a-modal>
+              <!-- <div class="addVariant-btn-input" v-show="variantTheme.isAddVariant">
                 <a-input 
                   style="width: 200px;"  
                   v-model:value="variantTheme.addVariantTitle" 
@@ -29,7 +45,7 @@
                 ></a-input>
                 <async-icon :icon="'CheckOutlined'" @click="addVariant('check')"></async-icon>
                 <async-icon :icon="'UndoOutlined'" @click="addVariant('refresh')"></async-icon>
-              </div> 
+              </div>  -->
             </div>
           </div>
         </a-form-item-rest>
@@ -122,6 +138,7 @@
               :data-source="variantTheme.tableData"
               :pagination="false"
               rowKey="id"
+              :scroll="{y: 400}"
             >
               <template #headerCell="{ column }">
                 <div>
@@ -135,9 +152,9 @@
                     <a-button @click="openModal('sukModal', column, 'senior')" type="link">高级</a-button>
                   ) -->
                 </div>
-                <!-- <div v-else-if="['originalPrice', 'currentPrice', 'inventory'].includes(column.key)">
+                <div v-else-if="['originalPrice', 'currentPrice', 'inventory'].includes(column.key)">
                   (<a-button @click="openModal('numberEditModal', column)" type="link">批量</a-button>)
-                </div> -->
+                </div>
               </template>
 
               <template #bodyCell="{ column, record: row }">
@@ -209,6 +226,7 @@ import bacthVariantStringEdit from './modal/bacthVariantStringEdit.vue'
 import sukModal from './modal/sukModal.vue';
 import numberEditModal from './modal/numberEditModal.vue';
 import { cloneDeep } from 'lodash-es';
+import { message } from 'ant-design-vue';
 defineOptions({ name: "acquisitionEdit_variantInfo" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:variantInfoData'])
@@ -285,6 +303,11 @@ watch(() => props.productData?.id, (val) => {
   // console.log(111);
   openFn();
 })
+watch(() => variantTheme.tableData, (val) => {
+  emit('update:variantInfoData', val)
+}, {
+  deep: true,
+})
 function openFn() {
   let { variantAttr, variantInfoList: _variantInfoList } = props.productData
   let variantInfoList = cloneDeep((_variantInfoList ?? []));
@@ -306,15 +329,15 @@ function openFn() {
       }
       variantInfoList.forEach(i => {
         if (i[key] === item) {
-          i.skuCode = ''
-          i.inventory = 0
-          i[val.id] = {...variantItem}
+          i.skuCode = i.skuCode ?? '';
+          i.inventory = i.inventory ?? 0;
+          i[val.id] = { ...variantItem };
         }
       })
       return variantItem;
     })
     addVariant('check', val)
-    form[val.id].params = [...val.values]
+    // form[val.id].params = [...val.values]
   })
   createHeaderList()
   variantInfoList.forEach((item, index) => item.rowId = index)
@@ -334,12 +357,15 @@ function addVariant(key, val = {}) {
         addTitleValue: '',
         showInput: false,
       }
-      if (!obj.name) return;
+      if (!obj.name) {
+        message.warning('请输入主题名称!')
+        return;
+      }
       variantTheme.variantList.push(obj)
       formItem = {
         id: obj.id,
         name: obj.name,
-        params: []
+        params: val?.values ? [val.values] : []
       }
       // variantTheme.$set(form, obj.id, formItem)
       form[obj.id] = formItem
