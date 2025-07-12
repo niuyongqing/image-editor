@@ -188,6 +188,7 @@ const handleChangePagination = (page, pageSize) => {
 };
 
 const handleEdit = (record) => {
+    window.open(`/platform/ozon/editTemplate?id=${record.id}`, '_blank');
     console.log(record);
 }
 
@@ -200,7 +201,7 @@ const handleDelete = (record) => {
         title: '提示',
         content: '确定要删除吗？',
         onOk: () => {
-            console.log('ok');
+            console.log('ok', record);
         },
         onCancel: () => {
             console.log('cancel');
@@ -209,6 +210,10 @@ const handleDelete = (record) => {
 };
 
 const navToCreateTemplate = () => {
+    if (activeId.value === 4) {
+        window.open(`/platform/ozon/productPublish`, '_blank');
+        return;
+    }
     window.open(`/platform/ozon/addTemplate?type=${activeId.value}`, '_blank');
 };
 

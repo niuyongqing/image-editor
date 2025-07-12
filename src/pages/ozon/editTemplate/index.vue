@@ -134,24 +134,20 @@ const sendShortCode = (shortCode) => {
 }
 const onSubmit = async () => {
     const ozonBaseInfo = await ozonBaseInfoRef.value.childForm();
-    const OzonNewImageInfo = await ozonImageInfoRef.value.submitForm();
-    const ozonNewVariantInfo = await ozonNewVariantInfoRef.value.submitForm();
 
-    const errorIndex = findFalseInArrayLikeObject({ ozonBaseInfo, OzonNewImageInfo })
-    anchorList.value.forEach(item => {
-        item.turnRed = errorIndex.includes(item.id)
-    })
-    if (errorIndex.length) {
-        scrollTo(errorIndex[0])
-        message.error("信息填写有误！");
-        return
-    }
+    // const OzonNewImageInfo = await ozonImageInfoRef.value.submitForm();
+    // const errorIndex = findFalseInArrayLikeObject({ ozonBaseInfo, OzonNewImageInfo })
+    // anchorList.value.forEach(item => {
+    //     item.turnRed = errorIndex.includes(item.id)
+    // })
+    // if (errorIndex.length) {
+    //     scrollTo(errorIndex[0])
+    //     message.error("信息填写有误！");
+    //     return
+    // }
 
     let base = ozonBaseInfoRef.value.form;
     let image = ozonImageInfoRef.value?.form;
-
-    let tableDatas = ozonNewVariantInfoRef.value.tableData;
-
     //! 过滤一些属性
     const newList = attributes.value.filter(
         (a) =>
@@ -213,49 +209,22 @@ const onSubmit = async () => {
     }
 
 
-    const addHeaderList = useOzonProductStore().addHeaderList;
-
-    let params;
-    //  产品模板
-    if (type.value === 1) {
-        params = {
-            type: 1, //模板类型 1-产品模板  2-尺码模板 3-变种模板 4-富内容模板
-            name: base.templateName, // 模板名称
-            state: 1, // 状态是否生效  0-不生效 1-生效
-            account: formData.shortCode,
-            content: {
-                productTemplate: {
-                    categoryId: base.categoryId || {},
-                    productAttr: base.attributes || {},
-                    productDesc: image?.description || ""
-                },
-                jsonRich: image?.jsons ? JSON.stringify(image.jsons) : "{}"
-            }
-        };
-    } else if (type.value === 3) {
-        params = {
-            type: 3, //模板类型 1-产品模板  2-尺码模板 3-变种模板 4-富内容模板
-            name: base.templateName, // 模板名称
-            state: 1, // 状态是否生效  0-不生效 1-生效
-            account: formData.shortCode,
-            content: {
-                variantTemplate: {
-                    categoryId: base.categoryId || {},
-                    variantAttr: [] // to do  ...
-                }
-            }
-        };
-    } else if (type.value === 4) {
-        params = {
-            type: 4, //模板类型 1-产品模板  2-尺码模板 3-变种模板 4-富内容模板
-            name: base.templateName, // 模板名称
-            state: 1, // 状态是否生效  0-不生效 1-生效
-            account: formData.shortCode,
-            content: {
-                jsonRich: image?.jsons ? JSON.stringify(image.jsons) : "{}"
-            }
-        };
-    };
+    const addHeaderList = useOzonProductStore().addHeaderList
+    let params = {
+        type: 1, //模板类型 1-产品模板  2-尺码模板 3-变种模板 4-富内容模板
+        id: null, // id 为null  新增  不为null 是修改
+        name: base.templateName, // 模板名称
+        state: 1, // 状态是否生效  0-不生效 1-生效
+        account: formData.shortCode,
+        content: {
+            productTemplate: {
+                categoryId: base.categoryId || {},
+                productAttr: base.attributes || {},
+                productDesc: image?.description || ""
+            },
+            jsonRich: image?.jsons ?? {}
+        }
+    }
     loading.value = true;
     templateSaveOrUpdate(params).then(res => {
         message.success(res.msg)
@@ -274,9 +243,24 @@ const handleOk = () => {
 }
 
 
+//  获取模板详情
+const getTemplateDetail = () => {
+    templateDetail({
+        id: route.query.id
+    }).then(res => {
+        if (res.data) {
+            console.log('-》》》》》》》》》》', res.data);
+            templateDetailData.value = res?.data ?? {};
+            productDetail.value = res?.data ?? {};
+        }
+    })
+}
 
 onMounted(() => {
     type.value = route.query.type;
-    getAccount();
+    getAccount()
+    if (route.query.id) {
+        getTemplateDetail()
+    }
 })
 </script>

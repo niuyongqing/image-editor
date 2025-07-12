@@ -8,3 +8,8 @@ export function templateList(params) {
 export function templateSaveOrUpdate(params) {
     return usePost('/platform-ozon/platform/ozon/template/saveOrUpdate', params)
 }
+
+// 模板详情
+export function templateDetail(params) {
+    return useGet('/platform-ozon/platform/ozon/template/detail', params)
+}
