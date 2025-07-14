@@ -175,6 +175,8 @@ const removeVideoList = (index) => {
     form.video.splice(index, 1)
 }
 const backResult = (res) => {
+    console.log(1);
+    
     form.jsons = JSON.stringify(res);
 }
 const submitForm = () => {
@@ -194,7 +196,7 @@ watch(() => useOzonProductStore().productTemplate, (val) => {
             jsonRich
         } } = val;
         form.description = productDesc
-        form.jsons = JSON.stringify(jsonRich)
+        form.jsons = jsonRich
     }
 
 })

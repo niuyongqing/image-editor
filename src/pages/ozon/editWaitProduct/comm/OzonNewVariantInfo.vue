@@ -209,23 +209,23 @@
                 mode="tags"></a-select>
             </template>
             <template v-if="column.dataIndex === 'price'">
-              <div class="flex">
-                <a-input-number style="min-width: 150px" :min="0" size="middle" :max="99999999" :precision="2"
+              <div class="flex justify-center">
+                <a-input-number style="min-width: 200px" :min="0" size="middle" :max="99999999" :precision="2"
                   v-model:value="record.price" @blur="judgeMax(record)"></a-input-number>
                 <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.price, 'price')"
                   class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
               </div>
             </template>
             <template v-if="column.dataIndex === 'oldPrice'">
-              <div class="flex">
-                <a-input-number style="min-width: 150px" :min="0" size="middle" :max="99999999" v-model:value="record.oldPrice"
+              <div class="flex justify-center">
+                <a-input-number style="min-width: 200px" :min="0" size="middle" :max="99999999" v-model:value="record.oldPrice"
                   :precision="2" @blur="judgeMax(record)"></a-input-number>
                 <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.oldPrice, 'oldPrice')"
                   class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
               </div>
             </template>
             <template v-if="column.dataIndex === 'quantity'">
-              <div class="flex">
+              <div class="flex justify-center">
                 <span>{{
                   record.quantity === undefined ? 0 : record.quantity
                 }}</span>
@@ -434,9 +434,8 @@ import {
 } from "../../config/commJs/index";
 import { publishHead, otherList } from "../../config/tabColumns/skuHead";
 import { uploadImage } from '@/pages/ozon/config/api/draft';
-import { debounce, cloneDeep } from "lodash";
+import { debounce, cloneDeep, omit, pick  } from "lodash";
 import batchSetColor from "./batchSetColor.vue";
-import { omit, pick } from 'lodash'
 import SkuDragUpload from '../skuDragImg/index.vue';
 import bacthSkuEditImg from '../skuDragImg/bacthSkuEditImg.vue';
 import ImageTranslation from '../skuDragImg/imageTranslation.vue';
@@ -451,7 +450,17 @@ const props = defineProps({
   productDetail: Object,
   shopCode: String,
 });
-
+const VNodes = defineComponent({
+  props: {
+    vnodes: {
+      type: Object,
+      required: true,
+    },
+  },
+  render() {
+    return this.vnodes;
+  },
+});
 
 const downloadLoading = ref(false); //导出按钮loading
 const bacthSkuEditImgRef = ref();
@@ -490,6 +499,17 @@ const newAttribute = ref([]);
 const setColorOption = ref([]);
 const colorRow = ref({});
 const custAttr = ref([]); //可控制属性
+const templateValue = ref("")
+const templateList = ref([
+  {
+    label: "模板名称1",
+    value: "1",
+  },
+  {
+    label: "模板名称2",
+    value: "2",
+  }
+]);
 const plainOptions = [
   {
     label: "颜色样本",
@@ -522,6 +542,15 @@ const handleChangeColroImg = (info, record) => {
   if (info.file.status === "error") {
     message.error("图片上传有误！");
   }
+};
+
+const tempPage = () => {
+  window.open("userTemplate", "_blank");
+};
+
+// 模板搜索
+const filterOption = (input, option) => {
+  return option.value.toLowerCase().indexOf(input.toLowerCase()) >= 0;
 };
 
 const setColor = (row) => {

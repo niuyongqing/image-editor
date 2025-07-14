@@ -554,9 +554,6 @@ watch(() => useOzonProductStore().productTemplate, (val) => {
             value
         };
         tempAttr.value = productAttr;
-        console.log("productAttr",productAttr,loopAttributes.value);
-        
-        // getHistoryList(account);
         emit("getAttributes", form.shortCode, form.categoryId);
     }
 })

@@ -203,7 +203,7 @@ watch(() => useOzonProductStore().productTemplate, (val) => {
             jsonRich
         } } = val;
         form.description = productDesc
-        form.jsons = JSON.stringify(jsonRich)
+        form.jsons = jsonRich
     }
 
 })
