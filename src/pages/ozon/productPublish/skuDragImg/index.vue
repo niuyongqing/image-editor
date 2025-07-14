@@ -56,7 +56,7 @@
                                     <loading-outlined></loading-outlined>
                                 </div>
                                 <div v-else class="file-img">
-                                    <img :src="element.url" alt="" class="file-img"
+                                    <img :src="processImageSource(element.url)" alt="" class="file-img"
                                         @load="handleImageLoad(element, $event)" @click="handlePreview(element)"
                                         :key="element.key" />
                                     <div class="image-mask"> {{ element.height }} X {{ element.width }} </div>
@@ -199,7 +199,7 @@ const customRequest = (options) => {
 };
 // 图片预览
 const handlePreview = (file) => {
-    previewImage.value = file.url;
+    previewImage.value = processImageSource(file.url);
     previewVisible.value = true;
 };
 

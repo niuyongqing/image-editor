@@ -15,12 +15,13 @@
                         <a-select v-model:value="form.jsonTemp" size="large" allowClear style="width: 30%"
                             :options="vatList">
                         </a-select>
-                        <a-button type="link" size="middle" class="ml10px">
+                        <a-button type="link" size="middle" class="ml10px" @click="searchTemp">
                             <SyncOutlined />
                             更新模板
                         </a-button>
                     </div>
-                    <div class="my10px text-16px" style="color: #ff0a37">说明：描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M</div>
+                    <div class="my10px text-16px" style="color: #ff0a37">说明：描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M
+                    </div>
                     <a-form-item-rest>
                         <jsonForm @backResult="backResult" :jsonContent="form.jsons" :shop="shopCode"></jsonForm>
                     </a-form-item-rest>
@@ -100,6 +101,7 @@ import { message } from "ant-design-vue";
 import jsonForm from "../../config/component/json/index.vue"
 import { processImageSource } from "~/pages/ozon/config/commJs/index"
 import { SyncOutlined } from '@ant-design/icons-vue';
+import { templateList } from "../../config/api/product";
 
 const ruleForm = ref(null)
 const props = defineProps({
@@ -190,7 +192,22 @@ defineExpose({
 
 const backResult = (res) => {
     form.jsons = JSON.stringify(res)
+}
 
+const searchTemp = () => {
+    templateList({
+        account: props.shopCode,
+        type: 3,
+        name: "",
+        pageNum: 1,
+        pageSize: 99,
+
+    }).then(res => {
+        if (res.code == 200) {
+            message.success("更新成功！");
+            // dataSource.value = res.rows || []
+        }
+    })
 }
 
 // 引用产品模板

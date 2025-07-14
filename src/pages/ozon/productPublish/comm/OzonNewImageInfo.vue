@@ -15,7 +15,7 @@
                         <a-select v-model:value="form.jsonTemp" size="large" allowClear style="width: 30%"
                             :options="tempList">
                         </a-select>
-                        <a-button type="link" size="middle" class="ml10px">
+                        <a-button type="link" size="middle" class="ml10px" @click="searchTemp">
                             <SyncOutlined />
                             更新模板
                         </a-button>
@@ -102,6 +102,7 @@ import jsonForm from "../../config/component/json/index.vue"
 import { processImageSource } from "~/pages/ozon/config/commJs/index"
 import { useOzonProductStore } from '~@/stores/ozon-product'
 import { SyncOutlined } from '@ant-design/icons-vue';
+import { templateList } from "../../config/api/product";
 
 const ruleForm = ref(null)
 const props = defineProps({
@@ -185,6 +186,22 @@ const submitForm = () => {
         return false;
     }
     return true;
+}
+
+const searchTemp = () => {
+    templateList({
+        account: props.shopCode,
+        type: 3,
+        name: "",
+        pageNum: 1,
+        pageSize: 99,
+
+    }).then(res => {
+        if (res.code == 200) {
+            message.success("更新成功！");
+            // dataSource.value = res.rows || []
+        }
+    })
 }
 // 引用产品模板
 watch(() => useOzonProductStore().productTemplate, (val) => {

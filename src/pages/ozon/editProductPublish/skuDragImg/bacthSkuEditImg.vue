@@ -36,7 +36,7 @@
                   </div>
 
                   <div class="image-tooltip">
-                    点击{{ element.checked ? '取消' : '选中' }}
+                    点击{{ element.checked ? '取消11' : '选中' }}
                   </div>
                 </div>
               </div>
@@ -59,7 +59,6 @@ import { useResetReactive } from '@/composables/reset';
 import { scaleApi, watermarkApi } from '@/api/common/water-mark.js';
 import { message } from "ant-design-vue";
 import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
-import { processImageSource } from "~/pages/ozon/config/commJs/index";
 
 const props = defineProps({
   shortCode: {

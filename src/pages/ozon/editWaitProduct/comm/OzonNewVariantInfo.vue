@@ -400,6 +400,10 @@
     <bacthEditColorImg ref="bacthEditColorImgRef"></bacthEditColorImg>
     <!-- 颜色样本翻译 -->
     <colorImgTranslation ref="colorImgTranslationRef"></colorImgTranslation>
+    <!-- 图片翻译弹窗 -->
+    <ImageTranslation ref="imageTranslationRef"></ImageTranslation>
+    <!-- 批量编辑图片 -->
+    <bacthSkuEditImg ref="bacthSkuEditImgRef"></bacthSkuEditImg>
   </div>
 </template>
 
@@ -1535,8 +1539,7 @@ watch(
           imageUrl:
             sku.images?.map((item) => {
               return {
-                url: processImageSource(item),
-                checked: false,
+                url: item,
               };
             }) ?? [],
         };
@@ -1628,7 +1631,7 @@ watch(
 
       tableData.value = result;
       // 将不匹配的主题过滤掉
-      console.log("sortArr", tableData.value);
+      // console.log("sortArr", tableData.value);
       let comAttrList = [10096, 4295];
       let comAttrs = [10096, 10097];
       // 从数组 a 中提取所有的 id
@@ -1656,7 +1659,7 @@ watch(
 
       // 处理到数据回显到主题
       const aIds = echoThemeList.map((item) => item.id);
-      console.log('aIds', echoThemeList);
+      // console.log('aIds', echoThemeList);
       // 过滤 有数据的主题
       themeBtns.value = themeBtns.value.filter(
         (item) => !aIds.includes(item.id)
