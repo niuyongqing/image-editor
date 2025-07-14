@@ -21,7 +21,7 @@
           ref="webDetailRef"
           :editor-config="editorConfig"
           @edit-image-size="sizeModalOpen"
-          :platform="'public'"
+          :platform="props.productData?.classPlatform"
         />
       </a-form-item>
     </a-form>

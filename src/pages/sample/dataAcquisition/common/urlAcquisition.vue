@@ -88,7 +88,7 @@
               <AsyncIcon icon="DownOutlined" class="ml-2.5" />
             </a-button>
             <template #overlay>
-              <typeTree :platform="'ozon'" @nodeClick="typeNodeClick"></typeTree>
+              <typeTree :platform="'public'" @nodeClick="typeNodeClick"></typeTree>
             </template>
           </a-dropdown>
         </a-space>

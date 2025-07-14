@@ -127,8 +127,8 @@ const treeData = reactive({
   editNode: null,       // 正在编辑的
 })
 const currentPlatform = computed(() => {
-  // return props. platform;      // 分类对应平台
-  return 'public';      // 当前使用同一个公共平台
+  return props.platform;      // 分类对应平台
+  // return 'public';      // 当前使用同一个公共平台
 })
 
 onMounted(() => { });
