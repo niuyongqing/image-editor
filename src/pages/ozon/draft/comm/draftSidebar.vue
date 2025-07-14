@@ -26,17 +26,14 @@
             <typeTree v-model:current-class="currentClass" v-model:node-path="nodePath" platform="ozon"
                 @update:currentClass="updateCurrentClass" ref="typeTreeRef">
             </typeTree>
-
-            <div :class="active === 'wait' ? 'ozon-active' : 'default'">
+            <!-- <div :class="active === 'wait' ? 'ozon-active' : 'default'">
                 <div text-left pl-10px cursor-pointer @click="selectActive('wait')">
                     定时发布(<span>112</span>)</div>
             </div>
-
             <div :class="active === 'timing' ? 'ozon-active' : 'default'">
                 <div text-left pl-10px cursor-pointer @click="selectActive('timing')">
                     定时中(<span>112</span>)</div>
-            </div>
-
+            </div> -->
             <div :class="active === 'fail' ? 'ozon-active' : 'default'">
                 <div text-left pl-10px cursor-pointer @click="selectActive('fail')">
                     发布失败(<span text-red-5 font-bold>112</span>)</div>

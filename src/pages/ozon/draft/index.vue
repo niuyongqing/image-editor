@@ -47,7 +47,7 @@
                     <div class="w-full flex justify-between items-center mb-10px">
                         <div class="flex">
                             <a-dropdown>
-                                <a-button type="primary" style="height: 32px;">
+                                <a-button type="primary" style="height: 32px;" :disabled="!selectedRowList.length">
                                     批量操作
                                     <DownOutlined />
                                 </a-button>
@@ -191,7 +191,7 @@
                                                         item.stock }}</span>
                                                 </template>
                                                 <span> {{ [null, undefined, ""].includes(item.stock) ? '-' : item.stock
-                                                    }} </span>
+                                                }} </span>
                                             </a-tooltip>
                                         </div>
                                     </div>
@@ -275,9 +275,10 @@
         <!-- 批量加水印 -->
         <BatchWatermark ref="batchWatermarkRef"></BatchWatermark>
 
-        <!-- 批量修改价格 -->
+        <!-- 批量修改属性 -->
         <EditAttribute ref="editAttributeRef" :selectedRows="selectedRowList" :editPriceVisible="editPriceVisible"
-            @handleEditPriceClose="handleEditPriceClose" :editStockList="editStockList" :defType="defType">
+            :brandList="brandList" @handleEditPriceClose="handleEditPriceClose" :editStockList="editStockList"
+            :defType="defType">
         </EditAttribute>
     </div>
 </template>
@@ -286,7 +287,8 @@
 import { Divider, message, Modal } from 'ant-design-vue';
 import { DownOutlined, SettingOutlined, SyncOutlined, QuestionCircleOutlined } from "@ant-design/icons-vue";
 import { accountCache, shopCurrency, productWarehouse } from "../config/api/product";
-import { ozonDraftList, ozonDeleteProduct, batchPublishToPlatform } from "../config/api/draft";
+import { brandCategory } from "../config/api/waitProduct";
+import { ozonDraftList, ozonDeleteProduct, batchPublishToPlatform, batchAddToWaitPublish, addToWaitPublish } from "../config/api/draft";
 import { updateCategoryProduct } from "~/pages/sample/dataAcquisition/js/api.js";
 import { useRouter } from 'vue-router';
 import tableHeard from "../config/tabColumns/draft"
@@ -348,7 +350,7 @@ const deactivateLoading = ref(false)
 const delLoading = ref(false)
 const loading = ref(false)
 const remarkVisible = ref(false);
-
+const brandList = ref([])
 const remarkId = ref([]);
 const state = {
     wait_publish: "待发布",
@@ -576,7 +578,21 @@ const navDataCrawli = () => {
 
 //  移入待发布
 const moveToPending = (row = {}) => {
-    window.open(`/platform/ozon/editWaitProduct?id=${row.gatherProductId}&account=${row.account}`, '_blank');
+    Modal.confirm({
+        title: '提示',
+        content: '确定要移入待发布吗？',
+        onOk: async () => {
+            addToWaitPublish({
+                "account": row.account,  //店铺账号
+                "gatherProductId": row.gatherProductId  //采集箱产品id 
+            }).then((res) => {
+                message.success("操作成功");
+                getList();
+            }).finally(() => {
+                loading.value = false;
+            });
+        }
+    });
 };
 
 //  编辑
@@ -647,6 +663,20 @@ const clearSelectList = () => {
     selectedRowList.value = [];
     selectedRowKeys.value = [];
 };
+
+// 获取品牌相关数据
+const getBrandList = () => {
+    let list = selectedRowList.value.map((e) => {
+        return {
+            account: e.account,
+            typeId: e.typeId,
+            descriptionCategoryId: e.categoryId
+        }
+    })
+    brandCategory(list).then((res) => {
+        brandList.value = res?.data ?? [];
+    })
+};
 // 关闭价格
 const handleEditPriceClose = () => {
     clearSelectList();
@@ -688,19 +718,24 @@ const handleMenuClick = (e) => {
             batchEditPromptEl.value.open(selectedRowList.value);
             break;
         case 1:
+            let params = selectedRowList.value.map((item) => {
+                return {
+                    "account": item.account,
+                    "gatherProductId": item.gatherProductId,
+                }
+            })
             Modal.confirm({
                 title: '提示',
                 content: '确定要批量移入待发布吗？',
                 onOk: async () => {
-                    // const shopIdList = selectedRowList.value.map(item => item.account);
-                    // const gatherProductIdList = selectedRowList.value.map(item => item.gatherProductId);
-                    // ozonDeleteProduct({
-                    //     "shopIdList": shopIdList,
-                    //     "gatherProductIdList": gatherProductIdList,
-                    // }).then((res) => {
-                    //     message.success("操作成功");
-                    //     getList();
-                    // })
+                    batchAddToWaitPublish({
+                        requestList: params
+                    }).then((res) => {
+                        message.success("操作成功");
+                        selectedRowList.value = [];
+                        selectedRowKeys.value = [];
+                        getList();
+                    })
                 }
             });
             break;
@@ -709,17 +744,14 @@ const handleMenuClick = (e) => {
                 title: '提示',
                 content: '确定要批量发布吗？',
                 onOk: async () => {
-                    const shopIdList = selectedRowList.value.map(item => item.account);
-                    const gatherProductIdList = selectedRowList.value.map(item => item.gatherProductId);
                     batchPublishToPlatform({
-                        "shopIdList": shopIdList,
-                        "gatherProductIdList": gatherProductIdList,
+                        gatherProductIdList: selectedRowList.value.map(item => item.gatherProductId),
                     }).then((res) => {
                         message.success("操作成功");
                         getList();
                     })
                 }
-            })
+            });
             console.log('批量发布');
             break;
         case 3:
@@ -770,18 +802,22 @@ const handleMenuClick = (e) => {
         case 'stock':
             editPriceVisible.value = true;
             getStore();
+            getBrandList();
             break;
         case 'price':
             editPriceVisible.value = true;
             getStore();
+            getBrandList();
             break;
         case 'oldPrice':
             editPriceVisible.value = true;
             getStore();
+            getBrandList();
             break;
         case 'all':
             editPriceVisible.value = true;
             getStore();
+            getBrandList();
             break;
         default:
             break;

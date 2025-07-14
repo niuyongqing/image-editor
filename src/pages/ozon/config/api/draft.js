@@ -97,3 +97,14 @@ export function batchQueryDetail(params) {
 export function batchUpdateProduct(params) {
     return usePost('/platform-ozon/platform/ozon/gather/product/batchUpdateProduct', params)
 }
+
+// 产品移入待发布
+export function addToWaitPublish(params) {
+    return usePost('/platform-ozon/platform/ozon/gather/product/addToWaitPublish', params)
+}
+
+
+// 批量移入待发布
+export function batchAddToWaitPublish(params) {
+    return usePost('/platform-ozon/platform/ozon/gather/product/batchAddToWaitPublish', params)
+}

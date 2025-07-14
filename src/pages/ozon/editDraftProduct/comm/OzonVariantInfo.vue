@@ -1,9 +1,9 @@
 <template>
     <div id="OzonNewVariantInfoCont">
-        <a-card title="SKU信息" class="text-left" :loading="categoryAttributesLoading">
-            <a-card title="变种属性" class="text-left mx-50">
+        <a-card title="SKU信息" class="text-left text-16px" :loading="categoryAttributesLoading">
+            <a-card title="变种属性" class="text-left mx-50 text-16px">
                 <div>
-                    <span>变种主题：</span>
+                    <span class="text-16px">变种主题：</span>
                     <a-button type="primary" v-for="(item, index) in themeBtns" class="mr-2.5"
                         :key="'add' + index + item.name" @click="enterVariantType(item)">
                         <AsyncIcon icon="PlusCircleOutlined"></AsyncIcon>
@@ -68,7 +68,6 @@
                                 </template>
                             </template>
                         </a-table>
-                        <template #tabBarExtraContent></template>
                     </a-card>
                 </div>
             </a-card>
