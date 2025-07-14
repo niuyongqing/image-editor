@@ -176,7 +176,7 @@
                       style="width: 100%;"
                       :min="0"
                     >
-                      <!-- <template #addonAfter>
+                      <template #addonAfter>
                         <a-dropdown>
                           <AsyncIcon :icon="'SendOutlined'" style="margin-left: 6px; color: #69b1ff;"/>
                           <template #overlay>
@@ -197,12 +197,15 @@
                             </a-menu>
                           </template>
                         </a-dropdown>
-                      </template> -->
+                      </template>
                     </a-input-number>
                   </div>
                 </template>
               </template>
             </a-table>
+            <div class="table-total">
+              共<span>{{ variantTheme.tableData.length }}</span>个变种
+            </div>
           </div>
         </a-form-item-rest>
       </a-form-item>
@@ -365,7 +368,8 @@ function addVariant(key, val = {}) {
       formItem = {
         id: obj.id,
         name: obj.name,
-        params: val?.values ? [val.values] : []
+        // params: []
+        params: val?.values ? [...val.values] : []
       }
       // variantTheme.$set(form, obj.id, formItem)
       form[obj.id] = formItem
@@ -720,6 +724,13 @@ function createRandom() {
   }
   .variantInfo-box {
     padding: 20px;
+    .table-total {
+      margin-top: 10px;
+      span {
+        font-weight: 700;
+        margin: 0 6px;
+      }
+    }
     // .row-input-content {
     //   display: flex;
     // }

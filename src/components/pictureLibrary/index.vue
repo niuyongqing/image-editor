@@ -127,6 +127,7 @@ import typeManage from '@/components/classificationTree/typeManage.vue';
 import uploadImg from './uploadImg.vue';
 import { deleteImage, imageSpaceList } from './js/api';
 import { cloneDeep } from 'lodash-es';
+import { message } from 'ant-design-vue';
 defineOptions({ name: "pictureLibrary_index" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:modalOpen', 'imageListConfirm']);
@@ -203,6 +204,9 @@ function uploadDone() {
 // 确认
 function confirm() {
   let list = cloneDeep(imgData.selectedImgList)
+  if (list.length < 1) {
+    return message.error('请选择图片！')
+  }
   emit('imageListConfirm', list)
   modalClose()
 }
