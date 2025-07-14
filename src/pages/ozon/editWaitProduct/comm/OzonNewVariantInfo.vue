@@ -1,7 +1,29 @@
 <template>
   <div id="OzonNewVariantInfoCont">
     <a-card title="SKU信息" class="text-left text-16px" :loading="categoryAttributesLoading">
-      <a-card title="变种属性" class="text-left mx-50 text-16px">
+      <a-card class="mx-50">
+        <template #title>
+          <div class="flex align-center justify-between">
+            <span class="text-left text-16px">变种属性</span>
+            <div>
+              <FileOutlined /><a-select v-model:value="templateValue" show-search placeholder="请选择引用模板"
+                class="w300px mx10px" :options="templateList" :filter-option="filterOption">
+                <template #dropdownRender="{ menuNode: menu }">
+                  <v-nodes :vnodes="menu" />
+                  <a-divider style="margin: 4px 0" />
+                  <a-space style="padding: 4px 8px">
+                    <a-button type="link">
+                      <template #icon>
+                        <SettingOutlined />
+                      </template>
+                      管理模板
+                    </a-button>
+                  </a-space>
+                </template>
+              </a-select>
+            </div>
+          </div>
+        </template>
         <div>
           <span class="text-16px">变种主题：</span>
           <a-button type="primary" size="middle" v-for="(item, index) in themeBtns" class="mr-2.5" :key="'add' + index + item.name"
@@ -187,23 +209,23 @@
                 mode="tags"></a-select>
             </template>
             <template v-if="column.dataIndex === 'price'">
-              <div class="flex">
-                <a-input-number style="min-width: 150px" :min="0" size="middle" :max="99999999" :precision="2"
+              <div class="flex justify-center">
+                <a-input-number style="min-width: 200px" :min="0" size="middle" :max="99999999" :precision="2"
                   v-model:value="record.price" @blur="judgeMax(record)"></a-input-number>
                 <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.price, 'price')"
                   class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
               </div>
             </template>
             <template v-if="column.dataIndex === 'oldPrice'">
-              <div class="flex">
-                <a-input-number style="min-width: 150px" :min="0" size="middle" :max="99999999" v-model:value="record.oldPrice"
+              <div class="flex justify-center">
+                <a-input-number style="min-width: 200px" :min="0" size="middle" :max="99999999" v-model:value="record.oldPrice"
                   :precision="2" @blur="judgeMax(record)"></a-input-number>
                 <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.oldPrice, 'oldPrice')"
                   class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
               </div>
             </template>
             <template v-if="column.dataIndex === 'quantity'">
-              <div class="flex">
+              <div class="flex justify-center">
                 <span>{{
                   record.quantity === undefined ? 0 : record.quantity
                 }}</span>
@@ -412,9 +434,8 @@ import {
 } from "../../config/commJs/index";
 import { publishHead, otherList } from "../../config/tabColumns/skuHead";
 import { uploadImage } from '@/pages/ozon/config/api/draft';
-import { debounce, cloneDeep } from "lodash";
+import { debounce, cloneDeep, omit, pick  } from "lodash";
 import batchSetColor from "./batchSetColor.vue";
-import { omit, pick } from 'lodash'
 import SkuDragUpload from '../skuDragImg/index.vue';
 import bacthSkuEditImg from '../skuDragImg/bacthSkuEditImg.vue';
 import ImageTranslation from '../skuDragImg/imageTranslation.vue';
@@ -429,7 +450,17 @@ const props = defineProps({
   productDetail: Object,
   shopCode: String,
 });
-
+const VNodes = defineComponent({
+  props: {
+    vnodes: {
+      type: Object,
+      required: true,
+    },
+  },
+  render() {
+    return this.vnodes;
+  },
+});
 
 const downloadLoading = ref(false); //导出按钮loading
 const bacthSkuEditImgRef = ref();
@@ -468,6 +499,17 @@ const newAttribute = ref([]);
 const setColorOption = ref([]);
 const colorRow = ref({});
 const custAttr = ref([]); //可控制属性
+const templateValue = ref("")
+const templateList = ref([
+  {
+    label: "模板名称1",
+    value: "1",
+  },
+  {
+    label: "模板名称2",
+    value: "2",
+  }
+]);
 const plainOptions = [
   {
     label: "颜色样本",
@@ -500,6 +542,15 @@ const handleChangeColroImg = (info, record) => {
   if (info.file.status === "error") {
     message.error("图片上传有误！");
   }
+};
+
+const tempPage = () => {
+  window.open("userTemplate", "_blank");
+};
+
+// 模板搜索
+const filterOption = (input, option) => {
+  return option.value.toLowerCase().indexOf(input.toLowerCase()) >= 0;
 };
 
 const setColor = (row) => {
@@ -1355,8 +1406,8 @@ const clearAllImages = () => {
   })
 };
 const skuThemeNames = (item) => {
-  const tableColumns = attributeList.value[0].tableColumns;
-  const themeNames = tableColumns.map((column) => {
+  const tableColumns = attributeList.value[0]?.tableColumns;
+  const themeNames = tableColumns?.map((column) => {
     return column.title
   }).filter((nameItem) => nameItem !== '操作')
   const obj = pick(item, themeNames)

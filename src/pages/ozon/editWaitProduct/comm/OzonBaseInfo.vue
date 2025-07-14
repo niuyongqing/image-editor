@@ -3,21 +3,22 @@
         <a-card title="基本信息" style="text-align: left">
             <a-form :label-col="{ span: 3 }" ref="ruleForm" :model="form" class="mt-5 shopForm" :rules="rules">
                 <a-form-item label="店铺：" name="shortCode">
-                    <a-select v-model:value="form.shortCode" size="middle" placeholder="请选择店铺" style="width: 90%" allowClear
-                        showSearch optionFilterProp="label" :options="shopList" @change="getHistoryList">
+                    <a-select v-model:value="form.shortCode" size="middle" placeholder="请选择店铺" style="width: 90%"
+                        allowClear showSearch optionFilterProp="label" :options="shopList" @change="getHistoryList">
                     </a-select>
                 </a-form-item>
                 <a-form-item label="商品标题：" name="name">
-                    <a-input style="width: 90%" v-model:value="form.name" size="middle" placeholder="请输入产品名称(用俄语或英语)" :maxlength="255"
-                        showCount></a-input>
+                    <a-input style="width: 90%" v-model:value="form.name" size="middle" placeholder="请输入产品名称(用俄语或英语)"
+                        :maxlength="255" showCount></a-input>
                 </a-form-item>
                 <a-form-item label="VAT：" name="vat">
                     <a-select v-model:value="form.vat" allowClear style="width: 90%" size="middle" :options="vatList">
                     </a-select>
                 </a-form-item>
                 <a-form-item label="分类：" name="categoryId">
-                    <a-select v-model:value="form.categoryId" allowClear showSearch size="middle" labelInValue placeholder="请选择"
-                        style="width: 200px" :options="historyCategoryList" @change="selectAttributes" :fieldNames="{
+                    <a-select v-model:value="form.categoryId" allowClear showSearch size="middle" labelInValue
+                        placeholder="请选择" style="width: 200px" :options="historyCategoryList" @change="selectAttributes"
+                        :fieldNames="{
                             label: 'threeCategoryName',
                             value: 'threeCategoryId',
                         }">
@@ -26,7 +27,7 @@
                         @click="selectVisible = true" size="middle">选择分类</a-button>
                     <p v-if="hisAttrObj.length != 0" style="color: #933" class="text-16px">
                         <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{ hisAttrObj[0].secondCategoryName
-                        }}</span>/
+                            }}</span>/
                         <span>{{ hisAttrObj[0].threeCategoryName }}</span>
                     </p>
                 </a-form-item>
@@ -53,7 +54,7 @@
                                     <template #label>
                                         <span class="mr-2.5 truncate">{{
                                             item.label ? item.label : item.name
-                                        }}</span>
+                                            }}</span>
                                         <a-tooltip class="tooltipStyle" effect="dark" :title="item.description"
                                             popper-class="ozonTooltip" placement="top">
                                             <AsyncIcon icon="QuestionCircleOutlined"></AsyncIcon>
@@ -82,8 +83,8 @@
                                                     v-for="(v, i) in item.options" :key="i">{{ v.label
                                                     }}</a-select-option>
                                             </a-select>
-                                            <a-button style="margin-left: 10px" size="middle" @click="addItemValues(item)"
-                                                type="primary">添加</a-button>
+                                            <a-button style="margin-left: 10px" size="middle"
+                                                @click="addItemValues(item)" type="primary">添加</a-button>
                                         </div>
                                         <a-form-item-rest>
                                             <a-checkbox-group v-model:value="form.attributes[item.name]"
@@ -170,6 +171,7 @@ const rules2 = ref({});
 const loopAttributes = ref([]);
 const categoryTreeList = ref([]);
 const historyCategoryList = ref([]);
+const tempAttr = ref({});
 const isExpand = ref(true)
 const vatList = [
     {
@@ -310,48 +312,101 @@ const shouldHideItem = (item) => {
 
 // 此方法将历史缓存中的属性值进行重新赋值
 const assignValues = (a, b) => {
-    let newRes = a.map((item) => {
-        return {
-            ...item,
-            values: item.values.map((value) => {
-                return {
-                    ...value,
-                    id: Number(value.dictionaryValueId),
-                    info: "",
-                    picture: "",
-                    label: "",
-                };
-            }),
-        };
-    });
-    const result = {};
-    // 根据b数组填充结果对象
-    b.forEach((item) => {
-        const name = item.name;
-        const selectType = item.selectType;
-        newRes.forEach((resItem) => {
-            const attributeId = resItem.id;
-            const allValidItems = resItem.values.every((item) => item.value !== "");
-            if (attributeId === item.id && allValidItems) {
-                if (selectType === "multSelect") {
-                    result[name] = resItem.values.map((item) => item.id);
-                    item.acquiesceList = moveMatchedItemForward(
-                        item.options,
-                        resItem.values.map((item) => item.id)
-                    );
-                } else if (selectType === "select") {
-                    result[name] = findMatchedOption(
-                        attributeId,
-                        resItem.values[0],
-                        item.options
-                    );
-                } else {
-                    result[name] = resItem.values[0].value;
-                }
-            }
-        });
-    });
+    // let newRes = a.map((item) => {
+    //     return {
+    //         ...item,
+    //         values: item.values.map((value) => {
+    //             return {
+    //                 ...value,
+    //                 id: Number(value.dictionaryValueId),
+    //                 info: "",
+    //                 picture: "",
+    //                 label: "",
+    //             };
+    //         }),
+    //     };
+    // });
+    // const result = {};
+    // // 根据b数组填充结果对象
+    // b.forEach((item) => {
+    //     const name = item.name;
+    //     const selectType = item.selectType;
+    //     newRes.forEach((resItem) => {
+    //         const attributeId = resItem.id;
+    //         const allValidItems = resItem.values.every((item) => item.value !== "");
+    //         if (attributeId === item.id && allValidItems) {
+    //             if (selectType === "multSelect") {
+    //                 result[name] = resItem.values.map((item) => item.id);
+    //                 item.acquiesceList = moveMatchedItemForward(
+    //                     item.options,
+    //                     resItem.values.map((item) => item.id)
+    //                 );
+    //             } else if (selectType === "select") {
+    //                 result[name] = findMatchedOption(
+    //                     attributeId,
+    //                     resItem.values[0],
+    //                     item.options
+    //                 );
+    //             } else {
+    //                 result[name] = resItem.values[0].value;
+    //             }
+    //         }
+    //     });
+    // });
 
+    // return result;
+    const result = {};
+    // 遍历所有属性配置项
+    b.forEach((item) => {
+        const attrName = item.name;
+        const attrValue = a[attrName];
+        if (!attrValue) return;
+
+        // 处理多选类型属性
+        if (item.selectType === "multSelect") {
+            result[attrName] = Array.isArray(attrValue)
+                ? attrValue.map(v => Number(v))  // 处理数组值
+                : [Number(attrValue)];  // 处理单选值转数组
+
+            // 维护选项排序
+            item.acquiesceList = moveMatchedItemForward(
+                item.options,
+                result[attrName]
+            );
+        }
+        // 处理下拉选择类型属性
+        else if (item.selectType === "select") {
+            // 特殊处理品牌字段
+            if (attrName === "品牌(Бренд)") {
+                result[attrName] = {
+                    label: "无品牌",
+                    value: "无品牌"
+                };
+            }
+            // 处理对象型值
+            else if (typeof attrValue === 'object') {
+                result[attrName] = findMatchedOption(
+                    item.id,
+                    { id: attrValue.value, value: attrValue.label },
+                    item.options
+                );
+            }
+            // 处理原始值
+            else {
+                result[attrName] = findMatchedOption(
+                    item.id,
+                    { id: attrValue, value: attrValue },
+                    item.options
+                );
+            }
+        }
+        // 处理普通输入类型
+        else {
+            result[attrName] = typeof attrValue === 'object'
+                ? attrValue.value  // 提取对象中的值
+                : attrValue;       // 直接使用原始值
+        }
+    });
     return result;
 };
 
@@ -466,6 +521,7 @@ watch(
                 label: undefined,
                 value: typeId,
             };
+            // emit("getAttributes", form.shortCode, form.categoryId);
             getHistoryList(account);
         }
     }
@@ -474,7 +530,7 @@ watch(
 // 引用产品模板
 watch(() => useOzonProductStore().productTemplate, (val) => {
     if (val) {
-        const { account, content:{
+        const { account, content: {
             productTemplate: {
                 categoryId: {
                     threeCategoryId,
@@ -492,9 +548,9 @@ watch(() => useOzonProductStore().productTemplate, (val) => {
             label: undefined,
             value
         };
-        // getHistoryList(account);
+        tempAttr.value = productAttr;
         emit("getAttributes", form.shortCode, form.categoryId);
-        form.attributes = assignValues(productAttr, loopAttributes.value)
+        // form.attributes = assignValues(productAttr, loopAttributes.value)
     }
 })
 
@@ -618,6 +674,10 @@ watch(
                 // const proceRes = assignValues(result, loopAttributes.value); //最新写法
                 form.attributes = proceRes;
                 // console.log('proceRes0', proceRes);
+            }
+            // 引用模板数据回显
+            if(Object.keys(tempAttr.value).length > 0) {
+                form.attributes = assignValues(tempAttr.value, loopAttributes.value)
             }
         }
     }

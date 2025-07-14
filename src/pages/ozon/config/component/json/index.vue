@@ -1321,7 +1321,7 @@ function save() {
 
 watch(() => props.jsonContent, val => {
   if (val) {
-    console.log('val', val);
+    // console.log('val', val);
     finallyObj.value = JSON.parse(val)
     const { content } = JSON.parse(val)
     // console.log('content',content);

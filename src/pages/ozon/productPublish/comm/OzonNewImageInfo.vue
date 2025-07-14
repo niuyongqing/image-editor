@@ -12,9 +12,9 @@
                 </a-form-item>
                 <a-form-item label="JSON 丰富内容：" name="jsons">
                     <div>
-                        <!-- <a-select v-model:value="form.jsonTemp" size="large" allowClear style="width: 30%"
-                            :options="vatList">
-                        </a-select> -->
+                        <a-select v-model:value="form.jsonTemp" size="large" allowClear style="width: 30%"
+                            :options="tempList">
+                        </a-select>
                         <a-button type="link" size="middle" class="ml10px">
                             <SyncOutlined />
                             更新模板
@@ -113,6 +113,22 @@ const form = reactive({
     description: "",
     jsons: "",
 })
+
+const tempList = ref([
+    {
+        label: "模板1",
+        value: "1"
+    },
+    {
+        label: "模板2",
+        value: "2"
+    },
+    {
+        label: "模板3",
+        value: "3"
+    }
+])
+
 const headers = {
     'Authorization': 'Bearer ' + useAuthorization().value,
 }
@@ -159,6 +175,8 @@ const removeVideoList = (index) => {
     form.video.splice(index, 1)
 }
 const backResult = (res) => {
+    console.log(1);
+    
     form.jsons = JSON.stringify(res);
 }
 const submitForm = () => {
@@ -178,7 +196,7 @@ watch(() => useOzonProductStore().productTemplate, (val) => {
             jsonRich
         } } = val;
         form.description = productDesc
-        form.jsons = JSON.stringify(jsonRich)
+        form.jsons = jsonRich
     }
 
 })
