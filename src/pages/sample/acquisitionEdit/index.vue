@@ -10,6 +10,8 @@
     <br>
     <!-- 变种信息 -->
     <variantInfo :product-data="productInfo.data" v-model:variant-info-data="formData.variantInfoData"/>
+    <br>
+    <descriptionInfo :product-data="productInfo.data" v-model:description-info-data="formData.descriptionInfoData"/>
   </a-spin>
 </div>
 </template>
@@ -22,6 +24,7 @@ import { productDetail } from './js/api';
 import baseInfo from './components/baseInfo.vue';
 import imageInfo from './components/imageInfo.vue';
 import variantInfo from './components/variantInfo.vue';
+import descriptionInfo from './components/descriptionInfo.vue';
 defineOptions({ name: "acquisitionEdit_index" })
 const { proxy: _this } = getCurrentInstance()
 const route = useRoute();
@@ -34,6 +37,7 @@ const formData = reactive({
   baseInfoData: {},
   imageInfoData: {},
   variantInfoData: {},
+  descriptionInfoData: {},
 })
 onMounted(() => {
   // console.log(route.query);

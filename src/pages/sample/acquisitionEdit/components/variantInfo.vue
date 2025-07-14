@@ -229,7 +229,7 @@ import bacthVariantStringEdit from './modal/bacthVariantStringEdit.vue'
 import sukModal from './modal/sukModal.vue';
 import numberEditModal from './modal/numberEditModal.vue';
 import { cloneDeep } from 'lodash-es';
-import { message } from 'ant-design-vue';
+import { message, Modal } from 'ant-design-vue';
 defineOptions({ name: "acquisitionEdit_variantInfo" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:variantInfoData'])
@@ -427,19 +427,25 @@ function setVariantOne(val, index) {
 }
 // 移除主题
 function removeVariant(val, index) {
-  variantTheme.variantList.splice(index, 1)
-  variantTheme.header = variantTheme.header.filter(i => i.key !== val.id)
-  createHeaderList()
-  form[val.id].params.forEach((item, index) => {
-    if (index === (form[val.id].params.length - 1) && variantTheme.header.length > 0) {
-      variantTheme.tableData.forEach(info => {
-        delete info[val.id]
+  Modal.confirm({
+    content: '是否移除主题？',
+    onOk() {
+      variantTheme.variantList.splice(index, 1)
+      variantTheme.header = variantTheme.header.filter(i => i.key !== val.id)
+      createHeaderList()
+      form[val.id].params.forEach((item, index) => {
+        if (index === (form[val.id].params.length - 1) && variantTheme.header.length > 0) {
+          variantTheme.tableData.forEach(info => {
+            delete info[val.id]
+          })
+        } else {
+          variantTheme.tableData = variantTheme.tableData.filter(i => i[val.id].id !== item.id)
+        }
       })
-    } else {
-      variantTheme.tableData = variantTheme.tableData.filter(i => i[val.id].id !== item.id)
-    }
+      delete form[val.id]
+    },
+    onCancel() {}
   })
-  delete form[val.id]
 }
 // 添加主题选项
 function variantAddItem(data) {
