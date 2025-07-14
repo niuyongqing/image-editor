@@ -155,7 +155,7 @@
             size="large"
             class="text-base"
           >
-            <a-tooltip title="修改"><FormOutlined /></a-tooltip>
+            <a-tooltip title="修改"><FormOutlined @click="priceModalOpen = true" /></a-tooltip>
             <a-tooltip title="还原"><UndoOutlined @click="restore(column.key)" /></a-tooltip>
             <a-tooltip title="删除"><DeleteOutlined @click="del(column.key)" /></a-tooltip>
           </a-space>
@@ -499,6 +499,12 @@
       ref="SKU_title_modal"
       @ok="SKUTitleOk"
     />
+
+    <PriceModal
+      v-model:open="priceModalOpen"
+      ref="price_modal"
+      @ok="priceOk"
+    />
   </div>
 </template>
 
@@ -512,6 +518,7 @@
   import VATModal from './components/VATModal.vue'
   import VariantImageModal from './components/VariantImageModal.vue'
   import SKUTitleModal from './components/SKUTitleModal.vue'
+  import PriceModal from './components/PriceModal.vue'
 
   // 取出产品 id
   const ids = JSON.parse(localStorage.getItem('ids'))
@@ -901,6 +908,14 @@
 
   function SKUTitleOk() {
     SKUTitleModalRef.value.submit(tableData.value)
+  }
+
+  // 售价弹窗
+  const priceModalOpen = ref(false)
+  const priceModalRef = useTemplateRef('price_modal')
+
+  function priceOk() {
+    priceModalRef.value.modify(tableData.value)
   }
 
   // 打开修改库存弹窗
