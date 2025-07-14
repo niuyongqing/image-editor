@@ -515,20 +515,20 @@ watch(
     () => props.productDetail,
     (val) => {
         if (val) {
-            const { simpleName, account, skuList, vat, typeId, descriptionCategoryId, name } =
-                val;
+            const { content, account, name } = val;
+            form.name = content.productTemplate.name;
+            form.templateName = name;
             // 修改响应式对象的属性
             form.shortCode = account;
-            form.name = name;
-            form.vat = vat === "0.0" || vat === "0.00" ? "0" : vat;
-            form.categoryId = {
-                threeCategoryId: typeId,
-                threeCategoryName: "",
-                secondCategoryId: descriptionCategoryId,
-                label: undefined,
-                value: typeId,
-            };
+            form.vat = content.productTemplate.vat;
+            form.categoryId = content.productTemplate.categoryId;
+            showAttrsBtn.value = true;
             getHistoryList(account);
+            emit("getAttributes", form.shortCode, form.categoryId);
+            form.attributes = content.productTemplate.productAttr;
+            if (content.jsonRich != '{}') {
+                addDescription()
+            }
         }
     }
 );
@@ -623,10 +623,7 @@ watch(
                 // this.$set(rules2.value, noThemeAttributesCache[i].name, obj);
                 // console.log("rules2", rules2.value);
                 loopAttributes.value = noThemeAttributesCache;
-                // 赋值
-                // const { attributes: oldAttributes } = props.productDetail?.skuList[0];
-                // const proceRes = assignValues(oldAttributes, loopAttributes.value); // 旧写法
-                // form.attributes = proceRes; 
+
             }
         }
     }

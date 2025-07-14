@@ -3,13 +3,13 @@
         <a-card title="基本信息" style="text-align: left;">
             <a-form :label-col="{ span: 3 }" ref="ruleForm" :model="form" class="mt-5 shopForm" :rules="rules">
                 <a-form-item label="店铺：" name="shortCode">
-                    <a-select v-model:value="form.shortCode" size="middle" placeholder="请选择店铺" disabled style="width: 90%" allowClear
-                        showSearch optionFilterProp="label" :options="shopList">
+                    <a-select v-model:value="form.shortCode" size="middle" placeholder="请选择店铺" disabled
+                        style="width: 90%" allowClear showSearch optionFilterProp="label" :options="shopList">
                     </a-select>
                 </a-form-item>
                 <a-form-item label="商品标题：" name="name">
-                    <a-input style="width: 90%" v-model:value="form.name" size="middle" placeholder="请输入产品名称(用俄语或英语)" :maxlength="255"
-                        showCount></a-input>
+                    <a-input style="width: 90%" v-model:value="form.name" size="middle" placeholder="请输入产品名称(用俄语或英语)"
+                        :maxlength="255" showCount></a-input>
                 </a-form-item>
                 <a-form-item label="VAT：" name="vat">
                     <a-select v-model:value="form.vat" allowClear style="width: 90%" size="middle" :options="vatList">
@@ -21,7 +21,8 @@
                             label: 'threeCategoryName', value: 'threeCategoryId',
                         }">
                     </a-select>
-                    <a-button style="margin-left: 20px" size="middle" disabled @click="selectVisible = true">选择分类</a-button>
+                    <a-button style="margin-left: 20px" size="middle" disabled
+                        @click="selectVisible = true">选择分类</a-button>
                     <p v-if="hisAttrObj.length != 0" style="color: #933">
                         <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{
                             hisAttrObj[0].secondCategoryName }}</span>/
@@ -76,8 +77,8 @@
                                                     v-for="(v, i) in item.options" :key="i">{{ v.label
                                                     }}</a-select-option>
                                             </a-select>
-                                            <a-button style="margin-left: 10px" size="middle" @click="addItemValues(item)"
-                                                type="primary">添加</a-button>
+                                            <a-button style="margin-left: 10px" size="middle"
+                                                @click="addItemValues(item)" type="primary">添加</a-button>
                                         </div>
                                         <a-form-item-rest>
                                             <a-checkbox-group v-model:value="form.attributes[item.name]"
@@ -93,8 +94,9 @@
                                         labelInValue :style="'width: 80%'" allowClear>
                                         <a-select-option v-if="item.id == 85" :value="'无品牌'">无品牌</a-select-option>
 
-                                        <a-select-option v-else :value="v" v-for="(v, i) in item.options" :key="i">{{ v.label
-                                        }}</a-select-option>
+                                        <a-select-option v-else :value="v" v-for="(v, i) in item.options" :key="i">{{
+                                            v.label
+                                            }}</a-select-option>
                                     </a-select>
                                 </a-form-item>
                             </div>
@@ -327,7 +329,7 @@ const moveMatchedItemForward = (data, arr) => {
 }
 
 const addItemValues = (obj) => {
-    if(!obj.selectDate.value) return;
+    if (!obj.selectDate.value) return;
     const { attributes } = form;
     const isExist = obj.acquiesceList.some(
         (item) => item.value === obj.selectDate.value
@@ -489,7 +491,7 @@ watch(() => props.attributesCache, (val) => {
             loopAttributes.value = noThemeAttributesCache;
             // 赋值
             const { attributes: oldAttributes } = props.productDetail.attributes[0];
-            // console.log('loopAttributes', oldAttributes);
+            console.log('loopAttributes', oldAttributes);
             const proceRes = assignValues(oldAttributes, loopAttributes.value);
             form.attributes = proceRes;
             console.log('proceRes0', proceRes);

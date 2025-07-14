@@ -16,7 +16,7 @@
                 <a-form-item label="JSON 丰富内容：" name="jsonDes">
                     <span style="color: #ff0a37">说明：描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M</span>
                     <a-form-item-rest>
-                        <jsonForm @backResult="backResult" :content="form.jsons" :shop="shopCode"></jsonForm>
+                        <jsonForm @backResult="backResult" :jsonContent="form.jsons" :shop="shopCode"></jsonForm>
                     </a-form-item-rest>
                 </a-form-item>
             </a-form>
@@ -108,11 +108,9 @@ defineExpose({
     submitForm
 })
 
-
 const backResult = (res) => {
     form.jsons = res
 }
-
 const removeDescription = () => {
     form.description = "";
     form.jsons = "";
@@ -121,34 +119,16 @@ const removeDescription = () => {
     form.coverUrl = "";
     showDescription.value = false;
 }
-
 watch(() => props.productDetail, val => {
-    if (Object.keys(val).length > 0) {
-        const { attributes, complexAttributes } = val.skuList[0];
-
-        if (attributes?.length == 0 || attributes == null) return;
-        const copyAttr = attributes?.filter(
-            (a) => a.id == 11254 || a.id == 4191
-        );
-        complexAttributes && complexAttributes.forEach((item) => {
-            if (item.id === 21841) {
-                form.video = item.values.map((e) => {
-                    return {
-                        url: processImageSource(e.value),
-                    }
-                })
-            } else if (item.id === 21845) {
-                form.coverUrl = processImageSource(item.values[0].value)
-            }
-        });
-        copyAttr.forEach(e => {
-            if (e.id === 11254) {
-                form.jsons = e.values[0].value
-            } else {
-                form.description = e.values[0].value
-            }
-        })
+    if (val.content.productTemplate.productDesc) {
+        form.description = val.content.productTemplate.productDesc
     }
+
+    if (val.content.jsonRich) {
+        form.jsons = val.content.jsonRich
+    }
+}, {
+    immediate: true
 })
 
 </script>
