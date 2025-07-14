@@ -1,7 +1,29 @@
 <template>
   <div id="OzonNewVariantInfoCont">
     <a-card title="SKU信息" class="text-left text-16px" :loading="categoryAttributesLoading">
-      <a-card title="变种属性" class="text-left mx-50 text-16px">
+      <a-card class="mx-50">
+        <template #title>
+          <div class="flex align-center justify-between">
+            <span class="text-left text-16px">变种属性</span>
+            <div>
+              <FileOutlined /><a-select v-model:value="templateValue" show-search placeholder="请选择引用模板"
+                class="w300px mx10px" :options="templateList" :filter-option="filterOption">
+                <template #dropdownRender="{ menuNode: menu }">
+                  <v-nodes :vnodes="menu" />
+                  <a-divider style="margin: 4px 0" />
+                  <a-space style="padding: 4px 8px">
+                    <a-button type="link">
+                      <template #icon>
+                        <SettingOutlined />
+                      </template>
+                      管理模板
+                    </a-button>
+                  </a-space>
+                </template>
+              </a-select>
+            </div>
+          </div>
+        </template>
         <div>
           <span class="text-16px">变种主题：</span>
           <a-button type="primary" size="middle" v-for="(item, index) in themeBtns" class="mr-2.5" :key="'add' + index + item.name"
@@ -1355,8 +1377,8 @@ const clearAllImages = () => {
   })
 };
 const skuThemeNames = (item) => {
-  const tableColumns = attributeList.value[0].tableColumns;
-  const themeNames = tableColumns.map((column) => {
+  const tableColumns = attributeList.value[0]?.tableColumns;
+  const themeNames = tableColumns?.map((column) => {
     return column.title
   }).filter((nameItem) => nameItem !== '操作')
   const obj = pick(item, themeNames)

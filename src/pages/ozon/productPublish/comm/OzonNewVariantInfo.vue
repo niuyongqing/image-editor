@@ -12,7 +12,7 @@
                   <v-nodes :vnodes="menu" />
                   <a-divider style="margin: 4px 0" />
                   <a-space style="padding: 4px 8px">
-                    <a-button type="link">
+                    <a-button type="link" @click="tempPage">
                       <template #icon>
                         <SettingOutlined />
                       </template>
@@ -482,6 +482,11 @@ const handleChangeColroImg = (info, record) => {
     message.error("图片上传有误！");
   }
 };
+
+const tempPage = () => {
+  window.open("userTemplate", "_blank");
+};
+
 // 模板搜索
 const filterOption = (input, option) => {
   return option.value.toLowerCase().indexOf(input.toLowerCase()) >= 0;
@@ -1263,8 +1268,8 @@ const clearAllImages = () => {
   })
 };
 const skuThemeNames = (item) => {
-  const tableColumns = attributeList.value[0].tableColumns;
-  const themeNames = tableColumns.map((column) => {
+  const tableColumns = attributeList.value[0]?.tableColumns;
+  const themeNames = tableColumns?.map((column) => {
     return column.title
   }).filter((nameItem) => nameItem !== '操作')
   const obj = pick(item, themeNames)

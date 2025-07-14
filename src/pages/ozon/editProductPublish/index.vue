@@ -2,8 +2,9 @@
     <div id="editProductPublishCont" class="pr-14">
         <div class="w-19/20">
             <div class="flex justify-end mt-5">
-                <a-button class="ml-2.5" @click="onSubmit(2)">保存待发布</a-button>
-                <a-button type="primary" class="ml-2.5" @click="onSubmit(1)">更新</a-button>
+                <a-button :loading="loading" size="middle" @click="showTempModal">存为模板</a-button>
+                <a-button class="mx-2.5" @click="onSubmit(2)" size="middle">保存待发布</a-button>
+                <a-button type="primary" size="middle" @click="onSubmit(1)">更新</a-button>
             </div>
             <br />
             <!-- 基本信息 -->
@@ -19,8 +20,9 @@
             <OzonVariantInfo ref="ozonNewVariantInfoRef" :attributesCache="attributes" :productDetail="productDetail">
             </OzonVariantInfo>
             <div class="flex justify-end mr-5 mt-5">
-                <a-button :loading="loading" @click="onSubmit(2)" class="ml-2.5">保存待发布</a-button>
-                <a-button type="primary" :loading="loading" @click="onSubmit(1)" class="ml-2.5">更新</a-button>
+                <a-button :loading="loading" size="middle" @click="showTempModal">存为模板</a-button>
+                <a-button :loading="loading" @click="onSubmit(2)" size="middle" class="ml-2.5">保存待发布</a-button>
+                <a-button type="primary" :loading="loading" size="middle" @click="onSubmit(1)" class="ml-2.5">更新</a-button>
             </div>
         </div>
         <div style="position: fixed;top: 12%;right: 3%;">
@@ -39,12 +41,21 @@
                 <a-button type="primary" @click="handleOk">继续刊登</a-button>
             </template>
         </a-modal>
+        <a-modal :open="tempVis" title="存为模板" @cancel="closeModal" :width="'20%'" :maskClosable="false"
+            :keyboard="false">
+            <div class="my30px"><span>模板名称：</span><a-input style="width: 300px;" v-model:value="templateName"
+                    placeholder="请输入" /></div>
+            <template #footer>
+                <a-button @click="closeModal">取消</a-button>
+                <a-button type="primary" @click="saveTemplate">确定</a-button>
+            </template>
+        </a-modal>
     </div>
 </template>
 
 <script setup name='editProductPublish'>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-import { getDetail, categoryAttributes, add, accountCache } from "../config/api/product"
+import { getDetail, categoryAttributes, add, accountCache, tempSaveOrUpdate } from "../config/api/product"
 import OzonBaseInfo from './comm/OzonBaseInfo.vue';
 import OzonVariantInfo from './comm/OzonVariantInfo.vue';
 import OzonNewImageInfo from "./comm/OzonNewImageInfo.vue";
@@ -55,6 +66,7 @@ import {
 } from '~/pages/ozon/config/commJs/index';
 import { saveTowaitProduct } from "../config/api/waitProduct"
 import { message, Modal } from "ant-design-vue";
+
 const ozonBaseInfoRef = ref(null)
 const ozonImageInfoRef = ref(null)
 const ozonNewVariantInfoRef = ref(null)
@@ -81,9 +93,58 @@ const anchorList = ref([
     }
 ])
 const categoryAttributesLoading = ref(false)
+const tempVis = ref(false)
+const templateName = ref("")
 const formData = reactive({
     shortCode: ""
 })
+
+const showTempModal = () => {
+    if (!formData.shortCode) {
+        message.error("请先选择店铺！");
+        return
+    }
+    tempVis.value = true;
+}
+
+const saveTemplate = async () => {
+    if (!templateName.value) {
+        message.error("请输入模板名称！");
+        return
+    }
+    let base = ozonBaseInfoRef.value.form;
+    let image = ozonImageInfoRef.value.form;
+    let tableDatas = ozonNewVariantInfoRef.value.tableData;
+    let params = {
+        type: 1, //模板类型 1-产品模板  2-尺码模板 3-变种模板 4-富内容模板
+        id: null, // id 为null  新增  不为null 是修改
+        name: templateName.value, // 模板名称
+        state: 1, // 状态是否生效  0-不生效 1-生效
+        account: formData.shortCode,
+        content: {
+            productTemplate: {
+                categoryId: base.categoryId || {},
+                productAttr: base.attributes || {},
+                productDesc: image.description || ""
+            },
+            jsonRich: image.jsons || {}
+        }
+    }
+    console.log("params", params);
+
+    tempSaveOrUpdate(params).then(res => {
+        if (res.code == 200) {
+            message.success("保存成功！");
+        }
+    }).finally(() => {
+        tempVis.value = false;
+    })
+}
+
+const closeModal = () => {
+  tempVis.value = false;
+  templateName.value = "";
+}
 
 const getProductDetail = (offerId, account) => {
     formData.shortCode = account

@@ -13,7 +13,7 @@
                 <a-form-item label="JSON 丰富内容：" name="jsons">
                     <div>
                         <a-select v-model:value="form.jsonTemp" size="large" allowClear style="width: 30%"
-                            :options="vatList">
+                            :options="tempList">
                         </a-select>
                         <a-button type="link" size="middle" class="ml10px">
                             <SyncOutlined />
@@ -22,7 +22,7 @@
                     </div>
                     <div class="my10px text-16px" style="color: #ff0a37">说明：描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M</div>
                     <a-form-item-rest>
-                        <jsonForm @backResult="backResult" :content="form.jsons" :shop="shopCode"></jsonForm>
+                        <jsonForm @backResult="backResult" :jsonContent="form.jsons" :shop="shopCode"></jsonForm>
                     </a-form-item-rest>
                 </a-form-item>
                 <a-form-item label="视频：">
@@ -112,6 +112,21 @@ const form = reactive({
     jsons: "",
 })
 const copyJson = ref([])
+
+const tempList = ref([
+    {
+        label: "模板1",
+        value: "1"
+    },
+    {
+        label: "模板2",
+        value: "2"
+    },
+    {
+        label: "模板3",
+        value: "3"
+    }
+])
 const headers = {
     'Authorization': 'Bearer ' + useAuthorization().value,
 }
@@ -158,8 +173,7 @@ const removeVideoList = (index) => {
     form.video.splice(index, 1)
 }
 const backResult = (res) => {
-    form.jsons = res
-    // console.log('p', form.jsons);
+    form.jsons = JSON.stringify(res)
 }
 
 const submitForm = () => {

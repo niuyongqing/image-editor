@@ -2,28 +2,28 @@
   <div id="editWaitProductCont" class="pr-14">
     <div class="w-19/20">
       <div class="flex justify-end mt-5">
-        <a-button class="mx-2.5" :loading="loading" @click="showTempModal">存为模板</a-button>
-        <a-dropdown>
+        <a-button class="mx-2.5" :loading="loading" size="middle" @click="showTempModal">存为模板</a-button>
+        <a-dropdown size="middle">
           <template #overlay>
             <a-menu @click="handleMenuClick">
-              <a-menu-item key="1">
+              <!-- <a-menu-item key="1">
                 引用现有产品
-              </a-menu-item>
+              </a-menu-item> -->
               <a-menu-item key="2">
                 引用产品模板
               </a-menu-item>
-              <a-menu-item key="3">
+              <!-- <a-menu-item key="3">
                 引用资料库产品
-              </a-menu-item>
+              </a-menu-item> -->
             </a-menu>
           </template>
-          <a-button>
+          <a-button size="middle">
             引用产品
             <DownOutlined />
           </a-button>
         </a-dropdown>
-        <a-button :loading="loading" class="ml-2.5" @click="onSubmit(2)">保存</a-button>
-        <a-button :loading="loading" class="ml-2.5" @click="onSubmit(1)" type="primary">发布</a-button>
+        <a-button :loading="loading" size="middle" class="ml-2.5" @click="onSubmit(2)">保存</a-button>
+        <a-button :loading="loading" size="middle" class="ml-2.5" @click="onSubmit(1)" type="primary">发布</a-button>
       </div>
       <br />
       <!-- 基本信息 -->
@@ -39,28 +39,28 @@
       <OzonNewVariantInfo ref="ozonNewVariantInfoRef" id="ozonNewVariantInfo" :productDetail="productDetail"
         :shopCode="formData.shortCode" class="mt-5"></OzonNewVariantInfo>
       <div class="flex justify-end mt-5">
-        <a-button class="mx-2.5" :loading="loading" @click="showTempModal">存为模板</a-button>
-        <a-dropdown>
+        <a-button class="mx-2.5" :loading="loading" size="middle" @click="showTempModal">存为模板</a-button>
+        <a-dropdown size="middle">
           <template #overlay>
             <a-menu @click="handleMenuClick">
-              <a-menu-item key="1">
+              <!-- <a-menu-item key="1">
                 引用现有产品
-              </a-menu-item>
+              </a-menu-item> -->
               <a-menu-item key="2">
                 引用产品模板
               </a-menu-item>
-              <a-menu-item key="3">
+              <!-- <a-menu-item key="3">
                 引用资料库产品
-              </a-menu-item>
+              </a-menu-item> -->
             </a-menu>
           </template>
-          <a-button>
+          <a-button size="middle">
             引用产品
             <DownOutlined />
           </a-button>
         </a-dropdown>
-        <a-button :loading="loading" class="ml-2.5" @click="onSubmit(2)">保存</a-button>
-        <a-button :loading="loading" class="ml-2.5" @click="onSubmit(1)" type="primary">发布</a-button>
+        <a-button :loading="loading" size="middle" class="ml-2.5" @click="onSubmit(2)">保存</a-button>
+        <a-button :loading="loading" size="middle" class="ml-2.5" @click="onSubmit(1)" type="primary">发布</a-button>
       </div>
     </div>
     <div style="position: fixed;top: 10%;right: 3%;">
@@ -71,32 +71,32 @@
     </div>
     <a-back-top :visibility-height="0" style="margin-right: 10px;" @click="backToTop" />
 
-    <a-modal :open="tempVis" title="存为模板" @cancel="closeModal" :width="'20%'" :maskClosable="false"
-            :keyboard="false">
-            <div class="my30px"><span>模板名称：</span><a-input style="width: 300px;" v-model:value="templateName"
-                    placeholder="请输入" /></div>
-            <template #footer>
-                <a-button @click="closeModal">取消</a-button>
-                <a-button type="primary" @click="saveTemplate">确定</a-button>
-            </template>
-        </a-modal>
-        <a-modal :open="quoteVis" title="引用产品模板" :footer="null" @cancel="quoteVis = false" :width="'30%'"
-            :maskClosable="false" :keyboard="false">
-            <div class="my30px"><span>模板名称：</span><a-input style="width: 300px;" v-model:value="quoteTemplateName"
-                    placeholder="请输入" /><a-button class="ml-20px" type="primary">搜索</a-button></div>
-            <a-divider />
-            <a-table :dataSource="dataSource" :columns="columns" :pagination="false">
-                <template #bodyCell="{ column, record }">
-                    <template v-if="column.dataIndex === 'option'">
-                        <a-button type="link" @click="quoteTemp(record)">引用</a-button>
-                    </template>
-                </template>
-            </a-table>
-            <a-pagination style="margin: 20px 0 10px 0; text-align: right" :show-total="(total) => `共 ${total} 条`"
-                v-model:current="paginations.pageNum" v-model:pageSize="paginations.pageSize" :total="paginations.total"
-                class="pages" :show-quick-jumper="true" @change="getTemplateList" :showSizeChanger="true"
-                :pageSizeOptions="[50, 100, 200]" />
-        </a-modal>
+    <a-modal :open="tempVis" title="存为模板" @cancel="closeModal" :width="'20%'" :maskClosable="false" :keyboard="false">
+      <div class="my30px"><span>模板名称：</span><a-input style="width: 300px;" v-model:value="templateName"
+          placeholder="请输入" />
+      </div>
+      <template #footer>
+        <a-button @click="closeModal">取消</a-button>
+        <a-button type="primary" @click="saveTemplate">确定</a-button>
+      </template>
+    </a-modal>
+    <a-modal :open="quoteVis" title="引用产品模板" :footer="null" @cancel="quoteVis = false" :width="'30%'"
+      :maskClosable="false" :keyboard="false">
+      <div class="my30px"><span>模板名称：</span><a-input style="width: 300px;" v-model:value="quoteTemplateName"
+          placeholder="请输入" /><a-button class="ml-20px" type="primary">搜索</a-button></div>
+      <a-divider />
+      <a-table :dataSource="dataSource" :columns="columns" :pagination="false">
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.dataIndex === 'option'">
+            <a-button type="link" @click="quoteTemp(record)">引用</a-button>
+          </template>
+        </template>
+      </a-table>
+      <a-pagination style="margin: 20px 0 10px 0; text-align: right" :show-total="(total) => `共 ${total} 条`"
+        v-model:current="paginations.pageNum" v-model:pageSize="paginations.pageSize" :total="paginations.total"
+        class="pages" :show-quick-jumper="true" @change="getTemplateList" :showSizeChanger="true"
+        :pageSizeOptions="[50, 100, 200]" />
+    </a-modal>
   </div>
 </template>
 
@@ -146,32 +146,32 @@ const quoteVis = ref(false)
 const templateName = ref("")
 const quoteTemplateName = ref("")
 const columns = [
-    {
-        title: '模板名称',
-        dataIndex: 'name',
-        key: 'name',
-    },
-    {
-        title: '引用模块',
-        dataIndex: 'fieldValue',
-        key: 'fieldValue',
-    },
-    {
-        title: '创建时间',
-        dataIndex: 'gmtCreate',
-        key: 'gmtCreate',
-    },
-    {
-        title: '操作',
-        dataIndex: 'option',
-        key: 'option',
-    },
+  {
+    title: '模板名称',
+    dataIndex: 'name',
+    key: 'name',
+  },
+  {
+    title: '引用模块',
+    dataIndex: 'fieldValue',
+    key: 'fieldValue',
+  },
+  {
+    title: '创建时间',
+    dataIndex: 'gmtCreate',
+    key: 'gmtCreate',
+  },
+  {
+    title: '操作',
+    dataIndex: 'option',
+    key: 'option',
+  },
 ]
 const dataSource = ref([])
 const paginations = reactive({
-    pageNum: 1,
-    pageSize: 10,
-    total: 0,
+  pageNum: 1,
+  pageSize: 10,
+  total: 0,
 })
 const formData = reactive({
   shortCode: ""
@@ -218,92 +218,92 @@ const getAccount = () => {
 
 
 const showTempModal = () => {
-    if (!formData.shortCode) {
-        message.error("请先选择店铺！");
-        return
-    }
-    tempVis.value = true;
+  if (!formData.shortCode) {
+    message.error("请先选择店铺！");
+    return
+  }
+  tempVis.value = true;
 }
 
 const saveTemplate = async () => {
-    if (!templateName.value) {
-        message.error("请输入模板名称！");
-        return
+  if (!templateName.value) {
+    message.error("请输入模板名称！");
+    return
+  }
+  let base = ozonBaseInfoRef.value.form;
+  let image = ozonImageInfoRef.value.form;
+  let tableDatas = ozonNewVariantInfoRef.value.tableData;
+  let params = {
+    type: 1, //模板类型 1-产品模板  2-尺码模板 3-变种模板 4-富内容模板
+    id: null, // id 为null  新增  不为null 是修改
+    name: templateName.value, // 模板名称
+    state: 1, // 状态是否生效  0-不生效 1-生效
+    account: formData.shortCode,
+    content: {
+      productTemplate: {
+        categoryId: base.categoryId || {},
+        productAttr: base.attributes || {},
+        productDesc: image.description || ""
+      },
+      jsonRich: image.jsons || {}
     }
-    let base = ozonBaseInfoRef.value.form;
-    let image = ozonImageInfoRef.value.form;
-    let tableDatas = ozonNewVariantInfoRef.value.tableData;
-    let params = {
-        type: 1, //模板类型 1-产品模板  2-尺码模板 3-变种模板 4-富内容模板
-        id: null, // id 为null  新增  不为null 是修改
-        name: templateName.value, // 模板名称
-        state: 1, // 状态是否生效  0-不生效 1-生效
-        account: formData.shortCode,
-        content: {
-            productTemplate: {
-                categoryId: base.categoryId || {},
-                productAttr: base.attributes || {},
-                productDesc: image.description || ""
-            },
-            jsonRich: image.jsons || {}
-        }
-    }
-    console.log("params", params);
+  }
+  console.log("params", params);
 
-    tempSaveOrUpdate(params).then(res => {
-        if (res.code == 200) {
-            message.success("保存成功！");
-        }
-    }).finally(() => {
-        tempVis.value = false;
-    })
+  tempSaveOrUpdate(params).then(res => {
+    if (res.code == 200) {
+      message.success("保存成功！");
+    }
+  }).finally(() => {
+    tempVis.value = false;
+  })
 }
 
 const closeModal = () => {
-    tempVis.value = false;
-    templateName.value = "";
+  tempVis.value = false;
+  templateName.value = "";
 }
 
 // 引用产品
 const handleMenuClick = (e) => {
-    if (e.key === '2') {
-        if (!formData.shortCode) {
-            message.error("请先选择店铺！");
-            return
-        }
-        getTemplateList();
+  if (e.key === '2') {
+    if (!formData.shortCode) {
+      message.error("请先选择店铺！");
+      return
     }
+    getTemplateList();
+  }
 }
 
 const getTemplateList = () => {
-    templateList({
-        account: formData.shortCode,
-        type: 1,
-        name: quoteTemplateName.value,
-        pageNum: paginations.pageNum,
-        pageSize: paginations.pageSize,
+  templateList({
+    account: formData.shortCode,
+    type: 1,
+    name: quoteTemplateName.value,
+    pageNum: paginations.pageNum,
+    pageSize: paginations.pageSize,
 
-    }).then(res => {
-        if (res.code == 200) {
-            message.success("查询成功！");
-            dataSource.value = res.rows || []
-            quoteVis.value = true;
-            paginations.total = res.total || 0;
-        }
-    })
+  }).then(res => {
+    if (res.code == 200) {
+      message.success("查询成功！");
+      dataSource.value = res.rows || []
+      quoteVis.value = true;
+      paginations.total = res.total || 0;
+    }
+  })
 }
 
 // 引用模板
 const quoteTemp = (record) => {
-    const ozonStore = useOzonProductStore()
-    ozonStore.$patch(state => {
-        state.productTemplate = {
-            account: record.account,
-            content: record.content
-        }
-    })
-    quoteTemplateName.value = "";
-    quoteVis.value = false;
+  const ozonStore = useOzonProductStore()
+  ozonStore.$patch(state => {
+    state.productTemplate = {
+      account: record.account,
+      content: record.content
+    }
+  })
+  quoteTemplateName.value = "";
+  quoteVis.value = false;
 }
 
 // 获取属性
