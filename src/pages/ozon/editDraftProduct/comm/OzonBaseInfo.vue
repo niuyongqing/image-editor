@@ -533,6 +533,7 @@ watch(() => useOzonProductStore().productTemplate, (val) => {
             label: undefined,
             value
         };
+        form.vat = vat === "0.0" || vat === "0.00" ? "0" : vat;
         emit("getAttributes", form.shortCode, form.categoryId);
         form.attributes = val.content.productTemplate.productAttr;
     }

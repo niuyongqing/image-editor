@@ -1,6 +1,6 @@
 <template>
     <div id="OzonNewVariantInfoCont">
-        <a-card title="SKU信息" class="text-left text-16px" :loading="categoryAttributesLoading">
+        <a-card title="SKU信息" class="text-left text-16px mt-20px" :loading="categoryAttributesLoading">
             <a-card title="变种属性" class="text-left mx-50 text-16px">
                 <div>
                     <span class="text-16px">变种主题：</span>
@@ -872,7 +872,6 @@ const sellerSKUChange = debounce(record => {
 }, 200)
 // 批量修改库存
 const batchStock = (type, row = {}) => {
-    // debugger
     if (tableData.value.length == 0) {
         message.warning("请先添加sku！");
         return;
@@ -1168,6 +1167,19 @@ const skuThemeNames = (item) => {
     const entries = Object.entries(obj);
     return entries
 };
+
+// //  引用模板 to do
+// watch(() => useOzonProductStore().productTemplate, (val) => {
+//     const { content } = val;
+//     console.log('content', content);
+//     if (content) {
+//         if (content.variantTemplate) {
+//         }
+//     }
+// }, {
+//     immediate: true
+// });
+
 
 
 // 变种主题中是组合在一起的主题

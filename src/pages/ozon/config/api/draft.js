@@ -108,3 +108,14 @@ export function addToWaitPublish(params) {
 export function batchAddToWaitPublish(params) {
     return usePost('/platform-ozon/platform/ozon/gather/product/batchAddToWaitPublish', params)
 }
+
+
+// 批量查询变种关联关系
+export function batchRelationDetail(params) {
+    return usePost('/platform-common/platform/common/variant/relation/batchRelationDetail', params)
+}
+
+// 批量保存变种关联关系
+export function batchSave(params) {
+    return usePost('/platform-common/platform/common/variant/relation/batchSave', params)
+}

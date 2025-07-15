@@ -139,7 +139,7 @@
                                         </div>
                                         <br />
                                         <div :style="{
-                                            color: record.remarkColor ? 'green' : 'red',
+                                            color: remarkColor(record.remarkColor)
                                         }"> {{ record.remark }}
                                         </div>
                                     </div>
@@ -191,7 +191,7 @@
                                                         item.stock }}</span>
                                                 </template>
                                                 <span> {{ [null, undefined, ""].includes(item.stock) ? '-' : item.stock
-                                                }} </span>
+                                                    }} </span>
                                             </a-tooltip>
                                         </div>
                                     </div>
@@ -266,7 +266,8 @@
         <EditPrompt ref="editPromptRef" :shopAccount="shopAccount"></EditPrompt>
 
         <!-- 批量编辑-提示弹窗 -->
-        <BatchEditPrompt ref="batchEditPromptRef" :shopAccount="shopAccount"></BatchEditPrompt>
+        <BatchEditPrompt ref="batchEditPromptRef" :shopAccount="shopAccount" :account="formData.account">
+        </BatchEditPrompt>
         <!-- <BatchEdit ref="batchEditRef"></BatchEdit> -->
 
         <!-- 批量备注 -->
@@ -303,7 +304,7 @@ import BatchWatermark from './batchComponent/batchWatermark.vue';
 import OzonProduct from '@/pages/ozon/product/index.vue';
 import BatchEditPrompt from './batchComponent/batchEditPrompt.vue';
 import EditAttribute from './batchComponent/editAttribute.vue';
-
+import { colors } from '@/pages/lazada/product/common';
 let columns = tableHeard;
 const showDraftTable = ref(true);
 const baseApi = import.meta.env.VITE_APP_BASE_API;
@@ -426,7 +427,9 @@ const rowSelection = computed(() => {
 const accountName = (account) => {
     return shopAccount.value.find(item => item.account === account)?.simpleName
 };
-
+const remarkColor = (color) => {
+    return colors.find(item => item.id === color)?.color
+}
 
 const primaryImage = (primaryImage) => {
     if (primaryImage.includes('https')) {
@@ -476,6 +479,7 @@ const selectAll = () => {
     getList();
 }
 const selectItem = (val) => {
+    clearSelectList();
     formData.account = val
     getList();
 }
@@ -714,8 +718,12 @@ const handleMenuClick = (e) => {
     stockShops.value = selectedRowList.value.map((e) => e.account);
     switch (e.key) {
         case 0:
-            console.log('批量编辑');
+            if (!formData.account) {
+                message.warning("请先选择一个店铺账号");
+                return;
+            }
             batchEditPromptEl.value.open(selectedRowList.value);
+            console.log('批量编辑');
             break;
         case 1:
             let params = selectedRowList.value.map((item) => {
