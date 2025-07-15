@@ -188,7 +188,7 @@
             size="large"
             class="text-base"
           >
-            <a-tooltip title="修改"><FormOutlined /></a-tooltip>
+            <a-tooltip title="修改"><FormOutlined @click="sizeModalOpen = true" /></a-tooltip>
             <a-tooltip title="还原"><UndoOutlined @click="restore(column.key)" /></a-tooltip>
             <a-tooltip title="删除"><DeleteOutlined @click="del(column.key)" /></a-tooltip>
           </a-space>
@@ -521,6 +521,12 @@
       :cooked-attr-name-list="cookedAttrNameList"
       @ok="stockOk"
     />
+
+    <SizeModal
+      v-model:open="sizeModalOpen"
+      ref="size_modal"
+      @ok="sizeOk"
+    />
   </div>
 </template>
 
@@ -537,6 +543,7 @@
   import PriceModal from './components/PriceModal.vue'
   import OldPriceModal from './components/OldPriceModal.vue'
   import StockModal from './components/StockModal.vue'
+  import SizeModal from './components/SizeModal.vue'
 
   // 取出产品 id
   const ids = JSON.parse(localStorage.getItem('ids'))
@@ -1078,6 +1085,14 @@
         })
       })
     }
+  }
+
+  // 尺寸弹窗
+  const sizeModalOpen = ref(false)
+  const sizeModalRef = useTemplateRef('size_modal')
+
+  function sizeOk() {
+    sizeModalRef.value.modify(tableData.value)
   }
 
   // 移除
