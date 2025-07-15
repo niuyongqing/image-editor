@@ -177,7 +177,7 @@
             size="large"
             class="text-base"
           >
-            <a-tooltip title="修改"><FormOutlined /></a-tooltip>
+            <a-tooltip title="修改"><FormOutlined @click="stockModalOpen = true" /></a-tooltip>
             <a-tooltip title="还原"><UndoOutlined @click="restore(column.key)" /></a-tooltip>
             <a-tooltip title="删除"><DeleteOutlined @click="del(column.key)" /></a-tooltip>
           </a-space>
@@ -326,6 +326,7 @@
             />
             <div
               v-else
+              class="h-6"
               @click="cellActived(index, column.key, i)"
             >
               {{ item.SKUTitle }}
@@ -387,7 +388,7 @@
           >
             {{ item.stock || 0 }}&nbsp;&nbsp;<FormOutlined
               class="text-base"
-              @click="showStockModal(record, item)"
+              @click="showSingleStockModal(record, item)"
             />
           </div>
         </template>
@@ -487,7 +488,6 @@
 
     <VariantImageModal
       v-model:open="variantImageModalOpen"
-      ref="variant_image_modal"
       :raw-variant-images="curVariantImages"
       :cooked-attr-name-list="cookedAttrNameList"
       @ok="variantImageOk"
@@ -511,6 +511,16 @@
       ref="old_price_modal"
       @ok="oldPriceOk"
     />
+
+    <StockModal
+      v-model:open="stockModalOpen"
+      v-model:is-single="isSingle"
+      :account-options="accountOptions"
+      :warehouse-table-data="warehouseTableData"
+      :single-SKU-warehouse-table-data="singleSKUWarehouseTableData"
+      :cooked-attr-name-list="cookedAttrNameList"
+      @ok="stockOk"
+    />
   </div>
 </template>
 
@@ -526,6 +536,7 @@
   import SKUTitleModal from './components/SKUTitleModal.vue'
   import PriceModal from './components/PriceModal.vue'
   import OldPriceModal from './components/OldPriceModal.vue'
+  import StockModal from './components/StockModal.vue'
 
   // 取出产品 id
   const ids = JSON.parse(localStorage.getItem('ids'))
@@ -541,12 +552,16 @@
   /** 获取产品详情 */
   // let rawTableData = []
   const tableData = ref([])
+  const accountOptions = ref([])
+  const warehouseTableData = ref([])
   getDetails()
   function getDetails() {
     batchQueryDetailApi({ ids }).then(res => {
       // rawTableData = res.data || []
       const data = res.data || []
+      const accountList = []
       const list = data.map(item => {
+        accountList.push(item.account)
         const mainImage = item.skuList[0].primaryImage[0]
         item.skuList.forEach(sku => {
           sku.SKUTitle = sku.name
@@ -599,6 +614,47 @@
 
         return obj
       })
+
+      const uniqueAccountList = Array.from(new Set(accountList)) // 去重后的账号列表
+      // 批量修改库存用的店铺列表
+      accountOptions.value = uniqueAccountList.map(account => {
+        const obj = list.find(item => item.account === account)
+
+        return {
+          label: obj.simpleName,
+          value: account
+        }
+      })
+
+      // 批量修改库存的仓库列表
+      const tempList = accountOptions.value.map(item => {
+        const obj = {
+          ...item,
+          warehouseObj: {}
+        }
+        list.forEach(el => {
+          el.skuList[0].warehouseList.forEach(warehouse => {
+            if (!obj.warehouseObj[warehouse.warehouseId]) {
+              obj.warehouseObj[warehouse.warehouseId] = warehouse.warehouseName
+            }
+          })
+        })
+
+        return obj
+      })
+      tempList.forEach(item => {
+        Object.entries(item.warehouseObj).forEach(entry => {
+          warehouseTableData.value.push({
+            account: item.value,
+            shopName: item.label,
+            warehouseId: entry[0],
+            warehouseName: entry[1],
+            stock: null,
+            total: 0
+          })
+        })
+      })
+
       tableData.value = list
     })
   }
@@ -872,7 +928,6 @@
 
   // 打开变种图片弹窗
   const variantImageModalOpen = ref(false)
-  const variantImageModalRef = useTemplateRef('variant_image_modal')
   let curRecord = {}
   let curItem = {}
   const curVariantImages = ref([])
@@ -907,6 +962,7 @@
     }
 
     curRecord = {}
+    curItem = {}
   }
 
   // SKU 标题 弹窗
@@ -934,7 +990,95 @@
   }
 
   // 打开修改库存弹窗
-  function showStockModal(record, item) {}
+  const stockModalOpen = ref(false)
+  const isSingle = ref(false)
+  const singleSKUWarehouseTableData = ref([]) // 单个 SKU 仓库列表数据
+
+  function showSingleStockModal(record, item) {
+    isSingle.value = true
+    curRecord = record
+    curItem = item
+    cookedAttrNameList.value = item.cookedAttrNameList
+    singleSKUWarehouseTableData.value = item.warehouseList.map(warehouse => {
+      return {
+        account: record.account,
+        shopName: record.simpleName,
+        warehouseId: warehouse.warehouseId,
+        warehouseName: warehouse.warehouseName,
+        stock: warehouse.present,
+        total: warehouse.present
+      }
+    })
+
+    stockModalOpen.value = true
+  }
+
+  function stockOk(key) {
+    if (key) {
+      if (key === 'applyAll') {
+        curRecord.skuList.forEach(item => {
+          // ?? stock 该赋什么值存疑
+          item.stock = 0
+          singleSKUWarehouseTableData.value.forEach(warehouse => {
+            item.stock += warehouse.stock
+
+            item.warehouseList.forEach(el => {
+              if (el.warehouseId === warehouse.warehouseId) {
+                el.present = warehouse.stock
+              }
+            })
+          })
+        })
+      } else if (key === 'applySelf') {
+        curItem.stock = 0
+        singleSKUWarehouseTableData.value.forEach(warehouse => {
+          curItem.stock += warehouse.stock
+
+          curItem.warehouseList.forEach(el => {
+            if (el.warehouseId === warehouse.warehouseId) {
+              el.present = warehouse.stock
+            }
+          })
+        })
+      } else {
+        const index = curItem.cookedAttrNameList.findIndex(attrName => attrName === key)
+        const attrValue = curItem.cookedAttrValueList[index]
+        curRecord.skuList.forEach(item => {
+          if (item.cookedAttrValueList.includes(attrValue)) {
+            item.stock = 0
+            singleSKUWarehouseTableData.value.forEach(warehouse => {
+              item.stock += warehouse.stock
+
+              item.warehouseList.forEach(el => {
+                if (el.warehouseId === warehouse.warehouseId) {
+                  el.present = warehouse.stock
+                }
+              })
+            })
+          }
+        })
+      }
+
+      curRecord = {}
+      curItem = {}
+      isSingle.value = false
+    } else {
+      warehouseTableData.value.forEach(warehouse => {
+        tableData.value.forEach(item => {
+          if (item.account === warehouse.account) {
+            item.skuList.forEach(sku => {
+              sku.warehouseList.forEach(el => {
+                if (String(el.warehouseId) === warehouse.warehouseId) {
+                  sku.stock = warehouse.stock
+                  el.present = warehouse.stock
+                }
+              })
+            })
+          }
+        })
+      })
+    }
+  }
 
   // 移除
   function removeRecord(id) {
