@@ -28,24 +28,24 @@
             <div :key="element.uid" @click="tabCheck(element)">
               <div class="file-item">
                 <div class="file-img">
-                  <img :src="element.url" alt="" class="file-img" />
+                  <img :src="processImageSource(element.url)" alt="" class="file-img" />
                   <div class="image-mask"> {{ element.height }} X {{ element.width }} </div>
 
                   <div class="image-check" v-if="element.checked">
                     <CheckOutlined style="color: #00B903;font-size: 20px; font-weight: bold;" />
                   </div>
 
-                  <div class="image-tooltip" v-if="element.url.includes('http')">
-                    点击{{ element.checked ? '取消11' : '选中' }}
+                  <div class="image-tooltip">
+                    点击{{ element.checked ? '取消' : '选中' }}
                   </div>
                 </div>
               </div>
             </div>
-            <div w-full>
+            <!-- <div w-full>
               <div flex justify-between w-full>
                 <a-checkbox v-model:checked="element.checked" @change="check(element, $event)"></a-checkbox>
               </div>
-            </div>
+            </div> -->
           </a-card>
         </div>
       </div>
@@ -59,6 +59,7 @@ import { useResetReactive } from '@/composables/reset';
 import { scaleApi, watermarkApi } from '@/api/common/water-mark.js';
 import { message } from "ant-design-vue";
 import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
+import { processImageSource } from "~/pages/ozon/config/commJs/index";
 
 const props = defineProps({
   shortCode: {
@@ -96,6 +97,7 @@ const handleCheckAllChange = (e) => {
 };
 
 const showModal = (list) => {
+  console.log('tableData', list);
   tableData.value = list || [];
   tableData.value.forEach((item) => {
     item.imageUrl.forEach(v => {
@@ -122,10 +124,10 @@ const tabCheck = (element) => {
 };
 
 // 点击选中
-const check = (element) => {
-  const isAllChecked = tableData.value.every(item => item.imageUrl.every(v => v.checked));
-  checkedAll.value = isAllChecked;
-};
+// const check = (element) => {
+//   const isAllChecked = tableData.value.every(item => item.imageUrl.every(v => v.checked));
+//   checkedAll.value = isAllChecked;
+// };
 
 //  点击确定
 const submit = async () => {
@@ -145,6 +147,7 @@ const submit = async () => {
     message.error('请选择图片');
     return
   };
+  console.log('checkedList', checkedList);
   //  选中的图片只有本地图片
   const netPathList = checkedList.filter(item => item.url.includes('http')).map((img) => img.url);
   if (netPathList.length === 0) {

@@ -56,7 +56,7 @@
                                     <loading-outlined></loading-outlined>
                                 </div>
                                 <div v-else class="file-img">
-                                    <img :src="element.url" alt="" class="file-img"
+                                    <img :src="processImageSource(element.url)" alt="" class="file-img"
                                         @load="handleImageLoad(element, $event)" @click="handlePreview(element)"
                                         :key="element.key" />
                                     <div class="image-mask"> {{ element.height }} X {{ element.width }} </div>
@@ -110,7 +110,7 @@ import { useAuthorization } from '~/composables/authorization'
 import { getBase64 } from '@/pages/lazada/product/common'
 import { message } from "ant-design-vue";
 import { scaleApi, watermarkApi } from '@/api/common/water-mark.js';
-import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
+
 import BaseModal from '@/components/baseModal/BaseModal.vue'
 import BacthSkuEditImg from './bacthSkuEditImg.vue';
 import NetImageModal from './netImageModal.vue';
@@ -118,6 +118,7 @@ import ImageTranslation from './imageTranslation.vue';
 import download from '~@/api/common/download';
 import { downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js';
 import PictureLibrary from '@/components/pictureLibrary/index.vue';
+import { processImageSource } from "~/pages/ozon/config/commJs/index";
 
 const props = defineProps({
     disabled: {
@@ -191,14 +192,14 @@ const customRequest = (options) => {
                 ...res,
                 uid: res.url,
                 name: res.originalFilename,
-                url: import.meta.env.VITE_APP_BASE_API + res.url,
+                url: processImageSource(res.url),
             });
         }
     })
 };
 // 图片预览
 const handlePreview = (file) => {
-    previewImage.value = file.url;
+    previewImage.value = processImageSource(file.url);
     previewVisible.value = true;
 };
 

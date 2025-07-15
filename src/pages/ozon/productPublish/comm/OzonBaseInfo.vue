@@ -416,7 +416,7 @@ const assignValues = (a, b) => {
     // 遍历所有属性配置项
     b.forEach((item) => {
         const attrName = item.name;
-        const attrValue = a[attrName];
+        const attrValue = a[attrName];    
         if (!attrValue) return;
 
         // 处理多选类型属性
@@ -572,26 +572,26 @@ watch(() => useOzonProductStore().attributes, (val) => {
          *  "卖家代码" 9024
          */
         const newAttributesCache = processAttributesCache(val);
-        const custAttr = newAttributesCache.filter((a) => !a.isRequired);
-        const filterAttributesCache = custAttr.filter(
-            (a) =>
-                !(a.isAspect && !a.isRequired) &&
-                !(a.isAspect && a.isCollection) &&
-                !(
-                    a.id === 4080 ||
-                    a.id == 8229 ||
-                    a.id == 8789 ||
-                    a.id == 8790 ||
-                    a.id == 4180 ||
-                    a.id == 4191 ||
-                    a.id == 11254 ||
-                    a.id == 9024
-                ) &&
-                !(
-                    a.attributeComplexId == "100001" ||
-                    a.attributeComplexId == "100002"
-                )
-        );
+        // const custAttr = newAttributesCache.filter((a) => !a.isRequired);
+        // const filterAttributesCache = custAttr.filter(
+        //     (a) =>
+        //         !(a.isAspect && !a.isRequired) &&
+        //         !(a.isAspect && a.isCollection) &&
+        //         !(
+        //             a.id === 4080 ||
+        //             a.id == 8229 ||
+        //             a.id == 8789 ||
+        //             a.id == 8790 ||
+        //             a.id == 4180 ||
+        //             a.id == 4191 ||
+        //             a.id == 11254 ||
+        //             a.id == 9024
+        //         ) &&
+        //         !(
+        //             a.attributeComplexId == "100001" ||
+        //             a.attributeComplexId == "100002"
+        //         )
+        // );
 
         let noThemeAttributesCache = newAttributesCache.filter(
             (a) => !a.isAspect
@@ -602,7 +602,7 @@ watch(() => useOzonProductStore().attributes, (val) => {
                 if (!a.isRequired && b.isRequired) return 1;
                 return 0;
             });
-
+            
             let data = noThemeAttributesCache.filter((a) => a.isRequired);
             rules2.value = {};
             let attributes = {};
@@ -656,6 +656,7 @@ watch(() => useOzonProductStore().attributes, (val) => {
             //!未同步属性
             form.attributes = attributes;           
             loopAttributes.value = noThemeAttributesCache;
+ 
         }
         // 引用模板数据回显
         if(Object.keys(tempAttr.value).length > 0) {

@@ -28,7 +28,7 @@
             <div :key="element.uid" @click="tabCheck(element)">
               <div class="file-item">
                 <div class="file-img">
-                  <img :src="element.url" alt="" class="file-img" />
+                  <img :src="processImageSource(element.url)" alt="" class="file-img" />
                   <div class="image-mask"> {{ element.height }} X {{ element.width }} </div>
 
                   <div class="image-check" v-if="element.checked">
@@ -59,6 +59,7 @@ import { useResetReactive } from '@/composables/reset';
 import { scaleApi, watermarkApi } from '@/api/common/water-mark.js';
 import { message } from "ant-design-vue";
 import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
+import { processImageSource } from "./../../config/commJs/index";
 
 const props = defineProps({
   shortCode: {
