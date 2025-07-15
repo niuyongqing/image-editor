@@ -10,6 +10,44 @@
                 </div>
                 <a-table bordered :columns="filteredHeaderList" :data-source="tableData" :pagination="false">
                     <template #headerCell="{ column }">
+                        <template v-if="column.dataIndex === 'colorImg'">
+                            <span><span style="color: #ff0a37">*</span> {{ column.title }}</span>
+                            <a-dropdown>
+                                <a class="ant-dropdown-link" @click.prevent>
+                                    批量
+                                    <DownOutlined />
+                                </a>
+                                <template #overlay>
+                                    <a-menu>
+                                        <a-menu-item @click="bigImgvisible = true" :preview="{ visible: false }">
+                                            查看大图
+                                            <div style="display: none">
+                                                <a-image-preview-group style="width: 90% !important;"
+                                                    :preview="{ visible: bigImgvisible, onVisibleChange: vis => (bigImgvisible = vis) }">
+                                                    <a-image v-for="(item, index) in tableData" :key="index"
+                                                        :src="item.colorImg.length > 0 ? processImageSource(item.colorImg[0]?.url) : ''" />
+                                                </a-image-preview-group>
+                                            </div>
+                                        </a-menu-item>
+                                        <a-menu-item @click="changeImgSize">
+                                            批量改图片尺寸
+                                        </a-menu-item>
+                                        <a-menu-item @click="changeImgTranslation">
+                                            图片翻译
+                                        </a-menu-item>
+                                        <a-sub-menu key="sub1" title="添加水印">
+                                            <a-menu-item v-for="item in watermark" :key="item"
+                                                @click="changeImgWater(item)">
+                                                {{ item.title }}
+                                            </a-menu-item>
+                                        </a-sub-menu>
+                                        <a-menu-item @click="clearImg">
+                                            清空图片
+                                        </a-menu-item>
+                                    </a-menu>
+                                </template>
+                            </a-dropdown>
+                        </template>
                         <template v-if="column.dataIndex === 'sellerSKU'">
                             <span><span style="color: #ff0a37;">*</span>
                                 {{ column.title }}</span>
@@ -38,7 +76,7 @@
                     <template #bodyCell="{ column, record }">
                         <template v-if="column.dataIndex === 'colorImg'">
                             <a-image v-if="record.colorImg.length > 0" style="position: relative;" :width="100"
-                                :src="record.colorImg[0].url" />
+                                :src="processImageSource(record.colorImg[0].url)" />
                             <div v-if="record.colorImg.length > 0" style="position: absolute;top:5px;right: 5px">
                                 <AsyncIcon icon="CloseCircleOutlined" size="20px" color="black"
                                     @click="record.colorImg = []" />
@@ -241,6 +279,10 @@
         <ImageTranslation ref="imageTranslationRef"></ImageTranslation>
         <!-- 批量编辑图片 -->
         <bacthSkuEditImg ref="bacthSkuEditImgRef"></bacthSkuEditImg>
+        <!-- 批量修改颜色样本大小 -->
+        <bacthEditColorImg ref="bacthEditColorImgRef"></bacthEditColorImg>
+        <!-- 颜色样本翻译 -->
+        <colorImgTranslation ref="colorImgTranslationRef"></colorImgTranslation>
     </div>
 </template>
 
@@ -257,11 +299,15 @@ import { useOzonProductStore } from '~@/stores/ozon-product'
 import dragUpload from '../../productPublish/comm/dragUpload.vue';
 import { scaleApi, watermarkListApi, watermarkApi } from "~/api/common/water-mark";
 import EditProdQuantity from '../../productPublish/comm/EditProdQuantity.vue';
-import bacthSkuEditImg from '../skuDragImg/bacthSkuEditImg.vue';
+import SkuDragUpload from "@/pages/ozon/config/component/skuDragImg/index.vue"
+import bacthSkuEditImg from "@/pages/ozon/config/component/skuDragImg/bacthSkuEditImg.vue"
+import ImageTranslation from "@/pages/ozon/config/component/skuDragImg/imageTranslation.vue"
 import { uploadImage } from '@/pages/ozon/config/api/draft';
-import SkuDragUpload from '@/components/skuDragUpload/index.vue';
 import { debounce } from "lodash";
 import { DownOutlined, DownloadOutlined } from '@ant-design/icons-vue';
+import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
+import colorImgTranslation from "./colorImgTranslation.vue";
+import bacthEditColorImg from "./bacthEditColorImg.vue";
 
 const props = defineProps({
     productDetail: Object,
@@ -269,6 +315,9 @@ const props = defineProps({
 const downloadLoading = ref(false); //导出按钮loading
 const bacthSkuEditImgRef = ref();
 const imageTranslationRef = ref();
+const bacthEditColorImgRef = ref();
+const colorImgTranslationRef = ref();
+const bigImgvisible = ref(false);
 
 const batchPriceVis = ref(false)
 const batchOldPriceVis = ref(false)
@@ -735,15 +784,6 @@ const applyImage = (item) => {
     const tableDataList = tableData.value.filter((tableItem) => {
         return titles.includes(String(tableItem.id))
     })
-
-    // tableData.value.forEach((tableItem) => {
-    //     console.log('tableItem', tableItem);
-
-    //     // if (titles.includes(String(tableItem.id))) {
-    //     //     tableItem.imageUrl = item.imageUrl
-    //     // }
-    // })
-
 };
 
 //  批量修改图片尺寸
@@ -773,6 +813,114 @@ const clearAllImages = () => {
 //   return entries
 // };
 
+
+
+// 颜色样本- 批量改图片尺寸
+const changeImgSize = () => {
+  bacthEditColorImgRef.value.showModal(tableData.value)
+}
+// 颜色样本- 添加水印
+const changeImgWater = async (item) => {
+  for (const tabbleItem of tableData.value) {
+    const fileList = tabbleItem.colorImg || [];
+    if (fileList.length === 0) {
+      continue;
+    }
+    const netPathList = fileList.filter((file) => file.url.includes('http')).map((item) => {
+      return item.url
+    });
+    // 只有本地图片
+    if (netPathList.length === 0) {
+      const imagePathList = fileList.filter((file) => !file.url.includes('http')).map((item) => {
+        return item.url
+      });
+      const waterRes = await watermarkApi({
+        imagePathList: imagePathList, //
+        id: item.id,
+      });
+      if (waterRes.code === 200) {
+        const data = waterRes.data || [];
+        data.forEach((item) => {
+          fileList.forEach(v => {
+            if (item.originalFilename === v.url) {
+              v.url = item.url
+              v.name = item.newFileName
+              v.checked = false
+            }
+          })
+        })
+      }
+    } else {
+      // 有网络图片
+      console.log('有网络图片');
+      const fileList = tabbleItem.colorImg || [];
+      for (let index = 0; index < fileList.length; index++) {
+        const fileItem = fileList[index];
+        try {
+          let netImgs = [];
+          const url = fileItem.url;
+          if (url.includes('http')) {
+            let res = await imageUrlUpload({ url });
+            netImgs.push(res.data);
+            fileList.forEach(i => {
+              if (i.url === url) {
+                i.url = res.data.url
+              }
+            });
+            const waterRes = await watermarkApi({
+              imagePathList: netImgs.map((img) => img.url),
+              id: item.id,
+            });
+            if (waterRes.code === 200) {
+              const data = waterRes.data || [];
+              data.forEach((_item) => {
+                fileList.forEach(v => {
+                  if (_item.originalFilename.includes(v.url)) {
+                    v.url = _item.url
+                    v.name = _item.newFileName
+                    v.checked = false
+                  }
+                });
+              })
+            }
+          } else {
+            const imagePathList = fileList.filter((file) => !file.url.includes('http')).map((item) => {
+              return item.url
+            });
+            const waterRes = await watermarkApi({
+              imagePathList: imagePathList, //
+              id: item.id,
+            });
+            if (waterRes.code === 200) {
+              const data = waterRes.data || [];
+              data.forEach((item) => {
+                fileList.forEach(v => {
+                  if (item.originalFilename === v.url) {
+                    v.url = item.url
+                    v.name = item.newFileName
+                    v.checked = false
+                  }
+                })
+              })
+            }
+          }
+        } catch (error) {
+          console.error(error)
+        }
+      }
+    }
+  }
+}
+// 颜色样本- 清空图片
+const clearImg = () => {
+  tableData.value.forEach((item) => {
+    item.colorImg = [];
+  });
+}
+
+const changeImgTranslation = () => {
+  colorImgTranslationRef.value.showModal(tableData.value)
+}
 
 
 watch(() => useOzonProductStore().attributes, val => {

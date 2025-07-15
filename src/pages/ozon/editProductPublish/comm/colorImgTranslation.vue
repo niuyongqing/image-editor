@@ -13,7 +13,7 @@
         <div class="flex flex-wrap  mt-10px h-900px overflow-y-auto">
 
             <div v-for="(item, index) in tableData" :key="index" flex gap-15px h-150px>
-                <a-card v-for="(element, i) in item.imageUrl" :key="element.url" mb-10px ml-10px p-0px rounded-none
+                <a-card v-for="(element, i) in item.colorImg" :key="element.url" mb-10px ml-10px p-0px rounded-none
                     class="file-card flex" hoverable style="width: 125px;">
                     <div :key="element.uid" @click="tabCheck(element)">
                         <div class="file-item">
@@ -31,11 +31,11 @@
                             </div>
                         </div>
                     </div>
-                    <!-- <div w-full>
+                    <div w-full>
                         <div flex justify-between w-full>
                             <a-checkbox v-model:checked="element.checked" @change="check"></a-checkbox>
                         </div>
-                    </div> -->
+                    </div>
                 </a-card>
             </div>
 
@@ -53,18 +53,17 @@
 import { message } from 'ant-design-vue';
 import { CheckOutlined } from '@ant-design/icons-vue';
 import { imageTranslationApi } from '~@/api/common/translation';
-import { processImageSource } from "~/pages/ozon/config/commJs/index";
+import { processImageSource } from "./../../config/commJs/index";
 
 const checkedAll = ref(false);
 const visible = ref(false);
 const loading = ref(false);
 const tableData = ref([]); // 图片列表
-const timer = ref(null);
 
 const showModal = (list = []) => {
     tableData.value = list || [];
     tableData.value.forEach((item) => {
-        item.imageUrl.forEach((v) => {
+        item.colorImg.forEach((v) => {
             v.checked = false
         })
     });
@@ -74,13 +73,13 @@ const showModal = (list = []) => {
 const close = () => {
     tableData.value = [];
     visible.value = false;
-    checkedAll.value = false;
     loading.value = false;
+    checkedAll.value = false;
 };
 
 const handleCheckAllChange = () => {
     tableData.value.forEach(item => {
-        item.imageUrl.forEach(v => {
+        item.colorImg.forEach(v => {
             v.checked = checkedAll.value
         })
     })
@@ -89,20 +88,18 @@ const handleCheckAllChange = () => {
 // 点击选中
 const tabCheck = (element) => {
     element.checked = !element.checked;
-    console.log("element",element);
-    
-    const isAllChecked = tableData.value.every(item => item.imageUrl.every(v => v.checked));
+    const isAllChecked = tableData.value.every(item => item.colorImg.every(v => v.checked));
     checkedAll.value = isAllChecked;
 };
 
-// const check = () => {
-//     const isAllChecked = tableData.value.every(item => item.imageUrl.every(v => v.checked));
-//     checkedAll.value = isAllChecked;
-// };
+const check = () => {
+    const isAllChecked = tableData.value.every(item => item.colorImg.every(v => v.checked));
+    checkedAll.value = isAllChecked;
+};
 
 
 const submit = async () => {
-    const checkedList = tableData.value.flatMap((item, index) => item.imageUrl.filter(v => v.checked).map((img) => {
+    const checkedList = tableData.value.flatMap((item, index) => item.colorImg.filter(v => v.checked).map((img) => {
         return {
             ...img,
             index: index
@@ -139,7 +136,7 @@ const submit = async () => {
                     }
                 });
                 tableData.value.forEach((item) => {
-                    item.imageUrl.forEach((v) => {
+                    item.colorImg.forEach((v) => {
                         list.forEach(item => {
                             if (v.url === item.oldUrl) {
                                 v.url = item.newUrl
