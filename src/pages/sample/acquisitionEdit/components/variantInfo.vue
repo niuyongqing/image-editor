@@ -19,7 +19,23 @@
           <div class="box" style="width: 100%; display: flex; flex-direction: column;">
             <div class="addVariant-btn">
               <a-button @click="variantTheme.isAddVariant = !variantTheme.isAddVariant" style="width: 120px;" type="primary">添加自定义属性</a-button>
-              <div class="addVariant-btn-input" v-show="variantTheme.isAddVariant">
+              <a-modal 
+                v-model:open="variantTheme.isAddVariant" 
+                title="自定义属性" 
+                @ok="val => addVariant('check')"
+                @cancel="val => addVariant('refresh')"
+              >
+                <div class="addVariant-btn-input">
+                  <span>自定义属性名称：</span>
+                  <a-input 
+                    style="width: 300px;"  
+                    v-model:value="variantTheme.addVariantTitle" 
+                    placeholder="请输入自定义属性"
+                    ref="addVariantInputRef"
+                  ></a-input>
+                </div>
+              </a-modal>
+              <!-- <div class="addVariant-btn-input" v-show="variantTheme.isAddVariant">
                 <a-input 
                   style="width: 200px;"  
                   v-model:value="variantTheme.addVariantTitle" 
@@ -29,7 +45,7 @@
                 ></a-input>
                 <async-icon :icon="'CheckOutlined'" @click="addVariant('check')"></async-icon>
                 <async-icon :icon="'UndoOutlined'" @click="addVariant('refresh')"></async-icon>
-              </div> 
+              </div>  -->
             </div>
           </div>
         </a-form-item-rest>
@@ -83,8 +99,7 @@
                 >{{ i.name }}</a-checkbox>
                 <span v-if="i.color" :style="`width: 12px; height: 12px; background-color: ${i.color};`"></span>
                 <div v-show="!i.isEditVal">
-                  
-                  <async-icon :icon="'EditOutlined'" @click.stop="itemIconClick('edit', i, form[item.id])"></async-icon>
+                  <async-icon style="margin-left: 0;" :icon="'EditOutlined'" @click.stop="itemIconClick('edit', i, form[item.id])"></async-icon>
                 </div>
                 <div v-show="i.isEditVal">
                   <a-input 
@@ -123,11 +138,23 @@
               :data-source="variantTheme.tableData"
               :pagination="false"
               rowKey="id"
+              :scroll="{y: 400}"
             >
               <template #headerCell="{ column }">
-                {{ column.title }}
-                <!-- <template>
-                </template> -->
+                <div>
+                  {{ column.title + (['originalPrice', 'currentPrice'].includes(column.key) ? `(${props.productData?.priceInfo?.currency})` : '') }}
+                </div>
+                <div v-if="column.key === 'skuCode'">
+                  (<a-button @click="openModal('sukModal', column, 'foundation')" type="link" >批量</a-button>)
+                  <!-- (
+                    <a-button @click="openModal('sukModal', column, 'foundation')" type="link" >一键生成</a-button>
+                    ·
+                    <a-button @click="openModal('sukModal', column, 'senior')" type="link">高级</a-button>
+                  ) -->
+                </div>
+                <div v-else-if="['originalPrice', 'currentPrice', 'inventory'].includes(column.key)">
+                  (<a-button @click="openModal('numberEditModal', column)" type="link">批量</a-button>)
+                </div>
               </template>
 
               <template #bodyCell="{ column, record: row }">
@@ -148,11 +175,37 @@
                       placeholder="" 
                       style="width: 100%;"
                       :min="0"
-                    />
+                    >
+                      <template #addonAfter>
+                        <a-dropdown>
+                          <AsyncIcon :icon="'SendOutlined'" style="margin-left: 6px; color: #69b1ff;"/>
+                          <template #overlay>
+                            <a-menu>
+                              <a-menu-item>
+                                <div class="dropdown-item" @click="shareData(row, '', column.key, 'all')">
+                                  {{ `应用到全部` }}
+                                </div>
+                              </a-menu-item>
+                              <a-menu-item 
+                                v-for="(dropdownItem, index) in variantTheme.header"
+                                :key="index + dropdownItem.key" 
+                              >
+                                <div class="dropdown-item" @click="shareData(row, dropdownItem.key, column.key, 'identical')">
+                                  {{ `应用到所有 ${row[dropdownItem.key].name} ` }}
+                                </div>
+                              </a-menu-item>
+                            </a-menu>
+                          </template>
+                        </a-dropdown>
+                      </template>
+                    </a-input-number>
                   </div>
                 </template>
               </template>
             </a-table>
+            <div class="table-total">
+              共<span>{{ variantTheme.tableData.length }}</span>个变种
+            </div>
           </div>
         </a-form-item-rest>
       </a-form-item>
@@ -173,7 +226,10 @@
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from '~@/layouts/components/menu/async-icon.vue'
 import bacthVariantStringEdit from './modal/bacthVariantStringEdit.vue'
+import sukModal from './modal/sukModal.vue';
+import numberEditModal from './modal/numberEditModal.vue';
 import { cloneDeep } from 'lodash-es';
+import { message, Modal } from 'ant-design-vue';
 defineOptions({ name: "acquisitionEdit_variantInfo" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:variantInfoData'])
@@ -201,6 +257,8 @@ const modalInfo = reactive({
     name: null,
     components: {
       bacthVariantStringEdit: markRaw(bacthVariantStringEdit),
+      sukModal: markRaw(sukModal),
+      numberEditModal: markRaw(numberEditModal),
     },
     data: {
       key: '',
@@ -221,14 +279,14 @@ const header = computed(() => {
       width: 200
     },
     {
-      title: `价格（${props.productData?.priceInfo?.currency}）`,
+      title: '价格',
       dataIndex: 'originalPrice',
       key: "originalPrice",
       align: "center",
       width: 200
     },
     {
-      title: `促销价（${props.productData?.priceInfo?.currency}）`,
+      title: '促销价',
       dataIndex: 'currentPrice',
       key: "currentPrice",
       align: "center",
@@ -247,6 +305,11 @@ const header = computed(() => {
 watch(() => props.productData?.id, (val) => {
   // console.log(111);
   openFn();
+})
+watch(() => variantTheme.tableData, (val) => {
+  emit('update:variantInfoData', val)
+}, {
+  deep: true,
 })
 function openFn() {
   let { variantAttr, variantInfoList: _variantInfoList } = props.productData
@@ -269,15 +332,15 @@ function openFn() {
       }
       variantInfoList.forEach(i => {
         if (i[key] === item) {
-          i.skuCode = ''
-          i.inventory = 0
-          i[val.id] = {...variantItem}
+          i.skuCode = i.skuCode ?? '';
+          i.inventory = i.inventory ?? 0;
+          i[val.id] = { ...variantItem };
         }
       })
       return variantItem;
     })
     addVariant('check', val)
-    form[val.id].params = [...val.values]
+    // form[val.id].params = [...val.values]
   })
   createHeaderList()
   variantInfoList.forEach((item, index) => item.rowId = index)
@@ -297,12 +360,16 @@ function addVariant(key, val = {}) {
         addTitleValue: '',
         showInput: false,
       }
-      if (!obj.name) return;
+      if (!obj.name) {
+        message.warning('请输入主题名称!')
+        return;
+      }
       variantTheme.variantList.push(obj)
       formItem = {
         id: obj.id,
         name: obj.name,
-        params: []
+        // params: []
+        params: val?.values ? [...val.values] : []
       }
       // variantTheme.$set(form, obj.id, formItem)
       form[obj.id] = formItem
@@ -360,19 +427,25 @@ function setVariantOne(val, index) {
 }
 // 移除主题
 function removeVariant(val, index) {
-  variantTheme.variantList.splice(index, 1)
-  variantTheme.header = variantTheme.header.filter(i => i.key !== val.id)
-  createHeaderList()
-  form[val.id].params.forEach((item, index) => {
-    if (index === (form[val.id].params.length - 1) && variantTheme.header.length > 0) {
-      variantTheme.tableData.forEach(info => {
-        delete info[val.id]
+  Modal.confirm({
+    content: '是否移除主题？',
+    onOk() {
+      variantTheme.variantList.splice(index, 1)
+      variantTheme.header = variantTheme.header.filter(i => i.key !== val.id)
+      createHeaderList()
+      form[val.id].params.forEach((item, index) => {
+        if (index === (form[val.id].params.length - 1) && variantTheme.header.length > 0) {
+          variantTheme.tableData.forEach(info => {
+            delete info[val.id]
+          })
+        } else {
+          variantTheme.tableData = variantTheme.tableData.filter(i => i[val.id].id !== item.id)
+        }
       })
-    } else {
-      variantTheme.tableData = variantTheme.tableData.filter(i => i[val.id].id !== item.id)
-    }
+      delete form[val.id]
+    },
+    onCancel() {}
   })
-  delete form[val.id]
 }
 // 添加主题选项
 function variantAddItem(data) {
@@ -543,32 +616,56 @@ function generateVariantInfo(e, val, formItem) {
       })
     }
   }
-}
-// 打开弹窗
-function openModal(component, type = '', key = '') {
+};
+/**
+ * // 打开弹窗
+ * @param component 组件名称
+ * @param column 当前表头列
+ * @param type 弹窗类型
+ */
+function openModal(component, column, type = '') {
   modalInfo.name = modalInfo.components[component];
   modalInfo.data = {
-    key,
+    prop: column?.key,
     type,
+    title: column?.title,
     headerList: variantTheme.header,
     variantList: variantTheme.variantList,
-    variantInfo: variantTheme.tableData
+    variantInfo: variantTheme.tableData,
   };
   nextTick(() => {
     modalInfo.open = !modalInfo.open;
   })
 }
 function modalConfirm(val) {
-  console.log(val);
-  if (val.component === "bacthVariantStringEdit") {
-    variantTheme.variantList = [...val.variantList]
-    variantTheme.variantList.forEach(variantItem => {
-      titleIconClick('check', variantItem, form[variantItem.id])
-      variantItem.values.forEach(item => {
-        itemIconClick('check', item, form[variantItem.id])
+  // console.log(val);
+  switch (val.component) {
+    case 'bacthVariantStringEdit':
+      variantTheme.variantList = [...val.variantList]
+      variantTheme.variantList.forEach(variantItem => {
+        titleIconClick('check', variantItem, form[variantItem.id])
+        variantItem.values.forEach(item => {
+          itemIconClick('check', item, form[variantItem.id])
+        })
       })
-    })
+      break;
+    case 'sukModal':
+    case 'numberEditModal':
+      variantTheme.tableData = val.variantInfo
+      break;
+    default:
+      break;
   }
+}
+// 更改到其他sku
+function shareData(row, target, val, type) {
+  variantTheme.tableData.forEach(item => {
+    if (type === 'all') {
+      item[val] = row[val]
+    } else if (type === 'identical' && item[target].id === row[target].id) {
+      item[val] = row[val]
+    }
+  })
 }
 // 生成一个随机数
 function createRandom() {
@@ -585,10 +682,6 @@ function createRandom() {
     display: flex;
     .addVariant-btn-input {
       margin-left: 16px;
-    }
-    .anticon {
-      margin-left: 6px;
-      cursor: pointer;
     }
   }
   .variant-attribute-box {
@@ -612,10 +705,6 @@ function createRandom() {
         .variant-title-text {
           margin-right: 6px;
         }
-        .anticon {
-          margin-left: 6px;
-          cursor: pointer;
-        }
       }
     }
     .variant-content {
@@ -635,8 +724,22 @@ function createRandom() {
       padding: 0 20px 20px;
     }
   }
+  .anticon {
+    margin-left: 6px;
+    cursor: pointer;
+  }
   .variantInfo-box {
     padding: 20px;
+    .table-total {
+      margin-top: 10px;
+      span {
+        font-weight: 700;
+        margin: 0 6px;
+      }
+    }
+    // .row-input-content {
+    //   display: flex;
+    // }
   }
 }
 </style>

@@ -252,13 +252,13 @@ async function modalOk() {
 }
 function strEditFn(val) {
   let name = val
+  if (replaceString.isRemove) {
+    name = name.replaceAll(replaceString.removeVal, '')
+  }
   // 去除中文
   if (replaceString.isRemoveChinese) {
     const regex = new RegExp('[\\u4e00-\\u9fa5\\u3000-\\u303f\\uff00-\\uffef]', 'g');
     name = name.replaceAll(regex, '')
-  }
-  if (replaceString.isRemove) {
-    name = name.replaceAll(replaceString.removeVal, '')
   }
   if (replaceString.isReplace) {
     name = name.replaceAll(replaceString.oldVal, replaceString.newVal)
