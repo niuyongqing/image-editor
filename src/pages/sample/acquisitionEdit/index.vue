@@ -14,6 +14,7 @@
     <!-- 描述信息 -->
     <descriptionInfo :product-data="productInfo.data" v-model:description-info-data="formData.descriptionInfoData"/>
     <br>
+    <!-- 包装运输 -->
     <packagingInfo :product-data="productInfo.data" v-model:packaging-info-data="formData.packagingInfoData"/>
     <br>
     <div class="footer-box">
@@ -99,10 +100,12 @@ async function saveForm() {
     } = res.data;
   
     let { header, tableData } = formData.variantInfoData;
+    // 变种属性
     let variantAttr = {}
     header.forEach(item => {
       variantAttr[item.title] = tableData.map(i => i[item.key].name)
     })
+    // 变种信息
     let variantInfoList = tableData.map(item => {
       let obj = {
         "currency": priceInfo.currency,
@@ -117,7 +120,12 @@ async function saveForm() {
       })
       return obj;
     })
-  
+    // 包装运输信息
+    let basePackageInfo = {}
+    Object.keys(formData.packagingInfoData).forEach(key => {
+      basePackageInfo[key] = formData.packagingInfoData[key] ? String(formData.packagingInfoData[key]) : undefined;
+    })
+    
     let params = {
       id,
       platform,
@@ -129,7 +137,7 @@ async function saveForm() {
       ...formData.descriptionInfoData,
       packageInfo: {
         ...(packageInfo || {}),
-        basePackageInfo: { ...formData.packagingInfoData }
+        basePackageInfo,
       },
       status,
     }

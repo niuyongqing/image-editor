@@ -64,7 +64,12 @@ watch(() => formData, (val) => {
 })
 // 页面赋值
 function openFn() {
-  
+  let { weight, width, height, length } = (props.productData.packageInfo?.basePackageInfo || {})
+  // console.log({ weight, width, height, length });
+  formData.weight = weight
+  formData.width = width
+  formData.height = height
+  formData.length = length
 }
 </script>
 <style lang="less" scoped>

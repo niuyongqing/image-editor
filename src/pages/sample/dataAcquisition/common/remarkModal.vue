@@ -76,7 +76,10 @@ watch(() => props.modalOpen, (val, oldVal) => {
   }
 })
 watch(() => modalOpen.value, (val, oldVal) => {
-  !val && emit('update:modalOpen', false)
+  if (!val) {
+    emit('update:modalOpen', false)
+    loading.value = false
+  }
 })
 function modalOpenFn() {
   let row = props.modalData.selectedRow[0]

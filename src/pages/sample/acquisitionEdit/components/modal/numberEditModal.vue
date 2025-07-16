@@ -176,6 +176,7 @@ function save(params) {
         default:
           break;
       };
+      item[prop] = item[prop] > 0 ? item[prop] : 0;
       if (props.modalData.prop !== 'inventory') {
         switch (currentData.resultRule) {
           case 'toFixed2':

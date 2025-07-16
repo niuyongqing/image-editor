@@ -45,7 +45,7 @@
           >
             <template #previewMask>点击{{ item.checked ? '取消':'选中' }}</template>
           </a-image>
-          <div class="img-size">
+          <div class="img-size" v-if="item.width">
             <span>{{ `${item.width} × ${item.height}` }}</span>
             <!-- <span>{{ (item.size/1024).toFixed() }}KB</span> -->
           </div>
@@ -106,7 +106,10 @@ watch(() => props.modalOpen, (val, oldVal) => {
   }
 })
 watch(() => modalOpen.value, (val, oldVal) => {
-  !val && emit('update:modalOpen', false)
+  if (!val) {
+    emit('update:modalOpen', false)
+    loading.value = false
+  }
 })
 function modalOpenFn() {
   formData.imgData = props.iamgeList.map(item => {

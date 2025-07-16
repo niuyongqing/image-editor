@@ -56,7 +56,7 @@
                 <template #previewMask>点击{{ item.checked ? '取消':'选中' }}</template>
               </a-image>
               <div class="img-size">
-                <span>{{ `${item.width} × ${item.height}` }}</span>
+                <span >{{`${item.width} × ${item.height}` }}</span>
                 <span>{{ (item.size/1024).toFixed() }}KB</span>
               </div>
               <div class="img-box-foot">

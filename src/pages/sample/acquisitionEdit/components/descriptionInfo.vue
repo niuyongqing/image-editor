@@ -130,8 +130,15 @@ function openFn() {
   } catch (error) {
     formData.simpleDesc = simpleDesc
   }
-  formData.detailDesc = props.productData.detailDesc.includes('<iframe') ? '' : props.productData.detailDesc.replaceAll('\"', '"').replaceAll('&#10;', '\n').replaceAll('&amp;', '&')
+  let detailDesc = props.productData.detailDesc.includes('<iframe') ? '' : props.productData.detailDesc
+  // formData.detailDesc = `<p>${detailDesc}</p>`
+  // // formData.detailDesc = props.productData.detailDesc.includes('<iframe') ? '' : props.productData.detailDesc.replaceAll('\"', '"').replaceAll('&#10;', '\n').replaceAll('&amp;', '&')
   formData.detailImageList = [...props.productData.detailImageList]
+  // return;
+  nextTick(() => {
+    _this.$refs.webDetailRef.editorRef.focus()
+    _this.$refs.webDetailRef.editorRef.dangerouslyInsertHtml(`<p>${detailDesc}</p>`)
+  })
 }
 function sizeModalOpen() {
   // 提取所有图片
