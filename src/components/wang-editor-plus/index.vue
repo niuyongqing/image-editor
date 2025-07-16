@@ -19,7 +19,7 @@
     
     <!-- 图片空间 -->
     <pictureLibrary 
-      :platform="props.platform"
+      :platform="props?.platform"
       v-model:modal-open="pictureLibraryModal.modalOpen"
       @imageListConfirm="imageListConfirm"
     ></pictureLibrary>
@@ -184,7 +184,9 @@
     setDangerousHtml,
     getValueHtml,
     cleatEditorValue,
-    disableEditor
+    disableEditor,
+
+    editorRef
   })
 
   watch(

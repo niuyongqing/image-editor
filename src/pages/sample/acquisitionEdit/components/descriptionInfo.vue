@@ -14,15 +14,17 @@
         />
       </a-form-item>
       <a-form-item label="详细描述" name="detailDesc">
-        <descriptionEditor
-          style="width: 60%;"
-          v-model="formData.detailDesc"
-          v-model:isFocused="pictureLibraryModal.btnDisabled"
-          ref="webDetailRef"
-          :editor-config="editorConfig"
-          @edit-image-size="sizeModalOpen"
-          :platform="props.productData?.classPlatform"
-        />
+        <a-form-item-rest>
+          <descriptionEditor
+            style="width: 60%;"
+            v-model="formData.detailDesc"
+            v-model:isFocused="pictureLibraryModal.btnDisabled"
+            ref="webDetailRef"
+            :editor-config="editorConfig"
+            @edit-image-size="sizeModalOpen"
+            :platform="props.productData?.classPlatform"
+          />
+        </a-form-item-rest>
       </a-form-item>
     </a-form>
   </a-card>
@@ -48,7 +50,7 @@ defineOptions({ name: "acquisitionEdit_descriptionInfo" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:descriptionInfoData'])
 const props = defineProps({
-  baseInfoData: {
+  descriptionInfoData: {
     type: Object,
     default: () => {}
   },
@@ -59,7 +61,8 @@ const props = defineProps({
 })
 const formData = reactive({
   simpleDesc: '', // 建议描述
-  detailDesc: '', // 详细描述
+  detailDesc: "", // 详细描述
+  detailImageList: [],
 })
 const sizeModal = reactive({
   modalOpen: false,
@@ -84,8 +87,13 @@ const editorConfig = {
           let src = import.meta.env.VITE_APP_BASE_API + res.data.url
           insertFn(src)
         })
-      }
-    }
+      },
+    },
+    // insertImage: {
+    //   onInsertedImage(val) {
+    //     formData.detailImageList.push(val.src)
+    //   },
+    // },
   }
 }
 watch(() => props.productData?.id, (val) => {
@@ -98,6 +106,9 @@ watch(() => formData, (val) => {
     simpleDesc: val.simpleDesc,
     detailDesc: val.detailDesc,
   }
+  let detailImageList = _this.$refs.webDetailRef.editorRef.getElemsByType('image')
+  // console.log({detailImageList});
+  obj.detailImageList = detailImageList.map(i => i.src)
   emit('update:descriptionInfoData', obj)
 }, {
   deep: true
@@ -119,7 +130,8 @@ function openFn() {
   } catch (error) {
     formData.simpleDesc = simpleDesc
   }
-  formData.detailDesc = props.productData.detailDesc.includes('<iframe') ? '' : props.productData.detailDesc
+  formData.detailDesc = props.productData.detailDesc.includes('<iframe') ? '' : props.productData.detailDesc.replaceAll('\"', '"').replaceAll('&#10;', '\n').replaceAll('&amp;', '&')
+  formData.detailImageList = [...props.productData.detailImageList]
 }
 function sizeModalOpen() {
   // 提取所有图片

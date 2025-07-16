@@ -296,7 +296,10 @@ watch(() => props.productData?.id, (val) => {
 })
 watch(() => formData, (val) => {
   // console.log({ val });
-  let obj = { ...val }
+  let obj = {
+    imageList: val.image_list.map(i => i.src),
+    videoList: val.video_list.map(i => i.url),
+  }
   if (val.image_list.length > 0) {
     _this.$refs.ERPformRef?.clearValidate()
   }
