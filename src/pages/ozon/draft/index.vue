@@ -185,13 +185,14 @@
                                 <div class="pb-30px">
                                     <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
                                         <div class="sku-price">
-                                            <a-tooltip placement="top">
+                                            <a-tooltip style="margin-right: 10px" effect="dark" placement="top">
                                                 <template #title>
-                                                    <span>{{ warehouseName(item.offerId, item.warehouseList) }}: {{
-                                                        item.stock }}</span>
+                                                    <div v-for="(el, ind) in item.warehouseList" :key="ind">
+                                                        <span>{{ el.warehouseName }}</span>:
+                                                        <span>{{ el.present || 0 }}</span>
+                                                    </div>
                                                 </template>
-                                                <span> {{ [null, undefined, ""].includes(item.stock) ? '-' : item.stock
-                                                    }} </span>
+                                                <span>{{ item.stock || 0 }}</span>
                                             </a-tooltip>
                                         </div>
                                     </div>
@@ -428,7 +429,7 @@ const accountName = (account) => {
     return shopAccount.value.find(item => item.account === account)?.simpleName
 };
 const remarkColor = (color) => {
-    return colors.find(item => item.id === color)?.color
+    return colors.find(item => item.id == color)?.color
 }
 
 const primaryImage = (primaryImage) => {
@@ -458,9 +459,9 @@ const copyText = (text) => {
     copy(text);
     message.success(`复制成功：${text}`);
 };
-const warehouseName = (offerId, warehouseList) => {
-    return warehouseList.find(item => item.offerId === offerId)?.warehouseName
-}
+// const warehouseName = (offerId, warehouseList) => {
+//     return warehouseList.find(item => item.offerId === offerId)?.warehouseName
+// }
 
 // 店铺设置
 const shopSet = () => {
@@ -606,7 +607,18 @@ const editProduct = (row) => {
 
 // 发布
 const publishProduct = (row = {}) => {
-
+    Modal.confirm({
+        title: '提示',
+        content: '确定要发布吗？',
+        onOk: async () => {
+            batchPublishToPlatform({
+                gatherProductIdList: [row.gatherProductId],
+            }).then((res) => {
+                message.success("操作成功");
+                getList();
+            })
+        }
+    });
 };
 
 // 备注
@@ -683,6 +695,7 @@ const getBrandList = () => {
 };
 // 关闭价格
 const handleEditPriceClose = () => {
+    defType.value = [];
     clearSelectList();
     editPriceVisible.value = false;
     getList();

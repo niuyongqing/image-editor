@@ -301,17 +301,17 @@
                                                 <DownOutlined />
                                             </a-button>
                                             <template #overlay>
-                                                <!-- <a-menu>
+                                                <a-menu>
                                                     <a-menu-item @click="applyAllImage(item)">
                                                         所有变种
                                                     </a-menu-item>
-                                                    <a-menu-item v-for="item in applyMenuList" :key="item.value"
+                                                    <!--  <a-menu-item v-for="item in applyMenuList" :key="item.value"
                                                         @click="applyImage(item)">
                                                         <span>同</span>
                                                         <span px-3px>{{ item.title }}</span>
                                                         <span>的变种</span>
-                                                    </a-menu-item>
-                                                </a-menu> -->
+                                                    </a-menu-item>-->
+                                                </a-menu>
                                             </template>
                                         </a-dropdown>
 
@@ -357,17 +357,16 @@ import {
     checkData, rearrangeColorFields, handleTheme, processImageSource
 } from "../../config/commJs/index"
 import { publishHead, otherList } from '../../config/tabColumns/skuHead';
-import { cloneDeep, debounce } from "lodash";
+import { cloneDeep, debounce, pick } from "lodash";
 import { uploadImage } from '@/pages/ozon/config/api/draft';
 import { DownOutlined, DownloadOutlined } from '@ant-design/icons-vue';
 import { downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js';
 import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
 import download from '~@/api/common/download';
 
-import { omit, pick } from 'lodash'
-import SkuDragUpload from '../skuDragImg/index.vue';
-import bacthSkuEditImg from '../skuDragImg/bacthSkuEditImg.vue';
-import ImageTranslation from '../skuDragImg/imageTranslation.vue';
+import SkuDragUpload from "@/pages/ozon/config/component/skuDragImg/index.vue";
+import bacthSkuEditImg from "@/pages/ozon/config/component/skuDragImg/bacthSkuEditImg.vue";
+import ImageTranslation from "@/pages/ozon/config/component/skuDragImg/imageTranslation.vue";
 
 const props = defineProps({
     categoryAttributesLoading: Boolean,
