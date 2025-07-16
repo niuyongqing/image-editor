@@ -180,11 +180,17 @@
   function modify(tableData) {
     const fn = getAddLogic()
 
-    tableData.forEach(record => {
-      record.skuList.forEach(item => {
+    outerLoop: for (const record of tableData) {
+      for (const item of record.skuList) {
         fn(item)
-      })
-    })
+        if (item.price <= 0) {
+          item.price = null
+          message.warning('修改后不能为负数或0, 请核实后再修改哦~')
+
+          break outerLoop
+        }
+      }
+    }
   }
 
   function cancel() {

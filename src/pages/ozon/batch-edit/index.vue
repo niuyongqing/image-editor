@@ -133,7 +133,7 @@
             size="large"
             class="text-base"
           >
-            <a-tooltip title="一键生成"><FormOutlined /></a-tooltip>
+            <a-tooltip title="一键生成"><FormOutlined @click="SKUCodeModalOpen = true" /></a-tooltip>
             <a-tooltip title="还原"><UndoOutlined @click="restore(column.key)" /></a-tooltip>
             <a-tooltip title="删除"><DeleteOutlined @click="del(column.key)" /></a-tooltip>
           </a-space>
@@ -237,6 +237,7 @@
           />
           <div
             v-else
+            class="min-h-6"
             @click="cellActived(index, column.key)"
           >
             {{ record.title }}
@@ -255,6 +256,7 @@
           />
           <div
             v-else
+            class="min-h-6"
             @click="cellActived(index, column.key)"
           >
             {{ record.detailDesc.slice(0, 255) }}
@@ -305,6 +307,8 @@
             />
             <div
               v-else
+              class="h-6 truncate"
+              :title="item.offerId"
               @click="cellActived(index, column.key, i)"
             >
               {{ item.offerId }}
@@ -326,7 +330,8 @@
             />
             <div
               v-else
-              class="h-6"
+              class="h-6 truncate"
+              :title="item.SKUTitle"
               @click="cellActived(index, column.key, i)"
             >
               {{ item.SKUTitle }}
@@ -345,11 +350,14 @@
               v-model:value="item.price"
               :id="`${index}_${column.key}_${i}`"
               :precision="2"
+              :min="0"
+              :max="99999"
               :controls="false"
               @blur="cellAddress = ''"
             />
             <div
               v-else
+              class="h-6"
               @click="cellActived(index, column.key, i)"
             >
               {{ item.price }}
@@ -368,11 +376,14 @@
               v-model:value="item.oldPrice"
               :id="`${index}_${column.key}_${i}`"
               :precision="2"
+              :min="0"
+              :max="99999"
               :controls="false"
               @blur="cellAddress = ''"
             />
             <div
               v-else
+              class="h-6"
               @click="cellActived(index, column.key, i)"
             >
               {{ item.oldPrice }}
@@ -493,6 +504,12 @@
       @ok="variantImageOk"
     />
 
+    <SKUCodeModal
+      v-model:open="SKUCodeModalOpen"
+      ref="SKU_code_modal"
+      @ok="SKUCodeOk"
+    />
+
     <SKUTitleModal
       v-model:open="SKUTitleModalOpen"
       :attr-count-max-length="attrCountMaxLength"
@@ -545,6 +562,7 @@
   import DescModal from './components/DescModal.vue'
   import VATModal from './components/VATModal.vue'
   import VariantImageModal from './components/VariantImageModal.vue'
+  import SKUCodeModal from './components/SKUCodeModal.vue'
   import SKUTitleModal from './components/SKUTitleModal.vue'
   import PriceModal from './components/PriceModal.vue'
   import OldPriceModal from './components/OldPriceModal.vue'
@@ -782,8 +800,8 @@
       title: '变种信息',
       children: [
         { title: '变种图片', key: 'images', width: 100 },
-        { title: '变种名称', key: 'attrName', width: 150 },
-        { title: '变种SKU', key: 'offerId', width: 100 },
+        { title: '变种名称', key: 'attrName', width: 120 },
+        { title: '变种SKU', key: 'offerId', width: 120 },
         { title: 'SKU标题', key: 'SKUTitle', width: 120 },
         { title: '售价', key: 'price', width: 80 },
         { title: '原价', key: 'oldPrice', width: 80 },
@@ -800,7 +818,7 @@
     WHOLE_COLUMNS[i].customHeaderCell = () => ({ style: { backgroundColor: COLOR_LIST[i].headerColor } })
     WHOLE_COLUMNS[i].children.forEach(item => {
       item.customHeaderCell = () => ({ style: { backgroundColor: COLOR_LIST[i].bodyColor } })
-      if (item.title === '变种名称') {
+      if (['变种名称', '变种SKU', 'SKU标题'].includes(item.title)) {
         item.customCell = () => ({ style: { backgroundColor: COLOR_LIST[i].bodyColor, maxWidth: '200px' } })
       } else {
         item.customCell = () => ({ style: { backgroundColor: COLOR_LIST[i].bodyColor } })
@@ -977,6 +995,14 @@
 
     curRecord = {}
     curItem = {}
+  }
+
+  // 变种 SKU 弹窗
+  const SKUCodeModalOpen = ref(false)
+  const SKUCodeModalRef = useTemplateRef('SKU_code_modal')
+
+  function SKUCodeOk() {
+    SKUCodeModalRef.value.submit(tableData.value)
   }
 
   // SKU 标题 弹窗
