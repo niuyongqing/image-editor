@@ -4,7 +4,7 @@
             <draftSidebar @draftUpdateClass="draftUpdateClass" @waitUpdateClass="waitUpdateClass"
                 @onlineUpdateClass="onlineUpdateClass" :count="paginations.total" />
         </div>
-        <div>
+        <div w-full>
             <a-breadcrumb separator=">" style="margin-left: 15px; margin-bottom: 8px;">
                 <a-breadcrumb-item>Ozon</a-breadcrumb-item>
                 <a-breadcrumb-item> {{ typeMap }} </a-breadcrumb-item>
@@ -350,7 +350,7 @@ const editStockList = ref([]); //修改库存
 const defType = ref([]);
 const stockShops = ref([]);
 
-const formData = reactive({
+const { state: formData, reset: resetForm } = useResetReactive({
     offerId: "",
     account: "",
     sku: "",
@@ -583,10 +583,6 @@ const getList = () => {
         });
 };
 
-// const updateClass = (value) => {
-//     showDraftTable.value = value;
-// };
-
 // 批量移动分类
 async function typeNodeClick(node) {
     if (selectedRowList.value.length < 1) return message.warning('请选择商品！')
@@ -749,6 +745,10 @@ const getStore = () => {
 
 
 const draftUpdateClass = () => {
+    clearSelectList();
+    paginations.pageNum = 1;
+    resetForm();
+    getList();
     type.value = 'draft';
 };
 const waitUpdateClass = () => {
