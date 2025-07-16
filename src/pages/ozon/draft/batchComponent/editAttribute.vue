@@ -232,7 +232,6 @@
                             </a-form-item>
                         </div>
 
-                        <!-- to do ... -->
                         <div class="rounded-md p-2.5 mb-2.5" style="border: 1px solid #ccc;"
                             v-if="checkedListAll.includes('attr')">
                             <a-form-item label="合并属性：">
@@ -638,7 +637,6 @@ const onSubmit = () => {
                     price: e.price,
                     oldPrice: e.oldPrice,
                     offerId: e.offerId,
-                    warehouseList: null
                 }
             }),
         };
@@ -902,8 +900,6 @@ const fieldHandlers = {
     weight: handleWeight,
     dimensions: handleDimensions
 };
-
-
 
 
 </script>

@@ -92,7 +92,7 @@
             </div>
         </a-modal>
 
-        <!--  account ??? to do -->
+        <!--  account -->
         <CategoryModal ref="categoryModalRef" :account="account" @select="handleSelect"></CategoryModal>
     </div>
 </template>
@@ -663,7 +663,7 @@ const saveEditCategory = () => {
         }
     });
 
-    batchSave(params).then((res) => {
+    batchSave(relationReqList).then((res) => {
         if (res.code === 200) {
             message.success('保存成功');
             emits('success');
