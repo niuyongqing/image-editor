@@ -1,8 +1,8 @@
-<!-- 售价弹窗 -->
+<!-- 重量 弹窗 -->
 <template>
   <a-modal
     :open="open"
-    title="批量修改售价"
+    title="批量修改重量"
     width="35%"
     @cancel="cancel"
     @ok="ok"
@@ -19,14 +19,14 @@
             :precision="2"
             :disabled="radio !== '1'"
             placeholder="示例: 1.00"
-            class="w-104"
+            class="w-100"
           ></a-input-number>
         </a-radio>
       </div>
 
       <div>
         <a-radio value="2">
-          <span>按现有价格 </span>
+          <span>按现有重量 </span>
           <!-- antd 里的陈年遗害; 在 radio 中的 select 下拉框会自动收起, 需要阻止默认点击事件 -->
           <a-select
             v-model:value="addType"
@@ -34,7 +34,7 @@
             :options="ADD_TYPE_OPTIONS"
             class="w-30"
             @click="e => e.preventDefault()"
-          ></a-select>
+          />
           <a-input-number
             v-model:value="relativeNum"
             :controls="false"
@@ -43,15 +43,8 @@
             :precision="2"
             :disabled="radio !== '2'"
             placeholder="示例: 1.00"
-            class="w-40 mx-2"
-          ></a-input-number>
-          <a-select
-            v-model:value="saveType"
-            :disabled="radio !== '2'"
-            :options="SAVE_TYPE_OPTIONS"
-            class="w-30"
-            @click="e => e.preventDefault()"
-          ></a-select>
+            class="w-68 mx-2"
+          />
         </a-radio>
       </div>
     </a-radio-group>
@@ -79,17 +72,11 @@
     { label: '百分比加', value: '5' },
     { label: '百分比减', value: '6' }
   ]
-  const SAVE_TYPE_OPTIONS = [
-    { label: '保留2位小数', value: '1' },
-    { label: '四舍五入', value: '2' },
-    { label: '进位取整', value: '3' }
-  ]
 
   const radio = ref('1')
   const absoluteNum = ref(null)
   const addType = ref('1')
   const relativeNum = ref(null)
-  const saveType = ref('1')
 
   // 判断并获取到修改的逻辑
   function getAddLogic() {
@@ -102,7 +89,7 @@
       }
 
       return function (item) {
-        item.price = absoluteNum.value
+        item.weight = absoluteNum.value
       }
     } else {
       // 相对 按数量或百分比增减
@@ -112,66 +99,34 @@
         return
       }
 
-      let addFn, saveFn
-
       switch (addType.value) {
         case '1':
-          addFn = function (item) {
-            item.price += relativeNum.value
+          return function (item) {
+            item.weight += relativeNum.value
           }
-          break
         case '2':
-          addFn = function (item) {
-            item.price -= relativeNum.value
+          return function (item) {
+            item.weight -= relativeNum.value
           }
-          break
         case '3':
-          addFn = function (item) {
-            item.price *= relativeNum.value
+          return function (item) {
+            item.weight *= relativeNum.value
           }
-          break
         case '4':
-          addFn = function (item) {
-            item.price /= relativeNum.value
+          return function (item) {
+            item.weight /= relativeNum.value
           }
-          break
         case '5':
-          addFn = function (item) {
-            item.price *= 1 + relativeNum.value / 100
+          return function (item) {
+            item.weight *= 1 + relativeNum.value / 100
           }
-          break
         case '6':
-          addFn = function (item) {
-            item.price *= 1 - relativeNum.value / 100
+          return function (item) {
+            item.weight *= 1 - relativeNum.value / 100
           }
 
         default:
-          break
-      }
-
-      switch (saveType.value) {
-        case '1':
-          saveFn = function (item) {
-            item.price = Number(item.price.toFixed(2))
-          }
-          break
-        case '2':
-          saveFn = function (item) {
-            item.price = Math.round(item.price)
-          }
-          break
-        case '3':
-          saveFn = function (item) {
-            item.price = Math.ceil(item.price)
-          }
-
-        default:
-          break
-      }
-
-      return function (item) {
-        addFn(item)
-        saveFn(item)
+          return
       }
     }
   }
@@ -192,7 +147,6 @@
     absoluteNum.value = null
     addType.value = '1'
     relativeNum.value = null
-    saveType.value = '1'
 
     emits('update:open', false)
   }

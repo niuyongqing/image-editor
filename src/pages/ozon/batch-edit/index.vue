@@ -199,7 +199,7 @@
             size="large"
             class="text-base"
           >
-            <a-tooltip title="修改"><FormOutlined /></a-tooltip>
+            <a-tooltip title="修改"><FormOutlined @click="weightModalOpen = true" /></a-tooltip>
             <a-tooltip title="还原"><UndoOutlined @click="restore(column.key)" /></a-tooltip>
             <a-tooltip title="删除"><DeleteOutlined @click="del(column.key)" /></a-tooltip>
           </a-space>
@@ -527,6 +527,12 @@
       ref="size_modal"
       @ok="sizeOk"
     />
+
+    <WeightModal
+      v-model:open="weightModalOpen"
+      ref="weight_modal"
+      @ok="weightOk"
+    />
   </div>
 </template>
 
@@ -544,6 +550,7 @@
   import OldPriceModal from './components/OldPriceModal.vue'
   import StockModal from './components/StockModal.vue'
   import SizeModal from './components/SizeModal.vue'
+  import WeightModal from './components/WeightModal.vue'
 
   // 取出产品 id
   const ids = JSON.parse(localStorage.getItem('ids'))
@@ -670,7 +677,7 @@
     const attrCountList = []
     tableData.value.forEach(item => {
       item.skuList.forEach(sku => {
-        attrCountList.push(sku.cookedAttrValueList.length)
+        attrCountList.push(sku.cookedAttrValueList?.length || 0)
       })
     })
 
@@ -1093,6 +1100,14 @@
 
   function sizeOk() {
     sizeModalRef.value.modify(tableData.value)
+  }
+
+  // 重量弹窗
+  const weightModalOpen = ref(false)
+  const weightModalRef = useTemplateRef('weight_modal')
+
+  function weightOk() {
+    weightModalRef.value.modify(tableData.value)
   }
 
   // 移除

@@ -1,4 +1,4 @@
-<!-- 原价 弹窗 -->
+<!-- 原价弹窗 -->
 <template>
   <a-modal
     :open="open"
