@@ -4,13 +4,13 @@
     <template #title>
       包装运输
     </template>
-    <a-form :model="formData" ref="ERPformRef">
-      <a-form-item label="重量" name="weight" :label-col="{ span: 3 }">
+    <a-form :model="formData" ref="ERPformRef" :label-col="{ span: 3 }">
+      <a-form-item label="重量" name="weight">
         <a-input-number :min="0" v-model:value="formData.weight" placeholder="请输入重量，示例:0.001">
           <template #addonAfter>kg</template>
         </a-input-number>
       </a-form-item>
-      <a-form-item label="尺寸" name="size" :label-col="{ span: 3 }">
+      <a-form-item label="尺寸" name="size">
         <a-form-item-rest>
           <div class="size-box">
             <a-input-number :min="0" v-model:value="formData.length" placeholder="长">

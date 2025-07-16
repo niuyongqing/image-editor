@@ -307,7 +307,11 @@ watch(() => props.productData?.id, (val) => {
   openFn();
 })
 watch(() => variantTheme.tableData, (val) => {
-  emit('update:variantInfoData', val)
+  let obj = {
+    tableData: val,
+    header: variantTheme.header
+  }
+  emit('update:variantInfoData', obj)
 }, {
   deep: true,
 })
@@ -596,7 +600,7 @@ function generateVariantInfo(e, val, formItem) {
         list = _list
       })
       list.forEach(item => {
-        item[formItem.id] = {...val}
+        item[formItem.id] = {...val};
         keys.forEach(key => {
           item[key] = ''
         })
