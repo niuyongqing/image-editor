@@ -694,8 +694,10 @@ const onSubmit = () => {
                     }));
                     console.log("newStockArray");
 
+
                     // 将新数组赋值给 a 数组中对应元素的 stock 属性
                     itemA.skuList.forEach(e => {
+                        e.stock = null
                         e.warehouseList = newStockArray
                     });
                 } else {

@@ -663,7 +663,9 @@ const saveEditCategory = () => {
         }
     });
 
-    batchSave(relationReqList).then((res) => {
+    batchSave({
+        "relationReqList": relationReqList
+    }).then((res) => {
         if (res.code === 200) {
             message.success('保存成功');
             emits('success');

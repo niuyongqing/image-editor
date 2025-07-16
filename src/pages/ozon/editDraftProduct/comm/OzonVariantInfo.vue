@@ -519,6 +519,29 @@ const confirm = (selectedValues) => {
     tableData.value = commProceData();
 }
 
+const commProceData = () => {
+    let cartesianProducts = cartesianProduct(attributeList.value);
+    let newTableData = processResult(cartesianProducts);
+    let minLength = Math.min(newTableData.length, tableData.value.length);
+    for (let i = 0; i < minLength; i++) {
+        // 将b数组中对应下标的数据赋值到a数组中
+        newTableData[i].skuTitle = tableData.value[i].skuTitle;
+        newTableData[i].sellerSKU = tableData.value[i].sellerSKU;
+        newTableData[i].price = tableData.value[i].price;
+        newTableData[i].oldPrice = tableData.value[i].oldPrice;
+        newTableData[i].colorImg = tableData.value[i].colorImg;
+        newTableData[i].imageUrl = tableData.value[i].imageUrl;
+        newTableData[i].quantity = tableData.value[i].quantity;
+        newTableData[i].warehouseList = tableData.value[i].warehouseList;
+        newTableData[i].packageHeight = tableData.value[i].packageHeight;
+        newTableData[i].packageLength = tableData.value[i].packageLength;
+        newTableData[i].packageWidth = tableData.value[i].packageWidth;
+        newTableData[i].packageWeight = tableData.value[i].packageWeight;
+    }
+    return newTableData
+};
+
+
 // 添加自定义属性
 const selectAttrList = (list) => {
     newAttribute.value = list;
@@ -767,7 +790,7 @@ const pushValue = (index, item, key, record) => {
     let newTableData = processResult(cartesianProducts);
     let minLength = Math.min(newTableData.length, tableData.value.length);
     for (let i = 0; i < minLength; i++) {
-        const name = tableData.value[i][keyName]
+        // const name = tableData.value[i][keyName]
         // 将b数组中对应下标的数据赋值到a数组中
         newTableData[i].skuTitle = tableData.value[i].skuTitle;
         newTableData[i].sellerSKU = tableData.value[i].sellerSKU;
