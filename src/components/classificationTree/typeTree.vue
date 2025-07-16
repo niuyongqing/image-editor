@@ -123,6 +123,7 @@ async function getClassListFn(id = '0') {
         // selectNode([node.id], { expanded: undefined, node })
       })
     } else {
+      treeData.selectedKeys = [];
       treeData.currentClass = ''
       emit('update:currentClass', '')
       emit('update:nodePath', '')
