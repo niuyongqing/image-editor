@@ -321,13 +321,6 @@ const getHistoryAttr = (historyCategoryId, account) => {
         if(res?.data) {
             form.attributes = assignValues(resObj, loopAttributes.value)
         }
-        // this.$set(this.form, "attributes", resObj);
-        // form.attributes = resObj
-        // // this.form.attributes = res?.data
-        // //   ? JSON.parse(res?.data)
-        // //   : this.form.attributes;
-        // // let a = this.assignValues(this.form.attributes, this.loopAttributes);
-        // this.$refs.ruleForm2.clearValidate();
     });
 }
 

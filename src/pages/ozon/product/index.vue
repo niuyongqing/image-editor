@@ -107,26 +107,10 @@
                   <a-menu-item key="remark"> 批量备注 </a-menu-item>
                   <a-menu-item key="delete"> 批量删除 </a-menu-item>
                   <a-menu-divider />
-
-                  <!-- <a-menu-item key="title">
-                                        批量修改标题
-                                    </a-menu-item>
-                                    <a-menu-item key="vat">
-                                        批量修改税额
-                                    </a-menu-item> -->
                   <a-menu-item key="price"> 批量修改售价 </a-menu-item>
                   <a-menu-item key="oldPrice"> 批量修改原价 </a-menu-item>
                   <a-menu-item key="stock"> 批量修改库存 </a-menu-item>
                   <a-menu-item key="all"> 全属性修改 </a-menu-item>
-                  <!-- <a-menu-item key="minPrice">
-                                        批量修改最低价
-                                    </a-menu-item>
-                                    <a-menu-item key="weight">
-                                        批量修改重量
-                                    </a-menu-item>
-                                    <a-menu-item key="size">
-                                        批量修改尺寸
-                                    </a-menu-item> -->
                 </a-menu>
               </template>
               <a-button type="primary">
@@ -137,6 +121,19 @@
             <a-button type="primary" @click="edit()" :disabled="selectedRows.length !== 1">编 辑</a-button>
             <a-button type="primary" @click="copyItems()" :disabled="selectedRows.length === 0">复 制</a-button>
             <a-button type="primary" @click="syncHisAttr()" :loading="syncLoading">同步历史分类</a-button>
+            <!-- <a-dropdown trigger="click">
+              <a-button type="primary">
+                分类管理
+                <DownOutlined />
+              </a-button>
+              <template #overlay>
+                <a-menu>
+                  <typeTree v-model:current-class="currentClass" v-model:node-path="nodePath" platform="ozon"
+                    @update:currentClass="updateCurrentClass" ref="typeTreeRef" @nodeClick="typeNodeClick">
+                  </typeTree>
+                </a-menu>
+              </template>
+            </a-dropdown> -->
           </a-space>
         </div>
         <div>
@@ -681,6 +678,8 @@ import {
   DownOutlined,
 } from "@ant-design/icons-vue";
 import download from "~/api/common/download";
+import typeTree from '@/components/classificationTree/typeTree.vue';
+import { updateCategoryProduct } from "~/pages/sample/dataAcquisition/js/api.js";
 
 const { copy } = useClipboard();
 const OzonProduct = ref(null);
@@ -749,6 +748,8 @@ const storeOption = ref([]);
 const shopCurryList = ref([]);
 const asyncErrData = ref([]);
 const brandList = ref([]);
+const currentClass = ref('0');
+const nodePath = ref('');
 const errorColumns = [
   {
     title: "错误字段",
@@ -837,6 +838,27 @@ const getStateColor = (state) => {
   };
   return colorMap[state] || "default";
 };
+
+// 批量移动分类
+// async function typeNodeClick(node) {
+//   if (selectedRows.value.length < 1) return message.warning('请选择商品！')
+//   console.log("selectedRows",selectedRows.value);
+  
+//   try {
+//     let ids = selectedRows.value.map(i => i.id);
+//     let params = {
+//       "ids": ids.join(), // 商品信息的唯一标识(多个用英文逗号分割)
+//       "productCategoryId": node.id   //分类ID
+//     }
+//     await updateCategoryProduct(params)
+//     getList()
+//   } catch (error) {
+//     console.error(error)
+//   }
+// };
+// const updateCurrentClass = (value) => {
+//   console.log(value);
+// };
 
 // 复制
 const copyText = (text) => {
@@ -1157,14 +1179,14 @@ const handleMenuClick = (e) => {
       },
     });
   } else {
-    defType.value = e.keyPath;
-    editPriceVisible.value = true;
     for (let i = 0; i < selectedRows.value.length; i++) {
       if (selectedRows.value[i].state == "已归档") {
         message.error("归档商品不可修改库存，请取消！");
         return;
       }
     }
+    defType.value = e.keyPath;
+    editPriceVisible.value = true;
     stockShops.value = syncOneList.value.map((e) => e.account);
     getStore();
     getBrandList();

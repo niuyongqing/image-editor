@@ -280,7 +280,7 @@ const getInitialFormData = () => ({
     minSelect3: "",
     minSelect4: "",
     weightValue: 1,
-    weightSelect: "",
+    weightSelect: "add",
     weight: null,
     padStart: "",
     padEnd: "",
@@ -599,25 +599,28 @@ const computeFunctions = {
         oldPrice * ((100 - batchComputeValue) / 100),
 };
 
-
-
 const onSubmit = () => {
     if (props.selectedRows.length == 0) return;
     loading.value = true;
-
+    console.log("selectedRows",props.selectedRows);
+    
     // 标题数据处理
     let arr = props.selectedRows.map((item) => {
         return {
             waitId: item.waitId,
-            // name: item.name,
-            // vat: item.vat,
+            name: item.name,
+            vat: item.vat,
             skuList: item.skuList.map(e => {
                 return {
                     attributes: e.attributes,
                     price: e.price,
                     oldPrice: e.oldPrice,
                     offerId: e.offerId,
-                    warehouseList: null
+                    warehouseList: null,
+                    depth: e.depth,
+                    height: e.height,
+                    weight: e.weight,
+                    width:e.width,
                 }
             }),
             account: item.account
@@ -684,15 +687,31 @@ const onSubmit = () => {
     priceList.forEach(itemA => {
         itemA.skuList.forEach(e => {
             if (!form.oldPrice && !form.toOldPrice) {
-                e.oldPrice = null
+                e.oldPrice = ""
             }
             if (!form.price && !form.toPrice) {
-                e.price = null
+                e.price = ""
             }
         })
     });
 
     console.log('priceList--', priceList);
+    // 新增字段验证逻辑
+    const hasInvalidValue = priceList.some(item => 
+        item.skuList.some(sku => {
+            // 检查每个字段：空值允许，有值时必须>0
+            const priceInvalid = sku.price !== '' && Number(sku.price) <= 0;
+            const oldPriceInvalid = sku.oldPrice !== '' && Number(sku.oldPrice) <= 0;
+            const weightInvalid = sku.weight !== '' && Number(sku.weight) <= 0;
+            return priceInvalid || oldPriceInvalid || weightInvalid;
+        })
+    );
+
+    if (hasInvalidValue) {
+        message.error('价格和重量必须为大于0的正数');
+        loading.value = false;
+        return;
+    }
     waitBathUpdate(priceList).then(res => {
         message.success(res.msg)
     }).finally(() => {
@@ -801,30 +820,29 @@ const handleMinPrice = (row, form) => {
 // 封装处理重量的函数
 const handleWeight = (row, form) => {
     if (form.weightValue === 1) {
-        row.packageWeight = form.packageWeight;
+        row.skuList.forEach(e => {
+            e.weight = form.packageWeight;
+        })
     } else {
-        switch (form.weightSelect) {
-            case 'add':
-                row.packageWeight = Number(row.packageWeight) + Number(form.weight);
-                break;
-            case 'reduction':
-                row.packageWeight = Number(row.packageWeight) - Number(form.weight);
-                break;
-            case 'take':
-                row.packageWeight = Number(row.packageWeight) * Number(form.weight);
-                break;
-            default:
-                break;
-        }
+        row.skuList.forEach(e => {
+            e.weight = endResult(
+                Number(e.weight),
+                Number(form.weight),
+                form.weightSelect,
+                commList[1].option[0].value  // 修正为使用保留规则列表(commList[1])
+            );
+        });
     }
     return row;
 };
 
 // 封装处理尺寸的函数
 const handleDimensions = (row, form) => {
-    row.packageWidth = form.packageWidth;
-    row.packageHeight = form.packageHeight;
-    row.packageLength = form.packageLength;
+    row.skuList.forEach(e => {
+        e.depth = form.packageDepth;
+        e.height = form.packageHeight;
+        e.width = form.packageWidth;
+    })
     return row;
 };
 

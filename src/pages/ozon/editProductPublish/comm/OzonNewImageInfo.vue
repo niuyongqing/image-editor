@@ -227,8 +227,6 @@ watch(() => props.productDetail, val => {
             } else if (item.id === 21845) {
                 form.coverUrl = processImageSource(item.values[0].value)
             }
-            // console.log('item',item);
-            
         });
         copyAttr.forEach(e => {
             if (e.id === 11254) {
@@ -237,8 +235,6 @@ watch(() => props.productDetail, val => {
                 form.description = e.values[0].value
             }
         })
-        // console.log('form', form);
-
     }
 })
 </script>

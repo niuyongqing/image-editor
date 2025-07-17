@@ -421,15 +421,13 @@ import {
 } from "../../config/commJs/index";
 import { publishHead, otherList } from "../../config/tabColumns/skuHead";
 import { uploadImage } from "@/pages/ozon/config/api/draft";
-import { omit, pick } from 'lodash'
 import SkuDragUpload from "@/pages/ozon/config/component/skuDragImg/index.vue"
 import bacthSkuEditImg from "@/pages/ozon/config/component/skuDragImg/bacthSkuEditImg.vue"
 import ImageTranslation from "@/pages/ozon/config/component/skuDragImg/imageTranslation.vue"
-import { downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js';
-import { debounce, cloneDeep } from "lodash";
+import { debounce, cloneDeep, pick } from "lodash";
 import batchSetColor from "../../editWaitProduct/comm/batchSetColor.vue";
 import download from '~@/api/common/download';
-import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
+import { imageUrlUpload,downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js'
 import colorImgTranslation from "./colorImgTranslation.vue";
 import bacthEditColorImg from "./bacthEditColorImg.vue";
 
@@ -879,25 +877,6 @@ const pushValue = (index, item) => {
     message.error("变种属性值不能有相同的，请修改");
     return;
   }
-  // 处理表格数据
-  // let cartesianProducts = cartesianProduct(attributeList.value);
-  // let newTableData = processResult(cartesianProducts);
-  // let minLength = Math.min(newTableData.length, tableData.value.length);
-  // for (let i = 0; i < minLength; i++) {
-  //   // 将b数组中对应下标的数据赋值到a数组中
-  //   newTableData[i].skuTitle = tableData.value[i].skuTitle;
-  //   newTableData[i].sellerSKU = tableData.value[i].sellerSKU;
-  //   newTableData[i].price = tableData.value[i].price;
-  //   newTableData[i].oldPrice = tableData.value[i].oldPrice;
-  //   newTableData[i].colorImg = tableData.value[i].colorImg;
-  //   newTableData[i].quantity = tableData.value[i].quantity;
-  //   newTableData[i].imageUrl = tableData.value[i].imageUrl;
-  //   newTableData[i].warehouseList = tableData.value[i].warehouseList;
-  //   newTableData[i].packageHeight = tableData.value[i].packageHeight;
-  //   newTableData[i].packageLength = tableData.value[i].packageLength;
-  //   newTableData[i].packageWidth = tableData.value[i].packageWidth;
-  //   newTableData[i].packageWeight = tableData.value[i].packageWeight;
-  // }
   tableData.value = commProceData();
 
   console.log("111", tableData.value);
@@ -1263,6 +1242,10 @@ const handleExportAllImages = async () => {
       .map((imgItem) => imgItem
         .map((i) => i.url
           .replace(import.meta.env.VITE_APP_BASE_API, "")));
+    if(imageList.flat().length === 0) {
+      message.warning('请先添加图片！');
+      return;
+    }
     downloadLoading.value = true;
     let res = await downloadAllImage({ imageList: imageList.flat() });
     message.success('导出成功');

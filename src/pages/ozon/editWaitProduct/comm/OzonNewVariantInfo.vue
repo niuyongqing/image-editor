@@ -430,7 +430,7 @@ import {
 } from "../../config/commJs/index";
 import { publishHead, otherList } from "../../config/tabColumns/skuHead";
 import { uploadImage } from '@/pages/ozon/config/api/draft';
-import { debounce, cloneDeep, omit, pick } from "lodash";
+import { debounce, cloneDeep, pick } from "lodash";
 import batchSetColor from "./batchSetColor.vue";
 import SkuDragUpload from "@/pages/ozon/config/component/skuDragImg/index.vue"
 import bacthSkuEditImg from "@/pages/ozon/config/component/skuDragImg/bacthSkuEditImg.vue"
@@ -438,7 +438,7 @@ import ImageTranslation from "@/pages/ozon/config/component/skuDragImg/imageTran
 import colorImgTranslation from "./colorImgTranslation.vue";
 import bacthEditColorImg from "./bacthEditColorImg.vue";
 import download from '~@/api/common/download';
-import { downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js';
+import { downloadAllImage, imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js';
 import { FileOutlined, SettingOutlined, DownOutlined, DownloadOutlined } from '@ant-design/icons-vue';
 
 const props = defineProps({
@@ -1343,6 +1343,10 @@ const handleExportAllImages = async () => {
       .map((imgItem) => imgItem
         .map((i) => i.url
           .replace(import.meta.env.VITE_APP_BASE_API, "")));
+    if (imageList.flat().length === 0) {
+      message.warning('请先添加图片！');
+      return;
+    }
     downloadLoading.value = true;
     let res = await downloadAllImage({ imageList: imageList.flat() });
     message.success('导出成功');
