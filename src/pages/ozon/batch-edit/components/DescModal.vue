@@ -74,17 +74,17 @@
   function modify(tableData) {
     tableData.forEach(record => {
       if (descForm.padStart) {
-        record.desc = descForm.padStart + record.desc
+        record.detailDesc = descForm.padStart + record.detailDesc
       }
       if (descForm.padEnd) {
-        record.desc += descForm.padEnd
+        record.detailDesc += descForm.padEnd
       }
       // 替换
       if (descForm.textOld && descForm.textNew) {
-        record.desc = record.desc.replaceAll(descForm.textOld, descForm.textNew)
+        record.detailDesc = record.detailDesc.replaceAll(descForm.textOld, descForm.textNew)
       }
       if (descForm.capitalCase) {
-        record.desc = record.desc.slice(0, 1).toUpperCase() + record.desc.slice(1)
+        record.detailDesc = record.detailDesc.slice(0, 1).toUpperCase() + record.detailDesc.slice(1)
       }
     })
   }

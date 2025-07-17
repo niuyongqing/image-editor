@@ -27,9 +27,9 @@
   const emits = defineEmits(['update:open', 'ok'])
 
   const VAT_OPTIONS = [
-    { label: '免税', value: 0 },
-    { label: '10%', value: 0.1 },
-    { label: '20%', value: 0.2 }
+    { label: '免税', value: '0' },
+    { label: '10%', value: '0.1' },
+    { label: '20%', value: '0.2' }
   ]
   const VAT = ref(null)
 

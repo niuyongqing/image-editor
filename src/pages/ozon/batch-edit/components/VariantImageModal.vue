@@ -336,6 +336,7 @@
   }
 
   function confirmMenuClick({ key }) {
+    // 图片不允许为空
     const params = {
       confirmKey: key,
       variantImages: variantImages.value

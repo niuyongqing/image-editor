@@ -251,7 +251,7 @@
             :id="`${index}_${column.key}`"
             :rows="4"
             show-count
-            :maxlength="255"
+            :maxlength="6000"
             @blur="cellAddress = ''"
           />
           <div
@@ -569,6 +569,7 @@
   import StockModal from './components/StockModal.vue'
   import SizeModal from './components/SizeModal.vue'
   import WeightModal from './components/WeightModal.vue'
+  import { message } from 'ant-design-vue'
 
   // 取出产品 id
   const ids = JSON.parse(localStorage.getItem('ids'))
@@ -582,19 +583,17 @@
   const COPY_KEY_LIST = ['title', 'detailDesc', 'VAT', 'skuList']
 
   /** 获取产品详情 */
-  // let rawTableData = []
   const tableData = ref([])
   const accountOptions = ref([])
   const warehouseTableData = ref([])
   getDetails()
   function getDetails() {
     batchQueryDetailApi({ ids }).then(res => {
-      // rawTableData = res.data || []
       const data = res.data || []
       const accountList = []
       const list = data.map(item => {
         accountList.push(item.account)
-        const mainImage = item.skuList[0].primaryImage[0]
+        const mainImage = item.skuList[0].primaryImage?.[0] || ''
         item.skuList.forEach(sku => {
           sku.SKUTitle = sku.name
 
@@ -852,9 +851,9 @@
   })
 
   const VAT_OPTIONS = [
-    { label: '免税', value: 0 },
-    { label: '10%', value: 0.1 },
-    { label: '20%', value: 0.2 }
+    { label: '免税', value: '0' },
+    { label: '10%', value: '0.1' },
+    { label: '20%', value: '0.2' }
   ]
 
   // 在 SKUList 里的字段
@@ -1148,8 +1147,54 @@
 
   /** 保存 */
   function submit() {
-    console.log('submit')
-    localStorage.removeItem('ids')
+    // 校验属性非空 (不可为空: [产品标题, 变种SKU, 售价, 尺寸, 重量])
+    let flag = false
+    loop: for (const item of tableData.value) {
+      if (!item.title) {
+        flag = true
+        break loop
+      }
+      for (const sku of item.skuList) {
+        if (!sku.offerId || !sku.price || !sku.depth || !sku.width || !sku.height || !sku.weight) {
+          flag = true
+          break loop
+        }
+      }
+    }
+    if (flag) {
+      message.warning('产品标题, 变种SKU, 售价, 尺寸, 重量 不可为空, 请修改后保存')
+
+      return
+    }
+
+    const params = cloneDeep(tableData.value)
+    params.forEach(item => {
+      item.name = item.title
+      item.vat = item.VAT
+      item.skuList.forEach(sku => {
+        sku.name = sku.SKUTitle
+        delete sku.SKUTitle
+        delete sku.cookedAttrNameList
+        delete sku.cookedAttrValueList
+        delete sku.attrName
+      })
+
+      // 删除辅助的属性
+      delete item.mainImage
+      delete item.title
+      delete item.VAT
+      // 删除备份数据
+      COPY_KEY_LIST.forEach(key => {
+        delete item[`${key}Copy`]
+      })
+    })
+
+    batchUpdateProductApi(params).then(res => {
+      message.success('修改成功')
+      // window.close()
+    })
+
+    // localStorage.removeItem('ids')
   }
 </script>
 
