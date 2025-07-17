@@ -17,7 +17,7 @@
                             <a-menu>
                                 <typeTree v-model:current-class="currentClass" v-model:node-path="nodePath"
                                     :classifyTreeData="treeData" ref="typeTreeRef" @update:nodePath="updateNodePath"
-                                    default-class platform="ozon">
+                                    default-class platform="public">
                                 </typeTree>
                             </a-menu>
                         </template>
@@ -50,7 +50,7 @@
             </a-form>
         </a-card>
 
-        <typeManage v-model:modal-open="typeManageOpen" platform="ozon" @updateTree="updateTree">
+        <typeManage v-model:modal-open="typeManageOpen" platform="public" @updateTree="updateTree">
         </typeManage>
     </div>
 </template>
@@ -62,6 +62,13 @@ import typeTree from './typeTree.vue';
 import typeManage from '@/components/classificationTree/typeManage.vue';
 import { getClassList } from '@/components/classificationTree/api.js';
 
+const props = defineProps({
+    productDetail: {
+        type: Object,
+        default: () => { }
+    }
+})
+
 const updateNodePath = (nodePath) => {
     const nodePaths = nodePath.split(' > ');
     nodeName.value = nodePaths[nodePaths.length - 1]
@@ -72,7 +79,7 @@ const formData = reactive({
     erpProductId: '',
     sourceUrl: '',
 });
-const sourceUrlList = ref([{}]); // 来源URL列表
+const sourceUrlList = ref([{ sourceUrl: '' }]); // 来源URL列表
 const openDropdown = ref(false); // 下拉框是否打开
 
 const typeTreeEl = useTemplateRef('typeTreeRef');
@@ -82,6 +89,23 @@ const nodePath = ref('');
 const typeManageOpen = ref(false);
 const nodeName = ref('');
 const selectedKeys = ref([]);
+
+watch(() => props.productDetail, (val) => {
+    if (val) {
+        currentClass.value = val?.customCategoryId ?? '';
+        const list = val.sourceUrlList ?? [];
+        if (list.length === 0) {
+            sourceUrlList.value = [{ sourceUrl: '' }];
+        } else {
+            sourceUrlList.value = list.map((item) => { return { sourceUrl: item } });
+        }
+    }
+})
+
+defineExpose({
+    currentClass,
+    sourceUrlList
+})
 
 // 更新当前选中节点
 const updateTree = async () => {
@@ -154,7 +178,6 @@ const getTreeData = () => {
     })
 };
 onMounted(() => {
-    currentClass.value = '';
     getTreeData();
 })
 </script>

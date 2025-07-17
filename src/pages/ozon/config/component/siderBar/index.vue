@@ -1,32 +1,32 @@
 <template>
-    <a-card :bordered="true" style="margin: 0 auto; border-radius: 0px">
-        <template #title>
-            <div flex justify-between class="nav-title">
-                <div> 在线产品 </div>
-            </div>
-        </template>
-
-        <div :class="active === 'all' ? 'ozon-active' : 'default'">
-            <div text-left pl-10px cursor-pointer @click="selectActive('all')">
-                「ozon」采集箱(<span>{{ count }}</span>)</div>
-        </div>
-    </a-card>
-    <a-card :bordered="true" style="margin: 0 auto; border-radius: 0px">
-        <template #title>
-            <div flex justify-between class="nav-title">
-                <div> 待发布产品 </div>
-                <div>
-                    <a-button type="link" @click="typeManageOpen = true">
-                        <SettingOutlined />
-                    </a-button>
+    <div w-300px>
+        <a-card :bordered="true" style="margin: 0 auto; border-radius: 0px">
+            <template #title>
+                <div flex justify-between class="nav-title">
+                    <div> 在线产品 </div>
                 </div>
+            </template>
+            <div :class="active === 'all' ? 'ozon-active' : 'default'">
+                <div text-left pl-10px cursor-pointer @click="selectActive('all')">
+                    「ozon」采集箱(<span>{{ count }}</span>)</div>
             </div>
-        </template>
-        <div py-10px px-5px>
-            <typeTree v-model:current-class="currentClass" v-model:node-path="nodePath" platform="public"
-                @update:currentClass="waitCurrentClass" ref="waitTypeTreeRef">
-            </typeTree>
-            <!-- <div :class="active === 'wait' ? 'ozon-active' : 'default'">
+        </a-card>
+        <a-card :bordered="true" style="margin: 0 auto; border-radius: 0px">
+            <template #title>
+                <div flex justify-between class="nav-title">
+                    <div> 待发布产品 </div>
+                    <div>
+                        <a-button type="link" @click="typeManageOpen = true">
+                            <SettingOutlined />
+                        </a-button>
+                    </div>
+                </div>
+            </template>
+            <div py-10px px-5px>
+                <typeTree v-model:current-class="currentClass" platform="public" @update:currentClass="waitCurrentClass"
+                    ref="waitTypeTreeRef">
+                </typeTree>
+                <!-- <div :class="active === 'wait' ? 'ozon-active' : 'default'">
                 <div text-left pl-10px cursor-pointer @click="selectActive('wait')">
                     定时发布(<span>112</span>)</div>
             </div>
@@ -34,31 +34,30 @@
                 <div text-left pl-10px cursor-pointer @click="selectActive('timing')">
                     定时中(<span>112</span>)</div>
             </div> -->
-            <div :class="active === 'fail' ? 'ozon-active' : 'default'">
-                <div text-left pl-10px cursor-pointer @click="selectActive('fail')">
-                    发布失败(<span text-red-5 font-bold>112</span>)</div>
-            </div>
-        </div>
-    </a-card>
-
-    <a-card :bordered="true" style="margin: 0 auto; border-radius: 0px">
-        <template #title>
-            <div flex justify-between class="nav-title">
-                <div> 在线产品 </div>
-                <div>
-                    <a-button type="link" @click="typeManageOpen = true">
-                        <SettingOutlined />
-                    </a-button>
+                <div :class="active === 'fail' ? 'ozon-active' : 'default'">
+                    <div text-left pl-10px cursor-pointer @click="selectActive('fail')">
+                        发布失败(<span text-red-5 font-bold>112</span>)</div>
                 </div>
             </div>
-        </template>
-        <div py-10px px-5px>
-            <typeTree v-model:current-class="currentClass" v-model:node-path="nodePath" platform="public"
-                @update:currentClass="onlineCurrentClass" ref="onlineTypeTreeRef">
-            </typeTree>
-        </div>
-    </a-card>
-
+        </a-card>
+        <a-card :bordered="true" style="margin: 0 auto; border-radius: 0px">
+            <template #title>
+                <div flex justify-between class="nav-title">
+                    <div> 在线产品 </div>
+                    <div>
+                        <a-button type="link" @click="typeManageOpen = true">
+                            <SettingOutlined />
+                        </a-button>
+                    </div>
+                </div>
+            </template>
+            <div py-10px px-5px>
+                <typeTree v-model:current-class="currentClass" platform="public"
+                    @update:currentClass="onlineCurrentClass" ref="onlineTypeTreeRef">
+                </typeTree>
+            </div>
+        </a-card>
+    </div>
     <!-- 在线产品分类管理 -->
     <typeManage v-model:modal-open="typeManageOpen" platform="public" @updateTree="updateTree">
     </typeManage>
@@ -68,9 +67,9 @@
 import { SettingOutlined } from '@ant-design/icons-vue';
 import typeTree from '@/components/classificationTree/typeTree.vue';
 import typeManage from '@/components/classificationTree/typeManage.vue';
-import { useRouter } from 'vue-router';
-
+import { useRouter, useRoute } from 'vue-router';
 const router = useRouter();
+const route = useRoute();
 const { count } = defineProps({
     count: {
         type: Number,
@@ -82,11 +81,8 @@ const onlineTypeTreeEl = useTemplateRef('onlineTypeTreeRef'); // 在线产品分
 const publishManageEl = useTemplateRef('publishManageRef');
 
 const currentClass = ref('0');
-const nodePath = ref('');
 const typeManageOpen = ref(false);
-const waitPublishManageOpen = ref(false);
 const active = ref('all');
-
 
 //  更新在线产品信息
 const updateTree = () => {
@@ -94,13 +90,8 @@ const updateTree = () => {
     onlineTypeTreeEl.value.updateTree();
 };
 
-const waitPublishUpdateTree = () => {
-    publishManageEl.value.updateTree();
-};
-
 const selectActive = (e) => {
     active.value = e;
-    waitTypeTreeEl.value.updateTree();
     router.push({
         path: '/platform/ozon/draft'
     })
@@ -110,6 +101,7 @@ const selectActive = (e) => {
 const waitCurrentClass = (value) => {
     if (!value) return;
     active.value = '';
+    currentClass.value = value;
     router.push({
         path: '/platform/ozon/waitPublish'
     })
@@ -119,6 +111,7 @@ const waitCurrentClass = (value) => {
 const onlineCurrentClass = (value) => {
     if (!value) return;
     active.value = '';
+    currentClass.value = value;
     router.push({
         path: '/platform/ozon/product'
     })
@@ -126,6 +119,16 @@ const onlineCurrentClass = (value) => {
 };
 
 const emits = defineEmits(['draftUpdateClass', 'waitUpdateClass', 'onlineUpdateClass']);
+onMounted(() => {
+    if (route.path.includes('draft')) {
+        active.value = 'all';
+    } else if (route.path.includes('waitPublish')) {
+        active.value = 'wait';
+    } else if (route.path.includes('product')) {
+        active.value = 'online';
+    }
+})
+
 </script>
 <style lang="less" scoped>
 :deep(.ant-card-body) {
