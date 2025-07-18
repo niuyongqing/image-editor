@@ -158,6 +158,7 @@
   import NetImageModal from '@/components/skuDragUpload/netImageModal.vue'
   import BacthSkuEditImg from '@/components/skuDragUpload/bacthSkuEditImg.vue'
   import ImageTranslation from '@/components/skuDragUpload/imageTranslation.vue'
+  import { message } from 'ant-design-vue'
 
   const props = defineProps({
     open: {
@@ -337,6 +338,12 @@
 
   function confirmMenuClick({ key }) {
     // 图片不允许为空
+    if (variantImages.value.length === 0) {
+      message.warning('变种图片不能为空')
+
+      return
+    }
+
     const params = {
       confirmKey: key,
       variantImages: variantImages.value

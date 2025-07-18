@@ -214,6 +214,7 @@
         <template v-if="column.title === '图片'">
           <a-image
             :width="80"
+            :height="80"
             :src="record.mainImage"
             class="rounded-md"
           />
@@ -1191,10 +1192,11 @@
 
     batchUpdateProductApi(params).then(res => {
       message.success('修改成功')
-      // window.close()
+      localStorage.removeItem('ids')
+      setTimeout(() => {
+        window.close()
+      }, 2000)
     })
-
-    // localStorage.removeItem('ids')
   }
 </script>
 
