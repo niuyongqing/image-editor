@@ -21,6 +21,7 @@
             v-model:isFocused="pictureLibraryModal.btnDisabled"
             ref="webDetailRef"
             :editor-config="editorConfig"
+            :toolbarConfig="toolbarConfig"
             @edit-image-size="sizeModalOpen"
             :platform="props.productData?.classPlatform"
           />
@@ -95,6 +96,13 @@ const editorConfig = {
     //   },
     // },
   }
+}
+const toolbarConfig = {
+  insertKeys: {
+    index: 30,
+    keys: ['myBtn1']
+  },
+  excludeKeys: ['group-video']
 }
 watch(() => props.productData?.id, (val) => {
   // console.log(111);

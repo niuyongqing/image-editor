@@ -176,7 +176,6 @@ function save(params) {
         default:
           break;
       };
-      item[prop] = item[prop] > 0 ? item[prop] : 0;
       if (props.modalData.prop !== 'inventory') {
         switch (currentData.resultRule) {
           case 'toFixed2':
@@ -193,6 +192,7 @@ function save(params) {
         }
       }
     }
+    item[prop] = item[prop] > 0 ? item[prop] : 0;
   })
   let obj = {
     component: 'numberEditModal',

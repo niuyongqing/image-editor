@@ -78,6 +78,7 @@
 import { ref, reactive, onMounted, computed, watchPostEffect, watch } from 'vue'
 import { imageUrlUpload } from '../../js/api';
 import { scaleApi, watermarkApi } from '~@/api/common/water-mark';
+import { message } from 'ant-design-vue';
 defineOptions({ name: "bacthImageEdit" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:modalOpen', 'bacthImageEditSize'])
@@ -173,6 +174,10 @@ async function modalOk() {
       }
     }
     let imagePathList = formData.selectedImgList.map(i => i.url)
+    if (imagePathList.some(i => includes('http'))) {
+      loading.value = false
+      return message.error('修改失败，请重试！')
+    }
     let params = {
       newWidth: formData.width,
       newHeight: formData.height,

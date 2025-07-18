@@ -221,6 +221,7 @@ async function modalOk() {
   if (modified.state.length < 1) {
     return message.warning('请选择修改项！')
   } 
+  let variantList = cloneDeep(modified.variantList)
   modified.variantList.forEach(variantItem => {
     variantItem.showInput = !variantItem.showInput
     variantItem.values.forEach(item => {
@@ -242,6 +243,13 @@ async function modalOk() {
         item.name = strEditFn(item.name)
       })
     })
+  }
+  let emptyName = modified.variantList.some(variantItem => {
+    return !variantItem.name || variantItem.values.some(item => !item.name)
+  })
+  if (emptyName) {
+    modified.variantList = variantList
+    return message.warning('该操作会使部分被修改字段被消除，请重新设置！')
   }
   let obj = {
     component: 'bacthVariantStringEdit',
