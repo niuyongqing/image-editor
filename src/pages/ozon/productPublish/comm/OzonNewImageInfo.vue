@@ -10,7 +10,7 @@
                         <a-textarea v-model:value="form.description" :rows="10" :maxlength="6000" showCount />
                     </div>
                 </a-form-item>
-                <a-form-item label="JSON 丰富内容：" name="jsons">
+                <a-form-item label="JSON富文本：" name="jsons">
                     <div>
                         <a-select v-model:value="form.jsonTemp" size="large" allowClear style="width: 30%"
                             :options="tempList">

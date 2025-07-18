@@ -12,7 +12,7 @@
                   <v-nodes :vnodes="menu" />
                   <a-divider style="margin: 4px 0" />
                   <a-space style="padding: 4px 8px">
-                    <a-button type="link">
+                    <a-button type="link" @click="tempPage">
                       <template #icon>
                         <SettingOutlined />
                       </template>
@@ -104,11 +104,11 @@
           :scroll="{ x: 2000 }">
           <template #headerCell="{ column }">
             <template v-if="column.dataIndex === 'colorImg'">
-              <span><span style="color: #ff0a37">*</span> {{ column.title }}</span>
+              <div><span style="color: #ff0a37">*</span> {{ column.title }}</div>
               <a-dropdown>
                 <a class="ant-dropdown-link" @click.prevent>
-                  批量
-                  <DownOutlined />
+                  (批量
+                  <DownOutlined />)
                 </a>
                 <template #overlay>
                   <a-menu>
