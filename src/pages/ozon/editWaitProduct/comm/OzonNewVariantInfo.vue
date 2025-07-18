@@ -1,11 +1,33 @@
 <template>
   <div id="OzonNewVariantInfoCont">
-    <a-card title="SKU信息" class="text-left" :loading="categoryAttributesLoading">
-      <a-card title="变种属性" class="text-left mx-50">
+    <a-card title="SKU信息" class="text-left text-16px" :loading="categoryAttributesLoading">
+      <a-card class="mx-50">
+        <template #title>
+          <div class="flex align-center justify-between">
+            <span class="text-left text-16px">变种属性</span>
+            <div>
+              <FileOutlined /><a-select v-model:value="templateValue" show-search placeholder="请选择引用模板"
+                class="w300px mx10px" :options="templateList" :filter-option="filterOption">
+                <template #dropdownRender="{ menuNode: menu }">
+                  <v-nodes :vnodes="menu" />
+                  <a-divider style="margin: 4px 0" />
+                  <a-space style="padding: 4px 8px">
+                    <a-button type="link">
+                      <template #icon>
+                        <SettingOutlined />
+                      </template>
+                      管理模板
+                    </a-button>
+                  </a-space>
+                </template>
+              </a-select>
+            </div>
+          </div>
+        </template>
         <div>
-          <span>变种主题：</span>
-          <a-button type="primary" v-for="(item, index) in themeBtns" class="mr-2.5" :key="'add' + index + item.name"
-            @click="enterVariantType(item)">
+          <span class="text-16px">变种主题：</span>
+          <a-button type="primary" size="middle" v-for="(item, index) in themeBtns" class="mr-2.5"
+            :key="'add' + index + item.name" @click="enterVariantType(item)">
             <AsyncIcon icon="PlusCircleOutlined"></AsyncIcon>
             {{ item.name }}
           </a-button>
@@ -17,9 +39,9 @@
                 <span>{{ items.name }}</span>
               </span>
               <a-button type="link" v-if="[10096, 4295].includes(items.id)" @click="setColor(items)"
-                style="float: right">批量设置</a-button>
+                style="float: right" size="middle">批量设置</a-button>
               <a-popconfirm icon-color="red" title="确定要删除这个变种主题吗？" @confirm="removeVariantType(items, index)">
-                <a-button type="text" danger v-if="!items.isRequired" style="float: right">移除</a-button>
+                <a-button type="text" danger v-if="!items.isRequired" style="float: right" size="middle">移除</a-button>
               </a-popconfirm>
             </template>
             <a-table :columns="items.tableColumns" :data-source="items.tableData" :pagination="false">
@@ -27,8 +49,8 @@
                 <template v-if="column.dataIndex === record.name">
                   <!-- 单选 -->
                   <div v-if="record.selectType == 'select'" class="w-4/5">
-                    <a-select v-model:value="record.modelValue" class="w-full" optionFilterProp="label" labelInValue
-                      allowClear placeholder="请选择" @change="pushValue(index, items)">
+                    <a-select v-model:value="record.modelValue" class="w-full" size="middle" optionFilterProp="label"
+                      labelInValue allowClear placeholder="请选择" @change="pushValue(index, items)">
                       <a-select-option v-for="items in record.details" :key="items.id" :label="items.label"
                         :value="items">{{ items.label }}
                       </a-select-option>
@@ -36,22 +58,23 @@
                   </div>
                   <!-- 多选 -->
                   <div v-if="record.selectType == 'multSelect'" class="w-4/5">
-                    <a-select v-model:value="record.modelValue" class="w-full" optionFilterProp="label" allowClear
-                      mode="multiple" placeholder="请选择" labelInValue @change="pushValue(index, items)"
+                    <a-select v-model:value="record.modelValue" class="w-full" size="middle" optionFilterProp="label"
+                      allowClear mode="multiple" placeholder="请选择" labelInValue @change="pushValue(index, items)"
                       :options="record.details">
                     </a-select>
                   </div>
                   <!-- 输入框 -->
                   <div v-if="record.selectType == 'input'" class="w-4/5">
-                    <a-input-number v-if="record.type == 'Integer'" allowClear v-model:value="record.modelValue"
-                      @blur="index, items" placeholder="请输入内容" class="w-full"></a-input-number>
-                    <a-input v-model:value="record.modelValue" allowClear v-else class="w-full" placeholder="请输入内容"
-                      @blur="pushValue(index, items)"></a-input>
+                    <a-input-number v-if="record.type == 'Integer'" size="middle" allowClear
+                      v-model:value="record.modelValue" @blur="index, items" placeholder="请输入内容"
+                      class="w-full"></a-input-number>
+                    <a-input v-model:value="record.modelValue" size="middle" allowClear v-else class="w-full"
+                      placeholder="请输入内容" @blur="pushValue(index, items)"></a-input>
                   </div>
                 </template>
                 <template v-if="column.dataIndex === record[column.dataIndex]">
-                  <a-input v-model:value="record.secondModelValue" allowClear class="w-4/5" placeholder="请输入内容"
-                    @blur="pushValue(index, items)"></a-input>
+                  <a-input v-model:value="record.secondModelValue" size="middle" allowClear class="w-4/5"
+                    placeholder="请输入内容" @blur="pushValue(index, items)"></a-input>
                 </template>
                 <template v-if="column.dataIndex === 'options'">
                   <div>
@@ -80,6 +103,43 @@
         <a-table bordered :columns="filteredHeaderList" :data-source="tableData" :pagination="false"
           :scroll="{ x: 2000 }">
           <template #headerCell="{ column }">
+            <template v-if="column.dataIndex === 'colorImg'">
+              <span><span style="color: #ff0a37">*</span> {{ column.title }}</span>
+              <a-dropdown>
+                <a class="ant-dropdown-link" @click.prevent>
+                  批量
+                  <DownOutlined />
+                </a>
+                <template #overlay>
+                  <a-menu>
+                    <a-menu-item @click="bigImgvisible = true" :preview="{ visible: false }">
+                      查看大图
+                      <div style="display: none">
+                        <a-image-preview-group style="width: 90% !important;"
+                          :preview="{ visible: bigImgvisible, onVisibleChange: vis => (bigImgvisible = vis) }">
+                          <a-image v-for="(item, index) in tableData" :key="index"
+                            :src="item.colorImg.length > 0 ? processImageSource(item.colorImg[0]?.url) : ''" />
+                        </a-image-preview-group>
+                      </div>
+                    </a-menu-item>
+                    <a-menu-item @click="changeImgSize">
+                      批量改图片尺寸
+                    </a-menu-item>
+                    <a-menu-item @click="changeImgTranslation">
+                      图片翻译
+                    </a-menu-item>
+                    <a-sub-menu key="sub1" title="添加水印">
+                      <a-menu-item v-for="item in watermark" :key="item" @click="changeImgWater(item)">
+                        {{ item.title }}
+                      </a-menu-item>
+                    </a-sub-menu>
+                    <a-menu-item @click="clearImg">
+                      清空图片
+                    </a-menu-item>
+                  </a-menu>
+                </template>
+              </a-dropdown>
+            </template>
             <template v-if="column.dataIndex === 'sellerSKU'">
               <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
                 @click="batchSKU">批量</a>
@@ -108,7 +168,7 @@
           <template #bodyCell="{ column, record, index }">
             <template v-if="column.dataIndex === 'colorImg'">
               <a-image v-if="record.colorImg.length > 0" style="position: relative" :width="100"
-                :src="record.colorImg[0].url" />
+                :src="processImageSource(record.colorImg[0].url)" />
               <div v-if="record.colorImg.length > 0" style="position: absolute; top: 5px; right: 5px">
                 <AsyncIcon icon="CloseCircleOutlined" size="20px" color="black" @click="record.colorImg = []" />
               </div>
@@ -122,42 +182,42 @@
               </a-upload>
             </template>
             <template v-if="column.dataIndex === 'skuTitle'">
-              <a-input v-model:value="record.skuTitle" style="min-width: 200px"></a-input>
+              <a-input v-model:value="record.skuTitle" size="middle" style="min-width: 200px"></a-input>
             </template>
             <template v-if="column.dataIndex === 'secondName'">
               <span>{{ record.secondName }}</span>
             </template>
             <template v-if="column.dataIndex === 'sellerSKU'">
-              <a-input v-model:value.trim="record.sellerSKU" style="min-width: 200px"
+              <a-input v-model:value.trim="record.sellerSKU" size="middle" style="min-width: 200px"
                 @change="sellerSKUChange(record)"></a-input>
             </template>
             <template v-if="!otherHeader.includes(column.dataIndex)">
-              <a-input v-if="column.selectType === 'input'" v-model:value="record[column.dataIndex]"
+              <a-input v-if="column.selectType === 'input'" size="middle" v-model:value="record[column.dataIndex]"
                 style="min-width: 200px"></a-input>
-              <a-select v-if="column.selectType === 'select'" v-model:value="record[column.dataIndex]"
+              <a-select v-if="column.selectType === 'select'" size="middle" v-model:value="record[column.dataIndex]"
                 style="min-width: 200px" :options="column.options"></a-select>
-              <a-select v-if="column.selectType === 'multSelect'" :maxTagCount="2"
+              <a-select v-if="column.selectType === 'multSelect'" size="middle" :maxTagCount="2"
                 v-model:value="record[column.dataIndex]" style="min-width: 200px" :options="column.options"
                 mode="tags"></a-select>
             </template>
             <template v-if="column.dataIndex === 'price'">
-              <div class="flex">
-                <a-input-number style="min-width: 150px" :min="0" :max="99999999" :precision="2"
+              <div class="flex justify-center">
+                <a-input-number style="min-width: 200px" :min="0" size="middle" :max="99999999" :precision="2"
                   v-model:value="record.price" @blur="judgeMax(record)"></a-input-number>
                 <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.price, 'price')"
                   class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
               </div>
             </template>
             <template v-if="column.dataIndex === 'oldPrice'">
-              <div class="flex">
-                <a-input-number style="min-width: 150px" :min="0" :max="99999999" v-model:value="record.oldPrice"
-                  :precision="2" @blur="judgeMax(record)"></a-input-number>
+              <div class="flex justify-center">
+                <a-input-number style="min-width: 200px" :min="0" size="middle" :max="99999999"
+                  v-model:value="record.oldPrice" :precision="2" @blur="judgeMax(record)"></a-input-number>
                 <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.oldPrice, 'oldPrice')"
                   class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
               </div>
             </template>
             <template v-if="column.dataIndex === 'quantity'">
-              <div class="flex">
+              <div class="flex justify-center">
                 <span>{{
                   record.quantity === undefined ? 0 : record.quantity
                 }}</span>
@@ -169,29 +229,29 @@
                 <div>
                   <div style="display: flex">
                     <div class="w-13 block">长度：</div>
-                    <a-input-number controls-position="right" :min="0" style="min-width: 150px"
+                    <a-input-number controls-position="right" size="middle" :min="0" style="min-width: 150px"
                       v-model:value="record.packageLength" placeholder="长度" :controls="false">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div style="display: flex; margin-top: 5px">
                     <div class="w-13 block">宽度：</div>
-                    <a-input-number controls-position="right" :min="0" style="min-width: 150px"
+                    <a-input-number controls-position="right" size="middle" :min="0" style="min-width: 150px"
                       v-model:value="record.packageWidth" placeholder="宽度" :controls="false">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div style="display: flex; margin-top: 5px">
                     <div class="w-13 block">高度：</div>
-                    <a-input-number controls-position="right" :min="0" style="min-width: 150px"
+                    <a-input-number controls-position="right" :min="0" size="middle" style="min-width: 150px"
                       v-model:value="record.packageHeight" placeholder="高度" :controls="false">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div style="display: flex; margin-top: 5px">
                     <div class="w-13 block">重量：</div>
-                    <a-input-number controls-position="right" :precision="0" :min="0" style="min-width: 150px"
-                      v-model:value="record.packageWeight" placeholder="重量" :controls="false">
+                    <a-input-number controls-position="right" :precision="0" size="middle" :min="0"
+                      style="min-width: 150px" v-model:value="record.packageWeight" placeholder="重量" :controls="false">
                       <!-- @blur="handleInput(record.packageWeight, record)" -->
                       <template #addonAfter>g</template>
                     </a-input-number>
@@ -218,8 +278,8 @@
         <div>
           <div w-full ml-25px>
             <div>
-              <a-tag color="warning">！说明</a-tag>
-              <span style="color: #9fa0a2">
+              <a-tag color="warning" class="text-16px">！说明</a-tag>
+              <span style="color: #9fa0a2" class="text-16px">
                 第一张图片默认为主图，点击图片拖动，即可调整图片顺序！
                 单张不超过2M，只支持jpg、.png、.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3：4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)</span>
             </div>
@@ -275,7 +335,7 @@
                     <div flex flex-col w-full justify-start mb-4px text-left>
                       <p>
                         <a-tag color="#00AEB3">说明！</a-tag>
-                        <span class="text-#999"> 第一张图片默认为主图，点击图片拖动，即可调整图片顺序。
+                        <span class="text-#999 text-16px"> 第一张图片默认为主图，点击图片拖动，即可调整图片顺序。
                         </span>
                       </p>
                     </div>
@@ -328,6 +388,14 @@
     <!-- 批量设置变种属性 -->
     <batchSetColor :setValueVis="setValueVis" @closeColorModal="setValueVis = false" @confirm="confirm"
       :setColorOption="setColorOption" @handleCancel="handleColorCancel"></batchSetColor>
+    <!-- 批量修改颜色样本大小 -->
+    <bacthEditColorImg ref="bacthEditColorImgRef"></bacthEditColorImg>
+    <!-- 颜色样本翻译 -->
+    <colorImgTranslation ref="colorImgTranslationRef"></colorImgTranslation>
+    <!-- 图片翻译弹窗 -->
+    <ImageTranslation ref="imageTranslationRef"></ImageTranslation>
+    <!-- 批量编辑图片 -->
+    <bacthSkuEditImg ref="bacthSkuEditImgRef"></bacthSkuEditImg>
   </div>
 </template>
 
@@ -362,26 +430,41 @@ import {
 } from "../../config/commJs/index";
 import { publishHead, otherList } from "../../config/tabColumns/skuHead";
 import { uploadImage } from '@/pages/ozon/config/api/draft';
-import { debounce, cloneDeep } from "lodash";
+import { debounce, cloneDeep, omit, pick } from "lodash";
 import batchSetColor from "./batchSetColor.vue";
-import { omit, pick } from 'lodash'
-import SkuDragUpload from '../skuDragImg/index.vue';
-import bacthSkuEditImg from '../skuDragImg/bacthSkuEditImg.vue';
-import ImageTranslation from '../skuDragImg/imageTranslation.vue';
+import SkuDragUpload from "@/pages/ozon/config/component/skuDragImg/index.vue"
+import bacthSkuEditImg from "@/pages/ozon/config/component/skuDragImg/bacthSkuEditImg.vue"
+import ImageTranslation from "@/pages/ozon/config/component/skuDragImg/imageTranslation.vue"
+import colorImgTranslation from "./colorImgTranslation.vue";
+import bacthEditColorImg from "./bacthEditColorImg.vue";
 import download from '~@/api/common/download';
 import { downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js';
+import { FileOutlined, SettingOutlined, DownOutlined, DownloadOutlined } from '@ant-design/icons-vue';
 
 const props = defineProps({
   categoryAttributesLoading: Boolean,
   productDetail: Object,
   shopCode: String,
 });
-
+const VNodes = defineComponent({
+  props: {
+    vnodes: {
+      type: Object,
+      required: true,
+    },
+  },
+  render() {
+    return this.vnodes;
+  },
+});
 
 const downloadLoading = ref(false); //导出按钮loading
 const bacthSkuEditImgRef = ref();
 const imageTranslationRef = ref();
+const bacthEditColorImgRef = ref();
+const colorImgTranslationRef = ref();
 
+const bigImgvisible = ref(false);
 const themeList = ref([]); //主题数据
 const themeBtns = ref([]); //主题按钮
 const requiredList = ref([]); //必填变种主题
@@ -412,6 +495,17 @@ const newAttribute = ref([]);
 const setColorOption = ref([]);
 const colorRow = ref({});
 const custAttr = ref([]); //可控制属性
+const templateValue = ref("")
+const templateList = ref([
+  {
+    label: "模板名称1",
+    value: "1",
+  },
+  {
+    label: "模板名称2",
+    value: "2",
+  }
+]);
 const plainOptions = [
   {
     label: "颜色样本",
@@ -444,6 +538,15 @@ const handleChangeColroImg = (info, record) => {
   if (info.file.status === "error") {
     message.error("图片上传有误！");
   }
+};
+
+const tempPage = () => {
+  window.open("userTemplate", "_blank");
+};
+
+// 模板搜索
+const filterOption = (input, option) => {
+  return option.value.toLowerCase().indexOf(input.toLowerCase()) >= 0;
 };
 
 const setColor = (row) => {
@@ -517,6 +620,114 @@ const procTableData = (newData, newItems) => {
     item.uniqueId // 保留新创建的空条目
   )
 }
+
+// 颜色样本- 批量改图片尺寸
+const changeImgSize = () => {
+  bacthEditColorImgRef.value.showModal(tableData.value)
+}
+// 颜色样本- 添加水印
+const changeImgWater = async (item) => {
+  for (const tabbleItem of tableData.value) {
+    const fileList = tabbleItem.colorImg || [];
+    if (fileList.length === 0) {
+      continue;
+    }
+    const netPathList = fileList.filter((file) => file.url.includes('http')).map((item) => {
+      return item.url
+    });
+    // 只有本地图片
+    if (netPathList.length === 0) {
+      const imagePathList = fileList.filter((file) => !file.url.includes('http')).map((item) => {
+        return item.url
+      });
+      const waterRes = await watermarkApi({
+        imagePathList: imagePathList, //
+        id: item.id,
+      });
+      if (waterRes.code === 200) {
+        const data = waterRes.data || [];
+        data.forEach((item) => {
+          fileList.forEach(v => {
+            if (item.originalFilename === v.url) {
+              v.url = item.url
+              v.name = item.newFileName
+              v.checked = false
+            }
+          })
+        })
+      }
+    } else {
+      // 有网络图片
+      const fileList = tabbleItem.colorImg || [];
+      for (let index = 0; index < fileList.length; index++) {
+        const fileItem = fileList[index];
+        try {
+          let netImgs = [];
+          const url = fileItem.url;
+          if (url.includes('http')) {
+            let res = await imageUrlUpload({ url });
+            netImgs.push(res.data);
+            fileList.forEach(i => {
+              if (i.url === url) {
+                i.url = res.data.url
+              }
+            });
+            const waterRes = await watermarkApi({
+              imagePathList: netImgs.map((img) => img.url),
+              id: item.id,
+            });
+            if (waterRes.code === 200) {
+              const data = waterRes.data || [];
+              data.forEach((_item) => {
+                fileList.forEach(v => {
+                  if (_item.originalFilename.includes(v.url)) {
+                    v.url = _item.url
+                    v.name = _item.newFileName
+                    v.checked = false
+                  }
+                });
+              })
+            }
+          } else {
+            const imagePathList = fileList.filter((file) => !file.url.includes('http')).map((item) => {
+              return item.url
+            });
+            const waterRes = await watermarkApi({
+              imagePathList: imagePathList, //
+              id: item.id,
+            });
+            if (waterRes.code === 200) {
+              const data = waterRes.data || [];
+              data.forEach((item) => {
+                fileList.forEach(v => {
+                  if (item.originalFilename === v.url) {
+                    v.url = item.url
+                    v.name = item.newFileName
+                    v.checked = false
+                  }
+                })
+              })
+            }
+          }
+        } catch (error) {
+          console.error(error)
+        }
+      }
+    }
+  }
+
+}
+// 颜色样本- 清空图片
+const clearImg = () => {
+  tableData.value.forEach((item) => {
+    item.colorImg = [];
+  });
+}
+
+const changeImgTranslation = () => {
+  colorImgTranslationRef.value.showModal(tableData.value)
+}
+
 
 // 添加自定义属性
 const selectAttrList = (list) => {
@@ -706,8 +917,6 @@ const addItem = (item, row) => {
 
 // 移除多个属性操作
 const removeItem = (item, row) => {
-  console.log("item", item, row);
-
   let ind = row.tableData.indexOf(item);
   if (item.id === 10096 || item.name == "商品颜色(Цвет товара)") {
     row.tableData.splice(ind, 1);
@@ -730,27 +939,40 @@ const removeItem = (item, row) => {
   }
 
   // 获取所有需要删除的标签
+  // const deletedLabels = item.selectType === 'multSelect'
+  //   ? item.modelValue.map(v => v.label)
+  //   : [];
+
+  // let newData = tableData.value.filter(row => {
+  //   // 检查行数据是否包含要删除的属性值
+  //   return !Object.values(row).some(value => {
+  //     if (item.selectType === 'multSelect') {
+  //       // 统一处理数组和字符串类型的值
+  //       const currentValues = Array.isArray(value)
+  //         ? value.map(v => v?.label || '')
+  //         : String(value || '').split(',');
+  //       return currentValues.some(v => deletedLabels.includes(v));
+  //     }
+  //     return item.selectType === 'input' ? row.attrIdList.includes(item.id)
+  //       : item.selectType === 'select' ? value === item?.modelValue?.label
+  //         : false;
+  //   });
+  // });
+
   const deletedLabels = item.selectType === 'multSelect'
-    ? item.modelValue.map(v => v.label)
+    ? item.modelValue.map(v => v.label?.trim()) // 增加trim处理
     : [];
+  const deletedSet = new Set(deletedLabels); // 改用Set提高查询效率
 
   let newData = tableData.value.filter(row => {
-    // 检查行数据是否包含要删除的属性值
-    return !Object.values(row).some(value => {
-      if (item.selectType === 'multSelect') {
-        // 统一处理数组和字符串类型的值
-        const currentValues = Array.isArray(value)
-          ? value.map(v => v?.label || '')
-          : String(value || '').split(',');
-        return currentValues.some(v => deletedLabels.includes(v));
-      }
-      return item.selectType === 'input' ? row.attrIdList.includes(item.id)
-        : item.selectType === 'select' ? value === item?.modelValue?.label
-          : false;
-    });
+    // 直接访问对应属性
+    const rowValue = row[item.name];
+    if (item.selectType === 'select' || item.selectType === 'input') {
+      return !row.attrIdList?.some(id => id === item.id);
+    } else {
+      return !deletedLabels?.some(val => val === rowValue)
+    }
   });
-
-  console.log("newData", newData);
 
   tableData.value = newData;
 };
@@ -762,28 +984,7 @@ const pushValue = (index, item) => {
     message.error("变种属性值不能有相同的，请修改");
     return;
   }
-  // 处理表格数据
-  // let cartesianProducts = cartesianProduct(attributeList.value);
-  // let newTableData = processResult(cartesianProducts);
-  // let minLength = Math.min(newTableData.length, tableData.value.length);
-  // for (let i = 0; i < minLength; i++) {
-  //   // 将b数组中对应下标的数据赋值到a数组中
-  //   newTableData[i].skuTitle = tableData.value[i].skuTitle;
-  //   newTableData[i].sellerSKU = tableData.value[i].sellerSKU;
-  //   newTableData[i].price = tableData.value[i].price;
-  //   newTableData[i].oldPrice = tableData.value[i].oldPrice;
-  //   newTableData[i].colorImg = tableData.value[i].colorImg;
-  //   newTableData[i].imageUrl = tableData.value[i].imageUrl;
-  //   newTableData[i].quantity = tableData.value[i].quantity;
-  //   newTableData[i].warehouseList = tableData.value[i].warehouseList;
-  //   newTableData[i].packageHeight = tableData.value[i].packageHeight;
-  //   newTableData[i].packageLength = tableData.value[i].packageLength;
-  //   newTableData[i].packageWidth = tableData.value[i].packageWidth;
-  //   newTableData[i].packageWeight = tableData.value[i].packageWeight;
-  // }
   tableData.value = commProceData();
-  console.log("newTableData", newTableData);
-
 };
 
 const commProceData = () => {
@@ -1075,7 +1276,6 @@ const handleWatermark = async (item) => {
       }
     } else {
       // 有网络图片
-      console.log('有网络图片');
       const fileList = tabbleItem.imageUrl || [];
       for (let index = 0; index < fileList.length; index++) {
         const fileItem = fileList[index];
@@ -1163,8 +1363,6 @@ const applyAllImage = (item) => {
 //  图片应用到同主题的变种
 const applyImage = (item) => {
   const titles = item.title.split('-');
-  console.log('item', item, titles);
-  console.log('applyImage', tableData.value);
   const tableDataList = tableData.value.filter((tableItem) => {
     return titles.includes(String(tableItem.id))
   })
@@ -1197,8 +1395,8 @@ const clearAllImages = () => {
   })
 };
 const skuThemeNames = (item) => {
-  const tableColumns = attributeList.value[0].tableColumns;
-  const themeNames = tableColumns.map((column) => {
+  const tableColumns = attributeList.value[0]?.tableColumns;
+  const themeNames = tableColumns?.map((column) => {
     return column.title
   }).filter((nameItem) => nameItem !== '操作')
   const obj = pick(item, themeNames)
@@ -1326,8 +1524,7 @@ watch(
           imageUrl:
             sku.images?.map((item) => {
               return {
-                url: processImageSource(item),
-                checked: false,
+                url: item,
               };
             }) ?? [],
         };
@@ -1366,6 +1563,7 @@ watch(
             }
           });
         });
+
         // console.log("newItem", newItem);
 
         result.push(newItem);
@@ -1399,7 +1597,7 @@ watch(
         });
         addHeaderList.value.push("colorImg");
       }
-      if (result.some((item) => item.name !== "")) {
+      if (result.some((item) => item.skuTitle !== null && item.skuTitle !== "") && result.length > 1) {
         let skuIndex = headerList.value.findIndex(
           (item) => item.title === "SKU"
         );
@@ -1418,7 +1616,7 @@ watch(
 
       tableData.value = result;
       // 将不匹配的主题过滤掉
-      console.log("sortArr", tableData.value);
+      // console.log("sortArr", tableData.value);
       let comAttrList = [10096, 4295];
       let comAttrs = [10096, 10097];
       // 从数组 a 中提取所有的 id
@@ -1446,7 +1644,7 @@ watch(
 
       // 处理到数据回显到主题
       const aIds = echoThemeList.map((item) => item.id);
-      console.log('aIds', echoThemeList);
+      // console.log('aIds', echoThemeList);
       // 过滤 有数据的主题
       themeBtns.value = themeBtns.value.filter(
         (item) => !aIds.includes(item.id)

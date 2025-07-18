@@ -6,7 +6,7 @@
                     <a-breadcrumb separator=">">
                         <a-breadcrumb-item>Ozon</a-breadcrumb-item>
                         <a-breadcrumb-item>产品模板</a-breadcrumb-item>
-                        <a-breadcrumb-item>创建模板 </a-breadcrumb-item>
+                        <a-breadcrumb-item>编辑模板 </a-breadcrumb-item>
                     </a-breadcrumb>
                 </div>
                 <div>
@@ -15,7 +15,7 @@
                 </div>
             </div>
             <!-- 基本信息 -->
-            <ozon-base-info ref="ozonBaseInfoRef" id="ozonBaseInfo" :type="type"
+            <ozon-base-info ref="ozonBaseInfoRef" id="ozonBaseInfo" :productDetail="productDetail"
                 :categoryAttributesLoading="categoryAttributesLoading" :shopList="shopList"
                 :attributesCache="attributes" @getAttributes="getAttributes" @emitAddDescription="addDescription"
                 @sendShortCode="sendShortCode" :showDescription="showDescription"></ozon-base-info>
@@ -23,14 +23,8 @@
 
             <!-- 描述信息 -->
             <OzonNewImageInfo ref="ozonImageInfoRef" :shopCode="formData.shortCode" v-if="showDescription"
-                v-model:showDescription="showDescription">
+                :productDetail="productDetail" v-model:showDescription="showDescription">
             </OzonNewImageInfo>
-
-            <!-- 变种信息. -->
-            <OzonVariantInfo ref="ozonNewVariantInfoRef" :attributesCache="attributes" :productDetail="productDetail"
-                :shopCode="formData.shortCode" v-if="type === '3'">
-            </OzonVariantInfo>
-
             <div flex justify-end>
                 <a-button type="primary" @click="onSubmit" :loading="loading"
                     style="height: 32px; background-color: #FF8345; color: #fff;">保存
@@ -47,22 +41,16 @@ import OzonBaseInfo from './comm/OzonBaseInfo.vue';
 import OzonNewImageInfo from "./comm/OzonNewImageInfo.vue";
 import { useOzonProductStore } from '~@/stores/ozon-product'
 import {
-    findFalseInArrayLikeObject,
-    isNotEmpty, createAndUpdateBaseObj,
+    findFalseInArrayLikeObject, getInputValue, getSelectValue, getMultiSelectValue,
+    isNotEmpty, createAndUpdateBaseObj
 } from '~/pages/ozon/config/commJs/index';
-import {
-    getInputValue, getSelectValue, getMultiSelectValue,
-} from './commJs/index';
-
 import { saveTowaitProduct } from "../config/api/waitProduct"
 import { message, Modal } from "ant-design-vue";
 import { UploadOutlined, DownOutlined } from '@ant-design/icons-vue';
 import { translationApi } from '~/api/common/translation';
 import { templateSaveOrUpdate, templateDetail } from "../config/api/userTemplate";
 import { useRoute } from 'vue-router';
-import OzonVariantInfo from './comm/OzonVariantInfo.vue';
-import { cloneDeep } from 'lodash';
-
+const isCopy = ref(false);
 const route = useRoute();
 const type = ref(null);
 const showDescription = ref(false);
@@ -144,27 +132,23 @@ const addDescription = () => {
 const sendShortCode = (shortCode) => {
     formData.shortCode = shortCode ? shortCode : null;
 }
-
-
 const onSubmit = async () => {
-    //  产品模板
     let params;
     if (type.value === '1') {
         const ozonBaseInfo = await ozonBaseInfoRef.value.childForm();
         let base = ozonBaseInfoRef.value.form;
-        console.log('base -》》》》》》', base);
-
         let image = ozonImageInfoRef.value?.form;
         params = {
+            id: isCopy.value ? null : productDetail.value.id,
             type: 1, //模板类型 1-产品模板  2-尺码模板 3-变种模板 4-富内容模板
             name: base.templateName, // 模板名称
             state: 1, // 状态是否生效  0-不生效 1-生效
             account: formData.shortCode,
             content: {
                 productTemplate: {
-                    categoryId: base.categoryId || {},
                     name: base.name,
                     vat: base.vat,
+                    categoryId: base.categoryId || {},
                     productAttr: base.attributes || {},
                     productDesc: image?.description || ""
                 },
@@ -269,6 +253,7 @@ const onSubmit = async () => {
         });
         console.log("resItem", resItem);
         params = {
+            id: isCopy.value ? null : productDetail.value.id,
             type: 3, //模板类型 1-产品模板  2-尺码模板 3-变种模板 4-富内容模板
             name: base.templateName, // 模板名称
             state: 1, // 状态是否生效  0-不生效 1-生效
@@ -295,229 +280,29 @@ const onSubmit = async () => {
         });
 };
 
-// const onSubmit = async () => {
-//     const ozonBaseInfo = await ozonBaseInfoRef.value.childForm();
-//     // const OzonNewImageInfo = await ozonImageInfoRef.value.submitForm();
-//     const ozonNewVariantInfo = await ozonNewVariantInfoRef.value.submitForm();
-
-//     // const errorIndex = findFalseInArrayLikeObject({ ozonBaseInfo, OzonNewImageInfo })
-//     // anchorList.value.forEach(item => {
-//     //     item.turnRed = errorIndex.includes(item.id)
-//     // })
-//     // if (errorIndex.length) {
-//     //     scrollTo(errorIndex[0])
-//     //     message.error("信息填写有误！");
-//     //     return
-//     // }
-
-//     let base = ozonBaseInfoRef.value.form;
-//     let image = ozonImageInfoRef.value?.form;
-
-//     let data = ozonNewVariantInfoRef.value;
-//     const { attributeList: dataAttrs, tableData } = data;
-//     console.log("dataAttrs", dataAttrs);
-
-//     //! 过滤一些属性
-//     const newList = attributes.value.filter(
-//         (a) =>
-//             !(
-//                 a.id === 4080 ||
-//                 a.id == 8789 ||
-//                 a.id == 8790 ||
-//                 a.id == 4180 ||
-//                 a.id == 9024 ||
-//                 a.id == 100002 ||
-//                 a.id == 100001
-//             ) &&
-//             !(
-//                 a.attributeComplexId == "100001" || a.attributeComplexId == "100002"
-//             ) && a.isAspect
-//     );
-
-//     // const resItem =  dataAttrs.map((item) => {
-//     //     const moditAttributes = [];
-//     //     const getDictionaryIdKey = 'dictionaryValueId';
-//     //     const getComplexIdKey = 'complexId';
-//     //     const createValueObj = (newId, newVal) => ({
-//     //         [getDictionaryIdKey]: newId || 0,
-//     //         value: newVal instanceof Array ? newVal.split(",") : newVal || "",
-//     //     });
-//     //     const createAttrItem = (attr, values) => ({
-//     //         id: attr.id,
-//     //         [getComplexIdKey]: attr.attributeComplexId,
-//     //         values,
-//     //     });
-//     //     for (let attr of newList) {
-//     //         let newId = null;
-//     //         let newVal = "";
-//     //         let mSlect = [];
-//     //         console.log("attr", attr.id);
-//     //         if (attr.id === item.id) {
-//     //             console.log("item", item.tableData);
-//     //             switch (attr.selectType) {
-//     //                 case "input":
-//     //                     newVal = getInputValue(attr, item.tableData);
-//     //                     if (isNotEmpty(newVal)) {
-//     //                         const inputValueObj = createValueObj(0, newVal);
-//     //                         moditAttributes.push(createAttrItem(attr, [inputValueObj]));
-//     //                     }
-//     //                     break;
-//     //                 case "select":
-//     //                     [newId, newVal] = getSelectValue(attr, base, item);
-//     //                     if (isNotEmpty(newVal)) {
-//     //                         const selectValueObj = createValueObj(newId, newVal);
-//     //                         moditAttributes.push(createAttrItem(attr, [selectValueObj]));
-//     //                     }
-//     //                     break;
-//     //                 case "multSelect":
-//     //                     mSlect = getMultiSelectValue(
-//     //                         attr,
-//     //                         item,
-//     //                         base,
-//     //                         createValueObj, 2
-//     //                     );
-//     //                     const filteredMSlect = mSlect.filter(
-//     //                         (obj) => obj.value || obj?.dictionary_value_id !== 0 || obj?.dictionaryValueid !== 0
-//     //                     );
-//     //                     if (filteredMSlect.length) {
-//     //                         moditAttributes.push(createAttrItem(attr, filteredMSlect));
-//     //                     }
-//     //                     break;
-//     //             }
-//     //         }
-//     //         // let newId = null;
-//     //         // let newVal = "";
-//     //         // let mSlect = [];
-//     //         // // 根据属性类型进行处理
-
-//     //     }
-//     // })
-
-
-//     console.log("newList", newList);
-
-//     const addHeaderList = useOzonProductStore().addHeaderList;
-//     const resItem = tableData.map((item) => {
-//         const moditAttributes = [];
-//         const getDictionaryIdKey = 'dictionaryValueId';
-//         const getComplexIdKey = 'complexId';
-//         const createValueObj = (newId, newVal) => ({
-//             [getDictionaryIdKey]: newId || 0,
-//             value: newVal instanceof Array ? newVal.split(",") : newVal || "",
-//         });
-//         const createAttrItem = (attr, values) => ({
-//             id: attr.id,
-//             [getComplexIdKey]: attr.attributeComplexId,
-//             values,
-//         });
-//         for (let attr of newList) {
-//             let newId = null;
-//             let newVal = "";
-//             let mSlect = [];
-//             // 根据属性类型进行处理
-//             switch (attr.selectType) {
-//                 case "input":
-//                     newVal = getInputValue(attr, item);
-//                     if (isNotEmpty(newVal)) {
-//                         const inputValueObj = createValueObj(0, newVal);
-//                         moditAttributes.push(createAttrItem(attr, [inputValueObj]));
-//                     }
-//                     break;
-//                 case "select":
-//                     [newId, newVal] = getSelectValue(attr, item);
-//                     if (isNotEmpty(newVal)) {
-//                         const selectValueObj = createValueObj(newId, newVal);
-//                         moditAttributes.push(createAttrItem(attr, [selectValueObj]));
-//                     }
-//                     break;
-//                 case "multSelect":
-//                     mSlect = getMultiSelectValue(
-//                         attr,
-//                         item,
-//                         createValueObj, 2
-//                     );
-//                     console.log("mSlect", mSlect);
-
-//                     const filteredMSlect = mSlect.filter(
-//                         (obj) => obj.value || obj?.dictionary_value_id !== 0 || obj?.dictionaryValueid !== 0
-//                     );
-//                     if (filteredMSlect.length) {
-//                         moditAttributes.push(createAttrItem(attr, filteredMSlect));
-//                     }
-//                     break;
-//             }
-//         }
-//         console.log("moditAttributes--", moditAttributes);
-
-//         return {
-//             attributes: moditAttributes,
-//         };
-//     });
-//     console.log("resItem", resItem);
-
-
-//     let params;
-//     //  产品模板
-//     if (type.value === 1) {
-//         params = {
-//             type: 1, //模板类型 1-产品模板  2-尺码模板 3-变种模板 4-富内容模板
-//             name: base.templateName, // 模板名称
-//             state: 1, // 状态是否生效  0-不生效 1-生效
-//             account: formData.shortCode,
-//             content: {
-//                 productTemplate: {
-//                     categoryId: base.categoryId || {},
-//                     productAttr: base.attributes || {},
-//                     productDesc: image?.description || ""
-//                 },
-//                 jsonRich: image?.jsons ? JSON.stringify(image.jsons) : "{}"
-//             }
-//         };
-//     } else if (type.value === 3) {
-//         params = {
-//             type: 3, //模板类型 1-产品模板  2-尺码模板 3-变种模板 4-富内容模板
-//             name: base.templateName, // 模板名称
-//             state: 1, // 状态是否生效  0-不生效 1-生效
-//             account: formData.shortCode,
-//             content: {
-//                 variantTemplate: {
-//                     categoryId: base.categoryId || {},
-//                     variantAttr: resItem // to do  ...
-//                 }
-//             }
-//         };
-//     } else if (type.value === 4) {
-//         params = {
-//             type: 4, //模板类型 1-产品模板  2-尺码模板 3-变种模板 4-富内容模板
-//             name: base.templateName, // 模板名称
-//             state: 1, // 状态是否生效  0-不生效 1-生效
-//             account: formData.shortCode,
-//             content: {
-//                 jsonRich: image?.jsons ? JSON.stringify(image.jsons) : "{}"
-//             }
-//         };
-//     };
-//     // loading.value = true;
-//     // templateSaveOrUpdate(params).then(res => {
-//     //     message.success(res.msg)
-//     //     setTimeout(() => {
-//     //         window.close();
-//     //     }, 2000);
-//     // })
-//     //     .finally(() => {
-//     //         loading.value = false;
-//     //     });
-// };
-
 const handleOk = () => {
     publishVis.value = false
     location.reload();
 }
 
 
+//  获取模板详情
+const getTemplateDetail = () => {
+    templateDetail({
+        id: route.query.id
+    }).then(res => {
+        if (res.code === 200) {
+            productDetail.value = res?.data ?? {};
+        }
+    })
+}
 
 onMounted(() => {
     type.value = route.query.type;
-    getAccount();
+    isCopy.value = route.query.copy;
+    getAccount()
+    if (route.query.id) {
+        getTemplateDetail()
+    }
 })
 </script>

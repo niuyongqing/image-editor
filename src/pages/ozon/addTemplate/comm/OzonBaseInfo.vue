@@ -2,6 +2,11 @@
     <div id="OzonBaseInfoCont">
         <a-card title="模板信息" style="text-align: left">
             <a-form :label-col="{ span: 3 }" ref="ruleForm" :model="form" class="mt-5" :rules="rules">
+                <a-form-item label="模板名称" name="templateName">
+                    <a-input style="width: 90%" v-model:value="form.templateName" placeholder="请输入模板名称" :maxlength="255"
+                        showCount></a-input>
+                </a-form-item>
+
                 <a-form-item label="店铺：" name="shortCode">
                     <a-select v-model:value="form.shortCode" placeholder="请选择店铺" style="width: 90%" allowClear
                         showSearch optionFilterProp="label" :options="shopList" @change="getHistoryList">
@@ -26,11 +31,11 @@
                         @click="selectVisible = true">选择分类</a-button>
                     <p v-if="hisAttrObj.length != 0" style="color: #933">
                         <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{ hisAttrObj[0].secondCategoryName
-                        }}</span>/
+                            }}</span>/
                         <span>{{ hisAttrObj[0].threeCategoryName }}</span>
                     </p>
                 </a-form-item>
-                <a-form-item label="添加模块">
+                <a-form-item label="添加模块" v-if="type === '1'">
                     <a-space>
                         <a-button type="default" @click="addAttributes" v-if="!showAttrsBtn"> + 产品属性 </a-button>
                         <a-button type="default" @click="addDescription" v-if="form.categoryId && !showDescriptionBtn">
@@ -65,7 +70,7 @@
                                     <template #label>
                                         <span class="mr-2.5 truncate">{{
                                             item.label ? item.label : item.name
-                                        }}</span>
+                                            }}</span>
                                         <a-tooltip class="tooltipStyle" effect="dark" :title="item.description"
                                             popper-class="ozonTooltip" placement="top">
                                             <AsyncIcon icon="QuestionCircleOutlined"></AsyncIcon>
@@ -107,7 +112,6 @@
                                         v-model:value="form.attributes[item.name]" v-if="item.selectType === 'select'"
                                         labelInValue :style="'width: 80%'" allowClear>
                                         <a-select-option v-if="item.id == 85" :value="'无品牌'">无品牌</a-select-option>
-
                                         <a-select-option v-else :value="v" v-for="(v, i) in item.options" :key="i">
                                             {{ v.label }}
                                         </a-select-option>
@@ -142,6 +146,8 @@ const props = defineProps({
     categoryAttributesLoading: Boolean,
     productDetail: Object,
     shopList: Array,
+    showDescription: Boolean,
+    type: String,
 });
 const emit = defineEmits(["sendShortCode", "getAttributes", "emitAddDescription"]);
 
@@ -151,6 +157,7 @@ const showDescriptionBtn = ref(false);
 const ruleForm = ref(null);
 const ruleForm2 = ref(null);
 const form = reactive({
+    templateName: "", // 模板名称
     name: "",
     shortCode: "",
     categoryId: null,
@@ -160,6 +167,11 @@ const form = reactive({
 });
 const selectVisible = ref(false);
 const rules = {
+    templateName: {
+        required: true,
+        message: "必填项，请填写",
+        trigger: "blur",
+    },
     shortCode: {
         required: true,
         message: "必填项，请填写",
@@ -323,52 +335,65 @@ const shouldHideItem = (item) => {
     );
 };
 
+
+const getHistoryAttr = (historyCategoryId, account) => {
+    historyAttribute({
+        historyCategoryId,
+        account,
+    }).then((res) => {
+        let resObj = (res?.data && JSON.parse(res?.data)) || {};
+        // this.$set(this.form, "attributes", resObj);
+        // form.attributes = resObj
+        form.attributes = assignValues(resObj, loopAttributes.value)
+        // // this.form.attributes = res?.data
+        // //   ? JSON.parse(res?.data)
+        // //   : this.form.attributes;
+        // // let a = this.assignValues(this.form.attributes, this.loopAttributes);
+        // this.$refs.ruleForm2.clearValidate();
+    });
+}
+
 // 此方法将历史缓存中的属性值进行重新赋值
 const assignValues = (a, b) => {
-    let newRes = a.map((item) => {
-        return {
-            ...item,
-            values: item.values.map((value) => {
-                return {
-                    ...value,
-                    id: Number(value.dictionaryValueId),
-                    info: "",
-                    picture: "",
-                    label: "",
-                };
-            }),
-        };
-    });
     const result = {};
     // 根据b数组填充结果对象
     b.forEach((item) => {
         const name = item.name;
         const selectType = item.selectType;
-        newRes.forEach((resItem) => {
-            const attributeId = resItem.id;
-            const allValidItems = resItem.values.every((item) => item.value !== "");
-            if (attributeId === item.id && allValidItems) {
+        for (const key in a) {
+            if (name == key) {
                 if (selectType === "multSelect") {
-                    result[name] = resItem.values.map((item) => item.id);
-                    item.acquiesceList = moveMatchedItemForward(
-                        item.options,
-                        resItem.values.map((item) => item.id)
-                    );
+                    let filteredItems =
+                        item?.options &&
+                        item?.options?.filter((item) =>
+                            a[key].some((bItem) => item.value === bItem)
+                        );
+                    filteredItems.forEach((e) => {
+                        if (!item?.acquiesceList?.some((bItem) => bItem.id === e.id)) {
+                            item?.acquiesceList?.push(e);
+                        }
+                    });
+                    result[name] = filteredItems.map((e) => e.value);
                 } else if (selectType === "select") {
-                    result[name] = findMatchedOption(
-                        attributeId,
-                        resItem.values[0],
-                        item.options
-                    );
+                    let filteredItems =
+                        item?.options &&
+                        item?.options?.find((e) => e.value === a[key] || e.value === a[key].value);
+                    result[name] = name == "品牌(Бренд)" ? {
+                        label: "无品牌",
+                        value: {
+                            label: "无品牌",
+                            value: "无品牌"
+                        }
+                    } : filteredItems
                 } else {
-                    result[name] = resItem.values[0].value;
+                    result[name] = a[key];
                 }
             }
-        });
+        }
     });
 
     return result;
-};
+}
 
 const findMatchedOption = (attributeId, data, options) => {
     const matchedOption = options?.find((option) => option.id === data.id);
@@ -442,9 +467,11 @@ const addAttributes = () => {
 
 };
 const addDescription = () => {
-    showDescriptionBtn.value = true
+    showDescriptionBtn.value = true;
     emit('emitAddDescription', showDescriptionBtn.value)
 };
+
+
 
 const removeAttrs = () => {
     const attributes = form.attributes || {};
@@ -482,6 +509,12 @@ defineExpose({
     childForm,
 });
 
+watch(() => props.showDescription, (val) => {
+    showDescriptionBtn.value = val;
+}, {
+    immediate: true
+})
+
 watch(
     () => form.shortCode,
     (val) => {
@@ -491,105 +524,124 @@ watch(
         }
     }
 );
+// props.attributesCache,
+watch(() => useOzonProductStore().attributes, (val) => {
+    if (val) {
+        /**
+         *  "URL"  4080
+         *  "类型" 8229
+         *  "PDF文件名称" 8789
+         *   PDF 文件  8790
+         *  "名称" 4180
+         *  "简介" 4191
+         *  "JSON 丰富内容"  11254
+         *  "卖家代码" 9024
+         */
+        const newAttributesCache = processAttributesCache(val);
+        const custAttr = newAttributesCache.filter((a) => !a.isRequired);
+        const filterAttributesCache = custAttr.filter(
+            (a) =>
+                !(a.isAspect && !a.isRequired) &&
+                !(a.isAspect && a.isCollection) &&
+                !(
+                    a.id === 4080 ||
+                    a.id == 8229 ||
+                    a.id == 8789 ||
+                    a.id == 8790 ||
+                    a.id == 4180 ||
+                    a.id == 4191 ||
+                    a.id == 11254 ||
+                    a.id == 9024
+                ) &&
+                !(
+                    a.attributeComplexId == "100001" ||
+                    a.attributeComplexId == "100002"
+                )
+        );
 
-watch(
-    () => useOzonProductStore().attributes,
-    (val) => {
-        if (val) {
-            /**
-             *  "URL"  4080
-             *  "类型" 8229
-             *  "PDF文件名称" 8789
-             *   PDF 文件  8790
-             *  "名称" 4180
-             *  "简介" 4191
-             *  "JSON 丰富内容"  11254
-             *  "卖家代码" 9024
-             */
-            const newAttributesCache = processAttributesCache(val);
-            const custAttr = newAttributesCache.filter((a) => !a.isRequired);
-            const filterAttributesCache = custAttr.filter(
-                (a) =>
-                    !(a.isAspect && !a.isRequired) &&
-                    !(a.isAspect && a.isCollection) &&
-                    !(
-                        a.id === 4080 ||
-                        a.id == 8229 ||
-                        a.id == 8789 ||
-                        a.id == 8790 ||
-                        a.id == 4180 ||
-                        a.id == 4191 ||
-                        a.id == 11254 ||
-                        a.id == 9024
-                    ) &&
-                    !(
-                        a.attributeComplexId == "100001" || a.attributeComplexId == "100002"
-                    )
-            );
+        let noThemeAttributesCache = newAttributesCache.filter(
+            (a) => !a.isAspect
+        );
+        if (noThemeAttributesCache) {
+            noThemeAttributesCache.sort((a, b) => {
+                if (a.isRequired && !b.isRequired) return -1;
+                if (!a.isRequired && b.isRequired) return 1;
+                return 0;
+            });
 
-            let noThemeAttributesCache = newAttributesCache.filter(
-                (a) => !a.isAspect
-            );
-            if (noThemeAttributesCache) {
-                noThemeAttributesCache.sort((a, b) => {
-                    if (a.isRequired && !b.isRequired) return -1;
-                    if (!a.isRequired && b.isRequired) return 1;
-                    return 0;
-                });
-
-                let data = noThemeAttributesCache.filter((a) => a.isRequired);
-
-                rules2.value = {};
-                let attributes = {};
-                // 属性类型处理
-                noThemeAttributesCache.forEach((item) => {
-                    item.selectDate = {
-                        label: "",
-                        value: "",
-                    };
-                    item.options = item?.options?.map((item) => {
+            let data = noThemeAttributesCache.filter((a) => a.isRequired);
+            rules2.value = {};
+            let attributes = {};
+            // 属性类型处理
+            noThemeAttributesCache.forEach((item) => {
+                item.selectDate = {
+                    label: "",
+                    value: ""
+                };
+                if (item.id === 9070) {
+                    item.options = item?.options?.map(item => {
                         return {
                             ...item,
-                            label:
-                                item?.label == "否" || item?.label == "是"
-                                    ? item.label
-                                    : item.value,
-                            value:
-                                item?.label == "否" || item?.label == "是"
-                                    ? JSON.parse(item.value)
-                                    : item.id,
-                        };
-                    });
-                    item.acquiesceList =
-                        (item.options && item.options.slice(0, 25)) ?? [];
-                    attributes[item.name] =
-                        item.selectType === "multSelect" ? [] : undefined;
-                });
-
-                // 属性校验
-                for (let i = 0; i < data.length; i++) {
-                    let obj = {
-                        required: true,
-                        message: `${data[i].name} 为必填项，请填写`,
-                        trigger:
-                            noThemeAttributesCache[i].selectType == "input"
-                                ? "blur"
-                                : "change",
-                    };
-                    // Object.assign(rules2.value, { [noThemeAttributesCache[i].name]: obj })
-                    rules2.value[noThemeAttributesCache[i].name] = obj;
+                            label: item.label,
+                            value: item.value,
+                        }
+                    })
+                } else {
+                    item.options = item?.options?.map(item => {
+                        return {
+                            ...item,
+                            label: item.value,
+                            value: item.id,
+                        }
+                    })
                 }
-                // this.$set(rules2.value, noThemeAttributesCache[i].name, obj);
-                // console.log("rules2", rules2.value);
-                loopAttributes.value = noThemeAttributesCache;
-                // 赋值
-                // const { attributes: oldAttributes } = props.productDetail?.skuList[0];
-                // const proceRes = assignValues(oldAttributes, loopAttributes.value); // 旧写法
-                // form.attributes = proceRes; 
+                item.acquiesceList =
+                    (item.options && item.options.slice(0, 25)) ?? [];
+                attributes[item.name] = item.selectType === "multSelect" ? [] : undefined;
+                // attributes["品牌(Бренд)"] = {
+                //     label: "无品牌",
+                //     value: "无品牌"
+                // }
+            });
+
+            // 属性校验
+            for (let i = 0; i < data.length; i++) {
+                let obj = {
+                    required: true,
+                    message: `${data[i].name} 为必填项，请填写`,
+                    trigger:
+                        noThemeAttributesCache[i].selectType == "input"
+                            ? "blur"
+                            : "change",
+                };
+                // Object.assign(rules2.value, { [noThemeAttributesCache[i].name]: obj })
+                rules2.value[noThemeAttributesCache[i].name] = obj
             }
+            // this.$set(rules2.value, noThemeAttributesCache[i].name, obj);
+            // 获取自定义添加的属性数据（同步过滤属性）
+            //!未同步属性
+            form.attributes = attributes;
+            loopAttributes.value = noThemeAttributesCache;
         }
+        if (!form.shortCode || !form.categoryId) return;
+        getHistoryAttr(
+            form.categoryId.threeCategoryId,
+            form.shortCode
+        );
     }
-);
+})
+
+watch(() => form.attributes, (val) => {
+    form.attributes["品牌(Бренд)"] = {
+        label: "无品牌",
+        value: "无品牌"
+    }
+})
+
+
+
+
+
 </script>
 <style lang="less" scoped>
 :deep(.ant-checkbox-group) {

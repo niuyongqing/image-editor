@@ -2,6 +2,7 @@
     <div id="editPriceModalCont">
         <a-modal :open="editPriceVisible" :maskClosable="false" @cancel="handleCancel" :width="'40%'" :keyboard="false"
             title="修改属性" destroy-on-close>
+            <div class="my10px"><a-tag color="green">说明</a-tag><span>已归档的产品不支持修改产品相关信息！</span></div>
             <a-row>
                 <a-col :flex="2">
                     <div class="flex flex-col">
@@ -14,7 +15,6 @@
                                 :options="item.option" />
                         </div>
                     </div>
-                    <div><a-tag color="green">说明</a-tag><span>已归档的产品不支持修改产品相关信息！</span></div>
                 </a-col>
                 <a-col :flex="4" style="max-height: 600px;overflow-y: auto;">
                     <a-form :model="form" :layout="'vertical'" ref="ruleForm" style="margin-top: 20px;">
@@ -209,8 +209,20 @@
                             </a-form-item>
                         </div>
                         <div class="rounded-md p-2.5 mb-2.5" style="border: 1px solid #ccc;"
-                            v-if="checkedListAll.includes('attr')">
-                            <a-form-item label="合并属性：">
+                            v-if="checkedListAll.includes('all')">
+                            <a-form-item label="合并属性">
+                                <div>
+                                    <a-tag color="green">注意！</a-tag> <span>同一店铺下，若合并属性一致会导致该分类下的产品合并为一个产品，请谨慎修改！</span>
+                                </div>
+                                <div class="my10px">
+                                    共选择<span class="text-red">{{ brandList.length }}</span>个产品，产品分类如下，请分别编辑属性
+                                </div>
+                                <div class="my10px">
+                                    <div v-for="(item, index) in attrList" :key="index">
+                                        <span>{{ item.threeCategoryName }}</span><span class="text-red ml10px">({{
+                                            item.repeatCount }})</span>
+                                    </div>
+                                </div>
                                 <a-form-item label="品牌：">
                                     <div class="flex">
                                         <a-select v-model:value="form.attr" class="mr-2.5" style="width: 200px"
@@ -236,16 +248,19 @@ import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { batchUpdate } from "../../config/api/product";
 import { endResult } from "../../config/commJs/index"
 import { message } from "ant-design-vue";
+import { cloneDeep } from 'lodash'
 
 const props = defineProps({
     editPriceVisible: Boolean,
     selectedRows: Array,
     editStockList: Array,
-    defType: Array
+    defType: Array,
+    brandList: Array
 });
 const emit = defineEmits(["handleEditPriceClose"]);
 const loading = ref(false)
 const ruleForm = ref()
+const attrList = ref([])
 // 提取初始表单数据工厂函数
 const getInitialFormData = () => ({
     oldPriceValue: 1,
@@ -396,7 +411,7 @@ const leftList = reactive([
             },
             {
                 label: '合并属性',
-                value: 'attr'
+                value: 'all'
             }
         ],
         indeterminate: false,
@@ -469,13 +484,45 @@ watch(
 );
 
 watch(() => props.defType, val => {
-    const item = leftList.find(item => {
-        return item.option.some(option => val.includes(option.value));
-    })
-    item.checkAll = true
-    item.indeterminate = false
-    item.checkedList = val
+    if (val.length > 0) {
+        const item = leftList.find(item => {
+            return item.option.some(option => val.includes(option.value));
+        })
+        item.checkAll = true
+        item.indeterminate = false
+        item.checkedList = val
+    }
 })
+
+watch(() => props.brandList, val => {
+    if (val.length > 1) {
+        attrList.value = processData(val);
+    } else {
+        attrList.value = val.map(item => {
+            return {
+                ...item,
+                repeatCount: 1
+            }
+        })
+    }
+})
+
+// 去重数据
+function processData(originalData) {
+    const temp = {};
+
+    originalData.forEach(item => {
+        const key = item.threeCategoryId;
+        if (temp[key]) {
+            temp[key].repeatCount += 1;
+        } else {
+            temp[key] = { ...item, repeatCount: 1 };
+        }
+    });
+
+    return Object.values(temp);
+}
+
 const handleCancel = () => {
     emit("handleEditPriceClose")
     ruleForm.value.resetFields();
@@ -501,7 +548,7 @@ const onSubmit = () => {
     if (props.selectedRows.length == 0) return;
     loading.value = true;
     // 标题数据处理
-    let priceList = props.selectedRows.map((item) => {
+    let arr = props.selectedRows.map((item) => {
         return {
             name: item.name,
             vat: item.vat,
@@ -510,6 +557,7 @@ const onSubmit = () => {
             minPrice: item.minPrice,
             warehouseList: [],
             offerId: item.offerId,
+            attributes: item?.attributes,
             packageWeight: item?.attributes[0]?.weight,
             packageWidth: item?.attributes[0]?.width,
             packageHeight: item?.attributes[0]?.height,
@@ -518,6 +566,7 @@ const onSubmit = () => {
             account: item.account
         };
     });
+    let priceList = cloneDeep(arr)
     // 遍历 checkedListAll 中的每个字段，调用对应的处理函数
     checkedListAll.value.forEach((field) => {
         if (fieldHandlers[field]) {
@@ -547,6 +596,21 @@ const onSubmit = () => {
                 }
             });
             console.log('priceList', priceList);
+        }
+        if(field === "all") {
+            priceList.forEach(itemA => {
+                itemA.attributes.forEach(e => {
+                    e.attributes = e.attributes.map(item => {
+                        if (item.id === 85) {
+                            item.values = [{
+                                dictionaryValueId: 126745801,
+                                value: '无品牌'
+                            }]
+                        }
+                        return item
+                    })
+                })
+            })
         }
     });
 

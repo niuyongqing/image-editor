@@ -25,7 +25,7 @@
 <script setup>
 import { message } from 'ant-design-vue';
 import BaseModal from '@/components/baseModal/BaseModal.vue';
-import { remark } from '@/pages/lazada/product/api';
+import { ozonRemark } from '@/pages/ozon/config/api/draft';
 import { colors } from '@/pages/lazada/product/common';
 import _ from 'lodash';
 
@@ -57,7 +57,12 @@ const open = (record, batch) => {
     };
     modelMethods.value.openModal();
 };
-const cancel = () => { };
+const cancel = () => {
+    row.value = {
+        remark: '',
+        remarkColor: ''
+    };
+};
 const submit = () => {
     if (!row.value.remark) {
         message.error('请输入备注');
@@ -69,21 +74,24 @@ const submit = () => {
     }
     const requestParams = isBatch.value
         ? acceptParams.value.map((item) => ({
-            itemId: item.itemId,
+            gatherProductId: item.gatherProductId,
             remark: row.value.remark,
             remarkColor: row.value.remarkColor
         }))
         : [{
-            itemId: acceptParams.value.itemId,
+            gatherProductId: acceptParams.value.gatherProductId,
             remark: row.value.remark,
             remarkColor: row.value.remarkColor
         }];
 
-    remark(requestParams)
+    ozonRemark(requestParams)
         .then(() => {
             message.success('备注成功');
             modelMethods.value.closeModal();
             emits('success');
+        })
+        .catch(() => {
+            message.error('备注失败');
         });
 };
 

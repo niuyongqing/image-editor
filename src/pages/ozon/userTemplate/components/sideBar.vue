@@ -26,12 +26,16 @@ const templateList = ref([
         id: 1,
         name: '产品模板'
     },
+    // {
+    //     id: 2,
+    //     name: '尺码模板'
+    // },
     {
-        id: 2,
+        id: 3,
         name: '变种模板'
     },
     {
-        id: 3,
+        id: 4,
         name: '富文本模板'
     }
 ]);
@@ -39,8 +43,8 @@ const templateList = ref([
 const selectActive = (id) => {
     console.log(id);
     activeId.value = id;
-
 };
+
 </script>
 <style lang="less" scoped>
 :deep(.ant-card-body) {

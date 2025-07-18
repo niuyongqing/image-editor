@@ -2,9 +2,9 @@
     <div id="OzonNewImageInfoCont">
         <a-card class="text-left">
             <template #title>
-                <span>描述信息<span style="color: #9fa0a2">（编辑视频时请先选择店铺）</span></span>
+                <span class="text-16px">描述信息<span style="color: #9fa0a2" class="text-16px">（编辑视频时请先选择店铺）</span></span>
             </template>
-            <a-form ref="ruleForm" :model="form" :label-col="{ span: 2 }" :rules="rules">
+            <a-form ref="ruleForm" :model="form" :label-col="{ span: 2 }" :rules="rules" class="shopForm">
                 <a-form-item label="产品描述：" name="description">
                     <div style="width: 90%;margin-top: 10px;">
                         <a-textarea v-model:value="form.description" :rows="10" :maxlength="6000" showCount />
@@ -13,7 +13,7 @@
                 <a-form-item label="JSON 丰富内容：" name="jsonDes">
                     <span style="color: #ff0a37">说明：描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M</span>
                     <a-form-item-rest>
-                        <jsonForm @backResult="backResult" :content="form.jsons" :shop="shopCode"></jsonForm>
+                        <jsonForm @backResult="backResult" :jsonContent="form.jsons" :shop="shopCode"></jsonForm>
                     </a-form-item-rest>
                 </a-form-item>
                 <a-form-item label="视频：">
@@ -159,14 +159,25 @@ const submitForm = () => {
 defineExpose({
     form,
     submitForm
-})
-
+});
 
 const backResult = (res) => {
     form.jsons = res
-    // console.log('p', form.jsons);
-
 }
+// 引用产品模板
+watch(() => useOzonProductStore().productTemplate, (val) => {
+    const { content } = val;
+    if (content) {
+        if (content.productTemplate.productDesc) {
+            form.description = content.productTemplate.productDesc
+        }
+        if (content.jsonRich) {
+            form.jsons = content.jsonRich
+        }
+    }
+}, {
+    immediate: true
+});
 
 watch(() => props.productDetail, val => {
     if (Object.keys(val).length > 0) {
@@ -237,6 +248,16 @@ watch(() => props.productDetail, val => {
         display: flex;
         justify-content: space-between;
         align-items: center;
+    }
+}
+
+:deep(.shopForm) {
+    .ant-form-item {
+        .ant-row {
+            .ant-form-item-label>label {
+                font-size: 20px !important;
+            }
+        }
     }
 }
 </style>

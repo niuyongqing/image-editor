@@ -1,8 +1,7 @@
 <template>
     <div id="editPriceModalCont">
-        <a-modal :open="editPriceVisible" :maskClosable="false" @cancel="handleCancel" :width="'40%'" :keyboard="false"
+        <a-modal :open="editPriceVisible" :maskClosable="false" @cancel="handleCancel" width="1000px" :keyboard="false"
             title="修改属性" destroy-on-close>
-            <div class="my10px"><a-tag color="green">说明</a-tag><span>已归档的产品不支持修改产品相关信息！</span></div>
             <a-row>
                 <a-col :flex="2">
                     <div class="flex flex-col">
@@ -208,6 +207,7 @@
                                 </div>
                             </a-form-item>
                         </div>
+
                         <div class="rounded-md p-2.5 mb-2.5" style="border: 1px solid #ccc;"
                             v-if="checkedListAll.includes('all')">
                             <a-form-item label="合并属性">
@@ -231,9 +231,23 @@
                                 </a-form-item>
                             </a-form-item>
                         </div>
+
+                        <div class="rounded-md p-2.5 mb-2.5" style="border: 1px solid #ccc;"
+                            v-if="checkedListAll.includes('attr')">
+                            <a-form-item label="合并属性：">
+                                <a-form-item label="品牌：">
+                                    <div class="flex">
+                                        <a-select v-model:value="form.attr" class="mr-2.5" style="width: 200px"
+                                            :options="commList[4].option"></a-select>
+                                    </div>
+                                </a-form-item>
+                            </a-form-item>
+                        </div>
                     </a-form>
                 </a-col>
             </a-row>
+            <div><a-tag color="green">说明</a-tag><span>已归档的产品不支持修改产品相关信息！</span></div>
+
             <template #footer>
                 <a-button :loading="loading" @click="handleCancel">取消</a-button>
                 <a-button type="primary" :loading="loading" @click="onSubmit">确定</a-button>
@@ -244,7 +258,7 @@
 
 <script setup name='editPriceModal'>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-import { waitBathUpdate } from "../../config/api/waitProduct";
+import { batchUpdateProduct, batchQueryDetail } from "../../config/api/draft";
 import { message } from "ant-design-vue";
 import { cloneDeep } from 'lodash'
 
@@ -257,7 +271,7 @@ const props = defineProps({
 });
 const emit = defineEmits(["handleEditPriceClose"]);
 const loading = ref(false)
-const ruleForm = ref();
+const ruleForm = ref()
 const attrList = ref([])
 // 提取初始表单数据工厂函数
 const getInitialFormData = () => ({
@@ -485,13 +499,12 @@ watch(() => props.defType, val => {
     if (val.length > 0) {
         const item = leftList.find(item => {
             return item.option.some(option => val.includes(option.value));
-        })
-
+        });
         item.checkAll = true
         item.indeterminate = false
         item.checkedList = val
     }
-})
+});
 
 watch(() => props.brandList, val => {
     if (val.length > 1) {
@@ -576,7 +589,6 @@ const computeSingleValue = (price, batchValue, computeType, roundType) => {
 
     if (!computeFunc) return 0;
     const computed = computeFunc(Number(price), Number(batchValue));
-
     return roundFunc(computed);
 };
 
@@ -599,41 +611,52 @@ const computeFunctions = {
         oldPrice * ((100 - batchComputeValue) / 100),
 };
 
+const productDetailList = ref([]);
+
+// 批量获取详情
+watch(() => props.editPriceVisible, (newVal) => {
+    if (!newVal) return;
+    batchQueryDetail({
+        ids: props.selectedRows.map(item => item.gatherProductId)
+    }).then(res => {
+        productDetailList.value = res.data || []
+    })
+}, { immediate: true })
 
 
 const onSubmit = () => {
-    if (props.selectedRows.length == 0) return;
-    loading.value = true;
 
+    if (props.selectedRows.length == 0) return;
     // 标题数据处理
-    let arr = props.selectedRows.map((item) => {
+    let arr = productDetailList.value.map((item) => {
         return {
-            waitId: item.waitId,
-            // name: item.name,
-            // vat: item.vat,
+            ...item,
             skuList: item.skuList.map(e => {
                 return {
-                    attributes: e.attributes,
+                    ...e,
                     price: e.price,
                     oldPrice: e.oldPrice,
                     offerId: e.offerId,
-                    warehouseList: null
                 }
             }),
-            account: item.account
         };
     });
-    let priceList = cloneDeep(arr)
-    // 遍历 checkedListAll 中的每个字段，调用对应的处理函数
-    checkedListAll.value.forEach((field) => {
 
+    let priceList = cloneDeep(arr)
+    checkedListAll.value.forEach((field) => {
         if (fieldHandlers[field]) {
             priceList = priceList.map((row) => fieldHandlers[field](row, form));
         }
+        // 对于尺寸处理，单独判断，因为逻辑复用了 weight 的判断条件
+        // if (field === 'weight') {
+        //     priceList = priceList.map((row) => fieldHandlers.dimensions(row, form));
+        // }
+
         if (field === "all") {
             priceList.forEach(itemA => {
                 itemA.skuList.forEach(e => {
-                    e.attributes = e.attributes.map(item => {
+                    let attributes = e.attributes || [];
+                    attributes = attributes.map(item => {
                         if (item.id === 85) {
                             item.values = [{
                                 dictionaryValueId: 126745801,
@@ -650,14 +673,17 @@ const onSubmit = () => {
             priceList = priceList.map((row) => fieldHandlers.dimensions(row, form));
         }
         if (field === 'stock') {
+            console.log("editStockList", props.editStockList);
             // 遍历数组 a
             priceList.forEach(itemA => {
                 // 查找 b 数组中 account 匹配的元素
                 const matchingItemB = props.editStockList.find(itemB => itemB.account === itemA.account);
+                console.log("matchingItemB", matchingItemB);
 
                 if (matchingItemB) {
                     // 过滤掉 children 中 stock 为空的元素
                     const validChildren = matchingItemB.children.filter(child => child.stock !== null && child.stock !== '');
+                    console.log("validChildren", validChildren);
 
                     // 生成新数组，包含 name、warehouseId 和 stock
                     const newStockArray = validChildren.map(child => ({
@@ -666,9 +692,12 @@ const onSubmit = () => {
                         present: child.stock,
                         // offerId: itemA.offerId
                     }));
+                    console.log("newStockArray");
+
 
                     // 将新数组赋值给 a 数组中对应元素的 stock 属性
                     itemA.skuList.forEach(e => {
+                        e.stock = null
                         e.warehouseList = newStockArray
                     });
                 } else {
@@ -691,9 +720,8 @@ const onSubmit = () => {
             }
         })
     });
-
-    console.log('priceList--', priceList);
-    waitBathUpdate(priceList).then(res => {
+    console.log('priceList-->', priceList);
+    batchUpdateProduct(priceList).then(res => {
         message.success(res.msg)
     }).finally(() => {
         emit("handleEditPriceClose")
@@ -737,8 +765,43 @@ const handleVat = (row, form) => {
     return row;
 };
 
+const handlePriceNew = (sku) => {
+    if (form.priceValue === 1) {
+        // 直接修改每个SKU的价格
+        sku.price = form.price.toString();
+    } else {
+        // 批量计算每个SKU的价格
+        sku.price = endResult(
+            sku.price,
+            Number(form.toPrice),
+            form.priceSelect1,
+            form.priceSelect2
+        ).toString();
+    }
+    return sku;
+};
+// 封装处理原价的函数
+const handleOldPriceNew = (sku) => {
+    console.log("form.toOldPrice", form.toOldPrice);
+    if (form.oldPriceValue === 1) {
+        // 直接修改每个SKU的原价
+        sku.oldPrice = form.oldPrice.toString();
+    } else {
+        // 批量计算每个SKU的原价
+        sku.oldPrice = endResult(
+            sku.oldPrice,
+            Number(form.toOldPrice),
+            form.oldSelect1,
+            form.oldSelect2
+        ).toString();
+    }
+    return sku;
+};
+
+
 // 封装处理价格的函数
 const handlePrice = (row, form) => {
+    console.log("form.toPrice", form.toPrice);
     if (form.priceValue === 1) {
         // 直接修改每个SKU的价格
         row.skuList.forEach(sku => {
@@ -760,6 +823,7 @@ const handlePrice = (row, form) => {
 
 // 封装处理原价的函数
 const handleOldPrice = (row, form) => {
+    console.log("form.toOldPrice", form.toOldPrice);
     if (form.oldPriceValue === 1) {
         // 直接修改每个SKU的原价
         row.skuList.forEach(sku => {
@@ -838,8 +902,6 @@ const fieldHandlers = {
     weight: handleWeight,
     dimensions: handleDimensions
 };
-
-
 
 
 </script>

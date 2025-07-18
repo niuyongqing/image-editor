@@ -379,7 +379,7 @@ defineOptions({ name: 'MobileDetailEditor' })
 const emits = defineEmits(['backResult'])
 const props = defineProps({
   shop: String,
-  content: String
+  jsonContent: String
 });
 const headers = {
   'Authorization': 'Bearer ' + useAuthorization().value,
@@ -389,117 +389,6 @@ const uploadUrl =
   "/platform-ozon/platform/ozon/file/upload/img"
 
 
-  watch(() => props.content, val => {
-  if (val?.length > 0) {
-    // console.log('val', val);
-    finallyObj.value = JSON.parse(val)
-    const { content } = JSON.parse(val)
-    // console.log('content',content);
-    content?.forEach(item => {
-      if (item.widgetName === 'raTextBlock') {
-        let textObj = deepClone(textDefault)
-        item.title.content.join('\n')
-        // console.log('content', typeof item.title.content.join('\n'));
-        if (item.title.content.join('\n').length > 0) {
-          textObj.title.content = item.title.content.join('\n')
-          textObj.title.styles.fontSize = getKeyByValue(sizeEnumObj, item.title.size)
-          textObj.title.styles.color = getKeyByValue(colorEnumObj, item.title.color)
-          textObj.title.styles.textAlign = item.title.align
-        }
-        if (item.text.content.join('\n').length > 0) {
-          textObj.text.content = item.text.content.join('\n')
-          textObj.text.cStyles.fontSize = getKeyByValue(sizeEnumObj, item.text.size)
-          textObj.text.cStyles.color = getKeyByValue(colorEnumObj, item.text.color)
-          textObj.text.cStyles.textAlign = item.text.align
-        }
-        textObj.id = uuidv4()
-        textObj.type = 'text'
-        moduleList.value.push(textObj)
-      } else if (item.widgetName === 'raShowcase') {
-        let imgObj = deepClone(imgDefaulet)
-        if (item.type === 'roll') {
-          imgObj.img = item.blocks.map(blockItem => {
-            return {
-              src: [
-                {
-                  url: processImageSource(blockItem.img.src),
-                  checked: true,
-                  id: uuidv4(),
-                  width: blockItem.img.widthMobile,
-                  height: blockItem.img.heightMobile,
-                }
-              ],
-              open: true,
-              jumpUrl: blockItem.imgLink,
-              alt: blockItem.img.alt,
-              style: {
-                width: getKeyByValue(picPosition, blockItem.img.position),
-                select: 0,
-                margin: "0 auto",
-                display: "block"
-              }
-            }
-          })
-          imgObj.id = uuidv4()
-          imgObj.type = 'image'
-          moduleList.value.push(imgObj)
-        } else {
-          let imgTextObj = deepClone(imgTextDefaulet)
-          imgObj.id = uuidv4()
-          imgObj.type = 'text-image'
-          imgTextObj.imgText.dataType = item.type
-          imgTextObj.imgText.dataList = item.blocks.map(e => {
-            return {
-              src: [
-                {
-                  url: processImageSource(e.img.src),
-                  checked: true,
-                  id: uuidv4(),
-                  width: e.img.widthMobile,
-                  height: e.img.heightMobile,
-                }
-              ],
-              open: true,
-              imgTextStyle: {
-                width: getKeyByValue(picPosition, e.img.position),
-                height: "100%",
-                select: 0,
-                margin: "0 auto",
-                display: "block"
-              },
-              title: {
-                content: e.title.content.join('\n').length > 0 ? e.title.content.join('\n') : "",
-                active: "",
-                styles: {
-                  fontSize: getKeyByValue(sizeEnumObj, e.title.size),
-                  color: getKeyByValue(colorEnumObj, e.title.color),
-                  textAlign: e.title.align,
-                  width: '100%',
-                  height: '100px',
-                  marginTop: "20px"
-                },
-              },
-              text: {
-                content: e.text.content.join('\n').length > 0 ? e.text.content.join('\n') : "",
-                active: "",
-                cStyles: {
-                  fontSize: getKeyByValue(sizeEnumObj, e.text.size),
-                  color: getKeyByValue(colorEnumObj, e.text.color),
-                  textAlign: e.text.align,
-                  width: '100%',
-                  height: '100px',
-                  marginTop: "20px"
-                },
-              }
-            }
-          })
-          moduleList.value.push(imgTextObj)
-        }
-      }
-    })
-
-  }
-})
 
 function getKeyByValue(object, value) {
   for (let key in object) {
@@ -1424,6 +1313,128 @@ function save() {
   show.value = false
   emits("backResult", finallyObj.value)
 }
+
+
+
+
+
+
+watch(() => props.jsonContent, val => {
+  if (val) {
+    // console.log('val', val);
+    finallyObj.value = JSON.parse(val)
+    const { content } = JSON.parse(val)
+    // console.log('content',content);
+    content?.forEach(item => {
+      if (item.widgetName === 'raTextBlock') {
+        let textObj = deepClone(textDefault)
+        item.title.content.join('\n')
+        // console.log('content', typeof item.title.content.join('\n'));
+        if (item.title.content.join('\n').length > 0) {
+          textObj.title.content = item.title.content.join('\n')
+          textObj.title.styles.fontSize = getKeyByValue(sizeEnumObj, item.title.size)
+          textObj.title.styles.color = getKeyByValue(colorEnumObj, item.title.color)
+          textObj.title.styles.textAlign = item.title.align
+        }
+        if (item.text.content.join('\n').length > 0) {
+          textObj.text.content = item.text.content.join('\n')
+          textObj.text.cStyles.fontSize = getKeyByValue(sizeEnumObj, item.text.size)
+          textObj.text.cStyles.color = getKeyByValue(colorEnumObj, item.text.color)
+          textObj.text.cStyles.textAlign = item.text.align
+        }
+        textObj.id = uuidv4()
+        textObj.type = 'text'
+        moduleList.value.push(textObj)
+      } else if (item.widgetName === 'raShowcase') {
+        let imgObj = deepClone(imgDefaulet)
+        if (item.type === 'roll') {
+          imgObj.img = item.blocks.map(blockItem => {
+            return {
+              src: [
+                {
+                  url: processImageSource(blockItem.img.src),
+                  checked: true,
+                  id: uuidv4(),
+                  width: blockItem.img.widthMobile,
+                  height: blockItem.img.heightMobile,
+                }
+              ],
+              open: true,
+              jumpUrl: blockItem.imgLink,
+              alt: blockItem.img.alt,
+              style: {
+                width: getKeyByValue(picPosition, blockItem.img.position),
+                select: 0,
+                margin: "0 auto",
+                display: "block"
+              }
+            }
+          })
+          imgObj.id = uuidv4()
+          imgObj.type = 'image'
+          moduleList.value.push(imgObj)
+        } else {
+          let imgTextObj = deepClone(imgTextDefaulet)
+          imgObj.id = uuidv4()
+          imgObj.type = 'text-image'
+          imgTextObj.imgText.dataType = item.type
+          imgTextObj.imgText.dataList = item.blocks.map(e => {
+            return {
+              src: [
+                {
+                  url: processImageSource(e.img.src),
+                  checked: true,
+                  id: uuidv4(),
+                  width: e.img.widthMobile,
+                  height: e.img.heightMobile,
+                }
+              ],
+              open: true,
+              imgTextStyle: {
+                width: getKeyByValue(picPosition, e.img.position),
+                height: "100%",
+                select: 0,
+                margin: "0 auto",
+                display: "block"
+              },
+              title: {
+                content: e.title.content.join('\n').length > 0 ? e.title.content.join('\n') : "",
+                active: "",
+                styles: {
+                  fontSize: getKeyByValue(sizeEnumObj, e.title.size),
+                  color: getKeyByValue(colorEnumObj, e.title.color),
+                  textAlign: e.title.align,
+                  width: '100%',
+                  height: '100px',
+                  marginTop: "20px"
+                },
+              },
+              text: {
+                content: e.text.content.join('\n').length > 0 ? e.text.content.join('\n') : "",
+                active: "",
+                cStyles: {
+                  fontSize: getKeyByValue(sizeEnumObj, e.text.size),
+                  color: getKeyByValue(colorEnumObj, e.text.color),
+                  textAlign: e.text.align,
+                  width: '100%',
+                  height: '100px',
+                  marginTop: "20px"
+                },
+              }
+            }
+          })
+          moduleList.value.push(imgTextObj)
+        }
+      }
+    })
+
+  }
+}, {
+  immediate: true
+})
+
+
+
 </script>
 
 <style lang="less" scoped>

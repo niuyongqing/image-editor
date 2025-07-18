@@ -1,5 +1,5 @@
 <template>
-    <a-modal v-model:open="visible" title="图片翻译" width="1250px">
+    <a-modal v-model:open="visible" title="图片翻译" width="1200px">
         <a-checkbox v-model:checked="checkedAll" @change="handleCheckAllChange"> 选择全部</a-checkbox>
 
         <div flex text-left pt-15px>
@@ -11,20 +11,21 @@
         </div>
 
         <div class="flex flex-wrap  mt-10px h-900px overflow-y-auto">
+
             <div v-for="(item, index) in tableData" :key="index" flex gap-15px h-150px>
-                <a-card v-for="(element, i) in item.imageUrl" :key="element.url" mb-10px ml-10px p-0px rounded-none
+                <a-card v-for="(element, i) in item.colorImg" :key="element.url" mb-10px ml-10px p-0px rounded-none
                     class="file-card flex" hoverable style="width: 125px;">
                     <div :key="element.uid" @click="tabCheck(element)">
                         <div class="file-item">
                             <div class="file-img">
-                                <img :src="element.url" alt="" class="file-img" />
+                                <img :src="processImageSource(element.url)" alt="" class="file-img" />
                                 <div class="image-mask"> {{ element.height }} X {{ element.width }} </div>
 
                                 <div class="image-check" v-if="element.checked">
                                     <CheckOutlined style="color: #00B903;font-size: 20px; font-weight: bold;" />
                                 </div>
 
-                                <div class="image-tooltip" v-if="element.url.includes('http')">
+                                <div class="image-tooltip">
                                     点击{{ element.checked ? '取消' : '选中' }}
                                 </div>
                             </div>
@@ -32,13 +33,12 @@
                     </div>
                     <div w-full>
                         <div flex justify-between w-full>
-                            <a-checkbox v-if="element.url.includes('http')" v-model:checked="element.checked"
-                                @change="check"></a-checkbox>
+                            <a-checkbox v-model:checked="element.checked" @change="check"></a-checkbox>
                         </div>
                     </div>
-                    <template #extra></template>
                 </a-card>
             </div>
+
         </div>
 
         <div></div>
@@ -52,18 +52,18 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue';
 import { CheckOutlined } from '@ant-design/icons-vue';
-import { imageRecognitionApi, imageRecognitionQueryApi, imageTranslationApi } from '~@/api/common/translation';
+import { imageTranslationApi } from '~@/api/common/translation';
+import { processImageSource } from "./../../config/commJs/index";
 
 const checkedAll = ref(false);
 const visible = ref(false);
 const loading = ref(false);
 const tableData = ref([]); // 图片列表
-const timer = ref(null);
 
 const showModal = (list = []) => {
     tableData.value = list || [];
     tableData.value.forEach((item) => {
-        item.imageUrl.forEach((v) => {
+        item.colorImg.forEach((v) => {
             v.checked = false
         })
     });
@@ -73,11 +73,13 @@ const showModal = (list = []) => {
 const close = () => {
     tableData.value = [];
     visible.value = false;
+    loading.value = false;
+    checkedAll.value = false;
 };
 
 const handleCheckAllChange = () => {
     tableData.value.forEach(item => {
-        item.imageUrl.forEach(v => {
+        item.colorImg.forEach(v => {
             v.checked = checkedAll.value
         })
     })
@@ -85,23 +87,19 @@ const handleCheckAllChange = () => {
 
 // 点击选中
 const tabCheck = (element) => {
-    if (element.url.includes('http')) {
-        element.checked = !element.checked;
-    } else {
-        message.error('只能选择网络图片');
-    }
-    const isAllChecked = tableData.value.every(item => item.imageUrl.every(v => v.checked));
+    element.checked = !element.checked;
+    const isAllChecked = tableData.value.every(item => item.colorImg.every(v => v.checked));
     checkedAll.value = isAllChecked;
 };
 
 const check = () => {
-    const isAllChecked = tableData.value.every(item => item.imageUrl.every(v => v.checked));
+    const isAllChecked = tableData.value.every(item => item.colorImg.every(v => v.checked));
     checkedAll.value = isAllChecked;
 };
 
 
 const submit = async () => {
-    const checkedList = tableData.value.flatMap((item, index) => item.imageUrl.filter(v => v.checked).map((img) => {
+    const checkedList = tableData.value.flatMap((item, index) => item.colorImg.filter(v => v.checked).map((img) => {
         return {
             ...img,
             index: index
@@ -113,83 +111,41 @@ const submit = async () => {
         return;
     };
     loading.value = true;
-    //  单张图片翻译
-    if (checkedList.length === 1) {
-        imageTranslationApi({
-            imageUrl: checkedList[0].url,
-            sourceLanguage: 'zh', // 源语言
-            targetLanguage: 'en' // 目标语言
-        }).then(res => {
-            if (res.code === 200) {
-                message.success('翻译成功');
-                const finalImageUrl = res.data.finalImageUrl;
-                // emits('singleSubmit', {
-                //     newUrl: finalImageUrl,
-                //     oldUrl: checkedList[0].url,
-                // });
-                tableData.value[checkedList[0].index].imageUrl.forEach((v) => {
-                    if (checkedList[0].url === v.url) {
-                        v.url = finalImageUrl
-                    }
-                })
-                close();
-            }
-        }).finally(() => {
-            loading.value = false;
-        })
-        return;
-    };
-    if (checkedList.length > 20) {
-        message.error('最多选择20张图片');
+    if (checkedList.length > 10) {
+        message.error('最多选择10张图片');
         return;
     }
     //  多张图片翻译
-    if (checkedList.length > 1 && checkedList.length <= 20) {
-
-        const res = await imageRecognitionApi({
-            imageUrls: checkedList.map(item => item.url),
+    if (checkedList.length <= 10) {
+        const res = await imageTranslationApi({
+            imageUrl: checkedList.map(e => e.url.replace('/prod-api', '')),
             sourceLanguage: 'zh',
             targetLanguage: 'en',
-            customTaskId: new Date().getTime().toString(),
+            // customTaskId: new Date().getTime().toString(),
         });
         if (res.code === 200) {
-            const taskId = res.data.taskId;
-            timer.value = setInterval(() => {
-                imageRecognitionQueryApi(taskId)
-                    .then(res => {
-                        if (res.code === 200) {
-                            const data = res.data || [];
-                            if (data.length > 0) {
-                                const list = checkedList.map((checkItem, index) => {
-                                    return {
-                                        ...checkItem,
-                                        newUrl: data[index].finalImageUrl ? data[index].finalImageUrl : checkItem.url,
-                                        success: data[index].success,
-                                        oldUrl: checkItem.url,
-                                    }
-                                });
-                                loading.value = false;
-                                message.success('翻译成功');
-                                // emits('multiSubmit', list);
-
-                                console.log('urls', list);
-                                tableData.value.forEach((item) => {
-                                    item.imageUrl.forEach((v) => {
-                                        list.forEach(item => {
-                                            if (v.url === item.oldUrl) {
-                                                v.url = item.newUrl
-                                            }
-                                        })
-                                    })
-                                })
-
-                                clearInterval(timer.value);
-                                timer.value = null;
-                                close();
+            if (res.code === 200) {
+                message.success('翻译成功');
+                const data = res.data;
+                const list = checkedList.map((checkItem, index) => {
+                    return {
+                        ...checkItem,
+                        newUrl: data[index].newImage ? data[index].newImage : data[index].oldImage,
+                        success: data[index].success,
+                        oldUrl: checkItem.url,
+                    }
+                });
+                tableData.value.forEach((item) => {
+                    item.colorImg.forEach((v) => {
+                        list.forEach(item => {
+                            if (v.url === item.oldUrl) {
+                                v.url = item.newUrl
                             }
-                        }
+                        })
                     })
-            }, 3500);
+                })
+                close();
+            }
         };
     };
 };

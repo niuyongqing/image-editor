@@ -10,11 +10,6 @@
                     </a-textarea>
                 </a-form-item>
                 <a-form-item label="备注颜色:" name="remarkColor">
-                    <!-- <a-radio-group v-model:value="editForm.remarkColor">
-                        <a-radio-button :value="false">红</a-radio-button>
-                        <a-radio-button :value="true">绿</a-radio-button>
-                    </a-radio-group> -->
-
                     <div>
                         <!-- 颜色列表 -->
                         <div class="color-list">

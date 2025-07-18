@@ -13,15 +13,15 @@
                 </div>
                 <div>
                     <a-space>
-                        <a-button type="primary" @click="editCategory"
+                        <a-button type="primary" @click="saveEditCategory"
                             style="height: 32px;  background-color: #E97234;">保存，下一步</a-button>
                         <a-button @click="skip" style="height: 32px; background-color: #F5F5F5;">关闭</a-button>
                     </a-space>
                 </div>
             </div>
-
             <div>
-                <a-button type="primary" @click="showCategoryModal"> 批量修改分类 </a-button>
+                <a-button type="primary" @click="showCategoryModal" :disabled="selectedRowKeys.length === 0"> 批量修改分类
+                </a-button>
                 <a-card mt-12px>
                     筛选来源：
                     <a-select v-model:value="platformSource" allowClear placeholder="请选择" style="width: 300px;"
@@ -31,8 +31,8 @@
             </div>
 
             <div h-900px overflow-y-scroll>
-                <a-table v-for="item in acceptParams" :key="item.gatherProductId" :columns="columns"
-                    :data-source="item.tableData" bordered :pagination="false" style="margin-top: 12px;">
+                <a-table :columns="columns" :row-selection="rowSelection" :data-source="acceptParams" bordered
+                    :pagination="false" row-key="gatherProductId">
                     <template #bodyCell="{ column, record }">
                         <template v-if="column.dataIndex === 'primaryImage'">
                             <div class="flex">
@@ -52,30 +52,29 @@
                             >>
                         </template>
                         <template v-if="column.dataIndex === 'ozonCategory'">
-                            <a-select v-model:value="item.typeId" allowClear showSearch placeholder="请选择"
-                                style="width: 300px;" :options="historyCategoryList" @change="selectAttributes(item)"
-                                :fieldNames="{
+                            <a-select v-model:value="record.typeId" allowClear showSearch placeholder="请选择"
+                                style="width: 300px;" :options="historyCategoryList"
+                                @change="selectAttributes(record, $event)" :fieldNames="{
                                     label: 'threeCategoryName', value: 'threeCategoryId',
                                 }" :filter-option="filterOption">
                             </a-select>
-                            <a-button type="link" @click="changeCategory(item)">更换分类</a-button>
-                            <p class="tooltip-text" v-if="hisAttrObj && JSON.stringify(hisAttrObj) != '{}'">
-                                {{ item.hisAttrObj.categoryName }} > {{ item.hisAttrObj.secondCategoryName }} >
-                                {{ item.hisAttrObj.threeCategoryName }}
+                            <a-button type="link" @click="changeCategory(record)">更换分类</a-button>
+                            <p>
+                                {{ getHistoryPath(record.typeId) }}
                             </p>
-                            <a-table :columns="innerColumns" :data-source="item.innerTableData" bordered
+                            <a-table :columns="innerColumns" :data-source="record.innerTableData" bordered
                                 :pagination="false" style="margin-top: 10px;">
-                                <template #bodyCell="{ column, record }">
-                                    <template v-if="column.dataIndex === 'catTheme'">
-                                        {{ record.catTheme }}
+                                <template #bodyCell="{ column: innerColumn, record: innerRecord }">
+                                    <template v-if="innerColumn.dataIndex === 'catTheme'">
+                                        {{ innerRecord.catTheme }}
                                     </template>
-                                    <template v-if="column.dataIndex === 'ozonTheme'">
+                                    <template v-if="innerColumn.dataIndex === 'ozonTheme'">
                                         <div>
-                                            <a-select v-model:value="record.ozonTheme" allowClear placeholder="请选择"
-                                                style="width: 180px;" :options="filterAttrOptions">
+                                            <a-select v-model:value="innerRecord.ozonTheme" allowClear placeholder="请选择"
+                                                style="width: 180px;" :options="record.filterAttrOptions">
                                                 <template #notFoundContent>
-                                                    <div v-if="item.optionsLoading" w-180px h-150px flex justify-center
-                                                        items-center>
+                                                    <div v-if="record.optionsLoading" w-180px h-150px flex
+                                                        justify-center items-center>
                                                         <a-spin />
                                                     </div>
                                                     <div v-else flex justify-center items-center>
@@ -84,7 +83,6 @@
                                                 </template>
                                             </a-select>
                                         </div>
-
                                     </template>
                                 </template>
                             </a-table>
@@ -94,28 +92,32 @@
             </div>
         </a-modal>
 
-        <!--  account ??? to do -->
+        <!--  account -->
         <CategoryModal ref="categoryModalRef" :account="account" @select="handleSelect"></CategoryModal>
     </div>
 </template>
 
 <script setup>
 import { message } from 'ant-design-vue';
-import CategoryDialog from "@/pages/ozon/productPublish/comm/categoryDialog.vue";
 import CategoryModal from "../comm/categoryModal.vue";
 import {
     categoryTree,
     historyCategory,
     addHistoryCategory,
     categoryAttributes,
+
 } from "@/pages/ozon/config/api/product.js";
-import { ozonRelationDetail, ozonRelationSave } from "@/pages/ozon/config/api/draft.js";
+import { batchSave, batchRelationDetail } from "@/pages/ozon/config/api/draft.js";
 import { cloneDeep } from 'lodash';
 
-const { shopAccount } = defineProps({
+const { shopAccount, account } = defineProps({
     shopAccount: {
         type: Array,
         default: () => []
+    },
+    account: {
+        type: String,
+        default: ''
     }
 });
 
@@ -125,15 +127,11 @@ const platNames = {
     AliExpress: '速卖通',
 };
 const baseApi = import.meta.env.VITE_APP_BASE_API;
-
-const account = ref(''); // 店铺账号
 const platformSource = ref(''); // 平台来源
 const dialogVisible = ref(false);
 const acceptParams = ref([]);
 const copyAcceptParams = ref([]);
 
-// const resData = ref(null);
-// const relationDetail = ref({});
 const columns = [
     {
         title: '产品信息',
@@ -155,19 +153,23 @@ const columns = [
         width: 400
     },
 ];
-
+const isSingleCategory = ref(false); // 是否点击的是单个分类
+const selectCategory = ref({}); // 选中的分类
 const selectedRowList = ref([]); // 选中的行数据
-const rowSelection = {
-    onChange: (selectedRowKeys, selectedRows) => {
-        selectedRowList.value = selectedRows;
-    },
-};
-// const isClear = ref(false); // 是否清空对应的变种主题
+const selectedRowKeys = ref([]);
+const rowSelection = computed(() => {
+    return {
+        selectedRowKeys: selectedRowKeys.value,
+        onChange: (rowKeys, rows) => {
+            selectedRowKeys.value = rowKeys;
+            selectedRowList.value = rows;
+        },
+    }
+});
 const innerColumns = computed(() => {
-    const title = platNames[acceptParams.value.gatherPlatformName] || '';
     return [
         {
-            title: `${title}变种主题`,
+            title: '变种主题',
             dataIndex: 'catTheme',
             key: 'catTheme',
             width: 150
@@ -209,27 +211,9 @@ const selectSource = (value) => {
 
 const categoryModalEl = useTemplateRef('categoryModalRef');
 const historyCategoryList = ref([]);
-// const hisAttrObj = ref({}) //选中的三级
 const secondCategoryId = ref(undefined);
 const attributes = ref([]);
 const filterAttrOptions = ref([]); // 过滤后的属性
-const optionsLoading = ref(false); // 下拉框loading
-// const tableData = ref([
-//     {
-//         primaryImage: '',
-//         category: '',
-//         ozonCategory: '',
-//         gatherPlatformName: '',
-//         account: ''
-//     }
-// ]);
-// const innerTableData = ref([]);
-
-// const form = reactive({
-//     name: "",
-//     shortCode: "",
-//     categoryId: null,
-// })
 
 function filterOption(input, option) {
     return option.threeCategoryName.indexOf(input) >= 0;
@@ -242,94 +226,231 @@ const primaryImage = (primaryImage) => {
     return baseApi + primaryImage
 };
 function getFilterAttrs() {
-    // const filterAttr = attributes.value.filter((attrItem) => {
-    //     return attrItem.isAspect
-    // });
+    acceptParams.value.forEach((item) => {
+        item.filterAttrOptions = item.attributes.filter((attrItem) => {
+            return attrItem.isAspect
+        }).map((attrItem) => {
+            return {
+                label: attrItem.name.replace(/\(.*\)/, ""), // 去掉（）里面的
+                value: attrItem.id,
+                attrLabel: attrItem.name,
+            }
+        });
+    });
+};
 
-    // filterAttrOptions.value = filterAttr.map((attrItem) => {
-    //     return {
-    //         label: attrItem.name.replace(/\(.*\)/, ""), // 去掉（）里面的
-    //         value: attrItem.id,
-    //         attrLabel: attrItem.name,
-    //     }
-    // });
-    // innerTableData.value = [];
-    // if (resData.value) {
-    //     if (acceptParams.value.variantAttr && Object.keys(acceptParams.value.variantAttr).length > 0) {
-    //         Object.keys(acceptParams.value.variantAttr).forEach((key) => {
-    //             const variantRelationList = relationDetail.value.variantRelationList || [];
-    //             const platformVariantName = variantRelationList.find((item) => {
-    //                 return item.originalVariantName === key
-    //             })?.platformVariantName;
-    //             if (isClear.value) {
-    //                 innerTableData.value.push({
-    //                     catTheme: key,
-    //                     attrLabel: undefined,
-    //                     ozonTheme: undefined,
-    //                     filterAttrOptions: filterAttrOptions.value,
-    //                 })
-    //             } else {
-    //                 innerTableData.value.push({
-    //                     catTheme: key,
-    //                     attrLabel: platformVariantName ? platformVariantName.replace(/\(.*\)/, "") : undefined,
-    //                     ozonTheme: relationDetail.value.variantRelationList.find((item) => {
-    //                         return item.originalVariantName === key
-    //                     })?.attributeId,
-    //                     filterAttrOptions: filterAttrOptions.value,
-    //                 })
-    //             }
-    //         });
-    //     }
 
-    // } else {
-    //     Object.keys(acceptParams.value.variantAttr).forEach((key) => {
-    //         innerTableData.value.push({
-    //             catTheme: key,
-    //             attrLabel: undefined,
-    //             ozonTheme: undefined,
-    //             filterAttrOptions: filterAttrOptions.value,
-    //         })
-    //     })
-
-    // }
-}
-
-// 历史分类
-const getHistoryList = (account, typeId, categoryId = '') => {
-    if (!form.shortCode) {
-        return;
-    }
-    //     
+// 选择历史分类
+const selectAttributes = async (item, value) => {
+    item.optionsLoading = true;
+    item.filterAttrOptions = [];
+    item.innerTableData.forEach(innerItem => {
+        innerItem.ozonTheme = undefined;
+        innerItem.attrLabel = undefined;
+    });
+    const findItem = historyCategoryList.value.find((item) => {
+        return item.threeCategoryId === value
+    });
+    const res = await categoryAttributes({
+        account: item.account,
+        descriptionCategoryId: findItem.secondCategoryId,  // bug to do
+        typeId: value,
+    })
+    const data = res.data.filter((item) => {
+        return item.isAspect
+    }).map((item) => {
+        return {
+            label: item.name.replace(/\(.*\)/, ""), // 去掉（）里面的
+            value: item.id,
+            attrLabel: item.name,
+        }
+    })
+    item.filterAttrOptions = data;
+    item.optionsLoading = false;
 };
 
 // 更换分类
 const changeCategory = (item) => {
     nextTick(() => {
+        selectCategory.value = item;
+        isSingleCategory.value = true;
         categoryModalEl.value.open(item.typeId);
     })
 };
 
-const handleSelect = (data) => {
-    dialogVisible.value = true;
-    form.categoryId = data.value;
-    hisAttrObj.value = {
-        "categoryId": data.ids[0],
-        "secondCategoryId": data.ids[1],
-        "threeCategoryId": data.ids[2],
-        "categoryName": data.label[0],
-        "secondCategoryName": data.label[1],
-        "threeCategoryName": data.label[2]
+const handleSelect = async (data) => {
+    if (isSingleCategory.value) {
+        console.log('单个', selectCategory.value);
+        acceptParams.value.forEach(item => {
+            if (selectCategory.value.gatherProductId === item.gatherProductId) {
+                item.typeId = data.value;
+                item.filterAttrOptions = [];
+                item.innerTableData.forEach(innerItem => {
+                    innerItem.ozonTheme = undefined;
+                    innerItem.attrLabel = undefined;
+                });
+
+                item.optionsLoading = true;
+            }
+        });
+        //  如果选择不在历史分类里面，则添加到历史里面
+        const findItem = historyCategoryList.value.find((item) => {
+            return item.threeCategoryId === data.value
+        });
+
+        if (!findItem) {
+            let params = {
+                account,
+                secondCategoryId: data.ids[1],
+                threeCategoryId: data.ids[2],
+            };
+            await addHistoryCategory(params);
+            const res = await historyCategory({ account })
+            if (res.code === 200) {
+                historyCategoryList.value = res.data || [];
+            };
+            // 获取属性
+            const res2 = await categoryAttributes({
+                account,
+                descriptionCategoryId: data.ids[1],
+                typeId: data.value,
+            });
+            if (res2.code === 200) {
+                acceptParams.value.forEach((paramsItem) => {
+                    if (selectCategory.value.gatherProductId === paramsItem.gatherProductId) {
+                        paramsItem.filterAttrOptions = res2.data.filter((attrItem) => {
+                            return attrItem.isAspect
+                        }).map((attrItem) => {
+                            return {
+                                label: attrItem.name.replace(/\(.*\)/, ""), // 去掉（）里面的
+                                value: attrItem.id,
+                                attrLabel: attrItem.name,
+                            }
+                        });
+                        paramsItem.optionsLoading = false;
+                    }
+                });
+            }
+        } else {
+            console.log('在历史里面 -》》》');
+            // 获取属性
+            acceptParams.value.forEach((paramsItem) => {
+                selectedRowList.value.forEach(rowItem => {
+                    if (rowItem.gatherProductId === paramsItem.gatherProductId) {
+                        paramsItem.optionsLoading = true;
+                    }
+                })
+            });
+            const res = await categoryAttributes({
+                account,
+                descriptionCategoryId: data.ids[1],
+                typeId: data.value,
+            });
+            if (res.code === 200) {
+                acceptParams.value.forEach((paramsItem) => {
+                    paramsItem.filterAttrOptions = res.data.filter((attrItem) => {
+                        return attrItem.isAspect
+                    }).map((attrItem) => {
+                        return {
+                            label: attrItem.name.replace(/\(.*\)/, ""), // 去掉（）里面的
+                            value: attrItem.id,
+                            attrLabel: attrItem.name,
+                        }
+                    });
+                });
+            }
+        }
+
+    } else {
+        console.log('批量');
+        acceptParams.value.forEach(item => {
+            selectedRowList.value.forEach(rowItem => {
+                if (rowItem.gatherProductId === item.gatherProductId) {
+                    item.typeId = data.value;
+                    item.filterAttrOptions = [];
+                    item.optionsLoading = true;
+                    item.innerTableData.forEach(innerItem => {
+                        innerItem.ozonTheme = undefined;
+                        innerItem.attrLabel = undefined;
+                    });
+                }
+            })
+        })
+        //  如果选择不在历史分类里面，则添加到历史里面
+        const findItem = historyCategoryList.value.find((item) => {
+            return item.threeCategoryId === data.value
+        });
+        if (!findItem) {
+            let params = {
+                account,
+                secondCategoryId: data.ids[1],
+                threeCategoryId: data.ids[2],
+            };
+            await addHistoryCategory(params);
+            const res = await historyCategory({ account })
+            if (res.code === 200) {
+                historyCategoryList.value = res.data || [];
+            };
+            // 获取属性
+            const res2 = await categoryAttributes({
+                account,
+                descriptionCategoryId: data.ids[1],
+                typeId: data.value,
+            });
+            if (res2.code === 200) {
+                acceptParams.value.forEach((paramsItem) => {
+                    selectedRowList.value.forEach(rowItem => {
+                        if (rowItem.gatherProductId === paramsItem.gatherProductId) {
+                            paramsItem.filterAttrOptions = res2.data.filter((attrItem) => {
+                                return attrItem.isAspect
+                            }).map((attrItem) => {
+                                return {
+                                    label: attrItem.name.replace(/\(.*\)/, ""), // 去掉（）里面的
+                                    value: attrItem.id,
+                                    attrLabel: attrItem.name,
+                                }
+                            });
+                            paramsItem.optionsLoading = false;
+                        }
+                    })
+                })
+            }
+        } else {
+            console.log('在历史里面 -》》》');
+            // 获取属性
+            acceptParams.value.forEach((paramsItem) => {
+                selectedRowList.value.forEach(rowItem => {
+                    if (rowItem.gatherProductId === paramsItem.gatherProductId) {
+                        paramsItem.optionsLoading = true;
+                    }
+                })
+            });
+            const res = await categoryAttributes({
+                account,
+                descriptionCategoryId: data.ids[1],
+                typeId: data.value,
+            });
+            if (res.code === 200) {
+                acceptParams.value.forEach((paramsItem) => {
+                    selectedRowList.value.forEach(rowItem => {
+                        if (rowItem.gatherProductId === paramsItem.gatherProductId) {
+                            const filterAttr = res.data.filter((attrItem) => {
+                                return attrItem.isAspect
+                            });
+                            paramsItem.filterAttrOptions = filterAttr.map((attrItem) => {
+                                return {
+                                    label: attrItem.name.replace(/\(.*\)/, ""), // 去掉（）里面的
+                                    value: attrItem.id,
+                                    attrLabel: attrItem.name,
+                                }
+                            });
+                            paramsItem.optionsLoading = false;
+                        }
+                    })
+                })
+            }
+        }
     };
-    secondCategoryId.value = data.ids[1];
-    let params = {
-        account: form.shortCode,
-        secondCategoryId: data.ids[1],
-        threeCategoryId: data.ids[2],
-    };
-    // isClear.value = true;
-    // addHistoryCategory(params).then((res) => {
-    //     getHistoryList(form.shortCode, data.value);
-    // });
 };
 
 const accountName = (account) => {
@@ -338,10 +459,93 @@ const accountName = (account) => {
 
 // 批量修改分类
 const showCategoryModal = () => {
-    // categoryModalEl.value.open(0); // to do
+    isSingleCategory.value = false;
+    categoryModalEl.value.open(''); // to do
 }
 
-const open = (data = []) => {
+//  获取路劲
+const getHistoryPath = (typeId) => {
+    const findItem = historyCategoryList.value.find((item) => {
+        return item.threeCategoryId === typeId
+    });
+    return findItem ? `${findItem.categoryName} > ${findItem.secondCategoryName} > ${findItem.threeCategoryName}` : '';
+
+}
+
+//  获取历史分类列表
+const getHistoryList = async () => {
+    const res = await historyCategory({ account });
+    if (res.code === 200) {
+        historyCategoryList.value = res.data || [];
+    };
+    const paramsList = acceptParams.value.filter((paramItem) => paramItem.typeId);
+    //  去重
+    const uniqueParamsList = paramsList.filter((item, index) => {
+        return paramsList.findIndex((i) => i.typeId === item.typeId) === index;
+    });
+    uniqueParamsList.forEach((item) => {
+        categoryAttributes({
+            account,
+            descriptionCategoryId: item.categoryId,
+            typeId: item.typeId,
+        }).then((res) => {
+            if (res.code === 200) {
+                acceptParams.value.forEach((paramsItem) => {
+                    if (item.typeId === paramsItem.typeId) {
+                        const filterAttr = res.data.filter((attrItem) => {
+                            return attrItem.isAspect
+                        });
+                        paramsItem.filterAttrOptions = filterAttr.map((attrItem) => {
+                            return {
+                                label: attrItem.name.replace(/\(.*\)/, ""), // 去掉（）里面的
+                                value: attrItem.id,
+                                attrLabel: attrItem.name,
+                            }
+                        });
+
+                    }
+                })
+            }
+        })
+    })
+};
+
+// 批量查询变种关联关系
+const getVariantRelationList = async () => {
+    const relationReqList = acceptParams.value.map(item => {
+        return {
+            productCollectId: item.gatherProductId,
+            platformName: 'ozon'
+        }
+    })
+    const res = await batchRelationDetail({
+        "relationReqList": relationReqList
+    })
+    if (res.code === 200) {
+        acceptParams.value.forEach((item) => {
+            const findItem = res.data.find((relationItem) => {
+                return relationItem.productCollectId === item.gatherProductId
+            });
+            if (findItem) {
+                item.variantAttr = findItem.detailData || {};
+                item.optionsLoading = true;
+                item.innerTableData.forEach((innerItem) => {
+                    const findVariantItem = findItem.variantRelationList.find((relationItem) => {
+                        return relationItem.originalVariantName === innerItem.catTheme
+                    })
+                    if (findVariantItem) {
+                        innerItem.ozonTheme = findVariantItem.attributeId
+                        innerItem.attrLabel = findVariantItem.platformVariantName
+                    }
+                })
+                item.optionsLoading = false;
+            }
+        })
+    }
+}
+
+
+const open = async (data = []) => {
     acceptParams.value = data.map((item) => {
         let innerTableData = [];
         Object.keys(item.variantAttr).forEach((key) => {
@@ -349,7 +553,6 @@ const open = (data = []) => {
                 catTheme: key,
                 ozonTheme: undefined,
                 attrLabel: undefined,
-                filterAttrOptions: filterAttrOptions.value,
             })
         });
         return {
@@ -358,61 +561,30 @@ const open = (data = []) => {
             tableData: [{
                 primaryImage: item.primaryImage,
                 name: item.name,
-                category: item.category,
+                category: item.typeId,
                 gatherPlatformName: item.gatherPlatformName,
                 account: item.account,
             }],
+            filterAttrOptions: [],
             innerTableData: innerTableData
         }
     });
     copyAcceptParams.value = cloneDeep(acceptParams.value);
     dialogVisible.value = true;
-
-
-
-    // isClear.value = false;
-    // acceptParams.value = data;
-    // dialogVisible.value = true;
-    // ozonRelationDetail({
-    //     platformName: 'ozon',
-    //     productCollectId: data.gatherProductId,
-    // }).then((res) => {
-    //     if (res.code === 200) {
-    //         resData.value = res.data;
-    //         relationDetail.value = res.data || {};
-    //         if (JSON.stringify(relationDetail.value) != '{}') {
-    //             tableData.value = [{
-    //                 primaryImage: data.primaryImage,
-    //                 name: data.name,
-    //                 category: relationDetail.value.typeId,
-    //                 gatherPlatformName: data.gatherPlatformName,
-    //                 account: data.account,
-    //             }];
-
-    //             form.shortCode = data.account;
-    //             form.categoryId = relationDetail.value.typeId;
-    //             getHistoryList(data.account, relationDetail.value.typeId, relationDetail.value.categoryId);
-    //         } else {
-
-    //             tableData.value = [{
-    //                 primaryImage: data.primaryImage,
-    //                 name: data.name,
-    //                 category: data.categoryId,
-    //                 gatherPlatformName: data.gatherPlatformName,
-    //                 account: data.account,
-    //             }];
-
-    //             form.shortCode = data.account;
-    //             form.categoryId = data.typeId;
-    //             getHistoryList(data.account, data.typeId, data.categoryId);
-    //         }
-    //     }
-    // })
+    // 批量查询变种关联关系
+    await getVariantRelationList();
+    // 获取历史分类
+    await getHistoryList()
 };
 
 const cancel = () => {
+    platformSource.value = '';
+    isSingleCategory.value = false;
+    selectCategory.value = {};
+    acceptParams.value = [];
+    copyAcceptParams.value = [];
+    historyCategoryList.value = [];
     dialogVisible.value = false;
-    innerTableData.value = [];
 };
 const platformName = (platform) => {
     return platNames[platform] ?? platform
@@ -423,45 +595,85 @@ const getAttrLabel = (value) => {
     return filterAttrOptions.value.find(item => item.value === value)?.attrLabel
 }
 
-// 编辑分类
-const editCategory = () => {
-    // let variantRelationList = innerTableData.value.map(item => {
-    //     return {
-    //         "originalVariantName": item.catTheme,
-    //         "platformVariantName": getAttrLabel(item.ozonTheme),
-    //         "attributeId": item.ozonTheme
-    //     }
-    // });
-    // const params = {
-    //     typeId: form.categoryId,
-    //     "productCollectId": acceptParams.value.gatherProductId, //数据采集产品id或者采集箱产品id
-    //     "platformName": "ozon",//所属平台
-    //     "categoryId": hisAttrObj.value.secondCategoryId, // 二级分类id
-    //     "variantRelationList": variantRelationList
-    // };
+// 保存编辑分类
+const saveEditCategory = () => {
+    const typeIdList = acceptParams.value.filter((item) => {
+        return !item.typeId
+    });
+    console.log('typeIdList', typeIdList);
+    if (typeIdList.length > 0) {
+        message.error('选择分类不能为空');
+        return;
+    };
 
-    // // 对应Ozon变种主题 选择不能有一样的
-    // const attributeIdList = variantRelationList.map(item => item.attributeId).filter(Boolean);
+    let typeIdError = []; // 分类错误
+    let repeatError = []; // 重复错误
+    let ozonThemeError = []; // ozon主题错误
+    acceptParams.value.forEach(item => {
+        const innerTableData = item.innerTableData.map((innerItem) => {
+            return {
+                "originalVariantName": innerItem.catTheme,
+                "platformVariantName": getAttrLabel(innerItem.ozonTheme),
+                "attributeId": innerItem.ozonTheme
+            }
+        });
 
-    // if (attributeIdList.every(item => item === undefined)) {
-    //     message.error('请选择变种主题选择属性');
-    //     return;
-    // }
-    // const hasRepeat = attributeIdList.some((item, index) => attributeIdList.indexOf(item) !== index);
-    // if (hasRepeat) {
-    //     message.error('对应Ozon变种主题，选择不能有重复');
-    //     return;
-    // }
-    // ozonRelationSave(params).then((res) => {
-    //     if (res.code === 200) {
-    //         message.success('保存成功');
-    //         emits('edit');
-    //         cancel();
-    //         window.open(`/platform/ozon/editDraftProduct?account=${acceptParams.value.account}&id=${acceptParams.value.gatherProductId}`, '_blank')
-    //     }
-    // })
+        // 对应Ozon变种主题 选择不能有一样的
+        const attributeIdList = innerTableData.map(item => item.attributeId).filter(Boolean);
+        const hasRepeat = attributeIdList.some((item, index) => attributeIdList.indexOf(item) !== index);
+
+        if (hasRepeat) {
+            repeatError.push(item.gatherProductId)
+        }
+        if (attributeIdList.every(item => item === undefined)) {
+            ozonThemeError.push(item.gatherProductId)
+        }
+
+        if (!item.typeId) {
+            typeIdError.push(item.gatherProductId)
+        }
+    })
+
+    if (typeIdError.length > 0) {
+        message.error('分类不能为空');
+        return;
+    };
+    if (ozonThemeError.length > 0) {
+        message.error('对应Ozon变种主题，选择不能为空');
+        return;
+    };
+    if (repeatError.length > 0) {
+        message.error('对应Ozon变种主题，选择不能有重复');
+        return;
+    }
+
+    const relationReqList = acceptParams.value.map(item => {
+        return {
+            "productCollectId": item.gatherProductId, //数据采集产品id或者采集箱产品id
+            "platformName": "ozon",//所属平台
+            "categoryId": item.categoryId, //平台分类id
+            "typeId": item.typeId, // 商品类型ID (目前只有ozon平台有，其他平台应该没有)
+            "variantRelationList": item.innerTableData.map(innerItem => {
+                return {
+                    "originalVariantName": innerItem.catTheme,
+                    "platformVariantName": getAttrLabel(innerItem.ozonTheme),
+                    "attributeId": innerItem.ozonTheme
+                }
+            })
+        }
+    });
+
+    batchSave({
+        "relationReqList": relationReqList
+    }).then((res) => {
+        if (res.code === 200) {
+            message.success('保存成功');
+            emits('success');
+            cancel();
+            window.open(`/platform/ozon/batch-edit`, '_blank')
+        }
+    })
 };
-
 //  跳过
 const skip = () => {
     emits('skip');

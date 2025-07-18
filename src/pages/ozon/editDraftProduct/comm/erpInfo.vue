@@ -4,7 +4,7 @@
             <template #title>
                 ERP信息 <span style="color: #9fa0a2">（注：下列信息，仅在本系统生效）</span>
             </template>
-            <a-form :model="formData" ref="formRef" :label-col="{ span: 3 }">
+            <a-form :model="formData" ref="formRef" :label-col="{ span: 3 }" class="shopForm">
                 <a-form-item label="ERP分类" name="erpProductId">
                     <a-dropdown trigger="click" v-model:open="openDropdown">
                         <a-button style="width: 300px; height: 32px;">
@@ -158,3 +158,14 @@ onMounted(() => {
     getTreeData();
 })
 </script>
+<style lang="less" scoped>
+:deep(.shopForm) {
+    .ant-form-item {
+        .ant-row {
+            .ant-form-item-label>label {
+                font-size: 20px !important;
+            }
+        }
+    }
+}
+</style>

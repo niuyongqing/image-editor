@@ -1,7 +1,7 @@
 <template>
     <div id="OzonBaseInfoCont">
         <a-card title="基本信息" style="text-align: left">
-            <a-form :label-col="{ span: 3 }" ref="ruleForm" :model="form" class="mt-5" :rules="rules">
+            <a-form :label-col="{ span: 3 }" ref="ruleForm" :model="form" class="mt-5 shopForm" :rules="rules">
                 <a-form-item label="店铺：" name="shortCode">
                     <a-select v-model:value="form.shortCode" placeholder="请选择店铺" style="width: 90%" allowClear
                         showSearch optionFilterProp="label" :options="shopList" @change="getHistoryList">
@@ -264,7 +264,7 @@ const selectAttributes = (e) => {
         };
         form.categoryId = {
             threeCategoryId: e.option.threeCategoryId,
-            threeCategoryName: "",
+            threeCategoryName: e.option.threeCategoryName,
             secondCategoryId: e.option.secondCategoryId,
             label: e.option.threeCategoryName,
             value: e.option.threeCategoryId,
@@ -319,6 +319,9 @@ const shouldHideItem = (item) => {
 
 // 此方法将历史缓存中的属性值进行重新赋值
 const assignValues = (a, b) => {
+    console.log('a', a);
+    console.log('b', b);
+
     let newRes = a.map((item) => {
         return {
             ...item,
@@ -491,7 +494,7 @@ watch(
     () => props.productDetail,
     (val) => {
         if (val) {
-            const { simpleName, account, skuList, vat, typeId, descriptionCategoryId, name } =
+            const { simpleName, account, skuList, vat, typeId, categoryId, name } =
                 val;
             // 修改响应式对象的属性
             form.shortCode = account;
@@ -500,7 +503,7 @@ watch(
             form.categoryId = {
                 threeCategoryId: typeId,
                 threeCategoryName: "",
-                secondCategoryId: descriptionCategoryId,
+                secondCategoryId: categoryId,
                 label: undefined,
                 value: typeId,
             };
@@ -509,7 +512,32 @@ watch(
     }
 );
 
-// console.log('props',props);
+// 引用产品模板
+watch(() => useOzonProductStore().productTemplate, (val) => {
+    if (val) {
+        const { account, content: {
+            productTemplate: {
+                categoryId: {
+                    threeCategoryId,
+                    secondCategoryId,
+                    value
+                },
+                productAttr
+            }
+        } } = val;
+        form.shortCode = val.account;
+        form.categoryId = {
+            threeCategoryId,
+            threeCategoryName: "",
+            secondCategoryId,
+            label: undefined,
+            value
+        };
+        form.vat = vat === "0.0" || vat === "0.00" ? "0" : vat;
+        emit("getAttributes", form.shortCode, form.categoryId);
+        form.attributes = val.content.productTemplate.productAttr;
+    }
+})
 
 watch(
     () => useOzonProductStore().attributes,
@@ -650,6 +678,16 @@ watch(
             /* 使用省略号表示文本溢出 */
             width: 200px;
             /* 设置容器宽度 */
+        }
+    }
+}
+
+:deep(.shopForm) {
+    .ant-form-item {
+        .ant-row {
+            .ant-form-item-label>label {
+                font-size: 20px !important;
+            }
         }
     }
 }

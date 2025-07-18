@@ -2,31 +2,40 @@
     <div id="OzonNewImageInfoCont">
         <a-card class="text-left">
             <template #title>
-                <span>描述信息<span style="color: #9fa0a2">（编辑视频时请先选择店铺）</span></span>
+                <span class="text-16px">描述信息<span style="color: #9fa0a2">（编辑视频时请先选择店铺）</span></span>
             </template>
-            <a-form ref="ruleForm" :model="form" :label-col="{ span: 2 }" :rules="rules">
+            <a-form ref="ruleForm" class="richForm" :model="form" :label-col="{ span: 2 }" :rules="rules">
                 <a-form-item label="产品描述：" name="description">
                     <div style="width: 90%;margin-top: 10px;">
                         <a-textarea v-model:value="form.description" :rows="10" :maxlength="6000" showCount />
                     </div>
                 </a-form-item>
                 <a-form-item label="JSON 丰富内容：" name="jsons">
-                    <span style="color: #ff0a37">说明：描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M</span>
+                    <div>
+                        <a-select v-model:value="form.jsonTemp" size="large" allowClear style="width: 30%"
+                            :options="tempList">
+                        </a-select>
+                        <a-button type="link" size="middle" class="ml10px" @click="searchTemp">
+                            <SyncOutlined />
+                            更新模板
+                        </a-button>
+                    </div>
+                    <div class="my10px text-16px" style="color: #ff0a37">说明：描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M</div>
                     <a-form-item-rest>
-                        <jsonForm @backResult="backResult" :content="form.jsons" :shop="shopCode"></jsonForm>
+                        <jsonForm @backResult="backResult" :jsonContent="form.jsons" :shop="shopCode"></jsonForm>
                     </a-form-item-rest>
                 </a-form-item>
                 <a-form-item label="视频：">
                     <div>
-                        <a-tag type="success" effect="dark">！说明</a-tag>
-                        <span style="color: #9fa0a2">
+                        <a-tag type="success" effect="dark" class="text-16px">！说明</a-tag>
+                        <span style="color: #9fa0a2" class="text-16px">
                             最小尺寸：640x640像素。最大文件大小：100mb。支持的格式：mp4,MOV。产品视频最多上传5个。
                         </span>
                         <br />
                     </div>
                     <div class="flex mt-2.5">
                         <div>
-                            封面视频：
+                            <span class="text-16px">封面视频：</span>
                             <a-upload v-if="!form.coverUrl" :maxCount="1" :action="uploadImageVideoUrl"
                                 accept=".mp4,.mov" list-type="picture-card" @change="handleChange" :data="{
                                     shortCode: shopCode
@@ -48,7 +57,7 @@
                             </div>
                         </div>
                         <div class="ml-7.5 flex flex-col">
-                            <span>详情描述视频：</span>
+                            <span class="text-16px">详情描述视频：</span>
                             <div class="flex">
                                 <div class="video-item" v-if="form.video.length > 0">
                                     <div class="items" v-for="(item, index) in form.video" :key="index">
@@ -89,6 +98,9 @@ import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { message } from "ant-design-vue";
 import jsonForm from "../../config/component/json/index.vue"
 import { processImageSource } from "~/pages/ozon/config/commJs/index"
+import { SyncOutlined } from '@ant-design/icons-vue';
+import { templateList } from "../../config/api/product";
+
 const ruleForm = ref(null)
 const props = defineProps({
     shopCode: String,
@@ -101,6 +113,21 @@ const form = reactive({
     jsons: "",
 })
 const copyJson = ref([])
+
+const tempList = ref([
+    {
+        label: "模板1",
+        value: "1"
+    },
+    {
+        label: "模板2",
+        value: "2"
+    },
+    {
+        label: "模板3",
+        value: "3"
+    }
+])
 const headers = {
     'Authorization': 'Bearer ' + useAuthorization().value,
 }
@@ -147,8 +174,7 @@ const removeVideoList = (index) => {
     form.video.splice(index, 1)
 }
 const backResult = (res) => {
-    form.jsons = res
-    // console.log('p', form.jsons);
+    form.jsons = JSON.stringify(res)
 }
 
 const submitForm = () => {
@@ -157,6 +183,22 @@ const submitForm = () => {
         return false;
     }
     return true;
+}
+
+const searchTemp = () => {
+    templateList({
+        account: props.shopCode,
+        type: 3,
+        name: "",
+        pageNum: 1,
+        pageSize: 99,
+
+    }).then(res => {
+        if (res.code == 200) {
+            message.success("更新成功！");
+            // dataSource.value = res.rows || []
+        }
+    })
 }
 
 // 抛出数据和方法，可以让父级用ref获取
@@ -201,6 +243,15 @@ watch(() => props.productDetail, val => {
 })
 </script>
 <style lang="less" scoped>
+:deep(.richForm) {
+    .ant-form-item {
+        .ant-row {
+            .ant-form-item-label>label {
+                font-size: 20px !important;
+            }
+        }
+    }
+}
 .cover-item {
     position: relative;
 

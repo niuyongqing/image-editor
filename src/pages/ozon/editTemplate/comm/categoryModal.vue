@@ -1,7 +1,6 @@
 <template>
     <div>
-        <a-modal title="选择类目" v-model:open="visible" :maskClosable="false" @cancel="handleClose" :width="1100"
-            :mask="false">
+        <a-modal title="选择类目" v-model:open="visible" :maskClosable="false" @cancel="handleClose" :width="1100">
             <div :style="{ height: openSelect ? '420px' : 'auto' }">
                 <div flex gap-10px>
                     <a-dropdown v-model:open="openSelect" trigger="">
@@ -18,6 +17,7 @@
                             <a-empty v-else />
                         </template>
                     </a-dropdown>
+
                     <a-button type="primary" @click="searchHistory">搜索</a-button>
                 </div>
                 <p> {{ selectItem.label }} </p>
@@ -35,7 +35,7 @@
                                         @click="selectFirstItem(item)">
                                         <div flex>
                                             <div w-250px overflow-hidden text-ellipsis whitespace-nowrap> {{ item.label
-                                                }}
+                                            }}
                                             </div>
                                             <div>
                                                 <RightOutlined />
@@ -88,7 +88,6 @@
                                         </div>
                                     </a-menu-item>
                                 </a-menu>
-
                             </template>
                         </a-dropdown>
                     </div>
@@ -211,7 +210,7 @@ const onSearchThird = (value) => {
         const data = copyThirdOpts.value.filter((item) => {
             return item.label.includes(value)
         })
-        thirdState.options = data;
+        thirdState.options = data || [];
     } else {
         thirdState.options = copyThirdOpts.value;
     }
@@ -245,80 +244,51 @@ function getCategoryTree() {
     }).then(res => {
         treeData.value = res.data || [];
         const path = findPathById(thirdState.selectKeys[0], treeData.value);
-        if (path) {
-            selectItem.value = {
-                label: path.labels.join(' / '),
-                value: thirdState.selectKeys[0],
-                ids: path.ids
-            };
+        selectItem.value = {
+            label: path.labels.join(' / '),
+            value: thirdState.selectKeys[0],
+            ids: path.ids
+        };
 
-            firstState.options = treeData.value.map((item) => {
-                return {
-                    ...item,
-                    label: item.categoryName,
-                    value: item.descriptionCategoryId,
-                }
-            });
-            firstState.selectValue = firstState.options.find((item) => item.value === path.ids[0]);
+        firstState.options = treeData.value.map((item) => {
+            return {
+                ...item,
+                label: item.categoryName,
+                value: item.descriptionCategoryId,
+            }
+        });
+        firstState.selectValue = firstState.options.find((item) => item.value === path.ids[0]);
 
-            secondState.options = firstState.selectValue.children.map((item) => {
-                return {
-                    ...item,
-                    label: item.categoryName,
-                    value: item.descriptionCategoryId,
-                }
-            });
-            secondState.selectValue = secondState.options.find((item) => item.value === path.ids[1]);
+        secondState.options = firstState.selectValue.children.map((item) => {
+            return {
+                ...item,
+                label: item.categoryName,
+                value: item.descriptionCategoryId,
+            }
+        });
+        secondState.selectValue = secondState.options.find((item) => item.value === path.ids[1]);
 
-            thirdState.options = secondState.selectValue.children.map((item) => {
-                return {
-                    ...item,
-                    label: item.categoryName,
-                    value: item.descriptionCategoryId,
-                }
-            });
-            thirdState.selectValue = thirdState.options.find((item) => item.value === path.ids[2]);
+        thirdState.options = secondState.selectValue.children.map((item) => {
+            return {
+                ...item,
+                label: item.categoryName,
+                value: item.descriptionCategoryId,
+            }
+        });
+        thirdState.selectValue = thirdState.options.find((item) => item.value === path.ids[2]);
 
-            firstState.selectKeys = [path.ids[0]];
-            secondState.selectKeys = [path.ids[1]];
-            thirdState.selectKeys = [path.ids[2]];
+        firstState.open = true;
+        secondState.open = true;
+        thirdState.open = true;
 
-            copyFirstOpts.value = cloneDeep(firstState.options);
-            copySecondOpts.value = cloneDeep(secondState.options);
-            copyThirdOpts.value = cloneDeep(thirdState.options);
-            firstState.open = true;
-            secondState.open = true;
-            thirdState.open = true;
-        } else {
+        firstState.selectKeys = [path.ids[0]];
+        secondState.selectKeys = [path.ids[1]];
+        thirdState.selectKeys = [path.ids[2]];
 
 
-            firstState.options = treeData.value.map((item) => {
-                return {
-                    ...item,
-                    label: item.categoryName,
-                    value: item.descriptionCategoryId,
-                }
-            });
-            secondState.options = treeData.value[0].children.map((item) => {
-                return {
-                    ...item,
-                    label: item.categoryName,
-                    value: item.descriptionCategoryId,
-                }
-            });
-
-            thirdState.options = treeData.value[0].children[0].children.map((item) => {
-                return {
-                    ...item,
-                    label: item.categoryName,
-                    value: item.descriptionCategoryId,
-                }
-            });
-            firstState.open = true;
-            secondState.open = true;
-            thirdState.open = true;
-
-        }
+        copyFirstOpts.value = cloneDeep(firstState.options);
+        copySecondOpts.value = cloneDeep(secondState.options);
+        copyThirdOpts.value = cloneDeep(thirdState.options);
     })
 };
 
@@ -326,8 +296,9 @@ const handleSave = () => {
     if (!thirdState.selectValue.typeId) {
         message.info('请选择最后一级类目');
         return
-    };
+    }
     openSelect.value = false;
+
     const path = findPathById(thirdState.selectValue.typeId, treeData.value);
     emits('select', {
         "label": path.labels,
@@ -338,11 +309,7 @@ const handleSave = () => {
 };
 const selectMenu = (item) => {
     selectItem.value = item;
-    emits('select', {
-        "label": item.label.split(' / '),
-        "value": item.value,
-        "ids": item.ids
-    })
+    emits('select', item)
     openSelect.value = false;
     searchValue.value = '';
     firstReset();
@@ -391,7 +358,7 @@ const selectThirdItem = (item) => {
 //  打开弹窗
 const open = (categoryId) => {
     visible.value = true;
-    thirdState.selectKeys = categoryId ? [categoryId] : [];
+    thirdState.selectKeys = [categoryId];
     getCategoryTree();
 };
 
