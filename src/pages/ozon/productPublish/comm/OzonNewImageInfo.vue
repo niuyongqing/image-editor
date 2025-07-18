@@ -176,8 +176,6 @@ const removeVideoList = (index) => {
     form.video.splice(index, 1)
 }
 const backResult = (res) => {
-    console.log(1);
-    
     form.jsons = JSON.stringify(res);
 }
 const submitForm = () => {
