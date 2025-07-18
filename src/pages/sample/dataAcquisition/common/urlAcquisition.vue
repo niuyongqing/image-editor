@@ -88,7 +88,7 @@
               <AsyncIcon icon="DownOutlined" class="ml-2.5" />
             </a-button>
             <template #overlay>
-              <typeTree :platform="'ozon'" @nodeClick="typeNodeClick"></typeTree>
+              <typeTree :platform="'public'" @nodeClick="typeNodeClick"></typeTree>
             </template>
           </a-dropdown>
         </a-space>
@@ -127,8 +127,8 @@
           <template v-else-if="column.dataIndex == 'simpleDesc'">
             <a-tooltip overlayClassName="rowBox-simpleDesc">
               <template #title>
-                <div v-for="(val, key) in record.simpleDescTips" :key="key" class="rowBox-simpleDesc-tip-item">
-                  {{ `${key}： ${val}` }}
+                <div class="rowBox-simpleDesc-content">
+                  {{ record.simpleDescTips }}
                 </div>
               </template>
               <div style="width: 200px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
@@ -375,7 +375,27 @@ async function getList() {
     let res = await collectProductList(params);
     // console.log({ res });
     res.data.forEach(item => {
-      item.simpleDescTips = JSON.parse(item.simpleDesc)
+      for (let index = 0; index < item.imageList.length; index++) {
+        let src = item.imageList[index];
+        let flag = ['http', import.meta.env.VITE_APP_BASE_API].some(i => {
+          return src.includes(i)
+        })
+        item.imageList[index] = flag ? src : import.meta.env.VITE_APP_BASE_API + src
+      }
+      try {
+        let simpleDescTips = JSON.parse(item.simpleDesc)
+        let arr = []
+        for (const key in simpleDescTips) {
+          if (Object.prototype.hasOwnProperty.call(simpleDescTips, key)) {
+            const element = simpleDescTips[key];
+            let str = `${key}：${element}`
+            arr.push(str)
+          }
+        }
+        item.simpleDescTips = arr.join('\n')
+      } catch (error) {
+        item.simpleDescTips = item.simpleDesc
+      }
     })
     tableInfo.data = res.data;
     tableInfo.total = res.total;
@@ -711,18 +731,22 @@ function receiveProductToWaitPublish() {
   max-width: 400px !important;
   .ant-tooltip-content {
     width: 100%;
-    .rowBox-simpleDesc-tip-item {
+    .rowBox-simpleDesc-content {
       width: 100%;
-      word-wrap: break-word;
-      word-break: break-all;
-      display: flex;
-      justify-content: space-between;
-      justify-items: center;
-      .simpleDesc-tip-item-key {
-        width: 120px;
-      }
-      .simpleDesc-tip-item-val {
-        width: calc(100% - 130px);
+      white-space: pre-wrap;
+      .rowBox-simpleDesc-tip-item {
+        width: 100%;
+        word-wrap: break-word;
+        word-break: break-all;
+        display: flex;
+        justify-content: space-between;
+        justify-items: center;
+        .simpleDesc-tip-item-key {
+          width: 120px;
+        }
+        .simpleDesc-tip-item-val {
+          width: calc(100% - 130px);
+        }
       }
     }
   }

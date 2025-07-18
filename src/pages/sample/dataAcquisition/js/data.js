@@ -7,10 +7,10 @@ export const platformList = [
     account: "alibaba",
     simpleName: "阿里巴巴国际站"
   },
-  // {
-  //   account: "amazaon",
-  //   simpleName: "Amazon"
-  // },
+  {
+    account: "amazon",
+    simpleName: "Amazon"
+  },
   {
     account: "taobao",
     simpleName: "淘宝"
@@ -23,10 +23,10 @@ export const platformList = [
     account: "aliexpress",
     simpleName: "速卖通"
   },
-  // {
-  //   account: "lazada",
-  //   simpleName: "Lazada"
-  // },
+  {
+    account: "lazada",
+    simpleName: "Lazada"
+  },
   {
     account: "wb",
     simpleName: "野莓（Wildberries）"

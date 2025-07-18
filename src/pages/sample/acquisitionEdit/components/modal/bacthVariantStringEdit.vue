@@ -221,6 +221,7 @@ async function modalOk() {
   if (modified.state.length < 1) {
     return message.warning('请选择修改项！')
   } 
+  let variantList = cloneDeep(modified.variantList)
   modified.variantList.forEach(variantItem => {
     variantItem.showInput = !variantItem.showInput
     variantItem.values.forEach(item => {
@@ -243,6 +244,13 @@ async function modalOk() {
       })
     })
   }
+  let emptyName = modified.variantList.some(variantItem => {
+    return !variantItem.name || variantItem.values.some(item => !item.name)
+  })
+  if (emptyName) {
+    modified.variantList = variantList
+    return message.warning('该操作会使部分被修改字段被消除，请重新设置！')
+  }
   let obj = {
     component: 'bacthVariantStringEdit',
     variantList: modified.variantList
@@ -252,13 +260,13 @@ async function modalOk() {
 }
 function strEditFn(val) {
   let name = val
+  if (replaceString.isRemove) {
+    name = name.replaceAll(replaceString.removeVal, '')
+  }
   // 去除中文
   if (replaceString.isRemoveChinese) {
     const regex = new RegExp('[\\u4e00-\\u9fa5\\u3000-\\u303f\\uff00-\\uffef]', 'g');
     name = name.replaceAll(regex, '')
-  }
-  if (replaceString.isRemove) {
-    name = name.replaceAll(replaceString.removeVal, '')
   }
   if (replaceString.isReplace) {
     name = name.replaceAll(replaceString.oldVal, replaceString.newVal)

@@ -27,16 +27,16 @@
         </a-dropdown>
         <a-button type="link" @click="showCategoryModal"> + 管理分类 </a-button>
       </a-form-item>
-      <a-form-item label="来源URL" name="sourceUrl">
+      <a-form-item label="来源URL" name="originUrl">
         <a-input 
-          v-model:value="formData.sourceUrl" 
+          v-model:value="formData.originUrl" 
           placeholder="" 
           disabled
           style="width: 60%;"
         >
           <template #addonBefore>1</template>
           <template #addonAfter>
-            <a-button type="link" @click="visitUrl(formData.sourceUrl)"
+            <a-button type="link" @click="visitUrl(formData.originUrl)"
               style="height: 20px; line-height: 20px;">
               访问
             </a-button>
@@ -126,7 +126,7 @@ const formData = reactive({
   productCategoryId: '', // 产品分类
   spu: '', // 产品信息-SPU
   productTitle: '', // 产品标题
-  sourceUrl: '',// 来源URL
+  originUrl: '',// 来源URL
 
   productCategoryName: '',
   nodePath: '',
@@ -141,6 +141,7 @@ watch(() => formData, (val) => {
     productCategoryId: val.productCategoryId,
     spu: val.spu,
     productTitle: val.productTitle,
+    originUrl: val.originUrl
   }
   emit('update:baseInfoData', obj)
 }, {
@@ -151,7 +152,7 @@ function openFn() {
   formData.productCategoryId = props.productData.productCategoryId
   formData.spu = props.productData.spu
   formData.productTitle = props.productData.productTitle
-  formData.sourceUrl = props.productData.originUrl
+  formData.originUrl = props.productData.originUrl
   // 加载下拉框中的树组件
   typeTreeDropdown.value = true
   nextTick(() => {

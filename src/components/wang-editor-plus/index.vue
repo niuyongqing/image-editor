@@ -13,12 +13,36 @@
       :mode="mode"
       :style="{ height: height + 'px' }"
       @on-created="handleCreated"
+      @onFocus="isFocusedChage"
+      @onBlur="isFocusedChage"
     />
+    
+    <!-- 图片空间 -->
+    <pictureLibrary 
+      :platform="props?.platform"
+      v-model:modal-open="pictureLibraryModal.modalOpen"
+      @imageListConfirm="imageListConfirm"
+    ></pictureLibrary>
+    <!-- 创建图片空间选项按钮插入到图片上传下拉框 -->
+    <div id="pictureLibraryBtnRef" class="w-e-bar-item">
+      <button 
+        data-menu-key="uploadImage"
+        @click="pictureLibraryUpolad"
+        class="pictureLibrary-btn"
+        :class="{'disabled': !pictureLibraryModal.btnDisabled}"
+        :disabled="!pictureLibraryModal.btnDisabled"
+      >
+        <asyncIcon icon="FundOutlined" style="margin-right: 4px;"/>
+        图片空间
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup>
   import '@wangeditor/editor/dist/css/style.css'
+  import pictureLibrary from '@/components/pictureLibrary/index.vue'
+  import asyncIcon from '~@/layouts/components/menu/async-icon.vue'
   import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
   import { Boot } from '@wangeditor/editor'
 
@@ -86,13 +110,22 @@
     disable: {
       type: Boolean,
       default: false
+    },
+    platform: {         // 当前平台的枚举 必传该参数
+      type: String,
+      default: '',     
     }
   })
 
   const emits = defineEmits(['editImageSize'])
 
   const editorRef = shallowRef() // 编辑器实例(页面多编辑下,需要处理，仅适用于单编辑)
-  const valueHtml = defineModel() //  HTML内容
+  const valueHtml = defineModel(); //  HTML内容
+  
+  const pictureLibraryModal = reactive({
+    modalOpen: false,
+    btnDisabled: false,
+  })
   // 判断内容是否为空
   const isEmptyEditor = () => {
     return editorRef.value.isEmpty()
@@ -127,6 +160,23 @@
   const unDisableEditor = () => {
     editorRef.value.enable()
   }
+  // 判断是否失去了焦点
+  function isFocusedChage(editor) {
+    pictureLibraryModal.btnDisabled = editor.isFocused()
+  }
+  // 图片空间上传按钮点击
+  function pictureLibraryUpolad() {
+    pictureLibraryModal.modalOpen = !pictureLibraryModal.modalOpen
+  }
+  // 图片空间上传
+  function imageListConfirm(val) {
+    editorRef.value.focus()
+    val.forEach(item => { 
+      let imageHtml = `<img src="${item.src}" alt="" data-href="" style=""/>`
+      // _this.$refs.webDetailRef.insertContent(imageHtml);
+      editorRef.value.dangerouslyInsertHtml(imageHtml)
+    })
+  }
 
   defineExpose({
     isEmptyEditor,
@@ -134,7 +184,9 @@
     setDangerousHtml,
     getValueHtml,
     cleatEditorValue,
-    disableEditor
+    disableEditor,
+
+    editorRef
   })
 
   watch(
@@ -153,6 +205,23 @@
     editor.on('editImageSize', val => {
       emits('editImageSize')
     })
+    nextTick(() => {
+      setPictureLibraryUpload()
+    })
+  }
+  // 添加图片空间上传按钮
+  function setPictureLibraryUpload() {
+    let domList = [...document.querySelectorAll('.w-e-bar-item-menus-container')]
+    let btnItem = null;
+    let uploadBtn = document.getElementById('pictureLibraryBtnRef')
+    let imageUpload = domList.find(item => {
+      let btnList = [...item.querySelectorAll('button')]
+      return btnList.some(i => {
+        btnItem = i.parentNode
+        return i.dataset.menuKey === 'uploadImage'
+      })
+    })
+    btnItem.after(uploadBtn);
   }
 
   // 组件销毁时,销毁编辑器!
@@ -173,5 +242,13 @@
     z-index: 10;
     background-color: #f0f2f5;
     padding: 0 24% !important;
+  }
+  .pictureLibrary-btn {
+    display: flex; 
+    align-items: center;
+    &.disabled {
+      cursor: no-drop;
+      color: #999;
+    }
   }
 </style>

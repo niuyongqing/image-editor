@@ -112,3 +112,15 @@ export function downloadAllImage(data) {
     data: data,
   })
 }
+/**
+ * // 数据采集产品编辑接口
+ * @param {*} data 
+ * @returns 
+ */
+export function productUpdate(data) {
+  return request({
+    url: '/platform-common/platform/common/collect/product/update',
+    method: 'post',
+    data: data,
+  })
+}
