@@ -207,6 +207,31 @@
                                 </div>
                             </a-form-item>
                         </div>
+
+                        <div class="rounded-md p-2.5 mb-2.5" style="border: 1px solid #ccc;"
+                            v-if="checkedListAll.includes('all')">
+                            <a-form-item label="合并属性">
+                                <div>
+                                    <a-tag color="green">注意！</a-tag> <span>同一店铺下，若合并属性一致会导致该分类下的产品合并为一个产品，请谨慎修改！</span>
+                                </div>
+                                <div class="my10px">
+                                    共选择<span class="text-red">{{ brandList.length }}</span>个产品，产品分类如下，请分别编辑属性
+                                </div>
+                                <div class="my10px">
+                                    <div v-for="(item, index) in attrList" :key="index">
+                                        <span>{{ item.threeCategoryName }}</span><span class="text-red ml10px">({{
+                                            item.repeatCount }})</span>
+                                    </div>
+                                </div>
+                                <a-form-item label="品牌：">
+                                    <div class="flex">
+                                        <a-select v-model:value="form.attr" class="mr-2.5" style="width: 200px"
+                                            :options="commList[4].option"></a-select>
+                                    </div>
+                                </a-form-item>
+                            </a-form-item>
+                        </div>
+
                         <div class="rounded-md p-2.5 mb-2.5" style="border: 1px solid #ccc;"
                             v-if="checkedListAll.includes('attr')">
                             <a-form-item label="合并属性：">
@@ -241,11 +266,13 @@ const props = defineProps({
     editPriceVisible: Boolean,
     selectedRows: Array,
     editStockList: Array,
-    defType: Array
+    defType: Array,
+    brandList: Array
 });
 const emit = defineEmits(["handleEditPriceClose"]);
 const loading = ref(false)
 const ruleForm = ref()
+const attrList = ref([])
 // 提取初始表单数据工厂函数
 const getInitialFormData = () => ({
     oldPriceValue: 1,
@@ -396,7 +423,7 @@ const leftList = reactive([
             },
             {
                 label: '合并属性',
-                value: 'attr'
+                value: 'all'
             }
         ],
         indeterminate: false,
@@ -477,7 +504,36 @@ watch(() => props.defType, val => {
         item.indeterminate = false
         item.checkedList = val
     }
+});
+
+watch(() => props.brandList, val => {
+    if (val.length > 1) {
+        attrList.value = processData(val);
+    } else {
+        attrList.value = val.map(item => {
+            return {
+                ...item,
+                repeatCount: 1
+            }
+        })
+    }
 })
+// 去重数据
+function processData(originalData) {
+    const temp = {};
+
+    originalData.forEach(item => {
+        const key = item.threeCategoryId;
+        if (temp[key]) {
+            temp[key].repeatCount += 1;
+        } else {
+            temp[key] = { ...item, repeatCount: 1 };
+        }
+    });
+
+    return Object.values(temp);
+}
+
 const handleCancel = () => {
     emit("handleEditPriceClose")
     ruleForm.value.resetFields();
@@ -532,13 +588,7 @@ const computeSingleValue = (price, batchValue, computeType, roundType) => {
     const roundFunc = roundFunctions[roundType];
 
     if (!computeFunc) return 0;
-
-    console.log("singlePrice", price);
-    console.log("batchValue", batchValue);
-
     const computed = computeFunc(Number(price), Number(batchValue));
-    console.log("computedResult", computed);
-
     return roundFunc(computed);
 };
 
@@ -569,13 +619,13 @@ watch(() => props.editPriceVisible, (newVal) => {
     batchQueryDetail({
         ids: props.selectedRows.map(item => item.gatherProductId)
     }).then(res => {
-        console.log("res", res);
-        productDetailList.value = res.data.data || []
+        productDetailList.value = res.data || []
     })
-})
+}, { immediate: true })
 
 
 const onSubmit = () => {
+
     if (props.selectedRows.length == 0) return;
     // 标题数据处理
     let arr = productDetailList.value.map((item) => {
@@ -587,7 +637,6 @@ const onSubmit = () => {
                     price: e.price,
                     oldPrice: e.oldPrice,
                     offerId: e.offerId,
-                    warehouseList: null
                 }
             }),
         };
@@ -602,6 +651,27 @@ const onSubmit = () => {
         // if (field === 'weight') {
         //     priceList = priceList.map((row) => fieldHandlers.dimensions(row, form));
         // }
+
+        if (field === "all") {
+            priceList.forEach(itemA => {
+                itemA.skuList.forEach(e => {
+                    let attributes = e.attributes || [];
+                    attributes = attributes.map(item => {
+                        if (item.id === 85) {
+                            item.values = [{
+                                dictionaryValueId: 126745801,
+                                value: '无品牌'
+                            }]
+                        }
+                        return item
+                    })
+                })
+            })
+        }
+        // 对于尺寸处理，单独判断，因为逻辑复用了 weight 的判断条件
+        if (field === 'weight') {
+            priceList = priceList.map((row) => fieldHandlers.dimensions(row, form));
+        }
         if (field === 'stock') {
             console.log("editStockList", props.editStockList);
             // 遍历数组 a
@@ -624,8 +694,10 @@ const onSubmit = () => {
                     }));
                     console.log("newStockArray");
 
+
                     // 将新数组赋值给 a 数组中对应元素的 stock 属性
                     itemA.skuList.forEach(e => {
+                        e.stock = null
                         e.warehouseList = newStockArray
                     });
                 } else {
@@ -830,8 +902,6 @@ const fieldHandlers = {
     weight: handleWeight,
     dimensions: handleDimensions
 };
-
-
 
 
 </script>

@@ -152,6 +152,8 @@ const onSubmit = async () => {
     if (type.value === '1') {
         const ozonBaseInfo = await ozonBaseInfoRef.value.childForm();
         let base = ozonBaseInfoRef.value.form;
+        console.log('base -》》》》》》', base);
+
         let image = ozonImageInfoRef.value?.form;
         params = {
             type: 1, //模板类型 1-产品模板  2-尺码模板 3-变种模板 4-富内容模板
@@ -161,6 +163,8 @@ const onSubmit = async () => {
             content: {
                 productTemplate: {
                     categoryId: base.categoryId || {},
+                    name: base.name,
+                    vat: base.vat,
                     productAttr: base.attributes || {},
                     productDesc: image?.description || ""
                 },

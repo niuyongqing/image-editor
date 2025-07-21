@@ -1,9 +1,9 @@
 <template>
     <div id="OzonNewVariantInfoCont">
-        <a-card title="SKU信息" class="text-left" :loading="categoryAttributesLoading">
-            <a-card title="变种属性" class="text-left mx-50">
+        <a-card title="SKU信息" class="text-left text-16px mt-20px" :loading="categoryAttributesLoading">
+            <a-card title="变种属性" class="text-left mx-50 text-16px">
                 <div>
-                    <span>变种主题：</span>
+                    <span class="text-16px">变种主题：</span>
                     <a-button type="primary" v-for="(item, index) in themeBtns" class="mr-2.5"
                         :key="'add' + index + item.name" @click="enterVariantType(item)">
                         <AsyncIcon icon="PlusCircleOutlined"></AsyncIcon>
@@ -68,7 +68,6 @@
                                 </template>
                             </template>
                         </a-table>
-                        <template #tabBarExtraContent></template>
                     </a-card>
                 </div>
             </a-card>
@@ -302,17 +301,17 @@
                                                 <DownOutlined />
                                             </a-button>
                                             <template #overlay>
-                                                <!-- <a-menu>
+                                                <a-menu>
                                                     <a-menu-item @click="applyAllImage(item)">
                                                         所有变种
                                                     </a-menu-item>
-                                                    <a-menu-item v-for="item in applyMenuList" :key="item.value"
+                                                    <!--  <a-menu-item v-for="item in applyMenuList" :key="item.value"
                                                         @click="applyImage(item)">
                                                         <span>同</span>
                                                         <span px-3px>{{ item.title }}</span>
                                                         <span>的变种</span>
-                                                    </a-menu-item>
-                                                </a-menu> -->
+                                                    </a-menu-item>-->
+                                                </a-menu>
                                             </template>
                                         </a-dropdown>
 
@@ -358,17 +357,16 @@ import {
     checkData, rearrangeColorFields, handleTheme, processImageSource
 } from "../../config/commJs/index"
 import { publishHead, otherList } from '../../config/tabColumns/skuHead';
-import { cloneDeep, debounce } from "lodash";
+import { cloneDeep, debounce, pick } from "lodash";
 import { uploadImage } from '@/pages/ozon/config/api/draft';
 import { DownOutlined, DownloadOutlined } from '@ant-design/icons-vue';
 import { downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js';
 import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
 import download from '~@/api/common/download';
 
-import { omit, pick } from 'lodash'
-import SkuDragUpload from '../skuDragImg/index.vue';
-import bacthSkuEditImg from '../skuDragImg/bacthSkuEditImg.vue';
-import ImageTranslation from '../skuDragImg/imageTranslation.vue';
+import SkuDragUpload from "@/pages/ozon/config/component/skuDragImg/index.vue";
+import bacthSkuEditImg from "@/pages/ozon/config/component/skuDragImg/bacthSkuEditImg.vue";
+import ImageTranslation from "@/pages/ozon/config/component/skuDragImg/imageTranslation.vue";
 
 const props = defineProps({
     categoryAttributesLoading: Boolean,
@@ -520,6 +518,29 @@ const confirm = (selectedValues) => {
     colorRow.value.tableData = procTableData(colorRow.value.tableData, filteredResult);
     tableData.value = commProceData();
 }
+
+const commProceData = () => {
+    let cartesianProducts = cartesianProduct(attributeList.value);
+    let newTableData = processResult(cartesianProducts);
+    let minLength = Math.min(newTableData.length, tableData.value.length);
+    for (let i = 0; i < minLength; i++) {
+        // 将b数组中对应下标的数据赋值到a数组中
+        newTableData[i].skuTitle = tableData.value[i].skuTitle;
+        newTableData[i].sellerSKU = tableData.value[i].sellerSKU;
+        newTableData[i].price = tableData.value[i].price;
+        newTableData[i].oldPrice = tableData.value[i].oldPrice;
+        newTableData[i].colorImg = tableData.value[i].colorImg;
+        newTableData[i].imageUrl = tableData.value[i].imageUrl;
+        newTableData[i].quantity = tableData.value[i].quantity;
+        newTableData[i].warehouseList = tableData.value[i].warehouseList;
+        newTableData[i].packageHeight = tableData.value[i].packageHeight;
+        newTableData[i].packageLength = tableData.value[i].packageLength;
+        newTableData[i].packageWidth = tableData.value[i].packageWidth;
+        newTableData[i].packageWeight = tableData.value[i].packageWeight;
+    }
+    return newTableData
+};
+
 
 // 添加自定义属性
 const selectAttrList = (list) => {
@@ -769,7 +790,7 @@ const pushValue = (index, item, key, record) => {
     let newTableData = processResult(cartesianProducts);
     let minLength = Math.min(newTableData.length, tableData.value.length);
     for (let i = 0; i < minLength; i++) {
-        const name = tableData.value[i][keyName]
+        // const name = tableData.value[i][keyName]
         // 将b数组中对应下标的数据赋值到a数组中
         newTableData[i].skuTitle = tableData.value[i].skuTitle;
         newTableData[i].sellerSKU = tableData.value[i].sellerSKU;
@@ -873,7 +894,6 @@ const sellerSKUChange = debounce(record => {
 }, 200)
 // 批量修改库存
 const batchStock = (type, row = {}) => {
-    // debugger
     if (tableData.value.length == 0) {
         message.warning("请先添加sku！");
         return;
@@ -1169,6 +1189,19 @@ const skuThemeNames = (item) => {
     const entries = Object.entries(obj);
     return entries
 };
+
+// //  引用模板 to do
+// watch(() => useOzonProductStore().productTemplate, (val) => {
+//     const { content } = val;
+//     console.log('content', content);
+//     if (content) {
+//         if (content.variantTemplate) {
+//         }
+//     }
+// }, {
+//     immediate: true
+// });
+
 
 
 // 变种主题中是组合在一起的主题

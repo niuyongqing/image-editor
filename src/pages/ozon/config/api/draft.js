@@ -97,3 +97,25 @@ export function batchQueryDetail(params) {
 export function batchUpdateProduct(params) {
     return usePost('/platform-ozon/platform/ozon/gather/product/batchUpdateProduct', params)
 }
+
+// 产品移入待发布
+export function addToWaitPublish(params) {
+    return usePost('/platform-ozon/platform/ozon/gather/product/addToWaitPublish', params)
+}
+
+
+// 批量移入待发布
+export function batchAddToWaitPublish(params) {
+    return usePost('/platform-ozon/platform/ozon/gather/product/batchAddToWaitPublish', params)
+}
+
+
+// 批量查询变种关联关系
+export function batchRelationDetail(params) {
+    return usePost('/platform-common/platform/common/variant/relation/batchRelationDetail', params)
+}
+
+// 批量保存变种关联关系
+export function batchSave(params) {
+    return usePost('/platform-common/platform/common/variant/relation/batchSave', params)
+}

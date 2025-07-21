@@ -326,7 +326,7 @@ const handleSave = () => {
     if (!thirdState.selectValue.typeId) {
         message.info('请选择最后一级类目');
         return
-    }
+    };
     openSelect.value = false;
     const path = findPathById(thirdState.selectValue.typeId, treeData.value);
     emits('select', {
@@ -338,8 +338,6 @@ const handleSave = () => {
 };
 const selectMenu = (item) => {
     selectItem.value = item;
-    console.log('item', item);
-    // emits('select', item)
     emits('select', {
         "label": item.label.split(' / '),
         "value": item.value,
