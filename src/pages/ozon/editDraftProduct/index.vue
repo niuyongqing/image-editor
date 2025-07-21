@@ -310,7 +310,7 @@ const backToTop = () => {
 }
 // 获取属性
 const getAttributes = (account, cId) => {
-    if (!account || !cId.typeId) {
+    if (!account) {
         return;
     };
     categoryAttributesLoading.value = true;

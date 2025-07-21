@@ -173,7 +173,7 @@ const rules2 = ref({});
 const loopAttributes = ref([]);
 const categoryTreeList = ref([]);
 const historyCategoryList = ref([]);
-const isExpand = ref(false)
+const isExpand = ref(true)
 const vatList = [
     {
         label: "免税",
@@ -533,7 +533,9 @@ watch(() => useOzonProductStore().productTemplate, (val) => {
             label: undefined,
             value
         };
-        form.vat = vat === "0.0" || vat === "0.00" ? "0" : vat;
+        console.log("shortCode",form.shortCode);
+        console.log("categoryId",form.categoryId);
+        // form.vat = vat === "0.0" || vat === "0.00" ? "0" : vat;
         emit("getAttributes", form.shortCode, form.categoryId);
         form.attributes = val.content.productTemplate.productAttr;
     }
