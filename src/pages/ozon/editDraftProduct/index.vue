@@ -616,8 +616,7 @@ const onSubmit = async (type) => {
         storeHistoryCategoryId: base?.categoryId?.storeHistoryCategoryId
             ? base?.categoryId?.storeHistoryCategoryId
             : "", //资料库分类ID
-        descriptionCategoryId:
-            base.categoryId.secondCategoryId, // 二级id
+        // categoryId: base.categoryId.secondCategoryId, // 二级id
         typeId: base.categoryId.threeCategoryId, // 三级分id
         historyCategoryId: base.categoryId.threeCategoryId, // 三级分id
 

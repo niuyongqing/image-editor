@@ -95,7 +95,9 @@ const selectActive = (e) => {
     router.push({
         path: '/platform/ozon/draft'
     })
-    emits('draftUpdateClass');
+    emits('draftUpdateClass', {
+        "productState": e === 'fail' ? 'PUBLISH_FAILED' : ''
+    });
 };
 
 const waitCurrentClass = (value) => {
