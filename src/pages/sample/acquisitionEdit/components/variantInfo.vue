@@ -44,7 +44,7 @@
                   @blur="addVariant('check')"
                 ></a-input>
                 <async-icon :icon="'CheckOutlined'" @click="addVariant('check')"></async-icon>
-                <async-icon :icon="'UndoOutlined'" @click="addVariant('refresh')"></async-icon>
+                <async-icon :icon="'CloseOutlined'" @click="addVariant('refresh')"></async-icon>
               </div>  -->
             </div>
           </div>
@@ -74,7 +74,7 @@
                     @blur="titleIconClick('check', item, form[item.id])"
                   ></a-input>
                   <async-icon :icon="'CheckOutlined'" @click="titleIconClick('check', item, form[item.id])"></async-icon>
-                  <async-icon :icon="'UndoOutlined'" @click="titleIconClick('refresh', item, form[item.id])"></async-icon>
+                  <async-icon :icon="'CloseOutlined'" @click="titleIconClick('refresh', item, form[item.id])"></async-icon>
                 </div>
               </div>
               <div style="display: flex; align-items: center;">
@@ -110,7 +110,7 @@
                     @blur="itemIconClick('check', i, form[item.id])"
                   ></a-input>
                   <async-icon :icon="'CheckOutlined'" @click.stop="itemIconClick('check', i, form[item.id])"></async-icon>
-                  <async-icon :icon="'UndoOutlined'" @click.stop="itemIconClick('refresh', i, form[item.id])"></async-icon>
+                  <async-icon :icon="'CloseOutlined'" @click.stop="itemIconClick('refresh', i, form[item.id])"></async-icon>
                 </div>
               </div>
             </div>
@@ -306,15 +306,19 @@ watch(() => props.productData?.id, (val) => {
   // console.log(111);
   openFn();
 })
-watch(() => variantTheme.tableData, (val) => {
-  let obj = {
-    tableData: val,
-    header: variantTheme.header
+watch(
+  [() => variantTheme.tableData, () => variantTheme.header],
+  ([val, headVal]) => {
+    let obj = {
+      tableData: val,
+      header: headVal
+    }
+    emit('update:variantInfoData', obj)
+  },
+  {
+    deep: true,
   }
-  emit('update:variantInfoData', obj)
-}, {
-  deep: true,
-})
+);
 function openFn() {
   let { variantAttr, variantInfoList: _variantInfoList } = props.productData
   let variantInfoList = cloneDeep((_variantInfoList ?? []));

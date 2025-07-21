@@ -284,7 +284,7 @@ function creatVariantAttribute() {
 const abc = Array.from({length: 26}, (_, i) => String.fromCharCode(i + 97));
 // 修改为abc
 function editToABC(val) {
-  console.log({val,abc});
+  // console.log({val,abc});
   val.values.forEach((item, index) => {
     item.input = abc[index%26]
   })
@@ -408,7 +408,8 @@ function selectChange(val, key) {
   function fn(length) {
     let list = []
     for (let index = 0; index < length; index++) {
-      let num = Math.floor(Math.random()*1000)
+      // let num = Math.floor(Math.random()*1000)
+      let num = (Math.random() + '').split('.')[1].slice(0, 3);
       list.push(num)
     }
     arr = [...new Set([...arr, ...list])]

@@ -45,7 +45,7 @@
           >
             <template #previewMask>点击{{ item.checked ? '取消':'选中' }}</template>
           </a-image>
-          <div class="img-size">
+          <div class="img-size" v-if="item.width">
             <span>{{ `${item.width} × ${item.height}` }}</span>
             <!-- <span>{{ (item.size/1024).toFixed() }}KB</span> -->
           </div>
@@ -78,6 +78,7 @@
 import { ref, reactive, onMounted, computed, watchPostEffect, watch } from 'vue'
 import { imageUrlUpload } from '../../js/api';
 import { scaleApi, watermarkApi } from '~@/api/common/water-mark';
+import { message } from 'ant-design-vue';
 defineOptions({ name: "bacthImageEdit" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:modalOpen', 'bacthImageEditSize'])
@@ -106,7 +107,10 @@ watch(() => props.modalOpen, (val, oldVal) => {
   }
 })
 watch(() => modalOpen.value, (val, oldVal) => {
-  !val && emit('update:modalOpen', false)
+  if (!val) {
+    emit('update:modalOpen', false)
+    loading.value = false
+  }
 })
 function modalOpenFn() {
   formData.imgData = props.iamgeList.map(item => {
@@ -170,6 +174,10 @@ async function modalOk() {
       }
     }
     let imagePathList = formData.selectedImgList.map(i => i.url)
+    if (imagePathList.some(i => includes('http'))) {
+      loading.value = false
+      return message.error('修改失败，请重试！')
+    }
     let params = {
       newWidth: formData.width,
       newHeight: formData.height,
