@@ -13,7 +13,7 @@
         <div class="flex flex-wrap  mt-10px h-700px overflow-y-auto">
 
             <div v-for="(item, index) in tableData" :key="index" flex gap-15px h-150px flex-wrap>
-                <a-card v-for="(element, i) in item.colorImg" :key="element.url" mb-10px ml-10px p-0px rounded-none
+                <a-card v-for="element in item.colorImg" :key="element.url" mb-10px ml-10px p-0px rounded-none
                     class="file-card flex" hoverable style="width: 125px;">
                     <div :key="element.uid" @click="tabCheck(element)">
                         <div class="file-item">
