@@ -557,23 +557,23 @@
 <script setup>
   import { DownOutlined, FormOutlined, UndoOutlined, DeleteOutlined, CheckOutlined } from '@ant-design/icons-vue'
   import { cloneDeep } from 'lodash'
-  import { batchQueryDetailApi, batchUpdateProductApi } from '../config/api/batch-edit'
+  import { detailListApi, editBatchSaveApi } from '../config/api/batch-edit'
 
-  import TitleModal from './components/TitleModal.vue'
-  import DescModal from './components/DescModal.vue'
-  import VATModal from './components/VATModal.vue'
-  import VariantImageModal from './components/VariantImageModal.vue'
-  import SKUCodeModal from './components/SKUCodeModal.vue'
-  import SKUTitleModal from './components/SKUTitleModal.vue'
-  import PriceModal from './components/PriceModal.vue'
-  import OldPriceModal from './components/OldPriceModal.vue'
-  import StockModal from './components/StockModal.vue'
-  import SizeModal from './components/SizeModal.vue'
-  import WeightModal from './components/WeightModal.vue'
+  import TitleModal from '../batch-edit/components/TitleModal.vue'
+  import DescModal from '../batch-edit/components/DescModal.vue'
+  import VATModal from '../batch-edit/components/VATModal.vue'
+  import VariantImageModal from '../batch-edit/components/VariantImageModal.vue'
+  import SKUCodeModal from '../batch-edit/components/SKUCodeModal.vue'
+  import SKUTitleModal from '../batch-edit/components/SKUTitleModal.vue'
+  import PriceModal from '../batch-edit/components/PriceModal.vue'
+  import OldPriceModal from '../batch-edit/components/OldPriceModal.vue'
+  import StockModal from '../batch-edit/components/StockModal.vue'
+  import SizeModal from '../batch-edit/components/SizeModal.vue'
+  import WeightModal from '../batch-edit/components/WeightModal.vue'
   import { message } from 'ant-design-vue'
 
   // 取出产品 id
-  const ids = JSON.parse(localStorage.getItem('ids'))
+  const waitIdList = JSON.parse(localStorage.getItem('waitIdList'))
 
   // 关联的结对变种属性
   const TWINS = [
@@ -589,16 +589,25 @@
   const warehouseTableData = ref([])
   getDetails()
   function getDetails() {
-    batchQueryDetailApi({ ids }).then(res => {
+    detailListApi({ waitIdList }).then(res => {
       const data = res.data || []
       const accountList = []
       const list = data.map(item => {
         accountList.push(item.account)
         const mainImage = item.skuList[0].primaryImage?.[0] || ''
+        // 获取 detailDesc | (SKU名称-4180; 产品描述-4191;)
+        const detailDesc = item.skuList[0].attributes.find(attr => attr.id === 4191)?.values[0].value || ''
+
         item.skuList.forEach(sku => {
           if (sku.attributes) {
+            // 处理 skuTitle
+            const skuTitleObj = sku.attributes.find(attr => attr.id === 4180)
+            if (skuTitleObj) {
+              const skuTitle = skuTitleObj.values[0].value
+              sku.skuTitle = skuTitle
+            }
+            // 处理变种名称
             const variantList = sku.attributes.filter(attr => attr.isVariant)
-
             let variantIds = variantList.map(variant => variant.id)
             let cookedAttrNameList = []
             let cookedAttrValueList = []
@@ -633,6 +642,7 @@
         const obj = {
           ...item,
           title: item.name,
+          detailDesc,
           mainImage,
           VAT: item.vat
         }
@@ -1186,9 +1196,9 @@
       })
     })
 
-    batchUpdateProductApi(params).then(res => {
+    editBatchSaveApi(params).then(res => {
       message.success('修改成功')
-      localStorage.removeItem('ids')
+      localStorage.removeItem('waitIdList')
       setTimeout(() => {
         window.close()
       }, 2000)

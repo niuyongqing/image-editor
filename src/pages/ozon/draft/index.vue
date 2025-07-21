@@ -777,7 +777,7 @@ const handleMenuClick = (e) => {
             }
             // 跳转到采集箱批量编辑页
             window.open('/platform/ozon/batch-edit')
-            localStorage.setItem('ids', JSON.stringify(selectedRowKeys.value))
+            localStorage.setItem('waitIdList', JSON.stringify(selectedRowKeys.value))
             break;
         case 1:
             let params = selectedRowList.value.map((item) => {
