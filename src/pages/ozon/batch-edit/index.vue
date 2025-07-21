@@ -325,17 +325,17 @@
           >
             <a-input
               v-if="cellAddress === `${index}_${column.key}_${i}`"
-              v-model:value="item.SKUTitle"
+              v-model:value="item.skuTitle"
               :id="`${index}_${column.key}_${i}`"
               @blur="cellAddress = ''"
             />
             <div
               v-else
               class="h-6 truncate"
-              :title="item.SKUTitle"
+              :title="item.skuTitle"
               @click="cellActived(index, column.key, i)"
             >
-              {{ item.SKUTitle }}
+              {{ item.skuTitle }}
             </div>
           </div>
         </template>
@@ -557,7 +557,7 @@
 <script setup>
   import { DownOutlined, FormOutlined, UndoOutlined, DeleteOutlined, CheckOutlined } from '@ant-design/icons-vue'
   import { cloneDeep } from 'lodash'
-  import { batchQueryDetailApi, batchUpdateProductApi } from '../config/api/batch-edit'
+  import { batchQueryDetailApi, batchUpdateProductApi, waitProductDetailListApi } from '../config/api/batch-edit'
 
   import TitleModal from './components/TitleModal.vue'
   import DescModal from './components/DescModal.vue'
@@ -596,8 +596,6 @@
         accountList.push(item.account)
         const mainImage = item.skuList[0].primaryImage?.[0] || ''
         item.skuList.forEach(sku => {
-          sku.SKUTitle = sku.name
-
           if (sku.attributes) {
             const variantList = sku.attributes.filter(attr => attr.isVariant)
 
@@ -722,7 +720,7 @@
       title: '变种信息',
       attrList: [
         { label: '变种图片', value: 'images' },
-        { label: 'SKU标题', value: 'SKUTitle' },
+        { label: 'SKU标题', value: 'skuTitle' },
         { label: '售价', value: 'price' },
         { label: '原价', value: 'oldPrice' },
         { label: '库存', value: 'stock' },
@@ -802,7 +800,7 @@
         { title: '变种图片', key: 'images', width: 100 },
         { title: '变种名称', key: 'attrName', width: 120 },
         { title: '变种SKU', key: 'offerId', width: 120 },
-        { title: 'SKU标题', key: 'SKUTitle', width: 120 },
+        { title: 'SKU标题', key: 'skuTitle', width: 120 },
         { title: '售价', key: 'price', width: 80 },
         { title: '原价', key: 'oldPrice', width: 80 },
         { title: '库存', key: 'stock', width: 80 },
@@ -858,7 +856,7 @@
   ]
 
   // 在 SKUList 里的字段
-  const SKU_ATTR_LIST = ['images', 'offerId', 'SKUTitle', 'price', 'oldPrice', 'stock', 'size', 'weight']
+  const SKU_ATTR_LIST = ['images', 'offerId', 'skuTitle', 'price', 'oldPrice', 'stock', 'size', 'weight']
 
   // 还原一列值
   function restore(key) {
@@ -1173,8 +1171,6 @@
       item.name = item.title
       item.vat = item.VAT
       item.skuList.forEach(sku => {
-        sku.name = sku.SKUTitle
-        delete sku.SKUTitle
         delete sku.cookedAttrNameList
         delete sku.cookedAttrValueList
         delete sku.attrName

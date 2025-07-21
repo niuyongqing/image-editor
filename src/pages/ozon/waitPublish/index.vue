@@ -90,6 +90,7 @@
             <a-dropdown :disabled="selectedRowList.length === 0">
               <template #overlay>
                 <a-menu @click="handleMenuClick">
+                  <a-menu-item key="batchEdit">批量编辑</a-menu-item>
                   <a-menu-item key="publish"> 批量发布 </a-menu-item>
                   <!-- <a-menu-item key="deactivate">
                     批量归档
@@ -601,8 +602,11 @@ const edit = (row = {}) => {
 };
 
 // 批量操作
-const handleMenuClick = (e) => {
-  if (e.key == "remark") {
+  const handleMenuClick = (e) => {
+  if (e.key == "batchEdit") {
+    localStorage.setItem('ids', JSON.stringify(selectedRowKeys.value))
+    window.open('/platform/ozon/batch-edit')
+  } else if (e.key == "remark") {
     addRemark();
   } else if (e.key === "publish") {
     Modal.confirm({

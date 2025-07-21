@@ -8,3 +8,14 @@ export function batchQueryDetailApi(params) {
 export function batchUpdateProductApi(params) {
   return usePost('/platform-ozon/platform/ozon/gather/product/batchUpdateProduct', params)
 }
+
+
+// 批量查询采集箱产品详情
+export function waitProductDetailListApi(params) {
+  return usePost('/platform-ozon/platform/ozon/wait/product/detail-list', params)
+}
+
+// 批量编辑采集箱产品
+// export function batchUpdateProductApi(params) {
+//   return usePost('/platform-ozon/platform/ozon/gather/product/batchUpdateProduct', params)
+// }

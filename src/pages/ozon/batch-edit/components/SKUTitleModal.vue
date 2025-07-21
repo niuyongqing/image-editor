@@ -185,7 +185,7 @@
   function generate(tableData) {
     tableData.forEach(record => {
       record.skuList.forEach(item => {
-        item.SKUTitle = generateForm.title
+        item.skuTitle = generateForm.title
 
         // 如果标题没有填内容的话, 下面的流程也就不用走了
         if (!generateForm.title) return
@@ -195,15 +195,15 @@
           // 有 #变种主题n#
           numberList.forEach(number => {
             const val = item.cookedAttrValueList[number - 1] ?? ''
-            item.SKUTitle = item.SKUTitle.replace(`#变种主题${number}#`, val)
+            item.skuTitle = item.skuTitle.replace(`#变种主题${number}#`, val)
           })
         }
 
         if (generateForm.capitalCase) {
-          item.SKUTitle = item.SKUTitle.slice(0, 1).toUpperCase() + item.SKUTitle.slice(1)
+          item.skuTitle = item.skuTitle.slice(0, 1).toUpperCase() + item.skuTitle.slice(1)
         }
         if (generateForm.cutOverflow) {
-          item.SKUTitle = item.SKUTitle.slice(0, 255)
+          item.skuTitle = item.skuTitle.slice(0, 255)
         }
       })
     })
@@ -226,23 +226,23 @@
     tableData.forEach(record => {
       record.skuList.forEach(item => {
         if (modifyForm.padStart) {
-          item.SKUTitle = modifyForm.padStart + item.SKUTitle
+          item.skuTitle = modifyForm.padStart + item.skuTitle
         }
         if (modifyForm.padEnd) {
-          item.SKUTitle += modifyForm.padEnd
+          item.skuTitle += modifyForm.padEnd
         }
         // 替换
         if (modifyForm.textOld && modifyForm.textNew) {
-          item.SKUTitle = item.SKUTitle.replaceAll(modifyForm.textOld, modifyForm.textNew)
+          item.skuTitle = item.skuTitle.replaceAll(modifyForm.textOld, modifyForm.textNew)
         }
         if (modifyForm.textRemove) {
-          item.SKUTitle = item.SKUTitle.replaceAll(modifyForm.textRemove, '')
+          item.skuTitle = item.skuTitle.replaceAll(modifyForm.textRemove, '')
         }
         if (modifyForm.capitalCase) {
-          item.SKUTitle = item.SKUTitle.slice(0, 1).toUpperCase() + item.SKUTitle.slice(1)
+          item.skuTitle = item.skuTitle.slice(0, 1).toUpperCase() + item.skuTitle.slice(1)
         }
         if (modifyForm.cutOverflow) {
-          item.SKUTitle = item.SKUTitle.slice(0, 255)
+          item.skuTitle = item.skuTitle.slice(0, 255)
         }
       })
     })

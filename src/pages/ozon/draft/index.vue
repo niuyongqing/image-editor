@@ -765,7 +765,9 @@ const handleMenuClick = (e) => {
         message.warning("请至少选择一条数据");
         return;
     };
-    defType.value = e.keyPath;
+    if (['stock', 'price', 'oldPrice', 'all'].includes(e.key)) {
+      defType.value = e.keyPath;
+    }
     stockShops.value = selectedRowList.value.map((e) => e.account);
     switch (e.key) {
         case 0:
