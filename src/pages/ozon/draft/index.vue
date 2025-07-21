@@ -765,7 +765,9 @@ const handleMenuClick = (e) => {
         message.warning("请至少选择一条数据");
         return;
     };
-    defType.value = e.keyPath;
+    if (['stock', 'price', 'oldPrice', 'all'].includes(e.key)) {
+      defType.value = e.keyPath;
+    }
     stockShops.value = selectedRowList.value.map((e) => e.account);
     switch (e.key) {
         case 0:
@@ -773,8 +775,9 @@ const handleMenuClick = (e) => {
                 message.warning("请先选择一个店铺账号");
                 return;
             }
-            batchEditPromptEl.value.open(selectedRowList.value);
-            console.log('批量编辑');
+            // 跳转到采集箱批量编辑页
+            window.open('/platform/ozon/batch-edit')
+            localStorage.setItem('ids', JSON.stringify(selectedRowKeys.value))
             break;
         case 1:
             let params = selectedRowList.value.map((item) => {
