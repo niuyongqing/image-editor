@@ -602,10 +602,14 @@ function openUrl(url) {
 function getSimpleName(account) {
   return formBtnInfo.shopAccount.find(i => i.account === account)?.simpleName ?? ''
 }
+const userStore = useUserStore()
 // 数据采集编辑
 function acquisitionEdit(row) {
+  let routerList = userStore.routerData.children[0].children
+  let val = routerList.find(i => i.path.includes('sample/acquisitionEdit'))
+  // console.log(userStore.routerData, routerList, val);
   let query = '?id=' + row.id
-  window.open('/platform/dev/sample/acquisitionEdit' + query)
+  window.open(val.path + query)
 }
 const handleOk = () => { }
 
