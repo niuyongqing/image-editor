@@ -1,5 +1,5 @@
 <template>
-    <div w-300px>
+    <div>
         <a-card :bordered="true" style="margin: 0 auto; border-radius: 0px">
             <template #title>
                 <div flex justify-between class="nav-title">

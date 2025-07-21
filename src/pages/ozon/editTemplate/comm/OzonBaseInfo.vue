@@ -196,7 +196,7 @@ const rules2 = ref({});
 const loopAttributes = ref([]);
 const categoryTreeList = ref([]);
 const historyCategoryList = ref([]);
-const isExpand = ref(false)
+const isExpand = ref(true)
 const vatList = [
     {
         label: "免税",

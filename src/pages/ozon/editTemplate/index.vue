@@ -10,7 +10,7 @@
                     </a-breadcrumb>
                 </div>
                 <div>
-                    <a-button type="primary" @click="onSubmit" :loading="loading"
+                    <a-button type="primary" @click="onSubmit" :loading="loading" class="mb10px"
                         style="height: 32px; background-color: #FF8345; color: #fff;">保存</a-button>
                 </div>
             </div>
@@ -26,7 +26,7 @@
                 :productDetail="productDetail" v-model:showDescription="showDescription">
             </OzonNewImageInfo>
             <div flex justify-end>
-                <a-button type="primary" @click="onSubmit" :loading="loading"
+                <a-button type="primary" @click="onSubmit" :loading="loading" class="mt10px"
                     style="height: 32px; background-color: #FF8345; color: #fff;">保存
                 </a-button>
             </div>

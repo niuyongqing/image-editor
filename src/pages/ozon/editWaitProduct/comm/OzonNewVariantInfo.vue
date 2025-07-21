@@ -16,12 +16,12 @@
                       <template #icon>
                         <SettingOutlined />
                       </template>
-                      管理模板
-                    </a-button>
-                  </a-space>
-                </template>
-              </a-select>
-            </div> -->
+管理模板
+</a-button>
+</a-space>
+</template>
+</a-select>
+</div> -->
           </div>
         </template>
         <div>
@@ -1525,7 +1525,11 @@ watch(
             };
           }),
           sellerSKU: sku.offerId,
-          imageUrl:
+          imageUrl: sku.primaryImage.length > 0 ?
+            [
+              ...sku.primaryImage.map(url => ({ url })),  // 将主图放在前面
+              ...(sku.images || []).map(item => ({ url: item }))  // 合并其他图片
+            ] :
             sku.images?.map((item) => {
               return {
                 url: item,

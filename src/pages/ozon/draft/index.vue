@@ -1,15 +1,15 @@
 <template>
     <div flex>
-        <div>
-            <draftSidebar />
+        <div w-280px>
+            <draftSidebar @draftUpdateClass="draftUpdateClass" />
         </div>
-        <div w-full>
-            <a-breadcrumb separator=">" style="margin-left: 15px; margin-bottom: 8px;">
+        <div flex-1>
+            <a-breadcrumb separator=">" style="margin-left: 15px; margin-bottom: 8px">
                 <a-breadcrumb-item>Ozon</a-breadcrumb-item>
                 <a-breadcrumb-item> 采集箱 </a-breadcrumb-item>
             </a-breadcrumb>
 
-            <div id="draft" w-full ml-15px>
+            <div id="draft" ml-10px>
                 <a-card>
                     <a-form ref="ruleForm2" :model="formData">
                         <a-form-item label="店铺账号：">
@@ -25,9 +25,9 @@
                         <a-form-item label="搜索内容：">
                             <div class="flex">
                                 <div class="flex align-start">
-                                    <a-input v-if="actives === 1" style="width: 400px;" v-model:value="formData.name"
+                                    <a-input v-if="actives === 1" style="width: 400px" v-model:value="formData.name"
                                         placeholder="请输入标题查询" clearable @clear="onSubmit"></a-input>
-                                    <a-input v-if="actives === 2" style="width: 400px;" v-model:value="formData.sku"
+                                    <a-input v-if="actives === 2" style="width: 400px" v-model:value="formData.sku"
                                         clearable @clear="onSubmit"
                                         placeholder="请输入SKU查询,多个SKU间用逗号隔开，最多支持200个"></a-input>
                                 </div>
@@ -52,7 +52,7 @@
                     <div class="w-full flex justify-between items-center mb-10px">
                         <div class="flex">
                             <a-dropdown>
-                                <a-button type="primary" style="height: 32px;" :disabled="!selectedRowList.length">
+                                <a-button type="primary" style="height: 32px" :disabled="!selectedRowList.length">
                                     批量操作
                                     <DownOutlined />
                                 </a-button>
@@ -80,7 +80,7 @@
                             </a-dropdown>
 
                             <a-dropdown trigger="click">
-                                <a-button type="primary" style="height: 32px;  margin-left: 10px;"
+                                <a-button type="primary" style="height: 32px; margin-left: 10px"
                                     :disabled="!selectedRowList.length">
                                     移动分类
                                     <DownOutlined />
@@ -98,14 +98,14 @@
                         </div>
                         <div>
                             <a-space>
-                                <a-button type="link" style="height: 32px;" @click="shopSet">
+                                <a-button type="link" style="height: 32px" @click="shopSet">
                                     <SettingOutlined />
                                     店铺设置
                                 </a-button>
-                                <a-button type="primary" style="height: 32px;" @click="navDataCrawli">
+                                <a-button type="primary" style="height: 32px" @click="navDataCrawli">
                                     采集数据
                                 </a-button>
-                                <a-button type="primary" style="height: 32px;" @click="createProduct">
+                                <a-button type="primary" style="height: 32px" @click="createProduct">
                                     创建产品
                                 </a-button>
                                 <!-- <a-tooltip>
@@ -145,8 +145,9 @@
                                         </div>
                                         <br />
                                         <div :style="{
-                                            color: remarkColor(record.remarkColor)
-                                        }"> {{ record.remark }}
+                                            color: remarkColor(record.remarkColor),
+                                        }">
+                                            {{ record.remark }}
                                         </div>
                                     </div>
                                 </div>
@@ -159,7 +160,9 @@
                                                 <template #title>
                                                     <span>复制</span>
                                                 </template>
-                                                <span @click="copyText(item.offerId)"> {{ item.offerId }} </span>
+                                                <span @click="copyText(item.offerId)">
+                                                    {{ item.offerId }}
+                                                </span>
                                             </a-tooltip>
                                         </div>
                                     </div>
@@ -171,7 +174,7 @@
                                         <div class="sku-price">
                                             <span pr-5px>{{ record.currencyCode }} </span>
                                             <span>
-                                                {{ item.price ? item.price : '-' }}
+                                                {{ item.price ? item.price : "-" }}
                                             </span>
                                         </div>
                                     </div>
@@ -182,7 +185,7 @@
                                     <div class="record-sku" v-for="(item, index) in displayedSkus(record)" :key="index">
                                         <div class="sku-price">
                                             <span pr-5px>{{ record.currencyCode }} </span>
-                                            <span>{{ item.oldPrice ? item.oldPrice : '-' }} </span>
+                                            <span>{{ item.oldPrice ? item.oldPrice : "-" }} </span>
                                         </div>
                                     </div>
                                 </div>
@@ -207,7 +210,7 @@
                                 <div v-if="record.skuList.length > 5"
                                     class="w-full flex flex-end flex-end more pr-15px pb-10px">
                                     <a-button type="link" @click="record.show = !record.show">
-                                        {{ !record.show ? '+ 展开' : '- 收起' }}
+                                        {{ !record.show ? "+ 展开" : "- 收起" }}
                                     </a-button>
                                 </div>
                             </template>
@@ -229,9 +232,15 @@
                             </template>
                             <template v-if="column.dataIndex === 'option'">
                                 <a-space direction="vertical">
-                                    <a-button type="link" @click="moveToPending(record)"> 移入待发布 </a-button>
-                                    <a-button type="link" @click="editProduct(record)"> 编辑 </a-button>
-                                    <a-button type="link" @click="publishProduct(record)"> 发布 </a-button>
+                                    <a-button type="link" @click="moveToPending(record)">
+                                        移入待发布
+                                    </a-button>
+                                    <a-button type="link" @click="editProduct(record)">
+                                        编辑
+                                    </a-button>
+                                    <a-button type="link" @click="publishProduct(record)">
+                                        发布
+                                    </a-button>
                                     <a-dropdown>
                                         <a-button type="link">
                                             更多
@@ -286,42 +295,57 @@
     </div>
 </template>
 
-<script setup name='draft'>
-import { Divider, message, Modal } from 'ant-design-vue';
-import { DownOutlined, SettingOutlined, SyncOutlined, QuestionCircleOutlined } from "@ant-design/icons-vue";
-import { accountCache, shopCurrency, productWarehouse } from "../config/api/product";
+<script setup name="draft">
+import { Divider, message, Modal } from "ant-design-vue";
+import {
+    DownOutlined,
+    SettingOutlined,
+    SyncOutlined,
+    QuestionCircleOutlined,
+} from "@ant-design/icons-vue";
+import {
+    accountCache,
+    shopCurrency,
+    productWarehouse,
+} from "../config/api/product";
 import { brandCategory } from "../config/api/waitProduct";
-import { ozonDraftList, ozonDeleteProduct, batchPublishToPlatform, batchAddToWaitPublish, addToWaitPublish } from "../config/api/draft";
+import {
+    ozonDraftList,
+    ozonDeleteProduct,
+    batchPublishToPlatform,
+    batchAddToWaitPublish,
+    addToWaitPublish,
+} from "../config/api/draft";
 import { updateCategoryProduct } from "~/pages/sample/dataAcquisition/js/api.js";
-import { useRouter } from 'vue-router';
-import tableHeard from "../config/tabColumns/draft"
+import { useRouter } from "vue-router";
+import tableHeard from "../config/tabColumns/draft";
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
-import draftSidebar from '@/pages/ozon/config/component/siderBar/index.vue';
+import draftSidebar from "@/pages/ozon/config/component/siderBar/index.vue";
 import ShopSetModal from "@/pages/ozon/product/comm/shopSetModal.vue";
-import typeTree from '@/components/classificationTree/typeTree.vue';
-import EditPrompt from './comm/editPrompt.vue';
-import BatchEdit from './batchComponent/batchEdit.vue';
-import RemarkModal from './batchComponent/remarkModal.vue';
-import BatchWatermark from './batchComponent/batchWatermark.vue';
-import OzonProduct from '@/pages/ozon/product/index.vue';
-import BatchEditPrompt from './batchComponent/batchEditPrompt.vue';
-import EditAttribute from './batchComponent/editAttribute.vue';
-import WaitPublish from '@/pages/ozon/waitPublish/index.vue';
-import { colors } from '@/pages/lazada/product/common';
+import typeTree from "@/components/classificationTree/typeTree.vue";
+import EditPrompt from "./comm/editPrompt.vue";
+import BatchEdit from "./batchComponent/batchEdit.vue";
+import RemarkModal from "./batchComponent/remarkModal.vue";
+import BatchWatermark from "./batchComponent/batchWatermark.vue";
+import OzonProduct from "@/pages/ozon/product/index.vue";
+import BatchEditPrompt from "./batchComponent/batchEditPrompt.vue";
+import EditAttribute from "./batchComponent/editAttribute.vue";
+import WaitPublish from "@/pages/ozon/waitPublish/index.vue";
+import { colors } from "@/pages/lazada/product/common";
 let columns = tableHeard;
 const baseApi = import.meta.env.VITE_APP_BASE_API;
 
 const router = useRouter();
 const { copy } = useClipboard();
-const editPromptEl = useTemplateRef('editPromptRef');
-const batchEditPromptEl = useTemplateRef('batchEditPromptRef'); // 批量编辑-弹窗
-const remarkModalEl = useTemplateRef('remarkModalRef'); // 批量备注-弹窗
-const batchWatermarkEl = useTemplateRef('batchWatermarkRef'); // 批量加水印-弹窗
-const batchAttributeEl = useTemplateRef('batchAttributeRef'); // 批量属性-弹窗
-const editAttributeEl = useTemplateRef('editAttributeRef'); // 批量属性-弹窗
-const typeTreeEl = useTemplateRef('typeTreeRef');
-const currentClass = ref('0');
-const nodePath = ref('');
+const editPromptEl = useTemplateRef("editPromptRef");
+const batchEditPromptEl = useTemplateRef("batchEditPromptRef"); // 批量编辑-弹窗
+const remarkModalEl = useTemplateRef("remarkModalRef"); // 批量备注-弹窗
+const batchWatermarkEl = useTemplateRef("batchWatermarkRef"); // 批量加水印-弹窗
+const batchAttributeEl = useTemplateRef("batchAttributeRef"); // 批量属性-弹窗
+const editAttributeEl = useTemplateRef("editAttributeRef"); // 批量属性-弹窗
+const typeTreeEl = useTemplateRef("typeTreeRef");
+const currentClass = ref("0");
+const nodePath = ref("");
 const typeManageOpen = ref(false);
 const shopSetVisible = ref(false);
 const shopCurryList = ref([]);
@@ -329,7 +353,7 @@ const editPriceVisible = ref(false); //全属性
 const editStockList = ref([]); //修改库存
 const defType = ref([]);
 const stockShops = ref([]);
-const breadcrumb = ref('');
+const breadcrumb = ref("");
 
 const { state: formData, reset: resetForm } = useResetReactive({
     offerId: "",
@@ -338,37 +362,38 @@ const { state: formData, reset: resetForm } = useResetReactive({
     name: "",
     prop: "create_time",
     order: "desc",
-    state: ""
-})
+    state: "",
+});
 const paginations = reactive({
     pageNum: 1,
     pageSize: 50,
     total: 0,
 });
-const shopAccount = ref([])
+const shopAccount = ref([]);
 const actives = ref(1);
 const selectedRowKeys = ref([]);
 const selectedRowList = ref([]);
-const tableData = ref([])
-const deactivateLoading = ref(false)
-const delLoading = ref(false)
-const loading = ref(false)
+const tableData = ref([]);
+const deactivateLoading = ref(false);
+const delLoading = ref(false);
+const loading = ref(false);
 const remarkVisible = ref(false);
-const brandList = ref([])
+const brandList = ref([]);
 const remarkId = ref([]);
+const productState = ref("");
 const state = {
     wait_publish: "待发布",
     published: "已发布",
     publish_failed: "发布失败",
-}
+};
 const shopObj = {
     fieldKey: "account",
     fieldLabel: "simpleName",
-}
+};
 const sortObj = reactive({
     sortField: "created_time",
-    sortType: "desc"
-})
+    sortType: "desc",
+});
 const searchType = [
     {
         label: "标题",
@@ -377,8 +402,8 @@ const searchType = [
     {
         label: "SKU",
         prop: 2,
-    }
-]
+    },
+];
 const active = ref({
     label: "按创建时间",
     value: "created_time",
@@ -404,14 +429,16 @@ const strList = ref([
     },
     {
         label: "按售价",
-        value: "old_price",
+        value: "max_current_price",
+        // value: "old_price",
         type: "top",
         prop: 3,
         isDefault: false,
     },
     {
         label: "按总库存量",
-        value: "stock",
+        value: "total_stock",
+        // value: "stock",
         type: "top",
         prop: 4,
         isDefault: false,
@@ -429,29 +456,29 @@ const rowSelection = computed(() => {
 });
 
 const accountName = (account) => {
-    return shopAccount.value.find(item => item.account === account)?.simpleName
+    return shopAccount.value.find((item) => item.account === account)?.simpleName;
 };
 const remarkColor = (color) => {
-    return colors.find(item => item.id == color)?.color
+    return colors.find((item) => item.id == color)?.color;
 };
 const primaryImage = (primaryImage) => {
-    if (primaryImage.includes('https')) {
-        return primaryImage
+    if (primaryImage.includes("https")) {
+        return primaryImage;
     }
-    return baseApi + primaryImage
+    return baseApi + primaryImage;
 };
 const platformName = (platform) => {
     const platNames = {
-        Ozon: 'Ozon',
-        Tmall: '天猫',
-        AliExpress: '速卖通',
+        Ozon: "Ozon",
+        Tmall: "天猫",
+        AliExpress: "速卖通",
     };
-    return platNames[platform] ?? platform
+    return platNames[platform] ?? platform;
 };
 
 const visitUrl = (sourceUrlList) => {
     if (sourceUrlList && sourceUrlList.length > 0) {
-        window.open(sourceUrlList[0])
+        window.open(sourceUrlList[0]);
     }
 };
 
@@ -466,21 +493,21 @@ const shopSet = () => {
     getShopSet();
 };
 const getShopSet = () => {
-    shopCurrency().then(res => {
-        shopCurryList.value = res?.data ?? []
-    })
+    shopCurrency().then((res) => {
+        shopCurryList.value = res?.data ?? [];
+    });
 };
 
 // 店铺单选多选
 const selectAll = () => {
-    formData.account = ""
+    formData.account = "";
     getList();
-}
+};
 const selectItem = (val) => {
     clearSelectList();
-    formData.account = val
+    formData.account = val;
     getList();
-}
+};
 
 // 搜索内容
 const selectTypes = (index) => {
@@ -501,21 +528,23 @@ const selectTypes = (index) => {
         default:
             break;
     }
-}
+};
 
 // 排序方式
 const storChange = (item) => {
     item.type = item.type === "top" ? "bottom" : "top";
     active.value = item;
-    sortObj.sortField = item.value
-    sortObj.sortType = item.type === "top" ? "desc" : "asc"
-    formData.order = item.type === "top" ? "desc" : "asc"
-    formData.prop = item.value
+    sortObj.sortField = item.value;
+    sortObj.sortType = item.type === "top" ? "desc" : "asc";
+    formData.order = item.type === "top" ? "desc" : "asc";
+    formData.prop = item.value;
     getList();
 };
 
 // 表单搜索
-const onSubmit = () => { getList() }
+const onSubmit = () => {
+    getList();
+};
 
 // 店铺数据
 const getAccount = () => {
@@ -527,9 +556,14 @@ const getAccount = () => {
     });
 };
 
-
 const displayedSkus = (row) => {
     return row.show ? row?.skuList : row?.skuList?.slice(0, 5);
+};
+
+const draftUpdateClass = (e) => {
+    paginations.pageNum = 1;
+    productState.value = e.productState;
+    getList();
 };
 
 const getList = () => {
@@ -540,7 +574,8 @@ const getList = () => {
         ...formData,
         ...sortObj,
         pageNum: paginations.pageNum,
-        pageSize: paginations.pageSize
+        pageSize: paginations.pageSize,
+        productState: productState.value,
     })
         .then((res) => {
             tableData.value =
@@ -557,41 +592,43 @@ const getList = () => {
 
 // 批量移动分类
 async function typeNodeClick(node) {
-    if (selectedRowList.value.length < 1) return message.warning('请选择商品！')
+    if (selectedRowList.value.length < 1) return message.warning("请选择商品！");
     try {
-        let ids = selectedRowList.value.map(i => i.gatherProductId);
+        let ids = selectedRowList.value.map((i) => i.gatherProductId);
         let params = {
-            "ids": ids.join(), // 商品信息的唯一标识(多个用英文逗号分割)
-            "productCategoryId": node.id   //分类ID
-        }
-        await updateCategoryProduct(params)
-        getList()
+            ids: ids.join(), // 商品信息的唯一标识(多个用英文逗号分割)
+            productCategoryId: node.id, //分类ID
+        };
+        await updateCategoryProduct(params);
+        getList();
     } catch (error) {
-        console.error(error)
+        console.error(error);
     }
-};
+}
 
 //  采集数据
 const navDataCrawli = () => {
-    router.push('/platform/dev/sample/dataAcquisition')
+    router.push("/platform/dev/sample/dataAcquisition");
 };
 
 //  移入待发布
 const moveToPending = (row = {}) => {
     Modal.confirm({
-        title: '提示',
-        content: '确定要移入待发布吗？',
+        title: "提示",
+        content: "确定要移入待发布吗？",
         onOk: async () => {
             addToWaitPublish({
-                "account": row.account,  //店铺账号
-                "gatherProductId": row.gatherProductId  //采集箱产品id 
-            }).then((res) => {
-                message.success("操作成功");
-                getList();
-            }).finally(() => {
-                loading.value = false;
-            });
-        }
+                account: row.account, //店铺账号
+                gatherProductId: row.gatherProductId, //采集箱产品id
+            })
+                .then((res) => {
+                    message.success("操作成功");
+                    getList();
+                })
+                .finally(() => {
+                    loading.value = false;
+                });
+        },
     });
 };
 
@@ -603,16 +640,18 @@ const editProduct = (row) => {
 // 发布
 const publishProduct = (row = {}) => {
     Modal.confirm({
-        title: '提示',
-        content: '确定要发布吗？',
+        title: "提示",
+        content: "确定要发布吗？",
         onOk: async () => {
             batchPublishToPlatform({
-                gatherProductIdList: [row.gatherProductId],
+                publishRequestList: [
+                    { account: row.account, gatherProductId: row.gatherProductId },
+                ],
             }).then((res) => {
                 message.success("操作成功");
                 getList();
-            })
-        }
+            });
+        },
     });
 };
 
@@ -624,22 +663,25 @@ const addRemark = (row = {}) => {
 // 单个删除产品
 const delProduct = (row = {}) => {
     Modal.confirm({
-        title: '提示',
-        content: '确定要删除吗？',
+        title: "提示",
+        content: "确定要删除吗？",
         onOk: async () => {
             ozonDeleteProduct({
-                "shopIdList": [row.account],    //店铺id列表
-                "gatherProductIdList": [   //采集箱商品id列表
-                    row.gatherProductId
-                ]
-            }).then((res) => {
-                message.success("操作成功");
-                getList();
-            }).finally(() => {
-                loading.value = false;
-            });
-        }
-    })
+                shopIdList: [row.account], //店铺id列表
+                gatherProductIdList: [
+                    //采集箱商品id列表
+                    row.gatherProductId,
+                ],
+            })
+                .then((res) => {
+                    message.success("操作成功");
+                    getList();
+                })
+                .finally(() => {
+                    loading.value = false;
+                });
+        },
+    });
 };
 
 const handleShopSetClose = () => {
@@ -649,7 +691,7 @@ const handleShopSetClose = () => {
 
 // 创建产品
 const createProduct = () => {
-    window.open("/platform/ozon/productPublish", '_blank');
+    window.open("/platform/ozon/productPublish", "_blank");
 };
 
 const updateCurrentClass = (value) => {
@@ -668,7 +710,7 @@ function clearStock(data) {
         });
     }
     return data;
-};
+}
 
 const clearSelectList = () => {
     selectedRowList.value = [];
@@ -681,12 +723,12 @@ const getBrandList = () => {
         return {
             account: e.account,
             typeId: e.typeId,
-            descriptionCategoryId: e.categoryId
-        }
-    })
+            descriptionCategoryId: e.categoryId,
+        };
+    });
     brandCategory(list).then((res) => {
         brandList.value = res?.data ?? [];
-    })
+    });
 };
 // 关闭价格
 const handleEditPriceClose = () => {
@@ -715,17 +757,15 @@ const getStore = () => {
     });
 };
 
-
-
 //  批量操作
 const handleMenuClick = (e) => {
     console.log(e, selectedRowList.value);
     if (!selectedRowList.value.length) {
         message.warning("请至少选择一条数据");
         return;
-    };
-    if (['stock', 'price', 'oldPrice', 'all'].includes(e.key)) {
-      defType.value = e.keyPath;
+    }
+    if (["stock", "price", "oldPrice", "all"].includes(e.key)) {
+        defType.value = e.keyPath;
     }
     stockShops.value = selectedRowList.value.map((e) => e.account);
     switch (e.key) {
@@ -735,54 +775,59 @@ const handleMenuClick = (e) => {
                 return;
             }
             // 跳转到采集箱批量编辑页
-            window.open('/platform/ozon/batch-edit')
-            localStorage.setItem('ids', JSON.stringify(selectedRowKeys.value))
+            window.open("/platform/ozon/batch-edit");
+            localStorage.setItem("ids", JSON.stringify(selectedRowKeys.value));
             break;
         case 1:
             let params = selectedRowList.value.map((item) => {
                 return {
-                    "account": item.account,
-                    "gatherProductId": item.gatherProductId,
-                }
-            })
+                    account: item.account,
+                    gatherProductId: item.gatherProductId,
+                };
+            });
             Modal.confirm({
-                title: '提示',
-                content: '确定要批量移入待发布吗？',
+                title: "提示",
+                content: "确定要批量移入待发布吗？",
                 onOk: async () => {
                     batchAddToWaitPublish({
-                        requestList: params
+                        requestList: params,
                     }).then((res) => {
                         message.success("操作成功");
                         selectedRowList.value = [];
                         selectedRowKeys.value = [];
                         getList();
-                    })
-                }
+                    });
+                },
             });
             break;
         case 2:
             Modal.confirm({
-                title: '提示',
-                content: '确定要批量发布吗？',
+                title: "提示",
+                content: "确定要批量发布吗？",
                 onOk: async () => {
+                    const publishRequestList = selectedRowList.value.map((item) => {
+                        return {
+                            account: item.account,
+                            gatherProductId: item.gatherProductId,
+                        };
+                    });
                     batchPublishToPlatform({
-                        gatherProductIdList: selectedRowList.value.map(item => item.gatherProductId),
+                        publishRequestList: publishRequestList,
                     }).then((res) => {
                         message.success("操作成功");
                         getList();
-                    })
-                }
+                    });
+                },
             });
-            console.log('批量发布');
             break;
         case 3:
             batchWatermarkEl.value.open(selectedRowList.value);
-            console.log('批量加水印');
+            console.log("批量加水印");
             break;
         case 4:
             Modal.confirm({
-                title: '提示',
-                content: '确定要批量归档吗？',
+                title: "提示",
+                content: "确定要批量归档吗？",
                 onOk: async () => {
                     // baseTableEl.value.setLoading(true);
                     // const res = await moveToPending({ itemId: record.itemId });
@@ -793,49 +838,51 @@ const handleMenuClick = (e) => {
                     //     message.error(res.msg);
                     //     baseTableEl.value.setLoading(false);
                     // }
-                }
-            })
-            console.log('批量归档');
+                },
+            });
+            console.log("批量归档");
             break;
         case 5:
             remarkModalEl.value.open(selectedRowList.value, true);
-            console.log('批量备注');
+            console.log("批量备注");
             break;
         case 6:
             Modal.confirm({
-                title: '提示',
-                content: '确定要批量删除吗？',
+                title: "提示",
+                content: "确定要批量删除吗？",
                 confirmLoading: true,
                 onOk: async () => {
-                    const shopIdList = selectedRowList.value.map(item => item.account);
-                    const gatherProductIdList = selectedRowList.value.map(item => item.gatherProductId);
+                    const shopIdList = selectedRowList.value.map((item) => item.account);
+                    const gatherProductIdList = selectedRowList.value.map(
+                        (item) => item.gatherProductId
+                    );
                     ozonDeleteProduct({
-                        "shopIdList": shopIdList,
-                        "gatherProductIdList": gatherProductIdList,
+                        shopIdList: shopIdList,
+                        gatherProductIdList: gatherProductIdList,
                     }).then((res) => {
                         message.success("操作成功");
                         getList();
-                    })
-                }
-            })
-            console.log('批量删除');
+                    });
+                },
+            });
+            console.log("批量删除");
             break;
-        case 'stock':
+        case "stock":
             editPriceVisible.value = true;
             getStore();
             getBrandList();
             break;
-        case 'price':
+        case "price":
             editPriceVisible.value = true;
             getStore();
             getBrandList();
             break;
-        case 'oldPrice':
+        case "oldPrice":
             editPriceVisible.value = true;
             getStore();
             getBrandList();
             break;
-        case 'all':
+        case "all":
             editPriceVisible.value = true;
             getStore();
             getBrandList();
@@ -845,10 +892,9 @@ const handleMenuClick = (e) => {
     }
 };
 
-
 onMounted(() => {
-    getAccount()
-})
+    getAccount();
+});
 
 const show = ref(false);
 </script>

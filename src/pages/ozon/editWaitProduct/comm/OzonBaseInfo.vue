@@ -312,49 +312,52 @@ const shouldHideItem = (item) => {
 
 // 此方法将历史缓存中的属性值进行重新赋值
 const assignValues = (a, b) => {
-    // let newRes = a.map((item) => {
-    //     return {
-    //         ...item,
-    //         values: item.values.map((value) => {
-    //             return {
-    //                 ...value,
-    //                 id: Number(value.dictionaryValueId),
-    //                 info: "",
-    //                 picture: "",
-    //                 label: "",
-    //             };
-    //         }),
-    //     };
-    // });
-    // const result = {};
-    // // 根据b数组填充结果对象
-    // b.forEach((item) => {
-    //     const name = item.name;
-    //     const selectType = item.selectType;
-    //     newRes.forEach((resItem) => {
-    //         const attributeId = resItem.id;
-    //         const allValidItems = resItem.values.every((item) => item.value !== "");
-    //         if (attributeId === item.id && allValidItems) {
-    //             if (selectType === "multSelect") {
-    //                 result[name] = resItem.values.map((item) => item.id);
-    //                 item.acquiesceList = moveMatchedItemForward(
-    //                     item.options,
-    //                     resItem.values.map((item) => item.id)
-    //                 );
-    //             } else if (selectType === "select") {
-    //                 result[name] = findMatchedOption(
-    //                     attributeId,
-    //                     resItem.values[0],
-    //                     item.options
-    //                 );
-    //             } else {
-    //                 result[name] = resItem.values[0].value;
-    //             }
-    //         }
-    //     });
-    // });
+    let newRes = a.map((item) => {
+        return {
+            ...item,
+            values: item.values.map((value) => {
+                return {
+                    ...value,
+                    id: Number(value.dictionaryValueId),
+                    info: "",
+                    picture: "",
+                    label: "",
+                };
+            }),
+        };
+    });
+    const result = {};
+    // 根据b数组填充结果对象
+    b.forEach((item) => {
+        const name = item.name;
+        const selectType = item.selectType;
+        newRes.forEach((resItem) => {
+            const attributeId = resItem.id;
+            const allValidItems = resItem.values.every((item) => item.value !== "");
+            if (attributeId === item.id && allValidItems) {
+                if (selectType === "multSelect") {
+                    result[name] = resItem.values.map((item) => item.id);
+                    item.acquiesceList = moveMatchedItemForward(
+                        item.options,
+                        resItem.values.map((item) => item.id)
+                    );
+                } else if (selectType === "select") {
+                    result[name] = findMatchedOption(
+                        attributeId,
+                        resItem.values[0],
+                        item.options
+                    );
+                } else {
+                    result[name] = resItem.values[0].value;
+                }
+            }
+        });
+    });
 
-    // return result;
+    return result;
+};
+
+const templateAssign = (a,b) => {
     const result = {};
     // 遍历所有属性配置项
     b.forEach((item) => {
@@ -407,8 +410,7 @@ const assignValues = (a, b) => {
                 : attrValue;       // 直接使用原始值
         }
     });
-    return result;
-};
+}
 
 const findMatchedOption = (attributeId, data, options) => {
     const matchedOption = options?.find((option) => option.id === data.id);
@@ -550,7 +552,6 @@ watch(() => useOzonProductStore().productTemplate, (val) => {
         };
         tempAttr.value = productAttr;
         emit("getAttributes", form.shortCode, form.categoryId);
-        // form.attributes = assignValues(productAttr, loopAttributes.value)
     }
 })
 
@@ -677,7 +678,7 @@ watch(
             }
             // 引用模板数据回显
             if(Object.keys(tempAttr.value).length > 0) {
-                form.attributes = assignValues(tempAttr.value, loopAttributes.value)
+                form.attributes = templateAssign(tempAttr.value, loopAttributes.value)
             }
         }
     }

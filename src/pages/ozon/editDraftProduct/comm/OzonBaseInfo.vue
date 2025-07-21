@@ -173,6 +173,7 @@ const rules2 = ref({});
 const loopAttributes = ref([]);
 const categoryTreeList = ref([]);
 const historyCategoryList = ref([]);
+const tempAttr = ref({});
 const isExpand = ref(true)
 const vatList = [
     {
@@ -319,51 +320,102 @@ const shouldHideItem = (item) => {
 
 // 此方法将历史缓存中的属性值进行重新赋值
 const assignValues = (a, b) => {
-    console.log('a', a);
-    console.log('b', b);
+    // let newRes = a.map((item) => {
+    //     return {
+    //         ...item,
+    //         values: item.values.map((value) => {
+    //             return {
+    //                 ...value,
+    //                 id: Number(value.dictionaryValueId),
+    //                 info: "",
+    //                 picture: "",
+    //                 label: "",
+    //             };
+    //         }),
+    //     };
+    // });
+    // const result = {};
+    // // 根据b数组填充结果对象
+    // b.forEach((item) => {
+    //     const name = item.name;
+    //     const selectType = item.selectType;
+    //     newRes.forEach((resItem) => {
+    //         const attributeId = resItem.id;
+    //         const allValidItems = resItem.values.every((item) => item.value !== "");
+    //         if (attributeId === item.id && allValidItems) {
+    //             if (selectType === "multSelect") {
+    //                 result[name] = resItem.values.map((item) => item.id);
+    //                 item.acquiesceList = moveMatchedItemForward(
+    //                     item.options,
+    //                     resItem.values.map((item) => item.id)
+    //                 );
+    //             } else if (selectType === "select") {
+    //                 result[name] = findMatchedOption(
+    //                     attributeId,
+    //                     resItem.values[0],
+    //                     item.options
+    //                 );
+    //             } else {
+    //                 result[name] = resItem.values[0].value;
+    //             }
+    //         }
+    //     });
+    // });
 
-    let newRes = a.map((item) => {
-        return {
-            ...item,
-            values: item.values.map((value) => {
-                return {
-                    ...value,
-                    id: Number(value.dictionaryValueId),
-                    info: "",
-                    picture: "",
-                    label: "",
-                };
-            }),
-        };
-    });
+    // return result;
+
     const result = {};
-    // 根据b数组填充结果对象
+    // 遍历所有属性配置项
     b.forEach((item) => {
-        const name = item.name;
-        const selectType = item.selectType;
-        newRes.forEach((resItem) => {
-            const attributeId = resItem.id;
-            const allValidItems = resItem.values.every((item) => item.value !== "");
-            if (attributeId === item.id && allValidItems) {
-                if (selectType === "multSelect") {
-                    result[name] = resItem.values.map((item) => item.id);
-                    item.acquiesceList = moveMatchedItemForward(
-                        item.options,
-                        resItem.values.map((item) => item.id)
-                    );
-                } else if (selectType === "select") {
-                    result[name] = findMatchedOption(
-                        attributeId,
-                        resItem.values[0],
-                        item.options
-                    );
-                } else {
-                    result[name] = resItem.values[0].value;
-                }
-            }
-        });
-    });
+        const attrName = item.name;
+        const attrValue = a[attrName];
+        if (!attrValue) return;
 
+        // 处理多选类型属性
+        if (item.selectType === "multSelect") {
+            result[attrName] = Array.isArray(attrValue)
+                ? attrValue.map(v => Number(v))  // 处理数组值
+                : [Number(attrValue)];  // 处理单选值转数组
+
+            // 维护选项排序
+            item.acquiesceList = moveMatchedItemForward(
+                item.options,
+                result[attrName]
+            );
+        }
+        // 处理下拉选择类型属性
+        else if (item.selectType === "select") {
+            // 特殊处理品牌字段
+            if (attrName === "品牌(Бренд)") {
+                result[attrName] = {
+                    label: "无品牌",
+                    value: "无品牌"
+                };
+            }
+            // 处理对象型值
+            else if (typeof attrValue === 'object') {
+                result[attrName] = findMatchedOption(
+                    item.id,
+                    { id: attrValue.value, value: attrValue.label },
+                    item.options
+                );
+            }
+            // 处理原始值
+            else {
+                result[attrName] = findMatchedOption(
+                    item.id,
+                    { id: attrValue, value: attrValue },
+                    item.options
+                );
+            }
+        }
+        // 处理普通输入类型
+        else {
+            result[attrName] = typeof attrValue === 'object'
+                ? attrValue.value  // 提取对象中的值
+                : attrValue;       // 直接使用原始值
+        }
+    });
     return result;
 };
 
@@ -535,9 +587,10 @@ watch(() => useOzonProductStore().productTemplate, (val) => {
         };
         console.log("shortCode",form.shortCode);
         console.log("categoryId",form.categoryId);
+        tempAttr.value = productAttr;
         // form.vat = vat === "0.0" || vat === "0.00" ? "0" : vat;
         emit("getAttributes", form.shortCode, form.categoryId);
-        form.attributes = val.content.productTemplate.productAttr;
+        // form.attributes = val.content.productTemplate.productAttr;
     }
 })
 
@@ -662,6 +715,10 @@ watch(
                     form.attributes = proceRes;
                 }
 
+            }
+            // 引用模板数据回显
+            if(Object.keys(tempAttr.value).length > 0) {
+                form.attributes = assignValues(tempAttr.value, loopAttributes.value)
             }
         }
     }
