@@ -375,6 +375,13 @@ async function getList() {
     let res = await collectProductList(params);
     // console.log({ res });
     res.data.forEach(item => {
+      for (let index = 0; index < item.imageList.length; index++) {
+        let src = item.imageList[index];
+        let flag = ['http', import.meta.env.VITE_APP_BASE_API].some(i => {
+          return src.includes(i)
+        })
+        item.imageList[index] = flag ? src : import.meta.env.VITE_APP_BASE_API + src
+      }
       try {
         let simpleDescTips = JSON.parse(item.simpleDesc)
         let arr = []

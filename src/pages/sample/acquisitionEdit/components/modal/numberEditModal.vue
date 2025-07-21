@@ -192,6 +192,7 @@ function save(params) {
         }
       }
     }
+    item[prop] = item[prop] > 0 ? item[prop] : 0;
   })
   let obj = {
     component: 'numberEditModal',

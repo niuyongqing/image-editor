@@ -1,5 +1,5 @@
 <template>
-<div id="packagingInfo" class="packagingInfo">
+<div id="acquisitionEdit_packagingInfo" class="acquisitionEdit_packagingInfo">
   <a-card style="text-align: left;">
     <template #title>
       包装运输
@@ -32,7 +32,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-defineOptions({ name: "packagingInfo" })
+defineOptions({ name: "acquisitionEdit_packagingInfo" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:packagingInfoData'])
 const props = defineProps({
@@ -64,7 +64,12 @@ watch(() => formData, (val) => {
 })
 // 页面赋值
 function openFn() {
-  
+  let { weight, width, height, length } = (props.productData.packageInfo?.basePackageInfo || {})
+  // console.log({ weight, width, height, length });
+  formData.weight = weight
+  formData.width = width
+  formData.height = height
+  formData.length = length
 }
 </script>
 <style lang="less" scoped>

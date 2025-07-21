@@ -160,7 +160,7 @@
           </a-dropdown>
           <div class="video-content" v-if="playVideoUrl">
             <div class="content-image">
-              <img src="../img/productVideoIcon.png" alt="">
+              <img src="../img/productVideoIcon.png" alt="" @click="uploadModalInfo.playOpen = !uploadModalInfo.playOpen">
             </div>
             <div class="content-foot">
               <a-button 
@@ -297,8 +297,8 @@ watch(() => props.productData?.id, (val) => {
 watch(() => formData, (val) => {
   // console.log({ val });
   let obj = {
-    imageList: val.image_list.map(i => i.src),
-    videoList: val.video_list.map(i => i.url),
+    imageList: val.image_list.map(i => i.url),
+    videoList: val.video_list.map(i => i.fileName),
   }
   if (val.image_list.length > 0) {
     _this.$refs.ERPformRef?.clearValidate()
@@ -592,8 +592,8 @@ async function videoDeleteFn(filePath) {
       params.append('filePath', filePath)
       await videoDelete(params);
     }
-    formData.video_list = []
-    // message.success('视频删除成功！')
+    formData.video_list = formData.video_list.filter(i => i.fileName !== filePath)
+    message.success('旧视频删除成功！')
   } catch (error) {
     console.error(error)
   }

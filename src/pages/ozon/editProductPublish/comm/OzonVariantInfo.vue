@@ -11,11 +11,11 @@
                 <a-table bordered :columns="filteredHeaderList" :data-source="tableData" :pagination="false">
                     <template #headerCell="{ column }">
                         <template v-if="column.dataIndex === 'colorImg'">
-                            <span><span style="color: #ff0a37">*</span> {{ column.title }}</span>
+                            <div><span style="color: #ff0a37">*</span> {{ column.title }}</div>
                             <a-dropdown>
                                 <a class="ant-dropdown-link" @click.prevent>
-                                    批量
-                                    <DownOutlined />
+                                    (批量
+                                    <DownOutlined />)
                                 </a>
                                 <template #overlay>
                                     <a-menu>
@@ -296,7 +296,6 @@ import batchEditModal from "~/pages/ozon/config/component/batchEditModal/index.v
 import { editHead, otherList } from '../../config/tabColumns/skuHead';
 import { updatePrice, processAttributesCache, checkData, rearrangeColorFields, processImageSource } from "../../config/commJs/index"
 import { useOzonProductStore } from '~@/stores/ozon-product'
-import dragUpload from '../../productPublish/comm/dragUpload.vue';
 import { scaleApi, watermarkListApi, watermarkApi } from "~/api/common/water-mark";
 import EditProdQuantity from '../../productPublish/comm/EditProdQuantity.vue';
 import SkuDragUpload from "@/pages/ozon/config/component/skuDragImg/index.vue"
@@ -305,9 +304,10 @@ import ImageTranslation from "@/pages/ozon/config/component/skuDragImg/imageTran
 import { uploadImage } from '@/pages/ozon/config/api/draft';
 import { debounce } from "lodash";
 import { DownOutlined, DownloadOutlined } from '@ant-design/icons-vue';
-import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
+import { imageUrlUpload,downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js'
 import colorImgTranslation from "./colorImgTranslation.vue";
 import bacthEditColorImg from "./bacthEditColorImg.vue";
+import download from '~@/api/common/download';
 
 const props = defineProps({
     productDetail: Object,
@@ -759,6 +759,10 @@ const handleExportAllImages = async () => {
             .map((imgItem) => imgItem
                 .map((i) => i.url
                     .replace(import.meta.env.VITE_APP_BASE_API, "")));
+        if (imageList.flat().length === 0) {
+            message.warning('请先添加图片！');
+            return;
+        }
         downloadLoading.value = true;
         let res = await downloadAllImage({ imageList: imageList.flat() });
         message.success('导出成功');
@@ -817,109 +821,109 @@ const clearAllImages = () => {
 
 // 颜色样本- 批量改图片尺寸
 const changeImgSize = () => {
-  bacthEditColorImgRef.value.showModal(tableData.value)
+    bacthEditColorImgRef.value.showModal(tableData.value)
 }
 // 颜色样本- 添加水印
 const changeImgWater = async (item) => {
-  for (const tabbleItem of tableData.value) {
-    const fileList = tabbleItem.colorImg || [];
-    if (fileList.length === 0) {
-      continue;
-    }
-    const netPathList = fileList.filter((file) => file.url.includes('http')).map((item) => {
-      return item.url
-    });
-    // 只有本地图片
-    if (netPathList.length === 0) {
-      const imagePathList = fileList.filter((file) => !file.url.includes('http')).map((item) => {
-        return item.url
-      });
-      const waterRes = await watermarkApi({
-        imagePathList: imagePathList, //
-        id: item.id,
-      });
-      if (waterRes.code === 200) {
-        const data = waterRes.data || [];
-        data.forEach((item) => {
-          fileList.forEach(v => {
-            if (item.originalFilename === v.url) {
-              v.url = item.url
-              v.name = item.newFileName
-              v.checked = false
-            }
-          })
-        })
-      }
-    } else {
-      // 有网络图片
-      console.log('有网络图片');
-      const fileList = tabbleItem.colorImg || [];
-      for (let index = 0; index < fileList.length; index++) {
-        const fileItem = fileList[index];
-        try {
-          let netImgs = [];
-          const url = fileItem.url;
-          if (url.includes('http')) {
-            let res = await imageUrlUpload({ url });
-            netImgs.push(res.data);
-            fileList.forEach(i => {
-              if (i.url === url) {
-                i.url = res.data.url
-              }
-            });
-            const waterRes = await watermarkApi({
-              imagePathList: netImgs.map((img) => img.url),
-              id: item.id,
-            });
-            if (waterRes.code === 200) {
-              const data = waterRes.data || [];
-              data.forEach((_item) => {
-                fileList.forEach(v => {
-                  if (_item.originalFilename.includes(v.url)) {
-                    v.url = _item.url
-                    v.name = _item.newFileName
-                    v.checked = false
-                  }
-                });
-              })
-            }
-          } else {
-            const imagePathList = fileList.filter((file) => !file.url.includes('http')).map((item) => {
-              return item.url
-            });
-            const waterRes = await watermarkApi({
-              imagePathList: imagePathList, //
-              id: item.id,
-            });
-            if (waterRes.code === 200) {
-              const data = waterRes.data || [];
-              data.forEach((item) => {
-                fileList.forEach(v => {
-                  if (item.originalFilename === v.url) {
-                    v.url = item.url
-                    v.name = item.newFileName
-                    v.checked = false
-                  }
-                })
-              })
-            }
-          }
-        } catch (error) {
-          console.error(error)
+    for (const tabbleItem of tableData.value) {
+        const fileList = tabbleItem.colorImg || [];
+        if (fileList.length === 0) {
+            continue;
         }
-      }
+        const netPathList = fileList.filter((file) => file.url.includes('http')).map((item) => {
+            return item.url
+        });
+        // 只有本地图片
+        if (netPathList.length === 0) {
+            const imagePathList = fileList.filter((file) => !file.url.includes('http')).map((item) => {
+                return item.url
+            });
+            const waterRes = await watermarkApi({
+                imagePathList: imagePathList, //
+                id: item.id,
+            });
+            if (waterRes.code === 200) {
+                const data = waterRes.data || [];
+                data.forEach((item) => {
+                    fileList.forEach(v => {
+                        if (item.originalFilename === v.url) {
+                            v.url = item.url
+                            v.name = item.newFileName
+                            v.checked = false
+                        }
+                    })
+                })
+            }
+        } else {
+            // 有网络图片
+            console.log('有网络图片');
+            const fileList = tabbleItem.colorImg || [];
+            for (let index = 0; index < fileList.length; index++) {
+                const fileItem = fileList[index];
+                try {
+                    let netImgs = [];
+                    const url = fileItem.url;
+                    if (url.includes('http')) {
+                        let res = await imageUrlUpload({ url });
+                        netImgs.push(res.data);
+                        fileList.forEach(i => {
+                            if (i.url === url) {
+                                i.url = res.data.url
+                            }
+                        });
+                        const waterRes = await watermarkApi({
+                            imagePathList: netImgs.map((img) => img.url),
+                            id: item.id,
+                        });
+                        if (waterRes.code === 200) {
+                            const data = waterRes.data || [];
+                            data.forEach((_item) => {
+                                fileList.forEach(v => {
+                                    if (_item.originalFilename.includes(v.url)) {
+                                        v.url = _item.url
+                                        v.name = _item.newFileName
+                                        v.checked = false
+                                    }
+                                });
+                            })
+                        }
+                    } else {
+                        const imagePathList = fileList.filter((file) => !file.url.includes('http')).map((item) => {
+                            return item.url
+                        });
+                        const waterRes = await watermarkApi({
+                            imagePathList: imagePathList, //
+                            id: item.id,
+                        });
+                        if (waterRes.code === 200) {
+                            const data = waterRes.data || [];
+                            data.forEach((item) => {
+                                fileList.forEach(v => {
+                                    if (item.originalFilename === v.url) {
+                                        v.url = item.url
+                                        v.name = item.newFileName
+                                        v.checked = false
+                                    }
+                                })
+                            })
+                        }
+                    }
+                } catch (error) {
+                    console.error(error)
+                }
+            }
+        }
     }
-  }
 }
 // 颜色样本- 清空图片
 const clearImg = () => {
-  tableData.value.forEach((item) => {
-    item.colorImg = [];
-  });
+    tableData.value.forEach((item) => {
+        item.colorImg = [];
+    });
 }
 
 const changeImgTranslation = () => {
-  colorImgTranslationRef.value.showModal(tableData.value)
+    colorImgTranslationRef.value.showModal(tableData.value)
 }
 
 

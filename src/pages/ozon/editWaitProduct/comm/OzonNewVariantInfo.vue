@@ -5,14 +5,14 @@
         <template #title>
           <div class="flex align-center justify-between">
             <span class="text-left text-16px">变种属性</span>
-            <div>
+            <!-- <div>
               <FileOutlined /><a-select v-model:value="templateValue" show-search placeholder="请选择引用模板"
                 class="w300px mx10px" :options="templateList" :filter-option="filterOption">
                 <template #dropdownRender="{ menuNode: menu }">
                   <v-nodes :vnodes="menu" />
                   <a-divider style="margin: 4px 0" />
                   <a-space style="padding: 4px 8px">
-                    <a-button type="link">
+                    <a-button type="link" @click="tempPage">
                       <template #icon>
                         <SettingOutlined />
                       </template>
@@ -21,7 +21,7 @@
                   </a-space>
                 </template>
               </a-select>
-            </div>
+            </div> -->
           </div>
         </template>
         <div>
@@ -104,11 +104,11 @@
           :scroll="{ x: 2000 }">
           <template #headerCell="{ column }">
             <template v-if="column.dataIndex === 'colorImg'">
-              <span><span style="color: #ff0a37">*</span> {{ column.title }}</span>
+              <div><span style="color: #ff0a37">*</span> {{ column.title }}</div>
               <a-dropdown>
                 <a class="ant-dropdown-link" @click.prevent>
-                  批量
-                  <DownOutlined />
+                  (批量
+                  <DownOutlined />)
                 </a>
                 <template #overlay>
                   <a-menu>
@@ -430,7 +430,7 @@ import {
 } from "../../config/commJs/index";
 import { publishHead, otherList } from "../../config/tabColumns/skuHead";
 import { uploadImage } from '@/pages/ozon/config/api/draft';
-import { debounce, cloneDeep, omit, pick } from "lodash";
+import { debounce, cloneDeep, pick } from "lodash";
 import batchSetColor from "./batchSetColor.vue";
 import SkuDragUpload from "@/pages/ozon/config/component/skuDragImg/index.vue"
 import bacthSkuEditImg from "@/pages/ozon/config/component/skuDragImg/bacthSkuEditImg.vue"
@@ -438,7 +438,7 @@ import ImageTranslation from "@/pages/ozon/config/component/skuDragImg/imageTran
 import colorImgTranslation from "./colorImgTranslation.vue";
 import bacthEditColorImg from "./bacthEditColorImg.vue";
 import download from '~@/api/common/download';
-import { downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js';
+import { downloadAllImage, imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js';
 import { FileOutlined, SettingOutlined, DownOutlined, DownloadOutlined } from '@ant-design/icons-vue';
 
 const props = defineProps({
@@ -1343,6 +1343,10 @@ const handleExportAllImages = async () => {
       .map((imgItem) => imgItem
         .map((i) => i.url
           .replace(import.meta.env.VITE_APP_BASE_API, "")));
+    if (imageList.flat().length === 0) {
+      message.warning('请先添加图片！');
+      return;
+    }
     downloadLoading.value = true;
     let res = await downloadAllImage({ imageList: imageList.flat() });
     message.success('导出成功');

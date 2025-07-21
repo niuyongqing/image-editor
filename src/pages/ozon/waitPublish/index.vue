@@ -90,6 +90,7 @@
             <a-dropdown :disabled="selectedRowList.length === 0">
               <template #overlay>
                 <a-menu @click="handleMenuClick">
+                  <a-menu-item key="batchEdit">批量编辑</a-menu-item>
                   <a-menu-item key="publish"> 批量发布 </a-menu-item>
                   <!-- <a-menu-item key="deactivate">
                     批量归档
@@ -151,13 +152,13 @@
           <template v-if="column.dataIndex === 'name'">
             <div class="flex text-left">
               <a-image style="width: 100px; height: 100px" :src="record?.skuList[0]?.primaryImage?.length > 0
-                  ? processImageSource(record?.skuList[0]?.primaryImage[0])
-                  : processImageSource(record?.skuList[0]?.images[0])
+                ? processImageSource(record?.skuList[0]?.primaryImage[0])
+                : processImageSource(record?.skuList[0]?.images[0])
                 " />
               <div class="ml-2.5 block">
-                <a-tooltip class="item" effect="dark" :title="record.skuList[0].name" placement="top"
-                  style="overflow-wrap: break-word">
-                  <div>{{ record.skuList[0].name }}</div>
+                <a-tooltip class="item" effect="dark" :title="record.name ? record.name : record.skuList[0].name"
+                  placement="top" style="overflow-wrap: break-word">
+                  <div class="min-w-200px">{{ record.name ? record.name : record.skuList[0].name }}</div>
                 </a-tooltip>
                 <div style="color: #999; float: left">
                   店铺: {{ record.simpleName }}
@@ -601,8 +602,11 @@ const edit = (row = {}) => {
 };
 
 // 批量操作
-const handleMenuClick = (e) => {
-  if (e.key == "remark") {
+  const handleMenuClick = (e) => {
+  if (e.key == "batchEdit") {
+    localStorage.setItem('ids', JSON.stringify(selectedRowKeys.value))
+    window.open('/platform/ozon/batch-edit')
+  } else if (e.key == "remark") {
     addRemark();
   } else if (e.key === "publish") {
     Modal.confirm({
@@ -647,10 +651,10 @@ const handleMenuClick = (e) => {
 
 // 获取品牌相关数据
 const getBrandList = () => {
-  
+
   let list = selectedRowList.value.map((e) => {
     return {
-      account:e.account,
+      account: e.account,
       typeId: e.typeId,
       descriptionCategoryId: e.descriptionCategoryId
     }
@@ -722,14 +726,14 @@ const getList = () => {
     ...formData,
     // ...advancedForm,
     ...Object.entries(advancedForm).reduce((acc, [key, value]) => {
-        // 过滤掉 timeSort 和 time 字段
-        if (["time"].includes(key)) return acc;
+      // 过滤掉 timeSort 和 time 字段
+      if (["time"].includes(key)) return acc;
 
-        // 保留原有转换逻辑并添加字符串转换
-        if (value !== null && value !== undefined && value !== '') {
-            acc[key] = typeof value === 'number' ? String(value) : value;
-        }
-        return acc;
+      // 保留原有转换逻辑并添加字符串转换
+      if (value !== null && value !== undefined && value !== '') {
+        acc[key] = typeof value === 'number' ? String(value) : value;
+      }
+      return acc;
     }, {}),
     startDateTime: advancedForm.time?.length
       ? dayjs(advancedForm.time[0]).startOf("day").format("YYYY-MM-DD HH:mm:ss")

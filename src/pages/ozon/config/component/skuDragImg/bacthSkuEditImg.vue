@@ -108,6 +108,8 @@ const showModal = (list) => {
 };
 
 const cancel = () => {
+  loading.value = false;
+  checkedAll.value = false;
   reset();
 };
 

@@ -6,32 +6,6 @@
             <br /> -->
             <br />
             <div class="flex justify-end">
-                <!-- <a-dropdown>
-                    <template #overlay>
-                        <a-menu @click="handleInterpret">
-                            <a-menu-item key="1">
-                                中文
-                                <ArrowRightOutlined /> 英文
-                            </a-menu-item>
-                            <a-menu-item key="2">
-                                英文
-                                <ArrowRightOutlined /> 中文
-                            </a-menu-item>
-                            <a-menu-item key="3">
-                                英文
-                                <ArrowRightOutlined /> 俄语
-                            </a-menu-item>
-                            <a-menu-item key="4">
-                                自定义翻译
-                                <SettingOutlined />
-                            </a-menu-item>
-                        </a-menu>
-                    </template>
-                    <a-button>
-                        一键翻译
-                        <DownOutlined />
-                    </a-button>
-                </a-dropdown> -->
                 <a-button class="mx-2.5" :loading="loading" size="middle" @click="showTempModal">存为模板</a-button>
                 <a-dropdown size="middle">
                     <template #overlay>
@@ -42,7 +16,7 @@
                             <a-menu-item key="2">
                                 引用产品模板
                             </a-menu-item>
-                            <a-menu-item key="3">
+                            <a-menu-item key="3" :disabled="!formData.shortCode">
                                 引用资料库产品
                             </a-menu-item>
                         </a-menu>
@@ -69,32 +43,6 @@
                 :shopCode="formData.shortCode"></ozon-new-variant-info>
             <br />
             <div class="flex justify-end">
-                <!-- <a-dropdown>
-                    <template #overlay>
-                        <a-menu @click="handleInterpret">
-                            <a-menu-item key="1">
-                                中文
-                                <ArrowRightOutlined /> 英文
-                            </a-menu-item>
-                            <a-menu-item key="2">
-                                英文
-                                <ArrowRightOutlined /> 中文
-                            </a-menu-item>
-                            <a-menu-item key="3">
-                                英文
-                                <ArrowRightOutlined /> 俄语
-                            </a-menu-item>
-                            <a-menu-item key="4">
-                                自定义翻译
-                                <SettingOutlined />
-                            </a-menu-item>
-                        </a-menu>
-                    </template>
-                    <a-button>
-                        一键翻译
-                        <DownOutlined />
-                    </a-button>
-                </a-dropdown> -->
                 <a-button class="mx-2.5" size="middle" :loading="loading" @click="showTempModal">存为模板</a-button>
                 <a-dropdown size="middle">
                     <template #overlay>
