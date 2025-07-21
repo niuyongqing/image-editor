@@ -12,9 +12,9 @@
               <a-menu-item key="2">
                 引用产品模板
               </a-menu-item>
-              <!-- <a-menu-item key="3">
+              <a-menu-item key="3" :disabled="!formData.shortCode"> 
                 引用资料库产品
-              </a-menu-item> -->
+              </a-menu-item>
             </a-menu>
           </template>
           <a-button size="middle">
@@ -49,9 +49,9 @@
               <a-menu-item key="2">
                 引用产品模板
               </a-menu-item>
-              <!-- <a-menu-item key="3">
+              <a-menu-item key="3" :disabled="!formData.shortCode">
                 引用资料库产品
-              </a-menu-item> -->
+              </a-menu-item>
             </a-menu>
           </template>
           <a-button size="middle">
@@ -424,7 +424,7 @@ const onSubmit = async (type) => {
     videoBaseObj = createAndUpdateBaseObj(image.video, 100001, 21841, type === 1 ? 1 : 2);
     newComplexAttributes.push(videoBaseObj);
   }
-  console.log("newComplexAttributes", newComplexAttributes);
+
   const addHeaderList = useOzonProductStore().addHeaderList
   const resItem = tableDatas.map((item) => {
     const moditAttributes = [];
@@ -488,7 +488,7 @@ const onSubmit = async (type) => {
       price: item.price,
       weightUnit: "g",
       dimensionUnit: "mm",
-      name: addHeaderList.includes("skuTitle") ? item.name : base.name,
+      name: addHeaderList.includes("skuTitle") ? item.skuTitle : base.name,
       weight: item.packageWeight,
       height: item.packageHeight,
       depth: item.packageLength,

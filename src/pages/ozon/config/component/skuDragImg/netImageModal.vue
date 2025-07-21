@@ -27,6 +27,7 @@ const open = () => {
 const close = () => {
     form.imageUrl = '';
     visible.value = false;
+    loading.value = false;
 };
 
 const submit = async () => {

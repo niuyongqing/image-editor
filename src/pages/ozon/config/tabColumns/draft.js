@@ -15,7 +15,7 @@ export default [
       title: 'SKU',
       dataIndex: 'sku',
       align: "left",
-      width: 350,
+      width: 300,
     },
     {
       title: '售价',
@@ -40,7 +40,7 @@ export default [
       title: '时间',
       dataIndex: 'createTime',
       align: "center",
-      width: 250,
+      width: 180,
     },
     {
       title: '操作',

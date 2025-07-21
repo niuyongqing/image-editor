@@ -5,23 +5,23 @@
         <template #title>
           <div class="flex align-center justify-between">
             <span class="text-left text-16px">变种属性</span>
-            <div>
+            <!-- <div>
               <FileOutlined /><a-select v-model:value="templateValue" show-search placeholder="请选择引用模板"
                 class="w300px mx10px" :options="templateList" :filter-option="filterOption">
                 <template #dropdownRender="{ menuNode: menu }">
                   <v-nodes :vnodes="menu" />
                   <a-divider style="margin: 4px 0" />
                   <a-space style="padding: 4px 8px">
-                    <a-button type="link">
+                    <a-button type="link" @click="tempPage">
                       <template #icon>
                         <SettingOutlined />
                       </template>
-                      管理模板
-                    </a-button>
-                  </a-space>
-                </template>
-              </a-select>
-            </div>
+管理模板
+</a-button>
+</a-space>
+</template>
+</a-select>
+</div> -->
           </div>
         </template>
         <div>
@@ -104,11 +104,11 @@
           :scroll="{ x: 2000 }">
           <template #headerCell="{ column }">
             <template v-if="column.dataIndex === 'colorImg'">
-              <span><span style="color: #ff0a37">*</span> {{ column.title }}</span>
+              <div><span style="color: #ff0a37">*</span> {{ column.title }}</div>
               <a-dropdown>
                 <a class="ant-dropdown-link" @click.prevent>
-                  批量
-                  <DownOutlined />
+                  (批量
+                  <DownOutlined />)
                 </a>
                 <template #overlay>
                   <a-menu>
@@ -1525,7 +1525,11 @@ watch(
             };
           }),
           sellerSKU: sku.offerId,
-          imageUrl:
+          imageUrl: sku.primaryImage.length > 0 ?
+            [
+              ...sku.primaryImage.map(url => ({ url })),  // 将主图放在前面
+              ...(sku.images || []).map(item => ({ url: item }))  // 合并其他图片
+            ] :
             sku.images?.map((item) => {
               return {
                 url: item,

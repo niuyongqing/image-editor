@@ -119,3 +119,13 @@ export function batchRelationDetail(params) {
 export function batchSave(params) {
     return usePost('/platform-common/platform/common/variant/relation/batchSave', params)
 }
+
+// 采集箱产品保存
+export function saveToGatherBox(params) {
+    return usePost('/platform-ozon/platform/ozon/gather/product/save', params)
+}
+
+// 采集箱产品发布
+export function publishToPlatform(params) {
+    return usePost('/platform-ozon/platform/ozon/gather/product/publishToPlatform', params)
+}

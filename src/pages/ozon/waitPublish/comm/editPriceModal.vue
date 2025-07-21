@@ -1,6 +1,6 @@
 <template>
     <div id="editPriceModalCont">
-        <a-modal :open="editPriceVisible" :maskClosable="false" @cancel="handleCancel" :width="'40%'" :keyboard="false"
+        <a-modal :open="editPriceVisible" :maskClosable="false" @cancel="handleCancel" :width="'45%'" :keyboard="false"
             title="修改属性" destroy-on-close>
             <div class="my10px"><a-tag color="green">说明</a-tag><span>已归档的产品不支持修改产品相关信息！</span></div>
             <a-row>
@@ -608,7 +608,6 @@ const onSubmit = () => {
     let arr = props.selectedRows.map((item) => {
         return {
             waitId: item.waitId,
-            name: item.name,
             vat: item.vat,
             skuList: item.skuList.map(e => {
                 return {
@@ -621,6 +620,7 @@ const onSubmit = () => {
                     height: e.height,
                     weight: e.weight,
                     width:e.width,
+                    name: item.name,
                 }
             }),
             account: item.account
@@ -728,22 +728,38 @@ const onSubmit = () => {
 // 封装处理标题的函数
 const handleTitle = (row, form) => {
     if (form.padStart) {
-        row.name = form.padStart + row.name;
+        row.skuList.forEach(sku => {
+            sku.name = form.padStart + sku.name;
+        })
     }
     if (form.padEnd) {
-        row.name += form.padEnd;
+        row.skuList.forEach(sku => {
+            sku.name += form.padEnd;
+        })
     }
     if (form.textOld && form.textNew) {
-        row.name = row.name.replaceAll(form.textOld, form.textNew);
+        // row.name = row.name.replaceAll(form.textOld, form.textNew);
+        row.skuList.forEach(sku => {
+            sku.name = sku.name.replaceAll(form.textOld, form.textNew);
+        })
     }
     if (form.textRemove) {
-        row.name = row.name.replaceAll(form.textRemove, '');
+        // row.name = row.name.replaceAll(form.textRemove, '');
+        row.skuList.forEach(sku => {
+            sku.name = sku.name.replaceAll(form.textRemove, '');
+        })
     }
     if (form.capitalCase) {
-        row.name = row.name.slice(0, 1).toUpperCase() + row.name.slice(1);
+        // row.name = row.name.slice(0, 1).toUpperCase() + row.name.slice(1);
+        row.skuList.forEach(sku => {
+            sku.name = sku.name.slice(0, 1).toUpperCase() + sku.name.slice(1);
+        })
     }
     if (form.cutOverflow) {
-        row.name = row.name.slice(0, 128);
+        // row.name = row.name.slice(0, 128);
+        row.skuList.forEach(sku => {
+            sku.name = sku.name.slice(0, 128);
+        })
     }
     return row;
 };

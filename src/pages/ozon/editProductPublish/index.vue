@@ -13,11 +13,12 @@
                 :attributesCache="attributes" :productDetail="productDetail"></ozon-base-info>
             <br />
             <!-- 描述信息 -->
-            <OzonNewImageInfo ref="ozonImageInfoRef" :productDetail="productDetail" :shopCode="formData.shortCode">
+            <OzonNewImageInfo ref="ozonImageInfoRef" id="ozonNewImageInfo" :productDetail="productDetail" :shopCode="formData.shortCode">
             </OzonNewImageInfo>
 
             <!-- 变种信息. -->
-            <OzonVariantInfo ref="ozonNewVariantInfoRef" :attributesCache="attributes" :productDetail="productDetail">
+            <OzonVariantInfo ref="ozonNewVariantInfoRef" id="ozonNewVariantInfo" :attributesCache="attributes" :productDetail="productDetail">
+
             </OzonVariantInfo>
             <div class="flex justify-end mr-5 mt-5">
                 <a-button :loading="loading" size="middle" @click="showTempModal">存为模板</a-button>
@@ -161,6 +162,10 @@ const backToTop = () => {
             behavior: 'smooth'
         });
     }
+}
+// 锚点滚动
+const scroll = (id) => {
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth' })
 }
 // 获取属性
 const getAttributes = (account, typeId, descriptionCategoryId) => {

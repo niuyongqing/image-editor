@@ -158,7 +158,7 @@
               <div class="ml-2.5 block">
                 <a-tooltip class="item" effect="dark" :title="record.name ? record.name : record.skuList[0].name"
                   placement="top" style="overflow-wrap: break-word">
-                  <div>{{ record.name ? record.name : record.skuList[0].name }}</div>
+                  <div class="min-w-200px">{{ record.name ? record.name : record.skuList[0].name }}</div>
                 </a-tooltip>
                 <div style="color: #999; float: left">
                   店铺: {{ record.simpleName }}

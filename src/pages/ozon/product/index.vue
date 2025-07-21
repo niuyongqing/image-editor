@@ -446,7 +446,8 @@
                   record.price
                 }}</span>
                 <div v-else class="inline-block">
-                  <a-input type="number" class="mr-2.5 w-30" v-model:value="record.price" placeholder="请输原价格"></a-input>
+                  <a-input-number class="mr-2.5 w-30" v-model:value="record.price" placeholder="请输原价格"
+                    :min="0" :precision="2"></a-input-number>
                   <a-button class="mr-2.5" @click="priceVisible = false">取消</a-button>
                   <a-button type="primary" @click="checkOldPrice(record)">确定</a-button>
                 </div>
@@ -458,8 +459,8 @@
                 <span style="color: #1677ff" v-if="!(singleVisible && itemId == record.id)">{{ record.currencyCode }} {{
                   record.oldPrice }}</span>
                 <div v-else class="inline-block">
-                  <a-input type="number" class="mr-2.5 w-30" v-model:value="record.oldPrice"
-                    placeholder="请输原价格"></a-input>
+                  <a-input-number class="mr-2.5 w-30" v-model:value="record.oldPrice"
+                    placeholder="请输原价格" :min="0" :precision="2"></a-input-number>
                   <a-button class="mr-2.5" @click="singleVisible = false">取消</a-button>
                   <a-button type="primary" @click="checkOldPrice(record)">确定</a-button>
                 </div>
@@ -470,10 +471,10 @@
               <div v-else-if="column.dataIndex === 'minPrice'">
                 <span style="color: #1677ff" v-if="
                   record.minPrice && !(minPriceVisible && itemId == record.id)
-                ">CNY {{ record.minPrice }}</span><span v-if="!record.minPrice">---</span>
+                ">{{ record.currencyCode }} {{ record.minPrice }}</span><span v-if="!record.minPrice">---</span>
                 <div v-if="minPriceVisible && itemId == record.id" class="inline-block">
-                  <a-input type="number" class="mr-2.5 w-30" v-model:value="record.minPrice"
-                    placeholder="请输原价格"></a-input>
+                  <a-input-number class="mr-2.5 w-30" v-model:value="record.minPrice"
+                    placeholder="请输原价格" :min="0" :precision="2"></a-input-number>
                   <a-button class="mr-2.5" @click="minPriceVisible = false">取消</a-button>
                   <a-button type="primary" @click="checkOldPrice(record)">确定</a-button>
                 </div>
@@ -843,7 +844,7 @@ const getStateColor = (state) => {
 // async function typeNodeClick(node) {
 //   if (selectedRows.value.length < 1) return message.warning('请选择商品！')
 //   console.log("selectedRows",selectedRows.value);
-  
+
 //   try {
 //     let ids = selectedRows.value.map(i => i.id);
 //     let params = {

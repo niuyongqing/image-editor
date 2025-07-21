@@ -6,32 +6,6 @@
             <br /> -->
             <br />
             <div class="flex justify-end">
-                <!-- <a-dropdown>
-                    <template #overlay>
-                        <a-menu @click="handleInterpret">
-                            <a-menu-item key="1">
-                                中文
-                                <ArrowRightOutlined /> 英文
-                            </a-menu-item>
-                            <a-menu-item key="2">
-                                英文
-                                <ArrowRightOutlined /> 中文
-                            </a-menu-item>
-                            <a-menu-item key="3">
-                                英文
-                                <ArrowRightOutlined /> 俄语
-                            </a-menu-item>
-                            <a-menu-item key="4">
-                                自定义翻译
-                                <SettingOutlined />
-                            </a-menu-item>
-                        </a-menu>
-                    </template>
-                    <a-button>
-                        一键翻译
-                        <DownOutlined />
-                    </a-button>
-                </a-dropdown> -->
                 <a-button class="mx-2.5" :loading="loading" size="middle" @click="showTempModal">存为模板</a-button>
                 <a-dropdown size="middle">
                     <template #overlay>
@@ -42,7 +16,7 @@
                             <a-menu-item key="2">
                                 引用产品模板
                             </a-menu-item>
-                            <a-menu-item key="3">
+                            <a-menu-item key="3" :disabled="!formData.shortCode">
                                 引用资料库产品
                             </a-menu-item>
                         </a-menu>
@@ -69,32 +43,6 @@
                 :shopCode="formData.shortCode"></ozon-new-variant-info>
             <br />
             <div class="flex justify-end">
-                <!-- <a-dropdown>
-                    <template #overlay>
-                        <a-menu @click="handleInterpret">
-                            <a-menu-item key="1">
-                                中文
-                                <ArrowRightOutlined /> 英文
-                            </a-menu-item>
-                            <a-menu-item key="2">
-                                英文
-                                <ArrowRightOutlined /> 中文
-                            </a-menu-item>
-                            <a-menu-item key="3">
-                                英文
-                                <ArrowRightOutlined /> 俄语
-                            </a-menu-item>
-                            <a-menu-item key="4">
-                                自定义翻译
-                                <SettingOutlined />
-                            </a-menu-item>
-                        </a-menu>
-                    </template>
-                    <a-button>
-                        一键翻译
-                        <DownOutlined />
-                    </a-button>
-                </a-dropdown> -->
                 <a-button class="mx-2.5" size="middle" :loading="loading" @click="showTempModal">存为模板</a-button>
                 <a-dropdown size="middle">
                     <template #overlay>
@@ -618,11 +566,12 @@ const onSubmit = async (type = 1) => {
                 // ],
                 color_image: item?.colorImg[0]?.url.replace('/prod-api', '') ?? "", // 非必填
                 // color_image: "https://www.xzerp.com/file/wish/upload/2025-03-22/2025/03/22/2_20250322160055A001.jpg",
-                images: item.imageUrl && item?.imageUrl?.map(e => e.url.replace('/prod-api', '')),
-                // images: [
-                //     "https://www.xzerp.com/file/wish/upload/2025-06-24/2025/06/24/2_20250624134556A024.jpg",
-                //     "https://www.xzerp.com/file/wish/upload/2025-06-24/2025/06/24/7017600413_20250624134545A024.jpg"
-                // ],
+                // images: item.imageUrl && item?.imageUrl?.map(e => e.url.replace('/prod-api', '')),
+                images: [
+                    "https://www.xzerp.com/file/wish/upload/2025-07-21/2025/07/21/7685676291_20250721115509A001.jpg",
+                    "https://www.xzerp.com/file/wish/upload/2025-07-21/2025/07/21/7384522984_20250721115531A002.jpg",
+                    "https://www.xzerp.com/file/wish/upload/2025-07-21/2025/07/21/7384523012_20250721115530A002.jpg"
+                ],
                 offer_id: item.sellerSKU,
                 old_price: item.oldPrice, // 非必填
                 price: item.price,

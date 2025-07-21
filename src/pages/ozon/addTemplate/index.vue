@@ -281,14 +281,10 @@ const onSubmit = async () => {
             }
         };
 
-    } else if (type.value === '4') {
-    };
+    } 
     loading.value = true;
     templateSaveOrUpdate(params).then(res => {
         message.success(res.msg)
-        // setTimeout(() => {
-        //     window.close();
-        // }, 2000);
     })
         .finally(() => {
             loading.value = false;

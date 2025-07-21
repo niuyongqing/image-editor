@@ -30,7 +30,7 @@
                     </p>
                 </a-form-item>
                 <a-form-item label="产品属性：">
-                    <a-card shadow="never" v-loading="categoryAttributesLoading" style="
+                    <a-card shadow="never" :loading="categoryAttributesLoading" style="
                     position: relative;
                     width: 90%;
                     max-height: 600px;

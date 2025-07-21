@@ -10,8 +10,8 @@
                         <a-textarea v-model:value="form.description" :rows="10" :maxlength="6000" showCount />
                     </div>
                 </a-form-item>
-                <a-form-item label="JSON 丰富内容：" name="jsons">
-                    <div>
+                <a-form-item label="JSON富文本：" name="jsons">
+                    <!-- <div>
                         <a-select v-model:value="form.jsonTemp" size="large" allowClear style="width: 30%"
                             :options="tempList">
                         </a-select>
@@ -19,7 +19,7 @@
                             <SyncOutlined />
                             更新模板
                         </a-button>
-                    </div>
+                    </div> -->
                     <div class="my10px text-16px" style="color: #ff0a37">说明：描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M
                     </div>
                     <a-form-item-rest>
@@ -179,7 +179,7 @@ const backResult = (res) => {
     form.jsons = JSON.stringify(res);
 }
 const submitForm = () => {
-    if (Object.keys(form.jsons).length == 0) {
+    if (!form.jsons) {
         message.error("JSON富文本未填写！")
         return false;
     }

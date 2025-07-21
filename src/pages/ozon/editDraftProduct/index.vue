@@ -52,9 +52,9 @@
 
                         <a-button type="primary" @click="onSubmit(1)"
                             style="height: 32px; background-color: #FF8345; color: #fff;">保存并移入待发布</a-button>
-                        <a-button type="primary" @click="onSubmit(1)"
+                        <a-button type="primary" @click="onSubmit(2)"
                             style="height: 32px; background-color: #FF8345; color: #fff;">保存</a-button>
-                        <a-button style="height: 32px; background-color: #096; color: #fff;">
+                        <a-button style="height: 32px; background-color: #096; color: #fff;" @click="onSubmit(3)">
                             发布
                         </a-button>
 
@@ -86,15 +86,16 @@
                 @sendShortCode="sendShortCode"></ozon-base-info>
             <br />
             <!-- ERP信息 -->
-            <erp-info ref="erpInfoRef"></erp-info>
+            <erp-info ref="erpInfoRef" :productDetail="productDetail"></erp-info>
 
             <!-- 描述信息 -->
-            <OzonNewImageInfo ref="ozonImageInfoRef" :productDetail="productDetail" :shopCode="formData.shortCode">
+            <OzonNewImageInfo ref="ozonImageInfoRef" id="ozonNewImageInfo" :productDetail="productDetail"
+                :shopCode="formData.shortCode">
             </OzonNewImageInfo>
 
             <!-- 变种信息. -->
-            <OzonVariantInfo ref="ozonNewVariantInfoRef" :attributesCache="attributes" :productDetail="productDetail"
-                :shopCode="formData.shortCode">
+            <OzonVariantInfo ref="ozonNewVariantInfoRef" id="ozonNewVariantInfo" :attributesCache="attributes"
+                :productDetail="productDetail" :shopCode="formData.shortCode">
             </OzonVariantInfo>
 
             <div flex w-full justify-end items-center>
@@ -126,7 +127,7 @@
 
                         <a-button type="primary" @click="onSubmit(1)"
                             style="height: 32px; background-color: #FF8345; color: #fff;">保存并移入待发布</a-button>
-                        <a-button type="primary" @click="onSubmit(1)"
+                        <a-button type="primary" @click="onSubmit(2)"
                             style="height: 32px; background-color: #FF8345; color: #fff;">保存</a-button>
                         <a-button style="height: 32px; background-color: #096; color: #fff;">
                             发布
@@ -207,7 +208,7 @@
 <script setup name='editProductPublish'>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { categoryAttributes, add, accountCache, tempSaveOrUpdate, templateList } from "../config/api/product"
-import { ozonDraftDetail } from "../config/api/draft"
+import { ozonDraftDetail, saveToGatherBox, publishToPlatform, addToWaitPublish } from "../config/api/draft"
 import OzonBaseInfo from './comm/OzonBaseInfo.vue';
 import OzonVariantInfo from './comm/OzonVariantInfo.vue';
 import OzonNewImageInfo from "./comm/OzonNewImageInfo.vue";
@@ -276,7 +277,7 @@ const anchorList = ref([
     {
         turnRed: false,
         id: 'ozonNewImageInfo',
-        label: '图片信息',
+        label: '描述信息',
     },
     {
         turnRed: false,
@@ -310,7 +311,7 @@ const backToTop = () => {
 }
 // 获取属性
 const getAttributes = (account, cId) => {
-    if (!account || !cId.typeId) {
+    if (!account) {
         return;
     };
     categoryAttributesLoading.value = true;
@@ -449,12 +450,15 @@ const isObjectProperty = (obj, prop) => {
     return value instanceof Object && !(value instanceof Array);
 }
 
+//  提交
 const onSubmit = async (type) => {
     const ozonBaseInfo = await ozonBaseInfoRef.value.childForm();
     const OzonNewImageInfo = await ozonImageInfoRef.value.submitForm();
     const ozonNewVariantInfo = await ozonNewVariantInfoRef.value.submitForm();
     const errorIndex = findFalseInArrayLikeObject({ ozonBaseInfo, OzonNewImageInfo, ozonNewVariantInfo })
-    console.log('errorIndex', errorIndex);
+
+    const erpInfo = erpInfoRef.value;
+    console.log('erpInfo', erpInfo);
 
     anchorList.value.forEach(item => {
         item.turnRed = errorIndex.includes(item.id)
@@ -468,9 +472,6 @@ const onSubmit = async (type) => {
     let base = ozonBaseInfoRef.value.form;
     let image = ozonImageInfoRef.value.form;
     let tableDatas = ozonNewVariantInfoRef.value.tableData;
-    console.log('base', base);
-    console.log('image', image);
-    console.log('tableDatas', tableDatas);
 
     //! 过滤一些属性
     const newList = attributes.value.filter(
@@ -587,8 +588,6 @@ const onSubmit = async (type) => {
                     break;
             }
         }
-        console.log("moditAttributes--", moditAttributes);
-
         return {
             attributes: moditAttributes,
             complexAttributes: newComplexAttributes ?? null, // 非必填 100002-21845-封面视频 100001-21841-视频
@@ -607,40 +606,53 @@ const onSubmit = async (type) => {
             width: item.packageWidth,
         };
     });
-
     let params = {
+        name: base.name,
+        categoryId: base.categoryId.secondCategoryId,
+        gatherProductId: productDetail.value.gatherProductId,
         account: base.shortCode,
         vat: base.vat,
         skuList: resItem,
-        waitId: waitId.value,
-        // historyCategoryId: base?.categoryId?.threeCategoryId, //平台分类ID
-        // storeHistoryCategoryId: base?.categoryId?.storeHistoryCategoryId
-        //   ? base?.categoryId?.storeHistoryCategoryId
-        //   : "", //资料库分类ID
-        // historyAttributes: base.attributes,
-        descriptionCategoryId:
-            base.categoryId.secondCategoryId, // 二级id
+        storeHistoryCategoryId: base?.categoryId?.storeHistoryCategoryId
+            ? base?.categoryId?.storeHistoryCategoryId
+            : "", //资料库分类ID
+        // categoryId: base.categoryId.secondCategoryId, // 二级id
         typeId: base.categoryId.threeCategoryId, // 三级分id
-    }
-    console.log('params', params);
-    loading.value = true;
+        historyCategoryId: base.categoryId.threeCategoryId, // 三级分id
 
-    if (type === 2) {
-        ozonProductEdit(params).then(res => {
+        customCategoryId: erpInfo.currentClass,
+        sourceUrlList: erpInfo.sourceUrlList.map((item) => item.sourceUrl)
+    };
+
+    loading.value = true;
+    if (type === 1) {   //  保存并移入待发布
+        saveToGatherBox(params).then(res => {
+            message.success(res.msg);
+            addToWaitPublish({
+                "account": base.shortCode,  //店铺账号
+                "gatherProductId": productDetail.value.gatherProductId  //采集箱产品id 
+            }).then((res) => {
+                message.success("移入待发布成功");
+            }).finally(() => {
+                loading.value = false;
+            });
+        })
+
+    } else if (type === 2) {  //  保存
+        saveToGatherBox(params).then(res => {
             message.success(res.msg)
-            setTimeout(() => {
-                window.close();
-            }, 2000);
         })
             .finally(() => {
                 loading.value = false;
             });
-    } else {
-        productPublish(params).then(res => {
+    } else if (type === 3) {  //  发布
+
+        publishToPlatform({
+            "account": base.shortCode,
+            "gatherProductId": productDetail.value.gatherProductId
+        }).then(res => {
             message.success(res.msg)
-            setTimeout(() => {
-                window.close();
-            }, 2000);
+
         })
             .finally(() => {
                 loading.value = false;
@@ -657,7 +669,10 @@ const handleOk = () => {
     publishVis.value = false
     location.reload();
 }
-
+// 锚点滚动
+const scroll = (id) => {
+    document.getElementById(id).scrollIntoView({ behavior: 'smooth' })
+}
 //  翻译
 const handleTranslationMenu = (e) => {
     const key = e.key;
