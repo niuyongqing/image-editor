@@ -5,7 +5,7 @@
         <template #title>
           <div class="flex align-center justify-between">
             <span class="text-left text-16px">变种属性</span>
-            <div>
+            <!-- <div>
               <FileOutlined /><a-select v-model:value="templateValue" show-search placeholder="请选择引用模板"
                 class="w300px mx10px" :options="templateList" :filter-option="filterOption">
                 <template #dropdownRender="{ menuNode: menu }">
@@ -21,7 +21,7 @@
                   </a-space>
                 </template>
               </a-select>
-            </div>
+            </div> -->
           </div>
         </template>
         <div>

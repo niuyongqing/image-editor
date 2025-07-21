@@ -1,7 +1,8 @@
 <template>
     <div id="editPriceModalCont">
-        <a-modal :open="editPriceVisible" :maskClosable="false" @cancel="handleCancel" :width="'40%'" :keyboard="false"
+        <a-modal :open="editPriceVisible" :maskClosable="false" @cancel="handleCancel" :width="'45%'" :keyboard="false"
             title="修改属性" destroy-on-close>
+            
             <div class="my10px"><a-tag color="green">说明</a-tag><span>已归档的产品不支持修改产品相关信息！</span></div>
             <a-row>
                 <a-col :flex="2">
