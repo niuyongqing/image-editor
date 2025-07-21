@@ -25,7 +25,7 @@
                     <a-button style="margin-left: 20px" @click="changeCategory">选择分类</a-button>
                     <p v-if="hisAttrObj.length != 0" style="color: #933">
                         <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{ hisAttrObj[0].secondCategoryName
-                        }}</span>/
+                            }}</span>/
                         <span>{{ hisAttrObj[0].threeCategoryName }}</span>
                     </p>
                 </a-form-item>
@@ -52,7 +52,7 @@
                                     <template #label>
                                         <span class="mr-2.5 truncate">{{
                                             item.label ? item.label : item.name
-                                        }}</span>
+                                            }}</span>
                                         <a-tooltip class="tooltipStyle" effect="dark" :title="item.description"
                                             popper-class="ozonTooltip" placement="top">
                                             <AsyncIcon icon="QuestionCircleOutlined"></AsyncIcon>
@@ -657,10 +657,11 @@ watch(
 
                 // console.log('oldAttributes',oldAttributes);
                 // console.log('loopAttributes',loopAttributes.value);
-                const proceRes = assignValues(oldAttributes, loopAttributes.value); // 旧写法
-                // const proceRes = assignValues(result, loopAttributes.value); //最新写法
-                form.attributes = proceRes;
-                // console.log('proceRes0', proceRes);
+                if (oldAttributes) {
+                    const proceRes = assignValues(oldAttributes, loopAttributes.value); // 旧写法
+                    form.attributes = proceRes;
+                }
+
             }
         }
     }

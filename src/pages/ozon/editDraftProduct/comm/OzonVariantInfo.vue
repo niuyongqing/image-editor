@@ -1368,10 +1368,9 @@ watch(() => useOzonProductStore().attributes, val => {
 
             // 遍历a数组
             sortArr.forEach((attr) => {
+                const skuAttributes = sku.attributes || [];
                 // 遍历sku的attributes中的每个attributes
-                sku.attributes.forEach((subAttr) => {
-                    // console.log("",subAttr, attr);
-
+                skuAttributes.forEach((subAttr) => {
                     if (subAttr.id == attr.id) {
                         if (attr.selectType === "multSelect" && attr.options) {
                             let values = subAttr.values.map((val) => {
@@ -1463,6 +1462,9 @@ watch(() => useOzonProductStore().attributes, val => {
         const ids = groupsFlat.map((item) => item.id);
         themeBtns.value = themeBtns.value.filter(item => !ids.includes(item.id));
         groupsFlat.forEach(group => {
+
+            console.log('group', group);
+            const groupoptions = group.options || [];
             if (!attributeList.value.some((item) => {
                 return (item.tableColumns.some((_item) => {
                     return _item.id === group.id
@@ -1480,8 +1482,8 @@ watch(() => useOzonProductStore().attributes, val => {
                             "selectType": group.selectType,
                             "type": group.type,
                             "modelValue": group.selectType === 'multSelect' ? [] : '',
-                            "options": group.options,
-                            "details": group.options.map((option) => {
+                            "options": groupoptions,
+                            "details": groupoptions.map((option) => {
                                 return {
                                     ...option,
                                     label: option.value,
@@ -1510,9 +1512,6 @@ watch(() => useOzonProductStore().attributes, val => {
                 })
             }
         });
-
-        // console.log('btns ->>>>>>>>>>>', themeBtns.value);
-        // console.log('attributeList.value -》》》》》》》》》》》》》', attributeList.value);
     }
 })
 
