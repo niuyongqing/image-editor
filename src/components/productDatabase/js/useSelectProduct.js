@@ -2,10 +2,11 @@ import commodityTypeList from "@/utils/commodityType";
 import { storeStatus, meansKeepGrains } from "@/utils/devStatusSelect";
 import sheepProhibitionSelect from "@/utils/sheepProhibitionSelect";
 import devAttributableMarketRevertSelect from "@/utils/devAttributableMarketRevertSelect";
-import { forbidSaleApi } from "@/api/common/selectProduct";
+import { forbidSaleApi, cacheGet } from "@/api/common/selectProduct";
 import { getUserInfoApi } from "@/api/common/user";
 export const useSelectProduct = () => {
   const forbidSaleList = ref([]);
+  const cacheGetArr = ref([])
   const userInfo = ref({});
   // 获取用户详细信息
   function getInfo() {
@@ -31,9 +32,19 @@ export const useSelectProduct = () => {
       }
     });
   }
+  // 获取关键词所有的数据
+  function getCacheGet() {
+    cacheGet().then((res) => {
+      if (res.code === 200) {
+        const data = res.data || [];
+        cacheGetArr.value = data;
+      }
+    });
+  }
 
   watchEffect(() => {
     getForbidSale();
+    getCacheGet();
   });
 
   return {
@@ -42,6 +53,7 @@ export const useSelectProduct = () => {
     storeStatus,
     sheepProhibitionSelect,
     forbidSaleList,
+    cacheGetArr,
     meansKeepGrains,
     devAttributableMarketRevertSelect,
   };

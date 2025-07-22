@@ -1,228 +1,238 @@
 <template>
-  <div id="productDatabase_index" class="productDatabase_index">
-    <a-modal 
-      v-model:open="modalOpen" 
-      :style="{ top: '10px', padding: 0, height: '99vh' }" 
-      :title="'产品资料库'"
-      :footer="false" 
-      :maskClosable="false"
-      width="95%"
-    >
-      <div class="dialog-box">
-        <a-form :model="formData" layout="inline" :label-col="{ span: 6 }">
-          <div class="formItem-row">
-            <a-form-item label="产品分类" name="classify">
-              <a-cascader 
-                placeholder="产品分类" 
-                allowClear 
-                v-model:value="formData.classify" 
-                :options="commodityTypeList"
-                :allow-clear="true" 
-                :field-names="{ label: 'label', value: 'value', children: 'children' }" 
-              />
-            </a-form-item>
-            <a-form-item label="完成状态" name="status">
-              <a-select 
-                v-model:value="formData.status" 
-                :options="storeStatus" 
-                placeholder="完成状态" 
-                allowClear
-              ></a-select>
-            </a-form-item>
-            <a-form-item label="禁售站点" name="meansForbidSite">
-              <a-select 
-                v-model:value="formData.meansForbidSite" 
-                :options="sheepProhibitionSelect" 
-                placeholder="禁售站点"
-                allowClear
-              ></a-select>
-            </a-form-item>
-            <a-form-item label="禁售属性" name="meansForbidAttribute">
-              <a-select 
-                :options="forbidSaleList" 
-                placeholder="禁售属性" 
-                v-model:value="formData.meansForbidAttribute"
-                :field-names="{ label: 'attributes', value: 'key' }" 
-                allowClear
-              ></a-select>
-            </a-form-item>
-          </div>
-          <div class="formItem-row">
-            <a-form-item label="仓储类别" name="preciseMeansKeepGrain">
-              <a-select 
-                v-model:value="formData.preciseMeansKeepGrain" 
-                :options="meansKeepGrains"
-                placeholder="仓储类别"
-                allowClear
-              ></a-select>
-            </a-form-item>
-            <a-form-item label="市场方向" name="devAttributableMarket">
-              <a-select 
-                v-model:value="formData.devAttributableMarket" 
-                :options="devAttributableMarketRevertSelect"
-                placeholder="市场方向" 
-                allowClear
-              ></a-select>
-            </a-form-item>
-            <a-form-item label="成本筛选" name="skuCosts">
-              <a-form-item-rest>
-                <div style="display: flex;justify-content: flex-start;align-items: center;font-size: 14px;">
-                  <a-input-number placeholder="最小值" v-model:value="formData.skuCostsMin" style="width: 30%;"
-                    :controls="false" />
-                  <div style="margin: 0 5px">-</div>
-                  <a-input-number placeholder="最大值" v-model:value="formData.skuCostsMax" style="width: 30%;"
-                    :controls="false" />
-                </div>
-              </a-form-item-rest>
-            </a-form-item>
-            <a-form-item label="审核时间" name="meansAuditTime">
-              <a-range-picker v-model:value="formData.meansAuditTime" allowClear />
-            </a-form-item>
-          </div>
-          <div class="formItem-row">
-            <a-form-item label="重量筛选" name="skuWeight">
-              <a-form-item-rest>
-                <div style="display: flex;justify-content: flex-start;align-items: center;font-size: 14px;">
-                  <a-input-number placeholder="最小值" v-model:value="formData.skuWeightMin" style="width: 30%;"
-                    :controls="false" />
-                  <div style="margin: 0 5px">-</div>
-                  <a-input-number placeholder="最大值" v-model:value="formData.skuWeightMax" style="width: 30%;"
-                    :controls="false" />
-                </div>
-              </a-form-item-rest>
-            </a-form-item>
-            <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
-              <a-form-item-rest>
-                <div flex gap-10px style="width: 800px;">
-                  <a-input v-model:value="formData.tradeName" placeholder="分词查找产品名称" />
-                  <a-input v-model:value="formData.developPerson" placeholder="开发人员"></a-input>
-                  <a-input v-model:value="formData.accurateTradeName" placeholder="商品名"></a-input>
-                  <a-input v-model:value="formData.sku" placeholder="SKU"></a-input>
-                  <a-input v-model:value="formData.description" placeholder="描述"> </a-input>
-                </div>
-              </a-form-item-rest>
-            </a-form-item>
-            <div class="formItem-row-i right">
-              <a-space>
-                <a-button key="submit" type="primary" @click="onSubmit">查询</a-button>
-                <a-button key="submit" @click="resetForm">重置</a-button>
-              </a-space>
-            </div>
-          </div>
-        </a-form>
-        <br>
-        <a-table 
-          :columns="header" 
-          :data-source="tableData.data" 
-          :scroll="{ y: 'calc(80vh - 120px)', x: '3200px', scrollToFirstRowOnChange: true }"
-          :pagination="false"
-          @change="tableChange"
-        >
-          <template #bodyCell="{ column: {key}, record }">
-            <template v-if="key === 'action'">
-              选中
-            </template>
-            <template v-else-if="key === 'artMainImage'">
-              <a-image-preview-group>
-                <a-image :width="50" v-for="(item, index) in artMainImageSrc(record)" :src="item" :key="index" />
-              </a-image-preview-group>
-            </template>
-            <template v-else-if="key === 'devAccount'">
-              <span v-if="record.devAccount == 0">暂无</span>
-              <span v-if="record.devAccount == 1">平台热销品</span>
-              <span v-if="record.devAccount == 2">平台趋势产品</span>
-              <span v-if="record.devAccount == 3">公司热销品周边产品</span>
-              <span v-if="record.devAccount == 4">季节、节日、重要事件相关产品</span>
-              <span v-if="record.devAccount == 5">市场热销品</span>
-              <span v-if="record.devAccount == 6">前瞻性产品</span>
-              <span v-if="record.devAccount == 7">其他</span>
-              <span v-if="record.devAccount == 8">菲律宾本土仓开发</span>
-            </template>
-            <template v-else-if="key === 'devAttributableMarket'">
-              <div v-html="devAttributableMarket(record.devAttributableMarket)"></div>
-            </template>
-            <template v-else-if="key === 'skuList'">
-              <div v-html="sortArrey(record.skuList)"></div>
-            </template>
-            <template v-else-if="key === 'meansRelated'">
-              <div v-if="record.meansRelated && JSON.parse(record.meansRelated).length > 0">
-                <div v-for="(item, index) in meansRelated(record.meansRelated)" :key="index">
-                  <span>
-                    {{ item.sku }}
-                  </span>
-                </div>
-              </div>
-              <div v-else> </div>
-            </template>
-            <template v-else-if="key === 'status'">
-              <span v-if="record.status == 0">-</span>
-              <a-tag v-if="record.status == 1" color="success">已完成</a-tag>
-              <a-tag v-if="record.status == 2" color="warning">已下架</a-tag>
-              <a-tag v-if="record.status == 3" color="error">重拍中</a-tag>
-              <a-tag v-if="record.status == 4" color="default">待拍照</a-tag>
-            </template>
-            <template v-else-if="key === 'classify'">
-              <a-tag color="success">{{ classify(record.classify) }}</a-tag>
-            </template>
-            <template v-else-if="key === 'meansKeepGrain'">
-              <a-tag v-for="tag in meansKeepGrainMap(record.meansKeepGrain)" :key="tag.key" color="processing">{{
-                tag.label
-                }}</a-tag>
-            </template>
-            <template v-else-if="key === 'phSelectionTime'">
-              {{ record.selectionTime ? record.selectionTime : record.completeTime }}
-            </template>
-            <template v-else-if="key === 'devProhibitPlatform'">
-              <div v-html="devProhibitPlatform(record.devProhibitPlatform)"></div>
-            </template>
-            <template v-else-if="key === 'tortType'">
-              <div>
-                <a-tag type="primary" danger v-if="record.tortType ? record.tortType.includes('1') : false"
-                  effect="dark" style="margin-right: 5px">速卖通微侵权
-                </a-tag>
-                <a-tag type="primary" danger v-if="record.tortType ? record.tortType.includes('2') : false"
-                  effect="dark">Shopee微侵权
-                </a-tag>
-              </div>
-            </template>
-            <template v-else-if="key === 'meansForbidAttribute'">
-              <a-tag type="success" v-for="(item, index) in meansForbidAttribute(record.meansForbidAttribute)"
-                :key="index" style="margin-right: 5px;">{{
-                getAttrName(item) }}</a-tag>
-            </template>
-            <template v-else-if="key === 'meansForbidSite'">
-              <a-tag v-for="tag in meansForbidSiteSplit(record.meansForbidSite)" :key="tag" color="red">{{
-                tagMap(tag)
-                }}</a-tag>
-            </template>
-            <template v-else-if="key === 'meansRemark'">
-              <div
-                style="width: 100%;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;text-align: center;padding: 0 8px;"
-                v-if="record.meansRemark">
-                <span v-html="record.meansRemark.replace(/<[^>]+>/g, '')"></span>
-              </div>
-            </template>
-            <template v-else>
-              {{ record[key] }}
-            </template>
-          </template>
-        </a-table>
-        <br>
-        <div class="pagination-box">
-          <a-pagination 
-            v-model:current="tableData.params.pageNum" 
-            v-model:page-size="tableData.params.pageSize"
-            :page-size-options="[10,50,100,200]" 
-            :total="tableData.total" 
-            :show-total="total => `共 ${total} 条`"
-            show-size-changer 
-            showQuickJumper 
-            @change="paginationChange" 
-          />
+<div id="productDatabase_index" class="productDatabase_index">
+  <a-modal 
+    v-model:open="modalOpen" 
+    :style="{ top: '10px', padding: 0, height: '99vh' }" 
+    :title="'产品资料库'"
+    :footer="false" 
+    :maskClosable="false"
+    width="95%"
+  >
+    <div class="dialog-box">
+      <a-form :model="formData" layout="inline" :label-col="{ span: 6 }">
+        <div class="formItem-row">
+          <a-form-item label="产品分类" name="classify">
+            <a-cascader 
+              placeholder="产品分类" 
+              allowClear 
+              v-model:value="formData.classify" 
+              :options="commodityTypeList"
+              :allow-clear="true" 
+              :field-names="{ label: 'label', value: 'value', children: 'children' }" 
+            />
+          </a-form-item>
+          <a-form-item label="完成状态" name="status">
+            <a-select 
+              v-model:value="formData.status" 
+              :options="storeStatus" 
+              placeholder="完成状态" 
+              allowClear
+            ></a-select>
+          </a-form-item>
+          <a-form-item label="禁售站点" name="meansForbidSite">
+            <a-select 
+              v-model:value="formData.meansForbidSite" 
+              :options="sheepProhibitionSelect" 
+              placeholder="禁售站点"
+              allowClear
+            ></a-select>
+          </a-form-item>
+          <a-form-item label="禁售属性" name="meansForbidAttribute">
+            <a-select 
+              :options="forbidSaleList" 
+              placeholder="禁售属性" 
+              v-model:value="formData.meansForbidAttribute"
+              :field-names="{ label: 'attributes', value: 'key' }" 
+              allowClear
+            ></a-select>
+          </a-form-item>
         </div>
+        <div class="formItem-row">
+          <a-form-item label="仓储类别" name="preciseMeansKeepGrain">
+            <a-select 
+              v-model:value="formData.preciseMeansKeepGrain" 
+              :options="meansKeepGrains"
+              placeholder="仓储类别"
+              allowClear
+            ></a-select>
+          </a-form-item>
+          <a-form-item label="市场方向" name="devAttributableMarket">
+            <a-select 
+              v-model:value="formData.devAttributableMarket" 
+              :options="devAttributableMarketRevertSelect"
+              placeholder="市场方向" 
+              allowClear
+            ></a-select>
+          </a-form-item>
+          <a-form-item label="成本筛选" name="skuCosts">
+            <a-form-item-rest>
+              <div style="display: flex;justify-content: flex-start;align-items: center;font-size: 14px;">
+                <a-input-number placeholder="最小值" v-model:value="formData.skuCostsMin" style="width: 100px;"
+                  :controls="false" />
+                <div style="margin: 0 5px">-</div>
+                <a-input-number placeholder="最大值" v-model:value="formData.skuCostsMax" style="width: 100px;"
+                  :controls="false" />
+              </div>
+            </a-form-item-rest>
+          </a-form-item>
+          <a-form-item label="审核时间" name="meansAuditTime">
+            <a-range-picker v-model:value="formData.meansAuditTime" allowClear />
+          </a-form-item>
+        </div>
+        <div class="formItem-row">
+          <a-form-item label="重量筛选" name="skuWeight">
+            <a-form-item-rest>
+              <div style="display: flex;justify-content: flex-start;align-items: center;font-size: 14px;">
+                <a-input-number placeholder="最小值" v-model:value="formData.skuWeightMin" style="width: 100px;"
+                  :controls="false" />
+                <div style="margin: 0 5px">-</div>
+                <a-input-number placeholder="最大值" v-model:value="formData.skuWeightMax" style="width: 100px;"
+                  :controls="false" />
+              </div>
+            </a-form-item-rest>
+          </a-form-item>
+          <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
+            <a-form-item-rest>
+              <div flex gap-10px style="width: 800px;">
+                <a-input v-model:value="formData.tradeName" placeholder="分词查找产品名称" />
+                <a-input v-model:value="formData.developPerson" placeholder="开发人员"></a-input>
+                <a-input v-model:value="formData.accurateTradeName" placeholder="商品名"></a-input>
+                <a-input v-model:value="formData.sku" placeholder="SKU"></a-input>
+                <a-input v-model:value="formData.description" placeholder="描述"> </a-input>
+              </div>
+            </a-form-item-rest>
+          </a-form-item>
+          <div class="formItem-row-i right">
+            <a-space>
+              <a-button key="submit" type="primary" @click="onSubmit">查询</a-button>
+              <a-button key="submit" @click="resetForm">重置</a-button>
+            </a-space>
+          </div>
+        </div>
+      </a-form>
+      <br>
+      <a-table 
+        :columns="header" 
+        :data-source="tableData.data" 
+        :scroll="{ y: 'calc(80vh - 120px)', x: '3200px', scrollToFirstRowOnChange: true }"
+        :pagination="false"
+        :customRow="customRow" 
+        rowKey="commodityId"
+        @change="tableChange"
+        :loading="tableData.loading"
+      >
+        <template #bodyCell="{ column: {key}, record }">
+          <template v-if="key === 'action'">
+            <a-button @click="handleSelect(record)" type="link">选中</a-button>
+            <a-button @click="detailsModalOpen(record)" type="link">详情</a-button>
+          </template>
+          <template v-else-if="key === 'artMainImage'">
+            <a-image-preview-group>
+              <a-image :width="50" v-for="(item, index) in artMainImageSrc(record)" :src="item" :key="index" />
+            </a-image-preview-group>
+          </template>
+          <template v-else-if="key === 'devAccount'">
+            <span v-if="record.devAccount == 0">暂无</span>
+            <span v-if="record.devAccount == 1">平台热销品</span>
+            <span v-if="record.devAccount == 2">平台趋势产品</span>
+            <span v-if="record.devAccount == 3">公司热销品周边产品</span>
+            <span v-if="record.devAccount == 4">季节、节日、重要事件相关产品</span>
+            <span v-if="record.devAccount == 5">市场热销品</span>
+            <span v-if="record.devAccount == 6">前瞻性产品</span>
+            <span v-if="record.devAccount == 7">其他</span>
+            <span v-if="record.devAccount == 8">菲律宾本土仓开发</span>
+          </template>
+          <template v-else-if="key === 'devAttributableMarket'">
+            <div v-html="devAttributableMarket(record.devAttributableMarket)"></div>
+          </template>
+          <template v-else-if="key === 'skuList'">
+            <div v-html="sortArrey(record.skuList)"></div>
+          </template>
+          <template v-else-if="key === 'meansRelated'">
+            <div v-if="record.meansRelated && JSON.parse(record.meansRelated).length > 0">
+              <div v-for="(item, index) in meansRelated(record.meansRelated)" :key="index">
+                <span>
+                  {{ item.sku }}
+                </span>
+              </div>
+            </div>
+            <div v-else> </div>
+          </template>
+          <template v-else-if="key === 'status'">
+            <span v-if="record.status == 0">-</span>
+            <a-tag v-if="record.status == 1" color="success">已完成</a-tag>
+            <a-tag v-if="record.status == 2" color="warning">已下架</a-tag>
+            <a-tag v-if="record.status == 3" color="error">重拍中</a-tag>
+            <a-tag v-if="record.status == 4" color="default">待拍照</a-tag>
+          </template>
+          <template v-else-if="key === 'classify'">
+            <a-tag color="success">{{ classify(record.classify) }}</a-tag>
+          </template>
+          <template v-else-if="key === 'meansKeepGrain'">
+            <a-tag v-for="tag in meansKeepGrainMap(record.meansKeepGrain)" :key="tag.key" color="processing">{{
+              tag.label
+              }}</a-tag>
+          </template>
+          <template v-else-if="key === 'phSelectionTime'">
+            {{ record.selectionTime ? record.selectionTime : record.completeTime }}
+          </template>
+          <template v-else-if="key === 'devProhibitPlatform'">
+            <div v-html="devProhibitPlatform(record.devProhibitPlatform)"></div>
+          </template>
+          <template v-else-if="key === 'tortType'">
+            <div>
+              <a-tag type="primary" danger v-if="record.tortType ? record.tortType.includes('1') : false"
+                effect="dark" style="margin-right: 5px">速卖通微侵权
+              </a-tag>
+              <a-tag type="primary" danger v-if="record.tortType ? record.tortType.includes('2') : false"
+                effect="dark">Shopee微侵权
+              </a-tag>
+            </div>
+          </template>
+          <template v-else-if="key === 'meansForbidAttribute'">
+            <a-tag type="success" v-for="(item, index) in meansForbidAttribute(record.meansForbidAttribute)"
+              :key="index" style="margin-right: 5px;">{{
+              getAttrName(item) }}</a-tag>
+          </template>
+          <template v-else-if="key === 'meansForbidSite'">
+            <a-tag v-for="tag in meansForbidSiteSplit(record.meansForbidSite)" :key="tag" color="red">{{
+              tagMap(tag)
+              }}</a-tag>
+          </template>
+          <template v-else-if="key === 'meansRemark'">
+            <div
+              style="width: 100%;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;text-align: center;padding: 0 8px;"
+              v-if="record.meansRemark">
+              <span v-html="record.meansRemark.replace(/<[^>]+>/g, '')"></span>
+            </div>
+          </template>
+          <template v-else>
+            {{ record[key] }}
+          </template>
+        </template>
+      </a-table>
+      <br>
+      <div class="pagination-box">
+        <a-pagination 
+          v-model:current="tableData.params.pageNum" 
+          v-model:page-size="tableData.params.pageSize"
+          :page-size-options="[10,50,100,200]" 
+          :total="tableData.total" 
+          :show-total="total => `共 ${total} 条`"
+          show-size-changer 
+          showQuickJumper 
+          @change="paginationChange" 
+        />
       </div>
-    </a-modal>
-  </div>
+    </div>
+  </a-modal>
+  
+  <DetailModal ref="detailModalRef"></DetailModal>
+  <detailsModal 
+    ref="detailsModalRef"
+    :modal-data="detailsModalData"
+  />
+</div>
 </template>
 
 <script setup>
@@ -230,13 +240,15 @@ import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { storeList } from '@/api/common/selectProduct';
 import { useSelectProduct } from './js/useSelectProduct';
 import { header } from './js/header';
+import detailModal from '../selectProduct/detail/detailModal.vue';
+import detailsModal from './detailsModal.vue';
 import _ from "lodash";
 import devAttributableMarketRevert from '~@/utils/devAttributableMarketRevert';
 import classifyRevert from '~@/utils/classifyRevert';
 import devProhibitPlatformRevert from '~@/utils/devProhibitPlatformRevert';
 defineOptions({ name: "productDatabase_index" })
 const { proxy: _this } = getCurrentInstance()
-const emit = defineEmits(['update:modalOpen', 'confirm']);
+const emit = defineEmits(['update:modalOpen', 'handleSelect']);
 const props = defineProps({
   modalOpen: Boolean,
   modalData: {
@@ -249,6 +261,7 @@ const {
   storeStatus, 
   sheepProhibitionSelect, 
   forbidSaleList, 
+  cacheGetArr,
   meansKeepGrains,
   devAttributableMarketRevertSelect
 } = useSelectProduct();
@@ -278,6 +291,7 @@ const { state: formData, reset } = useResetReactive({
 const tableData = reactive({
   data: [],
   total: 0,
+  loading: false,
   params: {
     "pageNum": 1,
     "pageSize": 50,
@@ -285,7 +299,13 @@ const tableData = reactive({
     "prop": "create_time" // 排序列，必须
   }
 })
-let copyFormData = {}   // 表单参数
+let copyFormData = {};   // 表单参数
+const detailsModalData = reactive({
+  id: '',
+  forbidSaleList,
+  cacheGetArr,
+})
+const detailModalEl = useTemplateRef('detailModalRef');
 watch(() => props.modalOpen, (val) => {
   if (val) {
     modalOpen.value = val
@@ -293,10 +313,13 @@ watch(() => props.modalOpen, (val) => {
   }
 })
 watch(() => modalOpen.value, (val, oldVal) => {
-  !val && emit('update:modalOpen', false)
+  if (!val) {
+    emit('update:modalOpen', false);
+    reset();
+  }
 })
 function modalOpenFn() {
-  
+  onSubmit()
 }
 // 查询
 async function onSubmit() {
@@ -322,23 +345,73 @@ function paginationChange(page, pageSize) {
 }
 // 查询列表
 async function getTableList() {
-  const meansAuditTimeStart = copyFormData.meansAuditTime[0] ?? ''; // 开始时间
-  const meansAuditTimeEnd = copyFormData.meansAuditTime[1] ?? ''; // 结束时间
-  let params = {
-    ...copyFormData,
-    // preciseMeansKeepGrain: false,
-    classify: formData.classify.join(","),
-    meansAuditTimeStart: meansAuditTimeStart,
-    meansAuditTimeEnd: meansAuditTimeEnd,
-    ...tableData.params
+  tableData.loading = true;
+  try {
+    const meansAuditTimeStart = copyFormData.meansAuditTime[0] ?? ''; // 开始时间
+    const meansAuditTimeEnd = copyFormData.meansAuditTime[1] ?? ''; // 结束时间
+    let params = {
+      ...copyFormData,
+      // preciseMeansKeepGrain: false,
+      classify: formData.classify?.join(",") ?? '',
+      meansAuditTimeStart: meansAuditTimeStart,
+      meansAuditTimeEnd: meansAuditTimeEnd,
+      ...tableData.params
+    }
+    delete params.meansAuditTime
+    // console.log({ meansAuditTimeStart, meansAuditTimeEnd });
+    let res = await storeList(params)
+    tableData.data = res.rows ?? []
+    tableData.total = res.total
+    // console.log({res});
+  } catch (error) {
+    console.error(error)
   }
-  delete params.meansAuditTime
-  // console.log({ meansAuditTimeStart, meansAuditTimeEnd });
-  let res = await storeList(params)
-  tableData.data = res.rows ?? []
-  tableData.total = res.total
-  // console.log({res});
+  tableData.loading = false;
 }
+let clickTimer = null;        // 处理单击和双击冲突的定时器
+// 自定义行属性（同时绑定单击和双击）
+function customRow(row) {
+  return {
+    onClick: () => {
+      // 清除之前的定时器
+      if (clickTimer) clearTimeout(clickTimer);
+      // 设置新定时器（250ms内没有双击则视为单击）
+      clickTimer = setTimeout(() => {
+        rowClick(row)
+      }, 250);
+    },
+    onDblclick: () => {
+      // 双击时立即清除单击定时器
+      clearTimeout(clickTimer);
+      rowDblclick(row);
+    }
+  };
+}
+function rowClick(row) {
+  // console.log('单机',row)
+}
+// 双击事件处理
+function rowDblclick(row) {
+  // console.log('双击行数据:', row);
+  // 这里可以执行打开弹窗等操作
+  detailModalEl.value.open(row);
+}
+function detailsModalOpen(row) {
+  const detailsModalData = {
+    id: row.commodityId,
+    forbidSaleList: _.cloneDeep(forbidSaleList.value),
+    cacheGetArr: _.cloneDeep(cacheGetArr.value),
+    meansKeepGrains: _.cloneDeep(meansKeepGrains.value)
+  }
+  _this.$refs.detailsModalRef.modalOpenFn(detailsModalData)
+}
+// 选中商品
+function handleSelect(row) {
+  emit('handleSelect', row)
+  reset()
+  modalOpen.value = false;
+}
+
 // 主图显示
 const artMainImageSrc = (record) => {
   if (record.artMainImage) {

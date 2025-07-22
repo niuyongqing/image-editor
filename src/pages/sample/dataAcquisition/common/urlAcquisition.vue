@@ -143,6 +143,7 @@
           </template>
           <template v-else-if="column.dataIndex === 'option'">
             <div class="option-btn-box">
+              <div class="option-btn" @click="acquisitionEdit(record)">编辑</div>
               <a-dropdown>
                 <div class="option-btn" @click.prevent>
                   认领
@@ -157,7 +158,6 @@
               </a-dropdown>
               <!-- <div class="option-btn" @click="claim('draft', record)">认领至待发布</div> -->
               <!-- <div class="option-btn" @click="batchClaim('acquisition', record)">认领至采集箱</div> -->
-              <div class="option-btn" @click="acquisitionEdit(record)">编辑</div>
 
               <a-dropdown>
                 <div class="option-btn" @click.prevent>
