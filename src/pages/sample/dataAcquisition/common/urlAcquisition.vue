@@ -343,6 +343,16 @@ const columns = computed(() => {
 onMounted(() => {
   tabsChange(activeName.value)
   // getProductStatCount()
+  let urlAcquisitionValue = localStorage.getItem('urlAcquisition')
+  if (!urlAcquisitionValue) {
+    localStorage.setItem('urlAcquisition', '')
+  }
+  window.addEventListener('storage', event => {
+    if(event.key === 'urlAcquisition') {
+      // console.log(event.newValue, event)
+      getList()
+    }
+  })
 })
 // async function getProductStatCount() {
 //   let res = await productStatCount()

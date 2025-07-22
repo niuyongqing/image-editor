@@ -157,7 +157,7 @@ async function modalOk() {
     await _this.$refs.sizeFormRef.validateFields()
     loading.value = true
     // 筛选出网图
-    let urlImageList = formData.selectedImgList.filter(item => item.src.includes('http'))
+    let urlImageList = formData.selectedImgList.filter(item => item.url.includes('http'))
     // 网图先走一遍上传再去改尺寸
     for (let index = 0; index < urlImageList.length; index++) {
       const item = urlImageList[index];
@@ -174,7 +174,7 @@ async function modalOk() {
       }
     }
     let imagePathList = formData.selectedImgList.map(i => i.url)
-    if (imagePathList.some(i => includes('http'))) {
+    if (imagePathList.some(i => i.includes('http'))) {
       loading.value = false
       return message.error('修改失败，请重试！')
     }
