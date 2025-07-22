@@ -594,7 +594,10 @@
       const accountList = []
       const list = data.map(item => {
         accountList.push(item.account)
-        const mainImage = item.skuList[0].primaryImage?.[0] || ''
+        let mainImage = item.primaryImage || item.skuList[0].primaryImage?.[0] || ''
+        if (mainImage && !mainImage.includes('http')) {
+          mainImage = import.meta.env.VITE_APP_BASE_API + mainImage
+        }
         // 获取 detailDesc | (SKU名称-4180; 产品描述-4191;)
         const detailDesc = item.skuList[0].attributes.find(attr => attr.id === 4191)?.values[0].value || ''
 

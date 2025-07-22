@@ -594,7 +594,10 @@
       const accountList = []
       const list = data.map(item => {
         accountList.push(item.account)
-        const mainImage = item.skuList[0].primaryImage?.[0] || ''
+        let mainImage = item.primaryImage || item.skuList[0].primaryImage?.[0] || ''
+        if (mainImage && !mainImage.includes('http')) {
+          mainImage = import.meta.env.VITE_APP_BASE_API + mainImage
+        }
         item.skuList.forEach(sku => {
           if (sku.attributes) {
             const variantList = sku.attributes.filter(attr => attr.isVariant)
