@@ -560,7 +560,7 @@ const onSubmit = () => {
             minPrice: item.minPrice,
             warehouseList: [],
             offerId: item.offerId,
-            attributes: item?.attributes,
+            attributes: item?.attributes[0].attributes,
             packageWeight: item?.attributes[0]?.weight,
             packageWidth: item?.attributes[0]?.width,
             packageHeight: item?.attributes[0]?.height,
@@ -601,18 +601,20 @@ const onSubmit = () => {
             console.log('priceList', priceList);
         }
         if (field === "all") {
+            console.log('priceList', priceList);
+            
             priceList.forEach(itemA => {
-                itemA.attributes.forEach(e => {
-                    e.attributes = e.attributes.map(item => {
-                        if (item.id === 85) {
-                            item.values = [{
-                                dictionaryValueId: 126745801,
-                                value: '无品牌'
-                            }]
-                        }
-                        return item
-                    })
+                itemA.attributes = itemA.attributes.map(item => {
+                    if (item.id === 85) {
+                        item.values = [{
+                            dictionaryValueId: 126745801,
+                            value: '无品牌'
+                        }]
+                    }
+                    return item
                 })
+                // itemA.attributes.forEach(e => {
+                // })
             })
         }
     });
@@ -665,17 +667,17 @@ const onSubmit = () => {
         return;
     }
 
-    // batchUpdate(priceList).then(res => {
-    //     message.success(res.msg)
-    // }).finally(() => {
-    //     emit("handleEditPriceClose")
-    //     loading.value = false;
-    //     // 重置表单数据
-    //     const initialData = getInitialFormData()
-    //     Object.keys(initialData).forEach(key => {
-    //         form[key] = initialData[key]
-    //     })
-    // })
+    batchUpdate(priceList).then(res => {
+        message.success(res.msg)
+    }).finally(() => {
+        emit("handleEditPriceClose")
+        loading.value = false;
+        // 重置表单数据
+        const initialData = getInitialFormData()
+        Object.keys(initialData).forEach(key => {
+            form[key] = initialData[key]
+        })
+    })
 }
 
 // 封装处理标题的函数

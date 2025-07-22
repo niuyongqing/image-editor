@@ -4,23 +4,23 @@
             <template #title>
                 <span class="text-16px">描述信息<span style="color: #9fa0a2" class="text-16px">（编辑视频时请先选择店铺）</span></span>
             </template>
-            <a-form ref="ruleForm" class="richForm" :model="form" :label-col="{ span: 2 }" :rules="rules">
+            <a-form ref="ruleForm" class="richForm" :model="form" :label-col="{ span: 2 }">
                 <a-form-item label="产品描述：" name="description">
                     <div style="width: 90%;margin-top: 10px;">
                         <a-textarea v-model:value="form.description" :rows="10" :maxlength="6000" showCount />
                     </div>
                 </a-form-item>
-                <a-form-item label="JSON富文本：" name="jsonDes">
-                    <!-- <div>
-                        <a-select v-model:value="form.jsonTemp" size="large" allowClear style="width: 30%"
-                            :options="vatList">
+                <a-form-item label="JSON富文本：">
+                    <div>
+                        <a-select v-model:value="form.jsonTemp" @change="changeJsonTemp" size="large" allowClear
+                            style="width: 30%" :options="tempList">
                         </a-select>
                         <a-button type="link" size="middle" class="ml10px" @click="searchTemp">
                             <SyncOutlined />
                             更新模板
                         </a-button>
-                    </div> -->
-                    <div class="my10px text-16px" style="color: #ff0a37">说明：描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M
+                    </div>
+                    <div class="my10px text-16px" style="color: #737679"><a-tag color="green">说明</a-tag>描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M
                     </div>
                     <a-form-item-rest>
                         <jsonForm @backResult="backResult" :jsonContent="form.jsons" :shop="shopCode"></jsonForm>
@@ -97,11 +97,11 @@
 <script setup name='OzonNewImageInfo'>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
-import { message } from "ant-design-vue";
 import jsonForm from "../../config/component/json/index.vue"
 import { processImageSource } from "~/pages/ozon/config/commJs/index"
 import { SyncOutlined } from '@ant-design/icons-vue';
 import { templateList } from "../../config/api/product";
+import { Modal, message } from 'ant-design-vue';
 
 const ruleForm = ref(null)
 const props = defineProps({
@@ -112,7 +112,7 @@ const form = reactive({
     video: [],
     coverUrl: "",
     description: "",
-    jsonTemp: "",
+    jsonTemp: null,
     jsons: ""
 })
 const headers = {
@@ -130,24 +130,7 @@ const uploadImageVideoUrl =
     "/platform-ozon/platform/ozon/file/upload/video"
 const uploadVideoLoading = ref(false)
 
-const rules = {
-    jsonDes: [{ required: true }],
-}
-
-const vatList = [
-    {
-        label: "免税",
-        value: "0",
-    },
-    {
-        label: "10%",
-        value: "0.1",
-    },
-    {
-        label: "20%",
-        value: "0.2",
-    },
-];
+const tempList = ref([])
 
 const handleChange = info => {
     if (info.file.status === 'done') {
@@ -183,6 +166,8 @@ const submitForm = () => {
     return true;
 }
 
+
+
 // 抛出数据和方法，可以让父级用ref获取
 defineExpose({
     form,
@@ -194,10 +179,24 @@ const backResult = (res) => {
     form.jsons = JSON.stringify(res)
 }
 
+const changeJsonTemp = () => {
+    Modal.confirm({
+        title: '选择富内容模板',
+        content: '切换富内容模板将清空已有内容，确定要切换吗？',
+        onOk: () => {
+            let content = tempList.value.find(item => item.value == form.jsonTemp)?.content || {}
+            form.jsons = content.jsonRich
+        },
+        onCancel: () => {
+            console.log('cancel');
+        },
+    });
+
+}
 const searchTemp = () => {
     templateList({
-        account: props.shopCode,
-        type: 3,
+        account: "",
+        type: 4,
         name: "",
         pageNum: 1,
         pageSize: 99,
@@ -205,7 +204,13 @@ const searchTemp = () => {
     }).then(res => {
         if (res.code == 200) {
             message.success("更新成功！");
-            // dataSource.value = res.rows || []
+            tempList.value = res.rows.map(item => {
+                return {
+                    label: item.name,
+                    value: item.id,
+                    content: item.content,
+                }
+            }) || []
         }
     })
 }
@@ -257,7 +262,9 @@ watch(() => props.productDetail, val => {
         })
     }
 })
-
+onMounted(() => {
+    searchTemp();
+})
 </script>
 <style lang="less" scoped>
 :deep(.richForm) {

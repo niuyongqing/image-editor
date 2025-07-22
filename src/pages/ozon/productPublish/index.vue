@@ -521,7 +521,7 @@ const onSubmit = async (type = 1) => {
                         type
                     );
                     const filteredMSlect = mSlect.filter(
-                        (obj) => obj.value || obj?.dictionary_value_id !== 0 || obj?.dictionaryValueid !== 0
+                        (obj) => obj.value || obj?.dictionary_value_id !== 0 || obj?.dictionaryValueId !== 0
                     );
                     if (filteredMSlect.length) {
                         moditAttributes.push(createAttrItem(attr, filteredMSlect));

@@ -12,14 +12,6 @@
                         showSearch optionFilterProp="label" :options="shopList" @change="getHistoryList">
                     </a-select>
                 </a-form-item>
-                <a-form-item label="商品标题：" name="name">
-                    <a-input style="width: 90%" v-model:value="form.name" placeholder="请输入产品名称(用俄语或英语)" :maxlength="255"
-                        showCount></a-input>
-                </a-form-item>
-                <a-form-item label="VAT：" name="vat">
-                    <a-select v-model:value="form.vat" allowClear style="width: 90%" :options="vatList">
-                    </a-select>
-                </a-form-item>
                 <a-form-item label="分类：" name="categoryId">
                     <a-select v-model:value="form.categoryId" allowClear showSearch labelInValue placeholder="请选择"
                         style="width: 200px" :options="historyCategoryList" @change="selectAttributes" :fieldNames="{
@@ -157,10 +149,8 @@ const ruleForm = ref(null);
 const ruleForm2 = ref(null);
 const form = reactive({
     templateName: "", // 模板名称
-    name: "",
     shortCode: "",
     categoryId: null,
-    vat: "", //税
     attributes: {}, //产品属性
     storeHistoryCategoryId: "", //资料库分类ID
 });
@@ -176,16 +166,6 @@ const rules = {
         message: "必填项，请填写",
         trigger: ["blur", "change"],
     },
-    name: {
-        required: true,
-        message: "必填项，请填写",
-        trigger: "blur",
-    },
-    vat: {
-        required: true,
-        message: "必填项，请填写",
-        trigger: ["blur", "change"],
-    },
     categoryId: {
         required: true,
         message: "必填项，请填写",
@@ -197,20 +177,6 @@ const loopAttributes = ref([]);
 const categoryTreeList = ref([]);
 const historyCategoryList = ref([]);
 const isExpand = ref(true)
-const vatList = [
-    {
-        label: "免税",
-        value: "0",
-    },
-    {
-        label: "10%",
-        value: "0.1",
-    },
-    {
-        label: "20%",
-        value: "0.2",
-    },
-];
 const hisAttrObj = ref([]); //选中的三级
 
 // 获取选择树

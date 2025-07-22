@@ -6,9 +6,9 @@
         <a-dropdown size="middle">
           <template #overlay>
             <a-menu @click="handleMenuClick">
-              <!-- <a-menu-item key="1">
+              <a-menu-item key="1">
                 引用现有产品
-              </a-menu-item> -->
+              </a-menu-item>
               <a-menu-item key="2">
                 引用产品模板
               </a-menu-item>
@@ -43,9 +43,9 @@
         <a-dropdown size="middle">
           <template #overlay>
             <a-menu @click="handleMenuClick">
-              <!-- <a-menu-item key="1">
+              <a-menu-item key="1">
                 引用现有产品
-              </a-menu-item> -->
+              </a-menu-item>
               <a-menu-item key="2">
                 引用产品模板
               </a-menu-item>

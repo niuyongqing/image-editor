@@ -41,8 +41,8 @@ const templateList = ref([
 ]);
 
 const selectActive = (id) => {
-    console.log(id);
     activeId.value = id;
+    
 };
 
 </script>

@@ -1,16 +1,5 @@
 // 获取input类型属性的值
 const getInputValue = (attr, item) => {
-    // if (attr.id === 4191) {
-    //     return image.description === "<ul><li></li></ul>"
-    //         ? null
-    //         : image.description;
-    // } else if (attr.id === 11254) {
-    //     return image.jsons
-    //         ? typeof image.jsons === "string"
-    //             ? image.jsons
-    //             : JSON.stringify(image.jsons)
-    //         : null;
-    // } else 
     console.log("attr",attr);
     console.log("item",item);
     if (
@@ -59,7 +48,7 @@ const getSelectValue = (attr, item) => {
     // }
 };
 // 获取multSelect类型属性的值
-const getMultiSelectValue = (attr, item, createValueObj, type) => {
+const getMultiSelectValue = (attr, item,createValueObj) => {
     console.log("attr",attr);
     console.log("item",item);
     
@@ -77,33 +66,19 @@ const getMultiSelectValue = (attr, item, createValueObj, type) => {
             
             return colorList.map((color) => {
                 const foundOption = attr.options.find((option) => option.value === color);
-                if (type === 1) {
-                    return {
-                        dictionary_value_id: foundOption ? foundOption.id : "",
-                        value: color,
-                    };
-                } else {
-                    return {
-                        dictionaryValueId: foundOption ? foundOption.id : "",
-                        value: color,
-                    };
-                }
+                return {
+                    dictionaryValueId: foundOption ? foundOption.id : "",
+                    value: color,
+                };
             });
         }
     } 
-    // else {
-    //     let filteredData = attr.options.filter((item) =>
-    //         base.attributes[attr.name]?.includes(item.id)
-    //     );
-    //     return (
-    //         filteredData?.map((item) => createValueObj(item.id, item.label)) || []
-    //     );
-    //     // return (
-    //     //     base.attributes[attr.name]?.map((item) =>
-    //     //         createValueObj(item.id, item.value)
-    //     //     ) || []
-    //     // );
-    // }
+    else {
+        return [{
+            dictionaryValueId: 0,
+            value: ""
+        }]
+    }
 };
 
 

@@ -27,7 +27,7 @@
                         @click="selectVisible = true" size="middle">选择分类</a-button>
                     <p v-if="hisAttrObj.length != 0" style="color: #933" class="text-16px">
                         <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{ hisAttrObj[0].secondCategoryName
-                            }}</span>/
+                        }}</span>/
                         <span>{{ hisAttrObj[0].threeCategoryName }}</span>
                     </p>
                 </a-form-item>
@@ -54,7 +54,7 @@
                                     <template #label>
                                         <span class="mr-2.5 truncate">{{
                                             item.label ? item.label : item.name
-                                            }}</span>
+                                        }}</span>
                                         <a-tooltip class="tooltipStyle" effect="dark" :title="item.description"
                                             popper-class="ozonTooltip" placement="top">
                                             <AsyncIcon icon="QuestionCircleOutlined"></AsyncIcon>
@@ -357,7 +357,7 @@ const assignValues = (a, b) => {
     return result;
 };
 
-const templateAssign = (a,b) => {
+const templateAssign = (a, b) => {
     const result = {};
     // 遍历所有属性配置项
     b.forEach((item) => {
@@ -383,7 +383,7 @@ const templateAssign = (a,b) => {
             if (attrName === "品牌(Бренд)") {
                 result[attrName] = {
                     label: "无品牌",
-                    value: "无品牌"
+                    value: { label: '无品牌', value: '无品牌' }
                 };
             }
             // 处理对象型值
@@ -410,6 +410,7 @@ const templateAssign = (a,b) => {
                 : attrValue;       // 直接使用原始值
         }
     });
+    return result;
 }
 
 const findMatchedOption = (attributeId, data, options) => {
@@ -628,6 +629,10 @@ watch(
                         (item.options && item.options.slice(0, 25)) ?? [];
                     attributes[item.name] =
                         item.selectType === "multSelect" ? [] : undefined;
+                    attributes["品牌(Бренд)"] = {
+                        label: "无品牌",
+                        value: { label: '无品牌', value: '无品牌' }
+                    }
                 });
 
                 // 属性校验
@@ -677,7 +682,7 @@ watch(
                 // console.log('proceRes0', proceRes);
             }
             // 引用模板数据回显
-            if(Object.keys(tempAttr.value).length > 0) {
+            if (Object.keys(tempAttr.value).length > 0) {
                 form.attributes = templateAssign(tempAttr.value, loopAttributes.value)
             }
         }
