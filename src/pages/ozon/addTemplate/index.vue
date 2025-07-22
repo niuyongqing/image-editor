@@ -10,7 +10,7 @@
                     </a-breadcrumb>
                 </div>
                 <div>
-                    <a-button type="primary" @click="onSubmit" :loading="loading"
+                    <a-button type="primary" @click="onSubmit" :loading="loading" class="mb10px"
                         style="height: 32px; background-color: #FF8345; color: #fff;">保存</a-button>
                 </div>
             </div>
@@ -27,12 +27,12 @@
             </OzonNewImageInfo>
 
             <!-- 变种信息. -->
-            <OzonVariantInfo ref="ozonNewVariantInfoRef" :attributesCache="attributes" :productDetail="productDetail"
-                :shopCode="formData.shortCode" v-if="type === '3'">
+            <OzonVariantInfo ref="ozonNewVariantInfoRef" :attributesCache="attributes" :shopCode="formData.shortCode"
+                v-if="type === '3'">
             </OzonVariantInfo>
 
             <div flex justify-end>
-                <a-button type="primary" @click="onSubmit" :loading="loading"
+                <a-button type="primary" @click="onSubmit" :loading="loading" class="mt10px"
                     style="height: 32px; background-color: #FF8345; color: #fff;">保存
                 </a-button>
             </div>
@@ -73,7 +73,6 @@ const showDescriptionBtn = ref(false);
 const attributes = ref([])
 const shopList = ref([]);
 const templateDetailData = ref({});
-const productDetail = ref({});
 const loading = ref(false)
 const publishVis = ref(false)
 const anchorList = ref([
@@ -89,6 +88,7 @@ const anchorList = ref([
     // },
 ])
 const categoryAttributesLoading = ref(false)
+const channel = new BroadcastChannel('page-comm');
 const formData = reactive({
     shortCode: ""
 })
@@ -163,8 +163,6 @@ const onSubmit = async () => {
             content: {
                 productTemplate: {
                     categoryId: base.categoryId || {},
-                    name: base.name,
-                    vat: base.vat,
                     productAttr: base.attributes || {},
                     productDesc: image?.description || ""
                 },
@@ -248,13 +246,17 @@ const onSubmit = async () => {
                         mSlect = getMultiSelectValue(
                             attr,
                             item,
-                            createValueObj, 2
+                            createValueObj
                         );
                         console.log("mSlect", mSlect);
 
                         const filteredMSlect = mSlect.filter(
-                            (obj) => obj.value || obj?.dictionary_value_id !== 0 || obj?.dictionaryValueid !== 0
+                            (obj) =>
+                                (obj.dictionaryValueId !== 0 || obj.value) &&  // 保留有有效ID或值的项
+                                !(obj.dictionaryValueId === 0 && !obj.value)    // 过滤掉无效空值项
                         );
+                        console.log("filteredMSlect", filteredMSlect);
+
                         if (filteredMSlect.length) {
                             moditAttributes.push(createAttrItem(attr, filteredMSlect));
                         }
@@ -280,17 +282,22 @@ const onSubmit = async () => {
                 }
             }
         };
-
-    } 
+        console.log("params", params);
+    }
     loading.value = true;
     templateSaveOrUpdate(params).then(res => {
         message.success(res.msg)
-    })
-        .finally(() => {
-            loading.value = false;
-        });
+    }).finally(() => {
+        loading.value = false;
+        window.close();
+    });
 };
-
+// 关闭页签时通知列表刷新
+window.addEventListener('beforeunload', () => {
+    if(window.opener && !window.opener.closed) {
+        window.opener.postMessage('pageClosed',"*");
+    }
+});
 // const onSubmit = async () => {
 //     const ozonBaseInfo = await ozonBaseInfoRef.value.childForm();
 //     // const OzonNewImageInfo = await ozonImageInfoRef.value.submitForm();

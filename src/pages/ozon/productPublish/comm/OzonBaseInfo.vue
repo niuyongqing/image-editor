@@ -318,7 +318,7 @@ const getHistoryAttr = (historyCategoryId, account) => {
         account,
     }).then((res) => {
         let resObj = (res?.data && JSON.parse(res?.data)) || {};
-        if(res?.data) {
+        if (res?.data) {
             form.attributes = assignValues(resObj, loopAttributes.value)
         }
     });
@@ -327,7 +327,7 @@ const getHistoryAttr = (historyCategoryId, account) => {
 const moveMatchedItemForward = (data, arr) => {
     const newData = [];
     const remainingData = [];
-    
+
     // 遍历所有选项
     for (let i = 0; i < data.length; i++) {
         const item = data[i];
@@ -338,7 +338,7 @@ const moveMatchedItemForward = (data, arr) => {
             remainingData.push(item); // 收集未匹配项
         }
     }
-    
+
     // 合并数组并限制最多显示25个选项
     return newData.concat(remainingData).slice(0, 25);
 };
@@ -367,49 +367,54 @@ const findMatchedOption = (attributeId, data, options) => {
 
 // 此方法将历史缓存中的属性值进行重新赋值
 const assignValues = (a, b) => {
-    // const result = {};
-    // // 根据b数组填充结果对象
-    // b.forEach((item) => {
-    //     const name = item.name;
-    //     const selectType = item.selectType;
-    //     for (const key in a) {
-    //         if (name == key) {
-    //             if (selectType === "multSelect") {
-    //                 let filteredItems =
-    //                     item?.options &&
-    //                     item?.options?.filter((item) =>
-    //                         a[key].some((bItem) => item.value === bItem)
-    //                     );
-    //                 filteredItems.forEach((e) => {
-    //                     if (!item?.acquiesceList?.some((bItem) => bItem.id === e.id)) {
-    //                         item?.acquiesceList?.push(e);
-    //                     }
-    //                 });
-    //                 result[name] = filteredItems.map((e) => e.value);
-    //             } else if (selectType === "select") {
-    //                 let filteredItems =
-    //                     item?.options &&
-    //                     item?.options?.find((e) => e.value === a[key] || e.value === a[key].value);
-    //                 result[name] = name == "品牌(Бренд)" ? {
-    //                     label: "无品牌",
-    //                     value: {
-    //                         label: "无品牌",
-    //                         value: "无品牌"
-    //                     }
-    //                 } : filteredItems
-    //             } else {
-    //                 result[name] = a[key];
-    //             }
-    //         }
-    //     }
-    // });
+    const result = {};
+    // 根据b数组填充结果对象
+    b.forEach((item) => {
+        const name = item.name;
+        const selectType = item.selectType;
+        for (const key in a) {
+            if (name == key) {
+                if (selectType === "multSelect") {
+                    let filteredItems =
+                        item?.options &&
+                        item?.options?.filter((item) =>
+                            a[key].some((bItem) => item.value === bItem)
+                        );
+                    filteredItems.forEach((e) => {
+                        if (!item?.acquiesceList?.some((bItem) => bItem.id === e.id)) {
+                            item?.acquiesceList?.push(e);
+                        }
+                    });
+                    result[name] = filteredItems.map((e) => e.value);
+                } else if (selectType === "select") {
+                    let filteredItems =
+                        item?.options &&
+                        item?.options?.find((e) => e.value === a[key] || e.value === a[key].value);
+                    result[name] = name == "品牌(Бренд)" ? {
+                        label: "无品牌",
+                        value: {
+                            label: "无品牌",
+                            value: { label: '无品牌', value: '无品牌' }
+                        }
+                    } : filteredItems
+                } else {
+                    result[name] = a[key];
+                }
+            }
+        }
+    });
+    console.log(22, result);
 
-    // return result;
+
+    return result;
+}
+
+const templateAssign = (a, b) => {
     const result = {};
     // 遍历所有属性配置项
     b.forEach((item) => {
         const attrName = item.name;
-        const attrValue = a[attrName];    
+        const attrValue = a[attrName];
         if (!attrValue) return;
 
         // 处理多选类型属性
@@ -430,7 +435,7 @@ const assignValues = (a, b) => {
             if (attrName === "品牌(Бренд)") {
                 result[attrName] = {
                     label: "无品牌",
-                    value: "无品牌"
+                    value: { label: '无品牌', value: '无品牌' }
                 };
             }
             // 处理对象型值
@@ -595,7 +600,7 @@ watch(() => useOzonProductStore().attributes, (val) => {
                 if (!a.isRequired && b.isRequired) return 1;
                 return 0;
             });
-            
+
             let data = noThemeAttributesCache.filter((a) => a.isRequired);
             rules2.value = {};
             let attributes = {};
@@ -625,10 +630,10 @@ watch(() => useOzonProductStore().attributes, (val) => {
                 item.acquiesceList =
                     (item.options && item.options.slice(0, 25)) ?? [];
                 attributes[item.name] = item.selectType === "multSelect" ? [] : undefined;
-                // attributes["品牌(Бренд)"] = {
-                //     label: "无品牌",
-                //     value: "无品牌"
-                // }
+                attributes["品牌(Бренд)"] = {
+                    label: "无品牌",
+                    value: { label: '无品牌', value: '无品牌' }
+                }
             });
 
             // 属性校验
@@ -647,28 +652,24 @@ watch(() => useOzonProductStore().attributes, (val) => {
             // this.$set(rules2.value, noThemeAttributesCache[i].name, obj);
             // 获取自定义添加的属性数据（同步过滤属性）
             //!未同步属性
-            form.attributes = attributes;           
+            form.attributes = attributes;
             loopAttributes.value = noThemeAttributesCache;
- 
+
         }
-        // 引用模板数据回显
-        if(Object.keys(tempAttr.value).length > 0) {
-            form.attributes = assignValues(tempAttr.value, loopAttributes.value)
+        // 引用模板数据回显 assignValues templateAssign
+        if (Object.keys(tempAttr.value).length > 0) {
+            form.attributes = templateAssign(tempAttr.value, loopAttributes.value)
+        } else {
+            if (!form.shortCode && !form.categoryId) return;
+            getHistoryAttr(
+                form.categoryId.threeCategoryId,
+                form.shortCode
+            );
         }
-        if (!form.shortCode && !form.categoryId) return;
-        getHistoryAttr(
-            form.categoryId.threeCategoryId,
-            form.shortCode
-        );
+
     }
 })
 
-watch(() => form.attributes, (val) => {
-    form.attributes["品牌(Бренд)"] = {
-        label: "无品牌",
-        value: "无品牌"
-    }
-})
 </script>
 <style lang="less" scoped>
 :deep(.ant-form) {

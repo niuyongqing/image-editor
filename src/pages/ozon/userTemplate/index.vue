@@ -48,20 +48,13 @@
                         </div>
                         <a-pagination size="small" v-model:current="paginations.pageNum"
                             v-model:pageSize="paginations.pageSize" :total="paginations.total" show-size-changer
-                            show-quick-jumper :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
+                            show-quick-jumper :show-total="(total) => `共${total}条`"
                             @change="handleChangePagination" />
 
                     </div>
 
                     <a-table :columns="columns" :data-source="tableData" rowKey="id" :loading="loading"
-                        @change="handleChange" :pagination="{
-                            current: paginations.pageNum,
-                            pageSize: paginations.pageSize,
-                            total: paginations.total,
-                            showQuickJumper: true,
-                            showSizeChanger: true,
-                            showTotal: (total, range) => `第${range[0]}-${range[1]}条, 共${total}条`
-                        }" :row-selection="rowSelection">
+                        @change="handleChange" :row-selection="rowSelection">
                         <template #bodyCell="{ column, record }">
                             <template v-if="column.dataIndex === 'state'">
                                 <a-switch :checked="record.state === 1" disabled></a-switch>
@@ -75,6 +68,9 @@
                     </a-table>
                 </a-card>
             </div>
+            <jsonTemplate :showTemp="showTemp" :jsonName="jsonName" :jsonContent="jsonContent" @backResult="backResult"
+                @closeTempModal="closeTempModal">
+            </jsonTemplate>
         </div>
     </div>
 </template>
@@ -84,7 +80,8 @@ import SideBar from './components/sideBar.vue';
 import { accountCache } from "../config/api/product";
 import { templateList, templateDelete } from "../config/api/userTemplate";
 import { Modal, message } from 'ant-design-vue';
-
+import jsonTemplate from './components/jsonTemplate.vue';
+import { templateSaveOrUpdate } from "~/pages/ozon/config/api/userTemplate";
 
 const shopObj = {
     fieldKey: "account",
@@ -92,6 +89,10 @@ const shopObj = {
 };
 const selectedRowKeys = ref([]);
 const selectedRowList = ref([]);
+const showTemp = ref(false);
+const jsonContent = ref('');
+const jsonName = ref('');
+const rowId = ref('');
 const rowSelection = computed(() => {
     return {
         selectedRowKeys: selectedRowKeys.value,
@@ -107,21 +108,36 @@ const columns = computed(() => {
             title: '模板名称',
             dataIndex: 'name',
             key: 'name',
+            active: 0,
+            width: 300,
+        },
+        {
+            title: '引用模块',
+            dataIndex: 'fieldValue',
+            key:"fieldValue",
+            active: 1,
+            width: 300,
         },
         {
             title: '时间',
             dataIndex: 'gmtCreate',
             key: 'gmtCreate',
+            active: 0,
+            width: 300,
         },
         {
             title: '开启和关闭',
             dataIndex: 'state',
             key: 'state',
+            active: 0,
+            width: 200,
         },
         {
             title: '操作',
             dataIndex: 'action',
             key: 'action',
+            width: 200,
+            active: 0
         },
     ]
 });
@@ -140,6 +156,7 @@ const paginations = reactive({
 });
 const loading = ref(false)
 const activeId = ref(1);
+const channel = new BroadcastChannel('page-comm');
 
 const selectItem = (e) => {
     formData.account = e;
@@ -169,7 +186,6 @@ const getList = () => {
 };
 
 const selectAll = () => {
-    console.log('selectAll');
     formData.account = ""
     getList();
 };
@@ -189,7 +205,10 @@ const handleChangePagination = (page, pageSize) => {
 
 const handleEdit = (record) => {
     if (activeId.value === 4) {
-        // window.open(`/platform/ozon/editTemplate?type=${activeId.value}&id=${record.id}`, '_blank');
+        showTemp.value = true;
+        jsonContent.value = record.content.jsonRich;
+        jsonName.value = record.name;
+        rowId.value = record.id;
         return;
     }
     window.open(`/platform/ozon/editTemplate?type=${activeId.value}&id=${record.id}`, '_blank');
@@ -198,7 +217,10 @@ const handleEdit = (record) => {
 
 const handleCopy = (record) => {
     if (activeId.value === 4) {
-        // window.open(`/platform/ozon/editTemplate?type=${activeId.value}&id=${record.id}`, '_blank');
+        showTemp.value = true;
+        jsonContent.value = record.content.jsonRich;
+        jsonName.value = record.name;
+        rowId.value = record.id;
         return;
     }
     window.open(`/platform/ozon/editTemplate?type=${activeId.value}&id=${record.id}&copy=${true}`, '_blank');
@@ -213,6 +235,8 @@ const handleDelete = (record) => {
             const params = record.id ? [record.id] : selectedRowKeys.value;
             templateDelete(params).then(() => {
                 message.success('删除成功');
+                selectedRowKeys.value = [];
+                selectedRowList.value = [];
                 getList();
             })
         },
@@ -224,11 +248,39 @@ const handleDelete = (record) => {
 
 const navToCreateTemplate = () => {
     if (activeId.value === 4) { // 富文本模板创建
-        // window.open(`/platform/ozon/productPublish`, '_blank');
+        showTemp.value = true
+        jsonContent.value = "";
+        jsonName.value = "";
+        rowId.value = "";
         return;
     }
     window.open(`/platform/ozon/addTemplate?type=${activeId.value}`, '_blank');
 };
+
+const closeTempModal = () => {
+    showTemp.value = false;
+    activeId.value = 4;
+}
+
+const backResult = (res, name) => {
+    let params = {
+        id: rowId.value,
+        type: 4, //模板类型 1-产品模板  2-尺码模板 3-变种模板 4-富内容模板
+        name, // 模板名称
+        state: 1, // 状态是否生效  0-不生效 1-生效
+        account: "",
+        content: {
+            jsonRich: JSON.stringify(res)
+        }
+    }
+    templateSaveOrUpdate(params).then(res => {
+        message.success(res.msg)
+    }).finally(() => {
+        activeId.value = 4;
+        showTemp.value = false;
+        getList();
+    })
+}
 
 // 表单搜索
 const onSubmit = () => { getList() };
@@ -243,8 +295,23 @@ const getAccount = () => {
     });
 };
 
+watch(() => activeId.value, val => {
+    if (val) {
+        paginations.pageNum = 1;
+        paginations.pageSize = 50;
+        getList();
+    }
+})
+
 onMounted(() => {
     getAccount()
+    window.addEventListener('message', (event) => {
+        if (event.data === 'pageClosed') {
+            console.log(111);
+            
+            getList();
+        }
+    })
 })
 
 </script>

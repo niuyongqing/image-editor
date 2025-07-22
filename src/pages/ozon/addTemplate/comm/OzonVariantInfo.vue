@@ -1,6 +1,6 @@
 <template>
     <div id="OzonNewVariantInfoCont">
-        <a-card title="SKU信息" class="text-left" :loading="categoryAttributesLoading">
+        <a-card title="SKU信息" class="text-left" v-loading="categoryAttributesLoading">
             <a-card title="变种属性" class="text-left mx-50">
                 <div>
                     <span>变种主题：</span>
@@ -15,8 +15,6 @@
                                 <i v-if="items.isRequired" style="color: red; margin-right: 2px">*</i>
                                 <span>{{ items.name }}</span>
                             </span>
-                            <a-button type="link" v-if="[10096, 4295].includes(items.id)" @click="setColor(items)"
-                                style="float: right">批量设置</a-button>
                             <a-popconfirm icon-color="red" title="确定要删除这个变种主题吗？"
                                 @confirm="removeVariantType(items, index)">
                                 <a-button type="text" danger v-if="!items.isRequired" style="float: right">移除</a-button>
@@ -222,111 +220,8 @@
                 </a-table>
                 <template #cover></template>
             </a-card> -->
-            <!-- <a-card title="变种图片" class="text-left mx-50 mt-5">
-                <div>
-                    <div w-full ml-25px>
-                        <div>
-                            <a-tag color="warning">！说明</a-tag>
-                            <span style="color: #9fa0a2">
-                                第一张图片默认为主图，点击图片拖动，即可调整图片顺序！
-                                单张不超过2M，只支持jpg、.png、.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3：4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)</span>
-                        </div>
-                        <div flex justify-end items-center mt-15px>
-                            <a-dropdown>
-                                <a-button type="link" link style="width: 90px; height: 31px;">
-                                    普通水印
-                                    <DownOutlined />
-                                </a-button>
-                                <template #overlay>
-                                    <a-menu>
-                                        <a-menu-item v-for="item in watermark" :key="item"
-                                            @click="handleWatermark(item)">
-                                            {{ item.title }}
-                                        </a-menu-item>
-                                    </a-menu>
-                                </template>
-                            </a-dropdown>
-                            <span pl-10px>|</span>
-                            <a-dropdown>
-                                <a-button type="link" style="width: 90px; height: 31px; margin-left: 10px;">
-                                    编辑图片
-                                    <DownOutlined />
-                                </a-button>
-                                <template #overlay>
-                                    <a-menu>
-                                        <a-menu-item @click="handleEditImagesSize">
-                                            批量修改图片尺寸
-                                        </a-menu-item>
-                                        <a-menu-item @click="handleImageTranslation">
-                                            图片翻译
-                                        </a-menu-item>
-                                        <a-menu-item @click="clearAllImages">
-                                            清空图片
-                                        </a-menu-item>
-                                    </a-menu>
-                                </template>
-                            </a-dropdown>
-                            <span pl-10px>|</span>
-                            <a-button type="link" style="width: 90px; height: 31px; margin-right: 70px;"
-                                :loading="downloadLoading" @click="handleExportAllImages">
-                                <DownloadOutlined /> 导出全部图片
-                            </a-button>
-                        </div>
-                    </div>
-
-                    <div v-for="item in tableData" :key="item.id">
-                        <div v-if="tableData.length > 0">
-                            <a-card class="mb-2.5 ml-2.5" :bordered="false">
-
-                                <SkuDragUpload v-model:file-list="item.imageUrl" :maxCount="30" :showUploadList="false"
-                                    accept=".jpg,.png" :api="uploadImage" :waterList="watermark">
-                                    <template #default>
-                                        <div flex flex-col w-full justify-start mb-4px text-left>
-                                            <p>
-                                                <a-tag color="#00AEB3">说明！</a-tag>
-                                                <span class="text-#999"> 第一张图片默认为主图，点击图片拖动，即可调整图片顺序。
-                                                </span>
-                                            </p>
-                                        </div>
-                                    </template>
-                                    <template #variantInfo>
-                                        <div v-for="(nameItem, nameIndex) in skuThemeNames(item)" :key="nameIndex">
-                                            {{ nameItem[0] }}: {{ item[nameItem[0]] }}
-                                        </div>
-                                    </template>
-                                    <template #skuInfo>
-                                        {{ `【${item.imageUrl.length}/30】图片 ` }}
-                                        <a-dropdown>
-                                            <a-button type="link" link style="width: 90px; height: 31px;">
-                                                图片应用到
-                                                <DownOutlined />
-                                            </a-button>
-                                            <template #overlay>
-
-                                            </template>
-                                        </a-dropdown>
-
-                                    </template>
-                                </SkuDragUpload>
-                            </a-card>
-                        </div>
-                    </div>
-                </div>
-            </a-card> -->
         </a-card>
 
-        <!-- <EditProdQuantity @backQuantity="backQuantity" :editQuantityVis="editQuantityVis" :editStockList="editStockList"
-            @backCloseQuantity="editQuantityVis = false"></EditProdQuantity>
-
-        <batchEditModal :batchOpen="batchOpen" :batchTitle="batchTitle" :batchType="batchType"
-            @batchEditModalClose="batchOpen = false" @backValue="backValue"></batchEditModal>
-
-        <SelectAttr @selectAttrList="selectAttrList" :attrVisible="attrVisible" :custAttr="custAttr"
-            :newAttribute="newAttribute" @handleStatsModalClose="attrVisible = false"></SelectAttr>
-
-        <bacthSkuEditImg ref="bacthSkuEditImgRef"></bacthSkuEditImg>
-
-        <ImageTranslation ref="imageTranslationRef"></ImageTranslation> -->
     </div>
 </template>
 
@@ -355,14 +250,8 @@ import { downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js';
 import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
 import download from '~@/api/common/download';
 
-// import { omit, pick } from 'lodash'
-// import SkuDragUpload from '../skuDragImg/index.vue';
-// import bacthSkuEditImg from '../skuDragImg/bacthSkuEditImg.vue';
-// import ImageTranslation from '../skuDragImg/imageTranslation.vue';
-
 const props = defineProps({
     categoryAttributesLoading: Boolean,
-    productDetail: Object,
     shopCode: String,
 });
 
@@ -434,17 +323,6 @@ const handleChangeColroImg = (info, record) => {
     if (info.file.status === 'error') {
         message.error('图片上传有误！');
     }
-};
-
-const setColor = (row) => {
-    colorRow.value = row;
-    setValueVis.value = true;
-    setColorOption.value = row.details.map(item => {
-        return {
-            label: item.value,
-            value: item.id,
-        }
-    });
 };
 
 const handleColorCancel = () => {
