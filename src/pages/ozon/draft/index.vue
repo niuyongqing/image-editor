@@ -494,7 +494,7 @@
 
   const { state: formData, reset: resetForm } = useResetReactive({
     offerId: '',
-    account: '2649641',
+    account: '',
     sku: '',
     name: '',
     prop: 'create_time',
@@ -905,11 +905,10 @@
     stockShops.value = selectedRowList.value.map(e => e.account)
     switch (e.key) {
       case 0:
-        // FIXME: 恢复
-        // if (!formData.account) {
-        //   message.warning('请先选择一个店铺账号')
-        //   return
-        // }
+        if (!formData.account) {
+          message.warning('请先选择一个店铺账号')
+          return
+        }
         // 跳转到采集箱批量编辑页
         localStorage.setItem('ids', JSON.stringify(selectedRowKeys.value))
         batchEditPromptEl.value.open(selectedRowList.value)

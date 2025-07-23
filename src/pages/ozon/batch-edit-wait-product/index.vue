@@ -78,6 +78,7 @@
           type="primary"
           size="middle"
           class="ml-4"
+          :disabled="!tableData.length"
           @click="submit"
           >保存</a-button
         >
@@ -1183,15 +1184,57 @@
     params.forEach(item => {
       item.name = item.title
       item.vat = item.VAT
+      // 产品描述
+      const detailDescObj = item.skuList[0].attributes.find(attr => attr.id === 4191)
+      // SKU标题
+      const skuTitleObj = item.skuList[0].attributes.find(attr => attr.id === 4180)
       item.skuList.forEach(sku => {
+        if (detailDescObj) {
+          // 原先有描述
+          const target = sku.attributes.find(attr => attr.id === 4191)
+          target.values[0].value = item.detailDesc
+        } else {
+          // 无描述, 则插入一条数据
+          sku.attributes.push({
+            complexId: 0,
+            id: 4191,
+            values: [
+              {
+                dictionaryValueId: 0,
+                value: item.detailDesc
+              }
+            ]
+          })
+        }
+        // SKU标题
+        if (skuTitleObj) {
+          // 原先有描述
+          const target = sku.attributes.find(attr => attr.id === 4180)
+          target.values[0].value = sku.skuTitle
+        } else {
+          // 无描述, 则插入一条数据
+          sku.attributes.push({
+            complexId: 0,
+            id: 4180,
+            values: [
+              {
+                dictionaryValueId: 0,
+                value: sku.skuTitle
+              }
+            ]
+          })
+        }
+
         delete sku.cookedAttrNameList
         delete sku.cookedAttrValueList
         delete sku.attrName
+        delete sku.skuTitle
       })
 
       // 删除辅助的属性
       delete item.mainImage
       delete item.title
+      delete item.detailDesc
       delete item.VAT
       // 删除备份数据
       COPY_KEY_LIST.forEach(key => {
