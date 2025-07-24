@@ -169,9 +169,9 @@
             <a-tag color="success">{{ classify(record.classify) }}</a-tag>
           </template>
           <template v-else-if="key === 'meansKeepGrain'">
-            <a-tag v-for="tag in meansKeepGrainMap(record.meansKeepGrain)" :key="tag.key" color="processing">{{
-              tag.label
-              }}</a-tag>
+            <a-tag v-for="tag in meansKeepGrainMap(record.meansKeepGrain)" :key="tag.key" color="processing">
+              {{ tag.label }}
+            </a-tag>
           </template>
           <template v-else-if="key === 'phSelectionTime'">
             {{ record.selectionTime ? record.selectionTime : record.completeTime }}
@@ -190,14 +190,18 @@
             </div>
           </template>
           <template v-else-if="key === 'meansForbidAttribute'">
-            <a-tag type="success" v-for="(item, index) in meansForbidAttribute(record.meansForbidAttribute)"
-              :key="index" style="margin-right: 5px;">{{
-              getAttrName(item) }}</a-tag>
+            <a-tag 
+              type="success" v-for="(item, index) in meansForbidAttribute(record.meansForbidAttribute)" 
+              :key="index" 
+              style="margin-right: 5px;"
+            >
+              {{ getAttrName(item) }}
+            </a-tag>
           </template>
           <template v-else-if="key === 'meansForbidSite'">
-            <a-tag v-for="tag in meansForbidSiteSplit(record.meansForbidSite)" :key="tag" color="red">{{
-              tagMap(tag)
-              }}</a-tag>
+            <a-tag v-for="tag in meansForbidSiteSplit(record.meansForbidSite)" :key="tag" color="red">
+              {{ tagMap(tag) }}
+            </a-tag>
           </template>
           <template v-else-if="key === 'meansRemark'">
             <div
@@ -207,7 +211,7 @@
             </div>
           </template>
           <template v-else>
-            {{ record[key] }}
+            <span v-html="record[key]"></span>
           </template>
         </template>
       </a-table>
@@ -226,12 +230,8 @@
       </div>
     </div>
   </a-modal>
-  
-  <DetailModal ref="detailModalRef"></DetailModal>
-  <detailsModal 
-    ref="detailsModalRef"
-    :modal-data="detailsModalData"
-  />
+  <!-- 详情弹窗 -->
+  <detailsModal ref="detailsModalRef" @handleSelect="handleSelect"/>
 </div>
 </template>
 
@@ -240,22 +240,16 @@ import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { storeList } from '@/api/common/selectProduct';
 import { useSelectProduct } from './js/useSelectProduct';
 import { header } from './js/header';
-import detailModal from '../selectProduct/detail/detailModal.vue';
 import detailsModal from './detailsModal.vue';
 import _ from "lodash";
 import devAttributableMarketRevert from '~@/utils/devAttributableMarketRevert';
 import classifyRevert from '~@/utils/classifyRevert';
 import devProhibitPlatformRevert from '~@/utils/devProhibitPlatformRevert';
+import { camelCase, toLowerLine } from '~@/utils';
 defineOptions({ name: "productDatabase_index" })
 const { proxy: _this } = getCurrentInstance()
-const emit = defineEmits(['update:modalOpen', 'handleSelect']);
-const props = defineProps({
-  modalOpen: Boolean,
-  modalData: {
-    type: Object,
-    default: () => {}
-  }
-});
+const emit = defineEmits(['handleSelect']);
+const modalOpen = ref(false);
 const { 
   commodityTypeList, 
   storeStatus, 
@@ -265,28 +259,26 @@ const {
   meansKeepGrains,
   devAttributableMarketRevertSelect
 } = useSelectProduct();
-const modalOpen = ref(false);
 const { state: formData, reset } = useResetReactive({
-    classify: [],
-    meansForbidSite: undefined,
-    meansForbidAttribute: undefined,
-    preciseMeansKeepGrain: undefined,
-    devAttributableMarket: undefined,
-    skuCostsMin: "",
-    description: "",
-    skuWeightMin: "",
-    skuWeightMax: "",
-    meansAuditTime: [],    //审核时间
-    
-    tradeName: "",    //产品名称
-    developPerson: '',
-    accurateTradeName: '',
-    sku: '',
-    description: ''
-    //   "pageNum": 1,
-    //   "pageSize": 20,
-    //   "order": "ascending", // 倒正序，必须 descending/ascending
-    //   "prop": "create_time" // 排序列，必须
+  classify: [],                       // 分类
+  status: '',                         // 状态
+  meansForbidSite: undefined,         // 禁售站点
+  meansForbidAttribute: undefined,    // 禁售属性
+  preciseMeansKeepGrain: undefined,   // 仓储类型
+  devAttributableMarket: undefined,   // 市场方向
+  skuCostsMin: "",                    // 最小成本
+  skuCostsMax: '',                    // 最大成本
+  meansAuditTime: [],                 // 审核时间
+  // meansAuditTimeStart: '',            // 审核时间开始
+  // meansAuditTimeEnd: '',              // 审核时间结束
+  skuWeightMin: "",                   // 最小重量
+  skuWeightMax: "",                   // 最大重量
+  
+  tradeName: "",            // 产品名称
+  developPerson: '',        // 开发人员
+  accurateTradeName: '',    // 商品名称
+  sku: '',                  // sku
+  description: '',          // 描述
 })
 const tableData = reactive({
   data: [],
@@ -295,30 +287,18 @@ const tableData = reactive({
   params: {
     "pageNum": 1,
     "pageSize": 50,
-    "order": "ascending", // 倒正序，必须 descending/ascending
-    "prop": "create_time" // 排序列，必须
+    "order": "descending", // 倒正序，必须 descending/ascending
+    "prop": "complete_time" // 排序列，必须
   }
 })
 let copyFormData = {};   // 表单参数
-const detailsModalData = reactive({
-  id: '',
-  forbidSaleList,
-  cacheGetArr,
-})
-const detailModalEl = useTemplateRef('detailModalRef');
-watch(() => props.modalOpen, (val) => {
-  if (val) {
-    modalOpen.value = val
-    modalOpenFn()
-  }
-})
 watch(() => modalOpen.value, (val, oldVal) => {
   if (!val) {
-    emit('update:modalOpen', false);
     reset();
   }
 })
 function modalOpenFn() {
+  modalOpen.value = true
   onSubmit()
 }
 // 查询
@@ -334,8 +314,9 @@ function resetForm() {
 }
 function tableChange(pagination, filters, sorter, { action, currentDataSource }) {
   // console.log({ pagination, filters, sorter, action, currentDataSource });
+  let prop = sorter.columnKey ?? 'completeTime';
   tableData.params.order = (sorter.order ?? 'ascend') + 'ing'
-  tableData.params.prop = sorter.columnKey ?? 'create_time';
+  tableData.params.prop = toLowerLine(prop);
   paginationChange(1);
 }
 // 分页变化
@@ -353,6 +334,7 @@ async function getTableList() {
       ...copyFormData,
       // preciseMeansKeepGrain: false,
       classify: formData.classify?.join(",") ?? '',
+      // preciseMeansKeepGrain: Number(formData.preciseMeansKeepGrain),
       meansAuditTimeStart: meansAuditTimeStart,
       meansAuditTimeEnd: meansAuditTimeEnd,
       ...tableData.params
@@ -383,31 +365,27 @@ function customRow(row) {
     onDblclick: () => {
       // 双击时立即清除单击定时器
       clearTimeout(clickTimer);
-      rowDblclick(row);
+      // rowDblclick(row);
+      detailsModalOpen(row)
     }
   };
 }
 function rowClick(row) {
   // console.log('单机',row)
 }
-// 双击事件处理
-function rowDblclick(row) {
-  // console.log('双击行数据:', row);
-  // 这里可以执行打开弹窗等操作
-  detailModalEl.value.open(row);
-}
+// 打开详情弹窗
 function detailsModalOpen(row) {
   const detailsModalData = {
-    id: row.commodityId,
-    forbidSaleList: _.cloneDeep(forbidSaleList.value),
-    cacheGetArr: _.cloneDeep(cacheGetArr.value),
-    meansKeepGrains: _.cloneDeep(meansKeepGrains.value)
+    row,
+    forbidSaleList: forbidSaleList.value,
+    cacheGetArr: cacheGetArr.value,
+    meansKeepGrains: meansKeepGrains.value
   }
   _this.$refs.detailsModalRef.modalOpenFn(detailsModalData)
 }
 // 选中商品
 function handleSelect(row) {
-  emit('handleSelect', row)
+  emit('handleSelect', _.cloneDeep(row))
   reset()
   modalOpen.value = false;
 }
@@ -558,6 +536,10 @@ const tagMap = (code) => {
   return tasStatus[code] || '';
 };
 
+defineExpose({
+  modalOpenFn,
+})
+
 </script>
 <style lang="less" scoped>
 .formItem-row {
@@ -594,6 +576,9 @@ const tagMap = (code) => {
   //   justify-content: space-between;
   //   align-items: center;
   // }
+}
+:deep(.ant-tag) {
+  margin-bottom: 6px;
 }
 .pagination-box {
   display: flex; 

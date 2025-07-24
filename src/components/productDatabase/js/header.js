@@ -8,6 +8,7 @@ export const header = [
     sorter: false,
     show: true,
     width: 130,
+    fixed: 'left',
   },
   {
     title: "主图",
@@ -117,8 +118,8 @@ export const header = [
   {
     title: "审核时间",
     dataIndex: "meansAuditTime",
-    key: "means_audit_time",
-    sortField: "classify", // 排序字段
+    key: "meansAuditTime",
+    sortField: "meansAuditTime", // 排序字段
     align: "center",
     sorter: true,
     width: 180,

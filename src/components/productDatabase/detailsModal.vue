@@ -1,9 +1,14 @@
 <template>
   <div id="productDatabase_detailsModal" class="productDatabase_detailsModal">
-    <a-modal v-model:open="modalOpen" :style="{ top: '10px', padding: 0, height: '99vh' }"
-      :bodyStyle="{ height: 'calc(95vh - 100px)', 'overflow-y': 'auto' }" :title="'产品详情'" :maskClosable="false"
-      width="95%">
-      <div class="dialog-box">
+    <a-modal 
+      v-model:open="modalOpen" 
+      :style="{ top: '10px', padding: 0, height: '99vh' }"
+      :bodyStyle="{ height: 'calc(95vh - 100px)', 'overflow-y': 'auto' }" 
+      :title="'产品详情'" 
+      :maskClosable="false"
+      width="95%"
+    >
+      <a-spin :spinning="loading" class="dialog-box">
         <a-descriptions title="基本信息">
           <a-descriptions-item label="产品名称">
             <div v-html="detailData.data.tradeName"></div>
@@ -33,18 +38,18 @@
         <a-divider></a-divider>
 
         <!-- <a-descriptions title="参考链接">
-          <a-descriptions-item label="开发参考链接">
-            <a v-for="(item, index) in detailData.data.devConsultLink" :key="index" target="_blank" :href="item"
-              style="width:100%">{{ item }}</a>
-          </a-descriptions-item>
-          <a-descriptions-item label="供应商链接" v-if="vdata == '1' || roleName == 'admin'">
-            <a v-for="(item, index) in detailData.data.devSupplierUrl" :key="index" target="_blank" :href="item"
-              style="width:100%;">
-              {{ item }}
-            </a>
-          </a-descriptions-item>
-        </a-descriptions>
-        <a-divider></a-divider> -->
+      <a-descriptions-item label="开发参考链接">
+        <a v-for="(item, index) in detailData.data.devConsultLink" :key="index" target="_blank" :href="item"
+          style="width:100%">{{ item }}</a>
+      </a-descriptions-item>
+      <a-descriptions-item label="供应商链接" v-if="vdata == '1' || roleName == 'admin'">
+        <a v-for="(item, index) in detailData.data.devSupplierUrl" :key="index" target="_blank" :href="item"
+          style="width:100%;">
+          {{ item }}
+        </a>
+      </a-descriptions-item>
+    </a-descriptions>
+    <a-divider></a-divider> -->
 
         <a-descriptions title="文案信息">
           <a-descriptions-item label="供应商" v-if="vdata == '1' || roleName == 'admin'">
@@ -105,37 +110,190 @@
             <a-table :columns="columns" :dataSource="detailData.data.sku" :bordered="true"
               :rowKey="record => record.skuNumber" :pagination="false">
               <template #bodyCell="{ column, record }">
-                <template v-if="column.dataIndex === 'attr'">
-                  {{ record.detail.attr }}
-                </template>
-                <template v-if="column.dataIndex === 'productNo'">
-                  {{ record.detail.productNo }}
-                </template>
-                <template v-if="column.dataIndex === 'describe'">
-                  {{ record.detail.describe }}
-                </template>
-                <template v-if="column.dataIndex === 'cost'">
-                  {{ record.detail.cost }}
-                </template>
-                <template v-if="column.dataIndex === 'weight'">
-                  {{ record.detail.weight }}
-                </template>
-                <template v-if="column.dataIndex === 'sellCount'">
-                  {{ record.detail.sellCount }}
-                </template>
+                <!-- <template v-if="column.dataIndex === 'attr'">
+              {{ record.detail.attr }}
+            </template>
+            <template v-if="column.dataIndex === 'productNo'">
+              {{ record.detail.productNo }}
+            </template>
+            <template v-if="column.dataIndex === 'describe'">
+              {{ record.detail.describe }}
+            </template>
+            <template v-if="column.dataIndex === 'cost'">
+              {{ record.detail.cost }}
+            </template>
+            <template v-if="column.dataIndex === 'weight'">
+              {{ record.detail.weight }}
+            </template>
+            <template v-if="column.dataIndex === 'sellCount'">
+              {{ record.detail.sellCount }}
+            </template> -->
 
                 <template v-if="column.dataIndex === 'remarks'">
-                  <a-select v-model:value="record.detail.remarks" placeholder="" mode="multiple" disabled
-                    style="width: 200px;" :options="remarksList"></a-select>
+                  <a-select v-model:value="record.remarks" placeholder="" mode="multiple" disabled style="width: 200px;"
+                    :options="remarksList"></a-select>
                 </template>
               </template>
             </a-table>
           </a-descriptions-item>
         </a-descriptions>
         <a-divider></a-divider>
-      </div>
+        <!-- SKU图 -->
+        <a-card class="box-card">
+          <template #title>
+            <span>SKU图</span>
+          </template>
+          <a-empty description="没有SKU图"
+            v-if="!(detailData.data.artSkuImage && detailData.data.artSkuImage.length > 0)" />
+          <a-row v-else style="display: flex; justify-content: flex-start; align-items: center; flex-wrap: wrap;">
+            <div v-for="(item, index) in images(detailData.data.artSkuImage)" :key="index" style="margin-right: 6px;">
+              <a-col :span="3">
+                <a-card :bodyStyle="{ padding: '0px' }" style="width: 200px; margin-bottom: 10px">
+                  <a-image :src="item.url" :preview="true" />
+                  <div class="bottom clearfix"
+                    :style="item.name.includes('美工处理') ? 'background-image: linear-gradient(267deg, #ffffff, #3ad6ff80); font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; width: 100%;' : 'font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; background-image: linear-gradient(60deg, #ffffff, #FFB03A); width: 100%'">
+                    {{ item.name.length > 15 ? item.name.substring(0, 15) + "..." : item.name }}
+                  </div>
+                </a-card>
+              </a-col>
+            </div>
+          </a-row>
+        </a-card>
+        <br />
+        <!-- 开发图片/视频 -->
+        <a-descriptions title="开发图片/视频" :colon="false">
+          <a-descriptions-item>
+            <a-card shadow="never" style="width: 100%; min-height: 200px">
+              <a-empty description="没有开发图片/视频"
+                v-if="!(detailData.data.devDrawing && detailData.data.devDrawing.length > 0)" />
+              <a-row v-else>
+                <a-col :span="24"
+                  style="display: flex; justify-content: flex-start; align-items: center; flex-wrap: wrap;">
+                  <div v-for="(item, index) in images(detailData.data.devDrawing)" :key="index"
+                    style="margin-right: 6px;">
+                    <a-card :bodyStyle="{ padding: '0px' }" style="width: 200px; margin-bottom: 10px">
+                      <a-image :src="item.url" :preview="true" />
+                      <div class="bottom clearfix" style="font-size: 13px; text-align: center; padding: 7px 0;">
+                        {{ item.name.length > 15 ? item.name.substring(0, 15) + "..." : item.name }}
+                      </div>
+                    </a-card>
+                  </div>
+                </a-col>
+              </a-row>
+            </a-card>
+          </a-descriptions-item>
+        </a-descriptions>
+        <!-- 主图 -->
+        <a-card class="box-card">
+          <template #title>
+            <span>主图</span>
+          </template>
+          <a-empty description="没有主图" v-if="!(detailData.data.artMainImage && detailData.data.artMainImage.length > 0)"/>
+          <a-row v-else>
+            <a-col :span="24" style="display: flex; justify-content: flex-start; align-items: center; flex-wrap: wrap;">
+              <div v-for="(item, index) in images(detailData.data.artMainImage)" :key="index"
+                style="margin-right: 6px;">
+                <a-card :bodyStyle="{ padding: '0px' }" style="width: 200px; margin-bottom: 10px">
+                  <a-image :src="item.url" :preview="true" />
+                  <div class="bottom clearfix"
+                    :style="item.name.includes('美工处理') ? 'background-image: linear-gradient(267deg, #ffffff, #3ad6ff80); font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; width: 100%;' : 'font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; background-image: linear-gradient(60deg, #ffffff, #FFB03A); width: 100%'">
+                    {{ item.name.length > 15 ? item.name.substring(0, 15) + "..." : item.name }}
+                  </div>
+                </a-card>
+              </div>
+            </a-col>
+          </a-row>
+        </a-card>
+        <br />
+        <!-- 副图 -->
+        <a-card class="box-card">
+          <template #title>
+            <span>副图</span>
+          </template>
+          <a-empty description="没有副图" v-if="!(detailData.data.artAssistantImage && detailData.data.artAssistantImage.length > 0)" />
+          <a-row v-else style="display: flex; justify-content: flex-start; align-items: center; flex-wrap: wrap;">
+            <div v-for="(item, index) in images(detailData.data.artAssistantImage)" :key="index"
+              style="margin-right: 6px;">
+              <a-col :span="3">
+                <a-card :bodyStyle="{ padding: '0px' }" style="width: 200px; margin-bottom: 10px">
+                  <a-image :src="item.url" :preview="true" />
+                  <div class="bottom clearfix"
+                    :style="item.name.includes('美工处理') ? 'background-image: linear-gradient(267deg, #ffffff, #3ad6ff80); font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; width: 100%;' : 'font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; background-image: linear-gradient(60deg, #ffffff, #FFB03A); width: 100%'">
+                    {{ item.name.length > 15 ? item.name.substring(0, 15) + "..." : item.name }}
+                  </div>
+                </a-card>
+              </a-col>
+            </div>
+          </a-row>
+        </a-card>
+        <br />
+        <!-- Amazon图 -->
+        <a-card class="box-card">
+          <template #title>
+            <span>Amazon图</span>
+          </template>
+          <a-empty description="没有Amazon图" v-if="!(Array.isArray(detailData.data.artAmazonImage) && detailData.data.artAmazonImage.length > 0)"/>
+          <a-row v-else style="display: flex; justify-content: flex-start; align-items: center; flex-wrap: wrap;">
+            <div v-for="(item, index) in images(detailData.data.artAmazonImage)" :key="index"
+              style="margin-right: 6px;">
+              <a-col :span="3">
+                <a-card :bodyStyle="{ padding: '0px' }" style="width: 200px; margin-bottom: 10px">
+                  <a-image :src="item.url" :preview="true" />
+                  <div class="bottom clearfix"
+                    :style="item.name.includes('美工处理') ? 'background-image: linear-gradient(267deg, #ffffff, #3ad6ff80); font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; width: 100%;' : 'font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; background-image: linear-gradient(60deg, #ffffff, #FFB03A); width: 100%'">
+                    {{ item.name.length > 15 ? item.name.substring(0, 15) + "..." : item.name }}
+                  </div>
+                </a-card>
+              </a-col>
+            </div>
+          </a-row>
+        </a-card>
+        <br />
+        <!-- Shein图 -->
+        <a-card class="box-card">
+          <template #title>
+            <span>Shein图</span>
+          </template>
+          <a-empty description="没有Shein图" v-if="!(Array.isArray(detailData.data.artNewImage) && detailData.data.artNewImage.length > 0)" />
+          <a-row v-else style="display: flex; justify-content: flex-start; align-items: center; flex-wrap: wrap;">
+            <div v-for="(item, index) in images(detailData.data.artNewImage)" :key="index" style="margin-right: 6px;">
+              <a-col :span="3">
+                <a-card :bodyStyle="{ padding: '0px' }" style="width: 200px; margin-bottom: 10px">
+                  <a-image :src="item.url" :preview="true" />
+                  <div class="bottom clearfix"
+                    :style="item.name.includes('美工处理') ? 'background-image: linear-gradient(267deg, #ffffff, #3ad6ff80); font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; width: 100%;' : 'font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; background-image: linear-gradient(60deg, #ffffff, #FFB03A); width: 100%'">
+                    {{ item.name.length > 15 ? item.name.substring(0, 15) + "..." : item.name }}
+                  </div>
+                </a-card>
+              </a-col>
+            </div>
+          </a-row>
+        </a-card>
+        <br />
+        <!-- 视频 -->
+        <a-card class="box-card">
+          <template #title>
+            <span>视频</span>
+          </template>
+          <a-empty description="没有视频" v-if="!(Array.isArray(detailData.data.artVideo) && detailData.data.artVideo.length > 0)"/>
+          <a-row v-else style="display: flex; justify-content: flex-start; align-items: center; flex-wrap: wrap;">
+            <div v-for="(item, index) in detailData.data.artVideo" :key="index" style="margin-right: 6px;">
+              <a-col :span="3">
+                <a-card :bodyStyle="{ padding: '0px' }" style="width: 200px; margin-bottom: 10px">
+                  <video :src="detailData.data.artVideo[0].url" style="width: 200px; height: 200px" controls></video>
+                  <div class="bottom clearfix" style="font-size: 13px; text-align: center; padding: 7px 0;">
+                    {{ item.name.length > 15 ? item.name.substring(0, 15) + "..." : item.name }}
+                  </div>
+                </a-card>
+              </a-col>
+            </div>
+          </a-row>
+        </a-card>
+        <br/>
+      </a-spin>
       <template #footer>
-        <a-button key="back" type="primary" @click="closeModalFn">关闭</a-button>
+        <a-button key="back" type="primary" @click="handleSelect">选中</a-button>
+        <a-button key="back" @click="closeModalFn">关闭</a-button>
       </template>
     </a-modal>
   </div>
@@ -153,15 +311,12 @@ import { productAttr, meansKeepGrains } from '@/utils/devStatusSelect'
 import sheepProhibitionSelect from "@/utils/sheepProhibitionSelect";
 defineOptions({ name: "productDatabase_detailsModal" })
 const { proxy: _this } = getCurrentInstance()
-const props = defineProps({
-  modalData: {
-    type: Object,
-    default: () => {}
-  }
-});
+const emits = defineEmits(['handleSelect'])
 const modalOpen = ref(false);
+const loading = ref(false);
 const detailData = reactive({
-  data: [],
+  row: null,
+  data: {},
   forbidSaleList: [],
   cacheGetArr: [],
   productAttrOptions: productAttr,
@@ -236,6 +391,18 @@ const remarksList = [
   {
     label: '泰国仓',
     value: '3'
+  },
+  {
+    label: '南宁仓',
+    value: '7'
+  },
+  {
+    label: '菲律宾一仓',
+    value: '8'
+  },
+  {
+    label: '菲律宾二仓',
+    value: '9'
   }
 ];
 
@@ -252,29 +419,32 @@ const roleName = computed(() => {
 const sale = computed(() => {
   return userStore.userInfo.sysUser.roles[0].sale;
 });
-async function modalOpenFn({ id, forbidSaleList, cacheGetArr }) {
+async function modalOpenFn({ row, forbidSaleList, cacheGetArr }) {
   detailData.cacheGetArr = cacheGetArr;
-  detailData.forbidSaleList = forbidSaleList
+  detailData.forbidSaleList = forbidSaleList;
+  detailData.row = row
+  modalOpen.value = !modalOpen.value;
+  loading.value = true
   try {
-    let res = await storeDetail({ id });
-    const data = res.data ?? {}
+    let res = await storeDetail({ id: row.commodityId });
+    // console.log(JSON.parse(JSON.stringify(res)));
+    const data = res.data ?? {};
     //赋值最开始的英文描述
     detailData.oldMeansEnglishDescription = data.meansEnglishDescription;
-    let sku = [];
     data.sku.forEach(v => {
-      v.detail = v.detail || '{}'
+      v.detail = v.detail || '{}';
       v.detail = JSON.parse(v.detail.replaceAll("'", '"'));
-      sku.push(v);
+      v.remarks = v.remarks ? v.remarks : '[]';
+      v.remarks = JSON.parse(v.remarks);
     });
-    sku.forEach(v => {
-      if (v.detail.remarks == null || v.detail.remarks == undefined || v.detail.remarks == '') {
-        v.remarks = [];
-      }
-      else {
-        v.detail.remarks = v.detail.remarks.toString().split(',');
-      }
-    });
-    data.sku = sku;
+
+    data.artAmazonImage = [
+      ...JSON.parse((data.artAmazonImage || '[]')),
+      ...JSON.parse((data.artAmazonDetailImage || '[]')),
+      ...JSON.parse((data.artAmazonSkuImage || '[]')),
+      ...JSON.parse((data.artSkuWhiteImage || '[]')),
+      ...JSON.parse((data.artSkuSceneImage || '[]')),
+    ];
 
     if (data.devDrawing !== '' && data.devDrawing !== null) {
       data.devDrawing = JSON.parse(data.devDrawing);
@@ -352,125 +522,149 @@ async function modalOpenFn({ id, forbidSaleList, cacheGetArr }) {
       }
       data.meansEnglishDescription = data.meansEnglishDescription.replaceAll("<span <span style=\"color: red;font-size: 18px;font-weight: bolder\">style</span>=\"color: red;font-size: 18px;font-weight: bolder\">", "<span style=\"color: red;font-size: 18px;font-weight: bolder\">");
     }
-    detailData.data = data
+    detailData.data = data;
   } catch (error) {
-    console.error(error)
+    console.error(error);
   }
+  loading.value = false
   // console.log({ id, forbidSaleList, cacheGetArr, res });
-  modalOpen.value = !modalOpen.value
+}
+function handleSelect() {
+  emits('handleSelect', detailData.row)
+  closeModalFn()
 }
 function closeModalFn() {
-  modalOpen.value = false
+  modalOpen.value = false;
 }
 function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
 };
 
 function classify() {
   if (detailData.data.classify != null && detailData.data.classify !== '' && detailData.data.classify !== undefined) {
-        return classifyRevert(detailData.data.classify.split(","))
-    }
+    return classifyRevert(detailData.data.classify.split(","));
+  }
 };
 function devAttributableMarket() {
   if (detailData.data.devAttributableMarket != null && detailData.data.devAttributableMarket !== '' && detailData.data.devAttributableMarket !== undefined) {
-        return devAttributableMarketRevert(detailData.data.devAttributableMarket.split(","))
-    }
+    return devAttributableMarketRevert(detailData.data.devAttributableMarket.split(","));
+  }
 };
 function stockAreaTag() {
-  return devStockAreaTag(detailData.data.devStockArea)
+  return devStockAreaTag(detailData.data.devStockArea);
 };
 function devProhibitPlatform() {
   if (detailData.data.devProhibitPlatform != null && detailData.data.devProhibitPlatform !== '' && detailData.data.devProhibitPlatform !== undefined) {
-        return devProhibitPlatformRevert(detailData.data.devProhibitPlatform.split(','))
-    }
+    return devProhibitPlatformRevert(detailData.data.devProhibitPlatform.split(','));
+  }
 };
 function getAttrName1(val) {
-    let Aname1
-    if (detailData.productAttrOptions.length > 0) {
-      detailData.productAttrOptions.forEach(item => {
-            if (item.value == val) {
-                Aname1 = item.label
-            }
-        });
-    };
-    return Aname1
+  let Aname1;
+  if (detailData.productAttrOptions.length > 0) {
+    detailData.productAttrOptions.forEach(item => {
+      if (item.value == val) {
+        Aname1 = item.label;
+      }
+    });
+  };
+  return Aname1;
 };
 
 function getAttrName2(val) {
-    let Aname1
-    if (detailData.meansKeepGrainOptions.length > 0) {
-      detailData.meansKeepGrainOptions.forEach(item => {
-            if (item.value == val) {
-                Aname1 = item.label
-            }
-        })
-    };
-    return Aname1
+  let Aname1;
+  if (detailData.meansKeepGrainOptions.length > 0) {
+    detailData.meansKeepGrainOptions.forEach(item => {
+      if (item.value == val) {
+        Aname1 = item.label;
+      }
+    });
+  };
+  return Aname1;
 };
 function getAttrName3(key) {
-    let Aname1
-    let Aname2
-    if (detailData.forbidSaleList.length > 0) {
-        Aname1 = detailData.forbidSaleList.find(item => {
-            return item.key == key
-        })
-        if (Aname1) {
-            Aname2 = Aname1.attributes
+  let Aname1;
+  let Aname2;
+  if (detailData.forbidSaleList.length > 0) {
+    Aname1 = detailData.forbidSaleList.find(item => {
+      return item.key == key;
+    });
+    if (Aname1) {
+      Aname2 = Aname1.attributes;
 
-        } else {
-            Aname2 = ''
-        }
+    } else {
+      Aname2 = '';
+    }
 
-    };
-    return Aname2
+  };
+  return Aname2;
 };
 function getAttrName4(val) {
-    let Aname1;
-    if (detailData.forbidSiteOptions.length > 0) {
-      detailData.forbidSiteOptions.forEach(item => {
-            if (item.value == val) {
-                Aname1 = item.label
-            }
-        })
-    }
-    return Aname1
+  let Aname1;
+  if (detailData.forbidSiteOptions.length > 0) {
+    detailData.forbidSiteOptions.forEach(item => {
+      if (item.value == val) {
+        Aname1 = item.label;
+      }
+    });
+  }
+  return Aname1;
 };
 function skuList(e) {
-    let str = ''
-    if (e == '' || e == null) {
-        e = ''
-    }
-    let spanD = e.split(',');
-    let oldSku = e.split(','); //原始错乱sku
-    let b = [] //去除所有带标签的
-    oldSku.map(item => {
-        b.push(item.replace(/<[^>]+>/g, ''))
-    })
-    let newSku = b.sort(); //排序 正确的sku
-    if (newSku.length == 0) {
-        str = ''
-    } else if (newSku.length == 1) {
-        str = spanD[0]
-    } else if (newSku.length > 1) {
-        spanD.forEach(v => {
-            if (v.includes(newSku[0])) {
-                newSku[0] = v
-            }
-            if (v.includes(newSku[newSku.length - 1])) {
-                newSku[newSku.length - 1] = v
-            }
-        })
-        str = `${newSku[0]} - ${newSku[newSku.length - 1]}`
-    }
-    return str
+  let str = '';
+  if (e == '' || e == null) {
+    e = '';
+  }
+  let spanD = e.split(',');
+  let oldSku = e.split(','); //原始错乱sku
+  let b = []; //去除所有带标签的
+  oldSku.map(item => {
+    b.push(item.replace(/<[^>]+>/g, ''));
+  });
+  let newSku = b.sort(); //排序 正确的sku
+  if (newSku.length == 0) {
+    str = '';
+  } else if (newSku.length == 1) {
+    str = spanD[0];
+  } else if (newSku.length > 1) {
+    spanD.forEach(v => {
+      if (v.includes(newSku[0])) {
+        newSku[0] = v;
+      }
+      if (v.includes(newSku[newSku.length - 1])) {
+        newSku[newSku.length - 1] = v;
+      }
+    });
+    str = `${newSku[0]} - ${newSku[newSku.length - 1]}`;
+  }
+  return str;
 };
-
-
+function images(images, images2) {
+  const urls = [];
+  if (images != null && images != '') {
+    let a = Array.isArray(images) ? images : JSON.parse(images);
+    a.forEach(v => {
+      urls.push(v);
+    });
+  }
+  if (images2 != null && images2 != '') {
+    let a = Array.isArray(images) ? images : JSON.parse(images2);
+    a.forEach(v => {
+      urls.push(v);
+    });
+  }
+  return urls;
+};
 
 defineExpose({
   modalOpenFn
 })
 </script>
 <style lang="less" scoped>
-
+:deep(.ant-image-img) {
+  width: 198px;
+  height: 198px;
+}
+:deep(.ant-tag) {
+  margin-bottom: 6px;
+}
 </style>
