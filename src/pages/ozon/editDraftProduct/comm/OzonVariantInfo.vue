@@ -332,6 +332,8 @@
         <!-- 选择自定义属性  -->
         <SelectAttr @selectAttrList="selectAttrList" :attrVisible="attrVisible" :custAttr="custAttr"
             :newAttribute="newAttribute" @handleStatsModalClose="attrVisible = false"></SelectAttr>
+        <!-- 批量设置变种属性 -->
+        <batchSetColor :setValueVis="setValueVis" @closeColorModal="setValueVis = false" @confirm="confirm" :setColorOption="setColorOption" @handleCancel="handleColorCancel"></batchSetColor>
         <!-- 批量编辑图片 -->
         <bacthSkuEditImg ref="bacthSkuEditImgRef"></bacthSkuEditImg>
         <!-- 图片翻译弹窗 -->
@@ -366,7 +368,8 @@ import download from '~@/api/common/download';
 
 import SkuDragUpload from "@/pages/ozon/config/component/skuDragImg/index.vue";
 import bacthSkuEditImg from "@/pages/ozon/config/component/skuDragImg/bacthSkuEditImg.vue";
-import ImageTranslation from "@/pages/ozon/config/component/skuDragImg/imageTranslation.vue";
+  import ImageTranslation from "@/pages/ozon/config/component/skuDragImg/imageTranslation.vue";
+import batchSetColor from "../../editWaitProduct/comm/batchSetColor.vue"
 
 const props = defineProps({
     categoryAttributesLoading: Boolean,
@@ -405,7 +408,9 @@ const types = ref("")
 const editStockList = ref([])
 const attrVisible = ref(false)
 const newAttribute = ref([]);
-const setColorOption = ref([]);
+  const setColorOption = ref([]);
+  const setValueVis = ref(false); //批量设置属性
+const colorRow = ref({});
 const custAttr = ref([]) //可控制属性
 const plainOptions = [
     {
@@ -1181,7 +1186,7 @@ const clearAllImages = () => {
     })
 };
 const skuThemeNames = (item) => {
-    const tableColumns = attributeList.value[0].tableColumns;
+    const tableColumns = attributeList.value[0]?.tableColumns || [];
     const themeNames = tableColumns.map((column) => {
         return column.title
     }).filter((nameItem) => nameItem !== '操作')

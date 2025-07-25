@@ -410,13 +410,19 @@ const handleNetImageSubmit = (img) => {
     })
 };
 
-watch(() => fileList.value, (newVal) => {
-    if (newVal.length > getProps.value.maxCount) {
-        const overCount = newVal.length - getProps.value.maxCount;
-        fileList.value = newVal.slice(0, getProps.value.maxCount);
+// 首次进入时, 如果图片数量大于限定数, 会报一堆提示; 用 isFirst 给绕过首次判定
+let isFirst = true
+  watch(() => fileList.value.length, (len) => {
+    if (len > getProps.value.maxCount) {
+        const overCount = len - getProps.value.maxCount;
+        fileList.value = fileList.value.slice(0, getProps.value.maxCount);
+          if (isFirst) {
+            isFirst = false
+            return
+          }
         message.warning(`最多上传 ${getProps.value.maxCount} 张，已自动移除最后 ${overCount} 张`);
     }
-}, { deep: true })
+  }, {immediate: true})
 </script>
 
 <style scoped lang="less">

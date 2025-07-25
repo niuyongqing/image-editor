@@ -622,7 +622,7 @@ const onSubmit = async (type) => {
 
         customCategoryId: erpInfo.currentClass,
         sourceUrlList: erpInfo.sourceUrlList.map((item) => item.sourceUrl)
-    };
+  };
 
     loading.value = true;
     if (type === 1) {   //  保存并移入待发布

@@ -207,7 +207,6 @@
 
   /** 添加图片 */
   function imgAddMenuClick({ key }) {
-    console.log(key)
     switch (key) {
       case 'imgBank':
         pictureLibraryOpen.value = true
@@ -236,7 +235,7 @@
       if (res.code === 200) {
         const imgInfo = {
           id: uuidv4(),
-          url: res.url
+          url: import.meta.env.VITE_APP_BASE_API + res.url
         }
         await getImgSize(imgInfo)
         variantImages.value.push(imgInfo)

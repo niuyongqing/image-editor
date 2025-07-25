@@ -215,9 +215,8 @@
         <template v-if="column.title === '图片'">
           <a-image
             :width="80"
-            :height="80"
             :src="record.mainImage"
-            class="rounded-md"
+            class="rounded-md max-h-30"
           />
           <a-button
             v-if="record.sourceUrlList && record.sourceUrlList[0]"

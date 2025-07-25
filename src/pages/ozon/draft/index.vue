@@ -207,7 +207,7 @@
                   <a-image
                     :src="primaryImage(record.primaryImage)"
                     :width="100"
-                    :height="100"
+                    class="max-h-[150px]"
                   />
                   <br />
                   <a-button
@@ -962,7 +962,6 @@
         break
       case 3:
         batchWatermarkEl.value.open(selectedRowList.value)
-        console.log('批量加水印')
         break
       case 4:
         Modal.confirm({
