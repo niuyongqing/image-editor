@@ -334,6 +334,16 @@ export function titleCase(str) {
 export function camelCase(str) {
   return str.replace(/_[a-z]/g, str1 => str1.substr(-1).toUpperCase())
 }
+// 驼峰切换为下划线
+export function toLowerLine(str) {
+  var temp = str.replace(/[A-Z]/g, function (match) {
+    return "_" + match.toLowerCase();
+  });
+  if(temp.slice(0,1) === '_'){ //如果首字母是大写，执行replace时会多一个_，这里需要去掉
+    temp = temp.slice(1);
+  }
+  return temp;
+}
 
 export function isNumberStr(str) {
   return /^[+-]?(0|([1-9]\d*))(\.\d+)?$/g.test(str)
