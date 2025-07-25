@@ -1,13 +1,8 @@
 <template>
   <div id="productDatabase_detailsModal" class="productDatabase_detailsModal">
-    <a-modal 
-      v-model:open="modalOpen" 
-      :style="{ top: '10px', padding: 0, height: '99vh' }"
-      :bodyStyle="{ height: 'calc(95vh - 100px)', 'overflow-y': 'auto' }" 
-      :title="'产品详情'" 
-      :maskClosable="false"
-      width="95%"
-    >
+    <a-modal v-model:open="modalOpen" :style="{ top: '10px', padding: 0, height: '99vh' }"
+      :bodyStyle="{ height: 'calc(95vh - 100px)', 'overflow-y': 'auto' }" :title="'产品详情'" :maskClosable="false"
+      width="95%">
       <a-spin :spinning="loading" class="dialog-box">
         <a-descriptions title="基本信息">
           <a-descriptions-item label="产品名称">
@@ -37,19 +32,21 @@
         </a-descriptions>
         <a-divider></a-divider>
 
-        <!-- <a-descriptions title="参考链接">
-      <a-descriptions-item label="开发参考链接">
-        <a v-for="(item, index) in detailData.data.devConsultLink" :key="index" target="_blank" :href="item"
-          style="width:100%">{{ item }}</a>
-      </a-descriptions-item>
-      <a-descriptions-item label="供应商链接" v-if="vdata == '1' || roleName == 'admin'">
-        <a v-for="(item, index) in detailData.data.devSupplierUrl" :key="index" target="_blank" :href="item"
-          style="width:100%;">
-          {{ item }}
-        </a>
-      </a-descriptions-item>
-    </a-descriptions>
-    <a-divider></a-divider> -->
+        <a-descriptions title="参考链接" class="devConsultLink">
+          <a-descriptions-item label="开发参考链接">
+            <div v-for="(item, index) in detailData.data.devConsultLink" :key="index">
+              <span style="font-weight: 700; margin-right: 8px;">{{ index + 1 }}.</span>
+              <a target="_blank" :href="item">{{ item }}</a>
+            </div>
+          </a-descriptions-item>
+          <a-descriptions-item label="供应商链接" v-if="vdata == '1' || roleName == 'admin'">
+            <div v-for="(item, index) in detailData.data.devSupplierUrl" :key="index">
+              <span style="font-weight: 700; margin-right: 8px;">{{ index + 1 }}.</span>
+              <a target="_blank" :href="item">{{ item }}</a>
+            </div>
+          </a-descriptions-item>
+        </a-descriptions>
+        <a-divider></a-divider>
 
         <a-descriptions title="文案信息">
           <a-descriptions-item label="供应商" v-if="vdata == '1' || roleName == 'admin'">
@@ -84,15 +81,15 @@
         </a-descriptions>
         <a-divider></a-divider>
 
-        <a-descriptions title="产品描述">
+        <a-descriptions title="产品描述" class="meansChineseDescription">
           <a-descriptions-item label="中文产品描述">
             {{ detailData.data.meansChineseDescription }}
           </a-descriptions-item>
-          <a-descriptions-item>
-            <template #label>
+          <a-descriptions-item label="英文产品描述">
+            <!-- <template #label>
               <div>英文产品描述</div>
-              <!-- <div><a-button type="link" @click="copyMeansEnglishDescription">复制</a-button></div> -->
-            </template>
+              <div><a-button type="link" @click="copyMeansEnglishDescription">复制</a-button></div>
+            </template> -->
             <pre v-html="detailData.data.meansEnglishDescription" style="font-family: none; color: #606266"></pre>
           </a-descriptions-item>
         </a-descriptions>
@@ -289,7 +286,7 @@
             </div>
           </a-row>
         </a-card>
-        <br/>
+        <br />
       </a-spin>
       <template #footer>
         <a-button key="back" type="primary" @click="handleSelect">选中</a-button>
@@ -666,5 +663,31 @@ defineExpose({
 }
 :deep(.ant-tag) {
   margin-bottom: 6px;
+}
+:deep(.ant-spin-nested-loading) {
+  width: 100%;
+}
+:deep(.ant-descriptions) {
+  width: 100%;
+  &.devConsultLink {
+    .ant-descriptions-item-content {
+      flex-direction: column;
+      a {
+        width: 100%;
+      }
+    }
+  }
+  &.meansChineseDescription {
+    .ant-descriptions-item-label {
+      white-space: nowrap;
+    }
+    .ant-descriptions-item-content {
+      max-width: calc(100% - 100px);
+      .pre {
+        word-wrap:break-word; 
+        word-break:break-all;
+      }
+    }
+  }
 }
 </style>

@@ -42,6 +42,8 @@
               :options="forbidSaleList" 
               placeholder="禁售属性" 
               v-model:value="formData.meansForbidAttribute"
+              show-search
+              :filter-option="meansForbidAttributeFilterOption"
               :field-names="{ label: 'attributes', value: 'key' }" 
               allowClear
             ></a-select>
@@ -114,12 +116,13 @@
       <a-table 
         :columns="header" 
         :data-source="tableData.data" 
-        :scroll="{ y: 'calc(80vh - 120px)', x: '3200px', scrollToFirstRowOnChange: true }"
+        :scroll="{ y: 'calc(80vh - 120px)', x: '3200px' }"
         :pagination="false"
         :customRow="customRow" 
         rowKey="commodityId"
         @change="tableChange"
         :loading="tableData.loading"
+        class="productDatabase-table"
       >
         <template #bodyCell="{ column: {key}, record }">
           <template v-if="key === 'action'">
@@ -292,6 +295,7 @@ const tableData = reactive({
   }
 })
 let copyFormData = {};   // 表单参数
+let antTableBody = null   // 表格滚动区域
 watch(() => modalOpen.value, (val, oldVal) => {
   if (!val) {
     reset();
@@ -299,7 +303,15 @@ watch(() => modalOpen.value, (val, oldVal) => {
 })
 function modalOpenFn() {
   modalOpen.value = true
-  onSubmit()
+  nextTick(() => {
+    onSubmit()
+    let productDatabaseTable = document.querySelector('.productDatabase-table')
+    antTableBody = productDatabaseTable.querySelector('.ant-table-body')
+  })
+}
+function meansForbidAttributeFilterOption(val, option) {
+  // console.log({val, option});
+  return option.attributes.includes(val)
 }
 // 查询
 async function onSubmit() {
@@ -345,6 +357,8 @@ async function getTableList() {
     tableData.data = res.rows ?? []
     tableData.total = res.total
     // console.log({res});
+    // 滚动条回到顶部
+    antTableBody.scrollTop = 0
   } catch (error) {
     console.error(error)
   }
@@ -579,6 +593,7 @@ defineExpose({
 }
 :deep(.ant-tag) {
   margin-bottom: 6px;
+  display: inline-block;
 }
 .pagination-box {
   display: flex; 
