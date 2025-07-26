@@ -9,45 +9,75 @@
       width="95%"
     >
       <div class="dialog-box">
-        <a-card class="mt-2.5" :loading="loading">
-          <a-form ref="ruleForm" :model="formData" class="form-padding">
-            <a-form-item label="店铺账号：">
-              <selectComm style="margin-left: 10px" :options="shopAccount" :fieldObj="shopObj"
-                @backSelectAll="selectItem" @backSelectItem="selectItem"></selectComm>
-            </a-form-item>
-            <a-form-item label="搜索类型:">
-              <div class="fBox flex align-start ml-2.5">
-                <a-button @click="selectTypes(item.prop)" class="mr-2.5"
-                  :type="item.prop === searchType.actives ? 'primary' : ''" v-for="(item, index) in searchType.options"
-                  :key="index">{{ item.label }}</a-button>
-              </div>
-            </a-form-item>
-            <a-form-item label="搜索内容：">
-              <div class="searchs flex">
-                <div class="searchInputs flex align-start ml-2.5">
-                  <a-input v-if="searchType.actives == 1" style="width: 400px" v-model:value="formData.name"
-                    placeholder="请输入标题查询" allowClear @clear="onSubmit"></a-input>
-                  <a-input v-if="searchType.actives == 2" style="width: 400px" v-model:value="formData.sku" allowClear
-                    @clear="onSubmit" placeholder="请输入SKU查询,多个SKU间用逗号隔开，最多支持200个"></a-input>
-                  <a-input v-if="searchType.actives == 3" style="width: 400px" allowClear v-model:value="formData.id"
-                    @clear="onSubmit" placeholder="请输入产品ID查询,多个ID间用逗号隔开，最多支持200个"></a-input>
+        <a-card class="mt-2.5">
+          <a-spin :spinning="loading">
+            <a-form ref="ruleForm" :model="formData" class="form-padding">
+              <a-form-item label="店铺账号：">
+                <selectComm 
+                  style="margin-left: 10px" 
+                  :options="shopAccount" 
+                  :fieldObj="shopObj"
+                  @backSelectAll="selectItem" 
+                  @backSelectItem="selectItem"
+                ></selectComm>
+              </a-form-item>
+              <a-form-item label="搜索类型:">
+                <div class="fBox flex align-start ml-2.5">
+                  <a-button 
+                    @click="selectTypes(item.prop)" 
+                    class="mr-2.5"
+                    :type="item.prop === searchType.actives ? 'primary' : ''" 
+                    v-for="(item, index) in searchType.options"
+                    :key="index"
+                  >{{ item.label }}</a-button>
                 </div>
-                <a-button type="primary" class="ml-2.5" @click="onSubmit(true)">查询</a-button>
-              </div>
-            </a-form-item>
-            <a-form-item label="排序方式：">
-              <div class="flex align-start">
-                <a-button v-for="item in storInfo.strList" :key="item.prop" style="margin: 0 10px"
-                  :type="item.prop === storInfo.active.prop ? 'primary' : ''" @click="storChange(item)">
-                  <span>{{ item.label }}</span>
-                  <asyncIcon icon="CaretUpOutlined"
-                    v-if="item.prop === storInfo.active.prop && storInfo.active.type == 'bottom'" />
-                  <asyncIcon icon="CaretDownOutlined"
-                    v-if="item.prop === storInfo.active.prop && storInfo.active.type == 'top'" />
-                </a-button>
-              </div>
-            </a-form-item>
-          </a-form>
+              </a-form-item>
+              <a-form-item label="搜索内容：">
+                <div class="searchs flex">
+                  <div class="searchInputs flex align-start ml-2.5">
+                    <a-input 
+                      v-if="searchType.actives == 1" 
+                      style="width: 400px" 
+                      v-model:value="formData.name"
+                      placeholder="请输入标题查询" 
+                      allowClear 
+                      @clear="onSubmit"
+                    ></a-input>
+                    <a-input 
+                      v-if="searchType.actives == 2" 
+                      style="width: 400px" 
+                      v-model:value="formData.sku" 
+                      allowClear
+                      @clear="onSubmit" 
+                      placeholder="请输入SKU查询,多个SKU间用逗号隔开，最多支持200个"
+                    ></a-input>
+                    <a-input 
+                      v-if="searchType.actives == 3" 
+                      style="width: 400px" 
+                      allowClear v-model:value="formData.id"
+                      @clear="onSubmit" 
+                      placeholder="请输入产品ID查询,多个ID间用逗号隔开，最多支持200个"
+                    ></a-input>
+                  </div>
+                  <a-button type="primary" class="ml-2.5" @click="onSubmit(true)">查询</a-button>
+                </div>
+              </a-form-item>
+              <a-form-item label="排序方式：">
+                <div class="flex align-start">
+                  <a-button 
+                    v-for="item in storInfo.strList" 
+                    :key="item.prop" style="margin: 0 10px"
+                    :type="item.prop === storInfo.active.prop ? 'primary' : ''" 
+                    @click="storChange(item)"
+                  >
+                    <span>{{ item.label }}</span>
+                    <asyncIcon icon="CaretUpOutlined" v-if="item.prop === storInfo.active.prop && storInfo.active.type == 'bottom'" />
+                    <asyncIcon icon="CaretDownOutlined" v-if="item.prop === storInfo.active.prop && storInfo.active.type == 'top'" />
+                  </a-button>
+                </div>
+              </a-form-item>
+            </a-form>
+          </a-spin>
         </a-card>
         <br />
         <div class="flex items-baseline justify-between">
@@ -127,14 +157,14 @@
         </a-table>
         <div class="pagination-box">
           <a-pagination
-            style="margin: 20px 0 10px 0; text-align: right"
             :show-total="(total) => `共 ${total} 条`"
-            v-model:current="paginations.pageNum"
-            v-model:pageSize="paginations.pageSize"
+            @update:current="pageNumChange"
+            @update:page-size="pageSizeChange"
+            :current="paginations.pageNum"
+            :pageSize="paginations.pageSize"
             :total="paginations.total"
             class="pages"
             :show-quick-jumper="true"
-            @change="paginationChange"
             :showSizeChanger="true"
             :pageSizeOptions="[50, 100, 200]"
           />
@@ -269,7 +299,7 @@ const selectTypes = (index) => {
 };
 const selectItem = (val) => {
   formData.account = val ?? '';
-  paginationChange(1);
+  pageNumChange(1);
 };
 const shopAccount = ref([]);// 店铺数据
 const getAccount = async () => {
@@ -277,7 +307,7 @@ const getAccount = async () => {
     loading.value = true
     let res = await accountCache()
     shopAccount.value = res.data ?? [];
-    paginationChange(1);
+    pageNumChange(1);
   } catch (error) {
     loading.value = false
     console.error(error)
@@ -285,7 +315,7 @@ const getAccount = async () => {
 };
 // 表单搜索
 const onSubmit = (type = false) => {
-  getList(type);
+  pageNumChange(1);
   // setUncheck();
 };
 // 排序方式
@@ -294,19 +324,23 @@ const storChange = (item) => {
   storInfo.active = item;
   formData.order = item.type === "top" ? "desc" : "asc";
   formData.prop = item.value;
-  paginationChange(1);
+  pageNumChange(1);
 };
 // 分页变化
-function paginationChange(page, pageSize) {
-  paginations.pageNum = page
+function pageNumChange(val) {
+  paginations.pageNum = val
   getList()
-}
+};
+function pageSizeChange(val) {
+  paginations.pageSize = val
+  pageNumChange(1);
+};
 
 const activeName = ref(" ")
 // 标签页切换
 const handleClick = (activeKey) => {
   formData.state = activeKey;
-  paginationChange(1);
+  pageNumChange(1);
 };
 
 const tabQuantity = ref([]);
@@ -323,27 +357,27 @@ const tabList = computed(() => {
   return list;
 })
 // 获取店铺数据
-const getList = async (isSearch = false) => {
+const getList = async () => {
   loading.value = true;
   let params = {
     ...formData,
     // ...advancedForm,
     pageNum: paginations.pageNum,
     pageSize: paginations.pageSize,
-    isSearch,
   };
   try {
     let tableRes = await list(params)
-    tableData.value = []
     tableRes.data = tableRes.data || []
+    let rows = []
     tableRes.data.forEach((item) => {
-      tableData.value = [...tableData.value, ...item.children]
+      rows = [...rows, ...item.children]
     });
+    tableData.value = rows
     let byRes = await byState(params)
     tabQuantity.value = byRes.data?.rows || [];
     paginations.total = byRes.data?.total || 0;
     // 滚动条回到顶部
-    antTableBody.scrollTop = 0
+    antTableBody && (antTableBody.scrollTop = 0);
   } catch (error) {
     console.error(error)
   }
@@ -375,9 +409,8 @@ const getStateColor = (state) => {
   const colorMap = {
     "平台审核": "processing",
     "在售": "success",
-    "审核不通过": "warning",
-    "准备出售": "error",
-    "": "default",
+    "审核不通过": "error",
+    "准备出售": "warning",
   };
   return colorMap[state] || "default";
 };
@@ -386,5 +419,12 @@ defineExpose({
 })
 </script>
 <style lang="less" scoped>
-
+.pagination-box {
+  display: flex; 
+  justify-content: flex-end;
+  margin: 20px 0 10px 0;
+  :deep(.ant-select-selector) {
+    width: 100px !important;
+  }
+}
 </style>
