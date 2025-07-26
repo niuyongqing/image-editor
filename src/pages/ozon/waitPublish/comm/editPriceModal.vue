@@ -1,7 +1,8 @@
 <template>
     <div id="editPriceModalCont">
-        <a-modal :open="editPriceVisible" :maskClosable="false" @cancel="handleCancel" :width="'40%'" :keyboard="false"
+        <a-modal :open="editPriceVisible" :maskClosable="false" @cancel="handleCancel" :width="'45%'" :keyboard="false"
             title="修改属性" destroy-on-close>
+            <div class="my10px"><a-tag color="green">说明</a-tag><span>已归档的产品不支持修改产品相关信息！</span></div>
             <a-row>
                 <a-col :flex="2">
                     <div class="flex flex-col">
@@ -208,8 +209,20 @@
                             </a-form-item>
                         </div>
                         <div class="rounded-md p-2.5 mb-2.5" style="border: 1px solid #ccc;"
-                            v-if="checkedListAll.includes('attr')">
-                            <a-form-item label="合并属性：">
+                            v-if="checkedListAll.includes('all')">
+                            <a-form-item label="合并属性">
+                                <div>
+                                    <a-tag color="green">注意！</a-tag> <span>同一店铺下，若合并属性一致会导致该分类下的产品合并为一个产品，请谨慎修改！</span>
+                                </div>
+                                <div class="my10px">
+                                    共选择<span class="text-red">{{ brandList.length }}</span>个产品，产品分类如下，请分别编辑属性
+                                </div>
+                                <div class="my10px">
+                                    <div v-for="(item, index) in attrList" :key="index">
+                                        <span>{{ item.threeCategoryName }}</span><span class="text-red ml10px">({{
+                                            item.repeatCount }})</span>
+                                    </div>
+                                </div>
                                 <a-form-item label="品牌：">
                                     <div class="flex">
                                         <a-select v-model:value="form.attr" class="mr-2.5" style="width: 200px"
@@ -221,8 +234,6 @@
                     </a-form>
                 </a-col>
             </a-row>
-            <div><a-tag color="green">说明</a-tag><span>已归档的产品不支持修改产品相关信息！</span></div>
-
             <template #footer>
                 <a-button :loading="loading" @click="handleCancel">取消</a-button>
                 <a-button type="primary" :loading="loading" @click="onSubmit">确定</a-button>
@@ -241,11 +252,13 @@ const props = defineProps({
     editPriceVisible: Boolean,
     selectedRows: Array,
     editStockList: Array,
-    defType: Array
+    defType: Array,
+    brandList: Array
 });
 const emit = defineEmits(["handleEditPriceClose"]);
 const loading = ref(false)
-const ruleForm = ref()
+const ruleForm = ref();
+const attrList = ref([])
 // 提取初始表单数据工厂函数
 const getInitialFormData = () => ({
     oldPriceValue: 1,
@@ -267,7 +280,7 @@ const getInitialFormData = () => ({
     minSelect3: "",
     minSelect4: "",
     weightValue: 1,
-    weightSelect: "",
+    weightSelect: "add",
     weight: null,
     padStart: "",
     padEnd: "",
@@ -383,26 +396,26 @@ const commList = [
     }
 ]
 const leftList = reactive([
-    // {
-    //     title: "产品信息",
-    //     option: [
-    //         {
-    //             label: '产品标题',
-    //             value: 'title'
-    //         },
-    //         {
-    //             label: 'VAT',
-    //             value: 'vat'
-    //         },
-    //         {
-    //             label: '合并属性',
-    //             value: 'attr'
-    //         }
-    //     ],
-    //     indeterminate: false,
-    //     checkAll: false,
-    //     checkedList: [],
-    // },
+    {
+        title: "产品信息",
+        option: [
+            {
+                label: '产品标题',
+                value: 'title'
+            },
+            {
+                label: 'VAT',
+                value: 'vat'
+            },
+            {
+                label: '合并属性',
+                value: 'all'
+            }
+        ],
+        indeterminate: false,
+        checkAll: false,
+        checkedList: [],
+    },
     {
         title: "价格与库存",
         option: [
@@ -427,22 +440,22 @@ const leftList = reactive([
         checkAll: false,
         checkedList: [],
     },
-    // {
-    //     title: "重量和尺寸",
-    //     option: [
-    //         {
-    //             label: '重量',
-    //             value: 'weight'
-    //         },
-    //         {
-    //             label: '尺寸',
-    //             value: 'size'
-    //         }
-    //     ],
-    //     indeterminate: false,
-    //     checkAll: false,
-    //     checkedList: [],
-    // }
+    {
+        title: "重量和尺寸",
+        option: [
+            {
+                label: '重量',
+                value: 'weight'
+            },
+            {
+                label: '尺寸',
+                value: 'size'
+            }
+        ],
+        indeterminate: false,
+        checkAll: false,
+        checkedList: [],
+    }
 ])
 
 const onProductAllChange = (e, item) => {
@@ -469,13 +482,45 @@ watch(
 );
 
 watch(() => props.defType, val => {
-    const item = leftList.find(item => {
-        return item.option.some(option => val.includes(option.value));
-    })
-    item.checkAll = true
-    item.indeterminate = false
-    item.checkedList = val
+    if (val.length > 0) {
+        const item = leftList.find(item => {
+            return item.option.some(option => val.includes(option.value));
+        })
+
+        item.checkAll = true
+        item.indeterminate = false
+        item.checkedList = val
+    }
 })
+
+watch(() => props.brandList, val => {
+    if (val.length > 1) {
+        attrList.value = processData(val);
+    } else {
+        attrList.value = val.map(item => {
+            return {
+                ...item,
+                repeatCount: 1
+            }
+        })
+    }
+})
+// 去重数据
+function processData(originalData) {
+    const temp = {};
+
+    originalData.forEach(item => {
+        const key = item.threeCategoryId;
+        if (temp[key]) {
+            temp[key].repeatCount += 1;
+        } else {
+            temp[key] = { ...item, repeatCount: 1 };
+        }
+    });
+
+    return Object.values(temp);
+}
+
 const handleCancel = () => {
     emit("handleEditPriceClose")
     ruleForm.value.resetFields();
@@ -530,12 +575,7 @@ const computeSingleValue = (price, batchValue, computeType, roundType) => {
     const roundFunc = roundFunctions[roundType];
 
     if (!computeFunc) return 0;
-
-    console.log("singlePrice", price);
-    console.log("batchValue", batchValue);
-
     const computed = computeFunc(Number(price), Number(batchValue));
-    console.log("computedResult", computed);
 
     return roundFunc(computed);
 };
@@ -559,25 +599,28 @@ const computeFunctions = {
         oldPrice * ((100 - batchComputeValue) / 100),
 };
 
-
-
 const onSubmit = () => {
     if (props.selectedRows.length == 0) return;
-    // loading.value = true;
-    console.log("selectedRows", props.selectedRows);
-
+    loading.value = true;
+    console.log("selectedRows",props.selectedRows);
+    
     // 标题数据处理
     let arr = props.selectedRows.map((item) => {
         return {
             waitId: item.waitId,
-            // name: item.name,
-            // vat: item.vat,
+            vat: item.vat,
             skuList: item.skuList.map(e => {
                 return {
+                    attributes: e.attributes,
                     price: e.price,
                     oldPrice: e.oldPrice,
                     offerId: e.offerId,
-                    warehouseList: null
+                    warehouseList: null,
+                    depth: e.depth,
+                    height: e.height,
+                    weight: e.weight,
+                    width:e.width,
+                    name: item.name,
                 }
             }),
             account: item.account
@@ -586,25 +629,38 @@ const onSubmit = () => {
     let priceList = cloneDeep(arr)
     // 遍历 checkedListAll 中的每个字段，调用对应的处理函数
     checkedListAll.value.forEach((field) => {
+
         if (fieldHandlers[field]) {
             priceList = priceList.map((row) => fieldHandlers[field](row, form));
         }
+        if (field === "all") {
+            priceList.forEach(itemA => {
+                itemA.skuList.forEach(e => {
+                    e.attributes = e.attributes.map(item => {
+                        if (item.id === 85) {
+                            item.values = [{
+                                dictionaryValueId: 126745801,
+                                value: '无品牌'
+                            }]
+                        }
+                        return item
+                    })
+                })
+            })
+        }
         // 对于尺寸处理，单独判断，因为逻辑复用了 weight 的判断条件
-        // if (field === 'weight') {
-        //     priceList = priceList.map((row) => fieldHandlers.dimensions(row, form));
-        // }
+        if (field === 'weight') {
+            priceList = priceList.map((row) => fieldHandlers.dimensions(row, form));
+        }
         if (field === 'stock') {
-            console.log("editStockList", props.editStockList);
             // 遍历数组 a
             priceList.forEach(itemA => {
                 // 查找 b 数组中 account 匹配的元素
                 const matchingItemB = props.editStockList.find(itemB => itemB.account === itemA.account);
-                console.log("matchingItemB", matchingItemB);
 
                 if (matchingItemB) {
                     // 过滤掉 children 中 stock 为空的元素
                     const validChildren = matchingItemB.children.filter(child => child.stock !== null && child.stock !== '');
-                    console.log("validChildren", validChildren);
 
                     // 生成新数组，包含 name、warehouseId 和 stock
                     const newStockArray = validChildren.map(child => ({
@@ -613,7 +669,6 @@ const onSubmit = () => {
                         present: child.stock,
                         // offerId: itemA.offerId
                     }));
-                    console.log("newStockArray");
 
                     // 将新数组赋值给 a 数组中对应元素的 stock 属性
                     itemA.skuList.forEach(e => {
@@ -625,7 +680,6 @@ const onSubmit = () => {
                     });
                 }
             });
-            console.log('priceList', priceList);
         }
     });
 
@@ -633,15 +687,31 @@ const onSubmit = () => {
     priceList.forEach(itemA => {
         itemA.skuList.forEach(e => {
             if (!form.oldPrice && !form.toOldPrice) {
-                e.oldPrice = null
+                e.oldPrice = ""
             }
-            if(!form.price && !form.toPrice) {
-                e.price = null
+            if (!form.price && !form.toPrice) {
+                e.price = ""
             }
         })
     });
 
     console.log('priceList--', priceList);
+    // 新增字段验证逻辑
+    const hasInvalidValue = priceList.some(item => 
+        item.skuList.some(sku => {
+            // 检查每个字段：空值允许，有值时必须>0
+            const priceInvalid = sku.price !== '' && Number(sku.price) <= 0;
+            const oldPriceInvalid = sku.oldPrice !== '' && Number(sku.oldPrice) <= 0;
+            const weightInvalid = sku.weight !== '' && Number(sku.weight) <= 0;
+            return priceInvalid || oldPriceInvalid || weightInvalid;
+        })
+    );
+
+    if (hasInvalidValue) {
+        message.error('价格和重量必须为大于0的正数');
+        loading.value = false;
+        return;
+    }
     waitBathUpdate(priceList).then(res => {
         message.success(res.msg)
     }).finally(() => {
@@ -658,22 +728,38 @@ const onSubmit = () => {
 // 封装处理标题的函数
 const handleTitle = (row, form) => {
     if (form.padStart) {
-        row.name = form.padStart + row.name;
+        row.skuList.forEach(sku => {
+            sku.name = form.padStart + sku.name;
+        })
     }
     if (form.padEnd) {
-        row.name += form.padEnd;
+        row.skuList.forEach(sku => {
+            sku.name += form.padEnd;
+        })
     }
     if (form.textOld && form.textNew) {
-        row.name = row.name.replaceAll(form.textOld, form.textNew);
+        // row.name = row.name.replaceAll(form.textOld, form.textNew);
+        row.skuList.forEach(sku => {
+            sku.name = sku.name.replaceAll(form.textOld, form.textNew);
+        })
     }
     if (form.textRemove) {
-        row.name = row.name.replaceAll(form.textRemove, '');
+        // row.name = row.name.replaceAll(form.textRemove, '');
+        row.skuList.forEach(sku => {
+            sku.name = sku.name.replaceAll(form.textRemove, '');
+        })
     }
     if (form.capitalCase) {
-        row.name = row.name.slice(0, 1).toUpperCase() + row.name.slice(1);
+        // row.name = row.name.slice(0, 1).toUpperCase() + row.name.slice(1);
+        row.skuList.forEach(sku => {
+            sku.name = sku.name.slice(0, 1).toUpperCase() + sku.name.slice(1);
+        })
     }
     if (form.cutOverflow) {
-        row.name = row.name.slice(0, 128);
+        // row.name = row.name.slice(0, 128);
+        row.skuList.forEach(sku => {
+            sku.name = sku.name.slice(0, 128);
+        })
     }
     return row;
 };
@@ -688,7 +774,6 @@ const handleVat = (row, form) => {
 
 // 封装处理价格的函数
 const handlePrice = (row, form) => {
-    console.log("form.toPrice", form.toPrice);
     if (form.priceValue === 1) {
         // 直接修改每个SKU的价格
         row.skuList.forEach(sku => {
@@ -710,7 +795,6 @@ const handlePrice = (row, form) => {
 
 // 封装处理原价的函数
 const handleOldPrice = (row, form) => {
-    console.log("form.toOldPrice", form.toOldPrice);
     if (form.oldPriceValue === 1) {
         // 直接修改每个SKU的原价
         row.skuList.forEach(sku => {
@@ -752,30 +836,29 @@ const handleMinPrice = (row, form) => {
 // 封装处理重量的函数
 const handleWeight = (row, form) => {
     if (form.weightValue === 1) {
-        row.packageWeight = form.packageWeight;
+        row.skuList.forEach(e => {
+            e.weight = form.packageWeight;
+        })
     } else {
-        switch (form.weightSelect) {
-            case 'add':
-                row.packageWeight = Number(row.packageWeight) + Number(form.weight);
-                break;
-            case 'reduction':
-                row.packageWeight = Number(row.packageWeight) - Number(form.weight);
-                break;
-            case 'take':
-                row.packageWeight = Number(row.packageWeight) * Number(form.weight);
-                break;
-            default:
-                break;
-        }
+        row.skuList.forEach(e => {
+            e.weight = endResult(
+                Number(e.weight),
+                Number(form.weight),
+                form.weightSelect,
+                commList[1].option[0].value  // 修正为使用保留规则列表(commList[1])
+            );
+        });
     }
     return row;
 };
 
 // 封装处理尺寸的函数
 const handleDimensions = (row, form) => {
-    row.packageWidth = form.packageWidth;
-    row.packageHeight = form.packageHeight;
-    row.packageLength = form.packageLength;
+    row.skuList.forEach(e => {
+        e.depth = form.packageDepth;
+        e.height = form.packageHeight;
+        e.width = form.packageWidth;
+    })
     return row;
 };
 

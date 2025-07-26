@@ -21,36 +21,33 @@
         </a-form-item-rest>
       </div>
 
-      <div class="flex flex-wrap  mt-10px h-1000px overflow-y-auto">
+      <div class="flex flex-wrap  mt-10px h-900px overflow-y-auto">
+        <div v-for="(item, index) in tableData" :key="index" flex gap-15px h-150px>
+          <a-card v-for="(element, i) in item.imageUrl" :key="element.url" mb-10px ml-10px p-0px rounded-none
+            class="file-card flex" hoverable style="width: 125px;">
+            <div :key="element.uid" @click="tabCheck(element)">
+              <div class="file-item">
+                <div class="file-img">
+                  <img :src="processImageSource(element.url)" alt="" class="file-img" />
+                  <div class="image-mask"> {{ element.height }} X {{ element.width }} </div>
 
-        <a-card>
-          <div v-for="(item, index) in tableData" :key="index" flex gap-15px>
-            <a-card v-for="(element, i) in item.imageUrl" :key="element.url" mb-10px ml-10px p-0px rounded-none
-              class="file-card flex" hoverable style="width: 125px;">
-              <div :key="element.uid" @click="tabCheck(element)">
-                <div class="file-item">
-                  <div class="file-img">
-                    <img :src="element.url" alt="" class="file-img" />
-                    <div class="image-mask"> {{ element.height }} X {{ element.width }} </div>
+                  <div class="image-check" v-if="element.checked">
+                    <CheckOutlined style="color: #00B903;font-size: 20px; font-weight: bold;" />
+                  </div>
 
-                    <div class="image-check" v-if="element.checked">
-                      <CheckOutlined style="color: #00B903;font-size: 20px; font-weight: bold;" />
-                    </div>
-
-                    <div class="image-tooltip" v-if="element.url.includes('http')">
-                      点击{{ element.checked ? '取消11' : '选中' }}
-                    </div>
+                  <div class="image-tooltip">
+                    点击{{ element.checked ? '取消' : '选中' }}
                   </div>
                 </div>
               </div>
-              <div w-full>
-                <div flex justify-between w-full>
-                  <a-checkbox v-model:checked="element.checked" @change="check(element, $event)"></a-checkbox>
-                </div>
+            </div>
+            <!-- <div w-full>
+              <div flex justify-between w-full>
+                <a-checkbox v-model:checked="element.checked" @change="check(element, $event)"></a-checkbox>
               </div>
-            </a-card>
-          </div>
-        </a-card>
+            </div> -->
+          </a-card>
+        </div>
       </div>
     </BaseModal>
   </div>
@@ -62,6 +59,7 @@ import { useResetReactive } from '@/composables/reset';
 import { scaleApi, watermarkApi } from '@/api/common/water-mark.js';
 import { message } from "ant-design-vue";
 import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
+import { processImageSource } from "~/pages/ozon/config/commJs/index";
 
 const props = defineProps({
   shortCode: {
@@ -110,6 +108,8 @@ const showModal = (list) => {
 };
 
 const cancel = () => {
+  loading.value = false;
+  checkedAll.value = false;
   reset();
 };
 
@@ -120,18 +120,16 @@ const handleRemove = (element) => {
 
 // 点击选中
 const tabCheck = (element) => {
-  console.log('111111111111', element);
-
   element.checked = !element.checked;
   const isAllChecked = tableData.value.every(item => item.imageUrl.every(v => v.checked));
   checkedAll.value = isAllChecked;
 };
 
 // 点击选中
-const check = (element) => {
-  const isAllChecked = tableData.value.every(item => item.imageUrl.every(v => v.checked));
-  checkedAll.value = isAllChecked;
-};
+// const check = (element) => {
+//   const isAllChecked = tableData.value.every(item => item.imageUrl.every(v => v.checked));
+//   checkedAll.value = isAllChecked;
+// };
 
 //  点击确定
 const submit = async () => {

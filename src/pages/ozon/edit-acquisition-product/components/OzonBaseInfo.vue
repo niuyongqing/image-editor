@@ -454,11 +454,11 @@ watch(
     () => props.productDetail,
     (val) => {
         if (val) {
-            const { simpleName, account, skuList, vat, typeId, descriptionCategoryId } =
+            const { name, account, skuList, vat, typeId, descriptionCategoryId } =
                 val;
             // 修改响应式对象的属性
             form.shortCode = account;
-            form.name = skuList[0].name;
+            form.name = skuList[0].name || name;
             form.vat = vat === "0.0" || vat === "0.00" ? "0" : vat;
             form.categoryId = {
                 threeCategoryId: typeId,

@@ -5,36 +5,38 @@
         </div>
         <!-- SKU 图片上传可拖拽 :multiple="true" -->
         <div flex justify-between w-full>
-            <a-dropdown>
-                <a-button type="primary" style="width: 90px; height: 31px;">
-                    选择图片
-                    <DownOutlined />
-                </a-button>
-                <template #overlay>
-                    <a-menu>
-                        <a-menu-item>
-                            <a-upload name="file" :customRequest="customRequest" :before-upload="beforeUpload"
-                                :headers="headers" :accept="getProps.accept" :multiple="true"
-                                :maxCount="getProps.maxCount" :action="getProps.actionUrl" :showUploadList="false"
-                                :disabled="disabled">
-                                <a-button type="link" v-if="fileList.length < getProps.maxCount"
-                                    style="width: 90px; height: 31px; text-align: center; color: #000">
-                                    选择图片
-                                </a-button>
-                            </a-upload>
-                        </a-menu-item>
-                        <a-menu-item>
-                            <div style="text-align: center; color: #000" @click="handleSpaceImages">空间图片</div>
-                        </a-menu-item>
+            <div flex gap-20px>
+                <a-dropdown>
+                    <a-button type="primary" style="width: 90px; height: 31px;">
+                        选择图片
+                        <DownOutlined />
+                    </a-button>
+                    <template #overlay>
+                        <a-menu>
+                            <a-menu-item>
+                                <a-upload name="file" :customRequest="customRequest" :before-upload="beforeUpload"
+                                    :headers="headers" :accept="getProps.accept" :multiple="true"
+                                    :maxCount="getProps.maxCount" :action="getProps.actionUrl" :showUploadList="false"
+                                    :disabled="disabled">
+                                    <a-button type="link" v-if="fileList.length < getProps.maxCount"
+                                        style="width: 90px; height: 31px; text-align: center; color: #000">
+                                        选择图片
+                                    </a-button>
+                                </a-upload>
+                            </a-menu-item>
+                            <a-menu-item>
+                                <div style="text-align: center; color: #000" @click="handleSpaceImages">空间图片</div>
+                            </a-menu-item>
 
-                        <a-menu-item>
-                            <div style="text-align: center; color: #000" @click="handleNetImages">网络图片</div>
-                        </a-menu-item>
-                    </a-menu>
-                </template>
-            </a-dropdown>
-            <div>
-                <slot name="variantInfo"> </slot>
+                            <a-menu-item>
+                                <div style="text-align: center; color: #000" @click="handleNetImages">网络图片</div>
+                            </a-menu-item>
+                        </a-menu>
+                    </template>
+                </a-dropdown>
+                <div>
+                    <slot name="variantInfo"> </slot>
+                </div>
             </div>
             <div>
                 <slot name="skuInfo"> </slot>
@@ -54,7 +56,7 @@
                                     <loading-outlined></loading-outlined>
                                 </div>
                                 <div v-else class="file-img">
-                                    <img :src="element.url" alt="" class="file-img"
+                                    <img :src="processImageSource(element.url)" alt="" class="file-img"
                                         @load="handleImageLoad(element, $event)" @click="handlePreview(element)"
                                         :key="element.key" />
                                     <div class="image-mask"> {{ element.height }} X {{ element.width }} </div>
@@ -108,7 +110,7 @@ import { useAuthorization } from '~/composables/authorization'
 import { getBase64 } from '@/pages/lazada/product/common'
 import { message } from "ant-design-vue";
 import { scaleApi, watermarkApi } from '@/api/common/water-mark.js';
-import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
+
 import BaseModal from '@/components/baseModal/BaseModal.vue'
 import BacthSkuEditImg from './bacthSkuEditImg.vue';
 import NetImageModal from './netImageModal.vue';
@@ -116,6 +118,7 @@ import ImageTranslation from './imageTranslation.vue';
 import download from '~@/api/common/download';
 import { downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js';
 import PictureLibrary from '@/components/pictureLibrary/index.vue';
+import { processImageSource } from "~/pages/ozon/config/commJs/index";
 
 const props = defineProps({
     disabled: {
@@ -189,14 +192,14 @@ const customRequest = (options) => {
                 ...res,
                 uid: res.url,
                 name: res.originalFilename,
-                url: import.meta.env.VITE_APP_BASE_API + res.url,
+                url: processImageSource(res.url),
             });
         }
     })
 };
 // 图片预览
 const handlePreview = (file) => {
-    previewImage.value = file.url;
+    previewImage.value = processImageSource(file.url);
     previewVisible.value = true;
 };
 

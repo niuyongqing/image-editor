@@ -50,7 +50,7 @@
                                 hisAttrObj.threeCategoryName }} </p>
                         <!-- 表格 -->
                         <a-table :columns="innerColumns" :data-source="innerTableData" bordered :pagination="false"
-                            style="margin-top: 10px;">
+                            style="margin-top: 10px;" :loading="optionsLoading">
                             <template #bodyCell="{ column, record }">
                                 <template v-if="column.dataIndex === 'catTheme'">
                                     {{ record.catTheme }}
@@ -375,6 +375,8 @@ const handleSelect = (data) => {
         threeCategoryId: data.ids[2],
     };
     isClear.value = true;
+    optionsLoading.value = true;
+    filterAttrOptions.value = [];
     addHistoryCategory(params).then((res) => {
         historyCategory({ account: form.shortCode })
             .then((res) => {
@@ -405,6 +407,7 @@ const handleSelect = (data) => {
                                 filterAttrOptions: filterAttrOptions.value,
                             }
                         });
+                        optionsLoading.value = false;
                     }
                 })
             })

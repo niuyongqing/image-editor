@@ -35,7 +35,7 @@
                                         @click="selectFirstItem(item)">
                                         <div flex>
                                             <div w-250px overflow-hidden text-ellipsis whitespace-nowrap> {{ item.label
-                                            }}
+                                                }}
                                             </div>
                                             <div>
                                                 <RightOutlined />

@@ -3,6 +3,7 @@ export default [
     title: '标题/产品ID',
     dataIndex: 'name',
     align: "center",
+    width: 400,
   },
   {
     title: '状态',
@@ -20,19 +21,19 @@ export default [
     title: '售价',
     dataIndex: 'price',
     align: "center",
-    width: 300,
+    width: 200,
   },
   {
     title: '原价',
     dataIndex: 'oldPrice',
     align: "center",
-    width: 300,
+    width: 200,
   },
   {
     title: '总库存',
     dataIndex: 'warehouseList',
     align: "center",
-    width: 300,
+    width: 200,
   },
   {
     title: '时间',

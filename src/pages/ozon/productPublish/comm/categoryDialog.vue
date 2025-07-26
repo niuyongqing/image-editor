@@ -57,7 +57,6 @@ const submit = () => {
     message.error("请先选则分类")
     return
   }
-  console.log('categoryId', categoryId.value);
 
   emit("getAttributesID", categoryId.value);
   handleClose()
@@ -68,7 +67,6 @@ const getAttributes = (value, selectedOptions) => {
     value: selectedOptions[2].descriptionCategoryId,
     secondCategoryId: selectedOptions[1].descriptionCategoryId,
   };
-  // console.log('e', value, selectedOptions);
 }
 </script>
 

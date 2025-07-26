@@ -6,8 +6,28 @@
             <br /> -->
             <br />
             <div class="flex justify-end">
-                <a-button :loading="loading" @click="onSubmit(2)">保存待发布</a-button>
-                <a-button type="primary" :loading="loading" class="ml-2.5" @click="onSubmit(1)">发布</a-button>
+                <a-button class="mx-2.5" :loading="loading" size="middle" @click="showTempModal">存为模板</a-button>
+                <a-dropdown size="middle">
+                    <template #overlay>
+                        <a-menu @click="handleMenuClick">
+                            <a-menu-item key="1">
+                                引用现有产品
+                            </a-menu-item>
+                            <a-menu-item key="2">
+                                引用产品模板
+                            </a-menu-item>
+                            <a-menu-item key="3" :disabled="!formData.shortCode">
+                                引用资料库产品
+                            </a-menu-item>
+                        </a-menu>
+                    </template>
+                    <a-button size="middle">
+                        引用产品
+                        <DownOutlined />
+                    </a-button>
+                </a-dropdown>
+                <a-button class="mx-2.5" size="middle" :loading="loading" @click="onSubmit(2)">保存待发布</a-button>
+                <a-button type="primary" size="middle" :loading="loading" @click="onSubmit(1)">发布</a-button>
             </div>
             <br />
             <!-- 基本信息 -->
@@ -23,15 +43,36 @@
                 :shopCode="formData.shortCode"></ozon-new-variant-info>
             <br />
             <div class="flex justify-end">
-                <a-button :loading="loading" @click="onSubmit(2)">保存待发布</a-button>
-                <a-button type="primary" class="ml-2.5" :loading="loading" @click="onSubmit(1)">发布</a-button>
+                <a-button class="mx-2.5" size="middle" :loading="loading" @click="showTempModal">存为模板</a-button>
+                <a-dropdown size="middle">
+                    <template #overlay>
+                        <a-menu @click="handleMenuClick">
+                            <a-menu-item key="1">
+                                引用现有产品
+                            </a-menu-item>
+                            <a-menu-item key="2">
+                                引用产品模板
+                            </a-menu-item>
+                            <a-menu-item key="3">
+                                引用资料库产品
+                            </a-menu-item>
+                        </a-menu>
+                    </template>
+                    <a-button size="middle">
+                        引用产品
+                        <DownOutlined />
+                    </a-button>
+                </a-dropdown>
+                <a-button class="mx-2.5" size="middle" :loading="loading" @click="onSubmit(2)">保存待发布</a-button>
+                <a-button type="primary" size="middle" :loading="loading" @click="onSubmit(1)">发布</a-button>
             </div>
         </div>
         <div style="position: fixed;top: 11%;right: 3%;">
             <a-timeline>
                 <a-timeline-item v-for="item in anchorList" :key="item.id"
                     :color="item.turnRed ? 'red' : 'blue'"><a-button type="text" :danger="item.turnRed"
-                        @click="scroll(item.id)">{{ item.label }}</a-button></a-timeline-item>
+                        @click="scroll(item.id)">{{ item.label
+                        }}</a-button></a-timeline-item>
             </a-timeline>
         </div>
         <a-back-top :visibility-height="0" style="margin-right: 10px;" @click="backToTop" />
@@ -39,9 +80,35 @@
             :keyboard="false">
             <span>产品已提交发布，请在发布中、发布失败或在线产品中查看！</span>
             <template #footer>
-                <a-button @click="handleCancel">关闭</a-button>
-                <a-button type="primary" @click="handleOk">继续刊登</a-button>
+                <a-button @click="handleCancel" size="middle">关闭</a-button>
+                <a-button type="primary" @click="handleOk" size="middle">继续刊登</a-button>
             </template>
+        </a-modal>
+        <a-modal :open="tempVis" title="存为模板" @cancel="closeModal" :width="'20%'" :maskClosable="false"
+            :keyboard="false">
+            <div class="my30px"><span>模板名称：</span><a-input style="width: 300px;" v-model:value="templateName"
+                    placeholder="请输入" /></div>
+            <template #footer>
+                <a-button @click="closeModal" size="middle">取消</a-button>
+                <a-button type="primary" @click="saveTemplate" size="middle">确定</a-button>
+            </template>
+        </a-modal>
+        <a-modal :open="quoteVis" title="引用产品模板" :footer="null" @cancel="quoteVis = false" :width="'30%'"
+            :maskClosable="false" :keyboard="false">
+            <div class="my30px"><span>模板名称：</span><a-input style="width: 300px;" v-model:value="quoteTemplateName"
+                    placeholder="请输入" /><a-button class="ml-20px" type="primary">搜索</a-button></div>
+            <a-divider />
+            <a-table :dataSource="dataSource" :columns="columns" :pagination="false">
+                <template #bodyCell="{ column, record }">
+                    <template v-if="column.dataIndex === 'option'">
+                        <a-button type="link" @click="quoteTemp(record)">引用</a-button>
+                    </template>
+                </template>
+            </a-table>
+            <a-pagination style="margin: 20px 0 10px 0; text-align: right" :show-total="(total) => `共 ${total} 条`"
+                v-model:current="paginations.pageNum" v-model:pageSize="paginations.pageSize" :total="paginations.total"
+                class="pages" :show-quick-jumper="true" @change="getTemplateList" :showSizeChanger="true"
+                :pageSizeOptions="[50, 100, 200]" />
         </a-modal>
     </div>
 </template>
@@ -51,7 +118,7 @@ import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import OzonBaseInfo from './comm/OzonBaseInfo.vue';
 import OzonNewImageInfo from './comm/OzonNewImageInfo.vue';
 import OzonNewVariantInfo from './comm/OzonNewVariantInfo.vue';
-import { accountCache, categoryAttributes, add } from "../config/api/product";
+import { accountCache, categoryAttributes, add, tempSaveOrUpdate, templateList } from "../config/api/product";
 import { message, Modal } from "ant-design-vue";
 import { useOzonProductStore } from '~@/stores/ozon-product'
 import {
@@ -60,6 +127,7 @@ import {
 } from '~/pages/ozon/config/commJs/index';
 import { deepClone } from '~@/utils'
 import { saveTowaitProduct } from "../config/api/waitProduct"
+import { DownOutlined, ArrowRightOutlined, SettingOutlined } from '@ant-design/icons-vue';
 
 const formData = reactive({
     shortCode: ""
@@ -68,14 +136,46 @@ const targetOffset = ref(undefined);
 const ozonBaseInfoRef = ref(null)
 const ozonImageInfoRef = ref(null)
 const ozonNewVariantInfoRef = ref(null)
+const templateName = ref("")
+const quoteTemplateName = ref("")
 const shopList = ref([])
 const attributes = ref([])
+const columns = [
+    {
+        title: '模板名称',
+        dataIndex: 'name',
+        key: 'name',
+    },
+    {
+        title: '引用模块',
+        dataIndex: 'fieldValue',
+        key: 'fieldValue',
+    },
+    {
+        title: '创建时间',
+        dataIndex: 'gmtCreate',
+        key: 'gmtCreate',
+    },
+    {
+        title: '操作',
+        dataIndex: 'option',
+        key: 'option',
+    },
+]
+const dataSource = ref([])
 // 校验状态
 const baseInfoValid = ref(true);
 const imgInfoValid = ref(true);
 const skuValid = ref(true);
 const loading = ref(false)
 const publishVis = ref(false)
+const tempVis = ref(false)
+const quoteVis = ref(false)
+const paginations = reactive({
+    pageNum: 1,
+    pageSize: 10,
+    total: 0,
+})
 const anchorList = ref([
     {
         turnRed: false,
@@ -167,6 +267,99 @@ const isObjectProperty = (obj, prop) => {
     return value instanceof Object && !(value instanceof Array);
 }
 
+
+const showTempModal = () => {
+    if (!formData.shortCode) {
+        message.error("请先选择店铺！");
+        return
+    }
+    tempVis.value = true;
+}
+
+const saveTemplate = async () => {
+    if (!templateName.value) {
+        message.error("请输入模板名称！");
+        return
+    }
+    let base = ozonBaseInfoRef.value.form;
+    console.log("base", base);
+    let image = ozonImageInfoRef.value.form;
+    console.log("image", image);
+    let tableDatas = ozonNewVariantInfoRef.value.tableData;
+    let params = {
+        type: 1, //模板类型 1-产品模板  2-尺码模板 3-变种模板 4-富内容模板
+        id: null, // id 为null  新增  不为null 是修改
+        name: templateName.value, // 模板名称
+        state: 1, // 状态是否生效  0-不生效 1-生效
+        account: formData.shortCode,
+        content: {
+            productTemplate: {
+                categoryId: base.categoryId || {},
+                productAttr: base.attributes || {},
+                productDesc: image.description || ""
+            },
+            jsonRich: image.jsons || {}
+        }
+    }
+    console.log("params", params);
+
+    tempSaveOrUpdate(params).then(res => {
+        if (res.code == 200) {
+            message.success("保存成功！");
+        }
+    }).finally(() => {
+        tempVis.value = false;
+    })
+}
+
+const closeModal = () => {
+    tempVis.value = false;
+    templateName.value = "";
+}
+// 一键翻译
+const handleInterpret = () => { }
+
+// 引用产品
+const handleMenuClick = (e) => {
+    if (e.key === '2') {
+        if (!formData.shortCode) {
+            message.error("请先选择店铺！");
+            return
+        }
+        getTemplateList();
+    }
+}
+
+const getTemplateList = () => {
+    templateList({
+        account: formData.shortCode,
+        type: 1,
+        name: quoteTemplateName.value,
+        pageNum: paginations.pageNum,
+        pageSize: paginations.pageSize,
+
+    }).then(res => {
+        if (res.code == 200) {
+            message.success("查询成功！");
+            dataSource.value = res.rows || []
+            quoteVis.value = true;
+            paginations.total = res.total || 0;
+        }
+    })
+}
+
+// 引用模板
+const quoteTemp = (record) => {
+    const ozonStore = useOzonProductStore()
+    ozonStore.$patch(state => {
+        state.productTemplate = {
+            account: record.account,
+            content: record.content
+        }
+    })
+    quoteTemplateName.value = "";
+    quoteVis.value = false;
+}
 // 发布
 const onSubmit = async (type = 1) => {
     const ozonBaseInfo = await ozonBaseInfoRef.value.childForm();
@@ -253,32 +446,32 @@ const onSubmit = async (type = 1) => {
         ],
     };
     if (image.coverUrl !== "" && image.video.length > 0) {
-    // 创建video对应的baseObj副本并更新value值
-    let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
-    videoBaseObj = createAndUpdateBaseObj(image.coverUrl, 100002, 21845, type === 1 ? 1 : 2);
-    newComplexAttributes.push(videoBaseObj);
+        // 创建video对应的baseObj副本并更新value值
+        let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
+        videoBaseObj = createAndUpdateBaseObj(image.coverUrl, 100002, 21845, type === 1 ? 1 : 2);
+        newComplexAttributes.push(videoBaseObj);
 
-    // 创建coverUrl对应的baseObj副本并更新value值
-    let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
-    coverUrlBaseObj = createAndUpdateBaseObj(
-      image.video,
-      100001,
-      21841, type === 1 ? 1 : 2
-    );
-    newComplexAttributes.push(coverUrlBaseObj);
-  } else if (image.coverUrl !== "") {
-    let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
-    coverUrlBaseObj = createAndUpdateBaseObj(
-      image.coverUrl,
-      100002,
-      21845, type === 1 ? 1 : 2
-    );
-    newComplexAttributes.push(coverUrlBaseObj);
-  } else if (image.video.length > 0) {
-    let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
-    videoBaseObj = createAndUpdateBaseObj(image.video, 100001, 21841, type === 1 ? 1 : 2);
-    newComplexAttributes.push(videoBaseObj);
-  }
+        // 创建coverUrl对应的baseObj副本并更新value值
+        let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
+        coverUrlBaseObj = createAndUpdateBaseObj(
+            image.video,
+            100001,
+            21841, type === 1 ? 1 : 2
+        );
+        newComplexAttributes.push(coverUrlBaseObj);
+    } else if (image.coverUrl !== "") {
+        let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
+        coverUrlBaseObj = createAndUpdateBaseObj(
+            image.coverUrl,
+            100002,
+            21845, type === 1 ? 1 : 2
+        );
+        newComplexAttributes.push(coverUrlBaseObj);
+    } else if (image.video.length > 0) {
+        let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
+        videoBaseObj = createAndUpdateBaseObj(image.video, 100001, 21841, type === 1 ? 1 : 2);
+        newComplexAttributes.push(videoBaseObj);
+    }
     console.log("newComplexAttributes", newComplexAttributes);
     const addHeaderList = useOzonProductStore().addHeaderList
     const resItem = tableDatas.map((item) => {
@@ -328,7 +521,7 @@ const onSubmit = async (type = 1) => {
                         type
                     );
                     const filteredMSlect = mSlect.filter(
-                        (obj) => obj.value || obj?.dictionary_value_id !== 0 || obj?.dictionaryValueid !== 0
+                        (obj) => obj.value || obj?.dictionary_value_id !== 0 || obj?.dictionaryValueId !== 0
                     );
                     if (filteredMSlect.length) {
                         moditAttributes.push(createAttrItem(attr, filteredMSlect));
@@ -373,11 +566,12 @@ const onSubmit = async (type = 1) => {
                 // ],
                 color_image: item?.colorImg[0]?.url.replace('/prod-api', '') ?? "", // 非必填
                 // color_image: "https://www.xzerp.com/file/wish/upload/2025-03-22/2025/03/22/2_20250322160055A001.jpg",
-                images: item.imageUrl && item?.imageUrl?.map(e => e.url.replace('/prod-api', '')),
-                // images: [
-                //     "https://www.xzerp.com/file/wish/upload/2025-06-24/2025/06/24/2_20250624134556A024.jpg",
-                //     "https://www.xzerp.com/file/wish/upload/2025-06-24/2025/06/24/7017600413_20250624134545A024.jpg"
-                // ],
+                // images: item.imageUrl && item?.imageUrl?.map(e => e.url.replace('/prod-api', '')),
+                images: [
+                    "https://www.xzerp.com/file/wish/upload/2025-07-21/2025/07/21/7685676291_20250721115509A001.jpg",
+                    "https://www.xzerp.com/file/wish/upload/2025-07-21/2025/07/21/7384522984_20250721115531A002.jpg",
+                    "https://www.xzerp.com/file/wish/upload/2025-07-21/2025/07/21/7384523012_20250721115530A002.jpg"
+                ],
                 offer_id: item.sellerSKU,
                 old_price: item.oldPrice, // 非必填
                 price: item.price,

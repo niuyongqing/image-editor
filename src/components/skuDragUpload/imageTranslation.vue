@@ -37,7 +37,7 @@
     </a-modal>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { message } from 'ant-design-vue';
 import { CheckOutlined } from '@ant-design/icons-vue';
 import { imageRecognitionApi, imageRecognitionQueryApi, imageTranslationApi } from '~@/api/common/translation';

@@ -1,7 +1,9 @@
 <template>
     <div id="editPriceModalCont">
-        <a-modal :open="editPriceVisible" :maskClosable="false" @cancel="handleCancel" :width="'40%'" :keyboard="false"
+        <a-modal :open="editPriceVisible" :maskClosable="false" @cancel="handleCancel" :width="'45%'" :keyboard="false"
             title="修改属性" destroy-on-close>
+            
+            <div class="my10px"><a-tag color="green">说明</a-tag><span>已归档的产品不支持修改产品相关信息！</span></div>
             <a-row>
                 <a-col :flex="2">
                     <div class="flex flex-col">
@@ -14,7 +16,6 @@
                                 :options="item.option" />
                         </div>
                     </div>
-                    <div><a-tag color="green">说明</a-tag><span>已归档的产品不支持修改产品相关信息！</span></div>
                 </a-col>
                 <a-col :flex="4" style="max-height: 600px;overflow-y: auto;">
                     <a-form :model="form" :layout="'vertical'" ref="ruleForm" style="margin-top: 20px;">
@@ -51,12 +52,12 @@
                                             placeholder="示例：1.00" :min="0"></a-input-number>
                                     </div>
                                     <div class="mt-2.5">
-                                        <a-radio :value="2">按现有原价：</a-radio><a-select v-model:value="form.priceSelct1"
+                                        <a-radio :value="2">按现有原价：</a-radio><a-select v-model:value="form.priceSelect1"
                                             :disabled="form.priceValue == 1" class="mr-2.5" style="width: 110px"
                                             :options="commList[0].option"></a-select><a-input-number class="mr-2.5"
                                             style="width: 150px;" :disabled="form.priceValue == 1"
                                             v-model:value="form.toPrice" placeholder="请输原价格" :precision="2"
-                                            :min="0"></a-input-number><a-select v-model:value="form.priceSelct2"
+                                            :min="0"></a-input-number><a-select v-model:value="form.priceSelect2"
                                             style="width: 120px" :options="commList[1].option"
                                             :disabled="form.priceValue == 1"></a-select>
                                     </div>
@@ -70,28 +71,28 @@
                                 <a-radio-group v-model:value="form.minValue" style="width: 100%;" name="radioGroup">
                                     <div class="flex">
                                         <a-radio :value="1">直接修改为：</a-radio><a-input-number style="width: 200px;"
-                                            v-model:value="form.minPrice" :disabled="form.minValue == 2" :precision="2"
+                                            v-model:value="form.minPrice" :disabled="form.minValue != 1" :precision="2"
                                             placeholder="示例：1.00" :min="0"></a-input-number>
                                     </div>
                                     <div class="mt-2.5">
-                                        <a-radio :value="2">按现有原价：</a-radio><a-select v-model:value="form.minSelct1"
-                                            :disabled="form.minValue == 1" class="mr-2.5" style="width: 110px"
+                                        <a-radio :value="2">按现有原价：</a-radio><a-select v-model:value="form.minSelect1"
+                                            :disabled="form.minValue != 2" class="mr-2.5" style="width: 110px"
                                             :options="commList[0].option"></a-select><a-input-number class="mr-2.5"
-                                            style="width: 150px;" :disabled="form.minValue == 1"
+                                            style="width: 150px;" :disabled="form.minValue != 2"
                                             v-model:value="form.toMinPrice" placeholder="请输原价格" :precision="2"
-                                            :min="0"></a-input-number><a-select v-model:value="form.minSelct2"
+                                            :min="0"></a-input-number><a-select v-model:value="form.minSelect2"
                                             style="width: 120px" :options="commList[1].option"
-                                            :disabled="form.minValue == 1"></a-select>
+                                            :disabled="form.minValue != 2"></a-select>
                                     </div>
                                     <div class="mt-2.5">
-                                        <a-radio :value="3">按现有售价：</a-radio><a-select v-model:value="form.minSelct3"
-                                            :disabled="form.minValue == 1" class="mr-2.5" style="width: 110px"
+                                        <a-radio :value="3">按现有售价：</a-radio><a-select v-model:value="form.minSelect3"
+                                            :disabled="form.minValue != 3" class="mr-2.5" style="width: 110px"
                                             :options="commList[0].option"></a-select><a-input-number class="mr-2.5"
-                                            style="width: 150px;" :disabled="form.minValue == 1"
+                                            style="width: 150px;" :disabled="form.minValue != 3"
                                             v-model:value="form.toMinPrice2" placeholder="请输原价格" :precision="2"
-                                            :min="0"></a-input-number><a-select v-model:value="form.minSelct4"
+                                            :min="0"></a-input-number><a-select v-model:value="form.minSelect4"
                                             style="width: 120px" :options="commList[1].option"
-                                            :disabled="form.minValue == 1"></a-select>
+                                            :disabled="form.minValue != 3"></a-select>
                                     </div>
                                 </a-radio-group>
                             </a-form-item>
@@ -209,8 +210,20 @@
                             </a-form-item>
                         </div>
                         <div class="rounded-md p-2.5 mb-2.5" style="border: 1px solid #ccc;"
-                            v-if="checkedListAll.includes('attr')">
-                            <a-form-item label="合并属性：">
+                            v-if="checkedListAll.includes('all')">
+                            <a-form-item label="合并属性">
+                                <div>
+                                    <a-tag color="green">注意！</a-tag> <span>同一店铺下，若合并属性一致会导致该分类下的产品合并为一个产品，请谨慎修改！</span>
+                                </div>
+                                <div class="my10px">
+                                    共选择<span class="text-red">{{ brandList.length }}</span>个产品，产品分类如下，请分别编辑属性
+                                </div>
+                                <div class="my10px">
+                                    <div v-for="(item, index) in attrList" :key="index">
+                                        <span>{{ item.threeCategoryName }}</span><span class="text-red ml10px">({{
+                                            item.repeatCount }})</span>
+                                    </div>
+                                </div>
                                 <a-form-item label="品牌：">
                                     <div class="flex">
                                         <a-select v-model:value="form.attr" class="mr-2.5" style="width: 200px"
@@ -236,38 +249,41 @@ import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { batchUpdate } from "../../config/api/product";
 import { endResult } from "../../config/commJs/index"
 import { message } from "ant-design-vue";
+import { cloneDeep } from 'lodash'
 
 const props = defineProps({
     editPriceVisible: Boolean,
     selectedRows: Array,
     editStockList: Array,
-    defType: Array
+    defType: Array,
+    brandList: Array
 });
 const emit = defineEmits(["handleEditPriceClose"]);
 const loading = ref(false)
 const ruleForm = ref()
+const attrList = ref([])
 // 提取初始表单数据工厂函数
 const getInitialFormData = () => ({
     oldPriceValue: 1,
     oldPrice: "",
     toOldPrice: "",
-    oldSelect1: "",
-    oldSelect2: "",
+    oldSelect1: "add",
+    oldSelect2: "keepTwo",
     priceValue: 1,
     price: "",
-    priceSelect1: "",
-    priceSelect2: "",
+    priceSelect1: "add",
+    priceSelect2: "keepTwo",
     toPrice: "",
     minPrice: "",
     minValue: 1,
     toMinPrice: "",
     toMinPrice2: "",
-    minSelect1: "",
-    minSelect2: "",
-    minSelect3: "",
-    minSelect4: "",
+    minSelect1: "add",
+    minSelect2: "keepTwo",
+    minSelect3: "add",
+    minSelect4: "keepTwo",
     weightValue: 1,
-    weightSelect: "",
+    weightSelect: "add",
     weight: null,
     padStart: "",
     padEnd: "",
@@ -396,7 +412,7 @@ const leftList = reactive([
             },
             {
                 label: '合并属性',
-                value: 'attr'
+                value: 'all'
             }
         ],
         indeterminate: false,
@@ -469,13 +485,45 @@ watch(
 );
 
 watch(() => props.defType, val => {
-    const item = leftList.find(item => {
-        return item.option.some(option => val.includes(option.value));
-    })
-    item.checkAll = true
-    item.indeterminate = false
-    item.checkedList = val
+    if (val.length > 0) {
+        const item = leftList.find(item => {
+            return item.option.some(option => val.includes(option.value));
+        })
+        item.checkAll = true
+        item.indeterminate = false
+        item.checkedList = val
+    }
 })
+
+watch(() => props.brandList, val => {
+    if (val.length > 1) {
+        attrList.value = processData(val);
+    } else {
+        attrList.value = val.map(item => {
+            return {
+                ...item,
+                repeatCount: 1
+            }
+        })
+    }
+})
+
+// 去重数据
+function processData(originalData) {
+    const temp = {};
+
+    originalData.forEach(item => {
+        const key = item.threeCategoryId;
+        if (temp[key]) {
+            temp[key].repeatCount += 1;
+        } else {
+            temp[key] = { ...item, repeatCount: 1 };
+        }
+    });
+
+    return Object.values(temp);
+}
+
 const handleCancel = () => {
     emit("handleEditPriceClose")
     ruleForm.value.resetFields();
@@ -500,8 +548,10 @@ const changeInputNumber = (item) => {
 const onSubmit = () => {
     if (props.selectedRows.length == 0) return;
     loading.value = true;
+    console.log("selectedRows", props.selectedRows);
+
     // 标题数据处理
-    let priceList = props.selectedRows.map((item) => {
+    let arr = props.selectedRows.map((item) => {
         return {
             name: item.name,
             vat: item.vat,
@@ -510,6 +560,7 @@ const onSubmit = () => {
             minPrice: item.minPrice,
             warehouseList: [],
             offerId: item.offerId,
+            attributes: item?.attributes[0].attributes,
             packageWeight: item?.attributes[0]?.weight,
             packageWidth: item?.attributes[0]?.width,
             packageHeight: item?.attributes[0]?.height,
@@ -518,6 +569,7 @@ const onSubmit = () => {
             account: item.account
         };
     });
+    let priceList = cloneDeep(arr)
     // 遍历 checkedListAll 中的每个字段，调用对应的处理函数
     checkedListAll.value.forEach((field) => {
         if (fieldHandlers[field]) {
@@ -547,6 +599,23 @@ const onSubmit = () => {
                 }
             });
             console.log('priceList', priceList);
+        }
+        if (field === "all") {
+            console.log('priceList', priceList);
+            
+            priceList.forEach(itemA => {
+                itemA.attributes = itemA.attributes.map(item => {
+                    if (item.id === 85) {
+                        item.values = [{
+                            dictionaryValueId: 126745801,
+                            value: '无品牌'
+                        }]
+                    }
+                    return item
+                })
+                // itemA.attributes.forEach(e => {
+                // })
+            })
         }
     });
 
@@ -581,6 +650,23 @@ const onSubmit = () => {
         }
     });
     console.log('priceList--', priceList);
+    // 新增字段验证逻辑（同时验证外层对象和SKU列表）
+    const hasInvalidValue = priceList.some(item => {
+        // 检查每个字段：有值时必须>0，空值允许通过
+        const hasInvalidPrice = item.price !== '' && Number(item.price) <= 0;
+        const hasInvalidOldPrice = item.oldPrice !== '' && Number(item.oldPrice) <= 0;
+        const hasInvalidMinPrice = item.minPrice !== '' && Number(item.minPrice) <= 0;
+        const hasInvalidWeight = item.weight !== '' && Number(item.weight) <= 0;
+
+        return hasInvalidPrice || hasInvalidOldPrice || hasInvalidMinPrice || hasInvalidWeight;
+    });
+
+    if (hasInvalidValue) {
+        message.error('价格和重量必须为大于0的正数');
+        loading.value = false;
+        return;
+    }
+
     batchUpdate(priceList).then(res => {
         message.success(res.msg)
     }).finally(() => {
@@ -630,7 +716,7 @@ const handlePrice = (row, form) => {
     if (form.priceValue === 1) {
         row.price = form.price;
     } else {
-        row.price = endResult(Number(row.price), Number(form.toPrice), form.priceSelct1, form.priceSelct2);
+        row.price = endResult(Number(row.price), Number(form.toPrice), form.priceSelect1, form.priceSelect2);
     }
 
     return row;
@@ -653,10 +739,10 @@ const handleMinPrice = (row, form) => {
             row.minPrice = form.minPrice;
             break;
         case 2:
-            row.minPrice = endResult(Number(row.minPrice), Number(form.toMinPrice), form.minSelct1, form.minSelct2);
+            row.minPrice = endResult(Number(row.minPrice), Number(form.toMinPrice), form.minSelect1, form.minSelect2);
             break;
         case 3:
-            row.minPrice = endResult(Number(row.minPrice), Number(form.toMinPrice2), form.minSelct3, form.minSelct4);
+            row.minPrice = endResult(Number(row.minPrice), Number(form.toMinPrice2), form.minSelect3, form.minSelect4);
             break;
         default:
             break;

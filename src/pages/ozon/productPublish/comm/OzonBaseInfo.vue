@@ -1,32 +1,32 @@
 <template>
     <div id="OzonBaseInfoCont">
         <a-card title="基本信息" class="text-left">
-            <a-form :label-col="{ span: 3 }" ref="ruleForm" :model="form" class="mt-5" :rules="rules">
+            <a-form :label-col="{ span: 3 }" ref="ruleForm" :model="form" class="mt-5 shopForm" :rules="rules">
                 <a-form-item label="店铺：" name="shortCode">
-                    <a-select v-model:value="form.shortCode" placeholder="请选择店铺" @change="getHistoryList"
+                    <a-select v-model:value="form.shortCode" size="middle" placeholder="请选择店铺" @change="getHistoryList"
                         style="width: 90%" allowClear showSearch optionFilterProp="label" :options="shopList">
                     </a-select>
                 </a-form-item>
                 <a-form-item label="商品标题：" name="name">
-                    <a-input style="width: 90%" :disabled="idHave" v-model:value="form.name" placeholder="请输入产品名称(用俄语或英语)" :maxlength="255"
-                        showCount></a-input>
+                    <a-input style="width: 90%" :disabled="idHave" size="middle" v-model:value="form.name"
+                        placeholder="请输入产品名称(用俄语或英语)" :maxlength="255" showCount></a-input>
                     <!-- :autofocus="true" -->
                 </a-form-item>
                 <a-form-item label="VAT：" name="vat">
-                    <a-select v-model:value="form.vat" allowClear style="width: 90%" :options="vatList">
+                    <a-select v-model:value="form.vat" allowClear size="middle" style="width: 90%" :options="vatList">
                     </a-select>
                 </a-form-item>
                 <a-form-item label="分类：" name="categoryId">
                     <!-- :options="historyCategoryList" -->
-                    <a-select v-model:value="form.categoryId" @change="selectAttributes" allowClear
+                    <a-select v-model:value="form.categoryId" @change="selectAttributes" allowClear size="middle"
                         :filter-option="searchOption" showSearch labelInValue placeholder="请选择" style="width: 200px;"
                         :options="historyCategoryList" :fieldNames="{
                             label: 'threeCategoryName', value: 'threeCategoryId',
                         }">
                     </a-select>
-                    <a-button style="margin-left: 20px" :disabled="categoryTreeList.length == 0"
+                    <a-button style="margin-left: 20px" size="middle" :disabled="categoryTreeList.length == 0"
                         @click="selectVisible = true">选择分类</a-button>
-                    <p v-if="hisAttrObj.length != 0" style="color: #933">
+                    <p v-if="hisAttrObj.length != 0" style="color: #933" class="text-16px mt2.5">
                         <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{
                             hisAttrObj[0].secondCategoryName }}</span>/
                         <span>{{ hisAttrObj[0].threeCategoryName }}</span>
@@ -59,7 +59,7 @@
                                             <AsyncIcon icon="QuestionCircleOutlined"></AsyncIcon>
                                         </a-tooltip>
                                     </template>
-                                    <a-input v-if="item.selectType === 'input'"
+                                    <a-input v-if="item.selectType === 'input'" size="middle"
                                         v-model:value="form.attributes[item.name]" :style="'width: 80%'" allow-clear
                                         :maxlength="item.name == '海关编码' || item.name == 'IKP公司'
                                             ? 17
@@ -74,7 +74,7 @@
                                     ">
                                         <div v-if="item.options && item.options.length > 25">
                                             <a-select optionFilterProp="label" show-search
-                                                v-model:value="item.selectDate" allowClear
+                                                v-model:value="item.selectDate" allowClear size="middle"
                                                 style="width: 200px;margin-bottom: 5px;" placeholder="请输入内容"
                                                 labelInValue>
                                                 <!-- :options="item.options" @change="handlerChangeSelectDate"-->
@@ -82,24 +82,21 @@
                                                     v-for="(v, i) in item.options" :key="i">{{ v.label
                                                     }}</a-select-option>
                                             </a-select>
-                                            <a-button style="margin-left: 10px" @click="addItemValues(item)"
-                                                type="primary">添加</a-button>
+                                            <a-button style="margin-left: 10px" size="middle"
+                                                @click="addItemValues(item)" type="primary">添加</a-button>
                                         </div>
                                         <a-form-item-rest>
                                             <a-checkbox-group v-model:value="form.attributes[item.name]"
                                                 style="width: 80%;" class="boxGroup"
                                                 @change="changeRule(form.attributes, item.name)"
                                                 :options="item.acquiesceList">
-                                                <!--  :options="item.acquiesceList" v-model:checked="option.value" -->
-                                                <!-- <a-checkbox v-for="option in item.acquiesceList" :key="option.value">
-                                                    {{ option.label }}
-                                                </a-checkbox> -->
+                                                <template #label="{ label }">
+                                                    <span :title="label">{{ label }}</span>
+                                                </template>
                                             </a-checkbox-group>
                                         </a-form-item-rest>
-                                        <!-- <a-checkbox v-for="i in item.acquiesceList" :label="i.value"
-                                            :key="i.value">{{ i.value }}</a-checkbox> @change="handlerSelectDate"-->
                                     </div>
-                                    <a-select optionFilterProp="label" show-search
+                                    <a-select optionFilterProp="label" show-search size="middle"
                                         v-model:value="form.attributes[item.name]" v-if="item.selectType === 'select'"
                                         labelInValue :style="'width: 80%'" allowClear>
                                         <a-select-option v-if="item.id == 85" :value="'无品牌'"
@@ -177,7 +174,8 @@ const rules2 = ref({})
 const loopAttributes = ref([])
 const categoryTreeList = ref([])
 const historyCategoryList = ref([])
-const isExpand = ref(false)
+const tempAttr = ref({});
+const isExpand = ref(true)
 const vatList = [
     {
         label: "免税",
@@ -320,18 +318,53 @@ const getHistoryAttr = (historyCategoryId, account) => {
         account,
     }).then((res) => {
         let resObj = (res?.data && JSON.parse(res?.data)) || {};
-        // this.$set(this.form, "attributes", resObj);
-        // form.attributes = resObj
-        form.attributes = assignValues(resObj, loopAttributes.value)
-        console.log('attributes', form.attributes);
-
-        // // this.form.attributes = res?.data
-        // //   ? JSON.parse(res?.data)
-        // //   : this.form.attributes;
-        // // let a = this.assignValues(this.form.attributes, this.loopAttributes);
-        // this.$refs.ruleForm2.clearValidate();
+        if (res?.data) {
+            form.attributes = assignValues(resObj, loopAttributes.value)
+        }
     });
 }
+
+const moveMatchedItemForward = (data, arr) => {
+    const newData = [];
+    const remainingData = [];
+
+    // 遍历所有选项
+    for (let i = 0; i < data.length; i++) {
+        const item = data[i];
+        // 如果选项ID存在于匹配数组中
+        if (arr.includes(item.id)) {
+            newData.push(item);    // 收集匹配项
+        } else {
+            remainingData.push(item); // 收集未匹配项
+        }
+    }
+
+    // 合并数组并限制最多显示25个选项
+    return newData.concat(remainingData).slice(0, 25);
+};
+
+const findMatchedOption = (attributeId, data, options) => {
+    const matchedOption = options?.find((option) => option.id === data.id);
+    if (attributeId == 9070) {  // 特殊处理布尔值属性
+        return {
+            label: JSON.parse(data.value) == true ? "是" : "否",
+            value: JSON.parse(data.value),
+        };
+    } else if (attributeId == 85) {  // 特殊处理品牌属性
+        return {
+            label: "无品牌",
+            value: data.id,
+        };
+    } else if (matchedOption) {
+        return {
+            id: matchedOption.id,
+            value: matchedOption.value,
+            label: matchedOption.label,
+        };
+    }
+    return null;
+};
+
 // 此方法将历史缓存中的属性值进行重新赋值
 const assignValues = (a, b) => {
     const result = {};
@@ -354,7 +387,6 @@ const assignValues = (a, b) => {
                     });
                     result[name] = filteredItems.map((e) => e.value);
                 } else if (selectType === "select") {
-                    console.log('sss', a, key, a[key]);
                     let filteredItems =
                         item?.options &&
                         item?.options?.find((e) => e.value === a[key] || e.value === a[key].value);
@@ -362,7 +394,7 @@ const assignValues = (a, b) => {
                         label: "无品牌",
                         value: {
                             label: "无品牌",
-                            value: "无品牌"
+                            value: { label: '无品牌', value: '无品牌' }
                         }
                     } : filteredItems
                 } else {
@@ -371,19 +403,77 @@ const assignValues = (a, b) => {
             }
         }
     });
+    console.log(22, result);
+
 
     return result;
 }
 
+const templateAssign = (a, b) => {
+    const result = {};
+    // 遍历所有属性配置项
+    b.forEach((item) => {
+        const attrName = item.name;
+        const attrValue = a[attrName];
+        if (!attrValue) return;
+
+        // 处理多选类型属性
+        if (item.selectType === "multSelect") {
+            result[attrName] = Array.isArray(attrValue)
+                ? attrValue.map(v => Number(v))  // 处理数组值
+                : [Number(attrValue)];  // 处理单选值转数组
+
+            // 维护选项排序
+            item.acquiesceList = moveMatchedItemForward(
+                item.options,
+                result[attrName]
+            );
+        }
+        // 处理下拉选择类型属性
+        else if (item.selectType === "select") {
+            // 特殊处理品牌字段
+            if (attrName === "品牌(Бренд)") {
+                result[attrName] = {
+                    label: "无品牌",
+                    value: { label: '无品牌', value: '无品牌' }
+                };
+            }
+            // 处理对象型值
+            else if (typeof attrValue === 'object') {
+                result[attrName] = findMatchedOption(
+                    item.id,
+                    { id: attrValue.value, value: attrValue.label },
+                    item.options
+                );
+            }
+            // 处理原始值
+            else {
+                result[attrName] = findMatchedOption(
+                    item.id,
+                    { id: attrValue, value: attrValue },
+                    item.options
+                );
+            }
+        }
+        // 处理普通输入类型
+        else {
+            result[attrName] = typeof attrValue === 'object'
+                ? attrValue.value  // 提取对象中的值
+                : attrValue;       // 直接使用原始值
+        }
+    });
+    return result;
+}
+
 const addItemValues = (obj) => {
-    if(!obj.selectDate.value) return;
+    if (!obj.selectDate.value) return;
     const { attributes } = form;
     const isExist = obj.acquiesceList.some(
         (item) => item.value === obj.selectDate.value
     );
     //!  判断搜索出来的是否在初始的数组中显示
     if (isExist) {
-        const attr =  attributes[obj.name] || [];
+        const attr = attributes[obj.name] || [];
         attr?.push(obj.selectDate.value);
         attributes[obj.name] = attr
     } else {
@@ -440,6 +530,32 @@ watch(() => form.shortCode, val => {
         hisAttrObj.value = []
     }
 })
+// 引用产品模板
+watch(() => useOzonProductStore().productTemplate, (val) => {
+    if (val) {
+        const { account, content: {
+            productTemplate: {
+                categoryId: {
+                    threeCategoryId,
+                    secondCategoryId,
+                    value
+                },
+                productAttr
+            }
+        } } = val;
+        form.shortCode = val.account;
+        form.categoryId = {
+            threeCategoryId,
+            threeCategoryName: "",
+            secondCategoryId,
+            label: undefined,
+            value
+        };
+        tempAttr.value = productAttr;
+        emit("getAttributes", form.shortCode, form.categoryId);
+    }
+})
+
 // props.attributesCache,
 watch(() => useOzonProductStore().attributes, (val) => {
     if (val) {
@@ -454,26 +570,26 @@ watch(() => useOzonProductStore().attributes, (val) => {
          *  "卖家代码" 9024
          */
         const newAttributesCache = processAttributesCache(val);
-        const custAttr = newAttributesCache.filter((a) => !a.isRequired);
-        const filterAttributesCache = custAttr.filter(
-            (a) =>
-                !(a.isAspect && !a.isRequired) &&
-                !(a.isAspect && a.isCollection) &&
-                !(
-                    a.id === 4080 ||
-                    a.id == 8229 ||
-                    a.id == 8789 ||
-                    a.id == 8790 ||
-                    a.id == 4180 ||
-                    a.id == 4191 ||
-                    a.id == 11254 ||
-                    a.id == 9024
-                ) &&
-                !(
-                    a.attributeComplexId == "100001" ||
-                    a.attributeComplexId == "100002"
-                )
-        );
+        // const custAttr = newAttributesCache.filter((a) => !a.isRequired);
+        // const filterAttributesCache = custAttr.filter(
+        //     (a) =>
+        //         !(a.isAspect && !a.isRequired) &&
+        //         !(a.isAspect && a.isCollection) &&
+        //         !(
+        //             a.id === 4080 ||
+        //             a.id == 8229 ||
+        //             a.id == 8789 ||
+        //             a.id == 8790 ||
+        //             a.id == 4180 ||
+        //             a.id == 4191 ||
+        //             a.id == 11254 ||
+        //             a.id == 9024
+        //         ) &&
+        //         !(
+        //             a.attributeComplexId == "100001" ||
+        //             a.attributeComplexId == "100002"
+        //         )
+        // );
 
         let noThemeAttributesCache = newAttributesCache.filter(
             (a) => !a.isAspect
@@ -486,8 +602,6 @@ watch(() => useOzonProductStore().attributes, (val) => {
             });
 
             let data = noThemeAttributesCache.filter((a) => a.isRequired);
-            // console.log("data", data);
-            // console.log("rules2", this.rules2);
             rules2.value = {};
             let attributes = {};
             // 属性类型处理
@@ -516,12 +630,11 @@ watch(() => useOzonProductStore().attributes, (val) => {
                 item.acquiesceList =
                     (item.options && item.options.slice(0, 25)) ?? [];
                 attributes[item.name] = item.selectType === "multSelect" ? [] : undefined;
-                // attributes["品牌(Бренд)"] = {
-                //     label: "无品牌",
-                //     value: "无品牌"
-                // }
+                attributes["品牌(Бренд)"] = {
+                    label: "无品牌",
+                    value: { label: '无品牌', value: '无品牌' }
+                }
             });
-            // console.log("filterAttributesCache", noThemeAttributesCache);
 
             // 属性校验
             for (let i = 0; i < data.length; i++) {
@@ -537,29 +650,26 @@ watch(() => useOzonProductStore().attributes, (val) => {
                 rules2.value[noThemeAttributesCache[i].name] = obj
             }
             // this.$set(rules2.value, noThemeAttributesCache[i].name, obj);
-            // console.log("rules2", rules2.value);
             // 获取自定义添加的属性数据（同步过滤属性）
             //!未同步属性
             form.attributes = attributes;
             loopAttributes.value = noThemeAttributesCache;
 
-            // console.log("noThemeAttributesCache", form.attributes);
-            // console.log("loopAttributes.value", loopAttributes.value);
         }
-        if (!form.shortCode || !form.categoryId) return;
-        getHistoryAttr(
-            form.categoryId.threeCategoryId,
-            form.shortCode
-        );
+        // 引用模板数据回显 assignValues templateAssign
+        if (Object.keys(tempAttr.value).length > 0) {
+            form.attributes = templateAssign(tempAttr.value, loopAttributes.value)
+        } else {
+            if (!form.shortCode && !form.categoryId) return;
+            getHistoryAttr(
+                form.categoryId.threeCategoryId,
+                form.shortCode
+            );
+        }
+
     }
 })
 
-watch(() => form.attributes, (val) => {
-    form.attributes["品牌(Бренд)"] = {
-        label: "无品牌",
-        value: "无品牌"
-    }
-})
 </script>
 <style lang="less" scoped>
 :deep(.ant-form) {
@@ -581,6 +691,16 @@ watch(() => form.attributes, (val) => {
                 /* 当文本溢出时显示省略号 */
                 white-space: nowrap;
                 /* 禁止文本换行 */
+            }
+        }
+    }
+}
+
+:deep(.shopForm) {
+    .ant-form-item {
+        .ant-row {
+            .ant-form-item-label>label {
+                font-size: 20px !important;
             }
         }
     }

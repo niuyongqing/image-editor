@@ -70,3 +70,62 @@ export function uploadImage(params, headers) {
 export function receiveProductToGatherBox(params) {
     return usePost('/platform-ozon/platform/ozon/gather/product/receiveProductToGatherBox', params)
 }
+
+// 批量备注
+export function ozonRemark(params) {
+    return usePost('/platform-ozon/platform/ozon/gather/product/batchRemark', params)
+}
+
+
+// 批量删除产品
+export function ozonDeleteProduct(params) {
+    return usePost('/platform-ozon/platform/ozon/gather/product/batchDeleteProduct', params)
+}
+// 批量发布产品
+export function batchPublishToPlatform(params) {
+    return usePost('/platform-ozon/platform/ozon/gather/product/batchPublishToPlatform', params)
+}
+
+
+//  批量获取详情
+export function batchQueryDetail(params) {
+    return usePost('/platform-ozon/platform/ozon/gather/product/batchQueryDetail', params)
+}
+
+
+//  批量修改产品属性
+export function batchUpdateProduct(params) {
+    return usePost('/platform-ozon/platform/ozon/gather/product/batchUpdateProduct', params)
+}
+
+// 产品移入待发布
+export function addToWaitPublish(params) {
+    return usePost('/platform-ozon/platform/ozon/gather/product/addToWaitPublish', params)
+}
+
+
+// 批量移入待发布
+export function batchAddToWaitPublish(params) {
+    return usePost('/platform-ozon/platform/ozon/gather/product/batchAddToWaitPublish', params)
+}
+
+
+// 批量查询变种关联关系
+export function batchRelationDetail(params) {
+    return usePost('/platform-common/platform/common/variant/relation/batchRelationDetail', params)
+}
+
+// 批量保存变种关联关系
+export function batchSave(params) {
+    return usePost('/platform-common/platform/common/variant/relation/batchSave', params)
+}
+
+// 采集箱产品保存
+export function saveToGatherBox(params) {
+    return usePost('/platform-ozon/platform/ozon/gather/product/save', params)
+}
+
+// 采集箱产品发布
+export function publishToPlatform(params) {
+    return usePost('/platform-ozon/platform/ozon/gather/product/publishToPlatform', params)
+}

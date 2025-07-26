@@ -1,9 +1,9 @@
 <template>
     <div id="OzonNewVariantInfoCont">
-        <a-card title="SKU信息" class="text-left" :loading="categoryAttributesLoading">
-            <a-card title="变种属性" class="text-left mx-50">
+        <a-card title="SKU信息" class="text-left text-16px mt-20px" :loading="categoryAttributesLoading">
+            <a-card title="变种属性" class="text-left mx-50 text-16px">
                 <div>
-                    <span>变种主题：</span>
+                    <span class="text-16px">变种主题：</span>
                     <a-button type="primary" v-for="(item, index) in themeBtns" class="mr-2.5"
                         :key="'add' + index + item.name" @click="enterVariantType(item)">
                         <AsyncIcon icon="PlusCircleOutlined"></AsyncIcon>
@@ -15,6 +15,8 @@
                                 <i v-if="items.isRequired" style="color: red; margin-right: 2px">*</i>
                                 <span>{{ items.name }}</span>
                             </span>
+                            <a-button type="link" v-if="[10096, 4295].includes(items.id)" @click="setColor(items)"
+                                style="float: right">批量设置</a-button>
                             <a-popconfirm icon-color="red" title="确定要删除这个变种主题吗？"
                                 @confirm="removeVariantType(items, index)">
                                 <a-button type="text" danger v-if="!items.isRequired" style="float: right">移除</a-button>
@@ -78,16 +80,16 @@
                         style="margin-left: 10px"
                         v-if="requiredList.length !== 0 || themeBtns.length !== 0">添加自定义变种属性</a-button>
                 </div>
-                <a-table bordered
-                    :columns="[...filteredHeaderList, { title: 'index', dataIndex: 'index', key: 'index' }]"
-                    :data-source="tableData" :pagination="false" :scroll="{ x: 2000 }">
+                <a-table bordered :columns="filteredHeaderList" :data-source="tableData" :pagination="false"
+                    :scroll="{ x: 2000 }">
                     <template #headerCell="{ column }">
-                        <template v-if="column.dataIndex === 'index'">
-                            序号
-                        </template>
                         <template v-if="column.dataIndex === 'sellerSKU'">
                             <span><span style="color: #ff0a37;">*</span>
                                 {{ column.title }}</span><a class="ml-1.25" @click="batchSKU">批量</a>
+                        </template>
+                        <template v-if="column.dataIndex === 'skuTitle'">
+                            <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
+                                @click="batchSkuTitle">批量</a>
                         </template>
                         <template v-if="column.dataIndex === 'price'">
                             <span><span style="color: #ff0a37;">*</span>
@@ -107,9 +109,6 @@
                         </template>
                     </template>
                     <template #bodyCell="{ column, record, index }">
-                        <template v-if="column.dataIndex === 'index'">
-                            {{ index + 1 }}
-                        </template>
                         <template v-if="column.dataIndex === 'colorImg'">
                             <a-image v-if="record.colorImg.length > 0" style="position: relative;" :width="100"
                                 :src="record.colorImg[0].url" />
@@ -166,7 +165,9 @@
                         <template v-if="column.dataIndex === 'quantity'">
                             <div class="flex">
                                 <span>{{ record.quantity === undefined ? 0 : record.quantity }}</span>
-                                <AsyncIcon icon="EditOutlined" @click="batchStock('single', record)"></AsyncIcon>
+                                <AsyncIcon style="margin-left: 10px;" icon="EditOutlined"
+                                    @click="batchStock('single', record)">
+                                </AsyncIcon>
                             </div>
                         </template>
                         <template v-if="column.dataIndex === 'packageLength'">
@@ -288,6 +289,9 @@
                                     </template>
                                     <template #variantInfo>
                                         <!-- 变种主题信息 -->
+                                        <div v-for="(nameItem, nameIndex) in skuThemeNames(item)" :key="nameIndex">
+                                            {{ nameItem[0] }}: {{ item[nameItem[0]] }}
+                                        </div>
                                     </template>
                                     <template #skuInfo>
                                         {{ `【${item.imageUrl.length}/30】图片 ` }}
@@ -301,12 +305,12 @@
                                                     <a-menu-item @click="applyAllImage(item)">
                                                         所有变种
                                                     </a-menu-item>
-                                                    <!-- <a-menu-item v-for="item in applyMenuList" :key="item.value"
+                                                    <!--  <a-menu-item v-for="item in applyMenuList" :key="item.value"
                                                         @click="applyImage(item)">
                                                         <span>同</span>
                                                         <span px-3px>{{ item.title }}</span>
                                                         <span>的变种</span>
-                                                    </a-menu-item> -->
+                                                    </a-menu-item>-->
                                                 </a-menu>
                                             </template>
                                         </a-dropdown>
@@ -328,6 +332,8 @@
         <!-- 选择自定义属性  -->
         <SelectAttr @selectAttrList="selectAttrList" :attrVisible="attrVisible" :custAttr="custAttr"
             :newAttribute="newAttribute" @handleStatsModalClose="attrVisible = false"></SelectAttr>
+        <!-- 批量设置变种属性 -->
+        <batchSetColor :setValueVis="setValueVis" @closeColorModal="setValueVis = false" @confirm="confirm" :setColorOption="setColorOption" @handleCancel="handleColorCancel"></batchSetColor>
         <!-- 批量编辑图片 -->
         <bacthSkuEditImg ref="bacthSkuEditImgRef"></bacthSkuEditImg>
         <!-- 图片翻译弹窗 -->
@@ -353,23 +359,17 @@ import {
     checkData, rearrangeColorFields, handleTheme, processImageSource
 } from "../../config/commJs/index"
 import { publishHead, otherList } from '../../config/tabColumns/skuHead';
-import { cloneDeep, debounce } from "lodash";
+import { cloneDeep, debounce, pick } from "lodash";
 import { uploadImage } from '@/pages/ozon/config/api/draft';
 import { DownOutlined, DownloadOutlined } from '@ant-design/icons-vue';
 import { downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js';
 import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
 import download from '~@/api/common/download';
 
-import { omit, pick } from 'lodash'
-import SkuDragUpload from '../skuDragImg/index.vue';
-import bacthSkuEditImg from '../skuDragImg/bacthSkuEditImg.vue';
-import ImageTranslation from '../skuDragImg/imageTranslation.vue';
-
-const obj = { "商品颜色(Цвет товара)": "白色(белый)", "颜色名称(Название цвета)": "【时运亨通】送手环挂绳+品牌全屏钢化膜" };
-const findTheme = (item, key = []) => {
-    return pick(item, key);
-}
-
+import SkuDragUpload from "@/pages/ozon/config/component/skuDragImg/index.vue";
+import bacthSkuEditImg from "@/pages/ozon/config/component/skuDragImg/bacthSkuEditImg.vue";
+  import ImageTranslation from "@/pages/ozon/config/component/skuDragImg/imageTranslation.vue";
+import batchSetColor from "../../editWaitProduct/comm/batchSetColor.vue"
 
 const props = defineProps({
     categoryAttributesLoading: Boolean,
@@ -407,7 +407,10 @@ const quantityRow = ref({})
 const types = ref("")
 const editStockList = ref([])
 const attrVisible = ref(false)
-const newAttribute = ref([])
+const newAttribute = ref([]);
+  const setColorOption = ref([]);
+  const setValueVis = ref(false); //批量设置属性
+const colorRow = ref({});
 const custAttr = ref([]) //可控制属性
 const plainOptions = [
     {
@@ -444,7 +447,105 @@ const handleChangeColroImg = (info, record) => {
     if (info.file.status === 'error') {
         message.error('图片上传有误！');
     }
+};
+
+const setColor = (row) => {
+    colorRow.value = row;
+    setValueVis.value = true;
+    setColorOption.value = row.details.map(item => {
+        return {
+            label: item.value,
+            value: item.id,
+        }
+    });
+};
+
+const handleColorCancel = () => {
+    setValueVis.value = false;
+    setColorOption.value = [];
+};
+
+// 此方法用于处理属性批量添加到主题中
+const procTableData = (newData, newItems) => {
+
+    // 深拷贝原始数据避免污染
+    const processedData = cloneDeep(newData)
+    const usedIds = new Set()
+
+    // 第一阶段：填充空值项
+    let itemIndex = 0
+    for (const item of processedData) {
+        if (item.modelValue.length === 0 && newItems[itemIndex]) {
+            item.modelValue = [cloneDeep(newItems[itemIndex])]
+            usedIds.add(newItems[itemIndex].id)
+            itemIndex++
+        }
+    }
+
+    // 第二阶段：创建新条目
+    const remainingItems = newItems.filter(item => !usedIds.has(item.id))
+    const baseTemplate = processedData[0] ? cloneDeep(processedData[0]) : {}
+    delete baseTemplate.uniqueId // 清除可能存在的临时ID
+
+    remainingItems.forEach(item => {
+        processedData.push({
+            ...baseTemplate,
+            modelValue: [cloneDeep(item)],
+            uniqueId: Date.now() + Math.random().toString(36).slice(2)
+        })
+    })
+
+    return processedData.filter(item =>
+        item.modelValue.length > 0 ||
+        item.uniqueId // 保留新创建的空条目
+    )
 }
+
+
+
+// 批量设置属性
+const confirm = (selectedValues) => {
+    // 解构只需要用到的details属性
+    const { details } = colorRow.value.tableData[0] || {};
+    const result = details?.filter(item => new Set(selectedValues).has(item.id)) || [];
+
+    // 获取已存在的属性并去重
+    const existingAttributes = colorRow.value.tableData
+        .flatMap(item => item?.modelValue?.map(v => v) || [])
+        .filter(Boolean);
+
+    // 根据是否存在已有属性进行过滤
+    const filteredResult = existingAttributes.length > 0
+        ? result.filter(item => !new Set(existingAttributes.map(a => a.id)).has(item.id))
+        : result;
+
+    // 统一处理表格更新
+    colorRow.value.tableData = procTableData(colorRow.value.tableData, filteredResult);
+    tableData.value = commProceData();
+}
+
+const commProceData = () => {
+    let cartesianProducts = cartesianProduct(attributeList.value);
+    let newTableData = processResult(cartesianProducts);
+    let minLength = Math.min(newTableData.length, tableData.value.length);
+    for (let i = 0; i < minLength; i++) {
+        // 将b数组中对应下标的数据赋值到a数组中
+        newTableData[i].skuTitle = tableData.value[i].skuTitle;
+        newTableData[i].sellerSKU = tableData.value[i].sellerSKU;
+        newTableData[i].price = tableData.value[i].price;
+        newTableData[i].oldPrice = tableData.value[i].oldPrice;
+        newTableData[i].colorImg = tableData.value[i].colorImg;
+        newTableData[i].imageUrl = tableData.value[i].imageUrl;
+        newTableData[i].quantity = tableData.value[i].quantity;
+        newTableData[i].warehouseList = tableData.value[i].warehouseList;
+        newTableData[i].packageHeight = tableData.value[i].packageHeight;
+        newTableData[i].packageLength = tableData.value[i].packageLength;
+        newTableData[i].packageWidth = tableData.value[i].packageWidth;
+        newTableData[i].packageWeight = tableData.value[i].packageWeight;
+    }
+    return newTableData
+};
+
 
 // 添加自定义属性
 const selectAttrList = (list) => {
@@ -485,7 +586,7 @@ const selectAttrList = (list) => {
     displayAttr.forEach(item => {
         item.show = idMap.has(item.id) ? false : true
     });
-}
+};
 
 // 批量应用字段值
 const applyAllValues = (fields, fieldName) => {
@@ -509,12 +610,7 @@ const filteredHeaderList = computed(() => {
 
 // 处理数据格式
 const processDataFormat = (list = []) => {
-    console.log('list -->>', list);
-
     let newHeaderList = handleTheme(list);
-
-    console.log('newHeaderList -->>', newHeaderList);
-
     const insertIndex = headerList.value.length - 6;
     for (let i = list.length - 1; i >= 0; i--) {
         // reversedArray.push(originalArray[i]);
@@ -565,20 +661,19 @@ const enterVariantType = (item) => {
 }
 // 移除主题操作
 const removeVariantType = (item, index) => {
-    console.log("item", item, index);
-
     attributeList.value.splice(index, 1);
-    imgHeaderList.value.splice(index, 1);
-    // 循环删除表格内容数据
-    for (let i = 0; i < tableData.value.length; i++) {
-        if (item.name == tableData.value[i][item.name]) {
-            let newObj = { ...tableData.value[i] };
-            delete newObj[item.name];
-        }
-    }
+    // imgHeaderList.value.splice(index, 1);
+    let name = item.tableData[0].name
+    let secondName = item.tableData[0].secondName
+
+
     // 表头删除
     // headerList.value.splice(index, 1); !(item.prop == item.name && item.label == item.name)
-    headerList.value = headerList.value.filter((e) => !(e.title == item.title));
+    headerList.value = headerList.value.filter((e) => e.title != item.title);
+    if (secondName) {
+        headerList.value = headerList.value.filter((e) => e.title != secondName);
+    }
+
     let newThem = {
         options: item.details,
         show: false,
@@ -591,10 +686,14 @@ const removeVariantType = (item, index) => {
         isAspect: item.isAspect,
     }
     themeBtns.value.unshift(newThem);
+
+    /** 移除变种主题后需要重新生成变种信息 table 数据 */
+    let cartesianProducts = cartesianProduct(attributeList.value);
+    let newTableData = processResult(cartesianProducts);
+    tableData.value = newTableData;
 };
 // 添加多个属性操作
 const addItem = (item, row) => {
-    console.log('item', item);
     let ele = {}
     if (isConform.value && item.id === 10096) {
         ele = {
@@ -632,7 +731,6 @@ const addItem = (item, row) => {
     row.tableData.push(ele)
 }
 const removeItem = (item, row) => {
-    console.log("removeItem", item, row);
     let ind = row.tableData.indexOf(item);
     if (item.id === 10096 || item.name == "商品颜色(Цвет товара)") {
         row.tableData.splice(ind, 1);
@@ -680,21 +778,24 @@ const removeItem = (item, row) => {
                     : false;
         });
     });
+    console.log('removeItem', newData);
+
     tableData.value = newData;
 };
 // 将根据主题中选择的数据进行添加到表格中
-const pushValue = (index, item) => {
+const pushValue = (index, item, key, record) => {
     let flog = hasDuplicateModelValues(attributeList.value)
     if (flog) {
         message.error("变种属性值不能有相同的，请修改")
         return
     }
+
     // 处理表格数据
     let cartesianProducts = cartesianProduct(attributeList.value);
     let newTableData = processResult(cartesianProducts);
     let minLength = Math.min(newTableData.length, tableData.value.length);
-    console.log("newTableData", newTableData, headerList.value, minLength);
     for (let i = 0; i < minLength; i++) {
+        // const name = tableData.value[i][keyName]
         // 将b数组中对应下标的数据赋值到a数组中
         newTableData[i].skuTitle = tableData.value[i].skuTitle;
         newTableData[i].sellerSKU = tableData.value[i].sellerSKU;
@@ -709,7 +810,8 @@ const pushValue = (index, item) => {
         newTableData[i].packageWidth = tableData.value[i].packageWidth;
         newTableData[i].packageWeight = tableData.value[i].packageWeight;
     }
-    tableData.value = newTableData
+    tableData.value = newTableData;
+
 }
 
 // 动态添加表头数据
@@ -744,6 +846,11 @@ const changeHeade = () => {
             }
         }
     });
+
+    const ozonStore = useOzonProductStore()
+    ozonStore.$patch(state => {
+        state.addHeaderList = addHeaderList.value
+    })
 }
 
 // 删除表格数据
@@ -771,6 +878,17 @@ const batchSKU = () => {
     batchOpen.value = true
     batchTitle.value = "批量修改SKU"
     batchType.value = 'sku'
+};
+
+// 批量修改SKU标题
+const batchSkuTitle = () => {
+    if (tableData.value.length == 0) {
+        message.warning("请先添加sku！");
+        return;
+    }
+    batchOpen.value = true;
+    batchTitle.value = "批量修改SKU标题";
+    batchType.value = "skuTitle";
 }
 
 // 修改 SKU 时同步修改 warehouseList 里的 offerId
@@ -788,8 +906,8 @@ const batchStock = (type, row = {}) => {
     getEditStore(props.shopCode);
     quantityRow.value = row;
     editQuantityVis.value = true;
-    types.value = type
-}
+    types.value = type;
+};
 
 //修改库存
 const backQuantity = (quantities, copyList) => {
@@ -917,7 +1035,6 @@ const judgeMax = (item) => {
 
 // 点击水印
 const handleWatermark = async (item) => {
-    console.log('item', item, tableData.value);
     for (const tabbleItem of tableData.value) {
         const fileList = tabbleItem.imageUrl || [];
         if (fileList.length === 0) {
@@ -1012,7 +1129,9 @@ const handleWatermark = async (item) => {
 // 导出全部图片
 const handleExportAllImages = async () => {
     try {
-        const imageList = tableData.value.map(item => item.imageUrl).map((imgItem) => imgItem.map((i) => i.url));
+        const imageList = tableData.value
+            .map(item => item.imageUrl)
+            .map((imgItem) => imgItem.map((i) => i.url.replace(import.meta.env.VITE_APP_BASE_API, '')));
         downloadLoading.value = true;
         let res = await downloadAllImage({ imageList: imageList.flat() });
         message.success('导出成功');
@@ -1051,24 +1170,43 @@ const applyImage = (item) => {
 
 //  批量修改图片尺寸
 const handleEditImagesSize = () => {
-    console.log('handleEditImagesSize', tableData.value);
     bacthSkuEditImgRef.value.showModal(tableData.value)
 };
 
 
 //  图片翻译弹窗
 const handleImageTranslation = () => {
-    console.log('handleImageTranslation', tableData.value);
     imageTranslationRef.value.showModal(tableData.value)
-}
-
+};
 
 // 清空图片
 const clearAllImages = () => {
     tableData.value.forEach((tableItem) => {
         tableItem.imageUrl = []
     })
-}
+};
+const skuThemeNames = (item) => {
+    const tableColumns = attributeList.value[0]?.tableColumns || [];
+    const themeNames = tableColumns.map((column) => {
+        return column.title
+    }).filter((nameItem) => nameItem !== '操作')
+    const obj = pick(item, themeNames)
+    const entries = Object.entries(obj);
+    return entries
+};
+
+// //  引用模板 to do
+// watch(() => useOzonProductStore().productTemplate, (val) => {
+//     const { content } = val;
+//     console.log('content', content);
+//     if (content) {
+//         if (content.variantTemplate) {
+//         }
+//     }
+// }, {
+//     immediate: true
+// });
+
 
 
 // 变种主题中是组合在一起的主题
@@ -1079,7 +1217,6 @@ const dependencyMap = new Map([
 
 watch(() => useOzonProductStore().attributes, val => {
     if (val) {
-        console.log('val', val);
         // ----------------- 获取图片应用主题 ---------
         const aspectList = val.filter(item => item.isAspect);
         const otherList = aspectList.filter(item =>
@@ -1236,10 +1373,9 @@ watch(() => useOzonProductStore().attributes, val => {
 
             // 遍历a数组
             sortArr.forEach((attr) => {
+                const skuAttributes = sku.attributes || [];
                 // 遍历sku的attributes中的每个attributes
-                sku.attributes.forEach((subAttr) => {
-                    // console.log("",subAttr, attr);
-
+                skuAttributes.forEach((subAttr) => {
                     if (subAttr.id == attr.id) {
                         if (attr.selectType === "multSelect" && attr.options) {
                             let values = subAttr.values.map((val) => {
@@ -1320,16 +1456,68 @@ watch(() => useOzonProductStore().attributes, val => {
             echoThemeList = handleTheme(isModelValueList)
         }
         // console.log('isModelValueList',isModelValueList);
-
         // 处理到数据回显到主题
         const aIds = echoThemeList.map(item => item.id);
-        // console.log('aIds', echoThemeList);
         // 过滤 有数据的主题
         themeBtns.value = themeBtns.value.filter(item => !aIds.includes(item.id));
-        attributeList.value = matchAndAssignValues(echoThemeList, skuList)
-        console.log('attributeList', attributeList.value);
-    }
+        attributeList.value = matchAndAssignValues(echoThemeList, skuList);
 
+        // ----------------------------------------------------------------------------
+        const groupsFlat = groups.flat();
+        const ids = groupsFlat.map((item) => item.id);
+        themeBtns.value = themeBtns.value.filter(item => !ids.includes(item.id));
+        groupsFlat.forEach(group => {
+
+            console.log('group', group);
+            const groupoptions = group.options || [];
+            if (!attributeList.value.some((item) => {
+                return (item.tableColumns.some((_item) => {
+                    return _item.id === group.id
+                }))
+            })) {
+                attributeList.value.push({
+                    ...group,
+                    tableData: [
+                        {
+                            "isRequired": group.isRequired,
+                            "categoryDependent": group.categoryDependent,
+                            "isCollection": group.isCollection,
+                            "id": group.id,
+                            "name": group.name,
+                            "selectType": group.selectType,
+                            "type": group.type,
+                            "modelValue": group.selectType === 'multSelect' ? [] : '',
+                            "options": groupoptions,
+                            "details": groupoptions.map((option) => {
+                                return {
+                                    ...option,
+                                    label: option.value,
+                                }
+                            })
+                        }
+                    ],
+                    tableColumns: [
+                        {
+                            "selectType": group.selectType,
+                            "dataIndex": group.name,
+                            "title": group.name,
+                            "type": group.type,
+                            "id": group.id,
+                            "show": true,
+                            "align": "center",
+                            "width": 900
+                        },
+                        {
+                            "dataIndex": "options",
+                            "title": "操作",
+                            "fixed": "right",
+                            "width": 200
+                        }
+                    ]
+                })
+            }
+        });
+    }
 })
 
 const filterModelValues = (a, b) => {

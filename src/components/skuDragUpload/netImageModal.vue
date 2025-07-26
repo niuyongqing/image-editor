@@ -10,7 +10,7 @@
     </a-modal>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { uploadImgFromNetApi } from '@/pages/aliexpress/apis/media'
 
 const form = reactive({
@@ -37,8 +37,8 @@ const submit = async () => {
         imgUrls: urlList.join(',')
     });
 
+    loading.value = false;
     if (res.code === 200) {
-        loading.value = false;
         emits('submit', res.data);
         close()
     };

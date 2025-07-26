@@ -35,7 +35,7 @@
                                         @click="selectFirstItem(item)">
                                         <div flex>
                                             <div w-250px overflow-hidden text-ellipsis whitespace-nowrap> {{ item.label
-                                            }}
+                                                }}
                                             </div>
                                             <div>
                                                 <RightOutlined />
@@ -245,10 +245,6 @@ function getCategoryTree() {
     }).then(res => {
         treeData.value = res.data || [];
         const path = findPathById(thirdState.selectKeys[0], treeData.value);
-
-        console.log('path', path);
-
-
         if (path) {
             selectItem.value = {
                 label: path.labels.join(' / '),
@@ -330,7 +326,7 @@ const handleSave = () => {
     if (!thirdState.selectValue.typeId) {
         message.info('请选择最后一级类目');
         return
-    }
+    };
     openSelect.value = false;
     const path = findPathById(thirdState.selectValue.typeId, treeData.value);
     emits('select', {
@@ -342,8 +338,6 @@ const handleSave = () => {
 };
 const selectMenu = (item) => {
     selectItem.value = item;
-    console.log('item', item);
-    // emits('select', item)
     emits('select', {
         "label": item.label.split(' / '),
         "value": item.value,
