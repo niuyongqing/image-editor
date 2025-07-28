@@ -472,7 +472,7 @@
         <template v-else-if="column.title === '操作'">
           <a-button
             type="link"
-            @click="removeRecord(record.id)"
+            @click="removeRecord(record.waitId)"
             >移除</a-button
           >
         </template>
@@ -594,7 +594,7 @@
       const accountList = []
       const list = data.map(item => {
         accountList.push(item.account)
-        let mainImage = item.primaryImage || item.skuList[0].primaryImage?.[0] || ''
+        let mainImage = item.primaryImage || item.skuList[0].primaryImage?.[0] || item.skuList[0].images?.[0] || ''
         if (mainImage && !mainImage.includes('http')) {
           mainImage = import.meta.env.VITE_APP_BASE_API + mainImage
         }
@@ -1148,8 +1148,8 @@
   }
 
   // 移除
-  function removeRecord(id) {
-    tableData.value = tableData.value.filter(item => item.id !== id)
+  function removeRecord(waitId) {
+    tableData.value = tableData.value.filter(item => item.waitId !== waitId)
   }
 
   /** 翻译 */

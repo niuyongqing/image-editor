@@ -11,7 +11,7 @@
 </template>
 
 <script setup>
-import { uploadImgFromNetApi } from '@/pages/aliexpress/apis/media'
+import { batchUploadFromUrlApi } from '@/api/common/upload'
 
 const form = reactive({
     imageUrl: '',
@@ -32,11 +32,11 @@ const close = () => {
 
 const submit = async () => {
     loading.value = true;
-    let urlList = form.imageUrl.split('\n')
-    let res = await uploadImgFromNetApi({
-        imgUrls: urlList.join(',')
-    });
-
+    try {
+      let res = await batchUploadFromUrlApi({
+          imageList: urlList.join(',')
+      });
+    } catch (error) {}
     loading.value = false;
     if (res.code === 200) {
         emits('submit', res.data);

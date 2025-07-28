@@ -411,96 +411,109 @@
     )
   }
 
-  // 此方法将历史缓存中的属性值进行重新赋值
-  const assignValues = (a, b) => {
-    // let newRes = a.map((item) => {
-    //     return {
-    //         ...item,
-    //         values: item.values.map((value) => {
-    //             return {
-    //                 ...value,
-    //                 id: Number(value.dictionaryValueId),
-    //                 info: "",
-    //                 picture: "",
-    //                 label: "",
-    //             };
-    //         }),
-    //     };
-    // });
-    // const result = {};
-    // // 根据b数组填充结果对象
-    // b.forEach((item) => {
-    //     const name = item.name;
-    //     const selectType = item.selectType;
-    //     newRes.forEach((resItem) => {
-    //         const attributeId = resItem.id;
-    //         const allValidItems = resItem.values.every((item) => item.value !== "");
-    //         if (attributeId === item.id && allValidItems) {
-    //             if (selectType === "multSelect") {
-    //                 result[name] = resItem.values.map((item) => item.id);
-    //                 item.acquiesceList = moveMatchedItemForward(
-    //                     item.options,
-    //                     resItem.values.map((item) => item.id)
-    //                 );
-    //             } else if (selectType === "select") {
-    //                 result[name] = findMatchedOption(
-    //                     attributeId,
-    //                     resItem.values[0],
-    //                     item.options
-    //                 );
-    //             } else {
-    //                 result[name] = resItem.values[0].value;
-    //             }
-    //         }
-    //     });
-    // });
+ // 此方法将历史缓存中的属性值进行重新赋值
+const assignValues = (a, b) => {
+    let newRes = a.map((item) => {
+        return {
+            ...item,
+            values: item.values.map((value) => {
+                return {
+                    ...value,
+                    id: Number(value.dictionaryValueId),
+                    info: "",
+                    picture: "",
+                    label: "",
+                };
+            }),
+        };
+    });
+    const result = {};
+    // 根据b数组填充结果对象
+    b.forEach((item) => {
+        const name = item.name;
+        const selectType = item.selectType;
+        newRes.forEach((resItem) => {
+            const attributeId = resItem.id;
+            const allValidItems = resItem.values.every((item) => item.value !== "");
+            if (attributeId === item.id && allValidItems) {
+                if (selectType === "multSelect") {
+                    result[name] = resItem.values.map((item) => item.id);
+                    item.acquiesceList = moveMatchedItemForward(
+                        item.options,
+                        resItem.values.map((item) => item.id)
+                    );
+                } else if (selectType === "select") {
+                    result[name] = findMatchedOption(
+                        attributeId,
+                        resItem.values[0],
+                        item.options
+                    );
+                } else {
+                    result[name] = resItem.values[0].value;
+                }
+            }
+        });
+    });
 
-    // return result;
+    return result;
+};
 
-    const result = {}
+const templateAssign = (a, b) => {
+    const result = {};
     // 遍历所有属性配置项
-    b.forEach(item => {
-      const attrName = item.name
-      const attrValue = a[attrName]
-      if (!attrValue) return
+    b.forEach((item) => {
+        const attrName = item.name;
+        const attrValue = a[attrName];
+        if (!attrValue) return;
 
-      // 处理多选类型属性
-      if (item.selectType === 'multSelect') {
-        result[attrName] = Array.isArray(attrValue)
-          ? attrValue.map(v => Number(v)) // 处理数组值
-          : [Number(attrValue)] // 处理单选值转数组
+        // 处理多选类型属性
+        if (item.selectType === "multSelect") {
+            result[attrName] = Array.isArray(attrValue)
+                ? attrValue.map(v => Number(v))  // 处理数组值
+                : [Number(attrValue)];  // 处理单选值转数组
 
-        // 维护选项排序
-        item.acquiesceList = moveMatchedItemForward(item.options, result[attrName])
-      }
-      // 处理下拉选择类型属性
-      else if (item.selectType === 'select') {
-        // 特殊处理品牌字段
-        if (attrName === '品牌(Бренд)') {
-          result[attrName] = {
-            label: '无品牌',
-            value: '无品牌'
-          }
+            // 维护选项排序
+            item.acquiesceList = moveMatchedItemForward(
+                item.options,
+                result[attrName]
+            );
         }
-        // 处理对象型值
-        else if (typeof attrValue === 'object') {
-          result[attrName] = findMatchedOption(item.id, { id: attrValue.value, value: attrValue.label }, item.options)
+        // 处理下拉选择类型属性
+        else if (item.selectType === "select") {
+            // 特殊处理品牌字段
+            if (attrName === "品牌(Бренд)") {
+                result[attrName] = {
+                    label: "无品牌",
+                    value: { label: '无品牌', value: '无品牌' }
+                };
+            }
+            // 处理对象型值
+            else if (typeof attrValue === 'object') {
+                result[attrName] = findMatchedOption(
+                    item.id,
+                    { id: attrValue.value, value: attrValue.label },
+                    item.options
+                );
+            }
+            // 处理原始值
+            else {
+                result[attrName] = findMatchedOption(
+                    item.id,
+                    { id: attrValue, value: attrValue },
+                    item.options
+                );
+            }
         }
-        // 处理原始值
+        // 处理普通输入类型
         else {
-          result[attrName] = findMatchedOption(item.id, { id: attrValue, value: attrValue }, item.options)
+            result[attrName] = typeof attrValue === 'object'
+                ? attrValue.value  // 提取对象中的值
+                : attrValue;       // 直接使用原始值
         }
-      }
-      // 处理普通输入类型
-      else {
-        result[attrName] =
-          typeof attrValue === 'object'
-            ? attrValue.value // 提取对象中的值
-            : attrValue // 直接使用原始值
-      }
-    })
-    return result
-  }
+    });
+    return result;
+}
+
 
   // 清除校验
 const changeRule = (attributes, name) => {
@@ -716,8 +729,6 @@ const changeRule = (attributes, name) => {
           })
 
           let data = noThemeAttributesCache.filter(a => a.isRequired)
-          // console.log("data", data);
-          // console.log("rules2", this.rules2);
           rules2.value = {}
           let attributes = {}
           // 属性类型处理
@@ -753,36 +764,12 @@ const changeRule = (attributes, name) => {
           // 赋值
           const { attributes: oldAttributes } = props.productDetail?.skuList[0]
 
-          // const groupedAttributes = props.productDetail?.skuList.reduce((acc, item) => {
-          //     item.attributes.forEach(attr => {
-          //         // 添加值序列化比较
-          //         const valueHash = JSON.stringify(attr.values);
-          //         const key = `${attr.id}_${attr.complexId}_${valueHash}`;
-          //         (acc[key] || (acc[key] = [])).push(attr);
-          //     });
-          //     return acc;
-          // }, {});
-
-          // // 转换为二维数组并过滤唯一项
-          // // result将重复属性值去重过后的最终结果
-          // const result = Object.values(groupedAttributes)
-          //     .filter(group => group.length > 1).flat()
-          //     .filter((obj, index, self) =>
-          //         index === self.findIndex(item =>
-          //             JSON.stringify(item) === JSON.stringify(obj)
-          //         )
-          //     );
-
-          // console.log('oldAttributes',oldAttributes);
-          // console.log('loopAttributes',loopAttributes.value);
-          if (oldAttributes) {
-            const proceRes = assignValues(oldAttributes, loopAttributes.value) // 旧写法
-            form.attributes = proceRes
-          }
+          const proceRes = assignValues(oldAttributes, loopAttributes.value) // 旧写法
+          form.attributes = proceRes
         }
         // 引用模板数据回显
         if (Object.keys(tempAttr.value).length > 0) {
-          form.attributes = assignValues(tempAttr.value, loopAttributes.value)
+          form.attributes = templateAssign(tempAttr.value, loopAttributes.value)
         }
       }
     }

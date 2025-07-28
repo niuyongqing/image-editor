@@ -9,6 +9,11 @@ export function ozonDraftList(data) {
     });
 };
 
+// 采集箱左侧状态栏数量统计
+export function groupProductCountApi(params) {
+  return usePost('/platform-ozon/platform/ozon/gather/product/groupProductCount', params)
+}
+
 //  采集箱产品详情
 export function ozonDraftDetail(data) {
     return request({
