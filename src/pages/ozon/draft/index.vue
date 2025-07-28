@@ -240,9 +240,8 @@
                     >
                       {{ record.remark }}
                     </div>
-                    <!-- TODO:  -->
-                    <div v-if="record.errorMsg" class="border">
-                      <div><WarningOutlined />失败原因</div>
+                    <div v-if="record.errorMsg" class="w-fit p-1 border border-solid border-gray-300 rounded-md text-red">
+                      <div><WarningOutlined /> 失败原因</div>
                       <div>{{ record.errorMsg }}</div>
                     </div>
                   </div>
