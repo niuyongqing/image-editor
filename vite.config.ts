@@ -105,7 +105,7 @@ export default ({ mode }: ConfigEnv): UserConfig => {
       proxy: {
         ...proxyObj,
         [env.VITE_APP_BASE_API]: {
-          target: 'http://10.93.90.26:8080',
+          target: env.VITE_APP_BASE_URL,
           changeOrigin: true,
           rewrite: (path) =>
             path.replace(new RegExp(`^${env.VITE_APP_BASE_API}`), ""),
