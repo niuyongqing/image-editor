@@ -834,9 +834,8 @@ const getStateColor = (state) => {
   const colorMap = {
     平台审核: "processing",
     在售: "success",
-    审核不通过: "warning",
-    准备出售: "error",
-    "": "default",
+    审核不通过: "error",
+    准备出售: "warning",
   };
   return colorMap[state] || "default";
 };
@@ -939,6 +938,8 @@ const resetForm = (type = 0) => {
   advancedForm.timeSearch = "update_time";
   advancedForm.time = [];
   advancedType.value = type == 1 ? false : true;
+  paginations.pageNum = 1
+  paginations.pageSize = 50
   getList();
 };
 
@@ -955,6 +956,8 @@ const storChange = (item) => {
 
 // 表单搜索
 const onSubmit = (type = false) => {
+  paginations.pageNum = 1
+  paginations.pageSize = 50
   getList(type);
   setUncheck();
 };
@@ -1503,7 +1506,7 @@ const sync = () => {
             : undefined,
           // ... existing code ...
         };
-        ading.value = false;
+        syncLoading.value = false;
         //         //     showOpen.value = false;
         //         //     getList();
         //         //     setTimeout(() => {
@@ -1591,7 +1594,7 @@ const timestampToDateTime = (timestamp) => {
 };
 
 // 获取店铺数据
-const getList = (isSearch = false) => {
+const getList = () => {
   if (advancedForm.minPrice > advancedForm.maxPrice) {
     message.error("最大售价必须大于最小售价！");
     return;
@@ -1626,7 +1629,6 @@ const getList = (isSearch = false) => {
       : undefined,
     pageNum: paginations.pageNum,
     pageSize: paginations.pageSize,
-    isSearch,
   };
   list(params)
     .then((res) => {

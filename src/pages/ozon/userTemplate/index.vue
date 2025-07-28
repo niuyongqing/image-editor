@@ -9,7 +9,7 @@
                 </a-breadcrumb>
                 <a-card>
                     <a-form ref="ruleForm" :model="formData">
-                        <a-form-item label="店铺账号" v-if="activeId !== 3">
+                        <a-form-item label="店铺账号" v-if="activeId !== 4">
                             <selectComm :options="shopAccount" :fieldObj="shopObj" @backSelectAll="selectAll"
                                 @backSelectItem="selectItem"></selectComm>
                         </a-form-item>
@@ -93,6 +93,7 @@ const showTemp = ref(false);
 const jsonContent = ref('');
 const jsonName = ref('');
 const rowId = ref('');
+const isCopy = ref(false);
 const rowSelection = computed(() => {
     return {
         selectedRowKeys: selectedRowKeys.value,
@@ -221,6 +222,7 @@ const handleCopy = (record) => {
         jsonContent.value = record.content.jsonRich;
         jsonName.value = record.name;
         rowId.value = record.id;
+        isCopy.value = true;
         return;
     }
     window.open(`/platform/ozon/editTemplate?type=${activeId.value}&id=${record.id}&copy=${true}`, '_blank');
@@ -264,7 +266,7 @@ const closeTempModal = () => {
 
 const backResult = (res, name) => {
     let params = {
-        id: rowId.value,
+        id: isCopy.value ? null : rowId.value,
         type: 4, //模板类型 1-产品模板  2-尺码模板 3-变种模板 4-富内容模板
         name, // 模板名称
         state: 1, // 状态是否生效  0-不生效 1-生效

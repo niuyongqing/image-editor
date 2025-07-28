@@ -35,6 +35,7 @@ const props = defineProps({
     shopCode: String,
     productDetail: Object,
     showDescription: Boolean,
+    type: String,
 });
 const form = reactive({
     video: [],
@@ -120,10 +121,11 @@ const removeDescription = () => {
     showDescription.value = false;
 }
 watch(() => props.productDetail, val => {
-    if (val.content.productTemplate.productDesc) {
-        form.description = val.content.productTemplate.productDesc
+    console.log("type", props.type);
+    if (props.type == '1') {
+        showDescription.value = false;
+        form.description = val.content?.productTemplate?.productDesc
     }
-
     if (val.content.jsonRich) {
         form.jsons = val.content.jsonRich
     }

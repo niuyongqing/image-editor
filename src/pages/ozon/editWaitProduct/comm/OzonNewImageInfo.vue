@@ -203,7 +203,6 @@ const searchTemp = () => {
 
     }).then(res => {
         if (res.code == 200) {
-            message.success("更新成功！");
             tempList.value = res.rows.map(item => {
                 return {
                     label: item.name,

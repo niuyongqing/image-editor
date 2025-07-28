@@ -22,9 +22,14 @@
             <br />
 
             <!-- 描述信息 -->
-            <OzonNewImageInfo ref="ozonImageInfoRef" :shopCode="formData.shortCode" v-if="showDescription"
-                :productDetail="productDetail" v-model:showDescription="showDescription">
+            <OzonNewImageInfo ref="ozonImageInfoRef" :shopCode="formData.shortCode"
+                v-if="showDescription && type === '1'" :productDetail="productDetail"
+                v-model:showDescription="showDescription" :type="type">
             </OzonNewImageInfo>
+            <!-- 变种信息. -->
+            <OzonVariantInfo ref="ozonNewVariantInfoRef" :productDetail="productDetail" :attributesCache="attributes"
+                :shopCode="formData.shortCode" v-if="type === '3'">
+            </OzonVariantInfo>
             <div flex justify-end>
                 <a-button type="primary" @click="onSubmit" :loading="loading" class="mt10px"
                     style="height: 32px; background-color: #FF8345; color: #fff;">保存
@@ -39,17 +44,23 @@ import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { categoryAttributes, add, accountCache } from "../config/api/product"
 import OzonBaseInfo from './comm/OzonBaseInfo.vue';
 import OzonNewImageInfo from "./comm/OzonNewImageInfo.vue";
+import OzonVariantInfo from './comm/OzonVariantInfo.vue';
 import { useOzonProductStore } from '~@/stores/ozon-product'
 import {
-    findFalseInArrayLikeObject, getInputValue, getSelectValue, getMultiSelectValue,
+    findFalseInArrayLikeObject,
     isNotEmpty, createAndUpdateBaseObj
 } from '~/pages/ozon/config/commJs/index';
+import {
+    getInputValue, getSelectValue, getMultiSelectValue,
+} from './commJs/index';
 import { saveTowaitProduct } from "../config/api/waitProduct"
 import { message, Modal } from "ant-design-vue";
 import { UploadOutlined, DownOutlined } from '@ant-design/icons-vue';
 import { translationApi } from '~/api/common/translation';
 import { templateSaveOrUpdate, templateDetail } from "../config/api/userTemplate";
 import { useRoute } from 'vue-router';
+
+
 const isCopy = ref(false);
 const route = useRoute();
 const type = ref(null);
@@ -144,11 +155,9 @@ const onSubmit = async () => {
             name: base.templateName, // 模板名称
             state: 1, // 状态是否生效  0-不生效 1-生效
             account: formData.shortCode,
+            categoryId: base.categoryId || {},
             content: {
                 productTemplate: {
-                    name: base.name,
-                    vat: base.vat,
-                    categoryId: base.categoryId || {},
                     productAttr: base.attributes || {},
                     productDesc: image?.description || ""
                 },
@@ -193,9 +202,11 @@ const onSubmit = async () => {
                 ) && a.isAspect
         );
         console.log("newList", newList);
-
+        console.log("tableData", tableData);
         const addHeaderList = useOzonProductStore().addHeaderList;
         const resItem = tableData.map((item) => {
+            console.log("item", item);
+            
             const moditAttributes = [];
             const getDictionaryIdKey = 'dictionaryValueId';
             const getComplexIdKey = 'complexId';
@@ -258,26 +269,26 @@ const onSubmit = async () => {
             name: base.templateName, // 模板名称
             state: 1, // 状态是否生效  0-不生效 1-生效
             account: formData.shortCode,
+            categoryId: base.categoryId || {},
             content: {
                 variantTemplate: {
-                    categoryId: base.categoryId || {},
                     variantAttr: resItem
                 }
             }
         };
 
-    } else if (type.value === '4') {
-    };
-    loading.value = true;
-    templateSaveOrUpdate(params).then(res => {
-        message.success(res.msg)
-        // setTimeout(() => {
-        //     window.close();
-        // }, 2000);
-    })
-        .finally(() => {
-            loading.value = false;
-        });
+    }
+    console.log("params", params);
+    // loading.value = true;
+    // templateSaveOrUpdate(params).then(res => {
+    //     message.success(res.msg)
+    //     setTimeout(() => {
+    //         window.close();
+    //     }, 2000);
+    // })
+    //     .finally(() => {
+    //         loading.value = false;
+    //     });
 };
 
 const handleOk = () => {

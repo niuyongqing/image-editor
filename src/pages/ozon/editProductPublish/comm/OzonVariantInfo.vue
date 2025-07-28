@@ -1053,7 +1053,7 @@ watch(() => useOzonProductStore().attributes, val => {
                 });
                 let colorObj = {};
                 let colorHead = [];
-                if (colorImage.length > 0) {
+                if (colorImage != null && colorImage.length > 0) {
                     colorObj = {
                         title: "颜色样本",
                         dataIndex: "colorImg",

@@ -227,7 +227,13 @@ const getAttributesID = (ids) => {
         value: ids.value,
     };
     console.log("form", form.categoryId);
-
+    const ozonStore = useOzonProductStore()
+    ozonStore.$patch(state => {
+        state.variant = {
+            threeCategoryId: typeId,
+            shopId: form.shortCode
+        }
+    })
     emit("getAttributes", form.shortCode, form.categoryId);
 };
 
@@ -266,6 +272,13 @@ const selectAttributes = (e) => {
             value: e.option.threeCategoryId,
         };
         emit("getAttributes", form.shortCode, e.option);
+        const ozonStore = useOzonProductStore()
+        ozonStore.$patch(state => {
+            state.variant = {
+                threeCategoryId: e.option.threeCategoryId,
+                shopId: form.shortCode
+            }
+        })
     }
 };
 
@@ -511,11 +524,11 @@ watch(
     () => props.productDetail,
     (val) => {
         if (val) {
-            const { simpleName, account, skuList, vat, typeId, descriptionCategoryId } =
+            const { simpleName, name, account, skuList, vat, typeId, descriptionCategoryId } =
                 val;
             // 修改响应式对象的属性
             form.shortCode = account;
-            form.name = skuList[0].name;
+            form.name = name || skuList[0]?.name;
             form.vat = vat === "0.0" || vat === "0.00" ? "0" : vat;
             form.categoryId = {
                 threeCategoryId: typeId,
@@ -524,6 +537,13 @@ watch(
                 label: undefined,
                 value: typeId,
             };
+            const ozonStore = useOzonProductStore()
+            ozonStore.$patch(state => {
+                state.variant = {
+                    threeCategoryId: typeId,
+                    shopId: account
+                }
+            })
             // emit("getAttributes", form.shortCode, form.categoryId);
             getHistoryList(account);
         }
