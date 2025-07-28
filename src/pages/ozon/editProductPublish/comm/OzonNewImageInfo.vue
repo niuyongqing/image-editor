@@ -22,7 +22,7 @@
                     </div>
                     <div class="my10px text-16px" style="color: #737679"><a-tag color="green">说明</a-tag>描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M</div>
                     <a-form-item-rest>
-                        <jsonForm @backResult="backResult" :jsonContent="form.jsons" :shop="shopCode"></jsonForm>
+                        <jsonForm @backResult="backResult" :jsonContent="form.jsons" :shop="shopCode" @clear="form.jsons = ''"></jsonForm>
                     </a-form-item-rest>
                 </a-form-item>
                 <a-form-item label="视频：">

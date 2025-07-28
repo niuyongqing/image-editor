@@ -378,7 +378,7 @@ const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE
 
 defineOptions({ name: 'MobileDetailEditor' })
 
-const emits = defineEmits(['backResult'])
+const emits = defineEmits(['backResult', 'clear'])
 const props = defineProps({
   shop: String,
   jsonContent: String
@@ -642,6 +642,7 @@ function clear() {
   Modal.confirm({
     title: '确定清空吗？',
     onOk: () => {
+      emits('clear')
       moduleList.value = []
       finallyObj.value = {}
     }
@@ -1204,7 +1205,6 @@ function save() {
     message.error("至少添加一个模块信息");
     return
   }
-  // console.log('moduleList', moduleList.value);
   let res = []
   let obj = {}
   moduleList.value.forEach(item => {
@@ -1332,9 +1332,8 @@ function openEditor() {
   show.value = true
   if (!props.jsonContent) return
   const val = props.jsonContent
-  console.log("val", val);
-  const { content } = JSON.parse(val);
-  content?.forEach(item => {
+  const { content } = JSON.parse(val) || [];
+  content.forEach(item => {
     if (item.widgetName === 'raTextBlock') {
       let textObj = deepClone(textDefault)
       item.title.content.join('\n')
