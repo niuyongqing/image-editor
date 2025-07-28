@@ -5,7 +5,7 @@
         <template #title>
           <div class="flex align-center justify-between">
             <span class="text-left text-16px">变种属性</span>
-            <div>
+            <!-- <div>
               <FileOutlined /><a-select v-model:value="templateValue" show-search placeholder="请选择引用模板"
                 class="w300px mx10px" :options="tempList" :filter-option="filterOption" @change="handleChangeTemplate">
                 <template #dropdownRender="{ menuNode: menu }">
@@ -21,7 +21,7 @@
                   </a-space>
                 </template>
               </a-select>
-            </div>
+            </div> -->
           </div>
         </template>
         <div>
@@ -1856,15 +1856,22 @@ watch(
       let filteredB = sortArr.filter((itemB) =>
         uniqueArr.some((itemA) => itemA.id === itemB.id)
       );
-      // console.log('isAllMatched',isAllMatched);
+      // console.log('isAllMatched1',isAllMatched);
+      // console.log('isAllMatche2',isAllMatche);
       // console.log('filteredB', filteredB);
       let echoThemeList = [];
       let isModelValueList = [];
       // 判断sortArr中是否有组合数据
-      if (isAllMatched) {
-        echoThemeList = handleTheme(sortArr); //handleTheme方法可以将属性转换成主题数据格式
-      } else if (isAllMatche) {
-        echoThemeList = handleTheme(filteredB);
+      // if (isAllMatched) {
+      //   echoThemeList = handleTheme(sortArr); //handleTheme方法可以将属性转换成主题数据格式
+      // } else if (isAllMatche) {
+      //   echoThemeList = handleTheme(filteredB);
+      // } else {
+      //   isModelValueList = filterModelValues(sortArr, skuList);
+      //   echoThemeList = handleTheme(isModelValueList);
+      // }
+      if (isAllMatched || isAllMatche) {
+        echoThemeList = handleTheme(filteredB); //handleTheme方法可以将属性转换成主题数据格式
       } else {
         isModelValueList = filterModelValues(sortArr, skuList);
         echoThemeList = handleTheme(isModelValueList);

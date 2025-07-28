@@ -157,7 +157,6 @@ const paginations = reactive({
 });
 const loading = ref(false)
 const activeId = ref(1);
-const channel = new BroadcastChannel('page-comm');
 
 const selectItem = (e) => {
     formData.account = e;
@@ -309,8 +308,6 @@ onMounted(() => {
     getAccount()
     window.addEventListener('message', (event) => {
         if (event.data === 'pageClosed') {
-            console.log(111);
-            
             getList();
         }
     })

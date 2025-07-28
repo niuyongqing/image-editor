@@ -52,7 +52,7 @@ import {
 } from '~/pages/ozon/config/commJs/index';
 import {
     getInputValue, getSelectValue, getMultiSelectValue,
-} from './commJs/index';
+} from '~/pages/ozon/editTemplate/commJs/index';
 
 import { saveTowaitProduct } from "../config/api/waitProduct"
 import { message, Modal } from "ant-design-vue";
@@ -188,7 +188,6 @@ const onSubmit = async () => {
 
         let data = ozonNewVariantInfoRef.value;
         const { attributeList: dataAttrs, tableData } = data;
-        console.log("dataAttrs", dataAttrs);
 
         //! 过滤一些属性
         const newList = attributes.value.filter(
@@ -206,10 +205,10 @@ const onSubmit = async () => {
                     a.attributeComplexId == "100001" || a.attributeComplexId == "100002"
                 ) && a.isAspect
         );
-        console.log("newList", newList);
-
         const addHeaderList = useOzonProductStore().addHeaderList;
         const resItem = tableData.map((item) => {
+            console.log("item", item);
+            
             const moditAttributes = [];
             const getDictionaryIdKey = 'dictionaryValueId';
             const getComplexIdKey = 'complexId';
@@ -230,7 +229,6 @@ const onSubmit = async () => {
                 switch (attr.selectType) {
                     case "input":
                         newVal = getInputValue(attr, item);
-                        console.log("newVal", newVal);
                         if (attr.id === 10097) {
                             const inputValueObj = createValueObj(0, newVal);
                             moditAttributes.push(createAttrItem(attr, [inputValueObj]));
@@ -257,8 +255,6 @@ const onSubmit = async () => {
                                 (obj.dictionaryValueId !== 0 || obj.value) &&  // 保留有有效ID或值的项
                                 !(obj.dictionaryValueId === 0 && !obj.value)    // 过滤掉无效空值项
                         );
-                        console.log("filteredMSlect", filteredMSlect);
-
                         if (filteredMSlect.length) {
                             moditAttributes.push(createAttrItem(attr, filteredMSlect));
                         }

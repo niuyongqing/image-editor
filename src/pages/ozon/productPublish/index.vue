@@ -10,15 +10,15 @@
                 <a-dropdown size="middle">
                     <template #overlay>
                         <a-menu @click="handleMenuClick">
-                            <a-menu-item key="1">
+                            <!-- <a-menu-item key="1">
                                 引用现有产品
-                            </a-menu-item>
+                            </a-menu-item> -->
                             <a-menu-item key="2">
                                 引用产品模板
                             </a-menu-item>
-                            <a-menu-item key="3" :disabled="!formData.shortCode">
+                            <!-- <a-menu-item key="3" :disabled="!formData.shortCode">
                                 引用资料库产品
-                            </a-menu-item>
+                            </a-menu-item> -->
                         </a-menu>
                     </template>
                     <a-button size="middle">
@@ -47,15 +47,15 @@
                 <a-dropdown size="middle">
                     <template #overlay>
                         <a-menu @click="handleMenuClick">
-                            <a-menu-item key="1">
+                            <!-- <a-menu-item key="1">
                                 引用现有产品
-                            </a-menu-item>
+                            </a-menu-item> -->
                             <a-menu-item key="2">
                                 引用产品模板
                             </a-menu-item>
-                            <a-menu-item key="3">
+                            <!-- <a-menu-item key="3">
                                 引用资料库产品
-                            </a-menu-item>
+                            </a-menu-item> -->
                         </a-menu>
                     </template>
                     <a-button size="middle">
@@ -472,7 +472,7 @@ const onSubmit = async (type = 1) => {
         videoBaseObj = createAndUpdateBaseObj(image.video, 100001, 21841, type === 1 ? 1 : 2);
         newComplexAttributes.push(videoBaseObj);
     }
-    console.log("newComplexAttributes", newComplexAttributes);
+    // console.log("newComplexAttributes", newComplexAttributes);
     const addHeaderList = useOzonProductStore().addHeaderList
     const resItem = tableDatas.map((item) => {
         const moditAttributes = [];

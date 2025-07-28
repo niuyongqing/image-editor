@@ -7,6 +7,8 @@ const getInputValue = (attr, item) => {
         (attr.isAspect && attr.isCollection)
     ) {
         return item[attr.name] || "";
+    }else {
+        return item[attr.name] || "";
     }
 };
 // 获取select类型属性的值
@@ -50,11 +52,52 @@ const getMultiSelectValue = (attr, item,createValueObj) => {
     }
 };
 
-
+// 笛卡尔算法步骤1 初始写法
+const processResult = (productList) => {
+    return productList.map((product) => {
+      let output = {
+        skuTitle: "",
+        sellerSKU: "",
+        price: "",
+        oldPrice: "",
+        quantity: undefined,
+        warehouseList: [],
+        packageLength: undefined,
+        packageWidth: undefined,
+        packageHeight: undefined,
+        packageWeight: undefined,
+        imageUrl: [],
+        colorImg: [],
+        id: Math.random().toString(36).substring(2, 10),
+        attrIdList: [] // 变种属性 Id 合集
+      };
+      product.forEach((item) => {
+        let values = ""
+        //   item.selectType === "multSelect"
+        //     ? item?.modelValue?.map((val) => val.label).join(";")
+        //     : item.selectType === "select"
+        //     ? item.modelValue[0]?.label
+        //       : item.modelValue; //原写法 item.modelValue.value
+        output.attrIdList.push(item.id)
+        if(item.selectType === "select") {
+            values = item.modelValue[0]?.label || item.modelValue?.label
+        }else if(item.selectType === "multSelect") {
+            values = item?.modelValue?.map((val) => val.label).join(";")
+        }else {
+            values = item.modelValue
+        }
+        output[item.name] = values;
+        output["secondName"] = item?.secondModelValue || "";
+        output[item.secondName] = item?.secondModelValue || "";
+      });
+      console.log("output",output);
+      
+      return output;
+    });
+};
 export {
-
     getInputValue,
     getSelectValue,
     getMultiSelectValue,
-
+    processResult
 };
