@@ -10,15 +10,15 @@
                 <a-dropdown size="middle">
                     <template #overlay>
                         <a-menu @click="handleMenuClick">
-                            <a-menu-item key="1">
+                            <!-- <a-menu-item key="1">
                                 引用现有产品
-                            </a-menu-item>
+                            </a-menu-item> -->
                             <a-menu-item key="2">
                                 引用产品模板
                             </a-menu-item>
-                            <a-menu-item key="3" :disabled="!formData.shortCode">
+                            <!-- <a-menu-item key="3" :disabled="!formData.shortCode">
                                 引用资料库产品
-                            </a-menu-item>
+                            </a-menu-item> -->
                         </a-menu>
                     </template>
                     <a-button size="middle">
@@ -47,15 +47,15 @@
                 <a-dropdown size="middle">
                     <template #overlay>
                         <a-menu @click="handleMenuClick">
-                            <a-menu-item key="1">
+                            <!-- <a-menu-item key="1">
                                 引用现有产品
-                            </a-menu-item>
+                            </a-menu-item> -->
                             <a-menu-item key="2">
                                 引用产品模板
                             </a-menu-item>
-                            <a-menu-item key="3">
+                            <!-- <a-menu-item key="3">
                                 引用资料库产品
-                            </a-menu-item>
+                            </a-menu-item> -->
                         </a-menu>
                     </template>
                     <a-button size="middle">

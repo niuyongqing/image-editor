@@ -7,6 +7,8 @@ const getInputValue = (attr, item) => {
         (attr.isAspect && attr.isCollection)
     ) {
         return item[attr.name] || "";
+    }else {
+        return item[attr.name] || "";
     }
 };
 // 获取select类型属性的值
