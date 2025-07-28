@@ -143,6 +143,7 @@
           </template>
           <template v-else-if="column.dataIndex === 'option'">
             <div class="option-btn-box">
+              <div class="option-btn" @click="acquisitionEdit(record)">编辑</div>
               <a-dropdown>
                 <div class="option-btn" @click.prevent>
                   认领
@@ -157,7 +158,6 @@
               </a-dropdown>
               <!-- <div class="option-btn" @click="claim('draft', record)">认领至待发布</div> -->
               <!-- <div class="option-btn" @click="batchClaim('acquisition', record)">认领至采集箱</div> -->
-              <div class="option-btn" @click="acquisitionEdit(record)">编辑</div>
 
               <a-dropdown>
                 <div class="option-btn" @click.prevent>
@@ -343,6 +343,16 @@ const columns = computed(() => {
 onMounted(() => {
   tabsChange(activeName.value)
   // getProductStatCount()
+  let urlAcquisitionValue = localStorage.getItem('urlAcquisition')
+  if (!urlAcquisitionValue) {
+    localStorage.setItem('urlAcquisition', '')
+  }
+  window.addEventListener('storage', event => {
+    if(event.key === 'urlAcquisition') {
+      // console.log(event.newValue, event)
+      getList()
+    }
+  })
 })
 // async function getProductStatCount() {
 //   let res = await productStatCount()
@@ -602,10 +612,14 @@ function openUrl(url) {
 function getSimpleName(account) {
   return formBtnInfo.shopAccount.find(i => i.account === account)?.simpleName ?? ''
 }
+const userStore = useUserStore()
 // 数据采集编辑
 function acquisitionEdit(row) {
+  let routerList = userStore.routerData.children[0].children
+  let val = routerList.find(i => i.path.includes('sample/acquisitionEdit'))
+  // console.log(userStore.routerData, routerList, val);
   let query = '?id=' + row.id
-  window.open('/platform/dev/sample/acquisitionEdit' + query)
+  window.open(val.path + query)
 }
 const handleOk = () => { }
 

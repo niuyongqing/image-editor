@@ -111,8 +111,6 @@ const resultRuleSelect = [
     value: 'ceil'
   },
 ];
-let a = 2
-a.toFixed
 watch(() => props.modalOpen, (val) => {
   if (val) {
     modalOpen.value = val

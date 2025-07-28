@@ -96,7 +96,7 @@
                   v-model:checked="i.checked"
                   class="item-check" 
                   @change="(e) => variantItemChange(i.checked, i, form[item.id])" 
-                >{{ i.name }}</a-checkbox>
+                ><span v-show="!i.isEditVal">{{ i.name }}</span></a-checkbox>
                 <span v-if="i.color" :style="`width: 12px; height: 12px; background-color: ${i.color};`"></span>
                 <div v-show="!i.isEditVal">
                   <async-icon style="margin-left: 0;" :icon="'EditOutlined'" @click.stop="itemIconClick('edit', i, form[item.id])"></async-icon>
@@ -424,7 +424,7 @@ function titleIconClick(key, data, formItem) {
 function setVariantOne(val, index) {
   let att = variantTheme.variantList.splice(index, 1)[0]
   variantTheme.variantList.unshift(att)
-  createHeaderList(true)
+  createHeaderList()
   // form[val.id].params.forEach(item => {
   //   item.imageUrl = ''
   //   item.uri = ''
@@ -521,11 +521,8 @@ function variantItemChange(e, val, formItem) {
   generateVariantInfo(e, val, formItem)
 }
 // 创建变种主题表头
-function createHeaderList(renew = false) {
-  if (renew) {
-    // 是否更新表头列表
-    variantTheme.header = []
-  }
+function createHeaderList() {
+  variantTheme.header = []
   variantTheme.variantList.forEach(item => {
     if (item.values.some(i => i.checked)) {
       if (variantTheme.header.some(i => i.key === item.id)) return;
