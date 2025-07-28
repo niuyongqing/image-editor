@@ -2,16 +2,16 @@
   <div id="editWaitProductCont" class="pr-14">
     <div class="w-19/20">
       <div class="flex justify-end mt-5">
-        <a-button class="mx-2.5" :loading="loading" size="middle" @click="showTempModal">存为模板</a-button>
+        <!-- <a-button class="mx-2.5" :loading="loading" size="middle" @click="showTempModal">存为模板</a-button> -->
         <a-dropdown size="middle">
           <template #overlay>
             <a-menu @click="handleMenuClick">
-              <!-- <a-menu-item key="1">
+              <a-menu-item key="1">
                 引用现有产品
-              </a-menu-item> -->
-              <a-menu-item key="2">
-                引用产品模板
               </a-menu-item>
+              <!-- <a-menu-item key="2">
+                引用产品模板
+              </a-menu-item> -->
               <!-- <a-menu-item key="3" :disabled="!formData.shortCode"> 
                 引用资料库产品
               </a-menu-item> -->
@@ -39,16 +39,16 @@
       <OzonNewVariantInfo ref="ozonNewVariantInfoRef" id="ozonNewVariantInfo" :productDetail="productDetail"
         :shopCode="formData.shortCode" class="mt-5" @getAttributes="getAttributes"></OzonNewVariantInfo>
       <div class="flex justify-end mt-5">
-        <a-button class="mx-2.5" :loading="loading" size="middle" @click="showTempModal">存为模板</a-button>
+        <!-- <a-button class="mx-2.5" :loading="loading" size="middle" @click="showTempModal">存为模板</a-button> -->
         <a-dropdown size="middle">
           <template #overlay>
             <a-menu @click="handleMenuClick">
-              <!-- <a-menu-item key="1">
+              <a-menu-item key="1">
                 引用现有产品
-              </a-menu-item> -->
-              <a-menu-item key="2">
-                引用产品模板
               </a-menu-item>
+              <!-- <a-menu-item key="2">
+                引用产品模板
+              </a-menu-item> -->
               <!-- <a-menu-item key="3" :disabled="!formData.shortCode">
                 引用资料库产品
               </a-menu-item> -->
@@ -192,7 +192,7 @@ const scroll = (id) => {
 const getProductDetail = (waitId, account) => {
   ozonProductDetail({ account, waitId }).then(res => {
     productDetail.value = res?.data ?? {}
-    getAttributes(res?.data.account, res?.data)
+    getAttributes(res?.data?.account, res?.data)
   })
 }
 
@@ -384,15 +384,11 @@ const onSubmit = async (type) => {
   let newComplexAttributes = [];
   //! 判断视频有没有上传
   const baseObj = {
-    attributes: [
+    complexId: null,
+    id: null,
+    values: [
       {
-        complexId: null,
-        id: null,
-        values: [
-          {
-            value: "",
-          },
-        ],
+        value: "",
       },
     ],
   };

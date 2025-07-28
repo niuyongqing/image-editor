@@ -497,15 +497,11 @@ const onSubmit = async (type) => {
     let newComplexAttributes = [];
     //! 判断视频有没有上传
     const baseObj = {
-        attributes: [
+        complexId: null,
+        id: null,
+        values: [
             {
-                complexId: null,
-                id: null,
-                values: [
-                    {
-                        value: "",
-                    },
-                ],
+                value: "",
             },
         ],
     };
@@ -588,7 +584,6 @@ const onSubmit = async (type) => {
                     break;
             }
       }
-        console.log("ITEM",addHeaderList.includes("skuTitle"));
         
         return {
             attributes: moditAttributes,

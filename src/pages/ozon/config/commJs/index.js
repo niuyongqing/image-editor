@@ -647,14 +647,10 @@ const createAndUpdateBaseObj = (targetObj, complexId, id, type) => {
   };
 
   return {
-    attributes: [
-      {
-        [keyMap.complexId]: complexId,
-        id: id,
-        values: processValues(),
-      },
-    ],
-  };
+      [keyMap.complexId]: complexId,
+      id: id,
+      values: processValues(),
+    };
 };
 
 const processImageSource = (source) => {

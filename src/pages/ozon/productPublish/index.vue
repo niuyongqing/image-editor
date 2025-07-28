@@ -6,16 +6,16 @@
             <br /> -->
             <br />
             <div class="flex justify-end">
-                <a-button class="mx-2.5" :loading="loading" size="middle" @click="showTempModal">存为模板</a-button>
+                <!-- <a-button class="mx-2.5" :loading="loading" size="middle" @click="showTempModal">存为模板</a-button> -->
                 <a-dropdown size="middle">
                     <template #overlay>
                         <a-menu @click="handleMenuClick">
-                            <!-- <a-menu-item key="1">
+                            <a-menu-item key="1">
                                 引用现有产品
-                            </a-menu-item> -->
-                            <a-menu-item key="2">
-                                引用产品模板
                             </a-menu-item>
+                            <!-- <a-menu-item key="2">
+                                引用产品模板
+                            </a-menu-item> -->
                             <!-- <a-menu-item key="3" :disabled="!formData.shortCode">
                                 引用资料库产品
                             </a-menu-item> -->
@@ -43,16 +43,16 @@
                 :shopCode="formData.shortCode"></ozon-new-variant-info>
             <br />
             <div class="flex justify-end">
-                <a-button class="mx-2.5" size="middle" :loading="loading" @click="showTempModal">存为模板</a-button>
+                <!-- <a-button class="mx-2.5" size="middle" :loading="loading" @click="showTempModal">存为模板</a-button> -->
                 <a-dropdown size="middle">
                     <template #overlay>
                         <a-menu @click="handleMenuClick">
-                            <!-- <a-menu-item key="1">
+                            <a-menu-item key="1">
                                 引用现有产品
-                            </a-menu-item> -->
-                            <a-menu-item key="2">
-                                引用产品模板
                             </a-menu-item>
+                            <!-- <a-menu-item key="2">
+                                引用产品模板
+                            </a-menu-item> -->
                             <!-- <a-menu-item key="3">
                                 引用资料库产品
                             </a-menu-item> -->
@@ -123,7 +123,7 @@ import { message, Modal } from "ant-design-vue";
 import { useOzonProductStore } from '~@/stores/ozon-product'
 import {
     findFalseInArrayLikeObject, getInputValue, getSelectValue, getMultiSelectValue,
-    isNotEmpty, createAndUpdateBaseObj
+    isNotEmpty
 } from '~/pages/ozon/config/commJs/index';
 import { deepClone } from '~@/utils'
 import { saveTowaitProduct } from "../config/api/waitProduct"
@@ -445,14 +445,23 @@ const onSubmit = async (type = 1) => {
             },
         ],
     };
+    const baseObj2 = {
+        complex_id: null,
+        id: null,
+        values: [
+            {
+                value: "",
+            },
+        ],
+    };
     if (image.coverUrl !== "" && image.video.length > 0) {
         // 创建video对应的baseObj副本并更新value值
-        let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
+        let videoBaseObj = JSON.parse(JSON.stringify(type === 1 ? baseObj : baseObj2));
         videoBaseObj = createAndUpdateBaseObj(image.coverUrl, 100002, 21845, type === 1 ? 1 : 2);
         newComplexAttributes.push(videoBaseObj);
 
         // 创建coverUrl对应的baseObj副本并更新value值
-        let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
+        let coverUrlBaseObj = JSON.parse(JSON.stringify(type === 1 ? baseObj : baseObj2));
         coverUrlBaseObj = createAndUpdateBaseObj(
             image.video,
             100001,
@@ -460,7 +469,7 @@ const onSubmit = async (type = 1) => {
         );
         newComplexAttributes.push(coverUrlBaseObj);
     } else if (image.coverUrl !== "") {
-        let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
+        let coverUrlBaseObj = JSON.parse(JSON.stringify(type === 1 ? baseObj : baseObj2));
         coverUrlBaseObj = createAndUpdateBaseObj(
             image.coverUrl,
             100002,
@@ -468,7 +477,7 @@ const onSubmit = async (type = 1) => {
         );
         newComplexAttributes.push(coverUrlBaseObj);
     } else if (image.video.length > 0) {
-        let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
+        let videoBaseObj = JSON.parse(JSON.stringify(type === 1 ? baseObj : baseObj2));
         videoBaseObj = createAndUpdateBaseObj(image.video, 100001, 21841, type === 1 ? 1 : 2);
         newComplexAttributes.push(videoBaseObj);
     }
@@ -660,6 +669,52 @@ const onSubmit = async (type = 1) => {
 
 }
 
+
+// 处理视频格式
+const createAndUpdateBaseObj = (targetObj, complexId, id, type) => {
+  // 统一属性命名格式
+  const keyStyle = type === 1 ? "snake" : "camel";
+
+  // 映射属性名
+  const keyMap = {
+    complexId: keyStyle === "snake" ? "complex_id" : "complexId",
+    dictionaryValueId:
+      keyStyle === "snake" ? "dictionary_value_id" : "dictionaryValueId",
+  };
+  // 100001 多个视频
+  // 100002 单个视频
+  // 通用值处理逻辑
+  const processValues = () => {
+    if (complexId === 100002) {
+      // return [{ [keyMap.dictionaryValueId]: 0, value: targetObj.replace('/prod-api', '') }];
+      return [
+        {
+          [keyMap.dictionaryValueId]: 0,
+          value: targetObj,
+        },
+      ];
+    }
+    return (Array.isArray(targetObj) ? targetObj : []).map((item) => ({
+      [keyMap.dictionaryValueId]: 0,
+      // value: item?.url?.replace('/prod-api', '') || null // 添加空值保护
+      value: item?.url || null,
+    }));
+  };
+
+  return type == 1 ? {
+    attributes: [
+      {
+        [keyMap.complexId]: complexId,
+        id: id,
+        values: processValues(),
+      },
+    ],
+  } : {
+    [keyMap.complexId]: complexId,
+    id: id,
+    values: processValues(),
+  };
+};
 
 
 const handleCancel = () => {

@@ -565,7 +565,10 @@ const removeItem = (item, row) => {
   } else if (item.id === 4295 || item.name == "俄罗斯尺码") {
     row.tableData.splice(ind, 1);
   } else {
-    if (item.selectType === "select" || item.selectType === "input") {
+    if (ind !== -1) {
+      row.tableData.splice(ind, 1);
+    }
+    else if (item.selectType === "select" || item.selectType === "input") {
       row.tableData = row.tableData.filter(tableItem =>
         tableItem.id !== item.id
       );
@@ -581,25 +584,57 @@ const removeItem = (item, row) => {
   }
 
   // 获取所有需要删除的标签
+  // const deletedLabels = item.selectType === 'multSelect'
+  //   ? item.modelValue.map(v => v.label)
+  //   : [];
+  // let newData = tableData.value.filter(row => {
+  //   // 检查行数据是否包含要删除的属性值
+  //   return !Object.values(row).some(value => {
+  //     if (item.selectType === 'multSelect') {
+  //       // 统一处理数组和字符串类型的值
+  //       const currentValues = Array.isArray(value)
+  //         ? value.map(v => v?.label || '')
+  //         : String(value || '').split(',');
+  //       return currentValues.some(v => deletedLabels.includes(v));
+  //     }
+  //     return item.selectType === 'input' ? row.attrIdList.includes(item.id)
+  //       : item.selectType === 'select' ? value === item?.modelValue?.label
+  //         : false;
+  //   });
+  // });
   const deletedLabels = item.selectType === 'multSelect'
-    ? item.modelValue.map(v => v.label)
+    ? item.modelValue.map(v => v.label?.trim()) // 增加trim处理
     : [];
-  let newData = tableData.value.filter(row => {
-    // 检查行数据是否包含要删除的属性值
-    return !Object.values(row).some(value => {
-      if (item.selectType === 'multSelect') {
-        // 统一处理数组和字符串类型的值
-        const currentValues = Array.isArray(value)
-          ? value.map(v => v?.label || '')
-          : String(value || '').split(',');
-        return currentValues.some(v => deletedLabels.includes(v));
-      }
-      return item.selectType === 'input' ? row.attrIdList.includes(item.id)
-        : item.selectType === 'select' ? value === item?.modelValue?.label
-          : false;
-    });
-  });
+  const deletedSet = new Set(deletedLabels); // 改用Set提高查询效率
 
+  let newData = tableData.value.filter(row => {
+    // 直接访问对应属性
+    // const rowValue = row[item.name];
+    // if (item.selectType === 'select' || item.selectType === 'input') {
+    //   return !row.attrIdList?.some(id => id === item.id);
+    // } else {
+    //   return !deletedLabels?.some(val => val === rowValue)
+    // }
+    const rowValue = String(row[item.name] || '');
+    const inputValue = String(item.modelValue || '');
+
+    if (item.selectType === 'select') {
+      // 选择类型使用ID过滤
+      return !(Array.isArray(row.attrIdList) &&
+        row.attrIdList.some(id => id === item.id));
+    } else if (item.selectType === 'input') {
+      // input类型同时检查ID和输入值
+      const hasId = Array.isArray(row.attrIdList) &&
+        row.attrIdList.some(id => id === item.id);
+      const valueMatch = rowValue === inputValue;
+      return !(hasId || valueMatch);
+    } else {
+      // 多选类型使用标签过滤
+      return !deletedLabels?.some(val =>
+        val != null && String(val) === rowValue
+      );
+    }
+  });
   tableData.value = newData;
 };
 
@@ -613,7 +648,6 @@ const pushValue = (index, item) => {
   // 处理表格数据
   let cartesianProducts = cartesianProduct(attributeList.value);
   let newTableData = processResult(cartesianProducts);
-
   let minLength = Math.min(newTableData.length, tableData.value.length);
   for (let i = 0; i < minLength; i++) {
     // 将b数组中对应下标的数据赋值到a数组中

@@ -976,8 +976,8 @@
         modelValue: item.selectType === 'multSelect' ? [] : undefined,
         selectType: item.selectType,
         details: item.details,
-        secondName: '制造商尺码(Размер производителя)',
-        '制造商尺码(Размер производителя)': '制造商尺码(Размер производителя)',
+        secondName: "由制造商规定尺码(Размер производителя)",
+        "由制造商规定尺码(Размер производителя)": "由制造商规定尺码(Размер производителя)",
         secondId: 9533,
         secondModelValue: ''
       }
