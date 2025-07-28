@@ -227,7 +227,13 @@ const getAttributesID = (ids) => {
         value: ids.value,
     };
     console.log("form", form.categoryId);
-
+    const ozonStore = useOzonProductStore()
+    ozonStore.$patch(state => {
+        state.variant = {
+            threeCategoryId: typeId,
+            shopId: form.shortCode
+        }
+    })
     emit("getAttributes", form.shortCode, form.categoryId);
 };
 
@@ -266,6 +272,13 @@ const selectAttributes = (e) => {
             value: e.option.threeCategoryId,
         };
         emit("getAttributes", form.shortCode, e.option);
+        const ozonStore = useOzonProductStore()
+        ozonStore.$patch(state => {
+            state.variant = {
+                threeCategoryId: e.option.threeCategoryId,
+                shopId: form.shortCode
+            }
+        })
     }
 };
 
@@ -524,6 +537,13 @@ watch(
                 label: undefined,
                 value: typeId,
             };
+            const ozonStore = useOzonProductStore()
+            ozonStore.$patch(state => {
+                state.variant = {
+                    threeCategoryId: typeId,
+                    shopId: account
+                }
+            })
             // emit("getAttributes", form.shortCode, form.categoryId);
             getHistoryList(account);
         }

@@ -23,11 +23,11 @@
                         @click="selectVisible = true">选择分类</a-button>
                     <p v-if="hisAttrObj.length != 0" style="color: #933">
                         <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{ hisAttrObj[0].secondCategoryName
-                            }}</span>/
+                        }}</span>/
                         <span>{{ hisAttrObj[0].threeCategoryName }}</span>
                     </p>
                 </a-form-item>
-                <a-form-item label="添加模块">
+                <a-form-item label="添加模块" v-if="type === '1'">
                     <a-space>
                         <a-button type="default" @click="addAttributes" v-if="!showAttrsBtn"> + 产品属性 </a-button>
                         <a-button type="default" @click="addDescription" v-if="form.categoryId && !showDescriptionBtn">
@@ -62,7 +62,7 @@
                                     <template #label>
                                         <span class="mr-2.5 truncate">{{
                                             item.label ? item.label : item.name
-                                            }}</span>
+                                        }}</span>
                                         <a-tooltip class="tooltipStyle" effect="dark" :title="item.description"
                                             popper-class="ozonTooltip" placement="top">
                                             <AsyncIcon icon="QuestionCircleOutlined"></AsyncIcon>
@@ -133,6 +133,7 @@ import {
 import categoryDialog from "../../productPublish/comm/categoryDialog.vue";
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { message } from "ant-design-vue";
+import { useRoute } from 'vue-router';
 
 const props = defineProps({
     categoryAttributesLoading: Boolean,
@@ -144,7 +145,8 @@ const emit = defineEmits(["sendShortCode", "getAttributes", "emitAddDescription"
 
 const showAttrsBtn = ref(false);
 const showDescriptionBtn = ref(false);
-
+const route = useRoute();
+const type = ref(null);
 const ruleForm = ref(null);
 const ruleForm2 = ref(null);
 const form = reactive({
@@ -481,17 +483,23 @@ watch(
     () => props.productDetail,
     (val) => {
         if (val) {
-            const { content, account, name } = val;
-            form.name = content.productTemplate.name;
+            const { content, account, name, category } = val;
             form.templateName = name;
             // 修改响应式对象的属性
             form.shortCode = account;
-            form.vat = content.productTemplate.vat;
-            form.categoryId = content.productTemplate.categoryId;
-            showAttrsBtn.value = true;
+            form.categoryId = {
+                threeCategoryId: category.threeCategoryId,
+                threeCategoryName: "",
+                secondCategoryId: category.secondCategoryId,
+                label: undefined,
+                value: category.threeCategoryId,
+            };
+            console.log("form.categoryId", form.categoryId);
+            
+            showAttrsBtn.value = route.query.type === '1' ? true : false;
             getHistoryList(account);
             emit("getAttributes", form.shortCode, form.categoryId);
-            form.attributes = content.productTemplate.productAttr;
+            form.attributes = content?.productTemplate?.productAttr;
             if (content.jsonRich != '{}') {
                 addDescription()
             }
@@ -594,6 +602,9 @@ watch(
         }
     }
 );
+onMounted(() => {
+    type.value = route.query.type;
+})
 </script>
 <style lang="less" scoped>
 :deep(.ant-checkbox-group) {
