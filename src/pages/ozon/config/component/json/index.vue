@@ -24,7 +24,7 @@
         <div>富内容编辑</div>
         <a-space>
           <a-button type="link" @click="showEdit = true">批量设置图片尺寸</a-button>
-          <a-button @click="show = false">关闭</a-button>
+          <a-button @click="closeTemp">关闭</a-button>
           <a-button type="primary" @click="save">保存</a-button>
         </a-space>
       </div>
@@ -1316,7 +1316,6 @@ function save() {
     content: newData,
     version: 0.3
   }
-  show.value = false
   emits("backResult", finallyObj.value)
   closeTemp();
 }
@@ -1326,6 +1325,7 @@ function save() {
 const closeTemp = () => {
   finallyObj.value = {}
   moduleList.value = []
+  show.value = false
 }
 
 function openEditor() {

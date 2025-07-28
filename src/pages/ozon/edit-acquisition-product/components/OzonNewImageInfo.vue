@@ -163,7 +163,7 @@ defineExpose({
 
 
 const backResult = (res) => {
-    form.jsons = res
+    form.jsons = JSON.stringify(res)
 }
 
 watch(() => props.productDetail, val => {

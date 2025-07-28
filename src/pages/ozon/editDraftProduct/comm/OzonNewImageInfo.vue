@@ -162,7 +162,7 @@ defineExpose({
 });
 
 const backResult = (res) => {
-    form.jsons = res
+    form.jsons = JSON.stringify(res)
 }
 // 引用产品模板
 watch(() => useOzonProductStore().productTemplate, (val) => {
