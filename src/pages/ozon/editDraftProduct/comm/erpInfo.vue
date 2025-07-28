@@ -7,7 +7,7 @@
         :label-col="{ span: 3 }"
         class="shopForm"
       >
-        <a-form-item label="ERP分类">
+        <!-- <a-form-item label="ERP分类">
           <a-dropdown
             trigger="click"
             v-model:open="openDropdown"
@@ -44,7 +44,7 @@
           >
             + 管理分类
           </a-button>
-        </a-form-item>
+        </a-form-item> -->
 
         <a-form-item label="来源URL">
           <div
