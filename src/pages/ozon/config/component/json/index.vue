@@ -6,7 +6,7 @@
       <!-- <pre class="wrap" style="overflow: hidden;height: 530px;" v-if="Object.keys(finallyObj).length > 0">
         {{ finallyObj }}
       </pre> -->
-      <pre class="wrap" style="overflow: hidden;height: 530px;" v-if="Object.keys(jsonContent).length > 0">
+      <pre class="wrap" style="overflow: hidden;height: 530px;" v-if="jsonContent && Object.keys(jsonContent).length > 0">
         {{ JSON.parse(jsonContent) }}
       </pre>
       <div class="mask">

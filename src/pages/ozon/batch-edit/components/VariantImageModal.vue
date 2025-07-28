@@ -81,10 +81,10 @@
                 <a-dropdown>
                   <a-button type="link"><BulbOutlined class="text-base" /><CaretDownOutlined /></a-button>
                   <template #overlay>
-                    <a-menu @click="imgModifySingleMenuClick">
-                      <a-menu-item key="ps">小秘美图</a-menu-item>
+                    <a-menu @click="imgModifySingleMenuClick($event, item)">
+                      <!-- <a-menu-item key="ps">小秘美图</a-menu-item> -->
                       <a-menu-item key="translate">图片翻译</a-menu-item>
-                      <a-menu-item key="whiteBg">图片白底</a-menu-item>
+                      <!-- <a-menu-item key="whiteBg">图片白底</a-menu-item> -->
                     </a-menu>
                   </template>
                 </a-dropdown>
@@ -207,7 +207,6 @@
 
   /** 添加图片 */
   function imgAddMenuClick({ key }) {
-    console.log(key)
     switch (key) {
       case 'imgBank':
         pictureLibraryOpen.value = true
@@ -236,7 +235,7 @@
       if (res.code === 200) {
         const imgInfo = {
           id: uuidv4(),
-          url: res.url
+          url: import.meta.env.VITE_APP_BASE_API + res.url
         }
         await getImgSize(imgInfo)
         variantImages.value.push(imgInfo)
@@ -262,8 +261,15 @@
   }
 
   // 编辑单张图片
-  function imgModifySingleMenuClick({ key }) {
-    console.log(key)
+  function imgModifySingleMenuClick({ key }, item) {
+    switch (key) {
+      case 'translate':
+        imgTransRef.value.showModal([item])
+        break;
+    
+      default:
+        break;
+    }
   }
 
   // 删除单张按钮

@@ -78,6 +78,7 @@
           type="primary"
           size="middle"
           class="ml-4"
+          :disabled="!tableData.length"
           @click="submit"
           >保存</a-button
         >
@@ -471,7 +472,7 @@
         <template v-else-if="column.title === '操作'">
           <a-button
             type="link"
-            @click="removeRecord(record.id)"
+            @click="removeRecord(record.waitId)"
             >移除</a-button
           >
         </template>
@@ -556,23 +557,23 @@
 <script setup>
   import { DownOutlined, FormOutlined, UndoOutlined, DeleteOutlined, CheckOutlined } from '@ant-design/icons-vue'
   import { cloneDeep } from 'lodash'
-  import { batchQueryDetailApi, batchUpdateProductApi } from '../config/api/batch-edit'
+  import { detailListApi, editBatchSaveApi } from '../config/api/batch-edit'
 
-  import TitleModal from './components/TitleModal.vue'
-  import DescModal from './components/DescModal.vue'
-  import VATModal from './components/VATModal.vue'
-  import VariantImageModal from './components/VariantImageModal.vue'
-  import SKUCodeModal from './components/SKUCodeModal.vue'
-  import SKUTitleModal from './components/SKUTitleModal.vue'
-  import PriceModal from './components/PriceModal.vue'
-  import OldPriceModal from './components/OldPriceModal.vue'
-  import StockModal from './components/StockModal.vue'
-  import SizeModal from './components/SizeModal.vue'
-  import WeightModal from './components/WeightModal.vue'
+  import TitleModal from '../batch-edit/components/TitleModal.vue'
+  import DescModal from '../batch-edit/components/DescModal.vue'
+  import VATModal from '../batch-edit/components/VATModal.vue'
+  import VariantImageModal from '../batch-edit/components/VariantImageModal.vue'
+  import SKUCodeModal from '../batch-edit/components/SKUCodeModal.vue'
+  import SKUTitleModal from '../batch-edit/components/SKUTitleModal.vue'
+  import PriceModal from '../batch-edit/components/PriceModal.vue'
+  import OldPriceModal from '../batch-edit/components/OldPriceModal.vue'
+  import StockModal from '../batch-edit/components/StockModal.vue'
+  import SizeModal from '../batch-edit/components/SizeModal.vue'
+  import WeightModal from '../batch-edit/components/WeightModal.vue'
   import { message } from 'ant-design-vue'
 
   // 取出产品 id
-  const ids = JSON.parse(localStorage.getItem('ids'))
+  const waitIdList = JSON.parse(localStorage.getItem('waitIdList'))
 
   // 关联的结对变种属性
   const TWINS = [
@@ -588,19 +589,28 @@
   const warehouseTableData = ref([])
   getDetails()
   function getDetails() {
-    batchQueryDetailApi({ ids }).then(res => {
+    detailListApi({ waitIdList }).then(res => {
       const data = res.data || []
       const accountList = []
       const list = data.map(item => {
         accountList.push(item.account)
-        let mainImage = item.primaryImage || item.skuList[0].primaryImage?.[0] || ''
+        let mainImage = item.primaryImage || item.skuList[0].primaryImage?.[0] || item.skuList[0].images?.[0] || ''
         if (mainImage && !mainImage.includes('http')) {
           mainImage = import.meta.env.VITE_APP_BASE_API + mainImage
         }
+        // 获取 detailDesc | (SKU名称-4180; 产品描述-4191;)
+        const detailDesc = item.skuList[0].attributes.find(attr => attr.id === 4191)?.values[0].value || ''
+
         item.skuList.forEach(sku => {
           if (sku.attributes) {
+            // 处理 skuTitle
+            const skuTitleObj = sku.attributes.find(attr => attr.id === 4180)
+            if (skuTitleObj) {
+              const skuTitle = skuTitleObj.values[0].value
+              sku.skuTitle = skuTitle
+            }
+            // 处理变种名称
             const variantList = sku.attributes.filter(attr => attr.isVariant)
-
             let variantIds = variantList.map(variant => variant.id)
             let cookedAttrNameList = []
             let cookedAttrValueList = []
@@ -635,6 +645,7 @@
         const obj = {
           ...item,
           title: item.name,
+          detailDesc,
           mainImage,
           VAT: item.vat
         }
@@ -1137,8 +1148,8 @@
   }
 
   // 移除
-  function removeRecord(id) {
-    tableData.value = tableData.value.filter(item => item.id !== id)
+  function removeRecord(waitId) {
+    tableData.value = tableData.value.filter(item => item.waitId !== waitId)
   }
 
   /** 翻译 */
@@ -1172,15 +1183,57 @@
     params.forEach(item => {
       item.name = item.title
       item.vat = item.VAT
+      // 产品描述
+      const detailDescObj = item.skuList[0].attributes.find(attr => attr.id === 4191)
+      // SKU标题
+      const skuTitleObj = item.skuList[0].attributes.find(attr => attr.id === 4180)
       item.skuList.forEach(sku => {
+        if (detailDescObj) {
+          // 原先有描述
+          const target = sku.attributes.find(attr => attr.id === 4191)
+          target.values[0].value = item.detailDesc
+        } else {
+          // 无描述, 则插入一条数据
+          sku.attributes.push({
+            complexId: 0,
+            id: 4191,
+            values: [
+              {
+                dictionaryValueId: 0,
+                value: item.detailDesc
+              }
+            ]
+          })
+        }
+        // SKU标题
+        if (skuTitleObj) {
+          // 原先有描述
+          const target = sku.attributes.find(attr => attr.id === 4180)
+          target.values[0].value = sku.skuTitle
+        } else {
+          // 无描述, 则插入一条数据
+          sku.attributes.push({
+            complexId: 0,
+            id: 4180,
+            values: [
+              {
+                dictionaryValueId: 0,
+                value: sku.skuTitle
+              }
+            ]
+          })
+        }
+
         delete sku.cookedAttrNameList
         delete sku.cookedAttrValueList
         delete sku.attrName
+        delete sku.skuTitle
       })
 
       // 删除辅助的属性
       delete item.mainImage
       delete item.title
+      delete item.detailDesc
       delete item.VAT
       // 删除备份数据
       COPY_KEY_LIST.forEach(key => {
@@ -1188,12 +1241,12 @@
       })
     })
 
-    batchUpdateProductApi(params).then(res => {
+    editBatchSaveApi(params).then(res => {
       message.success('修改成功')
-      // localStorage.removeItem('ids')
-      // setTimeout(() => {
-      //   window.close()
-      // }, 2000)
+      localStorage.removeItem('waitIdList')
+      setTimeout(() => {
+        window.close()
+      }, 2000)
     })
   }
 </script>

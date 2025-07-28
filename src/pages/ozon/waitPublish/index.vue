@@ -604,8 +604,8 @@ const edit = (row = {}) => {
 // 批量操作
   const handleMenuClick = (e) => {
   if (e.key == "batchEdit") {
-    localStorage.setItem('ids', JSON.stringify(selectedRowKeys.value))
-    window.open('/platform/ozon/batch-edit')
+    localStorage.setItem('waitIdList', JSON.stringify(selectedRowKeys.value))
+    window.open('/platform/ozon/batch-edit-wait-product')
   } else if (e.key == "remark") {
     addRemark();
   } else if (e.key === "publish") {

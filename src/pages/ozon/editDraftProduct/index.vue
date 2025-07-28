@@ -587,7 +587,9 @@ const onSubmit = async (type) => {
                     }
                     break;
             }
-        }
+      }
+        console.log("ITEM",addHeaderList.includes("skuTitle"));
+        
         return {
             attributes: moditAttributes,
             complexAttributes: newComplexAttributes ?? null, // 非必填 100002-21845-封面视频 100001-21841-视频
@@ -599,7 +601,7 @@ const onSubmit = async (type) => {
             price: item.price,
             weightUnit: "g",
             dimensionUnit: "mm",
-            name: addHeaderList.includes("skuTitle") ? item.name : base.name,
+            name: addHeaderList.includes("skuTitle") ? item.skuTitle : base.name,
             weight: item.packageWeight,
             height: item.packageHeight,
             depth: item.packageLength,
@@ -622,7 +624,7 @@ const onSubmit = async (type) => {
 
         customCategoryId: erpInfo.currentClass,
         sourceUrlList: erpInfo.sourceUrlList.map((item) => item.sourceUrl)
-    };
+  };
 
     loading.value = true;
     if (type === 1) {   //  保存并移入待发布

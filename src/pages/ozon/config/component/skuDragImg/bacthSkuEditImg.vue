@@ -195,7 +195,7 @@ const submit = async () => {
     };
   } else {
     loading.value = true;
-    //   //  有网络图
+    // 有网络图
     for (const tabbleItem of tableData.value) {
       const fileList = tabbleItem.imageUrl || [];
       if (fileList.length === 0) {

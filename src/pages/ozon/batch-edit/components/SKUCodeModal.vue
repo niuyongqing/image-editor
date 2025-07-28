@@ -220,6 +220,11 @@
         if (attachVariant.value) {
           item.offerId += item.cookedAttrValueList.join('-')
         }
+
+        // 同步修改 warehouseList 里的 offerId
+        item.warehouseList.forEach(el => {
+          el.offerId = item.offerId
+        })
       })
     })
   }
@@ -247,6 +252,11 @@
         if (modifyForm.textOld && modifyForm.textNew) {
           item.offerId = item.offerId.replaceAll(modifyForm.textOld, modifyForm.textNew)
         }
+
+        // 同步修改 warehouseList 里的 offerId
+        item.warehouseList.forEach(el => {
+          el.offerId = item.offerId
+        })
       })
     })
   }

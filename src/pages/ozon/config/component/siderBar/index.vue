@@ -8,7 +8,7 @@
             </template>
             <div :class="active === 'all' ? 'ozon-active' : 'default'">
                 <div text-left pl-10px cursor-pointer @click="selectActive('all')">
-                    「ozon」采集箱(<span>{{ count }}</span>)</div>
+                    「ozon」采集箱(<span>{{ totalCount }}</span>)</div>
             </div>
         </a-card>
         <a-card :bordered="true" style="margin: 0 auto; border-radius: 0px">
@@ -36,7 +36,7 @@
             </div> -->
                 <div :class="active === 'fail' ? 'ozon-active' : 'default'">
                     <div text-left pl-10px cursor-pointer @click="selectActive('fail')">
-                        发布失败(<span text-red-5 font-bold>112</span>)</div>
+                        发布失败(<span text-red-5 font-bold>{{ publishFailedCount }}</span>)</div>
                 </div>
             </div>
         </a-card>
@@ -70,11 +70,15 @@ import typeManage from '@/components/classificationTree/typeManage.vue';
 import { useRouter, useRoute } from 'vue-router';
 const router = useRouter();
 const route = useRoute();
-const { count } = defineProps({
-    count: {
+defineProps({
+    totalCount: {
         type: Number,
         default: 0
-    }
+    },
+    publishFailedCount: {
+        type: Number,
+        default: 0
+    },
 })
 const waitTypeTreeEl = useTemplateRef('waitTypeTreeRef'); // 待发布产品分类
 const onlineTypeTreeEl = useTemplateRef('onlineTypeTreeRef'); // 在线产品分类

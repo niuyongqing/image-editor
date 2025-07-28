@@ -60,19 +60,8 @@ import { DeleteOutlined, CheckOutlined } from '@ant-design/icons-vue';
 import { useResetReactive } from '@/composables/reset';
 import { scaleApi, watermarkApi } from '@/api/common/water-mark.js';
 import { message } from "ant-design-vue";
-// import { uploadImgFromNetApi } from '@/pages/aliexpress/apis/media'
+import { uploadImgFromNetApi } from '@/pages/aliexpress/apis/media'
 import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
-
-const props = defineProps({
-  shortCode: {
-    type: String,
-    default: ""
-  },
-  watermarkList: {
-    type: Array,
-    default: () => []
-  }
-});
 
 const { state, reset } = useResetReactive({
   imgW: undefined,
@@ -100,8 +89,9 @@ const handleCheckAllChange = (e) => {
 const showModal = (list) => {
   fileList.value = list || [];
   fileList.value.forEach((item) => {
-    item.checked = false;
+    item.checked = true;
   })
+  checkedAll.value = true
   modalMethods.value.openModal();
 };
 
@@ -115,13 +105,7 @@ const handleRemove = (element) => {
 
 // 点击选中
 const check = (element) => {
-  // const list = fileList.value.filter((item) => {
-  //   return !item.url.includes('http')
-  // });
-  console.log('element', element, fileList.value);
-
-  const isAllChecked = fileList.value.every(item => item.checked);
-  checkedAll.value = isAllChecked;
+  checkedAll.value = fileList.value.every(item => item.checked);
 };
 
 //  点击确定
@@ -138,14 +122,17 @@ const submit = async () => {
     message.error('请选择图片');
     return
   };
-  //  选中的图片只有本地图片
+  // 本地图片
+  const imgLocalList = checkedList.filter(item => !item.url.includes('http')).map((img) => img.url);
+  // 远端图片; 拿 url 先上传本地服务后再处理
   const netPathList = checkedList.filter(item => item.url.includes('http')).map((img) => img.url);
-  if (netPathList.length === 0) {
-    loading.value = true;
+  loading.value = true;
+  if (imgLocalList.length) {
     const scaleRes = await scaleApi({
-      imagePathList: checkedList.map(img => img.url),
+      imagePathList: imgLocalList,
       newWidth: state.imgW,
       newHeight: state.imgH,
+      isRatio: false
     });
     if (scaleRes.code === 200) {
       const data = scaleRes.data || [];
@@ -161,50 +148,44 @@ const submit = async () => {
         })
       })
     };
-    loading.value = false;
-    checkedAll.value = false;
-    modalMethods.value.closeModal();
-  } else {
-    loading.value = true;
-    //  有网络图片
-    uploadImgFromNetApi({
-      imgUrls: netPathList.join(','),
-    }).then(async res => {
-      if (res.code === 200) {
-        const data = res.data || [];
-        const imagePathList = data.map((item) => {
-          return item.url
-        });
-        const imgs = fileList.value.filter((file) => file.code).map((item) => {
-          return item.url
-        });
-        const scaleRes = await scaleApi({
-          imagePathList: [...imagePathList, ...imgs],
-          newWidth: state.imgW,
-          newHeight: state.imgH,
-        });
-
-        if (scaleRes.code === 200) {
-          const scaleData = scaleRes.data || [];
-          scaleData.forEach((item) => {
-            fileList.value.forEach(v => {
-              const urlSplit = v.url.split('/')
-              const fileName = urlSplit[urlSplit.length - 1].split('.')[0]
-              if (item.originalFilename.includes(fileName)) {
-                v.url = item.url
-                v.name = item.newFileName
-                v.checked = false
-              }
-            })
-          })
-        };
-
-        loading.value = false;
-        checkedAll.value = false;
-        modalMethods.value.closeModal();
-      }
-    })
   }
+
+  if (netPathList.length) {
+    //  有网络图片
+    const res = await uploadImgFromNetApi({
+      imgUrls: netPathList.join(','),
+    })
+    if (res.code === 200) {
+      const data = res.data || [];
+      const imagePathList = data.map(item => item.url);
+      const scaleRes = await scaleApi({
+        imagePathList,
+        newWidth: state.imgW,
+        newHeight: state.imgH,
+        isRatio: false
+      });
+
+      if (scaleRes.code === 200) {
+        const scaleData = scaleRes.data || [];
+        scaleData.forEach((item) => {
+          fileList.value.forEach(v => {
+            const urlSplit = v.url.split('/')
+            const fileName = urlSplit[urlSplit.length - 1].split('.')[0]
+            if (item.originalFilename.includes(fileName)) {
+              v.url = item.url
+              v.name = item.newFileName
+              v.checked = false
+              v.width = state.imgW
+              v.height = state.imgH
+            }
+          })
+        })
+      };
+    }
+  }
+  loading.value = false;
+  checkedAll.value = false;
+  modalMethods.value.closeModal();
 };
 
 defineExpose({
