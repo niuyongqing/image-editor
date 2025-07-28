@@ -78,7 +78,7 @@ const processResult = (productList) => {
         //       : item.modelValue; //原写法 item.modelValue.value
         output.attrIdList.push(item.id)
         if(item.selectType === "select") {
-            values = item.modelValue[0]?.label
+            values = item.modelValue[0]?.label || item.modelValue?.label
         }else if(item.selectType === "multSelect") {
             values = item?.modelValue?.map((val) => val.label).join(";")
         }else {

@@ -128,11 +128,11 @@ const processResult = (productList) => {
     product.forEach((item) => {
       let values = ""
       if(item.selectType === "select") {
-        values = item.modelValue[0]?.label
+        values = item.modelValue?.label || item.modelValue[0]?.label
       }else if(item.selectType === "multSelect") {
-          values = item?.modelValue?.map((val) => val.label).join(";")
+        values = item?.modelValue?.map((val) => val.label).join(";")
       }else {
-          values = item.modelValue
+        values = item.modelValue
       }
         // item.selectType === "multSelect"
         //   ? item?.modelValue?.map((val) => val.label).join(";")

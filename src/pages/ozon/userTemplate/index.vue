@@ -157,7 +157,6 @@ const paginations = reactive({
 });
 const loading = ref(false)
 const activeId = ref(1);
-const channel = new BroadcastChannel('page-comm');
 
 const selectItem = (e) => {
     formData.account = e;
