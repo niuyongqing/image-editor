@@ -1856,15 +1856,22 @@ watch(
       let filteredB = sortArr.filter((itemB) =>
         uniqueArr.some((itemA) => itemA.id === itemB.id)
       );
-      // console.log('isAllMatched',isAllMatched);
+      // console.log('isAllMatched1',isAllMatched);
+      // console.log('isAllMatche2',isAllMatche);
       // console.log('filteredB', filteredB);
       let echoThemeList = [];
       let isModelValueList = [];
       // 判断sortArr中是否有组合数据
-      if (isAllMatched) {
-        echoThemeList = handleTheme(sortArr); //handleTheme方法可以将属性转换成主题数据格式
-      } else if (isAllMatche) {
-        echoThemeList = handleTheme(filteredB);
+      // if (isAllMatched) {
+      //   echoThemeList = handleTheme(sortArr); //handleTheme方法可以将属性转换成主题数据格式
+      // } else if (isAllMatche) {
+      //   echoThemeList = handleTheme(filteredB);
+      // } else {
+      //   isModelValueList = filterModelValues(sortArr, skuList);
+      //   echoThemeList = handleTheme(isModelValueList);
+      // }
+      if (isAllMatched || isAllMatche) {
+        echoThemeList = handleTheme(filteredB); //handleTheme方法可以将属性转换成主题数据格式
       } else {
         isModelValueList = filterModelValues(sortArr, skuList);
         echoThemeList = handleTheme(isModelValueList);

@@ -11,7 +11,7 @@
                     </div>
                 </a-form-item>
                 <a-form-item label="JSON富文本：">
-                    <div>
+                    <!-- <div>
                         <a-select v-model:value="form.jsonTemp" @change="changeJsonTemp" size="large" allowClear
                             style="width: 30%" :options="tempList">
                         </a-select>
@@ -19,7 +19,7 @@
                             <SyncOutlined />
                             更新模板
                         </a-button>
-                    </div>
+                    </div> -->
                     <div class="my10px text-16px" style="color: #737679"><a-tag color="green">说明</a-tag>描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M
                     </div>
                     <a-form-item-rest>

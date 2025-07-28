@@ -1551,6 +1551,7 @@
             packageLength: sku.depth,
             packageWeight: sku.weight,
             packageWidth: sku.width,
+            skuTitle: sku.name,
             colorImg: sku?.colorImage
               ? [
                   {
@@ -1664,13 +1665,19 @@
         let echoThemeList = []
         let isModelValueList = []
         // 判断sortArr中是否有组合数据
-        if (isAllMatched) {
-          echoThemeList = handleTheme(sortArr) //handleTheme方法可以将属性转换成主题数据格式
-        } else if (isAllMatche) {
-          echoThemeList = handleTheme(filteredB)
+        // if (isAllMatched) {
+        //   echoThemeList = handleTheme(sortArr) //handleTheme方法可以将属性转换成主题数据格式
+        // } else if (isAllMatche) {
+        //   echoThemeList = handleTheme(filteredB)
+        // } else {
+        //   isModelValueList = filterModelValues(sortArr, skuList)
+        //   echoThemeList = handleTheme(isModelValueList)
+        // }
+        if (isAllMatched || isAllMatche) {
+          echoThemeList = handleTheme(filteredB); //handleTheme方法可以将属性转换成主题数据格式
         } else {
-          isModelValueList = filterModelValues(sortArr, skuList)
-          echoThemeList = handleTheme(isModelValueList)
+          isModelValueList = filterModelValues(sortArr, skuList);
+          echoThemeList = handleTheme(isModelValueList);
         }
         // 处理到数据回显到主题
         const aIds = echoThemeList.map(item => item.id)
