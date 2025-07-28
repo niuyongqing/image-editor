@@ -45,6 +45,7 @@
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { useRoute } from 'vue-router';
 import { productDetail, productUpdate } from './js/api';
+import { v4 as uuidv4 } from 'uuid'
 
 import baseInfo from './components/baseInfo.vue';
 import imageInfo from './components/imageInfo.vue';
@@ -201,6 +202,9 @@ async function saveForm() {
     // console.log({ params });
     await productUpdate(params)
     message.success('编辑成功！')
+    // 刷新采集数据表格
+    let uid = uuidv4()
+    localStorage.setItem('urlAcquisition', uid)
   } catch (error) {
     console.error(error)
   }

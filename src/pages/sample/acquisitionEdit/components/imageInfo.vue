@@ -361,7 +361,7 @@ async function watermarkClick({ key }) {
   loading.watermark = true
   try {
     // 筛选出网图
-    let urlImageList = formData.image_list.filter(item => item.src.includes('http'))
+    let urlImageList = formData.image_list.filter(item => item.url.includes('http'))
     // 网图先走一遍上传再去打水印
     for (let index = 0; index < urlImageList.length; index++) {
       const item = urlImageList[index];
