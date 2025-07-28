@@ -279,17 +279,24 @@ const onSubmit = async () => {
 
     }
     console.log("params", params);
-    // loading.value = true;
-    // templateSaveOrUpdate(params).then(res => {
-    //     message.success(res.msg)
-    //     setTimeout(() => {
-    //         window.close();
-    //     }, 2000);
-    // })
-    //     .finally(() => {
-    //         loading.value = false;
-    //     });
+    loading.value = true;
+    templateSaveOrUpdate(params).then(res => {
+        message.success(res.msg)
+        setTimeout(() => {
+            window.close();
+        }, 2000);
+    })
+        .finally(() => {
+            loading.value = false;
+        });
 };
+
+// 关闭页签时通知列表刷新
+window.addEventListener('beforeunload', () => {
+    if (window.opener && !window.opener.closed) {
+        window.opener.postMessage('pageClosed', "*");
+    }
+});
 
 const handleOk = () => {
     publishVis.value = false

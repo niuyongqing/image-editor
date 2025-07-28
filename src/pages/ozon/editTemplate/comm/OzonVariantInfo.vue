@@ -88,10 +88,11 @@ import { useOzonProductStore } from '~@/stores/ozon-product'
 import batchEditModal from "~/pages/ozon/config/component/batchEditModal/index.vue"
 import {
     updatePrice, endResult, processAttributesCache,
-    reorderArray, cartesianProduct, processResult,
+    reorderArray, cartesianProduct,
     processData, checkSellerSKU, hasDuplicateModelValues,
     checkData, rearrangeColorFields, handleTheme, processImageSource
 } from "../../config/commJs/index"
+import { processResult } from '../commJs/index'
 import { publishHead } from '../../config/tabColumns/skuHead';
 import { cloneDeep, debounce } from "lodash";
 import { uploadImage } from '@/pages/ozon/config/api/draft';
@@ -122,67 +123,6 @@ const handleColorCancel = () => {
     setValueVis.value = false;
     setColorOption.value = [];
 };
-
-// 此方法用于处理属性批量添加到主题中
-const procTableData = (newData, newItems) => {
-
-    // 深拷贝原始数据避免污染
-    const processedData = cloneDeep(newData)
-    const usedIds = new Set()
-
-    // 第一阶段：填充空值项
-    let itemIndex = 0
-    for (const item of processedData) {
-        if (item.modelValue.length === 0 && newItems[itemIndex]) {
-            item.modelValue = [cloneDeep(newItems[itemIndex])]
-            usedIds.add(newItems[itemIndex].id)
-            itemIndex++
-        }
-    }
-
-    // 第二阶段：创建新条目
-    const remainingItems = newItems.filter(item => !usedIds.has(item.id))
-    const baseTemplate = processedData[0] ? cloneDeep(processedData[0]) : {}
-    delete baseTemplate.uniqueId // 清除可能存在的临时ID
-
-    remainingItems.forEach(item => {
-        processedData.push({
-            ...baseTemplate,
-            modelValue: [cloneDeep(item)],
-            uniqueId: Date.now() + Math.random().toString(36).slice(2)
-        })
-    })
-
-    return processedData.filter(item =>
-        item.modelValue.length > 0 ||
-        item.uniqueId // 保留新创建的空条目
-    )
-}
-
-// 批量设置属性
-const confirm = (selectedValues) => {
-    // 解构只需要用到的details属性
-    const { details } = colorRow.value.tableData[0] || {};
-    const result = details?.filter(item => new Set(selectedValues).has(item.id)) || [];
-
-    // 获取已存在的属性并去重
-    const existingAttributes = colorRow.value.tableData
-        .flatMap(item => item?.modelValue?.map(v => v) || [])
-        .filter(Boolean);
-
-    // 根据是否存在已有属性进行过滤
-    const filteredResult = existingAttributes.length > 0
-        ? result.filter(item => !new Set(existingAttributes.map(a => a.id)).has(item.id))
-        : result;
-
-    // 统一处理表格更新
-    colorRow.value.tableData = procTableData(colorRow.value.tableData, filteredResult);
-    tableData.value = commProceData();
-}
-
-const filteredHeaderList = computed(() => {
-    return headerList.value.filter((item) => item.show === true);
-})
 
 // 处理数据格式
 const processDataFormat = (list = []) => {
@@ -363,10 +303,12 @@ const pushValue = (index, item, key, record) => {
         message.error("变种属性值不能有相同的，请修改")
         return
     }
-
+    
     // 处理表格数据
     let cartesianProducts = cartesianProduct(attributeList.value);
+    console.log("cartesianProducts", cartesianProducts);
     let newTableData = processResult(cartesianProducts);
+    console.log("newTableData111", newTableData);
     let minLength = Math.min(newTableData.length, tableData.value.length);
     for (let i = 0; i < minLength; i++) {
         // 将b数组中对应下标的数据赋值到a数组中
@@ -383,6 +325,8 @@ const pushValue = (index, item, key, record) => {
         newTableData[i].packageWidth = tableData.value[i].packageWidth;
         newTableData[i].packageWeight = tableData.value[i].packageWeight;
     }
+
+
     tableData.value = newTableData;
 
 }
@@ -424,12 +368,6 @@ const changeHeade = () => {
     ozonStore.$patch(state => {
         state.addHeaderList = addHeaderList.value
     })
-}
-
-// 删除表格数据
-const deleteVariable = (row, index) => {
-    tableData.value.splice(index, 1);
-    attributeList.value = processData(attributeList.value, tableData.value)
 }
 
 // 变种主题中是组合在一起的主题
@@ -532,11 +470,11 @@ watch(() => useOzonProductStore().attributes, val => {
                                     (opt) => opt.id == val.dictionaryValueId
                                 );
                                 console.log("option", option);
-                                
+
                                 return option ? option.value : val.value;
                             });
-                            console.log(values,"values");
-                            
+                            console.log(values, "values");
+
                             newItem[attr.name] = values.join(", ");
                         } else {
                             newItem[attr.name] = subAttr.values[0].value;
@@ -552,7 +490,7 @@ watch(() => useOzonProductStore().attributes, val => {
                 });
             });
 
-            // console.log("newItem", newItem);
+            console.log("newItem", newItem);
 
             result.push(newItem);
         });
@@ -564,8 +502,8 @@ watch(() => useOzonProductStore().attributes, val => {
         ];
         const uniqueArr = [];
         const titleSet = new Set();
-        console.log('attrHeaderList',attrHeaderList);
-        console.log('headerList',headerList.value);
+        console.log('attrHeaderList', attrHeaderList);
+        console.log('headerList', headerList.value);
         [...attrHeaderList, ...headerList.value].forEach((item) => {
             if (!titleSet.has(item.title)) {
                 titleSet.add(item.title);
@@ -587,7 +525,7 @@ watch(() => useOzonProductStore().attributes, val => {
         let filteredB = sortArr.filter((itemB) =>
             uniqueArr.some((itemA) => itemA.id === itemB.id)
         );
-        console.log('uniqueArr',uniqueArr);
+        console.log('uniqueArr', uniqueArr);
         console.log('filteredB', filteredB);
         let echoThemeList = [];
         let isModelValueList = [];
@@ -600,7 +538,7 @@ watch(() => useOzonProductStore().attributes, val => {
             isModelValueList = filterModelValues(sortArr, variantAttr);
             echoThemeList = handleTheme(isModelValueList);
         }
-        console.log('echoThemeList',echoThemeList);
+        console.log('echoThemeList', echoThemeList);
 
         // 处理到数据回显到主题
         const aIds = echoThemeList.map((item) => item.id);

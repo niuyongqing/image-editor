@@ -126,12 +126,19 @@ const processResult = (productList) => {
       attrIdList: [] // 变种属性 Id 合集
     };
     product.forEach((item) => {
-      let values =
-        item.selectType === "multSelect"
-          ? item?.modelValue?.map((val) => val.label).join(";")
-          : item.selectType === "select"
-          ? item.modelValue?.label
-            : item.modelValue; //原写法 item.modelValue.value
+      let values = ""
+      if(item.selectType === "select") {
+        values = item.modelValue[0]?.label
+      }else if(item.selectType === "multSelect") {
+          values = item?.modelValue?.map((val) => val.label).join(";")
+      }else {
+          values = item.modelValue
+      }
+        // item.selectType === "multSelect"
+        //   ? item?.modelValue?.map((val) => val.label).join(";")
+        //   : item.selectType === "select"
+        //   ? item.modelValue?.label
+        //     : item.modelValue; //原写法 item.modelValue.value
       output.attrIdList.push(item.id)
       output[item.name] = values;
       output["secondName"] = item?.secondModelValue || "";

@@ -472,7 +472,7 @@ const onSubmit = async (type = 1) => {
         videoBaseObj = createAndUpdateBaseObj(image.video, 100001, 21841, type === 1 ? 1 : 2);
         newComplexAttributes.push(videoBaseObj);
     }
-    console.log("newComplexAttributes", newComplexAttributes);
+    // console.log("newComplexAttributes", newComplexAttributes);
     const addHeaderList = useOzonProductStore().addHeaderList
     const resItem = tableDatas.map((item) => {
         const moditAttributes = [];

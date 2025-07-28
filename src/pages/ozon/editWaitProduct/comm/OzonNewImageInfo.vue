@@ -254,7 +254,7 @@ watch(() => props.productDetail, val => {
         });
         copyAttr.forEach(e => {
             if (e.id === 11254) {
-                form.jsons = e.values[0].value
+                form.jsons = e.values[0].value || ""
             } else {
                 form.description = e.values[0].value
             }

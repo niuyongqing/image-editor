@@ -309,8 +309,6 @@ onMounted(() => {
     getAccount()
     window.addEventListener('message', (event) => {
         if (event.data === 'pageClosed') {
-            console.log(111);
-            
             getList();
         }
     })
