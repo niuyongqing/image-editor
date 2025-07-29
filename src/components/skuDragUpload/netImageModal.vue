@@ -34,14 +34,14 @@ const submit = async () => {
     loading.value = true;
     try {
       let res = await batchUploadFromUrlApi({
-          imageList: urlList.join(',')
+          imageList: form.imageUrl.trim().split('\n').join(',')
       });
-    } catch (error) {}
-    loading.value = false;
-    if (res.code === 200) {
+      if (res.code === 200) {
         emits('submit', res.data);
         close()
-    };
+      };
+    } catch (error) {}
+    loading.value = false;
 };
 
 const emits = defineEmits(['submit'])
