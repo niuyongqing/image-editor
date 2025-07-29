@@ -908,7 +908,6 @@ const handleWatermark = async (item) => {
             }
         } else {
             // 有网络图片
-            console.log('有网络图片');
             const fileList = tabbleItem.imageUrl || [];
             for (let index = 0; index < fileList.length; index++) {
                 const fileItem = fileList[index];

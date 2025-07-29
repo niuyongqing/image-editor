@@ -24,7 +24,7 @@
         <div>富内容编辑</div>
         <a-space>
           <a-button type="link" @click="showEdit = true">批量设置图片尺寸</a-button>
-          <a-button @click="show = false">关闭</a-button>
+          <a-button @click="closeTemp">关闭</a-button>
           <a-button type="primary" @click="save">保存</a-button>
         </a-space>
       </div>
@@ -67,7 +67,7 @@
           </Draggable>
         </div>
 
-        <!-- 中间内容 -->
+        <!-- 中间内容  @dragover="allowDrop"-->
         <div class="inline-block" @dragleave="dragleaves" @drop="handleDrop" @dragover="allowDrop">
           <div :class="['content', pointerEventsNone && 'pointer-events-none']">
             <template v-if="moduleList.length">
@@ -378,7 +378,7 @@ const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE
 
 defineOptions({ name: 'MobileDetailEditor' })
 
-const emits = defineEmits(['backResult'])
+const emits = defineEmits(['backResult', 'clear'])
 const props = defineProps({
   shop: String,
   jsonContent: String
@@ -642,6 +642,7 @@ function clear() {
   Modal.confirm({
     title: '确定清空吗？',
     onOk: () => {
+      emits('clear')
       moduleList.value = []
       finallyObj.value = {}
     }
@@ -766,9 +767,11 @@ let offsetY = 0;
 function removePlacementArea() {
   moduleList.value = moduleList.value.filter(item => item.type !== 'placement-area');
 }
+
 // 当将元素拖动到有效放置目标（每几百毫秒）上时, 触发
 function allowDrop(e) {
   e.preventDefault();
+  if (!pointerEventsNone.value) return
   /* 获取鼠标高度 */
   let eventoffset = e.offsetY;
   /* 如果没有移动不触发事件减少损耗 */
@@ -925,6 +928,8 @@ const imgTextDefaulet = {
 
 // 当在有效放置目标上放置元素时触发此事件
 function handleDrop(e) {
+  if (!pointerEventsNone.value) return
+  
   const type = e.dataTransfer.getData('componentName')
   let moduleItem = { type, id: uuidv4() }
   if (type == 'text') {
@@ -1200,7 +1205,6 @@ function save() {
     message.error("至少添加一个模块信息");
     return
   }
-  // console.log('moduleList', moduleList.value);
   let res = []
   let obj = {}
   moduleList.value.forEach(item => {
@@ -1312,7 +1316,6 @@ function save() {
     content: newData,
     version: 0.3
   }
-  show.value = false
   emits("backResult", finallyObj.value)
   closeTemp();
 }
@@ -1322,14 +1325,15 @@ function save() {
 const closeTemp = () => {
   finallyObj.value = {}
   moduleList.value = []
+  show.value = false
 }
 
 function openEditor() {
   show.value = true
-  if(!props.jsonContent) return
+  if (!props.jsonContent) return
   const val = props.jsonContent
-  const { content } = JSON.parse(val);
-  content?.forEach(item => {
+  const { content } = JSON.parse(val) || [];
+  content.forEach(item => {
     if (item.widgetName === 'raTextBlock') {
       let textObj = deepClone(textDefault)
       item.title.content.join('\n')
@@ -1431,7 +1435,7 @@ function openEditor() {
       }
     }
   })
-  
+
 }
 
 // watch(() => props.jsonContent, val => {

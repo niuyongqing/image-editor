@@ -5,8 +5,8 @@
                 <div>
                     <a-breadcrumb separator=">">
                         <a-breadcrumb-item>Ozon</a-breadcrumb-item>
-                        <a-breadcrumb-item>在线产品</a-breadcrumb-item>
-                        <a-breadcrumb-item>编辑产品 </a-breadcrumb-item>
+                        <a-breadcrumb-item>采集箱</a-breadcrumb-item>
+                        <a-breadcrumb-item>编辑产品</a-breadcrumb-item>
                     </a-breadcrumb>
                 </div>
 
@@ -28,8 +28,8 @@
                                 </a-menu>
                             </template>
 </a-dropdown>-->
-                        <a-button type="default" style="height: 32px; background-color: #F5F5F5; color: #434649ff;"
-                            :loading="tempLoading" @click="showTempModal">存为模板</a-button>
+                        <!-- <a-button type="default" style="height: 32px; background-color: #F5F5F5; color: #434649ff;"
+                            :loading="tempLoading" @click="showTempModal">存为模板</a-button> -->
                         <a-dropdown>
                             <a-button style="height: 32px; background-color: #FF8345; color: #fff;">
                                 引用产品
@@ -40,12 +40,12 @@
                                     <a-menu-item :key="1">
                                         引用现有产品
                                     </a-menu-item>
-                                    <a-menu-item :key="2">
+                                    <!-- <a-menu-item :key="2">
                                         引用产品模板
                                     </a-menu-item>
                                     <a-menu-item :key="3">
                                         引用ERP产品
-                                    </a-menu-item>
+                                    </a-menu-item> -->
                                 </a-menu>
                             </template>
                         </a-dropdown>
@@ -103,8 +103,8 @@
                     <a-space>
                         <!-- <a-button @click="onSubmit(2)"
                             style="height: 32px; background-color: #F5F5F5; color: #434649ff;">一键翻译</a-button> -->
-                        <a-button type="default" style="height: 32px; background-color: #F5F5F5; color: #434649ff;"
-                            @click="showTempModal">存为模板</a-button>
+                        <!-- <a-button type="default" style="height: 32px; background-color: #F5F5F5; color: #434649ff;"
+                            @click="showTempModal">存为模板</a-button> -->
                         <a-dropdown>
                             <a-button style="height: 32px; background-color: #FF8345; color: #fff;">
                                 引用产品
@@ -115,12 +115,12 @@
                                     <a-menu-item :key="1">
                                         引用现有产品
                                     </a-menu-item>
-                                    <a-menu-item :key="2">
+                                    <!-- <a-menu-item :key="2">
                                         引用产品模板
                                     </a-menu-item>
                                     <a-menu-item :key="3">
                                         引用ERP产品
-                                    </a-menu-item>
+                                    </a-menu-item> -->
                                 </a-menu>
                             </template>
                         </a-dropdown>
@@ -497,15 +497,11 @@ const onSubmit = async (type) => {
     let newComplexAttributes = [];
     //! 判断视频有没有上传
     const baseObj = {
-        attributes: [
+        complexId: null,
+        id: null,
+        values: [
             {
-                complexId: null,
-                id: null,
-                values: [
-                    {
-                        value: "",
-                    },
-                ],
+                value: "",
             },
         ],
     };
@@ -587,7 +583,8 @@ const onSubmit = async (type) => {
                     }
                     break;
             }
-        }
+      }
+        
         return {
             attributes: moditAttributes,
             complexAttributes: newComplexAttributes ?? null, // 非必填 100002-21845-封面视频 100001-21841-视频
@@ -599,7 +596,7 @@ const onSubmit = async (type) => {
             price: item.price,
             weightUnit: "g",
             dimensionUnit: "mm",
-            name: addHeaderList.includes("skuTitle") ? item.name : base.name,
+            name: addHeaderList.includes("skuTitle") ? item.skuTitle : base.name,
             weight: item.packageWeight,
             height: item.packageHeight,
             depth: item.packageLength,

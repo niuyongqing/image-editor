@@ -7,7 +7,7 @@
             <span class="text-left text-16px">变种属性</span>
             <!-- <div>
               <FileOutlined /><a-select v-model:value="templateValue" show-search placeholder="请选择引用模板"
-                class="w300px mx10px" :options="templateList" :filter-option="filterOption">
+                class="w300px mx10px" :options="tempList" :filter-option="filterOption" @change="handleChangeTemplate">
                 <template #dropdownRender="{ menuNode: menu }">
                   <v-nodes :vnodes="menu" />
                   <a-divider style="margin: 4px 0" />
@@ -409,7 +409,7 @@ import {
   watermarkListApi,
   watermarkApi,
 } from "~/api/common/water-mark";
-import { productWarehouse } from "../../config/api/product";
+import { productWarehouse, templateList } from "../../config/api/product";
 import SelectAttr from "../../productPublish/comm/SelectAttr.vue";
 import { useOzonProductStore } from "~@/stores/ozon-product";
 import batchEditModal from "~/pages/ozon/config/component/batchEditModal/index.vue";
@@ -458,6 +458,8 @@ const VNodes = defineComponent({
   },
 });
 
+const emit = defineEmits(["getAttributes"]);
+
 const downloadLoading = ref(false); //导出按钮loading
 const bacthSkuEditImgRef = ref();
 const imageTranslationRef = ref();
@@ -496,16 +498,8 @@ const setColorOption = ref([]);
 const colorRow = ref({});
 const custAttr = ref([]); //可控制属性
 const templateValue = ref("")
-const templateList = ref([
-  {
-    label: "模板名称1",
-    value: "1",
-  },
-  {
-    label: "模板名称2",
-    value: "2",
-  }
-]);
+const tempList = ref([]);
+const existSkuList = ref([]); // 现有产品数据回显
 const plainOptions = [
   {
     label: "颜色样本",
@@ -525,6 +519,26 @@ const uploadUrl =
   import.meta.env.VITE_APP_BASE_API +
   "/platform-ozon/platform/ozon/file/upload/img";
 
+
+// 注入父组件数据
+const existProductData = inject('existProductData')
+
+// 监听数据变化-现有产品数据处理
+watch(() => existProductData.value, (newVal) => {
+  console.log('接收到新数据:', newVal)
+  const { account: shopCode, typeId, descriptionCategoryId } = newVal;
+  let categoryId = {
+    threeCategoryId: typeId,
+    threeCategoryName: "",
+    secondCategoryId: descriptionCategoryId,
+    label: undefined,
+    value: typeId,
+  };
+  if (newVal.attributes?.length == 0 || newVal.attributes == null) return;
+  emit("getAttributes", shopCode, categoryId);
+  existSkuList.value = newVal.attributes;
+}, { deep: true })
+
 const handleChangeColroImg = (info, record) => {
   if (info.file.status === "done") {
     record.colorImg.push({
@@ -543,6 +557,197 @@ const handleChangeColroImg = (info, record) => {
 const tempPage = () => {
   window.open("userTemplate", "_blank");
 };
+
+const searchTemp = (obj) => {
+  templateList({
+    account: obj.shopId,
+    type: 3,
+    name: "",
+    threeCategoryId: obj.threeCategoryId,
+    pageNum: 1,
+    pageSize: 99,
+
+  }).then(res => {
+    if (res.code == 200) {
+      tempList.value = res.rows.map(item => {
+        return {
+          label: item.name,
+          value: item.id,
+          content: item.content,
+        }
+      }) || []
+    }
+  })
+}
+
+// 选择模板
+const handleChangeTemplate = (value) => {
+  let content = tempList.value.find(item => item.value == value)?.content || {}
+  console.log("content", content);
+  const { variantTemplate: { categoryId, variantAttr } } = content;
+  // templateValue.value = value;
+  emit("getAttributes", props.shopCode, categoryId);
+  const val = useOzonProductStore().attributes;
+  let arr = val.filter((obj) => obj.isAspect);
+  isConform = checkData(arr);
+  const requiredItem = arr.some((item) => item.isRequired === true);
+  let sortArr = rearrangeColorFields(arr);
+  //判断主题中是否有颜色名称，且商品颜色是不是必填项
+  if (requiredItem) {
+    if (isConform) {
+      requiredList.value = arr.filter((obj) => obj.isRequired);
+      // 将arr转换为ID索引对象，提高查找效率
+      const arrById = arr.reduce((acc, item) => {
+        acc[item.id] = item;
+        return acc;
+      }, {});
+      // 检查并添加依赖项
+      dependencyMap.forEach((addId, targetId) => {
+        // 检查目标ID是否存在
+        if (requiredList.value.some((item) => item.id === targetId)) {
+          // 获取要添加的对象
+          const itemToAdd = arrById[addId];
+          // 检查是否已存在且对象存在
+          if (
+            itemToAdd &&
+            !requiredList.value.some((item) => item.id === addId)
+          ) {
+            requiredList.value.push(itemToAdd);
+          }
+        }
+      });
+      // if (requiredList.value.some(item => (item.id === 10096))) {
+      //     requiredList.value.push(arr.find(obj => obj.id === 10097))
+      // }
+      themeBtns.value = arr.filter(
+        (obj) => !(obj.isRequired || obj.id === 10097 || obj.id === 9533) //obj.id === 9533
+      );
+      requiredList.value = reorderArray(requiredList.value);
+    } else {
+      themeBtns.value = arr.filter((obj) => !obj.isRequired);
+      requiredList.value = arr.filter((obj) => obj.isRequired);
+    }
+  } else {
+    if (isConform) {
+      themeBtns.value = arr.filter(
+        (obj) => !(obj.isRequired || obj.id === 10097)
+      );
+    } else {
+      themeBtns.value = arr.filter((obj) => !obj.isRequired);
+    }
+  }
+  let result = [];
+  let attrHeaderList = [];
+  // 遍历b中的skuList
+  variantAttr.forEach((sku) => {
+    let newItem = {
+      oldPrice: "",
+      price: "",
+      quantity: "",
+      packageHeight: "",
+      packageLength: "",
+      packageWeight: "",
+      packageWidth: "",
+      colorImg: [],
+      warehouseList: [],
+      sellerSKU: "",
+      imageUrl: [],
+    };
+
+    // 遍历a数组
+    sortArr.forEach((attr) => {
+      // 遍历sku的attributes中的每个attributes
+      sku.attributes.forEach((subAttr) => {
+        if (subAttr.id == attr.id) {
+          if (attr.selectType === "multSelect" && attr.options) {
+            let values = subAttr.values.map((val) => {
+              let option = attr.options.find(
+                (opt) => opt.id == val.dictionaryValueId
+              );
+              return option ? option.value : val.value;
+            });
+            newItem[attr.name] = values.join(", ");
+          } else if (attr.selectType === "select" && attr.options) {
+            let values = subAttr.values.map((val) => {
+              let option = attr.options.find(
+                (opt) => opt.id == val.dictionaryValueId
+              );
+              return option ? option.value : val.value;
+            });
+            newItem[attr.name] = values.join(", ");
+          } else {
+            newItem[attr.name] = subAttr.values[0].value;
+          }
+          attrHeaderList.push({
+            title: attr.name,
+            dataIndex: attr.name,
+            id: attr.id,
+            show: true,
+            align: "center",
+          });
+        }
+      });
+    });
+
+    // console.log("newItem", newItem);
+
+    result.push(newItem);
+  });
+  // 处理数据回显到表格
+  attrHeaderList = [
+    ...new Map(
+      attrHeaderList.map((item) => [item.dataIndex, item])
+    ).values(),
+  ];
+  const uniqueArr = [];
+  const titleSet = new Set();
+  [...attrHeaderList, ...headerList.value].forEach((item) => {
+    if (!titleSet.has(item.title)) {
+      titleSet.add(item.title);
+      uniqueArr.push(item);
+    }
+  });
+  // console.log('uniqueArr',uniqueArr);
+
+  headerList.value = uniqueArr; //表格主题标题赋值
+
+  tableData.value = result;
+  // 将不匹配的主题过滤掉
+  // console.log("sortArr", tableData.value);
+  let comAttrList = [10096, 4295];
+  let comAttrs = [10096, 10097];
+  // 从数组 a 中提取所有的 id
+  const idsInA = sortArr.map((item) => item.id);
+  // 使用 every 方法检查 comAttrList 中的每个元素是否都在 idsInA 中
+  const isAllMatched = comAttrList.every((id) => idsInA.includes(id)); //双组合主题
+  const isAllMatche = comAttrs.some((id) => idsInA.includes(id)); //单组合主题
+  let filteredB = sortArr.filter((itemB) =>
+    uniqueArr.some((itemA) => itemA.id === itemB.id)
+  );
+  // console.log('isAllMatched',isAllMatched);
+  // console.log('filteredB', filteredB);
+  let echoThemeList = [];
+  let isModelValueList = [];
+  // 判断sortArr中是否有组合数据
+  if (isAllMatched) {
+    echoThemeList = handleTheme(sortArr); //handleTheme方法可以将属性转换成主题数据格式
+  } else if (isAllMatche) {
+    echoThemeList = handleTheme(filteredB);
+  } else {
+    isModelValueList = filterModelValues(sortArr, variantAttr);
+    echoThemeList = handleTheme(isModelValueList);
+  }
+  // console.log('echoThemeList',echoThemeList);
+
+  // 处理到数据回显到主题
+  const aIds = echoThemeList.map((item) => item.id);
+  // console.log('aIds', echoThemeList);
+  // 过滤 有数据的主题
+  themeBtns.value = themeBtns.value.filter(
+    (item) => !aIds.includes(item.id)
+  );
+  attributeList.value = matchAndAssignValues(echoThemeList, variantAttr);
+}
 
 // 模板搜索
 const filterOption = (input, option) => {
@@ -918,12 +1123,17 @@ const addItem = (item, row) => {
 // 移除多个属性操作
 const removeItem = (item, row) => {
   let ind = row.tableData.indexOf(item);
+  console.log("item", item, ind);
+
   if (item.id === 10096 || item.name == "商品颜色(Цвет товара)") {
     row.tableData.splice(ind, 1);
   } else if (item.id === 4295 || item.name == "俄罗斯尺码") {
     row.tableData.splice(ind, 1);
   } else {
-    if (item.selectType === "select" || item.selectType === "input") {
+    if (ind !== -1) {
+      row.tableData.splice(ind, 1);
+    }
+    else if (item.selectType === "select" || item.selectType === "input") {
       row.tableData = row.tableData.filter(tableItem =>
         tableItem.id !== item.id
       );
@@ -966,11 +1176,30 @@ const removeItem = (item, row) => {
 
   let newData = tableData.value.filter(row => {
     // 直接访问对应属性
-    const rowValue = row[item.name];
-    if (item.selectType === 'select' || item.selectType === 'input') {
-      return !row.attrIdList?.some(id => id === item.id);
+    // const rowValue = row[item.name];
+    // if (item.selectType === 'select' || item.selectType === 'input') {
+    //   return !row.attrIdList?.some(id => id === item.id);
+    // } else {
+    //   return !deletedLabels?.some(val => val === rowValue)
+    // }
+    const rowValue = String(row[item.name] || '');
+    const inputValue = String(item.modelValue || '');
+
+    if (item.selectType === 'select') {
+      // 选择类型使用ID过滤
+      return !(Array.isArray(row.attrIdList) &&
+        row.attrIdList.some(id => id === item.id));
+    } else if (item.selectType === 'input') {
+      // input类型同时检查ID和输入值
+      const hasId = Array.isArray(row.attrIdList) &&
+        row.attrIdList.some(id => id === item.id);
+      const valueMatch = rowValue === inputValue;
+      return !(hasId || valueMatch);
     } else {
-      return !deletedLabels?.some(val => val === rowValue)
+      // 多选类型使用标签过滤
+      return !deletedLabels?.some(val =>
+        val != null && String(val) === rowValue
+      );
     }
   });
 
@@ -1409,6 +1638,15 @@ const skuThemeNames = (item) => {
 };
 
 watch(
+  () => useOzonProductStore().variant,
+  (val) => {
+    if (val) {
+      searchTemp(val)
+    }
+  }
+)
+
+watch(
   () => useOzonProductStore().attributes,
   (val) => {
     if (val) {
@@ -1419,7 +1657,6 @@ watch(
       // imgHeaderList.value = [];
       addHeaderList.value = []; //清空自定义变种信息
       headerList.value = [...publishHead]; //重新赋值
-      let editRes = [];
       // 提取变种主题
       let arr = val.filter((obj) => obj.isAspect);
       isConform = checkData(arr);
@@ -1469,8 +1706,6 @@ watch(
           themeBtns.value = arr.filter((obj) => !obj.isRequired);
         }
       }
-
-      const { skuList } = props.productDetail;
       // 处理自定义属性数据
       // let customArr = findCommonByIdOptimized(val, skuList[0].attributes)
       // console.log('customArr', customArr);
@@ -1499,83 +1734,7 @@ watch(
       }
       let result = [];
       let attrHeaderList = [];
-      // 遍历b中的skuList
-      skuList.forEach((sku) => {
-        let newItem = {
-          oldPrice: sku.oldPrice,
-          price: sku.price,
-          quantity: sku.stock,
-          packageHeight: sku.height,
-          packageLength: sku.depth,
-          packageWeight: sku.weight,
-          packageWidth: sku.width,
-          skuTitle: sku.name,
-          colorImg: sku?.colorImage
-            ? [
-              {
-                url: processImageSource(sku.colorImage),
-                name: sku.colorImage.split("/").pop(),
-              },
-            ]
-            : [],
-          warehouseList: sku?.warehouseList?.map((item) => {
-            return {
-              ...item,
-              offerId: sku.offerId,
-            };
-          }),
-          sellerSKU: sku.offerId,
-          imageUrl: sku.primaryImage.length > 0 ?
-            [
-              ...sku.primaryImage.map(url => ({ url })),  // 将主图放在前面
-              ...(sku.images || []).map(item => ({ url: item }))  // 合并其他图片
-            ] :
-            sku.images?.map((item) => {
-              return {
-                url: item,
-              };
-            }) ?? [],
-        };
-
-        // 遍历a数组
-        sortArr.forEach((attr) => {
-          // 遍历sku的attributes中的每个attributes
-          sku.attributes.forEach((subAttr) => {
-            if (subAttr.id == attr.id) {
-              if (attr.selectType === "multSelect" && attr.options) {
-                let values = subAttr.values.map((val) => {
-                  let option = attr.options.find(
-                    (opt) => opt.id == val.dictionaryValueId
-                  );
-                  return option ? option.value : val.value;
-                });
-                newItem[attr.name] = values.join(", ");
-              } else if (attr.selectType === "select" && attr.options) {
-                let values = subAttr.values.map((val) => {
-                  let option = attr.options.find(
-                    (opt) => opt.id == val.dictionaryValueId
-                  );
-                  return option ? option.value : val.value;
-                });
-                newItem[attr.name] = values.join(", ");
-              } else {
-                newItem[attr.name] = subAttr.values[0].value;
-              }
-              attrHeaderList.push({
-                title: attr.name,
-                dataIndex: attr.name,
-                id: attr.id,
-                show: true,
-                align: "center",
-              });
-            }
-          });
-        });
-
-        // console.log("newItem", newItem);
-
-        result.push(newItem);
-      });
+      const { skuList } = props.productDetail;
       // 处理数据回显到表格
       attrHeaderList = [
         ...new Map(
@@ -1591,74 +1750,291 @@ watch(
         }
       });
       // console.log('uniqueArr',uniqueArr);
-
       headerList.value = uniqueArr; //表格主题标题赋值
-      // imgHeaderList.value = attrHeaderList; //图片标题赋值
-      if (result.some((item) => item.colorImg.length !== 0)) {
-        headerList.value.unshift({
-          title: "颜色样本",
-          dataIndex: "colorImg",
-          selectType: "url",
-          type: 1,
-          show: true,
-          align: "center",
-        });
-        addHeaderList.value.push("colorImg");
-      }
-      if (result.some((item) => item.skuTitle !== null && item.skuTitle !== "") && result.length > 1) {
-        let skuIndex = headerList.value.findIndex(
-          (item) => item.title === "SKU"
-        );
-        let obj = {
-          title: "SKU标题",
-          dataIndex: "skuTitle",
-          selectType: "input",
-          type: 1,
-          options: null,
-          show: true,
-          align: "center",
-        }
-        headerList.value.splice(skuIndex + 1, 0, obj);
-        addHeaderList.value.push("skuTitle");
-      }
-
-      tableData.value = result;
       // 将不匹配的主题过滤掉
-      // console.log("sortArr", tableData.value);
-      let comAttrList = [10096, 4295];
-      let comAttrs = [10096, 10097];
-      // 从数组 a 中提取所有的 id
-      const idsInA = sortArr.map((item) => item.id);
-      // 使用 every 方法检查 comAttrList 中的每个元素是否都在 idsInA 中
-      const isAllMatched = comAttrList.every((id) => idsInA.includes(id)); //双组合主题
-      const isAllMatche = comAttrs.some((id) => idsInA.includes(id)); //单组合主题
-      let filteredB = sortArr.filter((itemB) =>
-        uniqueArr.some((itemA) => itemA.id === itemB.id)
-      );
-      // console.log('isAllMatched',isAllMatched);
-      // console.log('filteredB', filteredB);
+      // let comAttrList = [10096, 4295];
+      // let comAttrs = [10096, 10097];
+      // // 从数组 a 中提取所有的 id
+      // const idsInA = sortArr.map((item) => item.id);
+      // // 使用 every 方法检查 comAttrList 中的每个元素是否都在 idsInA 中
+      // const isAllMatched = comAttrList.every((id) => idsInA.includes(id)); //双组合主题
+      // const isAllMatche = comAttrs.some((id) => idsInA.includes(id)); //单组合主题
+      // let filteredB = sortArr.filter((itemB) =>
+      //   uniqueArr.some((itemA) => itemA.id === itemB.id)
+      // );
       let echoThemeList = [];
       let isModelValueList = [];
-      // 判断sortArr中是否有组合数据
-      if (isAllMatched) {
-        echoThemeList = handleTheme(sortArr); //handleTheme方法可以将属性转换成主题数据格式
-      } else if (isAllMatche) {
-        echoThemeList = handleTheme(filteredB);
-      } else {
+      // 引用现有产品数据回显处理
+      if (existSkuList.value.length != 0) {
+        const { oldPrice, price, stock, name, colorImage, warehouseList, offerId, images, primaryImage } = existProductData.value;
+        // 遍历b中的skuList
+        existSkuList.value.forEach((sku) => {
+          let newItem = {
+            oldPrice: oldPrice,
+            price: price,
+            quantity: stock,
+            packageHeight: sku.height,
+            packageLength: sku.depth,
+            packageWeight: sku.weight,
+            packageWidth: sku.width,
+            skuTitle: name,
+            colorImg: colorImage
+              ? [
+                {
+                  url: processImageSource(colorImage),
+                  name: colorImage.split("/").pop(),
+                },
+              ]
+              : [],
+            warehouseList: warehouseList?.map((item) => {
+              return {
+                ...item,
+                offerId: sku.offerId,
+              };
+            }),
+            sellerSKU: offerId,
+            imageUrl:
+              // 合并主图和其他图片，使用Set去重后生成对象数组
+              Array.from(
+                new Set([
+                  ...(primaryImage || []),  // 主图数组
+                  ...(images || [])         // 普通图片数组
+                ])
+              ).map(url => ({ url })) ?? [],
+          };
+          // 遍历a数组
+          sortArr.forEach((attr) => {
+            // 遍历sku的attributes中的每个attributes
+            sku.attributes.forEach((subAttr) => {
+              if (subAttr.id == attr.id) {
+                if (attr.selectType === "multSelect" && attr.options) {
+                  let values = subAttr.values.map((val) => {
+                    let option = attr.options.find(
+                      (opt) => opt.id == val.dictionaryValueId
+                    );
+                    return option ? option.value : val.value;
+                  });
+                  newItem[attr.name] = values.join(", ");
+                } else if (attr.selectType === "select" && attr.options) {
+                  let values = subAttr.values.map((val) => {
+                    let option = attr.options.find(
+                      (opt) => opt.id == val.dictionaryValueId
+                    );
+                    return option ? option.value : val.value;
+                  });
+                  newItem[attr.name] = values.join(", ");
+                } else {
+                  newItem[attr.name] = subAttr.values[0].value;
+                }
+                attrHeaderList.push({
+                  title: attr.name,
+                  dataIndex: attr.name,
+                  id: attr.id,
+                  show: true,
+                  align: "center",
+                });
+              }
+            });
+          });
+          console.log("sortArr",sortArr);
+          
+          result.push(newItem);
+        });
+        if (result.some((item) => item.colorImg.length !== 0)) {
+          headerList.value.unshift({
+            title: "颜色样本",
+            dataIndex: "colorImg",
+            selectType: "url",
+            type: 1,
+            show: true,
+            align: "center",
+          });
+          addHeaderList.value.push("colorImg");
+        }
+        if (result.some((item) => item.skuTitle !== null && item.skuTitle !== "") && result.length > 1) {
+          let skuIndex = headerList.value.findIndex(
+            (item) => item.title === "SKU"
+          );
+          let obj = {
+            title: "SKU标题",
+            dataIndex: "skuTitle",
+            selectType: "input",
+            type: 1,
+            options: null,
+            show: true,
+            align: "center",
+          }
+          headerList.value.splice(skuIndex + 1, 0, obj);
+          addHeaderList.value.push("skuTitle");
+          const ozonStore = useOzonProductStore()
+          ozonStore.$patch(state => {
+            state.addHeaderList = addHeaderList.value
+          })
+        }
+        tableData.value = result;
+        // console.log("isAllMatched",isAllMatched,isAllMatche);
+        // console.log("filteredB",filteredB);
+        // 判断sortArr中是否有组合数据
+        // if (isAllMatched && isAllMatche) {
+        //   console.log(1);
+        //   echoThemeList = handleTheme(filteredB); //handleTheme方法可以将属性转换成主题数据格式
+        // } else {
+        //   console.log(2);
+        // }
+        isModelValueList = filterModelValues(sortArr, existSkuList.value);
+        echoThemeList = handleTheme(isModelValueList);
+
+        // 处理到数据回显到主题
+        const aIds = echoThemeList.map((item) => item.id);
+        // console.log('aIds', echoThemeList);
+        // 过滤 有数据的主题
+        themeBtns.value = themeBtns.value.filter(
+          (item) => !aIds.includes(item.id)
+        );
+        attributeList.value = matchAndAssignValues(echoThemeList, existSkuList.value);
+      } else if(skuList.length > 0) {
+        // 遍历b中的skuList
+        skuList.forEach((sku) => {
+          let newItem = {
+            oldPrice: sku.oldPrice,
+            price: sku.price,
+            quantity: sku.stock,
+            packageHeight: sku.height,
+            packageLength: sku.depth,
+            packageWeight: sku.weight,
+            packageWidth: sku.width,
+            skuTitle: sku.name,
+            colorImg: sku?.colorImage
+              ? [
+                {
+                  url: processImageSource(sku.colorImage),
+                  name: sku.colorImage.split("/").pop(),
+                },
+              ]
+              : [],
+            warehouseList: sku?.warehouseList?.map((item) => {
+              return {
+                ...item,
+                offerId: sku.offerId,
+              };
+            }),
+            sellerSKU: sku.offerId,
+            // imageUrl: sku.primaryImage?.length > 0 ?
+            //   [
+            //     ...sku.primaryImage.map(url => ({ url })),  // 将主图放在前面
+            //     ...(sku.images || []).map(item => ({ url: item }))  // 合并其他图片
+            //   ] :
+            //   sku.images?.map((item) => {
+            //     return {
+            //       url: item,
+            //     };
+            //   }) ?? [],
+            imageUrl:
+              // 合并主图和其他图片，使用Set去重后生成对象数组
+              Array.from(
+                new Set([
+                  ...(sku.primaryImage || []),  // 主图数组
+                  ...(sku.images || [])         // 普通图片数组
+                ])
+              ).map(url => ({ url })) ?? [],
+          };
+          // 遍历a数组
+          sortArr.forEach((attr) => {
+            // 遍历sku的attributes中的每个attributes
+            sku.attributes.forEach((subAttr) => {
+              if (subAttr.id == attr.id) {
+                if (attr.selectType === "multSelect" && attr.options) {
+                  let values = subAttr.values.map((val) => {
+                    let option = attr.options.find(
+                      (opt) => opt.id == val.dictionaryValueId
+                    );
+                    return option ? option.value : val.value;
+                  });
+                  newItem[attr.name] = values.join(", ");
+                } else if (attr.selectType === "select" && attr.options) {
+                  let values = subAttr.values.map((val) => {
+                    let option = attr.options.find(
+                      (opt) => opt.id == val.dictionaryValueId
+                    );
+                    return option ? option.value : val.value;
+                  });
+                  newItem[attr.name] = values.join(", ");
+                } else {
+                  newItem[attr.name] = subAttr.values[0].value;
+                }
+                attrHeaderList.push({
+                  title: attr.name,
+                  dataIndex: attr.name,
+                  id: attr.id,
+                  show: true,
+                  align: "center",
+                });
+              }
+            });
+          });
+          result.push(newItem);
+        });
+        // imgHeaderList.value = attrHeaderList; //图片标题赋值
+        if (result.some((item) => item.colorImg.length !== 0)) {
+          headerList.value.unshift({
+            title: "颜色样本",
+            dataIndex: "colorImg",
+            selectType: "url",
+            type: 1,
+            show: true,
+            align: "center",
+          });
+          addHeaderList.value.push("colorImg");
+        }
+        if (result.some((item) => item.skuTitle !== null && item.skuTitle !== "") && result.length > 1) {
+          let skuIndex = headerList.value.findIndex(
+            (item) => item.title === "SKU"
+          );
+          let obj = {
+            title: "SKU标题",
+            dataIndex: "skuTitle",
+            selectType: "input",
+            type: 1,
+            options: null,
+            show: true,
+            align: "center",
+          }
+          headerList.value.splice(skuIndex + 1, 0, obj);
+          addHeaderList.value.push("skuTitle");
+          const ozonStore = useOzonProductStore()
+          ozonStore.$patch(state => {
+            state.addHeaderList = addHeaderList.value
+          })
+        }
+        tableData.value = result;
+        // 判断sortArr中是否有组合数据
+        // if (isAllMatched) {
+        //   echoThemeList = handleTheme(filteredB); //handleTheme方法可以将属性转换成主题数据格式
+        // } else if (isAllMatche) {
+        //   echoThemeList = handleTheme(filteredB);
+        // } else
+        // {
+        //   isModelValueList = filterModelValues(sortArr, skuList);
+        //   echoThemeList = handleTheme(isModelValueList);
+        // }
+        // if (isAllMatched && isAllMatche) {
+        //   echoThemeList = handleTheme(filteredB); //handleTheme方法可以将属性转换成主题数据格式
+        // } else {
+        //   console.log(2,sortArr);
+        // }
         isModelValueList = filterModelValues(sortArr, skuList);
         echoThemeList = handleTheme(isModelValueList);
-      }
-      // console.log('echoThemeList',echoThemeList);
+        // console.log('echoThemeList',echoThemeList);
 
-      // 处理到数据回显到主题
-      const aIds = echoThemeList.map((item) => item.id);
-      // console.log('aIds', echoThemeList);
-      // 过滤 有数据的主题
-      themeBtns.value = themeBtns.value.filter(
-        (item) => !aIds.includes(item.id)
-      );
-      attributeList.value = matchAndAssignValues(echoThemeList, skuList);
-      // console.log("tableData", tableData.value);
+        // 处理到数据回显到主题
+        const aIds = echoThemeList.map((item) => item.id);
+        // console.log('aIds', echoThemeList);
+        // 过滤 有数据的主题
+        themeBtns.value = themeBtns.value.filter(
+          (item) => !aIds.includes(item.id)
+        );
+        attributeList.value = matchAndAssignValues(echoThemeList, skuList);
+      }
     }
   }
 );

@@ -11,7 +11,7 @@
                     </div>
                 </a-form-item>
                 <a-form-item label="JSON富文本：">
-                    <div>
+                    <!-- <div>
                         <a-select v-model:value="form.jsonTemp" size="large" @change="changeJsonTemp" allowClear style="width: 30%"
                             :options="tempList">
                         </a-select>
@@ -19,11 +19,11 @@
                             <SyncOutlined />
                             更新模板
                         </a-button>
-                    </div>
+                    </div> -->
                     <div class="my10px text-16px" style="color: #737679"><a-tag color="green">说明</a-tag>小秘页面不支持设置手机端描述，保存发布后，手机端的图片及文字信息将跟PC端保持一致
                     </div>
                     <a-form-item-rest>
-                        <jsonForm @backResult="backResult" :jsonContent="form.jsons"  :shop="shopCode"></jsonForm>
+                        <jsonForm @backResult="backResult" :jsonContent="form.jsons" :shop="shopCode" @clear="form.jsons = ''"></jsonForm>
                     </a-form-item-rest>
                 </a-form-item>
                 <a-form-item label="视频：">
@@ -133,6 +133,40 @@ const uploadImageVideoUrl =
     "/platform-ozon/platform/ozon/file/upload/video"
 const uploadVideoLoading = ref(false)
 
+// 注入父组件数据
+const existProductData = inject('existProductData')
+
+// 监听数据变化
+watch(() => existProductData.value, (newVal) => {
+    const { attributes, complexAttributes } = newVal.attributes[0];
+    if (attributes?.length == 0 || attributes == null) return;
+        const copyAttr = attributes?.filter(
+            (a) => a.id == 11254 || a.id == 4191
+        );
+        console.log("copyAttr", copyAttr);
+
+        complexAttributes && complexAttributes.forEach((item) => {
+            // item.attributes.forEach((attr) => {
+            // });
+            if (item.id === 21841) {
+                form.video = item.values.map((e) => {
+                    return {
+                        url: processImageSource(e.value),
+                    }
+                })
+            } else if (item.id === 21845) {
+                form.coverUrl = processImageSource(item.values[0].value)
+            }
+        });
+        copyAttr.forEach(e => {
+            if (e.id === 11254) {
+                form.jsons = e.values[0].value || ""
+            } else {
+                form.description = e.values[0].value
+            }
+        })
+}, { deep: true })
+
 const handleChange = info => {
     if (info.file.status === 'done') {
         if (info.file.response.code == 200) {
@@ -199,7 +233,6 @@ const searchTemp = () => {
 
     }).then(res => {
         if (res.code == 200) {
-            message.success("更新成功！");
             tempList.value = res.rows.map(item => {
                 return {
                     label: item.name,

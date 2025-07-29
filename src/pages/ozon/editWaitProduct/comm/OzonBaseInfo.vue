@@ -27,7 +27,7 @@
                         @click="selectVisible = true" size="middle">选择分类</a-button>
                     <p v-if="hisAttrObj.length != 0" style="color: #933" class="text-16px">
                         <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{ hisAttrObj[0].secondCategoryName
-                        }}</span>/
+                            }}</span>/
                         <span>{{ hisAttrObj[0].threeCategoryName }}</span>
                     </p>
                 </a-form-item>
@@ -54,7 +54,7 @@
                                     <template #label>
                                         <span class="mr-2.5 truncate">{{
                                             item.label ? item.label : item.name
-                                        }}</span>
+                                            }}</span>
                                         <a-tooltip class="tooltipStyle" effect="dark" :title="item.description"
                                             popper-class="ozonTooltip" placement="top">
                                             <AsyncIcon icon="QuestionCircleOutlined"></AsyncIcon>
@@ -173,6 +173,7 @@ const categoryTreeList = ref([]);
 const historyCategoryList = ref([]);
 const tempAttr = ref({});
 const isExpand = ref(true)
+const existAttr = ref([])
 const vatList = [
     {
         label: "免税",
@@ -188,6 +189,36 @@ const vatList = [
     },
 ];
 const hisAttrObj = ref([]); //选中的三级
+
+// 注入父组件数据
+const existProductData = inject('existProductData')
+
+// 监听数据变化
+watch(() => existProductData.value, (newVal) => {
+    const { account, name, vat, typeId, descriptionCategoryId, attributes } = newVal;
+    console.log("newVal",newVal);
+    
+    form.shortCode = account;
+    form.name = name;
+    form.vat = vat === "0.0" || vat === "0.00" ? "0" : vat;
+    form.categoryId = {
+        threeCategoryId: typeId,
+        threeCategoryName: "",
+        secondCategoryId: descriptionCategoryId,
+        label: undefined,
+        value: typeId,
+    };
+    const ozonStore = useOzonProductStore()
+    ozonStore.$patch(state => {
+        state.variant = {
+            threeCategoryId: typeId,
+            shopId: account
+        }
+    })
+    emit("getAttributes", form.shortCode, form.categoryId);
+    getHistoryList(account); // 用于下拉数据回显
+    existAttr.value = attributes[0].attributes
+}, { deep: true })
 
 // 获取选择树
 const getCategoryTree = () => {
@@ -227,7 +258,13 @@ const getAttributesID = (ids) => {
         value: ids.value,
     };
     console.log("form", form.categoryId);
-
+    const ozonStore = useOzonProductStore()
+    ozonStore.$patch(state => {
+        state.variant = {
+            threeCategoryId: typeId,
+            shopId: form.shortCode
+        }
+    })
     emit("getAttributes", form.shortCode, form.categoryId);
 };
 
@@ -266,6 +303,13 @@ const selectAttributes = (e) => {
             value: e.option.threeCategoryId,
         };
         emit("getAttributes", form.shortCode, e.option);
+        const ozonStore = useOzonProductStore()
+        ozonStore.$patch(state => {
+            state.variant = {
+                threeCategoryId: e.option.threeCategoryId,
+                shopId: form.shortCode
+            }
+        })
     }
 };
 
@@ -515,7 +559,7 @@ watch(
                 val;
             // 修改响应式对象的属性
             form.shortCode = account;
-            form.name = skuList[0].name || name;
+            form.name = skuList && skuList[0].name || name;
             form.vat = vat === "0.0" || vat === "0.00" ? "0" : vat;
             form.categoryId = {
                 threeCategoryId: typeId,
@@ -524,6 +568,13 @@ watch(
                 label: undefined,
                 value: typeId,
             };
+            const ozonStore = useOzonProductStore()
+            ozonStore.$patch(state => {
+                state.variant = {
+                    threeCategoryId: typeId,
+                    shopId: account
+                }
+            })
             // emit("getAttributes", form.shortCode, form.categoryId);
             getHistoryList(account);
         }
@@ -674,7 +725,7 @@ watch(
                 //         )
                 //     );
 
-                // console.log('oldAttributes',oldAttributes);
+                // console.log('oldAttributes', oldAttributes);
                 // console.log('loopAttributes',loopAttributes.value);
                 const proceRes = assignValues(oldAttributes, loopAttributes.value); // 旧写法
                 // const proceRes = assignValues(result, loopAttributes.value); //最新写法
@@ -684,10 +735,46 @@ watch(
             // 引用模板数据回显
             if (Object.keys(tempAttr.value).length > 0) {
                 form.attributes = templateAssign(tempAttr.value, loopAttributes.value)
+            } else if (existAttr.value.length > 0) {
+                form.attributes = processMatchedAttributes(existAttr.value, loopAttributes.value);
             }
         }
     }
 );
+// 引用现有产品处理数据回显到属性
+const processMatchedAttributes = (existAttrs, loopAttrs) => {
+    const existMap = existAttrs.reduce((acc, item) => {
+        acc[item.id] = item.values;
+        return acc;
+    }, {});
+
+    return loopAttrs.reduce((result, attr) => {
+        const existValues = existMap[attr.id];
+
+        if (existValues) {
+            // 处理多选类型属性
+            if (attr.selectType === 'multSelect') {
+                result[attr.name] = existValues.map(v => v.dictionaryValueId);
+            }
+            // 处理品牌特殊字段
+            else if (attr.id === 85) {
+                result[attr.name] = {
+                    label: "无品牌",
+                    value: existValues[0].dictionaryValueId
+                };
+            }
+            // 处理普通选择类型
+            else if (attr.selectType === 'select') {
+                result[attr.name] = existValues[0].dictionaryValueId || existValues[0].value;
+            }
+            // 默认处理方式
+            else {
+                result[attr.name] = existValues[0].value;
+            }
+        }
+        return result;
+    }, {});
+};
 </script>
 <style lang="less" scoped>
 :deep(.ant-checkbox-group) {

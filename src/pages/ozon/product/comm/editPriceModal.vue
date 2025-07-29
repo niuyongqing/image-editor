@@ -653,10 +653,10 @@ const onSubmit = () => {
     // 新增字段验证逻辑（同时验证外层对象和SKU列表）
     const hasInvalidValue = priceList.some(item => {
         // 检查每个字段：有值时必须>0，空值允许通过
-        const hasInvalidPrice = item.price !== '' && Number(item.price) <= 0;
-        const hasInvalidOldPrice = item.oldPrice !== '' && Number(item.oldPrice) <= 0;
-        const hasInvalidMinPrice = item.minPrice !== '' && Number(item.minPrice) <= 0;
-        const hasInvalidWeight = item.weight !== '' && Number(item.weight) <= 0;
+        const hasInvalidPrice = (item.price !== '' && item.price !== null) && Number(item.price) <= 0;
+        const hasInvalidOldPrice = (item.oldPrice !== '' && item.oldPrice !== null) && Number(item.oldPrice) <= 0;
+        const hasInvalidMinPrice = (item.minPrice !== '' && item.minPrice !== null) && Number(item.minPrice) <= 0;
+        const hasInvalidWeight = (item.weight !== '' && item.weight !== null) && Number(item.weight) <= 0;
 
         return hasInvalidPrice || hasInvalidOldPrice || hasInvalidMinPrice || hasInvalidWeight;
     });

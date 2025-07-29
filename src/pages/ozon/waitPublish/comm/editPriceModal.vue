@@ -649,9 +649,9 @@ const onSubmit = () => {
             })
         }
         // 对于尺寸处理，单独判断，因为逻辑复用了 weight 的判断条件
-        if (field === 'weight') {
-            priceList = priceList.map((row) => fieldHandlers.dimensions(row, form));
-        }
+        // if (field === 'weight') {
+        //     priceList = priceList.map((row) => fieldHandlers.handleWeight(row, form));
+        // }
         if (field === 'stock') {
             // 遍历数组 a
             priceList.forEach(itemA => {
@@ -700,9 +700,9 @@ const onSubmit = () => {
     const hasInvalidValue = priceList.some(item => 
         item.skuList.some(sku => {
             // 检查每个字段：空值允许，有值时必须>0
-            const priceInvalid = sku.price !== '' && Number(sku.price) <= 0;
-            const oldPriceInvalid = sku.oldPrice !== '' && Number(sku.oldPrice) <= 0;
-            const weightInvalid = sku.weight !== '' && Number(sku.weight) <= 0;
+            const priceInvalid = (sku.price !== '' && sku.price !== null) && Number(sku.price) <= 0;
+            const oldPriceInvalid = (sku.oldPrice !== '' && sku.oldPrice !== null) && Number(sku.oldPrice) <= 0;
+            const weightInvalid = (sku.weight !== '' && sku.weight !== null) && Number(sku.weight) <= 0;
             return priceInvalid || oldPriceInvalid || weightInvalid;
         })
     );
@@ -855,7 +855,7 @@ const handleWeight = (row, form) => {
 // 封装处理尺寸的函数
 const handleDimensions = (row, form) => {
     row.skuList.forEach(e => {
-        e.depth = form.packageDepth;
+        e.depth = form.packageLength;
         e.height = form.packageHeight;
         e.width = form.packageWidth;
     })
@@ -870,7 +870,7 @@ const fieldHandlers = {
     oldPrice: handleOldPrice,
     minPrice: handleMinPrice,
     weight: handleWeight,
-    dimensions: handleDimensions
+    size: handleDimensions
 };
 
 

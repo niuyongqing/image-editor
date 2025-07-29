@@ -92,9 +92,9 @@ const submit = async () => {
         message.error('请选择图片');
         return;
     };
-    loading.value = true;
     //  单张图片翻译
     if (checkedList.length === 1) {
+        loading.value = true;
         imageTranslationApi({
             imageUrl: checkedList[0].url,
             sourceLanguage: 'zh', // 源语言
@@ -120,15 +120,19 @@ const submit = async () => {
     }
     //  多张图片翻译
     if (checkedList.length > 1 && checkedList.length <= 20) {
+      loading.value = true;
+      try {
         const res = await imageRecognitionApi({
             imageUrls: checkedList.map(item => item.url),
             sourceLanguage: 'zh',
             targetLanguage: 'en',
             customTaskId: new Date().getTime().toString(),
         });
+      } catch (error) {}
         if (res.code === 200) {
             const taskId = res.data.taskId;
-            timer.value = setInterval(() => {
+          timer.value = setInterval(() => {
+              loading.value = true;
                 imageRecognitionQueryApi(taskId)
                     .then(res => {
                         if (res.code === 200) {
@@ -150,9 +154,12 @@ const submit = async () => {
                                 close();
                             }
                         }
+                    }).finally(() => {
+                      loading.value = false;
                     })
             }, 3500);
-        };
+      };
+        loading.value = false;
     };
 };
 

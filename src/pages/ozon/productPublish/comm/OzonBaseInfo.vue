@@ -175,6 +175,7 @@ const loopAttributes = ref([])
 const categoryTreeList = ref([])
 const historyCategoryList = ref([])
 const tempAttr = ref({});
+const existAttr = ref([])
 const isExpand = ref(true)
 const vatList = [
     {
@@ -191,6 +192,34 @@ const vatList = [
     },
 ]
 const hisAttrObj = ref([]) //选中的三级
+
+// 注入父组件数据
+const existProductData = inject('existProductData')
+
+// 监听数据变化
+watch(() => existProductData.value, (newVal) => {
+    const { account, name, vat, typeId, descriptionCategoryId,attributes } = newVal;
+    form.shortCode = account;
+    form.name = name;
+    form.vat = vat === "0.0" || vat === "0.00" ? "0" : vat;
+    form.categoryId = {
+        threeCategoryId: typeId,
+        threeCategoryName: "",
+        secondCategoryId: descriptionCategoryId,
+        label: undefined,
+        value: typeId,
+    };
+    const ozonStore = useOzonProductStore()
+    ozonStore.$patch(state => {
+        state.variant = {
+            threeCategoryId: typeId,
+            shopId: account
+        }
+    })
+    emit("getAttributes", form.shortCode, form.categoryId);
+    getHistoryList(account); // 用于下拉数据回显
+    existAttr.value = attributes[0].attributes
+}, { deep: true })
 
 // 清除校验
 const changeRule = (attributes, name) => {
@@ -519,7 +548,8 @@ defineExpose({
     form,
     childForm
 })
-// useOzonProductStore().addHeaderList
+
+// 是否有 skuTitle 字段会禁用商品标题
 const idHave = computed(() => {
     return useOzonProductStore().addHeaderList.includes('skuTitle');
 })
@@ -543,7 +573,7 @@ watch(() => useOzonProductStore().productTemplate, (val) => {
                 productAttr
             }
         } } = val;
-        form.shortCode = val.account;
+        form.shortCode = account;
         form.categoryId = {
             threeCategoryId,
             threeCategoryName: "",
@@ -656,9 +686,12 @@ watch(() => useOzonProductStore().attributes, (val) => {
             loopAttributes.value = noThemeAttributesCache;
 
         }
+
         // 引用模板数据回显 assignValues templateAssign
         if (Object.keys(tempAttr.value).length > 0) {
             form.attributes = templateAssign(tempAttr.value, loopAttributes.value)
+        } else if(existAttr.value.length > 0){
+            form.attributes = processMatchedAttributes(existAttr.value, loopAttributes.value);
         } else {
             if (!form.shortCode && !form.categoryId) return;
             getHistoryAttr(
@@ -669,7 +702,40 @@ watch(() => useOzonProductStore().attributes, (val) => {
 
     }
 })
+// 引用现有产品处理数据回显到属性
+const processMatchedAttributes = (existAttrs, loopAttrs) => {
+    const existMap = existAttrs.reduce((acc, item) => {
+    acc[item.id] = item.values;
+    return acc;
+  }, {});
 
+  return loopAttrs.reduce((result, attr) => {
+    const existValues = existMap[attr.id];
+    
+    if (existValues) {
+      // 处理多选类型属性
+      if (attr.selectType === 'multSelect') {
+        result[attr.name] = existValues.map(v => v.dictionaryValueId);
+      } 
+      // 处理品牌特殊字段
+      else if (attr.id === 85) {
+        result[attr.name] = {
+          label: "无品牌",
+          value: existValues[0].dictionaryValueId
+        };
+      }
+      // 处理普通选择类型
+      else if (attr.selectType === 'select') {
+        result[attr.name] = existValues[0].dictionaryValueId || existValues[0].value;
+      }
+      // 默认处理方式
+      else {
+        result[attr.name] = existValues[0].value;
+      }
+    }
+    return result;
+  }, {});
+};
 </script>
 <style lang="less" scoped>
 :deep(.ant-form) {

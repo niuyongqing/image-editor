@@ -1,8 +1,8 @@
 <template>
   <div flex>
-    <div w-280px>
-      <draftSidebar @draftUpdateClass="draftUpdateClass" />
-    </div>
+    <!-- <div w-280px>
+      <draftSidebar :totalCount="totalCount" :publishFailedCount="publishFailedCount" @draftUpdateClass="draftUpdateClass" />
+    </div> -->
     <div flex-1>
       <a-breadcrumb
         separator=">"
@@ -130,7 +130,7 @@
                 </template>
               </a-dropdown>
 
-              <a-dropdown trigger="click">
+              <!-- <a-dropdown trigger="click">
                 <a-button
                   type="primary"
                   style="height: 32px; margin-left: 10px"
@@ -145,13 +145,9 @@
                       :platform="'public'"
                       @nodeClick="typeNodeClick"
                     ></typeTree>
-                    <!-- <typeTree v-model:current-class="currentClass" v-model:node-path="nodePath"
-                                            platform="ozon" @update:currentClass="updateCurrentClass" ref="typeTreeRef"
-                                            @nodeClick="typeNodeClick">
-                                        </typeTree> -->
                   </a-menu>
                 </template>
-              </a-dropdown>
+              </a-dropdown> -->
             </div>
             <div>
               <a-space>
@@ -239,6 +235,10 @@
                       }"
                     >
                       {{ record.remark }}
+                    </div>
+                    <div v-if="record.errorMsg" class="w-fit p-1 border border-solid border-gray-300 rounded-md text-red">
+                      <div><WarningOutlined /> 失败原因</div>
+                      <div>{{ record.errorMsg }}</div>
                     </div>
                   </div>
                 </div>
@@ -449,10 +449,10 @@
 
 <script setup name="draft">
   import { Divider, message, Modal } from 'ant-design-vue'
-  import { DownOutlined, SettingOutlined, SyncOutlined, QuestionCircleOutlined } from '@ant-design/icons-vue'
+  import { DownOutlined, SettingOutlined, SyncOutlined, QuestionCircleOutlined, WarningOutlined } from '@ant-design/icons-vue'
   import { accountCache, shopCurrency, productWarehouse } from '../config/api/product'
   import { brandCategory } from '../config/api/waitProduct'
-  import { ozonDraftList, ozonDeleteProduct, batchPublishToPlatform, batchAddToWaitPublish, addToWaitPublish } from '../config/api/draft'
+  import { ozonDraftList, groupProductCountApi, ozonDeleteProduct, batchPublishToPlatform, batchAddToWaitPublish, addToWaitPublish } from '../config/api/draft'
   import { updateCategoryProduct } from '~/pages/sample/dataAcquisition/js/api.js'
   import { useRouter } from 'vue-router'
   import tableHeard from '../config/tabColumns/draft'
@@ -639,11 +639,13 @@
   const selectAll = () => {
     formData.account = ''
     getList()
+    // getGroupProductCount()
   }
   const selectItem = val => {
     clearSelectList()
     formData.account = val
     getList()
+    // getGroupProductCount()
   }
 
   // 搜索内容
@@ -689,6 +691,7 @@
       if (res.data) {
         shopAccount.value = res?.data ?? []
         getList()
+        // getGroupProductCount()
       }
     })
   }
@@ -701,6 +704,20 @@
     paginations.pageNum = 1
     productState.value = e.productState
     getList()
+  }
+
+  // 获取左侧状态栏统计数量
+  const totalCount = ref(0)
+  const publishFailedCount = ref(0)
+  function getGroupProductCount() {
+    const params = {
+      account: formData.account,
+      productState: 'PUBLISH_FAILED'
+    }
+    groupProductCountApi(params).then(res => {
+      totalCount.value = res.data.totalCount
+      publishFailedCount.value = res.data.publishFailedCount
+    })
   }
 
   const getList = () => {

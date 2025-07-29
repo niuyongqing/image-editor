@@ -91,6 +91,7 @@ const showModal = (list) => {
   fileList.value.forEach((item) => {
     item.checked = true;
   })
+  checkedAll.value = true
   modalMethods.value.openModal();
 };
 
@@ -128,7 +129,7 @@ const submit = async () => {
   loading.value = true;
   if (imgLocalList.length) {
     const scaleRes = await scaleApi({
-      imagePathList: checkedList.map(img => img.url),
+      imagePathList: imgLocalList,
       newWidth: state.imgW,
       newHeight: state.imgH,
       isRatio: false
@@ -174,6 +175,8 @@ const submit = async () => {
               v.url = item.url
               v.name = item.newFileName
               v.checked = false
+              v.width = state.imgW
+              v.height = state.imgH
             }
           })
         })

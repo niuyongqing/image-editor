@@ -126,7 +126,8 @@
               <span>{{ record.secondName }}</span>
             </template>
             <template v-if="column.dataIndex === 'sellerSKU'">
-              <a-input v-model:value="record.sellerSKU" style="min-width: 200px" @change="sellerSKUChange(record)"></a-input>
+              <a-input v-model:value="record.sellerSKU" style="min-width: 200px"
+                @change="sellerSKUChange(record)"></a-input>
             </template>
             <template v-if="!otherHeader.includes(column.dataIndex)">
               <a-input v-if="column.selectType === 'input'" v-model:value="record[column.dataIndex]"
@@ -225,8 +226,8 @@
 
                 <!-- <span v-if="item.imageUrl" class="block mt-2.5">{{ item.imageUrl.length
                                 }}/30</span> -->
-                <SkuDragUpload v-model:file-list="item.imageUrl" :maxCount="30"
-                  :showUploadList="false" accept=".jpg,.png" :api="uploadImage" :waterList="watermark">
+                <SkuDragUpload v-model:file-list="item.imageUrl" :maxCount="30" :showUploadList="false"
+                  accept=".jpg,.png" :api="uploadImage" :waterList="watermark">
                   <template #default>
                     <div flex flex-col w-full justify-start mb-4px text-left>
                       <p>
@@ -492,10 +493,10 @@ const removeVariantType = (item, index) => {
   // imgHeaderList.value.splice(index, 1);
   let name = item.tableData[0].name
   let secondName = item.tableData[0].secondName
-  
+
   // 表头删除
   headerList.value = headerList.value.filter((e) => e.title != item.title);
-  if(secondName) {
+  if (secondName) {
     headerList.value = headerList.value.filter((e) => e.title != secondName);
   }
 
@@ -560,11 +561,14 @@ const addItem = (item, row) => {
 const removeItem = (item, row) => {
   let ind = row.tableData.indexOf(item);
   if (item.id === 10096 || item.name == "商品颜色(Цвет товара)") {
-    row.tableData.splice(ind, 1); 
+    row.tableData.splice(ind, 1);
   } else if (item.id === 4295 || item.name == "俄罗斯尺码") {
     row.tableData.splice(ind, 1);
   } else {
-    if (item.selectType === "select" || item.selectType === "input") {
+    if (ind !== -1) {
+      row.tableData.splice(ind, 1);
+    }
+    else if (item.selectType === "select" || item.selectType === "input") {
       row.tableData = row.tableData.filter(tableItem =>
         tableItem.id !== item.id
       );
@@ -580,25 +584,57 @@ const removeItem = (item, row) => {
   }
 
   // 获取所有需要删除的标签
+  // const deletedLabels = item.selectType === 'multSelect'
+  //   ? item.modelValue.map(v => v.label)
+  //   : [];
+  // let newData = tableData.value.filter(row => {
+  //   // 检查行数据是否包含要删除的属性值
+  //   return !Object.values(row).some(value => {
+  //     if (item.selectType === 'multSelect') {
+  //       // 统一处理数组和字符串类型的值
+  //       const currentValues = Array.isArray(value)
+  //         ? value.map(v => v?.label || '')
+  //         : String(value || '').split(',');
+  //       return currentValues.some(v => deletedLabels.includes(v));
+  //     }
+  //     return item.selectType === 'input' ? row.attrIdList.includes(item.id)
+  //       : item.selectType === 'select' ? value === item?.modelValue?.label
+  //         : false;
+  //   });
+  // });
   const deletedLabels = item.selectType === 'multSelect'
-    ? item.modelValue.map(v => v.label)
+    ? item.modelValue.map(v => v.label?.trim()) // 增加trim处理
     : [];
-  let newData = tableData.value.filter(row => {
-    // 检查行数据是否包含要删除的属性值
-    return !Object.values(row).some(value => {
-      if (item.selectType === 'multSelect') {
-        // 统一处理数组和字符串类型的值
-        const currentValues = Array.isArray(value)
-          ? value.map(v => v?.label || '')
-          : String(value || '').split(',');
-        return currentValues.some(v => deletedLabels.includes(v));
-      }
-      return item.selectType === 'input' ? row.attrIdList.includes(item.id)
-        : item.selectType === 'select' ? value === item?.modelValue?.label
-          : false;
-    });
-  });
+  const deletedSet = new Set(deletedLabels); // 改用Set提高查询效率
 
+  let newData = tableData.value.filter(row => {
+    // 直接访问对应属性
+    // const rowValue = row[item.name];
+    // if (item.selectType === 'select' || item.selectType === 'input') {
+    //   return !row.attrIdList?.some(id => id === item.id);
+    // } else {
+    //   return !deletedLabels?.some(val => val === rowValue)
+    // }
+    const rowValue = String(row[item.name] || '');
+    const inputValue = String(item.modelValue || '');
+
+    if (item.selectType === 'select') {
+      // 选择类型使用ID过滤
+      return !(Array.isArray(row.attrIdList) &&
+        row.attrIdList.some(id => id === item.id));
+    } else if (item.selectType === 'input') {
+      // input类型同时检查ID和输入值
+      const hasId = Array.isArray(row.attrIdList) &&
+        row.attrIdList.some(id => id === item.id);
+      const valueMatch = rowValue === inputValue;
+      return !(hasId || valueMatch);
+    } else {
+      // 多选类型使用标签过滤
+      return !deletedLabels?.some(val =>
+        val != null && String(val) === rowValue
+      );
+    }
+  });
   tableData.value = newData;
 };
 
@@ -612,7 +648,6 @@ const pushValue = (index, item) => {
   // 处理表格数据
   let cartesianProducts = cartesianProduct(attributeList.value);
   let newTableData = processResult(cartesianProducts);
-
   let minLength = Math.min(newTableData.length, tableData.value.length);
   for (let i = 0; i < minLength; i++) {
     // 将b数组中对应下标的数据赋值到a数组中
@@ -708,12 +743,12 @@ const batchSkuTitle = () => {
   batchTitle.value = "批量修改SKU标题";
   batchType.value = "skuTitle";
 }
-  // 修改 SKU 时同步修改 warehouseList 里的 offerId
-  const sellerSKUChange = debounce(record => {
-    record.warehouseList.forEach(item => {
-      item.offerId = record.sellerSKU
-    })
-  }, 200)
+// 修改 SKU 时同步修改 warehouseList 里的 offerId
+const sellerSKUChange = debounce(record => {
+  record.warehouseList.forEach(item => {
+    item.offerId = record.sellerSKU
+  })
+}, 200)
 
 // 批量修改库存
 const batchStock = (type, row = {}) => {
@@ -1054,21 +1089,23 @@ watch(
         });
         addHeaderList.value.push("colorImg");
       }
-      if (result.some((item) => item.name !== "")) {
-        let skuIndex = headerList.value.findIndex(
-          (item) => item.title === "SKU"
-        );
+      if (result.some(item => item.skuTitle !== null && item.skuTitle !== '') && result.length > 1) {
+        let skuIndex = headerList.value.findIndex(item => item.title === 'SKU')
         let obj = {
-          title: "SKU标题",
-          dataIndex: "skuTitle",
-          selectType: "input",
+          title: 'SKU标题',
+          dataIndex: 'skuTitle',
+          selectType: 'input',
           type: 1,
           options: null,
           show: true,
-          align: "center",
+          align: 'center'
         }
-        headerList.value.splice(skuIndex + 1, 0, obj);
-        addHeaderList.value.push("skuTitle");
+        headerList.value.splice(skuIndex + 1, 0, obj)
+        addHeaderList.value.push('skuTitle')
+        const ozonStore = useOzonProductStore()
+        ozonStore.$patch(state => {
+          state.addHeaderList = addHeaderList.value
+        })
       }
       tableData.value = result;
       // 将不匹配的主题过滤掉
@@ -1085,15 +1122,20 @@ watch(
       let echoThemeList = [];
       let isModelValueList = [];
       // 判断sortArr中是否有组合数据
-      if (isAllMatched) {
-        echoThemeList = handleTheme(sortArr); //handleTheme方法可以将属性转换成主题数据格式
-      } else if (isAllMatche) {
-        echoThemeList = handleTheme(filteredB);
+      // if (isAllMatched) {
+      //   echoThemeList = handleTheme(sortArr); //handleTheme方法可以将属性转换成主题数据格式
+      // } else if (isAllMatche) {
+      //   echoThemeList = handleTheme(filteredB);
+      // } else {
+      //   isModelValueList = filterModelValues(sortArr, skuList);
+      //   echoThemeList = handleTheme(isModelValueList);
+      // }
+      if (isAllMatched || isAllMatche) {
+        echoThemeList = handleTheme(filteredB); //handleTheme方法可以将属性转换成主题数据格式
       } else {
         isModelValueList = filterModelValues(sortArr, skuList);
         echoThemeList = handleTheme(isModelValueList);
       }
-
       // 处理到数据回显到主题
       const aIds = echoThemeList.map((item) => item.id);
       // 过滤 有数据的主题
