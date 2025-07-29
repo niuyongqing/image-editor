@@ -93,11 +93,10 @@
         <a-card class="my-2.5">
           <div class="w-full flex justify-between items-center mb-10px">
             <div class="flex">
-              <a-dropdown>
+              <a-dropdown :disabled="!selectedRowList.length">
                 <a-button
                   type="primary"
                   style="height: 32px"
-                  :disabled="!selectedRowList.length"
                 >
                   批量操作
                   <DownOutlined />

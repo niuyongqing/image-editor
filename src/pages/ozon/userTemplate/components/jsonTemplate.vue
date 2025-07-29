@@ -759,6 +759,7 @@ function removePlacementArea() {
 // 当将元素拖动到有效放置目标（每几百毫秒）上时, 触发
 function allowDrop(e) {
   e.preventDefault();
+  if (!pointerEventsNone.value) return;
   /* 获取鼠标高度 */
   let eventoffset = e.offsetY;
   /* 如果没有移动不触发事件减少损耗 */
@@ -914,7 +915,9 @@ const imgTextDefaulet = {
 }
 
 // 当在有效放置目标上放置元素时触发此事件
-function handleDrop(e) {
+  function handleDrop(e) {
+  if (!pointerEventsNone.value) return;
+  
   const type = e.dataTransfer.getData('componentName')
   let moduleItem = { type, id: uuidv4() }
   if (type == 'text') {
