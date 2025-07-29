@@ -1325,7 +1325,10 @@ function save() {
 const closeTemp = () => {
   finallyObj.value = {}
   moduleList.value = []
+  activeModule.value = {}
+  activeModuleIndex.value = 0
   show.value = false
+  showRight.value = false
 }
 
 function openEditor() {
