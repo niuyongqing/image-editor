@@ -39,8 +39,8 @@
                 :shopCode="formData.shortCode"></ozon-new-image-info>
             <br />
             <!-- sku :attributes="attributes" -->
-            <ozon-new-variant-info ref="ozonNewVariantInfoRef" id="ozonNewVariantInfo"
-                :shopCode="formData.shortCode"></ozon-new-variant-info>
+            <ozon-new-variant-info ref="ozonNewVariantInfoRef" id="ozonNewVariantInfo" :shopCode="formData.shortCode"
+                @getAttributes="getAttributes"></ozon-new-variant-info>
             <br />
             <div class="flex justify-end">
                 <!-- <a-button class="mx-2.5" size="middle" :loading="loading" @click="showTempModal">存为模板</a-button> -->
@@ -111,7 +111,7 @@
                 :pageSizeOptions="[50, 100, 200]" />
         </a-modal>
         <!-- 现有产品 -->
-         <existingProducts ref="existProduct" @handleSelect="handleSelect"></existingProducts>
+        <existingProducts ref="existProduct" @handleSelect="handleSelect"></existingProducts>
 
     </div>
 </template>
@@ -202,8 +202,9 @@ const anchorList = ref([
 
 const categoryAttributesLoading = ref(false)
 
+provide('existProductData', existProductData)
+
 const handleSelect = (record) => {
-    console.log("record", record);
     existProductData.value = record;
 }
 
@@ -630,6 +631,7 @@ const onSubmit = async (type = 1) => {
         }
     });
     console.log('resItem', resItem);
+    loading.value = true;
     if (type == 1) {
         let params = {
             account: base.shortCode,
@@ -643,7 +645,6 @@ const onSubmit = async (type = 1) => {
             isUpdate: false
         };
         console.log('params', params);
-        loading.value = true;
         add(params).then((res) => {
             message.success(res.msg);
             publishVis.value = true
@@ -685,48 +686,48 @@ const onSubmit = async (type = 1) => {
 
 // 处理视频格式
 const createAndUpdateBaseObj = (targetObj, complexId, id, type) => {
-  // 统一属性命名格式
-  const keyStyle = type === 1 ? "snake" : "camel";
+    // 统一属性命名格式
+    const keyStyle = type === 1 ? "snake" : "camel";
 
-  // 映射属性名
-  const keyMap = {
-    complexId: keyStyle === "snake" ? "complex_id" : "complexId",
-    dictionaryValueId:
-      keyStyle === "snake" ? "dictionary_value_id" : "dictionaryValueId",
-  };
-  // 100001 多个视频
-  // 100002 单个视频
-  // 通用值处理逻辑
-  const processValues = () => {
-    if (complexId === 100002) {
-      // return [{ [keyMap.dictionaryValueId]: 0, value: targetObj.replace('/prod-api', '') }];
-      return [
-        {
-          [keyMap.dictionaryValueId]: 0,
-          value: targetObj,
-        },
-      ];
-    }
-    return (Array.isArray(targetObj) ? targetObj : []).map((item) => ({
-      [keyMap.dictionaryValueId]: 0,
-      // value: item?.url?.replace('/prod-api', '') || null // 添加空值保护
-      value: item?.url || null,
-    }));
-  };
+    // 映射属性名
+    const keyMap = {
+        complexId: keyStyle === "snake" ? "complex_id" : "complexId",
+        dictionaryValueId:
+            keyStyle === "snake" ? "dictionary_value_id" : "dictionaryValueId",
+    };
+    // 100001 多个视频
+    // 100002 单个视频
+    // 通用值处理逻辑
+    const processValues = () => {
+        if (complexId === 100002) {
+            // return [{ [keyMap.dictionaryValueId]: 0, value: targetObj.replace('/prod-api', '') }];
+            return [
+                {
+                    [keyMap.dictionaryValueId]: 0,
+                    value: targetObj,
+                },
+            ];
+        }
+        return (Array.isArray(targetObj) ? targetObj : []).map((item) => ({
+            [keyMap.dictionaryValueId]: 0,
+            // value: item?.url?.replace('/prod-api', '') || null // 添加空值保护
+            value: item?.url || null,
+        }));
+    };
 
-  return type == 1 ? {
-    attributes: [
-      {
+    return type == 1 ? {
+        attributes: [
+            {
+                [keyMap.complexId]: complexId,
+                id: id,
+                values: processValues(),
+            },
+        ],
+    } : {
         [keyMap.complexId]: complexId,
         id: id,
         values: processValues(),
-      },
-    ],
-  } : {
-    [keyMap.complexId]: complexId,
-    id: id,
-    values: processValues(),
-  };
+    };
 };
 
 

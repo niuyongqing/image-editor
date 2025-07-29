@@ -16,12 +16,12 @@
                       <template #icon>
                         <SettingOutlined />
                       </template>
-                      管理模板
-                    </a-button>
-                  </a-space>
-                </template>
-              </a-select>
-            </div> -->
+管理模板
+</a-button>
+</a-space>
+</template>
+</a-select>
+</div> -->
           </div>
         </template>
         <div>
@@ -200,49 +200,55 @@
                 mode="tags"></a-select>
             </template>
             <template v-if="column.dataIndex === 'price'">
-              <a-input-number style="min-width: 200px" :min="0" size="middle" :max="99999999" :precision="2"
-                v-model:value="record.price" @blur="judgeMax(record)"></a-input-number>
-              <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.price, 'price')"
-                class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
+              <div class="flex justify-center">
+                <a-input-number style="min-width: 200px" :min="0" size="middle" :max="99999999" :precision="2"
+                  v-model:value="record.price" @blur="judgeMax(record)"></a-input-number>
+                <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.price, 'price')"
+                  class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
+              </div>
             </template>
             <template v-if="column.dataIndex === 'oldPrice'">
-              <a-input-number style="min-width: 200px" :min="0" size="middle" :max="99999999"
-                v-model:value="record.oldPrice" :precision="2" @blur="judgeMax(record)"></a-input-number>
-              <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.oldPrice, 'oldPrice')"
-                class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
+              <div class="flex justify-center">
+                <a-input-number style="min-width: 200px" :min="0" size="middle" :max="99999999"
+                  v-model:value="record.oldPrice" :precision="2" @blur="judgeMax(record)"></a-input-number>
+                <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.oldPrice, 'oldPrice')"
+                  class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
+              </div>
             </template>
             <template v-if="column.dataIndex === 'quantity'">
-              <span>{{
-                record.quantity === undefined ? 0 : record.quantity
-              }}</span>
-              <AsyncIcon icon="EditOutlined" @click="batchStock('single', record)"></AsyncIcon>
+              <div class="flex justify-center">
+                <span>{{
+                  record.quantity === undefined ? 0 : record.quantity
+                }}</span>
+                <AsyncIcon icon="EditOutlined" @click="batchStock('single', record)"></AsyncIcon>
+              </div>
             </template>
             <template v-if="column.dataIndex === 'packageLength'">
               <div class="flex justify-center">
                 <div>
                   <div style="display: flex">
-                    长度：
+                    <div class="w-13 block">长度：</div>
                     <a-input-number controls-position="right" size="middle" :min="0" style="min-width: 200px"
                       v-model:value="record.packageLength" placeholder="长度" :controls="false">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div style="display: flex; margin-top: 5px">
-                    宽度：
+                    <div class="w-13 block">宽度：</div>
                     <a-input-number controls-position="right" size="middle" :min="0" style="min-width: 200px"
                       v-model:value="record.packageWidth" placeholder="宽度" :controls="false">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div style="display: flex; margin-top: 5px">
-                    高度：
+                    <div class="w-13 block">高度：</div>
                     <a-input-number controls-position="right" size="middle" :min="0" style="min-width: 200px"
                       v-model:value="record.packageHeight" placeholder="高度" :controls="false">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div style="display: flex; margin-top: 5px">
-                    重量：
+                    <div class="w-13 block">重量：</div>
                     <a-input-number controls-position="right" size="middle" :min="0" style="min-width: 200px"
                       v-model:value="record.packageWeight" placeholder="重量" :precision="0" :controls="false">
                       <template #addonAfter>g</template>
@@ -417,7 +423,8 @@ import {
   hasDuplicateModelValues,
   checkData,
   handleTheme,
-  processImageSource
+  processImageSource,
+  rearrangeColorFields
 } from "../../config/commJs/index";
 import { publishHead, otherList } from "../../config/tabColumns/skuHead";
 import { uploadImage } from "@/pages/ozon/config/api/draft";
@@ -427,9 +434,11 @@ import ImageTranslation from "@/pages/ozon/config/component/skuDragImg/imageTran
 import { debounce, cloneDeep, pick } from "lodash";
 import batchSetColor from "../../editWaitProduct/comm/batchSetColor.vue";
 import download from '~@/api/common/download';
-import { imageUrlUpload,downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js'
+import { imageUrlUpload, downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js'
 import colorImgTranslation from "./colorImgTranslation.vue";
 import bacthEditColorImg from "./bacthEditColorImg.vue";
+
+const emit = defineEmits(["getAttributes"]);
 
 const props = defineProps({
   categoryAttributesLoading: Boolean,
@@ -507,13 +516,33 @@ const plainOptions = [
   },
 ];
 let otherHeader = otherList;
+const existSkuList = ref([]); // 现有产品数据回显
 const isConform = ref(false);
+const editRes = ref({})
 const headers = {
   Authorization: "Bearer " + useAuthorization().value,
 };
 const uploadUrl =
   import.meta.env.VITE_APP_BASE_API +
   "/platform-ozon/platform/ozon/file/upload/img";
+
+// 注入父组件数据
+const existProductData = inject('existProductData')
+
+// 监听数据变化- 现有产品数据处理
+watch(() => existProductData.value, (newVal) => {
+  const { account: shopCode, typeId, descriptionCategoryId } = newVal;
+  let categoryId = {
+    threeCategoryId: typeId,
+    threeCategoryName: "",
+    secondCategoryId: descriptionCategoryId,
+    label: undefined,
+    value: typeId,
+  };
+  if (newVal.attributes?.length == 0 || newVal.attributes == null) return;
+  emit("getAttributes", shopCode, categoryId);
+  existSkuList.value = newVal.attributes;
+}, { deep: true })
 
 const handleChangeColroImg = (info, record) => {
   if (info.file.status === "done") {
@@ -763,8 +792,6 @@ const removeVariantType = (item, index) => {
 };
 // 添加多个属性操作
 const addItem = (item, row) => {
-  console.log("//", item, row);
-
   let ele = {};
   if (isConform.value && item.id === 10096) {
     ele = {
@@ -807,28 +834,29 @@ const addItem = (item, row) => {
 
 // 移除多个属性操作
 const removeItem = (item, row) => {
-  console.log("removeItem", item, tableData.value);
   let ind = row.tableData.indexOf(item);
-  console.log("ind", ind);
-
   if (item.id === 10096 || item.name == "商品颜色(Цвет товара)") {
     row.tableData.splice(ind, 1);
   } else if (item.id === 4295 || item.name == "俄罗斯尺码") {
     row.tableData.splice(ind, 1);
   } else {
-    if (item.selectType === "select" || item.selectType === "input") {
-      row.tableData = row.tableData.filter(tableItem =>
-        tableItem.id !== item.id
-      );
-    } else {
-      // 获取需要排除的ID集合
-      const excludeIds = item.modelValue.map((mv) => mv.id); // [971918068]
-      // 过滤掉包含这些ID的项
-      row.tableData = row.tableData.filter((tableItem) => {
-        // 检查当前项的modelValue是否包含排除ID
-        return !tableItem.modelValue.some((mv) => excludeIds.includes(mv.id));
-      });
+    if (ind !== -1) {
+      row.tableData.splice(ind, 1);
     }
+    else
+      if (item.selectType === "select" || item.selectType === "input") {
+        row.tableData = row.tableData.filter(tableItem =>
+          tableItem.id !== item.id
+        );
+      } else {
+        // 获取需要排除的ID集合
+        const excludeIds = item.modelValue.map((mv) => mv.id); // [971918068]
+        // 过滤掉包含这些ID的项
+        row.tableData = row.tableData.filter((tableItem) => {
+          // 检查当前项的modelValue是否包含排除ID
+          return !tableItem.modelValue.some((mv) => excludeIds.includes(mv.id));
+        });
+      }
   }
   // const deletedLabels = item.selectType === 'multSelect'
   //   ? item.modelValue.map(v => v.label)
@@ -1241,7 +1269,7 @@ const handleExportAllImages = async () => {
       .map((imgItem) => imgItem
         .map((i) => i.url
           .replace(import.meta.env.VITE_APP_BASE_API, "")));
-    if(imageList.flat().length === 0) {
+    if (imageList.flat().length === 0) {
       message.warning('请先添加图片！');
       return;
     }
@@ -1497,25 +1525,328 @@ watch(
       if (requiredList.value.length != 0) {
         processDataFormat(requiredList.value);
       }
-      tableData.value.push({
-        skuTitle: "",
-        sellerSKU: "",
-        price: "",
-        oldPrice: "",
-        quantity: undefined,
-        warehouseList: [],
-        packageLength: undefined,
-        packageWidth: undefined,
-        packageHeight: undefined,
-        packageWeight: undefined,
-        imageUrl: [],
-        colorImg: [],
-        id: Math.random().toString(36).substring(2, 10),
-      });
+      // 引用现有产品数据回显处理
+      if (existSkuList.value.length != 0) {
+        const { oldPrice, price, stock, name, colorImage, warehouseList, offerId, images, primaryImage } = existProductData.value;
+        let sortArr = rearrangeColorFields(arr);
+        let result = [];
+        let attrHeaderList = [];
+        // 遍历b中的skuList
+        existSkuList.value.forEach((sku) => {
+          let newItem = {
+            oldPrice: oldPrice,
+            price: price,
+            quantity: stock,
+            packageHeight: sku.height,
+            packageLength: sku.depth,
+            packageWeight: sku.weight,
+            packageWidth: sku.width,
+            skuTitle: name,
+            colorImg: colorImage
+              ? [
+                {
+                  url: processImageSource(colorImage),
+                  name: colorImage.split("/").pop(),
+                },
+              ]
+              : [],
+            warehouseList: warehouseList?.map((item) => {
+              return {
+                ...item,
+                offerId: sku.offerId,
+              };
+            }),
+            sellerSKU: offerId,
+            imageUrl:
+              // 合并主图和其他图片，使用Set去重后生成对象数组
+              Array.from(
+                new Set([
+                  ...(primaryImage || []),  // 主图数组
+                  ...(images || [])         // 普通图片数组
+                ])
+              ).map(url => ({ url })) ?? [],
+          };
+
+          // 遍历a数组
+          sortArr.forEach((attr) => {
+            // 遍历sku的attributes中的每个attributes
+            sku.attributes.forEach((subAttr) => {
+              if (subAttr.id == attr.id) {
+                if (attr.selectType === "multSelect" && attr.options) {
+                  let values = subAttr.values.map((val) => {
+                    let option = attr.options.find(
+                      (opt) => opt.id == val.dictionaryValueId
+                    );
+                    return option ? option.value : val.value;
+                  });
+                  newItem[attr.name] = values.join(", ");
+                } else if (attr.selectType === "select" && attr.options) {
+                  let values = subAttr.values.map((val) => {
+                    let option = attr.options.find(
+                      (opt) => opt.id == val.dictionaryValueId
+                    );
+                    return option ? option.value : val.value;
+                  });
+                  newItem[attr.name] = values.join(", ");
+                } else {
+                  newItem[attr.name] = subAttr.values[0].value;
+                }
+                attrHeaderList.push({
+                  title: attr.name,
+                  dataIndex: attr.name,
+                  id: attr.id,
+                  show: true,
+                  align: "center",
+                });
+              }
+            });
+          });
+
+          result.push(newItem);
+        });
+        // 处理数据回显到表格
+        attrHeaderList = [
+          ...new Map(
+            attrHeaderList.map((item) => [item.dataIndex, item])
+          ).values(),
+        ];
+        const uniqueArr = [];
+        const titleSet = new Set();
+        [...attrHeaderList, ...headerList.value].forEach((item) => {
+          if (!titleSet.has(item.title)) {
+            titleSet.add(item.title);
+            uniqueArr.push(item);
+          }
+        });
+        console.log('uniqueArr',uniqueArr);
+
+        headerList.value = uniqueArr; //表格主题标题赋值
+        // imgHeaderList.value = attrHeaderList; //图片标题赋值
+        if (result.some((item) => item.colorImg.length !== 0)) {
+          headerList.value.unshift({
+            title: "颜色样本",
+            dataIndex: "colorImg",
+            selectType: "url",
+            type: 1,
+            show: true,
+            align: "center",
+          });
+          addHeaderList.value.push("colorImg");
+        }
+        if (result.some((item) => item.skuTitle !== null && item.skuTitle !== "") && result.length > 1) {
+          let skuIndex = headerList.value.findIndex(
+            (item) => item.title === "SKU"
+          );
+          let obj = {
+            title: "SKU标题",
+            dataIndex: "skuTitle",
+            selectType: "input",
+            type: 1,
+            options: null,
+            show: true,
+            align: "center",
+          }
+          headerList.value.splice(skuIndex + 1, 0, obj);
+          addHeaderList.value.push("skuTitle");
+          const ozonStore = useOzonProductStore()
+          ozonStore.$patch(state => {
+            state.addHeaderList = addHeaderList.value
+          })
+        }
+
+        tableData.value = result;
+        // 将不匹配的主题过滤掉
+        // console.log("sortArr", tableData.value);
+        // let comAttrList = [10096, 4295];
+        // let comAttrs = [10096, 10097];
+        // // 从数组 a 中提取所有的 id
+        // const idsInA = sortArr.map((item) => item.id);
+        // // 使用 every 方法检查 comAttrList 中的每个元素是否都在 idsInA 中
+        // const isAllMatched = comAttrList.every((id) => idsInA.includes(id)); //双组合主题
+        // const isAllMatche = comAttrs.some((id) => idsInA.includes(id)); //单组合主题
+        // let filteredB = sortArr.filter((itemB) =>
+        //   uniqueArr.some((itemA) => itemA.id === itemB.id)
+        // );
+        // console.log('isAllMatched1',isAllMatched);
+        console.log('sortArr',sortArr);
+        // console.log('filteredB', filteredB);
+        let echoThemeList = [];
+        let isModelValueList = [];
+        // 判断sortArr中是否有组合数据
+        // if (isAllMatched && isAllMatche) {
+        //   echoThemeList = handleTheme(filteredB); //handleTheme方法可以将属性转换成主题数据格式
+        // } else {
+        // }
+        isModelValueList = filterModelValues(sortArr, existSkuList.value);
+        echoThemeList = handleTheme(isModelValueList);
+        // console.log('echoThemeList',echoThemeList);
+
+        // 处理到数据回显到主题
+        const aIds = echoThemeList.map((item) => item.id);
+        // console.log('aIds', echoThemeList);
+        // 过滤 有数据的主题
+        themeBtns.value = themeBtns.value.filter(
+          (item) => !aIds.includes(item.id)
+        );
+        attributeList.value = matchAndAssignValues(echoThemeList, existSkuList.value);
+      } else {
+        tableData.value.push({
+          skuTitle: "",
+          sellerSKU: "",
+          price: "",
+          oldPrice: "",
+          quantity: undefined,
+          warehouseList: [],
+          packageLength: undefined,
+          packageWidth: undefined,
+          packageHeight: undefined,
+          packageWeight: undefined,
+          imageUrl: [],
+          colorImg: [],
+          id: Math.random().toString(36).substring(2, 10),
+        });
+      }
     }
   }
 );
+const filterModelValues = (a, b) => {
+  const allAttributeIds = b.flatMap((item) =>
+    item.attributes.map((attr) => attr.id)
+  );
+  // 过滤 sortArr 中匹配不上的项
+  const filteredSortArr = a.filter((item) => allAttributeIds.includes(item.id));
+  return filteredSortArr;
+};
+const matchAndAssignValues = (a, b) => {
+  // 遍历 a 数组的每个配置项
+  return a.map((aItem) => {
+    const isThemeData = checkThemeData(aItem.tableData);
+    const newTableData = b.map((bItem) => {
+      const tableDataTemplate = JSON.parse(JSON.stringify(aItem.tableData[0]));
+      const attributeId = tableDataTemplate.id;
+      const matchedAttribute = bItem.attributes.find(
+        (attr) => attr.id === attributeId
+      );
+      const secondAttr = bItem.attributes.find(
+        (attr) => attr.id === tableDataTemplate?.secondId
+      );
+      return processTableDataItem(
+        tableDataTemplate,
+        matchedAttribute,
+        secondAttr,
+        isThemeData
+      );
+    });
+    aItem.tableData = deduplicateTableData(newTableData, isThemeData);
+    return aItem;
+  });
+};
+// 对 tableData 进行去重
+const deduplicateTableData = (tableData, isThemeData) => {
+  if (isThemeData) {
+    return tableData.filter((item, index, self) => {
+      return !self.some((uniqueItem, uniqueIndex) => {
+        return (
+          uniqueIndex < index &&
+          uniqueItem.secondModelValue === item.secondModelValue &&
+          isArrayContentEqual(uniqueItem.modelValue, item.modelValue)
+        );
+      });
+    });
+  } else {
+    const valueMap = new Map();
+    return tableData.filter((item) => {
+      const key = JSON.stringify(item.modelValue);
+      if (!valueMap.has(key)) {
+        valueMap.set(key, true);
+        return true;
+      }
+      return false;
+    });
+  }
+};
+const checkThemeData = (data) => {
+  const hasColorName = data.some((item) => item.secondId === 10097);
+  const hasProductColor = data.some((item) => item.id === 10096);
+  const hasName = data.some((item) => item.secondId === 9533);
+  const hasColor = data.some((item) => item.id === 4295);
+  return (hasColorName && hasProductColor) || (hasName && hasColor);
+};
+// 处理单个 tableData 项
+const processTableDataItem = (
+  tableDataTemplate,
+  matchedAttribute,
+  secondAttr,
+  isThemeData
+) => {
+  if (isThemeData) {
+    if (matchedAttribute) {
+      tableDataTemplate.modelValue = tableDataTemplate.details.filter(
+        (itemA) => {
+          return matchedAttribute.values.some((itemB) => {
+            return itemA.id === itemB.dictionaryValueId;
+          });
+        }
+      );
+      tableDataTemplate.modelValue = removeDuplicatesByProperty(
+        tableDataTemplate.modelValue,
+        "id"
+      );
+    }
+    if (secondAttr) {
+      tableDataTemplate.secondModelValue = secondAttr.values[0].value;
+    }
+  } else {
+    if (tableDataTemplate.selectType === "input") {
+      if (matchedAttribute) {
+        tableDataTemplate.modelValue = matchedAttribute.values[0].value;
+      }
+    } else if (tableDataTemplate.selectType === "select") {
+      if (matchedAttribute) {
+        let themIds = matchedAttribute.values.map(
+          (item) => item.dictionaryValueId
+        );
+        const matchedValues = tableDataTemplate.details.filter((item) =>
+          themIds.includes(item.id)
+        );
+        tableDataTemplate.modelValue = {
+          label: matchedValues[0]?.label,
+          value: matchedValues[0]?.id,
+        };
+      }
+    } else {
+      if (matchedAttribute) {
+        // console.log("matchedAttribute",matchedAttribute);
+        let themIds = matchedAttribute.values.map(
+          (item) => item.dictionaryValueId
+        );
+        const matchedValues = tableDataTemplate.details.filter((item) =>
+          themIds.includes(item.id)
+        );
+        // removeDuplicatesByProperty 去重方法
+        const uniqueMatchedValues = removeDuplicatesByProperty(
+          matchedValues,
+          "value"
+        );
+        tableDataTemplate.modelValue = uniqueMatchedValues;
+      }
+    }
+  }
+  return tableDataTemplate;
+};
 
+// 对数组中的对象按指定属性去重
+const removeDuplicatesByProperty = (arr, property) => {
+  return arr.filter(
+    (value, index, self) =>
+      index === self.findIndex((t) => t[property] === value[property])
+  );
+};
+
+// 检查两个数组是否内容相同
+const isArrayContentEqual = (arr1, arr2) => {
+  return JSON.stringify(arr1) === JSON.stringify(arr2);
+};
 const submitForm = () => {
   // 参数校验
   if (tableData.value.length === 0) {

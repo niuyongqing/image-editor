@@ -132,6 +132,40 @@ const uploadVideoLoading = ref(false)
 
 const tempList = ref([])
 
+// 注入父组件数据
+const existProductData = inject('existProductData')
+
+// 监听数据变化
+watch(() => existProductData.value, (newVal) => {
+    const { attributes, complexAttributes } = newVal.attributes[0];
+    if (attributes?.length == 0 || attributes == null) return;
+        const copyAttr = attributes?.filter(
+            (a) => a.id == 11254 || a.id == 4191
+        );
+        console.log("copyAttr", copyAttr);
+
+        complexAttributes && complexAttributes.forEach((item) => {
+            // item.attributes.forEach((attr) => {
+            // });
+            if (item.id === 21841) {
+                form.video = item.values.map((e) => {
+                    return {
+                        url: processImageSource(e.value),
+                    }
+                })
+            } else if (item.id === 21845) {
+                form.coverUrl = processImageSource(item.values[0].value)
+            }
+        });
+        copyAttr.forEach(e => {
+            if (e.id === 11254) {
+                form.jsons = e.values[0].value || ""
+            } else {
+                form.description = e.values[0].value
+            }
+        })
+}, { deep: true })
+
 const handleChange = info => {
     if (info.file.status === 'done') {
         if (info.file.response.code == 200) {
