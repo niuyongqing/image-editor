@@ -130,7 +130,7 @@
                 </template>
               </a-dropdown>
 
-              <a-dropdown trigger="click">
+              <!-- <a-dropdown trigger="click">
                 <a-button
                   type="primary"
                   style="height: 32px; margin-left: 10px"
@@ -145,13 +145,9 @@
                       :platform="'public'"
                       @nodeClick="typeNodeClick"
                     ></typeTree>
-                    <!-- <typeTree v-model:current-class="currentClass" v-model:node-path="nodePath"
-                                            platform="ozon" @update:currentClass="updateCurrentClass" ref="typeTreeRef"
-                                            @nodeClick="typeNodeClick">
-                                        </typeTree> -->
                   </a-menu>
                 </template>
-              </a-dropdown>
+              </a-dropdown> -->
             </div>
             <div>
               <a-space>
