@@ -34,7 +34,7 @@ const submit = async () => {
     loading.value = true;
     try {
       let res = await batchUploadFromUrlApi({
-          imageList: form.imageUrl.trim().split('\n').join(',')
+          imageList: form.imageUrl.trim().split('\n')
       });
       if (res.code === 200) {
         emits('submit', res.data);
