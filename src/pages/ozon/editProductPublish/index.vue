@@ -2,7 +2,7 @@
     <div id="editProductPublishCont" class="pr-14">
         <div class="w-19/20">
             <div class="flex justify-end mt-5">
-                <a-button :loading="loading" size="middle" @click="showTempModal">存为模板</a-button>
+                <!-- <a-button :loading="loading" size="middle" @click="showTempModal">存为模板</a-button> -->
                 <a-button class="mx-2.5" @click="onSubmit(2)" size="middle">保存待发布</a-button>
                 <a-button type="primary" size="middle" @click="onSubmit(1)">更新</a-button>
             </div>
@@ -21,7 +21,7 @@
 
             </OzonVariantInfo>
             <div class="flex justify-end mr-5 mt-5">
-                <a-button :loading="loading" size="middle" @click="showTempModal">存为模板</a-button>
+                <!-- <a-button :loading="loading" size="middle" @click="showTempModal">存为模板</a-button> -->
                 <a-button :loading="loading" @click="onSubmit(2)" size="middle" class="ml-2.5">保存待发布</a-button>
                 <a-button type="primary" :loading="loading" size="middle" @click="onSubmit(1)" class="ml-2.5">更新</a-button>
             </div>
@@ -63,7 +63,7 @@ import OzonNewImageInfo from "./comm/OzonNewImageInfo.vue";
 import { useOzonProductStore } from '~@/stores/ozon-product'
 import {
     findFalseInArrayLikeObject, getInputValue, getSelectValue, getMultiSelectValue,
-    isNotEmpty, createAndUpdateBaseObj
+    isNotEmpty
 } from '~/pages/ozon/config/commJs/index';
 import { saveTowaitProduct } from "../config/api/waitProduct"
 import { message, Modal } from "ant-design-vue";
@@ -296,15 +296,24 @@ const onSubmit = async (type = 1) => {
             },
         ],
     };
+    const baseObj2 = {
+        complex_id: null,
+        id: null,
+        values: [
+            {
+                value: "",
+            },
+        ],
+    };
 
     if (image.coverUrl !== "" && image.video.length > 0) {
     // 创建video对应的baseObj副本并更新value值
-    let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
+    let videoBaseObj = JSON.parse(JSON.stringify(type === 1 ? baseObj : baseObj2));
     videoBaseObj = createAndUpdateBaseObj(image.coverUrl, 100002, 21845, type === 1 ? 1 : 2);
     newComplexAttributes.push(videoBaseObj);
 
     // 创建coverUrl对应的baseObj副本并更新value值
-    let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
+    let coverUrlBaseObj = JSON.parse(JSON.stringify(type === 1 ? baseObj : baseObj2));
     coverUrlBaseObj = createAndUpdateBaseObj(
       image.video,
       100001,
@@ -312,7 +321,7 @@ const onSubmit = async (type = 1) => {
     );
     newComplexAttributes.push(coverUrlBaseObj);
   } else if (image.coverUrl !== "") {
-    let coverUrlBaseObj = JSON.parse(JSON.stringify(baseObj));
+    let coverUrlBaseObj = JSON.parse(JSON.stringify(type === 1 ? baseObj : baseObj2));
     coverUrlBaseObj = createAndUpdateBaseObj(
       image.coverUrl,
       100002,
@@ -320,7 +329,7 @@ const onSubmit = async (type = 1) => {
     );
     newComplexAttributes.push(coverUrlBaseObj);
   } else if (image.video.length > 0) {
-    let videoBaseObj = JSON.parse(JSON.stringify(baseObj));
+    let videoBaseObj = JSON.parse(JSON.stringify(type === 1 ? baseObj : baseObj2));
     videoBaseObj = createAndUpdateBaseObj(image.video, 100001, 21841, type === 1 ? 1 : 2);
     newComplexAttributes.push(videoBaseObj);
   }
@@ -369,7 +378,7 @@ const onSubmit = async (type = 1) => {
                         item,
                         base,
                         createValueObj,
-                        2
+                        type
                     );
                     const filteredMSlect = mSlect.filter(
                         (obj) => obj.value || obj?.dictionary_value_id !== 0 || obj?.dictionaryValueid !== 0
@@ -510,6 +519,52 @@ const onSubmit = async (type = 1) => {
         });
     }
 }
+
+// 处理视频格式
+const createAndUpdateBaseObj = (targetObj, complexId, id, type) => {
+  // 统一属性命名格式
+  const keyStyle = type === 1 ? "snake" : "camel";
+
+  // 映射属性名
+  const keyMap = {
+    complexId: keyStyle === "snake" ? "complex_id" : "complexId",
+    dictionaryValueId:
+      keyStyle === "snake" ? "dictionary_value_id" : "dictionaryValueId",
+  };
+  // 100001 多个视频
+  // 100002 单个视频
+  // 通用值处理逻辑
+  const processValues = () => {
+    if (complexId === 100002) {
+      // return [{ [keyMap.dictionaryValueId]: 0, value: targetObj.replace('/prod-api', '') }];
+      return [
+        {
+          [keyMap.dictionaryValueId]: 0,
+          value: targetObj,
+        },
+      ];
+    }
+    return (Array.isArray(targetObj) ? targetObj : []).map((item) => ({
+      [keyMap.dictionaryValueId]: 0,
+      // value: item?.url?.replace('/prod-api', '') || null // 添加空值保护
+      value: item?.url || null,
+    }));
+  };
+
+  return type == 1 ? {
+    attributes: [
+      {
+        [keyMap.complexId]: complexId,
+        id: id,
+        values: processValues(),
+      },
+    ],
+  } : {
+    [keyMap.complexId]: complexId,
+    id: id,
+    values: processValues(),
+  };
+};
 
 const handleCancel = () => {
     publishVis.value = false

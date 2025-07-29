@@ -2,16 +2,16 @@
   <div id="editWaitProductCont" class="pr-14">
     <div class="w-19/20">
       <div class="flex justify-end mt-5">
-        <a-button class="mx-2.5" :loading="loading" size="middle" @click="showTempModal">存为模板</a-button>
+        <!-- <a-button class="mx-2.5" :loading="loading" size="middle" @click="showTempModal">存为模板</a-button> -->
         <a-dropdown size="middle">
           <template #overlay>
             <a-menu @click="handleMenuClick">
-              <!-- <a-menu-item key="1">
+              <a-menu-item key="1">
                 引用现有产品
-              </a-menu-item> -->
-              <a-menu-item key="2">
-                引用产品模板
               </a-menu-item>
+              <!-- <a-menu-item key="2">
+                引用产品模板
+              </a-menu-item> -->
               <!-- <a-menu-item key="3" :disabled="!formData.shortCode"> 
                 引用资料库产品
               </a-menu-item> -->
@@ -39,16 +39,16 @@
       <OzonNewVariantInfo ref="ozonNewVariantInfoRef" id="ozonNewVariantInfo" :productDetail="productDetail"
         :shopCode="formData.shortCode" class="mt-5" @getAttributes="getAttributes"></OzonNewVariantInfo>
       <div class="flex justify-end mt-5">
-        <a-button class="mx-2.5" :loading="loading" size="middle" @click="showTempModal">存为模板</a-button>
+        <!-- <a-button class="mx-2.5" :loading="loading" size="middle" @click="showTempModal">存为模板</a-button> -->
         <a-dropdown size="middle">
           <template #overlay>
             <a-menu @click="handleMenuClick">
-              <!-- <a-menu-item key="1">
+              <a-menu-item key="1">
                 引用现有产品
-              </a-menu-item> -->
-              <a-menu-item key="2">
-                引用产品模板
               </a-menu-item>
+              <!-- <a-menu-item key="2">
+                引用产品模板
+              </a-menu-item> -->
               <!-- <a-menu-item key="3" :disabled="!formData.shortCode">
                 引用资料库产品
               </a-menu-item> -->
@@ -97,6 +97,9 @@
         class="pages" :show-quick-jumper="true" @change="getTemplateList" :showSizeChanger="true"
         :pageSizeOptions="[50, 100, 200]" />
     </a-modal>
+
+    <!-- 现有产品 -->
+    <existingProducts ref="existProduct" @handleSelect="handleSelect"></existingProducts>
   </div>
 </template>
 
@@ -114,6 +117,7 @@ import {
 } from '~/pages/ozon/config/commJs/index';
 import { message } from "ant-design-vue";
 import { DownOutlined, ArrowRightOutlined, SettingOutlined } from '@ant-design/icons-vue';
+import existingProducts from "../common/existingProducts/index.vue";
 
 const ozonBaseInfoRef = ref(null)
 const ozonImageInfoRef = ref(null)
@@ -168,6 +172,8 @@ const columns = [
   },
 ]
 const dataSource = ref([])
+const existProduct = ref(null)
+const existProductData = ref({})
 const paginations = reactive({
   pageNum: 1,
   pageSize: 10,
@@ -176,6 +182,13 @@ const paginations = reactive({
 const formData = reactive({
   shortCode: ""
 })
+
+provide('existProductData', existProductData)
+
+const handleSelect = (record) => {
+  existProductData.value = record;
+}
+
 const backToTop = () => {
   let elements = document.getElementsByClassName('ant-layout-content');
   if (elements) {
@@ -192,7 +205,7 @@ const scroll = (id) => {
 const getProductDetail = (waitId, account) => {
   ozonProductDetail({ account, waitId }).then(res => {
     productDetail.value = res?.data ?? {}
-    getAttributes(res?.data.account, res?.data)
+    getAttributes(res?.data?.account, res?.data)
   })
 }
 
@@ -266,7 +279,9 @@ const closeModal = () => {
 
 // 引用产品
 const handleMenuClick = (e) => {
-  if (e.key === '2') {
+  if (e.key === '1') {
+    existProduct.value.modalOpenFn();
+  } else if (e.key === '2') {
     if (!formData.shortCode) {
       message.error("请先选择店铺！");
       return
@@ -356,9 +371,9 @@ const onSubmit = async (type) => {
   let base = ozonBaseInfoRef.value.form;
   let image = ozonImageInfoRef.value.form;
   let tableDatas = ozonNewVariantInfoRef.value.tableData;
-  console.log('base', base);
-  console.log('image', image);
-  console.log('tableDatas', tableDatas);
+  // console.log('base', base);
+  // console.log('image', image);
+  // console.log('tableDatas', tableDatas);
 
   //! 过滤一些属性
   const newList = attributes.value.filter(
@@ -384,15 +399,11 @@ const onSubmit = async (type) => {
   let newComplexAttributes = [];
   //! 判断视频有没有上传
   const baseObj = {
-    attributes: [
+    complexId: null,
+    id: null,
+    values: [
       {
-        complexId: null,
-        id: null,
-        values: [
-          {
-            value: "",
-          },
-        ],
+        value: "",
       },
     ],
   };

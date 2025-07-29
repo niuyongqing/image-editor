@@ -423,8 +423,68 @@
           </template>
         </a-table>
       </a-card>
-      <!-- 图片信息 -->
-      <ImageInfo :data-source="tableData" />
+      <a-card
+        title="变种图片"
+        class="text-left mx-50 mt-5"
+      >
+        <div>
+          <div
+            v-for="item in tableData"
+            :key="item.id"
+          >
+            <div v-if="tableData.length > 0">
+              <a-card class="mb-2.5 ml-2.5">
+                <div>
+                  <a-tag color="warning">！说明</a-tag>
+                  <span style="color: #9fa0a2">
+                    第一张图片默认为主图，点击图片拖动，即可调整图片顺序！
+                    单张不超过2M，只支持jpg、.png、.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3：4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)</span
+                  >
+                </div>
+
+                <!-- <span v-if="item.imageUrl" class="block mt-2.5">{{ item.imageUrl.length
+                                }}/30</span> -->
+                <SkuDragUpload
+                  v-model:file-list="item.imageUrl"
+                  :maxCount="30"
+                  :showUploadList="false"
+                  accept=".jpg,.png"
+                  :api="uploadImage"
+                  :waterList="watermark"
+                >
+                  <template #default>
+                    <div
+                      flex
+                      flex-col
+                      w-full
+                      justify-start
+                      mb-4px
+                      text-left
+                    >
+                      <p>
+                        <a-tag color="#00AEB3">说明！</a-tag>
+                        <span class="text-#999"> 第一张图片默认为主图，点击图片拖动，即可调整图片顺序。只能对本地上传的图片进行添加水印和修改尺寸 </span>
+                      </p>
+                    </div>
+                  </template>
+                  <template #variantInfo>
+                    <!-- <div v-if="lazadaAttrsState.selectTheme.length === 1">
+                                            {{ variantInfo(item) }}
+                                        </div>
+                                        <div text-left v-if="lazadaAttrsState.selectTheme.length === 2">
+                                            <p pb-1px mb-0> {{ variantInfo(item) }} </p>
+                                            <p> {{ variantInfoTwo(item) }} </p>
+                                        </div> -->
+                  </template>
+                  <template #skuInfo>
+                    {{ `【${item.imageUrl.length}/30】图片 ` }}
+                  </template>
+                </SkuDragUpload>
+              </a-card>
+            </div>
+          </div>
+        </div>
+      </a-card>
     </a-card>
     <!-- 修改库存 -->
     <EditProdQuantity
@@ -452,7 +512,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup name="OzonNewVariantInfo">
   import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
   import AsyncIcon from '~/layouts/components/menu/async-icon.vue'
   import { message, Modal } from 'ant-design-vue'
@@ -482,7 +542,6 @@
   import { uploadImage } from '@/pages/ozon/config/api/draft'
   import SkuDragUpload from '@/components/skuDragUpload/index.vue'
   import { debounce } from 'lodash'
-  import ImageInfo from '@/pages/ozon/config/component/image-info/index.vue'
 
   const props = defineProps({
     categoryAttributesLoading: Boolean,
@@ -735,7 +794,9 @@
     } else if (item.id === 4295 || item.name == '俄罗斯尺码') {
       row.tableData.splice(ind, 1)
     } else {
-      if (item.selectType === 'select' || item.selectType === 'input') {
+      if (ind !== -1) {
+        row.tableData.splice(ind, 1)
+      } else if (item.selectType === 'select' || item.selectType === 'input') {
         row.tableData = row.tableData.filter(tableItem => tableItem.id !== item.id)
       } else {
         // 获取需要排除的ID集合
@@ -749,19 +810,54 @@
     }
 
     // 获取所有需要删除的标签
-    const deletedLabels = item.selectType === 'multSelect' ? item.modelValue.map(v => v.label) : []
-    let newData = tableData.value.filter(row => {
-      // 检查行数据是否包含要删除的属性值
-      return !Object.values(row).some(value => {
-        if (item.selectType === 'multSelect') {
-          // 统一处理数组和字符串类型的值
-          const currentValues = Array.isArray(value) ? value.map(v => v?.label || '') : String(value || '').split(',')
-          return currentValues.some(v => deletedLabels.includes(v))
-        }
-        return item.selectType === 'input' ? row.attrIdList.includes(item.id) : item.selectType === 'select' ? value === item?.modelValue?.label : false
-      })
-    })
+    // const deletedLabels = item.selectType === 'multSelect'
+    //   ? item.modelValue.map(v => v.label)
+    //   : [];
+    // let newData = tableData.value.filter(row => {
+    //   // 检查行数据是否包含要删除的属性值
+    //   return !Object.values(row).some(value => {
+    //     if (item.selectType === 'multSelect') {
+    //       // 统一处理数组和字符串类型的值
+    //       const currentValues = Array.isArray(value)
+    //         ? value.map(v => v?.label || '')
+    //         : String(value || '').split(',');
+    //       return currentValues.some(v => deletedLabels.includes(v));
+    //     }
+    //     return item.selectType === 'input' ? row.attrIdList.includes(item.id)
+    //       : item.selectType === 'select' ? value === item?.modelValue?.label
+    //         : false;
+    //   });
+    // });
+    const deletedLabels =
+      item.selectType === 'multSelect'
+        ? item.modelValue.map(v => v.label?.trim()) // 增加trim处理
+        : []
+    const deletedSet = new Set(deletedLabels) // 改用Set提高查询效率
 
+    let newData = tableData.value.filter(row => {
+      // 直接访问对应属性
+      // const rowValue = row[item.name];
+      // if (item.selectType === 'select' || item.selectType === 'input') {
+      //   return !row.attrIdList?.some(id => id === item.id);
+      // } else {
+      //   return !deletedLabels?.some(val => val === rowValue)
+      // }
+      const rowValue = String(row[item.name] || '')
+      const inputValue = String(item.modelValue || '')
+
+      if (item.selectType === 'select') {
+        // 选择类型使用ID过滤
+        return !(Array.isArray(row.attrIdList) && row.attrIdList.some(id => id === item.id))
+      } else if (item.selectType === 'input') {
+        // input类型同时检查ID和输入值
+        const hasId = Array.isArray(row.attrIdList) && row.attrIdList.some(id => id === item.id)
+        const valueMatch = rowValue === inputValue
+        return !(hasId || valueMatch)
+      } else {
+        // 多选类型使用标签过滤
+        return !deletedLabels?.some(val => val != null && String(val) === rowValue)
+      }
+    })
     tableData.value = newData
   }
 
@@ -775,7 +871,6 @@
     // 处理表格数据
     let cartesianProducts = cartesianProduct(attributeList.value)
     let newTableData = processResult(cartesianProducts)
-
     let minLength = Math.min(newTableData.length, tableData.value.length)
     for (let i = 0; i < minLength; i++) {
       // 将b数组中对应下标的数据赋值到a数组中
