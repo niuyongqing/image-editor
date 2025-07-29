@@ -1742,16 +1742,24 @@ watch(
             };
           }),
           sellerSKU: sku.offerId,
-          imageUrl: sku.primaryImage?.length > 0 ?
-            [
-              ...sku.primaryImage.map(url => ({ url })),  // 将主图放在前面
-              ...(sku.images || []).map(item => ({ url: item }))  // 合并其他图片
-            ] :
-            sku.images?.map((item) => {
-              return {
-                url: item,
-              };
-            }) ?? [],
+          // imageUrl: sku.primaryImage?.length > 0 ?
+          //   [
+          //     ...sku.primaryImage.map(url => ({ url })),  // 将主图放在前面
+          //     ...(sku.images || []).map(item => ({ url: item }))  // 合并其他图片
+          //   ] :
+          //   sku.images?.map((item) => {
+          //     return {
+          //       url: item,
+          //     };
+          //   }) ?? [],
+          imageUrl: 
+            // 合并主图和其他图片，使用Set去重后生成对象数组
+            Array.from(
+              new Set([
+                ...(sku.primaryImage || []),  // 主图数组
+                ...(sku.images || [])         // 普通图片数组
+              ])
+            ).map(url => ({ url })) ?? [],
         };
 
         // 遍历a数组
@@ -1856,15 +1864,22 @@ watch(
       let filteredB = sortArr.filter((itemB) =>
         uniqueArr.some((itemA) => itemA.id === itemB.id)
       );
-      // console.log('isAllMatched',isAllMatched);
+      // console.log('isAllMatched1',isAllMatched);
+      // console.log('isAllMatche2',isAllMatche);
       // console.log('filteredB', filteredB);
       let echoThemeList = [];
       let isModelValueList = [];
       // 判断sortArr中是否有组合数据
-      if (isAllMatched) {
-        echoThemeList = handleTheme(sortArr); //handleTheme方法可以将属性转换成主题数据格式
-      } else if (isAllMatche) {
-        echoThemeList = handleTheme(filteredB);
+      // if (isAllMatched) {
+      //   echoThemeList = handleTheme(sortArr); //handleTheme方法可以将属性转换成主题数据格式
+      // } else if (isAllMatche) {
+      //   echoThemeList = handleTheme(filteredB);
+      // } else {
+      //   isModelValueList = filterModelValues(sortArr, skuList);
+      //   echoThemeList = handleTheme(isModelValueList);
+      // }
+      if (isAllMatched || isAllMatche) {
+        echoThemeList = handleTheme(filteredB); //handleTheme方法可以将属性转换成主题数据格式
       } else {
         isModelValueList = filterModelValues(sortArr, skuList);
         echoThemeList = handleTheme(isModelValueList);

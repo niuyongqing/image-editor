@@ -16,7 +16,7 @@
                 <a-form-item label="JSON 丰富内容：" name="jsonDes">
                     <span style="color: #ff0a37">说明：描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M</span>
                     <a-form-item-rest>
-                        <jsonForm @backResult="backResult" :jsonContent="form.jsons" :shop="shopCode"></jsonForm>
+                        <jsonForm @backResult="backResult" :jsonContent="form.jsons" :shop="shopCode" @clear="form.jsons = ''"></jsonForm>
                     </a-form-item-rest>
                 </a-form-item>
             </a-form>
@@ -110,7 +110,7 @@ defineExpose({
 })
 
 const backResult = (res) => {
-    form.jsons = res
+    form.jsons = JSON.stringify(res)
 }
 const removeDescription = () => {
     form.description = "";

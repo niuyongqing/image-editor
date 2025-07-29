@@ -75,7 +75,7 @@
     </div>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import SideBar from './components/sideBar.vue';
 import { accountCache } from "../config/api/product";
 import { templateList, templateDelete } from "../config/api/userTemplate";

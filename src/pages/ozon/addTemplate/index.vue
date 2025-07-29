@@ -52,7 +52,7 @@ import {
 } from '~/pages/ozon/config/commJs/index';
 import {
     getInputValue, getSelectValue, getMultiSelectValue,
-} from './commJs/index';
+} from '~/pages/ozon/editTemplate/commJs/index';
 
 import { saveTowaitProduct } from "../config/api/waitProduct"
 import { message, Modal } from "ant-design-vue";
@@ -207,6 +207,8 @@ const onSubmit = async () => {
         );
         const addHeaderList = useOzonProductStore().addHeaderList;
         const resItem = tableData.map((item) => {
+            console.log("item", item);
+            
             const moditAttributes = [];
             const getDictionaryIdKey = 'dictionaryValueId';
             const getComplexIdKey = 'complexId';

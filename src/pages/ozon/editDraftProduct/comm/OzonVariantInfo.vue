@@ -646,7 +646,7 @@
   import { uploadImage } from '@/pages/ozon/config/api/draft'
   import { DownOutlined, DownloadOutlined } from '@ant-design/icons-vue'
   import { downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js'
-  import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
+  import { batchUploadFromUrlApi } from '@/api/common/upload'
   import download from '~@/api/common/download'
 
   import SkuDragUpload from '@/pages/ozon/config/component/skuDragImg/index.vue'
@@ -976,8 +976,8 @@
         modelValue: item.selectType === 'multSelect' ? [] : undefined,
         selectType: item.selectType,
         details: item.details,
-        secondName: '制造商尺码(Размер производителя)',
-        '制造商尺码(Размер производителя)': '制造商尺码(Размер производителя)',
+        secondName: "由制造商规定尺码(Размер производителя)",
+        "由制造商规定尺码(Размер производителя)": "由制造商规定尺码(Размер производителя)",
         secondId: 9533,
         secondModelValue: ''
       }
@@ -1278,98 +1278,47 @@
   }
 
   // 点击水印
-  const handleWatermark = async item => {
+  const handleWatermark = async watermark => {
     for (const tabbleItem of tableData.value) {
       const fileList = tabbleItem.imageUrl || []
       if (fileList.length === 0) {
         continue
       }
+      // 本地图片
+      const imgLocalList = fileList.filter(item => !item.url.includes('http')).map((img) => img.url);
+      // 远端图片; 拿 url 先上传本地服务后再处理
       const netPathList = fileList
         .filter(file => file.url.includes('http'))
         .map(item => {
           return item.url
         })
-      // 只有本地图片
-      if (netPathList.length === 0) {
-        const imagePathList = fileList
-          .filter(file => !file.url.includes('http'))
-          .map(item => {
-            return item.url
+      // 有本地图片
+      if (imgLocalList.length) {
+        try {
+          const waterRes = await watermarkApi({
+            imagePathList: imgLocalList, //
+            id: watermark.id
           })
-        const waterRes = await watermarkApi({
-          imagePathList: imagePathList, //
-          id: item.id
-        })
-        if (waterRes.code === 200) {
-          const data = waterRes.data || []
-          data.forEach(item => {
-            fileList.forEach(v => {
-              if (item.originalFilename === v.url) {
-                v.url = item.url
-                v.name = item.newFileName
-                v.checked = false
-              }
-            })
-          })
-        }
-      } else {
-        // 有网络图片
-        const fileList = tabbleItem.imageUrl || []
-        for (let index = 0; index < fileList.length; index++) {
-          const fileItem = fileList[index]
-          try {
-            let netImgs = []
-            const url = fileItem.url
-            if (url.includes('http')) {
-              let res = await imageUrlUpload({ url })
-              netImgs.push(res.data)
-              fileList.forEach(i => {
-                if (i.url === url) {
-                  i.url = res.data.url
+          if (waterRes.code === 200) {
+            const data = waterRes.data || []
+            data.forEach(item => {
+              fileList.forEach(v => {
+                if (item.originalFilename === v.url) {
+                  v.url = item.url
+                  v.name = item.newFileName
+                  v.checked = false
                 }
               })
-              const waterRes = await watermarkApi({
-                imagePathList: netImgs.map(img => img.url),
-                id: item.id
-              })
-              if (waterRes.code === 200) {
-                const data = waterRes.data || []
-                data.forEach(_item => {
-                  fileList.forEach(v => {
-                    if (_item.originalFilename.includes(v.url)) {
-                      v.url = _item.url
-                      v.name = _item.newFileName
-                      v.checked = false
-                    }
-                  })
-                })
-              }
-            } else {
-              const imagePathList = fileList
-                .filter(file => !file.url.includes('http'))
-                .map(item => {
-                  return item.url
-                })
-              const waterRes = await watermarkApi({
-                imagePathList: imagePathList, //
-                id: item.id
-              })
-              if (waterRes.code === 200) {
-                const data = waterRes.data || []
-                data.forEach(item => {
-                  fileList.forEach(v => {
-                    if (item.originalFilename === v.url) {
-                      v.url = item.url
-                      v.name = item.newFileName
-                      v.checked = false
-                    }
-                  })
-                })
-              }
-            }
-          } catch (error) {
-            console.error(error)
+            })
           }
+        } catch (error) { }
+      }
+
+      if (netPathList.length) {
+        // 有网络图片
+        try {
+        } catch (error) {
+          console.error(error)
         }
       }
     }
@@ -1551,6 +1500,7 @@
             packageLength: sku.depth,
             packageWeight: sku.weight,
             packageWidth: sku.width,
+            skuTitle: sku.name,
             colorImg: sku?.colorImage
               ? [
                   {
@@ -1664,13 +1614,19 @@
         let echoThemeList = []
         let isModelValueList = []
         // 判断sortArr中是否有组合数据
-        if (isAllMatched) {
-          echoThemeList = handleTheme(sortArr) //handleTheme方法可以将属性转换成主题数据格式
-        } else if (isAllMatche) {
-          echoThemeList = handleTheme(filteredB)
+        // if (isAllMatched) {
+        //   echoThemeList = handleTheme(sortArr) //handleTheme方法可以将属性转换成主题数据格式
+        // } else if (isAllMatche) {
+        //   echoThemeList = handleTheme(filteredB)
+        // } else {
+        //   isModelValueList = filterModelValues(sortArr, skuList)
+        //   echoThemeList = handleTheme(isModelValueList)
+        // }
+        if (isAllMatched || isAllMatche) {
+          echoThemeList = handleTheme(filteredB); //handleTheme方法可以将属性转换成主题数据格式
         } else {
-          isModelValueList = filterModelValues(sortArr, skuList)
-          echoThemeList = handleTheme(isModelValueList)
+          isModelValueList = filterModelValues(sortArr, skuList);
+          echoThemeList = handleTheme(isModelValueList);
         }
         // 处理到数据回显到主题
         const aIds = echoThemeList.map(item => item.id)

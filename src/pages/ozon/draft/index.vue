@@ -1,8 +1,8 @@
 <template>
   <div flex>
-    <div w-280px>
+    <!-- <div w-280px>
       <draftSidebar :totalCount="totalCount" :publishFailedCount="publishFailedCount" @draftUpdateClass="draftUpdateClass" />
-    </div>
+    </div> -->
     <div flex-1>
       <a-breadcrumb
         separator=">"
@@ -643,13 +643,13 @@
   const selectAll = () => {
     formData.account = ''
     getList()
-    getGroupProductCount()
+    // getGroupProductCount()
   }
   const selectItem = val => {
     clearSelectList()
     formData.account = val
     getList()
-    getGroupProductCount()
+    // getGroupProductCount()
   }
 
   // 搜索内容
@@ -695,7 +695,7 @@
       if (res.data) {
         shopAccount.value = res?.data ?? []
         getList()
-        getGroupProductCount()
+        // getGroupProductCount()
       }
     })
   }

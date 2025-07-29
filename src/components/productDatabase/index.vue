@@ -9,109 +9,123 @@
     width="95%"
   >
     <div class="dialog-box">
-      <a-form :model="formData" layout="inline" :label-col="{ span: 6 }">
-        <div class="formItem-row">
-          <a-form-item label="产品分类" name="classify">
-            <a-cascader 
-              placeholder="产品分类" 
-              allowClear 
-              v-model:value="formData.classify" 
-              :options="commodityTypeList"
-              :allow-clear="true" 
-              :field-names="{ label: 'label', value: 'value', children: 'children' }" 
-            />
-          </a-form-item>
-          <a-form-item label="完成状态" name="status">
-            <a-select 
-              v-model:value="formData.status" 
-              :options="storeStatus" 
-              placeholder="完成状态" 
-              allowClear
-            ></a-select>
-          </a-form-item>
-          <a-form-item label="禁售站点" name="meansForbidSite">
-            <a-select 
-              v-model:value="formData.meansForbidSite" 
-              :options="sheepProhibitionSelect" 
-              placeholder="禁售站点"
-              allowClear
-            ></a-select>
-          </a-form-item>
-          <a-form-item label="禁售属性" name="meansForbidAttribute">
-            <a-select 
-              :options="forbidSaleList" 
-              placeholder="禁售属性" 
-              v-model:value="formData.meansForbidAttribute"
-              show-search
-              :filter-option="meansForbidAttributeFilterOption"
-              :field-names="{ label: 'attributes', value: 'key' }" 
-              allowClear
-            ></a-select>
-          </a-form-item>
-        </div>
-        <div class="formItem-row">
-          <a-form-item label="仓储类别" name="preciseMeansKeepGrain">
-            <a-select 
-              v-model:value="formData.preciseMeansKeepGrain" 
-              :options="meansKeepGrains"
-              placeholder="仓储类别"
-              allowClear
-            ></a-select>
-          </a-form-item>
-          <a-form-item label="市场方向" name="devAttributableMarket">
-            <a-select 
-              v-model:value="formData.devAttributableMarket" 
-              :options="devAttributableMarketRevertSelect"
-              placeholder="市场方向" 
-              allowClear
-            ></a-select>
-          </a-form-item>
-          <a-form-item label="成本筛选" name="skuCosts">
-            <a-form-item-rest>
-              <div style="display: flex;justify-content: flex-start;align-items: center;font-size: 14px;">
-                <a-input-number placeholder="最小值" v-model:value="formData.skuCostsMin" style="width: 100px;"
-                  :controls="false" />
-                <div style="margin: 0 5px">-</div>
-                <a-input-number placeholder="最大值" v-model:value="formData.skuCostsMax" style="width: 100px;"
-                  :controls="false" />
-              </div>
-            </a-form-item-rest>
-          </a-form-item>
-          <a-form-item label="审核时间" name="meansAuditTime">
-            <a-range-picker v-model:value="formData.meansAuditTime" allowClear />
-          </a-form-item>
-        </div>
-        <div class="formItem-row">
-          <a-form-item label="重量筛选" name="skuWeight">
-            <a-form-item-rest>
-              <div style="display: flex;justify-content: flex-start;align-items: center;font-size: 14px;">
-                <a-input-number placeholder="最小值" v-model:value="formData.skuWeightMin" style="width: 100px;"
-                  :controls="false" />
-                <div style="margin: 0 5px">-</div>
-                <a-input-number placeholder="最大值" v-model:value="formData.skuWeightMax" style="width: 100px;"
-                  :controls="false" />
-              </div>
-            </a-form-item-rest>
-          </a-form-item>
-          <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
-            <a-form-item-rest>
-              <div flex gap-10px style="width: 800px;">
-                <a-input v-model:value="formData.tradeName" placeholder="分词查找产品名称" />
-                <a-input v-model:value="formData.developPerson" placeholder="开发人员"></a-input>
-                <a-input v-model:value="formData.accurateTradeName" placeholder="商品名"></a-input>
-                <a-input v-model:value="formData.sku" placeholder="SKU"></a-input>
-                <a-input v-model:value="formData.description" placeholder="描述"> </a-input>
-              </div>
-            </a-form-item-rest>
-          </a-form-item>
-          <div class="formItem-row-i right">
-            <a-space>
-              <a-button key="submit" type="primary" @click="onSubmit">查询</a-button>
-              <a-button key="submit" @click="resetForm">重置</a-button>
-            </a-space>
+      <a-card class="mt-2.5">
+        <a-form :model="formData" layout="inline" :label-col="{ span: 6 }">
+          <div class="formItem-row">
+            <a-form-item label="产品分类" name="classify">
+              <a-cascader 
+                placeholder="产品分类" 
+                allowClear 
+                v-model:value="formData.classify" 
+                :options="commodityTypeList"
+                :allow-clear="true" 
+                :field-names="{ label: 'label', value: 'value', children: 'children' }" 
+              />
+            </a-form-item>
+            <a-form-item label="完成状态" name="status">
+              <a-select 
+                v-model:value="formData.status" 
+                :options="storeStatus" 
+                placeholder="完成状态" 
+                allowClear
+              ></a-select>
+            </a-form-item>
+            <a-form-item label="禁售站点" name="meansForbidSite">
+              <a-select 
+                v-model:value="formData.meansForbidSite" 
+                :options="sheepProhibitionSelect" 
+                placeholder="禁售站点"
+                allowClear
+              ></a-select>
+            </a-form-item>
+            <a-form-item label="禁售属性" name="meansForbidAttribute">
+              <a-select 
+                :options="forbidSaleList" 
+                placeholder="禁售属性" 
+                v-model:value="formData.meansForbidAttribute"
+                show-search
+                :filter-option="meansForbidAttributeFilterOption"
+                :field-names="{ label: 'attributes', value: 'key' }" 
+                allowClear
+              ></a-select>
+            </a-form-item>
           </div>
-        </div>
-      </a-form>
+          <div class="formItem-row">
+            <a-form-item label="仓储类别" name="meansKeepGrain">
+              <a-form-item-rest>
+                <div style="display: flex;">
+                  <a-select 
+                    v-model:value="formData.meansKeepGrain" 
+                    :options="meansKeepGrains"
+                    placeholder="仓储类别"
+                    allowClear
+                  ></a-select>
+                  <a-select 
+                    v-model:value="formData.preciseMeansKeepGrain" 
+                    placeholder=""
+                    style="width: 120px;"
+                  >
+                    <a-select-option :value="true">精确查询</a-select-option>
+                    <a-select-option :value="false">模糊查询</a-select-option>
+                  </a-select>
+                </div>
+              </a-form-item-rest>
+            </a-form-item>
+            <a-form-item label="市场方向" name="devAttributableMarket">
+              <a-select 
+                v-model:value="formData.devAttributableMarket" 
+                :options="devAttributableMarketRevertSelect"
+                placeholder="市场方向" 
+                allowClear
+              ></a-select>
+            </a-form-item>
+            <a-form-item label="成本筛选" name="skuCosts">
+              <a-form-item-rest>
+                <div style="display: flex;justify-content: flex-start;align-items: center;font-size: 14px;">
+                  <a-input-number placeholder="最小值" v-model:value="formData.skuCostsMin" style="width: 100px;"
+                    :controls="false" />
+                  <div style="margin: 0 5px">-</div>
+                  <a-input-number placeholder="最大值" v-model:value="formData.skuCostsMax" style="width: 100px;"
+                    :controls="false" />
+                </div>
+              </a-form-item-rest>
+            </a-form-item>
+            <a-form-item label="审核时间" name="meansAuditTime">
+              <a-range-picker v-model:value="formData.meansAuditTime" allowClear />
+            </a-form-item>
+          </div>
+          <div class="formItem-row">
+            <a-form-item label="重量筛选" name="skuWeight">
+              <a-form-item-rest>
+                <div style="display: flex;justify-content: flex-start;align-items: center;font-size: 14px;">
+                  <a-input-number placeholder="最小值" v-model:value="formData.skuWeightMin" style="width: 100px;"
+                    :controls="false" />
+                  <div style="margin: 0 5px">-</div>
+                  <a-input-number placeholder="最大值" v-model:value="formData.skuWeightMax" style="width: 100px;"
+                    :controls="false" />
+                </div>
+              </a-form-item-rest>
+            </a-form-item>
+            <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
+              <a-form-item-rest>
+                <div flex gap-10px style="width: 800px;">
+                  <a-input v-model:value="formData.tradeName" placeholder="分词查找产品名称" />
+                  <a-input v-model:value="formData.developPerson" placeholder="开发人员"></a-input>
+                  <a-input v-model:value="formData.accurateTradeName" placeholder="商品名"></a-input>
+                  <a-input v-model:value="formData.sku" placeholder="SKU"></a-input>
+                  <a-input v-model:value="formData.description" placeholder="描述"> </a-input>
+                </div>
+              </a-form-item-rest>
+            </a-form-item>
+            <div class="formItem-row-i right">
+              <a-space>
+                <a-button key="submit" type="primary" @click="onSubmit">查询</a-button>
+                <a-button key="submit" @click="resetForm">重置</a-button>
+              </a-space>
+            </div>
+          </div>
+        </a-form>
+      </a-card>
       <br>
       <a-table 
         :columns="header" 
@@ -267,7 +281,8 @@ const { state: formData, reset } = useResetReactive({
   status: '',                         // 状态
   meansForbidSite: undefined,         // 禁售站点
   meansForbidAttribute: undefined,    // 禁售属性
-  preciseMeansKeepGrain: undefined,   // 仓储类型
+  preciseMeansKeepGrain: false,   // 是否精确查询仓储类型
+  meansKeepGrain: '',                 // 仓储类型 
   devAttributableMarket: undefined,   // 市场方向
   skuCostsMin: "",                    // 最小成本
   skuCostsMax: '',                    // 最大成本

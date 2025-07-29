@@ -142,10 +142,20 @@ function openFn() {
   // formData.detailDesc = `<p>${detailDesc}</p>`
   // // formData.detailDesc = props.productData.detailDesc.includes('<iframe') ? '' : props.productData.detailDesc.replaceAll('\"', '"').replaceAll('&#10;', '\n').replaceAll('&amp;', '&')
   formData.detailImageList = [...props.productData.detailImageList]
-  // return;
+  // // 处理懒加载图片src问题
+  // let divDom = document.createElement('div')
+  // divDom.innerHTML = `<p>${detailDesc}</p>`
+  // let imageList = [...divDom.querySelectorAll('.richtext-lazyload')]
+  // imageList.forEach(img => {
+  //   img.src = (img.dataset.src || img.src)
+  // })
+
+  // console.log({divDom, imageList});
+  // return
   nextTick(() => {
     _this.$refs.webDetailRef.editorRef.focus()
     _this.$refs.webDetailRef.editorRef.dangerouslyInsertHtml(`<p>${detailDesc}</p>`)
+    // _this.$refs.webDetailRef.editorRef.dangerouslyInsertHtml(`${divDom.innerHTML}`)
   })
 }
 function sizeModalOpen() {
