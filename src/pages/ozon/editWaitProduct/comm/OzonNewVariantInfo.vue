@@ -525,7 +525,6 @@ const existProductData = inject('existProductData')
 
 // 监听数据变化-现有产品数据处理
 watch(() => existProductData.value, (newVal) => {
-  console.log('接收到新数据:', newVal)
   const { account: shopCode, typeId, descriptionCategoryId } = newVal;
   let categoryId = {
     threeCategoryId: typeId,
@@ -583,7 +582,6 @@ const searchTemp = (obj) => {
 // 选择模板
 const handleChangeTemplate = (value) => {
   let content = tempList.value.find(item => item.value == value)?.content || {}
-  console.log("content", content);
   const { variantTemplate: { categoryId, variantAttr } } = content;
   // templateValue.value = value;
   emit("getAttributes", props.shopCode, categoryId);
@@ -689,8 +687,6 @@ const handleChangeTemplate = (value) => {
       });
     });
 
-    // console.log("newItem", newItem);
-
     result.push(newItem);
   });
   // 处理数据回显到表格
@@ -707,13 +703,11 @@ const handleChangeTemplate = (value) => {
       uniqueArr.push(item);
     }
   });
-  // console.log('uniqueArr',uniqueArr);
 
   headerList.value = uniqueArr; //表格主题标题赋值
 
   tableData.value = result;
   // 将不匹配的主题过滤掉
-  // console.log("sortArr", tableData.value);
   let comAttrList = [10096, 4295];
   let comAttrs = [10096, 10097];
   // 从数组 a 中提取所有的 id
@@ -724,8 +718,6 @@ const handleChangeTemplate = (value) => {
   let filteredB = sortArr.filter((itemB) =>
     uniqueArr.some((itemA) => itemA.id === itemB.id)
   );
-  // console.log('isAllMatched',isAllMatched);
-  // console.log('filteredB', filteredB);
   let echoThemeList = [];
   let isModelValueList = [];
   // 判断sortArr中是否有组合数据
@@ -737,11 +729,8 @@ const handleChangeTemplate = (value) => {
     isModelValueList = filterModelValues(sortArr, variantAttr);
     echoThemeList = handleTheme(isModelValueList);
   }
-  // console.log('echoThemeList',echoThemeList);
-
   // 处理到数据回显到主题
   const aIds = echoThemeList.map((item) => item.id);
-  // console.log('aIds', echoThemeList);
   // 过滤 有数据的主题
   themeBtns.value = themeBtns.value.filter(
     (item) => !aIds.includes(item.id)
@@ -1123,8 +1112,6 @@ const addItem = (item, row) => {
 // 移除多个属性操作
 const removeItem = (item, row) => {
   let ind = row.tableData.indexOf(item);
-  console.log("item", item, ind);
-
   if (item.id === 10096 || item.name == "商品颜色(Цвет товара)") {
     row.tableData.splice(ind, 1);
   } else if (item.id === 4295 || item.name == "俄罗斯尺码") {
@@ -1836,8 +1823,7 @@ watch(
               }
             });
           });
-          console.log("sortArr",sortArr);
-          
+
           result.push(newItem);
         });
         if (result.some((item) => item.colorImg.length !== 0)) {
@@ -1872,21 +1858,16 @@ watch(
           })
         }
         tableData.value = result;
-        // console.log("isAllMatched",isAllMatched,isAllMatche);
-        // console.log("filteredB",filteredB);
         // 判断sortArr中是否有组合数据
         // if (isAllMatched && isAllMatche) {
-        //   console.log(1);
         //   echoThemeList = handleTheme(filteredB); //handleTheme方法可以将属性转换成主题数据格式
         // } else {
-        //   console.log(2);
         // }
         isModelValueList = filterModelValues(sortArr, existSkuList.value);
         echoThemeList = handleTheme(isModelValueList);
 
         // 处理到数据回显到主题
         const aIds = echoThemeList.map((item) => item.id);
-        // console.log('aIds', echoThemeList);
         // 过滤 有数据的主题
         themeBtns.value = themeBtns.value.filter(
           (item) => !aIds.includes(item.id)
@@ -1919,16 +1900,6 @@ watch(
               };
             }),
             sellerSKU: sku.offerId,
-            // imageUrl: sku.primaryImage?.length > 0 ?
-            //   [
-            //     ...sku.primaryImage.map(url => ({ url })),  // 将主图放在前面
-            //     ...(sku.images || []).map(item => ({ url: item }))  // 合并其他图片
-            //   ] :
-            //   sku.images?.map((item) => {
-            //     return {
-            //       url: item,
-            //     };
-            //   }) ?? [],
             imageUrl:
               // 合并主图和其他图片，使用Set去重后生成对象数组
               Array.from(
@@ -2020,15 +1991,12 @@ watch(
         // if (isAllMatched && isAllMatche) {
         //   echoThemeList = handleTheme(filteredB); //handleTheme方法可以将属性转换成主题数据格式
         // } else {
-        //   console.log(2,sortArr);
         // }
         isModelValueList = filterModelValues(sortArr, skuList);
         echoThemeList = handleTheme(isModelValueList);
-        // console.log('echoThemeList',echoThemeList);
 
         // 处理到数据回显到主题
         const aIds = echoThemeList.map((item) => item.id);
-        // console.log('aIds', echoThemeList);
         // 过滤 有数据的主题
         themeBtns.value = themeBtns.value.filter(
           (item) => !aIds.includes(item.id)
@@ -2166,7 +2134,6 @@ const processTableDataItem = (
       }
     } else {
       if (matchedAttribute) {
-        // console.log("matchedAttribute",matchedAttribute);
         let themIds = matchedAttribute.values.map(
           (item) => item.dictionaryValueId
         );
