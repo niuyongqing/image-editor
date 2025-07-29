@@ -1516,13 +1516,12 @@
               }
             }),
             sellerSKU: sku.offerId,
-            imageUrl:
-              sku.images?.map(item => {
-                return {
-                  url: processImageSource(item),
-                  checked: false
-                }
-              }) ?? []
+            imageUrl:Array.from(
+                new Set([
+                  ...(sku.primaryImage || []),  // 主图数组
+                  ...(sku.images || [])         // 普通图片数组
+                ])
+              ).map(url => ({ url })) ?? [],
           }
 
           // 遍历a数组
@@ -1603,31 +1602,11 @@
         }
         tableData.value = result
         // 将不匹配的主题过滤掉
-        let comAttrList = [10096, 4295]
-        let comAttrs = [10096, 10097]
-        // 从数组 a 中提取所有的 id
-        const idsInA = sortArr.map(item => item.id)
-        // 使用 every 方法检查 comAttrList 中的每个元素是否都在 idsInA 中
-        const isAllMatched = comAttrList.every(id => idsInA.includes(id)) //双组合主题
-        const isAllMatche = comAttrs.some(id => idsInA.includes(id)) //单组合主题
-        let filteredB = sortArr.filter(itemB => uniqueArr.some(itemA => itemA.id === itemB.id))
         let echoThemeList = []
         let isModelValueList = []
-        // 判断sortArr中是否有组合数据
-        // if (isAllMatched) {
-        //   echoThemeList = handleTheme(sortArr) //handleTheme方法可以将属性转换成主题数据格式
-        // } else if (isAllMatche) {
-        //   echoThemeList = handleTheme(filteredB)
-        // } else {
-        //   isModelValueList = filterModelValues(sortArr, skuList)
-        //   echoThemeList = handleTheme(isModelValueList)
-        // }
-        if (isAllMatched || isAllMatche) {
-          echoThemeList = handleTheme(filteredB); //handleTheme方法可以将属性转换成主题数据格式
-        } else {
-          isModelValueList = filterModelValues(sortArr, skuList);
-          echoThemeList = handleTheme(isModelValueList);
-        }
+
+        isModelValueList = filterModelValues(sortArr, skuList);
+        echoThemeList = handleTheme(isModelValueList);
         // 处理到数据回显到主题
         const aIds = echoThemeList.map(item => item.id)
         // 过滤 有数据的主题
@@ -1635,60 +1614,60 @@
         attributeList.value = matchAndAssignValues(echoThemeList, skuList)
 
         // ----------------------------------------------------------------------------
-        const groupsFlat = groups.flat()
-        const ids = groupsFlat.map(item => item.id)
-        themeBtns.value = themeBtns.value.filter(item => !ids.includes(item.id))
-        groupsFlat.forEach(group => {
-          const groupoptions = group.options || []
-          if (
-            !attributeList.value.some(item => {
-              return item.tableColumns.some(_item => {
-                return _item.id === group.id
-              })
-            })
-          ) {
-            attributeList.value.push({
-              ...group,
-              tableData: [
-                {
-                  isRequired: group.isRequired,
-                  categoryDependent: group.categoryDependent,
-                  isCollection: group.isCollection,
-                  id: group.id,
-                  name: group.name,
-                  selectType: group.selectType,
-                  type: group.type,
-                  modelValue: group.selectType === 'multSelect' ? [] : '',
-                  options: groupoptions,
-                  details: groupoptions.map(option => {
-                    return {
-                      ...option,
-                      label: option.value
-                    }
-                  })
-                }
-              ],
-              tableColumns: [
-                {
-                  selectType: group.selectType,
-                  dataIndex: group.name,
-                  title: group.name,
-                  type: group.type,
-                  id: group.id,
-                  show: true,
-                  align: 'center',
-                  width: 900
-                },
-                {
-                  dataIndex: 'options',
-                  title: '操作',
-                  fixed: 'right',
-                  width: 200
-                }
-              ]
-            })
-          }
-        })
+        // const groupsFlat = groups.flat()
+        // const ids = groupsFlat.map(item => item.id)
+        // themeBtns.value = themeBtns.value.filter(item => !ids.includes(item.id))
+        // groupsFlat.forEach(group => {
+        //   const groupoptions = group.options || []
+        //   if (
+        //     !attributeList.value.some(item => {
+        //       return item.tableColumns.some(_item => {
+        //         return _item.id === group.id
+        //       })
+        //     })
+        //   ) {
+        //     attributeList.value.push({
+        //       ...group,
+        //       tableData: [
+        //         {
+        //           isRequired: group.isRequired,
+        //           categoryDependent: group.categoryDependent,
+        //           isCollection: group.isCollection,
+        //           id: group.id,
+        //           name: group.name,
+        //           selectType: group.selectType,
+        //           type: group.type,
+        //           modelValue: group.selectType === 'multSelect' ? [] : '',
+        //           options: groupoptions,
+        //           details: groupoptions.map(option => {
+        //             return {
+        //               ...option,
+        //               label: option.value
+        //             }
+        //           })
+        //         }
+        //       ],
+        //       tableColumns: [
+        //         {
+        //           selectType: group.selectType,
+        //           dataIndex: group.name,
+        //           title: group.name,
+        //           type: group.type,
+        //           id: group.id,
+        //           show: true,
+        //           align: 'center',
+        //           width: 900
+        //         },
+        //         {
+        //           dataIndex: 'options',
+        //           title: '操作',
+        //           fixed: 'right',
+        //           width: 200
+        //         }
+        //       ]
+        //     })
+        //   }
+        // })
       }
     }
   )
