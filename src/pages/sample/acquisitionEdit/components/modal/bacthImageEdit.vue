@@ -192,12 +192,12 @@ async function modalOk() {
         item.src = val.url
       }
     })
-    loading.value = false
     emit('bacthImageEditSize', formData.selectedImgList)
     modalCloseFn()
   } catch (error) {
     console.error(error)
   }
+  loading.value = false
 }
 function modalCloseFn() {
   let { height, width, saveStatus } = formData
