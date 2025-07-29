@@ -816,7 +816,7 @@ const strList = ref([
   },
   {
     label: "按售价",
-    value: "old_price",
+    value: "price",
     type: "top",
     prop: 3,
     isDefault: false,
