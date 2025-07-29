@@ -230,6 +230,7 @@ import sukModal from './modal/sukModal.vue';
 import numberEditModal from './modal/numberEditModal.vue';
 import { cloneDeep } from 'lodash-es';
 import { message, Modal } from 'ant-design-vue';
+import _ from 'lodash';
 defineOptions({ name: "acquisitionEdit_variantInfo" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:variantInfoData'])
@@ -395,7 +396,7 @@ function addVariant(key, val = {}) {
   }
 }
 // 主题名称编辑
-function titleIconClick(key, data, formItem) {
+const titleIconClick = _.debounce((key, data, formItem) => {
   switch (key) {
     case 'edit':
       data.addTitleValue = data.name 
@@ -419,7 +420,7 @@ function titleIconClick(key, data, formItem) {
       break;
   }
   data.showInput = !data.showInput
-}
+}, 200)
 // 将其他主题设置为主题一
 function setVariantOne(val, index) {
   let att = variantTheme.variantList.splice(index, 1)[0]
@@ -473,7 +474,7 @@ function variantAddItem(data) {
   }
 }
 // 主题选项编辑
-function itemIconClick(key, data, formItem) {
+const itemIconClick = _.debounce((key, data, formItem) => {
   switch (key) {
     case 'edit':
       data.editValue = data.name 
@@ -506,7 +507,7 @@ function itemIconClick(key, data, formItem) {
       _this.$refs[`input_${data.id}`][0].focus()
     })
   }
-}
+}, 200)
 // 主题选项勾选
 function variantItemChange(e, val, formItem) {
   // console.log({ e, val, formItem });
