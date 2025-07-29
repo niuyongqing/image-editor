@@ -176,6 +176,7 @@ const publishVis = ref(false)
 const tempVis = ref(false)
 const quoteVis = ref(false)
 const existProduct = ref(null)
+const existProductData = ref({})
 const paginations = reactive({
     pageNum: 1,
     pageSize: 10,
@@ -203,6 +204,7 @@ const categoryAttributesLoading = ref(false)
 
 const handleSelect = (record) => {
     console.log("record", record);
+    existProductData.value = record;
 }
 
 const backToTop = () => {
