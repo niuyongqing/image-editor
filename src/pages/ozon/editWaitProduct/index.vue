@@ -356,9 +356,9 @@ const onSubmit = async (type) => {
   let base = ozonBaseInfoRef.value.form;
   let image = ozonImageInfoRef.value.form;
   let tableDatas = ozonNewVariantInfoRef.value.tableData;
-  console.log('base', base);
-  console.log('image', image);
-  console.log('tableDatas', tableDatas);
+  // console.log('base', base);
+  // console.log('image', image);
+  // console.log('tableDatas', tableDatas);
 
   //! 过滤一些属性
   const newList = attributes.value.filter(

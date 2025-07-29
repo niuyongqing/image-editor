@@ -110,6 +110,9 @@
                 class="pages" :show-quick-jumper="true" @change="getTemplateList" :showSizeChanger="true"
                 :pageSizeOptions="[50, 100, 200]" />
         </a-modal>
+        <!-- 现有产品 -->
+         <existingProducts ref="existProduct" @handleSelect="handleSelect"></existingProducts>
+
     </div>
 </template>
 
@@ -128,6 +131,7 @@ import {
 import { deepClone } from '~@/utils'
 import { saveTowaitProduct } from "../config/api/waitProduct"
 import { DownOutlined, ArrowRightOutlined, SettingOutlined } from '@ant-design/icons-vue';
+import existingProducts from "../common/existingProducts/index.vue";
 
 const formData = reactive({
     shortCode: ""
@@ -171,6 +175,7 @@ const loading = ref(false)
 const publishVis = ref(false)
 const tempVis = ref(false)
 const quoteVis = ref(false)
+const existProduct = ref(null)
 const paginations = reactive({
     pageNum: 1,
     pageSize: 10,
@@ -195,6 +200,11 @@ const anchorList = ref([
 ])
 
 const categoryAttributesLoading = ref(false)
+
+const handleSelect = (record) => {
+    console.log("record", record);
+}
+
 const backToTop = () => {
     let elements = document.getElementsByClassName('ant-layout-content');
     if (elements) {
@@ -321,7 +331,9 @@ const handleInterpret = () => { }
 
 // 引用产品
 const handleMenuClick = (e) => {
-    if (e.key === '2') {
+    if (e.key === '1') {
+        existProduct.value.modalOpenFn();
+    } else if (e.key === '2') {
         if (!formData.shortCode) {
             message.error("请先选择店铺！");
             return
@@ -380,9 +392,9 @@ const onSubmit = async (type = 1) => {
     let base = ozonBaseInfoRef.value.form;
     let image = ozonImageInfoRef.value.form;
     let tableDatas = ozonNewVariantInfoRef.value.tableData;
-    console.log('base', base);
-    console.log('image', image);
-    console.log('tableDatas', tableDatas);
+    // console.log('base', base);
+    // console.log('image', image);
+    // console.log('tableDatas', tableDatas);
     let hisAttr = {};
     const source = base.attributes;
     for (const key in source) {
@@ -404,7 +416,7 @@ const onSubmit = async (type = 1) => {
             }
         }
     }
-    console.log('hisAttr', hisAttr);
+    // console.log('hisAttr', hisAttr);
 
     //! 过滤一些属性
     const newList = attributes.value.filter(
@@ -420,7 +432,6 @@ const onSubmit = async (type = 1) => {
                 a.attributeComplexId == "100001" || a.attributeComplexId == "100002"
             )
     );
-    console.log('newList', newList);
 
     let warehouse = []
     tableDatas.forEach((item) => {
