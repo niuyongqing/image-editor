@@ -113,7 +113,7 @@
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex == 'imageList'">
             <div style="display: flex; flex-direction: column; align-items: center;">
-              <a-image :width="60" :src="record.imageList[0]" />
+              <a-image :width="60" :height="60" :src="record.imageList[0]" />
               <a-button @click="openUrl(record.originUrl)" type="link">{{ getSimpleName(record.platform) }}</a-button>
             </div>
           </template>

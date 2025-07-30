@@ -97,6 +97,9 @@
         class="pages" :show-quick-jumper="true" @change="getTemplateList" :showSizeChanger="true"
         :pageSizeOptions="[50, 100, 200]" />
     </a-modal>
+
+    <!-- 现有产品 -->
+    <existingProducts ref="existProduct" @handleSelect="handleSelect"></existingProducts>
   </div>
 </template>
 
@@ -114,6 +117,7 @@ import {
 } from '~/pages/ozon/config/commJs/index';
 import { message } from "ant-design-vue";
 import { DownOutlined, ArrowRightOutlined, SettingOutlined } from '@ant-design/icons-vue';
+import existingProducts from "../common/existingProducts/index.vue";
 
 const ozonBaseInfoRef = ref(null)
 const ozonImageInfoRef = ref(null)
@@ -168,6 +172,8 @@ const columns = [
   },
 ]
 const dataSource = ref([])
+const existProduct = ref(null)
+const existProductData = ref({})
 const paginations = reactive({
   pageNum: 1,
   pageSize: 10,
@@ -176,6 +182,13 @@ const paginations = reactive({
 const formData = reactive({
   shortCode: ""
 })
+
+provide('existProductData', existProductData)
+
+const handleSelect = (record) => {
+  existProductData.value = record;
+}
+
 const backToTop = () => {
   let elements = document.getElementsByClassName('ant-layout-content');
   if (elements) {
@@ -266,7 +279,9 @@ const closeModal = () => {
 
 // 引用产品
 const handleMenuClick = (e) => {
-  if (e.key === '2') {
+  if (e.key === '1') {
+    existProduct.value.modalOpenFn();
+  } else if (e.key === '2') {
     if (!formData.shortCode) {
       message.error("请先选择店铺！");
       return
