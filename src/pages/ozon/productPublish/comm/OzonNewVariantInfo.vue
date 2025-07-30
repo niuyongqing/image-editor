@@ -424,7 +424,8 @@ import {
   checkData,
   handleTheme,
   processImageSource,
-  rearrangeColorFields
+  rearrangeColorFields,
+  customSort
 } from "../../config/commJs/index";
 import { publishHead, otherList } from "../../config/tabColumns/skuHead";
 import { uploadImage } from "@/pages/ozon/config/api/draft";
@@ -1610,6 +1611,7 @@ watch(
             attrHeaderList.map((item) => [item.dataIndex, item])
           ).values(),
         ];
+
         const uniqueArr = [];
         const titleSet = new Set();
         [...attrHeaderList, ...headerList.value].forEach((item) => {
@@ -1618,9 +1620,9 @@ watch(
             uniqueArr.push(item);
           }
         });
-        console.log('uniqueArr',uniqueArr);
+        // console.log('uniqueArr',uniqueArr);
 
-        headerList.value = uniqueArr; //表格主题标题赋值
+        headerList.value = customSort(uniqueArr); //表格主题标题赋值
         // imgHeaderList.value = attrHeaderList; //图片标题赋值
         if (result.some((item) => item.colorImg.length !== 0)) {
           headerList.value.unshift({
@@ -1657,29 +1659,26 @@ watch(
         tableData.value = result;
         // 将不匹配的主题过滤掉
         // console.log("sortArr", tableData.value);
-        // let comAttrList = [10096, 4295];
-        // let comAttrs = [10096, 10097];
-        // // 从数组 a 中提取所有的 id
-        // const idsInA = sortArr.map((item) => item.id);
-        // // 使用 every 方法检查 comAttrList 中的每个元素是否都在 idsInA 中
-        // const isAllMatched = comAttrList.every((id) => idsInA.includes(id)); //双组合主题
-        // const isAllMatche = comAttrs.some((id) => idsInA.includes(id)); //单组合主题
-        // let filteredB = sortArr.filter((itemB) =>
-        //   uniqueArr.some((itemA) => itemA.id === itemB.id)
-        // );
-        // console.log('isAllMatched1',isAllMatched);
-        console.log('sortArr',sortArr);
-        // console.log('filteredB', filteredB);
+        let comAttrList = [10096, 4295];
+        let comAttrs = [10096, 10097];
+        // 从数组 a 中提取所有的 id
+        const idsInA = sortArr.map((item) => item.id);
+        // 使用 every 方法检查 comAttrList 中的每个元素是否都在 idsInA 中
+        const isAllMatched = comAttrList.every((id) => idsInA.includes(id)); //双组合主题
+        const isAllMatche = comAttrs.some((id) => idsInA.includes(id)); //单组合主题
+        let filteredB = sortArr.filter((itemB) =>
+          uniqueArr.some((itemA) => itemA.id === itemB.id)
+        );
+
         let echoThemeList = [];
         let isModelValueList = [];
         // 判断sortArr中是否有组合数据
-        // if (isAllMatched && isAllMatche) {
-        //   echoThemeList = handleTheme(filteredB); //handleTheme方法可以将属性转换成主题数据格式
-        // } else {
-        // }
-        isModelValueList = filterModelValues(sortArr, existSkuList.value);
-        echoThemeList = handleTheme(isModelValueList);
-        // console.log('echoThemeList',echoThemeList);
+        if (isAllMatched && isAllMatche) {
+          echoThemeList = handleTheme(filteredB); //handleTheme方法可以将属性转换成主题数据格式
+        } else {
+          isModelValueList = filterModelValues(sortArr, existSkuList.value);
+          echoThemeList = handleTheme(isModelValueList);
+        }
 
         // 处理到数据回显到主题
         const aIds = echoThemeList.map((item) => item.id);

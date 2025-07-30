@@ -555,14 +555,7 @@ const getSelectValue = (attr, base, item) => {
 
       if (item[attr.name]) {
         // 根据拿到的值去数组中找到匹配的ID
-        // console.log("options",attr.options);
-        // console.log("item",item[attr.name]);
         let matchedId = attr.options.filter(e => e.value == item[attr.name]);
-      //   const filteredData = attr.options.filter(item => 
-      //     item.value.includes(item[attr.name])
-      // );
-        // console.log("matchedId",matchedId);
-        
         return [matchedId[0]?.id, item[attr.name]];
       } else {
         return [value?.value, value?.value];
@@ -669,6 +662,40 @@ const processImageSource = (source) => {
   return Array.isArray(source) ? source.map(processUrl) : processUrl(source);
 };
 
+// 表头排序
+const customSort = (arr) => {
+  // 添加原始索引用于保持顺序
+  const indexedArr = arr.map((item, index) => ({ ...item, __index: index }));
+  
+  return indexedArr.sort((a, b) => {
+    // 颜色组处理（10096必须在前）
+    const colorGroup = new Set([10096, 10097]);
+    if (colorGroup.has(a.id) && colorGroup.has(b.id)) {
+      return a.id - b.id; // 保证10096在前
+    }
+
+    // 尺码组处理（4295必须在前）
+    const sizeGroup = new Set([4295, 9533]);
+    if (sizeGroup.has(a.id) && sizeGroup.has(b.id)) {
+      return a.id - b.id; // 保证4295在前
+    }
+
+    // 组间排序：颜色组 > 尺码组 > 其他字段
+    const aIsColor = colorGroup.has(a.id);
+    const bIsColor = colorGroup.has(b.id);
+    const aIsSize = sizeGroup.has(a.id);
+    const bIsSize = sizeGroup.has(b.id);
+
+    if (aIsColor && !bIsColor) return -1;
+    if (bIsColor && !aIsColor) return 1;
+    if (aIsSize && !bIsSize) return -1;
+    if (bIsSize && !aIsSize) return 1;
+
+    // 保持其他字段原始顺序
+    return a.__index - b.__index;
+  }).map(({ __index, ...rest }) => rest);
+}
+
 export {
   updatePrice,
   endResult,
@@ -689,4 +716,5 @@ export {
   isNotEmpty,
   createAndUpdateBaseObj,
   processImageSource,
+  customSort
 };
