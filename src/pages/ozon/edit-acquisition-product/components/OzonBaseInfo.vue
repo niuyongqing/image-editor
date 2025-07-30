@@ -26,7 +26,7 @@
                         @click="selectVisible = true">选择分类</a-button>
                     <p v-if="hisAttrObj.length != 0" style="color: #933">
                         <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{ hisAttrObj[0].secondCategoryName
-                        }}</span>/
+                            }}</span>/
                         <span>{{ hisAttrObj[0].threeCategoryName }}</span>
                     </p>
                 </a-form-item>
@@ -43,7 +43,7 @@
                                 ?
                                 '- 收起'
                                 : '+ 展开'
-                                }}</a-button>
+                            }}</a-button>
                         </div>
                         <a-form ref="ruleForm2" :model="form.attributes" :label-col="{ span: 5 }" :rules="rules2"
                             style="margin-top: 25px">
@@ -53,7 +53,7 @@
                                     <template #label>
                                         <span class="mr-2.5 truncate">{{
                                             item.label ? item.label : item.name
-                                            }}</span>
+                                        }}</span>
                                         <a-tooltip class="tooltipStyle" effect="dark" :title="item.description"
                                             popper-class="ozonTooltip" placement="top">
                                             <AsyncIcon icon="QuestionCircleOutlined"></AsyncIcon>
@@ -100,7 +100,7 @@
                                     <a-select optionFilterProp="label" show-search
                                         v-model:value="form.attributes[item.name]" v-if="item.selectType === 'select'"
                                         labelInValue :style="'width: 80%'" allowClear>
-                                        <a-select-option v-if="item.id == 85" :value="'无品牌'">无品牌</a-select-option>
+                                        <a-select-option v-if="item.id == 85 || item.id == 31" :value="'无品牌'">无品牌</a-select-option>
 
                                         <a-select-option v-else :value="v" v-for="(v, i) in item.options" :key="i">
                                             {{ v.label }}
@@ -362,10 +362,10 @@ const findMatchedOption = (attributeId, data, options) => {
     const matchedOption = options?.find((option) => option.id === data.id);
     if (attributeId == 9070) {
         return {
-            label: JSON.parse(data.value) == true ? "是" : "否",
+            label: JSON.parse(data.value) == true ? "是(YES)" : '否(NO)',
             value: JSON.parse(data.value),
         };
-    } else if (attributeId == 85) {
+    } else if (attributeId == 85 || attributeId == 31) {
         return {
             label: "无品牌",
             value: data.id,
@@ -530,19 +530,23 @@ watch(
                         label: "",
                         value: "",
                     };
-                    item.options = item?.options?.map((item) => {
-                        return {
-                            ...item,
-                            label:
-                                item?.label == "否" || item?.label == "是"
-                                    ? item.label
-                                    : item.value,
-                            value:
-                                item?.label == "否" || item?.label == "是"
-                                    ? JSON.parse(item.value)
-                                    : item.id,
-                        };
-                    });
+                    if (item.id === 9070) {
+                        item.options = item?.options?.map((item) => {
+                            return {
+                                ...item,
+                                label: item.label,
+                                value: item.value,
+                            };
+                        });
+                    } else {
+                        item.options = item?.options?.map(item => {
+                            return {
+                                ...item,
+                                label: item.value,
+                                value: item.id,
+                            }
+                        })
+                    }
                     item.acquiesceList =
                         (item.options && item.options.slice(0, 25)) ?? [];
                     attributes[item.name] =

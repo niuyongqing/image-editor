@@ -99,7 +99,7 @@
                                     <a-select optionFilterProp="label" show-search size="middle"
                                         v-model:value="form.attributes[item.name]" v-if="item.selectType === 'select'"
                                         labelInValue :style="'width: 80%'" allowClear>
-                                        <a-select-option v-if="item.id == 85" :value="'无品牌'"
+                                        <a-select-option v-if="item.id == 85 || item.id == 31" :value="'无品牌'"
                                             :label="'无品牌'">无品牌</a-select-option>
 
                                         <a-select-option :value="v" :label="v.label" v-else
@@ -376,10 +376,10 @@ const findMatchedOption = (attributeId, data, options) => {
     const matchedOption = options?.find((option) => option.id === data.id);
     if (attributeId == 9070) {  // 特殊处理布尔值属性
         return {
-            label: JSON.parse(data.value) == true ? "是" : "否",
+            label: JSON.parse(data.value) == true ? "是(YES)" : '否(NO)',
             value: JSON.parse(data.value),
         };
-    } else if (attributeId == 85) {  // 特殊处理品牌属性
+    } else if (attributeId == 85 || attributeId == 31) {  // 特殊处理品牌属性
         return {
             label: "无品牌",
             value: data.id,
@@ -718,7 +718,7 @@ const processMatchedAttributes = (existAttrs, loopAttrs) => {
         result[attr.name] = existValues.map(v => v.dictionaryValueId);
       } 
       // 处理品牌特殊字段
-      else if (attr.id === 85) {
+      else if (attr.id === 85 || attr.id === 31) {
         result[attr.name] = {
           label: "无品牌",
           value: existValues[0].dictionaryValueId

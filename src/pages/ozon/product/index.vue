@@ -1435,6 +1435,7 @@ const deactivate = (row = {}) => {
       getList();
       deactivateLoading.value = false;
       syncOneList.value = [];
+      selectedRows.value = [];
     });
 };
 // 单个和批量删除
@@ -1458,6 +1459,7 @@ const deleteItem = (row = {}) => {
       getList();
       delLoading.value = false;
       syncOneList.value = [];
+      selectedRows.value = [];
     });
 };
 
@@ -1487,26 +1489,26 @@ const sync = () => {
         //         //     clearInterval(interval.value)
         //         //     message.success("同步成功！");
         //         //     syncLo// ... existing code ...
-        let params = {
-          ...formData,
-          ...Object.entries(advancedForm).reduce((acc, [key, value]) => {
-            // 过滤掉 timeSearch 和 time 字段
-            if (["time"].includes(key)) return acc;
+        // let params = {
+        //   ...formData,
+        //   ...Object.entries(advancedForm).reduce((acc, [key, value]) => {
+        //     // 过滤掉 timeSearch 和 time 字段
+        //     if (["time"].includes(key)) return acc;
 
-            // 保留原有转换逻辑并添加字符串转换
-            if (value !== null && value !== undefined && value !== "") {
-              acc[key] = typeof value === "number" ? String(value) : value;
-            }
-            return acc;
-          }, {}),
-          startDateTime: advancedForm.time.length
-            ? dayjs(advancedForm.time[0])
-              .startOf("day")
-              .format("YYYY-MM-DD HH:mm:ss")
-            : undefined,
-          // ... existing code ...
-        };
-        syncLoading.value = false;
+        //     // 保留原有转换逻辑并添加字符串转换
+        //     if (value !== null && value !== undefined && value !== "") {
+        //       acc[key] = typeof value === "number" ? String(value) : value;
+        //     }
+        //     return acc;
+        //   }, {}),
+        //   startDateTime: advancedForm.time.length
+        //     ? dayjs(advancedForm.time[0])
+        //       .startOf("day")
+        //       .format("YYYY-MM-DD HH:mm:ss")
+        //     : undefined,
+        //   // ... existing code ...
+        // };
+        // syncLoading.value = false;
         //         //     showOpen.value = false;
         //         //     getList();
         //         //     setTimeout(() => {
@@ -1517,12 +1519,13 @@ const sync = () => {
         // }, 5000);
       })
       .finally(() => {
-        // syncLoading.value = false;
+        syncLoading.value = false;
         // showOpen.value = false;
         getList();
         // setTimeout(() => {
         //     percentage.value = 0;
         // }, 300);
+        selectedRows.value = [];
       });
   } else {
     syncShopProduct({ account: formData.account })
@@ -1533,6 +1536,7 @@ const sync = () => {
       .finally(() => {
         syncLoading.value = false;
         // getList();
+        selectedRows.value = [];
       });
   }
 };
@@ -1563,6 +1567,7 @@ const syncOne = (record = {}) => {
     .finally(() => {
       syncLoading.value = false;
       syncOneList.value = [];
+      selectedRows.value = [];
       getList();
     });
 };
@@ -1583,6 +1588,7 @@ const syncHisAttr = () => {
     .finally(() => {
       syncLoading.value = false;
       getList();
+      selectedRows.value = [];
     });
 };
 
