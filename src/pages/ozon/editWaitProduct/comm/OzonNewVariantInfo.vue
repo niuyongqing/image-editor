@@ -1113,9 +1113,9 @@ const addItem = (item, row) => {
 // 移除多个属性操作
 const removeItem = (item, row) => {
   let ind = row.tableData.indexOf(item);
-  if (item.id === 10096 || item.name == "商品颜色(Цвет товара)") {
+  if (item.id === 10096) {
     row.tableData.splice(ind, 1);
-  } else if (item.id === 4295 || item.name == "俄罗斯尺码") {
+  } else if (item.id === 4295) {
     row.tableData.splice(ind, 1);
   } else {
     if (ind !== -1) {
@@ -1137,26 +1137,6 @@ const removeItem = (item, row) => {
   }
 
   // 获取所有需要删除的标签
-  // const deletedLabels = item.selectType === 'multSelect'
-  //   ? item.modelValue.map(v => v.label)
-  //   : [];
-
-  // let newData = tableData.value.filter(row => {
-  //   // 检查行数据是否包含要删除的属性值
-  //   return !Object.values(row).some(value => {
-  //     if (item.selectType === 'multSelect') {
-  //       // 统一处理数组和字符串类型的值
-  //       const currentValues = Array.isArray(value)
-  //         ? value.map(v => v?.label || '')
-  //         : String(value || '').split(',');
-  //       return currentValues.some(v => deletedLabels.includes(v));
-  //     }
-  //     return item.selectType === 'input' ? row.attrIdList.includes(item.id)
-  //       : item.selectType === 'select' ? value === item?.modelValue?.label
-  //         : false;
-  //   });
-  // });
-
   const deletedLabels = item.selectType === 'multSelect'
     ? item.modelValue.map(v => v.label?.trim()) // 增加trim处理
     : [];

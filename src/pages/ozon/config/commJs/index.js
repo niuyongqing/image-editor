@@ -546,13 +546,11 @@ const getSelectValue = (attr, base, item) => {
     ];
   } else {
     const value = base.attributes[attr.name];
-
     if (attr.id === 9070 && value !== undefined) {
-      return [0, value[0]?.value?.value];
+      return [0, value?.value];
     } else if (value?.value === "无品牌" || value?.label === "无品牌") {
       return [126745801, "无品牌"];
     } else {
-
       if (item[attr.name]) {
         // 根据拿到的值去数组中找到匹配的ID
         let matchedId = attr.options.filter(e => e.value == item[attr.name]);
