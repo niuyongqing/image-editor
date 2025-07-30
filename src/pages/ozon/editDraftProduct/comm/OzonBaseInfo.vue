@@ -312,28 +312,28 @@
   }
 
   // 根据分类弹窗中选择的分类去查询属性
-  const getAttributesID = ids => {
-    let params = {
-      account: form.shortCode,
-      secondCategoryId: ids.secondCategoryId,
-      threeCategoryId: ids.value
-    }
-    addHistoryCategory(params).then(res => {
-      getHistoryList(form.shortCode)
-    })
-    form.categoryId = {
-      threeCategoryId: ids.value,
-      threeCategoryName: '',
-      secondCategoryId: ids.secondCategoryId,
-      label: ids.label,
-      value: ids.value
-    }
-    emit('getAttributes', form.shortCode, form.categoryId)
-  }
+  // const getAttributesID = ids => {
+  //   let params = {
+  //     account: form.shortCode,
+  //     secondCategoryId: ids.secondCategoryId,
+  //     threeCategoryId: ids.value
+  //   }
+  //   addHistoryCategory(params).then(res => {
+  //     getHistoryList(form.shortCode)
+  //   })
+  //   form.categoryId = {
+  //     threeCategoryId: ids.value,
+  //     threeCategoryName: '',
+  //     secondCategoryId: ids.secondCategoryId,
+  //     label: ids.label,
+  //     value: ids.value
+  //   }
+  //   emit('getAttributes', form.shortCode, form.categoryId)
+  // }
 
   // 打开选择分类弹窗
   const changeCategory = () => {
-    categoryModalEl.value.open(form.categoryId.threeCategoryId)
+    categoryModalEl.value.open(form.categoryId?.threeCategoryId)
   }
 
   // 历史分类
@@ -622,9 +622,9 @@ const changeRule = (attributes, name) => {
       getHistoryList(form.shortCode, data.value)
     })
     emit('getAttributes', form.shortCode, {
-      categoryId: data.ids[0],
-      secondCategoryId: data.ids[1],
-      threeCategoryId: data.ids[2]
+      // categoryId: data.ids[0],
+      categoryId: data.ids[1],
+      typeId: data.ids[2]
     })
   }
 
