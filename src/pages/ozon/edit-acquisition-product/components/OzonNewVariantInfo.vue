@@ -423,69 +423,10 @@
           </template>
         </a-table>
       </a-card>
-      <a-card
-        title="变种图片"
-        class="text-left mx-50 mt-5"
-      >
-        <div>
-          <div
-            v-for="item in tableData"
-            :key="item.id"
-          >
-            <div v-if="tableData.length > 0">
-              <a-card class="mb-2.5 ml-2.5">
-                <div>
-                  <a-tag color="warning">！说明</a-tag>
-                  <span style="color: #9fa0a2">
-                    第一张图片默认为主图，点击图片拖动，即可调整图片顺序！
-                    单张不超过2M，只支持jpg、.png、.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3：4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)</span
-                  >
-                </div>
-
-                <!-- <span v-if="item.imageUrl" class="block mt-2.5">{{ item.imageUrl.length
-                                }}/30</span> -->
-                <SkuDragUpload
-                  v-model:file-list="item.imageUrl"
-                  :maxCount="30"
-                  :showUploadList="false"
-                  accept=".jpg,.png"
-                  :api="uploadImage"
-                  :waterList="watermark"
-                >
-                  <template #default>
-                    <div
-                      flex
-                      flex-col
-                      w-full
-                      justify-start
-                      mb-4px
-                      text-left
-                    >
-                      <p>
-                        <a-tag color="#00AEB3">说明！</a-tag>
-                        <span class="text-#999"> 第一张图片默认为主图，点击图片拖动，即可调整图片顺序。只能对本地上传的图片进行添加水印和修改尺寸 </span>
-                      </p>
-                    </div>
-                  </template>
-                  <template #variantInfo>
-                    <!-- <div v-if="lazadaAttrsState.selectTheme.length === 1">
-                                            {{ variantInfo(item) }}
-                                        </div>
-                                        <div text-left v-if="lazadaAttrsState.selectTheme.length === 2">
-                                            <p pb-1px mb-0> {{ variantInfo(item) }} </p>
-                                            <p> {{ variantInfoTwo(item) }} </p>
-                                        </div> -->
-                  </template>
-                  <template #skuInfo>
-                    {{ `【${item.imageUrl.length}/30】图片 ` }}
-                  </template>
-                </SkuDragUpload>
-              </a-card>
-            </div>
-          </div>
-        </div>
-      </a-card>
+      <!-- 图片信息 -->
+      <ImageInfo :data-source="tableData" :water-mark-options="watermark" :attr-list="attrList" />
     </a-card>
+
     <!-- 修改库存 -->
     <EditProdQuantity
       @backQuantity="backQuantity"
@@ -512,13 +453,12 @@
   </div>
 </template>
 
-<script setup name="OzonNewVariantInfo">
+<script setup>
   import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
   import AsyncIcon from '~/layouts/components/menu/async-icon.vue'
   import { message, Modal } from 'ant-design-vue'
   import EditProdQuantity from '../../productPublish/comm/EditProdQuantity.vue'
-  import dragUpload from '../../productPublish/comm/dragUpload.vue'
-  import { scaleApi, watermarkListApi, watermarkApi } from '~/api/common/water-mark'
+  import { watermarkListApi } from '~/api/common/water-mark'
   import { productWarehouse } from '../../config/api/product'
   import SelectAttr from '../../productPublish/comm/SelectAttr.vue'
   import { useOzonProductStore } from '~@/stores/ozon-product'
@@ -540,8 +480,9 @@
   } from '../../config/commJs/index'
   import { publishHead, otherList } from '../../config/tabColumns/skuHead'
   import { uploadImage } from '@/pages/ozon/config/api/draft'
-  import SkuDragUpload from '@/components/skuDragUpload/index.vue'
   import { debounce } from 'lodash'
+  import { v4 as uuidv4 } from 'uuid'
+  import ImageInfo from '@/pages/ozon/config/component/image-info/index.vue'
 
   const props = defineProps({
     categoryAttributesLoading: Boolean,
@@ -591,6 +532,12 @@
     Authorization: 'Bearer ' + useAuthorization().value
   }
   const uploadUrl = import.meta.env.VITE_APP_BASE_API + '/platform-ozon/platform/ozon/file/upload/img'
+
+  // 监听 attributeList, 获取变种名列表
+  const attrList = ref([])
+  watch(() => attributeList.value, () => {
+    attrList.value = attributeList.value.map(item => item.tableColumns.slice(0, -1).map(column => column.title))
+  })
 
   const handleChangeColroImg = (info, record) => {
     if (info.file.status === 'done') {
@@ -1214,9 +1161,10 @@
               sku.images?.map(item => {
                 return {
                   url: processImageSource(item),
-                  checked: false
+                  checked: false,
+                  id: uuidv4()
                 }
-              }) ?? []
+              }) || []
           }
 
           // 遍历a数组

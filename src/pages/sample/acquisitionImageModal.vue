@@ -113,6 +113,12 @@ watch(() => modalOpen.value, val => {
 // 弹窗打开的回调
 async function modalOpenFn(collectProductId) {
   let id = collectProductId || props.collectProductId
+  if (!id) {
+    message.warning('没有可引用的采集图片')
+    
+    return
+  }
+
   modalOpen.value = true;
   imgData.loading = true;
   try {

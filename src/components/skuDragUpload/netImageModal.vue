@@ -1,7 +1,7 @@
 <template>
-    <a-modal v-model:open="visible" title="从网络地址(URL)选择图片" width="500px">
+    <a-modal v-model:open="visible" title="从网络地址(URL)选择图片" width="40%">
         <div class="modal-box">
-            <a-textarea v-model:value="form.imageUrl" placeholder="请填写图片URL地址，多个地址用回车换行" :rows="4" />
+            <a-textarea v-model:value="form.imageUrl" placeholder="请填写图片URL地址，多个地址用回车换行" :rows="6" />
         </div>
         <template #footer>
             <a-button type="primary" @click="submit" :loading="loading">添加</a-button>

@@ -119,6 +119,7 @@ import download from '~@/api/common/download';
 import { downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js';
 import PictureLibrary from '@/components/pictureLibrary/index.vue';
 import { processImageSource } from "~/pages/ozon/config/commJs/index";
+import { v4 as uuidv4 } from 'uuid';
 
 const props = defineProps({
     disabled: {
@@ -239,7 +240,7 @@ const handleImageLoad = (el, event) => {
         const img = event.target;
         el.width = img ? img.naturalWidth : '';
         el.height = img ? img.naturalHeight : '';
-        el.key = 1;
+        el.key = uuidv4();
     });
 };
 // 导出全部图片
