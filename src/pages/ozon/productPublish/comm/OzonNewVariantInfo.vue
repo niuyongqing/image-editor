@@ -157,8 +157,10 @@
                 @click="batcholdPricebatchPrice">批量</a>
             </template>
             <template v-if="column.dataIndex === 'quantity'">
-              <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
-                @click="batchStock('all')">批量</a>
+              <div class="flex flex-col min-w-25">
+                <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
+                  @click="batchStock('all')">批量</a>
+              </div>
             </template>
             <template v-if="column.dataIndex === 'packageLength'">
               <span><span style="color: #ff0a37">*</span>
