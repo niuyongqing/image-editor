@@ -271,7 +271,7 @@
   import { Empty, message } from 'ant-design-vue'
 
   defineOptions({ name: 'ImageInfo' })
-  const collectProductId = inject('collectProductId')
+  const collectProductId = inject('collectProductId', '')
 
   const props = defineProps({
     dataSource: {

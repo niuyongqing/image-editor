@@ -242,6 +242,7 @@
     processAttributesCache,
     reorderArray,
     cartesianProduct,
+    customSort,
     processResult,
     processData,
     checkSellerSKU,
@@ -269,7 +270,6 @@ const attributeList = ref([]) //变种主题卡片
 const colorAttributeList = ref([]) //带颜色名称的变种主题卡片
 const tableData = ref([])
 const watermark = ref([])
-const watermarkValue = ref('')
 const cropWidth = ref(800)
 const cropHeight = ref(800)
 const editQuantityVis = ref(false)
