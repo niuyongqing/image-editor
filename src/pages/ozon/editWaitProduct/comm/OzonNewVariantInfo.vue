@@ -157,8 +157,10 @@
                 @click="batcholdPricebatchPrice">批量</a>
             </template>
             <template v-if="column.dataIndex === 'quantity'">
-              <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
-                @click="batchStock('all')">批量</a>
+              <div class="flex flex-col min-w-25">
+                <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
+                  @click="batchStock('all')">批量</a>
+              </div>
             </template>
             <template v-if="column.dataIndex === 'packageLength'">
               <span><span style="color: #ff0a37">*</span>
@@ -427,6 +429,7 @@ import {
   rearrangeColorFields,
   handleTheme,
   processImageSource,
+  customSort
 } from "../../config/commJs/index";
 import { publishHead, otherList } from "../../config/tabColumns/skuHead";
 import { uploadImage } from '@/pages/ozon/config/api/draft';
@@ -1112,9 +1115,9 @@ const addItem = (item, row) => {
 // 移除多个属性操作
 const removeItem = (item, row) => {
   let ind = row.tableData.indexOf(item);
-  if (item.id === 10096 || item.name == "商品颜色(Цвет товара)") {
+  if (item.id === 10096) {
     row.tableData.splice(ind, 1);
-  } else if (item.id === 4295 || item.name == "俄罗斯尺码") {
+  } else if (item.id === 4295) {
     row.tableData.splice(ind, 1);
   } else {
     if (ind !== -1) {
@@ -1136,39 +1139,12 @@ const removeItem = (item, row) => {
   }
 
   // 获取所有需要删除的标签
-  // const deletedLabels = item.selectType === 'multSelect'
-  //   ? item.modelValue.map(v => v.label)
-  //   : [];
-
-  // let newData = tableData.value.filter(row => {
-  //   // 检查行数据是否包含要删除的属性值
-  //   return !Object.values(row).some(value => {
-  //     if (item.selectType === 'multSelect') {
-  //       // 统一处理数组和字符串类型的值
-  //       const currentValues = Array.isArray(value)
-  //         ? value.map(v => v?.label || '')
-  //         : String(value || '').split(',');
-  //       return currentValues.some(v => deletedLabels.includes(v));
-  //     }
-  //     return item.selectType === 'input' ? row.attrIdList.includes(item.id)
-  //       : item.selectType === 'select' ? value === item?.modelValue?.label
-  //         : false;
-  //   });
-  // });
-
   const deletedLabels = item.selectType === 'multSelect'
     ? item.modelValue.map(v => v.label?.trim()) // 增加trim处理
     : [];
   const deletedSet = new Set(deletedLabels); // 改用Set提高查询效率
 
   let newData = tableData.value.filter(row => {
-    // 直接访问对应属性
-    // const rowValue = row[item.name];
-    // if (item.selectType === 'select' || item.selectType === 'input') {
-    //   return !row.attrIdList?.some(id => id === item.id);
-    // } else {
-    //   return !deletedLabels?.some(val => val === rowValue)
-    // }
     const rowValue = String(row[item.name] || '');
     const inputValue = String(item.modelValue || '');
 
@@ -1722,35 +1698,8 @@ watch(
       let result = [];
       let attrHeaderList = [];
       const { skuList } = props.productDetail;
-      // 处理数据回显到表格
-      attrHeaderList = [
-        ...new Map(
-          attrHeaderList.map((item) => [item.dataIndex, item])
-        ).values(),
-      ];
       const uniqueArr = [];
       const titleSet = new Set();
-      [...attrHeaderList, ...headerList.value].forEach((item) => {
-        if (!titleSet.has(item.title)) {
-          titleSet.add(item.title);
-          uniqueArr.push(item);
-        }
-      });
-      // console.log('uniqueArr',uniqueArr);
-      headerList.value = uniqueArr; //表格主题标题赋值
-      // 将不匹配的主题过滤掉
-      // let comAttrList = [10096, 4295];
-      // let comAttrs = [10096, 10097];
-      // // 从数组 a 中提取所有的 id
-      // const idsInA = sortArr.map((item) => item.id);
-      // // 使用 every 方法检查 comAttrList 中的每个元素是否都在 idsInA 中
-      // const isAllMatched = comAttrList.every((id) => idsInA.includes(id)); //双组合主题
-      // const isAllMatche = comAttrs.some((id) => idsInA.includes(id)); //单组合主题
-      // let filteredB = sortArr.filter((itemB) =>
-      //   uniqueArr.some((itemA) => itemA.id === itemB.id)
-      // );
-      let echoThemeList = [];
-      let isModelValueList = [];
       // 引用现有产品数据回显处理
       if (existSkuList.value.length != 0) {
         const { oldPrice, price, stock, name, colorImage, warehouseList, offerId, images, primaryImage } = existProductData.value;
@@ -1826,54 +1775,8 @@ watch(
 
           result.push(newItem);
         });
-        if (result.some((item) => item.colorImg.length !== 0)) {
-          headerList.value.unshift({
-            title: "颜色样本",
-            dataIndex: "colorImg",
-            selectType: "url",
-            type: 1,
-            show: true,
-            align: "center",
-          });
-          addHeaderList.value.push("colorImg");
-        }
-        if (result.some((item) => item.skuTitle !== null && item.skuTitle !== "") && result.length > 1) {
-          let skuIndex = headerList.value.findIndex(
-            (item) => item.title === "SKU"
-          );
-          let obj = {
-            title: "SKU标题",
-            dataIndex: "skuTitle",
-            selectType: "input",
-            type: 1,
-            options: null,
-            show: true,
-            align: "center",
-          }
-          headerList.value.splice(skuIndex + 1, 0, obj);
-          addHeaderList.value.push("skuTitle");
-          const ozonStore = useOzonProductStore()
-          ozonStore.$patch(state => {
-            state.addHeaderList = addHeaderList.value
-          })
-        }
-        tableData.value = result;
-        // 判断sortArr中是否有组合数据
-        // if (isAllMatched && isAllMatche) {
-        //   echoThemeList = handleTheme(filteredB); //handleTheme方法可以将属性转换成主题数据格式
-        // } else {
-        // }
-        isModelValueList = filterModelValues(sortArr, existSkuList.value);
-        echoThemeList = handleTheme(isModelValueList);
-
-        // 处理到数据回显到主题
-        const aIds = echoThemeList.map((item) => item.id);
-        // 过滤 有数据的主题
-        themeBtns.value = themeBtns.value.filter(
-          (item) => !aIds.includes(item.id)
-        );
-        attributeList.value = matchAndAssignValues(echoThemeList, existSkuList.value);
-      } else if(skuList.length > 0) {
+        optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, existSkuList.value)
+      } else if (skuList.length > 0) {
         // 遍历b中的skuList
         skuList.forEach((sku) => {
           let newItem = {
@@ -1945,67 +1848,89 @@ watch(
           });
           result.push(newItem);
         });
-        // imgHeaderList.value = attrHeaderList; //图片标题赋值
-        if (result.some((item) => item.colorImg.length !== 0)) {
-          headerList.value.unshift({
-            title: "颜色样本",
-            dataIndex: "colorImg",
-            selectType: "url",
-            type: 1,
-            show: true,
-            align: "center",
-          });
-          addHeaderList.value.push("colorImg");
-        }
-        if (result.some((item) => item.skuTitle !== null && item.skuTitle !== "") && result.length > 1) {
-          let skuIndex = headerList.value.findIndex(
-            (item) => item.title === "SKU"
-          );
-          let obj = {
-            title: "SKU标题",
-            dataIndex: "skuTitle",
-            selectType: "input",
-            type: 1,
-            options: null,
-            show: true,
-            align: "center",
-          }
-          headerList.value.splice(skuIndex + 1, 0, obj);
-          addHeaderList.value.push("skuTitle");
-          const ozonStore = useOzonProductStore()
-          ozonStore.$patch(state => {
-            state.addHeaderList = addHeaderList.value
-          })
-        }
-        tableData.value = result;
-        // 判断sortArr中是否有组合数据
-        // if (isAllMatched) {
-        //   echoThemeList = handleTheme(filteredB); //handleTheme方法可以将属性转换成主题数据格式
-        // } else if (isAllMatche) {
-        //   echoThemeList = handleTheme(filteredB);
-        // } else
-        // {
-        //   isModelValueList = filterModelValues(sortArr, skuList);
-        //   echoThemeList = handleTheme(isModelValueList);
-        // }
-        // if (isAllMatched && isAllMatche) {
-        //   echoThemeList = handleTheme(filteredB); //handleTheme方法可以将属性转换成主题数据格式
-        // } else {
-        // }
-        isModelValueList = filterModelValues(sortArr, skuList);
-        echoThemeList = handleTheme(isModelValueList);
-
-        // 处理到数据回显到主题
-        const aIds = echoThemeList.map((item) => item.id);
-        // 过滤 有数据的主题
-        themeBtns.value = themeBtns.value.filter(
-          (item) => !aIds.includes(item.id)
-        );
-        attributeList.value = matchAndAssignValues(echoThemeList, skuList);
+        optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, skuList)
       }
     }
   }
 );
+
+// 优化现有产品等方法
+const optimizeMethods = (attrHeaderList, titleSet, sortArr, uniqueArr, result, skuList) => {
+  // 将不匹配的主题过滤掉
+  let comAttrList = [10096, 4295];
+  let comAttrs = [10096, 10097];
+  // 从数组 a 中提取所有的 id
+  const idsInA = sortArr.map((item) => item.id);
+  // // 使用 every 方法检查 comAttrList 中的每个元素是否都在 idsInA 中
+  const isAllMatched = comAttrList.every((id) => idsInA.includes(id)); //双组合主题
+  const isAllMatche = comAttrs.some((id) => idsInA.includes(id)); //单组合主题
+  let echoThemeList = [];
+  let isModelValueList = [];
+  // 处理数据回显到表格
+  attrHeaderList = [
+    ...new Map(
+      attrHeaderList.map((item) => [item.dataIndex, item])
+    ).values(),
+  ];
+  [...attrHeaderList, ...headerList.value].forEach((item) => {
+    if (!titleSet.has(item.title)) {
+      titleSet.add(item.title);
+      uniqueArr.push(item);
+    }
+  });
+  let filteredB = sortArr.filter((itemB) =>
+    uniqueArr.some((itemA) => itemA.id === itemB.id)
+  );
+  headerList.value = customSort(uniqueArr); //表格主题标题赋值
+  // imgHeaderList.value = attrHeaderList; //图片标题赋值
+  if (result.some((item) => item.colorImg.length !== 0)) {
+    headerList.value.unshift({
+      title: "颜色样本",
+      dataIndex: "colorImg",
+      selectType: "url",
+      type: 1,
+      show: true,
+      align: "center",
+    });
+    addHeaderList.value.push("colorImg");
+  }
+  if (result.some((item) => item.skuTitle !== null && item.skuTitle !== "") && result.length > 1) {
+    let skuIndex = headerList.value.findIndex(
+      (item) => item.title === "SKU"
+    );
+    let obj = {
+      title: "SKU标题",
+      dataIndex: "skuTitle",
+      selectType: "input",
+      type: 1,
+      options: null,
+      show: true,
+      align: "center",
+    }
+    headerList.value.splice(skuIndex + 1, 0, obj);
+    addHeaderList.value.push("skuTitle");
+    const ozonStore = useOzonProductStore()
+    ozonStore.$patch(state => {
+      state.addHeaderList = addHeaderList.value
+    })
+  }
+  tableData.value = result;
+  // 判断sortArr中是否有组合数据
+  if (isAllMatched && isAllMatche) {
+    echoThemeList = handleTheme(filteredB); //handleTheme方法可以将属性转换成主题数据格式
+  } else {
+    isModelValueList = filterModelValues(sortArr, skuList);
+    echoThemeList = handleTheme(isModelValueList);
+  }
+
+  // 处理到数据回显到主题
+  const aIds = echoThemeList.map((item) => item.id);
+  // 过滤 有数据的主题
+  themeBtns.value = themeBtns.value.filter(
+    (item) => !aIds.includes(item.id)
+  );
+  attributeList.value = matchAndAssignValues(echoThemeList, skuList);
+}
 
 // 方法2：使用Map优化性能（推荐）提取自定义属性
 // const findCommonByIdOptimized = (arr1, arr2) => {

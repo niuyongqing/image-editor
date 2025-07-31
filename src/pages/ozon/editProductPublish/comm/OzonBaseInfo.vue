@@ -92,11 +92,11 @@
                                     <a-select optionFilterProp="label" show-search size="middle"
                                         v-model:value="form.attributes[item.name]" v-if="item.selectType === 'select'"
                                         labelInValue :style="'width: 80%'" allowClear>
-                                        <a-select-option v-if="item.id == 85" :value="'无品牌'">无品牌</a-select-option>
+                                        <a-select-option v-if="item.id == 85 || item.id == 31" :value="'无品牌'">无品牌</a-select-option>
 
                                         <a-select-option v-else :value="v" v-for="(v, i) in item.options" :key="i">{{
                                             v.label
-                                            }}</a-select-option>
+                                        }}</a-select-option>
                                     </a-select>
                                 </a-form-item>
                             </div>
@@ -295,10 +295,10 @@ const findMatchedOption = (attributeId, data, options) => {
     const matchedOption = options?.find(option => option.id === data.id);
     if (attributeId == 9070) {
         return {
-            label: JSON.parse(data.value) == true ? "是" : '否',
+            label: JSON.parse(data.value) == true ? "是(YES)" : '否(NO)',
             value: JSON.parse(data.value)
         }
-    } else if (attributeId == 85) {
+    } else if (attributeId == 85 || attributeId == 31) {
         return {
             label: '无品牌',
             value: data.id
@@ -461,13 +461,23 @@ watch(() => props.attributesCache, (val) => {
                     label: "",
                     value: ""
                 };
-                item.options = item?.options?.map(item => {
-                    return {
-                        ...item,
-                        label: item?.label == '否' || item?.label == '是' ? item.label : item.value,
-                        value: item?.label == '否' || item?.label == '是' ? JSON.parse(item.value) : item.id,
-                    }
-                })
+                if (item.id === 9070) {
+                    item.options = item?.options?.map((item) => {
+                        return {
+                            ...item,
+                            label: item.label,
+                            value: item.value,
+                        };
+                    });
+                } else {
+                    item.options = item?.options?.map(item => {
+                        return {
+                            ...item,
+                            label: item.value,
+                            value: item.id,
+                        }
+                    })
+                }
                 item.acquiesceList =
                     (item.options && item.options.slice(0, 25)) ?? [];
                 attributes[item.name] = item.selectType === "multSelect" ? [] : undefined;

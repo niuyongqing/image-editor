@@ -192,7 +192,7 @@
                     allowClear
                   >
                     <a-select-option
-                      v-if="item.id == 85"
+                      v-if="item.id == 85 || item.id == 31"
                       :value="'无品牌'"
                       >无品牌</a-select-option
                     >
@@ -312,28 +312,28 @@
   }
 
   // 根据分类弹窗中选择的分类去查询属性
-  const getAttributesID = ids => {
-    let params = {
-      account: form.shortCode,
-      secondCategoryId: ids.secondCategoryId,
-      threeCategoryId: ids.value
-    }
-    addHistoryCategory(params).then(res => {
-      getHistoryList(form.shortCode)
-    })
-    form.categoryId = {
-      threeCategoryId: ids.value,
-      threeCategoryName: '',
-      secondCategoryId: ids.secondCategoryId,
-      label: ids.label,
-      value: ids.value
-    }
-    emit('getAttributes', form.shortCode, form.categoryId)
-  }
+  // const getAttributesID = ids => {
+  //   let params = {
+  //     account: form.shortCode,
+  //     secondCategoryId: ids.secondCategoryId,
+  //     threeCategoryId: ids.value
+  //   }
+  //   addHistoryCategory(params).then(res => {
+  //     getHistoryList(form.shortCode)
+  //   })
+  //   form.categoryId = {
+  //     threeCategoryId: ids.value,
+  //     threeCategoryName: '',
+  //     secondCategoryId: ids.secondCategoryId,
+  //     label: ids.label,
+  //     value: ids.value
+  //   }
+  //   emit('getAttributes', form.shortCode, form.categoryId)
+  // }
 
   // 打开选择分类弹窗
   const changeCategory = () => {
-    categoryModalEl.value.open(form.categoryId.threeCategoryId)
+    categoryModalEl.value.open(form.categoryId?.threeCategoryId)
   }
 
   // 历史分类
@@ -524,10 +524,10 @@ const changeRule = (attributes, name) => {
     const matchedOption = options?.find(option => option.id === data.id)
     if (attributeId == 9070) {
       return {
-        label: JSON.parse(data.value) == true ? '是' : '否',
+        label: JSON.parse(data.value) == true ? "是(YES)" : '否(NO)',
         value: JSON.parse(data.value)
       }
-    } else if (attributeId == 85) {
+    } else if (attributeId == 85 || attributeId == 31) {
       return {
         label: '无品牌',
         value: data.id
@@ -622,9 +622,9 @@ const changeRule = (attributes, name) => {
       getHistoryList(form.shortCode, data.value)
     })
     emit('getAttributes', form.shortCode, {
-      categoryId: data.ids[0],
-      secondCategoryId: data.ids[1],
-      threeCategoryId: data.ids[2]
+      // categoryId: data.ids[0],
+      categoryId: data.ids[1],
+      typeId: data.ids[2]
     })
   }
 
@@ -737,13 +737,23 @@ const changeRule = (attributes, name) => {
               label: '',
               value: ''
             }
-            item.options = item?.options?.map(item => {
-              return {
-                ...item,
-                label: item?.label == '否' || item?.label == '是' ? item.label : item.value,
-                value: item?.label == '否' || item?.label == '是' ? JSON.parse(item.value) : item.id
-              }
-            })
+            if (item.id === 9070) {
+                item.options = item?.options?.map((item) => {
+                    return {
+                        ...item,
+                        label: item.label,
+                        value: item.value,
+                    };
+                });
+            } else {
+                item.options = item?.options?.map(item => {
+                    return {
+                        ...item,
+                        label: item.value,
+                        value: item.id,
+                    }
+                })
+            }
             item.acquiesceList = (item.options && item.options.slice(0, 25)) ?? []
             attributes[item.name] = item.selectType === 'multSelect' ? [] : undefined
           })

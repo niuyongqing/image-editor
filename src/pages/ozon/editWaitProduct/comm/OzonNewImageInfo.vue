@@ -142,8 +142,6 @@ watch(() => existProductData.value, (newVal) => {
         const copyAttr = attributes?.filter(
             (a) => a.id == 11254 || a.id == 4191
         );
-        console.log("copyAttr", copyAttr);
-
         complexAttributes && complexAttributes.forEach((item) => {
             // item.attributes.forEach((attr) => {
             // });
@@ -271,8 +269,6 @@ watch(() => props.productDetail, val => {
         const copyAttr = attributes?.filter(
             (a) => a.id == 11254 || a.id == 4191
         );
-        console.log("copyAttr", copyAttr);
-
         complexAttributes && complexAttributes.forEach((item) => {
             // item.attributes.forEach((attr) => {
             // });

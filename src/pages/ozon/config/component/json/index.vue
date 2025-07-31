@@ -1386,8 +1386,8 @@ function openEditor() {
         moduleList.value.push(imgObj)
       } else {
         let imgTextObj = deepClone(imgTextDefaulet)
-        imgObj.id = uuidv4()
-        imgObj.type = 'text-image'
+        imgTextObj.id = uuidv4()
+        imgTextObj.type = 'text-image'
         imgTextObj.imgText.dataType = item.type
         imgTextObj.imgText.dataList = item.blocks.map(e => {
           return {

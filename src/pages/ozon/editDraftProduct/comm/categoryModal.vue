@@ -243,7 +243,9 @@ function getCategoryTree() {
         "account": account
     }).then(res => {
         treeData.value = res.data || [];
-        const path = findPathById(thirdState.selectKeys[0], treeData.value);
+        let path = findPathById(thirdState.selectKeys[0], treeData.value);
+        // console.log({path}, thirdState.selectKeys[0]);
+        path = path || { ids: [], labels: [] };
         selectItem.value = {
             label: path.labels.join(' / '),
             value: thirdState.selectKeys[0],
@@ -259,22 +261,22 @@ function getCategoryTree() {
         });
         firstState.selectValue = firstState.options.find((item) => item.value === path.ids[0]);
 
-        secondState.options = firstState.selectValue.children.map((item) => {
+        secondState.options = firstState.selectValue?.children.map((item) => {
             return {
                 ...item,
                 label: item.categoryName,
                 value: item.descriptionCategoryId,
             }
-        });
+        }) || [];
         secondState.selectValue = secondState.options.find((item) => item.value === path.ids[1]);
 
-        thirdState.options = secondState.selectValue.children.map((item) => {
+        thirdState.options = secondState.selectValue?.children.map((item) => {
             return {
                 ...item,
                 label: item.categoryName,
                 value: item.descriptionCategoryId,
             }
-        });
+        }) || [];
         thirdState.selectValue = thirdState.options.find((item) => item.value === path.ids[2]);
 
         firstState.open = true;
