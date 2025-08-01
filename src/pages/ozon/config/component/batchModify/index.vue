@@ -257,20 +257,31 @@ watch(() => copyModuleList.value, val => {
   }
 }, { deep: true })
 
+// 获取图片尺寸
+function getImageSize(img) {
+  const image = new Image()
+  image.src = img.url
+  image.onload = () => {
+    img.width = image.width
+    img.height = image.height
+  }
+}
+
 watch(() => props.moduleList, val => {
   const uniqueSet = new Set();
   if (val.length) {
-    // console.log('va', val);
     val.forEach(item => {
       if (item.type === "text-image") {
         item.imgText.dataList.forEach(data => {
           data.src.forEach(srcObj => {
+            getImageSize(srcObj)
             uniqueSet.add(JSON.stringify(srcObj));
           });
         });
       } else if (item.type === "image") {
         item.img.forEach(imgItem => {
           imgItem.src.forEach(srcObj => {
+            getImageSize(srcObj)
             uniqueSet.add(JSON.stringify(srcObj));
           });
         });

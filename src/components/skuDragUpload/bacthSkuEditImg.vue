@@ -16,14 +16,14 @@
       </div>
 
       <div mt-10px>
-        <a-form-item-rest label="选择水印:">
+        <a-form-item-rest>
           <a-checkbox v-model:checked="checkedAll" @change="handleCheckAllChange"> 选择全部</a-checkbox>
         </a-form-item-rest>
       </div>
       <div class="flex flex-wrap  mt-10px">
-        <a-card v-for="element in fileList" :key="element.url" mb-10px ml-10px p-0px rounded-none class="file-card"
+        <a-card v-for="element in fileList" :key="element.id" mb-10px ml-10px p-0px rounded-none class="file-card"
           hoverable style="width: 125px;">
-          <div :key="element.uid">
+          <div>
             <div class="file-item">
               <div class="file-img">
                 <img :src="element.url" alt="" class="file-img" />
@@ -43,9 +43,6 @@
               <!-- v-if="!element.url.includes('http')" -->
               <a-checkbox v-model:checked="element.checked" @change="check(element, $event)"></a-checkbox>
               <div></div>
-              <!-- <a-button type="text" color="#428bca" @click="handleRemove(element)">
-                <DeleteOutlined />
-              </a-button> -->
             </div>
           </div>
           <template #tabBarExtraContent></template>
@@ -98,10 +95,6 @@ const showModal = (list) => {
 const cancel = () => {
   reset();
 };
-
-const handleRemove = (element) => {
-  fileList.value = fileList.value.filter(item => item.uid !== element.uid);
-}
 
 // 点击选中
 const check = (element) => {

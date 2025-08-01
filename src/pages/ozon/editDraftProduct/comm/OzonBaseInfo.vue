@@ -600,6 +600,8 @@ const changeRule = (attributes, name) => {
   const handleSelect = data => {
     form.categoryId = {
       threeCategoryId: data.value,
+      categoryId: data.ids[0],
+      secondCategoryId: data.ids[1],
       threeCategoryName: data.label[2],
       value: data.value
     }

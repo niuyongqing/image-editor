@@ -9,7 +9,8 @@
       </a-tabs>
     </div>
     <!-- FIXME: del -->
-    <a-tag color="warning" class="mb-2">TIPS: 目前只支持单选; 多选开发中...</a-tag>
+    <a-tag color="warning" class="mb-2">TIPS: 目前只支持单选; 多选开发中···</a-tag>
+    <a-tag color="error" class="mb-2">TIPS: 当前最多支持认领200个SKU</a-tag>
     <div class="flex h-120">
       <!-- LEFT -->
       <a-card class="flex-[3] mr-4 overflow-auto">

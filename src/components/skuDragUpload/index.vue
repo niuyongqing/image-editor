@@ -154,6 +154,7 @@ import NetImageModal from './netImageModal.vue';
 import ImageTranslation from './imageTranslation.vue';
 import download from '~@/api/common/download';
 import { downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js';
+import { v4 as uuidv4 } from 'uuid';
 
 const props = defineProps({
     disabled: {
@@ -273,7 +274,7 @@ const handleImageLoad = (el, event) => {
         const img = event.target;
         el.width = img ? img.naturalWidth : '';
         el.height = img ? img.naturalHeight : '';
-        el.key = 1;
+        el.key = uuidv4();
     });
 };
 // 导出全部图片

@@ -48,6 +48,9 @@ import {
 import { message } from "ant-design-vue";
 import { skuList } from '~@/pages/lazada/product/api';
 
+const collectProductId = ref('')
+provide('collectProductId', collectProductId)
+
 const ozonBaseInfoRef = ref(null)
 const ozonImageInfoRef = ref(null)
 const ozonNewVariantInfoRef = ref(null)
@@ -92,7 +95,8 @@ const scroll = (id) => {
 }
 const getProductDetail = (waitId, account) => {
   ozonProductDetail({ account, waitId }).then(res => {
-    productDetail.value = res?.data ?? {}
+    productDetail.value = res.data || {}
+    collectProductId.value = res.data.collectProductId
     getAttributes(res?.data.account, res?.data)
   })
 }

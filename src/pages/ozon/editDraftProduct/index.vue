@@ -30,7 +30,7 @@
 </a-dropdown>-->
                         <!-- <a-button type="default" style="height: 32px; background-color: #F5F5F5; color: #434649ff;"
                             :loading="tempLoading" @click="showTempModal">存为模板</a-button> -->
-                        <!-- <a-dropdown>
+                        <a-dropdown>
                             <a-button style="height: 32px; background-color: #FF8345; color: #fff;">
                                 引用产品
                                 <DownOutlined />
@@ -40,15 +40,15 @@
                                     <a-menu-item :key="1">
                                         引用现有产品
                                     </a-menu-item>
-                                    <a-menu-item :key="2">
+                                    <!-- <a-menu-item :key="2">
                                         引用产品模板
                                     </a-menu-item>
                                     <a-menu-item :key="3">
                                         引用ERP产品
-                                    </a-menu-item>
+                                    </a-menu-item> -->
                                 </a-menu>
                             </template>
-                        </a-dropdown> -->
+                        </a-dropdown>
 
                         <a-button type="primary" @click="onSubmit(1)"
                             style="height: 32px; background-color: #FF8345; color: #fff;">保存并移入待发布</a-button>

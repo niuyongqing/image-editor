@@ -9,6 +9,7 @@
       </a-tabs>
     </div>
     <!-- FIXME: del -->
+    <a-tag color="error" class="mb-2">TIPS: 当前最多支持认领200个SKU</a-tag>
     <div class="flex h-120">
       <!-- LEFT -->
       <a-card class="flex-[3] mr-4 overflow-auto">

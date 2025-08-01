@@ -274,107 +274,8 @@
           </template>
         </a-table>
       </a-card>
-      <a-card title="变种图片" class="text-left mx-50 mt-5">
-        <div>
-          <div w-full ml-25px>
-            <div>
-              <a-tag color="warning" class="text-16px">！说明</a-tag>
-              <span style="color: #9fa0a2" class="text-16px">
-                第一张图片默认为主图，点击图片拖动，即可调整图片顺序！
-                单张不超过2M，只支持jpg、.png、.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3：4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)</span>
-            </div>
-            <div flex justify-end items-center mt-15px>
-              <a-dropdown>
-                <a-button type="link" link style="width: 90px; height: 31px;">
-                  普通水印
-                  <DownOutlined />
-                </a-button>
-                <template #overlay>
-                  <a-menu>
-                    <a-menu-item v-for="item in watermark" :key="item" @click="handleWatermark(item)">
-                      {{ item.title }}
-                    </a-menu-item>
-                  </a-menu>
-                </template>
-              </a-dropdown>
-              <span pl-10px>|</span>
-              <a-dropdown>
-                <a-button type="link" style="width: 90px; height: 31px; margin-left: 10px;">
-                  编辑图片
-                  <DownOutlined />
-                </a-button>
-                <template #overlay>
-                  <a-menu>
-                    <a-menu-item @click="handleEditImagesSize">
-                      批量修改图片尺寸
-                    </a-menu-item>
-                    <a-menu-item @click="handleImageTranslation">
-                      图片翻译
-                    </a-menu-item>
-                    <a-menu-item @click="clearAllImages">
-                      清空图片
-                    </a-menu-item>
-                  </a-menu>
-                </template>
-              </a-dropdown>
-              <span pl-10px>|</span>
-              <a-button type="link" style="width: 90px; height: 31px; margin-right: 70px;" :loading="downloadLoading"
-                @click="handleExportAllImages">
-                <DownloadOutlined /> 导出全部图片
-              </a-button>
-            </div>
-          </div>
-
-          <div v-for="item in tableData" :key="item.id">
-            <div v-if="tableData.length > 0">
-              <a-card class="mb-2.5 ml-2.5" :bordered="false">
-
-                <SkuDragUpload v-model:file-list="item.imageUrl" :maxCount="30" :showUploadList="false"
-                  accept=".jpg,.png" :api="uploadImage" :waterList="watermark">
-                  <template #default>
-                    <div flex flex-col w-full justify-start mb-4px text-left>
-                      <p>
-                        <a-tag color="#00AEB3" class="text-16px">说明！</a-tag>
-                        <span class="text-#999 text-16px"> 第一张图片默认为主图，点击图片拖动，即可调整图片顺序。
-                        </span>
-                      </p>
-                    </div>
-                  </template>
-                  <template #variantInfo>
-                    <!-- 变种主题信息 -->
-                    <div v-for="(nameItem, nameIndex) in skuThemeNames(item)" :key="nameIndex">
-                      {{ nameItem[0] }}: {{ item[nameItem[0]] }}
-                    </div>
-                  </template>
-                  <template #skuInfo>
-                    {{ `【${item.imageUrl.length}/30】图片 ` }}
-                    <a-dropdown>
-                      <a-button type="link" link style="width: 90px; height: 31px;">
-                        图片应用到
-                        <DownOutlined />
-                      </a-button>
-                      <template #overlay>
-                        <a-menu>
-                          <a-menu-item @click="applyAllImage(item)">
-                            所有变种
-                          </a-menu-item>
-                          <!-- <a-menu-item v-for="item in applyMenuList" :key="item.value"
-                                                        @click="applyImage(item)">
-                                                        <span>同</span>
-                                                        <span px-3px>{{ item.title }}</span>
-                                                        <span>的变种</span>
-                                                    </a-menu-item> -->
-                        </a-menu>
-                      </template>
-                    </a-dropdown>
-
-                  </template>
-                </SkuDragUpload>
-              </a-card>
-            </div>
-          </div>
-        </div>
-      </a-card>
+      <!-- 图片信息 -->
+      <ImageInfo :data-source="tableData" :water-mark-options="watermark" :attr-list="attrList" />
     </a-card>
     <!-- 修改库存 -->
     <EditProdQuantity @backQuantity="backQuantity" :editQuantityVis="editQuantityVis" :editStockList="editStockList"
@@ -406,7 +307,6 @@ import { message, Modal } from "ant-design-vue";
 import EditProdQuantity from "./EditProdQuantity.vue";
 import { FileOutlined, SettingOutlined, DownOutlined, DownloadOutlined } from '@ant-design/icons-vue';
 import {
-  scaleApi,
   watermarkListApi,
   watermarkApi,
 } from "~/api/common/water-mark";
@@ -431,15 +331,14 @@ import {
 } from "../../config/commJs/index";
 import { publishHead, otherList } from "../../config/tabColumns/skuHead";
 import { uploadImage } from "@/pages/ozon/config/api/draft";
-import SkuDragUpload from "@/pages/ozon/config/component/skuDragImg/index.vue"
-import bacthSkuEditImg from "@/pages/ozon/config/component/skuDragImg/bacthSkuEditImg.vue"
-import ImageTranslation from "@/pages/ozon/config/component/skuDragImg/imageTranslation.vue"
 import { debounce, cloneDeep, pick } from "lodash";
 import batchSetColor from "../../editWaitProduct/comm/batchSetColor.vue";
 import download from '~@/api/common/download';
 import { imageUrlUpload, downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js'
 import colorImgTranslation from "./colorImgTranslation.vue";
 import bacthEditColorImg from "./bacthEditColorImg.vue";
+import { v4 as uuidv4 } from 'uuid'
+import ImageInfo from '@/pages/ozon/config/component/image-info/index.vue'
 
 const emit = defineEmits(["getAttributes"]);
 
@@ -475,7 +374,6 @@ const attributeList = ref([]); //变种主题卡片
 const colorAttributeList = ref([]); //带颜色名称的变种主题卡片
 const tableData = ref([]);
 const watermark = ref([]);
-const watermarkValue = ref("");
 const cropWidth = ref(800);
 const cropHeight = ref(800);
 const editQuantityVis = ref(false);
@@ -528,6 +426,12 @@ const headers = {
 const uploadUrl =
   import.meta.env.VITE_APP_BASE_API +
   "/platform-ozon/platform/ozon/file/upload/img";
+
+// 监听 attributeList, 获取变种名列表
+const attrList = ref([])
+watch(() => attributeList.value, () => {
+  attrList.value = attributeList.value.map(item => item.tableColumns.slice(0, -1).map(column => column.title))
+})
 
 // 注入父组件数据
 const existProductData = inject('existProductData')
@@ -1172,98 +1076,6 @@ const dependencyMap = new Map([
   [4295, 9533], // 俄罗斯尺码和制造商尺码
 ]);
 
-// 点击水印
-const handleWatermark = async (item) => {
-  for (const tabbleItem of tableData.value) {
-    const fileList = tabbleItem.imageUrl || [];
-    if (fileList.length === 0) {
-      continue;
-    }
-    const netPathList = fileList.filter((file) => file.url.includes('http')).map((item) => {
-      return item.url
-    });
-    // 只有本地图片
-    if (netPathList.length === 0) {
-      const imagePathList = fileList.filter((file) => !file.url.includes('http')).map((item) => {
-        return item.url
-      });
-      const waterRes = await watermarkApi({
-        imagePathList: imagePathList, //
-        id: item.id,
-      });
-      if (waterRes.code === 200) {
-        const data = waterRes.data || [];
-        data.forEach((item) => {
-          fileList.forEach(v => {
-            if (item.originalFilename === v.url) {
-              v.url = item.url
-              v.name = item.newFileName
-              v.checked = false
-            }
-          })
-        })
-      }
-    } else {
-      // 有网络图片
-      const fileList = tabbleItem.imageUrl || [];
-      for (let index = 0; index < fileList.length; index++) {
-        const fileItem = fileList[index];
-        try {
-          let netImgs = [];
-          const url = fileItem.url;
-          if (url.includes('http')) {
-            let res = await imageUrlUpload({ url });
-            netImgs.push(res.data);
-            fileList.forEach(i => {
-              if (i.url === url) {
-                i.url = res.data.url
-              }
-            });
-            const waterRes = await watermarkApi({
-              imagePathList: netImgs.map((img) => img.url),
-              id: item.id,
-            });
-            if (waterRes.code === 200) {
-              const data = waterRes.data || [];
-              data.forEach((_item) => {
-                fileList.forEach(v => {
-                  if (_item.originalFilename.includes(v.url)) {
-                    v.url = _item.url
-                    v.name = _item.newFileName
-                    v.checked = false
-                  }
-                });
-              })
-            }
-          } else {
-            const imagePathList = fileList.filter((file) => !file.url.includes('http')).map((item) => {
-              return item.url
-            });
-            const waterRes = await watermarkApi({
-              imagePathList: imagePathList, //
-              id: item.id,
-            });
-            if (waterRes.code === 200) {
-              const data = waterRes.data || [];
-              data.forEach((item) => {
-                fileList.forEach(v => {
-                  if (item.originalFilename === v.url) {
-                    v.url = item.url
-                    v.name = item.newFileName
-                    v.checked = false
-                  }
-                })
-              })
-            }
-          }
-        } catch (error) {
-          console.error(error)
-        }
-      }
-    }
-  }
-};
-
 // 导出全部图片
 const handleExportAllImages = async () => {
   try {
@@ -1564,10 +1376,10 @@ watch(
               // 合并主图和其他图片，使用Set去重后生成对象数组
               Array.from(
                 new Set([
-                  ...(primaryImage || []),  // 主图数组
-                  ...(images || [])         // 普通图片数组
+                  ...(processImageSource(sku.primaryImage) || []),  // 主图数组
+                  ...(processImageSource(sku.images) || [])         // 普通图片数组
                 ])
-              ).map(url => ({ url })) ?? [],
+              ).map(url => ({ url, id: uuidv4(), checked: false })) ?? [],
           };
 
           // 遍历a数组
