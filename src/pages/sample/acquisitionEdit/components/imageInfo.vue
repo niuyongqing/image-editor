@@ -112,7 +112,7 @@
                 </div>
                 <div class="img-box-foot">
                   <div class="img-name">
-                    <a-tooltip>
+                    <a-tooltip placement="topLeft">
                       <template #title>{{ item.name || item.url }}</template>
                       {{ item.name || item.url }}
                     </a-tooltip>
