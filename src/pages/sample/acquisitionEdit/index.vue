@@ -199,14 +199,19 @@ async function saveForm() {
         basePackageInfo,
       },
     }
+    if (params.imageList.length < 1) {
+      scroll('acquisitionEdit_imageInfo');
+      spinning.value = false;
+      return message.error('请添加图片信息！');
+    }
     // console.log({ params });
-    await productUpdate(params)
-    message.success('编辑成功！')
+    await productUpdate(params);
+    message.success('编辑成功！');
     // 刷新采集数据表格
-    let uid = uuidv4()
-    localStorage.setItem('urlAcquisition', uid)
+    let uid = uuidv4();
+    localStorage.setItem('urlAcquisition', uid);
   } catch (error) {
-    console.error(error)
+    console.error(error);
   }
   spinning.value = false;
 }
