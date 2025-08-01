@@ -1091,12 +1091,14 @@ watch(
             }
           }),
           sellerSKU: sku.offerId,
-          imageUrl: Array.from(
+          imageUrl: 
+          // 合并主图和其他图片，使用Set去重后生成对象数组
+          Array.from(
             new Set([
-              ...(sku.primaryImage || []),  // 主图数组
-              ...(sku.images || [])         // 普通图片数组
+              ...(processImageSource(sku.primaryImage) || []),  // 主图数组
+              ...(processImageSource(sku.images) || [])         // 普通图片数组
             ])
-          ).map(url => ({ url, id: uuidv4(), checked: false })) || [],
+          ).map(url => ({ url, id: uuidv4(), checked: false })) ?? [],
         }
 
         // 遍历a数组

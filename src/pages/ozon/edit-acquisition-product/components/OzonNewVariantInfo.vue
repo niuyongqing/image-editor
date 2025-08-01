@@ -892,6 +892,7 @@ watch(
           packageLength: sku.depth,
           packageWeight: sku.weight,
           packageWidth: sku.width,
+          skuTitle: sku.name,
           colorImg: sku?.colorImage
             ? [
               {
@@ -908,22 +909,14 @@ watch(
           }),
           sellerSKU: sku.offerId,
           imageUrl:
-            sku.images?.map(item => {
-              return {
-                url: processImageSource(item),
-                checked: false
-              }
-            }),
-            sellerSKU: sku.offerId,
-            imageUrl:
-              sku.images?.map(item => {
-                return {
-                  url: processImageSource(item),
-                  checked: false,
-                  id: uuidv4()
-                }
-              }) || []
-          }
+              // 合并主图和其他图片，使用Set去重后生成对象数组
+              Array.from(
+                new Set([
+                  ...(processImageSource(sku.primaryImage) || []),  // 主图数组
+                  ...(processImageSource(sku.images) || [])         // 普通图片数组
+                ])
+              ).map(url => ({ url, id: uuidv4(), checked: false })) ?? [],
+        }
 
         // 遍历a数组
         sortArr.forEach(attr => {
