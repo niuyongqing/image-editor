@@ -20,7 +20,7 @@
                             更新模板
                         </a-button>
                     </div> -->
-                    <div class="my10px text-16px" style="color: #737679"><a-tag color="green">说明</a-tag>描述区图片尺寸需大于330*330，小于5000x5000，图片大小不能超过3M
+                    <div class="my10px text-16px" style="color: #737679"><a-tag color="green">说明</a-tag>不支持设置手机端描述，保存发布后，手机端的图片及文字信息将跟PC端保持一致
                     </div>
                     <a-form-item-rest>
                         <jsonForm @backResult="backResult" :jsonContent="form.jsons" :shop="shopCode" @clear="form.jsons = ''"></jsonForm>
