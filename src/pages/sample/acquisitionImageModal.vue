@@ -24,6 +24,7 @@
             <a-image
               :width="148"
               :height="148"
+              class="object-contain"
               :preview="{
                 visible: false,
                 onVisibleChange: (visible, prevVisible) => onVisibleChange(item),
@@ -51,6 +52,7 @@
             <a-image
               :width="70"
               :height="70"
+              class="object-contain"
               :preview="false"  
               :src="item.src"
             >

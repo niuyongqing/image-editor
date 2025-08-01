@@ -482,7 +482,7 @@ defineExpose({
     open
 });
 </script>
-<style scoped>
+<style lang="less" scoped>
 .card {
     background-color: #f9f9f9;
 }

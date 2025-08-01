@@ -185,12 +185,21 @@
     open => {
       if (!open || !props.rawVariantImages.length) return
 
-      variantImages.value = cloneDeep(props.rawVariantImages).map(url => ({ id: uuidv4(), url }))
+      variantImages.value = cloneDeep(props.rawVariantImages).map(url => ({ id: uuidv4(), url: formatUrl(url) }))
       variantImages.value.forEach(item => {
         getImgSize(item)
       })
     }
   )
+
+  // 格式化图片 url
+  function formatUrl(url) {
+    if (url.includes('http') || url.includes(import.meta.env.VITE_APP_BASE_API)) {
+      return url
+    } else {
+      return `${import.meta.env.VITE_APP_BASE_API}${url}`
+    }
+  }
 
   // 获取图片尺寸
   function getImgSize(item) {

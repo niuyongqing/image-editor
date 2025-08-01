@@ -179,6 +179,7 @@
               <a-image
                 :width="118"
                 :height="118"
+                class="object-contain"
                 :src="image.url"
               />
               <!-- size -->
@@ -445,13 +446,13 @@
 
     if (key === 'applyAll') {
       props.dataSource.forEach(item => {
-        item.imageUrl = SKU.imageUrl
+        item.imageUrl = cloneDeep(SKU.imageUrl)
       })
     } else {
       const keyList = key.split('-')
       props.dataSource.forEach(item => {
         if (keyList.every(key => item[key] === SKU[key])) {
-          item.imageUrl = SKU.imageUrl
+          item.imageUrl = cloneDeep(SKU.imageUrl)
         }
       })
     }
