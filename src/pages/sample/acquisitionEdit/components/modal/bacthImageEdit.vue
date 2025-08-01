@@ -151,7 +151,12 @@ function onVisibleChange(img, event) {
   }
   checkedAll.value = formData.imgData.every(i => i.checked)
 }
-
+// 判断图片是否可以裁剪
+function isScale(item) {
+  let suffix = item.name.split('.')[item.name.split('.').length - 1].toLowerCase();
+  let suffixList = ["jpg", "jpeg", "png", "webp"]
+  return suffixList.includes(suffix);
+}
 async function modalOk() {
   try {
     await _this.$refs.sizeFormRef.validateFields()
@@ -167,16 +172,17 @@ async function modalOk() {
         formData.selectedImgList.forEach(i => {
           if (i.url === url) {
             i.url = res.data.url
+            i.name = i.name || res.data.name
           }
         })
       } catch (error) {
         console.error(error)
       }
     }
-    let imagePathList = formData.selectedImgList.map(i => i.url)
+    let imagePathList = formData.selectedImgList.filter(i => isScale(i)).map(i => i.url)
     if (imagePathList.some(i => i.includes('http'))) {
-      loading.value = false
-      return message.error('修改失败，请重试！')
+      loading.value = false;
+      return message.error('修改失败，请重试！');
     }
     let params = {
       newWidth: formData.width,
