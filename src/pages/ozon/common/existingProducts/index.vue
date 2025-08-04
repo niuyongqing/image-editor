@@ -107,11 +107,11 @@
           <template #bodyCell="{ column, record }">
             <div v-if="column.dataIndex === 'name'" class="flex">
               <div class="flex text-left items-center">
-                <a-image style="width: 100px; height: 100px" :src="
-                      record.primaryImage && record.primaryImage.length > 0
-                        ? processImageSource(record.primaryImage[0])
-                        : processImageSource(record.images[0])
-                    ">
+                <a-image style="width: 100px; height: 100px" :src="processImageSource(
+                    (record.primaryImage?.length && record.primaryImage[0]) ||
+                    (record.images?.length && record.images[0]) ||
+                    ''
+                  )">
                 </a-image>
                 <div style="margin-left: 10px; display: block">
                   <a-tooltip class="item">
