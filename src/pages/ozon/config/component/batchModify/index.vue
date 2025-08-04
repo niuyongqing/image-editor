@@ -220,8 +220,6 @@ function getWidthRatio(scaleValue) {
 // 转换成jpg
 const generateJPG = (type) => {
   let isCheckedList = copyModuleList.value.filter((item) => item.checked);
-  console.log("isCheckedList",isCheckedList);
-  
   let handeleList = isCheckedList.map(item => {
     return {
       id: item.id,
@@ -231,22 +229,20 @@ const generateJPG = (type) => {
     }
   })
   let arr = adjustList(handeleList, picScale.value, picSize.value, scaleValue.value, sizeValue.value, heightValue.value)
-  console.log("arr",arr);
-  
-  // spinning.value = true
-  // replaceSuffix({ imags: arr, fileType: type }).then(res => {
-  //   copyModuleList.value.forEach(itemB => {
-  //     const matchingItemA = res?.data?.find(itemA => itemA.id === itemB.id);
-  //     if (matchingItemA) {
-  //       // 如果找到匹配的元素，则替换宽高和 url
-  //       itemB.width = matchingItemA.width;
-  //       itemB.height = matchingItemA.height;
-  //       itemB.url = '/prod-api' + matchingItemA.path;
-  //     }
-  //   })
-  // }).finally(() => {
-  //   spinning.value = false
-  // })
+  spinning.value = true
+  replaceSuffix({ imags: arr, fileType: type }).then(res => {
+    copyModuleList.value.forEach(itemB => {
+      const matchingItemA = res?.data?.find(itemA => itemA.id === itemB.id);
+      if (matchingItemA) {
+        // 如果找到匹配的元素，则替换宽高和 url
+        itemB.width = matchingItemA.width;
+        itemB.height = matchingItemA.height;
+        itemB.url = '/prod-api' + matchingItemA.path;
+      }
+    })
+  }).finally(() => {
+    spinning.value = false
+  })
 }
 
 const selectAllImg = () => {
