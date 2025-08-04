@@ -65,8 +65,8 @@
                     placeholder=""
                     style="width: 120px;"
                   >
-                    <a-select-option :value="true">精确查询</a-select-option>
-                    <a-select-option :value="false">模糊查询</a-select-option>
+                    <a-select-option :value="1">精确查询</a-select-option>
+                    <a-select-option :value="2">模糊查询</a-select-option>
                   </a-select>
                 </div>
               </a-form-item-rest>
@@ -281,7 +281,7 @@ const { state: formData, reset } = useResetReactive({
   status: '',                         // 状态
   meansForbidSite: undefined,         // 禁售站点
   meansForbidAttribute: undefined,    // 禁售属性
-  preciseMeansKeepGrain: false,   // 是否精确查询仓储类型
+  preciseMeansKeepGrain: 2,           // 是否精确查询仓储类型
   meansKeepGrain: '',                 // 仓储类型 
   devAttributableMarket: undefined,   // 市场方向
   skuCostsMin: "",                    // 最小成本
@@ -359,7 +359,7 @@ async function getTableList() {
     const meansAuditTimeEnd = copyFormData.meansAuditTime[1] ?? ''; // 结束时间
     let params = {
       ...copyFormData,
-      // preciseMeansKeepGrain: false,
+      preciseMeansKeepGrain: (formData.preciseMeansKeepGrain === 1),
       classify: formData.classify?.join(",") ?? '',
       // preciseMeansKeepGrain: Number(formData.preciseMeansKeepGrain),
       meansAuditTimeStart: meansAuditTimeStart,

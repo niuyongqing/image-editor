@@ -85,7 +85,11 @@
           </div>
           <div class="box-tagTips">
             <a-tag color="green">说明</a-tag>
-            点击图片拖动，即可调整图片顺序！
+            点击图片拖动，即可调整图片顺序！只支持jpg、.png、.jpeg格式；
+          </div>
+          <div class="box-tagTips">
+            <a-tag color="red">说明</a-tag>
+            <span style="color: red;">添加水印以及裁剪图片只支持jpg、.png、.jpeg格式！</span>
           </div>
           <draggable
             v-model="formData.image_list"
@@ -108,15 +112,18 @@
                 </div>
                 <div class="img-box-foot">
                   <div class="img-name">
-                    <a-tooltip>
-                      <template #title>{{ item.name }}</template>
-                      {{ item.name }}
+                    <a-tooltip placement="topLeft">
+                      <template #title>{{ item.name || item.url }}</template>
+                      {{ item.name || item.url }}
                     </a-tooltip>
                   </div>
                   <a-tooltip>
                     <template #title>删除</template>
                     <AsyncIcon @click="delImg(item)" icon="DeleteOutlined" style="color: red; cursor: pointer;"/>
                   </a-tooltip>
+                </div>
+                <div class="img-box-Tips">
+                  <span v-if="item.name && showTips(item)">该图片不支持添加水印及裁剪！</span>
                 </div>
               </div>
             </template>
@@ -312,18 +319,20 @@ function openFn() {
   // 生成图片列表和视频列表
   const { localVideoList, videoList, imageList } = props.productData;
   formData.image_list = imageList.map(item => {
-    let src = item
-    if (!item.includes('http')) {
-      src = import.meta.env.VITE_APP_BASE_API + item
-    }
     let obj = {
       name: '',
       url: item,
       id: createRandom(),
       width: '',
       height: '',
-      src
+      src: ''
     }
+    let src = item
+    if (!item.includes('http')) {
+      obj.name = src.split('/')[src.split('/').length - 1]
+      src = import.meta.env.VITE_APP_BASE_API + item
+    }
+    obj.src = src
     return obj
   })
   formData.image_list.forEach(item => getImageSize(item))
@@ -370,14 +379,15 @@ async function watermarkClick({ key }) {
         let res = await imageUrlUpload({ url })
         formData.image_list.forEach(i => {
           if (i.url === url) {
-            i.url = res.data.url
+            i.url = res.data.url;
+            i.name = i.name || res.data.name
           }
         })
       } catch (error) {
         console.error(error)
       }
     }
-    let imagePathList = formData.image_list.map(i => i.url)
+    let imagePathList = formData.image_list.filter(i => !(showTips(i))).map(i => i.url)
     let params = {
       id: key,
       imagePathList
@@ -443,11 +453,17 @@ function bacthImageEditSize(newImage) {
   formData.image_list.forEach(item => {
     let val = (newImage || []).find(i => i.id === item.id)
     if (val) {
-      item.url = val.url,
+      item.url = val.url;
       item.src = val.src
+      item.name = val.name
       getImageSize(item)
     }
   })
+}
+function showTips(item) {
+  let suffix = item.name.split('.')[item.name.split('.').length - 1].toLowerCase()
+  let suffixList = ["jpg", "jpeg", "png", "webp"]
+  return !(suffixList.includes(suffix))
 }
 // 拖拽结束
 const handleDragEnd = (event) => {
@@ -637,7 +653,7 @@ function createRandom() {
       .img-box {
         width: 154px;
         // height: 180px;
-        margin: 0 10px 10px 0;
+        margin: 0 10px 20px 0;
         border: 1px solid #ccc;
         padding: 1px;
         position: relative;
@@ -668,6 +684,13 @@ function createRandom() {
             text-overflow:ellipsis; 
             white-space: nowrap;
           }
+        }
+        .img-box-Tips {
+          height: 16px;
+          font-size: 10px;
+          position: absolute;
+          bottom: -18px;
+          color: red;
         }
       }
     }
