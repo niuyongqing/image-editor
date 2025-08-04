@@ -341,3 +341,12 @@ export function brandCategory(data) {
     data
   })
 }
+
+// 根据资料库id查询数据
+export function brandDatabase(data) {
+  return request({
+    url: 'commodity-manage/commodity/store/detailImages',
+    method: 'post',
+    data
+  })
+}

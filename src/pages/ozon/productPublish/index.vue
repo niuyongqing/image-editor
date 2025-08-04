@@ -112,7 +112,10 @@
         </a-modal>
         <!-- 现有产品 -->
         <existingProducts ref="existProduct" @handleSelect="handleSelect"></existingProducts>
-
+        <!-- 产品资料库 -->
+        <productDatabase ref="productDatabaseRef" @handleSelect="handleProductSelect"></productDatabase>
+        <!-- 分类关联弹窗 -->
+        <editCategoryModal ref="editCategoryModalRef"></editCategoryModal>
     </div>
 </template>
 
@@ -121,7 +124,7 @@ import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import OzonBaseInfo from './comm/OzonBaseInfo.vue';
 import OzonNewImageInfo from './comm/OzonNewImageInfo.vue';
 import OzonNewVariantInfo from './comm/OzonNewVariantInfo.vue';
-import { accountCache, categoryAttributes, add, tempSaveOrUpdate, templateList } from "../config/api/product";
+import { accountCache, categoryAttributes, add, tempSaveOrUpdate, templateList, brandDatabase } from "../config/api/product";
 import { message, Modal } from "ant-design-vue";
 import { useOzonProductStore } from '~@/stores/ozon-product'
 import {
@@ -132,6 +135,8 @@ import { deepClone } from '~@/utils'
 import { saveTowaitProduct } from "../config/api/waitProduct"
 import { DownOutlined, ArrowRightOutlined, SettingOutlined } from '@ant-design/icons-vue';
 import existingProducts from "../common/existingProducts/index.vue";
+import productDatabase from "~/components/productDatabase/index.vue";
+import editCategoryModal from "../config/component/editCategoryModal/index.vue";
 
 const formData = reactive({
     shortCode: ""
@@ -176,6 +181,8 @@ const publishVis = ref(false)
 const tempVis = ref(false)
 const quoteVis = ref(false)
 const existProduct = ref(null)
+const productDatabaseRef = ref(null)
+const editCategoryModalRef = ref(null)
 const existProductData = ref({})
 const paginations = reactive({
     pageNum: 1,
@@ -208,6 +215,17 @@ const handleSelect = (record) => {
     existProductData.value = record;
 }
 
+const handleProductSelect = (record) => {
+    console.log(record);
+    brandDatabase({id:record.commodityId}).then(res=>{
+        console.log(res);
+    })
+    editCategoryModalRef.value.open({
+        account: formData.shortCode,
+        id: record.commodityId
+    })
+}
+
 const backToTop = () => {
     let elements = document.getElementsByClassName('ant-layout-content');
     if (elements) {
@@ -221,8 +239,6 @@ const backToTop = () => {
 const scroll = (id) => {
     document.getElementById(id).scrollIntoView({ behavior: 'smooth' })
 }
-// 资料库点击
-const selectProduct = () => { }
 
 // 根据是否选择店铺后选择资料库
 const sendShortCode = (shortCode) => {
@@ -342,6 +358,8 @@ const handleMenuClick = (e) => {
             return
         }
         getTemplateList();
+    } else if (e.key === '3') {
+        productDatabaseRef.value.modalOpenFn();
     }
 }
 

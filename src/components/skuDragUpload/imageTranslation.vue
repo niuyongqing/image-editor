@@ -5,8 +5,8 @@
         <div flex text-left pt-15px>
             <div> <a-tag color="#108ee9"> 说明! </a-tag> </div>
             <div>
-                <span class="text-#999"> 1、只能是选择网络图片 </span><br />
-                <span class="text-#999"> 2、每次不能超过20张 </span>
+                <!-- <span class="text-#999"> 1、只能是选择网络图片 </span><br /> -->
+                <span class="text-#999"> 每次不能超过10张 </span>
             </div>
         </div>
         <div class="flex flex-wrap  mt-10px">
@@ -40,7 +40,7 @@
 <script setup>
 import { message } from 'ant-design-vue';
 import { CheckOutlined } from '@ant-design/icons-vue';
-import { imageRecognitionApi, imageRecognitionQueryApi, imageTranslationApi } from '~@/api/common/translation';
+import { imageTranslationApi } from '~@/api/common/translation';
 
 const checkedAll = ref(false);
 const visible = ref(false);
@@ -65,25 +65,15 @@ const close = () => {
 
 const handleCheckAllChange = () => {
     fileList.value.forEach(item => {
-        if (item.url.includes('http')) {
-            item.checked = checkedAll.value
-        }
+        item.checked = checkedAll.value
     })
 };
 
 // 点击选中
 const check = (element) => {
-    if (element.url.includes('http')) {
-        element.checked = !element.checked;
-
-        const list = fileList.value.filter((item) => {
-            return item.url.includes('http')
-        });
-        const isAllChecked = list.every(item => item.checked);
-        checkedAll.value = isAllChecked;
-    } else {
-        message.error('只能选择网络图片');
-    }
+    element.checked = !element.checked;
+    const isAllChecked = fileList.value.every(item => item.checked);
+    checkedAll.value = isAllChecked;
 };
 
 const submit = async () => {
@@ -92,78 +82,39 @@ const submit = async () => {
         message.error('请选择图片');
         return;
     };
-    //  单张图片翻译
-    if (checkedList.length === 1) {
-        loading.value = true;
-        imageTranslationApi({
-            imageUrl: checkedList[0].url,
-            sourceLanguage: 'zh', // 源语言
-            targetLanguage: 'en' // 目标语言
-        }).then(res => {
-            if (res.code === 200) {
-                message.success('翻译成功');
-                const finalImageUrl = res.data.finalImageUrl;
-                emits('singleSubmit', {
-                    newUrl: finalImageUrl,
-                    oldUrl: checkedList[0].url,
-                });
-                close();
-            }
-        }).finally(() => {
-            loading.value = false;
-        })
-        return;
-    };
-    if (checkedList.length > 20) {
-        message.error('最多选择20张图片');
+    if (checkedList.length > 10) {
+        message.error('最多选择10张图片');
         return;
     }
-    //  多张图片翻译
-    if (checkedList.length > 1 && checkedList.length <= 20) {
-      loading.value = true;
-      try {
-        const res = await imageRecognitionApi({
-            imageUrls: checkedList.map(item => item.url),
+
+    if (checkedList.length <= 10) {
+        loading.value = true;
+        const res = await imageTranslationApi({
+            imageUrl: checkedList.map(e => e.url.replace('/prod-api', '')),
             sourceLanguage: 'zh',
             targetLanguage: 'en',
-            customTaskId: new Date().getTime().toString(),
         });
-      } catch (error) {}
         if (res.code === 200) {
-            const taskId = res.data.taskId;
-          timer.value = setInterval(() => {
-              loading.value = true;
-                imageRecognitionQueryApi(taskId)
-                    .then(res => {
-                        if (res.code === 200) {
-                            const data = res.data || [];
-                            if (data.length > 0) {
-                                const list = checkedList.map((checkItem, index) => {
-                                    return {
-                                        ...checkItem,
-                                        newUrl: data[index].finalImageUrl ? data[index].finalImageUrl : checkItem.url,
-                                        success: data[index].success,
-                                        oldUrl: checkItem.url,
-                                    }
-                                });
-                                loading.value = false;
-                                message.success('翻译成功');
-                                emits('multiSubmit', list);
-                                clearInterval(timer.value);
-                                timer.value = null;
-                                close();
-                            }
-                        }
-                    }).finally(() => {
-                      loading.value = false;
-                    })
-            }, 3500);
-      };
-        loading.value = false;
+            if (res.code === 200) {
+                message.success('翻译成功');
+                const data = res.data;
+                const list = checkedList.map((checkItem, index) => {
+                    return {
+                        ...checkItem,
+                        newUrl: data[index].newImage ? data[index].newImage : data[index].oldImage,
+                        success: data[index].success,
+                        oldUrl: checkItem.url,
+                    }
+                });
+                emits('emitImages', list);
+                loading.value = false;
+                close();
+            }
+        };
     };
 };
 
-const emits = defineEmits(['singleSubmit', 'multiSubmit'])
+const emits = defineEmits(['emitImages'])
 
 defineExpose({
     showModal,

@@ -242,8 +242,7 @@
   <!-- 图片翻译弹窗 -->
   <ImageTranslation
     ref="img_trans"
-    @singleSubmit="handleSingleSubmit"
-    @multiSubmit="handleMultiSubmit"
+    @emitImages="handleEmitImages"
   />
 
   <!-- 引用采集图片 -->
@@ -270,6 +269,7 @@
   import ImageTranslation from '@/components/skuDragUpload/imageTranslation.vue'
   import AcquisitionImageModal from '@/pages/sample/acquisitionImageModal.vue'
   import { Empty, message } from 'ant-design-vue'
+  import { processImageSource } from "~/pages/ozon/config/commJs/index";
 
   defineOptions({ name: 'ImageInfo' })
   const collectProductId = inject('collectProductId', '')
@@ -593,21 +593,12 @@
 
   /** 图片翻译 */
   const imgTransRef = useTemplateRef('img_trans')
-  // 单张图片翻译
-  function handleSingleSubmit(checkedImg) {
-    curSKU.value.imageUrl.forEach(item => {
-      if (item.url === checkedImg.oldUrl) {
-        item.url = checkedImg.newUrl
-      }
-    })
-  }
-
-  // 多张图片翻译
-  function handleMultiSubmit(checkedImgs) {
-    curSKU.value.imageUrl.forEach(item => {
-      checkedImgs.forEach(item => {
-        if (item.url === item.oldUrl) {
-          item.url = item.newUrl
+  // 图片翻译
+  function handleEmitImages(list) {
+    list.forEach(item => {
+      curSKU.value.imageUrl.forEach(v => {
+        if (v.url === item.oldUrl) {
+          v.url = processImageSource(item.newUrl)
         }
       })
     })

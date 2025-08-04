@@ -1,6 +1,7 @@
 <template>
   <a-modal :open="showEdit" title="批量修改图片尺寸" @ok="handleOk" @cancel="cancel" :keyboard="false" width="1200px">
     <a-spin :spinning="spinning">
+      <div class="text-red">图片仅支持JPG、PNG格式修改</div>
       <div class="mt-5 flex">
         <a-select v-model:value="picScale" style="width: 200px" @change="handleChange">
           <a-select-option :value="'equal'">等比例调整</a-select-option>
