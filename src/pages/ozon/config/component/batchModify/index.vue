@@ -130,6 +130,15 @@ const cancel = () => {
   emit("handleBatchModifyClose")
 }
 
+// 清空字段
+const clearField = () => {
+  picScale.value = 'equal'
+  picSize.value = 'small'
+  sizeValue.value = null
+  scaleValue.value = "none"
+  heightValue.value = null
+}
+
 const handleOk = () => {
   if (!sizeValue.value || (picSize.value === 'customWH' && !heightValue.value)) {
     message.error("请填写变化值！")
@@ -140,6 +149,10 @@ const handleOk = () => {
 }
 
 function adjustList(list, picScale, picSize, scaleValue, sizeValue, heightValue) {
+  if (!sizeValue || (picSize === 'customWH' && !heightValue)) {
+    message.error("请填写变化值！")
+    return
+  }
   return list.map(item => {
     const newItem = { ...item };
     if (picScale === 'equal') {
@@ -238,6 +251,7 @@ const generateJPG = (type) => {
     })
   }).finally(() => {
     spinning.value = false
+    clearField();
   })
 }
 

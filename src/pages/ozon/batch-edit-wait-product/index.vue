@@ -243,7 +243,7 @@
           >
             {{ record.title }}
           </div>
-          <div class="text-gray">「{{ record.simpleName }}」</div>
+          <div v-if="record.simpleName" class="text-gray">「{{ record.simpleName }}」</div>
         </template>
         <template v-else-if="column.title === '产品描述'">
           <a-textarea
@@ -644,7 +644,7 @@
         })
         const obj = {
           ...item,
-          title: item.name,
+          title: item.name || item.skuList[0].name,
           detailDesc,
           mainImage,
           VAT: item.vat

@@ -119,6 +119,9 @@ import { message } from "ant-design-vue";
 import { DownOutlined, ArrowRightOutlined, SettingOutlined } from '@ant-design/icons-vue';
 import existingProducts from "../common/existingProducts/index.vue";
 
+const collectProductId = ref('')
+provide('collectProductId', collectProductId)
+
 const ozonBaseInfoRef = ref(null)
 const ozonImageInfoRef = ref(null)
 const ozonNewVariantInfoRef = ref(null)
@@ -204,7 +207,8 @@ const scroll = (id) => {
 }
 const getProductDetail = (waitId, account) => {
   ozonProductDetail({ account, waitId }).then(res => {
-    productDetail.value = res?.data ?? {}
+    productDetail.value = res.data || {}
+    collectProductId.value = res.data.collectProductId
     getAttributes(res?.data?.account, res?.data)
   })
 }

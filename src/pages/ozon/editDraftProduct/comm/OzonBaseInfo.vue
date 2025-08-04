@@ -246,7 +246,6 @@
     attributes: {}, //产品属性
     storeHistoryCategoryId: '' //资料库分类ID
   })
-  const selectVisible = ref(false)
   const rules = {
     shortCode: {
       required: true,
@@ -273,7 +272,6 @@
   const loopAttributes = ref([])
   const categoryTreeList = ref([])
   const historyCategoryList = ref([])
-  const tempAttr = ref({})
   const isExpand = ref(true)
   const vatList = [
     {
@@ -310,26 +308,6 @@
       return attrs.filter(item => item.isRequired) || []
     }
   }
-
-  // 根据分类弹窗中选择的分类去查询属性
-  // const getAttributesID = ids => {
-  //   let params = {
-  //     account: form.shortCode,
-  //     secondCategoryId: ids.secondCategoryId,
-  //     threeCategoryId: ids.value
-  //   }
-  //   addHistoryCategory(params).then(res => {
-  //     getHistoryList(form.shortCode)
-  //   })
-  //   form.categoryId = {
-  //     threeCategoryId: ids.value,
-  //     threeCategoryName: '',
-  //     secondCategoryId: ids.secondCategoryId,
-  //     label: ids.label,
-  //     value: ids.value
-  //   }
-  //   emit('getAttributes', form.shortCode, form.categoryId)
-  // }
 
   // 打开选择分类弹窗
   const changeCategory = () => {
@@ -457,62 +435,6 @@ const assignValues = (a, b) => {
 
     return result;
 };
-
-const templateAssign = (a, b) => {
-    const result = {};
-    // 遍历所有属性配置项
-    b.forEach((item) => {
-        const attrName = item.name;
-        const attrValue = a[attrName];
-        if (!attrValue) return;
-
-        // 处理多选类型属性
-        if (item.selectType === "multSelect") {
-            result[attrName] = Array.isArray(attrValue)
-                ? attrValue.map(v => Number(v))  // 处理数组值
-                : [Number(attrValue)];  // 处理单选值转数组
-
-            // 维护选项排序
-            item.acquiesceList = moveMatchedItemForward(
-                item.options,
-                result[attrName]
-            );
-        }
-        // 处理下拉选择类型属性
-        else if (item.selectType === "select") {
-            // 特殊处理品牌字段
-            if (attrName === "品牌(Бренд)") {
-                result[attrName] = {
-                    label: "无品牌",
-                    value: { label: '无品牌', value: '无品牌' }
-                };
-            }
-            // 处理对象型值
-            else if (typeof attrValue === 'object') {
-                result[attrName] = findMatchedOption(
-                    item.id,
-                    { id: attrValue.value, value: attrValue.label },
-                    item.options
-                );
-            }
-            // 处理原始值
-            else {
-                result[attrName] = findMatchedOption(
-                    item.id,
-                    { id: attrValue, value: attrValue },
-                    item.options
-                );
-            }
-        }
-        // 处理普通输入类型
-        else {
-            result[attrName] = typeof attrValue === 'object'
-                ? attrValue.value  // 提取对象中的值
-                : attrValue;       // 直接使用原始值
-        }
-    });
-    return result;
-}
 
 
   // 清除校验
@@ -665,41 +587,6 @@ const changeRule = (attributes, name) => {
       }
     }
   )
-
-  // 引用产品模板
-  watch(
-    () => useOzonProductStore().productTemplate,
-    val => {
-      if (val) {
-        console.log(val,"val;");
-        
-        const {
-          account,
-          category: { threeCategoryId, secondCategoryId },
-          content: {
-            productTemplate: {
-              productAttr
-            }
-          }
-        } = val
-        form.shortCode = val.account
-        form.categoryId = {
-          threeCategoryId,
-          threeCategoryName: '',
-          secondCategoryId,
-          label: undefined,
-          value: threeCategoryId
-        }
-        console.log('shortCode', form.shortCode)
-        console.log('categoryId', form.categoryId)
-        tempAttr.value = productAttr
-        // form.vat = vat === "0.0" || vat === "0.00" ? "0" : vat;
-        emit('getAttributes', form.shortCode, form.categoryId)
-        // form.attributes = val.content.productTemplate.productAttr;
-      }
-    }
-  )
-
   watch(
     () => useOzonProductStore().attributes,
     val => {
@@ -780,10 +667,6 @@ const changeRule = (attributes, name) => {
 
           const proceRes = assignValues(oldAttributes, loopAttributes.value) // 旧写法
           form.attributes = proceRes
-        }
-        // 引用模板数据回显
-        if (Object.keys(tempAttr.value).length > 0) {
-          form.attributes = templateAssign(tempAttr.value, loopAttributes.value)
         }
       }
     }

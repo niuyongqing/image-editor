@@ -28,27 +28,6 @@
                                 </a-menu>
                             </template>
 </a-dropdown>-->
-                        <a-button type="default" style="height: 32px; background-color: #F5F5F5; color: #434649ff;"
-                            :loading="tempLoading" @click="showTempModal">存为模板</a-button>
-                        <a-dropdown>
-                            <a-button style="height: 32px; background-color: #FF8345; color: #fff;">
-                                引用产品
-                                <DownOutlined />
-                            </a-button>
-                            <template #overlay>
-                                <a-menu @click="handleApplyMenu">
-                                    <a-menu-item :key="1">
-                                        引用现有产品
-                                    </a-menu-item>
-                                    <a-menu-item :key="2">
-                                        引用产品模板
-                                    </a-menu-item>
-                                    <!-- <a-menu-item :key="3">
-                                        引用ERP产品
-                                    </a-menu-item> -->
-                                </a-menu>
-                            </template>
-                        </a-dropdown>
 
                         <a-button type="primary" @click="onSubmit(1)"
                             style="height: 32px; background-color: #FF8345; color: #fff;">保存并移入待发布</a-button>
@@ -103,27 +82,6 @@
                     <a-space>
                         <!-- <a-button @click="onSubmit(2)"
                             style="height: 32px; background-color: #F5F5F5; color: #434649ff;">一键翻译</a-button> -->
-                        <a-button type="default" style="height: 32px; background-color: #F5F5F5; color: #434649ff;"
-                            @click="showTempModal">存为模板</a-button>
-                        <a-dropdown>
-                            <a-button style="height: 32px; background-color: #FF8345; color: #fff;">
-                                引用产品
-                                <DownOutlined />
-                            </a-button>
-                            <template #overlay>
-                                <a-menu @click="handleApplyMenu">
-                                    <a-menu-item :key="1">
-                                        引用现有产品
-                                    </a-menu-item>
-                                    <a-menu-item :key="2">
-                                        引用产品模板
-                                    </a-menu-item>
-                                    <!-- <a-menu-item :key="3">
-                                        引用ERP产品
-                                    </a-menu-item> -->
-                                </a-menu>
-                            </template>
-                        </a-dropdown>
 
                         <a-button type="primary" @click="onSubmit(1)"
                             style="height: 32px; background-color: #FF8345; color: #fff;">保存并移入待发布</a-button>
@@ -162,35 +120,6 @@
         </div>
         <a-back-top :visibility-height="0" style="margin-right: 10px;" @click="backToTop" />.
 
-        <a-modal :open="tempVis" title="存为模板" @cancel="closeModal" :width="'20%'" :maskClosable="false"
-            :keyboard="false">
-            <div class="my30px"><span>模板名称：</span><a-input style="width: 300px;" v-model:value="templateName"
-                    placeholder="请输入" /></div>
-            <template #footer>
-                <a-button @click="closeModal">取消</a-button>
-                <a-button type="primary" @click="saveTemplate">确定</a-button>
-            </template>
-        </a-modal>
-        <a-modal :open="quoteVis" title="引用产品模板" :footer="null" @cancel="quoteVis = false" :width="'30%'"
-            :maskClosable="false" :keyboard="false">
-            <div class="my30px"><span>模板名称：</span>
-                <a-input style="width: 300px;" v-model:value="quoteTemplateName" placeholder="请输入" />
-                <a-button class="ml-20px" type="primary" @click="getTemplateList">搜索</a-button>
-            </div>
-            <a-divider />
-            <a-table :dataSource="dataSource" :columns="columns" :pagination="false">
-                <template #bodyCell="{ column, record }">
-                    <template v-if="column.dataIndex === 'option'">
-                        <a-button type="link" @click="quoteTemp(record)">引用</a-button>
-                    </template>
-                </template>
-            </a-table>
-            <a-pagination style="margin: 20px 0 10px 0; text-align: right" :show-total="(total) => `共 ${total} 条`"
-                v-model:current="paginations.pageNum" v-model:pageSize="paginations.pageSize" :total="paginations.total"
-                class="pages" :show-quick-jumper="true" @change="getTemplateList" :showSizeChanger="true"
-                :pageSizeOptions="[50, 100, 200]" />
-        </a-modal>
-
         <a-modal :open="publishVis" title="消息提示" @cancel="handleCancel" :width="'20%'" :maskClosable="false"
             :keyboard="false">
             <span>产品已提交发布，请在发布中、发布失败或在线产品中查看！</span>
@@ -222,10 +151,12 @@ import ErpInfo from './comm/erpInfo.vue';
 import { translationApi } from '~/api/common/translation';
 import SelectProduct from '@/components/selectProduct/index.vue';
 
+const collectProductId = ref('')
+provide('collectProductId', collectProductId)
+
 const route = useRoute();
 const ozonBaseInfoRef = ref(null)
 const ozonImageInfoRef = ref(null)
-const selectProductRef = ref(null)
 const ozonNewVariantInfoRef = ref(null)
 const erpInfoRef = ref(null) // erp信息Dom
 const attributes = ref([])
@@ -233,11 +164,8 @@ const shopList = ref([])
 const productDetail = ref({})
 const loading = ref(false)
 const publishVis = ref(false)
-const tempLoading = ref(false); // 模板按钮loading
-const tempVis = ref(false);
-const quoteVis = ref(false);
-const templateName = ref("")
-const quoteTemplateName = ref("");
+
+
 const columns = [
     {
         title: '模板名称',
@@ -295,6 +223,7 @@ const getProductDetail = (gatherProductId, account) => {
     formData.shortCode = account
     ozonDraftDetail({ gatherProductId, account }).then(res => {
         productDetail.value = res.data || {};
+        collectProductId.value = res.data.sourceProductId
         getAttributes(res?.data.account, res?.data)
     })
 }
@@ -351,103 +280,6 @@ const getAccount = () => {
     });
 };
 
-
-
-const showTempModal = () => {
-    if (!formData.shortCode) {
-        message.error("请先选择店铺！");
-        return
-    }
-    tempVis.value = true;
-}
-
-const saveTemplate = async () => {
-    if (!templateName.value) {
-        message.error("请输入模板名称！");
-        return
-    }
-    let base = ozonBaseInfoRef.value.form;
-    let image = ozonImageInfoRef.value.form;
-    let tableDatas = ozonNewVariantInfoRef.value.tableData;
-    let params = {
-        type: 1, //模板类型 1-产品模板  2-尺码模板 3-变种模板 4-富内容模板
-        id: null, // id 为null  新增  不为null 是修改
-        name: templateName.value, // 模板名称
-        state: 1, // 状态是否生效  0-不生效 1-生效
-        account: formData.shortCode,
-        categoryId: base.categoryId || {},
-        content: {
-            productTemplate: {
-                productAttr: base.attributes || {},
-                productDesc: image.description || ""
-            },
-            jsonRich: image.jsons || {}
-        }
-    }
-    console.log("params", params);
-
-    tempSaveOrUpdate(params).then(res => {
-        if (res.code == 200) {
-            message.success("保存成功！");
-        }
-    }).finally(() => {
-        tempVis.value = false;
-    })
-}
-
-const closeModal = () => {
-    tempVis.value = false;
-    templateName.value = "";
-}
-
-// 引用产品
-const handleMenuClick = (e) => {
-    if (e.key === '2') {
-        if (!formData.shortCode) {
-            message.error("请先选择店铺！");
-            return
-        }
-        getTemplateList();
-    }
-}
-
-const getTemplateList = () => {
-    templateList({
-        account: formData.shortCode,
-        type: 1,
-        name: quoteTemplateName.value,
-        pageNum: paginations.pageNum,
-        pageSize: paginations.pageSize,
-
-    }).then(res => {
-        if (res.code == 200) {
-            message.success("查询成功！");
-            dataSource.value = res.rows || []
-            quoteVis.value = true;
-            paginations.total = res.total || 0;
-        }
-    })
-}
-
-// 引用模板
-const quoteTemp = (record) => {
-    const ozonStore = useOzonProductStore()
-    ozonStore.$patch(state => {
-        state.productTemplate = {
-            account: record.account,
-            content: record.content,
-            category: record.category
-        }
-    })
-    quoteTemplateName.value = "";
-    quoteVis.value = false;
-}
-
-
-const isObjectProperty = (obj, prop) => {
-    const value = obj[prop];
-    return value instanceof Object && !(value instanceof Array);
-}
 
 //  提交
 const onSubmit = async (type) => {
@@ -734,30 +566,6 @@ const handleTranslationMenu = (e) => {
                     }
                 })
             };
-            break;
-        default:
-            break;
-    }
-};
-
-// 引用产品menu
-const handleApplyMenu = (e) => {
-    const key = e.key;
-    switch (key) {
-        case 1:
-            selectProductRef.value.openModal();
-            console.log('引用现有产品');
-            break;
-        case 2:
-            if (!formData.shortCode) {
-                message.error("请先选择店铺！");
-                return
-            }
-            getTemplateList();
-            console.log('引用产品模板');
-            break;
-        case 3:
-            console.log('引用ERP产品');
             break;
         default:
             break;
