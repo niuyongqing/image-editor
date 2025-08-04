@@ -176,7 +176,7 @@
 <script setup>
   import { message } from 'ant-design-vue'
   import CategoryModal from '../comm/categoryModal.vue'
-  import { categoryTree, historyCategory, addHistoryCategory, categoryAttributes } from '@/pages/ozon/config/api/product.js'
+  import { historyCategory, addHistoryCategory, categoryAttributes } from '@/pages/ozon/config/api/product.js'
   import { batchSave, batchRelationDetail } from '@/pages/ozon/config/api/draft.js'
   import { cloneDeep } from 'lodash'
 

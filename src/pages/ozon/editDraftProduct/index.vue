@@ -222,6 +222,9 @@ import ErpInfo from './comm/erpInfo.vue';
 import { translationApi } from '~/api/common/translation';
 import SelectProduct from '@/components/selectProduct/index.vue';
 
+const collectProductId = ref('')
+provide('collectProductId', collectProductId)
+
 const route = useRoute();
 const ozonBaseInfoRef = ref(null)
 const ozonImageInfoRef = ref(null)
@@ -295,6 +298,7 @@ const getProductDetail = (gatherProductId, account) => {
     formData.shortCode = account
     ozonDraftDetail({ gatherProductId, account }).then(res => {
         productDetail.value = res.data || {};
+        collectProductId.value = res.data.sourceProductId
         getAttributes(res?.data.account, res?.data)
     })
 }

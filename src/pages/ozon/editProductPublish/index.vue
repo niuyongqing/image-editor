@@ -68,6 +68,9 @@ import {
 import { saveTowaitProduct } from "../config/api/waitProduct"
 import { message, Modal } from "ant-design-vue";
 
+const collectProductId = ref('')
+provide('collectProductId', collectProductId)
+
 const ozonBaseInfoRef = ref(null)
 const ozonImageInfoRef = ref(null)
 const ozonNewVariantInfoRef = ref(null)
@@ -151,6 +154,7 @@ const getProductDetail = (offerId, account) => {
     formData.shortCode = account
     getDetail({ account, offerId }).then(res => {
         productDetail.value = res?.data ?? {}
+        collectProductId.value = res.data.collectProductId
         getAttributes(res?.data?.account, res?.data?.typeId, res?.data?.descriptionCategoryId)
     })
 }
