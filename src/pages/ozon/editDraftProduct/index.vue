@@ -28,8 +28,8 @@
                                 </a-menu>
                             </template>
 </a-dropdown>-->
-                        <!-- <a-button type="default" style="height: 32px; background-color: #F5F5F5; color: #434649ff;"
-                            :loading="tempLoading" @click="showTempModal">存为模板</a-button> -->
+                        <a-button type="default" style="height: 32px; background-color: #F5F5F5; color: #434649ff;"
+                            :loading="tempLoading" @click="showTempModal">存为模板</a-button>
                         <a-dropdown>
                             <a-button style="height: 32px; background-color: #FF8345; color: #fff;">
                                 引用产品
@@ -40,10 +40,10 @@
                                     <a-menu-item :key="1">
                                         引用现有产品
                                     </a-menu-item>
-                                    <!-- <a-menu-item :key="2">
+                                    <a-menu-item :key="2">
                                         引用产品模板
                                     </a-menu-item>
-                                    <a-menu-item :key="3">
+                                    <!-- <a-menu-item :key="3">
                                         引用ERP产品
                                     </a-menu-item> -->
                                 </a-menu>
@@ -103,9 +103,9 @@
                     <a-space>
                         <!-- <a-button @click="onSubmit(2)"
                             style="height: 32px; background-color: #F5F5F5; color: #434649ff;">一键翻译</a-button> -->
-                        <!-- <a-button type="default" style="height: 32px; background-color: #F5F5F5; color: #434649ff;"
-                            @click="showTempModal">存为模板</a-button> -->
-                        <!-- <a-dropdown>
+                        <a-button type="default" style="height: 32px; background-color: #F5F5F5; color: #434649ff;"
+                            @click="showTempModal">存为模板</a-button>
+                        <a-dropdown>
                             <a-button style="height: 32px; background-color: #FF8345; color: #fff;">
                                 引用产品
                                 <DownOutlined />
@@ -118,12 +118,12 @@
                                     <a-menu-item :key="2">
                                         引用产品模板
                                     </a-menu-item>
-                                    <a-menu-item :key="3">
+                                    <!-- <a-menu-item :key="3">
                                         引用ERP产品
-                                    </a-menu-item>
+                                    </a-menu-item> -->
                                 </a-menu>
                             </template>
-                        </a-dropdown> -->
+                        </a-dropdown>
 
                         <a-button type="primary" @click="onSubmit(1)"
                             style="height: 32px; background-color: #FF8345; color: #fff;">保存并移入待发布</a-button>
@@ -375,9 +375,9 @@ const saveTemplate = async () => {
         name: templateName.value, // 模板名称
         state: 1, // 状态是否生效  0-不生效 1-生效
         account: formData.shortCode,
+        categoryId: base.categoryId || {},
         content: {
             productTemplate: {
-                categoryId: base.categoryId || {},
                 productAttr: base.attributes || {},
                 productDesc: image.description || ""
             },
@@ -435,7 +435,8 @@ const quoteTemp = (record) => {
     ozonStore.$patch(state => {
         state.productTemplate = {
             account: record.account,
-            content: record.content
+            content: record.content,
+            category: record.category
         }
     })
     quoteTemplateName.value = "";

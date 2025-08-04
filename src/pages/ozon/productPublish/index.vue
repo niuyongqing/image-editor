@@ -1,21 +1,17 @@
 <template>
     <div id="productPublishCont" class="pr-10">
         <div class="w-19/20">
-            <!-- <a-button type="primary" @click="selectProduct" style="float: right; top: 10px;"
-                :disabled="!formData.shortCode">选择资料库产品</a-button>
-            <br /> -->
-            <br />
             <div class="flex justify-end">
-                <!-- <a-button class="mx-2.5" :loading="loading" size="middle" @click="showTempModal">存为模板</a-button> -->
+                <a-button class="mx-2.5" :loading="loading" size="middle" @click="showTempModal">存为模板</a-button>
                 <a-dropdown size="middle">
                     <template #overlay>
                         <a-menu @click="handleMenuClick">
                             <a-menu-item key="1">
                                 引用现有产品
                             </a-menu-item>
-                            <!-- <a-menu-item key="2">
+                            <a-menu-item key="2">
                                 引用产品模板
-                            </a-menu-item> -->
+                            </a-menu-item>
                             <!-- <a-menu-item key="3" :disabled="!formData.shortCode">
                                 引用资料库产品
                             </a-menu-item> -->
@@ -43,16 +39,16 @@
                 @getAttributes="getAttributes"></ozon-new-variant-info>
             <br />
             <div class="flex justify-end">
-                <!-- <a-button class="mx-2.5" size="middle" :loading="loading" @click="showTempModal">存为模板</a-button> -->
+                <a-button class="mx-2.5" size="middle" :loading="loading" @click="showTempModal">存为模板</a-button>
                 <a-dropdown size="middle">
                     <template #overlay>
                         <a-menu @click="handleMenuClick">
                             <a-menu-item key="1">
                                 引用现有产品
                             </a-menu-item>
-                            <!-- <a-menu-item key="2">
+                            <a-menu-item key="2">
                                 引用产品模板
-                            </a-menu-item> -->
+                            </a-menu-item>
                             <!-- <a-menu-item key="3">
                                 引用资料库产品
                             </a-menu-item> -->
@@ -321,9 +317,9 @@ const saveTemplate = async () => {
         name: templateName.value, // 模板名称
         state: 1, // 状态是否生效  0-不生效 1-生效
         account: formData.shortCode,
+        categoryId: base.categoryId || {},
         content: {
             productTemplate: {
-                categoryId: base.categoryId || {},
                 productAttr: base.attributes || {},
                 productDesc: image.description || ""
             },
@@ -337,7 +333,7 @@ const saveTemplate = async () => {
             message.success("保存成功！");
         }
     }).finally(() => {
-        tempVis.value = false;
+        closeModal();
     })
 }
 
@@ -387,7 +383,8 @@ const quoteTemp = (record) => {
     ozonStore.$patch(state => {
         state.productTemplate = {
             account: record.account,
-            content: record.content
+            content: record.content,
+            category: record.category
         }
     })
     quoteTemplateName.value = "";

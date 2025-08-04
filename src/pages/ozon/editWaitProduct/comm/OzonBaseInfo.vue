@@ -27,7 +27,7 @@
                         @click="selectVisible = true" size="middle">选择分类</a-button>
                     <p v-if="hisAttrObj.length != 0" style="color: #933" class="text-16px">
                         <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{ hisAttrObj[0].secondCategoryName
-                        }}</span>/
+                            }}</span>/
                         <span>{{ hisAttrObj[0].threeCategoryName }}</span>
                     </p>
                 </a-form-item>
@@ -54,7 +54,7 @@
                                     <template #label>
                                         <span class="mr-2.5 truncate">{{
                                             item.label ? item.label : item.name
-                                        }}</span>
+                                            }}</span>
                                         <a-tooltip class="tooltipStyle" effect="dark" :title="item.description"
                                             popper-class="ozonTooltip" placement="top">
                                             <AsyncIcon icon="QuestionCircleOutlined"></AsyncIcon>
@@ -98,7 +98,8 @@
                                     <a-select optionFilterProp="label" show-search size="middle"
                                         v-model:value="form.attributes[item.name]" v-if="item.selectType === 'select'"
                                         labelInValue :style="'width: 80%'" allowClear>
-                                        <a-select-option v-if="item.id == 85 || item.id == 31" :value="'无品牌'">无品牌</a-select-option>
+                                        <a-select-option v-if="item.id == 85 || item.id == 31"
+                                            :value="'无品牌'">无品牌</a-select-option>
 
                                         <a-select-option v-else :value="v" v-for="(v, i) in item.options" :key="i">
                                             {{ v.label }}
@@ -584,21 +585,20 @@ watch(() => useOzonProductStore().productTemplate, (val) => {
     if (val) {
         const { account, content: {
             productTemplate: {
-                categoryId: {
-                    threeCategoryId,
-                    secondCategoryId,
-                    value
-                },
                 productAttr
             }
-        } } = val;
+
+        }, category: {
+            threeCategoryId,
+            secondCategoryId
+        }, } = val;
         form.shortCode = val.account;
         form.categoryId = {
             threeCategoryId,
             threeCategoryName: "",
             secondCategoryId,
             label: undefined,
-            value
+            value: threeCategoryId
         };
         tempAttr.value = productAttr;
         emit("getAttributes", form.shortCode, form.categoryId);

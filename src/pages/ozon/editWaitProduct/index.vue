@@ -2,16 +2,16 @@
   <div id="editWaitProductCont" class="pr-14">
     <div class="w-19/20">
       <div class="flex justify-end mt-5">
-        <!-- <a-button class="mx-2.5" :loading="loading" size="middle" @click="showTempModal">存为模板</a-button> -->
+        <a-button class="mx-2.5" :loading="loading" size="middle" @click="showTempModal">存为模板</a-button>
         <a-dropdown size="middle">
           <template #overlay>
             <a-menu @click="handleMenuClick">
               <a-menu-item key="1">
                 引用现有产品
               </a-menu-item>
-              <!-- <a-menu-item key="2">
+              <a-menu-item key="2">
                 引用产品模板
-              </a-menu-item> -->
+              </a-menu-item>
               <!-- <a-menu-item key="3" :disabled="!formData.shortCode"> 
                 引用资料库产品
               </a-menu-item> -->
@@ -39,16 +39,16 @@
       <OzonNewVariantInfo ref="ozonNewVariantInfoRef" id="ozonNewVariantInfo" :productDetail="productDetail"
         :shopCode="formData.shortCode" class="mt-5" @getAttributes="getAttributes"></OzonNewVariantInfo>
       <div class="flex justify-end mt-5">
-        <!-- <a-button class="mx-2.5" :loading="loading" size="middle" @click="showTempModal">存为模板</a-button> -->
+        <a-button class="mx-2.5" :loading="loading" size="middle" @click="showTempModal">存为模板</a-button>
         <a-dropdown size="middle">
           <template #overlay>
             <a-menu @click="handleMenuClick">
               <a-menu-item key="1">
                 引用现有产品
               </a-menu-item>
-              <!-- <a-menu-item key="2">
+              <a-menu-item key="2">
                 引用产品模板
-              </a-menu-item> -->
+              </a-menu-item>
               <!-- <a-menu-item key="3" :disabled="!formData.shortCode">
                 引用资料库产品
               </a-menu-item> -->
@@ -252,9 +252,9 @@ const saveTemplate = async () => {
     name: templateName.value, // 模板名称
     state: 1, // 状态是否生效  0-不生效 1-生效
     account: formData.shortCode,
+    categoryId: base.categoryId || {},
     content: {
       productTemplate: {
-        categoryId: base.categoryId || {},
         productAttr: base.attributes || {},
         productDesc: image.description || ""
       },
@@ -314,7 +314,8 @@ const quoteTemp = (record) => {
   ozonStore.$patch(state => {
     state.productTemplate = {
       account: record.account,
-      content: record.content
+      content: record.content,
+      category: record.category
     }
   })
   quoteTemplateName.value = "";

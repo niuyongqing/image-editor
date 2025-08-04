@@ -671,11 +671,13 @@ const changeRule = (attributes, name) => {
     () => useOzonProductStore().productTemplate,
     val => {
       if (val) {
+        console.log(val,"val;");
+        
         const {
           account,
+          category: { threeCategoryId, secondCategoryId },
           content: {
             productTemplate: {
-              categoryId: { threeCategoryId, secondCategoryId, value },
               productAttr
             }
           }
@@ -686,7 +688,7 @@ const changeRule = (attributes, name) => {
           threeCategoryName: '',
           secondCategoryId,
           label: undefined,
-          value
+          value: threeCategoryId
         }
         console.log('shortCode', form.shortCode)
         console.log('categoryId', form.categoryId)

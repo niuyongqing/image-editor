@@ -198,7 +198,7 @@ const existProductData = inject('existProductData')
 
 // 监听数据变化
 watch(() => existProductData.value, (newVal) => {
-    const { account, name, vat, typeId, descriptionCategoryId,attributes } = newVal;
+    const { account, name, vat, typeId, descriptionCategoryId, attributes } = newVal;
     form.shortCode = account;
     form.name = name;
     form.vat = vat === "0.0" || vat === "0.00" ? "0" : vat;
@@ -563,23 +563,24 @@ watch(() => form.shortCode, val => {
 // 引用产品模板
 watch(() => useOzonProductStore().productTemplate, (val) => {
     if (val) {
+        console.log("val",val);
+        
         const { account, content: {
             productTemplate: {
-                categoryId: {
-                    threeCategoryId,
-                    secondCategoryId,
-                    value
-                },
                 productAttr
             }
-        } } = val;
+        },
+         category: {
+            threeCategoryId,
+            secondCategoryId
+       }, } = val;
         form.shortCode = account;
         form.categoryId = {
             threeCategoryId,
             threeCategoryName: "",
             secondCategoryId,
             label: undefined,
-            value
+            value: threeCategoryId
         };
         tempAttr.value = productAttr;
         emit("getAttributes", form.shortCode, form.categoryId);
@@ -690,7 +691,7 @@ watch(() => useOzonProductStore().attributes, (val) => {
         // 引用模板数据回显 assignValues templateAssign
         if (Object.keys(tempAttr.value).length > 0) {
             form.attributes = templateAssign(tempAttr.value, loopAttributes.value)
-        } else if(existAttr.value.length > 0){
+        } else if (existAttr.value.length > 0) {
             form.attributes = processMatchedAttributes(existAttr.value, loopAttributes.value);
         } else {
             if (!form.shortCode && !form.categoryId) return;
@@ -705,36 +706,36 @@ watch(() => useOzonProductStore().attributes, (val) => {
 // 引用现有产品处理数据回显到属性
 const processMatchedAttributes = (existAttrs, loopAttrs) => {
     const existMap = existAttrs.reduce((acc, item) => {
-    acc[item.id] = item.values;
-    return acc;
-  }, {});
+        acc[item.id] = item.values;
+        return acc;
+    }, {});
 
-  return loopAttrs.reduce((result, attr) => {
-    const existValues = existMap[attr.id];
-    
-    if (existValues) {
-      // 处理多选类型属性
-      if (attr.selectType === 'multSelect') {
-        result[attr.name] = existValues.map(v => v.dictionaryValueId);
-      } 
-      // 处理品牌特殊字段
-      else if (attr.id === 85 || attr.id === 31) {
-        result[attr.name] = {
-          label: "无品牌",
-          value: existValues[0].dictionaryValueId
-        };
-      }
-      // 处理普通选择类型
-      else if (attr.selectType === 'select') {
-        result[attr.name] = existValues[0].dictionaryValueId || existValues[0].value;
-      }
-      // 默认处理方式
-      else {
-        result[attr.name] = existValues[0].value;
-      }
-    }
-    return result;
-  }, {});
+    return loopAttrs.reduce((result, attr) => {
+        const existValues = existMap[attr.id];
+
+        if (existValues) {
+            // 处理多选类型属性
+            if (attr.selectType === 'multSelect') {
+                result[attr.name] = existValues.map(v => v.dictionaryValueId);
+            }
+            // 处理品牌特殊字段
+            else if (attr.id === 85 || attr.id === 31) {
+                result[attr.name] = {
+                    label: "无品牌",
+                    value: existValues[0].dictionaryValueId
+                };
+            }
+            // 处理普通选择类型
+            else if (attr.selectType === 'select') {
+                result[attr.name] = existValues[0].dictionaryValueId || existValues[0].value;
+            }
+            // 默认处理方式
+            else {
+                result[attr.name] = existValues[0].value;
+            }
+        }
+        return result;
+    }, {});
 };
 </script>
 <style lang="less" scoped>

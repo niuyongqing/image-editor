@@ -1346,6 +1346,8 @@ watch(
         let sortArr = rearrangeColorFields(arr);
         let result = [];
         let attrHeaderList = [];
+        console.log("images",images,primaryImage);
+        
         // 遍历b中的skuList
         existSkuList.value.forEach((sku) => {
           let newItem = {
@@ -1416,7 +1418,8 @@ watch(
               }
             });
           });
-
+          console.log("newItem", newItem);
+          
           result.push(newItem);
         });
         // 处理数据回显到表格

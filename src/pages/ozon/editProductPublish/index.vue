@@ -2,7 +2,7 @@
     <div id="editProductPublishCont" class="pr-14">
         <div class="w-19/20">
             <div class="flex justify-end mt-5">
-                <!-- <a-button :loading="loading" size="middle" @click="showTempModal">存为模板</a-button> -->
+                <a-button :loading="loading" size="middle" @click="showTempModal">存为模板</a-button>
                 <a-button class="mx-2.5" @click="onSubmit(2)" size="middle">保存待发布</a-button>
                 <a-button type="primary" size="middle" @click="onSubmit(1)">更新</a-button>
             </div>
@@ -21,7 +21,7 @@
 
             </OzonVariantInfo>
             <div class="flex justify-end mr-5 mt-5">
-                <!-- <a-button :loading="loading" size="middle" @click="showTempModal">存为模板</a-button> -->
+                <a-button :loading="loading" size="middle" @click="showTempModal">存为模板</a-button>
                 <a-button :loading="loading" @click="onSubmit(2)" size="middle" class="ml-2.5">保存待发布</a-button>
                 <a-button type="primary" :loading="loading" size="middle" @click="onSubmit(1)" class="ml-2.5">更新</a-button>
             </div>
@@ -122,9 +122,9 @@ const saveTemplate = async () => {
         name: templateName.value, // 模板名称
         state: 1, // 状态是否生效  0-不生效 1-生效
         account: formData.shortCode,
+        categoryId: base.categoryId || {},
         content: {
             productTemplate: {
-                categoryId: base.categoryId || {},
                 productAttr: base.attributes || {},
                 productDesc: image.description || ""
             },
