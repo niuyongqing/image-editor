@@ -59,7 +59,7 @@
             <a-form-item>
               <a-select ref="select" v-model:value="advancedForm.timeSearch" class="ml-6.5" style="width: 120px">
                 <a-select-option value="update_time">更新时间</a-select-option>
-                <a-select-option value="created_time">创建时间</a-select-option>
+                <a-select-option value="create_time">创建时间</a-select-option>
               </a-select>
               <a-range-picker class="ml-2.5" style="width: 320px" valueFormat="YYYY-MM-DD"
                 v-model:value="advancedForm.time" />
