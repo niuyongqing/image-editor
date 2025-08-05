@@ -207,10 +207,11 @@ const categoryAttributesLoading = ref(false)
 
 provide('existProductData', existProductData)
 
+// 现有产品
 const handleSelect = (record) => {
     existProductData.value = record;
 }
-
+// 资料库
 const handleProductSelect = (record) => {
     console.log(record);
     brandDatabase({ id: record.commodityId }).then(res => {

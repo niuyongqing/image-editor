@@ -350,3 +350,12 @@ export function brandDatabase(data) {
     data
   })
 }
+
+// 根据产品id查询关联的分类
+export function relationDetail(data) {
+  return request({
+    url: '/platform-common/platform/common/variant/relation/detail',
+    method: 'post',
+    data
+  })
+}

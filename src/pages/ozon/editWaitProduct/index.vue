@@ -12,9 +12,9 @@
               <a-menu-item key="2" :disabled="!formData.shortCode">
                 引用产品模板
               </a-menu-item>
-              <!-- <a-menu-item key="3" :disabled="!formData.shortCode"> 
+              <a-menu-item key="3" :disabled="!formData.shortCode"> 
                 引用资料库产品
-              </a-menu-item> -->
+              </a-menu-item>
             </a-menu>
           </template>
           <a-button size="middle">
@@ -49,9 +49,9 @@
               <a-menu-item key="2" :disabled="!formData.shortCode">
                 引用产品模板
               </a-menu-item>
-              <!-- <a-menu-item key="3" :disabled="!formData.shortCode">
+              <a-menu-item key="3" :disabled="!formData.shortCode">
                 引用资料库产品
-              </a-menu-item> -->
+              </a-menu-item>
             </a-menu>
           </template>
           <a-button size="middle">
@@ -100,13 +100,17 @@
 
     <!-- 现有产品 -->
     <existingProducts ref="existProduct" @handleSelect="handleSelect"></existingProducts>
+    <!-- 产品资料库 -->
+    <productDatabase ref="productDatabaseRef" @handleSelect="handleProductSelect"></productDatabase>
+    <!-- 分类关联弹窗 -->
+    <editCategoryModal ref="editCategoryModalRef"></editCategoryModal>
   </div>
 </template>
 
 <script setup name='editWaitProduct'>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { ozonProductDetail, categoryAttributes, ozonProductEdit, productPublish } from "../config/api/waitProduct"
-import { accountCache, tempSaveOrUpdate, templateList } from "../config/api/product";
+import { accountCache, tempSaveOrUpdate, templateList, brandDatabase, relationDetail } from "../config/api/product";
 import OzonBaseInfo from './comm/OzonBaseInfo.vue';
 import OzonNewImageInfo from './comm/OzonNewImageInfo.vue';
 import OzonNewVariantInfo from "./comm/OzonNewVariantInfo.vue"
@@ -118,6 +122,8 @@ import {
 import { message } from "ant-design-vue";
 import { DownOutlined, ArrowRightOutlined, SettingOutlined } from '@ant-design/icons-vue';
 import existingProducts from "../common/existingProducts/index.vue";
+import productDatabase from "~/components/productDatabase/index.vue";
+import editCategoryModal from "../config/component/editCategoryModal/index.vue";
 
 const collectProductId = ref('')
 provide('collectProductId', collectProductId)
@@ -177,6 +183,8 @@ const columns = [
 const dataSource = ref([])
 const existProduct = ref(null)
 const existProductData = ref({})
+const productDatabaseRef = ref(null)
+const editCategoryModalRef = ref(null)  // 分类弹窗
 const paginations = reactive({
   pageNum: 1,
   pageSize: 10,
@@ -188,9 +196,34 @@ const formData = reactive({
 
 provide('existProductData', existProductData)
 
+// 现有产品
 const handleSelect = (record) => {
   existProductData.value = record;
 }
+
+// 资料库
+const handleProductSelect = (record) => {
+  console.log(record);
+  // 需要优先调用查询是否有关联过分类
+  relationDetail({ productCollectId: record.commodityId, platformName: "ozon" }).then(res => {
+    // 当data为null时需要弹出关联分类的弹窗
+    if(res.data == null) {
+      editCategoryModalRef.value.open({
+        account: formData.shortCode,
+        id: record.commodityId
+      })
+    }
+  })
+
+    // brandDatabase({ id: record.commodityId }).then(res => {
+    //     console.log(res);
+    // })
+    // editCategoryModalRef.value.open({
+    //     account: formData.shortCode,
+    //     id: record.commodityId
+    // })
+}
+
 
 const backToTop = () => {
   let elements = document.getElementsByClassName('ant-layout-content');
@@ -287,6 +320,8 @@ const handleMenuClick = (e) => {
     existProduct.value.modalOpenFn();
   } else if (e.key === '2') {
     getTemplateList();
+  }else if (e.key === '3') {
+    productDatabaseRef.value.modalOpenFn();
   }
 }
 
