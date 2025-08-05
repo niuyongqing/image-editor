@@ -117,8 +117,8 @@ async function modalOpenFn(collectProductId) {
   let id = collectProductId || props.collectProductId
   if (!id) {
     message.warning('没有可引用的采集图片')
-    
-    return
+    emit('update:modalOpen', false);
+    return;
   }
 
   modalOpen.value = true;
