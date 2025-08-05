@@ -527,7 +527,7 @@
     fieldLabel: 'simpleName'
   }
   const sortObj = reactive({
-    sortField: 'created_time',
+    sortField: 'create_time',
     sortType: 'desc'
   })
   const searchType = [
@@ -542,7 +542,7 @@
   ]
   const active = ref({
     label: '按创建时间',
-    value: 'created_time',
+    value: 'create_time',
     type: 'top',
     prop: 1,
     isDefault: true
@@ -551,7 +551,7 @@
   const strList = ref([
     {
       label: '按创建时间',
-      value: 'created_time',
+      value: 'create_time',
       type: 'top',
       prop: 1,
       isDefault: true
