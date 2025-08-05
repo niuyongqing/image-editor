@@ -9,7 +9,7 @@
                             <a-menu-item key="1">
                                 引用现有产品
                             </a-menu-item>
-                            <a-menu-item key="2">
+                            <a-menu-item key="2" :disabled="!formData.shortCode">
                                 引用产品模板
                             </a-menu-item>
                             <!-- <a-menu-item key="3" :disabled="!formData.shortCode">
@@ -46,7 +46,7 @@
                             <a-menu-item key="1">
                                 引用现有产品
                             </a-menu-item>
-                            <a-menu-item key="2">
+                            <a-menu-item key="2" :disabled="!formData.shortCode">
                                 引用产品模板
                             </a-menu-item>
                             <!-- <a-menu-item key="3">
@@ -213,7 +213,7 @@ const handleSelect = (record) => {
 
 const handleProductSelect = (record) => {
     console.log(record);
-    brandDatabase({id:record.commodityId}).then(res=>{
+    brandDatabase({ id: record.commodityId }).then(res => {
         console.log(res);
     })
     editCategoryModalRef.value.open({
@@ -349,10 +349,6 @@ const handleMenuClick = (e) => {
     if (e.key === '1') {
         existProduct.value.modalOpenFn();
     } else if (e.key === '2') {
-        if (!formData.shortCode) {
-            message.error("请先选择店铺！");
-            return
-        }
         getTemplateList();
     } else if (e.key === '3') {
         productDatabaseRef.value.modalOpenFn();
