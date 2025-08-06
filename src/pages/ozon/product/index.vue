@@ -194,7 +194,7 @@
           <a-empty class="flex flex-col justify-center" :image-size="200" style="height: 100vh"></a-empty>
         </div>
         <div v-else v-for="(tbItem, index) in tableData" :key="tbItem.id" class="loopTable">
-          <div class="loopTable-head flex justify-between" :key="tbItem.id">
+          <div class="loopTable-head flex justify-between bg-[#fafafa]" :key="tbItem.id">
             <div>
               <a-checkbox v-model:checked="tbItem.tabAllChecked" @change="changeBox($event, tbItem, index)"
                 class="mr-2.5"></a-checkbox><span>总产品({{ tbItem.count }})</span>
