@@ -119,7 +119,7 @@
               </a-button>
             </a-dropdown>
             <a-button type="primary" @click="edit()" :disabled="selectedRows.length !== 1">编 辑</a-button>
-            <a-button type="primary" @click="copyItems()" :disabled="selectedRows.length === 0">复 制</a-button>
+            <!-- <a-button type="primary" @click="copyItems()" :disabled="selectedRows.length === 0">复 制</a-button> -->
             <a-button type="primary" @click="syncHisAttr()" :loading="syncLoading">同步历史分类</a-button>
             <!-- <a-dropdown trigger="click">
               <a-button type="primary">
@@ -194,9 +194,15 @@
           <a-empty class="flex flex-col justify-center" :image-size="200" style="height: 100vh"></a-empty>
         </div>
         <div v-else v-for="(tbItem, index) in tableData" :key="tbItem.id" class="loopTable">
-          <div class="loopTable-head" :key="tbItem.id">
-            <a-checkbox v-model:checked="tbItem.tabAllChecked" @change="changeBox($event, tbItem, index)"
-              class="mr-2.5"></a-checkbox><span>总产品({{ tbItem.count }})</span>
+          <div class="loopTable-head flex justify-between bg-[#fafafa]" :key="tbItem.id">
+            <div>
+              <a-checkbox v-model:checked="tbItem.tabAllChecked" @change="changeBox($event, tbItem, index)"
+                class="mr-2.5"></a-checkbox><span>总产品({{ tbItem.count }})</span>
+            </div>
+            <div>
+              <a-button class="mr-2.5" @click="copyItems(tbItem, 'all')" v-if="tbItem.count > 1"
+                type="link">复制为"新产品"</a-button>
+            </div>
           </div>
           <a-table :data-source="tbItem.children" style="width: 100%" row-key="id" :showHeader="false"
             :columns="dropCol" :pagination="false" :data-index="index" ref="OzonProduct">
@@ -551,7 +557,8 @@
                           <a-menu-item style="color: #67c23a" @click="syncOne(record)">
                             同步
                           </a-menu-item>
-                          <a-menu-item style="color: #0d9888" @click="copyItems(record)">
+                          <a-menu-item style="color: #0d9888" @click="copyItems(record, 'single')">
+
                             复制
                           </a-menu-item>
                           <a-popconfirm ok-text="YES" cancel-text="NO" title="归档吗？" @confirm="deactivate(record)">
@@ -1390,14 +1397,17 @@ const handleCopyProductClose = () => {
 };
 
 // 复制
-const copyItems = (row = {}) => {
-  if (syncOneList.value.length == 0) {
+const copyItems = (row = {}, type) => {
+  if (type == "all") {
+    copyList.value.push({
+      account: row.account,
+      offerIds: row.children.map((item) => item.offerId),
+    });
+  } else {
     copyList.value.push({
       account: row.account,
       offerIds: [row.offerId],
     });
-  } else {
-    copyList.value = syncOneList.value;
   }
   copyProductVis.value = true;
 };
