@@ -192,13 +192,6 @@ function getFilterAttrs() {
         return attrItem.isAspect
     });
 
-    // filterAttrOptions.value = filterAttr.map((attrItem) => {
-    //     return {
-    //         label: attrItem.name.replace(/\(.*\)/, ""), // 去掉（）里面的
-    //         value: attrItem.id,
-    //         attrLabel: attrItem.name,
-    //     }
-    // });
     // 过滤属性10097和9533
     filterAttrOptions.value = filterAttr
         .map((attrItem) => ({

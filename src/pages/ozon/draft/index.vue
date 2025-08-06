@@ -273,7 +273,7 @@
                     <div class="sku-price">
                       <span pr-5px>{{ record.currencyCode }} </span>
                       <span>
-                        {{ item.price ? item.price : '-' }}
+                        {{ item.price ?? '-' }}
                       </span>
                     </div>
                   </div>
@@ -288,7 +288,7 @@
                   >
                     <div class="sku-price">
                       <span pr-5px>{{ record.currencyCode }} </span>
-                      <span>{{ item.oldPrice ? item.oldPrice : '-' }} </span>
+                      <span>{{ item.oldPrice ?? '-' }} </span>
                     </div>
                   </div>
                 </div>
@@ -420,7 +420,6 @@
     <BatchEditPrompt
       ref="batchEditPromptRef"
       :shopAccount="shopAccount"
-      :account="formData.account"
     >
     </BatchEditPrompt>
 
@@ -911,7 +910,6 @@
 
   //  批量操作
   const handleMenuClick = e => {
-    console.log(e, selectedRowList.value)
     if (!selectedRowList.value.length) {
       message.warning('请至少选择一条数据')
       return
@@ -922,18 +920,9 @@
     stockShops.value = selectedRowList.value.map(e => e.account)
     switch (e.key) {
       case 0:
-        if (!formData.account) {
-          message.warning('请先选择一个店铺账号')
-          return
-        }
         // 跳转到采集箱批量编辑页
         localStorage.setItem('ids', JSON.stringify(selectedRowKeys.value))
         batchEditPromptEl.value.open(selectedRowList.value)
-        /* if (selectedRowList.value.some(item => item.editCategoryStatus === 0)) {
-              batchEditPromptEl.value.open(selectedRowList.value)
-            } else {
-              window.open("/platform/ozon/batch-edit");
-            } */
         break
       case 1:
         let params = selectedRowList.value.map(item => {
@@ -1000,7 +989,6 @@
         break
       case 5:
         remarkModalEl.value.open(selectedRowList.value, true)
-        console.log('批量备注')
         break
       case 6:
         Modal.confirm({
@@ -1019,7 +1007,6 @@
             })
           }
         })
-        console.log('批量删除')
         break
       case 'stock':
         editPriceVisible.value = true
