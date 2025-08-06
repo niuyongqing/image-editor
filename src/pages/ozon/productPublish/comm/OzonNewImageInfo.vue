@@ -203,17 +203,24 @@ const submitForm = () => {
 }
 
 const changeJsonTemp = () => {
-    Modal.confirm({
-        title: '选择富内容模板',
-        content: '切换富内容模板将清空已有内容，确定要切换吗？',
-        onOk: () => {
-            let content = tempList.value.find(item => item.value == form.jsonTemp)?.content || {}
-            form.jsons = content.jsonRich || ""
-        },
-        onCancel: () => {
-            console.log('cancel');
-        },
-    });
+    if(!form.jsons) {
+        let content = tempList.value.find(item => item.value == form.jsonTemp)?.content || {}
+        form.jsons = content.jsonRich || ""
+    }else{
+        Modal.confirm({
+            title: '选择富内容模板',
+            content: '切换富内容模板将清空已有内容，确定要切换吗？',
+            onOk: () => {
+                let content = tempList.value.find(item => item.value == form.jsonTemp)?.content || {}
+                form.jsons = content.jsonRich || ""
+            },
+            onCancel: () => {
+                console.log('cancel');
+            },
+        });
+    }
+
+
 }
 
 const searchTemp = () => {
