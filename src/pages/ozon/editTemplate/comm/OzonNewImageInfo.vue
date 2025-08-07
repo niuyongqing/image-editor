@@ -123,7 +123,7 @@ const removeDescription = () => {
 watch(() => props.productDetail, val => {
     console.log("type", props.type);
     if (props.type == '1') {
-        showDescription.value = false;
+        showDescription.value = true;
         form.description = val.content?.productTemplate?.productDesc
     }
     if (val.content.jsonRich) {
