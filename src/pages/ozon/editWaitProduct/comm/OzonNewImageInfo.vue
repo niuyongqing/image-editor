@@ -11,7 +11,7 @@
                     </div>
                 </a-form-item>
                 <a-form-item label="JSON富文本：">
-                    <!-- <div>
+                    <div>
                         <a-select v-model:value="form.jsonTemp" @change="changeJsonTemp" size="large" allowClear
                             style="width: 30%" :options="tempList">
                         </a-select>
@@ -19,7 +19,7 @@
                             <SyncOutlined />
                             更新模板
                         </a-button>
-                    </div> -->
+                    </div>
                     <div class="my10px text-16px" style="color: #737679"><a-tag color="green">说明</a-tag>不支持设置手机端描述，保存发布后，手机端的图片及文字信息将跟PC端保持一致
                     </div>
                     <a-form-item-rest>
@@ -212,17 +212,22 @@ const backResult = (res) => {
 }
 
 const changeJsonTemp = () => {
-    Modal.confirm({
-        title: '选择富内容模板',
-        content: '切换富内容模板将清空已有内容，确定要切换吗？',
-        onOk: () => {
-            let content = tempList.value.find(item => item.value == form.jsonTemp)?.content || {}
-            form.jsons = content.jsonRich
-        },
-        onCancel: () => {
-            console.log('cancel');
-        },
-    });
+    if(!form.jsons) {
+        let content = tempList.value.find(item => item.value == form.jsonTemp)?.content || {}
+        form.jsons = content.jsonRich || ""
+    }else{ 
+        Modal.confirm({
+            title: '选择富内容模板',
+            content: '切换富内容模板将清空已有内容，确定要切换吗？',
+            onOk: () => {
+                let content = tempList.value.find(item => item.value == form.jsonTemp)?.content || {}
+                form.jsons = content.jsonRich
+            },
+            onCancel: () => {
+                console.log('cancel');
+            },
+        });
+    }
 
 }
 const searchTemp = () => {
