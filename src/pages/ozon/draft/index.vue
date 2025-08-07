@@ -106,7 +106,7 @@
                     <a-menu-item :key="0">批量编辑</a-menu-item>
                     <a-menu-item :key="1">批量移入待发布</a-menu-item>
                     <a-menu-item :key="2">批量发布</a-menu-item>
-                    <a-menu-item :key="3">批量加水印</a-menu-item>
+                    <!-- <a-menu-item :key="3">批量加水印</a-menu-item> -->
                     <!-- <a-menu-item :key="4">批量归档</a-menu-item> -->
                     <a-menu-item :key="5">批量备注</a-menu-item>
                     <a-menu-item :key="6">批量删除</a-menu-item>
@@ -202,7 +202,8 @@
                   <a-image
                     :src="primaryImage(record.primaryImage)"
                     :width="100"
-                    class="max-h-[150px]"
+                    :height="100"
+                    class="object-contain"
                   />
                   <br />
                   <a-button
@@ -527,7 +528,7 @@
     fieldLabel: 'simpleName'
   }
   const sortObj = reactive({
-    sortField: 'created_time',
+    sortField: 'create_time',
     sortType: 'desc'
   })
   const searchType = [
@@ -542,7 +543,7 @@
   ]
   const active = ref({
     label: '按创建时间',
-    value: 'created_time',
+    value: 'create_time',
     type: 'top',
     prop: 1,
     isDefault: true
@@ -551,7 +552,7 @@
   const strList = ref([
     {
       label: '按创建时间',
-      value: 'created_time',
+      value: 'create_time',
       type: 'top',
       prop: 1,
       isDefault: true

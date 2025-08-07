@@ -149,10 +149,6 @@ const handleOk = () => {
 }
 
 function adjustList(list, picScale, picSize, scaleValue, sizeValue, heightValue) {
-  if (!sizeValue || (picSize === 'customWH' && !heightValue)) {
-    message.error("请填写变化值！")
-    return
-  }
   return list.map(item => {
     const newItem = { ...item };
     if (picScale === 'equal') {
@@ -228,6 +224,10 @@ function getWidthRatio(scaleValue) {
 
 // 转换成jpg
 const generateJPG = (type) => {
+  if (!sizeValue.value || (picSize.value === 'customWH' && !heightValue.value)) {
+    message.error("请填写变化值！")
+    return
+  }
   let isCheckedList = copyModuleList.value.filter((item) => item.checked);
   let handeleList = isCheckedList.map(item => {
     return {
