@@ -343,12 +343,27 @@ const selectAttributes = (value) => {
                     const filterAttr = attributes.value.filter((attrItem) => {
                         return attrItem.isAspect
                     });
-                    filterAttrOptions.value = filterAttr.map((attrItem) => {
-                        return {
-                            label: attrItem.name.replace(/\(.*\)/, ""), // 去掉（）里面的
-                            value: attrItem.id,
-                            attrLabel: attrItem.name,
-                        }
+                    // filterAttrOptions.value = filterAttr.map((attrItem) => {
+                    //     return {
+                    //         label: attrItem.name.replace(/\(.*\)/, ""), // 去掉（）里面的
+                    //         value: attrItem.id,
+                    //         attrLabel: attrItem.name,
+                    //     }
+                    // });
+                    filterAttrOptions.value = filterAttr
+                    .map((attrItem) => ({
+                        label: attrItem.name.replace(/\(.*\)/, ""),
+                        value: attrItem.id,
+                        attrLabel: attrItem.name,
+                    }))
+                    // 新增过滤逻辑
+                    .filter((item, index, arr) => {
+                        const valueSet = new Set(arr.map(v => v.value));
+                        // 排除10097当10096存在时
+                        if (item.value === 10097 && valueSet.has(10096)) return false;
+                        // 排除9533当4295存在时
+                        if (item.value === 9533 && valueSet.has(4295)) return false;
+                        return true;
                     });
                     innerTableData.value = innerTableData.value.map((item) => {
                         return {
@@ -408,12 +423,27 @@ const handleSelect = (data) => {
                         const filterAttr = attributes.value.filter((attrItem) => {
                             return attrItem.isAspect
                         });
-                        filterAttrOptions.value = filterAttr.map((attrItem) => {
-                            return {
-                                label: attrItem.name.replace(/\(.*\)/, ""), // 去掉（）里面的
-                                value: attrItem.id,
-                                attrLabel: attrItem.name,
-                            }
+                        // filterAttrOptions.value = filterAttr.map((attrItem) => {
+                        //     return {
+                        //         label: attrItem.name.replace(/\(.*\)/, ""), // 去掉（）里面的
+                        //         value: attrItem.id,
+                        //         attrLabel: attrItem.name,
+                        //     }
+                        // });
+                        filterAttrOptions.value = filterAttr
+                        .map((attrItem) => ({
+                            label: attrItem.name.replace(/\(.*\)/, ""),
+                            value: attrItem.id,
+                            attrLabel: attrItem.name,
+                        }))
+                        // 新增过滤逻辑
+                        .filter((item, index, arr) => {
+                            const valueSet = new Set(arr.map(v => v.value));
+                            // 排除10097当10096存在时
+                            if (item.value === 10097 && valueSet.has(10096)) return false;
+                            // 排除9533当4295存在时
+                            if (item.value === 9533 && valueSet.has(4295)) return false;
+                            return true;
                         });
                         innerTableData.value = innerTableData.value.map((item) => {
                             return {
