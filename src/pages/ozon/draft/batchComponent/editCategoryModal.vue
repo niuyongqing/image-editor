@@ -41,8 +41,8 @@
       <div>
         <a-button
           type="primary"
-          @click="showCategoryModal"
           :disabled="selectedRowKeys.length === 0"
+          @click="changeCategorybatch"
         >
           批量修改分类
         </a-button>
@@ -96,7 +96,7 @@
                 showSearch
                 placeholder="请选择"
                 style="width: 300px"
-                :options="historyCategoryList"
+                :options="record.historyCategoryList"
                 @change="selectAttributes(record, $event)"
                 :fieldNames="{
                   label: 'threeCategoryName',
@@ -107,11 +107,11 @@
               </a-select>
               <a-button
                 type="link"
-                @click="changeCategory(record)"
+                @click="changeCategorySingle(record)"
                 >更换分类</a-button
               >
               <p>
-                {{ getHistoryPath(record.typeId) }}
+                {{ getHistoryPath(record) }}
               </p>
               <a-table
                 :columns="innerColumns"
@@ -164,10 +164,10 @@
       </div>
     </a-modal>
 
-    <!--  account -->
+    <!--  修改分类级联弹窗 -->
     <CategoryModal
       ref="categoryModalRef"
-      :account="account"
+      :account="curRecord.account"
       @select="handleSelect"
     ></CategoryModal>
   </div>
@@ -180,14 +180,10 @@
   import { batchSave, batchRelationDetail } from '@/pages/ozon/config/api/draft.js'
   import { cloneDeep } from 'lodash'
 
-  const { shopAccount, account } = defineProps({
+  const { shopAccount } = defineProps({
     shopAccount: {
       type: Array,
       default: () => []
-    },
-    account: {
-      type: String,
-      default: ''
     }
   })
 
@@ -223,7 +219,7 @@
     }
   ]
   const isSingleCategory = ref(false) // 是否点击的是单个分类
-  const selectCategory = ref({}) // 选中的分类
+  const curRecord = ref({}) // 选中的分类
   const selectedRowList = ref([]) // 选中的行数据
   const selectedRowKeys = ref([])
   const rowSelection = computed(() => {
@@ -283,10 +279,7 @@
   }
 
   const categoryModalEl = useTemplateRef('categoryModalRef')
-  const historyCategoryList = ref([])
-  const secondCategoryId = ref(undefined)
   const attributes = ref([])
-  const filterAttrOptions = ref([]) // 过滤后的属性
 
   function filterOption(input, option) {
     return option.threeCategoryName.indexOf(input) >= 0
@@ -298,21 +291,6 @@
     }
     return baseApi + primaryImage
   }
-  function getFilterAttrs() {
-    acceptParams.value.forEach(item => {
-      item.filterAttrOptions = item.attributes
-        .filter(attrItem => {
-          return attrItem.isAspect
-        })
-        .map(attrItem => {
-          return {
-            label: attrItem.name.replace(/\(.*\)/, ''), // 去掉（）里面的
-            value: attrItem.id,
-            attrLabel: attrItem.name
-          }
-        })
-    })
-  }
 
   // 选择历史分类
   const selectAttributes = async (item, value) => {
@@ -322,46 +300,38 @@
       innerItem.ozonTheme = undefined
       innerItem.attrLabel = undefined
     })
+    item.categoryId = ''
     if (!value) return
 
-    const findItem = historyCategoryList.value.find(item => {
+    const findItem = item.historyCategoryList.find(item => {
       return item.threeCategoryId === value
     })
+    item.categoryId = findItem.secondCategoryId
     const res = await categoryAttributes({
       account: item.account,
       descriptionCategoryId: findItem.secondCategoryId, // bug to do
       typeId: value
     })
-    const data = res.data
-      .filter(item => {
-        return item.isAspect
-      })
-      .map(item => {
-        return {
-          label: item.name.replace(/\(.*\)/, ''), // 去掉（）里面的
-          value: item.id,
-          attrLabel: item.name
-        }
-      })
-    item.filterAttrOptions = data
+    item.filterAttrOptions = filterAttrs(res.data)
     item.optionsLoading = false
   }
 
   // 更换分类
-  const changeCategory = item => {
+  const changeCategorySingle = record => {
+    curRecord.value = record
+    isSingleCategory.value = true
     nextTick(() => {
-      selectCategory.value = item
-      isSingleCategory.value = true
-      categoryModalEl.value.open(item.typeId)
+      categoryModalEl.value.open(record.typeId)
     })
   }
 
   const handleSelect = async data => {
+    const account = curRecord.value.account
     if (isSingleCategory.value) {
-      console.log('单个', selectCategory.value)
       acceptParams.value.forEach(item => {
-        if (selectCategory.value.gatherProductId === item.gatherProductId) {
+        if (curRecord.value.gatherProductId === item.gatherProductId) {
           item.typeId = data.value
+          item.categoryId = data.ids[1]
           item.filterAttrOptions = []
           item.innerTableData.forEach(innerItem => {
             innerItem.ozonTheme = undefined
@@ -372,7 +342,7 @@
         }
       })
       //  如果选择不在历史分类里面，则添加到历史里面
-      const findItem = historyCategoryList.value.find(item => {
+      const findItem = curRecord.value.historyCategoryList.find(item => {
         return item.threeCategoryId === data.value
       })
 
@@ -383,10 +353,7 @@
           threeCategoryId: data.ids[2]
         }
         await addHistoryCategory(params)
-        const res = await historyCategory({ account })
-        if (res.code === 200) {
-          historyCategoryList.value = res.data || []
-        }
+        getHistoryCategoryList([curRecord.value])
         // 获取属性
         const res2 = await categoryAttributes({
           account,
@@ -395,24 +362,13 @@
         })
         if (res2.code === 200) {
           acceptParams.value.forEach(paramsItem => {
-            if (selectCategory.value.gatherProductId === paramsItem.gatherProductId) {
-              paramsItem.filterAttrOptions = res2.data
-                .filter(attrItem => {
-                  return attrItem.isAspect
-                })
-                .map(attrItem => {
-                  return {
-                    label: attrItem.name.replace(/\(.*\)/, ''), // 去掉（）里面的
-                    value: attrItem.id,
-                    attrLabel: attrItem.name
-                  }
-                })
+            if (curRecord.value.gatherProductId === paramsItem.gatherProductId) {
+              paramsItem.filterAttrOptions = filterAttrs(res2.data)
               paramsItem.optionsLoading = false
             }
           })
         }
       } else {
-        console.log('在历史里面 -》》》')
         // 获取属性
         acceptParams.value.forEach(paramsItem => {
           selectedRowList.value.forEach(rowItem => {
@@ -428,22 +384,12 @@
         })
         if (res.code === 200) {
           acceptParams.value.forEach(paramsItem => {
-            paramsItem.filterAttrOptions = res.data
-              .filter(attrItem => {
-                return attrItem.isAspect
-              })
-              .map(attrItem => {
-                return {
-                  label: attrItem.name.replace(/\(.*\)/, ''), // 去掉（）里面的
-                  value: attrItem.id,
-                  attrLabel: attrItem.name
-                }
-              })
+            paramsItem.filterAttrOptions = filterAttrs(res.data)
           })
         }
       }
     } else {
-      console.log('批量')
+      // 批量修改分类
       acceptParams.value.forEach(item => {
         selectedRowList.value.forEach(rowItem => {
           if (rowItem.gatherProductId === item.gatherProductId) {
@@ -458,7 +404,7 @@
         })
       })
       //  如果选择不在历史分类里面，则添加到历史里面
-      const findItem = historyCategoryList.value.find(item => {
+      const findItem = curRecord.value.historyCategoryList.find(item => {
         return item.threeCategoryId === data.value
       })
       if (!findItem) {
@@ -468,10 +414,7 @@
           threeCategoryId: data.ids[2]
         }
         await addHistoryCategory(params)
-        const res = await historyCategory({ account })
-        if (res.code === 200) {
-          historyCategoryList.value = res.data || []
-        }
+        getHistoryCategoryList(selectedRowList.value)
         // 获取属性
         const res2 = await categoryAttributes({
           account,
@@ -482,24 +425,13 @@
           acceptParams.value.forEach(paramsItem => {
             selectedRowList.value.forEach(rowItem => {
               if (rowItem.gatherProductId === paramsItem.gatherProductId) {
-                paramsItem.filterAttrOptions = res2.data
-                  .filter(attrItem => {
-                    return attrItem.isAspect
-                  })
-                  .map(attrItem => {
-                    return {
-                      label: attrItem.name.replace(/\(.*\)/, ''), // 去掉（）里面的
-                      value: attrItem.id,
-                      attrLabel: attrItem.name
-                    }
-                  })
+                paramsItem.filterAttrOptions = filterAttrs(res2.data)
                 paramsItem.optionsLoading = false
               }
             })
           })
         }
       } else {
-        console.log('在历史里面 -》》》')
         // 获取属性
         acceptParams.value.forEach(paramsItem => {
           selectedRowList.value.forEach(rowItem => {
@@ -517,22 +449,15 @@
           acceptParams.value.forEach(paramsItem => {
             selectedRowList.value.forEach(rowItem => {
               if (rowItem.gatherProductId === paramsItem.gatherProductId) {
-                const filterAttr = res.data.filter(attrItem => {
-                  return attrItem.isAspect
-                })
-                paramsItem.filterAttrOptions = filterAttr.map(attrItem => {
-                  return {
-                    label: attrItem.name.replace(/\(.*\)/, ''), // 去掉（）里面的
-                    value: attrItem.id,
-                    attrLabel: attrItem.name
-                  }
-                })
+                paramsItem.filterAttrOptions = filterAttrs(res.data)
                 paramsItem.optionsLoading = false
               }
             })
           })
         }
       }
+      selectedRowKeys.value = []
+      selectedRowList.value = []
     }
   }
 
@@ -541,25 +466,42 @@
   }
 
   // 批量修改分类
-  const showCategoryModal = () => {
+  const changeCategorybatch = () => {
+    curRecord.value = selectedRowList.value[0] // 定为第一个选择的产品(共用一个 account)
     isSingleCategory.value = false
-    categoryModalEl.value.open('') // to do
+    nextTick(() => {
+      categoryModalEl.value.open('')
+    })
   }
 
-  //  获取路劲
-  const getHistoryPath = typeId => {
-    const findItem = historyCategoryList.value.find(item => {
-      return item.threeCategoryId === typeId
+  //  获取路径
+  const getHistoryPath = record => {
+    const findItem = record.historyCategoryList.find(item => {
+      return item.threeCategoryId === record.typeId
     })
     return findItem ? `${findItem.categoryName} > ${findItem.secondCategoryName} > ${findItem.threeCategoryName}` : ''
   }
 
   //  获取历史分类列表
-  const getHistoryList = async () => {
-    const res = await historyCategory({ account })
-    if (res.code === 200) {
-      historyCategoryList.value = res.data || []
-    }
+  function getHistoryCategoryList(productList) {
+    const accountList = Array.from(new Set(productList.map(item => item.account)))
+    // const listObj = {}
+    accountList.forEach(account => {
+      historyCategory({ account }).then(res => {
+        // listObj[account] = res.data || []
+        const list = res.data || []
+        // 给每条产品数据内置分类列表
+        acceptParams.value.forEach(item => {
+          if (item.account === account) {
+            item.historyCategoryList = list
+          }
+        })
+      })
+    })
+  }
+
+  // 初始化时获取分类属性
+  function getCategoryAttributes() {
     const paramsList = acceptParams.value.filter(paramItem => paramItem.typeId)
     //  去重
     const uniqueParamsList = paramsList.filter((item, index) => {
@@ -567,23 +509,14 @@
     })
     uniqueParamsList.forEach(item => {
       categoryAttributes({
-        account,
+        account: item.account,
         descriptionCategoryId: item.categoryId,
         typeId: item.typeId
       }).then(res => {
         if (res.code === 200) {
           acceptParams.value.forEach(paramsItem => {
             if (item.typeId === paramsItem.typeId) {
-              const filterAttr = res.data.filter(attrItem => {
-                return attrItem.isAspect
-              })
-              paramsItem.filterAttrOptions = filterAttr.map(attrItem => {
-                return {
-                  label: attrItem.name.replace(/\(.*\)/, ''), // 去掉（）里面的
-                  value: attrItem.id,
-                  attrLabel: attrItem.name
-                }
-              })
+              paramsItem.filterAttrOptions = filterAttrs(res.data)
             }
           })
         }
@@ -608,7 +541,9 @@
           return relationItem.productCollectId === item.gatherProductId
         })
         if (findItem) {
-          item.variantAttr = findItem.detailData || {}
+          item.typeId = findItem.typeId
+          item.categoryId = findItem.categoryId
+          // item.variantAttr = findItem.detailData || {}
           item.optionsLoading = true
           item.innerTableData.forEach(innerItem => {
             const findVariantItem = findItem.variantRelationList.find(relationItem => {
@@ -625,6 +560,32 @@
     }
   }
 
+  // 关联的结对变种属性
+  const TWINS = [
+    [10096, 10097], // [商品颜色, 颜色名称]
+    [4295, 9533] // [俄罗斯尺码, 制造商尺码]
+  ]
+  // 过滤出变种属性, 颜色, 尺寸只保留一个
+  function filterAttrs(list) {
+    let aspectList = list.filter(attrItem => attrItem.isAspect)
+    TWINS.forEach(arr => {
+      const ids = aspectList.map(item => item.id)
+      if (arr.every(id => ids.includes(id))) {
+        // 删后一个 id
+        aspectList = aspectList.filter(item => item.id !== arr[1])
+      }
+    })
+    const resList = aspectList.map(attrItem => {
+      return {
+        label: attrItem.name.replace(/\(.*\)/, ''), // 去掉（）里面的
+        value: attrItem.id,
+        attrLabel: attrItem.name
+      }
+    })
+
+    return resList
+  }
+
   const open = async (data = []) => {
     acceptParams.value = data.map(item => {
       let innerTableData = []
@@ -637,7 +598,7 @@
       })
       return {
         ...item,
-        hisAttrObj: {},
+        historyCategoryList: [],
         tableData: [
           {
             primaryImage: item.primaryImage,
@@ -656,16 +617,17 @@
     // 批量查询变种关联关系
     await getVariantRelationList()
     // 获取历史分类
-    await getHistoryList()
+    getHistoryCategoryList(acceptParams.value)
+    // 分类属性
+    getCategoryAttributes()
   }
 
   const cancel = () => {
     platformSource.value = ''
     isSingleCategory.value = false
-    selectCategory.value = {}
+    curRecord.value = {}
     acceptParams.value = []
     copyAcceptParams.value = []
-    historyCategoryList.value = []
     dialogVisible.value = false
   }
   const platformName = platform => {
@@ -677,7 +639,6 @@
     const typeIdList = acceptParams.value.filter(item => {
       return !item.typeId
     })
-    console.log('typeIdList', typeIdList)
     if (typeIdList.length > 0) {
       message.error('选择分类不能为空')
       return
@@ -725,12 +686,12 @@
     }
 
     const relationReqList = acceptParams.value.map(item => {
-
       return {
         productCollectId: item.gatherProductId, //数据采集产品id或者采集箱产品id
         platformName: 'ozon', //所属平台
         categoryId: item.categoryId, //平台分类id
         typeId: item.typeId, // 商品类型ID (目前只有ozon平台有，其他平台应该没有)
+        relationType: 2, // 1-数据采集; 2-采集箱; 3-待发布; 4-已发布;
         variantRelationList: item.innerTableData.map(innerItem => {
           const attrLabel = item.filterAttrOptions.find(el => el.value === innerItem.ozonTheme)?.attrLabel
           return {
@@ -747,7 +708,6 @@
     }).then(res => {
       if (res.code === 200) {
         message.success('保存成功')
-        emits('success')
         cancel()
         window.open(`/platform/ozon/batch-edit`, '_blank')
       }
