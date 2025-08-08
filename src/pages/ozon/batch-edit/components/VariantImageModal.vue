@@ -142,8 +142,7 @@
     <!-- 图片翻译弹窗 -->
     <ImageTranslation
       ref="img_trans"
-      @singleSubmit="handleSingleSubmit"
-      @multiSubmit="handleMultiSubmit"
+      @emitImages="handleEmitImages"
     />
   </div>
 </template>
@@ -159,6 +158,7 @@
   import BacthSkuEditImg from '@/components/skuDragUpload/bacthSkuEditImg.vue'
   import ImageTranslation from '@/components/skuDragUpload/imageTranslation.vue'
   import { message } from 'ant-design-vue'
+  import { processImageSource } from '~/pages/ozon/config/commJs/index'
 
   const props = defineProps({
     open: {
@@ -316,21 +316,11 @@
 
   /** 图片翻译 */
   const imgTransRef = useTemplateRef('img_trans')
-  // 单张图片翻译
-  function handleSingleSubmit(checkedImg) {
-    variantImages.value.forEach(item => {
-      if (item.url === checkedImg.oldUrl) {
-        item.url = checkedImg.newUrl
-      }
-    })
-  }
-
-  // 多张图片翻译
-  function handleMultiSubmit(checkedImgs) {
-    variantImages.value.forEach(item => {
-      checkedImgs.forEach(item => {
-        if (item.url === item.oldUrl) {
-          item.url = item.newUrl
+  function handleEmitImages(list) {
+    list.forEach(item => {
+      variantImages.value.forEach(image => {
+        if (image.url === item.oldUrl) {
+          image.url = processImageSource(item.newUrl)
         }
       })
     })
