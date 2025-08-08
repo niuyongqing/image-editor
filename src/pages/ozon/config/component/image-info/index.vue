@@ -269,7 +269,7 @@
   import ImageTranslation from '@/components/skuDragUpload/imageTranslation.vue'
   import AcquisitionImageModal from '@/pages/sample/acquisitionImageModal.vue'
   import { Empty, message } from 'ant-design-vue'
-  import { processImageSource } from "~/pages/ozon/config/commJs/index";
+  import { processImageSource } from '~/pages/ozon/config/commJs/index'
 
   defineOptions({ name: 'ImageInfo' })
   const collectProductId = inject('collectProductId', '')
@@ -541,6 +541,7 @@
         bacthEditImgSizeRef.value.showModal(imageObjList)
         break
       case 'translate':
+        translateImageList.value = imageObjList
         imgTransRef.value.showModal(imageObjList)
         break
 
@@ -553,6 +554,7 @@
   function imgModifySingleMenuClick({ key }, item) {
     switch (key) {
       case 'translate':
+        translateImageList.value = [item]
         imgTransRef.value.showModal([item])
         break
 
@@ -592,13 +594,14 @@
   }
 
   /** 图片翻译 */
+  const translateImageList = ref([]) // 翻译的图片列表
   const imgTransRef = useTemplateRef('img_trans')
-  // 图片翻译
+  // 图片翻译回调
   function handleEmitImages(list) {
     list.forEach(item => {
-      curSKU.value.imageUrl.forEach(v => {
-        if (v.url === item.oldUrl) {
-          v.url = processImageSource(item.newUrl)
+      translateImageList.value.forEach(image => {
+        if (image.url === item.oldUrl) {
+          image.url = processImageSource(item.newUrl)
         }
       })
     })

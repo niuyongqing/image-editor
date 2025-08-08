@@ -21,7 +21,7 @@
                 </div>
             </template>
         </a-modal>
-        <EditCategoryModal ref="editCategoryModalRef" :shopAccount="shopAccount" :account="account" />
+        <EditCategoryModal ref="editCategoryModalRef" :shopAccount="shopAccount" />
     </div>
 
 </template>
@@ -29,14 +29,10 @@
 <script setup>
 import EditCategoryModal from './editCategoryModal.vue';
 
-const { shopAccount, account } = defineProps({
+const { shopAccount } = defineProps({
     shopAccount: {
         type: Array,
         default: () => []
-    },
-    account: {
-        type: String,
-        default: ''
     }
 })
 

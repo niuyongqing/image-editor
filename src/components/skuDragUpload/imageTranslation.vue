@@ -101,8 +101,7 @@ const submit = async () => {
                 const list = checkedList.map((checkItem, index) => {
                     return {
                         ...checkItem,
-                        newUrl: data[index].newImage ? data[index].newImage : data[index].oldImage,
-                        success: data[index].success,
+                        newUrl: data[index].newImage || data[index].oldImage,
                         oldUrl: checkItem.url,
                     }
                 });
