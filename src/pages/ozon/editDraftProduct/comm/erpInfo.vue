@@ -32,7 +32,7 @@
                   ref="typeTreeRef"
                   @update:nodePath="updateNodePath"
                   default-class
-                  platform="public"
+                  platform="ozon"
                 >
                 </typeTree>
               </a-menu>
@@ -91,7 +91,7 @@
 
     <typeManage
       v-model:modal-open="typeManageOpen"
-      platform="public"
+      platform="ozon"
       @updateTree="updateTree"
     >
     </typeManage>

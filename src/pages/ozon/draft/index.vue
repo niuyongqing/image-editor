@@ -1,8 +1,8 @@
 <template>
   <div flex>
-    <!-- <div w-280px>
-      <draftSidebar :totalCount="totalCount" :publishFailedCount="publishFailedCount" @draftUpdateClass="draftUpdateClass" />
-    </div> -->
+    <div w-280px>
+      <SideBar :total-count="totalCount" :publish-failed-count="publishFailedCount" @draft-update-class="draftUpdateClass" />
+    </div>
     <div flex-1>
       <a-breadcrumb
         separator=">"
@@ -118,9 +118,9 @@
                       快捷操作
                     </a-menu-item>
                     <!-- <a-menu-item :key="8"> 批量修改售价 </a-menu-item>
-                                        <a-menu-item :key="9"> 批量修改原价 </a-menu-item>
-                                        <a-menu-item :key="10"> 批量修改库存 </a-menu-item>
-                                        <a-menu-item :key="11"> 全属性修改 </a-menu-item> -->
+                    <a-menu-item :key="9"> 批量修改原价 </a-menu-item>
+                    <a-menu-item :key="10"> 批量修改库存 </a-menu-item>
+                    <a-menu-item :key="11"> 全属性修改 </a-menu-item> -->
                     <a-menu-item key="stock"> 批量修改库存 </a-menu-item>
                     <a-menu-item key="price"> 批量修改售价 </a-menu-item>
                     <a-menu-item key="oldPrice"> 批量修改原价 </a-menu-item>
@@ -129,7 +129,7 @@
                 </template>
               </a-dropdown>
 
-              <!-- <a-dropdown trigger="click">
+              <a-dropdown v-model:open="moveCategoryOpen" trigger="click">
                 <a-button
                   type="primary"
                   style="height: 32px; margin-left: 10px"
@@ -141,12 +141,12 @@
                 <template #overlay>
                   <a-menu>
                     <typeTree
-                      :platform="'public'"
+                      platform="ozon"
                       @nodeClick="typeNodeClick"
                     ></typeTree>
                   </a-menu>
                 </template>
-              </a-dropdown> -->
+              </a-dropdown>
             </div>
             <div>
               <a-space>
@@ -173,17 +173,23 @@
                   创建产品
                 </a-button>
                 <!-- <a-tooltip>
-                                    <template #title>
-                                        <p mb-0>【 同步产品 】按钮：</p>
-                                        <p mb-0 text-gray-400>
-                                            仅从平台后台同步产品，产品的信息将会被更新至最新
-                                        </p>
-                                    </template>
-                                    <a-button type="primary" style="height: 32px;">
-                                        同步产品
-                                        <QuestionCircleOutlined />
-                                    </a-button>
-                                </a-tooltip> -->
+                  <template #title>
+                    <p mb-0>【 同步产品 】按钮：</p>
+                    <p
+                      mb-0
+                      text-gray-400
+                    >
+                      仅从平台后台同步产品，产品的信息将会被更新至最新
+                    </p>
+                  </template>
+                  <a-button
+                    type="primary"
+                    style="height: 32px"
+                  >
+                    同步产品
+                    <QuestionCircleOutlined />
+                  </a-button>
+                </a-tooltip> -->
               </a-space>
             </div>
           </div>
@@ -236,7 +242,10 @@
                     >
                       {{ record.remark }}
                     </div>
-                    <div v-if="record.errorMsg" class="w-fit p-1 border border-solid border-gray-300 rounded-md text-red">
+                    <div
+                      v-if="record.errorMsg"
+                      class="w-fit p-1 border border-solid border-gray-300 rounded-md text-red"
+                    >
                       <div><WarningOutlined /> 失败原因</div>
                       <div>{{ record.errorMsg }}</div>
                     </div>
@@ -456,7 +465,7 @@
   import { useRouter } from 'vue-router'
   import tableHeard from '../config/tabColumns/draft'
   import AsyncIcon from '~/layouts/components/menu/async-icon.vue'
-  import draftSidebar from '@/pages/ozon/config/component/siderBar/index.vue'
+  import SideBar from '@/pages/ozon/config/component/SideBar/index.vue'
   import ShopSetModal from '@/pages/ozon/product/comm/shopSetModal.vue'
   import typeTree from '@/components/classificationTree/typeTree.vue'
   import EditPrompt from './comm/editPrompt.vue'
@@ -480,7 +489,6 @@
   const batchAttributeEl = useTemplateRef('batchAttributeRef') // 批量属性-弹窗
   const editAttributeEl = useTemplateRef('editAttributeRef') // 批量属性-弹窗
   const typeTreeEl = useTemplateRef('typeTreeRef')
-  const currentClass = ref('0')
   const nodePath = ref('')
   const typeManageOpen = ref(false)
   const shopSetVisible = ref(false)
@@ -516,7 +524,6 @@
   const remarkVisible = ref(false)
   const brandList = ref([])
   const remarkId = ref([])
-  const productState = ref('')
   const state = {
     wait_publish: '待发布',
     published: '已发布',
@@ -638,13 +645,13 @@
   const selectAll = () => {
     formData.account = ''
     getList()
-    // getGroupProductCount()
+    getGroupProductCount()
   }
   const selectItem = val => {
     clearSelectList()
     formData.account = val
     getList()
-    // getGroupProductCount()
+    getGroupProductCount()
   }
 
   // 搜索内容
@@ -690,7 +697,7 @@
       if (res.data) {
         shopAccount.value = res?.data ?? []
         getList()
-        // getGroupProductCount()
+        getGroupProductCount()
       }
     })
   }
@@ -701,7 +708,6 @@
 
   const draftUpdateClass = e => {
     paginations.pageNum = 1
-    productState.value = e.productState
     getList()
   }
 
@@ -728,7 +734,6 @@
       ...sortObj,
       pageNum: paginations.pageNum,
       pageSize: paginations.pageSize,
-      productState: productState.value
     })
       .then(res => {
         tableData.value =
@@ -744,7 +749,9 @@
   }
 
   // 批量移动分类
+  const moveCategoryOpen = ref(false)
   async function typeNodeClick(node) {
+    moveCategoryOpen.value = false
     if (selectedRowList.value.length < 1) return message.warning('请选择商品！')
     try {
       let ids = selectedRowList.value.map(i => i.gatherProductId)
@@ -1039,6 +1046,7 @@
 
   const show = ref(false)
 </script>
+
 <style lang="less" scoped>
   :deep(.ant-space-item) {
     text-align: left;

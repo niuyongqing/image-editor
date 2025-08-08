@@ -121,9 +121,9 @@
             <a-button type="primary" @click="edit()" :disabled="selectedRows.length !== 1">编 辑</a-button>
             <!-- <a-button type="primary" @click="copyItems()" :disabled="selectedRows.length === 0">复 制</a-button> -->
             <a-button type="primary" @click="syncHisAttr()" :loading="syncLoading">同步历史分类</a-button>
-            <!-- <a-dropdown trigger="click">
+            <a-dropdown trigger="click" :disabled="selectedRows.length === 0">
               <a-button type="primary">
-                分类管理
+                移动分类
                 <DownOutlined />
               </a-button>
               <template #overlay>
@@ -133,7 +133,7 @@
                   </typeTree>
                 </a-menu>
               </template>
-            </a-dropdown> -->
+            </a-dropdown>
           </a-space>
         </div>
         <div>
@@ -848,25 +848,25 @@ const getStateColor = (state) => {
 };
 
 // 批量移动分类
-// async function typeNodeClick(node) {
-//   if (selectedRows.value.length < 1) return message.warning('请选择商品！')
-//   console.log("selectedRows",selectedRows.value);
+async function typeNodeClick(node) {
+  if (selectedRows.value.length < 1) return message.warning('请选择商品！')
+  console.log("selectedRows",selectedRows.value);
 
-//   try {
-//     let ids = selectedRows.value.map(i => i.id);
-//     let params = {
-//       "ids": ids.join(), // 商品信息的唯一标识(多个用英文逗号分割)
-//       "productCategoryId": node.id   //分类ID
-//     }
-//     await updateCategoryProduct(params)
-//     getList()
-//   } catch (error) {
-//     console.error(error)
-//   }
-// };
-// const updateCurrentClass = (value) => {
-//   console.log(value);
-// };
+  try {
+    let ids = selectedRows.value.map(i => i.id);
+    let params = {
+      "ids": ids.join(), // 商品信息的唯一标识(多个用英文逗号分割)
+      "productCategoryId": node.id   //分类ID
+    }
+    await updateCategoryProduct(params)
+    getList()
+  } catch (error) {
+    console.error(error)
+  }
+};
+const updateCurrentClass = (value) => {
+  console.log(value);
+};
 
 // 复制
 const copyText = (text) => {
