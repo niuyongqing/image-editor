@@ -25,10 +25,10 @@
                     </a-select>
                     <a-button style="margin-left: 20px" :disabled="categoryTreeList.length == 0"
                         @click="selectVisible = true" size="middle">选择分类</a-button>
-                    <p v-if="hisAttrObj.length != 0" style="color: #933" class="text-16px">
-                        <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{ hisAttrObj[0].secondCategoryName
+                    <p v-if="hisAttrList.length != 0" style="color: #933" class="text-16px">
+                        <span>{{ hisAttrList[0].categoryName }}</span>/ <span>{{ hisAttrList[0].secondCategoryName
                             }}</span>/
-                        <span>{{ hisAttrObj[0].threeCategoryName }}</span>
+                        <span>{{ hisAttrList[0].threeCategoryName }}</span>
                     </p>
                 </a-form-item>
                 <a-form-item label="产品属性：">
@@ -174,7 +174,8 @@ const categoryTreeList = ref([]);
 const historyCategoryList = ref([]);
 const tempAttr = ref({});
 const isExpand = ref(true)
-const existAttr = ref([])
+const existAttr = ref([]) // 现有产品属性
+const databaseAttr = ref([]) // 资料库属性
 const vatList = [
     {
         label: "免税",
@@ -189,13 +190,18 @@ const vatList = [
         value: "0.2",
     },
 ];
-const hisAttrObj = ref([]); //选中的三级
+const hisAttrList = ref([]); //选中的三级
 
-// 注入父组件数据
+// 注入父组件数据现有产品数据
 const existProductData = inject('existProductData')
+// 注入父组件数据资料库数据
+const databaseProduct = inject('databaseProduct')
 
-// 监听数据变化
+// 监听现有产品数据变化
 watch(() => existProductData.value, (newVal) => {
+    if (!newVal) {
+        return;
+    }
     const { account, name, vat, typeId, descriptionCategoryId, attributes } = newVal;
     form.shortCode = account;
     form.name = name;
@@ -218,6 +224,37 @@ watch(() => existProductData.value, (newVal) => {
     getHistoryList(account); // 用于下拉数据回显
     existAttr.value = attributes[0].attributes
 }, { deep: true })
+
+// 监听资料库数据变化
+watch(() => databaseProduct.value, (newVal) => {
+    if (!newVal) {
+        return;
+    }
+    console.log('databaseProduct', newVal)
+    const { account, name, vat, typeId, descriptionCategoryId, skuList } = newVal;
+    form.shortCode = account;
+    form.name = name;
+    form.vat = vat === "0.0" || vat === "0.00" ? "0" : vat;
+    form.categoryId = {
+        threeCategoryId: typeId,
+        threeCategoryName: "",
+        secondCategoryId: descriptionCategoryId,
+        label: undefined,
+        value: typeId,
+    };
+    const ozonStore = useOzonProductStore()
+    ozonStore.$patch(state => {
+        state.variant = {
+            threeCategoryId: typeId,
+            shopId: account
+        }
+    })
+    emit("getAttributes", form.shortCode, form.categoryId);
+    getHistoryList(account); // 用于下拉数据回显
+    databaseAttr.value = skuList[0].attributes
+
+})
+
 
 // 获取选择树
 const getCategoryTree = () => {
@@ -279,7 +316,7 @@ const getHistoryList = (account) => {
             historyCategoryList.value.length != 0 &&
             JSON.stringify(form.categoryId) != "{}"
         ) {
-            hisAttrObj.value = historyCategoryList.value.filter(
+            hisAttrList.value = historyCategoryList.value.filter(
                 (item) => item.threeCategoryId == form?.categoryId?.threeCategoryId
             );
         }
@@ -290,7 +327,7 @@ const getHistoryList = (account) => {
 const selectAttributes = (e) => {
     if (e) {
         if (historyCategoryList.value.length != 0) {
-            hisAttrObj.value = historyCategoryList.value.filter(
+            hisAttrList.value = historyCategoryList.value.filter(
                 (item) => item.threeCategoryId == e.option.threeCategoryId
             );
         }
@@ -354,8 +391,8 @@ const shouldHideItem = (item) => {
 };
 
 // 此方法将历史缓存中的属性值进行重新赋值
-const assignValues = (a, b) => {
-    let newRes = a.map((item) => {
+const assignValues = (oldAttr, attr) => {
+    let newRes = oldAttr.map((item) => {
         return {
             ...item,
             values: item.values.map((value) => {
@@ -371,7 +408,7 @@ const assignValues = (a, b) => {
     });
     const result = {};
     // 根据b数组填充结果对象
-    b.forEach((item) => {
+    attr.forEach((item) => {
         const name = item.name;
         const selectType = item.selectType;
         newRes.forEach((resItem) => {
@@ -400,12 +437,12 @@ const assignValues = (a, b) => {
     return result;
 };
 
-const templateAssign = (a, b) => {
+const templateAssign = (oldAttr, attr) => {
     const result = {};
     // 遍历所有属性配置项
-    b.forEach((item) => {
+    attr.forEach((item) => {
         const attrName = item.name;
-        const attrValue = a[attrName];
+        const attrValue = oldAttr[attrName];
         if (!attrValue) return;
 
         // 处理多选类型属性
@@ -546,7 +583,7 @@ watch(
     (val) => {
         if (val) {
             getCategoryTree();
-            hisAttrObj.value = [];
+            hisAttrList.value = [];
         }
     }
 );
@@ -716,7 +753,12 @@ watch(
                 form.attributes = templateAssign(tempAttr.value, loopAttributes.value)
             } else if (existAttr.value.length > 0) {
                 form.attributes = processMatchedAttributes(existAttr.value, loopAttributes.value);
+            } else if (databaseAttr.value.length > 0) {
+                form.attributes = processMatchedAttributes(databaseAttr.value, loopAttributes.value);
+                console.log("222",form.attributes);
+                
             }
+
         }
     }
 );
@@ -749,6 +791,13 @@ const processMatchedAttributes = (existAttrs, loopAttrs) => {
             // 默认处理方式
             else {
                 result[attr.name] = existValues[0].value;
+            }
+        }else {
+            if(attr.id === 85 || attr.id === 31) {
+                result[attr.name] = {
+                    label: "无品牌",
+                    value: "无品牌"
+                };
             }
         }
         return result;

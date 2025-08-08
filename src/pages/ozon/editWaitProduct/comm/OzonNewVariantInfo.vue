@@ -295,14 +295,10 @@
     <bacthEditColorImg ref="bacthEditColorImgRef"></bacthEditColorImg>
     <!-- 颜色样本翻译 -->
     <colorImgTranslation ref="colorImgTranslationRef"></colorImgTranslation>
-    <!-- 图片翻译弹窗 -->
-    <ImageTranslation ref="imageTranslationRef"></ImageTranslation>
-    <!-- 批量编辑图片 -->
-    <bacthSkuEditImg ref="bacthSkuEditImgRef"></bacthSkuEditImg>
   </div>
 </template>
 
-<script setup >
+<script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from "vue";
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { message, Modal } from "ant-design-vue";
@@ -361,8 +357,6 @@ const VNodes = defineComponent({
 
 const emit = defineEmits(["getAttributes"]);
 
-const bacthSkuEditImgRef = ref();
-const imageTranslationRef = ref();
 const bacthEditColorImgRef = ref();
 const colorImgTranslationRef = ref();
 
@@ -399,6 +393,7 @@ const custAttr = ref([]); //可控制属性
 const templateValue = ref("")
 const tempList = ref([]);
 const existSkuList = ref([]); // 现有产品数据回显
+const databaseSkuList = ref([]); // 资料库产品数据回显
 const plainOptions = [
   {
     label: "颜色样本",
@@ -424,8 +419,11 @@ watch(() => attributeList.value, () => {
   attrList.value = attributeList.value.map(item => item.tableColumns.slice(0, -1).map(column => column.title))
 })
 
-// 注入父组件数据
+// 注入父组件现有产品数据
 const existProductData = inject('existProductData')
+// 注入父组件资料库数据
+const databaseProduct = inject('databaseProduct')
+
 
 // 监听数据变化-现有产品数据处理
 watch(() => existProductData.value, (newVal) => {
@@ -441,6 +439,22 @@ watch(() => existProductData.value, (newVal) => {
   emit("getAttributes", shopCode, categoryId);
   existSkuList.value = newVal.attributes;
 }, { deep: true })
+
+// 监听资料库产品数据
+watch(() => databaseProduct.value, (newVal) => {
+  if (newVal.skuList?.length == 0 || newVal.skuList == null) return;
+  const { account: shopCode, typeId, descriptionCategoryId } = newVal;
+  let categoryId = {
+    threeCategoryId: typeId,
+    threeCategoryName: "",
+    secondCategoryId: descriptionCategoryId,
+    label: undefined,
+    value: typeId,
+  };
+  emit("getAttributes", shopCode, categoryId);
+  databaseSkuList.value = newVal.skuList;
+}, { deep: true })
+
 
 const handleChangeColroImg = (info, record) => {
   if (info.file.status === "done") {
@@ -1360,16 +1374,6 @@ const applyImage = (item) => {
 
 };
 
-//  批量修改图片尺寸
-const handleEditImagesSize = () => {
-  bacthSkuEditImgRef.value.showModal(tableData.value)
-};
-
-
-//  图片翻译弹窗
-const handleImageTranslation = () => {
-  imageTranslationRef.value.showModal(tableData.value)
-};
 
 // 清空图片
 const clearAllImages = () => {
@@ -1488,234 +1492,390 @@ watch(
       const uniqueArr = [];
       const titleSet = new Set();
       // 引用现有产品数据回显处理
-      if (existSkuList.value.length != 0) {
+      if (existSkuList.value.length) {
         const { oldPrice, price, stock, name, colorImage, warehouseList, offerId, images, primaryImage } = existProductData.value;
-        // 遍历b中的skuList
-        existSkuList.value.forEach((sku) => {
-          let newItem = {
-            oldPrice: oldPrice,
-            price: price,
-            quantity: stock,
-            packageHeight: sku.height,
-            packageLength: sku.depth,
-            packageWeight: sku.weight,
-            packageWidth: sku.width,
-            skuTitle: name,
-            colorImg: colorImage
-              ? [
-                {
-                  url: processImageSource(colorImage),
-                  name: colorImage.split("/").pop(),
-                },
-              ]
-              : [],
-            warehouseList: warehouseList?.map((item) => {
-              return {
-                ...item,
-                offerId: sku.offerId,
-              };
-            }),
-            sellerSKU: offerId,
-            imageUrl:
-              // 合并主图和其他图片，使用Set去重后生成对象数组
-              Array.from(
-                new Set([
-                  ...(primaryImage || []),  // 主图数组
-                  ...(images || [])         // 普通图片数组
-                ])
-              ).map(url => ({ url, id: uuidv4(), checked: false })) ?? [],
-          };
-          // 遍历a数组
-          sortArr.forEach((attr) => {
-            // 遍历sku的attributes中的每个attributes
-            sku.attributes.forEach((subAttr) => {
-              if (subAttr.id == attr.id) {
-                if (attr.selectType === "multSelect" && attr.options) {
-                  let values = subAttr.values.map((val) => {
-                    let option = attr.options.find(
-                      (opt) => opt.id == val.dictionaryValueId
-                    );
-                    return option ? option.value : val.value;
-                  });
-                  newItem[attr.name] = values.join(", ");
-                } else if (attr.selectType === "select" && attr.options) {
-                  let values = subAttr.values.map((val) => {
-                    let option = attr.options.find(
-                      (opt) => opt.id == val.dictionaryValueId
-                    );
-                    return option ? option.value : val.value;
-                  });
-                  newItem[attr.name] = values.join(", ");
-                } else {
-                  newItem[attr.name] = subAttr.values[0].value;
-                }
-                attrHeaderList.push({
-                  title: attr.name,
-                  dataIndex: attr.name,
-                  id: attr.id,
-                  show: true,
-                  align: "center",
-                });
-              }
-            });
+        existSkuList.value.forEach(sku => {
+          const newItem = createNewItem(sku, {
+            oldPrice, price, stock, name, colorImage, warehouseList, offerId, images, primaryImage
           });
-
+          processAttributes(sortArr,sku, newItem,attrHeaderList);
           result.push(newItem);
         });
-        optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, existSkuList.value)
-      } else if (skuList.length > 0) {
-        // 遍历b中的skuList
-        skuList.forEach((sku) => {
-          let newItem = {
-            oldPrice: sku.oldPrice,
-            price: sku.price,
-            quantity: sku.stock,
-            packageHeight: sku.height,
-            packageLength: sku.depth,
-            packageWeight: sku.weight,
-            packageWidth: sku.width,
-            skuTitle: sku.name,
-            colorImg: sku?.colorImage
-              ? [
-                {
-                  url: processImageSource(sku.colorImage),
-                  name: sku.colorImage.split("/").pop(),
-                },
-              ]
-              : [],
-            warehouseList: sku?.warehouseList?.map((item) => {
-              return {
-                ...item,
-                offerId: sku.offerId,
-              };
-            }),
-            sellerSKU: sku.offerId,
-            imageUrl:
-              // 合并主图和其他图片，使用Set去重后生成对象数组
-              Array.from(
-                new Set([
-                  ...(processImageSource(sku.primaryImage) || []),  // 主图数组
-                  ...(processImageSource(sku.images) || [])         // 普通图片数组
-                ])
-              ).map(url => ({ url, id: uuidv4(), checked: false })) ?? [],
-          };
-          // 遍历a数组
-          sortArr.forEach((attr) => {
-            // 遍历sku的attributes中的每个attributes
-            sku.attributes.forEach((subAttr) => {
-              if (subAttr.id == attr.id) {
-                if (attr.selectType === "multSelect" && attr.options) {
-                  let values = subAttr.values.map((val) => {
-                    let option = attr.options.find(
-                      (opt) => opt.id == val.dictionaryValueId
-                    );
-                    return option ? option.value : val.value;
-                  });
-                  newItem[attr.name] = values.join(", ");
-                } else if (attr.selectType === "select" && attr.options) {
-                  let values = subAttr.values.map((val) => {
-                    let option = attr.options.find(
-                      (opt) => opt.id == val.dictionaryValueId
-                    );
-                    return option ? option.value : val.value;
-                  });
-                  newItem[attr.name] = values.join(", ");
-                } else {
-                  newItem[attr.name] = subAttr.values[0].value;
-                }
-                attrHeaderList.push({
-                  title: attr.name,
-                  dataIndex: attr.name,
-                  id: attr.id,
-                  show: true,
-                  align: "center",
-                });
-              }
-            });
-          });
+        optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, existSkuList.value);
+      } else if (skuList.length) {
+        skuList.forEach(sku => {
+          const newItem = createNewItem(sku, {});
+          processAttributes(sortArr,sku, newItem,attrHeaderList);
           result.push(newItem);
         });
-        optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, skuList)
+        optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, skuList);
+      } else if(databaseSkuList.value.length) {
+        databaseSkuList.value.forEach(sku => {
+          const newItem = createNewItem(sku, {});
+          processAttributes(sortArr,sku, newItem,attrHeaderList);
+          result.push(newItem);
+        })
+        optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, skuList);
       }
+
+      // if (existSkuList.value.length != 0) {
+      //   const { oldPrice, price, stock, name, colorImage, warehouseList, offerId, images, primaryImage } = existProductData.value;
+      //   // 遍历b中的skuList
+      //   existSkuList.value.forEach((sku) => {
+      //     let newItem = {
+      //       oldPrice: oldPrice,
+      //       price: price,
+      //       quantity: stock,
+      //       packageHeight: sku.height,
+      //       packageLength: sku.depth,
+      //       packageWeight: sku.weight,
+      //       packageWidth: sku.width,
+      //       skuTitle: name,
+      //       colorImg: colorImage
+      //         ? [
+      //           {
+      //             url: processImageSource(colorImage),
+      //             name: colorImage.split("/").pop(),
+      //           },
+      //         ]
+      //         : [],
+      //       warehouseList: warehouseList?.map((item) => {
+      //         return {
+      //           ...item,
+      //           offerId: sku.offerId,
+      //         };
+      //       }),
+      //       sellerSKU: offerId,
+      //       imageUrl:
+      //         // 合并主图和其他图片，使用Set去重后生成对象数组
+      //         Array.from(
+      //           new Set([
+      //             ...(primaryImage || []),  // 主图数组
+      //             ...(images || [])         // 普通图片数组
+      //           ])
+      //         ).map(url => ({ url, id: uuidv4(), checked: false })) ?? [],
+      //     };
+      //     // 遍历a数组
+      //     sortArr.forEach((attr) => {
+      //       // 遍历sku的attributes中的每个attributes
+      //       sku.attributes.forEach((subAttr) => {
+      //         if (subAttr.id == attr.id) {
+      //           if (attr.selectType === "multSelect" && attr.options) {
+      //             let values = subAttr.values.map((val) => {
+      //               let option = attr.options.find(
+      //                 (opt) => opt.id == val.dictionaryValueId
+      //               );
+      //               return option ? option.value : val.value;
+      //             });
+      //             newItem[attr.name] = values.join(", ");
+      //           } else if (attr.selectType === "select" && attr.options) {
+      //             let values = subAttr.values.map((val) => {
+      //               let option = attr.options.find(
+      //                 (opt) => opt.id == val.dictionaryValueId
+      //               );
+      //               return option ? option.value : val.value;
+      //             });
+      //             newItem[attr.name] = values.join(", ");
+      //           } else {
+      //             newItem[attr.name] = subAttr.values[0].value;
+      //           }
+      //           attrHeaderList.push({
+      //             title: attr.name,
+      //             dataIndex: attr.name,
+      //             id: attr.id,
+      //             show: true,
+      //             align: "center",
+      //           });
+      //         }
+      //       });
+      //     });
+
+      //     result.push(newItem);
+      //   });
+      //   optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, existSkuList.value)
+      // } else if (skuList.length > 0) {
+      //   // 遍历b中的skuList
+      //   skuList.forEach((sku) => {
+      //     let newItem = {
+      //       oldPrice: sku.oldPrice,
+      //       price: sku.price,
+      //       quantity: sku.stock,
+      //       packageHeight: sku.height,
+      //       packageLength: sku.depth,
+      //       packageWeight: sku.weight,
+      //       packageWidth: sku.width,
+      //       skuTitle: sku.name,
+      //       colorImg: sku?.colorImage
+      //         ? [
+      //           {
+      //             url: processImageSource(sku.colorImage),
+      //             name: sku.colorImage.split("/").pop(),
+      //           },
+      //         ]
+      //         : [],
+      //       warehouseList: sku?.warehouseList?.map((item) => {
+      //         return {
+      //           ...item,
+      //           offerId: sku.offerId,
+      //         };
+      //       }),
+      //       sellerSKU: sku.offerId,
+      //       imageUrl:
+      //         // 合并主图和其他图片，使用Set去重后生成对象数组
+      //         Array.from(
+      //           new Set([
+      //             ...(processImageSource(sku.primaryImage) || []),  // 主图数组
+      //             ...(processImageSource(sku.images) || [])         // 普通图片数组
+      //           ])
+      //         ).map(url => ({ url, id: uuidv4(), checked: false })) ?? [],
+      //     };
+      //     // 遍历a数组
+      //     sortArr.forEach((attr) => {
+      //       // 遍历sku的attributes中的每个attributes
+      //       sku.attributes.forEach((subAttr) => {
+      //         if (subAttr.id == attr.id) {
+      //           if (attr.selectType === "multSelect" && attr.options) {
+      //             let values = subAttr.values.map((val) => {
+      //               let option = attr.options.find(
+      //                 (opt) => opt.id == val.dictionaryValueId
+      //               );
+      //               return option ? option.value : val.value;
+      //             });
+      //             newItem[attr.name] = values.join(", ");
+      //           } else if (attr.selectType === "select" && attr.options) {
+      //             let values = subAttr.values.map((val) => {
+      //               let option = attr.options.find(
+      //                 (opt) => opt.id == val.dictionaryValueId
+      //               );
+      //               return option ? option.value : val.value;
+      //             });
+      //             newItem[attr.name] = values.join(", ");
+      //           } else {
+      //             newItem[attr.name] = subAttr.values[0].value;
+      //           }
+      //           attrHeaderList.push({
+      //             title: attr.name,
+      //             dataIndex: attr.name,
+      //             id: attr.id,
+      //             show: true,
+      //             align: "center",
+      //           });
+      //         }
+      //       });
+      //     });
+      //     result.push(newItem);
+      //   });
+      //   optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, skuList)
+      // }
     }
   }
 );
 
+// 提取属性处理函数
+const processAttributes = (sortArr,sku, newItem,attrHeaderList) => {
+  sortArr.forEach(attr => {
+    const subAttr = sku.attributes.find(item => item.id === attr.id);
+    if (!subAttr) return;
+
+    const values = subAttr.values.map(val => {
+      if (attr.options && ["multSelect", "select"].includes(attr.selectType)) {
+        const option = attr.options.find(opt => opt.id === val.dictionaryValueId);
+        return option?.value || val.value;
+      }
+      return val.value;
+    });
+
+    newItem[attr.name] = values.join(", ");
+    addAttributeHeader(attr, attrHeaderList);
+  });
+};
+
+// 添加表头函数
+const addAttributeHeader = (attr, headerList) => {
+  const existingHeader = headerList.some(item => item.id === attr.id);
+  if (!existingHeader) {
+    headerList.push({
+      title: attr.name,
+      dataIndex: attr.name,
+      id: attr.id,
+      show: true,
+      align: "center"
+    });
+  }
+};
+
+// 提取公共的newItem创建函数
+const createNewItem = (sku, dataSource) => ({
+  oldPrice: dataSource.oldPrice || sku.oldPrice,
+  price: dataSource.price || sku.price,
+  quantity: dataSource.stock || sku.stock,
+  packageHeight: sku.height,
+  packageLength: sku.depth,
+  packageWeight: sku.weight,
+  packageWidth: sku.width,
+  skuTitle: dataSource.name || sku.name,
+  colorImg: createColorImg(dataSource.colorImage || sku.colorImage),
+  warehouseList: formatWarehouseList(dataSource.warehouseList || sku.warehouseList, sku.offerId),
+  sellerSKU: dataSource.offerId || sku.offerId,
+  imageUrl: mergeAndDeduplicateImages(dataSource, sku)
+});
+
+// 颜色图片处理函数
+const createColorImg = (colorImage) => {
+  if (!colorImage) return [];
+  return [{
+    url: processImageSource(colorImage),
+    name: colorImage.split("/").pop()
+  }];
+};
+
+// 仓库列表格式化函数
+const formatWarehouseList = (warehouseList, offerId) => {
+  return warehouseList?.map(item => ({...item, offerId})) || [];
+};
+
+// 图片合并去重函数
+const mergeAndDeduplicateImages = (dataSource, sku) => {
+  const primaryImages = dataSource.primaryImage || sku.primaryImage || [];
+  const normalImages = dataSource.images || sku.images || [];
+  const allImages = [...primaryImages, ...normalImages].filter(Boolean);
+  return Array.from(new Set(allImages)).map(url => ({
+    url: processImageSource(url),
+    id: uuidv4(),
+    checked: false
+  }));
+};
+
+// 定义常量
+const CONSTANTS = {
+  COM_ATTR_LIST: [10096, 4295],
+  COM_ATTRS: [10096, 10097],
+  TABLE_HEADER: {
+    COLOR_IMG: { title: "颜色样本", dataIndex: "colorImg", selectType: "url", type: 1, show: true, align: "center" },
+    SKU_TITLE: { title: "SKU标题", dataIndex: "skuTitle", selectType: "input", type: 1, options: null, show: true, align: "center" }
+  }
+};
+
 // 优化现有产品等方法
 const optimizeMethods = (attrHeaderList, titleSet, sortArr, uniqueArr, result, skuList) => {
   // 将不匹配的主题过滤掉
-  let comAttrList = [10096, 4295];
-  let comAttrs = [10096, 10097];
+  // let comAttrList = [10096, 4295];
+  // let comAttrs = [10096, 10097];
+  // // 从数组 a 中提取所有的 id
+  // const idsInA = sortArr.map((item) => item.id);
+  // // // 使用 every 方法检查 comAttrList 中的每个元素是否都在 idsInA 中
+  // const isAllMatched = comAttrList.every((id) => idsInA.includes(id)); //双组合主题
+  // const isAllMatche = comAttrs.some((id) => idsInA.includes(id)); //单组合主题
+  // let echoThemeList = [];
+  // let isModelValueList = [];
+  // // 处理数据回显到表格
+  // attrHeaderList = [
+  //   ...new Map(
+  //     attrHeaderList.map((item) => [item.dataIndex, item])
+  //   ).values(),
+  // ];
+  // [...attrHeaderList, ...headerList.value].forEach((item) => {
+  //   if (!titleSet.has(item.title)) {
+  //     titleSet.add(item.title);
+  //     uniqueArr.push(item);
+  //   }
+  // });
+  // let filteredB = sortArr.filter((itemB) =>
+  //   uniqueArr.some((itemA) => itemA.id === itemB.id)
+  // );
+  // headerList.value = customSort(uniqueArr); //表格主题标题赋值
+  // // imgHeaderList.value = attrHeaderList; //图片标题赋值
+  // if (result.some((item) => item.colorImg.length !== 0)) {
+  //   headerList.value.unshift({
+  //     title: "颜色样本",
+  //     dataIndex: "colorImg",
+  //     selectType: "url",
+  //     type: 1,
+  //     show: true,
+  //     align: "center",
+  //   });
+  //   addHeaderList.value.push("colorImg");
+  // }
+  // if (result.some((item) => item.skuTitle !== null && item.skuTitle !== "") && result.length > 1) {
+  //   let skuIndex = headerList.value.findIndex(
+  //     (item) => item.title === "SKU"
+  //   );
+  //   let obj = {
+  //     title: "SKU标题",
+  //     dataIndex: "skuTitle",
+  //     selectType: "input",
+  //     type: 1,
+  //     options: null,
+  //     show: true,
+  //     align: "center",
+  //   }
+  //   headerList.value.splice(skuIndex + 1, 0, obj);
+  //   addHeaderList.value.push("skuTitle");
+  //   const ozonStore = useOzonProductStore()
+  //   ozonStore.$patch(state => {
+  //     state.addHeaderList = addHeaderList.value
+  //   })
+  // }
+  // tableData.value = result;
+  // // 判断sortArr中是否有组合数据
+  // if (isAllMatched && isAllMatche) {
+  //   echoThemeList = handleTheme(filteredB); //handleTheme方法可以将属性转换成主题数据格式
+  // } else {
+  //   isModelValueList = filterModelValues(sortArr, skuList);
+  //   echoThemeList = handleTheme(isModelValueList);
+  // }
+
+  // // 处理到数据回显到主题
+  // const aIds = echoThemeList.map((item) => item.id);
+  // // 过滤 有数据的主题
+  // themeBtns.value = themeBtns.value.filter(
+  //   (item) => !aIds.includes(item.id)
+  // );
+  // attributeList.value = matchAndAssignValues(echoThemeList, skuList);
   // 从数组 a 中提取所有的 id
-  const idsInA = sortArr.map((item) => item.id);
-  // // 使用 every 方法检查 comAttrList 中的每个元素是否都在 idsInA 中
-  const isAllMatched = comAttrList.every((id) => idsInA.includes(id)); //双组合主题
-  const isAllMatche = comAttrs.some((id) => idsInA.includes(id)); //单组合主题
-  let echoThemeList = [];
-  let isModelValueList = [];
-  // 处理数据回显到表格
-  attrHeaderList = [
-    ...new Map(
-      attrHeaderList.map((item) => [item.dataIndex, item])
-    ).values(),
-  ];
-  [...attrHeaderList, ...headerList.value].forEach((item) => {
+  const idsInA = sortArr.map(item => item.id);
+  const hasDualTheme = CONSTANTS.COM_ATTR_LIST.every(id => idsInA.includes(id));
+  const hasSingleTheme = CONSTANTS.COM_ATTRS.some(id => idsInA.includes(id));
+
+  // 处理数据回显到表格 - 使用Map去重
+  attrHeaderList = [...new Map(attrHeaderList.map(item => [item.dataIndex, item])).values()];
+
+  // 合并表头并去重
+  [...attrHeaderList, ...headerList.value].forEach(item => {
     if (!titleSet.has(item.title)) {
       titleSet.add(item.title);
       uniqueArr.push(item);
     }
   });
-  let filteredB = sortArr.filter((itemB) =>
-    uniqueArr.some((itemA) => itemA.id === itemB.id)
-  );
-  headerList.value = customSort(uniqueArr); //表格主题标题赋值
-  // imgHeaderList.value = attrHeaderList; //图片标题赋值
-  if (result.some((item) => item.colorImg.length !== 0)) {
-    headerList.value.unshift({
-      title: "颜色样本",
-      dataIndex: "colorImg",
-      selectType: "url",
-      type: 1,
-      show: true,
-      align: "center",
-    });
+
+  // 过滤匹配的属性
+  const filteredB = sortArr.filter(itemB => uniqueArr.some(itemA => itemA.id === itemB.id));
+  headerList.value = customSort(uniqueArr);
+
+  // 添加颜色样本列
+  if (result.some(item => item.colorImg.length)) {
+    headerList.value.unshift(CONSTANTS.TABLE_HEADER.COLOR_IMG);
     addHeaderList.value.push("colorImg");
   }
-  if (result.some((item) => item.skuTitle !== null && item.skuTitle !== "") && result.length > 1) {
-    let skuIndex = headerList.value.findIndex(
-      (item) => item.title === "SKU"
-    );
-    let obj = {
-      title: "SKU标题",
-      dataIndex: "skuTitle",
-      selectType: "input",
-      type: 1,
-      options: null,
-      show: true,
-      align: "center",
-    }
-    headerList.value.splice(skuIndex + 1, 0, obj);
+
+  // 添加SKU标题列
+  if (result.some(item => item.skuTitle) && result.length > 1) {
+    const skuIndex = headerList.value.findIndex(item => item.title === "SKU");
+    headerList.value.splice(skuIndex + 1, 0, CONSTANTS.TABLE_HEADER.SKU_TITLE);
     addHeaderList.value.push("skuTitle");
-    const ozonStore = useOzonProductStore()
-    ozonStore.$patch(state => {
-      state.addHeaderList = addHeaderList.value
-    })
-  }
-  tableData.value = result;
-  // 判断sortArr中是否有组合数据
-  if (isAllMatched && isAllMatche) {
-    echoThemeList = handleTheme(filteredB); //handleTheme方法可以将属性转换成主题数据格式
-  } else {
-    isModelValueList = filterModelValues(sortArr, skuList);
-    echoThemeList = handleTheme(isModelValueList);
+    useOzonProductStore().$patch(state => state.addHeaderList = addHeaderList.value);
   }
 
-  // 处理到数据回显到主题
-  const aIds = echoThemeList.map((item) => item.id);
-  // 过滤 有数据的主题
-  themeBtns.value = themeBtns.value.filter(
-    (item) => !aIds.includes(item.id)
-  );
+  tableData.value = result;
+
+  // 处理主题数据
+  const echoThemeList = hasDualTheme && hasSingleTheme
+    ? handleTheme(filteredB)
+    : handleTheme(filterModelValues(sortArr, skuList));
+
+  // 过滤已有数据的主题
+  const aIds = echoThemeList.map(item => item.id);
+  themeBtns.value = themeBtns.value.filter(item => !aIds.includes(item.id));
   attributeList.value = matchAndAssignValues(echoThemeList, skuList);
 }
 

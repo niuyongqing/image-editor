@@ -289,10 +289,6 @@
     <!-- 批量设置变种属性 -->
     <batchSetColor :setValueVis="setValueVis" @closeColorModal="setValueVis = false" @confirm="confirm"
       :setColorOption="setColorOption" @handleCancel="handleColorCancel"></batchSetColor>
-    <!-- 批量编辑图片 -->
-    <bacthSkuEditImg ref="bacthSkuEditImgRef"></bacthSkuEditImg>
-    <!-- 图片翻译弹窗 -->
-    <ImageTranslation ref="imageTranslationRef"></ImageTranslation>
     <!-- 批量修改颜色样本大小 -->
     <bacthEditColorImg ref="bacthEditColorImgRef"></bacthEditColorImg>
     <!-- 颜色样本翻译 -->
@@ -361,8 +357,7 @@ const VNodes = defineComponent({
   },
 });
 const downloadLoading = ref(false); //导出按钮loading
-const bacthSkuEditImgRef = ref();
-const imageTranslationRef = ref();
+
 const bacthEditColorImgRef = ref();
 const colorImgTranslationRef = ref();
 const bigImgvisible = ref(false);
@@ -1124,16 +1119,6 @@ const applyImage = (item) => {
 
 };
 
-//  批量修改图片尺寸
-const handleEditImagesSize = () => {
-  bacthSkuEditImgRef.value.showModal(tableData.value)
-};
-
-
-//  图片翻译弹窗
-const handleImageTranslation = () => {
-  imageTranslationRef.value.showModal(tableData.value)
-};
 
 // 清空图片
 const clearAllImages = () => {

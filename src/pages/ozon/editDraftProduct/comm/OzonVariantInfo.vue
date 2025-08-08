@@ -231,10 +231,7 @@
     <!-- 批量设置变种属性 -->
     <batchSetColor :setValueVis="setValueVis" @closeColorModal="setValueVis = false" @confirm="confirm"
       :setColorOption="setColorOption" @handleCancel="handleColorCancel"></batchSetColor>
-    <!-- 批量编辑图片 -->
-    <bacthSkuEditImg ref="bacthSkuEditImgRef"></bacthSkuEditImg>
-    <!-- 图片翻译弹窗 -->
-    <ImageTranslation ref="imageTranslationRef"></ImageTranslation>
+
   </div>
 </template>
 
@@ -280,8 +277,6 @@ const props = defineProps({
   shopCode: String
 })
 
-const bacthSkuEditImgRef = ref()
-const imageTranslationRef = ref()
 
 const applyMenuList = ref([])
 const themeList = ref([]) //主题数据
@@ -911,49 +906,6 @@ const judgeMax = item => {
       content: '售价不能大于原价！'
     })
   }
-}
-
-//  图片应用到所有变种
-const applyAllImage = item => {
-  tableData.value.forEach(tableItem => {
-    tableItem.imageUrl = cloneDeep(item.imageUrl)
-  })
-}
-
-//  图片应用到同主题的变种
-const applyImage = item => {
-  const titles = item.title.split('-')
-  const tableDataList = tableData.value.filter(tableItem => {
-    return titles.includes(String(tableItem.id))
-  })
-}
-
-//  批量修改图片尺寸
-const handleEditImagesSize = () => {
-  bacthSkuEditImgRef.value.showModal(tableData.value)
-}
-
-//  图片翻译弹窗
-const handleImageTranslation = () => {
-  imageTranslationRef.value.showModal(tableData.value)
-}
-
-// 清空图片
-const clearAllImages = () => {
-  tableData.value.forEach(tableItem => {
-    tableItem.imageUrl = []
-  })
-}
-const skuThemeNames = item => {
-  const tableColumns = attributeList.value[0]?.tableColumns || []
-  const themeNames = tableColumns
-    .map(column => {
-      return column.title
-    })
-    .filter(nameItem => nameItem !== '操作')
-  const obj = pick(item, themeNames)
-  const entries = Object.entries(obj)
-  return entries
 }
 
 // 变种主题中是组合在一起的主题

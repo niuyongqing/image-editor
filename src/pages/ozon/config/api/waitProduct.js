@@ -122,3 +122,12 @@ export function brandCategory(data) {
     data
   })
 }
+
+// 将资料库数据回显
+export function relationProductDetail(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/wait/product/addProductFromProductStore',
+    method: 'post',
+    data
+  })
+}

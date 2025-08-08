@@ -565,9 +565,6 @@ const editCategory = () => {
             message.success('保存成功');
             emits('edit');
             cancel();
-
-            //  to do ....  跳转
-
         }
     })
 };

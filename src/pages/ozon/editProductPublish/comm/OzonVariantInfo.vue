@@ -177,10 +177,7 @@
         <!-- 选择自定义属性  -->
         <SelectAttr @selectAttrList="selectAttrList" :attrVisible="attrVisible" :custAttr="custAttr"
             :newAttribute="newAttribute" @handleStatsModalClose="attrVisible = false"></SelectAttr>
-        <!-- 图片翻译弹窗 -->
-        <ImageTranslation ref="imageTranslationRef"></ImageTranslation>
-        <!-- 批量编辑图片 -->
-        <bacthSkuEditImg ref="bacthSkuEditImgRef"></bacthSkuEditImg>
+
         <!-- 批量修改颜色样本大小 -->
         <bacthEditColorImg ref="bacthEditColorImgRef"></bacthEditColorImg>
         <!-- 颜色样本翻译 -->
@@ -212,8 +209,8 @@ import ImageInfo from '@/pages/ozon/config/component/image-info/index.vue'
 const props = defineProps({
     productDetail: Object,
 });
-const bacthSkuEditImgRef = ref();
-const imageTranslationRef = ref();
+
+
 const bacthEditColorImgRef = ref();
 const colorImgTranslationRef = ref();
 const bigImgvisible = ref(false);
@@ -374,21 +371,9 @@ const batchPrice = () => {
     batchTitle.value = "批量修改售价"
     batchType.value = 'price'
 }
-// 修改售价
-const backPrice = (e) => {
-    tableData.value[0].price = e
-}
 
-// 批量修改SKU
-const batchSKU = () => {
-    if (tableData.value.length == 0) {
-        message.warning("请先添加sku！");
-        return;
-    }
-    batchOpen.value = true
-    batchTitle.value = "批量修改SKU"
-    batchType.value = 'sku'
-}
+
+
 
 // 修改 SKU 时同步修改 warehouseList 里的 offerId
 const sellerSKUChange = debounce(record => {
@@ -437,10 +422,7 @@ const batcholdPricebatchPrice = () => {
     batchTitle.value = "批量修改原价"
     batchType.value = 'oldPrice'
 }
-// 修改原价
-const backOldPrice = (e) => {
-    tableData.value[0].oldPrice = e
-}
+
 
 const batchPackLength = () => {
     if (tableData.value.length == 0) {
@@ -452,12 +434,7 @@ const batchPackLength = () => {
     batchType.value = 'packLength'
 }
 
-const backBatchLength = (e) => {
-    tableData.value[0].packageLength = e.packageLength
-    tableData.value[0].packageWidth = e.packageWidth
-    tableData.value[0].packageHeight = e.packageHeight
-    tableData.value[0].packageWeight = e.packageWeight
-}
+
 const backValue = (batchFields) => {
     switch (batchType.value) {
         case 'sku':
@@ -561,41 +538,6 @@ defineExpose({
     tableData,
     submitForm
 })
-
-//  图片应用到所有变种
-const applyAllImage = (item) => {
-    tableData.value.forEach((tableItem) => {
-        tableItem.imageUrl = cloneDeep(item.imageUrl)
-    })
-};
-
-//  图片应用到同主题的变种
-const applyImage = (item) => {
-    const titles = item.title.split('-');
-    console.log('item', item, titles);
-    console.log('applyImage', tableData.value);
-    const tableDataList = tableData.value.filter((tableItem) => {
-        return titles.includes(String(tableItem.id))
-    })
-};
-
-//  批量修改图片尺寸
-const handleEditImagesSize = () => {
-    bacthSkuEditImgRef.value.showModal(tableData.value)
-};
-
-
-//  图片翻译弹窗
-const handleImageTranslation = () => {
-    imageTranslationRef.value.showModal(tableData.value)
-};
-
-// 清空图片
-const clearAllImages = () => {
-    tableData.value.forEach((tableItem) => {
-        tableItem.imageUrl = []
-    })
-};
 
 // 颜色样本- 批量改图片尺寸
 const changeImgSize = () => {

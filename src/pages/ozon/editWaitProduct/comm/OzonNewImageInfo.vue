@@ -20,10 +20,13 @@
                             更新模板
                         </a-button>
                     </div>
-                    <div class="my10px text-16px" style="color: #737679"><a-tag color="green">说明</a-tag>不支持设置手机端描述，保存发布后，手机端的图片及文字信息将跟PC端保持一致
+                    <div class="my10px text-16px" style="color: #737679"><a-tag
+                            color="green">说明</a-tag>不支持设置手机端描述，保存发布后，手机端的图片及文字信息将跟PC端保持一致
                     </div>
                     <a-form-item-rest>
-                        <jsonForm @backResult="backResult" :jsonContent="form.jsons" :shop="shopCode" @clear="form.jsons = ''"></jsonForm>
+                        <jsonForm @backResult="backResult" :jsonContent="form.jsons" :shop="shopCode"
+                            @clear="form.jsons = ''">
+                        </jsonForm>
                     </a-form-item-rest>
                 </a-form-item>
                 <a-form-item label="视频：">
@@ -132,37 +135,27 @@ const uploadVideoLoading = ref(false)
 
 const tempList = ref([])
 
-// 注入父组件数据
+// 注入父组件现有产品数据
 const existProductData = inject('existProductData')
+// 注入父组件资料库产品数据
+const databaseProduct = inject('databaseProduct')
+
 
 // 监听数据变化
 watch(() => existProductData.value, (newVal) => {
     const { attributes, complexAttributes } = newVal.attributes[0];
     if (attributes?.length == 0 || attributes == null) return;
-        const copyAttr = attributes?.filter(
-            (a) => a.id == 11254 || a.id == 4191
-        );
-        complexAttributes && complexAttributes.forEach((item) => {
-            // item.attributes.forEach((attr) => {
-            // });
-            if (item.id === 21841) {
-                form.video = item.values.map((e) => {
-                    return {
-                        url: processImageSource(e.value),
-                    }
-                })
-            } else if (item.id === 21845) {
-                form.coverUrl = processImageSource(item.values[0].value)
-            }
-        });
-        copyAttr.forEach(e => {
-            if (e.id === 11254) {
-                form.jsons = e.values[0].value || ""
-            } else {
-                form.description = e.values[0].value
-            }
-        })
+    commDispose(attributes, complexAttributes)
 }, { deep: true })
+// 监听资料库产品数据变化
+watch(() => databaseProduct.value, (newVal) => {
+    const { attributes, complexAttributes } = newVal.skuList[0];
+    if (attributes?.length == 0 || attributes == null) return;
+    commDispose(attributes, complexAttributes)
+    let ids = attributes.map(item => item.id)
+
+}, { deep: true })
+
 
 const handleChange = info => {
     if (info.file.status === 'done') {
@@ -198,8 +191,6 @@ const submitForm = () => {
     return true;
 }
 
-
-
 // 抛出数据和方法，可以让父级用ref获取
 defineExpose({
     form,
@@ -212,10 +203,10 @@ const backResult = (res) => {
 }
 
 const changeJsonTemp = () => {
-    if(!form.jsons) {
+    if (!form.jsons) {
         let content = tempList.value.find(item => item.value == form.jsonTemp)?.content || {}
         form.jsons = content.jsonRich || ""
-    }else{ 
+    } else {
         Modal.confirm({
             title: '选择富内容模板',
             content: '切换富内容模板将清空已有内容，确定要切换吗？',
@@ -269,33 +260,49 @@ watch(() => useOzonProductStore().productTemplate, (val) => {
 watch(() => props.productDetail, val => {
     if (Object.keys(val).length > 0) {
         const { attributes, complexAttributes } = val.skuList[0];
-
         if (attributes?.length == 0 || attributes == null) return;
-        const copyAttr = attributes?.filter(
-            (a) => a.id == 11254 || a.id == 4191
-        );
-        complexAttributes && complexAttributes.forEach((item) => {
-            // item.attributes.forEach((attr) => {
-            // });
-            if (item.id === 21841) {
-                form.video = item.values.map((e) => {
-                    return {
-                        url: processImageSource(e.value),
-                    }
-                })
-            } else if (item.id === 21845) {
-                form.coverUrl = processImageSource(item.values[0].value)
-            }
-        });
-        copyAttr.forEach(e => {
-            if (e.id === 11254) {
-                form.jsons = e.values[0].value || ""
-            } else {
-                form.description = e.values[0].value
-            }
-        })
+        commDispose(attributes, complexAttributes)
     }
 })
+
+// 定义常量ID提升可维护性
+const ATTRIBUTE_IDS = {
+  JSON_CONTENT: 11254,
+  DESCRIPTION: 4191,
+  VIDEO: 21841,
+  COVER_IMAGE: 21845
+};
+function commDispose(attributes, complexAttributes) {
+    // 完善空值检查并使用可选链
+  const copyAttr = attributes?.filter(a => 
+    a.id === ATTRIBUTE_IDS.JSON_CONTENT || a.id === ATTRIBUTE_IDS.DESCRIPTION
+  ) || [];
+
+  // 处理复杂属性-视频
+  if (Array.isArray(complexAttributes)) {
+    complexAttributes.forEach(item => {
+      switch (item.id) {
+        case ATTRIBUTE_IDS.VIDEO:
+          form.video = item.values?.map(e => ({
+            url: processImageSource(e?.value || '')
+          })) || [];
+          break;
+        case ATTRIBUTE_IDS.COVER_IMAGE:
+          form.coverUrl = processImageSource(item.values?.[0]?.value || '');
+          break;
+      }
+    });
+  }
+
+  // 处理普通属性 不用循环处理是为了防止数据在变动时无法重置或更新
+  const jsonContentAttr = copyAttr.find(attr => attr.id === ATTRIBUTE_IDS.JSON_CONTENT);
+  const descriptionAttr = copyAttr.find(attr => attr.id === ATTRIBUTE_IDS.DESCRIPTION);
+
+  form.jsons = jsonContentAttr?.values?.[0]?.value || '';
+  form.description = descriptionAttr?.values?.[0]?.value || '';
+}
+
+
 onMounted(() => {
     searchTemp();
 })

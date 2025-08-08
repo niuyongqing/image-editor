@@ -103,13 +103,13 @@
     <!-- 产品资料库 -->
     <productDatabase ref="productDatabaseRef" @handleSelect="handleProductSelect"></productDatabase>
     <!-- 分类关联弹窗 -->
-    <editCategoryModal ref="editCategoryModalRef"></editCategoryModal>
+    <editCategoryModal ref="editCategoryModalRef" @feedBackData="feedBackData"></editCategoryModal>
   </div>
 </template>
 
 <script setup name='editWaitProduct'>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-import { ozonProductDetail, categoryAttributes, ozonProductEdit, productPublish } from "../config/api/waitProduct"
+import { ozonProductDetail, categoryAttributes, ozonProductEdit, productPublish, relationProductDetail } from "../config/api/waitProduct"
 import { accountCache, tempSaveOrUpdate, templateList, brandDatabase, relationDetail } from "../config/api/product";
 import OzonBaseInfo from './comm/OzonBaseInfo.vue';
 import OzonNewImageInfo from './comm/OzonNewImageInfo.vue';
@@ -185,6 +185,9 @@ const existProduct = ref(null)
 const existProductData = ref({})
 const productDatabaseRef = ref(null)
 const editCategoryModalRef = ref(null)  // 分类弹窗
+const databaseId = ref("") //资料库ID
+const databaseProduct = ref({}) //资料库数据
+
 const paginations = reactive({
   pageNum: 1,
   pageSize: 10,
@@ -193,35 +196,58 @@ const paginations = reactive({
 const formData = reactive({
   shortCode: ""
 })
-
+// 注入现有产品数据
 provide('existProductData', existProductData)
+// 注入资料库产品数据
+provide('databaseProduct', databaseProduct)
 
 // 现有产品
 const handleSelect = (record) => {
+  console.log("record", record);
   existProductData.value = record;
 }
 
 // 资料库
 const handleProductSelect = (record) => {
   console.log(record);
+  databaseId.value = record.commodityId
+
   // 需要优先调用查询是否有关联过分类
   relationDetail({ productCollectId: record.commodityId, platformName: "ozon" }).then(res => {
     // 当data为null时需要弹出关联分类的弹窗
     if(res.data == null) {
       editCategoryModalRef.value.open({
         account: formData.shortCode,
-        id: record.commodityId
+        id: record.commodityId,
+        record
       })
+    }else {
+      let categoryObj = {
+        secondCategoryId: res.data.categoryId,
+        typeId: res.data.typeId,
+      }
+      feedBackData(categoryObj)
     }
   })
 
-    // brandDatabase({ id: record.commodityId }).then(res => {
-    //     console.log(res);
-    // })
-    // editCategoryModalRef.value.open({
-    //     account: formData.shortCode,
-    //     id: record.commodityId
-    // })
+}
+
+// 分类关联弹窗回调
+const feedBackData = (categoryObj) => {
+  let params = {
+    account: formData.shortCode,  //账号不能为空
+    commodityId: databaseId.value,  //资料库ID不能为空
+    categoryId: categoryObj.secondCategoryId,  //ozon平台产品分类ID不能为空
+    typeId: categoryObj.typeId    //ozon平台商品类型ID不能为空
+  }
+  categoryAttributesLoading.value = true
+
+  relationProductDetail(params).then(res => {
+    databaseProduct.value = res.data || {}
+  }).finally(() => {
+    categoryAttributesLoading.value = false
+  })
+
 }
 
 
@@ -325,6 +351,7 @@ const handleMenuClick = (e) => {
   }
 }
 
+// 获取引用模板列表
 const getTemplateList = () => {
   templateList({
     account: formData.shortCode,

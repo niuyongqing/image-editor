@@ -86,6 +86,10 @@
               <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
                 @click="batchSKU">批量</a>
             </template>
+            <template v-if="column.dataIndex === 'skuTitle'">
+              <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
+                @click="batchSkuTitle">批量</a>
+            </template>
             <template v-if="column.dataIndex === 'price'">
               <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
                 @click="batchPrice">批量</a>
