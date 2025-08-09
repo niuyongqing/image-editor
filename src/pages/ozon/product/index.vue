@@ -1711,13 +1711,13 @@ onMounted(() => {
 
     @media (min-width: 1920px) {
       .prodTitle {
-        width: 220px !important;
+        width: 200px !important;
       }
     }
 
     @media (min-width: 2560px) {
       .prodTitle {
-        width: 440px !important;
+        width: 390px !important;
       }
     }
   }
