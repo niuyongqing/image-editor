@@ -37,7 +37,8 @@
 
       <!-- 变种信息. -->
       <OzonNewVariantInfo ref="ozonNewVariantInfoRef" id="ozonNewVariantInfo" :productDetail="productDetail"
-        :shopCode="formData.shortCode" class="mt-5" @getAttributes="getAttributes"></OzonNewVariantInfo>
+        :shopCode="formData.shortCode" :existProductData="existProductData" :databaseProduct="databaseProduct" class="mt-5" @getAttributes="getAttributes"></OzonNewVariantInfo>
+
       <div class="flex justify-end mt-5">
         <a-button class="mx-2.5" :loading="loading" size="middle" @click="showTempModal">存为模板</a-button>
         <a-dropdown size="middle">
@@ -385,12 +386,12 @@ const quoteTemp = (record) => {
 }
 
 // 获取属性
-const getAttributes = (account, cId) => {
+const getAttributes =  async (account, cId) => {
   if (!account) {
     return;
   }
   categoryAttributesLoading.value = true;
-  categoryAttributes({
+  await categoryAttributes({
     account,
     descriptionCategoryId: cId.descriptionCategoryId ? cId.descriptionCategoryId : cId.secondCategoryId,
     typeId: cId.typeId ? cId.typeId : cId.threeCategoryId,
