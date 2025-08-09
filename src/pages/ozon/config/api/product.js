@@ -350,3 +350,8 @@ export function brandDatabase(data) {
     data
   })
 }
+
+// 在线产品移动分类
+export function moveCategoryApi(params) {
+  return usePost('/platform-ozon/platform/ozon/product/move/category', params)
+}

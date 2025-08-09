@@ -1,8 +1,8 @@
 <template>
   <div flex>
-    <div w-280px>
-      <SideBar :total-count="totalCount" :publish-failed-count="publishFailedCount" @draft-update-class="draftUpdateClass" />
-    </div>
+    <!-- 左侧边栏 -->
+    <SideBar class="w-70" :total-count="totalCount" :publish-failed-count="publishFailedCount" @draft-emit="handleDraftEmit" @wait-emit="handleWaitEmit" @online-emit="handleOnlineEmit" />
+
     <div flex-1>
       <a-breadcrumb
         separator=">"
@@ -129,11 +129,10 @@
                 </template>
               </a-dropdown>
 
-              <a-dropdown v-model:open="moveCategoryOpen" trigger="click">
+              <a-dropdown v-model:open="moveCategoryOpen" :disabled="!selectedRowList.length" trigger="click">
                 <a-button
                   type="primary"
                   style="height: 32px; margin-left: 10px"
-                  :disabled="!selectedRowList.length"
                 >
                   移动分类
                   <DownOutlined />
@@ -462,7 +461,6 @@
   import { brandCategory } from '../config/api/waitProduct'
   import { ozonDraftList, groupProductCountApi, ozonDeleteProduct, batchPublishToPlatform, batchAddToWaitPublish, addToWaitPublish } from '../config/api/draft'
   import { updateCategoryProduct } from '~/pages/sample/dataAcquisition/js/api.js'
-  import { useRouter } from 'vue-router'
   import tableHeard from '../config/tabColumns/draft'
   import AsyncIcon from '~/layouts/components/menu/async-icon.vue'
   import SideBar from '@/pages/ozon/config/component/SideBar/index.vue'
@@ -480,7 +478,6 @@
   let columns = tableHeard
   const baseApi = import.meta.env.VITE_APP_BASE_API
 
-  const router = useRouter()
   const { copy } = useClipboard()
   const editPromptEl = useTemplateRef('editPromptRef')
   const batchEditPromptEl = useTemplateRef('batchEditPromptRef') // 批量编辑-弹窗
@@ -489,7 +486,6 @@
   const batchAttributeEl = useTemplateRef('batchAttributeRef') // 批量属性-弹窗
   const editAttributeEl = useTemplateRef('editAttributeRef') // 批量属性-弹窗
   const typeTreeEl = useTemplateRef('typeTreeRef')
-  const nodePath = ref('')
   const typeManageOpen = ref(false)
   const shopSetVisible = ref(false)
   const shopCurryList = ref([])
@@ -706,9 +702,21 @@
     return row.show ? row?.skuList : row?.skuList?.slice(0, 5)
   }
 
-  const draftUpdateClass = e => {
-    paginations.pageNum = 1
-    getList()
+  /** 左侧边栏 */
+  let categoryId = '0'
+  const router = useRouter()
+  // 采集箱区域事件回调
+  function handleDraftEmit(val) {
+    // 不做任何回应
+    console.log('采集箱', val)
+  }
+  // 待发布区域事件回调
+  function handleWaitEmit(val) {
+    router.push(`/platform/ozon/waitPublish?categoryId=${val}`)
+  }
+  // 店铺(在线)商品区域事件回调
+  function handleOnlineEmit(val) {
+    router.push(`/platform/ozon/product?categoryId=${val}`)
   }
 
   // 获取左侧状态栏统计数量
@@ -716,8 +724,7 @@
   const publishFailedCount = ref(0)
   function getGroupProductCount() {
     const params = {
-      account: formData.account,
-      productState: 'PUBLISH_FAILED'
+      account: formData.account
     }
     groupProductCountApi(params).then(res => {
       totalCount.value = res.data.totalCount

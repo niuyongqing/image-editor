@@ -41,13 +41,12 @@
         py-10px
         px-5px
       >
-        <typeTree
-          v-model:current-class="currentClass"
+        <ClassificationTree
+          v-model:current-class="curWaitClass"
           platform="ozon"
-          ref="waitTypeTreeRef"
+          ref="waitClassificationTreeRef"
           @update:currentClass="waitCurrentClass"
-        >
-        </typeTree>
+        />
         <div :class="active === 'fail' ? 'ozon-active' : 'default'">
           <div
             text-left
@@ -89,13 +88,12 @@
         py-10px
         px-5px
       >
-        <typeTree
-          v-model:current-class="currentClass"
+        <ClassificationTree
+          v-model:current-class="curOnlineClass"
           platform="ozon"
           @update:currentClass="onlineCurrentClass"
-          ref="onlineTypeTreeRef"
-        >
-        </typeTree>
+          ref="onlineClassificationTreeRef"
+        />
       </div>
     </a-card>
 
@@ -110,9 +108,10 @@
 
 <script setup>
   import { SettingOutlined } from '@ant-design/icons-vue'
-  import typeTree from '@/components/classificationTree/typeTree.vue'
+  import ClassificationTree from './ClassificationTree.vue'
   import typeManage from '@/components/classificationTree/typeManage.vue'
-  defineProps({
+
+  const props = defineProps({
     totalCount: {
       type: Number,
       default: 0
@@ -121,40 +120,72 @@
       type: Number,
       default: 0
     },
-    activeCode: {
+    pageType: {
+      // 页面类型: draft-采集箱; waitPublish-待发布; online-店铺(在线)商品;
+      type: String,
+      default: ''
+    },
+    defaultActive: {
       type: String,
       default: ''
     }
   })
   const emits = defineEmits(['draftEmit', 'waitEmit', 'onlineEmit'])
 
-  const waitTypeTreeEl = useTemplateRef('waitTypeTreeRef') // 待发布产品分类
-  const onlineTypeTreeEl = useTemplateRef('onlineTypeTreeRef') // 在线产品分类
+  const waitClassificationTreeEl = useTemplateRef('waitClassificationTreeRef') // 待发布产品分类
+  const onlineClassificationTreeEl = useTemplateRef('onlineClassificationTreeRef') // 在线产品分类
   const publishManageEl = useTemplateRef('publishManageRef')
 
-  const currentClass = ref('0')
+  const curWaitClass = ref('') // 当前选中的待发布商品分类
+  const curOnlineClass = ref('') // 当前选中的在线商品分类
   const typeManageOpen = ref(false)
   const active = ref('draft')
 
+  watch(
+    () => props.defaultActive,
+    val => {
+      if (!val) return
+
+      if (['draft', 'fail'].includes(val)) {
+        active.value = val
+      } else {
+        active.value = ''
+        switch (props.pageType) {
+          case 'waitPublish':
+            curWaitClass.value = val
+            break
+          case 'online':
+            curOnlineClass.value = val
+            break
+
+          default:
+            break
+        }
+      }
+    },
+    { immediate: true }
+  )
+
   //  更新在线产品信息
   const updateTree = () => {
-    waitTypeTreeEl.value.updateTree()
-    onlineTypeTreeEl.value.updateTree()
+    waitClassificationTreeEl.value.updateTree()
+    onlineClassificationTreeEl.value.updateTree()
   }
 
   const selectActive = code => {
     active.value = code
-    currentClass.value = ''
+    curWaitClass.value = ''
+    curOnlineClass.value = ''
     switch (code) {
       case 'draft':
         emits('draftEmit')
-        break;
+        break
       case 'fail':
-        emits('waitEmit')
-        break;
-    
+        emits('waitEmit', 'fail')
+        break
+
       default:
-        break;
+        break
     }
   }
 

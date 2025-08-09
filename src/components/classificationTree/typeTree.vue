@@ -52,7 +52,10 @@ const props = defineProps({
     type: String,
     default: '全部分类',
   },
-  defaultClass: Boolean,      // 更新数据后默认选中节点
+  defaultClass: { // 更新数据后默认选中节点
+    type: Boolean,
+    default: true
+  },
 })
 defineExpose({
   updateTree,         // 更新数据方法

@@ -1,7 +1,8 @@
 <template>
   <div id="waitPublishCont">
     <div class="flex">
-      <SideBar class="w-70" :total-count="totalCount" :publish-failed-count="publishFailedCount" @draft-emit="handleDraftEmit" @wait-emit="handleWaitEmit" @online-emit="handleOnlineEmit" />
+      <!-- 左侧边栏 -->
+      <SideBar class="w-70" page-type="waitPublish" :default-active="defaultActive" :total-count="totalCount" :publish-failed-count="publishFailedCount" @draft-emit="handleDraftEmit" @wait-emit="handleWaitEmit" @online-emit="handleOnlineEmit" />
 
       <div class="flex-1 ml-3">
         <a-card class="mt-2.5">
@@ -114,11 +115,10 @@
                   </a-button>
                 </a-dropdown>
     
-                <a-dropdown v-model:open="moveCategoryOpen" trigger="click">
+                <a-dropdown v-model:open="moveCategoryOpen" :disabled="!selectedRowList.length" trigger="click">
                   <a-button
                     type="primary"
                     style="height: 32px; margin-left: 10px"
-                    :disabled="!selectedRowList.length"
                   >
                     移动分类
                     <DownOutlined />
@@ -128,7 +128,7 @@
                       <typeTree
                         platform="ozon"
                         @nodeClick="typeNodeClick"
-                      ></typeTree>
+                      />
                     </a-menu>
                   </template>
                 </a-dropdown>
@@ -566,7 +566,6 @@ const onSubmit = () => {
 };
 
 /** 移动分类 */
-const nodePath = ref('')
 const moveCategoryOpen = ref(false)
 // 点击分类树
 async function typeNodeClick(node) {
@@ -586,8 +585,18 @@ async function typeNodeClick(node) {
 }
 
 /** 左侧边栏 */
+const defaultActive = ref('0')
 let categoryId = '0'
+const route = useRoute()
 const router = useRouter()
+if (route.query.categoryId) {
+  categoryId = route.query.categoryId
+  defaultActive.value = categoryId
+  if (categoryId === 'fail') {
+    activeName.value = 'publish_failed'
+    formData.state = 'publish_failed'
+  }
+}
 // 采集箱区域事件回调
 const handleDraftEmit = val => {
   router.push('/platform/ozon/draft')
@@ -595,24 +604,21 @@ const handleDraftEmit = val => {
 // 待发布区域事件回调
 const handleWaitEmit = val => {
   if (categoryId === val) return
-  
+
   categoryId = val
-  if (val) {
-    activeName.value = ' '
-    formData.state = '';
-    paginations.pageNum = 1
-    getList()
-  } else {
-    // 无传参, 则为 '发布失败'
+  if (val === 'fail') {
     activeName.value = 'publish_failed'
-    formData.state = 'publish_failed';
-    getList();
+    formData.state = 'publish_failed'
+  } else {
+    activeName.value = ' '
+    formData.state = ''
   }
+  paginations.pageNum = 1
+  getList();
 }
 // 店铺(在线)商品区域事件回调
-  const handleOnlineEmit = val => {
-  console.log(val);
-  // router.push('/platform/ozon/product')
+const handleOnlineEmit = val => {
+  router.push(`/platform/ozon/product?categoryId=${val}`)
 }
 
 // 获取左侧状态栏统计数量
@@ -620,8 +626,7 @@ const totalCount = ref(0)
 const publishFailedCount = ref(0)
 function getGroupProductCount() {
   const params = {
-    account: formData.account,
-    productState: 'PUBLISH_FAILED'
+    account: formData.account
   }
   groupProductCountApi(params).then(res => {
     totalCount.value = res.data.totalCount
