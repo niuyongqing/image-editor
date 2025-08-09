@@ -92,6 +92,7 @@ declare module 'vue' {
     ColorTemplate: typeof import('./../src/components/process-pictures/component/adjust/color-template.vue')['default']
     CroppingTemplate: typeof import('./../src/components/process-pictures/component/adjust/cropping-template.vue')['default']
     CubeSpin: typeof import('./../src/components/base-loading/spin/cube-spin.vue')['default']
+    DatabaseImageModal: typeof import('./../src/components/productDatabase/databaseImageModal.vue')['default']
     DetailModal: typeof import('./../src/components/selectProduct/detail/detailModal.vue')['default']
     DetailsModal: typeof import('./../src/components/productDatabase/detailsModal.vue')['default']
     DotSpin: typeof import('./../src/components/base-loading/spin/dot-spin.vue')['default']
