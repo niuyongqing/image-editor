@@ -3,7 +3,7 @@
   <a-modal 
     v-model:open="modalOpen" 
     title="分类管理"
-    :width="500"
+    width="45%"
     :keyboard="true"
     :maskClosable="false"
   >
@@ -40,7 +40,7 @@
               <a-input 
                 v-if="treeData.editNode && id === treeData.editNode.id"
                 v-model:value="treeData.editNode.name" 
-                style="width: 70%;"
+                class="w-100"
                 placeholder="" 
                 ref="inputRef"
                 allowClear

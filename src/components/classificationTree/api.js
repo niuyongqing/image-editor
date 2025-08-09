@@ -70,3 +70,8 @@ export function delClass(data) {
     method: 'post',
   })
 }
+
+// 待发布移动分类
+export function moveWaitCategoryApi(params) {
+  return usePost('/platform-ozon/platform/ozon/wait/product/move/category', params)
+}

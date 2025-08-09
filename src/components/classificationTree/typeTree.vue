@@ -1,10 +1,9 @@
 <template>
 <div id="typeTree" class="typeTree">
-  <!-- <a-input-search v-model:value="treeData.keyword" style="margin-bottom: 8px" placeholder="Search" /> -->
   <a-input-search
     v-model:value="treeData.keyword"
     placeholder="类别关键词"
-    style="margin-bottom: 8px"
+    class="mb-2"
     @search="treeSearch(treeData.keyword)"
   />
   <div class="box-tree">
@@ -53,7 +52,10 @@ const props = defineProps({
     type: String,
     default: '全部分类',
   },
-  defaultClass: Boolean,      // 更新数据后默认选中节点
+  defaultClass: { // 更新数据后默认选中节点
+    type: Boolean,
+    default: true
+  },
 })
 defineExpose({
   updateTree,         // 更新数据方法
@@ -69,9 +71,14 @@ const treeData = reactive({
   loading: false
 })
 
+watch(() => props.currentClass, val => {
+  if (!val) {
+    treeData.selectedKeys = []
+  }
+})
+
 onMounted(() => {
   nextTick(() => {
-    // console.log(props.currentClass);
     getClassListFn(props.currentClass)
   })
 })
