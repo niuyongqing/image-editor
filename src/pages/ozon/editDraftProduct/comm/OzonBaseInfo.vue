@@ -390,8 +390,8 @@
   }
 
  // 此方法将历史缓存中的属性值进行重新赋值
-const assignValues = (a, b) => {
-    let newRes = a.map((item) => {
+const assignValues = (oldAttr, attr) => {
+    let newRes = oldAttr.map((item) => {
         return {
             ...item,
             values: item.values.map((value) => {
@@ -407,7 +407,7 @@ const assignValues = (a, b) => {
     });
     const result = {};
     // 根据b数组填充结果对象
-    b.forEach((item) => {
+    attr.forEach((item) => {
         const name = item.name;
         const selectType = item.selectType;
         newRes.forEach((resItem) => {
@@ -602,14 +602,14 @@ const changeRule = (attributes, name) => {
          *  "卖家代码" 9024
          */
         const newAttributesCache = processAttributesCache(val)
-        const custAttr = newAttributesCache.filter(a => !a.isRequired)
-        const filterAttributesCache = custAttr.filter(
-          a =>
-            !(a.isAspect && !a.isRequired) &&
-            !(a.isAspect && a.isCollection) &&
-            !(a.id === 4080 || a.id == 8229 || a.id == 8789 || a.id == 8790 || a.id == 4180 || a.id == 4191 || a.id == 11254 || a.id == 9024) &&
-            !(a.attributeComplexId == '100001' || a.attributeComplexId == '100002')
-        )
+        // const custAttr = newAttributesCache.filter(a => !a.isRequired)
+        // const filterAttributesCache = custAttr.filter(
+        //   a =>
+        //     !(a.isAspect && !a.isRequired) &&
+        //     !(a.isAspect && a.isCollection) &&
+        //     !(a.id === 4080 || a.id == 8229 || a.id == 8789 || a.id == 8790 || a.id == 4180 || a.id == 4191 || a.id == 11254 || a.id == 9024) &&
+        //     !(a.attributeComplexId == '100001' || a.attributeComplexId == '100002')
+        // )
 
         let noThemeAttributesCache = newAttributesCache.filter(a => !a.isAspect)
         if (noThemeAttributesCache) {

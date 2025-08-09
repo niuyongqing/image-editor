@@ -267,26 +267,18 @@ const props = defineProps({
   productDetail: Object,
   shopCode: String
 })
-const themeList = ref([]) //主题数据
+
 const themeBtns = ref([]) //主题按钮
 const requiredList = ref([]) //必填变种主题
 const attributeList = ref([]) //变种主题卡片
-const colorAttributeList = ref([]) //带颜色名称的变种主题卡片
 const tableData = ref([])
 const watermark = ref([])
-const cropWidth = ref(800)
-const cropHeight = ref(800)
 const editQuantityVis = ref(false)
-const selectAll = ref(false)
 const batchOpen = ref(false)
 const batchTitle = ref('')
 const batchType = ref('')
-const currentNumber = ref(0)
 const headerList = ref([]) //动态表头
-// const imgHeaderList = ref([]);
 const addHeaderList = ref([])
-const requireColumns = ref([])
-const imageList = ref([])
 const quantityRow = ref({})
 const types = ref('')
 const editStockList = ref([])
@@ -872,15 +864,15 @@ watch(
       }
 
       const { skuList } = props.productDetail
-      const newAttributesCache = processAttributesCache(val)
-      const list = newAttributesCache.filter(a => !a.isRequired)
-      custAttr.value = list.filter(
-        a =>
-          !(a.isAspect && !a.isRequired) &&
-          !(a.isAspect && a.isCollection) &&
-          !(a.id === 4080 || a.id == 8229 || a.id == 8789 || a.id == 8790 || a.id == 4180 || a.id == 4191 || a.id == 11254 || a.id == 9024) &&
-          !(a.attributeComplexId == '100001' || a.attributeComplexId == '100002')
-      )
+      // const newAttributesCache = processAttributesCache(val)
+      // const list = newAttributesCache.filter(a => !a.isRequired)
+      // custAttr.value = list.filter(
+      //   a =>
+      //     !(a.isAspect && !a.isRequired) &&
+      //     !(a.isAspect && a.isCollection) &&
+      //     !(a.id === 4080 || a.id == 8229 || a.id == 8789 || a.id == 8790 || a.id == 4180 || a.id == 4191 || a.id == 11254 || a.id == 9024) &&
+      //     !(a.attributeComplexId == '100001' || a.attributeComplexId == '100002')
+      // )
       if (requiredList.value.length != 0) {
         processDataFormat(requiredList.value)
       }

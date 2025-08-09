@@ -395,19 +395,19 @@ const findMatchedOption = (attributeId, data, options) => {
 };
 
 // 此方法将历史缓存中的属性值进行重新赋值
-const assignValues = (a, b) => {
+const assignValues = (oldAttr, attr) => {
     const result = {};
     // 根据b数组填充结果对象
-    b.forEach((item) => {
+    attr.forEach((item) => {
         const name = item.name;
         const selectType = item.selectType;
-        for (const key in a) {
+        for (const key in oldAttr) {
             if (name == key) {
                 if (selectType === "multSelect") {
                     let filteredItems =
                         item?.options &&
                         item?.options?.filter((item) =>
-                            a[key].some((bItem) => item.value === bItem)
+                        oldAttr[key].some((bItem) => item.value === bItem)
                         );
                     filteredItems.forEach((e) => {
                         if (!item?.acquiesceList?.some((bItem) => bItem.id === e.id)) {
@@ -418,7 +418,7 @@ const assignValues = (a, b) => {
                 } else if (selectType === "select") {
                     let filteredItems =
                         item?.options &&
-                        item?.options?.find((e) => e.value === a[key] || e.value === a[key].value);
+                        item?.options?.find((e) => e.value === oldAttr[key] || e.value === oldAttr[key].value);
                     result[name] = name == "品牌(Бренд)" ? {
                         label: "无品牌",
                         value: {
@@ -427,7 +427,7 @@ const assignValues = (a, b) => {
                         }
                     } : filteredItems
                 } else {
-                    result[name] = a[key];
+                    result[name] = oldAttr[key];
                 }
             }
         }
@@ -438,12 +438,12 @@ const assignValues = (a, b) => {
     return result;
 }
 
-const templateAssign = (a, b) => {
+const templateAssign = (oldAttr, attr) => {
     const result = {};
     // 遍历所有属性配置项
-    b.forEach((item) => {
+    attr.forEach((item) => {
         const attrName = item.name;
-        const attrValue = a[attrName];
+        const attrValue = oldAttr[attrName];
         if (!attrValue) return;
 
         // 处理多选类型属性

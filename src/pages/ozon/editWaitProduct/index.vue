@@ -204,15 +204,14 @@ provide('databaseProduct', databaseProduct)
 
 // 现有产品
 const handleSelect = (record) => {
-  console.log("record", record);
+  collectProductId.value = ""  // 此处清空是因为当数据是采集过来的时候，切换成现有产品的话也能打开引用采集的图片
   existProductData.value = record;
 }
 
 // 资料库
 const handleProductSelect = (record) => {
-  console.log(record);
   databaseId.value = record.commodityId
-
+  collectProductId.value = record.commodityId
   // 需要优先调用查询是否有关联过分类
   relationDetail({ productCollectId: record.commodityId, platformName: "ozon" }).then(res => {
     // 当data为null时需要弹出关联分类的弹窗

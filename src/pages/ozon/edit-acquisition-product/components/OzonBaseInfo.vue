@@ -489,26 +489,6 @@ watch(
              *  "卖家代码" 9024
              */
             const newAttributesCache = processAttributesCache(val);
-            const custAttr = newAttributesCache.filter((a) => !a.isRequired);
-            const filterAttributesCache = custAttr.filter(
-                (a) =>
-                    !(a.isAspect && !a.isRequired) &&
-                    !(a.isAspect && a.isCollection) &&
-                    !(
-                        a.id === 4080 ||
-                        a.id == 8229 ||
-                        a.id == 8789 ||
-                        a.id == 8790 ||
-                        a.id == 4180 ||
-                        a.id == 4191 ||
-                        a.id == 11254 ||
-                        a.id == 9024
-                    ) &&
-                    !(
-                        a.attributeComplexId == "100001" || a.attributeComplexId == "100002"
-                    )
-            );
-
             let noThemeAttributesCache = newAttributesCache.filter(
                 (a) => !a.isAspect
             );

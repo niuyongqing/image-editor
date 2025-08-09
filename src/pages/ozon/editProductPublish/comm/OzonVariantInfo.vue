@@ -215,10 +215,10 @@ const bacthEditColorImgRef = ref();
 const colorImgTranslationRef = ref();
 const bigImgvisible = ref(false);
 
-const batchPriceVis = ref(false)
-const batchOldPriceVis = ref(false)
+
+
 const editQuantityVis = ref(false)
-const editLengthRangeVis = ref(false)
+
 const batchOpen = ref(false)
 const newAttribute = ref([])
 const custAttr = ref([]) //可控制属性
@@ -226,8 +226,6 @@ const batchTitle = ref("")
 const batchType = ref('')
 const quantityRow = ref({})
 const tableData = ref([])
-const themeBtns = ref([])
-const requiredList = ref([]) //必填变种主题 
 const attributeList = ref([]); //变种主题卡片
 const editRes = ref({})
 const editStockList = ref([]) //仓库数据
@@ -249,11 +247,8 @@ const isConform = ref(false)
 const attrVisible = ref(false)
 const otherHeader = otherList
 const watermark = ref([])
-const cropWidth = ref(800)
-const cropHeight = ref(800)
 const shopCode = ref("")
-const selectAll = ref(false)
-const imgHeaderList = ref([])
+
 const uploadUrl =
     import.meta.env.VITE_APP_BASE_API +
     "/platform-ozon/platform/ozon/file/upload/img"
@@ -371,9 +366,6 @@ const batchPrice = () => {
     batchTitle.value = "批量修改售价"
     batchType.value = 'price'
 }
-
-
-
 
 // 修改 SKU 时同步修改 warehouseList 里的 offerId
 const sellerSKUChange = debounce(record => {
@@ -678,27 +670,27 @@ watch(() => useOzonProductStore().attributes, val => {
         })
         shopCode.value = account
         // 以下是过滤出自定义属性数据
-        const newAttributesCache = processAttributesCache(val);
-        const list = newAttributesCache.filter((a) => !a.isRequired);
-        custAttr.value = list.filter(
-            (a) =>
-                !(a.isAspect && !a.isRequired) &&
-                !(a.isAspect && a.isCollection) &&
-                !(
-                    a.id === 4080 ||
-                    a.id == 8229 ||
-                    a.id == 8789 ||
-                    a.id == 8790 ||
-                    a.id == 4180 ||
-                    a.id == 4191 ||
-                    a.id == 11254 ||
-                    a.id == 9024
-                ) &&
-                !(
-                    a.attributeComplexId == "100001" ||
-                    a.attributeComplexId == "100002"
-                )
-        )
+        // const newAttributesCache = processAttributesCache(val);
+        // const list = newAttributesCache.filter((a) => !a.isRequired);
+        // custAttr.value = list.filter(
+        //     (a) =>
+        //         !(a.isAspect && !a.isRequired) &&
+        //         !(a.isAspect && a.isCollection) &&
+        //         !(
+        //             a.id === 4080 ||
+        //             a.id == 8229 ||
+        //             a.id == 8789 ||
+        //             a.id == 8790 ||
+        //             a.id == 4180 ||
+        //             a.id == 4191 ||
+        //             a.id == 11254 ||
+        //             a.id == 9024
+        //         ) &&
+        //         !(
+        //             a.attributeComplexId == "100001" ||
+        //             a.attributeComplexId == "100002"
+        //         )
+        // )
         // 
         // 提取出变种主题的标头和对应的值
         if (sortArr.length > 0) {
@@ -764,12 +756,6 @@ watch(() => useOzonProductStore().attributes, val => {
                     //     });
                     // }
                     if (!attrItem) return; // 无匹配项则跳过
-                    const exists = imgHeaderList.value.some(item => item.title === sortName);
-                    if (!exists) {
-                        imgHeaderList.value.push({
-                            title: sortName
-                        })
-                    }
                 });
                 let colorObj = {};
                 let colorHead = [];
@@ -812,10 +798,10 @@ watch(() => useOzonProductStore().attributes, val => {
             imageUrl: imgList,
             colorImg: colorImage.length > 0 ? [colorImageObj] : [],
         };
-        console.log('editRes', editRes.value);
+        // console.log('editRes', editRes.value);
         Object.assign(item, editRes.value);
         tableData.value.push(item)
-        console.log("tableData", item);
+        // console.log("tableData", item);
     }
 })
 onMounted(() => {

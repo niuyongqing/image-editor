@@ -93,6 +93,7 @@
                 <a-menu-item key="imgBank">空间图片</a-menu-item>
                 <a-menu-item key="imgFromNet">网络图片</a-menu-item>
                 <a-menu-item key="imgQuote">引用采集图片</a-menu-item>
+                <a-menu-item key="imgDataBase">引用资料库图片</a-menu-item>
               </a-menu>
             </template>
           </a-dropdown>
@@ -180,7 +181,7 @@
                 :width="118"
                 :height="118"
                 class="object-contain"
-                :src="image.url"
+                :src="processImageSource(image.url)"
               />
               <!-- size -->
               <div
@@ -251,6 +252,13 @@
     :collect-product-id="collectProductId"
     @image-list-confirm="acquisitionModalConfirm"
   />
+
+  <!-- 资料库图片弹窗 -->
+  <databaseImageModal
+    ref="databaseImageModalRef"
+    @imageListConfirm="acquisitionModalConfirm"
+  />
+
 </template>
 
 <script setup>
@@ -268,6 +276,7 @@
   import BacthSkuEditImg from '@/components/skuDragUpload/bacthSkuEditImg.vue'
   import ImageTranslation from '@/components/skuDragUpload/imageTranslation.vue'
   import AcquisitionImageModal from '@/pages/sample/acquisitionImageModal.vue'
+  import databaseImageModal from '~@/components/productDatabase/databaseImageModal.vue'
   import { Empty, message } from 'ant-design-vue'
   import { processImageSource } from '~/pages/ozon/config/commJs/index'
 
@@ -296,6 +305,7 @@
   const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE // 空 占位图
   const headers = { Authorization: useAuthorization().value }
   const uploadImageUrl = import.meta.env.VITE_APP_BASE_API + '/platform-ozon/platform/ozon/file/upload/img'
+const databaseImageModalRef = ref(null)
 
   watch(
     () => props.dataSource,
@@ -486,7 +496,9 @@
       case 'imgQuote':
         acquisitionModalOpen.value = true
         break
-
+      case 'imgDataBase':
+        databaseImageModalRef.value.modalOpenFn(collectProductId.value)
+        break
       default:
         break
     }

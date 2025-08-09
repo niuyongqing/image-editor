@@ -149,9 +149,9 @@ const processResult = (productList) => {
 };
 
 // 删除表格数据
-const processData = (a, b) => {
-  // 遍历 a 数组
-  for (const item of a) {
+const processData = (attributeList, tableData) => {
+  // 遍历 attributeList 数组
+  for (const item of attributeList) {
     const { tableData } = item;
     // 遍历 tableData
     for (let i = tableData.length - 1; i >= 0; i--) {
@@ -164,9 +164,9 @@ const processData = (a, b) => {
         : dataItem.selectType === 'multSelect'
         ? dataItem?.modelValue?.map((val) => val.label).join(";") 
         : null;
-      // 判断 modelValue 是否在 b 数组中有匹配的值
-      const isMatch = b.some((bItem) => {
-        const key = item.name; // 使用 a 数组的 name 作为键
+      // 判断 modelValue 是否在 tableData 数组中有匹配的值
+      const isMatch = tableData.some((bItem) => {
+        const key = item.name; // 使用 attributeList 数组的 name 作为键
         return bItem[key] === modelValue;
       });
 
@@ -180,7 +180,7 @@ const processData = (a, b) => {
     }
   }
 
-  return a;
+  return attributeList;
 };
 
 // 校验sku是否一致

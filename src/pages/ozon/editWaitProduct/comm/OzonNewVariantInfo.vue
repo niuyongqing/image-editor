@@ -372,9 +372,7 @@ const editQuantityVis = ref(false);
 const batchOpen = ref(false);
 const batchTitle = ref("");
 const batchType = ref("");
-
 const headerList = ref([]); //动态表头
-
 const addHeaderList = ref([]);
 const quantityRow = ref({});
 const types = ref("");
@@ -618,7 +616,7 @@ const handleChangeTemplate = (value) => {
 const filterOption = (input, option) => {
   return option.value.toLowerCase().indexOf(input.toLowerCase()) >= 0;
 };
-
+// 批量设置变种属性
 const setColor = (row) => {
   colorRow.value = row;
   setValueVis.value = true;
@@ -629,7 +627,7 @@ const setColor = (row) => {
     }
   });
 };
-
+// 批量设置变种属性后数据清空
 const handleColorCancel = () => {
   setValueVis.value = false;
   setColorOption.value = [];
@@ -793,7 +791,7 @@ const clearImg = () => {
     item.colorImg = [];
   });
 }
-
+// 打开 颜色样本- 图片翻译
 const changeImgTranslation = () => {
   colorImgTranslationRef.value.showModal(tableData.value)
 }
@@ -875,9 +873,6 @@ const processDataFormat = (list = []) => {
       show: true,
       align: "center",
     });
-    // imgHeaderList.value.push({
-    //   title: list[i].name,
-    // });
   }
   attributeList.value = [...attributeList.value, ...newHeaderList];
 };
@@ -916,7 +911,6 @@ const enterVariantType = (item) => {
 // 移除主题操作
 const removeVariantType = (item, index) => {
   attributeList.value.splice(index, 1);
-  // imgHeaderList.value.splice(index, 1);
   let name = item.tableData[0].name
   let secondName = item.tableData[0].secondName
 
@@ -1326,7 +1320,6 @@ watch(
       requiredList.value = [];
       attributeList.value = [];
       tableData.value = [];
-      // imgHeaderList.value = [];
       addHeaderList.value = []; //清空自定义变种信息
       headerList.value = [...publishHead]; //重新赋值
       // 提取变种主题
@@ -1577,20 +1570,20 @@ const optimizeMethods = (attrHeaderList, titleSet, sortArr, uniqueArr, result, s
   attributeList.value = matchAndAssignValues(echoThemeList, skuList);
 }
 
-const filterModelValues = (a, b) => {
-  const allAttributeIds = b.flatMap((item) =>
+const filterModelValues = (sortArr, skuList) => {
+  const allAttributeIds = skuList.flatMap((item) =>
     item.attributes.map((attr) => attr.id)
   );
   // 过滤 sortArr 中匹配不上的项
-  const filteredSortArr = a.filter((item) => allAttributeIds.includes(item.id));
+  const filteredSortArr = sortArr.filter((item) => allAttributeIds.includes(item.id));
   return filteredSortArr;
 };
 
-const matchAndAssignValues = (a, b) => {
-  // 遍历 a 数组的每个配置项
-  return a.map((aItem) => {
+const matchAndAssignValues = (echoThemeList, skuList) => {
+  // 遍历 echoThemeList 数组的每个配置项
+  return echoThemeList.map((aItem) => {
     const isThemeData = checkThemeData(aItem.tableData);
-    const newTableData = b.map((bItem) => {
+    const newTableData = skuList.map((bItem) => {
       const tableDataTemplate = JSON.parse(JSON.stringify(aItem.tableData[0]));
       const attributeId = tableDataTemplate.id;
       const matchedAttribute = bItem.attributes.find(
@@ -1710,7 +1703,7 @@ const deduplicateTableData = (tableData, isThemeData) => {
     });
   }
 };
-
+// 检查数组中是否有组合的主题
 const checkThemeData = (data) => {
   const hasColorName = data.some((item) => item.secondId === 10097);
   const hasProductColor = data.some((item) => item.id === 10096);

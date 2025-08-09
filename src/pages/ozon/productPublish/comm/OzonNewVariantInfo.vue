@@ -356,31 +356,29 @@ const VNodes = defineComponent({
     return this.vnodes;
   },
 });
-const downloadLoading = ref(false); //导出按钮loading
 
 const bacthEditColorImgRef = ref();
 const colorImgTranslationRef = ref();
 const bigImgvisible = ref(false);
 
-const themeList = ref([]); //主题数据
+
 const themeBtns = ref([]); //主题按钮
 const requiredList = ref([]); //必填变种主题
 const attributeList = ref([]); //变种主题卡片
-const colorAttributeList = ref([]); //带颜色名称的变种主题卡片
+
 const tableData = ref([]);
 const watermark = ref([]);
-const cropWidth = ref(800);
-const cropHeight = ref(800);
+
 const editQuantityVis = ref(false);
-const selectAll = ref(false);
+
 const batchOpen = ref(false);
 const batchTitle = ref("");
 const batchType = ref("");
-const currentNumber = ref(0);
+
 const headerList = ref([]); //动态表头
-const imgHeaderList = ref([]);
+
 const addHeaderList = ref([]);
-const requireColumns = ref([]);
+
 const quantityRow = ref({});
 const types = ref("");
 const editStockList = ref([]);
@@ -414,7 +412,6 @@ const plainOptions = [
 let otherHeader = otherList;
 const existSkuList = ref([]); // 现有产品数据回显
 const isConform = ref(false);
-const editRes = ref({})
 const headers = {
   Authorization: "Bearer " + useAuthorization().value,
 };
@@ -617,9 +614,6 @@ const processDataFormat = (list = []) => {
       show: true,
       align: "center",
     });
-    imgHeaderList.value.push({
-      title: list[i].name,
-    });
   }
 
   console.log("headerList2", attributeList.value, newHeaderList);
@@ -660,8 +654,6 @@ const enterVariantType = (item) => {
 // 移除主题操作
 const removeVariantType = (item, index) => {
   attributeList.value.splice(index, 1);
-  // imgHeaderList.value.splice(index, 1);
-
   let name = item.tableData[0].name
   let secondName = item.tableData[0].secondName
   // 循环删除表格内容数据
@@ -1071,72 +1063,6 @@ const dependencyMap = new Map([
   [4295, 9533], // 俄罗斯尺码和制造商尺码
 ]);
 
-// 导出全部图片
-const handleExportAllImages = async () => {
-  try {
-    const imageList = tableData.value
-      .map(item => item.imageUrl)
-      .map((imgItem) => imgItem
-        .map((i) => i.url
-          .replace(import.meta.env.VITE_APP_BASE_API, "")));
-    if (imageList.flat().length === 0) {
-      message.warning('请先添加图片！');
-      return;
-    }
-    downloadLoading.value = true;
-    let res = await downloadAllImage({ imageList: imageList.flat() });
-    message.success('导出成功');
-    download.name(res.data)
-    downloadLoading.value = false;
-  } catch (error) {
-    console.error(error)
-  }
-};
-
-//  图片应用到所有变种
-const applyAllImage = (item) => {
-  tableData.value.forEach((tableItem) => {
-    tableItem.imageUrl = cloneDeep(item.imageUrl)
-  })
-};
-
-//  图片应用到同主题的变种
-const applyImage = (item) => {
-  const titles = item.title.split('-');
-  console.log('item', item, titles);
-  console.log('applyImage', tableData.value);
-  const tableDataList = tableData.value.filter((tableItem) => {
-    return titles.includes(String(tableItem.id))
-  })
-
-  // tableData.value.forEach((tableItem) => {
-  //     console.log('tableItem', tableItem);
-
-  //     // if (titles.includes(String(tableItem.id))) {
-  //     //     tableItem.imageUrl = item.imageUrl
-  //     // }
-  // })
-
-};
-
-
-// 清空图片
-const clearAllImages = () => {
-  tableData.value.forEach((tableItem) => {
-    tableItem.imageUrl = []
-  })
-};
-const skuThemeNames = (item) => {
-  const tableColumns = attributeList.value[0]?.tableColumns;
-  const themeNames = tableColumns?.map((column) => {
-    return column.title
-  }).filter((nameItem) => nameItem !== '操作')
-  const obj = pick(item, themeNames)
-  const entries = Object.entries(obj);
-  return entries
-};
-
-
 // 颜色样本- 批量改图片尺寸
 const changeImgSize = () => {
   bacthEditColorImgRef.value.showModal(tableData.value)
@@ -1243,8 +1169,6 @@ const changeImgTranslation = () => {
   colorImgTranslationRef.value.showModal(tableData.value)
 }
 
-
-
 watch(
   () => useOzonProductStore().attributes,
   (val) => {
@@ -1253,7 +1177,6 @@ watch(
       requiredList.value = [];
       attributeList.value = [];
       tableData.value = [];
-      imgHeaderList.value = [];
       headerList.value = [...publishHead];
       // 提取变种主题
       let arr = val.filter((obj) => obj.isAspect);
@@ -1302,26 +1225,26 @@ watch(
           themeBtns.value = arr.filter((obj) => !obj.isRequired);
         }
       }
-      const newAttributesCache = processAttributesCache(val);
-      const list = newAttributesCache.filter((a) => !a.isRequired);
-      custAttr.value = list.filter(
-        (a) =>
-          !(a.isAspect && !a.isRequired) &&
-          !(a.isAspect && a.isCollection) &&
-          !(
-            a.id === 4080 ||
-            a.id == 8229 ||
-            a.id == 8789 ||
-            a.id == 8790 ||
-            a.id == 4180 ||
-            a.id == 4191 ||
-            a.id == 11254 ||
-            a.id == 9024
-          ) &&
-          !(
-            a.attributeComplexId == "100001" || a.attributeComplexId == "100002"
-          )
-      );
+      // const newAttributesCache = processAttributesCache(val);
+      // const list = newAttributesCache.filter((a) => !a.isRequired);
+      // custAttr.value = list.filter(
+      //   (a) =>
+      //     !(a.isAspect && !a.isRequired) &&
+      //     !(a.isAspect && a.isCollection) &&
+      //     !(
+      //       a.id === 4080 ||
+      //       a.id == 8229 ||
+      //       a.id == 8789 ||
+      //       a.id == 8790 ||
+      //       a.id == 4180 ||
+      //       a.id == 4191 ||
+      //       a.id == 11254 ||
+      //       a.id == 9024
+      //     ) &&
+      //     !(
+      //       a.attributeComplexId == "100001" || a.attributeComplexId == "100002"
+      //     )
+      // );
       if (requiredList.value.length != 0) {
         processDataFormat(requiredList.value);
       }
@@ -1425,7 +1348,6 @@ watch(
         // console.log('uniqueArr',uniqueArr);
 
         headerList.value = customSort(uniqueArr); //表格主题标题赋值
-        // imgHeaderList.value = attrHeaderList; //图片标题赋值
         if (result.some((item) => item.colorImg.length !== 0)) {
           headerList.value.unshift({
             title: "颜色样本",
@@ -1510,19 +1432,19 @@ watch(
     }
   }
 );
-const filterModelValues = (a, b) => {
-  const allAttributeIds = b.flatMap((item) =>
+const filterModelValues = (sortArr, list) => {
+  const allAttributeIds = list.flatMap((item) =>
     item.attributes.map((attr) => attr.id)
   );
   // 过滤 sortArr 中匹配不上的项
-  const filteredSortArr = a.filter((item) => allAttributeIds.includes(item.id));
+  const filteredSortArr = sortArr.filter((item) => allAttributeIds.includes(item.id));
   return filteredSortArr;
 };
-const matchAndAssignValues = (a, b) => {
-  // 遍历 a 数组的每个配置项
-  return a.map((aItem) => {
+const matchAndAssignValues = (echoThemeList, list) => {
+  // 遍历 echoThemeList 数组的每个配置项
+  return echoThemeList.map((aItem) => {
     const isThemeData = checkThemeData(aItem.tableData);
-    const newTableData = b.map((bItem) => {
+    const newTableData = list.map((bItem) => {
       const tableDataTemplate = JSON.parse(JSON.stringify(aItem.tableData[0]));
       const attributeId = tableDataTemplate.id;
       const matchedAttribute = bItem.attributes.find(
