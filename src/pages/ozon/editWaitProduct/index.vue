@@ -121,7 +121,7 @@ import existingProducts from "../common/existingProducts/index.vue";
 
 const collectProductId = ref('')
 provide('collectProductId', collectProductId)
-
+const ozonStore = useOzonProductStore()
 const ozonBaseInfoRef = ref(null)
 const ozonImageInfoRef = ref(null)
 const ozonNewVariantInfoRef = ref(null)
@@ -190,6 +190,9 @@ provide('existProductData', existProductData)
 
 const handleSelect = (record) => {
   existProductData.value = record;
+  ozonStore.$patch(state => {
+    state.dataType = "existProduct"
+  })
 }
 
 const backToTop = () => {
@@ -210,6 +213,9 @@ const getProductDetail = (waitId, account) => {
     productDetail.value = res.data || {}
     collectProductId.value = res.data.collectProductId
     getAttributes(res?.data?.account, res?.data)
+    ozonStore.$patch(state => {
+      state.dataType = "edit"
+    })
   })
 }
 
@@ -338,7 +344,7 @@ const getAttributes = (account, cId) => {
   }).then((res) => {
     if (res.data) {
       attributes.value = res?.data ?? [];
-      const ozonStore = useOzonProductStore()
+      
       ozonStore.$patch(state => {
         state.attributes = attributes.value
       })

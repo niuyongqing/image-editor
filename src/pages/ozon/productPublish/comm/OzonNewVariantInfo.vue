@@ -1317,26 +1317,26 @@ watch(
           themeBtns.value = arr.filter((obj) => !obj.isRequired);
         }
       }
-      const newAttributesCache = processAttributesCache(val);
-      const list = newAttributesCache.filter((a) => !a.isRequired);
-      custAttr.value = list.filter(
-        (a) =>
-          !(a.isAspect && !a.isRequired) &&
-          !(a.isAspect && a.isCollection) &&
-          !(
-            a.id === 4080 ||
-            a.id == 8229 ||
-            a.id == 8789 ||
-            a.id == 8790 ||
-            a.id == 4180 ||
-            a.id == 4191 ||
-            a.id == 11254 ||
-            a.id == 9024
-          ) &&
-          !(
-            a.attributeComplexId == "100001" || a.attributeComplexId == "100002"
-          )
-      );
+      // const newAttributesCache = processAttributesCache(val);
+      // const list = newAttributesCache.filter((a) => !a.isRequired);
+      // custAttr.value = list.filter(
+      //   (a) =>
+      //     !(a.isAspect && !a.isRequired) &&
+      //     !(a.isAspect && a.isCollection) &&
+      //     !(
+      //       a.id === 4080 ||
+      //       a.id == 8229 ||
+      //       a.id == 8789 ||
+      //       a.id == 8790 ||
+      //       a.id == 4180 ||
+      //       a.id == 4191 ||
+      //       a.id == 11254 ||
+      //       a.id == 9024
+      //     ) &&
+      //     !(
+      //       a.attributeComplexId == "100001" || a.attributeComplexId == "100002"
+      //     )
+      // );
       if (requiredList.value.length != 0) {
         processDataFormat(requiredList.value);
       }

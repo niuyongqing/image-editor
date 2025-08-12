@@ -262,6 +262,7 @@ const getAttributesID = (ids) => {
             threeCategoryId: ids.value,
             shopId: form.shortCode
         }
+        state.dataType = ""  //切换不同分类后SKU清空
     })
     emit("getAttributes", form.shortCode, form.categoryId);
 };

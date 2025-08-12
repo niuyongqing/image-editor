@@ -341,6 +341,7 @@ import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js';
 import { FileOutlined, SettingOutlined, DownOutlined } from '@ant-design/icons-vue';
 import { v4 as uuidv4 } from 'uuid'
 import ImageInfo from '@/pages/ozon/config/component/image-info/index.vue'
+import { el } from "date-fns/locale";
 
 const props = defineProps({
   categoryAttributesLoading: Boolean,
@@ -1459,26 +1460,26 @@ watch(
       // 处理自定义属性数据
       // let customArr = findCommonByIdOptimized(val, skuList[0].attributes)
       // console.log('customArr', customArr);
-      const newAttributesCache = processAttributesCache(val);
-      const list = newAttributesCache.filter((a) => !a.isRequired);
-      custAttr.value = list.filter(
-        (a) =>
-          !(a.isAspect && !a.isRequired) &&
-          !(a.isAspect && a.isCollection) &&
-          !(
-            a.id === 4080 ||
-            a.id == 8229 ||
-            a.id == 8789 ||
-            a.id == 8790 ||
-            a.id == 4180 ||
-            a.id == 4191 ||
-            a.id == 11254 ||
-            a.id == 9024
-          ) &&
-          !(
-            a.attributeComplexId == "100001" || a.attributeComplexId == "100002"
-          )
-      );
+      // const newAttributesCache = processAttributesCache(val);
+      // const list = newAttributesCache.filter((a) => !a.isRequired);
+      // custAttr.value = list.filter(
+      //   (a) =>
+      //     !(a.isAspect && !a.isRequired) &&
+      //     !(a.isAspect && a.isCollection) &&
+      //     !(
+      //       a.id === 4080 ||
+      //       a.id == 8229 ||
+      //       a.id == 8789 ||
+      //       a.id == 8790 ||
+      //       a.id == 4180 ||
+      //       a.id == 4191 ||
+      //       a.id == 11254 ||
+      //       a.id == 9024
+      //     ) &&
+      //     !(
+      //       a.attributeComplexId == "100001" || a.attributeComplexId == "100002"
+      //     )
+      // );
       if (requiredList.value.length != 0) {
         processDataFormat(requiredList.value);
       }
@@ -1488,7 +1489,8 @@ watch(
       const uniqueArr = [];
       const titleSet = new Set();
       // 引用现有产品数据回显处理
-      if (existSkuList.value.length != 0) {
+      if (useOzonProductStore().dataType === "existProduct") {
+
         const { oldPrice, price, stock, name, colorImage, warehouseList, offerId, images, primaryImage } = existProductData.value;
         // 遍历b中的skuList
         existSkuList.value.forEach((sku) => {
@@ -1563,7 +1565,8 @@ watch(
           result.push(newItem);
         });
         optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, existSkuList.value)
-      } else if (skuList.length > 0) {
+      } else if (useOzonProductStore().dataType === "edit") {
+
         // 遍历b中的skuList
         skuList.forEach((sku) => {
           let newItem = {
@@ -1636,6 +1639,22 @@ watch(
           result.push(newItem);
         });
         optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, skuList)
+      }else {
+        tableData.value.push({
+          skuTitle: "",
+          sellerSKU: "",
+          price: "",
+          oldPrice: "",
+          quantity: undefined,
+          warehouseList: [],
+          packageLength: undefined,
+          packageWidth: undefined,
+          packageHeight: undefined,
+          packageWeight: undefined,
+          imageUrl: [],
+          colorImg: [],
+          id: Math.random().toString(36).substring(2, 10),
+        });
       }
     }
   }
