@@ -364,3 +364,12 @@ export function relationDetail(data) {
 export function moveCategoryApi(params) {
   return usePost('/platform-ozon/platform/ozon/product/move/category', params)
 }
+
+// 根据资料库ID查询关联的分类详情数据
+export function dataBaseDetail(data) {
+  return request({
+    url: '/platform/ozon/product/reference/data/bank',
+    method: 'post',
+    data
+  })
+}

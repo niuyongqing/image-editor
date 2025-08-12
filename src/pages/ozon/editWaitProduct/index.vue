@@ -104,7 +104,7 @@
     <!-- 产品资料库 -->
     <productDatabase ref="productDatabaseRef" @handleSelect="handleProductSelect"></productDatabase>
     <!-- 分类关联弹窗 -->
-    <editCategoryModal ref="editCategoryModalRef" @feedBackData="feedBackData"></editCategoryModal>
+    <editCategoryModal ref="editCategoryModalRef" :relationType="3"  @feedBackData="feedBackData"></editCategoryModal>
   </div>
 </template>
 
@@ -132,6 +132,7 @@ provide('collectProductId', collectProductId)
 const ozonBaseInfoRef = ref(null)
 const ozonImageInfoRef = ref(null)
 const ozonNewVariantInfoRef = ref(null)
+const ozonStore = useOzonProductStore()
 const waitId = ref("")
 const attributes = ref([])
 const shopList = ref([])
@@ -201,17 +202,21 @@ const formData = reactive({
 provide('existProductData', existProductData)
 // 注入资料库产品数据
 provide('databaseProduct', databaseProduct)
+// 注入采集产品ID
+provide('databaseId', databaseId)
 
 // 现有产品
 const handleSelect = (record) => {
   collectProductId.value = ""  // 此处清空是因为当数据是采集过来的时候，切换成现有产品的话也能打开引用采集的图片
   existProductData.value = record;
+  ozonStore.$patch(state => {
+    state.dataType = "existProduct"
+  })
 }
 
 // 资料库
 const handleProductSelect = (record) => {
   databaseId.value = record.commodityId
-  collectProductId.value = record.commodityId
   // 需要优先调用查询是否有关联过分类
   relationDetail({ productCollectId: record.commodityId, platformName: "ozon" }).then(res => {
     // 当data为null时需要弹出关联分类的弹窗
@@ -244,6 +249,9 @@ const feedBackData = (categoryObj) => {
 
   relationProductDetail(params).then(res => {
     databaseProduct.value = res.data || {}
+    ozonStore.$patch(state => {
+      state.dataType = "database"
+    })
   }).finally(() => {
     categoryAttributesLoading.value = false
   })
@@ -268,6 +276,9 @@ const getProductDetail = (waitId, account) => {
   ozonProductDetail({ account, waitId }).then(res => {
     productDetail.value = res.data || {}
     collectProductId.value = res.data.collectProductId
+    ozonStore.$patch(state => {
+      state.dataType = "edit"
+    })
     getAttributes(res?.data?.account, res?.data)
   })
 }
@@ -372,7 +383,7 @@ const getTemplateList = () => {
 
 // 引用模板
 const quoteTemp = (record) => {
-  const ozonStore = useOzonProductStore()
+  
   ozonStore.$patch(state => {
     state.productTemplate = {
       account: record.account,
@@ -393,11 +404,10 @@ const getAttributes =  async (account, cId) => {
   await categoryAttributes({
     account,
     descriptionCategoryId: cId.descriptionCategoryId ? cId.descriptionCategoryId : cId.secondCategoryId,
-    typeId: cId.typeId ? cId.typeId : cId.threeCategoryId,
+    typeId: cId?.typeId ? cId.typeId : cId.threeCategoryId,
   }).then((res) => {
     if (res.data) {
       attributes.value = res?.data ?? [];
-      const ozonStore = useOzonProductStore()
       ozonStore.$patch(state => {
         state.attributes = attributes.value
       })

@@ -78,6 +78,12 @@ import { ozonCollectDetail, ozonRelationSave, ozonRelationDetail } from "@/pages
 import CategoryModal from "@/pages/ozon/draft/comm/categoryModal.vue";
 import { accountCache } from "@/pages/ozon/config/api/product.js";
 
+const props = defineProps({
+    relationType: {
+        type: Number,
+        default: 3
+    }
+})
 const collectData = ref({});
 const shopAccount = ref([]); // 店铺列表
 const acceptParams = ref({});// 表格行ID
@@ -272,7 +278,7 @@ const editCategory = () => {
 
     const params = {
         typeId: form.categoryId, // 三级分类id
-        relationType: 3, // 代表保存的是待发布的数据
+        relationType: props.relationType, // 3代表保存的是待发布的数据  4是在线产品
         productCollectId: acceptParams.value.id, // 资料库id
         platformName: "ozon",//所属平台
         categoryId: hisAttrObj.value.secondCategoryId, // 二级分类id
@@ -302,7 +308,6 @@ const editCategory = () => {
 
 // 选择ozon主题
 const selectAttributes = (value) => {
-    console.log("value", value);
     if (value) {
         if (historyCategoryList.value.length != 0) {
             hisAttrObj.value = historyCategoryList.value.find((item) => item.threeCategoryId === value);

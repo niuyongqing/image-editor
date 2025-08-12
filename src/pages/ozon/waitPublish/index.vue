@@ -2,14 +2,16 @@
   <div id="waitPublishCont">
     <div class="flex">
       <!-- 左侧边栏 -->
-      <SideBar class="w-70" page-type="waitPublish" :default-active="defaultActive" :total-count="totalCount" :publish-failed-count="publishFailedCount" @draft-emit="handleDraftEmit" @wait-emit="handleWaitEmit" @online-emit="handleOnlineEmit" />
+      <SideBar class="w-70" page-type="waitPublish" :default-active="defaultActive" :total-count="totalCount"
+        :publish-failed-count="publishFailedCount" @draft-emit="handleDraftEmit" @wait-emit="handleWaitEmit"
+        @online-emit="handleOnlineEmit" />
 
       <div class="flex-1 ml-3">
         <a-card class="mt-2.5">
           <a-form ref="ruleForm2" :model="formData" class="form-padding">
             <a-form-item label="店铺账号：">
-              <selectComm style="margin-left: 10px" :options="shopAccount" :fieldObj="shopObj" @backSelectAll="selectAll"
-                @backSelectItem="selectItem"></selectComm>
+              <selectComm style="margin-left: 10px" :options="shopAccount" :fieldObj="shopObj"
+                @backSelectAll="selectAll" @backSelectItem="selectItem"></selectComm>
             </a-form-item>
             <a-form-item label="搜索类型:">
               <div class="fBox flex align-start ml-2.5">
@@ -22,8 +24,8 @@
                 <div class="searchInputs flex align-start ml-2.5">
                   <a-input v-if="actives == 1" style="width: 400px" v-model:value="formData.name" placeholder="请输入标题查询"
                     clearable @clear="onSubmit"></a-input>
-                  <a-input v-if="actives == 2" style="width: 400px" v-model:value="formData.sku" clearable @clear="onSubmit"
-                    placeholder="请输入SKU查询,多个SKU间用逗号隔开，最多支持200个"></a-input>
+                  <a-input v-if="actives == 2" style="width: 400px" v-model:value="formData.sku" clearable
+                    @clear="onSubmit" placeholder="请输入SKU查询,多个SKU间用逗号隔开，最多支持200个"></a-input>
                 </div>
                 <a-button type="primary" class="ml-2.5" @click="onSubmit">查询</a-button>
                 <a-button type="link" class="ml-2.5" @click="advancedType = !advancedType">高级搜索</a-button>
@@ -53,12 +55,6 @@
                   <a-input-number style="width: 150px" :min="0" :max="99999999" :controls="false"
                     v-model:value="advancedForm.maxStock" allowClear></a-input-number>
                 </a-form-item>
-                <!-- <a-form-item label="备注：">
-                                <a-select ref="select" v-model:value="advancedForm.isRemark" style="width: 150px">
-                                    <a-select-option value="1">有备注</a-select-option>
-                                    <a-select-option value="0">无备注</a-select-option>
-                                </a-select>
-                            </a-form-item> -->
                 <a-form-item>
                   <a-select ref="select" v-model:value="advancedForm.timeSort" class="ml-6.5" style="width: 120px">
                     <a-select-option value="update_time">更新时间</a-select-option>
@@ -114,21 +110,15 @@
                     <DownOutlined />
                   </a-button>
                 </a-dropdown>
-    
+
                 <a-dropdown v-model:open="moveCategoryOpen" :disabled="!selectedRowList.length" trigger="click">
-                  <a-button
-                    type="primary"
-                    style="height: 32px; margin-left: 10px"
-                  >
+                  <a-button type="primary" style="height: 32px; margin-left: 10px">
                     移动分类
                     <DownOutlined />
                   </a-button>
                   <template #overlay>
                     <a-menu>
-                      <typeTree
-                        platform="ozon"
-                        @nodeClick="typeNodeClick"
-                      />
+                      <typeTree platform="ozon" @nodeClick="typeNodeClick" />
                     </a-menu>
                   </template>
                 </a-dropdown>
@@ -173,10 +163,11 @@
             <template #bodyCell="{ column, record }">
               <template v-if="column.dataIndex === 'name'">
                 <div class="flex text-left">
-                  <a-image style="width: 100px; height: 100px" :src="record?.skuList[0]?.primaryImage?.length > 0
-                    ? processImageSource(record?.skuList[0]?.primaryImage[0])
-                    : processImageSource(record?.skuList[0]?.images[0])
-                    " />
+                  <a-image style="width: 100px; height: 100px" :src="processImageSource(
+                    (record.skuList[0]?.primaryImage?.length > 0 && record.skuList[0]?.primaryImage[0]) ||
+                    (record.skuList[0]?.images?.length > 0 && record.skuList[0]?.images[0]) ||
+                    ''
+                  )" />
                   <div class="ml-2.5 block">
                     <a-tooltip class="item" effect="dark" :title="record.name ? record.name : record.skuList[0].name"
                       placement="top" style="overflow-wrap: break-word">
@@ -199,8 +190,10 @@
                 <a-tag color="success" v-if="record.waitState == 'published'">{{
                   state[record.waitState]
                 }}</a-tag>
-                <a-tag color="warning" v-else-if="record.waitState == 'wait_publish'">{{ state[record.waitState] }}</a-tag>
-                <a-tag color="error" v-else-if="record.waitState == 'publish_failed'">{{ state[record.waitState] }}</a-tag>
+                <a-tag color="warning" v-else-if="record.waitState == 'wait_publish'">{{ state[record.waitState]
+                }}</a-tag>
+                <a-tag color="error" v-else-if="record.waitState == 'publish_failed'">{{ state[record.waitState]
+                }}</a-tag>
               </template>
               <template v-if="column.dataIndex === 'sku'">
                 <div class="record-sku-container pb-30px" text-center>
@@ -703,7 +696,7 @@ const edit = (row = {}) => {
 };
 
 // 批量操作
-  const handleMenuClick = (e) => {
+const handleMenuClick = (e) => {
   if (e.key == "batchEdit") {
     localStorage.setItem('waitIdList', JSON.stringify(selectedRowKeys.value))
     window.open('/platform/ozon/batch-edit-wait-product')

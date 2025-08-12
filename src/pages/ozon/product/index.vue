@@ -199,9 +199,11 @@
                     <a-checkbox style="margin: 0 10px" @change="handelChecked($event, tbItem, record)"
                       v-model:checked="record.checked"></a-checkbox>
                     <div class="flex text-left items-center">
-                      <a-image style="width: 100px; height: 100px"
-                        :src="record.primaryImage && record.primaryImage.length > 0 ? processImageSource(record.primaryImage[0]) : processImageSource(record.images[0])">
-                      </a-image>
+                      <a-image style="width: 100px; height: 100px" :src="processImageSource(
+                        (record.primaryImage?.length > 0 && record.primaryImage[0]) ||
+                        (record.images?.length > 0 && record.images[0]) ||
+                        ''
+                      )" />
                       <div style="margin-left: 10px; display: block">
                         <a-tooltip class="item">
                           <template #title>

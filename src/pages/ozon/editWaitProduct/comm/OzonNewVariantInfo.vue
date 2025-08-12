@@ -5,7 +5,7 @@
         <template #title>
           <div class="flex align-center justify-between">
             <span class="text-left text-16px">变种属性</span>
-            <!-- <div>
+            <div>
               <FileOutlined /><a-select v-model:value="templateValue" show-search placeholder="请选择引用模板"
                 class="w300px mx10px" :options="tempList" :filter-option="filterOption" @change="handleChangeTemplate">
                 <template #dropdownRender="{ menuNode: menu }">
@@ -16,12 +16,12 @@
                       <template #icon>
                         <SettingOutlined />
                       </template>
-管理模板
-</a-button>
-</a-space>
-</template>
-</a-select>
-</div> -->
+                      管理模板
+                    </a-button>
+                  </a-space>
+                </template>
+              </a-select>
+            </div>
           </div>
         </template>
         <div>
@@ -337,6 +337,7 @@ import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js';
 import { FileOutlined, SettingOutlined, DownOutlined } from '@ant-design/icons-vue';
 import { v4 as uuidv4 } from 'uuid'
 import ImageInfo from '@/pages/ozon/config/component/image-info/index.vue'
+import { el } from "date-fns/locale";
 
 const props = defineProps({
   categoryAttributesLoading: Boolean,
@@ -447,6 +448,7 @@ const searchTemp = (obj) => {
           label: item.name,
           value: item.id,
           content: item.content,
+          category: item.category
         }
       }) || []
     }
@@ -455,10 +457,10 @@ const searchTemp = (obj) => {
 
 // 选择模板
 const handleChangeTemplate = (value) => {
-  let content = tempList.value.find(item => item.value == value)?.content || {}
-  const { variantTemplate: { categoryId, variantAttr } } = content;
+  let items = tempList.value.find(item => item.value == value) || {}
+  const { content: { variantTemplate: { variantAttr } }, category } = items;
   // templateValue.value = value;
-  emit("getAttributes", props.shopCode, categoryId);
+  emit("getAttributes", props.shopCode, category);
   const val = useOzonProductStore().attributes;
   let arr = val.filter((obj) => obj.isAspect);
   isConform = checkData(arr);
@@ -510,6 +512,8 @@ const handleChangeTemplate = (value) => {
   }
   let result = [];
   let attrHeaderList = [];
+  const uniqueArr = [];
+  const titleSet = new Set();
   // 遍历b中的skuList
   variantAttr.forEach((sku) => {
     let newItem = {
@@ -563,14 +567,16 @@ const handleChangeTemplate = (value) => {
 
     result.push(newItem);
   });
+  // 公共方法将数据回显到表格
+  // optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, variantAttr);
+
   // 处理数据回显到表格
   attrHeaderList = [
     ...new Map(
       attrHeaderList.map((item) => [item.dataIndex, item])
     ).values(),
   ];
-  const uniqueArr = [];
-  const titleSet = new Set();
+
   [...attrHeaderList, ...headerList.value].forEach((item) => {
     if (!titleSet.has(item.title)) {
       titleSet.add(item.title);
@@ -581,6 +587,8 @@ const handleChangeTemplate = (value) => {
   headerList.value = uniqueArr; //表格主题标题赋值
 
   tableData.value = result;
+
+
   // 将不匹配的主题过滤掉
   let comAttrList = [10096, 4295];
   let comAttrs = [10096, 10097];
@@ -795,7 +803,6 @@ const clearImg = () => {
 const changeImgTranslation = () => {
   colorImgTranslationRef.value.showModal(tableData.value)
 }
-
 
 // 添加自定义属性
 const selectAttrList = (list) => {
@@ -1371,6 +1378,42 @@ watch(
           themeBtns.value = arr.filter((obj) => !obj.isRequired);
         }
       }
+      if (requiredList.value.length != 0) {
+        processDataFormat(requiredList.value);
+      }
+      let result = [];
+      let attrHeaderList = [];
+      const uniqueArr = [];
+      const titleSet = new Set();
+      if (useOzonProductStore().dataType === "edit") {
+        const { skuList } = props.productDetail;
+        skuList.forEach(sku => {
+          const newItem = createNewItem(sku, {});
+          processAttributes(sortArr, sku, newItem, attrHeaderList);
+          result.push(newItem);
+        });
+        optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, skuList);
+      } else if (useOzonProductStore().dataType === "existProduct") {
+        const { attributes: existSkuList, oldPrice, price, stock, name, colorImage, warehouseList, offerId, images, primaryImage } = props.existProductData;
+        existSkuList.forEach(sku => {
+          const newItem = createNewItem(sku, {
+            oldPrice, price, stock, name, colorImage, warehouseList, offerId, images, primaryImage
+          });
+          processAttributes(sortArr, sku, newItem, attrHeaderList);
+          result.push(newItem);
+        });
+        optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, existSkuList);
+      } else if (useOzonProductStore().dataType === "database") {
+        const { skuList: databaseSkuList } = props.databaseProduct;
+        databaseSkuList.forEach(sku => {
+          const newItem = createNewItem(sku, {});
+          processAttributes(sortArr, sku, newItem, attrHeaderList);
+          result.push(newItem);
+        })
+        optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, databaseSkuList);
+      }
+
+
       // 处理自定义属性数据
       // let customArr = findCommonByIdOptimized(val, skuList[0].attributes)
       // console.log('customArr', customArr);
@@ -1394,50 +1437,13 @@ watch(
       //       a.attributeComplexId == "100001" || a.attributeComplexId == "100002"
       //     )
       // );
-      if (requiredList.value.length != 0) {
-        processDataFormat(requiredList.value);
-      }
-      let result = [];
-      let attrHeaderList = [];
-      const { skuList } = props.productDetail; // 待发布编辑数据
-      const { attributes: existSkuList  } = props.existProductData; // 现有产品数据
-      const { skuList: databaseSkuList } = props.databaseProduct; // 资料库产品数据
 
-
-      const uniqueArr = [];
-      const titleSet = new Set();
-      // 引用现有产品数据回显处理
-      if (existSkuList && existSkuList.length) {
-        const { oldPrice, price, stock, name, colorImage, warehouseList, offerId, images, primaryImage } = props.existProductData;
-        existSkuList.forEach(sku => {
-          const newItem = createNewItem(sku, {
-            oldPrice, price, stock, name, colorImage, warehouseList, offerId, images, primaryImage
-          });
-          processAttributes(sortArr,sku, newItem,attrHeaderList);
-          result.push(newItem);
-        });
-        optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, existSkuList);
-      } else if(databaseSkuList && databaseSkuList.length) {
-        databaseSkuList.forEach(sku => {
-          const newItem = createNewItem(sku, {});
-          processAttributes(sortArr,sku, newItem,attrHeaderList);
-          result.push(newItem);
-        })
-        optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, databaseSkuList);
-      } else if (skuList.length) {
-        skuList.forEach(sku => {
-          const newItem = createNewItem(sku, {});
-          processAttributes(sortArr,sku, newItem,attrHeaderList);
-          result.push(newItem);
-        });
-        optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, skuList);
-      }
     }
   }
 );
 
 // 提取属性处理函数
-const processAttributes = (sortArr,sku, newItem,attrHeaderList) => {
+const processAttributes = (sortArr, sku, newItem, attrHeaderList) => {
   sortArr.forEach(attr => {
     const subAttr = sku.attributes.find(item => item.id === attr.id);
     if (!subAttr) return;
@@ -1496,7 +1502,7 @@ const createColorImg = (colorImage) => {
 
 // 仓库列表格式化函数
 const formatWarehouseList = (warehouseList, offerId) => {
-  return warehouseList?.map(item => ({...item, offerId})) || [];
+  return warehouseList?.map(item => ({ ...item, offerId })) || [];
 };
 
 // 图片合并去重函数
