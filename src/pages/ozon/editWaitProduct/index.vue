@@ -280,6 +280,9 @@ const getProductDetail = (waitId, account) => {
       state.dataType = "edit"
     })
     getAttributes(res?.data?.account, res?.data)
+    ozonStore.$patch(state => {
+      state.dataType = "edit"
+    })
   })
 }
 

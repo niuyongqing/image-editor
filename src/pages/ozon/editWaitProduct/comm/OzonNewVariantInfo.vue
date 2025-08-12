@@ -1411,6 +1411,22 @@ watch(
           result.push(newItem);
         })
         optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, databaseSkuList);
+      }else {
+        tableData.value.push({
+          skuTitle: "",
+          sellerSKU: "",
+          price: "",
+          oldPrice: "",
+          quantity: undefined,
+          warehouseList: [],
+          packageLength: undefined,
+          packageWidth: undefined,
+          packageHeight: undefined,
+          packageWeight: undefined,
+          imageUrl: [],
+          colorImg: [],
+          id: Math.random().toString(36).substring(2, 10),
+        });
       }
 
 
