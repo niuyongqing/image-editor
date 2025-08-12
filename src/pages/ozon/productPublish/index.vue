@@ -212,6 +212,9 @@ provide('existProductData', existProductData)
 // 注入采集产品ID
 provide('databaseId', databaseId)
 
+// 资料库数据
+provide('databaseProduct', databaseProduct)
+
 // 现有产品
 const handleSelect = (record) => {
   existProductData.value = record;
@@ -292,7 +295,7 @@ const getAccount = () => {
           label: item.simpleName,
           value: item.account
         }
-      }) ?? [];
+      }) || [];
 
     }
   });
@@ -310,7 +313,7 @@ const getAttributes = (account, primaryCategoryId) => {
     typeId: primaryCategoryId.threeCategoryId,
   }).then((res) => {
     if (res.data) {
-      attributes.value = res?.data ?? [];
+      attributes.value = res?.data || [];
       ozonStore.$patch(state => {
         state.attributes = attributes.value
       })
