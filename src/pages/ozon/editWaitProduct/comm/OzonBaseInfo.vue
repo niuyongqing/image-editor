@@ -259,7 +259,7 @@ const getAttributesID = (ids) => {
     const ozonStore = useOzonProductStore()
     ozonStore.$patch(state => {
         state.variant = {
-            threeCategoryId: typeId,
+            threeCategoryId: ids.value,
             shopId: form.shortCode
         }
     })

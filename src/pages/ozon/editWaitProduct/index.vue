@@ -334,7 +334,7 @@ const getAttributes = (account, cId) => {
   categoryAttributes({
     account,
     descriptionCategoryId: cId.descriptionCategoryId ? cId.descriptionCategoryId : cId.secondCategoryId,
-    typeId: cId.typeId ? cId.typeId : cId.threeCategoryId,
+    typeId: cId?.typeId ? cId.typeId : cId.threeCategoryId,
   }).then((res) => {
     if (res.data) {
       attributes.value = res?.data ?? [];
