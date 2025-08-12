@@ -7,18 +7,18 @@
         :label-col="{ span: 3 }"
         class="shopForm"
       >
-        <!-- <a-form-item label="ERP分类">
+        <a-form-item label="ERP分类">
           <a-dropdown
             trigger="click"
             v-model:open="openDropdown"
           >
-            <a-button style="width: 300px; height: 32px">
+            <a-button style="width: 300px; height: 32px" @click="e => e.preventDefault()">
               <div flex>
                 <div
                   w-280px
                   text-left
                 >
-                  {{ nodeName ? nodeName : '请选择分类' }}
+                  {{ nodeName || '请选择分类' }}
                 </div>
                 <DownOutlined />
               </div>
@@ -30,9 +30,9 @@
                   v-model:node-path="nodePath"
                   :classifyTreeData="treeData"
                   ref="typeTreeRef"
-                  @update:nodePath="updateNodePath"
                   default-class
                   platform="ozon"
+                  @update:nodePath="updateNodePath"
                 >
                 </typeTree>
               </a-menu>
@@ -44,7 +44,7 @@
           >
             + 管理分类
           </a-button>
-        </a-form-item> -->
+        </a-form-item>
 
         <a-form-item label="来源URL">
           <div
@@ -138,7 +138,9 @@
     () => props.productDetail,
     val => {
       if (val) {
-        currentClass.value = val?.customCategoryId ?? ''
+        const categoryId = val.customCategoryId || ''
+        const categoryIdList = categoryId.split(',')
+        currentClass.value = categoryIdList[0]
         const list = val.sourceUrlList ?? []
         if (list.length === 0) {
           sourceUrlList.value = [{ sourceUrl: '', id: uuidv4() }]
@@ -195,7 +197,7 @@
   // 获取tree数据
   const getTreeData = () => {
     let params = {
-      platform: 'public', //平台
+      platform: 'ozon',
       parentId: '0'
     }
     getClassList(params).then(res => {

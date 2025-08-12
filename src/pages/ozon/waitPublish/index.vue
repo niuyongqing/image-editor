@@ -568,7 +568,7 @@ async function typeNodeClick(node) {
     let waitId = selectedRowList.value.map(i => i.waitId)
     let params = {
       waitId,
-      categoryId: node.id //分类ID
+      customCategoryId: node.id //分类ID
     }
     await moveWaitCategoryApi(params)
     getList()
@@ -818,7 +818,7 @@ const getList = () => {
   loading.value = true;
   let params = {
     ...formData,
-    categoryId,
+    customCategoryId: categoryId,
     // ...advancedForm,
     ...Object.entries(advancedForm).reduce((acc, [key, value]) => {
       // 过滤掉 timeSort 和 time 字段

@@ -31,6 +31,10 @@
         :shopList="shopList" :productDetail="productDetail" @sendShortCode="sendShortCode"
         @getAttributes="getAttributes"></ozon-base-info>
       <br />
+
+      <!-- ERP信息 -->
+      <ErpInfo ref="erpInfoRef" :productDetail="productDetail" />
+
       <!-- 描述信息 -->
       <ozon-new-image-info ref="ozonImageInfoRef" id="ozonNewImageInfo" :shopCode="formData.shortCode"
         :productDetail="productDetail"></ozon-new-image-info>
@@ -125,11 +129,13 @@ import { DownOutlined, ArrowRightOutlined, SettingOutlined } from '@ant-design/i
 import existingProducts from "../common/existingProducts/index.vue";
 import productDatabase from "~/components/productDatabase/index.vue";
 import editCategoryModal from "../config/component/editCategoryModal/index.vue";
+import ErpInfo from '@/pages/ozon/editDraftProduct/comm/erpInfo.vue';
 
 const collectProductId = ref('')
 provide('collectProductId', collectProductId)
 
 const ozonBaseInfoRef = ref(null)
+const erpInfoRef = ref(null) // erp信息Dom
 const ozonImageInfoRef = ref(null)
 const ozonNewVariantInfoRef = ref(null)
 const ozonStore = useOzonProductStore()
@@ -435,6 +441,8 @@ const onSubmit = async (type) => {
   const errorIndex = findFalseInArrayLikeObject({ ozonBaseInfo, OzonNewImageInfo, ozonNewVariantInfo })
   console.log('errorIndex', errorIndex);
 
+  const erpInfo = erpInfoRef.value;
+
   anchorList.value.forEach(item => {
     item.turnRed = errorIndex.includes(item.id)
   })
@@ -596,6 +604,9 @@ const onSubmit = async (type) => {
     descriptionCategoryId:
       base.categoryId.secondCategoryId, // 二级id
     typeId: base.categoryId.threeCategoryId, // 三级分id
+
+    customCategoryId: erpInfo.currentClass,
+    sourceUrlList: erpInfo.sourceUrlList.map((item) => item.sourceUrl)
   }
   console.log('params', params);
   loading.value = true;

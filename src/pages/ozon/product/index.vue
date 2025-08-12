@@ -766,7 +766,7 @@ async function typeNodeClick(node) {
       return {
         account: item.account,
         offerId: item.offerId,
-        categoryId: node.id
+        customCategoryId: node.id
       }
     })
     await moveCategoryApi(params)
@@ -1576,7 +1576,7 @@ const getList = () => {
   loading.value = true;
   let params = {
     ...formData,
-    categoryId,
+    customCategoryId: categoryId,
     // ...advancedForm,
     ...Object.entries(advancedForm).reduce((acc, [key, value]) => {
       // 过滤掉 timeSearch 和 time 字段

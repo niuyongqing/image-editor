@@ -65,7 +65,7 @@
                 @sendShortCode="sendShortCode"></ozon-base-info>
             <br />
             <!-- ERP信息 -->
-            <erp-info ref="erpInfoRef" :productDetail="productDetail"></erp-info>
+            <ErpInfo ref="erpInfoRef" :productDetail="productDetail" />
 
             <!-- 描述信息 -->
             <OzonNewImageInfo ref="ozonImageInfoRef" id="ozonNewImageInfo" :productDetail="productDetail"
@@ -289,7 +289,6 @@ const onSubmit = async (type) => {
     const errorIndex = findFalseInArrayLikeObject({ ozonBaseInfo, OzonNewImageInfo, ozonNewVariantInfo })
 
     const erpInfo = erpInfoRef.value;
-    console.log('erpInfo', erpInfo);
 
     anchorList.value.forEach(item => {
         item.turnRed = errorIndex.includes(item.id)

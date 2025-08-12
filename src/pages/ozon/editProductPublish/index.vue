@@ -12,6 +12,10 @@
                 :categoryAttributesLoading="categoryAttributesLoading" :shopList="shopList"
                 :attributesCache="attributes" :productDetail="productDetail"></ozon-base-info>
             <br />
+
+            <!-- ERP信息 -->
+            <ErpInfo ref="erpInfoRef" :productDetail="productDetail" />
+
             <!-- 描述信息 -->
             <OzonNewImageInfo ref="ozonImageInfoRef" id="ozonNewImageInfo" :productDetail="productDetail" :shopCode="formData.shortCode">
             </OzonNewImageInfo>
@@ -67,11 +71,13 @@ import {
 } from '~/pages/ozon/config/commJs/index';
 import { saveTowaitProduct } from "../config/api/waitProduct"
 import { message, Modal } from "ant-design-vue";
+import ErpInfo from '@/pages/ozon/editDraftProduct/comm/erpInfo.vue';
 
 const collectProductId = ref('')
 provide('collectProductId', collectProductId)
 
 const ozonBaseInfoRef = ref(null)
+const erpInfoRef = ref(null) // erp信息Dom
 const ozonImageInfoRef = ref(null)
 const ozonNewVariantInfoRef = ref(null)
 const attributes = ref([])
@@ -225,6 +231,8 @@ const onSubmit = async (type = 1) => {
     const ozonNewVariantInfo = await ozonNewVariantInfoRef.value.submitForm();
     const errorIndex = findFalseInArrayLikeObject({ ozonBaseInfo, OzonNewImageInfo, ozonNewVariantInfo })
     console.log('errorIndex', errorIndex);
+
+    const erpInfo = erpInfoRef.value;
 
     anchorList.value.forEach(item => {
         item.turnRed = errorIndex.includes(item.id)
@@ -481,6 +489,8 @@ const onSubmit = async (type = 1) => {
             //     ? base?.categoryId?.storeHistoryCategoryId
             //     : "", //资料库分类ID
             historyAttributes: hisAttr,
+            customCategoryId: erpInfo.currentClass,
+            sourceUrlList: erpInfo.sourceUrlList.map((item) => item.sourceUrl),
             isUpdate: true
         };
         console.log('params', params);
@@ -505,8 +515,11 @@ const onSubmit = async (type = 1) => {
             //     : "", //资料库分类ID
             historyAttributes: hisAttr,
             descriptionCategoryId:
-                base.categoryId.secondCategoryId, // 二级id
+            base.categoryId.secondCategoryId, // 二级id
             typeId: base.categoryId.threeCategoryId, // 三级分id
+
+          customCategoryId: erpInfo.currentClass,
+          sourceUrlList: erpInfo.sourceUrlList.map((item) => item.sourceUrl)
         }
         saveTowaitProduct(waitParams).then(res => {
             message.success(res.msg);
