@@ -36,7 +36,8 @@
       <br />
       <!-- sku :attributes="attributes" -->
       <ozon-new-variant-info ref="ozonNewVariantInfoRef" id="ozonNewVariantInfo" :shopCode="formData.shortCode"
-        @getAttributes="getAttributes"></ozon-new-variant-info>
+        @getAttributes="getAttributes" :existProductData="existProductData"
+        :databaseProduct="databaseProduct"></ozon-new-variant-info>
       <br />
       <div class="flex justify-end">
         <a-button class="mx-2.5" size="middle" :loading="loading" @click="showTempModal">存为模板</a-button>
@@ -110,7 +111,8 @@
     <!-- 产品资料库 -->
     <productDatabase ref="productDatabaseRef" @handleSelect="handleProductSelect"></productDatabase>
     <!-- 分类关联弹窗 -->
-    <editCategoryModal ref="editCategoryModalRef" :relationType="4" @feedBackData="feedBackData">
+    <editCategoryModal ref="editCategoryModalRef" :relevanceData="relevanceData" :relationType="4"
+      @feedBackData="feedBackData">
     </editCategoryModal>
   </div>
 </template>
@@ -183,6 +185,8 @@ const productDatabaseRef = ref(null)
 const existProductData = ref({})
 const databaseId = ref("") //资料库ID
 const databaseProduct = ref({}) //资料库数据
+const relevanceData = ref({}) //回显关联分类数据
+
 const paginations = reactive({
   pageNum: 1,
   pageSize: 10,
@@ -229,19 +233,19 @@ const handleProductSelect = (record) => {
   // 需要优先调用查询是否有关联过分类
   relationDetail({ productCollectId: record.commodityId, platformName: "ozon" }).then(res => {
     // 当data为null时需要弹出关联分类的弹窗
-    if (res.data == null) {
-      editCategoryModalRef.value.open({
-        account: formData.shortCode,
-        id: record.commodityId,
-        record
-      })
-    } else {
+    if (res.data !== null) {
+      relevanceData.value = res.data || {}
       let categoryObj = {
         secondCategoryId: res.data.categoryId,
         typeId: res.data.typeId,
       }
       feedBackData(categoryObj)
     }
+    editCategoryModalRef.value.open({
+      account: formData.shortCode,
+      id: record.commodityId,
+      record
+    })
   })
 }
 

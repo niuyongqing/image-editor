@@ -169,7 +169,8 @@ const loopAttributes = ref([])
 const categoryTreeList = ref([])
 const historyCategoryList = ref([])
 const tempAttr = ref({});
-const existAttr = ref([])
+const existAttr = ref([]) // 现有产品属性
+const databaseAttr = ref([]) // 资料库属性
 const isExpand = ref(true)
 const vatList = [
   {
@@ -729,6 +730,8 @@ watch(() => useOzonProductStore().attributes, (val) => {
       form.attributes = templateAssign(tempAttr.value, loopAttributes.value)
     } else if (existAttr.value.length > 0) {
       form.attributes = processMatchedAttributes(existAttr.value, loopAttributes.value);
+    } else if (databaseAttr.value.length > 0) {
+      form.attributes = processMatchedAttributes(databaseAttr.value, loopAttributes.value);
     } else {
       if (!form.shortCode && !form.categoryId) return;
       getHistoryAttr(
@@ -768,6 +771,13 @@ const processMatchedAttributes = (existAttrs, loopAttrs) => {
       // 默认处理方式
       else {
         result[attr.name] = existValues[0].value;
+      }
+    } else {
+      if (attr.id === 85 || attr.id === 31) {
+        result[attr.name] = {
+          label: "无品牌",
+          value: "无品牌"
+        };
       }
     }
     return result;

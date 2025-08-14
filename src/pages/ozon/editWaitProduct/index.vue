@@ -108,7 +108,7 @@
     <!-- 产品资料库 -->
     <productDatabase ref="productDatabaseRef" @handleSelect="handleProductSelect"></productDatabase>
     <!-- 分类关联弹窗 -->
-    <editCategoryModal ref="editCategoryModalRef" :relationType="3"  @feedBackData="feedBackData"></editCategoryModal>
+    <editCategoryModal ref="editCategoryModalRef" :relevanceData="relevanceData" :relationType="3"  @feedBackData="feedBackData"></editCategoryModal>
   </div>
 </template>
 
@@ -195,6 +195,7 @@ const productDatabaseRef = ref(null)
 const editCategoryModalRef = ref(null)  // 分类弹窗
 const databaseId = ref("") //资料库ID
 const databaseProduct = ref({}) //资料库数据
+const relevanceData = ref({}) // 已经关联过的分类数据
 
 const paginations = reactive({
   pageNum: 1,
@@ -225,20 +226,20 @@ const handleProductSelect = (record) => {
   databaseId.value = record.commodityId
   // 需要优先调用查询是否有关联过分类
   relationDetail({ productCollectId: record.commodityId, platformName: "ozon" }).then(res => {
-    // 当data为null时需要弹出关联分类的弹窗
-    if(res.data == null) {
-      editCategoryModalRef.value.open({
-        account: formData.shortCode,
-        id: record.commodityId,
-        record
-      })
-    }else {
+    if(res.data != null) {
+      relevanceData.value = res.data || {}
       let categoryObj = {
         secondCategoryId: res.data.categoryId,
         typeId: res.data.typeId,
       }
       feedBackData(categoryObj)
     }
+
+    editCategoryModalRef.value.open({
+      account: formData.shortCode,
+      id: record.commodityId,
+      record
+    })
   })
 
 }
