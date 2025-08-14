@@ -282,7 +282,7 @@
 
   defineOptions({ name: 'ImageInfo' })
   const collectProductId = inject('collectProductId', '')
-
+  const databaseId = inject('databaseId', '')
   const props = defineProps({
     dataSource: {
       type: Array,
@@ -305,7 +305,7 @@
   const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE // 空 占位图
   const headers = { Authorization: useAuthorization().value }
   const uploadImageUrl = import.meta.env.VITE_APP_BASE_API + '/platform-ozon/platform/ozon/file/upload/img'
-const databaseImageModalRef = ref(null)
+  const databaseImageModalRef = ref(null)
 
   watch(
     () => props.dataSource,
@@ -497,7 +497,7 @@ const databaseImageModalRef = ref(null)
         acquisitionModalOpen.value = true
         break
       case 'imgDataBase':
-        databaseImageModalRef.value.modalOpenFn(collectProductId.value)
+        databaseImageModalRef.value.modalOpenFn(databaseId.value)
         break
       default:
         break

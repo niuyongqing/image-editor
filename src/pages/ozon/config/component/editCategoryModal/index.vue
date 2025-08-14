@@ -78,6 +78,17 @@ import { ozonCollectDetail, ozonRelationSave, ozonRelationDetail } from "@/pages
 import CategoryModal from "@/pages/ozon/draft/comm/categoryModal.vue";
 import { accountCache } from "@/pages/ozon/config/api/product.js";
 
+const props = defineProps({
+    relationType: {
+        type: Number,
+        default: 3
+    },
+    relevanceData: {
+        type: Object,
+        default: () => { }
+    }
+
+})
 const collectData = ref({});
 const shopAccount = ref([]); // 店铺列表
 const acceptParams = ref({});// 表格行ID
@@ -144,6 +155,32 @@ const form = reactive({
     shortCode: "",
     categoryId: null,
 })
+
+watch(() => props.relevanceData, (newVal) => {
+    if (Object.keys(newVal).length > 0) {
+        const { typeId, variantRelationList, categoryId } = newVal
+
+        innerTableData.value = variantRelationList.map(item => ({
+            catTheme: "型号",
+            ozonTheme: item.attributeId, // 将之前选择过的主题ID回显
+            attrLabel: item.platformVariantName, // 将之前选择过的主题中文回显
+            filterAttrOptions: []
+        }))
+        // 将之前选择过的分类进行赋值通过getAttributes方法去获取分类下的属性 会将对应主题过滤出来
+
+        hisAttrObj.value = {
+            "categoryId": "",
+            "secondCategoryId": categoryId,
+            "threeCategoryId": typeId,
+            "categoryName": "",
+            "secondCategoryName": "",
+            "threeCategoryName": ""
+        };
+        form.categoryId = typeId;
+        getAttributes();
+    }
+})
+
 
 // 分类搜索
 function filterOption(input, option) {
@@ -259,7 +296,7 @@ const getHistoryList = (account) => {
     });
 };
 
-const editCategory = () => { 
+const editCategory = () => {
     let variantRelationList = innerTableData.value.map(item => {
         return {
             "originalVariantName": "型号",
@@ -272,7 +309,7 @@ const editCategory = () => {
 
     const params = {
         typeId: form.categoryId, // 三级分类id
-        relationType: 3, // 代表保存的是待发布的数据
+        relationType: props.relationType, // 3代表保存的是待发布的数据  4是在线产品
         productCollectId: acceptParams.value.id, // 资料库id
         platformName: "ozon",//所属平台
         categoryId: hisAttrObj.value.secondCategoryId, // 二级分类id
@@ -284,17 +321,17 @@ const editCategory = () => {
         typeId: form.categoryId,
     }
     // 对应Ozon变种主题 选择不能有一样的
-    const attributeIdList = variantRelationList.map(item => item.attributeId).filter(Boolean);
-    if (attributeIdList.every(item => item === undefined)) {
-        message.error('请选择变种主题选择属性');
-        return;
-    };
+    // const attributeIdList = variantRelationList.map(item => item.attributeId).filter(Boolean);
+    // if (attributeIdList.every(item => item === undefined)) {
+    //     message.error('请选择变种主题选择属性');
+    //     return;
+    // };
     console.log("params", params);
-    
+
     ozonRelationSave(params).then((res) => {
         if (res.code === 200) {
             message.success('保存成功');
-            emits('feedBackData',categoryObj);
+            emits('feedBackData', categoryObj);
             cancel();
         }
     })
@@ -302,7 +339,6 @@ const editCategory = () => {
 
 // 选择ozon主题
 const selectAttributes = (value) => {
-    console.log("value", value);
     if (value) {
         if (historyCategoryList.value.length != 0) {
             hisAttrObj.value = historyCategoryList.value.find((item) => item.threeCategoryId === value);

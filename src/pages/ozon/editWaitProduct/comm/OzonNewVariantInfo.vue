@@ -16,12 +16,12 @@
                       <template #icon>
                         <SettingOutlined />
                       </template>
-管理模板
-</a-button>
-</a-space>
-</template>
-</a-select>
-</div> -->
+                      管理模板
+                    </a-button>
+                  </a-space>
+                </template>
+              </a-select>
+            </div> -->
           </div>
         </template>
         <div>
@@ -91,7 +91,7 @@
           </a-card>
         </div>
       </a-card>
-      <a-card title="变种信息" class="text-left mx-50 mt-5">
+      <a-card title="变种信息" class="text-left mt-5 z-11 relative">
         <!-- 自定义变种信息 -->
         <div class="flex mb-2.5">
           <a-checkbox-group v-model:value="addHeaderList" @change="changeHeade" :disabled="tableData.length == 0"
@@ -100,8 +100,7 @@
           <!-- <a-button :disabled="custAttr.length == 0" @click="attrVisible = true" type="primary"
             style="margin-left: 10px" v-if="requiredList.length !== 0 || themeBtns.length !== 0">添加自定义变种属性</a-button> -->
         </div>
-        <a-table bordered :columns="filteredHeaderList" :data-source="tableData" :pagination="false"
-          :scroll="{ x: 2000 }">
+        <a-table bordered :columns="filteredHeaderList" :data-source="tableData" :pagination="false">
           <template #headerCell="{ column }">
             <template v-if="column.dataIndex === 'colorImg'">
               <div><span style="color: #ff0a37">*</span> {{ column.title }}</div>
@@ -141,30 +140,39 @@
               </a-dropdown>
             </template>
             <template v-if="column.dataIndex === 'sellerSKU'">
-              <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
-                @click="batchSKU">批量</a>
+              <div class="flex flex-col min-w-25">
+                <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
+                  @click="batchSKU">批量</a>
+              </div>
             </template>
             <template v-if="column.dataIndex === 'skuTitle'">
-              <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
-                @click="batchSkuTitle">批量</a>
+              <div class="flex flex-col min-w-25">
+                <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
+                  @click="batchSkuTitle">批量</a>
+              </div>
             </template>
             <template v-if="column.dataIndex === 'price'">
-              <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
-                @click="batchPrice">批量</a>
+              <div class="flex flex-col min-w-25">
+                <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
+                  @click="batchPrice">批量</a>
+              </div>
             </template>
             <template v-if="column.dataIndex === 'oldPrice'">
-              <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
-                @click="batcholdPricebatchPrice">批量</a>
+              <div class="flex flex-col min-w-25">
+                <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
+                  @click="batcholdPricebatchPrice">批量</a>
+              </div>
             </template>
             <template v-if="column.dataIndex === 'quantity'">
               <div class="flex flex-col min-w-25">
-                <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
-                  @click="batchStock('all')">批量</a>
+                  <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
+                    @click="batchStock('all')">批量</a>
               </div>
             </template>
             <template v-if="column.dataIndex === 'packageLength'">
               <span><span style="color: #ff0a37">*</span>
                 {{ column.title }}(mm)</span><a class="ml-1.25" @click="batchPackLength">批量</a>
+                <p>长*宽*高*重量</p>
             </template>
           </template>
           <template #bodyCell="{ column, record, index }">
@@ -184,36 +192,36 @@
               </a-upload>
             </template>
             <template v-if="column.dataIndex === 'skuTitle'">
-              <a-input v-model:value="record.skuTitle" size="middle" style="min-width: 200px"></a-input>
+              <a-input class="min-w-200px" v-model:value="record.skuTitle" :title="record.skuTitle" size="middle"></a-input>
             </template>
             <template v-if="column.dataIndex === 'secondName'">
-              <span>{{ record.secondName }}</span>
+              <span class="min-w-200px">{{ record.secondName }}</span>
             </template>
             <template v-if="column.dataIndex === 'sellerSKU'">
-              <a-input v-model:value.trim="record.sellerSKU" size="middle" style="min-width: 200px"
+              <a-input v-model:value.trim="record.sellerSKU" size="middle"
                 @change="sellerSKUChange(record)"></a-input>
             </template>
             <template v-if="!otherHeader.includes(column.dataIndex)">
               <a-input v-if="column.selectType === 'input'" size="middle" v-model:value="record[column.dataIndex]"
-                style="min-width: 200px"></a-input>
+                class="min-w-200px"></a-input>
               <a-select v-if="column.selectType === 'select'" size="middle" v-model:value="record[column.dataIndex]"
-                style="min-width: 200px" :options="column.options"></a-select>
+                class="min-w-200px" :options="column.options"></a-select>
               <a-select v-if="column.selectType === 'multSelect'" size="middle" :maxTagCount="2"
-                v-model:value="record[column.dataIndex]" style="min-width: 200px" :options="column.options"
+                v-model:value="record[column.dataIndex]" class="min-w-200px" :options="column.options"
                 mode="tags"></a-select>
             </template>
             <template v-if="column.dataIndex === 'price'">
               <div class="flex justify-center">
-                <a-input-number style="min-width: 200px" :min="0" size="middle" :max="99999999" :precision="2"
-                  v-model:value="record.price" @blur="judgeMax(record)"></a-input-number>
+                <a-input-number :min="0" size="middle" :controls="false" :max="99999999" :precision="2"
+                  v-model:value="record.price" class="w-full" @blur="judgeMax(record)"></a-input-number>
                 <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.price, 'price')"
                   class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
               </div>
             </template>
             <template v-if="column.dataIndex === 'oldPrice'">
               <div class="flex justify-center">
-                <a-input-number style="min-width: 200px" :min="0" size="middle" :max="99999999"
-                  v-model:value="record.oldPrice" :precision="2" @blur="judgeMax(record)"></a-input-number>
+                <a-input-number :min="0" size="middle" :controls="false" :max="99999999"
+                  v-model:value="record.oldPrice" class="w-full" :precision="2" @blur="judgeMax(record)"></a-input-number>
                 <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.oldPrice, 'oldPrice')"
                   class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
               </div>
@@ -223,37 +231,33 @@
                 <span>{{
                   record.quantity === undefined ? 0 : record.quantity
                 }}</span>
-                <AsyncIcon icon="EditOutlined" @click="batchStock('single', record)"></AsyncIcon>
+                <AsyncIcon class="ml-2.5" icon="EditOutlined" @click="batchStock('single', record)"></AsyncIcon>
               </div>
             </template>
             <template v-if="column.dataIndex === 'packageLength'">
-              <div class="flex justify-center">
-                <div>
-                  <div style="display: flex">
-                    <div class="w-13 block">长度：</div>
-                    <a-input-number controls-position="right" size="middle" :min="0" style="min-width: 150px"
+              <div class="flex">
+                <div class="flex items-center">
+                  <div>
+                    <a-input-number controls-position="right" size="middle" :min="0"
                       v-model:value="record.packageLength" placeholder="长度" :controls="false">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
-                  <div style="display: flex; margin-top: 5px">
-                    <div class="w-13 block">宽度：</div>
-                    <a-input-number controls-position="right" size="middle" :min="0" style="min-width: 150px"
-                      v-model:value="record.packageWidth" placeholder="宽度" :controls="false">
+                  <div class="ml-2.5">
+                    <a-input-number controls-position="right" size="middle" :min="0" v-model:value="record.packageWidth"
+                      placeholder="宽度" :controls="false">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
-                  <div style="display: flex; margin-top: 5px">
-                    <div class="w-13 block">高度：</div>
-                    <a-input-number controls-position="right" :min="0" size="middle" style="min-width: 150px"
+                  <div class="ml-2.5">
+                    <a-input-number controls-position="right" :min="0" size="middle"
                       v-model:value="record.packageHeight" placeholder="高度" :controls="false">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
-                  <div style="display: flex; margin-top: 5px">
-                    <div class="w-13 block">重量：</div>
+                  <div class="ml-2.5">
                     <a-input-number controls-position="right" :precision="0" size="middle" :min="0"
-                      style="min-width: 150px" v-model:value="record.packageWeight" placeholder="重量" :controls="false">
+                      v-model:value="record.packageWeight" placeholder="重量" :controls="false">
                       <!-- @blur="handleInput(record.packageWeight, record)" -->
                       <template #addonAfter>g</template>
                     </a-input-number>
@@ -337,6 +341,7 @@ import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js';
 import { FileOutlined, SettingOutlined, DownOutlined } from '@ant-design/icons-vue';
 import { v4 as uuidv4 } from 'uuid'
 import ImageInfo from '@/pages/ozon/config/component/image-info/index.vue'
+import { el } from "date-fns/locale";
 
 const props = defineProps({
   categoryAttributesLoading: Boolean,
@@ -447,6 +452,7 @@ const searchTemp = (obj) => {
           label: item.name,
           value: item.id,
           content: item.content,
+          category: item.category
         }
       }) || []
     }
@@ -455,10 +461,10 @@ const searchTemp = (obj) => {
 
 // 选择模板
 const handleChangeTemplate = (value) => {
-  let content = tempList.value.find(item => item.value == value)?.content || {}
-  const { variantTemplate: { categoryId, variantAttr } } = content;
+  let items = tempList.value.find(item => item.value == value) || {}
+  const { content: { variantTemplate: { variantAttr } }, category } = items;
   // templateValue.value = value;
-  emit("getAttributes", props.shopCode, categoryId);
+  emit("getAttributes", props.shopCode, category);
   const val = useOzonProductStore().attributes;
   let arr = val.filter((obj) => obj.isAspect);
   isConform = checkData(arr);
@@ -510,6 +516,8 @@ const handleChangeTemplate = (value) => {
   }
   let result = [];
   let attrHeaderList = [];
+  const uniqueArr = [];
+  const titleSet = new Set();
   // 遍历b中的skuList
   variantAttr.forEach((sku) => {
     let newItem = {
@@ -563,14 +571,16 @@ const handleChangeTemplate = (value) => {
 
     result.push(newItem);
   });
+  // 公共方法将数据回显到表格
+  // optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, variantAttr);
+
   // 处理数据回显到表格
   attrHeaderList = [
     ...new Map(
       attrHeaderList.map((item) => [item.dataIndex, item])
     ).values(),
   ];
-  const uniqueArr = [];
-  const titleSet = new Set();
+
   [...attrHeaderList, ...headerList.value].forEach((item) => {
     if (!titleSet.has(item.title)) {
       titleSet.add(item.title);
@@ -581,6 +591,8 @@ const handleChangeTemplate = (value) => {
   headerList.value = uniqueArr; //表格主题标题赋值
 
   tableData.value = result;
+
+
   // 将不匹配的主题过滤掉
   let comAttrList = [10096, 4295];
   let comAttrs = [10096, 10097];
@@ -795,7 +807,6 @@ const clearImg = () => {
 const changeImgTranslation = () => {
   colorImgTranslationRef.value.showModal(tableData.value)
 }
-
 
 // 添加自定义属性
 const selectAttrList = (list) => {
@@ -1371,6 +1382,58 @@ watch(
           themeBtns.value = arr.filter((obj) => !obj.isRequired);
         }
       }
+      if (requiredList.value.length != 0) {
+        processDataFormat(requiredList.value);
+      }
+      let result = [];
+      let attrHeaderList = [];
+      const uniqueArr = [];
+      const titleSet = new Set();
+      if (useOzonProductStore().dataType === "edit") {
+        const { skuList } = props.productDetail;
+        skuList.forEach(sku => {
+          const newItem = createNewItem(sku, {});
+          processAttributes(sortArr, sku, newItem, attrHeaderList);
+          result.push(newItem);
+        });
+        optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, skuList);
+      } else if (useOzonProductStore().dataType === "existProduct") {
+        const { attributes: existSkuList, oldPrice, price, stock, name, colorImage, warehouseList, offerId, images, primaryImage } = props.existProductData;
+        existSkuList.forEach(sku => {
+          const newItem = createNewItem(sku, {
+            oldPrice, price, stock, name, colorImage, warehouseList, offerId, images, primaryImage
+          });
+          processAttributes(sortArr, sku, newItem, attrHeaderList);
+          result.push(newItem);
+        });
+        optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, existSkuList);
+      } else if (useOzonProductStore().dataType === "database") {
+        const { skuList: databaseSkuList } = props.databaseProduct;
+        databaseSkuList.forEach(sku => {
+          const newItem = createNewItem(sku, {});
+          processAttributes(sortArr, sku, newItem, attrHeaderList);
+          result.push(newItem);
+        })
+        optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, databaseSkuList);
+      } else {
+        tableData.value.push({
+          skuTitle: "",
+          sellerSKU: "",
+          price: "",
+          oldPrice: "",
+          quantity: undefined,
+          warehouseList: [],
+          packageLength: undefined,
+          packageWidth: undefined,
+          packageHeight: undefined,
+          packageWeight: undefined,
+          imageUrl: [],
+          colorImg: [],
+          id: Math.random().toString(36).substring(2, 10),
+        });
+      }
+
+
       // 处理自定义属性数据
       // let customArr = findCommonByIdOptimized(val, skuList[0].attributes)
       // console.log('customArr', customArr);
@@ -1394,50 +1457,13 @@ watch(
       //       a.attributeComplexId == "100001" || a.attributeComplexId == "100002"
       //     )
       // );
-      if (requiredList.value.length != 0) {
-        processDataFormat(requiredList.value);
-      }
-      let result = [];
-      let attrHeaderList = [];
-      const { skuList } = props.productDetail; // 待发布编辑数据
-      const { attributes: existSkuList  } = props.existProductData; // 现有产品数据
-      const { skuList: databaseSkuList } = props.databaseProduct; // 资料库产品数据
 
-
-      const uniqueArr = [];
-      const titleSet = new Set();
-      // 引用现有产品数据回显处理
-      if (existSkuList && existSkuList.length) {
-        const { oldPrice, price, stock, name, colorImage, warehouseList, offerId, images, primaryImage } = props.existProductData;
-        existSkuList.forEach(sku => {
-          const newItem = createNewItem(sku, {
-            oldPrice, price, stock, name, colorImage, warehouseList, offerId, images, primaryImage
-          });
-          processAttributes(sortArr,sku, newItem,attrHeaderList);
-          result.push(newItem);
-        });
-        optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, existSkuList);
-      } else if(databaseSkuList && databaseSkuList.length) {
-        databaseSkuList.forEach(sku => {
-          const newItem = createNewItem(sku, {});
-          processAttributes(sortArr,sku, newItem,attrHeaderList);
-          result.push(newItem);
-        })
-        optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, databaseSkuList);
-      } else if (skuList.length) {
-        skuList.forEach(sku => {
-          const newItem = createNewItem(sku, {});
-          processAttributes(sortArr,sku, newItem,attrHeaderList);
-          result.push(newItem);
-        });
-        optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, skuList);
-      }
     }
   }
 );
 
 // 提取属性处理函数
-const processAttributes = (sortArr,sku, newItem,attrHeaderList) => {
+const processAttributes = (sortArr, sku, newItem, attrHeaderList) => {
   sortArr.forEach(attr => {
     const subAttr = sku.attributes.find(item => item.id === attr.id);
     if (!subAttr) return;
@@ -1496,7 +1522,7 @@ const createColorImg = (colorImage) => {
 
 // 仓库列表格式化函数
 const formatWarehouseList = (warehouseList, offerId) => {
-  return warehouseList?.map(item => ({...item, offerId})) || [];
+  return warehouseList?.map(item => ({ ...item, offerId })) || [];
 };
 
 // 图片合并去重函数

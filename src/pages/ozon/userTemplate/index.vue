@@ -56,6 +56,9 @@
                     <a-table :columns="columns" :data-source="tableData" rowKey="id" :loading="loading"
                         @change="handleChange" :row-selection="rowSelection">
                         <template #bodyCell="{ column, record }">
+                            <template v-if="column.dataIndex === 'account'">
+                                {{getAccountDisplayName(record.account)}}
+                            </template>
                             <template v-if="column.dataIndex === 'state'">
                                 <a-switch :checked="record.state === 1" disabled></a-switch>
                             </template>
@@ -109,6 +112,13 @@ const columns = computed(() => {
             title: '模板名称',
             dataIndex: 'name',
             key: 'name',
+            active: 0,
+            width: 300,
+        },
+        {
+            title: '归属店铺',
+            dataIndex: 'account',
+            key: 'account',
             active: 0,
             width: 300,
         },
@@ -295,6 +305,12 @@ const getAccount = () => {
         }
     });
 };
+
+const getAccountDisplayName = (account) => {
+    const shop = shopAccount.value.find(item => item.account === account)
+    return shop?.simpleName
+}
+
 
 watch(() => activeId.value, val => {
     if (val) {

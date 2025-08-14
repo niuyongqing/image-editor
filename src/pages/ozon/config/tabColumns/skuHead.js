@@ -3,37 +3,43 @@ const publishHead = [
         dataIndex: 'sellerSKU',
         title: 'SKU',
         show: true,
-        align: 'center'
+        align: 'center',
+        width: 180
     },
     {
         dataIndex: 'price',
         title: '售价',
         show: true,
-        align: 'center'
+        align: 'center',
+        width: 180
     },
     {
         dataIndex: 'oldPrice',
         title: '原价',
         show: true,
-        align: 'center'
+        align: 'center',
+        width: 180
     },
     {
         dataIndex: 'quantity',
         title: '库存',
         show: true,
-        align: 'center'
+        align: 'center',
+        width: 120
     },
     {
         dataIndex: 'packageLength',
         title: '尺寸',
         show: true,
-        align: 'center'
+        align: 'center',
+        width: 600
     },
     {
         dataIndex: 'options',
         title: '操作',
         show: true,
-        align: 'center'
+        align: 'center',
+        width: 100
     }
 ]
 
