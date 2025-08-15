@@ -776,6 +776,7 @@ function watermarkOk(form) {
   batchAddWatermarkToWaitProductApi(params).then(res => {
     selectedRowList.value = []
     selectedRowKeys.value = []
+    getList()
     message.success('添加水印成功')
   }).catch(err => {
     message.warning('添加水印失败')
