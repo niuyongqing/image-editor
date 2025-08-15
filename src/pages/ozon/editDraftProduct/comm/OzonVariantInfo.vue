@@ -180,25 +180,25 @@
               <div class="flex">
                 <div class="flex justify-center">
                   <div>
-                    <a-input-number controls-position="right" :min="0" size="middle"
+                    <a-input-number controls-position="right" class="min-w-100px" :min="0" size="middle"
                       v-model:value="record.packageLength" placeholder="长度">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div class="ml-2.5">
-                    <a-input-number controls-position="right" :min="0" size="middle" v-model:value="record.packageWidth"
+                    <a-input-number controls-position="right" class="min-w-100px" :min="0" size="middle" v-model:value="record.packageWidth"
                       placeholder="宽度">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div class="ml-2.5">
-                    <a-input-number controls-position="right" :min="0" size="middle"
+                    <a-input-number controls-position="right" class="min-w-100px" :min="0" size="middle"
                       v-model:value="record.packageHeight" placeholder="高度">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div class="ml-2.5">
-                    <a-input-number controls-position="right" :precision="0" :min="0" size="middle"
+                    <a-input-number controls-position="right" class="min-w-100px" :precision="0" :min="0" size="middle"
                       v-model:value="record.packageWeight" placeholder="重量">
                       <template #addonAfter>g</template>
                     </a-input-number>
@@ -1380,6 +1380,11 @@ onMounted(() => {
   :deep(.ant-upload) {
     width: 80px !important;
     height: 80px !important;
+  }
+}
+:deep(.ant-table) {
+  .ant-table-tbody {
+    background-color: #fff;
   }
 }
 </style>
