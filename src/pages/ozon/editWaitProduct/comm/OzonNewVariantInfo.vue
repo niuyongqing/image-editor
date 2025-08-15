@@ -165,14 +165,14 @@
             </template>
             <template v-if="column.dataIndex === 'quantity'">
               <div class="flex flex-col min-w-25">
-                  <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
-                    @click="batchStock('all')">批量</a>
+                <span><span style="color: #ff0a37">*</span> {{ column.title }}</span><a class="ml-1.25"
+                  @click="batchStock('all')">批量</a>
               </div>
             </template>
             <template v-if="column.dataIndex === 'packageLength'">
               <span><span style="color: #ff0a37">*</span>
                 {{ column.title }}(mm)</span><a class="ml-1.25" @click="batchPackLength">批量</a>
-                <p>长*宽*高*重量</p>
+              <p>长*宽*高*重量</p>
             </template>
           </template>
           <template #bodyCell="{ column, record, index }">
@@ -184,7 +184,7 @@
               </div>
               <a-upload name="file" v-if="record.colorImg.length == 0" class="h-20 w-20 headerImg" :headers="headers"
                 accept=".jpg,.jpeg,.png" :action="uploadUrl" :showUploadList="false" list-type="picture-card"
-                @change="(e) => handleChangeColroImg(e, record)" :max-count="1">
+                @change="(e) => handleChangeColroImg(e, record) " :max-count="1">
                 <div>
                   <AsyncIcon icon="PlusOutlined" />
                   <div>上传图片</div>
@@ -192,14 +192,14 @@
               </a-upload>
             </template>
             <template v-if="column.dataIndex === 'skuTitle'">
-              <a-input class="min-w-200px" v-model:value="record.skuTitle" :title="record.skuTitle" size="middle"></a-input>
+              <a-input class="min-w-200px" v-model:value="record.skuTitle" :title="record.skuTitle"
+                size="middle"></a-input>
             </template>
             <template v-if="column.dataIndex === 'secondName'">
               <span class="min-w-200px">{{ record.secondName }}</span>
             </template>
             <template v-if="column.dataIndex === 'sellerSKU'">
-              <a-input v-model:value.trim="record.sellerSKU" size="middle"
-                @change="sellerSKUChange(record)"></a-input>
+              <a-input v-model:value.trim="record.sellerSKU" size="middle" @change="sellerSKUChange(record)"></a-input>
             </template>
             <template v-if="!otherHeader.includes(column.dataIndex)">
               <a-input v-if="column.selectType === 'input'" size="middle" v-model:value="record[column.dataIndex]"
@@ -220,8 +220,8 @@
             </template>
             <template v-if="column.dataIndex === 'oldPrice'">
               <div class="flex justify-center">
-                <a-input-number :min="0" size="middle" :controls="false" :max="99999999"
-                  v-model:value="record.oldPrice" class="w-full" :precision="2" @blur="judgeMax(record)"></a-input-number>
+                <a-input-number :min="0" size="middle" :controls="false" :max="99999999" v-model:value="record.oldPrice"
+                  class="w-full" :precision="2" @blur="judgeMax(record)"></a-input-number>
                 <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.oldPrice, 'oldPrice')"
                   class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
               </div>
@@ -230,7 +230,7 @@
               <div class="flex justify-center">
                 <span>{{
                   record.quantity === undefined ? 0 : record.quantity
-                }}</span>
+                  }}</span>
                 <AsyncIcon class="ml-2.5" icon="EditOutlined" @click="batchStock('single', record)"></AsyncIcon>
               </div>
             </template>
@@ -244,8 +244,8 @@
                     </a-input-number>
                   </div>
                   <div class="ml-2.5">
-                    <a-input-number controls-position="right" class="min-w-100px" size="middle" :min="0" v-model:value="record.packageWidth"
-                      placeholder="宽度" :controls="false">
+                    <a-input-number controls-position="right" class="min-w-100px" size="middle" :min="0"
+                      v-model:value="record.packageWidth" placeholder="宽度" :controls="false">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
@@ -1830,6 +1830,7 @@ onMounted(() => {
     height: 80px !important;
   }
 }
+
 :deep(.ant-table) {
   .ant-table-tbody {
     background-color: #fff;

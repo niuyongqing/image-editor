@@ -282,7 +282,8 @@
 
   defineOptions({ name: 'ImageInfo' })
   const collectProductId = inject('collectProductId', '')
-  const databaseId = inject('databaseId', '')
+  const databaseId = inject('databaseId', '') // 资料库 id
+
   const props = defineProps({
     dataSource: {
       type: Array,
@@ -305,7 +306,7 @@
   const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE // 空 占位图
   const headers = { Authorization: useAuthorization().value }
   const uploadImageUrl = import.meta.env.VITE_APP_BASE_API + '/platform-ozon/platform/ozon/file/upload/img'
-  const databaseImageModalRef = ref(null)
+  const databaseImageModalRef = ref(null)  // 资料库图片弹窗 REF
 
   watch(
     () => props.dataSource,

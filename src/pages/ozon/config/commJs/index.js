@@ -648,7 +648,7 @@ const processImageSource = (source) => {
   if (source === undefined || source === null || source === "") return;
   const processUrl = (url) => {
     // 检查是否以 https:// 开头
-    if (url.startsWith("https://") || url.includes('/prod-api')) {
+    if (url.startsWith("http") || url.includes('/prod-api')) {
       return url;
     } else {
       // 移除开头的斜杠以避免重复，并拼接 /prod-api/
