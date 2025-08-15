@@ -106,7 +106,7 @@
                     <a-menu-item :key="0">批量编辑</a-menu-item>
                     <a-menu-item :key="1">批量移入待发布</a-menu-item>
                     <a-menu-item :key="2">批量发布</a-menu-item>
-                    <!-- <a-menu-item :key="3">批量加水印</a-menu-item> -->
+                    <a-menu-item :key="3">批量加水印</a-menu-item>
                     <!-- <a-menu-item :key="4">批量归档</a-menu-item> -->
                     <a-menu-item :key="5">批量备注</a-menu-item>
                     <a-menu-item :key="6">批量删除</a-menu-item>
@@ -438,7 +438,7 @@
     ></RemarkModal>
 
     <!-- 批量加水印 -->
-    <BatchWatermark ref="batchWatermarkRef"></BatchWatermark>
+    <BatchAddWatermarkModal v-model:open="watermarkModalOpen" @ok="watermarkOk" />
 
     <!-- 批量修改属性 -->
     <EditAttribute
@@ -459,6 +459,7 @@
   import { DownOutlined, SettingOutlined, SyncOutlined, QuestionCircleOutlined, WarningOutlined } from '@ant-design/icons-vue'
   import { accountCache, shopCurrency, productWarehouse } from '../config/api/product'
   import { brandCategory } from '../config/api/waitProduct'
+  import { batchAddWatermarkToDraftProductApi } from '../config/api/batch-edit'
   import { ozonDraftList, groupProductCountApi, ozonDeleteProduct, batchPublishToPlatform, batchAddToWaitPublish, addToWaitPublish } from '../config/api/draft'
   import { updateCategoryProduct } from '~/pages/sample/dataAcquisition/js/api.js'
   import tableHeard from '../config/tabColumns/draft'
@@ -469,7 +470,7 @@
   import EditPrompt from './comm/editPrompt.vue'
   import BatchEdit from './batchComponent/batchEdit.vue'
   import RemarkModal from './batchComponent/remarkModal.vue'
-  import BatchWatermark from './batchComponent/batchWatermark.vue'
+  import BatchAddWatermarkModal from '@/pages/ozon/config/component/BatchAddWatermarkModal/index.vue'
   import OzonProduct from '@/pages/ozon/product/index.vue'
   import BatchEditPrompt from './batchComponent/batchEditPrompt.vue'
   import EditAttribute from './batchComponent/editAttribute.vue'
@@ -482,7 +483,6 @@
   const editPromptEl = useTemplateRef('editPromptRef')
   const batchEditPromptEl = useTemplateRef('batchEditPromptRef') // 批量编辑-弹窗
   const remarkModalEl = useTemplateRef('remarkModalRef') // 批量备注-弹窗
-  const batchWatermarkEl = useTemplateRef('batchWatermarkRef') // 批量加水印-弹窗
   const batchAttributeEl = useTemplateRef('batchAttributeRef') // 批量属性-弹窗
   const editAttributeEl = useTemplateRef('editAttributeRef') // 批量属性-弹窗
   const typeTreeEl = useTemplateRef('typeTreeRef')
@@ -981,7 +981,7 @@
         })
         break
       case 3:
-        batchWatermarkEl.value.open(selectedRowList.value)
+        watermarkModalOpen.value = true
         break
       case 4:
         Modal.confirm({
@@ -1045,6 +1045,22 @@
       default:
         break
     }
+  }
+
+  /** 批量加水印 */
+  const watermarkModalOpen = ref(false)
+  function watermarkOk(form) {
+    const params = {
+      productIds: selectedRowKeys.value,
+      ...form
+    }
+    batchAddWatermarkToDraftProductApi(params).then(res => {
+      selectedRowList.value = []
+      selectedRowKeys.value = []
+      message.success('添加水印成功')
+    }).catch(err => {
+      message.warning('添加水印失败')
+    })
   }
 
   onMounted(() => {

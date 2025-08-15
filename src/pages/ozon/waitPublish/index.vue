@@ -93,6 +93,7 @@
                     <a-menu @click="handleMenuClick">
                       <a-menu-item key="batchEdit">批量编辑</a-menu-item>
                       <a-menu-item key="publish"> 批量发布 </a-menu-item>
+                      <a-menu-item key="addWatermark">批量加水印</a-menu-item>
                       <!-- <a-menu-item key="deactivate">
                         批量归档
                       </a-menu-item> -->
@@ -288,6 +289,9 @@
     <shopSetModal :shopSetVisible="shopSetVisible" :shopCurryList="shopCurryList"
       @handleShopSetClose="shopSetVisible = false" @refreshShopSet="getShopSet"></shopSetModal>
 
+    <!-- 批量加水印 -->
+    <BatchAddWatermarkModal v-model:open="watermarkModalOpen" @ok="watermarkOk" />
+
     <!-- 统一修改价格库存等 -->
     <editPriceModal :selectedRows="selectedRowList" :editPriceVisible="editPriceVisible" :brandList="brandList"
       @handleEditPriceClose="handleEditPriceClose" :editStockList="editStockList" :defType="defType">
@@ -304,6 +308,7 @@ import {
   productWarehouse,
 } from "../config/api/product";
 import { groupProductCountApi } from '../config/api/draft'
+import { batchAddWatermarkToWaitProductApi } from '../config/api/batch-edit'
 import {
   ozonProductList,
   ozonProductDel,
@@ -325,6 +330,7 @@ import editPriceModal from "./comm/editPriceModal.vue";
 import typeTree from '@/components/classificationTree/typeTree.vue';
 import { moveWaitCategoryApi } from '@/components/classificationTree/api.js';
 import SideBar from '@/pages/ozon/config/component/SideBar/index.vue';
+import BatchAddWatermarkModal from '@/pages/ozon/config/component/BatchAddWatermarkModal/index.vue'
 
 const formData = reactive({
   offerId: "",
@@ -712,6 +718,8 @@ const handleMenuClick = (e) => {
         clearSelectList();
       },
     });
+  } else if (e.key === 'addWatermark') {
+    watermarkModalOpen.value = true
   }
   // else if(e.key === "deactivate") {
   //   Modal.confirm({
@@ -758,6 +766,21 @@ const getBrandList = () => {
   })
 };
 
+/** 批量加水印 */
+const watermarkModalOpen = ref(false)
+function watermarkOk(form) {
+  const params = {
+    waitId: selectedRowKeys.value,
+    ...form
+  }
+  batchAddWatermarkToWaitProductApi(params).then(res => {
+    selectedRowList.value = []
+    selectedRowKeys.value = []
+    message.success('添加水印成功')
+  }).catch(err => {
+    message.warning('添加水印失败')
+  })
+}
 
 // 关闭价格
 const handleEditPriceClose = () => {
