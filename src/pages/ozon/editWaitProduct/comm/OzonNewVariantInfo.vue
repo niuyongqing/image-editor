@@ -238,25 +238,25 @@
               <div class="flex">
                 <div class="flex items-center">
                   <div>
-                    <a-input-number controls-position="right" size="middle" :min="0"
+                    <a-input-number controls-position="right" class="min-w-100px" size="middle" :min="0"
                       v-model:value="record.packageLength" placeholder="长度" :controls="false">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div class="ml-2.5">
-                    <a-input-number controls-position="right" size="middle" :min="0" v-model:value="record.packageWidth"
+                    <a-input-number controls-position="right" class="min-w-100px" size="middle" :min="0" v-model:value="record.packageWidth"
                       placeholder="宽度" :controls="false">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div class="ml-2.5">
-                    <a-input-number controls-position="right" :min="0" size="middle"
+                    <a-input-number controls-position="right" class="min-w-100px" :min="0" size="middle"
                       v-model:value="record.packageHeight" placeholder="高度" :controls="false">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div class="ml-2.5">
-                    <a-input-number controls-position="right" :precision="0" size="middle" :min="0"
+                    <a-input-number controls-position="right" class="min-w-100px" :precision="0" size="middle" :min="0"
                       v-model:value="record.packageWeight" placeholder="重量" :controls="false">
                       <!-- @blur="handleInput(record.packageWeight, record)" -->
                       <template #addonAfter>g</template>
@@ -1828,6 +1828,11 @@ onMounted(() => {
   :deep(.ant-upload) {
     width: 80px !important;
     height: 80px !important;
+  }
+}
+:deep(.ant-table) {
+  .ant-table-tbody {
+    background-color: #fff;
   }
 }
 </style>
