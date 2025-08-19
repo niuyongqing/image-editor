@@ -725,8 +725,8 @@ watch(() => useOzonProductStore().attributes, (val) => {
       // 获取自定义添加的属性数据（同步过滤属性）
       //!未同步属性
       form.attributes = attributes;
-      console.log("attributes",attributes);
-      
+      console.log("attributes", attributes);
+
       loopAttributes.value = noThemeAttributesCache;
 
     }

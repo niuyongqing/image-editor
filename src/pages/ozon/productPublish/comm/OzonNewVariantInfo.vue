@@ -592,9 +592,7 @@ const processDataFormat = (list = []) => {
       align: "center",
     });
   }
-  // console.log("headerList2", attributeList.value, newHeaderList);
   attributeList.value = [...attributeList.value, ...newHeaderList];
-  // console.log("attributeList", attributeList.value);
 };
 
 // 手动添加多个变种主题
@@ -631,14 +629,6 @@ const removeVariantType = (item, index) => {
   attributeList.value.splice(index, 1);
   let name = item.tableData[0].name
   let secondName = item.tableData[0].secondName
-  // 循环删除表格内容数据
-  // for (let i = 0; i < tableData.value.length; i++) {
-  //   delete tableData.value[i][item.name];
-  //   // if (item.name == tableData.value[i][item.name]) {
-  //   //   let newObj = { ...tableData.value[i] };
-  //   //   delete newObj[item.name];
-  //   // }
-  // }
   // 表头删除
   headerList.value = headerList.value.filter((e) => !(e.title == item.title));
   let newThem = {
@@ -698,7 +688,6 @@ const addItem = (item, row) => {
     };
   }
   row.tableData.push(ele);
-  console.log("row", row.tableData);
 };
 
 // 移除多个属性操作
@@ -727,31 +716,11 @@ const removeItem = (item, row) => {
         });
       }
   }
-  // const deletedLabels = item.selectType === 'multSelect'
-  //   ? item.modelValue.map(v => v.label)
-  //   : [];
-
-  // let newData = tableData.value.filter(row => {
-  //   // 检查行数据是否包含要删除的属性值
-  //   return !Object.values(row).some(value => {
-  //     if (item.selectType === 'multSelect') {
-  //       // 统一处理数组和字符串类型的值
-  //       const currentValues = Array.isArray(value)
-  //         ? value.map(v => v?.label || '')
-  //         : String(value || '').split(',');
-  //       return currentValues.some(v => deletedLabels.includes(v));
-  //     }
-  //     return item.selectType === 'input' || item.selectType === 'select' ? row.attrIdList.includes(item.id)
-  //       // : item.selectType === 'select' ? value === item?.modelValue?.label
-  //         : false;
-  //   });
-  // });
 
   const deletedLabels = item.selectType === 'multSelect'
     ? item.modelValue.map(v => v.label?.trim()) // 增加trim处理
     : [];
   const deletedSet = new Set(deletedLabels); // 改用Set提高查询效率
-  console.log("deletedLabels", deletedLabels);
 
   let newData = tableData.value.filter(row => {
     // 直接访问对应属性
@@ -768,15 +737,12 @@ const removeItem = (item, row) => {
 
 // 将根据主题中选择的数据进行添加到表格中
 const pushValue = (index, item) => {
-  console.log("attributeList.value", attributeList.value);
   let flag = hasDuplicateModelValues(attributeList.value);
   if (flag) {
     message.error("变种属性值不能有相同的，请修改");
     return;
   }
   tableData.value = commProceData();
-
-  console.log("111", tableData.value);
 };
 
 const commProceData = () => {
@@ -990,15 +956,12 @@ const backValue = (batchFields) => {
 const judgeMax = (item) => {
   const { price, oldPrice } = item;
   // 检查 price 和 oldPrice 是否为空或 null
-  if (price == null || oldPrice == null) {
-    return; // 如果有一个为空或 null，直接返回，不做后续比较
-  }
+  if (price == null || oldPrice == null) return; // 如果有一个为空或 null，直接返回，不做后续比较
+  
   // 确保 price 和 oldPrice 是有效的数字
   const parsedPrice = parseFloat(price);
   const parsedOldPrice = parseFloat(oldPrice);
-  if (isNaN(parsedPrice) || isNaN(parsedOldPrice)) {
-    return; // 如果转换后不是有效的数字，直接返回
-  }
+  if (isNaN(parsedPrice) || isNaN(parsedOldPrice))  return; // 如果转换后不是有效的数字，直接返回
 
   if (parsedPrice > parsedOldPrice) {
     Modal.error({

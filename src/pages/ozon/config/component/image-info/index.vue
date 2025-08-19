@@ -451,7 +451,6 @@
     // 图片不允许为空
     if (SKU.imageUrl.length === 0) {
       message.warning('变种图片不能为空')
-
       return
     }
 

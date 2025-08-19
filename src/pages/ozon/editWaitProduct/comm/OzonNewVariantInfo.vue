@@ -1286,16 +1286,12 @@ const getWatermark = () => {
 const judgeMax = (item) => {
   const { price, oldPrice } = item;
   // 检查 price 和 oldPrice 是否为空或 null
-  if (price == null || oldPrice == null) {
-    return; // 如果有一个为空或 null，直接返回，不做后续比较
-  }
+  if (price == null || oldPrice == null) return; // 如果有一个为空或 null，直接返回，不做后续比较
   // 确保 price 和 oldPrice 是有效的数字
   const parsedPrice = parseFloat(price);
   const parsedOldPrice = parseFloat(oldPrice);
-  if (isNaN(parsedPrice) || isNaN(parsedOldPrice)) {
-    return; // 如果转换后不是有效的数字，直接返回
-  }
-
+  if (isNaN(parsedPrice) || isNaN(parsedOldPrice)) return; // 如果转换后不是有效的数字，直接返回
+  
   if (parsedPrice > parsedOldPrice) {
     Modal.error({
       title: "错误提示",
@@ -1432,7 +1428,6 @@ watch(
 
       // 处理自定义属性数据
       // let customArr = findCommonByIdOptimized(val, skuList[0].attributes)
-      // console.log('customArr', customArr);
       // const newAttributesCache = processAttributesCache(val);
       // const list = newAttributesCache.filter((a) => !a.isRequired);
       // custAttr.value = list.filter(
