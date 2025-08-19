@@ -223,7 +223,6 @@ watch(() => databaseProduct.value, (newVal) => {
   if (!newVal) {
     return;
   }
-  console.log('databaseProduct', newVal)
   const { account, name, vat, typeId, descriptionCategoryId, skuList } = newVal;
   form.shortCode = account;
   form.name = name;
@@ -244,9 +243,7 @@ watch(() => databaseProduct.value, (newVal) => {
   emit("getAttributes", form.shortCode, form.categoryId);
   getHistoryList(account); // 用于下拉数据回显
   databaseAttr.value = skuList[0].attributes
-
 })
-
 
 // 获取选择树
 const getCategoryTree = () => {
@@ -285,7 +282,6 @@ const getAttributesID = (ids) => {
     label: ids.label,
     value: ids.value,
   };
-  console.log("form", form.categoryId);
   ozonStore.$patch(state => {
     state.variant = {
       threeCategoryId: ids.value,
@@ -498,6 +494,12 @@ const findMatchedOption = (attributeId, data, options) => {
       label: "无品牌",
       value: data.id,
     };
+  }else if(attributeId === 4389){
+    return {
+      label: data.value,
+      value: [90296],
+    }
+
   } else if (matchedOption) {
     return {
       id: matchedOption.id,
@@ -531,12 +533,10 @@ const addItemValues = (obj) => {
   );
   //!  判断搜索出来的是否在初始的数组中显示
   if (isExist) {
-    // attributes[obj.name].push(obj.selectDate.value);
     const attr = attributes[obj.name] || [];
     attr?.push(obj.selectDate.value);
     attributes[obj.name] = attr
   } else {
-    // attributes[obj.name].push(obj.selectDate.value);
     attributes[obj.name] = attributes[obj.name] || []
     attributes[obj.name]?.push(obj.selectDate.value);
     obj.acquiesceList.push(obj.selectDate);
@@ -716,6 +716,7 @@ watch(
             label: "无品牌",
             value: { label: '无品牌', value: '无品牌' }
           }
+          attributes["制造国(Страна-изготовитель)"] = [90296] //设置默认值
         });
 
         // 属性校验
@@ -788,7 +789,10 @@ const processMatchedAttributes = (existAttrs, loopAttrs) => {
           label: "无品牌",
           value: "无品牌"
         };
+      } else if(attr.id === 4389) {
+        result[attr.name] = [90296] // 制造国默认为中国
       }
+
     }
     return result;
   }, {});

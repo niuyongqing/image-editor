@@ -50,7 +50,7 @@
                   <!-- 单选 -->
                   <div v-if="record.selectType == 'select'" class="w-4/5">
                     <a-select v-model:value="record.modelValue" class="w-full" size="middle" optionFilterProp="label"
-                      labelInValue allowClear placeholder="请选择" @change="pushValue(index, items)">
+                      labelInValue allowClear show-search placeholder="请选择" @change="pushValue(index, items)">
                       <a-select-option v-for="items in record.details" :key="items.id" :label="items.label"
                         :value="items">{{ items.label }}
                       </a-select-option>
@@ -258,7 +258,6 @@
                   <div class="ml-2.5">
                     <a-input-number controls-position="right" class="min-w-100px" :precision="0" size="middle" :min="0"
                       v-model:value="record.packageWeight" placeholder="重量" :controls="false">
-                      <!-- @blur="handleInput(record.packageWeight, record)" -->
                       <template #addonAfter>g</template>
                     </a-input-number>
                   </div>
@@ -924,8 +923,6 @@ const removeVariantType = (item, index) => {
   attributeList.value.splice(index, 1);
   let name = item.tableData[0].name
   let secondName = item.tableData[0].secondName
-
-
   // 表头删除
   // headerList.value.splice(index, 1); !(item.prop == item.name && item.label == item.name)
   headerList.value = headerList.value.filter((e) => e.title != item.title);
@@ -1433,7 +1430,6 @@ watch(
         });
       }
 
-
       // 处理自定义属性数据
       // let customArr = findCommonByIdOptimized(val, skuList[0].attributes)
       // console.log('customArr', customArr);
@@ -1643,7 +1639,13 @@ const isArrayContentEqual = (arr1, arr2) => {
   return JSON.stringify(arr1) === JSON.stringify(arr2);
 };
 
-// 处理单个 tableData 项
+/**
+ * 
+ * @param tableDataTemplate 主题数据中的值
+ * @param matchedAttribute 匹配的属性ID数据
+ * @param secondAttr  第二个属性ID数据
+ * @param isThemeData 是否有组合的主题
+ */
 const processTableDataItem = (
   tableDataTemplate,
   matchedAttribute,

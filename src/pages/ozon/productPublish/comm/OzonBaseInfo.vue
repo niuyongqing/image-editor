@@ -423,7 +423,13 @@ const findMatchedOption = (attributeId, data, options) => {
       label: "无品牌",
       value: data.id,
     };
-  } else if (matchedOption) {
+  } else if (attributeId == 4389) {
+    return {
+      label: data.value,
+      value: [90296],
+    }
+  }
+  else if (matchedOption) {
     return {
       id: matchedOption.id,
       value: matchedOption.value,
@@ -471,9 +477,6 @@ const assignValues = (oldAttr, attr) => {
       }
     }
   });
-  console.log(22, result);
-
-
   return result;
 }
 
@@ -702,6 +705,7 @@ watch(() => useOzonProductStore().attributes, (val) => {
           label: "无品牌",
           value: { label: '无品牌', value: '无品牌' }
         }
+        attributes["制造国(Страна-изготовитель)"] = [90296] //设置默认值
       });
 
       // 属性校验
@@ -721,6 +725,8 @@ watch(() => useOzonProductStore().attributes, (val) => {
       // 获取自定义添加的属性数据（同步过滤属性）
       //!未同步属性
       form.attributes = attributes;
+      console.log("attributes",attributes);
+      
       loopAttributes.value = noThemeAttributesCache;
 
     }
@@ -764,6 +770,9 @@ const processMatchedAttributes = (existAttrs, loopAttrs) => {
           value: existValues[0].dictionaryValueId
         };
       }
+      else if (attr.id === 4389) {
+        result[attr.name] = [90296] // 制造国默认为中国
+      }
       // 处理普通选择类型
       else if (attr.selectType === 'select') {
         result[attr.name] = existValues[0].dictionaryValueId || existValues[0].value;
@@ -778,6 +787,8 @@ const processMatchedAttributes = (existAttrs, loopAttrs) => {
           label: "无品牌",
           value: "无品牌"
         };
+      } else if (attr.id === 4389) {
+        result[attr.name] = [90296] // 制造国默认为中国
       }
     }
     return result;

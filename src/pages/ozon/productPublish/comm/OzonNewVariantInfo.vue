@@ -50,7 +50,7 @@
                   <!-- 单选 -->
                   <div v-if="record.selectType == 'select'" class="w-4/5">
                     <a-select v-model:value="record.modelValue" size="middle" class="w-full" optionFilterProp="label"
-                      labelInValue allowClear placeholder="请选择" @change="pushValue(index, items)">
+                      labelInValue allowClear show-search placeholder="请选择" @change="pushValue(index, items)">
                       <a-select-option v-for="items in record.details" :key="items.id" :label="items.label"
                         :value="items">{{ items.label }}
                       </a-select-option>
@@ -592,11 +592,9 @@ const processDataFormat = (list = []) => {
       align: "center",
     });
   }
-
-  console.log("headerList2", attributeList.value, newHeaderList);
-
+  // console.log("headerList2", attributeList.value, newHeaderList);
   attributeList.value = [...attributeList.value, ...newHeaderList];
-  console.log("attributeList", attributeList.value);
+  // console.log("attributeList", attributeList.value);
 };
 
 // 手动添加多个变种主题
@@ -1466,7 +1464,14 @@ const checkThemeData = (data) => {
   const hasColor = data.some((item) => item.id === 4295);
   return (hasColorName && hasProductColor) || (hasName && hasColor);
 };
-// 处理单个 tableData 项
+
+/**
+ * 
+ * @param tableDataTemplate 主题数据中的值
+ * @param matchedAttribute 匹配的属性ID数据
+ * @param secondAttr  第二个属性ID数据
+ * @param isThemeData 是否有组合的主题
+ */
 const processTableDataItem = (
   tableDataTemplate,
   matchedAttribute,

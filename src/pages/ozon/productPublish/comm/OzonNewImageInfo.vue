@@ -123,7 +123,6 @@ const headers = {
 }
 const uploadUrl =
     import.meta.env.VITE_APP_BASE_API +
-    // "/platform-ozon/platform/ozon/file/upload/json/img",
     "/platform-ozon/platform/ozon/file/upload/img"
 const uploadVideoUrl =
     import.meta.env.VITE_APP_BASE_API +
@@ -143,29 +142,6 @@ watch(() => existProductData.value, (newVal) => {
     const { attributes, complexAttributes } = newVal.attributes[0];
     if (attributes?.length == 0 || attributes == null) return;
     commDispose(attributes, complexAttributes)
-        // const copyAttr = attributes?.filter(
-        //     (a) => a.id == 11254 || a.id == 4191
-        // );
-        // complexAttributes && complexAttributes.forEach((item) => {
-        //     // item.attributes.forEach((attr) => {
-        //     // });
-        //     if (item.id === 21841) {
-        //         form.video = item.values.map((e) => {
-        //             return {
-        //                 url: processImageSource(e.value),
-        //             }
-        //         })
-        //     } else if (item.id === 21845) {
-        //         form.coverUrl = processImageSource(item.values[0].value)
-        //     }
-        // });
-        // copyAttr.forEach(e => {
-        //     if (e.id === 11254) {
-        //         form.jsons = e.values[0].value || ""
-        //     } else {
-        //         form.description = e.values[0].value
-        //     }
-        // })
 }, { deep: true })
 
 // 监听资料库产品数据变化
