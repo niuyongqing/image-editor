@@ -386,7 +386,9 @@
             <template v-if="activeModule.type === 'image'">
               <div class="flex items-center justify-between">
                 <h2 style="margin-bottom: 0">图片</h2>
-                <jsonUpload @batchPicture="batchPicture"></jsonUpload>
+                <DropdownOfImage @emit-images="batchPicture">
+                  <a-button type="link">批量传图</a-button>
+                </DropdownOfImage>
               </div>
               <div
                 v-for="(itemImgs, i) in activeModule.img"
@@ -486,7 +488,9 @@
             <template v-if="activeModule.type === 'text-image'">
               <div class="flex items-center justify-between mb-2.5">
                 <h2 style="margin-bottom: 0">图文</h2>
-                <jsonUpload @batchPicture="batchPictureTimg"></jsonUpload>
+                <DropdownOfImage @emit-images="batchPictureTimg">
+                  <a-button type="link">批量传图</a-button>
+                </DropdownOfImage>
               </div>
               <a-form-item label="图文类型:">
                 <a-select
@@ -701,9 +705,9 @@
   import { Empty, Modal } from 'ant-design-vue'
   import AsyncIcon from '~/layouts/components/menu/async-icon.vue'
   import { message } from 'ant-design-vue'
-  import jsonUpload from '../jsonUpload/index.vue'
   import batchModify from '../batchModify/index.vue'
   import { processImageSource } from '~/pages/ozon/config/commJs/index'
+  import DropdownOfImage from '../DropdownOfImage/index.vue'
 
   const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE
 
@@ -752,6 +756,7 @@
     moduleList.value[activeModuleIndex.value].img = arr
   }
 
+  // 图片组里的传单张图(传多张只接收第一张)
   function batchPictureTimg(list) {
     let arr = tImgProcessArrays(activeModule.value.imgText.dataList, list)
     moduleList.value[activeModuleIndex.value].imgText.dataList = arr
@@ -759,22 +764,28 @@
 
   function processArrays(a, b) {
     const result = []
-    a.forEach(aItem => {
-      if (aItem.src.length === 0) {
-        // src为空，添加b数组转换后的元素
-        b.forEach(bItem => {
-          const newItem = convertBToA(bItem, aItem)
-          result.push(newItem)
-        })
-      } else {
-        // src不为空，保留原元素并添加b数组转换后的元素
-        result.push(aItem)
-        b.forEach(bItem => {
-          const newItem = convertBToA(bItem, aItem)
-          result.push(newItem)
-        })
-      }
+    // 当a为空时直接按顺序添加b元素（从下标0开始）
+    if (a[0].src.length === 0) {
+      b.forEach(bItem => {
+        const defaultTemplate = {
+          open: true,
+          jumpUrl: '',
+          alt: '',
+          style: { width: '100%', select: 0, margin: '0 auto', display: 'block' }
+        }
+        // 直接push添加到数组末尾（自然从下标0开始）
+        result.push(convertBToA(bItem, defaultTemplate))
+      })
+      return result
+    }
+
+    // 原逻辑：处理非空a数组
+    result.push(...a)
+    b.forEach(bItem => {
+      const aTemplate = a[0]
+      result.push(convertBToA(bItem, aTemplate))
     })
+
     return result
   }
 
