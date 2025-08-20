@@ -468,10 +468,8 @@
   import ShopSetModal from '@/pages/ozon/product/comm/shopSetModal.vue'
   import typeTree from '@/components/classificationTree/typeTree.vue'
   import EditPrompt from './comm/editPrompt.vue'
-  import BatchEdit from './batchComponent/batchEdit.vue'
   import RemarkModal from './batchComponent/remarkModal.vue'
   import BatchAddWatermarkModal from '@/pages/ozon/config/component/BatchAddWatermarkModal/index.vue'
-  import OzonProduct from '@/pages/ozon/product/index.vue'
   import BatchEditPrompt from './batchComponent/batchEditPrompt.vue'
   import EditAttribute from './batchComponent/editAttribute.vue'
   import WaitPublish from '@/pages/ozon/waitPublish/index.vue'
@@ -483,10 +481,6 @@
   const editPromptEl = useTemplateRef('editPromptRef')
   const batchEditPromptEl = useTemplateRef('batchEditPromptRef') // 批量编辑-弹窗
   const remarkModalEl = useTemplateRef('remarkModalRef') // 批量备注-弹窗
-  const batchAttributeEl = useTemplateRef('batchAttributeRef') // 批量属性-弹窗
-  const editAttributeEl = useTemplateRef('editAttributeRef') // 批量属性-弹窗
-  const typeTreeEl = useTemplateRef('typeTreeRef')
-  const typeManageOpen = ref(false)
   const shopSetVisible = ref(false)
   const shopCurryList = ref([])
   const editPriceVisible = ref(false) //全属性
@@ -514,12 +508,8 @@
   const selectedRowKeys = ref([])
   const selectedRowList = ref([])
   const tableData = ref([])
-  const deactivateLoading = ref(false)
-  const delLoading = ref(false)
   const loading = ref(false)
-  const remarkVisible = ref(false)
   const brandList = ref([])
-  const remarkId = ref([])
   const state = {
     wait_publish: '待发布',
     published: '已发布',

@@ -53,8 +53,8 @@
                         </template>
                         <template v-if="column.dataIndex === 'pushRatio'">
                             <a-input-number placeholder="1 - 100" :disabled="record.isPushStock == 0"
-                                style="width: 180px" v-model:value="record.pushRatio" :min="1" :max="100"
-                                :precision="0"  @blur="editSimpleName(record)"/>
+                                style="width: 180px" v-model:value="record.pushRatio" :min="1" :max="100" :precision="0"
+                                @blur="editSimpleName(record)" />
                         </template>
                         <template v-if="column.dataIndex === 'autoPublish'">
                             <a-switch v-model:checked="record.autoPublish" :checkedValue="1" :unCheckedValue="0"
@@ -324,13 +324,13 @@ const getMeansAttribute = () => {
 const editSimpleName = (row) => {
     if (
         row.simpleName || row.alias || row.remark || row.store ||
-        row.classify || row.forbidSale || row.autoPublish || 
+        row.classify || row.forbidSale || row.autoPublish ||
         row.isPushStock || row.pushRatio
     ) {
         const {
             id, store, simpleName, alias, remark,
             account, classify, forbidSale, autoPublish,
-            isPushStock,pushRatio
+            isPushStock, pushRatio
         } = row;
         const params = {
             id,
@@ -342,7 +342,7 @@ const editSimpleName = (row) => {
             classify,
             forbidSale: forbidSale ? forbidSale.join(',') : '',
             autoPublish,
-            isPushStock,pushRatio
+            isPushStock, pushRatio
         };
         simpleNames(params).then((res) => {
             message.success(res.msg);

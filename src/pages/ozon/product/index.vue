@@ -187,9 +187,25 @@
                   <a-checkbox v-model:checked="tbItem.tabAllChecked" @change="changeBox($event, tbItem, index)"
                     class="mr-2.5"></a-checkbox><span>总产品({{ tbItem.count }})</span>
                 </div>
-                <div>
-                  <a-button class="mr-2.5" @click="copyItems(tbItem, 'all')" v-if="tbItem.count > 1"
-                    type="link">复制为"新产品"</a-button>
+                <div class="mr-15px">
+                  <!-- <a-button class="mr-2.5" @click="copyItems(tbItem, 'all')" v-if="tbItem.count > 1"
+                    type="link">复制为"新产品"</a-button> -->
+                  <a-dropdown>
+                    <a class="ant-dropdown-link mr-15px block" @click.prevent v-if="tbItem.count > 1">
+                      操作
+                      <DownOutlined />
+                    </a>
+                    <template #overlay>
+                      <a-menu>
+                        <a-menu-item>
+                          编辑
+                        </a-menu-item>
+                        <a-menu-item @click="copyItems(tbItem, 'all')">
+                          复制为"新产品"
+                        </a-menu-item>
+                      </a-menu>
+                    </template>
+                  </a-dropdown>
                 </div>
               </div>
               <a-table :data-source="tbItem.children" style="width: 100%" row-key="id" :showHeader="false"
@@ -248,7 +264,7 @@
                           <template #title>
                             <span style="cursor: pointer" @click="copyText(record.offerId)">复制</span>
                           </template>
-                          <div>{{ record.offerId }}</div>
+                          <div class="w-100px">{{ record.offerId }}</div>
                         </a-tooltip>
                       </div>
                       <div style="color: #428bca; cursor: pointer"
@@ -1441,42 +1457,6 @@ const sync = () => {
     syncShopProductAll()
       .then((res) => {
         message.success("正在同步店铺所有商品，请稍后！");
-        // interval.value = setInterval(() => {
-        //     shopAsyncProgress(res.msg).then(res => {
-        //         asyncErrData.value = res.data
-        //         // percentage.value = parseInt(res.data);
-        //         // if (res.data >= 100) {
-        //         //     clearInterval(interval.value)
-        //         //     message.success("同步成功！");
-        //         //     syncLo// ... existing code ...
-        // let params = {
-        //   ...formData,
-        //   ...Object.entries(advancedForm).reduce((acc, [key, value]) => {
-        //     // 过滤掉 timeSearch 和 time 字段
-        //     if (["time"].includes(key)) return acc;
-
-        //     // 保留原有转换逻辑并添加字符串转换
-        //     if (value !== null && value !== undefined && value !== "") {
-        //       acc[key] = typeof value === "number" ? String(value) : value;
-        //     }
-        //     return acc;
-        //   }, {}),
-        //   startDateTime: advancedForm.time.length
-        //     ? dayjs(advancedForm.time[0])
-        //       .startOf("day")
-        //       .format("YYYY-MM-DD HH:mm:ss")
-        //     : undefined,
-        //   // ... existing code ...
-        // };
-        // syncLoading.value = false;
-        //         //     showOpen.value = false;
-        //         //     getList();
-        //         //     setTimeout(() => {
-        //         //         percentage.value = 0;
-        //         //     }, 300);
-        //         // }
-        //     })
-        // }, 5000);
       })
       .finally(() => {
         syncLoading.value = false;
