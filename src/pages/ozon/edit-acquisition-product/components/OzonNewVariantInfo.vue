@@ -26,7 +26,7 @@
                   <!-- 单选 -->
                   <div v-if="record.selectType == 'select'" class="w-4/5">
                     <a-select v-model:value="record.modelValue" class="w-full" optionFilterProp="label" labelInValue
-                      allowClear placeholder="请选择" @change="pushValue(index, items)">
+                      allowClear show-search placeholder="请选择" @change="pushValue(index, items)">
                       <a-select-option v-for="items in record.details" :key="items.id" :label="items.label"
                         :value="items">{{ items.label }}
                       </a-select-option>
@@ -37,10 +37,6 @@
                     <a-select v-model:value="record.modelValue" class="w-full" optionFilterProp="label" allowClear
                       mode="multiple" placeholder="请选择" labelInValue @change="pushValue(index, items)"
                       :options="record.details">
-                      <!-- <a-select-option v-for="items in record.details" :key="items.id"
-                                                :label="items.label" :value="items">{{ items.label
-                                                }}
-                                            </a-select-option> -->
                     </a-select>
                   </div>
                   <!-- 输入框 -->

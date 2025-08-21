@@ -1,7 +1,7 @@
 <template>
     <div>
         <a-modal v-model:open="dialogVisible" title="提示" width="1000px" @cancel="cancel" :footer="null"
-            :maskClosable="false" :style="{ top: '10px' }">
+            :maskClosable="false">
             <div flex justify-between mb-15px>
                 <div>
                     <a-breadcrumb separator=">">
@@ -46,7 +46,7 @@
                         <a-button type="link" @click="changeCategory">更换分类</a-button>
                         <p class="tooltip-text" v-if="hisAttrObj && JSON.stringify(hisAttrObj) != '{}'">{{
                             hisAttrObj.categoryName
-                        }} > {{ hisAttrObj.secondCategoryName }} > {{
+                            }} > {{ hisAttrObj.secondCategoryName }} > {{
                                 hisAttrObj.threeCategoryName }} </p>
                         <!-- 表格 -->
                         <a-table :columns="innerColumns" :data-source="innerTableData" bordered :pagination="false"

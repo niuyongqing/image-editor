@@ -182,13 +182,6 @@ function getFilterAttrs() {
         return attrItem.isAspect
     });
 
-    // filterAttrOptions.value = filterAttr.map((attrItem) => {
-    //     return {
-    //         label: attrItem.name.replace(/\(.*\)/, ""), // 去掉（）里面的
-    //         value: attrItem.id,
-    //         attrLabel: attrItem.name,
-    //     }
-    // });
     filterAttrOptions.value = filterAttr
         .map((attrItem) => ({
             label: attrItem.name.replace(/\(.*\)/, ""),
@@ -343,13 +336,6 @@ const selectAttributes = (value) => {
                     const filterAttr = attributes.value.filter((attrItem) => {
                         return attrItem.isAspect
                     });
-                    // filterAttrOptions.value = filterAttr.map((attrItem) => {
-                    //     return {
-                    //         label: attrItem.name.replace(/\(.*\)/, ""), // 去掉（）里面的
-                    //         value: attrItem.id,
-                    //         attrLabel: attrItem.name,
-                    //     }
-                    // });
                     filterAttrOptions.value = filterAttr
                     .map((attrItem) => ({
                         label: attrItem.name.replace(/\(.*\)/, ""),
@@ -419,17 +405,9 @@ const handleSelect = (data) => {
                 }).then((attrRes) => {
                     if (attrRes.code === 200) {
                         attributes.value = attrRes.data || [];
-                        // getFilterAttrs();
                         const filterAttr = attributes.value.filter((attrItem) => {
                             return attrItem.isAspect
                         });
-                        // filterAttrOptions.value = filterAttr.map((attrItem) => {
-                        //     return {
-                        //         label: attrItem.name.replace(/\(.*\)/, ""), // 去掉（）里面的
-                        //         value: attrItem.id,
-                        //         attrLabel: attrItem.name,
-                        //     }
-                        // });
                         filterAttrOptions.value = filterAttr
                         .map((attrItem) => ({
                             label: attrItem.name.replace(/\(.*\)/, ""),

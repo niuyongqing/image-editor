@@ -265,7 +265,7 @@ const feedBackData = (categoryObj) => {
 
 }
 
-
+// 锚点滚动
 const backToTop = () => {
   let elements = document.getElementsByClassName('ant-layout-content');
   if (elements) {
@@ -279,6 +279,7 @@ const backToTop = () => {
 const scroll = (id) => {
   document.getElementById(id).scrollIntoView({ behavior: 'smooth' })
 }
+// 编辑详情数据
 const getProductDetail = (waitId, account) => {
   ozonProductDetail({ account, waitId }).then(res => {
     productDetail.value = res.data || {}
@@ -313,7 +314,6 @@ const getAccount = () => {
   });
 }
 
-
 const showTempModal = () => {
   if (!formData.shortCode) {
     message.error("请先选择店铺！");
@@ -322,6 +322,7 @@ const showTempModal = () => {
   tempVis.value = true;
 }
 
+// 保存模板
 const saveTemplate = async () => {
   if (!templateName.value) {
     message.error("请输入模板名称！");
@@ -345,8 +346,6 @@ const saveTemplate = async () => {
       jsonRich: image.jsons || {}
     }
   }
-  console.log("params", params);
-
   tempSaveOrUpdate(params).then(res => {
     if (res.code == 200) {
       message.success("保存成功！");

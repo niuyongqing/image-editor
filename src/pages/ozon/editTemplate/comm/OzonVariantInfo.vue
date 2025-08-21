@@ -78,28 +78,13 @@
 <script setup name='OzonNewVariantInfo'>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
-import { message, Modal } from "ant-design-vue";
-import EditProdQuantity from '../../productPublish/comm/EditProdQuantity.vue';
-import dragUpload from '../../productPublish/comm/dragUpload.vue';
-import { scaleApi, watermarkListApi, watermarkApi } from "~/api/common/water-mark";
-import { productWarehouse } from "../../config/api/product"
-import SelectAttr from '../../productPublish/comm/SelectAttr.vue';
+import { message } from "ant-design-vue";
 import { useOzonProductStore } from '~@/stores/ozon-product'
-import batchEditModal from "~/pages/ozon/config/component/batchEditModal/index.vue"
 import {
-    updatePrice, endResult, processAttributesCache,
-    reorderArray, cartesianProduct,
-    processData, checkSellerSKU, hasDuplicateModelValues,
-    checkData, rearrangeColorFields, handleTheme, processImageSource
+    reorderArray, cartesianProduct,  hasDuplicateModelValues,
+    checkData, rearrangeColorFields, handleTheme
 } from "../../config/commJs/index"
 import { processResult } from '../commJs/index'
-import { publishHead } from '../../config/tabColumns/skuHead';
-import { cloneDeep, debounce } from "lodash";
-import { uploadImage } from '@/pages/ozon/config/api/draft';
-import { DownOutlined, DownloadOutlined } from '@ant-design/icons-vue';
-import { downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js';
-import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
-import download from '~@/api/common/download';
 
 const props = defineProps({
     categoryAttributesLoading: Boolean,
@@ -114,22 +99,13 @@ const attributeList = ref([]) //变种主题卡片
 const tableData = ref([])
 const headerList = ref([]) //动态表头
 const addHeaderList = ref([])
-const setColorOption = ref([]);
-const custAttr = ref([]) //可控制属性
-
 const isConform = ref(false)
-
-const handleColorCancel = () => {
-    setValueVis.value = false;
-    setColorOption.value = [];
-};
 
 // 处理数据格式
 const processDataFormat = (list = []) => {
     let newHeaderList = handleTheme(list);
     const insertIndex = headerList.value.length - 6;
     for (let i = list.length - 1; i >= 0; i--) {
-        // reversedArray.push(originalArray[i]);
         headerList.value.splice(insertIndex, 0, {
             dataIndex: list[i].name,
             id: list[i].id,
@@ -137,9 +113,6 @@ const processDataFormat = (list = []) => {
             show: true,
             align: 'center'
         });
-        // imgHeaderList.value.push({
-        //     title: list[i].name
-        // })
     }
     attributeList.value = [...attributeList.value, ...newHeaderList]
 }
@@ -696,7 +669,7 @@ defineExpose({
     submitForm,
     attributeList
 })
-onMounted(() => { });
+
 </script>
 <style lang="less" scoped>
 .headerImg {
