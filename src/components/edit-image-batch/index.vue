@@ -137,7 +137,7 @@
   const scaleValue = ref('none')
   const heightValue = ref(null)
   const spinning = ref(false)
-  const pictureOtion = ref([
+  const pictureOptions = ref([
     {
       label: '图片小边',
       value: 'small',
@@ -192,7 +192,7 @@
   ])
 
   const sizeOptions = computed(() => {
-    return pictureOtion.value.filter(item => item.field === picScale.value)
+    return pictureOptions.value.filter(item => item.field === picScale.value)
   })
 
   const handleChange = () => {
