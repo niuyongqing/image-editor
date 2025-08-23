@@ -15,7 +15,8 @@
                         <a-select v-model:value="form.jsonTemp" :disabled="!shopCode" size="large" @change="changeJsonTemp" allowClear style="width: 30%"
                             :options="tempList">
                         </a-select>
-                        <a-button type="link" size="middle" class="ml10px" @click="searchTemp">
+                        <a-button type="link" size="middle" class="ml10px" @click="searchTemp(1)">
+
                             <SyncOutlined />
                             更新模板
                         </a-button>
@@ -250,7 +251,8 @@ const changeJsonTemp = () => {
 
 }
 
-const searchTemp = () => {
+const searchTemp = (type = null) => {
+
     templateList({
         account: "",
         type: 4,
@@ -260,6 +262,9 @@ const searchTemp = () => {
 
     }).then(res => {
         if (res.code == 200) {
+            if(type == 1) {
+                message.success("更新成功!")
+            }
             tempList.value = res.rows.map(item => {
                 return {
                     label: item.name,

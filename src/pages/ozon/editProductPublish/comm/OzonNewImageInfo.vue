@@ -11,18 +11,21 @@
                     </div>
                 </a-form-item>
                 <a-form-item label="JSON富文本：">
-                    <!-- <div>
-                        <a-select v-model:value="form.jsonTemp" @change="changeJsonTemp" size="large" allowClear style="width: 30%"
-                            :options="tempList">
+                    <div>
+                        <a-select v-model:value="form.jsonTemp" @change="changeJsonTemp" size="large" allowClear
+                            style="width: 30%" :options="tempList">
                         </a-select>
-                        <a-button type="link" size="middle" class="ml10px" @click="searchTemp">
+                        <a-button type="link" size="middle" class="ml10px" @click="searchTemp(1)">
                             <SyncOutlined />
                             更新模板
                         </a-button>
-                    </div> -->
-                    <div class="my10px text-16px" style="color: #737679"><a-tag color="green">说明</a-tag>不支持设置手机端描述，保存发布后，手机端的图片及文字信息将跟PC端保持一致</div>
+                    </div>
+                    <div class="my10px text-16px" style="color: #737679"><a-tag
+                            color="green">说明</a-tag>不支持设置手机端描述，保存发布后，手机端的图片及文字信息将跟PC端保持一致</div>
                     <a-form-item-rest>
-                        <jsonForm @backResult="backResult" :jsonContent="form.jsons" :shop="shopCode" @clear="form.jsons = ''"></jsonForm>
+                        <jsonForm @backResult="backResult" :jsonContent="form.jsons" :shop="shopCode"
+                            @clear="form.jsons = ''">
+                        </jsonForm>
                     </a-form-item-rest>
                 </a-form-item>
                 <a-form-item label="视频：">
@@ -95,7 +98,7 @@
 <script setup name='OzonNewImageInfo'>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
-import { message } from "ant-design-vue";
+import { Modal, message } from "ant-design-vue";
 import jsonForm from "../../config/component/json/index.vue"
 import { processImageSource } from "~/pages/ozon/config/commJs/index"
 import { SyncOutlined } from '@ant-design/icons-vue';
@@ -169,20 +172,25 @@ const submitForm = () => {
     return true;
 }
 const changeJsonTemp = () => {
-    Modal.confirm({
-        title: '选择富内容模板',
-        content: '切换富内容模板将清空已有内容，确定要切换吗？',
-        onOk: () => {
-            let content = tempList.value.find(item => item.value == form.jsonTemp)?.content || {}
-            form.jsons = content.jsonRich
-        },
-        onCancel: () => {
-            console.log('cancel');
-        },
-    });
+    if (!form.jsons) {
+        let content = tempList.value.find(item => item.value == form.jsonTemp)?.content || {}
+        form.jsons = content.jsonRich || ""
+    } else {
+        Modal.confirm({
+            title: '选择富内容模板',
+            content: '切换富内容模板将清空已有内容，确定要切换吗？',
+            onOk: () => {
+                let content = tempList.value.find(item => item.value == form.jsonTemp)?.content || {}
+                form.jsons = content.jsonRich
+            },
+            onCancel: () => {
+                console.log('cancel');
+            },
+        });
+    }
 
 }
-const searchTemp = () => {
+const searchTemp = (type = null) => {
     templateList({
         account: "",
         type: 4,
@@ -192,6 +200,9 @@ const searchTemp = () => {
 
     }).then(res => {
         if (res.code == 200) {
+            if(type == 1) {
+                message.success("更新成功!")
+            }
             tempList.value = res.rows.map(item => {
                 return {
                     label: item.name,
@@ -211,7 +222,7 @@ defineExpose({
 
 watch(() => props.productDetail, val => {
     if (Object.keys(val).length > 0) {
-        const { attributes, complexAttributes } = val.attributes[0];
+        const { attributes, complexAttributes } = val.skuList[0];
 
         if (attributes?.length == 0 || attributes == null) return;
         const copyAttr = attributes?.filter(
@@ -253,6 +264,7 @@ onMounted(() => {
         }
     }
 }
+
 .cover-item {
     position: relative;
 

@@ -136,7 +136,8 @@
               </a-upload>
             </template>
             <template v-if="column.dataIndex === 'skuTitle'">
-              <a-input class="min-w-200px" v-model:value="record.skuTitle" :title="record.skuTitle" size="middle"></a-input>
+              <a-input class="min-w-200px" v-model:value="record.skuTitle" :title="record.skuTitle"
+                size="middle"></a-input>
             </template>
             <template v-if="column.dataIndex === 'secondName'">
               <span class="min-w-200px">{{ record.secondName }}</span>
@@ -155,7 +156,7 @@
             </template>
             <template v-if="column.dataIndex === 'price'">
               <div class="flex justify-center">
-                <a-input-number :min="0" size="middle" class="w-full" :max="99999999" :precision="2"
+                <a-input-number :min="0" size="middle" :controls="false" class="w-full" :max="99999999" :precision="2"
                   v-model:value="record.price" @blur="judgeMax(record)"></a-input-number>
                 <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.price, 'price')"
                   class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
@@ -163,8 +164,8 @@
             </template>
             <template v-if="column.dataIndex === 'oldPrice'">
               <div class="flex justify-center">
-                <a-input-number class="w-full" size="middle" :min="0" :max="99999999" v-model:value="record.oldPrice"
-                  :precision="2" @blur="judgeMax(record)"></a-input-number>
+                <a-input-number class="w-full" size="middle" :controls="false" :min="0" :max="99999999"
+                  v-model:value="record.oldPrice" :precision="2" @blur="judgeMax(record)"></a-input-number>
                 <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.oldPrice, 'oldPrice')"
                   class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
               </div>
@@ -180,26 +181,26 @@
               <div class="flex">
                 <div class="flex justify-center">
                   <div>
-                    <a-input-number controls-position="right" class="min-w-100px" :min="0" size="middle"
-                      v-model:value="record.packageLength" placeholder="长度">
+                    <a-input-number controls-position="right" class="min-w-100px" :controls="false" :min="0"
+                      size="middle" v-model:value="record.packageLength" placeholder="长度">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div class="ml-2.5">
-                    <a-input-number controls-position="right" class="min-w-100px" :min="0" size="middle" v-model:value="record.packageWidth"
-                      placeholder="宽度">
+                    <a-input-number controls-position="right" class="min-w-100px" :controls="false" :min="0"
+                      size="middle" v-model:value="record.packageWidth" placeholder="宽度">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div class="ml-2.5">
-                    <a-input-number controls-position="right" class="min-w-100px" :min="0" size="middle"
-                      v-model:value="record.packageHeight" placeholder="高度">
+                    <a-input-number controls-position="right" class="min-w-100px" :controls="false" :min="0"
+                      size="middle" v-model:value="record.packageHeight" placeholder="高度">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div class="ml-2.5">
-                    <a-input-number controls-position="right" class="min-w-100px" :precision="0" :min="0" size="middle"
-                      v-model:value="record.packageWeight" placeholder="重量">
+                    <a-input-number controls-position="right" class="min-w-100px" :controls="false" :precision="0"
+                      :min="0" size="middle" v-model:value="record.packageWeight" placeholder="重量">
                       <template #addonAfter>g</template>
                     </a-input-number>
                   </div>
@@ -1382,6 +1383,7 @@ onMounted(() => {
     height: 80px !important;
   }
 }
+
 :deep(.ant-table) {
   .ant-table-tbody {
     background-color: #fff;
