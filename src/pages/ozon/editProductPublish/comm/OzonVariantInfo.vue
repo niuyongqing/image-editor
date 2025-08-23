@@ -249,7 +249,6 @@ import {
 import { useOzonProductStore } from '~@/stores/ozon-product'
 import { watermarkListApi, watermarkApi } from "~/api/common/water-mark";
 import EditProdQuantity from '../../productPublish/comm/EditProdQuantity.vue';
-import { uploadImage } from '@/pages/ozon/config/api/draft';
 import { debounce, cloneDeep } from "lodash";
 import { DownOutlined } from '@ant-design/icons-vue';
 import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
@@ -736,10 +735,7 @@ watch(() => useOzonProductStore().attributes, val => {
     // 提取变种主题
     let arr = val.filter((obj) => obj.isAspect);
     isConform.value = checkData(arr);
-
     let sortArr = rearrangeColorFields(arr)
-    console.log('sortArr', sortArr);
-
     let result = [];
     let attrHeaderList = [];
     const uniqueArr = [];
