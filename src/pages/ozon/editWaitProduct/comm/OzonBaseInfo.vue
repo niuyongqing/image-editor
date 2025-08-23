@@ -16,8 +16,9 @@
           </a-select>
         </a-form-item>
         <a-form-item label="分类：" name="categoryId">
-          <a-select v-model:value="form.categoryId" allowClear showSearch size="middle" labelInValue placeholder="请选择"
-            style="width: 200px" :options="historyCategoryList" @change="selectAttributes" :fieldNames="{
+          <a-select v-model:value="form.categoryId" optionFilterProp="threeCategoryName" allowClear showSearch
+            size="middle" labelInValue placeholder="请选择" style="width: 200px" :options="historyCategoryList"
+            @change="selectAttributes" :fieldNames="{
               label: 'threeCategoryName',
               value: 'threeCategoryId',
             }">
@@ -395,6 +396,7 @@ const assignValues = (oldAttr, attr) => {
       }),
     };
   });
+
   const result = {};
   // 根据b数组填充结果对象
   attr.forEach((item) => {
@@ -419,6 +421,16 @@ const assignValues = (oldAttr, attr) => {
         } else {
           result[name] = resItem.values[0].value;
         }
+      } else {
+        if (item.id === 4389) {
+          result[name] = [90296]
+        } else if (item.id === 85 || item.id === 31) {
+          result[name] = {
+            label: '无品牌',
+            value: '无品牌'
+          }
+        }
+
       }
     });
   });
@@ -494,7 +506,7 @@ const findMatchedOption = (attributeId, data, options) => {
       label: "无品牌",
       value: data.id,
     };
-  }else if(attributeId === 4389){
+  } else if (attributeId === 4389) {
     return {
       label: data.value,
       value: [90296],
@@ -680,8 +692,6 @@ watch(
         });
 
         let data = noThemeAttributesCache.filter((a) => a.isRequired);
-        // console.log("data", data);
-        // console.log("rules2", this.rules2);
         rules2.value = {};
         let attributes = {};
         // 属性类型处理
@@ -691,7 +701,6 @@ watch(
             value: "",
           };
           if (item.id === 9070) {
-
             item.options = item?.options?.map((item) => {
               return {
                 ...item,
@@ -716,6 +725,10 @@ watch(
             label: "无品牌",
             value: { label: '无品牌', value: '无品牌' }
           }
+          attributes["服装和鞋类品牌(Бренд в одежде и обуви)"] = {
+            label: "无品牌",
+            value: { label: '无品牌', value: '无品牌' }
+          }
           attributes["制造国(Страна-изготовитель)"] = [90296] //设置默认值
         });
 
@@ -729,11 +742,10 @@ watch(
                 ? "blur"
                 : "change",
           };
-          // Object.assign(rules2.value, { [noThemeAttributesCache[i].name]: obj })
           rules2.value[noThemeAttributesCache[i].name] = obj;
         }
-        // this.$set(rules2.value, noThemeAttributesCache[i].name, obj);
         loopAttributes.value = noThemeAttributesCache;
+
         // 赋值
         const { attributes: oldAttributes } = props.productDetail?.skuList[0];
         const proceRes = assignValues(oldAttributes, loopAttributes.value); // 旧写法
@@ -789,7 +801,7 @@ const processMatchedAttributes = (existAttrs, loopAttrs) => {
           label: "无品牌",
           value: "无品牌"
         };
-      } else if(attr.id === 4389) {
+      } else if (attr.id === 4389) {
         result[attr.name] = [90296] // 制造国默认为中国
       }
 

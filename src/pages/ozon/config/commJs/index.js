@@ -127,9 +127,9 @@ const processResult = (productList) => {
     };
     product.forEach((item) => {
       let values = ""
-      if(item.selectType === "select") {
+      if(item.selectType === "select" && item.modelValue !== undefined) {
         values = item.modelValue?.label || item.modelValue[0]?.label
-      }else if(item.selectType === "multSelect") {
+      }else if(item.selectType === "multSelect" && item.modelValue !== undefined) {
         values = item?.modelValue?.map((val) => val.label).join(";")
       }else {
         values = item.modelValue

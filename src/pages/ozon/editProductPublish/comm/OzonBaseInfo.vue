@@ -291,7 +291,6 @@ const assignValues = (oldAttr, attr) => {
 }
 
 const findMatchedOption = (attributeId, data, options) => {
-
     const matchedOption = options?.find(option => option.id === data.id);
     if (attributeId == 9070) {
         return {
@@ -336,12 +335,10 @@ const addItemValues = (obj) => {
     );
     //!  判断搜索出来的是否在初始的数组中显示
     if (isExist) {
-        // attributes[obj.name].push(obj.selectDate.value);
         const attr = attributes[obj.name] || [];
         attr?.push(obj.selectDate.value);
         attributes[obj.name] = attr
     } else {
-        // attributes[obj.name].push(obj.selectDate.value);
         attributes[obj.name] = attributes[obj.name] || []
         attributes[obj.name]?.push(obj.selectDate.value);
         obj.acquiesceList.push(obj.selectDate);
@@ -352,21 +349,17 @@ const addItemValues = (obj) => {
 const childForm = async () => {
     // 收集需要校验的表单引用
     const formRefs = [ruleForm, ruleForm2];
-
     // 循环遍历表单引用数组进行校验
     for (const formRef of formRefs) {
         try {
-            // 如果表单引用不存在，跳过本次循环
             if (!formRef.value) continue;
 
-            // 调用表单的 validate 方法进行校验
             await formRef.value.validate();
         } catch (error) {
             // 若校验失败，捕获错误并返回 false
             return false;
         }
     }
-
     // 所有表单都校验通过，返回 true
     return true;
 }
@@ -401,6 +394,7 @@ watch(() => props.productDetail, val => {
             label: undefined,
             value: typeId
         };
+        // emit("getAttributes", form.shortCode, form.categoryId);
         getHistoryList(account)
     }
 })
@@ -430,8 +424,6 @@ watch(() => props.attributesCache, (val) => {
             });
 
             let data = noThemeAttributesCache.filter((a) => a.isRequired);
-            // console.log("data", data);
-            // console.log("rules2", this.rules2);
             rules2.value = {};
             let attributes = {};
             // 属性类型处理
@@ -472,18 +464,13 @@ watch(() => props.attributesCache, (val) => {
                             ? "blur"
                             : "change",
                 };
-                // Object.assign(rules2.value, { [noThemeAttributesCache[i].name]: obj })
                 rules2.value[noThemeAttributesCache[i].name] = obj
             }
-            // this.$set(rules2.value, noThemeAttributesCache[i].name, obj);
-            // console.log("rules2", rules2.value);
             loopAttributes.value = noThemeAttributesCache;
             // 赋值
-            const { attributes: oldAttributes } = props.productDetail.attributes[0];
-            // console.log('loopAttributes', oldAttributes);
+            const { attributes: oldAttributes } = props.productDetail.skuList[0];
             const proceRes = assignValues(oldAttributes, loopAttributes.value);
             form.attributes = proceRes;
-            // console.log('proceRes0', proceRes);
         }
     }
 })
