@@ -110,7 +110,7 @@
             <template v-if="column.dataIndex === 'packageLength'">
               <span><span style="color: #ff0a37">*</span> {{ column.title }}(mm)</span><a class="ml-1.25"
                 @click="batchPackLength">批量</a>
-                <p>长*宽*高*重量</p>
+              <p>长*宽*高*重量</p>
             </template>
           </template>
           <template #bodyCell="{ column, record, index }">
@@ -130,27 +130,27 @@
               </a-upload>
             </template>
             <template v-if="column.dataIndex === 'skuTitle'">
-              <a-input class="min-w-200px" v-model:value="record.skuTitle" :title="record.skuTitle" size="middle"></a-input>
+              <a-input class="min-w-200px" v-model:value="record.skuTitle" :title="record.skuTitle"
+                size="middle"></a-input>
             </template>
             <template v-if="column.dataIndex === 'secondName'">
               <span class="min-w-200px">{{ record.secondName }}</span>
             </template>
             <template v-if="column.dataIndex === 'sellerSKU'">
-              <a-input v-model:value="record.sellerSKU" size="middle"
-                @change="sellerSKUChange(record)"></a-input>
+              <a-input v-model:value="record.sellerSKU" size="middle" @change="sellerSKUChange(record)"></a-input>
             </template>
             <template v-if="!otherHeader.includes(column.dataIndex)">
               <a-input v-if="column.selectType === 'input'" size="middle" v-model:value="record[column.dataIndex]"
-              class="min-w-200px"></a-input>
+                class="min-w-200px"></a-input>
               <a-select v-if="column.selectType === 'select'" size="middle" v-model:value="record[column.dataIndex]"
-              class="min-w-200px" :options="column.options"></a-select>
+                class="min-w-200px" :options="column.options"></a-select>
               <a-select v-if="column.selectType === 'multSelect'" size="middle" :maxTagCount="2"
                 v-model:value="record[column.dataIndex]" class="min-w-200px" :options="column.options"
                 mode="tags"></a-select>
             </template>
             <template v-if="column.dataIndex === 'price'">
               <div class="flex justify-center">
-                <a-input-number class="w-full" size="middle" :min="0" :max="99999999" :precision="2"
+                <a-input-number class="w-full" size="middle" :controls="false" :min="0" :max="99999999" :precision="2"
                   v-model:value="record.price" @blur="judgeMax(record)"></a-input-number>
                 <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.price, 'price')"
                   class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
@@ -158,8 +158,8 @@
             </template>
             <template v-if="column.dataIndex === 'oldPrice'">
               <div class="flex justify-center">
-                <a-input-number class="w-full" size="middle" :min="0" :max="99999999" v-model:value="record.oldPrice"
-                  :precision="2" @blur="judgeMax(record)"></a-input-number>
+                <a-input-number class="w-full" size="middle" :controls="false" :min="0" :max="99999999"
+                  v-model:value="record.oldPrice" :precision="2" @blur="judgeMax(record)"></a-input-number>
                 <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.oldPrice, 'oldPrice')"
                   class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
               </div>
@@ -174,26 +174,26 @@
               <div class="flex">
                 <div class="flex items-center">
                   <div>
-                    <a-input-number controls-position="right" class="min-w-100px" :min="0" size="middle"
-                      v-model:value="record.packageLength" placeholder="长度">
+                    <a-input-number controls-position="right" class="min-w-100px" :controls="false" :min="0"
+                      size="middle" v-model:value="record.packageLength" placeholder="长度">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div class="ml-2.5">
-                    <a-input-number controls-position="right" class="min-w-100px" :min="0" size="middle"
-                      v-model:value="record.packageWidth" placeholder="宽度">
+                    <a-input-number controls-position="right" class="min-w-100px" :controls="false" :min="0"
+                      size="middle" v-model:value="record.packageWidth" placeholder="宽度">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div class="ml-2.5">
-                    <a-input-number controls-position="right" class="min-w-100px" :min="0" size="middle"
-                      v-model:value="record.packageHeight" placeholder="高度">
+                    <a-input-number controls-position="right" class="min-w-100px" :controls="false" :min="0"
+                      size="middle" v-model:value="record.packageHeight" placeholder="高度">
                       <template #addonAfter>mm</template>
                     </a-input-number>
                   </div>
                   <div class="ml-2.5">
-                    <a-input-number controls-position="right" class="min-w-100px" :precision="0" :min="0" size="middle"
-                      v-model:value="record.packageWeight" placeholder="重量">
+                    <a-input-number controls-position="right" class="min-w-100px" :controls="false" :precision="0"
+                      :min="0" size="middle" v-model:value="record.packageWeight" placeholder="重量">
                       <template #addonAfter>g</template>
                     </a-input-number>
                   </div>
@@ -232,36 +232,36 @@
 </template>
 
 <script setup>
-  import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-  import AsyncIcon from '~/layouts/components/menu/async-icon.vue'
-  import { message, Modal } from 'ant-design-vue'
-  import EditProdQuantity from '../../productPublish/comm/EditProdQuantity.vue'
-  import { watermarkListApi } from '~/api/common/water-mark'
-  import { productWarehouse } from '../../config/api/product'
-  import SelectAttr from '../../productPublish/comm/SelectAttr.vue'
-  import { useOzonProductStore } from '~@/stores/ozon-product'
-  import batchEditModal from '~/pages/ozon/config/component/batchEditModal/index.vue'
-  import {
-    updatePrice,
-    endResult,
-    processAttributesCache,
-    reorderArray,
-    cartesianProduct,
-    customSort,
-    processResult,
-    processData,
-    checkSellerSKU,
-    hasDuplicateModelValues,
-    checkData,
-    rearrangeColorFields,
-    handleTheme,
-    processImageSource
-  } from '../../config/commJs/index'
-  import { publishHead, otherList } from '../../config/tabColumns/skuHead'
-  import { uploadImage } from '@/pages/ozon/config/api/draft'
-  import { debounce } from 'lodash'
-  import { v4 as uuidv4 } from 'uuid'
-  import ImageInfo from '@/pages/ozon/config/component/image-info/index.vue'
+import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
+import AsyncIcon from '~/layouts/components/menu/async-icon.vue'
+import { message, Modal } from 'ant-design-vue'
+import EditProdQuantity from '../../productPublish/comm/EditProdQuantity.vue'
+import { watermarkListApi } from '~/api/common/water-mark'
+import { productWarehouse } from '../../config/api/product'
+import SelectAttr from '../../productPublish/comm/SelectAttr.vue'
+import { useOzonProductStore } from '~@/stores/ozon-product'
+import batchEditModal from '~/pages/ozon/config/component/batchEditModal/index.vue'
+import {
+  updatePrice,
+  endResult,
+  processAttributesCache,
+  reorderArray,
+  cartesianProduct,
+  customSort,
+  processResult,
+  processData,
+  checkSellerSKU,
+  hasDuplicateModelValues,
+  checkData,
+  rearrangeColorFields,
+  handleTheme,
+  processImageSource
+} from '../../config/commJs/index'
+import { publishHead, otherList } from '../../config/tabColumns/skuHead'
+import { uploadImage } from '@/pages/ozon/config/api/draft'
+import { debounce } from 'lodash'
+import { v4 as uuidv4 } from 'uuid'
+import ImageInfo from '@/pages/ozon/config/component/image-info/index.vue'
 
 const props = defineProps({
   categoryAttributesLoading: Boolean,
@@ -906,13 +906,13 @@ watch(
           }),
           sellerSKU: sku.offerId,
           imageUrl:
-              // 合并主图和其他图片，使用Set去重后生成对象数组
-              Array.from(
-                new Set([
-                  ...(processImageSource(sku.primaryImage) || []),  // 主图数组
-                  ...(processImageSource(sku.images) || [])         // 普通图片数组
-                ])
-              ).map(url => ({ url, id: uuidv4(), checked: false })) ?? [],
+            // 合并主图和其他图片，使用Set去重后生成对象数组
+            Array.from(
+              new Set([
+                ...(processImageSource(sku.primaryImage) || []),  // 主图数组
+                ...(processImageSource(sku.images) || [])         // 普通图片数组
+              ])
+            ).map(url => ({ url, id: uuidv4(), checked: false })) ?? [],
         }
 
         // 遍历a数组

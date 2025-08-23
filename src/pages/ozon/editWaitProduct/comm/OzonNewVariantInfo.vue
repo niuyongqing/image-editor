@@ -16,12 +16,12 @@
                       <template #icon>
                         <SettingOutlined />
                       </template>
-                      管理模板
-                    </a-button>
-                  </a-space>
-                </template>
-              </a-select>
-            </div> -->
+管理模板
+</a-button>
+</a-space>
+</template>
+</a-select>
+</div> -->
           </div>
         </template>
         <div>
@@ -184,7 +184,7 @@
               </div>
               <a-upload name="file" v-if="record.colorImg.length == 0" class="h-20 w-20 headerImg" :headers="headers"
                 accept=".jpg,.jpeg,.png" :action="uploadUrl" :showUploadList="false" list-type="picture-card"
-                @change="(e) => handleChangeColroImg(e, record) " :max-count="1">
+                @change="(e) => handleChangeColroImg(e, record)" :max-count="1">
                 <div>
                   <AsyncIcon icon="PlusOutlined" />
                   <div>上传图片</div>
@@ -214,23 +214,39 @@
               <div class="flex justify-center">
                 <a-input-number :min="0" size="middle" :controls="false" :max="99999999" :precision="2"
                   v-model:value="record.price" class="w-full" @blur="judgeMax(record)"></a-input-number>
-                <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.price, 'price')"
-                  class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
+                <a-dropdown>
+                  <AsyncIcon icon="CopyOutlined" class="ml-2.5 cursor-pointer" size="15px">
+                  </AsyncIcon>
+                  <template #overlay>
+                    <a-menu @click="confirmMenuClick($event, record, 'price')">
+                      <a-menu-item v-for="menuItem in confirmMenuList" :key="menuItem.key">{{
+                        menuItem.label }}</a-menu-item>
+                    </a-menu>
+                  </template>
+                </a-dropdown>
               </div>
             </template>
             <template v-if="column.dataIndex === 'oldPrice'">
               <div class="flex justify-center">
                 <a-input-number :min="0" size="middle" :controls="false" :max="99999999" v-model:value="record.oldPrice"
                   class="w-full" :precision="2" @blur="judgeMax(record)"></a-input-number>
-                <AsyncIcon icon="CopyOutlined" @click="applyAllValues(record.oldPrice, 'oldPrice')"
-                  class="ml-2.5 cursor-pointer" size="15px"></AsyncIcon>
+                <a-dropdown>
+                  <AsyncIcon icon="CopyOutlined" class="ml-2.5 cursor-pointer" size="15px">
+                  </AsyncIcon>
+                  <template #overlay>
+                    <a-menu @click="confirmMenuClick($event, record, 'oldPrice')">
+                      <a-menu-item v-for="menuItem in confirmMenuList" :key="menuItem.key">{{
+                        menuItem.label }}</a-menu-item>
+                    </a-menu>
+                  </template>
+                </a-dropdown>
               </div>
             </template>
             <template v-if="column.dataIndex === 'quantity'">
               <div class="flex justify-center">
                 <span>{{
                   record.quantity === undefined ? 0 : record.quantity
-                  }}</span>
+                }}</span>
                 <AsyncIcon class="ml-2.5" icon="EditOutlined" @click="batchStock('single', record)"></AsyncIcon>
               </div>
             </template>
@@ -263,9 +279,16 @@
                   </div>
                 </div>
                 <div class="flex">
-                  <AsyncIcon icon="CopyOutlined" @click="applyAllSize(record)" class="ml-2.5 cursor-pointer"
-                    size="15px">
-                  </AsyncIcon>
+                  <a-dropdown>
+                    <AsyncIcon icon="CopyOutlined" class="ml-2.5 cursor-pointer" size="15px">
+                    </AsyncIcon>
+                    <template #overlay>
+                      <a-menu @click="confirmMenuClick($event, record, 'size')">
+                        <a-menu-item v-for="menuItem in confirmMenuList" :key="menuItem.key">{{
+                          menuItem.label }}</a-menu-item>
+                      </a-menu>
+                    </template>
+                  </a-dropdown>
                 </div>
               </div>
             </template>
@@ -331,8 +354,7 @@ import {
   customSort
 } from "../../config/commJs/index";
 import { publishHead, otherList } from "../../config/tabColumns/skuHead";
-import { uploadImage } from '@/pages/ozon/config/api/draft';
-import { debounce, cloneDeep, pick } from "lodash";
+import { debounce, cloneDeep } from "lodash";
 import batchSetColor from "./batchSetColor.vue";
 import colorImgTranslation from "./colorImgTranslation.vue";
 import bacthEditColorImg from "./bacthEditColorImg.vue";
@@ -340,7 +362,7 @@ import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js';
 import { FileOutlined, SettingOutlined, DownOutlined } from '@ant-design/icons-vue';
 import { v4 as uuidv4 } from 'uuid'
 import ImageInfo from '@/pages/ozon/config/component/image-info/index.vue'
-import { el } from "date-fns/locale";
+
 
 const props = defineProps({
   categoryAttributesLoading: Boolean,
@@ -850,21 +872,40 @@ const selectAttrList = (list) => {
   });
 };
 
-// 批量应用字段值
-const applyAllValues = (fields, fieldName) => {
-  tableData.value.forEach((item) => {
-    item[fieldName] = fields;
-  });
-};
-// 批量应用尺寸值
-const applyAllSize = (row) => {
-  tableData.value.forEach((item) => {
-    item.packageLength = row.packageLength;
-    item.packageWidth = row.packageWidth;
-    item.packageHeight = row.packageHeight;
-    item.packageWeight = row.packageWeight;
-  });
-};
+/** 尺寸数据应用到 按钮 */
+const PERMANENT_LIST = [{ label: '所有变种', key: 'applyAll' }]
+const confirmMenuList = computed(() => {
+  const variantAttrList = attrList.value.map(list => list.join('-')).map(name => ({ label: `应用到同 ${name} 的变种`, key: name }))
+  return [...PERMANENT_LIST, ...variantAttrList]
+})
+
+function confirmMenuClick({ key }, record, type) {
+  // 定义不同type对应的属性映射关系
+  const propertyMap = {
+    size: ['packageLength', 'packageWidth', 'packageHeight', 'packageWeight'],
+    oldPrice: ['oldPrice'],
+    price: ['price']
+  };
+  // 根据type获取对应的属性列表，默认不复制任何属性
+  const properties = propertyMap[type] || [];
+
+  if (key === 'applyAll') {
+    tableData.value.forEach(item => {
+      properties.forEach(prop => {
+        item[prop] = cloneDeep(record[prop]);
+      });
+    })
+  } else {
+    const keyList = key.split('-')
+    tableData.value.forEach(item => {
+      if (keyList.every(key => item[key] === record[key])) {
+        properties.forEach(prop => {
+          item[prop] = cloneDeep(record[prop]);
+        });
+      }
+    })
+  }
+}
 
 const filteredHeaderList = computed(() => {
   return headerList.value.filter((item) => item.show === true);
@@ -1291,7 +1332,7 @@ const judgeMax = (item) => {
   const parsedPrice = parseFloat(price);
   const parsedOldPrice = parseFloat(oldPrice);
   if (isNaN(parsedPrice) || isNaN(parsedOldPrice)) return; // 如果转换后不是有效的数字，直接返回
-  
+
   if (parsedPrice > parsedOldPrice) {
     Modal.error({
       title: "错误提示",
@@ -1383,6 +1424,7 @@ watch(
       const uniqueArr = [];
       const titleSet = new Set();
       if (useOzonProductStore().dataType === "edit") {
+        // 待发布编辑
         const { skuList } = props.productDetail;
         skuList.forEach(sku => {
           const newItem = createNewItem(sku, {});
@@ -1391,6 +1433,7 @@ watch(
         });
         optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, skuList);
       } else if (useOzonProductStore().dataType === "existProduct") {
+        // 引用现有产品
         const { attributes: existSkuList, oldPrice, price, stock, name, colorImage, warehouseList, offerId, images, primaryImage } = props.existProductData;
         existSkuList.forEach(sku => {
           const newItem = createNewItem(sku, {
@@ -1401,6 +1444,7 @@ watch(
         });
         optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, existSkuList);
       } else if (useOzonProductStore().dataType === "database") {
+        // 引用产品资料库
         const { skuList: databaseSkuList } = props.databaseProduct;
         databaseSkuList.forEach(sku => {
           const newItem = createNewItem(sku, {});

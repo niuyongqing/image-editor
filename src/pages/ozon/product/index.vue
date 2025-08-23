@@ -109,7 +109,6 @@
                     <DownOutlined />
                   </a-button>
                 </a-dropdown>
-                <a-button type="primary" @click="edit()" :disabled="selectedRows.length !== 1">编 辑</a-button>
                 <a-button type="primary" @click="syncHisAttr()" :loading="syncLoading">同步历史分类</a-button>
                 <a-dropdown v-model:open="moveCategoryOpen" trigger="click" :disabled="selectedRows.length === 0">
                   <a-button type="primary">
@@ -197,7 +196,7 @@
                     </a>
                     <template #overlay>
                       <a-menu>
-                        <a-menu-item>
+                        <a-menu-item @click="edit(tbItem, 'all')">
                           编辑
                         </a-menu-item>
                         <a-menu-item @click="copyItems(tbItem, 'all')">
@@ -497,7 +496,8 @@
                   <div v-else-if="column.dataIndex === 'option'">
                     <a-row>
                       <a-col :span="11" v-if="record.state !== '已归档'">
-                        <a-button @click.stop="edit(record)" type="text" style="color: #0b56fa">编辑</a-button>
+                        <a-button @click.stop="edit(record,'single')" type="text" style="color: #0b56fa">编辑</a-button>
+
                       </a-col>
                       <a-col :span="11">
                         <a-dropdown>
@@ -1442,13 +1442,19 @@ const deleteItem = (row = {}) => {
 const add = () => {
   window.open("productPublish", "_blank");
 };
-const edit = (row = {}) => {
-  let newRow = Object.keys(row).length != 0 ? row : selectedRows.value[0];
-  let newRowId = encodeURIComponent(newRow.offerId); //转译
-  window.open(
-    "editProductPublish" + `?id=${newRowId}&account=${newRow.account}`,
-    "_blank"
-  );
+const edit = (row = {}, type) => {
+  let offerIds = [];
+  if (type == "single") {
+    offerIds.push(row.offerId);
+  }else if (type == "all") {
+    offerIds = row.children.map((item) => item.offerId);
+  }
+
+  const params = new URLSearchParams();
+  params.append('id', JSON.stringify(offerIds));
+  params.append('account', row.account);
+  window.open(`editProductPublish?${params.toString()}`, "_blank");
+  
 };
 const sync = () => {
   syncLoading.value = true;

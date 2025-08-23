@@ -180,7 +180,7 @@ export function unarchive(data) {
 // 查询产品详情
 export function getDetail(data) {
   return request({
-    url: '/platform-ozon/platform/ozon/product/detail',
+    url: '/platform-ozon/platform/ozon/product/batch/detail',
     method: 'post',
     data: data
   })

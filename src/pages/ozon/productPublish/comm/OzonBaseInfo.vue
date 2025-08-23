@@ -10,17 +10,15 @@
         <a-form-item label="商品标题：" name="name">
           <a-input style="width: 90%" :disabled="idHave" size="middle" v-model:value="form.name"
             placeholder="请输入产品名称(用俄语或英语)" :maxlength="255" showCount></a-input>
-          <!-- :autofocus="true" -->
         </a-form-item>
         <a-form-item label="VAT：" name="vat">
           <a-select v-model:value="form.vat" allowClear size="middle" style="width: 90%" :options="vatList">
           </a-select>
         </a-form-item>
         <a-form-item label="分类：" name="categoryId">
-          <!-- :options="historyCategoryList" -->
           <a-select v-model:value="form.categoryId" @change="selectAttributes" allowClear size="middle"
-            :filter-option="searchOption" showSearch labelInValue placeholder="请选择" style="width: 200px;"
-            :options="historyCategoryList" :fieldNames="{
+            :filter-option="searchOption" optionFilterProp="threeCategoryName" showSearch labelInValue placeholder="请选择"
+            style="width: 200px;" :options="historyCategoryList" :fieldNames="{
               label: 'threeCategoryName', value: 'threeCategoryId',
             }">
           </a-select>
@@ -73,7 +71,6 @@
                     <div v-if="item.options && item.options.length > 25">
                       <a-select optionFilterProp="label" show-search v-model:value="item.selectDate" allowClear
                         size="middle" style="width: 200px;margin-bottom: 5px;" placeholder="请输入内容" labelInValue>
-                        <!-- :options="item.options" @change="handlerChangeSelectDate"-->
                         <a-select-option :value="v" :label="v.label" v-for="(v, i) in item.options" :key="i">{{ v.label
                         }}</a-select-option>
                       </a-select>
@@ -423,7 +420,7 @@ const findMatchedOption = (attributeId, data, options) => {
       label: "无品牌",
       value: data.id,
     };
-  } else if (attributeId == 4389) {
+  } else if (attributeId == 4389) { //处理制造国默认值
     return {
       label: data.value,
       value: [90296],
@@ -473,6 +470,15 @@ const assignValues = (oldAttr, attr) => {
           } : filteredItems
         } else {
           result[name] = oldAttr[key];
+        }
+      } else {
+        if (item.id === 4389) {
+          result[name] = [90296]
+        } else if (item.id === 85 || item.id === 31) {
+          result[name] = {
+            label: '无品牌',
+            value: '无品牌'
+          }
         }
       }
     }

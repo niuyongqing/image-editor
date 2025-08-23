@@ -3,8 +3,8 @@
         <div class="w-19/20">
             <div class="flex justify-end mt-5">
                 <a-button :loading="loading" size="middle" @click="showTempModal">存为模板</a-button>
-                <a-button class="mx-2.5" @click="onSubmit(2)" size="middle">保存待发布</a-button>
-                <a-button type="primary" size="middle" @click="onSubmit(1)">更新</a-button>
+                <!-- <a-button class="mx-2.5" @click="onSubmit(2)" size="middle">保存待发布</a-button> -->
+                <a-button type="primary" :loading="loading" class="mx-2.5" size="middle" @click="onSubmit(1)">更新</a-button>
             </div>
             <br />
             <!-- 基本信息 -->
@@ -26,7 +26,7 @@
             </OzonVariantInfo>
             <div class="flex justify-end mr-5 mt-5">
                 <a-button :loading="loading" size="middle" @click="showTempModal">存为模板</a-button>
-                <a-button :loading="loading" @click="onSubmit(2)" size="middle" class="ml-2.5">保存待发布</a-button>
+                <!-- <a-button :loading="loading" @click="onSubmit(2)" size="middle" class="ml-2.5">保存待发布</a-button> -->
                 <a-button type="primary" :loading="loading" size="middle" @click="onSubmit(1)" class="ml-2.5">更新</a-button>
             </div>
         </div>
@@ -156,12 +156,12 @@ const closeModal = () => {
   templateName.value = "";
 }
 
-const getProductDetail = (offerId, account) => {
+const getProductDetail = (offerIds, account) => {
     formData.shortCode = account
-    getDetail({ account, offerId }).then(res => {
+    getDetail({ account, offerIds }).then(res => {
         productDetail.value = res?.data ?? {}
         collectProductId.value = res.data.collectProductId
-        getAttributes(res?.data?.account, res?.data?.typeId, res?.data?.descriptionCategoryId)
+        getAttributes(account, res?.data?.typeId, res?.data?.descriptionCategoryId)
     })
 }
 const backToTop = () => {
@@ -226,12 +226,9 @@ const isObjectProperty = (obj, prop) => {
 
 const onSubmit = async (type = 1) => {
     const ozonBaseInfo = await ozonBaseInfoRef.value.childForm();
-    console.log('ozonBaseInfoRef', ozonBaseInfo);
     const OzonNewImageInfo = await ozonImageInfoRef.value.submitForm();
     const ozonNewVariantInfo = await ozonNewVariantInfoRef.value.submitForm();
     const errorIndex = findFalseInArrayLikeObject({ ozonBaseInfo, OzonNewImageInfo, ozonNewVariantInfo })
-    console.log('errorIndex', errorIndex);
-
     const erpInfo = erpInfoRef.value;
 
     anchorList.value.forEach(item => {
@@ -407,46 +404,12 @@ const onSubmit = async (type = 1) => {
             return {
                 attributes: moditAttributes,
                 complex_attributes: newComplexAttributes ?? null, // 非必填 100002-21845-封面视频 100001-21841-视频
-                // complex_attributes: [
-                //     {
-                //         attributes: [
-                //             {
-                //                 complex_id: 100001,
-                //                 id: 21841,
-                //                 values: [
-                //                     {
-                //                         value:
-                //                             "https://www.xzerp.com/file/wish/upload/2025-03-10/2025/03/10/asset_0_h264_20250310114853A002.mp4",
-                //                     },
-                //                 ],
-                //             },
-                //         ],
-                //     },
-                //     {
-                //         attributes: [
-                //             {
-                //                 complex_id: 100002,
-                //                 id: 21845,
-                //                 values: [
-                //                     {
-                //                         value:
-                //                             "https://www.xzerp.com/file/wish/upload/2025-03-10/2025/03/10/asset_0_h264_20250310114853A002.mp4",
-                //                     },
-                //                 ],
-                //             },
-                //         ],
-                //     },
-                // ],
                 color_image: item?.colorImg[0]?.url ?? "", // 非必填
-                // color_image: "https://www.xzerp.com/file/wish/upload/2025-03-10/2025/03/10/2_20250310114827A001.jpg",
                 images: item.imageUrl && item?.imageUrl?.map(e => e.url),
-                // images: [
-                //     "https://www.xzerp.com/file/wish/upload/2025-03-10/2025/03/10/7017600413_20250310114548A001.jpg",
-                //     "https://www.xzerp.com/file/wish/upload/2025-03-10/2025/03/10/2_20250310114827A001.jpg"
-                // ],
                 offer_id: item.sellerSKU,
                 old_price: item.oldPrice, // 非必填
                 price: item.price,
+                min_price: item.minPrice,
                 dimension_unit: "mm",
                 weight_unit: "g",
                 depth: item.packageLength,
@@ -469,6 +432,7 @@ const onSubmit = async (type = 1) => {
                 offerId: item.sellerSKU,
                 oldPrice: item.oldPrice, // 非必填
                 price: item.price,
+                minPrice: item.minPrice,
                 weightUnit: "g",
                 dimensionUnit: "mm",
                 weight: item.packageWeight,
@@ -485,9 +449,6 @@ const onSubmit = async (type = 1) => {
             items: resItem,
             warehouseList: warehouse,
             historyCategoryId: base?.categoryId?.threeCategoryId, //平台分类ID
-            // storeHistoryCategoryId: base?.categoryId?.storeHistoryCategoryId
-            //     ? base?.categoryId?.storeHistoryCategoryId
-            //     : "", //资料库分类ID
             historyAttributes: hisAttr,
             customCategoryId: erpInfo.currentClass,
             sourceUrlList: erpInfo.sourceUrlList.map((item) => item.sourceUrl),
@@ -502,39 +463,37 @@ const onSubmit = async (type = 1) => {
             .finally(() => {
                 loading.value = false;
             });
-    } else {
-        loading.value = true;
-        let waitParams = {
-            account: base.shortCode,
-            vat: base.vat,
-            name: base.name,
-            skuList: resItem,
-            historyCategoryId: base?.categoryId?.threeCategoryId, //平台分类ID
-            // storeHistoryCategoryId: base?.categoryId?.storeHistoryCategoryId
-            //     ? base?.categoryId?.storeHistoryCategoryId
-            //     : "", //资料库分类ID
-            historyAttributes: hisAttr,
-            descriptionCategoryId:
-            base.categoryId.secondCategoryId, // 二级id
-            typeId: base.categoryId.threeCategoryId, // 三级分id
+    } 
+    // else {
+    //     loading.value = true;
+    //     let waitParams = {
+    //         account: base.shortCode,
+    //         vat: base.vat,
+    //         name: base.name,
+    //         skuList: resItem,
+    //         historyCategoryId: base?.categoryId?.threeCategoryId, //平台分类ID
+    //         historyAttributes: hisAttr,
+    //         descriptionCategoryId:
+    //         base.categoryId.secondCategoryId, // 二级id
+    //         typeId: base.categoryId.threeCategoryId, // 三级分id
 
-          customCategoryId: erpInfo.currentClass,
-          sourceUrlList: erpInfo.sourceUrlList.map((item) => item.sourceUrl)
-        }
-        saveTowaitProduct(waitParams).then(res => {
-            message.success(res.msg);
-            Modal.confirm({
-                title: '是否关闭',
-                content: '数据已保存到待发布，是否离开当前页面！',
-                okText: '确定',
-                onOk() {
-                    window.close();
-                }
-            });
-        }).finally(() => {
-            loading.value = false;
-        });
-    }
+    //       customCategoryId: erpInfo.currentClass,
+    //       sourceUrlList: erpInfo.sourceUrlList.map((item) => item.sourceUrl)
+    //     }
+    //     saveTowaitProduct(waitParams).then(res => {
+    //         message.success(res.msg);
+    //         Modal.confirm({
+    //             title: '是否关闭',
+    //             content: '数据已保存到待发布，是否离开当前页面！',
+    //             okText: '确定',
+    //             onOk() {
+    //                 window.close();
+    //             }
+    //         });
+    //     }).finally(() => {
+    //         loading.value = false;
+    //     });
+    // }
 }
 
 // 处理视频格式
@@ -595,9 +554,9 @@ const handleOk = () => {
 onMounted(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const rowId = urlParams.get('id');
-    const decodedId = decodeURIComponent(rowId); //解译
+    const offerIds = rowId ? JSON.parse(decodeURIComponent(rowId)) : [];
     const rowAccount = urlParams.get('account');
-    getProductDetail(decodedId, rowAccount)
+    getProductDetail(offerIds, rowAccount)
     getAccount()
 })
 </script>
