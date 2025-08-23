@@ -277,7 +277,7 @@
                 >
                   <a-space
                     direction="vertical"
-                    class="text-xl"
+                    size="middle"
                   >
                     <a-button
                       type="text"
@@ -285,7 +285,7 @@
                       :disabled="i === 0"
                       @click.stop="moduleUp(i)"
                     >
-                      <ArrowUpOutlined />
+                      <ArrowUpOutlined class="text-lg" />
                     </a-button>
                     <a-button
                       type="text"
@@ -293,14 +293,14 @@
                       :disabled="i === moduleList.length - 1"
                       @click.stop="moduleDown(i)"
                     >
-                      <ArrowDownOutlined />
+                      <ArrowDownOutlined class="text-lg" />
                     </a-button>
                     <a-button
                       type="text"
                       title="复制"
                       @click.stop="moduleCopy(i)"
                     >
-                      <CopyOutlined />
+                      <CopyOutlined class="text-lg" />
                     </a-button>
                     <!-- <a-button
                         type="text"
@@ -313,7 +313,7 @@
                       title="删除"
                       @click.stop="moduleDel(item.id)"
                     >
-                      <DeleteOutlined />
+                      <DeleteOutlined class="text-lg" />
                     </a-button>
                   </a-space>
                 </div>
@@ -2208,7 +2208,7 @@
             .content-panel {
               position: absolute;
               top: 0;
-              right: -32px;
+              right: -38px;
               background-color: #fff;
             }
           }

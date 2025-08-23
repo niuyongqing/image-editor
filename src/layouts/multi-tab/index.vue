@@ -50,6 +50,8 @@ function handleSwitch({ key }, current) {
     multiTabStore.closeOther(current)
   else if (key === 'refresh')
     multiTabStore.refresh(activeKey.value)
+  else if (key === 'openInNewTab')
+    window.open(current)
 }
 const isCurrentDisabled = computed(() => {
   return list.value.length === 1 || list.value.filter(v => !v.affix).length <= 1
@@ -151,6 +153,10 @@ onUnmounted(() => {
               <a-menu-item key="refresh" :disabled="!isCurrentDisabled">
                 <!-- 刷新当前 -->
                 {{ $t("app.multiTab.refresh") }}
+              </a-menu-item>
+              <a-menu-item key="openInNewTab">
+                <!-- 在新标签页中打开 -->
+                {{ $t("app.multiTab.openInNewTab") }}
               </a-menu-item>
             </a-menu>
           </template>
