@@ -75,7 +75,7 @@
             </a-form-item>
             <a-form-item label="排序方式：">
               <div class="flex align-start">
-                <a-button v-for="item in strList" :key="item.prop" style="margin: 0 10px"
+                <a-button v-for="item in strList" :key="item.prop" class="mx-2.5"
                   :type="item.prop === active.prop ? 'primary' : ''" @click="storChange(item)">
                   <span>{{ item.label }}</span>
                   <AsyncIcon icon="CaretUpOutlined" v-if="item.prop === active.prop && active.type == 'bottom'" />
@@ -85,7 +85,7 @@
             </a-form-item>
           </a-form>
         </a-card>
-        <a-card style="margin: 10px 0">
+        <a-card class="my-2.5">
           <div style="width: 100%; height: 38px" class="flex justify-between">
             <div>
               <a-space :size="10">
@@ -163,10 +163,9 @@
               <a-tab-pane :key="item.name" v-for="item in tabList" :tab="item.label + `(${item.value})`">
               </a-tab-pane>
             </a-tabs>
-            <a-pagination style="margin: 20px 0 10px 0; text-align: right" :show-total="total => `共 ${total} 条`"
-              v-model:current="paginations.pageNum" v-model:pageSize="paginations.pageSize" :total="paginations.total"
-              class="pages" :show-quick-jumper="true" @change="getList" :showSizeChanger="true"
-              :pageSizeOptions="[50, 100, 200]" />
+            <a-pagination :show-total="total => `共 ${total} 条`" v-model:current="paginations.pageNum"
+              v-model:pageSize="paginations.pageSize" :total="paginations.total" class="pages mt-5 mb-2.5 text-right"
+              :show-quick-jumper="true" @change="getList" :showSizeChanger="true" :pageSizeOptions="[50, 100, 200]" />
           </div>
           <div class="outContent" v-loading="loading">
             <div class="topHeader">
@@ -187,8 +186,6 @@
                     class="mr-2.5"></a-checkbox><span>总产品({{ tbItem.count }})</span>
                 </div>
                 <div class="mr-15px">
-                  <!-- <a-button class="mr-2.5" @click="copyItems(tbItem, 'all')" v-if="tbItem.count > 1"
-                    type="link">复制为"新产品"</a-button> -->
                   <a-dropdown>
                     <a class="ant-dropdown-link mr-15px block" @click.prevent v-if="tbItem.count > 1">
                       操作
@@ -211,7 +208,7 @@
                 :columns="dropCol" :pagination="false" :data-index="index" ref="OzonProduct">
                 <template #bodyCell="{ column, record }">
                   <div v-if="column.dataIndex === 'name'" class="flex">
-                    <a-checkbox style="margin: 0 10px" @change="handelChecked($event, tbItem, record)"
+                    <a-checkbox class="mx-2.5" @change="handelChecked($event, tbItem, record)"
                       v-model:checked="record.checked"></a-checkbox>
                     <div class="flex text-left items-center">
                       <a-image style="width: 100px; height: 100px" :src="processImageSource(
@@ -219,24 +216,24 @@
                         (record.images?.length > 0 && record.images[0]) ||
                         ''
                       )" />
-                      <div style="margin-left: 10px; display: block">
+                      <div class="block ml-2.5">
                         <a-tooltip class="item">
                           <template #title>
                             <span>{{ record.name }}</span>
                           </template>
                           <div class="truncate prodTitle">{{ record.name }}</div>
                         </a-tooltip>
-                        <div style="color: #999; float: left">
+                        <div class="float-left text-[#999]">
                           产品ID：
                           <a-tooltip placement="top">
                             <template #title>
-                              <span style="cursor: pointer" @click="copyText(record.sku)">复制</span>
+                              <span class="cursor-pointer" @click="copyText(record.sku)">复制</span>
                             </template>
-                            <a style="color: #1677ff" href="#" @click="jumpTo(record.sku)">{{ record.sku }}</a>
+                            <a class="text-[#1677ff]" href="#" @click="jumpTo(record.sku)">{{ record.sku }}</a>
                           </a-tooltip>
                         </div>
                         <br />
-                        <div style="color: #999; float: left">店铺: {{ record.simpleName }}</div>
+                        <div class="text-[#999] float-left">店铺: {{ record.simpleName }}</div>
                         <br />
                         <div :style="{
                           color: remarkColor(record.remarkColor),
@@ -245,7 +242,7 @@
                           备注:{{ record.remark }}
                         </div>
                         <br />
-                        <div style="color: red" v-if="record.bathErrorInfo">
+                        <div class="text-red" v-if="record.bathErrorInfo">
                           失败原因: {{ record.bathErrorInfo }}
                         </div>
                       </div>
@@ -256,25 +253,25 @@
                       {{ record.state || ' ' }}
                     </a-tag>
                   </div>
-                  <div v-else-if="column.dataIndex === 'sku'" style="text-align: left">
+                  <div v-else-if="column.dataIndex === 'sku'" class="text-left">
                     <div>
-                      <div style="color: #1677ff; cursor: pointer">
+                      <div class="text-[#1677ff] cursor-pointer">
                         <a-tooltip placement="topLeft">
                           <template #title>
-                            <span style="cursor: pointer" @click="copyText(record.offerId)">复制</span>
+                            <span class="cursor-pointer" @click="copyText(record.offerId)">复制</span>
                           </template>
                           <div class="w-100px">{{ record.offerId }}</div>
                         </a-tooltip>
                       </div>
-                      <div style="color: #428bca; cursor: pointer"
+                      <div class="text-[#428bca] cursor-pointer"
                         @click="showChildren(record.account, tbItem.attributeId, record.typeId)">
                         已合并:{{ tbItem.count }}
                       </div>
                       <div>
-                        促销活动价：<span style="color: #1677ff">{{ record.marketingPrice || '暂未参加活动' }}</span>
+                        促销活动价：<span class="text-[#1677ff]">{{ record.marketingPrice || '暂未参加活动' }}</span>
                       </div>
                       <div>
-                        <div style="display: flex">
+                        <div class="flex">
                           <span>内容质量分:</span>
                           <div v-if="record.productsScore">
                             <a-popover placement="right" :overlayInnerStyle="{ width: '400px' }" trigger="click">
@@ -282,7 +279,7 @@
                                 <div class="scoreItem">
                                   <div class="flex justify-between">
                                     <div>
-                                      <span style="font-weight: bold"> 搜索属性</span>
+                                      <span class="font-bold"> 搜索属性</span>
                                       <a-tooltip placement="right" :overlayInnerStyle="{ width: '300px' }" color="#fff">
                                         <template #title>
                                           <span class="m-2.5 font-black text-black">{{ discLists[0].title }} </span>
@@ -300,7 +297,7 @@
                                     </div>
                                   </div>
                                   <div>
-                                    <span style="color: #999">至少填写{{ record.productsScore[0].groups[0].improveAtLeast
+                                    <span class="text-[#999]">至少填写{{ record.productsScore[0].groups[0].improveAtLeast
                                     }}个属性可得最大分数</span>
                                     <ul>
                                       <li v-for="(item, index) in record.productsScore[0].groups[0].improveAttributes"
@@ -313,7 +310,7 @@
                                 <div class="scoreItem">
                                   <div class="flex justify-between">
                                     <div>
-                                      <span style="font-weight: bold">其他属性</span>
+                                      <span class="font-bold">其他属性</span>
                                       <a-tooltip placement="right" :overlayInnerStyle="{ width: '300px' }" color="#fff">
                                         <template #title>
                                           <span class="m-2.5 font-black text-black">{{ discLists[1].title }} </span>
@@ -331,7 +328,7 @@
                                     </div>
                                   </div>
                                   <div>
-                                    <span style="color: #999">至少填写{{ record.productsScore[0].groups[1].improveAtLeast
+                                    <span class="text-[#999]">至少填写{{ record.productsScore[0].groups[1].improveAtLeast
                                     }}个属性可得最大分数</span>
                                     <ul>
                                       <li v-for="(item, index) in record.productsScore[0].groups[1].improveAttributes"
@@ -344,7 +341,7 @@
                                 <div class="scoreItem">
                                   <div class="flex justify-between">
                                     <div>
-                                      <span style="font-weight: bold">描述和丰富内容</span>
+                                      <span class="font-bold">描述和丰富内容</span>
                                       <a-tooltip placement="right" :overlayInnerStyle="{ width: '300px' }" color="#fff">
                                         <template #title>
                                           <span class="m-2.5 font-black text-black">{{ discLists[2].title }} </span>
@@ -362,7 +359,7 @@
                                     </div>
                                   </div>
                                   <div>
-                                    <span style="color: #999">至少填写{{ record.productsScore[0].groups[2].improveAtLeast
+                                    <span class="text-[#999]">至少填写{{ record.productsScore[0].groups[2].improveAtLeast
                                     }}个属性可得最大分数</span>
                                     <ul>
                                       <li v-for="(item, index) in record.productsScore[0].groups[2].improveAttributes"
@@ -375,7 +372,7 @@
                                 <div class="scoreItem">
                                   <div class="flex justify-between">
                                     <div>
-                                      <span style="font-weight: bold">图片和视频</span>
+                                      <span class="font-bold">图片和视频</span>
                                       <a-tooltip placement="right" :overlayInnerStyle="{ width: '300px' }" color="#fff">
                                         <template #title>
                                           <span class="m-2.5 font-black text-black">{{ discLists[3].title }} </span>
@@ -393,7 +390,7 @@
                                     </div>
                                   </div>
                                   <div>
-                                    <span style="color: #999">至少填写{{ record.productsScore[0].groups[3].improveAtLeast
+                                    <span class="text-[#999]">至少填写{{ record.productsScore[0].groups[3].improveAtLeast
                                     }}个属性可得最大分数</span>
                                     <ul>
                                       <li>Ozon视频： 链接</li>
@@ -402,7 +399,7 @@
                                   </div>
                                 </div>
                               </template>
-                              <span style="margin-left: 10px; color: #1677ff; cursor: pointer">{{
+                              <span class="text-[#1677ff] cursor-pointer ml-2.5">{{
                                 record.productsScore[0].rating }}分</span>
                             </a-popover>
                           </div>
@@ -412,7 +409,7 @@
                     </div>
                   </div>
                   <div v-else-if="column.dataIndex === 'price'">
-                    <span style="color: #1677ff" v-if="!(priceVisible && itemId == record.id)">{{ record.currencyCode }}
+                    <span class="text-[#1677ff]" v-if="!(priceVisible && itemId == record.id)">{{ record.currencyCode }}
                       {{ record.price
                       }}</span>
                     <div v-else class="inline-block">
@@ -422,11 +419,11 @@
                       <a-button type="primary" @click="checkOldPrice(record)">确定</a-button>
                     </div>
                     <AsyncIcon v-if="!(priceVisible && itemId == record.id)" icon="EditOutlined"
-                      style="cursor: pointer; color: #1677ff" @click="editSinglePrice(record)">
+                      class="cursor-pointer text-[#1677ff]" @click="editSinglePrice(record)">
                     </AsyncIcon>
                   </div>
                   <div v-else-if="column.dataIndex === 'oldPrice'">
-                    <span style="color: #1677ff" v-if="!(singleVisible && itemId == record.id)">{{ record.currencyCode
+                    <span class="text-[#1677ff]" v-if="!(singleVisible && itemId == record.id)">{{ record.currencyCode
                     }} {{
                         record.oldPrice }}</span>
                     <div v-else class="inline-block">
@@ -435,12 +432,12 @@
                       <a-button class="mr-2.5" @click="singleVisible = false">取消</a-button>
                       <a-button type="primary" @click="checkOldPrice(record)">确定</a-button>
                     </div>
-                    <AsyncIcon v-if="!(singleVisible && itemId == record.id)" style="cursor: pointer; color: #1677ff"
+                    <AsyncIcon v-if="!(singleVisible && itemId == record.id)" class="cursor-pointer text-[#1677ff]"
                       icon="EditOutlined" @click="handelEditPrice(record)">
                     </AsyncIcon>
                   </div>
                   <div v-else-if="column.dataIndex === 'minPrice'">
-                    <span style="color: #1677ff" v-if="record.minPrice && !(minPriceVisible && itemId == record.id)">{{
+                    <span class="text-[#1677ff]" v-if="record.minPrice && !(minPriceVisible && itemId == record.id)">{{
                       record.currencyCode }} {{ record.minPrice }}</span><span v-if="!record.minPrice">---</span>
                     <div v-if="minPriceVisible && itemId == record.id" class="inline-block">
                       <a-input-number class="mr-2.5 w-30" v-model:value="record.minPrice" placeholder="请输原价格" :min="0"
@@ -449,26 +446,26 @@
                       <a-button type="primary" @click="checkOldPrice(record)">确定</a-button>
                     </div>
                     <AsyncIcon v-if="!(minPriceVisible && itemId == record.id) && record.minPrice"
-                      style="cursor: pointer; color: #1677ff" icon="EditOutlined" @click="handelEditminPrice(record)">
+                      class="cursor-pointer text-[#1677ff]" icon="EditOutlined" @click="handelEditminPrice(record)">
                     </AsyncIcon>
                   </div>
                   <div v-else-if="column.dataIndex === 'stock'">
-                    <a-tooltip style="margin-right: 10px" effect="dark" placement="top" v-if="record.warehouseList">
+                    <a-tooltip class="mr-2.5" effect="dark" placement="top" v-if="record.warehouseList">
                       <template #title>
                         <div v-for="(item, index) in record.warehouseList" :key="index">
                           <span>{{ item.warehouseName }}</span>:
                           <span>{{ item.present || 0 }}</span>
                         </div>
                       </template>
-                      <span style="color: #1677ff">{{ record.stock }}</span>
+                      <span class="text-[#1677ff]">{{ record.stock }}</span>
                     </a-tooltip>
-                    <span v-else style="color: #1677ff; margin-right: 10px">{{ record.stock }}</span>
-                    <AsyncIcon style="cursor: pointer; color: #1677ff" icon="EditOutlined"
+                    <span v-else class="text-[#1677ff]">{{ record.stock }}</span>
+                    <AsyncIcon class="cursor-pointer text-[#1677ff]" icon="EditOutlined"
                       v-if="record.state != '审核不通过' && record.state != '已归档'" @click="editStock(record)"></AsyncIcon>
                   </div>
                   <div v-else-if="column.dataIndex === 'errorInfo'">
                     <div v-if="record.errors != null">
-                      <div style="display: flex">
+                      <div class="flex">
                         <div>
                           详细描述:
                           <a-popover :overlayInnerStyle="{ width: '1000px' }" trigger="click">
@@ -478,25 +475,24 @@
                               </a-table>
                             </template>
                             <a-button type="primary" :disabled="record.errors && record.errors.length == 0"
-                              style="margin-left: 20px">更多信息</a-button>
+                              class="ml-5">更多信息</a-button>
                           </a-popover>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div v-else-if="column.dataIndex === 'createdAt'"
-                    style="display: flex; flex-direction: column; align-items: flex-start">
+                  <div v-else-if="column.dataIndex === 'createdAt'" class="flex flex-col items-start">
                     <div>
-                      创建时间：<span style="color: #9e9f9e">{{ timestampToDateTime(record.createTime) }}</span>
+                      创建时间：<span class="text-[#9e9f9e]">{{ timestampToDateTime(record.createTime) }}</span>
                     </div>
                     <div>
-                      更新时间：<span style="color: #9e9f9e">{{ timestampToDateTime(record.updateTime) }}</span>
+                      更新时间：<span class="text-[#9e9f9e]">{{ timestampToDateTime(record.updateTime) }}</span>
                     </div>
                   </div>
                   <div v-else-if="column.dataIndex === 'option'">
                     <a-row>
                       <a-col :span="11" v-if="record.state !== '已归档'">
-                        <a-button @click.stop="edit(record,'single')" type="text" style="color: #0b56fa">编辑</a-button>
+                        <a-button @click.stop="edit(record, 'single')" type="text" class="text-[#0b56fa]">编辑</a-button>
 
                       </a-col>
                       <a-col :span="11">
@@ -532,10 +528,9 @@
               </a-table>
             </div>
           </div>
-          <a-pagination style="margin: 20px 0 10px 0; text-align: right" :show-total="total => `共 ${total} 条`"
-            v-model:current="paginations.pageNum" v-model:pageSize="paginations.pageSize" :total="paginations.total"
-            class="pages" :show-quick-jumper="true" @change="getList" :showSizeChanger="true"
-            :pageSizeOptions="[50, 100, 200]" />
+          <a-pagination :show-total="total => `共 ${total} 条`" v-model:current="paginations.pageNum"
+            v-model:pageSize="paginations.pageSize" :total="paginations.total" class="pages mt-5 mb-2.5 text-right"
+            :show-quick-jumper="true" @change="getList" :showSizeChanger="true" :pageSizeOptions="[50, 100, 200]" />
         </a-card>
       </div>
     </div>
@@ -1446,7 +1441,7 @@ const edit = (row = {}, type) => {
   let offerIds = [];
   if (type == "single") {
     offerIds.push(row.offerId);
-  }else if (type == "all") {
+  } else if (type == "all") {
     offerIds = row.children.map((item) => item.offerId);
   }
 
@@ -1454,7 +1449,7 @@ const edit = (row = {}, type) => {
   params.append('id', JSON.stringify(offerIds));
   params.append('account', row.account);
   window.open(`editProductPublish?${params.toString()}`, "_blank");
-  
+
 };
 const sync = () => {
   syncLoading.value = true;

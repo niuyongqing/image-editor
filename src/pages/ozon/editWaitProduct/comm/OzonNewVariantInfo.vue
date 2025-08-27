@@ -1,13 +1,13 @@
 <template>
   <div id="OzonNewVariantInfoCont">
-    <a-card title="SKU信息" class="text-left text-16px" :loading="categoryAttributesLoading">
-      <a-card class="mx-50">
+    <a-card title="SKU信息" class="text-left text-16px">
+      <a-card class="mx-50" :loading="loading">
         <template #title>
           <div class="flex align-center justify-between">
             <span class="text-left text-16px">变种属性</span>
-            <!-- <div>
+            <div>
               <FileOutlined /><a-select v-model:value="templateValue" show-search placeholder="请选择引用模板"
-                class="w300px mx10px" :options="tempList" :filter-option="filterOption" @change="handleChangeTemplate">
+                class="w300px mx10px" :options="tempList" optionFilterProp="label" @change="handleChangeTemplate">
                 <template #dropdownRender="{ menuNode: menu }">
                   <v-nodes :vnodes="menu" />
                   <a-divider style="margin: 4px 0" />
@@ -16,12 +16,12 @@
                       <template #icon>
                         <SettingOutlined />
                       </template>
-管理模板
-</a-button>
-</a-space>
-</template>
-</a-select>
-</div> -->
+                      管理模板
+                    </a-button>
+                  </a-space>
+                </template>
+              </a-select>
+            </div>
           </div>
         </template>
         <div>
@@ -91,7 +91,7 @@
           </a-card>
         </div>
       </a-card>
-      <a-card title="变种信息" class="text-left mt-5 z-11 relative">
+      <a-card title="变种信息" class="text-left mt-5 z-11 relative" :loading="loading">
         <!-- 自定义变种信息 -->
         <div class="flex mb-2.5">
           <a-checkbox-group v-model:value="addHeaderList" @change="changeHeade" :disabled="tableData.length == 0"
@@ -303,7 +303,9 @@
         </a-table>
       </a-card>
       <!-- 图片信息 -->
-      <ImageInfo :data-source="tableData" :water-mark-options="watermark" :attr-list="attrList" />
+      <ImageInfo :data-source="tableData" :templateLoading="loading" :water-mark-options="watermark"
+        :attr-list="attrList" />
+
     </a-card>
     <!-- 修改库存 -->
     <EditProdQuantity @backQuantity="backQuantity" :editQuantityVis="editQuantityVis" :editStockList="editStockList"
@@ -362,10 +364,10 @@ import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js';
 import { FileOutlined, SettingOutlined, DownOutlined } from '@ant-design/icons-vue';
 import { v4 as uuidv4 } from 'uuid'
 import ImageInfo from '@/pages/ozon/config/component/image-info/index.vue'
+import { t } from "@wangeditor/editor";
 
 
 const props = defineProps({
-  categoryAttributesLoading: Boolean,
   productDetail: Object,
   shopCode: String,
   existProductData: Object,
@@ -424,6 +426,8 @@ const plainOptions = [
 ];
 const otherHeader = otherList;
 let isConform = false;
+const loading = ref(false)
+
 const headers = {
   Authorization: "Bearer " + useAuthorization().value,
 };
@@ -431,6 +435,7 @@ const uploadUrl =
   import.meta.env.VITE_APP_BASE_API +
   "/platform-ozon/platform/ozon/file/upload/img";
 
+const ozonStore = useOzonProductStore()
 // 监听 attributeList, 获取变种名列表
 const attrList = ref([])
 watch(() => attributeList.value, () => {
@@ -480,175 +485,28 @@ const searchTemp = (obj) => {
   })
 }
 
-// 选择模板
+// 选择变种模板
 const handleChangeTemplate = (value) => {
-  let items = tempList.value.find(item => item.value == value) || {}
-  const { content: { variantTemplate: { variantAttr } }, category } = items;
-  // templateValue.value = value;
-  emit("getAttributes", props.shopCode, category);
-  const val = useOzonProductStore().attributes;
-  let arr = val.filter((obj) => obj.isAspect);
-  isConform = checkData(arr);
-  const requiredItem = arr.some((item) => item.isRequired === true);
-  let sortArr = rearrangeColorFields(arr);
-  //判断主题中是否有颜色名称，且商品颜色是不是必填项
-  if (requiredItem) {
-    if (isConform) {
-      requiredList.value = arr.filter((obj) => obj.isRequired);
-      // 将arr转换为ID索引对象，提高查找效率
-      const arrById = arr.reduce((acc, item) => {
-        acc[item.id] = item;
-        return acc;
-      }, {});
-      // 检查并添加依赖项
-      dependencyMap.forEach((addId, targetId) => {
-        // 检查目标ID是否存在
-        if (requiredList.value.some((item) => item.id === targetId)) {
-          // 获取要添加的对象
-          const itemToAdd = arrById[addId];
-          // 检查是否已存在且对象存在
-          if (
-            itemToAdd &&
-            !requiredList.value.some((item) => item.id === addId)
-          ) {
-            requiredList.value.push(itemToAdd);
-          }
-        }
-      });
-      // if (requiredList.value.some(item => (item.id === 10096))) {
-      //     requiredList.value.push(arr.find(obj => obj.id === 10097))
-      // }
-      themeBtns.value = arr.filter(
-        (obj) => !(obj.isRequired || obj.id === 10097 || obj.id === 9533) //obj.id === 9533
-      );
-      requiredList.value = reorderArray(requiredList.value);
-    } else {
-      themeBtns.value = arr.filter((obj) => !obj.isRequired);
-      requiredList.value = arr.filter((obj) => obj.isRequired);
-    }
-  } else {
-    if (isConform) {
-      themeBtns.value = arr.filter(
-        (obj) => !(obj.isRequired || obj.id === 10097)
-      );
-    } else {
-      themeBtns.value = arr.filter((obj) => !obj.isRequired);
-    }
-  }
-  let result = [];
-  let attrHeaderList = [];
-  const uniqueArr = [];
-  const titleSet = new Set();
-  // 遍历b中的skuList
-  variantAttr.forEach((sku) => {
-    let newItem = {
-      oldPrice: "",
-      price: "",
-      quantity: "",
-      packageHeight: "",
-      packageLength: "",
-      packageWeight: "",
-      packageWidth: "",
-      colorImg: [],
-      warehouseList: [],
-      sellerSKU: "",
-      imageUrl: [],
-    };
+  Modal.confirm({
+    title: '引用变种模板',
+    content: '引用模板会清空现有变种信息，请确认是否继续引用模板？',
+    onOk: () => {
+      let items = tempList.value.find(item => item.value == value) || {}
+      const { category } = items;
+      ozonStore.$patch(state => {
+        state.dataType = "template"
+      })
+      templateValue.value = value;
+      loading.value = true
 
-    // 遍历a数组
-    sortArr.forEach((attr) => {
-      // 遍历sku的attributes中的每个attributes
-      sku.attributes.forEach((subAttr) => {
-        if (subAttr.id == attr.id) {
-          if (attr.selectType === "multSelect" && attr.options) {
-            let values = subAttr.values.map((val) => {
-              let option = attr.options.find(
-                (opt) => opt.id == val.dictionaryValueId
-              );
-              return option ? option.value : val.value;
-            });
-            newItem[attr.name] = values.join(", ");
-          } else if (attr.selectType === "select" && attr.options) {
-            let values = subAttr.values.map((val) => {
-              let option = attr.options.find(
-                (opt) => opt.id == val.dictionaryValueId
-              );
-              return option ? option.value : val.value;
-            });
-            newItem[attr.name] = values.join(", ");
-          } else {
-            newItem[attr.name] = subAttr.values[0].value;
-          }
-          attrHeaderList.push({
-            title: attr.name,
-            dataIndex: attr.name,
-            id: attr.id,
-            show: true,
-            align: "center",
-          });
-        }
-      });
-    });
-
-    result.push(newItem);
+      emit("getAttributes", props.shopCode, category);
+    },
+    onCancel: () => {
+      console.log('cancel');
+    },
   });
-  // 公共方法将数据回显到表格
-  // optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, variantAttr);
-
-  // 处理数据回显到表格
-  attrHeaderList = [
-    ...new Map(
-      attrHeaderList.map((item) => [item.dataIndex, item])
-    ).values(),
-  ];
-
-  [...attrHeaderList, ...headerList.value].forEach((item) => {
-    if (!titleSet.has(item.title)) {
-      titleSet.add(item.title);
-      uniqueArr.push(item);
-    }
-  });
-
-  headerList.value = uniqueArr; //表格主题标题赋值
-
-  tableData.value = result;
-
-
-  // 将不匹配的主题过滤掉
-  let comAttrList = [10096, 4295];
-  let comAttrs = [10096, 10097];
-  // 从数组 a 中提取所有的 id
-  const idsInA = sortArr.map((item) => item.id);
-  // 使用 every 方法检查 comAttrList 中的每个元素是否都在 idsInA 中
-  const isAllMatched = comAttrList.every((id) => idsInA.includes(id)); //双组合主题
-  const isAllMatche = comAttrs.some((id) => idsInA.includes(id)); //单组合主题
-  let filteredB = sortArr.filter((itemB) =>
-    uniqueArr.some((itemA) => itemA.id === itemB.id)
-  );
-  let echoThemeList = [];
-  let isModelValueList = [];
-  // 判断sortArr中是否有组合数据
-  if (isAllMatched) {
-    echoThemeList = handleTheme(sortArr); //handleTheme方法可以将属性转换成主题数据格式
-  } else if (isAllMatche) {
-    echoThemeList = handleTheme(filteredB);
-  } else {
-    isModelValueList = filterModelValues(sortArr, variantAttr);
-    echoThemeList = handleTheme(isModelValueList);
-  }
-  // 处理到数据回显到主题
-  const aIds = echoThemeList.map((item) => item.id);
-  // 过滤 有数据的主题
-  themeBtns.value = themeBtns.value.filter(
-    (item) => !aIds.includes(item.id)
-  );
-  attributeList.value = matchAndAssignValues(echoThemeList, variantAttr);
 }
 
-// 模板搜索
-const filterOption = (input, option) => {
-  return option.value.toLowerCase().indexOf(input.toLowerCase()) >= 0;
-};
 // 批量设置变种属性
 const setColor = (row) => {
   colorRow.value = row;
@@ -1151,7 +1009,7 @@ const changeHeade = () => {
     }
   });
 
-  const ozonStore = useOzonProductStore()
+
   ozonStore.$patch(state => {
     state.addHeaderList = addHeaderList.value
   })
@@ -1423,6 +1281,9 @@ watch(
       let attrHeaderList = [];
       const uniqueArr = [];
       const titleSet = new Set();
+      console.log("sortArr", sortArr);
+
+
       if (useOzonProductStore().dataType === "edit") {
         // 待发布编辑
         const { skuList } = props.productDetail;
@@ -1452,6 +1313,15 @@ watch(
           result.push(newItem);
         })
         optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, databaseSkuList);
+      } else if (useOzonProductStore().dataType === "template") {
+        let items = tempList.value.find(item => item.value == templateValue.value) || {}
+        const { content: { variantTemplate: { variantAttr } } } = items;
+        variantAttr.forEach(sku => {
+          const newItem = createNewItem(sku, {});
+          processAttributes(sortArr, sku, newItem, attrHeaderList);
+          result.push(newItem);
+        })
+        optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, variantAttr);
       } else {
         tableData.value.push({
           skuTitle: "",
@@ -1574,8 +1444,9 @@ const mergeAndDeduplicateImages = (dataSource, sku) => {
 
 // 定义常量
 const CONSTANTS = {
-  COM_ATTR_LIST: [10096, 4295],
-  COM_ATTRS: [10096, 10097],
+  COM_ATTR_LIST: [10096, 4295], // 双主题
+  COM_ATTRS: [10096, 10097], // 单主题
+
   TABLE_HEADER: {
     COLOR_IMG: { title: "颜色样本", dataIndex: "colorImg", selectType: "url", type: 1, show: true, align: "center" },
     SKU_TITLE: { title: "SKU标题", dataIndex: "skuTitle", selectType: "input", type: 1, options: null, show: true, align: "center" }
@@ -1604,6 +1475,7 @@ const optimizeMethods = (attrHeaderList, titleSet, sortArr, uniqueArr, result, s
   const filteredB = sortArr.filter(itemB => uniqueArr.some(itemA => itemA.id === itemB.id));
   headerList.value = customSort(uniqueArr);
 
+
   // 添加颜色样本列
   if (result.some(item => item.colorImg.length)) {
     headerList.value.unshift(CONSTANTS.TABLE_HEADER.COLOR_IMG);
@@ -1619,16 +1491,21 @@ const optimizeMethods = (attrHeaderList, titleSet, sortArr, uniqueArr, result, s
   }
 
   tableData.value = result;
-
-  // 处理主题数据
-  const echoThemeList = hasDualTheme && hasSingleTheme
-    ? handleTheme(filteredB)
-    : handleTheme(filterModelValues(sortArr, skuList));
-
+  // 处理主题数据 旧逻辑
+  // const echoThemeList = hasDualTheme && hasSingleTheme
+  //   ? handleTheme(filteredB)
+  //   : handleTheme(filterModelValues(sortArr, skuList));
+  
+  // 处理主题数据 新逻辑
+  const echoThemeList = handleTheme(filteredB)
   // 过滤已有数据的主题
   const aIds = echoThemeList.map(item => item.id);
   themeBtns.value = themeBtns.value.filter(item => !aIds.includes(item.id));
   attributeList.value = matchAndAssignValues(echoThemeList, skuList);
+  if (useOzonProductStore().dataType === "template") {
+    loading.value = false
+    message.success("变种变种模板应用成功")
+  }
 }
 
 const filterModelValues = (sortArr, skuList) => {

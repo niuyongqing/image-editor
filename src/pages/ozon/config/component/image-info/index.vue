@@ -3,6 +3,7 @@
   <a-card
     title="图片信息"
     class="mt-5 mx-50"
+    :loading="templateLoading"
   >
     <a-tag
       color="blue"
@@ -102,7 +103,7 @@
               v-for="(key, i) in attrKeyList"
               :key="i"
             >
-              {{ `${key}: ${SKU[key]}` }}
+              {{ `${key}: ${SKU[key] ? SKU[key] : '--'}` }}
             </div>
           </div>
         </div>
@@ -300,6 +301,10 @@
     maxCount: {
       type: Number,
       default: 30
+    },
+    templateLoading: {
+      type: Boolean,
+      default: false
     }
   })
 

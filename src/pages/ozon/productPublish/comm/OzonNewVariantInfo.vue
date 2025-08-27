@@ -1,13 +1,13 @@
 <template>
   <div id="OzonNewVariantInfoCont">
-    <a-card title="SKU信息" class="text-left text-16px" :loading="categoryAttributesLoading">
+    <a-card title="SKU信息" class="text-left text-16px">
       <a-card class="mx-50">
         <template #title>
           <div class="flex align-center justify-between">
             <span class="text-left text-16px">变种属性</span>
             <!-- <div>
               <FileOutlined /><a-select v-model:value="templateValue" show-search placeholder="请选择引用模板"
-                class="w300px mx10px" :options="templateList" :filter-option="filterOption">
+                class="w300px mx10px" :options="templateList" optionFilterProp="label">
                 <template #dropdownRender="{ menuNode: menu }">
                   <v-nodes :vnodes="menu" />
                   <a-divider style="margin: 4px 0" />
@@ -365,7 +365,6 @@ import ImageInfo from '@/pages/ozon/config/component/image-info/index.vue'
 const emit = defineEmits(["getAttributes"]);
 
 const props = defineProps({
-  categoryAttributesLoading: Boolean,
   shopCode: String,
   existProductData: Object,
   databaseProduct: Object,
@@ -459,11 +458,6 @@ const handleChangeColroImg = (info, record) => {
 
 const tempPage = () => {
   window.open("userTemplate", "_blank");
-};
-
-// 模板搜索
-const filterOption = (input, option) => {
-  return option.value.toLowerCase().indexOf(input.toLowerCase()) >= 0;
 };
 
 const setColor = (row) => {
