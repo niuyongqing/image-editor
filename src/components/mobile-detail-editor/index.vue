@@ -129,7 +129,7 @@
                   <a-button
                     type="text"
                     title="删除"
-                    @click.stop="moduleDel"
+                    @click.stop="moduleDel(item.id)"
                   >
                     <DeleteOutlined />
                   </a-button>
@@ -251,7 +251,7 @@
               <a-button
                 type="text"
                 title="删除"
-                @click="moduleDel"
+                @click="moduleDel(item.id)"
               >
                 <DeleteOutlined />
               </a-button>
@@ -705,8 +705,8 @@
   }
   // 向下插入更多(文字, 图片, 图文)
   // function moduleMore() {}
-  function moduleDel() {
-    moduleList.value.splice(activeModuleIndex.value, 1)
+  function moduleDel(id) {
+    moduleList.value = moduleList.value.filter(item => item.id !== id)
     closeModule()
   }
 

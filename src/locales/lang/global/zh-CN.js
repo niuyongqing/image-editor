@@ -64,6 +64,7 @@ export default {
   'app.multiTab.closeOther': '关闭其他',
   'app.multiTab.closeAll': '关闭全部',
   'app.multiTab.refresh': '刷新当前',
+  'app.multiTab.openInNewTab': '在新标签页中打开',
   'app.multiTab.closeRight': '关闭右侧',
   'app.multiTab.closeLeft': '关闭左侧',
   // menu菜单
@@ -131,5 +132,5 @@ export default {
   'menu.account.center': '个人中心',
   'menu.account.settings': '个人设置',
   'menu.account.trigger': '触发报错',
-  'menu.account.logout': '退出登录',
+  'menu.account.logout': '退出登录'
 }

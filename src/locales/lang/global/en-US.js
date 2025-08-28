@@ -64,6 +64,7 @@ export default {
   'app.multiTab.closeOther': 'Close Other',
   'app.multiTab.closeAll': 'Close All',
   'app.multiTab.refresh': 'Refresh',
+  'app.multiTab.openInNewTab': 'Open In New Tab',
   'app.multiTab.closeRight': 'Close Right',
   'app.multiTab.closeLeft': 'Close Left',
   // Menu
@@ -131,5 +132,5 @@ export default {
   'menu.account.center': 'Account Center',
   'menu.account.settings': 'Account Settings',
   'menu.account.trigger': 'Trigger Error',
-  'menu.account.logout': 'Logout',
+  'menu.account.logout': 'Logout'
 }
