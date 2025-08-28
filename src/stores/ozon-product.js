@@ -7,6 +7,7 @@ export const useOzonProductStore = defineStore('OzonProductStore', {
       variant: {}, // 三级分类ID和店铺ID
       dataType: '',  // 待发布编辑存储数据来源  编辑/现有产品/资料库
       templateType: '',  // 编辑模板类型 
+      dataLoading: false,
     }
   }
 })
