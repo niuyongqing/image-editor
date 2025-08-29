@@ -1273,6 +1273,7 @@ watch(
       //       a.attributeComplexId == "100001" || a.attributeComplexId == "100002"
       //     )
       // );
+
       if (requiredList.value.length != 0) {
         processDataFormat(requiredList.value);
       }
@@ -1335,7 +1336,6 @@ const processAttributes = (sortArr, sku, newItem, attrHeaderList) => {
   sortArr.forEach(attr => {
     const subAttr = sku.attributes.find(item => item.id === attr.id);
     if (!subAttr) return;
-
     const values = subAttr.values.map(val => {
       if (attr.options && ["multSelect", "select"].includes(attr.selectType)) {
         const option = attr.options.find(opt => opt.id === val.dictionaryValueId);
@@ -1343,7 +1343,6 @@ const processAttributes = (sortArr, sku, newItem, attrHeaderList) => {
       }
       return val.value;
     });
-
     newItem[attr.name] = values.join(", ");
     addAttributeHeader(attr, attrHeaderList);
   });

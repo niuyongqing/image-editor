@@ -364,7 +364,6 @@ import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js';
 import { FileOutlined, SettingOutlined, DownOutlined } from '@ant-design/icons-vue';
 import { v4 as uuidv4 } from 'uuid'
 import ImageInfo from '@/pages/ozon/config/component/image-info/index.vue'
-import { t } from "@wangeditor/editor";
 
 
 const props = defineProps({
@@ -438,13 +437,11 @@ const uploadUrl =
 
 const loading = computed(() => ozonStore.dataLoading)
 
-
 // 监听 attributeList, 获取变种名列表
 const attrList = ref([])
 watch(() => attributeList.value, () => {
   attrList.value = attributeList.value.map(item => item.tableColumns.slice(0, -1).map(column => column.title))
 })
-
 
 const handleChangeColroImg = (info, record) => {
   if (info.file.status === "done") {
