@@ -157,7 +157,7 @@ function addClassifyOk() {
         <a-form-item label="权限字符" name="permission" :rules="[{ required: false }]">
           <a-input v-model:value="formData.permission" />
         </a-form-item>
-        <a-form-item label="组件路径" name="component" v-if="formData.type != 3" :rules="[{ required: false }]">
+        <a-form-item label="组件路径" name="component" v-if="formData.type != 3" :rules="[{ required: true }]">
           <a-input v-model:value='formData.component' />
         </a-form-item>
         <a-form-item label="路由" name="path" v-if="formData.type != 3" :rules="[{ required: true, message: '请输入路由地址'}]">

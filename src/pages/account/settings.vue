@@ -9,12 +9,11 @@ const userInfo = useUserStore().userInfo
 const loading = ref(false)
 const icon = Icons;
 const formData = ref({})
-const authorization = ref("")
+const headers = { Authorization: useAuthorization().value }
 const activeKey = ref("1")
 const passwordFormData = ref({})
 
 watchEffect(()=>{
-  authorization.value = window.localStorage.getItem("Authorization");
   formData.value = userInfo.sysUser
 })
 const beforeUpload = (file) =>{
@@ -92,7 +91,7 @@ const labelCol = {
                         v-model:file-list="fileList"
                         name="avatarfile"
                         accept=".jpg,.png,.png"
-                        :headers="{Authorization:`Bearer ${authorization}`}"
+                        :headers="headers"
                         list-type="picture-card"
                         class="avatar-uploader"
                         :show-upload-list="false"

@@ -24,7 +24,7 @@ export default {
   "leftCollapsed":true,
   "compactAlgorithm":true,
   "headerHeight":48,
-  "copyright":"Xin Zhan Technology 2024",
+  "copyright":"Xin Zhan Technology 2025",
   "animationName":"none"
 }
 export const animationNameList = [

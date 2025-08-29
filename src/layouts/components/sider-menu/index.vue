@@ -3,7 +3,9 @@
 import {message} from "ant-design-vue";
 import { useLayoutState } from '../../basic-layout/context.js'
 import Menu from '../menu/index.vue'
-import {useUserStore} from '~/stores/user.js'
+import { useUserStore } from '~/stores/user.js'
+import { UserOutlined } from '@ant-design/icons-vue'
+
 const router = useRouter()
 const userStore = useUserStore()
 const multiTabStore = useMultiTab()
@@ -73,10 +75,7 @@ async function out(){
 </script>
 
 <template>
-  <div
-    v-if="fixedSider"
-
-  />
+  <div v-if="fixedSider"/>
   <a-layout-sider
       style="position: relative;z-index: 9999"
     v-if="splitMenus ? (selectedMenus ?? []).length > 0 : true"
@@ -98,7 +97,7 @@ async function out(){
     <div class="flex-1 of-x-hidden of-y-auto scrollbar">
       <Menu />
     </div>
-<!--    todo 个人设置菜单 -->
+    <!-- 个人设置菜单 -->
     <div
       v-if="!isMobile && leftCollapsed"
       @click="gotoSetting"
@@ -114,9 +113,12 @@ async function out(){
           </template>
           <div>
             <div style="display: flex;justify-content: center;border-radius: 50%">
-              <img v-if="userInfo" :src="`/prod-api${userInfo.sysUser.avatar}`" alt="avatar" style="width: 30px;height: 30px;border-radius: 50%" />
+              <img v-if="userInfo?.sysUser?.avatar" :src="`/prod-api${userInfo.sysUser.avatar}`" alt="avatar" style="width: 30px;height: 30px;border-radius: 50%" />
+              <a-avatar v-else :size="30">
+                <template #icon><UserOutlined /></template>
+              </a-avatar>
             </div>
-            <div  style="font-size: 12px;font-weight: bolder; display: flex; justify-content: center; align-items: center;margin-top: 5px">{{userInfo?userInfo.username:""}}</div>
+            <div class="truncate font-bold p-1" :text="userInfo?.userInfo?.username">{{userInfo?userInfo.username:""}}</div>
           </div>
         </a-popover>
       </div>
