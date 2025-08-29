@@ -364,7 +364,6 @@ import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js';
 import { FileOutlined, SettingOutlined, DownOutlined } from '@ant-design/icons-vue';
 import { v4 as uuidv4 } from 'uuid'
 import ImageInfo from '@/pages/ozon/config/component/image-info/index.vue'
-import { t } from "@wangeditor/editor";
 
 
 const props = defineProps({
@@ -426,7 +425,7 @@ const plainOptions = [
 ];
 const otherHeader = otherList;
 let isConform = false;
-const loading = ref(false)
+const ozonStore = useOzonProductStore()
 
 const headers = {
   Authorization: "Bearer " + useAuthorization().value,
@@ -435,13 +434,14 @@ const uploadUrl =
   import.meta.env.VITE_APP_BASE_API +
   "/platform-ozon/platform/ozon/file/upload/img";
 
-const ozonStore = useOzonProductStore()
+
+const loading = computed(() => ozonStore.dataLoading)
+
 // 监听 attributeList, 获取变种名列表
 const attrList = ref([])
 watch(() => attributeList.value, () => {
   attrList.value = attributeList.value.map(item => item.tableColumns.slice(0, -1).map(column => column.title))
 })
-
 
 const handleChangeColroImg = (info, record) => {
   if (info.file.status === "done") {
@@ -497,8 +497,9 @@ const handleChangeTemplate = (value) => {
         state.dataType = "template"
       })
       templateValue.value = value;
-      loading.value = true
-
+      ozonStore.$patch(state => {
+        state.dataLoading = true
+      })
       emit("getAttributes", props.shopCode, category);
     },
     onCancel: () => {
@@ -719,7 +720,7 @@ const selectAttrList = (list) => {
       headerList.value.splice(index + 1, 0, obj);
     }
   });
-  const displayAttr = useOzonProductStore().attributes;
+  const displayAttr = ozonStore.attributes;
   const idMap = new Map();
   list.forEach((item) => {
     idMap.set(item.id, true);
@@ -1207,7 +1208,7 @@ const dependencyMap = new Map([
 
 // 监听分类变化用于更新模板
 watch(
-  () => useOzonProductStore().variant,
+  () => ozonStore.variant,
   (val) => {
     if (val) {
       searchTemp(val)
@@ -1216,7 +1217,7 @@ watch(
 )
 
 watch(
-  () => useOzonProductStore().attributes,
+  () => ozonStore.attributes,
   (val) => {
     if (val) {
       themeBtns.value = [];
@@ -1281,10 +1282,8 @@ watch(
       let attrHeaderList = [];
       const uniqueArr = [];
       const titleSet = new Set();
-      console.log("sortArr", sortArr);
 
-
-      if (useOzonProductStore().dataType === "edit") {
+      if (ozonStore.dataType === "edit") {
         // 待发布编辑
         const { skuList } = props.productDetail;
         skuList.forEach(sku => {
@@ -1293,7 +1292,7 @@ watch(
           result.push(newItem);
         });
         optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, skuList);
-      } else if (useOzonProductStore().dataType === "existProduct") {
+      } else if (ozonStore.dataType === "existProduct") {
         // 引用现有产品
         const { attributes: existSkuList, oldPrice, price, stock, name, colorImage, warehouseList, offerId, images, primaryImage } = props.existProductData;
         existSkuList.forEach(sku => {
@@ -1304,7 +1303,7 @@ watch(
           result.push(newItem);
         });
         optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, existSkuList);
-      } else if (useOzonProductStore().dataType === "database") {
+      } else if (ozonStore.dataType === "database") {
         // 引用产品资料库
         const { skuList: databaseSkuList } = props.databaseProduct;
         databaseSkuList.forEach(sku => {
@@ -1313,7 +1312,7 @@ watch(
           result.push(newItem);
         })
         optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, databaseSkuList);
-      } else if (useOzonProductStore().dataType === "template") {
+      } else if (ozonStore.dataType === "template") {
         let items = tempList.value.find(item => item.value == templateValue.value) || {}
         const { content: { variantTemplate: { variantAttr } } } = items;
         variantAttr.forEach(sku => {
@@ -1456,9 +1455,9 @@ const CONSTANTS = {
 // 优化现有产品等方法
 const optimizeMethods = (attrHeaderList, titleSet, sortArr, uniqueArr, result, skuList) => {
   // 从数组 a 中提取所有的 id
-  const idsInA = sortArr.map(item => item.id);
-  const hasDualTheme = CONSTANTS.COM_ATTR_LIST.every(id => idsInA.includes(id));
-  const hasSingleTheme = CONSTANTS.COM_ATTRS.some(id => idsInA.includes(id));
+  // const idsInA = sortArr.map(item => item.id);
+  // const hasDualTheme = CONSTANTS.COM_ATTR_LIST.every(id => idsInA.includes(id));
+  // const hasSingleTheme = CONSTANTS.COM_ATTRS.some(id => idsInA.includes(id));
 
   // 处理数据回显到表格 - 使用Map去重
   attrHeaderList = [...new Map(attrHeaderList.map(item => [item.dataIndex, item])).values()];
@@ -1487,7 +1486,7 @@ const optimizeMethods = (attrHeaderList, titleSet, sortArr, uniqueArr, result, s
     const skuIndex = headerList.value.findIndex(item => item.title === "SKU");
     headerList.value.splice(skuIndex + 1, 0, CONSTANTS.TABLE_HEADER.SKU_TITLE);
     addHeaderList.value.push("skuTitle");
-    useOzonProductStore().$patch(state => state.addHeaderList = addHeaderList.value);
+    ozonStore.$patch(state => state.addHeaderList = addHeaderList.value);
   }
 
   tableData.value = result;
@@ -1502,8 +1501,10 @@ const optimizeMethods = (attrHeaderList, titleSet, sortArr, uniqueArr, result, s
   const aIds = echoThemeList.map(item => item.id);
   themeBtns.value = themeBtns.value.filter(item => !aIds.includes(item.id));
   attributeList.value = matchAndAssignValues(echoThemeList, skuList);
-  if (useOzonProductStore().dataType === "template") {
-    loading.value = false
+  ozonStore.$patch(state => {
+    state.dataLoading = false
+  })
+  if (ozonStore.dataType === "template") {
     message.success("变种变种模板应用成功")
   }
 }

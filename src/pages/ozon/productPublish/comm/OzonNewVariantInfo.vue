@@ -1,13 +1,13 @@
 <template>
   <div id="OzonNewVariantInfoCont">
     <a-card title="SKU信息" class="text-left text-16px">
-      <a-card class="mx-50">
+      <a-card class="mx-50" :loading="loading">
         <template #title>
           <div class="flex align-center justify-between">
             <span class="text-left text-16px">变种属性</span>
-            <!-- <div>
+            <div>
               <FileOutlined /><a-select v-model:value="templateValue" show-search placeholder="请选择引用模板"
-                class="w300px mx10px" :options="templateList" optionFilterProp="label">
+                class="w300px mx10px" :options="tempList" optionFilterProp="label" @change="handleChangeTemplate">
                 <template #dropdownRender="{ menuNode: menu }">
                   <v-nodes :vnodes="menu" />
                   <a-divider style="margin: 4px 0" />
@@ -16,12 +16,12 @@
                       <template #icon>
                         <SettingOutlined />
                       </template>
-管理模板
-</a-button>
-</a-space>
-</template>
-</a-select>
-</div> -->
+                      管理模板
+                    </a-button>
+                  </a-space>
+                </template>
+              </a-select>
+            </div>
           </div>
         </template>
         <div>
@@ -91,7 +91,7 @@
           </a-card>
         </div>
       </a-card>
-      <a-card title="变种信息" class="text-left mt-5 z-11 relative">
+      <a-card title="变种信息" class="text-left mt-5 z-11 relative" :loading="loading">
         <!-- 自定义变种信息 -->
         <div class="flex mb-2.5">
           <a-checkbox-group v-model:value="addHeaderList" @change="changeHeade" :disabled="tableData.length == 0"
@@ -172,7 +172,7 @@
             <template v-if="column.dataIndex === 'packageLength'">
               <span><span style="color: #ff0a37">*</span>
                 {{ column.title }}(mm)</span><a class="ml-1.25" @click="batchPackLength">批量</a>
-                <p>长*宽*高*重量</p>
+              <p>长*宽*高*重量</p>
             </template>
           </template>
           <template #bodyCell="{ column, record, index }">
@@ -192,7 +192,8 @@
               </a-upload>
             </template>
             <template v-if="column.dataIndex === 'skuTitle'">
-              <a-input class="min-w-200px" v-model:value="record.skuTitle" :title="record.skuTitle" size="middle"></a-input>
+              <a-input class="min-w-200px" v-model:value="record.skuTitle" :title="record.skuTitle"
+                size="middle"></a-input>
             </template>
             <template v-if="column.dataIndex === 'secondName'">
               <span class="min-w-200px">{{ record.secondName }}</span>
@@ -201,10 +202,10 @@
               <a-input v-model:value.trim="record.sellerSKU" @change="sellerSKUChange(record)" size="middle"></a-input>
             </template>
             <template v-if="!otherHeader.includes(column.dataIndex)">
-              <a-input v-if="column.selectType === 'input'" size="middle"
-                v-model:value="record[column.dataIndex]" class="min-w-200px"></a-input>
+              <a-input v-if="column.selectType === 'input'" size="middle" v-model:value="record[column.dataIndex]"
+                class="min-w-200px"></a-input>
               <a-select v-if="column.selectType === 'select'" size="middle" v-model:value="record[column.dataIndex]"
-              class="min-w-200px" :options="column.options"></a-select>
+                class="min-w-200px" :options="column.options"></a-select>
               <a-select v-if="column.selectType === 'multSelect'" :maxTagCount="2" size="middle"
                 v-model:value="record[column.dataIndex]" class="min-w-200px" :options="column.options"
                 mode="tags"></a-select>
@@ -213,7 +214,7 @@
               <div class="flex justify-center">
                 <a-input-number :min="0" size="middle" :max="99999999" :controls="false" :precision="2"
                   v-model:value="record.price" class="w-full" @blur="judgeMax(record)"></a-input-number>
-                  <a-dropdown>
+                <a-dropdown>
                   <AsyncIcon icon="CopyOutlined" class="ml-2.5 cursor-pointer" size="15px">
                   </AsyncIcon>
                   <template #overlay>
@@ -227,9 +228,9 @@
             </template>
             <template v-if="column.dataIndex === 'oldPrice'">
               <div class="flex justify-center">
-                <a-input-number :min="0" size="middle" :max="99999999"
-                  v-model:value="record.oldPrice" :precision="2" :controls="false" class="w-full" @blur="judgeMax(record)"></a-input-number>
-                  <a-dropdown>
+                <a-input-number :min="0" size="middle" :max="99999999" v-model:value="record.oldPrice" :precision="2"
+                  :controls="false" class="w-full" @blur="judgeMax(record)"></a-input-number>
+                <a-dropdown>
                   <AsyncIcon icon="CopyOutlined" class="ml-2.5 cursor-pointer" size="15px">
                   </AsyncIcon>
                   <template #overlay>
@@ -302,7 +303,8 @@
         </a-table>
       </a-card>
       <!-- 图片信息 -->
-      <ImageInfo :data-source="tableData" :water-mark-options="watermark" :attr-list="attrList" />
+      <ImageInfo :data-source="tableData" :templateLoading="loading" :water-mark-options="watermark"
+        :attr-list="attrList" />
     </a-card>
     <!-- 修改库存 -->
     <EditProdQuantity @backQuantity="backQuantity" :editQuantityVis="editQuantityVis" :editStockList="editStockList"
@@ -333,7 +335,7 @@ import {
   watermarkListApi,
   watermarkApi,
 } from "~/api/common/water-mark";
-import { productWarehouse } from "../../config/api/product";
+import { productWarehouse, templateList } from "../../config/api/product";
 import SelectAttr from "./SelectAttr.vue";
 import { useOzonProductStore } from "~@/stores/ozon-product";
 import batchEditModal from "~/pages/ozon/config/component/batchEditModal/index.vue";
@@ -406,16 +408,7 @@ const setValueVis = ref(false); //批量设置属性
 const setColorOption = ref([]);
 const colorRow = ref({});
 const templateValue = ref("")
-const templateList = ref([
-  {
-    label: "模板名称1",
-    value: "1",
-  },
-  {
-    label: "模板名称2",
-    value: "2",
-  }
-]);
+const tempList = ref([]);
 const plainOptions = [
   {
     label: "颜色样本",
@@ -427,7 +420,7 @@ const plainOptions = [
   },
 ];
 let otherHeader = otherList;
-
+const ozonStore = useOzonProductStore()
 const isConform = ref(false);
 const headers = {
   Authorization: "Bearer " + useAuthorization().value,
@@ -435,6 +428,8 @@ const headers = {
 const uploadUrl =
   import.meta.env.VITE_APP_BASE_API +
   "/platform-ozon/platform/ozon/file/upload/img";
+
+const loading = computed(() => ozonStore.dataLoading)
 
 // 监听 attributeList, 获取变种名列表
 const attrList = ref([])
@@ -456,9 +451,66 @@ const handleChangeColroImg = (info, record) => {
   }
 };
 
+// 监听分类变化用于更新模板
+watch(
+  () => ozonStore.variant,
+  (val) => {
+    if (val) {
+      searchTemp(val)
+    }
+  }
+)
+
 const tempPage = () => {
   window.open("userTemplate", "_blank");
 };
+
+// 查询主题模板
+const searchTemp = (obj) => {
+  templateList({
+    account: obj.shopId,
+    type: 3,
+    name: "",
+    threeCategoryId: obj.threeCategoryId,
+    pageNum: 1,
+    pageSize: 99,
+
+  }).then(res => {
+    if (res.code == 200) {
+      tempList.value = res.rows.map(item => {
+        return {
+          label: item.name,
+          value: item.id,
+          content: item.content,
+          category: item.category
+        }
+      }) || []
+    }
+  })
+}
+
+// 选择变种模板
+const handleChangeTemplate = (value) => {
+  Modal.confirm({
+    title: '引用变种模板',
+    content: '引用模板会清空现有变种信息，请确认是否继续引用模板？',
+    onOk: () => {
+      let items = tempList.value.find(item => item.value == value) || {}
+      const { category } = items;
+      ozonStore.$patch(state => {
+        state.dataType = "template"
+      })
+      templateValue.value = value;
+      ozonStore.$patch(state => {
+        state.dataLoading = true
+      })
+      emit("getAttributes", props.shopCode, category);
+    },
+    onCancel: () => {
+      console.log('cancel');
+    },
+  });
+}
 
 const setColor = (row) => {
   colorRow.value = row;
@@ -564,7 +616,7 @@ const selectAttrList = (list) => {
       headerList.value.splice(index + 1, 0, obj);
     }
   });
-  const displayAttr = useOzonProductStore().attributes;
+  const displayAttr = ozonStore.attributes;
   const idMap = new Map();
   list.forEach((item) => {
     idMap.set(item.id, true);
@@ -729,9 +781,9 @@ const addItem = (item, row) => {
 // 移除多个属性操作
 const removeItem = (item, row) => {
   let ind = row.tableData.indexOf(item);
-  if (item.id === 10096 || item.name == "商品颜色(Цвет товара)") {
+  if (item.id === 10096) {
     row.tableData.splice(ind, 1);
-  } else if (item.id === 4295 || item.name == "俄罗斯尺码") {
+  } else if (item.id === 4295) {
     row.tableData.splice(ind, 1);
   } else {
     if (ind !== -1) {
@@ -839,7 +891,7 @@ const changeHeade = () => {
     }
   });
 
-  const ozonStore = useOzonProductStore()
+
   ozonStore.$patch(state => {
     state.addHeaderList = addHeaderList.value
   })
@@ -995,11 +1047,11 @@ const judgeMax = (item) => {
   const { price, oldPrice } = item;
   // 检查 price 和 oldPrice 是否为空或 null
   if (price == null || oldPrice == null) return; // 如果有一个为空或 null，直接返回，不做后续比较
-  
+
   // 确保 price 和 oldPrice 是有效的数字
   const parsedPrice = parseFloat(price);
   const parsedOldPrice = parseFloat(oldPrice);
-  if (isNaN(parsedPrice) || isNaN(parsedOldPrice))  return; // 如果转换后不是有效的数字，直接返回
+  if (isNaN(parsedPrice) || isNaN(parsedOldPrice)) return; // 如果转换后不是有效的数字，直接返回
 
   if (parsedPrice > parsedOldPrice) {
     Modal.error({
@@ -1146,7 +1198,7 @@ const changeImgTranslation = () => {
 }
 
 watch(
-  () => useOzonProductStore().attributes,
+  () => ozonStore.attributes,
   (val) => {
     if (val) {
       themeBtns.value = [];
@@ -1221,6 +1273,7 @@ watch(
       //       a.attributeComplexId == "100001" || a.attributeComplexId == "100002"
       //     )
       // );
+
       if (requiredList.value.length != 0) {
         processDataFormat(requiredList.value);
       }
@@ -1228,7 +1281,7 @@ watch(
       let attrHeaderList = [];
       const uniqueArr = [];
       const titleSet = new Set();
-      if (useOzonProductStore().dataType === "existProduct") {
+      if (ozonStore.dataType === "existProduct") {
         // 引用现有产品数据回显处理
         const { attributes: existSkuList, oldPrice, price, stock, name, colorImage, warehouseList, offerId, images, primaryImage } = props.existProductData;
         existSkuList.forEach(sku => {
@@ -1239,7 +1292,7 @@ watch(
           result.push(newItem);
         });
         optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, existSkuList);
-      }else if (useOzonProductStore().dataType === "database") {
+      } else if (ozonStore.dataType === "database") {
         // 引用产品资料库
         const { skuList: databaseSkuList } = props.databaseProduct;
         databaseSkuList.forEach(sku => {
@@ -1248,7 +1301,16 @@ watch(
           result.push(newItem);
         })
         optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, databaseSkuList);
-      }  else {
+      } else if (ozonStore.dataType === "template") {
+        let items = tempList.value.find(item => item.value == templateValue.value) || {}
+        const { content: { variantTemplate: { variantAttr } } } = items;
+        variantAttr.forEach(sku => {
+          const newItem = createNewItem(sku, {});
+          processAttributes(sortArr, sku, newItem, attrHeaderList);
+          result.push(newItem);
+        })
+        optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, variantAttr);
+      } else {
         tableData.value.push({
           skuTitle: "",
           sellerSKU: "",
@@ -1274,7 +1336,6 @@ const processAttributes = (sortArr, sku, newItem, attrHeaderList) => {
   sortArr.forEach(attr => {
     const subAttr = sku.attributes.find(item => item.id === attr.id);
     if (!subAttr) return;
-
     const values = subAttr.values.map(val => {
       if (attr.options && ["multSelect", "select"].includes(attr.selectType)) {
         const option = attr.options.find(opt => opt.id === val.dictionaryValueId);
@@ -1282,7 +1343,6 @@ const processAttributes = (sortArr, sku, newItem, attrHeaderList) => {
       }
       return val.value;
     });
-
     newItem[attr.name] = values.join(", ");
     addAttributeHeader(attr, attrHeaderList);
   });
@@ -1357,9 +1417,9 @@ const CONSTANTS = {
 // 优化现有产品等方法
 const optimizeMethods = (attrHeaderList, titleSet, sortArr, uniqueArr, result, skuList) => {
   // 从数组 a 中提取所有的 id
-  const idsInA = sortArr.map(item => item.id);
-  const hasDualTheme = CONSTANTS.COM_ATTR_LIST.every(id => idsInA.includes(id));
-  const hasSingleTheme = CONSTANTS.COM_ATTRS.some(id => idsInA.includes(id));
+  // const idsInA = sortArr.map(item => item.id);
+  // const hasDualTheme = CONSTANTS.COM_ATTR_LIST.every(id => idsInA.includes(id));
+  // const hasSingleTheme = CONSTANTS.COM_ATTRS.some(id => idsInA.includes(id));
 
   // 处理数据回显到表格 - 使用Map去重
   attrHeaderList = [...new Map(attrHeaderList.map(item => [item.dataIndex, item])).values()];
@@ -1387,20 +1447,30 @@ const optimizeMethods = (attrHeaderList, titleSet, sortArr, uniqueArr, result, s
     const skuIndex = headerList.value.findIndex(item => item.title === "SKU");
     headerList.value.splice(skuIndex + 1, 0, CONSTANTS.TABLE_HEADER.SKU_TITLE);
     addHeaderList.value.push("skuTitle");
-    useOzonProductStore().$patch(state => state.addHeaderList = addHeaderList.value);
+    ozonStore.$patch(state => state.addHeaderList = addHeaderList.value);
   }
 
   tableData.value = result;
 
-  // 处理主题数据
-  const echoThemeList = hasDualTheme && hasSingleTheme
-    ? handleTheme(filteredB)
-    : handleTheme(filterModelValues(sortArr, skuList));
+  // 处理主题数据 旧逻辑
+  // const echoThemeList = hasDualTheme && hasSingleTheme
+  //   ? handleTheme(filteredB)
+  //   : handleTheme(filterModelValues(sortArr, skuList));
+
+  // 处理主题数据 新逻辑
+  const echoThemeList = handleTheme(filteredB)
 
   // 过滤已有数据的主题
   const aIds = echoThemeList.map(item => item.id);
   themeBtns.value = themeBtns.value.filter(item => !aIds.includes(item.id));
   attributeList.value = matchAndAssignValues(echoThemeList, skuList);
+
+  ozonStore.$patch(state => {
+    state.dataLoading = false
+  })
+  if (ozonStore.dataType === "template") {
+    message.success("变种变种模板应用成功")
+  }
 }
 
 const filterModelValues = (sortArr, list) => {
@@ -1633,6 +1703,7 @@ onMounted(() => {
     height: 80px !important;
   }
 }
+
 :deep(.ant-table) {
   .ant-table-tbody {
     background-color: #fff;

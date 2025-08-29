@@ -224,6 +224,7 @@ const handleSelect = (record) => {
   existProductData.value = record;
   ozonStore.$patch(state => {
     state.dataType = "existProduct"
+    state.dataLoading = true
   })
 }
 
@@ -263,6 +264,7 @@ const feedBackData = (categoryObj) => {
     databaseProduct.value = res.data || {}
     ozonStore.$patch(state => {
       state.dataType = "database"
+      state.dataLoading = true
     })
   }).finally(() => {
     categoryAttributesLoading.value = false
@@ -427,6 +429,7 @@ const quoteTemp = (record) => {
       content: record.content,
       category: record.category
     }
+    state.dataLoading = true
   })
   quoteTemplateName.value = "";
   quoteVis.value = false;

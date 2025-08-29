@@ -218,6 +218,7 @@ const handleSelect = (record) => {
   existProductData.value = record;
   ozonStore.$patch(state => {
     state.dataType = "existProduct"
+    state.dataLoading = true
   })
 }
 
@@ -258,6 +259,7 @@ const feedBackData = (categoryObj) => {
     databaseProduct.value = res.data || {}
     ozonStore.$patch(state => {
       state.dataType = "database"
+      state.dataLoading = true
     })
   }).finally(() => {
     categoryAttributesLoading.value = false
@@ -286,6 +288,7 @@ const getProductDetail = (waitId, account) => {
     collectProductId.value = res.data.collectProductId
     ozonStore.$patch(state => {
       state.dataType = "edit"
+      state.dataLoading = true
     })
     getAttributes(res?.data?.account, res?.data)
   })
@@ -389,13 +392,13 @@ const getTemplateList = () => {
 
 // 引用模板
 const quoteTemp = (record) => {
-  
   ozonStore.$patch(state => {
     state.productTemplate = {
       account: record.account,
       content: record.content,
       category: record.category
     }
+    state.dataLoading = true
   })
   quoteTemplateName.value = "";
   quoteVis.value = false;
