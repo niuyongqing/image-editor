@@ -67,7 +67,7 @@
                   alt=""
                   class="file-img"
                 />
-                <div class="image-mask">{{ element.height }} X {{ element.width }}</div>
+                <div class="image-mask">{{ element.width }} X {{ element.height }}</div>
 
                 <div
                   class="image-check"
