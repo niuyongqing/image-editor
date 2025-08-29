@@ -13,7 +13,7 @@
                     </a-select>
                 </a-form-item>
                 <a-form-item label="分类：" name="categoryId">
-                    <a-select v-model:value="form.categoryId" allowClear showSearch labelInValue placeholder="请选择"
+                    <a-select v-model:value="form.categoryId" optionFilterProp="threeCategoryName" allowClear showSearch labelInValue placeholder="请选择"
                         style="width: 200px" :options="historyCategoryList" @change="selectAttributes" :fieldNames="{
                             label: 'threeCategoryName',
                             value: 'threeCategoryId',

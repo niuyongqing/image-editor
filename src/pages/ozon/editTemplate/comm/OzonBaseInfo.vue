@@ -13,8 +13,9 @@
                     </a-select>
                 </a-form-item>
                 <a-form-item label="分类：" name="categoryId">
-                    <a-select v-model:value="form.categoryId" allowClear showSearch labelInValue placeholder="请选择"
-                        style="width: 200px" :options="historyCategoryList" @change="selectAttributes" :fieldNames="{
+                    <a-select v-model:value="form.categoryId" optionFilterProp="threeCategoryName" allowClear showSearch
+                        labelInValue placeholder="请选择" style="width: 200px" :options="historyCategoryList"
+                        @change="selectAttributes" :fieldNames="{
                             label: 'threeCategoryName',
                             value: 'threeCategoryId',
                         }">
@@ -23,7 +24,7 @@
                         @click="selectVisible = true">选择分类</a-button>
                     <p v-if="hisAttrObj.length != 0" style="color: #933">
                         <span>{{ hisAttrObj[0].categoryName }}</span>/ <span>{{ hisAttrObj[0].secondCategoryName
-                        }}</span>/
+                            }}</span>/
                         <span>{{ hisAttrObj[0].threeCategoryName }}</span>
                     </p>
                 </a-form-item>
@@ -62,7 +63,7 @@
                                     <template #label>
                                         <span class="mr-2.5 truncate">{{
                                             item.label ? item.label : item.name
-                                        }}</span>
+                                            }}</span>
                                         <a-tooltip class="tooltipStyle" effect="dark" :title="item.description"
                                             popper-class="ozonTooltip" placement="top">
                                             <AsyncIcon icon="QuestionCircleOutlined"></AsyncIcon>
@@ -242,7 +243,6 @@ const getHistoryList = (account) => {
 
 // 选中的分类
 const selectAttributes = (e) => {
-    console.log('e', e);
 
     if (e) {
         if (historyCategoryList.value.length != 0) {
@@ -257,6 +257,10 @@ const selectAttributes = (e) => {
             label: e.option.threeCategoryName,
             value: e.option.threeCategoryId,
         };
+        const ozonStore = useOzonProductStore()
+        ozonStore.$patch(state => {
+            state.templateType = "change"
+        })
         emit("getAttributes", form.shortCode, e.option);
     }
 };
@@ -494,8 +498,6 @@ watch(
                 label: undefined,
                 value: category.threeCategoryId,
             };
-            console.log("form.categoryId", form.categoryId);
-            
             showAttrsBtn.value = route.query.type === '1' ? true : false;
             getHistoryList(account);
             emit("getAttributes", form.shortCode, form.categoryId);
@@ -591,11 +593,8 @@ watch(
                                 ? "blur"
                                 : "change",
                     };
-                    // Object.assign(rules2.value, { [noThemeAttributesCache[i].name]: obj })
                     rules2.value[noThemeAttributesCache[i].name] = obj;
                 }
-                // this.$set(rules2.value, noThemeAttributesCache[i].name, obj);
-                // console.log("rules2", rules2.value);
                 loopAttributes.value = noThemeAttributesCache;
 
             }

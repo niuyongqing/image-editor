@@ -288,9 +288,6 @@ const getProductDetail = (waitId, account) => {
       state.dataType = "edit"
     })
     getAttributes(res?.data?.account, res?.data)
-    ozonStore.$patch(state => {
-      state.dataType = "edit"
-    })
   })
 }
 
@@ -439,8 +436,6 @@ const onSubmit = async (type) => {
   const OzonNewImageInfo = await ozonImageInfoRef.value.submitForm();
   const ozonNewVariantInfo = await ozonNewVariantInfoRef.value.submitForm();
   const errorIndex = findFalseInArrayLikeObject({ ozonBaseInfo, OzonNewImageInfo, ozonNewVariantInfo })
-  console.log('errorIndex', errorIndex);
-
   const erpInfo = erpInfoRef.value;
 
   anchorList.value.forEach(item => {
@@ -596,11 +591,6 @@ const onSubmit = async (type) => {
     vat: base.vat,
     skuList: resItem,
     waitId: waitId.value,
-    // historyCategoryId: base?.categoryId?.threeCategoryId, //平台分类ID
-    // storeHistoryCategoryId: base?.categoryId?.storeHistoryCategoryId
-    //   ? base?.categoryId?.storeHistoryCategoryId
-    //   : "", //资料库分类ID
-    // historyAttributes: base.attributes,
     descriptionCategoryId:
       base.categoryId.secondCategoryId, // 二级id
     typeId: base.categoryId.threeCategoryId, // 三级分id
