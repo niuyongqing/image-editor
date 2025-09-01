@@ -4,5 +4,5 @@ dist
 /package-lock.json
 /vite.config.ts
 /.env.development
-# /.env.development.local
+/.env.development.local
 platform
