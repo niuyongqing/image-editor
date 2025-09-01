@@ -5,7 +5,7 @@
                 <div flex gap-10px>
                     <a-dropdown v-model:open="openSelect" trigger="">
                         <div flex gap-10px>
-                            <a-input v-model:value="searchValue" style="width: 1000px;margin-bottom: 8px"
+                            <a-input v-model:value="searchValue" allow-clear style="width: 1000px;margin-bottom: 8px"
                                 placeholder="搜索分类名称" />
                         </div>
                         <template #overlay>

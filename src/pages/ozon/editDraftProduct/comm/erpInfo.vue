@@ -53,6 +53,7 @@
             mb-12px
           >
             <a-input
+            allow-clear
               v-model:value="item.sourceUrl"
               placeholder="用于记录供货渠道URL，方便采购。仅在店小秘显示，不会同步到Ozon平台！"
               style="width: 90%"
