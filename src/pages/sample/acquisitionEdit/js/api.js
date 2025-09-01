@@ -112,6 +112,19 @@ export function downloadAllImage(data) {
     data: data,
   })
 }
+
+/**
+ * // 图片base转地址
+ * @param {*} data 
+ * @returns 
+ */
+export function MtImageEBaseUrl(data) {
+  return request({
+    url: '/xinzhan-file/uploadBase64Img',
+    method: 'post',
+    data: data,
+  })
+}
 /**
  * // 数据采集产品编辑接口
  * @param {*} data 

@@ -167,7 +167,7 @@
           </a-dropdown>
         </div>
       </div>
-
+      <!-- 图片列表 -->
       <div class="min-h-40">
         <Draggable
           v-if="SKU.imageUrl.length"
@@ -197,7 +197,7 @@
                   <a-button type="link"><BulbOutlined class="text-base" /><CaretDownOutlined /></a-button>
                   <template #overlay>
                     <a-menu @click="imgModifySingleMenuClick($event, image)">
-                      <!-- <a-menu-item key="ps">小秘美图</a-menu-item> -->
+                      <a-menu-item key="ps">小秘美图</a-menu-item>
                       <a-menu-item key="translate">图片翻译</a-menu-item>
                       <!-- <a-menu-item key="whiteBg">图片白底</a-menu-item> -->
                     </a-menu>
@@ -266,7 +266,7 @@
   import { DownOutlined, BulbOutlined, CaretDownOutlined, DeleteOutlined } from '@ant-design/icons-vue'
   import Draggable from 'vuedraggable'
   import { useAuthorization } from '~/composables/authorization'
-  import { downloadAllImage } from '@/pages/sample/acquisitionEdit/js/api.js'
+  import { downloadAllImage,MtImageEBaseUrl } from '@/pages/sample/acquisitionEdit/js/api.js'
   import { batchUploadFromUrlApi } from '@/api/common/upload'
   import { watermarkApi } from '~/api/common/water-mark'
   import download from '~@/api/common/download'
@@ -324,6 +324,7 @@
     }
   )
 
+  const router = useRouter()
   // 全量图片信息
   const allImageInfo = computed(() => {
     const list = []
@@ -566,7 +567,14 @@
         break
     }
   }
-
+  const channel = new BroadcastChannel("mtImageEditor")
+    channel.onmessage = (event) => {
+      console.log(event.data);
+      MtImageEBaseUrl({imageData:event.data.base64}).then(res=>{
+        console.log(res);
+      })
+}
+ 
   // 编辑单张图片
   function imgModifySingleMenuClick({ key }, item) {
     switch (key) {
@@ -574,7 +582,14 @@
         translateImageList.value = [item]
         imgTransRef.value.showModal([item])
         break
-
+      case "ps":
+        console.log(item);
+        const urlData = router.resolve({
+          path: "/platform/ozon/editPsImage",
+          query: { imageUrl: item.url,imageId:item.id }
+        });
+      window.open(urlData.href, "_blank");
+      break;
       default:
         break
     }
