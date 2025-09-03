@@ -6,6 +6,7 @@ import Menu from '../menu/index.vue'
 import { useUserStore } from '~/stores/user.js'
 import { UserOutlined } from '@ant-design/icons-vue'
 
+const baseApi = import.meta.env.VITE_APP_BASE_API_DEV || ''
 const router = useRouter()
 const userStore = useUserStore()
 const multiTabStore = useMultiTab()
@@ -113,7 +114,7 @@ async function out(){
           </template>
           <div>
             <div style="display: flex;justify-content: center;border-radius: 50%">
-              <img v-if="userInfo?.sysUser?.avatar" :src="`/prod-api${userInfo.sysUser.avatar}`" alt="avatar" style="width: 30px;height: 30px;border-radius: 50%" />
+              <img v-if="userInfo?.sysUser?.avatar" :src="`${baseApi}${userInfo.sysUser.avatar}`" alt="avatar" style="width: 30px;height: 30px;border-radius: 50%" />
               <a-avatar v-else :size="30">
                 <template #icon><UserOutlined /></template>
               </a-avatar>

@@ -781,6 +781,7 @@ async function typeNodeClick(node) {
       }
     })
     await moveCategoryApi(params)
+    message.success('移动分类成功')
     getList()
   } catch (error) {
     console.error(error)

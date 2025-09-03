@@ -259,14 +259,7 @@
                     :key="index"
                   >
                     <div text-left>
-                      <a-tooltip placement="top">
-                        <template #title>
-                          <span>复制</span>
-                        </template>
-                        <span @click="copyText(item.offerId)">
-                          {{ item.offerId }}
-                        </span>
-                      </a-tooltip>
+                      <a-button type="link" @click="copyText(item.offerId)">{{ item.offerId }}</a-button>
                     </div>
                   </div>
                 </div>
@@ -757,6 +750,7 @@
         productCategoryId: node.id //分类ID
       }
       await updateCategoryProduct(params)
+      message.success('移动分类成功')
       getList()
     } catch (error) {
       console.error(error)

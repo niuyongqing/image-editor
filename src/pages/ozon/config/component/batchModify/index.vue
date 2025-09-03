@@ -258,7 +258,7 @@ const generateJPG = (type) => {
         scaleValue: scaleValue.value,
         heightValue: heightValue.value
       }
-      localStorage.setItem('modifyImageSizeConfig', configInfo)
+      localStorage.setItem('modifyImageSizeConfig', JSON.stringify(configInfo))
     } else {
       localStorage.removeItem('modifyImageSizeConfig')
     }

@@ -53,7 +53,7 @@
             mb-12px
           >
             <a-input
-            allow-clear
+              allow-clear
               v-model:value="item.sourceUrl"
               placeholder="用于记录供货渠道URL，方便采购。仅在店小秘显示，不会同步到Ozon平台！"
               style="width: 90%"
@@ -72,18 +72,18 @@
               </template>
             </a-input>
             <a-button
+              v-if="index === 0 && sourceUrlList.length < 5"
               type="link"
               @click="handlePlus"
-              v-if="index === 0"
             >
-              <PlusOutlined></PlusOutlined>
+              <PlusOutlined />
             </a-button>
             <a-button
+              v-if="index !== 0"
               type="link"
               @click="handleMinus(item.id)"
-              v-else
             >
-              <CloseOutlined></CloseOutlined>
+              <CloseOutlined />
             </a-button>
           </div>
         </a-form-item>

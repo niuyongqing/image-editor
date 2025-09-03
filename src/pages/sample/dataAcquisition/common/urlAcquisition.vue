@@ -570,6 +570,7 @@ async function typeNodeClick(node) {
       "productCategoryId": node.id   //分类ID
     }
     await updateCategoryProduct(params)
+    message.success('移动分类成功')
     getList()
   } catch (error) {
     console.error(error)
