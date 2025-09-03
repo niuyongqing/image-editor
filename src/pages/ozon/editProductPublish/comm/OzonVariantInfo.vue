@@ -70,7 +70,7 @@
             <template v-if="column.dataIndex === 'quantity'">
               <div class="flex flex-col min-w-25">
                 <span><span style="color: #ff0a37;">*</span>
-                  {{ column.title }}</span><a class="ml-1.25" @click="batchStock">批量</a>
+                  {{ column.title }}</span><a class="ml-1.25" @click="batchStock('all')">批量</a>
               </div>
             </template>
             <template v-if="column.dataIndex === 'packageLength'">
@@ -165,7 +165,7 @@
             </template>
             <template v-if="column.dataIndex === 'quantity'">
               <span>{{ record.quantity }}</span>
-              <AsyncIcon style="margin-left: 10px;" icon="EditOutlined" @click="batchStock(record)">
+              <AsyncIcon style="margin-left: 10px;" icon="EditOutlined" @click="batchStock('single', record)">
               </AsyncIcon>
             </template>
             <template v-if="column.dataIndex === 'packageLength'">
@@ -257,7 +257,6 @@ import bacthEditColorImg from "./bacthEditColorImg.vue";
 import { v4 as uuidv4 } from 'uuid'
 import ImageInfo from '@/pages/ozon/config/component/image-info/index.vue'
 
-
 const props = defineProps({
   productDetail: Object,
 });
@@ -300,6 +299,7 @@ const attrVisible = ref(false)
 const otherHeader = otherList
 const watermark = ref([])
 const shopCode = ref("")
+const types = ref('')
 
 const uploadUrl =
   import.meta.env.VITE_APP_BASE_API +
@@ -465,7 +465,7 @@ const sellerSKUChange = debounce(record => {
 }, 200)
 
 // 批量修改库存
-const batchStock = (row = {}) => {
+const batchStock = (type, row = {}) => {
   if (tableData.value.length == 0) {
     message.warning("请先添加sku！");
     return;
@@ -474,10 +474,11 @@ const batchStock = (row = {}) => {
   getEditStore(account);
   quantityRow.value = row;
   editQuantityVis.value = true;
+  types.value = type;
 }
 
 
-const backQuantity = (e, copyList) => {
+const backQuantity = (quantities, copyList) => {
   // 生成仓库条目函数（过滤空值并映射结构）
   const createWarehouseEntries = (offerId, copyList) =>
     copyList[0].children
@@ -492,9 +493,22 @@ const backQuantity = (e, copyList) => {
   // 按仓库ID去重函数
   const deduplicateByWarehouseId = (entries) =>
     Array.from(new Map(entries.map(item => [item.warehouseId, item])).values());
-  tableData.value[0].quantity = e
-  const entries = createWarehouseEntries(tableData.value[0].sellerSKU, copyList);
-  tableData.value[0].warehouseList = deduplicateByWarehouseId(entries)
+
+  if (types.value === "single") {
+    // 单规格模式
+    quantityRow.value.quantity = quantities;
+    quantityRow.value.warehouseList = createWarehouseEntries(
+      quantityRow.value.sellerSKU,
+      copyList
+    );
+  } else {
+    // 多规格模式
+    tableData.value.forEach((e) => {
+      e.quantity = quantities;
+      const entries = createWarehouseEntries(e.sellerSKU, copyList);
+      e.warehouseList = deduplicateByWarehouseId(entries);
+    });
+  }
 }
 
 //批量修改原价
@@ -789,6 +803,7 @@ const createNewItem = (sku, dataSource) => ({
   oldPrice: dataSource.oldPrice || sku.oldPrice,
   price: dataSource.price || sku.price,
   quantity: dataSource.stock || sku.stock,
+  minPrice: dataSource.minPrice || sku.minPrice,
   packageHeight: sku.height,
   packageLength: sku.depth,
   packageWeight: sku.weight,
@@ -839,9 +854,9 @@ const CONSTANTS = {
 // 优化现有产品等方法
 const optimizeMethods = (attrHeaderList, titleSet, sortArr, uniqueArr, result, skuList) => {
   // 从数组 a 中提取所有的 id
-  const idsInA = sortArr.map(item => item.id);
-  const hasDualTheme = CONSTANTS.COM_ATTR_LIST.every(id => idsInA.includes(id));
-  const hasSingleTheme = CONSTANTS.COM_ATTRS.some(id => idsInA.includes(id));
+  // const idsInA = sortArr.map(item => item.id);
+  // const hasDualTheme = CONSTANTS.COM_ATTR_LIST.every(id => idsInA.includes(id));
+  // const hasSingleTheme = CONSTANTS.COM_ATTRS.some(id => idsInA.includes(id));
 
   // 处理数据回显到表格 - 使用Map去重
   attrHeaderList = [...new Map(attrHeaderList.map(item => [item.dataIndex, item])).values()];
@@ -875,9 +890,12 @@ const optimizeMethods = (attrHeaderList, titleSet, sortArr, uniqueArr, result, s
   tableData.value = result;
 
   // 处理主题数据
-  const echoThemeList = hasDualTheme && hasSingleTheme
-    ? handleTheme(filteredB)
-    : handleTheme(filterModelValues(sortArr, skuList));
+  // const echoThemeList = hasDualTheme && hasSingleTheme
+  //   ? handleTheme(filteredB)
+  //   : handleTheme(filterModelValues(sortArr, skuList));
+
+  // 处理主题数据 新逻辑
+  const echoThemeList = handleTheme(filteredB)
 
   // 过滤已有数据的主题
   const aIds = echoThemeList.map(item => item.id);

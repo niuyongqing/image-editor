@@ -1452,7 +1452,7 @@ const edit = (row = {}, type) => {
 
 };
 const sync = () => {
-  syncLoading.value = true;
+  loading.value = true;
   if (formData.account == null || formData.account == "") {
     // showOpen.value = true;
     syncShopProductAll()
@@ -1460,7 +1460,7 @@ const sync = () => {
         message.success("正在同步店铺所有商品，请稍后！");
       })
       .finally(() => {
-        syncLoading.value = false;
+        loading.value = false;
         // showOpen.value = false;
         getList();
         // setTimeout(() => {
@@ -1475,7 +1475,7 @@ const sync = () => {
         getList();
       })
       .finally(() => {
-        syncLoading.value = false;
+        loading.value = false;
         // getList();
         selectedRows.value = [];
       });
@@ -1500,13 +1500,13 @@ const syncOne = (record = {}) => {
   } else {
     syncList = syncOneList.value;
   }
-  syncLoading.value = true;
+  loading.value = true;
   syncOneProduct(syncList)
     .then((res) => {
       message.success(res.msg);
     })
     .finally(() => {
-      syncLoading.value = false;
+      loading.value = false;
       syncOneList.value = [];
       selectedRows.value = [];
       getList();
