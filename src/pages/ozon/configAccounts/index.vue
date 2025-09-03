@@ -3,7 +3,7 @@
     <a-card style="margin-top: 20px">
       <a-form :model="formState" layout="inline" ref="formRef">
         <a-form-item label="用户：" name="userId">
-          <a-select v-model:value="formState.userId" show-search placeholder="请选择用户" style="width: 200px"
+          <a-select v-model:value="formState.userId" allow-clear show-search placeholder="请选择用户" style="width: 200px"
             :options="getAccountUserArr" :filter-option="filterOption" :fieldNames="userLabels"></a-select>
         </a-form-item>
         <a-form-item label="部门：" name="depId">

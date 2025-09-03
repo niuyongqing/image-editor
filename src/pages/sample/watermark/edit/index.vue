@@ -540,6 +540,12 @@
         const requestApi = id ? watermarkEditApi : watermarkAddApi
         requestApi(params).then(res => {
           message.success('保存成功')
+          // 窗口通信, 刷新水印列表
+          const targetWindow = window.opener
+          if (targetWindow) {
+            targetWindow.postMessage('refresh', targetWindow.location.origin)
+          }
+          // 成功后延时关闭当前窗口, 交互友好
           setTimeout(() => {
             close()
           }, 2000)
@@ -583,9 +589,9 @@
       const list = rgb.split(',')
       if (list.length === 3) {
         // 十进制转十六进制
-        const r = Number(list[0]).toString(16)
-        const g = Number(list[1]).toString(16)
-        const b = Number(list[2]).toString(16)
+        const r = Number(list[0]).toString(16).padStart(2, 0)
+        const g = Number(list[1]).toString(16).padStart(2, 0)
+        const b = Number(list[2]).toString(16).padStart(2, 0)
 
         hex = `#${r}${g}${b}`
       }

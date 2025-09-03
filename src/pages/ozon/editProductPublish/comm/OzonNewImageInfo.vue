@@ -7,7 +7,7 @@
             <a-form ref="ruleForm" class="richForm" :model="form" :label-col="{ span: 2 }">
                 <a-form-item label="产品描述：" name="description">
                     <div style="width: 90%;margin-top: 10px;">
-                        <a-textarea v-model:value="form.description" :rows="10" :maxlength="6000" showCount />
+                        <a-textarea v-model:value="form.description" allowClear :rows="10" :maxlength="6000" showCount />
                     </div>
                 </a-form-item>
                 <a-form-item label="JSON富文本：">

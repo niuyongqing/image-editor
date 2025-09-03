@@ -61,7 +61,8 @@ export function generateTreeRoutes(menus) {
   const menuDataMap = /* @__PURE__ */ new Map()
 
   for (const menuItem of menus) {
-    if(menuItem.type === 3) {
+    // 目前只有 2 级菜单, 第 3 级为按钮权限
+    if(!menuItem || menuItem.type === 3) {
       continue
     }
     if (!menuItem.id)
@@ -107,7 +108,7 @@ export function generateTreeRoutes(menus) {
   ]
   const menuData = []
   for (const menuItem of menus) {
-    if (!menuItem.id)
+    if (!menuItem || !menuItem.id)
       continue
     const currentRoute = routeDataMap.get(menuItem.id)
     const currentItem = menuDataMap.get(menuItem.id)
@@ -133,7 +134,6 @@ export function generateTreeRoutes(menus) {
       }
     }
   }
-
 
   sortBySortKey(routeData);
   sortBySortKey(menuData);

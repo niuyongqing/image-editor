@@ -577,6 +577,7 @@ async function typeNodeClick(node) {
       customCategoryId: node.id //分类ID
     }
     await moveWaitCategoryApi(params)
+    message.success('移动分类成功')
     getList()
   } catch (error) {
     console.error(error)
