@@ -152,34 +152,35 @@ const processResult = (productList) => {
 const processData = (attributeList, tableData) => {
   // 遍历 attributeList 数组
   for (const item of attributeList) {
-    const { tableData } = item;
+    const currentTableData = item.tableData; // 修复变量名冲突
     // 遍历 tableData
-    for (let i = tableData.length - 1; i >= 0; i--) {
-      const dataItem = tableData[i];
-      const modelValue = 
-        dataItem.selectType === 'input' 
-        ? dataItem.modelValue 
-        : dataItem.selectType === 'select'
-        ? dataItem.modelValue?.label
-        : dataItem.selectType === 'multSelect'
-        ? dataItem?.modelValue?.map((val) => val.label).join(";") 
-        : null;
-      // 判断 modelValue 是否在 tableData 数组中有匹配的值
-      const isMatch = tableData.some((bItem) => {
-        const key = item.name; // 使用 attributeList 数组的 name 作为键
+    for (let i = currentTableData.length - 1; i >= 0; i--) {
+      const dataItem = currentTableData[i];
+      // 增加空值处理
+      const getModelValue = () => {
+        if (!dataItem.modelValue) return null;
+        if (dataItem.selectType === 'input') return dataItem.modelValue;
+        if (dataItem.selectType === 'select') return dataItem.modelValue?.label;
+        if (dataItem.selectType === 'multSelect') {
+          return dataItem.modelValue.map(val => val?.label).filter(Boolean).join(";");
+        }
+        return null;
+      };
+      
+      const modelValue = getModelValue();
+      if (!modelValue) continue; // 增加空值跳过
+
+      // 修正匹配逻辑：应该对比笛卡尔积结果而非自身数组
+      const isMatch = tableData.some((bItem) => { // 使用外部传入的tableData参数
+        const key = item.name;
         return bItem[key] === modelValue;
       });
 
-      // 如果没有匹配的值
-      if (!isMatch) {
-        if (tableData.length > 1) {
-          // 如果 tableData 长度大于 1，删除该条数据
-          tableData.splice(i, 1);
-        }
+      if (!isMatch && currentTableData.length > 1) {
+        currentTableData.splice(i, 1);
       }
     }
   }
-
   return attributeList;
 };
 
