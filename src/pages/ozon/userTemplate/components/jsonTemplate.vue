@@ -1189,6 +1189,10 @@ function rebackList(list) {
 
 // 保存
 function save() {
+  if(!jsonTempName.value) {
+    message.error('请输入模板名称')
+    return
+  }
   if (moduleList.value.length === 0) {
     message.error("至少添加一个模块信息");
     return
