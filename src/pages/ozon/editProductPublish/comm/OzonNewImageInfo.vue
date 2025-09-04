@@ -232,13 +232,13 @@ watch(() => props.productDetail, val => {
             // item.forEach((attribute) => {
             // });
             if (item.id === 21841) {
-                form.video = item.values.map((e) => {
+                form.video = item.values?.map((e) => {
                     return {
                         url: processImageSource(e.value),
                     }
                 })
             } else if (item.id === 21845) {
-                form.coverUrl = processImageSource(item.values[0].value)
+                form.coverUrl = item.values.length > 0 ? processImageSource(item.values[0].value) : ""
             }
         });
         copyAttr.forEach(e => {

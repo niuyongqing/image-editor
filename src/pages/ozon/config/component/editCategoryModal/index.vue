@@ -29,8 +29,9 @@
                             }" :filter-option="filterOption">
                         </a-select>
                         <a-button type="link" @click="changeCategory">更换分类</a-button>
-                        <p class="tooltip-text" v-if="JSON.stringify(hisAttrObj) != '{}'">{{
-                            hisAttrObj.categoryName
+                        <p class="tooltip-text" v-if="JSON.stringify(hisAttrObj) !== '{}'">
+                            {{
+                                hisAttrObj.categoryName
                             }} > {{ hisAttrObj.secondCategoryName }} > {{
                                 hisAttrObj.threeCategoryName }} </p>
                         <!-- 表格 -->
@@ -291,7 +292,7 @@ const getHistoryList = (account) => {
         if (historyCategoryList.value.length != 0 && form.categoryId) {
             hisAttrObj.value = historyCategoryList.value.find(
                 (item) => item.threeCategoryId == form.categoryId
-            );
+            ) || {};
         }
     });
 };
@@ -304,8 +305,6 @@ const editCategory = () => {
             "attributeId": item.ozonTheme
         }
     });
-
-    console.log('hisAttrObj', hisAttrObj.value);
 
     const params = {
         typeId: form.categoryId, // 三级分类id

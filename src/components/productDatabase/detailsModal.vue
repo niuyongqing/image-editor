@@ -107,25 +107,6 @@
             <a-table :columns="columns" :dataSource="detailData.data.sku" :bordered="true"
               :rowKey="record => record.skuNumber" :pagination="false">
               <template #bodyCell="{ column, record }">
-                <!-- <template v-if="column.dataIndex === 'attr'">
-              {{ record.detail.attr }}
-            </template>
-            <template v-if="column.dataIndex === 'productNo'">
-              {{ record.detail.productNo }}
-            </template>
-            <template v-if="column.dataIndex === 'describe'">
-              {{ record.detail.describe }}
-            </template>
-            <template v-if="column.dataIndex === 'cost'">
-              {{ record.detail.cost }}
-            </template>
-            <template v-if="column.dataIndex === 'weight'">
-              {{ record.detail.weight }}
-            </template>
-            <template v-if="column.dataIndex === 'sellCount'">
-              {{ record.detail.sellCount }}
-            </template> -->
-
                 <template v-if="column.dataIndex === 'remarks'">
                   <a-select v-model:value="record.remarks" placeholder="" mode="multiple" disabled style="width: 200px;"
                     :options="remarksList"></a-select>
@@ -347,6 +328,42 @@ const columns = [
     dataIndex: 'describe',
     key: 'describe',
     width: 250,
+  },
+  {
+    title: '长（CM）',
+    dataIndex: 'inLongCm',
+    key: 'inLongCm',
+    width: 200,
+  },
+  {
+    title: '宽（CM）',
+    dataIndex: 'inWidthCm',
+    key: 'inWidthCm',
+    width: 200,
+  },
+  {
+    title: '高（CM）',
+    dataIndex: 'inHeightCm',
+    key: 'inHeightCm',
+    width: 200,
+  },
+  {
+    title: '颜色',
+    dataIndex: 'color',
+    key: 'color',
+    width: 200,
+  },
+  {
+    title: '尺寸',
+    dataIndex: 'size',
+    key: 'size',
+    width: 200,
+  },
+  {
+    title: '尺寸单位英文',
+    dataIndex: 'sizeUnit',
+    key: 'sizeUnit',
+    width: 200,
   },
   {
     title: '成本价格',

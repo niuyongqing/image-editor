@@ -1043,6 +1043,12 @@ const deduplicateTableData = (tableData, isThemeData) => {
     });
   }
 };
+
+// 检查两个数组是否内容相同
+const isArrayContentEqual = (arr1, arr2) => {
+  return JSON.stringify(arr1) === JSON.stringify(arr2)
+}
+
 onMounted(() => {
   getWatermark();
 });

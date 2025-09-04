@@ -509,15 +509,17 @@
                               <a-menu-item style="color: #0d9888" @click="copyItems(record, 'single')">
                                 复制
                               </a-menu-item>
-                              <a-popconfirm ok-text="YES" cancel-text="NO" title="归档吗？" @confirm="deactivate(record)">
-                                <a-menu-item v-if="record.state !== '已归档'" type="text"
-                                  style="color: #e6a23c">归档</a-menu-item>
-                              </a-popconfirm>
+                              <a-menu-item v-if="record.state !== '已归档'" style="color: #e6a23c">
+                                <a-popconfirm ok-text="YES" cancel-text="NO" title="归档吗？" @confirm="deactivate(record)">
+                                  <span>归档</span>
+                                </a-popconfirm>
+                              </a-menu-item>
                               <a-menu-item @click="addRemark(record)"> 备注 </a-menu-item>
-                              <a-popconfirm ok-text="YES" cancel-text="NO" title="删除代表该产品在ozon平台删除，确定删除吗？"
-                                @confirm="deleteItem(record)">
-                                <a-menu-item type="text" style="color: red">删除</a-menu-item>
-                              </a-popconfirm>
+                              <a-menu-item style="color: red">
+                                <a-popconfirm ok-text="YES" cancel-text="NO" title="删除代表该产品在ozon平台删除，确定删除吗？" @confirm="deleteItem(record)">
+                                  <span>删除</span>
+                                </a-popconfirm>
+                              </a-menu-item>
                             </a-menu>
                           </template>
                         </a-dropdown>
