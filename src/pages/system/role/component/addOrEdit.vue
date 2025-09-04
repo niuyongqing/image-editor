@@ -95,7 +95,6 @@
   const checkedKeys = ref([]) // 已选择
   const loading = ref(false)
   const formData = ref({ status: '0', menuId: [] })
-  const menuIds = ref([])
   const selectAll = ref(false)
 
   watchEffect(() => {
@@ -112,13 +111,10 @@
     if (props.data.roleId) {
       getRoleByIdApi({ roleId: props.data.roleId }).then(res => {
         formData.value = res.data
-        checkedKeys.value = props.data.menuId || [dashboardId, ...dashboardChildrenIds]
+        checkedKeys.value = props.data.menuIdList || [dashboardId, ...dashboardChildrenIds]
       })
     } else {
       checkedKeys.value = [dashboardId, ...dashboardChildrenIds]
-    }
-    if (props.open && props.menu) {
-      menuIds.value = getAllIds(props.menu)
     }
   })
 
@@ -133,7 +129,7 @@
       dashboardChildrenIds = dashboardChildren.map(item => item.id) || []
     }
     if (selectAll.value) {
-      checkedKeys.value = menuIds.value
+      checkedKeys.value = getAllIds(props.menu)
     } else {
       checkedKeys.value = [dashboardId, ...dashboardChildrenIds]
     }
@@ -147,14 +143,18 @@
 
   function handleOk() {
     loading.value = true
-    formData.value.menuId = checkedKeys.value
+    const params = {
+      ...formData.value,
+      menuId: checkedKeys.value,
+      menuIdList: checkedKeys.value
+    }
     if (props.title === '新增角色') {
-      addRoleApi(formData.value).then(res => {
+      addRoleApi(params).then(res => {
         resFunc(res)
       })
     }
     if (props.title === '编辑角色') {
-      editRoleApi(formData.value).then(res => {
+      editRoleApi(params).then(res => {
         resFunc(res)
       })
     }
@@ -187,7 +187,6 @@
 
   function close() {
     formData.value = { status: '0', menuId: [] }
-    menuIds.value = []
     checkedKeys.value = []
     selectAll.value = false
     emit('close', false)

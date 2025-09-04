@@ -515,6 +515,7 @@
     formRef.value
       .validate()
       .then(() => {
+        loading.value = true
         const params = {
           ...form,
           bgWidth: form.bgSize,
@@ -549,6 +550,8 @@
           setTimeout(() => {
             close()
           }, 2000)
+        }).finally(() => {
+          loading.value = false
         })
       })
       .catch(err => {

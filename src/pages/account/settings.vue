@@ -97,7 +97,7 @@ const labelCol = {
                         list-type="picture-card"
                         class="avatar-uploader"
                         :show-upload-list="false"
-                        :action="`${baseApi}/system/user/profile/avatar`"
+                        action="/prod-api/system/user/profile/avatar"
                         :before-upload="beforeUpload"
                         @change="handleChange"
                     >
