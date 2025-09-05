@@ -163,6 +163,9 @@
   const acquisitionModalOpen = ref(false)
 
   function acquisitionModalConfirm(list) {
+    list.forEach(img => {
+      img.url = processImageSource(img.url)
+    })
     emits('emitImages', list)
   }
 </script>
