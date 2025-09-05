@@ -37,7 +37,7 @@ const handleChange = info =>{
   }
   if (info.file.status === 'done') {
     if(info.file.response.code === 200){
-      formData.value.avatar = info.file.response.fileName;
+      formData.value.avatar = info.file.response.imgUrl;
       loading.value = false;
     }
   }
@@ -97,7 +97,7 @@ const labelCol = {
                         list-type="picture-card"
                         class="avatar-uploader"
                         :show-upload-list="false"
-                        :action="`${baseApi}/system/user/profile/avatar`"
+                        action="/prod-api/system/user/profile/avatar"
                         :before-upload="beforeUpload"
                         @change="handleChange"
                     >
