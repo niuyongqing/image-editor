@@ -398,7 +398,6 @@ const quoteTemp = (record) => {
       content: record.content,
       category: record.category
     }
-    state.dataLoading = true
   })
   quoteTemplateName.value = "";
   quoteVis.value = false;

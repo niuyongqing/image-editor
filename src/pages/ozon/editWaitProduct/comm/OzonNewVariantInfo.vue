@@ -1313,6 +1313,7 @@ watch(
         })
         optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, databaseSkuList);
       } else if (ozonStore.dataType === "template") {
+        // 引用变种模板
         let items = tempList.value.find(item => item.value == templateValue.value) || {}
         const { content: { variantTemplate: { variantAttr } } } = items;
         variantAttr.forEach(sku => {

@@ -294,8 +294,10 @@ const findMatchedOption = (attributeId, data, options) => {
     const matchedOption = options?.find(option => option.id === data.id);
     if (attributeId == 9070) {
         return {
-            label: data.value == true ? "是(YES)" : '否(NO)',
-            value: data.value || JSON.parse(data.value)
+            // label: data.value == true ? "是(YES)" : '否(NO)',
+            // value: data.value || JSON.parse(data.value)
+            label: data.value,
+            value: data.id,
         }
     } else if (attributeId == 85 || attributeId == 31) {
         return {

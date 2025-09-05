@@ -572,14 +572,12 @@ import {
   syncOneProduct,
   syncHistoryCategory,
   mergeList,
-  asyncProgress,
   updatePrices,
   productWarehouse,
   del,
   syncShopProductAll,
   syncShopProduct,
   byState,
-  shopAsyncProgress,
   exportProduct,
   shopCurrency,
   brandCategory,
@@ -610,7 +608,6 @@ import {
 import download from "~/api/common/download";
 import typeTree from '@/components/classificationTree/typeTree.vue';
 import { groupProductCountApi } from '../config/api/draft'
-import { moveWaitCategoryApi } from '@/components/classificationTree/api.js';
 import SideBar from '@/pages/ozon/config/component/SideBar/index.vue';
 
 const { copy } = useClipboard();
@@ -660,7 +657,6 @@ const showOpen = ref(false);
 const prodListVisible = ref(false);
 const copyProductVis = ref(false);
 const shopSetVisible = ref(false);
-const interval = ref(null);
 const percentage = ref(0);
 const defType = ref([]);
 const itemId = ref();
@@ -676,7 +672,6 @@ const selectOzonId = ref([]);
 const editStockList = ref([]);
 const childList = ref([]);
 const copyList = ref([]);
-const storeOption = ref([]);
 const shopCurryList = ref([]);
 const asyncErrData = ref([]);
 const brandList = ref([]);
@@ -930,7 +925,6 @@ const onSubmit = (type = false) => {
   paginations.pageNum = 1
   paginations.pageSize = 50
   getList(type);
-  setUncheck();
 };
 
 // 标签页切换
@@ -1096,24 +1090,6 @@ const getStore = () => {
           allStock: "",
         };
       }) ?? [];
-  });
-};
-const getEditStore = (account) => {
-  let params = {
-    name: "",
-    status: "created",
-    account,
-    startCreateDate: "",
-    endCreateDate: "",
-  };
-  warehouseList(params).then((res) => {
-    storeOption.value =
-      res?.rows?.map((item) => {
-        return {
-          value: item.warehouseId,
-          label: item.name,
-        };
-      }) || [];
   });
 };
 
@@ -1296,12 +1272,10 @@ const handleProductListClose = () => {
 // 关闭价格
 const handleEditPriceClose = () => {
   selectOzonId.value = [];
-  selectedRows.value = [];
   syncOneList.value = [];
   defType.value = [];
   editPriceVisible.value = false;
   getList();
-  setUncheck();
   editStockList.value = clearStock(editStockList.value);
 };
 
@@ -1345,19 +1319,15 @@ const addRemark = (row = {}) => {
 // 备注弹窗关闭
 const backCloseRemark = () => {
   remarkVisible.value = false;
-  selectedRows.value = [];
   remarkId.value = [];
   syncOneList.value = [];
-  allChecked.value = false;
   getList();
-  setUncheck();
 };
 
 const handleCopyProductClose = () => {
   copyList.value = [];
   copyProductVis.value = false;
   getList();
-  setUncheck();
 };
 
 // 复制
@@ -1600,6 +1570,7 @@ const getList = () => {
     })
     .finally(() => {
       loading.value = false;
+      setUncheck();
     });
   byState(params).then((res) => {
     tabQuantity.value = res?.data?.rows ?? [];
