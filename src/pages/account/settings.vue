@@ -37,7 +37,7 @@ const handleChange = info =>{
   }
   if (info.file.status === 'done') {
     if(info.file.response.code === 200){
-      formData.value.avatar = info.file.response.fileName;
+      formData.value.avatar = info.file.response.imgUrl;
       loading.value = false;
     }
   }
