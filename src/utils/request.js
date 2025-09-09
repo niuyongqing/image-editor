@@ -2,7 +2,7 @@ import { message } from 'ant-design-vue'
 import axios from 'axios'
 import { useUserStore } from '~/stores/user.js'
 import { AxiosLoading } from './loading.js'
-import { STORAGE_AUTHORIZE_KEY, useAuthorization } from '~/composables/authorization'
+import { useAuthorization } from '~/composables/authorization'
 import { ContentTypeEnum, RequestEnum } from '~#/http-enum'
 import router from '~/router'
 import { useMultiTab } from '~/stores/multi-tab.js'
@@ -35,7 +35,7 @@ function responseHandler(response) {
     if (response.data.code === 401) {
       out()
     }
-    return Promise.reject(err)
+    return Promise.reject(response.data)
   }
   return response.data
 }

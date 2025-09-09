@@ -37,7 +37,7 @@ export default [
     ],
   },
   {
-    path: '/platform/:pathMatch(.*)',
+    path: '/:pathMatch(.*)*',
     meta: {
       title: '找不到页面',
     },

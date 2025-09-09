@@ -224,6 +224,7 @@ const handleSelect = (record) => {
   existProductData.value = record;
   ozonStore.$patch(state => {
     state.dataType = "existProduct"
+    state.dataLoading = true
   })
 }
 
@@ -263,6 +264,7 @@ const feedBackData = (categoryObj) => {
     databaseProduct.value = res.data || {}
     ozonStore.$patch(state => {
       state.dataType = "database"
+      state.dataLoading = true
     })
   }).finally(() => {
     categoryAttributesLoading.value = false
@@ -471,7 +473,7 @@ const onSubmit = async (type = 1) => {
 
       // 过滤无效值
       if (value != null && value !== '') {
-        hisAttr[key] = key === '品牌(Бренд)' ? '无品牌' : value;
+        hisAttr[key] = key === '品牌(Бренд)' || key === '服装和鞋类品牌(Бренд в одежде и обуви)' ? '无品牌' : value;
       }
     }
   }

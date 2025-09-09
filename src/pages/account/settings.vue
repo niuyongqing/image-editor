@@ -3,18 +3,19 @@ import {ref} from 'vue'
 import { useUserStore } from '~/stores/user'
 import * as Icons from '@ant-design/icons-vue';
 import {updatePwd,updateProfile} from '~/api/common/user'
-import {message} from "ant-design-vue";
+import { message } from "ant-design-vue";
+
+const baseApi = import.meta.env.VITE_APP_BASE_API_DEV || ''
 const fileList = ref([])
 const userInfo = useUserStore().userInfo
 const loading = ref(false)
 const icon = Icons;
 const formData = ref({})
-const authorization = ref("")
+const headers = { Authorization: useAuthorization().value }
 const activeKey = ref("1")
 const passwordFormData = ref({})
 
 watchEffect(()=>{
-  authorization.value = window.localStorage.getItem("Authorization");
   formData.value = userInfo.sysUser
 })
 const beforeUpload = (file) =>{
@@ -36,7 +37,7 @@ const handleChange = info =>{
   }
   if (info.file.status === 'done') {
     if(info.file.response.code === 200){
-      formData.value.avatar = info.file.response.fileName;
+      formData.value.avatar = info.file.response.imgUrl;
       loading.value = false;
     }
   }
@@ -92,7 +93,7 @@ const labelCol = {
                         v-model:file-list="fileList"
                         name="avatarfile"
                         accept=".jpg,.png,.png"
-                        :headers="{Authorization:`Bearer ${authorization}`}"
+                        :headers="headers"
                         list-type="picture-card"
                         class="avatar-uploader"
                         :show-upload-list="false"
@@ -100,7 +101,7 @@ const labelCol = {
                         :before-upload="beforeUpload"
                         @change="handleChange"
                     >
-                      <img v-if="formData.avatar" :src="`/prod-api${formData.avatar}`" alt="avatar" style="width: 100px;height: 100px;" />
+                      <img v-if="formData.avatar" :src="`${baseApi}${formData.avatar}`" alt="avatar" style="width: 100px;height: 100px;" />
                       <div v-else>
                         <component :is="icon['LoadingOutlined']" v-if="loading"/>
                         <component :is="icon['PlusOutlined']" v-else/>

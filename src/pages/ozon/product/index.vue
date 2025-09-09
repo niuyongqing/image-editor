@@ -509,15 +509,17 @@
                               <a-menu-item style="color: #0d9888" @click="copyItems(record, 'single')">
                                 复制
                               </a-menu-item>
-                              <a-popconfirm ok-text="YES" cancel-text="NO" title="归档吗？" @confirm="deactivate(record)">
-                                <a-menu-item v-if="record.state !== '已归档'" type="text"
-                                  style="color: #e6a23c">归档</a-menu-item>
-                              </a-popconfirm>
+                              <a-menu-item v-if="record.state !== '已归档'" style="color: #e6a23c">
+                                <a-popconfirm ok-text="YES" cancel-text="NO" title="归档吗？" @confirm="deactivate(record)">
+                                  <span>归档</span>
+                                </a-popconfirm>
+                              </a-menu-item>
                               <a-menu-item @click="addRemark(record)"> 备注 </a-menu-item>
-                              <a-popconfirm ok-text="YES" cancel-text="NO" title="删除代表该产品在ozon平台删除，确定删除吗？"
-                                @confirm="deleteItem(record)">
-                                <a-menu-item type="text" style="color: red">删除</a-menu-item>
-                              </a-popconfirm>
+                              <a-menu-item style="color: red">
+                                <a-popconfirm ok-text="YES" cancel-text="NO" title="删除代表该产品在ozon平台删除，确定删除吗？" @confirm="deleteItem(record)">
+                                  <span>删除</span>
+                                </a-popconfirm>
+                              </a-menu-item>
                             </a-menu>
                           </template>
                         </a-dropdown>
@@ -570,14 +572,12 @@ import {
   syncOneProduct,
   syncHistoryCategory,
   mergeList,
-  asyncProgress,
   updatePrices,
   productWarehouse,
   del,
   syncShopProductAll,
   syncShopProduct,
   byState,
-  shopAsyncProgress,
   exportProduct,
   shopCurrency,
   brandCategory,
@@ -608,7 +608,6 @@ import {
 import download from "~/api/common/download";
 import typeTree from '@/components/classificationTree/typeTree.vue';
 import { groupProductCountApi } from '../config/api/draft'
-import { moveWaitCategoryApi } from '@/components/classificationTree/api.js';
 import SideBar from '@/pages/ozon/config/component/SideBar/index.vue';
 
 const { copy } = useClipboard();
@@ -658,7 +657,6 @@ const showOpen = ref(false);
 const prodListVisible = ref(false);
 const copyProductVis = ref(false);
 const shopSetVisible = ref(false);
-const interval = ref(null);
 const percentage = ref(0);
 const defType = ref([]);
 const itemId = ref();
@@ -674,7 +672,6 @@ const selectOzonId = ref([]);
 const editStockList = ref([]);
 const childList = ref([]);
 const copyList = ref([]);
-const storeOption = ref([]);
 const shopCurryList = ref([]);
 const asyncErrData = ref([]);
 const brandList = ref([]);
@@ -781,6 +778,7 @@ async function typeNodeClick(node) {
       }
     })
     await moveCategoryApi(params)
+    message.success('移动分类成功')
     getList()
   } catch (error) {
     console.error(error)
@@ -927,7 +925,6 @@ const onSubmit = (type = false) => {
   paginations.pageNum = 1
   paginations.pageSize = 50
   getList(type);
-  setUncheck();
 };
 
 // 标签页切换
@@ -1093,24 +1090,6 @@ const getStore = () => {
           allStock: "",
         };
       }) ?? [];
-  });
-};
-const getEditStore = (account) => {
-  let params = {
-    name: "",
-    status: "created",
-    account,
-    startCreateDate: "",
-    endCreateDate: "",
-  };
-  warehouseList(params).then((res) => {
-    storeOption.value =
-      res?.rows?.map((item) => {
-        return {
-          value: item.warehouseId,
-          label: item.name,
-        };
-      }) || [];
   });
 };
 
@@ -1293,12 +1272,10 @@ const handleProductListClose = () => {
 // 关闭价格
 const handleEditPriceClose = () => {
   selectOzonId.value = [];
-  selectedRows.value = [];
   syncOneList.value = [];
   defType.value = [];
   editPriceVisible.value = false;
   getList();
-  setUncheck();
   editStockList.value = clearStock(editStockList.value);
 };
 
@@ -1342,19 +1319,15 @@ const addRemark = (row = {}) => {
 // 备注弹窗关闭
 const backCloseRemark = () => {
   remarkVisible.value = false;
-  selectedRows.value = [];
   remarkId.value = [];
   syncOneList.value = [];
-  allChecked.value = false;
   getList();
-  setUncheck();
 };
 
 const handleCopyProductClose = () => {
   copyList.value = [];
   copyProductVis.value = false;
   getList();
-  setUncheck();
 };
 
 // 复制
@@ -1452,7 +1425,7 @@ const edit = (row = {}, type) => {
 
 };
 const sync = () => {
-  syncLoading.value = true;
+  loading.value = true;
   if (formData.account == null || formData.account == "") {
     // showOpen.value = true;
     syncShopProductAll()
@@ -1460,7 +1433,7 @@ const sync = () => {
         message.success("正在同步店铺所有商品，请稍后！");
       })
       .finally(() => {
-        syncLoading.value = false;
+        loading.value = false;
         // showOpen.value = false;
         getList();
         // setTimeout(() => {
@@ -1475,7 +1448,7 @@ const sync = () => {
         getList();
       })
       .finally(() => {
-        syncLoading.value = false;
+        loading.value = false;
         // getList();
         selectedRows.value = [];
       });
@@ -1500,13 +1473,13 @@ const syncOne = (record = {}) => {
   } else {
     syncList = syncOneList.value;
   }
-  syncLoading.value = true;
+  loading.value = true;
   syncOneProduct(syncList)
     .then((res) => {
       message.success(res.msg);
     })
     .finally(() => {
-      syncLoading.value = false;
+      loading.value = false;
       syncOneList.value = [];
       selectedRows.value = [];
       getList();
@@ -1597,6 +1570,7 @@ const getList = () => {
     })
     .finally(() => {
       loading.value = false;
+      setUncheck();
     });
   byState(params).then((res) => {
     tabQuantity.value = res?.data?.rows ?? [];

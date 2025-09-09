@@ -50,8 +50,8 @@ export const useUserStore = defineStore("user", () => {
       await logoutApi();
     } finally {
       token.value = null;
-      userInfo.value = void 0;
-      routerData.value = void 0;
+      userInfo.value = undefined;
+      routerData.value = undefined;
       menuData.value = [];
 
       // localStorage.clear();

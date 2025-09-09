@@ -7,7 +7,7 @@
             <a-form ref="ruleForm" class="richForm" :model="form" :label-col="{ span: 2 }">
                 <a-form-item label="产品描述：" name="description">
                     <div style="width: 90%;margin-top: 10px;">
-                        <a-textarea v-model:value="form.description" :rows="10" :maxlength="6000" showCount />
+                        <a-textarea v-model:value="form.description" allowClear :rows="10" :maxlength="6000" showCount />
                     </div>
                 </a-form-item>
                 <a-form-item label="JSON富文本：">
@@ -232,13 +232,13 @@ watch(() => props.productDetail, val => {
             // item.forEach((attribute) => {
             // });
             if (item.id === 21841) {
-                form.video = item.values.map((e) => {
+                form.video = item.values?.map((e) => {
                     return {
                         url: processImageSource(e.value),
                     }
                 })
             } else if (item.id === 21845) {
-                form.coverUrl = processImageSource(item.values[0].value)
+                form.coverUrl = item.values.length > 0 ? processImageSource(item.values[0].value) : ""
             }
         });
         copyAttr.forEach(e => {

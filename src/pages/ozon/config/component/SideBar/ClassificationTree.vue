@@ -4,6 +4,7 @@
       v-model:value="treeData.keyword"
       placeholder="类别关键词"
       class="mb-2"
+      allowClear
       @search="treeSearch(treeData.keyword)"
     />
     <div class="box-tree">

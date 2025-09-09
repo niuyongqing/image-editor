@@ -365,8 +365,10 @@ const findMatchedOption = (attributeId, data, options) => {
     const matchedOption = options?.find((option) => option.id === data.id);
     if (attributeId == 9070) {
         return {
-            label: JSON.parse(data.value) == true ? "是" : "否",
-            value: JSON.parse(data.value),
+            // label: JSON.parse(data.value) == true ? "是" : "否",
+            // value: JSON.parse(data.value),
+            label: data.value,
+            value: data.id,
         };
     } else if (attributeId == 85) {
         return {

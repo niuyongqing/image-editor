@@ -8,7 +8,7 @@
                     </a-select>
                 </a-form-item>
                 <a-form-item label="商品标题：" name="name">
-                    <a-input style="width: 90%" v-model:value="form.name" size="middle" placeholder="请输入产品名称(用俄语或英语)"
+                    <a-input style="width: 90%" v-model:value="form.name" allowClear size="middle" placeholder="请输入产品名称(用俄语或英语)"
                         :maxlength="255" showCount></a-input>
                 </a-form-item>
                 <a-form-item label="VAT：" name="vat">
@@ -294,8 +294,10 @@ const findMatchedOption = (attributeId, data, options) => {
     const matchedOption = options?.find(option => option.id === data.id);
     if (attributeId == 9070) {
         return {
-            label: data.value == true ? "是(YES)" : '否(NO)',
-            value: data.value || JSON.parse(data.value)
+            // label: data.value == true ? "是(YES)" : '否(NO)',
+            // value: data.value || JSON.parse(data.value)
+            label: data.value,
+            value: data.id,
         }
     } else if (attributeId == 85 || attributeId == 31) {
         return {

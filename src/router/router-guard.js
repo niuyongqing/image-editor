@@ -5,32 +5,31 @@ import { setRouteEmitter } from '~@/utils/route-listener'
 
 const allowList = ['/platform/login', '/platform/error', '/platform/401', '/platform/404', '/platform/403']
 const loginPath = '/platform/login'
+
 router.beforeEach(async (to, _, next) => {
   setRouteEmitter(to)
   const userStore = useUserStore()
   const token = useAuthorization()
-  if (!token.value) {
+  if (!token.value || token.value === 'null') {
     if (!allowList.includes(to.path) && !to.path.startsWith('/platform/redirect')) {
       next({
         path: loginPath,
         query: {
-          redirect: encodeURIComponent(to.fullPath),
-        },
+          redirect: encodeURIComponent(to.fullPath)
+        }
       })
       return
     }
-  }
-  else {
+  } else {
     if (!userStore.userInfo && !allowList.includes(to.path) && !to.path.startsWith('/platform/redirect')) {
       try {
         await userStore.getUserInfo()
         if (userStore.userInfo === undefined) {
-          window.localStorage.removeItem("Authorization")
           next({
             path: loginPath,
             query: {
-              redirect: encodeURIComponent(to.fullPath),
-            },
+              redirect: encodeURIComponent(to.fullPath)
+            }
           })
           return
         }
@@ -38,30 +37,24 @@ router.beforeEach(async (to, _, next) => {
         router.addRoute(currentRoute)
         next({
           ...to,
-          replace: true,
+          replace: true
         })
         return
-      }
-      catch (e) {
-        if (e instanceof AxiosError && e?.response?.status === 500) {
+      } catch (err) {
+        // if (e instanceof AxiosError && e?.response?.status === 500) {
+        if (err?.code === 500) {
           next({
-            path: '/platform/401',
+            path: '/platform/401'
           })
+          return
         }
-      }
-    }
-    else {
-      if (to.path === loginPath) {
-        next({
-          path: '/platform/',
-        })
-        return
       }
     }
   }
   next()
 })
-router.afterEach((to) => {
+
+router.afterEach(to => {
   useMetaTitle(to)
   useLoadingCheck()
   useScrollToTop()

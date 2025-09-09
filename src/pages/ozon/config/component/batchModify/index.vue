@@ -1,13 +1,13 @@
 <template>
-  <a-modal :open="showEdit" title="批量修改图片尺寸" @ok="handleOk" @cancel="cancel" :keyboard="false" width="1200px">
+  <a-modal :open="showEdit" title="批量修改图片尺寸" @cancel="cancel" :keyboard="false" :footer="false" width="1200px">
     <a-spin :spinning="spinning">
       <div class="text-red">图片仅支持JPG、PNG格式修改</div>
       <div class="mt-5 flex">
-        <a-select v-model:value="picScale" style="width: 200px" @change="handleChange">
+        <a-select v-model:value="picScale" style="width: 160px" @change="handleChange">
           <a-select-option :value="'equal'">等比例调整</a-select-option>
           <a-select-option :value="'custom'">自定义比例调整</a-select-option>
         </a-select>
-        <a-select v-model:value="picSize" class="mx-2.5" style="width: 200px" :options="sizeOptions">
+        <a-select v-model:value="picSize" class="mx-2.5" style="width: 160px" :options="sizeOptions">
         </a-select>
         <span class="mr-2.5">变化至</span>
         <div class="flex">
@@ -23,6 +23,7 @@
         </div>
         <a-button type="primary" class="ml-2.5" @click="generateJPG(1)">生成JPG图片</a-button>
         <a-button class="mx-2.5" @click="generateJPG(2)">生成PNG图片</a-button>
+        <a-checkbox v-model:checked="rememberConfig">记住本次设置</a-checkbox>
       </div>
       <div class="mt-5">
         <a-button @click="selectAllImg" class="mr-5 mt-1">{{ selectAll ? '取消选择全部图片' :
@@ -47,9 +48,10 @@
   </a-modal>
 </template>
 
-<script setup name=''>
+<script setup>
 import { message } from "ant-design-vue";
 import { replaceSuffix } from "../../api/product";
+
 const props = defineProps({
   showEdit: Boolean,
   moduleList: Array,
@@ -65,7 +67,8 @@ const sizeValue = ref(null)
 const scaleValue = ref("none")
 const heightValue = ref(null)
 const spinning = ref(false);
-const pictureOtion = ref([
+
+const pictureOptions = ref([
   {
     label: "图片小边",
     value: "small",
@@ -118,8 +121,11 @@ const scaleOpion = ref([
     value: "5",
   },
 ])
+
+const rememberConfig = ref(false)  // 记住本次设置
+
 const sizeOptions = computed(() => {
-  return pictureOtion.value.filter(item => item.field === picScale.value);
+  return pictureOptions.value.filter(item => item.field === picScale.value);
 })
 
 const handleChange = () => {
@@ -127,6 +133,8 @@ const handleChange = () => {
 }
 
 const cancel = () => {
+  clearField()
+  
   emit("handleBatchModifyClose")
 }
 
@@ -137,15 +145,6 @@ const clearField = () => {
   sizeValue.value = null
   scaleValue.value = "none"
   heightValue.value = null
-}
-
-const handleOk = () => {
-  if (!sizeValue.value || (picSize.value === 'customWH' && !heightValue.value)) {
-    message.error("请填写变化值！")
-    return
-  }
-  emit("rebackList", copyModuleList.value)
-  cancel()
 }
 
 function adjustList(list, picScale, picSize, scaleValue, sizeValue, heightValue) {
@@ -249,6 +248,22 @@ const generateJPG = (type) => {
         itemB.url = '/prod-api' + matchingItemA.path;
       }
     })
+
+    // 是否记住本次设置
+    if (rememberConfig.value) {
+      const configInfo = {
+        picScale: picScale.value,
+        picSize: picSize.value,
+        sizeValue: sizeValue.value,
+        scaleValue: scaleValue.value,
+        heightValue: heightValue.value
+      }
+      localStorage.setItem('modifyImageSizeConfig', JSON.stringify(configInfo))
+    } else {
+      localStorage.removeItem('modifyImageSizeConfig')
+    }
+
+    emit("rebackList", copyModuleList.value)
   }).finally(() => {
     spinning.value = false
     clearField();
@@ -304,8 +319,23 @@ watch(() => props.moduleList, val => {
     });
     // 将 Set 转换回数组
     copyModuleList.value = Array.from(uniqueSet).map(str => JSON.parse(str));
-    // console.log('copyModuleList', copyModuleList.value);
   }
 }, { deep: true, immediate: true });
+
+watch(() => props.showEdit, val => {
+  if (!val) return
+
+  const configInfo = JSON.parse(localStorage.getItem('modifyImageSizeConfig'))
+  if (configInfo) {
+    rememberConfig.value = true
+
+    picScale.value = configInfo.picScale
+    picSize.value = configInfo.picSize
+    sizeValue.value = configInfo.sizeValue
+    scaleValue.value = configInfo.scaleValue
+    heightValue.value = configInfo.heightValue
+  } else {
+    rememberConfig.value = false
+  }
+})
 </script>
-<style lang="less" scoped></style>

@@ -52,3 +52,8 @@ export function meansAttribute() {
     method: 'get',
   })
 }
+
+// 广告授权
+export function adAuthorizeApi(params) {
+  return usePost('/platform-ozon/platform/ozon/shop/advertising/authorize', params)
+}

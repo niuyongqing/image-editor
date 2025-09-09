@@ -313,7 +313,6 @@ import {
   ozonProductList,
   ozonProductDel,
   ozonProductPublish,
-  statistics,
   waitExport,
   brandCategory
 } from "../config/api/waitProduct";
@@ -352,8 +351,7 @@ const selectedRowList = ref([]);
 const selectedRowKeys = ref([]);
 const tableData = ref([]);
 let columns = tableHeard;
-const deactivateLoading = ref(false);
-const delLoading = ref(false);
+
 const loading = ref(false);
 const remarkVisible = ref(false);
 const shopSetVisible = ref(false);
@@ -577,6 +575,7 @@ async function typeNodeClick(node) {
       customCategoryId: node.id //分类ID
     }
     await moveWaitCategoryApi(params)
+    message.success('移动分类成功')
     getList()
   } catch (error) {
     console.error(error)
@@ -657,7 +656,6 @@ const del = (row = {}) => {
     .then((res) => {
       message.success("操作成功");
       getList();
-      clearSelectList();
     })
     .finally(() => {
       loading.value = false;
@@ -689,7 +687,6 @@ const addRemark = (row = {}) => {
 const backCloseRemark = () => {
   remarkVisible.value = false;
   remarkId.value = [];
-  clearSelectList();
   getList();
 };
 
@@ -721,17 +718,6 @@ const handleMenuClick = (e) => {
   } else if (e.key === 'addWatermark') {
     watermarkModalOpen.value = true
   }
-  // else if(e.key === "deactivate") {
-  //   Modal.confirm({
-  //     title: '是否批量归档？',
-  //     onOk: () => {
-  //       // del();
-  //     },
-  //     onCancel: () => {
-  //       clearSelectList();
-  //     }
-  //   })
-  // }
   else if (e.key == "delete") {
     Modal.confirm({
       title: "确定在待发布删除吗？",
@@ -786,7 +772,6 @@ function watermarkOk(form) {
 // 关闭价格
 const handleEditPriceClose = () => {
   defType.value = [];
-  clearSelectList();
   editPriceVisible.value = false;
   getList();
   editStockList.value = clearStock(editStockList.value);

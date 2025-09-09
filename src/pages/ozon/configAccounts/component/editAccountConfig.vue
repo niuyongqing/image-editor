@@ -105,7 +105,6 @@ watch(
   () => props.selectedRowKeys,
   (newList) => {
     if (newList && newList.length > 0) {
-      console.log("newList", newList);
       newList.forEach((val) => {
         formState.depId = val.depId;
         formState.userId = (

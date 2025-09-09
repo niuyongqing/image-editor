@@ -3,7 +3,7 @@
     <a-card style="margin-top: 20px">
       <a-form :model="formState" layout="inline" ref="formRef">
         <a-form-item label="用户：" name="userId">
-          <a-select v-model:value="formState.userId" show-search placeholder="请选择用户" style="width: 200px"
+          <a-select v-model:value="formState.userId" allow-clear show-search placeholder="请选择用户" style="width: 200px"
             :options="getAccountUserArr" :filter-option="filterOption" :fieldNames="userLabels"></a-select>
         </a-form-item>
         <a-form-item label="部门：" name="depId">
@@ -46,9 +46,9 @@
               </span>
             </template>
             <template v-if="column.key === 'account'">
-              <span v-for="(item, index) in record.account.split(',')" :key="index">
+              <span v-for="(item, index) in getsimpleName(record.account)" :key="index">
                 <a-tag color="blue" class="mt-1.5">{{
-                  getsimpleName(item)
+                 item
                 }}</a-tag>
               </span>
             </template>
@@ -176,15 +176,28 @@ const getUserDep = () => {
     depOptions.value = res.data;
   });
 };
-// 处理字段回显
+// 处理字段回显根据店铺中的数字值排序
 const getsimpleName = (v) => {
-  let msg = "";
-  accountOptions.value.forEach((value) => {
-    if (v == value.account) {
-      msg = value.simpleName;
-    }
+  // 分割account字符串为ID数组
+  const accountIds = v.split(',');
+  
+  // 创建account到simpleName的映射表
+  const accountMap = new Map(
+    accountOptions.value.map(option => [option.account, option.simpleName])
+  );
+  
+  // 匹配并过滤有效结果
+  const matchedNames = accountIds
+    .map(id => accountMap.get(id))
+    .filter(Boolean); // 排除未匹配项
+  
+  // 按simpleName中的数字排序 (例如Ozon04中的04)
+  const numberRegex = /Ozon(\d+)-/;
+  return matchedNames.sort((a, b) => {
+    const numA = parseInt(a.match(numberRegex)[1], 10);
+    const numB = parseInt(b.match(numberRegex)[1], 10);
+    return numA - numB;
   });
-  return msg;
 };
 const getAccountUserList = () => {
   getAccountUser({ userName: "" }).then((res) => {

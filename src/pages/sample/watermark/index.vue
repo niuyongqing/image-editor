@@ -107,4 +107,17 @@
       getList()
     })
   }
+
+  /** 监听编辑页保存后的跨窗口通信 */
+  window.addEventListener('message', receiveMessage)
+
+  onBeforeUnmount(() => {
+    window.removeEventListener('message', receiveMessage)
+  })
+
+  function receiveMessage(event) {
+    if (event.origin !== window.location.origin && event.data !== 'refresh') return
+
+    getList()
+  }
 </script>

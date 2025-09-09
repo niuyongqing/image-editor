@@ -79,13 +79,14 @@ const editHead = [
         title: '尺寸',
         show: true,
         align: 'center'
-    },
-    {
-        dataIndex: 'options',
-        title: '操作',
-        show: true,
-        align: 'center'
     }
+
+    // {
+    //     dataIndex: 'options',
+    //     title: '操作',
+    //     show: true,
+    //     align: 'center'
+    // }
 ]
 
 const otherList = [
