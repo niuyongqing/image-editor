@@ -69,7 +69,6 @@
   const collectProductId = inject('collectProductId', '')
   const databaseId = inject('databaseId', '') // 资料库 id
 
-  // const props = defineProps({})
   const emits = defineEmits(['emitImages'])
 
   const headers = { Authorization: useAuthorization().value }
