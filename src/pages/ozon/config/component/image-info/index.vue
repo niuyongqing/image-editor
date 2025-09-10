@@ -197,7 +197,7 @@
                   <a-button type="link"><BulbOutlined class="text-base" /><CaretDownOutlined /></a-button>
                   <template #overlay>
                     <a-menu @click="imgModifySingleMenuClick($event, image)">
-                      <a-menu-item key="ps">小秘美图</a-menu-item>
+                      <a-menu-item key="ps">在线p图</a-menu-item>
                       <a-menu-item key="translate">图片翻译</a-menu-item>
                       <!-- <a-menu-item key="whiteBg">图片白底</a-menu-item> -->
                     </a-menu>
@@ -567,13 +567,59 @@
         break
     }
   }
-  const channel = new BroadcastChannel("mtImageEditor")
-    channel.onmessage = (event) => {
-      console.log(event.data);
-      MtImageEBaseUrl({imageData:event.data.base64}).then(res=>{
-        console.log(res);
-      })
+
+const mtImageEBaseUrl = ref("");
+// 美图设计室回传图片数据
+const channel = new BroadcastChannel("mtImageEditor");
+channel.onmessage = (event) => {
+  console.log("接收到美图设计室回传图片数据:", event.data);
+  MtImageEBaseUrl({ imageData: event.data.base64 }).then((res) => {
+    console.log("上传处理结果:", res);
+    if (res.code === 200) {
+      mtImageEBaseUrl.value = res.msg;
+
+      // 更新对应ID的图片数据，同时保存编辑记录ID用于二次编辑
+      if (event.data.imageId) {
+        updateImageById(
+          event.data.imageId,
+          mtImageEBaseUrl,
+          event.data.recordId
+        );
+      }
+    }
+  });
+};
+
+// 根据图片ID更新组件内的图片数据
+function updateImageById(imageId, newImageUrl, recordId) {
+  // 遍历所有SKU的图片列表
+  for (const SKU of props.dataSource) {
+    const targetImage = SKU.imageUrl.find((img) => img.id === imageId);
+    if (targetImage) {
+      // 更新图片URL - 确保使用ref.value获取实际URL值
+      targetImage.url = newImageUrl.value;
+
+      // 保存编辑记录ID，用于二次编辑
+      if (recordId) {
+        targetImage.recordId = recordId;
+        console.log(`保存图片ID ${imageId} 的编辑记录ID: ${recordId}`);
+      }
+
+      // 重新获取图片尺寸
+      getImgSize(targetImage);
+
+      console.log(`图片ID ${imageId} 已更新为新的URL`);
+      message.success("图片修改成功！");
+      break;
+    }
+  }
 }
+
+// 组件卸载时关闭 BroadcastChannel 避免内存泄漏
+onUnmounted(() => {
+  channel.close();
+});
+
  
   // 编辑单张图片
   function imgModifySingleMenuClick({ key }, item) {
@@ -584,15 +630,29 @@
         break
       case "ps":
         console.log(item);
+        console.log(item.url);
+        // window.location.origin
         const urlData = router.resolve({
           path: "/platform/ozon/editPsImage",
-          query: { imageUrl: item.url,imageId:item.id }
+          // query: { imageUrl: item.url,imageId:item.id,recordId:item.recordId||'2509234000058119' }
+          query: { imageUrl: filterUrl(item.url),imageId:item.id,recordId:item.recordId }
         });
       window.open(urlData.href, "_blank");
       break;
       default:
         break
     }
+  }
+
+  // 判断当前url是否包含https://或者包含http:// 不存在的话 手动拼接
+  function filterUrl(url){
+    if (!url) return '';
+    // 检查URL是否已经以http://或https://开头
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    // 如果不包含，则添加/prod-api/前缀
+    return 'https://www.xzerp.com' + url;
   }
 
   // 删除单张按钮
