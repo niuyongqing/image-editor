@@ -13,12 +13,12 @@ export const DEFAULT_TABLE_COLUMN = [
   { title: '广告费用占比', key: 'feeProportion' },
   { title: '展示次数', key: 'displayCount' },
   { title: '点击量', key: 'hits' },
-  { title: '添加购物车次数', key: 'shopping cart' },
+  { title: '添加购物车次数', key: 'shoppingCart' },
   { title: '点击率', key: 'hitsRate' },
   { title: '平均点击价格', key: 'averageHitsPrice' },
   { title: '平均利率', key: 'averageRate' },
   { title: 'CPM', key: 'cpm' },
-  { title: '活动状态', key: 'avtiveState' },
+  { title: '活动状态', key: 'activeState' },
   { title: '启用状态', key: 'enableState' },
   { title: '操作', key: 'options' }
 ]

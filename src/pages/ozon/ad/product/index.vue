@@ -333,8 +333,9 @@
   }
 
   // 跳往广告管理页
+  const router = useRouter()
   function goAdManage(id) {
-    useRouter().push(`/platform/ozon/ad/management?id=${id}`)
+    router.push(`/platform/ozon/ad/management?id=${id}`)
   }
 
   // 跳往 Ozon 后台
