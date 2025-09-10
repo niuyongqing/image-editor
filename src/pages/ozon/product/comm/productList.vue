@@ -101,9 +101,8 @@ const getStateColor = (state) => {
     const colorMap = {
         '平台审核': 'processing',
         '在售': 'success',
-        '审核不通过': 'warning',
-        '准备出售': 'error',
-        '': 'default'
+        '审核不通过': 'error',
+        '准备出售': 'warning'
     };
     return colorMap[state] || 'default';
 }

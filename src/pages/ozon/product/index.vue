@@ -263,14 +263,14 @@
                           <div class="w-100px">{{ record.offerId }}</div>
                         </a-tooltip>
                       </div>
-                      <div class="text-[#428bca] cursor-pointer" v-if="tbItem.count > 1"
+                      <div class="text-[#428bca] cursor-pointer" v-if="tbItem.count > 1 && record.state === '在售'"
                         @click="showChildren(record.account, tbItem.attributeId, record.typeId)">
                         已合并:{{ tbItem.count }}
                       </div>
                       <div>
                         促销活动价：<span class="text-[#1677ff]">{{ record.marketingPrice || '暂未参加活动' }}</span>
                       </div>
-                      <div>
+                      <div v-if="record.state === '已归档' || record.state === '在售'">
                         <div class="flex">
                           <span>内容质量分:</span>
                           <div v-if="record.productsScore">
