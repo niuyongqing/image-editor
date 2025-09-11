@@ -259,7 +259,7 @@
             class="min-h-6"
             @click="cellActived(index, column.key)"
           >
-            {{ record.detailDesc.slice(0, 255) }}
+            {{ record.detailDesc && record.detailDesc.slice(0, 255) }}
           </div>
         </template>
         <template v-else-if="column.title === 'VAT'">
@@ -1147,6 +1147,7 @@
   }
 
   /** 保存 */
+  const loading = ref(false)
   function submit() {
     // 校验属性非空 (不可为空: [产品标题, 变种SKU, 售价, 尺寸, 重量])
     let flag = false
@@ -1168,6 +1169,7 @@
       return
     }
 
+    loading.value = true
     const params = cloneDeep(tableData.value)
     params.forEach(item => {
       item.name = item.title
@@ -1190,10 +1192,12 @@
 
     batchUpdateProductApi(params).then(res => {
       message.success('修改成功')
-      // localStorage.removeItem('ids')
-      // setTimeout(() => {
-      //   window.close()
-      // }, 2000)
+      localStorage.removeItem('ids')
+      setTimeout(() => {
+        window.close()
+      }, 2000)
+    }).finally(() => {
+      loading.value = false
     })
   }
 </script>
