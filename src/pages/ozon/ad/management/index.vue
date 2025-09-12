@@ -292,6 +292,7 @@
   import TiledDateSelect from '../commComponents/TiledDateSelect.vue'
   import { CopyOutlined, DownOutlined, QuestionCircleOutlined } from '@ant-design/icons-vue'
 
+  const router = useRouter()
   const accountList = ref([])
   // 被 watch 监听的搜索表单; 外层, 点击即可搜索
   const watchedSearchForm = reactive({
@@ -392,7 +393,9 @@
   }
 
   // 创建
-  function add() {}
+  function add() {
+    router.push('/platform/ozon/ad/management/add')
+  }
 
   // 同步
   function sync() {}
@@ -408,7 +411,6 @@
   }
 
   // 点击广告产品数, 跳转到广告产品页
-  const router = useRouter()
   function goAdProduct(id) {
     router.push(`/platform/ozon/ad/product?actionId=${id}`)
   }
