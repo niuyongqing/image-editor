@@ -272,6 +272,7 @@
   import download from '~@/api/common/download'
   import { cloneDeep } from 'lodash'
   import { v4 as uuidv4 } from 'uuid'
+  import { encryptString } from '@/utils/tools.js'
   import PictureLibrary from '@/components/pictureLibrary/index.vue'
   import NetImageModal from '@/components/skuDragUpload/netImageModal.vue'
   import BacthSkuEditImg from '@/components/skuDragUpload/bacthSkuEditImg.vue'
@@ -570,23 +571,40 @@
 
 const mtImageEBaseUrl = ref("");
 // 美图设计室回传图片数据
-const channel = new BroadcastChannel("mtImageEditor");
+const channel = new BroadcastChannel('mtImageEditor');
 channel.onmessage = (event) => {
-  console.log("接收到美图设计室回传图片数据:", event.data);
+  // console.log('接收到美图设计室回传图片数据:', event.data);
+  
+  // 数据有效性检查
+  if (!event.data || !event.data.base64) {
+    console.error('美图设计室回传数据不完整或无效');
+    message.error('图片数据处理失败，请重试');
+    return;
+  }
+  
   MtImageEBaseUrl({ imageData: event.data.base64 }).then((res) => {
-    console.log("上传处理结果:", res);
-    if (res.code === 200) {
+    // console.log('上传处理结果:', res);
+    
+    if (res.code === 200 && res.msg) {
       mtImageEBaseUrl.value = res.msg;
-
+      
+      // 确保recordId为字符串类型
+      let recordId = event.data.recordId;
+      if (recordId !== undefined && recordId !== null) {
+        recordId = String(recordId);
+      }
+      
       // 更新对应ID的图片数据，同时保存编辑记录ID用于二次编辑
       if (event.data.imageId) {
-        updateImageById(
-          event.data.imageId,
-          mtImageEBaseUrl,
-          event.data.recordId
-        );
+        updateImageById(event.data.imageId, mtImageEBaseUrl, recordId);
       }
+    } else {
+      console.error('图片上传处理失败:', res);
+      message.error(res.msg || '图片处理失败，请重试');
     }
+  }).catch((error) => {
+    console.error('美图设计室图片处理异常:', error);
+    message.error('图片处理过程中发生错误');
   });
 };
 
@@ -596,20 +614,34 @@ function updateImageById(imageId, newImageUrl, recordId) {
   for (const SKU of props.dataSource) {
     const targetImage = SKU.imageUrl.find((img) => img.id === imageId);
     if (targetImage) {
-      // 更新图片URL - 确保使用ref.value获取实际URL值
+      // 更新目标图片URL - 确保使用ref.value获取实际URL值
       targetImage.url = newImageUrl.value;
 
+      // 确保imageList字段存在
+      if (!SKU.imageList) {
+        SKU.imageList = [];
+      }
+      
       // 保存编辑记录ID，用于二次编辑
       if (recordId) {
-        targetImage.recordId = recordId;
-        console.log(`保存图片ID ${imageId} 的编辑记录ID: ${recordId}`);
+        // 根据recordId找出当前的图片对象，如果找到就替换当前图片对象中的url，如果没找到就直接将追加一个新对象
+        const index = SKU.imageList.findIndex(item => item.recordId === recordId);
+        if (index !== -1) {
+          SKU.imageList[index].image = targetImage.url;
+        } else {
+          SKU.imageList.push({
+            recordId: recordId,
+            image: targetImage.url
+          });
+        }
       }
+      
+      // 将props.dataSource数据存储到本地缓存中
+      localStorage.setItem(props.imageKey, JSON.stringify(props.dataSource));
 
       // 重新获取图片尺寸
       getImgSize(targetImage);
-
-      console.log(`图片ID ${imageId} 已更新为新的URL`);
-      message.success("图片修改成功！");
+      message.success('图片修改成功！');
       break;
     }
   }
@@ -620,45 +652,81 @@ onUnmounted(() => {
   channel.close();
 });
 
- 
-  // 编辑单张图片
-  function imgModifySingleMenuClick({ key }, item) {
-    switch (key) {
-      case 'translate':
-        translateImageList.value = [item]
-        imgTransRef.value.showModal([item])
-        break
-      case "ps":
-        console.log(item);
-        console.log(item.url);
-        // window.location.origin
-        const urlData = router.resolve({
-          path: "/platform/ozon/editPsImage",
-          // query: { imageUrl: item.url,imageId:item.id,recordId:item.recordId||'2509234000058119' }
-          query: { imageUrl: filterUrl(item.url),imageId:item.id,recordId:item.recordId }
-        });
-      window.open(urlData.href, "_blank");
+// 编辑单张图片
+function imgModifySingleMenuClick({ key }, item) {
+  switch (key) {
+    case 'translate':
+      translateImageList.value = [item];
+      imgTransRef.value.showModal([item]);
       break;
-      default:
-        break
+    case 'ps':
+      // 调用findRecordIdByUrl函数
+      const foundRecordId = findRecordIdByUrl(item.url);
+      const urlData = router.resolve({
+        path: '/platform/ozon/editPsImage',
+        query: { imageUrl: item.url, imageId: item.id, recordId: foundRecordId }
+      });
+      // 对整个URL进行加密
+      try {
+        const encryptedUrl = encryptString(urlData.href);
+        window.open(`/platform/ozon/editPsImage?encryptedData=${encodeURIComponent(encryptedUrl)}`, '_blank');
+      } catch (error) {
+        console.error('URL加密失败:', error);
+        // 加密失败时使用原始URL作为备用方案
+        window.open(urlData.href, '_blank');
+      }
+      break;
+    default:
+      break;
+  }
+}
+
+// 根据url找到对应的recordId，先将url和imageList中的image都去掉'/prod-api'前缀后再进行对比
+function findRecordIdByUrl(url) {
+  if (!url || !props.dataSource) return '';
+  
+  // 标准化URL：移除'/prod-api'前缀
+  const urlWithoutProdApi = url.startsWith('/prod-api') ? url.replace('/prod-api', '') : url;
+  
+  // 提取URL匹配逻辑为辅助函数，提高代码复用性
+  const isUrlMatch = (imageUrl) => {
+    const imageUrlWithoutProdApi = imageUrl?.startsWith('/prod-api') ? imageUrl.replace('/prod-api', '') : imageUrl;
+    return imageUrlWithoutProdApi === urlWithoutProdApi;
+  };
+  
+  // 使用扁平化查找方式，直接找到匹配的图片项
+  for (const SKU of props.dataSource) {
+    if (SKU?.imageList && SKU.imageList.length > 0) {
+      const matchedImage = SKU.imageList.find(img => isUrlMatch(img.image));
+      if (matchedImage?.recordId) {
+        return matchedImage.recordId;
+      }
+    }
+  }
+  
+  return '';
+}
+
+// 删除单张按钮
+function delImg(SKU, id) {
+  // 先保存要删除的图片URL
+  const targetImage = SKU.imageUrl.find(image => image.id === id);
+  const currentUrl = targetImage?.url;
+  
+  // 根据保存的URL删除imageList中对应项
+  if (currentUrl && SKU.imageList) {
+    // 找出当前url在imageList中的索引
+    const index = SKU.imageList.findIndex(item => item.image === currentUrl);
+    if (index !== -1) {
+      // 删除当前索引项
+      SKU.imageList.splice(index, 1);
     }
   }
 
-  // 判断当前url是否包含https://或者包含http:// 不存在的话 手动拼接
-  function filterUrl(url){
-    if (!url) return '';
-    // 检查URL是否已经以http://或https://开头
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      return url;
-    }
-    // 如果不包含，则添加/prod-api/前缀
-    return 'https://www.xzerp.com' + url;
-  }
-
-  // 删除单张按钮
-  function delImg(SKU, id) {
-    SKU.imageUrl = SKU.imageUrl.filter(image => image.id !== id)
-  }
+  // 过滤掉要删除的图片
+  SKU.imageUrl = SKU.imageUrl.filter(image => image.id !== id);
+  // console.log(SKU);
+}
 
   /** 空间图片 */
   const pictureLibraryOpen = ref(false)

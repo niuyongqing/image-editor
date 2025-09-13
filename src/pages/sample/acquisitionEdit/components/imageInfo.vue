@@ -283,6 +283,7 @@ import { message } from 'ant-design-vue';
   import { BulbOutlined, CaretDownOutlined,DeleteOutlined } from '@ant-design/icons-vue'
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { useRouter } from 'vue-router';
+import { encryptString } from '@/utils/tools';
 import kong from '@/assets/images/kong.png'
 import download from '~@/api/common/download';
 import draggable from 'vuedraggable';
@@ -585,6 +586,9 @@ async function imageHandleUpload(file) {
   loading.image = false;
 }
 function delImg(val) {
+  // 根据URL删除imageList中对应项
+  props.productData.imagesList = props.productData?.imagesList?.filter(i => i.url !== val.url)
+  // 删除当前图片
   formData.image_list = formData.image_list.filter(i => i.id !== val.id)
 }
 
@@ -679,6 +683,20 @@ function createRandom() {
       })
     })
   }
+  // 查找图片记录ID 兼容存在/prod-api 或者不存在/prod-api两种情况
+
+  function findRecordIdByUrl(url) {
+  if (!url || !props.productData?.imagesList) return null;
+  // 标准化URL：移除'/prod-api'前缀
+  const urlWithoutProdApi = url.startsWith('/prod-api') ? url.replace('/prod-api', '') : url;
+  const found = props.productData.imagesList?.find(item => {
+    // 处理item.image中可能存在的'/prod-api'前缀
+    const itemImageWithoutProdApi = item.image?.startsWith('/prod-api') ? item.image.replace('/prod-api', '') : item.image;
+    return itemImageWithoutProdApi === urlWithoutProdApi;
+  });
+  return found ? found.recordId : null;
+}
+
 
 // 处理图片修改菜单点击
 function imgModifySingleMenuClick(e, image) {
@@ -686,13 +704,23 @@ function imgModifySingleMenuClick(e, image) {
   console.log(image.url);
   switch (key) {
     case 'ps':
+      const foundRecordId = findRecordIdByUrl(image.url);
       // 在线p图功能
       const urlData = router.resolve({
         path: "/platform/ozon/editPsImage",
-        // query: { imageUrl: image.url, imageId: image.id, recordId: image.recordId || '2509234000058119' }
-        query: { imageUrl: image.url, imageId: image.id, recordId: image.recordId }
+        query: { imageUrl: image.url, imageId: image.id, recordId: foundRecordId }
       });
-      window.open(urlData.href, '_blank');
+      console.log(urlData.href)
+      // 对整个URL进行加密
+      try {
+        const encryptedUrl = encryptString(urlData.href);
+        window.open(`/platform/ozon/editPsImage?encryptedData=${encodeURIComponent(encryptedUrl)}`, '_blank');
+      } catch (error) {
+        console.error('URL加密失败:', error);
+        // 加密失败时使用原始URL作为备用方案
+        window.open(urlData.href, '_blank');
+      }
+
       break;
     case 'translate':
       // 图片翻译功能
@@ -719,12 +747,18 @@ channel.onmessage = (event) => {
     if (res.code === 200) {
       mtImageEBaseUrl.value = res.msg;
 
+      // 确保recordId为字符串类型
+      let recordId = event.data.recordId;
+      if (recordId !== undefined && recordId !== null) {
+        recordId = String(recordId);
+      }
+
       // 更新对应ID的图片数据，同时保存编辑记录ID用于二次编辑
       if (event.data.imageId) {
         updateImageById(
           event.data.imageId,
           mtImageEBaseUrl,
-          event.data.recordId
+          recordId
         );
       }
     }
@@ -740,11 +774,26 @@ function updateImageById(imageId, newImageUrl, recordId) {
     targetImage.url = newImageUrl.value;
     targetImage.src = newImageUrl.value;
 
-    // 保存编辑记录ID，用于二次编辑
-    if (recordId) {
-      targetImage.recordId = recordId;
-      console.log(`保存图片ID ${imageId} 的编辑记录ID: ${recordId}`);
-    }
+        // 确保imagesList字段存在
+      if (!props.productData.imagesList) {
+        props.productData.imagesList = [];
+      }
+      
+      // 保存编辑记录ID，用于二次编辑
+      if (recordId) {
+        // 根据recordId找出当前的图片对象,如果找到就替换当前图片对象中的url，如果没找到就直接将追加一个新对象
+        const index = props.productData.imagesList?.findIndex(item => item.recordId === recordId);
+        if (index !== -1) {
+          props.productData.imagesList[index].image = targetImage.url;
+        } else {
+          props.productData.imagesList.push({
+            'recordId': recordId,
+            'image': targetImage.url,
+          })
+        }
+  
+        console.log(`保存图片ID ${imageId} 的编辑记录ID: ${recordId}`);
+      }
 
     // 重新获取图片尺寸
     getImageSize(targetImage);

@@ -423,6 +423,7 @@ const commProceData = () => {
     newTableData[i].oldPrice = tableData.value[i].oldPrice
     newTableData[i].colorImg = tableData.value[i].colorImg
     newTableData[i].imageUrl = tableData.value[i].imageUrl
+    newTableData[i].imageList = tableData.value[i].imageList || []
     newTableData[i].quantity = tableData.value[i].quantity
     newTableData[i].warehouseList = tableData.value[i].warehouseList
     newTableData[i].packageHeight = tableData.value[i].packageHeight
@@ -676,7 +677,8 @@ const pushValue = (index, item, key, record) => {
     newTableData[i].price = tableData.value[i].price
     newTableData[i].oldPrice = tableData.value[i].oldPrice
     newTableData[i].colorImg = tableData.value[i].colorImg
-    newTableData[i].imageUrl = tableData.value[i].imageUrl
+    newTableData[i].imageUrl = tableData.value[i].imageUrl || []
+    newTableData[i].imageList = tableData.value[i].imageList
     newTableData[i].quantity = tableData.value[i].quantity
     newTableData[i].warehouseList = tableData.value[i].warehouseList
     newTableData[i].packageHeight = tableData.value[i].packageHeight
@@ -1046,6 +1048,7 @@ watch(
                 ...(processImageSource(sku.images) || [])         // 普通图片数组
               ])
             ).map(url => ({ url, id: uuidv4(), checked: false })) ?? [],
+            imageList: sku?.imageList || []
         }
 
         // 遍历a数组
