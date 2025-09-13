@@ -394,7 +394,7 @@
 
   // 创建
   function add() {
-    router.push('/platform/ozon/ad/management/add')
+    window.open('/platform/ozon/ad/management/add')
   }
 
   // 同步

@@ -130,7 +130,7 @@
         </a-space>
         <a-space>
           <span>选择产品: {{ selectedRowKeys.length }}/500</span>
-          <a-button type="primary">选择产品</a-button>
+          <a-button type="primary" :disabled="!form.sellerId" @click="open = true">选择产品</a-button>
         </a-space>
       </div>
 
@@ -214,6 +214,9 @@
         >保存</a-button
       >
     </a-space>
+
+    <!-- 添加广告活动产品 弹窗 -->
+     <AddProductModal v-model:open="open" :seller-id="form.sellerId" @add-product="addProduct" />
   </div>
 </template>
 
@@ -222,6 +225,7 @@
   import { message } from 'ant-design-vue'
   import { CopyOutlined, DeleteOutlined, QuestionCircleOutlined } from '@ant-design/icons-vue'
   import { copyText } from '@/utils'
+  import AddProductModal from './components/AddProductModal.vue'
 
   /** 基本信息 */
   const form = reactive({
@@ -305,8 +309,17 @@
     console.log('remove', id)
   }
 
+  /** 添加活动产品 弹窗 */
+  const open = ref(false)
+
+  function addProduct(products) {
+    console.log(products);
+  }
+
   /** 功能按钮 */
-  function close() {}
+  function close() {
+    window.close()
+  }
 
   const loading = ref(false)
   function submit() {

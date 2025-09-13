@@ -50,6 +50,7 @@
 
   const isFold = ref(true)
   const content = ref('')
+  defineExpose({ content })
 
   watch(() => props.hideControl, (val) => {
     if (val) {
