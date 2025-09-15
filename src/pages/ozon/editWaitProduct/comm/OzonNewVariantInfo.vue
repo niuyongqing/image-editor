@@ -966,6 +966,7 @@ const commProceData = () => {
     newTableData[i].oldPrice = tableData.value[i].oldPrice;
     newTableData[i].colorImg = tableData.value[i].colorImg;
     newTableData[i].imageUrl = tableData.value[i].imageUrl;
+    newTableData[i].imageList = tableData.value[i].imageList;
     newTableData[i].quantity = tableData.value[i].quantity;
     newTableData[i].warehouseList = tableData.value[i].warehouseList;
     newTableData[i].packageHeight = tableData.value[i].packageHeight;
@@ -1313,6 +1314,7 @@ watch(
         })
         optimizeMethods(attrHeaderList, titleSet, sortArr, uniqueArr, result, databaseSkuList);
       } else if (ozonStore.dataType === "template") {
+        // 引用变种模板
         let items = tempList.value.find(item => item.value == templateValue.value) || {}
         const { content: { variantTemplate: { variantAttr } } } = items;
         variantAttr.forEach(sku => {
@@ -1334,6 +1336,7 @@ watch(
           packageHeight: undefined,
           packageWeight: undefined,
           imageUrl: [],
+          imageList: [],
           colorImg: [],
           id: Math.random().toString(36).substring(2, 10),
         });
@@ -1412,7 +1415,8 @@ const createNewItem = (sku, dataSource) => ({
   colorImg: createColorImg(dataSource.colorImage || sku.colorImage),
   warehouseList: formatWarehouseList(dataSource.warehouseList || sku.warehouseList, sku.offerId),
   sellerSKU: dataSource.offerId || sku.offerId,
-  imageUrl: mergeAndDeduplicateImages(dataSource, sku)
+  imageUrl: mergeAndDeduplicateImages(dataSource, sku),
+  imageList: sku.imageList || []
 });
 
 // 颜色图片处理函数

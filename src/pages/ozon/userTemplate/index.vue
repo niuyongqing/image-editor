@@ -48,8 +48,7 @@
                         </div>
                         <a-pagination size="small" v-model:current="paginations.pageNum"
                             v-model:pageSize="paginations.pageSize" :total="paginations.total" show-size-changer
-                            show-quick-jumper :show-total="(total) => `共${total}条`"
-                            @change="handleChangePagination" />
+                            show-quick-jumper :show-total="(total) => `共${total}条`" @change="handleChangePagination" />
 
                     </div>
 
@@ -57,7 +56,7 @@
                         @change="handleChange" :row-selection="rowSelection">
                         <template #bodyCell="{ column, record }">
                             <template v-if="column.dataIndex === 'account'">
-                                {{getAccountDisplayName(record.account)}}
+                                {{ getAccountDisplayName(record.account) }}
                             </template>
                             <template v-if="column.dataIndex === 'state'">
                                 <a-switch :checked="record.state === 1" disabled></a-switch>
@@ -106,51 +105,58 @@ const rowSelection = computed(() => {
         },
     };
 });
+const tableHead = ref([
+    {
+        title: '模板名称',
+        dataIndex: 'name',
+        key: 'name',
+        active: 0,
+        width: 300,
+        show: [1, 3, 4]
+    },
+    {
+        title: '归属店铺',
+        dataIndex: 'account',
+        key: 'account',
+        active: 0,
+        width: 300,
+        show: [1, 3]
+    },
+    {
+        title: '引用模块',
+        dataIndex: 'fieldValue',
+        key: "fieldValue",
+        active: 1,
+        width: 300,
+        show: [1,3]
+    },
+    {
+        title: '时间',
+        dataIndex: 'gmtCreate',
+        key: 'gmtCreate',
+        active: 0,
+        width: 300,
+        show: [1, 3, 4]
+    },
+    {
+        title: '开启和关闭',
+        dataIndex: 'state',
+        key: 'state',
+        active: 0,
+        width: 200,
+        show: [1, 3, 4]
+    },
+    {
+        title: '操作',
+        dataIndex: 'action',
+        key: 'action',
+        width: 200,
+        active: 0,
+        show: [1, 3, 4]
+    },
+])
 const columns = computed(() => {
-    return [
-        {
-            title: '模板名称',
-            dataIndex: 'name',
-            key: 'name',
-            active: 0,
-            width: 300,
-        },
-        {
-            title: '归属店铺',
-            dataIndex: 'account',
-            key: 'account',
-            active: 0,
-            width: 300,
-        },
-        {
-            title: '引用模块',
-            dataIndex: 'fieldValue',
-            key:"fieldValue",
-            active: 1,
-            width: 300,
-        },
-        {
-            title: '时间',
-            dataIndex: 'gmtCreate',
-            key: 'gmtCreate',
-            active: 0,
-            width: 300,
-        },
-        {
-            title: '开启和关闭',
-            dataIndex: 'state',
-            key: 'state',
-            active: 0,
-            width: 200,
-        },
-        {
-            title: '操作',
-            dataIndex: 'action',
-            key: 'action',
-            width: 200,
-            active: 0
-        },
-    ]
+    return tableHead.value.filter(item => item.show.includes(activeId.value))
 });
 
 
