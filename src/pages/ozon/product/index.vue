@@ -263,14 +263,14 @@
                           <div class="w-100px">{{ record.offerId }}</div>
                         </a-tooltip>
                       </div>
-                      <div class="text-[#428bca] cursor-pointer"
+                      <div class="text-[#428bca] cursor-pointer" v-if="tbItem.count > 1 && record.state === '在售'"
                         @click="showChildren(record.account, tbItem.attributeId, record.typeId)">
                         已合并:{{ tbItem.count }}
                       </div>
                       <div>
                         促销活动价：<span class="text-[#1677ff]">{{ record.marketingPrice || '暂未参加活动' }}</span>
                       </div>
-                      <div>
+                      <div v-if="record.state === '已归档' || record.state === '在售'">
                         <div class="flex">
                           <span>内容质量分:</span>
                           <div v-if="record.productsScore">
@@ -438,15 +438,15 @@
                   </div>
                   <div v-else-if="column.dataIndex === 'minPrice'">
                     <span class="text-[#1677ff]" v-if="record.minPrice && !(minPriceVisible && itemId == record.id)">{{
-                      record.currencyCode }} {{ record.minPrice }}</span><span v-if="!record.minPrice">---</span>
+                      record.currencyCode }} {{ record.minPrice }}</span><span v-if="!record.minPrice">0</span>
                     <div v-if="minPriceVisible && itemId == record.id" class="inline-block">
                       <a-input-number class="mr-2.5 w-30" v-model:value="record.minPrice" placeholder="请输原价格" :min="0"
                         :precision="2"></a-input-number>
                       <a-button class="mr-2.5" @click="minPriceVisible = false">取消</a-button>
                       <a-button type="primary" @click="checkOldPrice(record)">确定</a-button>
                     </div>
-                    <AsyncIcon v-if="!(minPriceVisible && itemId == record.id) && record.minPrice"
-                      class="cursor-pointer text-[#1677ff]" icon="EditOutlined" @click="handelEditminPrice(record)">
+                    <AsyncIcon v-if="!(minPriceVisible && itemId == record.id) && record.state === '在售'"
+                      class="cursor-pointer text-[#1677ff] ml-2.5" icon="EditOutlined" @click="handelEditminPrice(record)">
                     </AsyncIcon>
                   </div>
                   <div v-else-if="column.dataIndex === 'stock'">
