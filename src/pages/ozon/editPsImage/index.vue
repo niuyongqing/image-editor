@@ -20,7 +20,6 @@ const EDITOR_CONFIG = {
 const imageInfo = reactive({
   url: '',
   id: '',
-  recordId: ''
 });
 
 // 实例引用
@@ -60,7 +59,6 @@ function parseUrlParams() {
       updateImageInfo({
         url: decryptedParams.get("imageUrl") || '',
         id: decryptedParams.get("imageId") || '',
-        recordId: decryptedParams.get("recordId") || ''
       });
       
       console.log('成功解析加密URL参数:', imageInfo);
@@ -79,7 +77,6 @@ function parseUrlParams() {
 function updateImageInfo(newInfo) {
   imageInfo.url = newInfo.url || '';
   imageInfo.id = newInfo.id || '';
-  imageInfo.recordId = newInfo.recordId || '';
 }
 
 // 直接从URL获取参数作为备选方案
@@ -87,7 +84,6 @@ function fallbackToDirectParams(searchParams) {
   updateImageInfo({
     url: searchParams.get("imageUrl") || '',
     id: searchParams.get("imageId") || '',
-    recordId: searchParams.get("recordId") || ''
   });
   console.log('使用直接参数或解密失败后的备选方案:', imageInfo);
 }
@@ -113,33 +109,26 @@ function initializeEditor() {
       el: "#editorRef"
     };
     
-    // 根据是否有recordId选择不同的初始化方式
-    if (imageInfo.recordId) {
-      // 二次编辑模式 - 直接使用recordId初始化
-      editorInstance = MtImageEditor.init(editorConfig);
-      console.log('美图秀秀编辑器以二次编辑模式初始化成功');
-    } else {
-      const originalUrl = imageInfo.url;
-      console.log('替换前的图片URL:', originalUrl);
-      // http开头的不用替换并且确保图片URL不为空
-      if (!imageInfo.url.startsWith('http') && imageInfo.url) {
-          try {
-            // 从开头到profile/upload/shopeeFile的内容替换为https://www.xzerp.com/file/wish/upload;
-            imageInfo.url = imageInfo.url.replace(/.*\/profile\/upload\/shopeeFile/, 'https://www.xzerp.com/file/wish/upload');
-          // 替换/profile/upload/开头的内容为https://www.xzerp.com/prod-api/profile/upload/
-            imageInfo.url = imageInfo.url.replace(/.*\/profile\/upload/, 'https://www.xzerp.com/prod-api/profile/upload');
-          } catch (error) {
-            console.error('图片URL替换失败:', error);
-          }
-      }
-      console.log('替换后的图片URL:', imageInfo.url);
-      // 首次编辑模式 - 使用图片URL初始化
-      editorInstance = MtImageEditor.init({
-        ...editorConfig,
-        imageSrc: imageInfo.url || "",
-      });
-      console.log('美图秀秀编辑器以首次编辑模式初始化成功');
+    const originalUrl = imageInfo.url;
+    console.log('替换前的图片URL:', originalUrl);
+    // http开头的不用替换并且确保图片URL不为空
+    if (!imageInfo.url.startsWith('http') && imageInfo.url) {
+        try {
+          // 从开头到profile/upload/shopeeFile的内容替换为https://www.xzerp.com/file/wish/upload;
+          imageInfo.url = imageInfo.url.replace(/.*\/profile\/upload\/shopeeFile/, 'https://www.xzerp.com/file/wish/upload');
+        // 替换/profile/upload/开头的内容为https://www.xzerp.com/prod-api/profile/upload/
+          imageInfo.url = imageInfo.url.replace(/.*\/profile\/upload/, 'https://www.xzerp.com/prod-api/profile/upload');
+        } catch (error) {
+          console.error('图片URL替换失败:', error);
+        }
     }
+    console.log('替换后的图片URL:', imageInfo.url);
+    // 始终使用首次编辑模式 - 使用图片URL初始化
+    editorInstance = MtImageEditor.init({
+      ...editorConfig,
+      imageSrc: imageInfo.url || "",
+    });
+    console.log('美图秀秀编辑器以链接访问模式初始化成功');
     
     return true;
   } catch (error) {
@@ -158,40 +147,16 @@ onMounted(async () => {
   console.log('当前图片信息:', {
     imageUrl: imageInfo.url,
     imageId: imageInfo.id,
-    recordId: imageInfo.recordId
   });
   
   try {
-    // 确定编辑模式
-    const editMode = imageInfo.recordId ? 'secondary' : 'primary';
-    console.log(`进入${editMode === 'secondary' ? '二次编辑' : '首次编辑'}模式`);
+    // 始终使用链接访问模式
+    console.log('进入链接访问模式');
     
-    // 初始化编辑器（根据recordId自动选择不同的初始化策略）
+    // 初始化编辑器（始终使用图片URL初始化）
     const isInitialized = initializeEditor();
     
     if (isInitialized) {
-      // 如果是二次编辑模式，直接打开编辑记录
-      if (imageInfo.recordId) {
-        try {
-          MtImageEditor.openRecord(imageInfo.recordId);
-          console.log("成功打开编辑记录:", imageInfo.recordId);
-        } catch (error) {
-          console.warn("打开编辑记录失败，尝试使用原始图片:", error.message);
-          // 如果打开记录失败，尝试使用原始图片
-          if (imageInfo.url) {
-            try {
-              // 如果编辑器实例支持，重新设置图片源
-              if (editorInstance && typeof editorInstance.setImage === 'function') {
-                editorInstance.setImage(imageInfo.url);
-                console.log('已切换到原始图片进行编辑');
-              }
-            } catch (setImageError) {
-              console.error('切换到原始图片失败:', setImageError);
-            }
-          }
-        }
-      }
-      
       // 设置保存回调
       setupSaveCallback();
     }
@@ -213,7 +178,6 @@ function setupSaveCallback() {
       broadcastChannel.postMessage({
         base64,
         type,
-        recordId: savedRecordId, // 使用更清晰的参数名
         imageId: imageInfo.id,
         timestamp: Date.now(), // 添加时间戳便于缓存控制
       });
