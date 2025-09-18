@@ -121,10 +121,16 @@ function initializeEditor() {
     } else {
       const originalUrl = imageInfo.url;
       console.log('替换前的图片URL:', originalUrl);
-      // http开头的不用替换
-      if (!imageInfo.url.startsWith('http')) {
-        // 从开头到profile/upload/shopeeFile的内容替换为https://www.xzerp.com/file/wish/upload;
-        imageInfo.url = imageInfo.url.replace(/.*\/profile\/upload\/shopeeFile/, 'https://www.xzerp.com/file/wish/upload');
+      // http开头的不用替换并且确保图片URL不为空
+      if (!imageInfo.url.startsWith('http') && imageInfo.url) {
+          try {
+            // 从开头到profile/upload/shopeeFile的内容替换为https://www.xzerp.com/file/wish/upload;
+            imageInfo.url = imageInfo.url.replace(/.*\/profile\/upload\/shopeeFile/, 'https://www.xzerp.com/file/wish/upload');
+          // 替换/profile/upload/开头的内容为https://www.xzerp.com/prod-api/profile/upload/
+            imageInfo.url = imageInfo.url.replace(/.*\/profile\/upload/, 'https://www.xzerp.com/prod-api/profile/upload');
+          } catch (error) {
+            console.error('图片URL替换失败:', error);
+          }
       }
       console.log('替换后的图片URL:', imageInfo.url);
       // 首次编辑模式 - 使用图片URL初始化
