@@ -59,10 +59,10 @@
             </a-form-item>
             <a-form-item
               label="后缀"
-              name="surfix"
+              name="suffix"
             >
               <a-input
-                v-model:value="generateForm.surfix"
+                v-model:value="generateForm.suffix"
                 placeholder="示例: A"
               />
             </a-form-item>
@@ -169,7 +169,7 @@
     prefix: '',
     numStart: null,
     minNumLength: null, // (最小)位数
-    surfix: ''
+    suffix: ''
   })
   const attachVariant = ref(false)
   // 变种属性 list
@@ -183,7 +183,7 @@
 
   // 生成数据
   function generate(tableData) {
-    if (!generateForm.prefix && !generateForm.numStart && !generateForm.surfix) {
+    if (!generateForm.prefix && !generateForm.numStart && !generateForm.suffix) {
       message.warning('前缀、起始值和后缀至少要填一个')
 
       return
@@ -208,8 +208,8 @@
         }
 
         str += numStr
-        if (generateForm.surfix) {
-          str += generateForm.surfix
+        if (generateForm.suffix) {
+          str += generateForm.suffix
         }
 
         item.offerId = str

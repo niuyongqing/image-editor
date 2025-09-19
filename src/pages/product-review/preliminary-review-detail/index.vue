@@ -1,5 +1,4 @@
 <template>
-  <!-- FIXME: 从 src\components\selectProduct\detail\detailModal.vue 同步过来功能 -->
   <div class="text-left p-6 bg-#fff">
     <a-spin
       :spinning="loading"
@@ -181,102 +180,17 @@
         </a-descriptions-item>
       </a-descriptions>
       <a-divider></a-divider>
-      <!-- SKU图 -->
-      <a-card class="box-card">
-        <template #title>
-          <span>SKU图</span>
-        </template>
-        <a-empty
-          description="没有SKU图"
-          v-if="!(detailData.data.artSkuImage && detailData.data.artSkuImage.length > 0)"
-        />
-        <a-row
-          v-else
-          style="display: flex; justify-content: flex-start; align-items: center; flex-wrap: wrap"
-        >
-          <div
-            v-for="(item, index) in images(detailData.data.artSkuImage)"
-            :key="index"
-            style="margin-right: 6px"
-          >
-            <a-col :span="3">
-              <a-card
-                :bodyStyle="{ padding: '0px' }"
-                style="width: 200px; margin-bottom: 10px"
-              >
-                <a-image
-                  :src="item.url"
-                  :preview="true"
-                />
-                <div
-                  class="bottom clearfix"
-                  :style="
-                    item.name.includes('美工处理')
-                      ? 'background-image: linear-gradient(267deg, #ffffff, #3ad6ff80); font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; width: 100%;'
-                      : 'font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; background-image: linear-gradient(60deg, #ffffff, #FFB03A); width: 100%'
-                  "
-                >
-                  {{ item.name.length > 15 ? item.name.substring(0, 15) + '...' : item.name }}
-                </div>
-              </a-card>
-            </a-col>
-          </div>
-        </a-row>
-      </a-card>
-      <br />
-      <!-- 开发图片/视频 -->
-      <a-descriptions
-        title="开发图片/视频"
-        :colon="false"
-      >
-        <a-descriptions-item>
-          <a-card
-            shadow="never"
-            style="width: 100%; min-height: 200px"
-          >
-            <a-empty
-              description="没有开发图片/视频"
-              v-if="!(detailData.data.devDrawing && detailData.data.devDrawing.length > 0)"
-            />
-            <a-row v-else>
-              <a-col
-                :span="24"
-                style="display: flex; justify-content: flex-start; align-items: center; flex-wrap: wrap"
-              >
-                <div
-                  v-for="(item, index) in images(detailData.data.devDrawing)"
-                  :key="index"
-                  style="margin-right: 6px"
-                >
-                  <a-card
-                    :bodyStyle="{ padding: '0px' }"
-                    style="width: 200px; margin-bottom: 10px"
-                  >
-                    <a-image
-                      :src="item.url"
-                      :preview="true"
-                    />
-                    <div
-                      class="bottom clearfix"
-                      style="font-size: 13px; text-align: center; padding: 7px 0"
-                    >
-                      {{ item.name.length > 15 ? item.name.substring(0, 15) + '...' : item.name }}
-                    </div>
-                  </a-card>
-                </div>
-              </a-col>
-            </a-row>
-          </a-card>
-        </a-descriptions-item>
-      </a-descriptions>
+
       <!-- 主图 -->
-      <a-card class="box-card">
-        <template #title>
-          <span>主图</span>
-        </template>
+      <a-card title="主图">
+        <a-space class="mb-3">
+          <a-button @click="artMainImageBtn = 'all'">全部</a-button>
+          <a-button @click="artMainImageBtn = 'dev'">开发</a-button>
+          <a-button @click="artMainImageBtn = 'art'">美工</a-button>
+        </a-space>
         <a-empty
+          v-if="artMainImageShowList.length === 0"
           description="没有主图"
-          v-if="!(detailData.data.artMainImage && detailData.data.artMainImage.length > 0)"
         />
         <a-row v-else>
           <a-col
@@ -284,7 +198,7 @@
             style="display: flex; justify-content: flex-start; align-items: center; flex-wrap: wrap"
           >
             <div
-              v-for="(item, index) in images(detailData.data.artMainImage)"
+              v-for="(item, index) in images(artMainImageShowList)"
               :key="index"
               style="margin-right: 6px"
             >
@@ -292,10 +206,7 @@
                 :bodyStyle="{ padding: '0px' }"
                 style="width: 200px; margin-bottom: 10px"
               >
-                <a-image
-                  :src="item.url"
-                  :preview="true"
-                />
+                <a-image :src="item.url" />
                 <div
                   class="bottom clearfix"
                   :style="
@@ -313,20 +224,22 @@
       </a-card>
       <br />
       <!-- 副图 -->
-      <a-card class="box-card">
-        <template #title>
-          <span>副图</span>
-        </template>
+      <a-card title="副图">
+        <a-space class="mb-3">
+          <a-button @click="artAssistantImageBtn = 'all'">全部</a-button>
+          <a-button @click="artAssistantImageBtn = 'dev'">开发</a-button>
+          <a-button @click="artAssistantImageBtn = 'art'">美工</a-button>
+        </a-space>
         <a-empty
+          v-if="artAssistantImageShowList.length === 0"
           description="没有副图"
-          v-if="!(detailData.data.artAssistantImage && detailData.data.artAssistantImage.length > 0)"
         />
         <a-row
           v-else
           style="display: flex; justify-content: flex-start; align-items: center; flex-wrap: wrap"
         >
           <div
-            v-for="(item, index) in images(detailData.data.artAssistantImage)"
+            v-for="(item, index) in images(artAssistantImageShowList)"
             :key="index"
             style="margin-right: 6px"
           >
@@ -335,10 +248,7 @@
                 :bodyStyle="{ padding: '0px' }"
                 style="width: 200px; margin-bottom: 10px"
               >
-                <a-image
-                  :src="item.url"
-                  :preview="true"
-                />
+                <a-image :src="item.url" />
                 <div
                   class="bottom clearfix"
                   :style="
@@ -355,21 +265,23 @@
         </a-row>
       </a-card>
       <br />
-      <!-- Amazon图 -->
-      <a-card class="box-card">
-        <template #title>
-          <span>Amazon图</span>
-        </template>
+      <!-- SKU图 -->
+      <a-card title="SKU图">
+        <a-space class="mb-3">
+          <a-button @click="artSkuImageBtn = 'all'">全部</a-button>
+          <a-button @click="artSkuImageBtn = 'dev'">开发</a-button>
+          <a-button @click="artSkuImageBtn = 'art'">美工</a-button>
+        </a-space>
         <a-empty
-          description="没有Amazon图"
-          v-if="!(Array.isArray(detailData.data.artAmazonImage) && detailData.data.artAmazonImage.length > 0)"
+          description="没有SKU图"
+          v-if="artSkuImageShowList.length === 0"
         />
         <a-row
           v-else
           style="display: flex; justify-content: flex-start; align-items: center; flex-wrap: wrap"
         >
           <div
-            v-for="(item, index) in images(detailData.data.artAmazonImage)"
+            v-for="(item, index) in images(artSkuImageShowList)"
             :key="index"
             style="margin-right: 6px"
           >
@@ -378,10 +290,155 @@
                 :bodyStyle="{ padding: '0px' }"
                 style="width: 200px; margin-bottom: 10px"
               >
-                <a-image
-                  :src="item.url"
-                  :preview="true"
-                />
+                <a-image :src="item.url" />
+                <div
+                  class="bottom clearfix"
+                  :style="
+                    item.name.includes('美工处理')
+                      ? 'background-image: linear-gradient(267deg, #ffffff, #3ad6ff80); font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; width: 100%;'
+                      : 'font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; background-image: linear-gradient(60deg, #ffffff, #FFB03A); width: 100%'
+                  "
+                >
+                  {{ item.name.length > 15 ? item.name.substring(0, 15) + '...' : item.name }}
+                </div>
+              </a-card>
+            </a-col>
+          </div>
+        </a-row>
+      </a-card>
+      <br />
+      <!-- Amazon场景主图 -->
+      <a-card title="Amazon场景主图">
+        <a-empty
+          description="没有Amazon场景主图"
+          v-if="!(Array.isArray(detailData.data.artSkuSceneImage) && detailData.data.artSkuSceneImage.length > 0)"
+        />
+        <a-row
+          v-else
+          style="display: flex; justify-content: flex-start; align-items: center; flex-wrap: wrap"
+        >
+          <div
+            v-for="(item, index) in images(detailData.data.artSkuSceneImage)"
+            :key="index"
+            style="margin-right: 6px"
+          >
+            <a-col :span="3">
+              <a-card
+                :bodyStyle="{ padding: '0px' }"
+                style="width: 200px; margin-bottom: 10px"
+              >
+                <a-image :src="item.url" />
+                <div
+                  class="bottom clearfix"
+                  :style="
+                    item.name.includes('美工处理')
+                      ? 'background-image: linear-gradient(267deg, #ffffff, #3ad6ff80); font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; width: 100%;'
+                      : 'font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; background-image: linear-gradient(60deg, #ffffff, #FFB03A); width: 100%'
+                  "
+                >
+                  {{ item.name.length > 15 ? item.name.substring(0, 15) + '...' : item.name }}
+                </div>
+              </a-card>
+            </a-col>
+          </div>
+        </a-row>
+      </a-card>
+      <br />
+      <!-- Amazon详情图 -->
+      <a-card title="Amazon详情图">
+        <a-empty
+          description="没有Amazon详情图"
+          v-if="!(Array.isArray(detailData.data.artAmazonDetailImage) && detailData.data.artAmazonDetailImage.length > 0)"
+        />
+        <a-row
+          v-else
+          style="display: flex; justify-content: flex-start; align-items: center; flex-wrap: wrap"
+        >
+          <div
+            v-for="(item, index) in images(detailData.data.artAmazonDetailImage)"
+            :key="index"
+            style="margin-right: 6px"
+          >
+            <a-col :span="3">
+              <a-card
+                :bodyStyle="{ padding: '0px' }"
+                style="width: 200px; margin-bottom: 10px"
+              >
+                <a-image :src="item.url" />
+                <div
+                  class="bottom clearfix"
+                  :style="
+                    item.name.includes('美工处理')
+                      ? 'background-image: linear-gradient(267deg, #ffffff, #3ad6ff80); font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; width: 100%;'
+                      : 'font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; background-image: linear-gradient(60deg, #ffffff, #FFB03A); width: 100%'
+                  "
+                >
+                  {{ item.name.length > 15 ? item.name.substring(0, 15) + '...' : item.name }}
+                </div>
+              </a-card>
+            </a-col>
+          </div>
+        </a-row>
+      </a-card>
+      <br />
+      <!-- Amazon白底图 -->
+      <a-card title="Amazon白底图">
+        <a-empty
+          description="没有Amazon白底图"
+          v-if="!(Array.isArray(detailData.data.artSkuWhiteImage) && detailData.data.artSkuWhiteImage.length > 0)"
+        />
+        <a-row
+          v-else
+          style="display: flex; justify-content: flex-start; align-items: center; flex-wrap: wrap"
+        >
+          <div
+            v-for="(item, index) in images(detailData.data.artSkuWhiteImage)"
+            :key="index"
+            style="margin-right: 6px"
+          >
+            <a-col :span="3">
+              <a-card
+                :bodyStyle="{ padding: '0px' }"
+                style="width: 200px; margin-bottom: 10px"
+              >
+                <a-image :src="item.url" />
+                <div
+                  class="bottom clearfix"
+                  :style="
+                    item.name.includes('美工处理')
+                      ? 'background-image: linear-gradient(267deg, #ffffff, #3ad6ff80); font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; width: 100%;'
+                      : 'font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; background-image: linear-gradient(60deg, #ffffff, #FFB03A); width: 100%'
+                  "
+                >
+                  {{ item.name.length > 15 ? item.name.substring(0, 15) + '...' : item.name }}
+                </div>
+              </a-card>
+            </a-col>
+          </div>
+        </a-row>
+      </a-card>
+      <br />
+      <!-- AmazonSKU图 -->
+      <a-card title="AmazonSKU图">
+        <a-empty
+          description="没有AmazonSKU图"
+          v-if="!(Array.isArray(detailData.data.artAmazonSkuImage) && detailData.data.artAmazonSkuImage.length > 0)"
+        />
+        <a-row
+          v-else
+          style="display: flex; justify-content: flex-start; align-items: center; flex-wrap: wrap"
+        >
+          <div
+            v-for="(item, index) in images(detailData.data.artAmazonSkuImage)"
+            :key="index"
+            style="margin-right: 6px"
+          >
+            <a-col :span="3">
+              <a-card
+                :bodyStyle="{ padding: '0px' }"
+                style="width: 200px; margin-bottom: 10px"
+              >
+                <a-image :src="item.url" />
                 <div
                   class="bottom clearfix"
                   :style="
@@ -399,10 +456,7 @@
       </a-card>
       <br />
       <!-- Shein图 -->
-      <a-card class="box-card">
-        <template #title>
-          <span>Shein图</span>
-        </template>
+      <a-card title="Shein图">
         <a-empty
           description="没有Shein图"
           v-if="!(Array.isArray(detailData.data.artNewImage) && detailData.data.artNewImage.length > 0)"
@@ -421,10 +475,7 @@
                 :bodyStyle="{ padding: '0px' }"
                 style="width: 200px; margin-bottom: 10px"
               >
-                <a-image
-                  :src="item.url"
-                  :preview="true"
-                />
+                <a-image :src="item.url" />
                 <div
                   class="bottom clearfix"
                   :style="
@@ -441,11 +492,91 @@
         </a-row>
       </a-card>
       <br />
+      <a-card title="资质文件">
+        <a-empty
+          description="没有资质文件"
+          v-if="
+            detailData.data.devQualificationFiles == null ||
+            detailData.data.devQualificationFiles === '' ||
+            detailData.data.devQualificationFiles.length == 0 ||
+            detailData.data.devQualificationFiles == '[]'
+          "
+        ></a-empty>
+        <a-row
+          v-else
+          style="display: flex; justify-content: flex-start; align-items: center; flex-wrap: wrap"
+        >
+          <div
+            v-for="(item, index) in images(detailData.data.devQualificationFiles)"
+            :key="index"
+            style="margin-right: 6px"
+          >
+            <a-col :span="3">
+              <a-card
+                :bodyStyle="{ padding: '0px' }"
+                style="width: 200px; margin-bottom: 10px"
+              >
+                <div v-if="['.gif', '.xls', '.xlsx', '.docx', '.doc', '.pdf'].some(item => item.url.includes(item))">
+                  <svg
+                    t="1722496954430"
+                    class="icon"
+                    viewBox="0 0 1024 1024"
+                    version="1.1"
+                    xmlns="http://www.w3.org/2000/svg"
+                    p-id="4286"
+                    width="200"
+                    height="200"
+                  >
+                    <path
+                      d="M0 0h1024v1024H0V0z"
+                      fill="#202425"
+                      opacity=".01"
+                      p-id="4287"
+                    ></path>
+                    <path
+                      d="M102.4 68.266667a34.133333 34.133333 0 0 1 34.133333-34.133334h750.933334a34.133333 34.133333 0 0 1 34.133333 34.133334v634.402133a34.133333 34.133333 0 0 1-10.001067 24.132267l-253.064533 253.064533a34.133333 34.133333 0 0 1-24.132267 10.001067H136.533333a34.133333 34.133333 0 0 1-34.133333-34.133334V68.266667z"
+                      fill="#11AA66"
+                      p-id="4288"
+                    ></path>
+                    <path
+                      d="M238.933333 238.933333a34.133333 34.133333 0 0 1 34.133334-34.133333h477.866666a34.133333 34.133333 0 1 1 0 68.266667H273.066667a34.133333 34.133333 0 0 1-34.133334-34.133334z m0 204.8a34.133333 34.133333 0 0 1 34.133334-34.133333h477.866666a34.133333 34.133333 0 1 1 0 68.266667H273.066667a34.133333 34.133333 0 0 1-34.133334-34.133334z m34.133334 170.666667a34.133333 34.133333 0 1 0 0 68.266667h204.8a34.133333 34.133333 0 1 0 0-68.266667H273.066667z"
+                      fill="#FFFFFF"
+                      p-id="4289"
+                    ></path>
+                    <path
+                      d="M648.533333 750.933333a34.133333 34.133333 0 0 1 34.133334-34.133333h230.7072a3.413333 3.413333 0 0 1 2.389333 5.802667l-261.393067 261.461333a3.413333 3.413333 0 0 1-5.8368-2.423467V750.933333z"
+                      fill="#FFAA44"
+                      p-id="4290"
+                    ></path>
+                  </svg>
+                </div>
+                <a-image
+                  v-else
+                  :src="item.url"
+                />
+                <div
+                  class="bottom clearfix"
+                  :style="
+                    item.name.includes('美工处理')
+                      ? 'background-image: linear-gradient(267deg, #ffffff, #3ad6ff80); font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; width: 100%;'
+                      : 'font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; background-image: linear-gradient(60deg, #ffffff, #FFB03A); width: 100%'
+                  "
+                >
+                  {{ item.name.length > 15 ? item.name.substring(0, 15) + '...' : item.name }}
+                  <i
+                    class="el-icon-download"
+                    style="font-size: 20px"
+                    @click="devQualificationFilesDown(item)"
+                  ></i>
+                </div>
+              </a-card>
+            </a-col>
+          </div>
+        </a-row>
+      </a-card>
+      <br />
       <!-- 视频 -->
-      <a-card class="box-card">
-        <template #title>
-          <span>视频</span>
-        </template>
+      <a-card title="视频">
         <a-empty
           description="没有视频"
           v-if="!(Array.isArray(detailData.data.artVideo) && detailData.data.artVideo.length > 0)"
@@ -494,12 +625,12 @@
   import { productAttr, meansKeepGrains } from '@/utils/devStatusSelect'
   import sheepProhibitionSelect from '@/utils/sheepProhibitionSelect'
   import { message } from 'ant-design-vue'
+  import download from '@/api/common/download'
 
   defineOptions({ name: 'PreliminaryReviewDetail' })
 
   const loading = ref(false)
   const detailData = reactive({
-    row: null,
     data: {},
     productAttrOptions: productAttr,
     forbidSiteOptions: sheepProhibitionSelect,
@@ -633,6 +764,58 @@
     return userStore.userInfo.sysUser.roles[0].sale
   })
 
+  /** 图片切换按钮 */
+  // 主图
+  const artMainImageBtn = ref('all') // all-全部; dev-开发; art-美工;
+  const artMainImageShowList = computed(() => {
+    if (!detailData.data.artMainImage) return []
+
+    switch (artMainImageBtn.value) {
+      case 'all':
+        return detailData.data.artMainImage
+      case 'dev':
+        return detailData.data.artMainImage.filter(item => !item.name.includes('美工图片'))
+      case 'art':
+        return detailData.data.artMainImage.filter(item => item.name.includes('美工图片'))
+      default:
+        return []
+    }
+  })
+
+  // 副图
+  const artAssistantImageBtn = ref('all')
+  const artAssistantImageShowList = computed(() => {
+    if (!detailData.data.artAssistantImage) return []
+
+    switch (artAssistantImageBtn.value) {
+      case 'all':
+        return detailData.data.artAssistantImage
+      case 'dev':
+        return detailData.data.artAssistantImage.filter(item => !item.name.includes('美工图片'))
+      case 'art':
+        return detailData.data.artAssistantImage.filter(item => item.name.includes('美工图片'))
+      default:
+        return []
+    }
+  })
+
+  // SKU 图
+  const artSkuImageBtn = ref('all')
+  const artSkuImageShowList = computed(() => {
+    if (!detailData.data.artSkuImage) return []
+
+    switch (artSkuImageBtn.value) {
+      case 'all':
+        return detailData.data.artSkuImage
+      case 'dev':
+        return detailData.data.artSkuImage.filter(item => !item.name.includes('美工图片'))
+      case 'art':
+        return detailData.data.artSkuImage.filter(item => item.name.includes('美工图片'))
+      default:
+        return []
+    }
+  })
+
   let forbidSaleList = []
   // 获取禁售属性
   const getForbidSale = new Promise((resolve, reject) => {
@@ -684,17 +867,12 @@
         v.remarks = JSON.parse(v.remarks)
       })
 
-      data.artAmazonImage = [
-        ...JSON.parse(data.artAmazonImage || '[]'),
+      data.artSkuSceneImage = [
+        ...JSON.parse(data.artSkuSceneImage || '[]'),
         ...JSON.parse(data.artAmazonDetailImage || '[]'),
-        ...JSON.parse(data.artAmazonSkuImage || '[]'),
         ...JSON.parse(data.artSkuWhiteImage || '[]'),
-        ...JSON.parse(data.artSkuSceneImage || '[]')
+        ...JSON.parse(data.artAmazonSkuImage || '[]')
       ]
-
-      if (data.devDrawing !== '' && data.devDrawing !== null) {
-        data.devDrawing = JSON.parse(data.devDrawing)
-      }
       if (data.artMainImage !== '' && data.artMainImage !== null) {
         data.artMainImage = JSON.parse(data.artMainImage)
       }
@@ -891,6 +1069,14 @@
     }
     return urls
   }
+
+  //资质文件下载
+  function devQualificationFilesDown(item) {
+    message.success('执行下载成功，请等待文件下载完成！勿重复操作')
+    download.name(item.url, item.name)
+  }
+  //复制产品英文描述  不带高亮描述的
+  function copyMeansEnglishDescription() {}
 </script>
 
 <style lang="less" scoped>
