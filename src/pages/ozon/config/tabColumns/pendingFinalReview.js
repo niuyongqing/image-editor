@@ -71,11 +71,11 @@ export default [
     sortable: true
   },
   {
-    title: '选品理由',
-    dataIndex: 'selectionReason',
-    key: 'selectionReason',
+    title: '提交备注',
+    dataIndex: 'submitRemark',
+    key: 'submitRemark',
     align: 'center',
     width: 300,
     show: true,
-  },
+  }
 ]

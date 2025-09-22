@@ -9,11 +9,12 @@
 
     <!-- 搜索筛选区域 -->
     <a-card style="margin-top: 8px;">
-      <a-form :model="formData" layout="inline" ref="formRef" class="search-form">
+      <a-form :model="formData" layout="inline" ref="formRef" class="search-form" :wrapper-col="wrapperCol"
+        :label-col="labelCol">
         <a-form-item label="模糊查询:">
           <a-space size="middle">
-              <a-input v-model:value="formData.productOrderNo" placeholder="请输入产品订单号" allowClear />
-              <a-input v-model:value="formData.productName" placeholder="请输入产品名称" allowClear />
+            <a-input v-model:value="formData.productOrderNo" placeholder="请输入产品订单号" allowClear />
+            <a-input v-model:value="formData.productName" placeholder="请输入产品名称" allowClear />
           </a-space>
         </a-form-item>
 
@@ -21,46 +22,47 @@
           <div class="category-selector-wrapper">
             <a-dropdown trigger="click" v-model:open="openDropdown" :autoAdjustOverflow="true">
               <a-button
-              style="width: 250px; height: 24px; display: flex; align-items: center; justify-content: space-between;"
-              @click="openDropdown = true">
-              <div
-              v-if="formData.nodeName"
-                style="width: 210px; text-align: left;  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                {{ formData.nodeName }}
-              </div>
-              <div
-              v-else
-                style="width: 210px; text-align: left; color: rgba(0, 0, 0, 0.3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                {{ '请选择分类' }}
-              </div>
-              <DownOutlined />
-            </a-button>
-            <template #overlay>
-              <a-menu style="width: 300px; max-height: 400px; overflow-y: auto;">
-                <typeTree v-model:current-class="formData.currentClass" v-model:node-path="formData.nodePath"
-                  :classifyTreeData="treeData" ref="typeTreeRef" :defaultClass="false" platform="ozon" />
-              </a-menu>
-            </template>
-          </a-dropdown>
-          <a-button type="link" @click="showCategoryModal" style="margin-left: 8px;">+ 管理分类</a-button>
-          <a-button v-if="formData.nodeName" type="link" danger @click="clearCategorySelection"
-            style="margin-left: 8px;">清除</a-button>
+                style="width: 250px; height: 24px; display: flex; align-items: center; justify-content: space-between;"
+                @click="openDropdown = true">
+                <div v-if="formData.nodeName"
+                  style="width: 210px; text-align: left;  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                  {{ formData.nodeName }}
+                </div>
+                <div v-else
+                  style="width: 210px; text-align: left; color: rgba(0, 0, 0, 0.3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                  {{ '请选择分类' }}
+                </div>
+                <DownOutlined />
+              </a-button>
+              <template #overlay>
+                <a-menu style="width: 300px; max-height: 400px; overflow-y: auto;">
+                  <typeTree v-model:current-class="formData.currentClass" v-model:node-path="formData.nodePath"
+                    :classifyTreeData="treeData" ref="typeTreeRef" :defaultClass="false" platform="ozon" />
+                </a-menu>
+              </template>
+            </a-dropdown>
+            <a-button type="link" @click="showCategoryModal">+ 管理分类</a-button>
+            <a-button v-if="formData.nodeName" type="link" danger @click="clearCategorySelection"
+              style="margin-left: -10px;">清除</a-button>
           </div>
         </a-form-item>
-
+        <a-form-item label="用户:">
+          <a-select v-model:value="formData.userId" allow-clear show-search placeholder="请选择用户"
+            :options="getAccountUserArr" mode="multiple" :maxTagCount="2" :filter-option="filterOption"
+            :fieldNames="userLabels"></a-select>
+        </a-form-item>
         <a-form-item label="市场方向:">
           <a-select v-model:value="formData.devAttributableMarket" :options="devAttributableMarketRevertSelect"
-            mode="multiple" :maxTagCount="2" placeholder="请输入市场方向" allowClear style="width: 300px;" />
+            mode="multiple" :maxTagCount="2" placeholder="请输入市场方向" allowClear />
         </a-form-item>
-
-        <a-form-item label="创建时间">
+        <a-form-item label="创建时间:">
           <a-range-picker v-model:value="formData.createTime" allow-clear :presets="datePresets" />
         </a-form-item>
 
         <a-form-item class="form-actions">
           <a-button type="primary" @click="onSubmit" :loading="tableLoading">查询</a-button>
           <a-button style="margin-left: 10px" @click="resetForm" :loading="tableLoading">重置</a-button>
-          <a-button style="margin-left: 10px" @click="exportData" :loading="exportLoading">导出</a-button>
+          <!-- <a-button style="margin-left: 10px" @click="exportData" :loading="exportLoading">导出</a-button> -->
         </a-form-item>
       </a-form>
     </a-card>
@@ -84,9 +86,9 @@
       <div class="table-container" style="margin-top: 20px;">
         <!-- 使用封装的表格组件 -->
         <ProductReviewTable ref="productReviewTableRef" :columns="columns" :api="setAccountlist"
-          :searchParams="formData" :currentClass="formData.currentClass" :nodePath="formData.nodePath" :exportApi="exportProductList"
-          @audit="handleProductAudit" @reset="resetForm" @loading-change="handleLoadingChange"
-          @export-loading-change="handleExportLoadingChange" />
+          :searchParams="formData" :currentClass="formData.currentClass" :nodePath="formData.nodePath"
+          :exportApi="exportProductList" @audit="handleProductAudit" @reset="resetForm"
+          @loading-change="handleLoadingChange" @export-loading-change="handleExportLoadingChange" />
       </div>
     </a-card>
 
@@ -136,14 +138,22 @@ import {
 } from "@/pages/ozon/config/api/initialReviewPublication";
 import typeManage from '@/components/classificationTree/typeManage.vue';
 import { ref, reactive, onMounted, computed, watch } from "vue";
-import tableHeader from "~@/pages/ozon/config/tabColumns/initialReviewPublication";
+import tableHeaderInitial from "~@/pages/ozon/config/tabColumns/initialReviewPublication";
+import tableHeaderPending from "~@/pages/ozon/config/tabColumns/pendingFinalReview";
 import { getClassList } from '@/components/classificationTree/api.js';
 import { DownOutlined } from '@ant-design/icons-vue';
 import devAttributableMarketRevertSelect from "@/utils/devAttributableMarketRevertSelect";
 import { message } from 'ant-design-vue';
 import dayjs from 'dayjs';
 import ProductReviewTable from './comm/table.vue';
+import { getAccountUser } from "@/pages/ozon/config/api/accountConfig";
 
+const props = defineProps({
+  Source: {
+    type: String,
+    default: 'initial-review-publication'
+  }
+});
 // 组件引用
 const productReviewTableRef = ref(null);
 
@@ -163,7 +173,13 @@ const formData = reactive({
 const tableLoading = ref(false);
 const selectedCount = ref(0);
 const exportLoading = ref(false);
-const columns = tableHeader;
+const columns = computed(() => {
+  console.log(props.Source);
+  if (props.Source === 'initial-review-publication') {
+    return tableHeaderInitial;
+  }
+  return tableHeaderPending;
+});
 
 // 分类相关
 const typeManageOpen = ref(false);
@@ -181,6 +197,16 @@ const auditFormData = reactive({
 });
 const currentAuditingProducts = ref([]);
 const isSingleAudit = ref(false);
+const labelCol = ref({
+  style: {
+    width: '100px'
+  }
+});
+const wrapperCol = ref({
+  style: {
+    width: '305px'
+  }
+});
 
 /**
  * 日期选择预设
@@ -199,6 +225,27 @@ const datePresets = computed(() => [
     value: [dayjs().subtract(89, 'days'), dayjs()]
   }
 ]);
+
+/**
+ * 用户选择
+ */
+const userLabels = ref({
+  label: "userName",
+  value: "userId",
+});
+const getAccountUserArr = ref([]);
+const getAccountUserList = () => {
+  getAccountUser({ userName: "" }).then((res) => {
+    getAccountUserArr.value = res.data;
+  });
+};
+
+/**
+ * 过滤用户选项
+ */
+const filterOption = (input, option) => {
+  return option.userName.indexOf(input) >= 0;
+};
 
 /**
  * 审核弹窗标题
@@ -446,88 +493,12 @@ const handleExportLoadingChange = (loading) => {
 /**
  * 初始化
  */
-onMounted(async () => {
-  await getTreeData();
+onMounted(() => {
+  getTreeData();
+  getAccountUserList();
 });
 </script>
 
-<style scoped>
-#configAccountCont {
-  padding: 16px;
-  background-color: #f5f5f5;
-  min-height: 100vh;
-}
-
-.category-selector-wrapper {
-  display: flex;
-  align-items: center;
-}
-
-.table-header-actions {
-  display: flex;
-  align-items: center;
-  margin: 6px;
-}
-
-/* 审核弹窗样式 */
-.auditing-products-info {
-  margin-bottom: 16px;
-  padding: 12px;
-  background: #f0f9ff;
-  border-radius: 4px;
-  border-left: 4px solid #1890ff;
-
-  .auditing-products-title {
-    font-weight: 600;
-    margin-bottom: 8px;
-  }
-
-  .auditing-products-list {
-    max-height: 200px;
-    overflow-y: auto;
-
-    .auditing-product-item {
-      padding: 4px 0;
-      border-bottom: 1px dashed #e8e8e8;
-
-      &:last-child {
-        border-bottom: none;
-      }
-    }
-  }
-}
-
-.ant-form-item {
-  margin: 6px;
-}
-
-
-@media screen and (max-width: 768px) {
-  .auditing-products-info {
-    padding: 8px;
-  }
-}
-
-/* 按钮悬停效果增强 */
-:deep(.ant-btn) {
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  }
-}
-
-/* 输入框焦点效果 */
-:deep(.ant-input:focus),
-:deep(.ant-select-focused .ant-select-selector),
-:deep(.ant-picker-focused) {
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
-}
-
-/* 标签样式优化 */
-:deep(.ant-tag) {
-  border-radius: 12px;
-  padding: 2px 8px;
-}
+<style scoped lang="less">
+@import '@/assets/styles/com-list.less';
 </style>
