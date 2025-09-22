@@ -799,6 +799,7 @@ const addAttributeHeader = (attr, headerList) => {
 };
 
 // 提取公共的newItem创建函数
+// 传递image-info组件的参数
 const createNewItem = (sku, dataSource) => ({
   oldPrice: dataSource.oldPrice || sku.oldPrice,
   price: dataSource.price || sku.price,
@@ -813,6 +814,7 @@ const createNewItem = (sku, dataSource) => ({
   warehouseList: formatWarehouseList(dataSource.warehouseList || sku.warehouseList, sku.offerId),
   sellerSKU: dataSource.offerId || sku.offerId,
   imageUrl: mergeAndDeduplicateImages(dataSource, sku),
+  imageList: sku.imageList,
 });
 
 // 颜色图片处理函数

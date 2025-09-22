@@ -406,6 +406,7 @@ const onSubmit = async (type = 1) => {
       complex_attributes: newComplexAttributes ?? null, // 非必填 100002-21845-封面视频 100001-21841-视频
       color_image: item?.colorImg[0]?.url ?? "", // 非必填
       images: item.imageUrl && item?.imageUrl?.map(e => e.url),
+      imageList: item.imageList,
       offer_id: item.sellerSKU,
       old_price: item.oldPrice, // 非必填
       price: item.price,
