@@ -1,125 +1,126 @@
-w24<!-- 待编辑申请照片页面 -->
+<!-- 待编辑申请照片页面 -->
 <template>
   <div class="pending-editing-container ml-16">
-    <!-- 表单区域 -->
-    <div class="form-wrapper">
-      <a-form :model="formData" :label-col="labelCol" class="submit-form" :rules="formRules" ref="formRef"
-        layout="inline" autocomplete="off">
-        <!-- 产品基本信息行 -->
-        <a-form-item label="产品名称:" class="w24">
-          <a-input v-model:value="formData.productName" disabled allow-clear placeholder="请输入产品名称" />
-        </a-form-item>
-        <a-form-item label="产品分类:" class="w24">
-          <a-cascader disabled placeholder="请选择产品分类" allowClear v-model:value="formData.productCategory"
-            :options="commodityTypeList" :allow-clear="true"
-            :field-names="{ label: 'label', value: 'value', children: 'children' }" />
-        </a-form-item>
-        <a-form-item label="产品SKU:" class="w24">
-          <a-input v-model:value="formData.productSku" disabled allow-clear placeholder="请输入产品SKU" />
-        </a-form-item>
+      <!-- 表单区域 -->
+      <div class="form-wrapper">
+        <a-form :model="formData" :label-col="labelCol" class="submit-form" :rules="formRules" ref="formRef"
+          layout="inline" autocomplete="off">
+          <!-- 产品基本信息行 -->
+          <a-form-item label="产品名称:" class="w24">
+            <a-input v-model:value="formData.productName" disabled allow-clear placeholder="请输入产品名称" />
+          </a-form-item>
+          <a-form-item label="产品分类:" class="w24">
+            <a-cascader disabled placeholder="请选择产品分类" allowClear v-model:value="formData.productCategory"
+              :options="commodityTypeList" :allow-clear="true"
+              :field-names="{ label: 'label', value: 'value', children: 'children' }" />
+          </a-form-item>
+          <a-form-item label="产品SKU:" class="w24">
+            <a-input v-model:value="formData.productSku" disabled allow-clear placeholder="请输入产品SKU" />
+          </a-form-item>
 
-        <!-- 竞品参考链接 -->
-        <div class="form-row mt-16">
-          <div class="form-item full-width">
-            <a-form-item label="竞品参考链接:">
-              <div class="reference-links">
-                <div v-for="(link, index) in formData.referenceLinks" :key="index" class="link-item">
-                  <span class="link-number">{{ index + 1 }}</span>
-                  <a-input v-model:value="formData.referenceLinks[index]" placeholder="请输入网址" allow-clear
-                    class="link-input" />
-                  <a-button type="text" @click="copyLink(index)" class="link-btn">复制</a-button>
-                  <a-button type="text" @click="visitLink(index)" class="link-btn">访问</a-button>
-                  <PlusCircleOutlined @click="addLink" class="link-btn ml-8 fz18 fz-16 color-1890ff" />
-                  <MinusCircleOutlined @click="removeLink(index)" class="link-btn ml-8 fz-16"
-                    :class="{ 'color-1890ff': formData.referenceLinks.length > 1 }" />
+          <!-- 竞品参考链接 -->
+          <div class="form-row mt-16">
+            <div class="form-item full-width">
+              <a-form-item label="竞品参考链接:">
+                <div class="reference-links">
+                  <div v-for="(link, index) in formData.referenceLinks" :key="index" class="link-item">
+                    <span class="link-number">{{ index + 1 }}</span>
+                    <a-input v-model:value="formData.referenceLinks[index]" placeholder="请输入网址" allow-clear
+                      class="link-input" />
+                    <a-button type="text" @click="copyLink(index)" class="link-btn">复制</a-button>
+                    <a-button type="text" @click="visitLink(index)" class="link-btn">访问</a-button>
+                    <PlusCircleOutlined @click="addLink" class="link-btn ml-8 fz18 fz-16 color-1890ff" />
+                    <MinusCircleOutlined @click="removeLink(index)" class="link-btn ml-8 fz-16"
+                      :class="{ 'color-1890ff': formData.referenceLinks.length > 1 }" />
+                  </div>
                 </div>
-              </div>
-            </a-form-item>
+              </a-form-item>
+            </div>
           </div>
-        </div>
 
-        <!-- 任务类型 -->
-        <div class="form-row mt-16">
-          <div class="form-item">
-            <a-form-item label="任务类型:" name="taskType" :required-mark="false">
-              <div class="task-type-container">
-                <a-select v-model:value="formData.taskType" :options="taskTypeOptions" placeholder="请选择任务类型"
-                  @change="handleTaskTypeChange" allow-clear class="form-input">
-                </a-select>
-              </div>
-            </a-form-item>
+          <!-- 任务类型 -->
+          <div class="form-row mt-16">
+            <div class="form-item">
+              <a-form-item label="任务类型:" name="taskType" :required-mark="false">
+                <div class="task-type-container">
+                  <a-select v-model:value="formData.taskType" :options="taskTypeOptions" placeholder="请选择任务类型"
+                    @change="handleTaskTypeChange" allow-clear class="form-input">
+                  </a-select>
+                </div>
+              </a-form-item>
+            </div>
           </div>
-        </div>
 
-        <!-- 处理要求 -->
-        <div class="form-row mt-16">
-          <div class="form-item full-width">
-            <a-form-item label="处理要求:" name="processingRequirements">
-              <div class="editor-container">
-                <wang-editor-plus v-model="formData.processingRequirements" style="text-align: left;" :height="300"
-                  platform="pending-editing-application-photo" />
-              </div>
-            </a-form-item>
+          <!-- 处理要求 -->
+          <div class="form-row mt-16">
+            <div class="form-item full-width">
+              <a-form-item label="处理要求:" name="processingRequirements">
+                <div class="editor-container">
+                  <wang-editor-plus v-model="formData.processingRequirements" style="text-align: left;" :height="300"
+                    platform="pending-editing-application-photo" />
+                </div>
+              </a-form-item>
+            </div>
           </div>
-        </div>
 
-        <!-- 参考图 -->
-        <div class="form-row mt-16">
-          <div class="form-item">
-            <a-form-item label="参考图:">
-              <div class="imageList" v-if="formData.referenceImage.length > 0">
-                <div class="backImg" v-for="(value, index) in formData.referenceImage" :key="index">
-                  <div style="position: relative; display: inline-block;">
-                    <a-image style="position: relative;" :height="120" :src="value.url" />
+          <!-- 参考图 -->
+          <div class="form-row mt-16">
+            <div class="form-item">
+              <a-form-item label="参考图:">
+                <div class="imageList" v-if="formData.referenceImage.length > 0">
+                  <div class="backImg" v-for="(value, index) in formData.referenceImage" :key="index">
+                    <div style="position: relative; display: inline-block;">
+                      <a-image style="position: relative;" :height="120" :src="value.url" />
 
-                    <div class="flex justify-between postop3">
-                      <a-dropdown>
-                        <a-button type="link">
-                          <BulbOutlined class="text-base" />
-                          <CaretDownOutlined />
+                      <div class="flex justify-between postop3">
+                        <a-dropdown>
+                          <a-button type="link">
+                            <BulbOutlined class="text-base" />
+                            <CaretDownOutlined />
+                          </a-button>
+                          <template #overlay>
+                            <a-menu @click="imgModifySingleMenuClick($event, value)">
+                              <a-menu-item key="ps">在线p图</a-menu-item>
+                              <a-menu-item key="translate">图片翻译</a-menu-item>
+                            </a-menu>
+                          </template>
+                        </a-dropdown>
+                        <a-button type="link" title="删除">
+                          <DeleteOutlined class="text-base" @click="removeImage(index)" />
                         </a-button>
-                        <template #overlay>
-                          <a-menu @click="imgModifySingleMenuClick($event, value)">
-                            <a-menu-item key="ps">在线p图</a-menu-item>
-                            <a-menu-item key="translate">图片翻译</a-menu-item>
-                          </a-menu>
-                        </template>
-                      </a-dropdown>
-                      <a-button type="link" title="删除">
-                        <DeleteOutlined class="text-base" @click="removeImage(index)" />
-                      </a-button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div v-if="formData.referenceImage.length > 0" style="position: absolute; top: 5px; right: 5px">
-                <AsyncIcon icon="CloseCircleOutlined" size="20px" color="black" @click="removeImage('all')" />
-              </div>
-              <a-upload name="file" class="headerImg" :headers="headers" accept=".jpg,.jpeg,.png" :action="uploadUrl"
-                :showUploadList="false" list-type="picture-card" @change="e => handleChangeColroImg(e, formData)"
-                :max-count="100">
-                <div>
-                  <AsyncIcon icon="PlusOutlined" />
-                  <div>上传图片</div>
+                <div v-if="formData.referenceImage.length > 0" style="position: absolute; top: 5px; right: 5px">
+                  <AsyncIcon icon="CloseCircleOutlined" size="20px" color="black" @click="removeImage('all')" />
                 </div>
-              </a-upload>
-            </a-form-item>
+                <a-upload name="file" class="headerImg" :headers="headers" accept=".jpg,.jpeg,.png" :action="uploadUrl"
+                  :showUploadList="false" list-type="picture-card" @change="e => handleChangeColroImg(e, formData)"
+                  :max-count="100">
+                  <div>
+                    <AsyncIcon icon="PlusOutlined" />
+                    <div>上传图片</div>
+                  </div>
+                </a-upload>
+              </a-form-item>
+            </div>
           </div>
-        </div>
 
-        <!-- 操作按钮 -->
-        <div class="form-actions mt-24">
-          <a-button @click="handleClose" class="close-btn">关闭</a-button>
-          <a-button type="primary" @click="handleSubmit" class="submit-btn">提交</a-button>
-        </div>
-      </a-form>
+          <!-- 操作按钮 -->
+          <div class="form-actions mt-24">
+            <a-button @click="handleClose" class="close-btn">关闭</a-button>
+            <a-button type="primary" @click="handleSubmit" class="submit-btn">提交</a-button>
+          </div>
+        </a-form>
+      </div>
+      <!-- 图片翻译弹窗 -->
+    <ImageTranslation
+      ref="img_trans"
+      @emitImages="handleEmitImages"
+    />
     </div>
-  </div>
-    <!-- 图片翻译弹窗 -->
-  <ImageTranslation
-    ref="img_trans"
-    @emitImages="handleEmitImages"
-  />
+    
 </template>
 
 <script setup>
@@ -142,6 +143,7 @@ import { encryptString } from '@/utils/tools.js';
  * 表单引用
  */
 const formRef = ref();
+const img_trans = ref();
 const labelCol = { style: { width: '90px' } };
 
 
