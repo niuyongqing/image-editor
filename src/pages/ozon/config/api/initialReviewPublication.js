@@ -8,19 +8,28 @@ export function exportProductList(data) {
   })
 }
 
-// 审核
-export function ozonAccount(data) {
+// 初审审核
+export function firstAudit(data) {
   return request({
-    url: `/platform-ozon/platform/ozon/setting/account/relevance/user/ozon/shop`,
+    url: `/platform-ozon/platform/ozon/commodity/first/audit`,
     method: 'post',
     data: data
   })
 }
 
-// 获取详情列表
-export function setAccountlist(data) {
+//终审审核
+export function lastAudit(data) {
   return request({
-    url: `/platform-ozon/platform/ozon/setting/account/relevance/user/list`,
+    url: `/platform-ozon/platform/ozon/commodity/last/audit`,
+    method: 'post',
+    data: data
+  })
+}
+
+// 获取表单列表
+export function commodityList(data) {
+  return request({
+    url: `/platform-ozon/platform/ozon/commodity/list`,
     method: 'post',
     data: data
   })

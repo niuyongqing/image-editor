@@ -9,7 +9,7 @@
     </div>
 
     <!-- 表格数据 -->
-    <a-table v-else :row-selection="rowSelection" :columns="processedColumns" :data-source="tableData"
+    <a-table v-else :row-selection="rowSelection" :columns="processedColumns"  :data-source="tableData"
       :rowKey="(row) => row?.productOrderNo || row" bordered :pagination="false" :scroll="{ y: 400 }" :loading="loading"
       :row-class-name="tableRowClassName">
       <template #bodyCell="{ column, record }">
@@ -33,22 +33,13 @@
         </template>
       </template>
 
-      <!-- 展开行内容 -->
-      <!-- <template #expandedRowRender="{ record }">
-        <div class="expanded-content">
-          <div class="expanded-item">
-            <span class="expanded-label">产品详情：</span>
-            <pre class="expanded-value">{{ JSON.stringify(record, null, 2) }}</pre>
-          </div>
-        </div>
-      </template> -->
     </a-table>
 
     <!-- 分页 -->
-    <a-pagination style="margin-top: 20px; text-align: right;"
+    <a-pagination style="margin-top: 20px; text-align: right;" 
       :show-total="(total, range) => `共 ${total} 条记录，当前显示 ${range[0]}-${range[1]} 条`" v-model:current="pages.pageNum"
       v-model:pageSize="pages.pageSize" :total="pages.total" class="pages" :defaultPageSize="50" :showSizeChanger="true"
-      :pageSizeOptions="[50, 100, 200]" @change="handlePageChange" @showSizeChange="handlePageSizeChange" />
+      :pageSizeOptions="['50', '100', '200']" @change="handlePageChange" @showSizeChange="handlePageSizeChange" />
   </div>
 </template>
 
@@ -112,6 +103,16 @@ watch(exportLoading, (newValue) => {
 const processedColumns = computed(() => {
   // 深拷贝原始列配置，避免直接修改
   const processed = JSON.parse(JSON.stringify(props.columns));
+  console.log('processedColumns', processed);
+  
+  // 添加操作列
+  // processed.push({
+  //   title: '操作',
+  //   dataIndex: 'action',
+  //   width: '100px',
+  //   align: 'center',
+  //   fixed: 'right',
+  // });
 
   return processed;
 });
@@ -134,15 +135,42 @@ const rowSelection = {
  */
 const getList = async () => {
   try {
+    // 先设置loading状态为true
+    loading.value = true;
+    
+    // 构建请求参数，确保分页参数优先
     const params = {
+      // 先解构搜索参数
+      ...props.searchParams,
+      // 然后覆盖分页参数
       pageNum: pages.pageNum,
       pageSize: pages.pageSize,
-      ...props.searchParams,
     };
+    
+    // 安全处理数组类型参数
+    if (Array.isArray(params.devAttributableMarket)) {
+      params.devAttributableMarket = params.devAttributableMarket.join(',');
+    }
+    // 提交人处理
+    if (Array.isArray(params.selectUserName)) {
+      params.selectUserName = params.selectUserName.join(',');
+    }
+    
+    // 分类处理
+    if (Array.isArray(params.classify)) {
+      params.classify = params.classify.join(',');
+    }
 
-    loading.value = true;
+    // 安全处理日期范围参数
+    if (Array.isArray(params.createTime) && params.createTime.length >= 2) {
+      // 使用与原始代码相同的参数名，确保与后端API兼容性
+      params.startTime = dayjs(params.createTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss')
+      params.endTime = dayjs(params.createTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss')
+    }
+    
+    // 删除原始的createTime参数，避免混淆
+    delete params.createTime;
     const res = await props.api(params);
-
     tableData.value = res?.data || [];
     pages.total = res?.total || 0;
 
@@ -196,9 +224,9 @@ const handlePageChange = (page) => {
  * 处理每页条数变化
  */
 const handlePageSizeChange = (current, pageSize) => {
-  pages.pageSize = pageSize;
+  // 确保pageSize是数字类型
+  pages.pageSize = Number(pageSize);
   pages.pageNum = 1;
-  getList();
 };
 
 /**
@@ -339,5 +367,10 @@ defineExpose({
   .ant-table {
     zoom: 0.9;
   }
+}
+
+/* 增加分页组件下拉列表宽度，确保文字完全显示 */
+.pages :deep(.ant-pagination-options-size-changer) {
+  min-width: 100px;
 }
 </style>
