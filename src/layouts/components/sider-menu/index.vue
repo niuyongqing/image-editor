@@ -77,11 +77,11 @@ async function out(){
 
 <template>
   <div v-if="fixedSider"/>
+
   <a-layout-sider
       style="position: relative;z-index: 9999"
     v-if="splitMenus ? (selectedMenus ?? []).length > 0 : true"
     :theme="theme === 'inverted' ? 'dark' : 'light'"
-    :collapsed="collapsed && !isMobile"
     :trigger="null"
     :collapsed-width="collapsedWidth"
     :width="siderWidth"
@@ -119,7 +119,7 @@ async function out(){
                 <template #icon><UserOutlined /></template>
               </a-avatar>
             </div>
-            <div class="truncate font-bold p-1" :text="userInfo?.userInfo?.username">{{userInfo?userInfo.username:""}}</div>
+            <div class="truncate font-bold p-1" style="text-align: center;" :text="userInfo?.userInfo?.username">{{userInfo?userInfo.username:""}}</div>
           </div>
         </a-popover>
       </div>

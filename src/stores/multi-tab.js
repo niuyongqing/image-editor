@@ -79,7 +79,18 @@ export const useMultiTab = defineStore('multi-tab', () => {
   const switchTab = (key) => {
     if (key === activeKey.value)
       return
-    router.push(key)
+    // 检查路由是否存在，避免push到无效路由
+    try {
+      // 使用Vue Router的内部方法检查路由是否存在
+      const routeExists = router.resolve(key).matched.length > 0
+      if (routeExists) {
+        router.push(key)
+      } else {
+        message.warning('无效的路由路径')
+      }
+    } catch (error) {
+      message.warning('路由跳转失败')
+    }
   }
   const closeOther = (key) => {
     switchTab(key)
