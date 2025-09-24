@@ -6,7 +6,7 @@
       class="flex-1 h-[calc(100vh-60px)] overflow-auto"
       style="scrollbar-width: thin"
     >
-      <!-- <PreliminaryReviewDetail /> -->
+      <PreliminaryReviewDetail />
     </div>
     <!-- RIGHT -->
     <div
@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-  // import PreliminaryReviewDetail from '../preliminary-review-detail/index.vue'
+  import PreliminaryReviewDetail from '../preliminary-review-detail/index.vue'
   import CommonDetail from '@/pages/product-review/CommonDetail/index.vue'
 
   /** 底部按钮 */

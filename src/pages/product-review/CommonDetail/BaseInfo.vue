@@ -389,6 +389,7 @@
         </div>
       </a-form-item>
     </a-form>
+    <a-divider />
   </div>
 </template>
 
@@ -402,6 +403,7 @@
   import { message } from 'ant-design-vue'
   import { DeleteOutlined, PlusOutlined, MinusOutlined, QuestionCircleOutlined } from '@ant-design/icons-vue'
 
+  const store = useProductReviewStore()
   const account = '2649641' // 随便固定一个id, 分类都是相同的
   const baseInfoForm = reactive({
     title: '',
@@ -456,6 +458,11 @@
     categoryAttributes(params)
       .then(res => {
         const rawData = res.data || []
+        // 存到 pinia 里给 SKUInfo 用
+        store.$patch(state => {
+          state.attributes = rawData
+        })
+
         const newAttributesCache = processAttributesCache(rawData)
         let noThemeAttributesCache = newAttributesCache.filter(a => !a.isAspect)
         if (noThemeAttributesCache) {
