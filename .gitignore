@@ -5,4 +5,5 @@ dist
 /vite.config.ts
 /.env.development
 /.env.development.local
+.trae
 platform
