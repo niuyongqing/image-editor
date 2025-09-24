@@ -5,6 +5,10 @@
       <a-breadcrumb-item>首页</a-breadcrumb-item>
       <a-breadcrumb-item>产品编审</a-breadcrumb-item>
       <a-breadcrumb-item>刊登初审</a-breadcrumb-item>
+      <a-breadcrumb-item v-if="props.Source === 'initialReviewPublication'">刊登初审</a-breadcrumb-item>
+      <a-breadcrumb-item v-if="props.Source === 'pendingFinalReview'">刊登终审</a-breadcrumb-item>
+      <a-breadcrumb-item v-if="props.Source === 'publicationRejected'">刊登驳回</a-breadcrumb-item>
+
     </a-breadcrumb>
 
     <!-- 搜索筛选区域 -->
@@ -70,10 +74,21 @@
     <!-- 数据展示区域 -->
     <a-card style="margin-top: 20px;">
       <div class="table-header-actions">
-        <a-button @click="handleAudit" type="primary" :disabled="selectedCount === 0 || tableLoading"
-          tooltip="批量审核选中的商品">
+        <a-button v-if="props.Source !== 'publicationRejected'" @click="handleAudit" type="primary"
+          :disabled="selectedCount === 0 || tableLoading" tooltip="批量审核选中的商品">
           审核
         </a-button>
+        <template v-else>
+          <a-button style="margin-left: 16px;" @click="handleSee" type="primary"
+            :disabled="selectedCount === 0 || tableLoading" tooltip="批量审核选中的商品">
+            查看
+          </a-button>
+          <a-button style="margin-left: 16px;" @click="handleSub" type="primary"
+            :disabled="selectedCount === 0 || tableLoading" tooltip="批量审核选中的商品">
+            再次提交
+          </a-button>
+        </template>
+
         <span style="margin-left: 16px; color: #666;">
           已选择 {{ selectedCount }} 项
         </span>
@@ -139,6 +154,7 @@ import {
 import typeManage from '@/components/classificationTree/typeManage.vue';
 import { ref, reactive, onMounted, computed, watch } from "vue";
 import tableHeaderInitial from "~@/pages/ozon/config/tabColumns/initialReviewPublication";
+import tableHeaderPublicationRejected from "~@/pages/ozon/config/tabColumns/publicationRejected";
 import tableHeaderPending from "~@/pages/ozon/config/tabColumns/pendingFinalReview";
 import { getClassList } from '@/components/classificationTree/api.js';
 import { DownOutlined } from '@ant-design/icons-vue';
@@ -177,6 +193,9 @@ const columns = computed(() => {
   console.log(props.Source);
   if (props.Source === 'initial-review-publication') {
     return tableHeaderInitial;
+  }
+  if (props.Source === 'publicationRejected') {
+    return tableHeaderPublicationRejected;
   }
   return tableHeaderPending;
 });
@@ -377,6 +396,20 @@ const handleOk = () => {
     console.error('表单验证失败:', error);
   });
 };
+
+/**
+ * 处理查看操作
+ */
+const handleSee = (record) => {
+  window.open(`/product-review/initial-review-publication/detail?productOrderNo=${record.productOrderNo}`);
+};
+
+/**
+ * 处理再次提交操作
+ */
+const handleSub = (record) => {
+};
+
 
 /**
  * 更新分类树数据

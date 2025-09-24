@@ -73,7 +73,15 @@ export const useMultiTab = defineStore('multi-tab', () => {
       cacheList.value = cacheList.value.filter(name => name !== item.name)
       item.loading = true
       refreshItem.value = item
-      router.replace(`/platform/redirect/${encodeURIComponent(item.fullPath)}`)
+      console.log(item.fullPath);
+      // 检测是否包含editPsImage?
+      if (item.fullPath.includes('editPsImage?')) {
+        // 使用路由刷新当前页面
+        router.go(0)
+      }else{
+        router.replace(`/platform/redirect/${encodeURIComponent(item.fullPath)}`)
+      }
+     
     }
   }
   const switchTab = (key) => {
