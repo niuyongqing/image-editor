@@ -1,7 +1,7 @@
 <template>
   <div class="product-review-table">
     <!-- 表格为空时显示 -->
-    <div v-if="!(!loading && tableData.length === 0)" class="empty-state">
+    <div v-if="!loading && tableData.length === 0" class="empty-state">
       <a-empty description="暂无符合条件的数据" />
       <div style="margin-top: 16px;">
         <a-button type="link" @click="onReset">清空筛选条件</a-button>
@@ -10,26 +10,54 @@
 
     <!-- 表格数据 -->
     <a-table v-else :row-selection="rowSelection" :columns="processedColumns"  :data-source="tableData"
-      :rowKey="(row) => row?.productOrderNo || row" bordered :pagination="false" :scroll="{ y: 400 }" :loading="loading"
+      :rowKey="(row) => row?.productOrderNo || row" bordered :pagination="false" :scroll="{ y: 900 }" :loading="loading"
       :row-class-name="tableRowClassName">
-      <template #bodyCell="{ column, record }">
+
+      <template #bodyCell="{ column, record ,index}">
+        <!-- 索引列 -->
+        <template v-if="column.key === 'index'">
+          {{ index + 1 }}
+        </template>
+        <!-- 主图列自定义渲染 -->
+        <template v-else-if="column.key === 'artMainImage'">
+          <img :src="record.artMainImage" alt="主图" style="width: 50px; height: 50px;">
+        </template>
         <!-- 审核状态列自定义渲染 -->
-        <template v-if="column.key === 'auditStatus'">
+        <template v-else-if="column.key === 'auditStatus'">
           <a-tag :color="getStatusColor(record.auditStatus)">
             {{ getStatusText(record.auditStatus) }}
           </a-tag>
         </template>
-
+        <!-- 市场方向列自定义渲染 -->
+        <template v-else-if="column.key === 'devAttributableMarket'">
+          {{ devAttributableMarketRevertSelect.find(item => item.value === record.devAttributableMarket)?.label || '' }}
+        </template>
+        <!-- SKU列表列自定义渲染 -->
+        <template v-else-if="column.key === 'skuList'">
+          {{ skuList(record.skuList) }}
+        </template>
+        <!-- 仓储类别列自定义渲染 -->
+        <template v-else-if="column.key === 'meansKeepGrain'">
+          <template v-for="(item, index) in record.meansKeepGrain?.split(',') || []" :key="index">
+            <a-tag style="margin-right: 3px;" color="processing">
+              {{ props.meansKeepGrainOptions.find(opt => opt.value === item)?.label || '-' }}
+            </a-tag>
+          </template>
+        </template>
+        <!-- 分类列自定义渲染 -->
+        <template v-else-if="column.key === 'classify'">
+          <a-tag v-if="record.classify" style="margin-right: 3px;" color="#87d068">
+            {{ getCommodityTypeLabelFun(record.classify) }}
+          </a-tag>
+        </template>
         <!-- 创建时间格式化 -->
         <template v-else-if="column.key === 'createTime'">
           {{ formatDateTime(record.createTime) }}
         </template>
 
-        <!-- 操作列自定义渲染 -->
-        <template v-else-if="column.key === 'action'">
-          <a-button type="link" @click="handleSingleAudit(record)" size="small" :disabled="!!record.auditStatus">
-            审核
-          </a-button>
+        <!-- 其他列默认渲染 -->
+        <template v-else>
+          {{ record[column.key] }}
         </template>
       </template>
 
@@ -44,9 +72,10 @@
 </template>
 
 <script setup name="ProductReviewTable">
-import { ref, reactive, computed, watch } from "vue";
+import { ref, reactive, computed, watch, onMounted } from "vue";
 import { message } from 'ant-design-vue';
 import dayjs from 'dayjs';
+import { getCommodityTypeLabel } from '@/pages/product-review/untils.js'
 const props = defineProps({
   // 表格列定义
   columns: {
@@ -67,6 +96,21 @@ const props = defineProps({
   exportApi: {
     type: Function,
     default: null
+  },
+  // 开发属性可分配市场列表
+  devAttributableMarketRevertSelect: {
+    type: Array,
+    default: () => []
+  },
+  // 仓储类别列表
+  meansKeepGrainOptions: {
+    type: Array,
+    default: () => []
+  },
+  // 商品类型列表
+  commodityTypeList: {
+    type: Array,
+    default: () => []
   }
 });
 
@@ -121,14 +165,80 @@ const processedColumns = computed(() => {
  * 表格行选择配置
  */
 const rowSelection = {
-  onChange: (selectedRowKeys, selectedRows) => {
-    selectedRowKeys.value = selectedRows;
+  selectedRowKeys,
+  onChange: (_, selectedRows) => {
+    selectedRowKeys.value = selectedRows
+    emit('selection-change', selectedRowKeys.value);
+    console.log('selectedRowKeys', selectedRowKeys.value);
+    
   },
-  getCheckboxProps: (record) => ({
-    disabled: !!record.auditStatus, // 已审核的商品不可选
-  })
+  // getCheckboxProps: (record) => ({
+  //   disabled: !!record.auditStatus, // 已审核的商品不可选
+  // })
 };
 
+/**
+ * 处理SKU列表，返回格式化后的字符串
+ * @param {string} e - 逗号分隔的SKU字符串
+ * @returns {string} - 格式化后的SKU字符串
+ */
+function skuList(e) {
+    let str = ''
+    if (e == '' || e == null) {
+        e = ''
+    }
+    let spanD = e.split(',');
+    let oldSku = e.split(','); //原始错乱sku
+    let b = [] //去除所有带标签的
+    oldSku.map(item => {
+        b.push(item.replace(/<[^>]+>/g, ''))
+    })
+    let newSku = b.sort(); //排序 正确的sku
+    if (newSku.length == 0) {
+        str = ''
+    } else if (newSku.length == 1) {
+        str = spanD[0]
+    } else if (newSku.length > 1) {
+        spanD.forEach(v => {
+            if (v.includes(newSku[0])) {
+                newSku[0] = v
+            }
+            if (v.includes(newSku[newSku.length - 1])) {
+                newSku[newSku.length - 1] = v
+            }
+        })
+        str = `${newSku[0]} - ${newSku[newSku.length - 1]}`
+    }
+    return str
+};
+
+/**
+ * 仓储类别
+ * @param {string} val - 仓储类别值
+ * @returns {string} - 仓储类别名称
+ */
+function getMeansKeepGrainOptions(val) {
+    let Aname1
+    if (props.meansKeepGrainOptions.value?.length > 0) {
+        props.meansKeepGrainOptions.value.forEach(item => {
+            if (item.value == val) {
+                Aname1 = item.label
+            }
+        })
+    };
+    console.log('getMeansKeepGrainOptions', props.meansKeepGrainOptions);
+    
+    return Aname1
+};
+
+/**
+ * 商品类型
+ * @param {string} val - 商品类型值
+ * @returns {string} - 商品类型名称
+ */
+function getCommodityTypeLabelFun(val) {
+    return getCommodityTypeLabel(val)
+};
 
 /**
  * 获取产品列表数据
@@ -162,18 +272,23 @@ const getList = async () => {
     }
 
     // 安全处理日期范围参数
-    if (Array.isArray(params.createTime) && params.createTime.length >= 2) {
+    if (Array.isArray(params.createTimeList) && params.createTimeList.length >= 2) {
       // 使用与原始代码相同的参数名，确保与后端API兼容性
-      params.startTime = dayjs(params.createTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss')
-      params.endTime = dayjs(params.createTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss')
+      params.createTime  = dayjs(params.createTimeList[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss')
+      params.updateTime = dayjs(params.createTimeList[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss')
     }
     
     // 删除原始的createTime参数，避免混淆
-    delete params.createTime;
+    delete params.createTimeList;
     const res = await props.api(params);
-    tableData.value = res?.data || [];
+    tableData.value = JSON.parse(JSON.stringify(res?.rows || []));
+    // 处理主图URL
+    tableData.value.forEach(item => {
+      if (item.artMainImage && item.artMainImage.length > 0) {
+        item.artMainImage = JSON.parse(item.artMainImage)[0];
+      }
+    });
     pages.total = res?.total || 0;
-
     // 清除选中状态
     selectedRowKeys.value = [];
   } catch (error) {
@@ -191,19 +306,17 @@ const getList = async () => {
  */
 const clearSelection = () => {
   selectedRowKeys.value = [];
+  console.log('clearSelection', selectedRowKeys.value);
+  emit('selection-change', selectedRowKeys.value);
 };
 
-/**
- * 处理单个商品审核
- */
-const handleSingleAudit = (record) => {
-  emit('audit', [record], true);
-};
 
 /**
  * 处理批量审核操作
  */
 const handleAudit = () => {
+  console.log('selectedRowKeys', selectedRowKeys.value);
+
   if (selectedRowKeys.value.length === 0) {
     message.warning('请选择要审核的商品');
     return;
@@ -308,6 +421,13 @@ const exportData = async () => {
 const onReset = () => {
   emit('reset');
 };
+
+/**
+ * 组件挂载时获取列表数据
+ */
+onMounted(() => {
+  getList();
+});
 
 
 /**

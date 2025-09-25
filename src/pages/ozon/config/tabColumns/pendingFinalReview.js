@@ -1,24 +1,24 @@
 // 初始选品审核发布列表
 export default [
-  {
+ {
     title: '序号',
     dataIndex: 'index',
     key: 'index',
     align: 'center',
-    width: 80,
+    width: 50,
     fixed: 'left',
   },
   {
     title: '主图',
-    dataIndex: 'mainImage',
-    key: 'mainImage',
+    dataIndex: 'artMainImage',
+    key: 'artMainImage',
     align: 'center',
     width: 120,
   },
   {
     title: '市场方向',
-    dataIndex: 'marketDirection',
-    key: 'marketDirection',
+    dataIndex: 'devAttributableMarket',
+    key: 'devAttributableMarket',
     align: 'center',
     width: 150,
     show: true,
@@ -26,8 +26,8 @@ export default [
   },
   {
     title: '产品SKU',
-    dataIndex: 'productSku',
-    key: 'productSku',
+    dataIndex: 'skuList',
+    key: 'skuList',
     align: 'center',
     width: 200,
     show: true,
@@ -35,26 +35,26 @@ export default [
   },
   {
     title: '仓储类别',
-    dataIndex: 'warehouseType',
-    key: 'warehouseType',
+    dataIndex: 'meansKeepGrain',
+    key: 'meansKeepGrain',
     align: 'center',
-    width: 150,
+    width: 188,
     show: true,
     filter: true
   },
   {
     title: '分类',
-    dataIndex: 'category',
-    key: 'category',
+    dataIndex: 'classify',
+    key: 'classify',
     align: 'center',
-    width: 180,
+    width: 188,
     show: true,
     filter: true
   },
   {
     title: '提交人',
-    dataIndex: 'submitter',
-    key: 'submitter',
+    dataIndex: 'selectUserName',
+    key: 'selectUserName',
     align: 'center',
     width: 120,
     show: true,
@@ -62,8 +62,8 @@ export default [
   },
   {
     title: '提交时间',
-    dataIndex: 'submitTime',
-    key: 'submitTime',
+    dataIndex: 'updateTime',
+    key: 'updateTime',
     align: 'center',
     width: 180,
     show: true,

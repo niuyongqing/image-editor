@@ -35,7 +35,7 @@
             mode="multiple" :maxTagCount="2" placeholder="请选择市场方向" allowClear />
         </a-form-item>
         <a-form-item label="创建时间:">
-          <a-range-picker v-model:value="formData.createTime" format="YYYY-MM-DD HH:mm:ss" allow-clear
+          <a-range-picker v-model:value="formData.createTimeList" format="YYYY-MM-DD HH:mm:ss" allow-clear
             :presets="datePresets" />
         </a-form-item>
 
@@ -78,11 +78,10 @@
         <!-- 使用封装的表格组件 -->
         <ProductReviewTable ref="productReviewTableRef" :columns="columns" :api="commodityList" :searchParams="formData"
           :exportApi="exportProductList" @audit="handleProductAudit" @reset="resetForm"
-          @loading-change="handleLoadingChange" @export-loading-change="handleExportLoadingChange" />
+          @loading-change="handleLoadingChange" @export-loading-change="handleExportLoadingChange" :devAttributableMarketRevertSelect="devAttributableMarketRevertSelect"
+          @selection-change="handleSelectionChange" :meansKeepGrainOptions="meansKeepGrainOptions" />
       </div>
     </a-card>
-
-
     <!-- 审核弹窗 -->
     <a-modal :centered="true" v-model:open="auditOpen" :title="auditModalTitle" @ok="handleOk" @cancel="handleCancel"
       :confirm-loading="auditLoading" okText="确认" cancelText="取消" :width="600">
@@ -91,7 +90,7 @@
         <div class="auditing-products-title">审核商品：</div>
         <div class="auditing-products-list">
           <div v-for="(product, index) in currentAuditingProducts" :key="index" class="auditing-product-item">
-            {{ product.sku }}（产品名称：{{ product.tradeName }}）
+            产品名称：{{ product.commodityName }}
           </div>
         </div>
       </div>
@@ -99,18 +98,18 @@
       <a-form :model="auditFormData" ref="auditFormRef">
         <a-form-item name="state">
           <a-radio-group v-model:value="auditFormData.state">
-            <a-radio value="1" style="margin-right: 16px;">审核通过</a-radio>
-            <a-radio value="2">审核驳回</a-radio>
+            <a-radio :value="1" style="margin-right: 16px;">审核通过</a-radio>
+            <a-radio :value="0">审核驳回</a-radio>
           </a-radio-group>
         </a-form-item>
 
-        <a-form-item name="auditRemark" :rules="[{
-          required: auditFormData.state === '2',
+        <a-form-item name="remark" :rules="[{
+          required: auditFormData.state === 0,
           message: '请输入审核备注',
           trigger: 'blur'
         }]">
           <div style="margin-bottom: 8px;">备注:</div>
-          <a-textarea v-model:value="auditFormData.auditRemark" :rows="4" placeholder="请输入审核备注（驳回时必填）" allowClear
+          <a-textarea v-model:value="auditFormData.remark" :rows="4" placeholder="请输入审核备注（驳回时必填）" allowClear
             style="width: 100%;" :max-length="500" show-count />
         </a-form-item>
       </a-form>
@@ -137,6 +136,7 @@ import { message } from 'ant-design-vue';
 import dayjs from 'dayjs';
 import ProductReviewTable from './comm/table.vue';
 import { getAccountUser } from "@/pages/ozon/config/api/accountConfig";
+import { meansKeepGrains } from '@/utils/devStatusSelect'
 
 const props = defineProps({
   Source: {
@@ -146,7 +146,7 @@ const props = defineProps({
 });
 // 组件引用
 const productReviewTableRef = ref(null);
-
+const meansKeepGrainOptions = ref(meansKeepGrains);
 // 搜索表单相关
 const formRef = ref(null);
 // 定义表单初始状态常量，便于重置
@@ -155,7 +155,7 @@ const INITIAL_FORM_DATA = {
   classify: "",  //分类
   meansKeepGrain: "",  //仓储类别
   devAttributableMarket: [], // 市场方向
-  createTime: [],     // 创建时间范围
+  createTimeList: [],     // 创建时间范围
   selectUserName: [],    //提交人
   tradeName: "",          //商品标题
   state: props.Source === 'initialReviewPublication' ? 10 : (props.Source === 'publicationRejected' ? 70 : 50), // 审核状态：10 待初审，20 待编辑，30 申请重拍，40 资料员审核，50 待终审，60 终审完成，70 运营驳回 (例初审列表查询传10, 驳回列表查询传70,终审列表查询传50)
@@ -249,8 +249,6 @@ const auditModalTitle = computed(() => {
   return `批量审核 (${currentAuditingProducts.value.length} 项)`;
 });
 
-
-
 /**
  * 清除分类选择
  */
@@ -285,7 +283,22 @@ const handleProductAudit = (products, singleAudit) => {
   currentAuditingProducts.value = products;
   selectedCount.value = products.length;
   resetAuditForm();
+    let isfirstAuditResulted = products.some(product => product.firstAuditResult === 1);
+    if (isfirstAuditResulted) {
+      message.warning('存在已初审商品，不能通过审核');
+      return;
+    }
   auditOpen.value = true;
+};
+
+/**
+ * 处理表格行选择变化
+ */
+const handleSelectionChange = (selectedRows) => {
+  selectedCount.value = selectedRows.length;
+  currentAuditingProducts.value = selectedRows;
+  console.log('currentAuditingProducts', currentAuditingProducts.value);
+  
 };
 
 /**
@@ -307,6 +320,8 @@ const handleCancel = () => {
   resetAuditForm();
   auditOpen.value = false;
   currentAuditingProducts.value = [];
+  selectedCount.value = 0;
+  clearSelection();
 };
 
 /**
@@ -318,7 +333,8 @@ const handleOk = () => {
       message.warning('请选择要审核的商品');
       return;
     }
-
+    
+  
     auditLoading.value = true;
     // 根据不同的来源准备参数
     let auditPromise;
