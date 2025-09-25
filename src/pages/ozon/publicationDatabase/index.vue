@@ -53,7 +53,7 @@
   <a-card style="margin-top: 20px">
     <div class="table-btn-box">
       <a-space>
-        <a-button type="primary">提交编辑</a-button>
+        <a-button type="primary" @click="submitEdit">提交编辑</a-button>
         <a-button type="primary">添加备注</a-button>
         <!-- <a-button type="primary">Primary Button</a-button> -->
       </a-space>
@@ -65,7 +65,8 @@
       :scroll="{ y: 'calc(80vh - 120px)', x: '2000px' }"
       :pagination="false"
       :customRow="customRow" 
-      rowKey="commodityId"
+      rowKey="key_uid"
+      :row-selection="{ selectedRowKeys: tableData.selectedRowKeys, onChange: onSelectChange }"
       :loading="tableData.loading"
       class="productDatabase-table"
     >
@@ -74,16 +75,19 @@
           <a-image :width="50" :src="row.mainImage"/>
         </template>
         <template v-else-if="key === 'skuList'">
-          classify
           <a-tooltip>
             <template #title>{{ row.skuCodeList }}</template>
-            <div style="word-break: break-all; display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 3;">
+            <div class="row-skuList">
               {{ row.skuCodeList }}
             </div>
           </a-tooltip>
         </template>
         <template v-else-if="key === 'categoryId'">
-          <div>{{ classify(row) }}</div>
+          <!-- <div>{{ classify(row) }}</div> -->
+          <a-tag color="success" v-if="row.classify">
+            <div style="white-space: pre-wrap;">{{ row.classify }}</div>
+          </a-tag>
+          <div v-else></div>
         </template>
       </template>
     </a-table>
@@ -102,6 +106,7 @@
       />
     </div>
   </a-card>
+  <detailsModal ref="publicationDatabase_detailsModal"></detailsModal>
 </div>
 </template>
 
@@ -110,10 +115,13 @@ import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { categoryTree, getList, userList } from './js/api';
 import { header } from './js/header';
 import _ from "lodash";
+import { v4 as uuidv4 } from 'uuid';
+import detailsModal from './detailsModal.vue';
 defineOptions({ name: "ozon_publicationDatabase" })
 const { proxy: _this } = getCurrentInstance();
 
 const { state: formData, reset } = useResetReactive({
+  
   categoryId: [],                       // 分类
   selectUserIdList: [],
   completeTime: [],                     // 完成时间
@@ -129,6 +137,9 @@ const tableData = reactive({
   data: [],
   total: 6000,
   loading: false,
+  selectedRowKeys: [],
+  selectedRows: [],
+
   params: {
     "pageNum": 1,
     "pageSize": 50,
@@ -138,11 +149,12 @@ const tableData = reactive({
 })
 let antTableBody = null   // 表格滚动区域
 
-onMounted(() => {
+onMounted(async () => {
   let productDatabaseTable = document.querySelector('.productDatabase-table')
   antTableBody = productDatabaseTable.querySelector('.ant-table-body')
   getUserList()
-  getCategoryTree()
+  await getCategoryTree()
+  onSubmit()
 })
 async function getCategoryTree(params) {
   try {
@@ -184,10 +196,14 @@ function classify(row) {
   for (let index = 0; index < commodity.length; index++) {
     const descriptionCategoryId = commodity[index];
     let obj = arr.find(i => i.descriptionCategoryId === descriptionCategoryId)
-    nameList.push(obj.categoryName);
-    arr = obj.children
+    if (obj) {
+      nameList.push(obj.categoryName);
+      arr = obj.children
+    } else {
+      break;
+    }
   }
-  return nameList.join(' / ')
+  return nameList.join(` / `)
 }
 // 查询
 async function onSubmit() {
@@ -220,7 +236,6 @@ async function getTableList() {
       selectUserIdList: copyFormData.selectUserIdList?.length > 0 ? copyFormData.selectUserIdList : null,
       productName: copyFormData.productName || '',
       skuCode: copyFormData.skuCode || '',
-      // preciseMeansKeepGrain: Number(formData.preciseMeansKeepGrain),
       completeTimeStart: completeTimeStart ? `${completeTimeStart} 00:00:00` : null,
       completeTimeEnd: completeTimeEnd ? `${completeTimeEnd} 23:59:59` : null,
       ...tableData.params
@@ -229,11 +244,13 @@ async function getTableList() {
     let res = await getList(params)
     let data = res.data ?? []
     data.forEach((item, index) => {
-      item.rowIndex = ((tableData.params.pageNum - 1) * tableData.params.pageSize + index + 1)
-      item.skuCodeList = item.skuList?.map(i => i.skuCode).join() || ''
-      item.averageWeight = null
-      item.averagePrice = null
-      item.mainImage = ''
+      item.key_uid = uuidv4()
+      item.rowIndex = ((tableData.params.pageNum - 1) * tableData.params.pageSize + index + 1);
+      item.skuCodeList = item.skuList?.map(i => i.skuCode).join() || '';
+      item.averageWeight = null;
+      item.averagePrice = null;
+      item.mainImage = '';
+      item.classify = classify(item)
       if (item.skuList?.length) {
         let weight = 0
         let price = 0
@@ -241,9 +258,9 @@ async function getTableList() {
           weight += (i.weight ? Number(i.weight) : 0)
           price += (i.price ? Number(i.price) : 0)
         })
-        item.averageWeight = weight / item.skuList.length
-        item.averagePrice = price / item.skuList.length
-        item.mainImage = item.skuList[0].mainImages
+        item.averageWeight = (weight / item.skuList.length);
+        item.averagePrice = (price / item.skuList.length);
+        item.mainImage = item.skuList[0].mainImages;
       }
     })
     tableData.data = data
@@ -277,13 +294,34 @@ function customRow(row) {
   };
 }
 function detailsModalOpen(row) {
-
+  console.log({ row });
+  let obj = {
+    row,
+    // commodityTypeList: options.commodityTypeList,
+  }
+  _this.$refs.publicationDatabase_detailsModal.modalOpenFn(obj)
+}
+// 复选框
+function onSelectChange(keys, rows) {
+  tableData.selectedRowKeys = keys
+  tableData.selectedRows = rows
+}
+// 提交编辑
+function submitEdit() {
+  let ids = tableData.selectedRows.map(i => i.id)
 }
 </script>
 <style lang="less" scoped>
 .table-btn-box {
   display: flex;
   // padding: 10px 0 20px 0;
+}
+.row-skuList {
+  word-break: break-all; 
+  display: -webkit-box; 
+  overflow: hidden; 
+  -webkit-box-orient: vertical; 
+  -webkit-line-clamp: 3;
 }
 .pagination-box {
   display: flex; 
