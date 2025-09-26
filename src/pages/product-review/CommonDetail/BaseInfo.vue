@@ -8,21 +8,21 @@
     >
       <a-form-item label="产品标题">
         <a-input
-          v-model:value="baseInfoForm.title"
+          v-model:value="baseInfoForm.productName"
           placeholder="请输入英文产品标题"
           allow-clear
         />
       </a-form-item>
       <a-form-item label="前缀修饰词">
         <a-input
-          v-model:value="baseInfoForm.prefix"
+          v-model:value="baseInfoForm.prefixDecorateName"
           placeholder="请输入英文前缀修饰词, 多个请用英文逗号隔开"
           allow-clear
         />
       </a-form-item>
       <a-form-item label="后缀修饰词">
         <a-input
-          v-model:value="baseInfoForm.suffix"
+          v-model:value="baseInfoForm.suffixDecorateName"
           placeholder="请输入英文后缀修饰词, 多个请用英文逗号隔开"
           allow-clear
         />
@@ -36,7 +36,7 @@
           allow-clear
           show-search
         /> -->
-        <a-button @click="openCategoryModal">选择分类</a-button>
+        <a-button @click="openCascaderCategorySelector">选择分类</a-button>
         <div
           v-if="categoryLabel"
           class="text-#933"
@@ -44,9 +44,8 @@
           {{ categoryLabel }}
         </div>
         <!-- 分类弹窗 -->
-        <CategoryModal
-          ref="categoryModalRef"
-          :account="account"
+        <CascaderCategorySelector
+          ref="cascaderCategorySelectorRef"
           @select="selectCategory"
         />
       </a-form-item>
@@ -79,38 +78,38 @@
       <a-form-item label="竞品链接">
         <div
           class="flex mb-1"
-          v-for="(item, i) in baseInfoForm.competitiveLinks"
+          v-for="(item, i) in baseInfoForm.competitiveInfos"
           :key="item.id"
         >
           <span class="mr-1">{{ i + 1 }}</span>
           <a-input
-            v-model:value="item.link"
+            v-model:value="item.linkUrl"
             placeholder="请输入网址"
           />
 
           <a-button
             type="link"
-            @click="copy(item.link)"
+            @click="copy(item.linkUrl)"
           >
             复制
           </a-button>
           <a-button
             type="link"
-            @click="open(item.link)"
+            @click="open(item.linkUrl)"
           >
             访问
           </a-button>
           <a-button
             type="link"
             title="添加"
-            :disabled="baseInfoForm.competitiveLinks.length > 4"
+            :disabled="baseInfoForm.competitiveInfos.length > 4"
             @click="addCompetitiveLink"
             ><PlusOutlined
           /></a-button>
           <a-button
             type="link"
             title="删除"
-            :disabled="baseInfoForm.competitiveLinks.length === 1"
+            :disabled="baseInfoForm.competitiveInfos.length === 1"
             danger
             @click="delCompetitiveLink(item.id)"
             ><MinusOutlined
@@ -123,38 +122,38 @@
       <a-form-item label="采购链接">
         <div
           class="flex mb-1"
-          v-for="(item, i) in baseInfoForm.purchaseLinks"
+          v-for="(item, i) in baseInfoForm.purchaseLinkUrls"
           :key="item.id"
         >
           <span class="mr-1">{{ i + 1 }}</span>
           <a-input
-            v-model:value="item.link"
+            v-model:value="item.linkUrl"
             placeholder="请输入网址"
           />
 
           <a-button
             type="link"
-            @click="copy(item.link)"
+            @click="copy(item.linkUrl)"
           >
             复制
           </a-button>
           <a-button
             type="link"
-            @click="open(item.link)"
+            @click="open(item.linkUrl)"
           >
             访问
           </a-button>
           <a-button
             type="link"
             title="添加"
-            :disabled="baseInfoForm.purchaseLinks.length > 4"
+            :disabled="baseInfoForm.purchaseLinkUrls.length > 4"
             @click="addPurchaseLink"
             ><PlusOutlined
           /></a-button>
           <a-button
             type="link"
             title="删除"
-            :disabled="baseInfoForm.purchaseLinks.length === 1"
+            :disabled="baseInfoForm.purchaseLinkUrls.length === 1"
             danger
             @click="delPurchaseLink(item.id)"
             ><MinusOutlined
@@ -394,7 +393,7 @@
 </template>
 
 <script setup>
-  import CategoryModal from '@/pages/ozon/draft/comm/categoryModal.vue'
+  import CascaderCategorySelector from './CascaderCategorySelector.vue'
   import { categoryAttributes } from '@/pages/ozon/config/api/product'
   import JSONEditor from '@/pages/ozon/config/component/json/index.vue'
   import { processImageSource } from '@/pages/ozon/config/commJs/index'
@@ -406,15 +405,15 @@
   const store = useProductReviewStore()
   const account = '2649641' // 随便固定一个id, 分类都是相同的
   const baseInfoForm = reactive({
-    title: '',
-    prefix: '',
-    suffix: '',
+    productName: '',
+    prefixDecorateName: '',
+    suffixDecorateName: '',
     categoryId: undefined,
     brand: '',
     vat: undefined,
     country: '',
-    competitiveLinks: [{ id: uuidv4(), link: '' }],
-    purchaseLinks: [{ id: uuidv4(), link: '' }],
+    competitiveInfos: [{ id: uuidv4(), link: '' }],
+    purchaseLinkUrls: [{ id: uuidv4(), link: '' }],
     attributes: {}, //产品属性
     desc: '',
     jsons: '',
@@ -424,11 +423,11 @@
   const formRef = ref()
 
   // 分类
-  const categoryModalRef = ref()
+  const cascaderCategorySelectorRef = ref()
   const categoryLabel = ref('')
 
-  function openCategoryModal() {
-    categoryModalRef.value.open()
+  function openCascaderCategorySelector() {
+    cascaderCategorySelectorRef.value.open()
   }
 
   function selectCategory(data) {
@@ -513,6 +512,11 @@
             rules2.value[noThemeAttributesCache[i].name] = obj
           }
           attributeList.value = noThemeAttributesCache
+
+          // 赋值
+          const { attributes: oldAttributes } = store.productDetail?.skuList[0]
+          const proceRes = assignValues(oldAttributes, attributeList.value)
+          baseInfoForm.attributes = proceRes
         }
       })
       .finally(() => {
@@ -548,6 +552,102 @@
   // 清除校验
   const changeRule = (attributes, name) => {
     ruleForm2.value.clearValidate(name)
+  }
+
+  // 此方法将历史缓存中的属性值进行重新赋值
+  const assignValues = (oldAttr, attr) => {
+    let newRes = oldAttr.map(item => {
+      return {
+        ...item,
+        values: item.values.map(value => {
+          return {
+            ...value,
+            id: Number(value.dictionaryValueId),
+            info: '',
+            picture: '',
+            label: ''
+          }
+        })
+      }
+    })
+
+    const result = {}
+    // 根据b数组填充结果对象
+    attr.forEach(item => {
+      const name = item.name
+      const selectType = item.selectType
+      newRes.forEach(resItem => {
+        const attributeId = resItem.id
+        const allValidItems = resItem.values.every(item => item.value !== '')
+        if (attributeId === item.id && allValidItems) {
+          if (selectType === 'multSelect') {
+            result[name] = resItem.values.map(item => item.id)
+            item.acquiesceList = moveMatchedItemForward(
+              item.options,
+              resItem.values.map(item => item.id)
+            )
+          } else if (selectType === 'select') {
+            result[name] = findMatchedOption(attributeId, resItem.values[0], item.options)
+          } else {
+            result[name] = resItem.values[0].value
+          }
+        } else {
+          if (item.id === 4389) {
+            result[name] = [90296]
+          } else if (item.id === 85 || item.id === 31) {
+            result[name] = {
+              label: '无品牌',
+              value: '无品牌'
+            }
+          }
+        }
+      })
+    })
+
+    return result
+  }
+
+  const findMatchedOption = (attributeId, data, options) => {
+    const matchedOption = options?.find(option => option.id === data.id)
+    if (attributeId == 9070) {
+      return {
+        label: data.value,
+        value: data.id
+      }
+    } else if (attributeId == 85 || attributeId == 31) {
+      return {
+        label: '无品牌',
+        value: data.id
+      }
+    } else if (attributeId === 4389) {
+      return {
+        label: data.value,
+        value: [90296]
+      }
+    } else if (matchedOption) {
+      return {
+        id: matchedOption.id,
+        value: matchedOption.value,
+        label: matchedOption.label
+      }
+    }
+    return null
+  }
+
+  const moveMatchedItemForward = (data, arr) => {
+    const newData = []
+    const remainingData = []
+
+    for (let i = 0; i < data.length; i++) {
+      const item = data[i]
+      if (arr.includes(item.id)) {
+        newData.push(item)
+      } else {
+        remainingData.push(item)
+      }
+    }
+
+    return newData.concat(remainingData).slice(0, 25)
   }
 
   const addItemValues = obj => {
@@ -616,20 +716,20 @@
 
   // 竞品链接
   function addCompetitiveLink() {
-    baseInfoForm.competitiveLinks.push({ id: uuidv4(), link: '' })
+    baseInfoForm.competitiveInfos.push({ id: uuidv4(), link: '' })
   }
 
   function delCompetitiveLink(id) {
-    baseInfoForm.competitiveLinks = baseInfoForm.competitiveLinks.filter(item => item.id !== id)
+    baseInfoForm.competitiveInfos = baseInfoForm.competitiveInfos.filter(item => item.id !== id)
   }
 
   // 采购链接
   function addPurchaseLink() {
-    baseInfoForm.purchaseLinks.push({ id: uuidv4(), link: '' })
+    baseInfoForm.purchaseLinkUrls.push({ id: uuidv4(), link: '' })
   }
 
   function delPurchaseLink(id) {
-    baseInfoForm.purchaseLinks = baseInfoForm.purchaseLinks.filter(item => item.id !== id)
+    baseInfoForm.purchaseLinkUrls = baseInfoForm.purchaseLinkUrls.filter(item => item.id !== id)
   }
 
   /** JSON 富文本 */
@@ -668,5 +768,73 @@
   }
   const removeVideoList = i => {
     baseInfoForm.video.splice(i, 1)
+  }
+
+  /** 详情回显 */
+  watch(
+    () => store.productDetail,
+    detail => {
+      baseInfoForm.productName = detail.productName
+      baseInfoForm.prefixDecorateName = detail.prefixDecorateName
+      baseInfoForm.suffixDecorateName = detail.suffixDecorateName
+      // 分类
+      baseInfoForm.categoryId = detail.categoryId
+      const categoryIdList = detail.categoryId.split(',')
+      const params = {
+        account,
+        descriptionCategoryId: categoryIdList[1],
+        typeId: categoryIdList[2]
+      }
+      getAttributes(params)
+      // 链接
+      if (detail.purchaseLinkUrls?.length) {
+        baseInfoForm.purchaseLinkUrls = detail.purchaseLinkUrls
+      }
+      if (detail.competitiveInfos?.length) {
+        baseInfoForm.competitiveInfos = detail.competitiveInfos
+      }
+
+      // JSON富文本和视频
+      const { attributes, complexAttributes } = detail.skuList[0]
+      if (!attributes || attributes.length === 0) return
+      commDispose(attributes, complexAttributes)
+    }
+  )
+
+  // 定义常量ID提升可维护性
+  const ATTRIBUTE_IDS = {
+    JSON_CONTENT: 11254,
+    DESCRIPTION: 4191,
+    VIDEO: 21841,
+    COVER_IMAGE: 21845
+  }
+
+  function commDispose(attributes, complexAttributes) {
+    // 完善空值检查并使用可选链
+    const copyAttr = attributes?.filter(a => a.id === ATTRIBUTE_IDS.JSON_CONTENT || a.id === ATTRIBUTE_IDS.DESCRIPTION) || []
+
+    // 处理复杂属性-视频
+    if (Array.isArray(complexAttributes)) {
+      complexAttributes.forEach(item => {
+        switch (item.id) {
+          case ATTRIBUTE_IDS.VIDEO:
+            baseInfoForm.video =
+              item.values?.map(e => ({
+                url: processImageSource(e?.value || '')
+              })) || []
+            break
+          case ATTRIBUTE_IDS.COVER_IMAGE:
+            baseInfoForm.coverUrl = processImageSource(item.values?.[0]?.value || '')
+            break
+        }
+      })
+    }
+
+    // 处理普通属性 不用循环处理是为了防止数据在变动时无法重置或更新
+    const jsonContentAttr = copyAttr.find(attr => attr.id === ATTRIBUTE_IDS.JSON_CONTENT)
+    const descriptionAttr = copyAttr.find(attr => attr.id === ATTRIBUTE_IDS.DESCRIPTION)
+
+    baseInfoForm.jsons = jsonContentAttr?.values?.[0]?.value || ''
+    baseInfoForm.desc = descriptionAttr?.values?.[0]?.value || ''
   }
 </script>

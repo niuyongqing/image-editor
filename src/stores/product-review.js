@@ -3,7 +3,7 @@ export const useProductReviewStore = defineStore('productReviewStore', {
   state: () => {
     return {
       loading: false,
-      attributes: [],
+      attributes: {},
       addHeaderList: [],
       productDetail: {},
       waterMarkOptions: [],

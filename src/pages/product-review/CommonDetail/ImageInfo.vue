@@ -784,9 +784,6 @@
           }
         }
 
-        // 将props.dataSource数据存储到本地缓存中
-        // localStorage.setItem(props.imageKey, JSON.stringify(props.dataSource))
-
         // 重新获取图片尺寸
         getImgSize(targetImage)
         message.success('图片修改成功！')
