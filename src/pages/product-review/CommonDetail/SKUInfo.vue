@@ -1145,7 +1145,9 @@
       newTableData[i].price = tableData.value[i].price
       newTableData[i].oldPrice = tableData.value[i].oldPrice
       newTableData[i].colorImg = tableData.value[i].colorImg
-      newTableData[i].imageUrl = tableData.value[i].imageUrl
+      // newTableData[i].imageUrl = tableData.value[i].imageUrl
+      newTableData[i].mainImages = tableData.value[i].mainImages
+      newTableData[i].subImages = tableData.value[i].subImages
       newTableData[i].imageList = tableData.value[i].imageList
       newTableData[i].quantity = tableData.value[i].quantity
       newTableData[i].warehouseList = tableData.value[i].warehouseList
@@ -1438,7 +1440,7 @@
         const titleSet = new Set()
 
         if (store.dataType === 'edit') {
-          // 待发布编辑
+          // 编辑; 回显数据
           const { skuList } = productDetail.value
           skuList.forEach(sku => {
             const newItem = createNewItem(sku, {})
@@ -1458,7 +1460,9 @@
             packageWidth: undefined,
             packageHeight: undefined,
             packageWeight: undefined,
-            imageUrl: [],
+            // imageUrl: [],
+            mainImages: [],
+            subImages: [],
             imageList: [],
             colorImg: [],
             id: Math.random().toString(36).substring(2, 10)
@@ -1514,9 +1518,23 @@
     colorImg: createColorImg(dataSource.colorImage || sku.colorImage),
     warehouseList: formatWarehouseList(dataSource.warehouseList || sku.warehouseList, sku.offerId),
     sellerSKU: dataSource.offerId || sku.offerId,
-    imageUrl: mergeAndDeduplicateImages(dataSource, sku),
+    // imageUrl: mergeAndDeduplicateImages(dataSource, sku),
+    mainImages: fillImage(sku.mainImages),
+    subImages: fillImage(sku.subImages),
     imageList: sku.imageList || []
   })
+
+  // 给图片url地址添加id, 组成图片对象
+  function fillImage(list) {
+    if (Array.isArray(list)) {
+      return list.map(url => ({
+        url: processImageSource(url),
+        id: uuidv4()
+      }))
+    } else {
+      return []
+    }
+  }
 
   // 颜色图片处理函数
   const createColorImg = colorImage => {
@@ -1743,10 +1761,15 @@
     const isEmpty = value => value == null || value === '' || value === 0
 
     const validations = [
-      { check: row => row.imageUrl == null, text: '请上传变体图片！' },
+      { check: row => row.mainImages == null, text: '请上传主图！' },
       {
-        check: row => row.imageUrl.length === 0,
-        text: '请上传变体图片，变体图片最少一张！'
+        check: row => row.mainImages.length === 0,
+        text: '请上传主图，主图最少一张！'
+      },
+      { check: row => row.subImages == null, text: '请上传副图！' },
+      {
+        check: row => row.subImages.length === 0,
+        text: '请上传副图，副图最少一张！'
       },
       { check: row => isEmpty(row.sellerSKU), text: '请填写SKU编号！' },
       { check: row => isEmpty(row.price), text: '请填写售价！' },

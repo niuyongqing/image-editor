@@ -89,7 +89,7 @@
               <a-dropdown>
                 <a-button>选择图片 <DownOutlined /></a-button>
                 <template #overlay>
-                  <a-menu @click="imgAddMenuClick($event, SKU)">
+                  <a-menu @click="imgAddMenuClick($event, SKU, 'mainImages')">
                     <a-menu-item key="imgLocal">
                       <a-upload
                         :headers="headers"
@@ -98,7 +98,7 @@
                         accept=".jpg,.jpeg,.png"
                         multiple
                         :before-upload="beforeUpload"
-                        @change="handleUploadChange($event, SKU)"
+                        @change="handleUploadChange($event, SKU, 'mainImages')"
                       >
                         本地图片
                       </a-upload>
@@ -113,7 +113,7 @@
             </div>
 
             <div class="text-right">
-              <span>【{{ SKU.imageUrl.length }}/{{ maxCount }}】图片 </span>
+              <span>【{{ SKU.mainImages.length }}/{{ maxCount }}】图片 </span>
               <a-dropdown>
                 <a-button
                   type="link"
@@ -121,7 +121,7 @@
                   >批量加水印 <DownOutlined
                 /></a-button>
                 <template #overlay>
-                  <a-menu @click="addWaterMark($event, SKU)">
+                  <a-menu @click="addWaterMark($event, SKU, 'mainImages')">
                     <a-menu-item
                       v-for="waterMark in waterMarkOptions"
                       :key="waterMark.id"
@@ -149,7 +149,7 @@
               <a-dropdown>
                 <a-button type="link">编辑图片 <DownOutlined /></a-button>
                 <template #overlay>
-                  <a-menu @click="imgModifyMenuClick($event, SKU)">
+                  <a-menu @click="imgModifyMenuClick($event, SKU, 'mainImages')">
                     <a-menu-item key="modifySize">批量改图片尺寸</a-menu-item>
                     <a-menu-item key="translate">图片翻译</a-menu-item>
                     <!-- <a-menu-item key="whiteBg">图片白底</a-menu-item> -->
@@ -160,7 +160,7 @@
               <a-dropdown>
                 <a-button type="link">图片应用到 <DownOutlined /></a-button>
                 <template #overlay>
-                  <a-menu @click="confirmMenuClick($event, SKU)">
+                  <a-menu @click="applyMainImagesTo($event, SKU, 'mainImages')">
                     <a-menu-item
                       v-for="menuItem in confirmMenuList"
                       :key="menuItem.key"
@@ -174,8 +174,8 @@
           <!-- 图片列表 -->
           <div class="min-h-40">
             <Draggable
-              v-if="SKU.imageUrl.length"
-              v-model="SKU.imageUrl"
+              v-if="SKU.mainImages.length"
+              v-model="SKU.mainImages"
               item-key="id"
               animation="200"
               class="flex flex-wrap"
@@ -213,7 +213,7 @@
                       title="删除"
                       ><DeleteOutlined
                         class="text-base"
-                        @click="delImg(SKU, image.id)"
+                        @click="delImg(SKU, image.id, 'mainImages')"
                     /></a-button>
                   </div>
                 </div>
@@ -239,7 +239,7 @@
               <a-dropdown>
                 <a-button>选择图片 <DownOutlined /></a-button>
                 <template #overlay>
-                  <a-menu @click="imgAddMenuClick($event, SKU)">
+                  <a-menu @click="imgAddMenuClick($event, SKU, 'subImages')">
                     <a-menu-item key="imgLocal">
                       <a-upload
                         :headers="headers"
@@ -248,7 +248,7 @@
                         accept=".jpg,.jpeg,.png"
                         multiple
                         :before-upload="beforeUpload"
-                        @change="handleUploadChange($event, SKU)"
+                        @change="handleUploadChange($event, SKU, 'subImages')"
                       >
                         本地图片
                       </a-upload>
@@ -263,7 +263,7 @@
             </div>
 
             <div class="text-right">
-              <span>【{{ SKU.imageUrl.length }}/{{ maxCount }}】图片 </span>
+              <span>【{{ SKU.subImages.length }}/{{ maxCount }}】图片 </span>
               <a-dropdown>
                 <a-button
                   type="link"
@@ -271,7 +271,7 @@
                   >批量加水印 <DownOutlined
                 /></a-button>
                 <template #overlay>
-                  <a-menu @click="addWaterMark($event, SKU)">
+                  <a-menu @click="addWaterMark($event, SKU, 'subImages')">
                     <a-menu-item
                       v-for="waterMark in waterMarkOptions"
                       :key="waterMark.id"
@@ -299,7 +299,7 @@
               <a-dropdown>
                 <a-button type="link">编辑图片 <DownOutlined /></a-button>
                 <template #overlay>
-                  <a-menu @click="imgModifyMenuClick($event, SKU)">
+                  <a-menu @click="imgModifyMenuClick($event, SKU, 'subImages')">
                     <a-menu-item key="modifySize">批量改图片尺寸</a-menu-item>
                     <a-menu-item key="translate">图片翻译</a-menu-item>
                     <!-- <a-menu-item key="whiteBg">图片白底</a-menu-item> -->
@@ -310,7 +310,7 @@
               <a-dropdown>
                 <a-button type="link">图片应用到 <DownOutlined /></a-button>
                 <template #overlay>
-                  <a-menu @click="confirmMenuClick($event, SKU)">
+                  <a-menu @click="applySubImagesTo($event, SKU, 'subImages')">
                     <a-menu-item
                       v-for="menuItem in confirmMenuList"
                       :key="menuItem.key"
@@ -324,8 +324,8 @@
           <!-- 图片列表 -->
           <div class="min-h-40">
             <Draggable
-              v-if="SKU.imageUrl.length"
-              v-model="SKU.imageUrl"
+              v-if="SKU.subImages.length"
+              v-model="SKU.subImages"
               item-key="id"
               animation="200"
               class="flex flex-wrap"
@@ -363,7 +363,7 @@
                       title="删除"
                       ><DeleteOutlined
                         class="text-base"
-                        @click="delImg(SKU, image.id)"
+                        @click="delImg(SKU, image.id, 'subImages')"
                     /></a-button>
                   </div>
                 </div>
@@ -463,7 +463,10 @@
     () => dataSource.value,
     data => {
       data.forEach(item => {
-        item.imageUrl.forEach(image => {
+        item.mainImages.forEach(image => {
+          getImgSize(image)
+        })
+        item.subImages.forEach(image => {
           getImgSize(image)
         })
       })
@@ -475,7 +478,10 @@
   const allImageInfo = computed(() => {
     const list = []
     dataSource.value.forEach(item => {
-      item.imageUrl.forEach(image => {
+      item.mainImages.forEach(image => {
+        list.push(image)
+      })
+      item.subImages.forEach(image => {
         list.push(image)
       })
     })
@@ -490,11 +496,11 @@
 
   /** 批量加水印 */
   const addWaterMarkLoading = ref(false)
-  function addWaterMark({ key }, SKU) {
+  function addWaterMark({ key }, SKU, keyName) {
     const imageInfoList = []
     if (SKU) {
       // 单 SKU 里
-      imageInfoList.push(...SKU.imageUrl)
+      imageInfoList.push(...SKU[keyName])
     } else {
       // 全量
       imageInfoList.push(...allImageInfo.value)
@@ -522,7 +528,7 @@
             const list = res.data || []
             for (const item of list) {
               loop: for (const SKU of dataSource.value) {
-                for (const image of SKU.imageUrl) {
+                for (const image of SKU[keyName]) {
                   if (image.url === '/prod-api' + item.originalFilename) {
                     image.url = item.url
                     break loop
@@ -599,22 +605,45 @@
     return [...PERMANENT_LIST, ...variantAttrList]
   })
 
-  function confirmMenuClick({ key }, SKU) {
+  // 主图应用到
+  function applyMainImagesTo({ key }, SKU) {
     // 图片不允许为空
-    if (SKU.imageUrl.length === 0) {
+    if (SKU.mainImages.length === 0) {
       message.warning('变种图片不能为空')
       return
     }
 
     if (key === 'applyAll') {
       dataSource.value.forEach(item => {
-        item.imageUrl = cloneDeep(SKU.imageUrl)
+        item.mainImages = cloneDeep(SKU.mainImages)
       })
     } else {
       const keyList = key.split('-')
       dataSource.value.forEach(item => {
         if (keyList.every(key => item[key] === SKU[key])) {
-          item.imageUrl = cloneDeep(SKU.imageUrl)
+          item.mainImages = cloneDeep(SKU.mainImages)
+        }
+      })
+    }
+  }
+
+  // 副图应用到
+  function applySubImagesTo({ key }, SKU) {
+    // 图片不允许为空
+    if (SKU.subImages.length === 0) {
+      message.warning('变种图片不能为空')
+      return
+    }
+
+    if (key === 'applyAll') {
+      dataSource.value.forEach(item => {
+        item.subImages = cloneDeep(SKU.subImages)
+      })
+    } else {
+      const keyList = key.split('-')
+      dataSource.value.forEach(item => {
+        if (keyList.every(key => item[key] === SKU[key])) {
+          item.subImages = cloneDeep(SKU.subImages)
         }
       })
     }
@@ -634,10 +663,10 @@
   }
 
   // 当前操作的 SKU
-  const curSKU = ref({})
+  let curImages = []
   /** 添加图片 */
-  function imgAddMenuClick({ key }, SKU) {
-    curSKU.value = SKU
+  function imgAddMenuClick({ key }, SKU, keyName) {
+    curImages = SKU[keyName]
     switch (key) {
       case 'imgBank':
         pictureLibraryOpen.value = true
@@ -665,7 +694,7 @@
   }
 
   // 上传
-  async function handleUploadChange({ file }, SKU) {
+  async function handleUploadChange({ file }, SKU, keyName) {
     if (file.status === 'done') {
       const res = file.response
       if (res.code === 200) {
@@ -674,7 +703,7 @@
           url: import.meta.env.VITE_APP_BASE_API + res.url
         }
         await getImgSize(imgInfo)
-        SKU.imageUrl.push(imgInfo)
+        SKU[keyName].push(imgInfo)
       } else {
         message.warning(res.msg)
       }
@@ -686,18 +715,18 @@
 
   // 添加进图片, 引用采集和资料库共用
   function pushImage(list) {
-    curSKU.value.imageUrl.push(...list)
+    curImages.push(...list)
   }
 
   /** 批量修改尺寸 */
   const bacthEditImgSizeRef = useTemplateRef('batch_edit_img_size')
 
   /** 编辑图片 */
-  function imgModifyMenuClick({ key }, SKU) {
+  function imgModifyMenuClick({ key }, SKU, keyName) {
     const imageObjList = []
     if (SKU) {
-      curSKU.value = SKU
-      imageObjList.push(...SKU.imageUrl)
+      curImages = SKU[keyName]
+      imageObjList.push(...SKU[keyName])
     } else {
       imageObjList.push(...allImageInfo.value)
     }
@@ -760,7 +789,7 @@
   function updateImageById(imageId, newImageUrl, recordId) {
     // 遍历所有SKU的图片列表
     for (const SKU of dataSource.value) {
-      const targetImage = SKU.imageUrl.find(img => img.id === imageId)
+      const targetImage = SKU[keyName].find(img => img.id === imageId)
       if (targetImage) {
         // 更新目标图片URL - 确保使用ref.value获取实际URL值
         targetImage.url = newImageUrl.value
@@ -853,9 +882,9 @@
   }
 
   // 删除单张按钮
-  function delImg(SKU, id) {
+  function delImg(SKU, id, keyName) {
     // 先保存要删除的图片URL
-    const targetImage = SKU.imageUrl.find(image => image.id === id)
+    const targetImage = SKU[keyName].find(image => image.id === id)
     const currentUrl = targetImage?.url
 
     // 根据保存的URL删除imageList中对应项
@@ -869,7 +898,7 @@
     }
 
     // 过滤掉要删除的图片
-    SKU.imageUrl = SKU.imageUrl.filter(image => image.id !== id)
+    SKU[keyName] = SKU[keyName].filter(image => image.id !== id)
   }
 
   /** 空间图片 */
@@ -881,7 +910,7 @@
       width: item.width,
       height: item.height
     }))
-    curSKU.value.imageUrl.push(...imageList)
+    curImages.push(...imageList)
   }
 
   /** 网络图片 */
@@ -893,7 +922,7 @@
     }))
     imageList.forEach(async item => {
       await getImgSize(item)
-      curSKU.value.imageUrl.push(item)
+      curImages.push(item)
     })
   }
 

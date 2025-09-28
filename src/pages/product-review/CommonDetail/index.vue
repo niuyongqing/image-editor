@@ -31,7 +31,10 @@
 
     getDetailApi(id).then(res => {
       const detail = res.data || {}
-      store.$patch(state => { state.productDetail = detail })
+      store.$patch(state => {
+        state.productDetail = detail
+        state.dataType = 'edit'
+      })
     })
   }
 </script>

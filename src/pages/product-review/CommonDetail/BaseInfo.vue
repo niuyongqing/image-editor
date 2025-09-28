@@ -439,6 +439,11 @@
       typeId: data.ids[2]
     }
     getAttributes(params)
+
+    // 切换不同分类后SKU清空
+    store.$patch(state => {
+      state.dataType = ''
+    })
   }
 
   /** 产品属性(搬屎) */
