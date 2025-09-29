@@ -9,7 +9,7 @@
         </a-descriptions-item>
         <a-descriptions-item label="店铺账号">
           <TiledSelect
-            v-model:value="watchedSearchForm.sellerId"
+            v-model:value="watchedSearchForm.account"
             :options="accountList"
             :field-names="{ label: 'simpleName', value: 'account' }"
           />
@@ -48,13 +48,13 @@
         </a-descriptions-item>
         <a-descriptions-item label="启用状态">
           <TiledSelect
-            v-model:value="watchedSearchForm.enableState"
+            v-model:value="watchedSearchForm.state"
             :options="ENABLE_STATE_OPTIONS"
           />
         </a-descriptions-item>
         <a-descriptions-item label="活动状态">
           <TiledSelect
-            v-model:value="watchedSearchForm.activeState"
+            v-model:value="watchedSearchForm.activityState"
             :options="ACTIVE_STATE_OPTIONS"
           />
         </a-descriptions-item>
@@ -84,7 +84,11 @@
           @click="add"
           >创建广告</a-button
         >
-        <a-button @click="sync">同步广告</a-button>
+        <a-button
+          :loading="syncLoading"
+          @click="sync"
+          >同步广告</a-button
+        >
       </a-space>
     </div>
 
@@ -99,7 +103,7 @@
           <a-tab-pane
             v-for="item in LIST_TABS"
             :key="item.value"
-            :tab="`${item.label}(${LIST_TABS_COUNT_ENUM[item.value] || 0})`"
+            :tab="`${item.label}(${listTabsCountEnum[item.value] || 0})`"
           ></a-tab-pane>
         </a-tabs>
         <a-pagination
@@ -164,10 +168,10 @@
         <template #bodyCell="{ column, record }">
           <template v-if="column.title === '活动名称'">
             <div>
-              <span :title="record.name">{{ record.name }}</span>
+              <span :title="record.title">{{ record.title }}</span>
               <a-button
                 type="link"
-                @click="copy(record.name)"
+                @click="copy(record.title)"
                 ><CopyOutlined
               /></a-button>
             </div>
@@ -182,42 +186,42 @@
             <div class="text-gray">「{{ record.simpleName }}」</div>
           </template>
           <template v-else-if="column.title === '广告类型'">
-            <span>{{ record.type }}</span>
+            <span>{{ PLACEMENT_ENUM[record.placement] }}</span>
           </template>
           <template v-else-if="column.title === '广告产品'">
             <a-button
               type="link"
               @click="goAdProduct(record.actionId)"
-              >{{ record.product }}</a-button
+              >{{ record.productCount }}</a-button
             >
           </template>
           <template v-else-if="column.title === '付费类型'">
-            <span>{{ record.chargeType }}</span>
+            <span>{{ CHARGE_TYPE_ENUM[record.advObjectType] }}</span>
           </template>
           <template v-else-if="column.title === '广告策略'">
-            <span>{{ record.strategy }}</span>
+            <span>{{ STRATEGY_ENUM[record.productAutopilotStrategy] }}</span>
           </template>
           <template v-else-if="column.title === '每日预算'">
-            <span class="mr-1">{{ record.currency }}</span>
+            <span class="mr-1">{{ record.currency || 'RUB' }}</span>
             <span>{{ record.dailyBudget || '--' }}</span>
           </template>
           <template v-else-if="column.title === '每周预算'">
-            <span class="mr-1">{{ record.currency }}</span>
+            <span class="mr-1">{{ record.currency || 'RUB' }}</span>
             <span>{{ record.weeklyBudget || '--' }}</span>
           </template>
           <template v-else-if="column.title === '订单量'">
-            <span>{{ record.orderQuantity || '--' }}</span>
+            <span>{{ record.orderVolume || '--' }}</span>
           </template>
           <template v-else-if="column.title === '订单金额'">
-            <span class="mr-1">{{ record.currency }}</span>
+            <span class="mr-1">{{ record.currency || 'RUB' }}</span>
             <span>{{ record.orderAmount || '--' }}</span>
           </template>
           <template v-else-if="column.title === '广告费用'">
-            <span class="mr-1">{{ record.currency }}</span>
-            <span>{{ record.fee || '--' }}</span>
+            <span class="mr-1">{{ record.currency || 'RUB' }}</span>
+            <span>{{ record.advertisingExpenses || '--' }}</span>
           </template>
           <template v-else-if="column.title === '广告费用占比'">
-            <span>{{ record.feeProportion ?? '--' }}</span>
+            <span>{{ record.proportionAdvertisingExpenses ?? '--' }}</span>
           </template>
           <template v-else-if="column.title === '展示次数'">
             <span>{{ record.displayCount ?? '--' }}</span>
@@ -226,30 +230,32 @@
             <span>{{ record.hits ?? '--' }}</span>
           </template>
           <template v-else-if="column.title === '添加购物车次数'">
-            <span>{{ record.shoppingCart ?? '--' }}</span>
+            <span>{{ record.shoppingCartcQuantity ?? '--' }}</span>
           </template>
           <template v-else-if="column.title === '点击率'">
-            <span>{{ record.displayCount ?? '--' }} %</span>
+            <span>{{ record.clickRate ?? '--' }} %</span>
           </template>
           <template v-else-if="column.title === '平均点击价格'">
-            <span class="mr-1">{{ record.currency }}</span>
-            <span>{{ record.averageHitsPrice || '--' }}</span>
+            <span class="mr-1">{{ record.currency || 'RUB' }}</span>
+            <span>{{ record.averageClickPrice || '--' }}</span>
           </template>
           <template v-else-if="column.title === '平均利率'">
-            <span>{{ record.averageRate ?? '--' }} %</span>
+            <span>{{ record.averageInterestRate ?? '--' }} %</span>
           </template>
           <template v-else-if="column.title === 'CPM'">
-            <span class="mr-1">{{ record.currency }}</span>
+            <span class="mr-1">{{ record.currency || 'RUB' }}</span>
             <span>{{ record.cpm || '--' }}</span>
           </template>
           <template v-else-if="column.title === '活动状态'">
-            <span>{{ record.activeState }}</span>
+            <span>{{ record.activityState || '--' }}</span>
           </template>
           <template v-else-if="column.title === '启用状态'">
             <a-switch
-              :checked="record.enableState"
-              :checked-value="1"
-              :un-checked-value="0"
+              :checked="record.state"
+              :disabled="record.activityState === 'CAMPAIGN_STATE_ARCHIVED'"
+              checked-value="CAMPAIGN_STATE_RUNNING"
+              un-checked-value="CAMPAIGN_STATE_INACTIVE"
+              @change="toggleState(record)"
             />
           </template>
           <template v-else-if="column.title === '操作'">
@@ -282,10 +288,23 @@
 </template>
 
 <script setup>
-  import { DEFAULT_TABLE_COLUMN, SEARCH_PROP_OPTIONS, PLACEHOLDER_ENUM, PAY_TYPE_OPTIONS, ENABLE_STATE_OPTIONS, ACTIVE_STATE_OPTIONS, LIST_TABS, LIST_TABS_COUNT_ENUM } from './config'
+  import {
+    DEFAULT_TABLE_COLUMN,
+    PLACEMENT_ENUM,
+    STRATEGY_ENUM,
+    CHARGE_TYPE_ENUM,
+    SEARCH_PROP_OPTIONS,
+    PLACEHOLDER_ENUM,
+    PAY_TYPE_OPTIONS,
+    ENABLE_STATE_OPTIONS,
+    ACTIVE_STATE_OPTIONS,
+    LIST_TABS,
+    listTabsCountEnum
+  } from './config'
   import dayjs from 'dayjs'
   import { copyText } from '@/utils'
   import { accountCache } from '@/pages/ozon/config/api/product'
+  import { adSyncApi, adSyncSingleApi, adListApi, toggleActivateApi } from '../api'
   import { message } from 'ant-design-vue'
   import TiledSelect from '~/components/tiled-select/index.vue'
   import SearchContentInput from '~/components/search-content-input/index.vue'
@@ -297,11 +316,11 @@
   // 被 watch 监听的搜索表单; 外层, 点击即可搜索
   const watchedSearchForm = reactive({
     dateRange: [dayjs().subtract(7, 'day'), dayjs()],
-    sellerId: undefined,
+    account: undefined,
     payType: undefined,
-    enableState: undefined,
-    activeState: undefined,
-    tab: 'all'
+    state: undefined,
+    activityState: undefined,
+    tab: 'ALL'
   })
   // 点击'搜索'按钮再执行搜索动作
   const lazySearchForm = reactive({
@@ -346,7 +365,7 @@
   }
 
   function getList() {
-    // loading.value = true
+    loading.value = true
     // 重置选择的数据
     selectedRowKeys.value = []
     selectedRows.value = []
@@ -355,15 +374,28 @@
       ...watchedSearchForm,
       ...lazySearchForm,
       [lazySearchForm.searchKey]: lazySearchForm.searchValue,
-      ...tableParams,
-      startTime: watchedSearchForm.dateRange ? dayjs(watchedSearchForm.dateRange[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
-      endTime: watchedSearchForm.dateRange ? dayjs(watchedSearchForm.dateRange[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined
+      ...tableParams
+      // startTime: watchedSearchForm.dateRange ? dayjs(watchedSearchForm.dateRange[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+      // endTime: watchedSearchForm.dateRange ? dayjs(watchedSearchForm.dateRange[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined
     }
     delete params.searchKey
     delete params.searchValue
     delete params.dateRange
 
-    console.log('getList', params)
+    adListApi(params)
+      .then(res => {
+        total.value = res.total ?? 0
+        tableData.value = res.rows[0].list || []
+
+        const aggregationState = res.rows[0].aggregationState || []
+        for (const key in listTabsCountEnum) {
+          const target = aggregationState.find(item => item.state === key)
+          target && (listTabsCountEnum[key] = target.count ?? 0)
+        }
+      })
+      .finally(() => {
+        loading.value = false
+      })
   }
 
   function search() {
@@ -380,11 +412,11 @@
         break
       case '2':
         // 批量开启
-        console.log('批量开启')
+        toggleStateBatch(true)
         break
       case '3':
         // 批量关闭
-        console.log('批量关闭')
+        toggleStateBatch(false)
         break
 
       default:
@@ -398,7 +430,18 @@
   }
 
   // 同步
-  function sync() {}
+  const syncLoading = ref(false)
+  function sync() {
+    syncLoading.value = true
+    adSyncApi({ account: watchedSearchForm.account || '' })
+      .then(() => {
+        message.success('同步成功')
+        getList()
+      })
+      .finally(() => {
+        syncLoading.value = false
+      })
+  }
 
   function copy(context) {
     copyText(context)
@@ -415,8 +458,60 @@
     router.push(`/platform/ozon/ad/product?actionId=${id}`)
   }
 
+  // 切换启用状态
+  function toggleState(record) {
+    const isActivate = record.state === 'CAMPAIGN_STATE_INACTIVE'
+    const params = {
+      isActivate,
+      activateList: [
+        {
+          account: record.account,
+          id: record.id
+        }
+      ]
+    }
+    toggleActivateApi(params).then(res => {
+      message.success('切换成功')
+      getList()
+    })
+  }
+
+  // 批量切换启用状态
+  function toggleStateBatch(isActivate) {
+    const activateList = selectedRows.value.map(item => ({
+      account: item.account,
+      id: item.id
+    }))
+    const params = {
+      isActivate,
+      activateList
+    }
+    toggleActivateApi(params).then(res => {
+      message.success('切换成功')
+      getList()
+    })
+  }
+
   /** table 操作 */
   function handleMore(key, record) {
-    console.log(key)
+    switch (key) {
+      case '1':
+        // 同步单个
+        const params = {
+          account: record.account,
+          id: record.id
+        }
+        adSyncSingleApi(params).then(() => {
+          message.success('同步成功')
+          getList()
+        })
+        break
+      case '2':
+        // 复制
+        break
+
+      default:
+        break
+    }
   }
 </script>
