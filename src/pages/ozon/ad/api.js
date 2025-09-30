@@ -39,3 +39,24 @@ export function referenceProductApi(params) {
 export function mergeListApi(params) {
   return usePost('/platform-ozon/platform/ozon/advertisement/merge/list', params)
 }
+
+
+// 广告产品列表
+export function adProductListApi(params) {
+  return usePost('/platform-ozon/platform/ozon/advertisement/product/list', params)
+}
+
+// 广告产品新增
+export function adProductAddApi(params) {
+  return usePost('/platform-ozon/platform/ozon/advertisement/product/add/advertisement', params)
+}
+
+// 产品加入广告, 获取当前店铺的所有广告
+export function adProductFindListApi(params) {
+  return usePost('/platform-ozon/platform/ozon/advertisement/product/find/advertisement', params)
+}
+
+// 广告产品状态更改
+export function adProductToggleStateApi(params) {
+  return usePost('/platform-ozon/platform/ozon/advertisement/product/batch/activate', params)
+}

@@ -226,6 +226,7 @@
   import dayjs from 'dayjs'
   import { copyText } from '@/utils'
   import { accountCache } from '@/pages/ozon/config/api/product'
+  import { adProductListApi, adProductAddApi, adProductFindListApi, adProductToggleStateApi } from '../api'
   import { message } from 'ant-design-vue'
   import TiledSelect from '~/components/tiled-select/index.vue'
   import SearchContentInput from '~/components/search-content-input/index.vue'
