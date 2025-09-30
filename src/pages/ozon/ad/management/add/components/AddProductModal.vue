@@ -25,7 +25,7 @@
           <a-space align="start">
             <SearchContentInput
               v-model:value="lazySearchForm.searchValue"
-              :hide-control="['title'].includes(lazySearchForm.searchKey)"
+              :hide-control="['name'].includes(lazySearchForm.searchKey)"
               :placeholder="PLACEHOLDER_ENUM[lazySearchForm.searchKey]"
               ref="searchValueRef"
               @enter="search"
@@ -77,34 +77,25 @@
         row-key="id"
         :pagination="false"
         :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }"
-        :scroll="{ x: 'max-content', y: '1000px' }"
+        :scroll="{ x: 'max-content', y: '760px' }"
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'image'">
-            <a-popover placement="right">
-              <template #content>
-                <img
-                  :src="record.image || EmptyImg"
-                  width="400"
-                  height="400"
-                />
-              </template>
-              <a-image
-                :src="record.image || EmptyImg"
-                :width="80"
-                :height="80"
-                :fallback="EmptyImg"
-                class="object-contain border border-solid border-gray-200"
-              />
-            </a-popover>
+            <a-image
+              :src="record.primaryImage?.[0] || EmptyImg"
+              :width="80"
+              :height="80"
+              :fallback="EmptyImg"
+              class="object-contain border border-solid border-gray-200"
+            />
           </template>
 
-          <template v-else-if="column.key === 'title'">
+          <template v-else-if="column.key === 'name'">
             <div>
-              <span :title="record.title">{{ record.title }}</span>
+              <span :title="record.name">{{ record.name }}</span>
               <a-button
                 type="link"
-                @click="copy(record.title)"
+                @click="copy(record.name)"
                 ><CopyOutlined
               /></a-button>
             </div>
@@ -121,21 +112,35 @@
                 ><CopyOutlined
               /></a-button>
             </div>
-            <div v-if="record.mergeState">
+            <div v-if="record.count > 1">
               <a-button
                 type="link"
-                @click="mergeProductModalOpen = true"
+                @click="getMergeTableData(record)"
                 >已合并</a-button
               >
             </div>
           </template>
 
-          <template v-else-if="column.key === 'price'">{{ `${record.currency} ${record.price}` }}</template>
+          <template v-else-if="column.key === 'price'">{{ `${record.currencyCode || 'CNY'} ${record.price}` }}</template>
 
-          <template v-else-if="column.key === 'originPrice'">{{ `${record.currency} ${record.originPrice}` }}</template>
+          <template v-else-if="column.key === 'oldPrice'">{{ `${record.currencyCode || 'CNY'} ${record.oldPrice}` }}</template>
+
+          <template v-else-if="column.key === 'stock'">
+            <a-popover>
+              <template #content>
+                <p
+                  v-for="warehouse in record.warehouseList"
+                  :key="warehouse.warehouseName"
+                >
+                  {{ `${warehouse.warehouseName}: ${warehouse.present}` }}
+                </p>
+              </template>
+              <span>{{ record.stock ?? '--' }}</span>
+            </a-popover>
+          </template>
 
           <template v-else-if="column.key === 'state'"
-            ><a-tag color="green">{{ record.state }}</a-tag></template
+            ><a-tag :color="record.state === '在售' ? 'green' : 'default'">{{ record.state }}</a-tag></template
           >
 
           <template v-else-if="column.key === 'options'">
@@ -170,7 +175,8 @@
     >
       <a-table
         :columns="DEFAULT_TABLE_COLUMN.slice(0, -1)"
-        :data-source="tableData"
+        :data-source="mergeTableData"
+        :loading="mergeTableLoading"
         stripe
         row-key="id"
         :pagination="false"
@@ -178,30 +184,21 @@
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'image'">
-            <a-popover placement="right">
-              <template #content>
-                <img
-                  :src="record.image || EmptyImg"
-                  width="400"
-                  height="400"
-                />
-              </template>
-              <a-image
-                :src="record.image || EmptyImg"
-                :width="80"
-                :height="80"
-                :fallback="EmptyImg"
-                class="object-contain border border-solid border-gray-200"
-              />
-            </a-popover>
+            <a-image
+              :src="record.primaryImage?.[0] || EmptyImg"
+              :width="80"
+              :height="80"
+              :fallback="EmptyImg"
+              class="object-contain border border-solid border-gray-200"
+            />
           </template>
 
-          <template v-else-if="column.key === 'title'">
+          <template v-else-if="column.key === 'name'">
             <div>
-              <span :title="record.title">{{ record.title }}</span>
+              <span :title="record.name">{{ record.name }}</span>
               <a-button
                 type="link"
-                @click="copy(record.title)"
+                @click="copy(record.name)"
                 ><CopyOutlined
               /></a-button>
             </div>
@@ -220,12 +217,26 @@
             </div>
           </template>
 
-          <template v-else-if="column.key === 'price'">{{ `${record.currency} ${record.price}` }}</template>
+          <template v-else-if="column.key === 'price'">{{ `${record.currencyCode || 'CNY'} ${record.price}` }}</template>
 
-          <template v-else-if="column.key === 'originPrice'">{{ `${record.currency} ${record.originPrice}` }}</template>
+          <template v-else-if="column.key === 'oldPrice'">{{ `${record.currencyCode || 'CNY'} ${record.oldPrice}` }}</template>
+
+          <template v-else-if="column.key === 'stock'">
+            <a-popover>
+              <template #content>
+                <p
+                  v-for="warehouse in record.warehouseList"
+                  :key="warehouse.warehouseName"
+                >
+                  {{ `${warehouse.warehouseName}: ${warehouse.present}` }}
+                </p>
+              </template>
+              <span>{{ record.stock ?? '--' }}</span>
+            </a-popover>
+          </template>
 
           <template v-else-if="column.key === 'state'"
-            ><a-tag color="green">{{ record.state }}</a-tag></template
+            ><a-tag :color="record.state === '在售' ? 'green' : 'default'">{{ record.state }}</a-tag></template
           >
         </template>
       </a-table>
@@ -241,31 +252,50 @@
   import SearchContentInput from '~/components/search-content-input/index.vue'
   import { CopyOutlined } from '@ant-design/icons-vue'
   import EmptyImg from '@/assets/images/aliexpress/empty.png'
+  import { referenceProductApi, mergeListApi } from '../../../api'
 
   const props = defineProps({
     open: {
       type: Boolean,
       default: false
+    },
+    account: {
+      type: String,
+      default: ''
+    },
+    excludeIds: {
+      type: Array,
+      default: () => []
     }
   })
   const emits = defineEmits(['update:open', 'addProduct'])
 
+  // 打开弹窗时查询活动产品列表
+  watch(
+    () => props.open,
+    open => {
+      if (open) {
+        getList()
+      }
+    }
+  )
+
   // 默认表头
   const DEFAULT_TABLE_COLUMN = [
     { title: '图片', key: 'image' },
-    { title: '产品标题', key: 'title' },
-    { title: 'SKU', key: 'sku', dataIndex: 'sku' },
+    { title: '产品标题', key: 'name', width: 300 },
+    { title: 'SKU', key: 'sku', dataIndex: 'offerId' },
     { title: '售价', key: 'price' },
-    { title: '原价', key: 'originPrice' },
-    { title: '库存', key: 'stock', dataIndex: 'stock' },
+    { title: '原价', key: 'oldPrice' },
+    { title: '库存', key: 'stock' },
     { title: '状态', key: 'state' },
     { title: '操作', key: 'options' }
   ]
 
   // 搜索类型
   const SEARCH_PROP_OPTIONS = [
-    { label: '产品标题', value: 'title' },
-    { label: '产品 ID', value: 'productId' },
+    { label: '产品标题', value: 'name' },
+    { label: '产品 ID', value: 'id' },
     { label: 'SKU', value: 'sku' }
   ]
   const PLACEHOLDER_ENUM = {
@@ -276,7 +306,7 @@
 
   // 点击'搜索'按钮再执行搜索动作
   const lazySearchForm = reactive({
-    searchKey: 'title', // 搜索类型
+    searchKey: 'name', // 搜索类型
     searchValue: undefined // 搜索内容
   })
   const searchKeyRef = ref()
@@ -296,20 +326,27 @@
     selectedRows.value = rows
   }
 
-  getList()
   function getList() {
-    // loading.value = true
+    loading.value = true
     // 重置选择的数据
     selectedRowKeys.value = []
     selectedRows.value = []
 
     const params = {
-      ...lazySearchForm,
+      account: props.account,
+      excludeIds: props.excludeIds,
       [lazySearchForm.searchKey]: lazySearchForm.searchValue,
       ...tableParams
     }
-    delete params.searchKey
-    delete params.searchValue
+
+    referenceProductApi(params)
+      .then(res => {
+        total.value = res.total ?? 0
+        tableData.value = res.rows || []
+      })
+      .finally(() => {
+        loading.value = false
+      })
   }
 
   function search() {
@@ -339,6 +376,28 @@
 
   /** 合并产品弹窗 */
   const mergeProductModalOpen = ref(false)
+  const mergeTableData = ref([])
+  const mergeTableLoading = ref(false)
+
+  // 点击已合并, 获取合并产品数据
+  function getMergeTableData(record) {
+    mergeProductModalOpen.value = true
+    mergeTableData.value = []
+    mergeTableLoading.value = true
+
+    const params = {
+      account: record.account,
+      attributeId: record.attributeId,
+      categoryId: record.categoryId
+    }
+    mergeListApi(params)
+      .then(res => {
+        mergeTableData.value = res.data || []
+      })
+      .finally(() => {
+        mergeTableLoading.value = false
+      })
+  }
 
   // 添加
   function add(record) {
@@ -347,7 +406,7 @@
 
   function cancel() {
     // 重置状态
-    lazySearchForm.searchKey = 'title'
+    lazySearchForm.searchKey = 'name'
     lazySearchForm.searchValue = undefined
     searchKeyRef.value.curIndex = 0
     searchValueRef.value.content = ''

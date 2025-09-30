@@ -259,6 +259,12 @@
             />
           </template>
           <template v-else-if="column.title === '操作'">
+            <a-button
+              type="link"
+              @click="goDetail('view', record)"
+              >查看</a-button
+            >
+            <br />
             <a-dropdown>
               <template #overlay>
                 <a-menu @click="({ key }) => handleMore(key, record)">
@@ -493,6 +499,21 @@
   }
 
   /** table 操作 */
+  // 跳转详情 [查看-view, 复制-copy]
+  function goDetail(type, record) {
+    const query = {
+      type,
+      id: record.id,
+      account: record.account
+    }
+
+    const queryStr = Object.entries(query)
+      .map(arr => arr.join('='))
+      .join('&')
+    window.open(`/platform/ozon/ad/management/add?${queryStr}`)
+  }
+
+  // 更多操作
   function handleMore(key, record) {
     switch (key) {
       case '1':
@@ -508,6 +529,7 @@
         break
       case '2':
         // 复制
+        goDetail('copy', record)
         break
 
       default:

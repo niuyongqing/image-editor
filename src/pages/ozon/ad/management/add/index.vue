@@ -13,11 +13,11 @@
       >
         <a-form-item
           label="店铺账号"
-          name="sellerId"
+          name="account"
           required
         >
           <a-select
-            v-model:value="form.sellerId"
+            v-model:value="form.account"
             :options="accountList"
             :field-names="{ label: 'simpleName', value: 'account' }"
             option-filter-prop="simpleName"
@@ -38,7 +38,7 @@
           label="广告类型"
           name="type"
         >
-          <a-radio-group v-model:value="form.type">
+          <a-radio-group v-model:value="form.placement">
             <a-radio
               v-for="item in TYPE_RADIO_OPTIONS"
               :key="item.value"
@@ -51,26 +51,34 @@
         </a-form-item>
         <a-form-item
           label="广告策略"
-          name="strategy"
+          name="productAutopilotStrategy"
         >
           <a-radio-group
-            v-model:value="form.strategy"
+            v-model:value="form.productAutopilotStrategy"
             :options="STRATEGY_RADIO_OPTIONS"
           />
         </a-form-item>
         <a-form-item
           label="活动开始日期"
-          name="startTime"
+          name="fromDate"
           required
         >
-          <a-date-picker v-model:value="form.startTime" />
+          <a-date-picker
+            v-model:value="form.fromDate"
+            :allow-clear="false"
+            :disabled-date="cur => cur && cur < dayjs().subtract(1, 'day')"
+            @change="form.toDate = null"
+          />
           <span class="text-gray ml-2">(莫斯科时间)</span>
         </a-form-item>
         <a-form-item
           label="活动结束日期"
-          name="endTime"
+          name="toDate"
         >
-          <a-date-picker v-model:value="form.endTime" />
+          <a-date-picker
+            v-model:value="form.toDate"
+            :disabled-date="cur => cur && cur < form.fromDate"
+          />
           <span class="text-gray ml-2">(莫斯科时间)</span>
         </a-form-item>
         <a-form-item
@@ -90,10 +98,10 @@
         </a-form-item>
         <a-form-item
           label="自动增加预算"
-          name="addPercent"
+          name="autoIncreasePercent"
         >
           <a-input-number
-            v-model:value="form.addPercent"
+            v-model:value="form.autoIncreasePercent"
             :controls="false"
             :precision="1"
             :min="10"
@@ -116,7 +124,7 @@
         <a-space>
           <span class="inline-block w-30 text-right">广告产品: </span>
           <a-button
-            v-if="form.strategy === 2"
+            v-if="form.productAutopilotStrategy === 'TARGET_BIDS'"
             type="primary"
             :disabled="selectedRowKeys.length === 0"
             >批量设置竞价</a-button
@@ -125,12 +133,18 @@
             type="primary"
             danger
             :disabled="selectedRowKeys.length === 0"
+            @click="batchRemove"
             >批量移除</a-button
           >
         </a-space>
         <a-space>
           <span>选择产品: {{ selectedRowKeys.length }}/500</span>
-          <a-button type="primary" :disabled="!form.sellerId" @click="open = true">选择产品</a-button>
+          <a-button
+            type="primary"
+            :disabled="!form.account"
+            @click="open = true"
+            >选择产品</a-button
+          >
         </a-space>
       </div>
 
@@ -149,19 +163,19 @@
             <a-image
               :width="40"
               :height="40"
-              :src="record.image"
+              :src="record.primaryImage?.[0] || EmptyImg"
               class="rounded-md object-contain"
             />
           </template>
-          <template v-else-if="column.key === 'title'">
+          <template v-else-if="column.key === 'name'">
             <div>
               <span
-                :title="record.title"
+                :title="record.name"
                 class="inline-block w-60 align-middle truncate"
-                >{{ record.title }}</span
+                >{{ record.name }}</span
               ><a-button
                 type="link"
-                @click="copy(record.title)"
+                @click="copy(record.name)"
                 ><CopyOutlined
               /></a-button>
             </div>
@@ -178,7 +192,7 @@
               /></a-button>
             </div>
           </template>
-          <template v-else-if="column.key === 'price'">{{ `${record.currency}  ${record.price}` }}</template>
+          <template v-else-if="column.key === 'price'">{{ `${record.currencyCode} ${record.price}` }}</template>
           <template v-else-if="column.key === 'bidding'">
             <a-input-number
               v-model:value="record.bidding"
@@ -216,44 +230,52 @@
     </a-space>
 
     <!-- 添加广告活动产品 弹窗 -->
-     <AddProductModal v-model:open="open" :seller-id="form.sellerId" @add-product="addProduct" />
+    <AddProductModal
+      v-model:open="open"
+      :account="form.account"
+      :exclude-ids="productIds"
+      @add-product="addProduct"
+    />
   </div>
 </template>
 
 <script setup>
+  import dayjs from 'dayjs'
   import { accountCache } from '@/pages/ozon/config/api/product'
   import { message } from 'ant-design-vue'
   import { CopyOutlined, DeleteOutlined, QuestionCircleOutlined } from '@ant-design/icons-vue'
   import { copyText } from '@/utils'
+  import { adDetailApi, adAddApi } from '../../api'
   import AddProductModal from './components/AddProductModal.vue'
+  import EmptyImg from '@/assets/images/aliexpress/empty.png'
 
   /** 基本信息 */
   const form = reactive({
-    sellerId: undefined,
-    name: '',
-    type: 1,
-    strategy: 1,
-    startTime: null,
-    endTime: null,
+    account: undefined,
+    title: '',
+    placement: 'PLACEMENT_TOP_PROMOTION',
+    productAutopilotStrategy: 'TOP_MAX_CLICKS',
+    fromDate: dayjs(),
+    toDate: null,
     weeklyBudget: null,
-    addPercent: null
+    autoIncreasePercent: null
   })
   const formRef = ref()
   const accountList = ref([])
   const TYPE_RADIO_OPTIONS = [
-    { label: '登上顶端', value: 1, tooltip: '在搜索结果中的前12个位置推广商品。对于登上顶端活动中的所有商品，平台将免费置顶评价' },
-    { label: '模板', value: 2, tooltip: '自动挑选商品展示位置：搜索结果页上、类目中、推荐货架上和促销选择页面上' }
+    { label: '登上顶端', value: 'PLACEMENT_TOP_PROMOTION', tooltip: '在搜索结果中的前12个位置推广商品。对于登上顶端活动中的所有商品，平台将免费置顶评价' },
+    { label: '模板', value: 'PLACEMENT_SEARCH_AND_CATEGORY', tooltip: '自动挑选商品展示位置：搜索结果页上、类目中、推荐货架上和促销选择页面上' }
   ]
   const STRATEGY_RADIO_OPTIONS = [
-    { label: '自动策略', value: 1 },
-    { label: '平均每次点击花费', value: 2 }
+    { label: '自动策略', value: 'TOP_MAX_CLICKS' },
+    { label: '平均每次点击花费', value: 'TARGET_BIDS' }
   ]
 
   // 增加后的预算
   const maxBudget = computed(() => {
-    if (!form.weeklyBudget || !form.addPercent) return '--'
+    if (!form.weeklyBudget || !form.autoIncreasePercent) return '--'
 
-    return (form.weeklyBudget * (1 + form.addPercent / 100)).toFixed(1)
+    return (form.weeklyBudget * (1 + form.autoIncreasePercent / 100)).toFixed(1)
   })
 
   getAccountList()
@@ -266,24 +288,44 @@
     })
   }
 
+  /** 查看/复制 回显数据 */
+  const route = useRoute()
+  const query = route.query
+
+  // 详情
+  getDetail()
+  function getDetail() {
+    const params = {
+      id: query.id,
+      account: query.account
+    }
+
+    adDetailApi(params).then(res => {
+      const detail = res.data || {}
+      form.account = detail.account
+    })
+  }
+
   /** 活动预算和周期 */
   const selectedRowKeys = ref([])
   const selectedRows = ref([])
   const COLUMNS = [
     { title: '图片', key: 'image', width: 60 },
-    { title: '产品标题/产品 ID', key: 'title', width: 250 },
+    { title: '产品标题/产品 ID', key: 'name', width: 250 },
     { title: '售价', key: 'price', width: 60 },
     { title: '竞价', key: 'bidding', width: 80 },
     { title: '操作', key: 'options', width: 50 }
   ]
   const columns = computed(() => {
-    if (form.strategy === 1) {
+    if (form.productAutopilotStrategy === 'TOP_MAX_CLICKS') {
       return COLUMNS.filter(item => item.key !== 'bidding')
     } else {
       return COLUMNS
     }
   })
   const tableData = ref([])
+  // 已选中的产品 id
+  const productIds = computed(() => tableData.value.map(item => item.id))
 
   function onSelectChange(keys, rows) {
     selectedRowKeys.value = keys
@@ -306,14 +348,18 @@
   }
 
   function remove(id) {
-    console.log('remove', id)
+    tableData.value = tableData.value.filter(item => item.id !== id)
+  }
+
+  function batchRemove() {
+    tableData.value = tableData.value.filter(item => !selectedRowKeys.value.includes(item.id))
   }
 
   /** 添加活动产品 弹窗 */
   const open = ref(false)
 
-  function addProduct(products) {
-    console.log(products);
+  function addProduct(list) {
+    tableData.value.push(...list)
   }
 
   /** 功能按钮 */
@@ -326,15 +372,15 @@
     formRef.value
       .validate()
       .then(() => {
-        /* loading.value = true
+        loading.value = true
         const params = {
-          ...form
+          ...form,
+          productIds: productIds.value
         }
 
-        if (id) params.id = id
+        // if (id) params.id = id
 
-        const requestApi = id ? watermarkEditApi : watermarkAddApi
-        requestApi(params)
+        adAddApi(params)
           .then(res => {
             message.success('保存成功')
             // 成功后延时关闭当前窗口, 交互友好
@@ -344,7 +390,7 @@
           })
           .finally(() => {
             loading.value = false
-          }) */
+          })
       })
       .catch(err => {
         console.log(err)

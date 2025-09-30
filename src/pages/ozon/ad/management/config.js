@@ -1,7 +1,7 @@
 // 默认表头
 export const DEFAULT_TABLE_COLUMN = [
-  { title: '活动名称', key: 'title' },
-  { title: '广告类型', key: 'placement' },
+  { title: '活动名称', key: 'title', width: 400, fixed: 'left' },
+  { title: '广告类型', key: 'placement', fixed: 'left' },
   { title: '广告产品', key: 'productCount' },
   { title: '付费类型', key: 'advObjectType' },
   { title: '广告策略', key: 'productAutopilotStrategy' },
@@ -18,9 +18,9 @@ export const DEFAULT_TABLE_COLUMN = [
   { title: '平均点击价格', key: 'averageClickPrice' },
   { title: '平均利率', key: 'averageInterestRate' },
   { title: 'CPM', key: 'cpm' },
-  { title: '活动状态', key: 'activityState' },
-  { title: '启用状态', key: 'state' },
-  { title: '操作', key: 'options' }
+  { title: '活动状态', key: 'activityState', fixed: 'right' },
+  { title: '启用状态', key: 'state', fixed: 'right' },
+  { title: '操作', key: 'options', fixed: 'right' }
 ]
 
 // 广告类型枚举

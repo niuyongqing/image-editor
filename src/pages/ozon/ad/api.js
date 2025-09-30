@@ -34,3 +34,8 @@ export function toggleActivateApi(params) {
 export function referenceProductApi(params) {
   return usePost('/platform-ozon/platform/ozon/advertisement/reference/product', params)
 }
+
+// 合并产品列表
+export function mergeListApi(params) {
+  return usePost('/platform-ozon/platform/ozon/advertisement/merge/list', params)
+}
