@@ -185,7 +185,8 @@ async function saveForm() {
     Object.keys(formData.packagingInfoData).forEach(key => {
       basePackageInfo[key] = formData.packagingInfoData[key] ? String(formData.packagingInfoData[key]) : undefined;
     })
-    
+
+    // 合并处理imagesList和imageList字段，确保所有需要的图片数组都正确初始化和处理
     let params = {
       id,
       platform,
@@ -198,21 +199,33 @@ async function saveForm() {
         ...(packageInfo || {}),
         basePackageInfo,
       },
+      imagesList: productInfo.data.imagesList?.map(item => ({
+        ...item,
+        image: item.image.replace('/prod-api', '')
+      })),
+      // 处理imageList字段，去除'/prod-api'前缀
+      imageList: formData.imageInfoData?.imageList?.map(item => {
+        if (item && typeof item === 'string') {
+          return item.replace('/prod-api', '')
+        }
+        return item
+      }) || []
     }
+
     if (params.imageList.length < 1) {
       scroll('acquisitionEdit_imageInfo');
       spinning.value = false;
       return message.error('请添加图片信息！');
     }
-    // console.log({ params });
-    await productUpdate(params);
-    message.success('编辑成功！');
-    // 刷新采集数据表格
-    let uid = uuidv4();
-    localStorage.setItem('urlAcquisition', uid);
-  } catch (error) {
-    console.error(error);
-  }
+  console.log("params", params);
+  await productUpdate(params);
+  message.success('编辑成功！');
+  // 刷新采集数据表格
+  let uid = uuidv4();
+  localStorage.setItem('urlAcquisition', uid);
+} catch (error) {
+console.error(error);
+}
   spinning.value = false;
 }
 // 锚点滚动

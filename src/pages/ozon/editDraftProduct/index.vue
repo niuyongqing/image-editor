@@ -360,6 +360,7 @@ const onSubmit = async type => {
       complexAttributes: newComplexAttributes ?? null, // 非必填 100002-21845-封面视频 100001-21841-视频
       colorImage: item?.colorImg[0]?.url.replace('/prod-api', '') ?? '', // 非必填
       images: item.imageUrl && item.imageUrl.map(item => item.url.replace('/prod-api', '')),
+      imageList: item.imageList,
       warehouseList: item?.warehouseList,
       offerId: item.sellerSKU,
       oldPrice: item.oldPrice, // 非必填

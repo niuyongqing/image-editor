@@ -1,0 +1,86 @@
+#configAccountCont {
+  padding: 16px;
+  background-color: #f5f5f5;
+  height: 95vh;
+}
+
+::v-deep(.form-actions){
+  .ant-form-item-control-input-content{
+    text-align: right;
+  }
+}
+::v-deep(.ant-form-item-control-input-content) {
+  text-align: left;
+}
+.category-selector-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.table-header-actions {
+  display: flex;
+  align-items: center;
+  margin: 6px;
+}
+
+/* 审核弹窗样式 */
+.auditing-products-info {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #f0f9ff;
+  border-radius: 4px;
+  border-left: 4px solid #1890ff;
+
+  .auditing-products-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .auditing-products-list {
+    max-height: 200px;
+    overflow-y: auto;
+
+    .auditing-product-item {
+      padding: 4px 0;
+      border-bottom: 1px dashed #e8e8e8;
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+  }
+}
+
+.ant-form-item {
+  margin: 6px;
+}
+
+
+@media screen and (max-width: 768px) {
+  .auditing-products-info {
+    padding: 8px;
+  }
+}
+
+/* 按钮悬停效果增强 */
+:deep(.ant-btn) {
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* 输入框焦点效果 */
+:deep(.ant-input:focus),
+:deep(.ant-select-focused .ant-select-selector),
+:deep(.ant-picker-focused) {
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+}
+
+/* 标签样式优化 */
+:deep(.ant-tag) {
+  border-radius: 12px;
+  padding: 2px 8px;
+}

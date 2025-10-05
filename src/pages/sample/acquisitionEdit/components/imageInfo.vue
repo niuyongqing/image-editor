@@ -106,6 +106,7 @@
                   :height="150"
                   :src="item.src"
                 />
+
                 <div class="img-size">
                   <span>{{ `${item.width} × ${item.height}` }}</span>
                   <!-- <span>{{ (item.size/1024).toFixed() }}KB</span> -->
@@ -117,11 +118,35 @@
                       {{ item.name || item.url }}
                     </a-tooltip>
                   </div>
-                  <a-tooltip>
+                  <!-- <a-tooltip>
                     <template #title>删除</template>
                     <AsyncIcon @click="delImg(item)" icon="DeleteOutlined" style="color: red; cursor: pointer;"/>
-                  </a-tooltip>
+                  </a-tooltip> -->
                 </div>
+                  <!-- 图底操作面板 -->
+              <div class="flex justify-between">
+                <a-dropdown>
+                  <a-button type="link"><BulbOutlined class="text-base" /><CaretDownOutlined /></a-button>
+                  <template v-slot:overlay>
+                    <a-menu @click="imgModifySingleMenuClick($event, item)">
+                      <a-menu-item key="ps">在线p图</a-menu-item>
+                      <a-menu-item key="translate">图片翻译</a-menu-item>
+                      <!-- <a-menu-item key="whiteBg">图片白底</a-menu-item> -->
+                    </a-menu>
+                  </template>
+                </a-dropdown>
+                 <a-button
+                  type="link"
+                  title="删除"
+                  ><DeleteOutlined
+                    class="text-base"
+                    @click="delImg(item)"
+                /></a-button>
+                <!-- <a-tooltip>
+                    <template #title>删除</template>
+                    <AsyncIcon @click="delImg(item)" icon="DeleteOutlined" style="color: red; cursor: pointer;"/>
+                  </a-tooltip> -->
+              </div>
                 <div class="img-box-Tips">
                   <span v-if="item.name && showTips(item)">该图片不支持添加水印及裁剪！</span>
                 </div>
@@ -237,6 +262,13 @@
     v-model:modal-open="uploadModalInfo.pictureLibraryOpen"
     @imageListConfirm="imageListConfirm"
   ></pictureLibrary>
+
+ <!-- 图片翻译弹窗 -->
+  <ImageTranslation
+    ref="img_trans"
+    @emitImages="handleEmitImages"
+  />
+
   <!-- 批量修改图片尺寸 -->
   <bacthImageEdit 
     v-model:modal-open="uploadModalInfo.bacthImageSize"
@@ -248,15 +280,20 @@
 
 <script setup>
 import { message } from 'ant-design-vue';
+  import { BulbOutlined, CaretDownOutlined,DeleteOutlined } from '@ant-design/icons-vue'
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
+import { useRouter } from 'vue-router';
+import { encryptString } from '@/utils/tools';
 import kong from '@/assets/images/kong.png'
 import download from '~@/api/common/download';
 import draggable from 'vuedraggable';
-import { downloadAllImage, imageUpload, imageUrlUpload, videoDelete, videoUpload, videoUrlUpload } from '../js/api';
+import { downloadAllImage, imageUpload, imageUrlUpload, videoDelete, videoUpload, videoUrlUpload, MtImageEBaseUrl } from '../js/api';
 import AsyncIcon from '~@/layouts/components/menu/async-icon.vue'
+import ImageTranslation from '@/components/skuDragUpload/imageTranslation.vue'
 import pictureLibrary from '@/components/pictureLibrary/index.vue'
 import bacthImageEdit from './modal/bacthImageEdit.vue';
 import { scaleApi, watermarkApi, watermarkListApi } from '~@/api/common/water-mark';
+import { processImageSource } from '~/pages/ozon/config/commJs/index'
 defineOptions({ name: "acquisitionEdit_imageInfo" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:imageInfoData'])
@@ -270,6 +307,7 @@ const props = defineProps({
     default: () => {}
   }
 })
+const router = useRouter()
 const formData = reactive({
   image_list: [],
   video_list: [],
@@ -548,6 +586,9 @@ async function imageHandleUpload(file) {
   loading.image = false;
 }
 function delImg(val) {
+  // 根据URL删除imageList中对应项
+  props.productData.imagesList = props.productData?.imagesList?.filter(i => i.url !== val.url)
+  // 删除当前图片
   formData.image_list = formData.image_list.filter(i => i.id !== val.id)
 }
 
@@ -628,6 +669,141 @@ function getImageSize(item) {
 function createRandom() {
   return Math.floor(Math.random() * 100000000) + ''
 }
+
+/** 图片翻译 */
+  const translateImageList = ref([]) // 翻译的图片列表
+  const imgTransRef = useTemplateRef('img_trans')
+  // 图片翻译回调
+  function handleEmitImages(list) {
+    list.forEach(item => {
+      translateImageList.value.forEach(image => {
+        if (image.url === item.oldUrl) {
+          image.url = processImageSource(item.newUrl)
+        }
+      })
+    })
+  }
+  // 查找图片记录ID 兼容存在/prod-api 或者不存在/prod-api两种情况
+
+  function findRecordIdByUrl(url) {
+  if (!url || !props.productData?.imagesList) return null;
+  // 标准化URL：移除'/prod-api'前缀
+  const urlWithoutProdApi = url.startsWith('/prod-api') ? url.replace('/prod-api', '') : url;
+  const found = props.productData.imagesList?.find(item => {
+    // 处理item.image中可能存在的'/prod-api'前缀
+    const itemImageWithoutProdApi = item.image?.startsWith('/prod-api') ? item.image.replace('/prod-api', '') : item.image;
+    return itemImageWithoutProdApi === urlWithoutProdApi;
+  });
+  return found ? found.recordId : null;
+}
+
+
+// 处理图片修改菜单点击
+function imgModifySingleMenuClick(e, image) {
+  const { key } = e
+  console.log(image.url);
+  switch (key) {
+    case 'ps':
+      const foundRecordId = findRecordIdByUrl(image.url);
+      // 在线p图功能
+      const urlData = router.resolve({
+        path: "/platform/ozon/editPsImage",
+        query: { imageUrl: image.url, imageId: image.id, recordId: foundRecordId }
+      });
+      console.log(urlData.href)
+      // 对整个URL进行加密
+      try {
+        const encryptedUrl = encryptString(urlData.href);
+        window.open(`/platform/ozon/editPsImage?encryptedData=${encodeURIComponent(encryptedUrl)}`, '_blank');
+      } catch (error) {
+        console.error('URL加密失败:', error);
+        // 加密失败时使用原始URL作为备用方案
+        window.open(urlData.href, '_blank');
+      }
+
+      break;
+    case 'translate':
+      // 图片翻译功能
+      translateImageList.value = [image]
+      if (imgTransRef.value && imgTransRef.value.showModal) {
+        imgTransRef.value.showModal([image])
+      } else {
+        console.error('图片翻译组件未正确加载');
+        message.error('图片翻译组件加载失败，请刷新页面重试');
+      }
+      break;
+    default:
+      break;
+  }
+}
+
+const mtImageEBaseUrl = ref("");
+// 美图设计室回传图片数据
+const channel = new BroadcastChannel("mtImageEditor");
+channel.onmessage = (event) => {
+  console.log("接收到美图设计室回传图片数据:", event.data);
+  MtImageEBaseUrl({ imageData: event.data.base64 }).then((res) => {
+    console.log("上传处理结果:", res);
+    if (res.code === 200) {
+      mtImageEBaseUrl.value = res.msg;
+
+      // 确保recordId为字符串类型
+      let recordId = event.data.recordId;
+      if (recordId !== undefined && recordId !== null) {
+        recordId = String(recordId);
+      }
+
+      // 更新对应ID的图片数据，同时保存编辑记录ID用于二次编辑
+      if (event.data.imageId) {
+        updateImageById(
+          event.data.imageId,
+          mtImageEBaseUrl,
+          recordId
+        );
+      }
+    }
+  });
+};
+
+// 根据图片ID更新组件内的图片数据
+function updateImageById(imageId, newImageUrl, recordId) {
+  // 遍历图片列表
+  const targetImage = formData.image_list.find((img) => img.id === imageId);
+  if (targetImage) {
+    // 同时更新图片URL和src属性，确保页面能正确显示更新后的图片
+    targetImage.url = newImageUrl.value;
+    targetImage.src = newImageUrl.value;
+
+        // 确保imagesList字段存在
+      if (!props.productData.imagesList) {
+        props.productData.imagesList = [];
+      }
+      
+      // 保存编辑记录ID，用于二次编辑
+      if (recordId) {
+        // 根据recordId找出当前的图片对象,如果找到就替换当前图片对象中的url，如果没找到就直接将追加一个新对象
+        const index = props.productData.imagesList?.findIndex(item => item.recordId === recordId);
+        if (index !== -1) {
+          props.productData.imagesList[index].image = targetImage.url;
+        } else {
+          props.productData.imagesList.push({
+            'recordId': recordId,
+            'image': targetImage.url,
+          })
+        }
+  
+        console.log(`保存图片ID ${imageId} 的编辑记录ID: ${recordId}`);
+      }
+
+    // 重新获取图片尺寸
+    getImageSize(targetImage);
+    console.log(`图片ID ${imageId} 已更新为新的URL`);
+    message.success("图片修改成功！");
+  }
+}
+
+
+ 
 </script>
 <style lang="less" scoped>
 .acquisitionEdit_imageInfo {

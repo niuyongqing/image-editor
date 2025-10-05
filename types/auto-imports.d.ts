@@ -264,6 +264,7 @@ declare global {
   const usePreferredLanguages: typeof import('@vueuse/core')['usePreferredLanguages']
   const usePreferredReducedMotion: typeof import('@vueuse/core')['usePreferredReducedMotion']
   const usePrevious: typeof import('@vueuse/core')['usePrevious']
+  const useProductReviewStore: typeof import('../src/stores/product-review.js')['useProductReviewStore']
   const usePsStore: typeof import('../src/stores/ps.js')['usePsStore']
   const usePut: typeof import('../src/composables/api.js')['usePut']
   const useQueryBreakpoints: typeof import('../src/composables/query-breakpoints.js')['useQueryBreakpoints']
