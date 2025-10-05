@@ -48,3 +48,14 @@ export function getList(data) {
     data: data
   })
 }
+/**
+ * // 详情查询
+ * @param {*} data    // 产品id
+ * @returns
+ */
+export function getDetail(data) {
+  return request({
+    url: '/platform-ozon/intelligent/product-store/detail/' + data,
+    method: 'get',
+  })
+}
