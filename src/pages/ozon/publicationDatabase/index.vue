@@ -53,8 +53,8 @@
   <a-card style="margin-top: 20px">
     <div class="table-btn-box">
       <a-space>
-        <a-button type="primary" @click="submitEdit">提交编辑</a-button>
-        <a-button type="primary">添加备注</a-button>
+        <a-button :disabled="tableData.selectedRows.length < 1" type="primary" @click="submitEditFn">提交编辑</a-button>
+        <a-button :disabled="tableData.selectedRows.length < 1" type="primary" @click="() => (remarkData.open = true)">添加备注</a-button>
         <!-- <a-button type="primary">Primary Button</a-button> -->
       </a-space>
     </div>
@@ -107,21 +107,25 @@
     </div>
   </a-card>
   <detailsModal ref="publicationDatabase_detailsModal"></detailsModal>
+  <!-- 添加备注弹窗 -->
+  <a-modal v-model:open="remarkData.open" title="添加备注" @ok="addRemarkFn">
+    <a-textarea v-model:value="remarkData.remark" placeholder="请输入备注" :rows="4" />
+  </a-modal>
 </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-import { categoryTree, getList, userList } from './js/api';
+import { addRemark, categoryTree, getList, submitEdit, userList } from './js/api';
 import { header } from './js/header';
 import _ from "lodash";
 import { v4 as uuidv4 } from 'uuid';
 import detailsModal from './detailsModal.vue';
+import { message, Modal } from 'ant-design-vue';
 defineOptions({ name: "ozon_publicationDatabase" })
 const { proxy: _this } = getCurrentInstance();
 
 const { state: formData, reset } = useResetReactive({
-  
   categoryId: [],                       // 分类
   selectUserIdList: [],
   completeTime: [],                     // 完成时间
@@ -132,6 +136,13 @@ let copyFormData = {};   // 表单参数
 const options = reactive({
   commodityTypeList: [],            // 产品分类
   allUserList: [],            // 人员列表
+})
+const remarkData = reactive({
+  open: false,
+  remark: '',
+})
+watch(() => remarkData.open, (val, oldVal) => {
+  !val && (remarkData.remark = '')
 })
 const tableData = reactive({
   data: [],
@@ -307,8 +318,38 @@ function onSelectChange(keys, rows) {
   tableData.selectedRows = rows
 }
 // 提交编辑
-function submitEdit() {
-  let ids = tableData.selectedRows.map(i => i.id)
+function submitEditFn() {
+  let productIdList = tableData.selectedRows.map(i => i.id)
+  Modal.confirm({
+    title: '提示',
+    content: '是否提交编辑？',
+    okText: '提交',
+    cancelText: '取消',
+    async onOk() {
+      await submitEdit({ productIdList });
+      tableData.selectedRowKeys = []
+      tableData.selectedRows = []
+    },
+  })
+}
+// 添加备注
+async function addRemarkFn() {
+  if (!remarkData.remark) {
+    return message.warning('请输入备注！')
+  }
+  try {
+    let productIdList = tableData.selectedRows.map(i => i.id)
+    // console.log({productIdList});
+    let params = {
+      productIdList,
+      remark: remarkData.remark,
+    };
+    await addRemark(params)
+    getTableList()
+    remarkData.open = false
+  } catch (error) {
+    console.error(error);
+  }
 }
 </script>
 <style lang="less" scoped>

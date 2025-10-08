@@ -59,3 +59,27 @@ export function getDetail(data) {
     method: 'get',
   })
 }
+/**
+ * // 添加备注
+ * @param {*} data    // 产品id
+ * @returns
+ */
+export function addRemark(data) {
+  return request({
+    url: '/platform-ozon/intelligent/product-store/add-remark',
+    method: 'post',
+    data: data,
+  })
+}
+/**
+ * // 提交编辑
+ * @param {*} data    // 产品id
+ * @returns
+ */
+export function submitEdit(data) {
+  return request({
+    url: '/platform-ozon/intelligent/product-store/submit-edit',
+    method: 'post',
+    data: data,
+  })
+}
