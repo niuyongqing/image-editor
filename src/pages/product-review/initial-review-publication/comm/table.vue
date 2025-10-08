@@ -34,7 +34,7 @@
         </template>
         <!-- SKU列表列自定义渲染 -->
         <template v-else-if="column.key === 'skuList'">
-          {{ skuList(record.skuList) }}
+          {{ getSkuListFun(record.skuList) }}
         </template>
         <!-- 仓储类别列自定义渲染 -->
         <template v-else-if="column.key === 'meansKeepGrain'">
@@ -75,7 +75,7 @@
 import { ref, reactive, computed, watch, onMounted } from "vue";
 import { message } from 'ant-design-vue';
 import dayjs from 'dayjs';
-import { getCommodityTypeLabel } from '@/pages/product-review/untils.js'
+import { getCommodityTypeLabel, getSkuList } from '~@/pages/product-review/config/untils.js'
 const props = defineProps({
   // 表格列定义
   columns: {
@@ -177,40 +177,7 @@ const rowSelection = {
   // })
 };
 
-/**
- * 处理SKU列表，返回格式化后的字符串
- * @param {string} e - 逗号分隔的SKU字符串
- * @returns {string} - 格式化后的SKU字符串
- */
-function skuList(e) {
-    let str = ''
-    if (e == '' || e == null) {
-        e = ''
-    }
-    let spanD = e.split(',');
-    let oldSku = e.split(','); //原始错乱sku
-    let b = [] //去除所有带标签的
-    oldSku.map(item => {
-        b.push(item.replace(/<[^>]+>/g, ''))
-    })
-    let newSku = b.sort(); //排序 正确的sku
-    if (newSku.length == 0) {
-        str = ''
-    } else if (newSku.length == 1) {
-        str = spanD[0]
-    } else if (newSku.length > 1) {
-        spanD.forEach(v => {
-            if (v.includes(newSku[0])) {
-                newSku[0] = v
-            }
-            if (v.includes(newSku[newSku.length - 1])) {
-                newSku[newSku.length - 1] = v
-            }
-        })
-        str = `${newSku[0]} - ${newSku[newSku.length - 1]}`
-    }
-    return str
-};
+
 
 /**
  * 仓储类别
@@ -229,6 +196,15 @@ function getMeansKeepGrainOptions(val) {
     console.log('getMeansKeepGrainOptions', props.meansKeepGrainOptions);
     
     return Aname1
+};
+
+/**
+ * 处理SKU列表，返回格式化后的字符串
+ * @param {string} e - 逗号分隔的SKU字符串
+ * @returns {string} - 格式化后的SKU字符串
+ */
+function getSkuListFun(e) {
+    return getSkuList(e)
 };
 
 /**

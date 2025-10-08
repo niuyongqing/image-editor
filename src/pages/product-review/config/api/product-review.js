@@ -43,3 +43,12 @@ export function getProductDetail(data) {
     data: data
   })
 }
+
+// 申请拍照提交
+export function batchOldStore(data) {
+  return request({
+    url: `/commodity-manage/commodity/store/old`,
+    method: 'post',
+    data: data
+  })
+}

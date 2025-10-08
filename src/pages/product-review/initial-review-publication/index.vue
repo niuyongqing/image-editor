@@ -123,7 +123,7 @@ import {
   firstAudit,
   lastAudit,
   exportProductList
-} from "@/pages/ozon/config/api/initialReviewPublication";
+} from "@/pages/product-review/config/api/product-review";
 import commodityTypeList from "@/utils/commodityType";
 import { ref, reactive, onMounted, computed, watch } from "vue";
 import tableHeaderInitial from "~@/pages/ozon/config/tabColumns/initialReviewPublication";

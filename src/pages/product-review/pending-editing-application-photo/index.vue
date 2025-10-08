@@ -7,15 +7,23 @@
           layout="inline" autocomplete="off">
           <!-- 产品基本信息行 -->
           <a-form-item label="产品名称:" class="w24">
-            <a-input v-model:value="formData.productName" disabled allow-clear placeholder="请输入产品名称" />
+            <a-input v-model:value="formData.tradeName" disabled allow-clear placeholder="自动带出" />
           </a-form-item>
           <a-form-item label="产品分类:" class="w24">
-            <a-cascader disabled placeholder="请选择产品分类" allowClear v-model:value="formData.productCategory"
+            <a-cascader disabled placeholder="自动带出" allowClear v-model:value="formData.classify"
               :options="commodityTypeList" :allow-clear="true"
               :field-names="{ label: 'label', value: 'value', children: 'children' }" />
           </a-form-item>
+          <!-- 商品类型 -->
+          <!-- <a-form-item label="商品类型:" class="w24">
+            <a-input :value="getCommodityTypeLabelFun(formData.commodityType)" disabled allow-clear placeholder="自动带出" />
+             <a-tag v-if="record.classify" style="margin-right: 3px;" color="#87d068">
+            {{ getCommodityTypeLabelFun(record.classify) }}
+          </a-tag>
+          </a-form-item> -->
+          <!-- SKU列表列自定义渲染 -->
           <a-form-item label="产品SKU:" class="w24">
-            <a-input v-model:value="formData.productSku" disabled allow-clear placeholder="请输入产品SKU" />
+            <a-input :value="getSkuListFun(formData.skuList)" disabled allow-clear placeholder="自动带出" />
           </a-form-item>
 
           <!-- 竞品参考链接 -->
@@ -23,15 +31,15 @@
             <div class="form-item full-width">
               <a-form-item label="竞品参考链接:">
                 <div class="reference-links">
-                  <div v-for="(link, index) in formData.referenceLinks" :key="index" class="link-item">
+                  <div v-for="(link, index) in formData.devConsultLink" :key="index" class="link-item">
                     <span class="link-number">{{ index + 1 }}</span>
-                    <a-input v-model:value="formData.referenceLinks[index]" placeholder="请输入网址" allow-clear
+                    <a-input v-model:value="formData.devConsultLink[index]" placeholder="请输入网址" allow-clear
                       class="link-input" />
                     <a-button type="text" @click="copyLink(index)" class="link-btn">复制</a-button>
                     <a-button type="text" @click="visitLink(index)" class="link-btn">访问</a-button>
                     <PlusCircleOutlined @click="addLink" class="link-btn ml-8 fz18 fz-16 color-1890ff" />
                     <MinusCircleOutlined @click="removeLink(index)" class="link-btn ml-8 fz-16"
-                      :class="{ 'color-1890ff': formData.referenceLinks.length > 1 }" />
+                      :class="{ 'color-1890ff': formData.devConsultLink.length > 1 }" />
                   </div>
                 </div>
               </a-form-item>
@@ -41,9 +49,9 @@
           <!-- 任务类型 -->
           <div class="form-row mt-16">
             <div class="form-item">
-              <a-form-item label="任务类型:" name="taskType" :required-mark="false">
+              <a-form-item label="任务类型:" name="artOldType" :required-mark="false">
                 <div class="task-type-container">
-                  <a-select v-model:value="formData.taskType" :options="taskTypeOptions" placeholder="请选择任务类型"
+                  <a-select v-model:value="formData.artOldType" :options="taskTypeOptions" placeholder="请选择任务类型"
                     @change="handleTaskTypeChange" allow-clear class="form-input">
                   </a-select>
                 </div>
@@ -54,9 +62,9 @@
           <!-- 处理要求 -->
           <div class="form-row mt-16">
             <div class="form-item full-width">
-              <a-form-item label="处理要求:" name="processingRequirements">
+              <a-form-item label="处理要求:" name="artAsk">
                 <div class="editor-container">
-                  <wang-editor-plus v-model="formData.processingRequirements" style="text-align: left;" :height="300"
+                  <wang-editor-plus ref="editorRef" v-model="formData.artAsk" style="text-align: left;" :height="300"
                     platform="pending-editing-application-photo" />
                 </div>
               </a-form-item>
@@ -66,9 +74,9 @@
           <!-- 参考图 -->
           <div class="form-row mt-16">
             <div class="form-item">
-              <a-form-item label="参考图:">
-                <div class="imageList" v-if="formData.referenceImage.length > 0">
-                  <div class="backImg" v-for="(value, index) in formData.referenceImage" :key="index">
+              <a-form-item label="参考图:"  :labelCol="labelColDevDrawing">
+                <div class="imageList" v-if="formData.devDrawing.length > 0">
+                  <div class="backImg" v-for="(value, index) in formData.devDrawing" :key="index">
                     <div style="position: relative; display: inline-block;">
                       <a-image style="position: relative;" :height="120" :src="value.url" />
 
@@ -92,7 +100,7 @@
                     </div>
                   </div>
                 </div>
-                <div v-if="formData.referenceImage.length > 0" style="position: absolute; top: 5px; right: 5px">
+                <div v-if="formData.devDrawing.length > 0" style="position: absolute; top: 5px; right: 5px">
                   <AsyncIcon icon="CloseCircleOutlined" size="20px" color="black" @click="removeImage('all')" />
                 </div>
                 <a-upload name="file" class="headerImg" :headers="headers" accept=".jpg,.jpeg,.png" :action="uploadUrl"
@@ -127,7 +135,9 @@
 import { ref, reactive, onMounted, onUnmounted } from 'vue';
 import { message } from 'ant-design-vue';
 import { PlusOutlined, PlusCircleOutlined, MinusCircleOutlined, DeleteOutlined, BulbOutlined, CaretDownOutlined } from '@ant-design/icons-vue';
+import { getSkuList, getCommodityTypeLabel } from '~@/pages/product-review/config/untils.js'
 import WangEditorPlus from '@/components/wang-editor-plus/index.vue';
+import { batchOldStore } from '@/pages/product-review/config/api/product-review';
 import DragUpload from '@/components/dragUpload/index.vue';
 import { imageUpload } from '@/pages/sample/acquisitionEdit/js/api.js';
 import commodityTypeList from "@/utils/commodityType";
@@ -138,13 +148,20 @@ import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import ImageTranslation from '@/components/skuDragUpload/imageTranslation.vue'
 import { v4 as uuidv4 } from 'uuid';
 import { encryptString } from '@/utils/tools.js';
+import { useRoute } from 'vue-router';
 
+const route = useRoute();
+console.log(route.query);
+const queryParams = route.query;
 /**
  * 表单引用
  */
 const formRef = ref();
 const img_trans = ref();
 const labelCol = { style: { width: '90px' } };
+const labelColDevDrawing = { style: { width: '60px' } };
+const editorRef = ref();
+
 
 
 /**
@@ -155,36 +172,31 @@ const { copy } = useClipboard();
 /**
  * 任务类型选项
  */
-const taskTypeOptions = reactive([
-  {
-    label: '运营提交',
-    value: '0',
-  },
-  {
-    label: 'shein提交',
-    value: '1',
-  },
-  {
-    label: '服务部提交',
-    value: '2',
-  },
-  {
-    label: 'OZON智能化刊登提交',
-    value: '3',
-  },
-]);
+const taskTypeOptions = reactive([{
+        value:'1',
+        label:'运营提交'
+      },{
+        value:'2',
+        label:'shein提交'
+      },{
+        value:'3',
+        label:'服务部提交'
+      },{
+        value:'4',
+        label:'Amazon提交'
+      }]);
 
 /**
  * 表单数据模型
  */
 const formData = reactive({
-  productName: '',
-  productCategory: '',
-  productSku: '',
-  referenceLinks: [''], // 初始化为空字符串数组，确保至少有一个链接输入框
-  taskType: '',
-  processingRequirements: '',
-  referenceImage: [],
+  tradeName: '',
+  classify: '',
+  skuList: '',
+  devConsultLink: [''], // 初始化为空字符串数组，确保至少有一个链接输入框
+  artOldType: null,
+  artAsk: '',
+  devDrawing: [],
 });
 const headers = {
   Authorization: 'Bearer ' + useAuthorization().value
@@ -196,11 +208,11 @@ const router = useRouter();
  * 表单验证规则
  */
 const formRules = {
-  taskType: [
+  artOldType: [
     { required: true, message: '请选择任务类型', trigger: 'change' }
   ],
-  processingRequirements: [
-    { required: true, message: '请输入处理要求', trigger: 'blur' }
+  artAsk: [
+    { required: true, message: '请输入处理要求', trigger: ['blur', 'change'] }
   ],
 };
 
@@ -208,11 +220,11 @@ const formRules = {
  * 添加新的链接输入框
  */
 const addLink = () => {
-  // 确保 referenceLinks 是数组类型
-  if (!Array.isArray(formData.referenceLinks)) {
-    formData.referenceLinks = [];
+  // 确保 devConsultLink 是数组类型
+  if (!Array.isArray(formData.devConsultLink)) {
+    formData.devConsultLink = [];
   }
-  formData.referenceLinks.push('');
+  formData.devConsultLink.push('');
 };
 
 /**
@@ -221,8 +233,8 @@ const addLink = () => {
  */
 const removeLink = (index) => {
   // 确保至少保留一个链接输入框
-  if (Array.isArray(formData.referenceLinks) && formData.referenceLinks.length > 1) {
-    formData.referenceLinks.splice(index, 1);
+  if (Array.isArray(formData.devConsultLink) && formData.devConsultLink.length > 1) {
+    formData.devConsultLink.splice(index, 1);
   } else {
     message.warning('至少需要保留一个竞品参考链接');
   }
@@ -232,7 +244,7 @@ const removeLink = (index) => {
  * 复制链接到剪贴板
  */
 const copyLink = (index) => {
-  const link = formData.referenceLinks[index];
+  const link = formData.devConsultLink[index];
   if (!link) {
     message.warning('链接为空，无法复制');
     return;
@@ -245,7 +257,7 @@ const copyLink = (index) => {
  * 访问链接
  */
 const visitLink = (index) => {
-  const link = formData.referenceLinks[index];
+  const link = formData.devConsultLink[index];
   if (!link) {
     message.warning('链接为空，无法访问');
     return;
@@ -257,8 +269,25 @@ const visitLink = (index) => {
  * 处理任务类型变化
  */
 const handleTaskTypeChange = (value) => {
-  formData.taskType = value;
+  formData.artOldType = value;
 }
+/**
+ * 处理SKU列表，返回格式化后的字符串
+ * @param {string} skuList - 逗号分隔的SKU字符串
+ * @returns {string} - 格式化后的SKU字符串
+ */
+const getSkuListFun = (skuList) => {
+  return getSkuList(skuList)
+}
+
+/**
+ * 商品类型
+ * @param {string} val - 商品类型值
+ * @returns {string} - 商品类型名称
+ */
+function getCommodityTypeLabelFun(val) {
+    return getCommodityTypeLabel(val)
+};
 
 /**
  * 处理图片上传
@@ -270,7 +299,7 @@ const handleChangeColroImg = (info, formData) => {
 
   if (info.file.status === 'done') {
     if (info.file.response.code === 200) {
-      formData.referenceImage.push({
+      formData.devDrawing.push({
         name: info.file.response.originalFilename,
         // url: '/prod-api' + info.file.response.url,
         url: import.meta.env.VITE_APP_BASE_API + info.file.response.url,
@@ -280,7 +309,7 @@ const handleChangeColroImg = (info, formData) => {
         height: info.file.response.height
       })
     } else {
-      message.error('图片上传有误！')
+      message.error(info.file.response.msg || '图片上传有误！')
     }
   }
 }
@@ -330,7 +359,7 @@ channel.onmessage = (event) => {
  */
 function updateImageById(imageId, newImageUrl) {
   // 遍历所有的图片列表
-  const targetImage = formData.referenceImage.find((img) => img.id === imageId);
+  const targetImage = formData.devDrawing.find((img) => img.id === imageId);
   if (targetImage) {
     // 更新目标图片URL - 确保使用ref.value获取实际URL值
     targetImage.url = newImageUrl.value;
@@ -381,10 +410,10 @@ function imgModifySingleMenuClick({ key }, item) {
  */
 const removeImage = (index) => {
   if (index === 'all') {
-    formData.referenceImage = [];
+    formData.devDrawing = [];
     return;
   }
-  formData.referenceImage.splice(index, 1);
+  formData.devDrawing.splice(index, 1);
 }
 
 /** 图片翻译 */
@@ -414,9 +443,41 @@ const handleClose = () => {
 const handleSubmit = async () => {
   try {
     await formRef.value.validate();
+    // 校验处理要求的必填
+    if (editorRef.value.isEmptyEditor()) {
+      message.error('请输入处理要求');
+      return;
+    }
+    // 测试数据
+    // const parms = 
+    // {
+    //   "commodityId":"932071",
+    //   "artAsk":"<p>12312321</p>",
+    //   "devConsultLink":"[\"123213\"]",
+    //   "devDrawing":"[{\"url\":\"/prod-api/profile/upload/2025/10/08/图片1_20251008163543A008.jpg\",\"name\":\"【老品重拍】图片1.jpg\",\"width\":800,\"height\":800},{\"url\":\"/prod-api/profile/upload/2025/10/08/bd68980b-bd88-43d8-bba7-9eda9b8c3d77_20251008163546A009.jpg\",\"name\":\"【老品重拍】bd68980b-bd88-43d8-bba7-9eda9b8c3d77.jpg\",\"width\":750,\"height\":1000}]",
+    //   "artOldType":"3"
+    // }
+
+
+    const parms = {
+      ...formData,
+      devConsultLink: JSON.stringify(formData.devConsultLink),
+      devDrawing: JSON.stringify(formData.devDrawing),
+      commodityId: queryParams.id || '932071',
+    }
+    
+    
     // 提交表单数据的逻辑
-    console.log('提交的表单数据:', formData);
-    message.success('提交成功');
+    console.log('提交的表单数据:', parms);
+    batchOldStore(parms).then((res) => {
+      if (res.code === 200) {
+        message.success('提交成功');
+        // 关闭弹窗
+        handleClose();
+      }else{
+        message.error(res?.msg || '提交失败，请重试');
+      }
+    })
   } catch (error) {
     console.log('表单验证失败:', error);
   }
