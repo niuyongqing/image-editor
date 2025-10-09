@@ -72,8 +72,8 @@ export default [
   },
   {
     title: '驳回备注',
-    dataIndex: 'rejectionRemark',
-    key: 'rejectionRemark',
+    dataIndex: 'firstAuditReason',
+    key: 'firstAuditReason',
     align: 'center',
     width: 300,
     show: true,

@@ -72,8 +72,8 @@ export default [
   },
   {
     title: '提交备注',
-    dataIndex: 'submitRemark',
-    key: 'submitRemark',
+    dataIndex: 'selectReason',
+    key: 'selectReason',
     align: 'center',
     width: 300,
     show: true,

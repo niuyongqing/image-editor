@@ -26,6 +26,15 @@ export function lastAudit(data) {
   })
 }
 
+//驳回审核
+export function rejectAudit(data) {
+  return request({
+    url: `/platform-ozon/platform/ozon/commodity/reject/audit`,
+    method: 'post',
+    data: data
+  })
+}
+
 // 获取表单列表
 export function commodityList(data) {
   return request({
@@ -49,6 +58,15 @@ export function batchOldStore(data) {
   return request({
     url: `/commodity-manage/commodity/store/old`,
     method: 'post',
+    data: data
+  })
+}
+
+//获取用户
+export function getAccountUser(data) {
+  return request({
+    url: `/platform-ozon/platform/ozon/commodity/find/user`,
+    method: 'get',
     data: data
   })
 }
