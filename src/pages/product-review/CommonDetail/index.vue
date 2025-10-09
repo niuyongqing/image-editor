@@ -14,7 +14,7 @@
   import SKUInfo from './SKUInfo.vue'
   import ImageInfo from './ImageInfo.vue'
 
-  import { getDetailApi } from './api'
+  import { getDetailApi, updateProductDetailApi } from './api'
   import { message } from 'ant-design-vue'
 
   const store = useProductReviewStore()
@@ -22,8 +22,7 @@
 
   getDetail()
   function getDetail() {
-    // const id = route.query.id
-    const id = 2
+    const id = route.query.id
     if (!id) {
       message.error('缺少详情id')
       return

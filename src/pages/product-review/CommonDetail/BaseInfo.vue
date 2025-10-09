@@ -46,6 +46,7 @@
         <!-- 分类弹窗 -->
         <CascaderCategorySelector
           ref="cascaderCategorySelectorRef"
+          :tail-category-id="tailCategoryId"
           @select="selectCategory"
         />
       </a-form-item>
@@ -394,7 +395,7 @@
 
 <script setup>
   import CascaderCategorySelector from './CascaderCategorySelector.vue'
-  import { categoryAttributes } from '@/pages/ozon/config/api/product'
+  import { getAttributesApi } from './api'
   import JSONEditor from '@/pages/ozon/config/component/json/index.vue'
   import { processImageSource } from '@/pages/ozon/config/commJs/index'
   import { v4 as uuidv4 } from 'uuid'
@@ -403,7 +404,7 @@
   import { DeleteOutlined, PlusOutlined, MinusOutlined, QuestionCircleOutlined } from '@ant-design/icons-vue'
 
   const store = useProductReviewStore()
-  const account = '2649641' // 随便固定一个id, 分类都是相同的
+  const tailCategoryId = ref('') // 末尾的分类id
   const baseInfoForm = reactive({
     productName: '',
     prefixDecorateName: '',
@@ -431,10 +432,12 @@
   }
 
   function selectCategory(data) {
-    categoryLabel.value = data.label.join(' / ')
+    categoryLabel.value = data.labels.join(' / ')
+
+    // 初始化时, 只用于回显分类信息, 不进行后续操作
+    if (data.initialization) return
 
     const params = {
-      account,
       descriptionCategoryId: data.ids[1],
       typeId: data.ids[2]
     }
@@ -459,7 +462,7 @@
 
   function getAttributes(params) {
     attrLoading.value = true
-    categoryAttributes(params)
+    getAttributesApi(params)
       .then(res => {
         const rawData = res.data || []
         // 存到 pinia 里给 SKUInfo 用
@@ -785,8 +788,8 @@
       // 分类
       baseInfoForm.categoryId = detail.categoryId
       const categoryIdList = detail.categoryId.split(',')
+      tailCategoryId.value = categoryIdList.at(-1)
       const params = {
-        account,
         descriptionCategoryId: categoryIdList[1],
         typeId: categoryIdList[2]
       }

@@ -174,15 +174,14 @@
         :loading="loading"
       >
         <!-- 自定义变种信息 -->
-        <div class="flex mb-2.5">
+        <!-- <div class="flex mb-2.5">
           <a-checkbox-group
             v-model:value="addHeaderList"
             :disabled="tableData.length == 0"
             :options="plainOptions"
             @change="changeHeade"
-          >
-          </a-checkbox-group>
-        </div>
+          />
+        </div> -->
         <a-table
           bordered
           :columns="filteredHeaderList"
@@ -256,22 +255,12 @@
                 >
               </div>
             </template>
-            <template v-if="column.dataIndex === 'price'">
+            <template v-if="column.dataIndex === 'costPrice'">
               <div class="flex flex-col min-w-25">
                 <span><span style="color: #ff0a37">*</span> {{ column.title }}</span
                 ><a
                   class="ml-1.25"
                   @click="batchPrice"
-                  >批量</a
-                >
-              </div>
-            </template>
-            <template v-if="column.dataIndex === 'oldPrice'">
-              <div class="flex flex-col min-w-25">
-                <span><span style="color: #ff0a37">*</span> {{ column.title }}</span
-                ><a
-                  class="ml-1.25"
-                  @click="batcholdPricebatchPrice"
                   >批量</a
                 >
               </div>
@@ -374,7 +363,7 @@
                 mode="tags"
               ></a-select>
             </template>
-            <template v-if="column.dataIndex === 'price'">
+            <template v-if="column.dataIndex === 'costPrice'">
               <div class="flex justify-center">
                 <a-input-number
                   :min="0"
@@ -382,9 +371,8 @@
                   :controls="false"
                   :max="99999999"
                   :precision="2"
-                  v-model:value="record.price"
+                  v-model:value="record.costPrice"
                   class="w-full"
-                  @blur="judgeMax(record)"
                 ></a-input-number>
                 <a-dropdown>
                   <AsyncIcon
@@ -394,38 +382,7 @@
                   >
                   </AsyncIcon>
                   <template #overlay>
-                    <a-menu @click="confirmMenuClick($event, record, 'price')">
-                      <a-menu-item
-                        v-for="menuItem in confirmMenuList"
-                        :key="menuItem.key"
-                        >{{ menuItem.label }}</a-menu-item
-                      >
-                    </a-menu>
-                  </template>
-                </a-dropdown>
-              </div>
-            </template>
-            <template v-if="column.dataIndex === 'oldPrice'">
-              <div class="flex justify-center">
-                <a-input-number
-                  v-model:value="record.oldPrice"
-                  :min="0"
-                  size="middle"
-                  :controls="false"
-                  :max="99999999"
-                  class="w-full"
-                  :precision="2"
-                  @blur="judgeMax(record)"
-                ></a-input-number>
-                <a-dropdown>
-                  <AsyncIcon
-                    icon="CopyOutlined"
-                    class="ml-2.5 cursor-pointer"
-                    size="15px"
-                  >
-                  </AsyncIcon>
-                  <template #overlay>
-                    <a-menu @click="confirmMenuClick($event, record, 'oldPrice')">
+                    <a-menu @click="confirmMenuClick($event, record, 'costPrice')">
                       <a-menu-item
                         v-for="menuItem in confirmMenuList"
                         :key="menuItem.key"
@@ -604,7 +561,7 @@
     processImageSource,
     customSort
   } from '@/pages/ozon/config/commJs/index'
-  import { publishHead, otherList } from '@/pages/ozon/config/tabColumns/skuHead'
+  import { columns, otherList } from './config'
   import { debounce, cloneDeep } from 'lodash'
   import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
   import { FileOutlined, SettingOutlined, DownOutlined } from '@ant-design/icons-vue'
@@ -930,8 +887,7 @@
     // 定义不同type对应的属性映射关系
     const propertyMap = {
       size: ['packageLength', 'packageWidth', 'packageHeight', 'packageWeight'],
-      oldPrice: ['oldPrice'],
-      price: ['price']
+      costPrice: ['costPrice']
     }
     // 根据type获取对应的属性列表，默认不复制任何属性
     const properties = propertyMap[type] || []
@@ -1142,8 +1098,7 @@
       // 将b数组中对应下标的数据赋值到a数组中
       newTableData[i].skuTitle = tableData.value[i].skuTitle
       newTableData[i].sellerSKU = tableData.value[i].sellerSKU
-      newTableData[i].price = tableData.value[i].price
-      newTableData[i].oldPrice = tableData.value[i].oldPrice
+      newTableData[i].costPrice = tableData.value[i].costPrice
       newTableData[i].colorImg = tableData.value[i].colorImg
       // newTableData[i].imageUrl = tableData.value[i].imageUrl
       newTableData[i].mainImages = tableData.value[i].mainImages
@@ -1198,15 +1153,15 @@
     attributeList.value = processData(attributeList.value, tableData.value)
   }
 
-  // 批量修改售价
+  // 批量修改成本价
   const batchPrice = () => {
     if (tableData.value.length == 0) {
       message.warning('请先添加sku！')
       return
     }
     batchOpen.value = true
-    batchTitle.value = '批量修改售价'
-    batchType.value = 'price'
+    batchTitle.value = '批量修改成本价'
+    batchType.value = 'costPrice'
   }
   // 批量修改SKU
   const batchSKU = () => {
@@ -1228,10 +1183,10 @@
     batchTitle.value = '批量修改SKU标题'
     batchType.value = 'skuTitle'
   }
-  // 修改 SKU 时同步修改 warehouseList 里的 offerId
+  // 修改 SKU 时同步修改 warehouseList 里的 skuCode
   const sellerSKUChange = debounce(record => {
     record.warehouseList.forEach(item => {
-      item.offerId = record.sellerSKU
+      item.skuCode = record.sellerSKU
     })
   }, 200)
   // 批量修改库存
@@ -1249,11 +1204,11 @@
   //修改库存
   const backQuantity = (quantities, copyList) => {
     // 生成仓库条目函数（过滤空值并映射结构）
-    const createWarehouseEntries = (offerId, copyList) =>
+    const createWarehouseEntries = (skuCode, copyList) =>
       copyList[0].children
         .filter(item => item.stock != null && item.stock !== '')
         .map(item => ({
-          offerId,
+          skuCode,
           warehouseId: item.warehouseId,
           present: item.stock,
           warehouseName: item.name
@@ -1276,17 +1231,6 @@
     }
   }
 
-  //批量修改原价
-  const batcholdPricebatchPrice = () => {
-    if (tableData.value.length == 0) {
-      message.warning('请先添加sku！')
-      return
-    }
-    batchOpen.value = true
-    batchTitle.value = '批量修改原价'
-    batchType.value = 'oldPrice'
-  }
-
   const batchPackLength = () => {
     if (tableData.value.length == 0) {
       message.warning('请先添加sku！')
@@ -1303,7 +1247,7 @@
         tableData.value.forEach(item => {
           item.sellerSKU = batchFields.batchValue
           item.warehouseList.forEach(warehouse => {
-            warehouse.offerId = item.sellerSKU
+            warehouse.skuCode = item.sellerSKU
           })
         })
         break
@@ -1312,11 +1256,8 @@
           item.skuTitle = batchFields.batchValue
         })
         break
-      case 'price':
-        updatePrice(tableData.value, 'price', batchFields)
-        break
-      case 'oldPrice':
-        updatePrice(tableData.value, 'oldPrice', batchFields)
+      case 'costPrice':
+        updatePrice(tableData.value, 'costPrice', batchFields)
         break
       case 'packLength':
         tableData.value.forEach(item => {
@@ -1357,23 +1298,6 @@
     })
   }
 
-  const judgeMax = item => {
-    const { price, oldPrice } = item
-    // 检查 price 和 oldPrice 是否为空或 null
-    if (price == null || oldPrice == null) return // 如果有一个为空或 null，直接返回，不做后续比较
-    // 确保 price 和 oldPrice 是有效的数字
-    const parsedPrice = parseFloat(price)
-    const parsedOldPrice = parseFloat(oldPrice)
-    if (isNaN(parsedPrice) || isNaN(parsedOldPrice)) return // 如果转换后不是有效的数字，直接返回
-
-    if (parsedPrice > parsedOldPrice) {
-      Modal.error({
-        title: '错误提示',
-        content: '售价不能大于原价！'
-      })
-    }
-  }
-
   // 变种主题中是组合在一起的主题
   const dependencyMap = new Map([
     [10096, 10097], // 商品颜色和颜色名称
@@ -1389,7 +1313,7 @@
         attributeList.value = []
         tableData.value = []
         addHeaderList.value = [] //清空自定义变种信息
-        headerList.value = [...publishHead] //重新赋值
+        headerList.value = [...columns] //重新赋值
         // 提取变种主题
         let arr = val.filter(obj => obj.isAspect)
         isConform = checkData(arr)
@@ -1452,15 +1376,13 @@
           tableData.value.push({
             skuTitle: '',
             sellerSKU: '',
-            price: '',
-            oldPrice: '',
+            costPrice: null,
             quantity: undefined,
             warehouseList: [],
             packageLength: undefined,
             packageWidth: undefined,
             packageHeight: undefined,
             packageWeight: undefined,
-            // imageUrl: [],
             mainImages: [],
             subImages: [],
             imageList: [],
@@ -1507,8 +1429,7 @@
 
   // 提取公共的newItem创建函数
   const createNewItem = (sku, dataSource) => ({
-    oldPrice: dataSource.oldPrice || sku.oldPrice,
-    price: dataSource.price || sku.price,
+    costPrice: dataSource.costPrice || sku.costPrice,
     quantity: dataSource.stock || sku.stock,
     packageHeight: sku.height,
     packageLength: sku.depth,
@@ -1516,8 +1437,8 @@
     packageWidth: sku.width,
     skuTitle: dataSource.name || sku.name,
     colorImg: createColorImg(dataSource.colorImage || sku.colorImage),
-    warehouseList: formatWarehouseList(dataSource.warehouseList || sku.warehouseList, sku.offerId),
-    sellerSKU: dataSource.offerId || sku.offerId,
+    warehouseList: formatWarehouseList(dataSource.warehouseList || sku.warehouseList, sku.skuCode),
+    sellerSKU: dataSource.skuCode || sku.skuCode,
     // imageUrl: mergeAndDeduplicateImages(dataSource, sku),
     mainImages: fillImage(sku.mainImages),
     subImages: fillImage(sku.subImages),
@@ -1548,8 +1469,8 @@
   }
 
   // 仓库列表格式化函数
-  const formatWarehouseList = (warehouseList, offerId) => {
-    return warehouseList?.map(item => ({ ...item, offerId })) || []
+  const formatWarehouseList = (warehouseList, skuCode) => {
+    return warehouseList?.map(item => ({ ...item, skuCode })) || []
   }
 
   // 图片合并去重函数
@@ -1772,8 +1693,7 @@
         text: '请上传副图，副图最少一张！'
       },
       { check: row => isEmpty(row.sellerSKU), text: '请填写SKU编号！' },
-      { check: row => isEmpty(row.price), text: '请填写售价！' },
-      { check: row => isEmpty(row.oldPrice), text: '请填写原价！' },
+      { check: row => isEmpty(row.costPrice), text: '请填写成本价！' },
       { check: row => isEmpty(row.quantity), text: '请填写库存！' },
       {
         check: row => [row.packageHeight, row.packageLength, row.packageWeight, row.packageWidth].some(v => v == null),
