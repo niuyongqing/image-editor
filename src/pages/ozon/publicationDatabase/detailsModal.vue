@@ -26,7 +26,7 @@
             <div>{{ detailData.data.productAttributeList?.find(i => i.attributeId === 85)?.attributeValue || '无品牌' }}</div>
           </a-descriptions-item>
           <a-descriptions-item label="VAT">
-            <div>{{ detailData.data.vat }}</div>
+            <div>{{ (detailData.data.vat * 100) }}%</div>
           </a-descriptions-item>
           <a-descriptions-item label="制造国">
             <div>{{ detailData.data.productAttributeList?.find(i => i.attributeId === 4389)?.attributeValue || '无' }}</div>
@@ -35,8 +35,10 @@
         
         <a-descriptions title="">
           <a-descriptions-item label="竞品参考链接">
-            <div class="url-item" v-for="(item, index) in detailData.data.purchaseLinkUrls?.split(',')" :key="item">
-              {{ `${index + 1}、 ` }}<a target="_blank" :href="item">{{ item }}</a>
+            <div>
+              <div class="url-item" v-for="(item, index) in detailData.data.competitiveList" :key="item.id">
+                {{ `${index + 1}、 ` }}<a target="_blank" :href="item">{{ item.linkUrl }}</a>
+              </div>
             </div>
           </a-descriptions-item>
         </a-descriptions>
@@ -79,34 +81,38 @@
         </a-descriptions>
         <a-descriptions title="">
           <a-descriptions-item label="封面视频">
-            <video controls :src="detailData.video.coverUrl" class="avatar" width="200px" height="200px">
+            <video v-if="detailData.video.coverUrl" controls :src="detailData.video.coverUrl" class="avatar" width="200px" height="200px">
             </video>
+            <div v-else>无</div>
           </a-descriptions-item>
         </a-descriptions>
         <a-descriptions title="">
           <a-descriptions-item label="详情描述视频">
-            <div class="video-item">
+            <div class="video-item" v-if="detailData.video.videoList.length > 0">
               <div class="items" v-for="(item, index) in detailData.video.videoList" :key="index">
                 <video controls :src="item.attributeValue" class="avatar" width="200px" height="200px">
                 </video>
               </div>
             </div>
+            <div v-else>无</div>
           </a-descriptions-item>
         </a-descriptions>
         <a-card title="变种属性" style="width: 90%">
           <div class="variantAttr-list">
             变种主题：
-            <span 
+            <a-tag 
+              color="blue"
               v-for="item in detailData.variantAttr" 
               :key="item.attributeId"
               style="margin-left: 20px;"
-            >{{ item.attributeName }}</span>
+            >{{ item.attributeName }}</a-tag>
           </div>
           <div>
             <a-card 
               v-for="(theme, index) in detailData.variantTheme"
               :key="theme.attributeId"
               :title="`变种主题${index +1}：${theme.attributeName}`" 
+              class="item-card"
             >
               <a-table :columns="theme.variantHeader" :data-source="theme.attributeValue" :pagination="false"></a-table>
             </a-card>
@@ -117,13 +123,26 @@
         </a-card>
         <a-card title="图片信息" style="width: 90%">
           <div v-for="item in detailData.data.skuList">
-            <div>
-              <div v-for="head in detailData.attrHeader" :key="head.key">{{ `${head.title}：${item[head.key]}` }}</div>
-              <a-image
-                :width="200"
-                :src="item.subImages"
-              />
-            </div>
+            <a-card :title="item.skuCode" style="width: 100%">
+              <a-descriptions title="">
+                <a-descriptions-item label="主图">
+                  <div class="img-box">
+                    <div class="img-item" v-for="imageUrl in item.mainImages.split(',')">
+                      <a-image :width="120" :src="imageUrl"/>
+                    </div>
+                  </div>
+                </a-descriptions-item>
+              </a-descriptions>
+              <a-descriptions title="">
+                <a-descriptions-item label="副图">
+                  <div class="img-box">
+                    <div class="img-item" v-for="imageUrl in item.subImages.split(',')">
+                      <a-image :width="120" :src="imageUrl"/>
+                    </div>
+                  </div>
+                </a-descriptions-item>
+              </a-descriptions>
+            </a-card>
           </div>
         </a-card>
       </a-spin>
@@ -159,39 +178,60 @@ const detailData = reactive({
 })
 const publishHead = [
   {
-    dataIndex: 'sellerSKU',
+    dataIndex: 'skuCode',
     title: 'SKU',
     show: true,
     align: 'center',
     width: 180
   },
+  // {
+  //   dataIndex: 'price',
+  //   title: '策划数量',
+  //   show: true,
+  //   align: 'center',
+  //   width: 180
+  // },
   {
-    dataIndex: 'price',
-    title: '售价',
+    dataIndex: 'costPrice',
+    title: '成本价（CNY）',
     show: true,
     align: 'center',
     width: 180
   },
   {
-    dataIndex: 'oldPrice',
-    title: '原价',
-    show: true,
-    align: 'center',
-    width: 180
-  },
-  {
-    dataIndex: 'quantity',
+    dataIndex: 'stock',
     title: '库存',
     show: true,
     align: 'center',
     width: 120
   },
   {
-    dataIndex: 'packageLength',
-    title: '尺寸',
+    dataIndex: 'length',
+    title: '长（mm）',
     show: true,
     align: 'center',
-    width: 600
+    width: 100
+  },
+  {
+    dataIndex: 'width',
+    title: '宽（mm）',
+    show: true,
+    align: 'center',
+    width: 100
+  },
+  {
+    dataIndex: 'height',
+    title: '高（mm）',
+    show: true,
+    align: 'center',
+    width: 100
+  },
+  {
+    dataIndex: 'weight',
+    title: '重量（g）',
+    show: true,
+    align: 'center',
+    width: 100
   },
 ]
 // sku列表表头
@@ -219,28 +259,29 @@ async function getDetailFn() {
       return !([11254,4191,85,31,4389,4080,8789,8790,4180,9024].includes(i.attributeId) || [100001,100002].includes(i.attributeComplexId))
     })
     res.data.editor_json_11254 = res.data.productAttributeList.find(i => i.attributeId === 11254)?.attributeValue
-    // res.data.editor_json_11254 = '{"content":[{"widgetName":"raShowcase","type":"roll","blocks":[{"imgLink":"","img":{"src":"https://cdn1.ozone.ru/s3/multimedia-1-x/7766489697.jpg","srcMobile":"https://cdn1.ozone.ru/s3/multimedia-1-x/7766489697.jpg","alt":"","position":"width_full","positionMobile":"width_full"}},{"imgLink":"","img":{"src":"https://cdn1.ozone.ru/s3/multimedia-1-q/7766489618.jpg","srcMobile":"https://cdn1.ozone.ru/s3/multimedia-1-q/7766489618.jpg","alt":"","position":"width_full","positionMobile":"width_full"}},{"imgLink":"","img":{"src":"https://cdn1.ozone.ru/s3/multimedia-1-m/7766489506.jpg","srcMobile":"https://cdn1.ozone.ru/s3/multimedia-1-m/7766489506.jpg","alt":"","position":"width_full","positionMobile":"width_full"}}]},{"widgetName":"raTextBlock","theme":"default","gapSize":"m","padding":"type2","title":{"size":"size5","ocolor":"color1","align":"left","content":["第三方鬼地方个"]},"text":{"size":"size2","color":"color1","align":"left","content":["水电费更好地焚膏继晷好几个号快回家"]}},{"widgetName":"raShowcase","type":"roll","blocks":[{"imgLink":"","img":{"src":"/profile/upload/shopeeFile/2025-10-05/2025/10/05/lQDPJxHaDxRywY3NAtDNAtCwWDR21kByfYEHIorYnsdDAA_720_720_20251005162815A001.jpg","srcMobile":"/profile/upload/shopeeFile/2025-10-05/2025/10/05/lQDPJxHaDxRywY3NAtDNAtCwWDR21kByfYEHIorYnsdDAA_720_720_20251005162815A001.jpg","alt":"","position":"width_full","positionMobile":"width_full","widthMobile":720,"heightMobile":720}}]},{"widgetName":"raTextBlock","theme":"default","gapSize":"m","padding":"type2","title":{"size":"size5","ocolor":"color1","align":"left","content":["的修复好的方式退回梵蒂冈"]},"text":{"size":"size2","color":"color1","align":"left","content":["Материал: акрил","Размер: 4,5*4,5 см","В комплекте: 2 шт."]}}],"version":0.3}'
     detailData.video.coverUrl = res.data.productAttributeList.find(i => i.attributeComplexId === 100002)?.attributeValue
     detailData.video.videoList = res.data.productAttributeList.filter(i => i.attributeComplexId === 100001);
     // 从属性中找出全部的销售属性
     let aspectAll = res.data.categoryAttributeList.filter(i => i.isAspect)
-    let variantTheme = res.data.skuList[0].skuAttributeList.map(item => {
+    let variantTheme = res.data.skuAttributeUseList.filter(i => !i.comboId).map(item => {
       // 找出变种主题
-      let obj = aspectAll.find(i => i.attributeId === item.attributeId);
+      let obj = {...item};
       // 变种主题的变种属性列表，一个主题可能有多个变种属性
-      obj.variantAttr = []
+      obj.variantAttr = [];
       // 一般变种主题的变种属性就是它的自身
-      let attr = _.cloneDeep(obj)
-      obj.variantAttr.push(attr)
+      let attr = _.cloneDeep(obj);
+      // 找出依赖于该主题的主题，将其作为变种属性
+      let comboList = res.data.skuAttributeUseList.filter(i => i.comboId === item.attributeId);
+      obj.variantAttr.push(attr, ...comboList);
       // 遍历sku找出变种属性的值
       obj.attributeValue = res.data.skuList.map(i => {
-        let value = {}
+        let value = {};
         obj.variantAttr.forEach(a => {
-          let skuAttr = i.skuAttributeList.find(skua => skua.attributeId === a.attributeId)
+          let skuAttr = i.skuAttributeList.find(skua => skua.attributeId === a.attributeId);
           value[a.attributeId] = skuAttr.attributeValue;
-        })
+        });
         return value;
-      })
+      });
       // 生成变种属性表头
       obj.variantHeader = []
       obj.variantAttr.forEach(i => {
@@ -265,6 +306,7 @@ async function getDetailFn() {
         align: 'center',
         title: item.attributeName,
         dataIndex: String(item.attributeId),
+        width: 150,
         key: String(item.attributeId),
       }
       return head;
@@ -296,8 +338,8 @@ defineExpose({
 </script>
 <style lang="less" scoped>
 :deep(.ant-image-img) {
-  width: 198px;
-  height: 198px;
+  width: 118px;
+  height: 118px;
 }
 :deep(.ant-tag) {
   margin-bottom: 6px;
@@ -358,6 +400,21 @@ defineExpose({
       margin-right: 20px;
       margin-bottom: 40px;
     }
+  }
+}
+:deep(.ant-card) {
+  margin-bottom: 10px;
+}
+.variantAttr-list {
+  width: 100%;
+  padding: 10px;
+}
+.img-box {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  .img-item {
+    margin: 0 10px 10px 0;
   }
 }
 </style>

@@ -305,7 +305,7 @@ function customRow(row) {
   };
 }
 function detailsModalOpen(row) {
-  console.log({ row });
+  // console.log({ row });
   let obj = {
     row,
     // commodityTypeList: options.commodityTypeList,
