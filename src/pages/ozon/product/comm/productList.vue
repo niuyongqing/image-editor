@@ -2,7 +2,7 @@
     <div id="productListCont">
         <a-modal :open="prodListVisible" :maskClosable="false" @cancel="handleCancel" :width="'50%'" :keyboard="false"
             title="合并产品" :footer="null">
-            <a-table :columns="columns" :data-source="childList" :pagination="false">
+            <a-table :columns="columns" :data-source="childList" :pagination="false" :scroll="{ y: 600 }">
                 <template #bodyCell="{ column, record }">
                     <div v-if="column.dataIndex === 'name'" class="flex">
                         <div class="flex text-left items-center">
@@ -96,15 +96,13 @@ const columns = [
         align: "center",
     },
 ]
-console.log("childList",props.childList);
 
 const getStateColor = (state) => {
     const colorMap = {
         '平台审核': 'processing',
         '在售': 'success',
-        '审核不通过': 'warning',
-        '准备出售': 'error',
-        '': 'default'
+        '审核不通过': 'error',
+        '准备出售': 'warning'
     };
     return colorMap[state] || 'default';
 }

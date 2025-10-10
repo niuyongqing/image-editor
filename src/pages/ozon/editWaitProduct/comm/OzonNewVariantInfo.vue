@@ -66,7 +66,7 @@
                   <!-- 输入框 -->
                   <div v-if="record.selectType == 'input'" class="w-4/5">
                     <a-input-number v-if="record.type == 'Integer'" size="middle" allowClear
-                      v-model:value="record.modelValue" @blur="index, items" placeholder="请输入内容"
+                      v-model:value="record.modelValue" @blur="pushValue(index, items)" placeholder="请输入内容"
                       class="w-full"></a-input-number>
                     <a-input v-model:value="record.modelValue" size="middle" allowClear v-else class="w-full"
                       placeholder="请输入内容" @blur="pushValue(index, items)"></a-input>

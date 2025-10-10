@@ -38,6 +38,7 @@
   const optionList = computed(() => props.appendAll ? [{ [props.fieldNames.label]: '全部', [props.fieldNames.value]: undefined }, ...props.options] : props.options)
 
   const curIndex = ref(0)
+  defineExpose({ curIndex })
 
   function change(i) {
     curIndex.value = i
