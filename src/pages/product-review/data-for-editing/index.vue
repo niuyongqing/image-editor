@@ -11,7 +11,7 @@
         <a-form-item label="模糊查询">
           <a-space>
             <a-input
-              v-model:value="searchForm.name"
+              v-model:value="searchForm.tradeName"
               placeholder="请输入产品名称"
               allow-clear
             />
@@ -24,23 +24,23 @@
         </a-form-item>
         <a-form-item
           label="分类"
-          name="categoryId"
+          name="classify"
         >
-          <a-select
-            v-model:value="searchForm.categoryId"
-            :options="categoryOptions"
+          <a-cascader
+            v-model:value="searchForm.classify"
+            :options="commodityType"
+            change-on-select
             placeholder="请选择分类"
-            allow-clear
-            class="w-40!"
+            class="w-60!"
           />
         </a-form-item>
         <a-form-item
           label="市场方向"
-          name="market"
+          name="devAttributableMarket"
         >
           <a-select
-            v-model:value="searchForm.market"
-            :options="marketOptions"
+            v-model:value="searchForm.devAttributableMarket"
+            :options="MARKET_OPTIONS"
             placeholder="请选择市场方向"
             allow-clear
             class="w-40!"
@@ -48,11 +48,12 @@
         </a-form-item>
         <a-form-item
           label="提交人"
-          name="submiter"
+          name="selectUserId"
         >
           <a-select
-            v-model:value="searchForm.submiter"
+            v-model:value="searchForm.selectUserId"
             :options="submiterOptions"
+            :field-names="{ label: 'userName', value: 'userId' }"
             placeholder="请选择提交人"
             allow-clear
             class="w-40!"
@@ -107,13 +108,13 @@
             <a-popover placement="right">
               <template #content>
                 <img
-                  :src="record.image || EmptyImg"
+                  :src="record.mainImage || EmptyImg"
                   width="400"
                   height="400"
                 />
               </template>
               <a-image
-                :src="record.image || EmptyImg"
+                :src="record.mainImage || EmptyImg"
                 :width="80"
                 :height="80"
                 :fallback="EmptyImg"
@@ -121,10 +122,31 @@
               />
             </a-popover>
           </template>
-          <template v-else-if="column.key === 'market'"></template>
+          <template v-else-if="column.key === 'market'">
+            <span>{{ MARKET_OPTIONS.find(item => item.value === record.devAttributableMarket)?.label || '--' }}</span>
+          </template>
+          <template v-else-if="column.key === 'sku'">
+            <span>{{ record.skuList || '--' }}</span>
+          </template>
+          <template v-else-if="column.key === 'storage'">
+            <span>{{ STORAGE_OPTIONS.find(item => item.value === record.meansKeepGrain)?.label || '--' }}</span>
+          </template>
+          <template v-else-if="column.key === 'category'">
+            <span>{{ getClassifyLabel(record.classify) }}</span>
+          </template>
+          <template v-else-if="column.key === 'submiter'">
+            <span>{{ record.selectUserId }}</span>
+          </template>
+          <template v-else-if="column.key === 'reviewer'">
+            <span>{{ record.lastAuditUserName }}</span>
+          </template>
           <template v-else-if="column.key === 'options'">
             <a-space>
-              <a-button type="link">编辑</a-button>
+              <a-button
+                type="link"
+                @click="goEdit(record)"
+                >编辑</a-button
+              >
               <a-button type="link">提交拍照</a-button>
               <a-button type="link">添加备注</a-button>
               <a-popconfirm
@@ -158,19 +180,21 @@
 </template>
 
 <script setup>
+  import { getListApi, getUserListApi } from './api'
   import EmptyImg from '@/assets/images/aliexpress/empty.png'
-  import { DEFAULT_TABLE_COLUMN } from './config'
+  import { DEFAULT_TABLE_COLUMN, MARKET_OPTIONS, STORAGE_OPTIONS } from './config'
+  import commodityType from '~@/utils/commodityType'
   import dayjs from 'dayjs'
   import { message } from 'ant-design-vue'
 
   /** search */
   const searchForm = reactive({
-    name: '',
+    tradeName: '',
     sku: '',
-    categoryId: undefined,
-    market: undefined,
-    submiter: undefined,
-    submitTime: [null, null]
+    classify: undefined,
+    devAttributableMarket: undefined,
+    selectUserId: undefined,
+    submitTime: null
   })
   const searchFormRef = ref()
 
@@ -181,11 +205,11 @@
   const categoryOptions = ref([])
   categoryOptions.value = options
 
-  const marketOptions = ref([])
-  marketOptions.value = options
-
+  // 提交人下拉列表
   const submiterOptions = ref([])
-  submiterOptions.value = options
+  getUserListApi().then(res => {
+    submiterOptions.value = res.data || []
+  })
 
   function search() {
     tableParams.pageNum = 1
@@ -193,9 +217,12 @@
   }
 
   function reset() {
-    searchForm.name = ''
+    tableParams.pageNum = 1
+    searchForm.tradeName = ''
     searchForm.sku = ''
     searchFormRef.value.resetFields()
+
+    getList()
   }
 
   /** table */
@@ -209,22 +236,51 @@
 
   getList()
   function getList() {
-    tableData.value = [
-      {
-        id: '1',
-        image: 'https://cdn.jsdelivr.net/gh/lynch-07/images@main/20220720202820.jpg',
-        market: '欧美',
-        sku: 'skuId123',
-        storage: '馨拓',
-        category: '小怪兽',
-        submiter: 'Lynch',
-        reviewer: '我',
-        submitTime: '2025年9月16日14:12:23',
-        reviewTime: '2025年9月16日14:12:37',
-        reason: '我就想选, 咋滴'
-      }
-    ]
+    const params = {
+      ...tableParams,
+      ...searchForm,
+      classify: searchForm.classify ? searchForm.classify.join(',') : undefined,
+      startTime: searchForm.submitTime ? dayjs(searchForm.submitTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+      endTime: searchForm.submitTime ? dayjs(searchForm.submitTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+      state: 70
+    }
+    delete params.submitTime
+
+    getListApi(params).then(res => {
+      total.value = res.total ?? 0
+      const list = res.rows || []
+      list.forEach(item => {
+        const mainImageList = JSON.parse(item.artMainImage).map(image => image.url)
+        item.mainImage = mainImageList[0]
+      })
+      tableData.value = list
+    })
+  }
+
+  function goEdit(record) {
+    window.open(`/platform/product-review/data-for-editing-detail?id=${record.id}`)
   }
 
   function del(record) {}
+
+  // 根据分类 value 获取分类 label
+  function getClassifyLabel(classify) {
+    if (!classify) return '--'
+
+    const classifyList = classify.split(',')
+    const labelList = []
+    let currentNodes = commodityType
+
+    for (let i = 0; i < classifyList.length; i++) {
+      const value = classifyList[i]
+      const node = currentNodes.find(item => item.value === value)
+
+      if (!node) break
+
+      labelList.push(node.label)
+      currentNodes = node.children || []
+    }
+
+    return labelList.join('/') || '--'
+  }
 </script>
