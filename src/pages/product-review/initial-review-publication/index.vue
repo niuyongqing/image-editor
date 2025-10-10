@@ -359,7 +359,7 @@ const getAccountUserList = async () => {
     if (res && res.data && Array.isArray(res.data)) {
       // 更新用户列表
       getAccountUserArr.value = res.data;
-      if (res.data.length === 1 && res.data[0].hasOwnProperty("userId")) {
+      if (res.data.length > 0 && res.data[0].hasOwnProperty("userId")) {
         formData.selectUserId = [res.data[0].userId];
       }
     }

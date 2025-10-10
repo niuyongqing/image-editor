@@ -291,10 +291,10 @@ const getList = async () => {
       params.createTimeList.length >= 2
     ) {
       // 使用与原始代码相同的参数名，确保与后端API兼容性
-      params.createTime = dayjs(params.createTimeList[0])
+      params.startTime = dayjs(params.createTimeList[0])
         .startOf("day")
         .format("YYYY-MM-DD HH:mm:ss");
-      params.updateTime = dayjs(params.createTimeList[1])
+      params.endTime = dayjs(params.createTimeList[1])
         .endOf("day")
         .format("YYYY-MM-DD HH:mm:ss");
     }
