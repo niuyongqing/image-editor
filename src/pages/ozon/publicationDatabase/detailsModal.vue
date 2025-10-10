@@ -70,7 +70,7 @@
         
         <a-descriptions title="">
           <a-descriptions-item label="产品描述">
-            <div>{{ detailData.data.productAttributeList?.find(i => i.attributeId === 4191)?.attributeValue || '无' }}</div>
+            <div style="padding-right: 50px;">{{ detailData.data.productAttributeList?.find(i => i.attributeId === 4191)?.attributeValue || '无' }}</div>
           </a-descriptions-item>
           <a-descriptions-item label="JSON富文本">
             <div v-if="detailData.data.editor_json_11254">
@@ -256,6 +256,7 @@ async function getDetailFn() {
   try {
     res = await getDetail(detailData.row.id);
     detailData.categoryAttributeList = res.data.categoryAttributeList.filter(i => !i.isAspect).filter(i => {
+      // 以下属性需要过滤掉，其中包括不需要展示的属性，销售属性，视频等，写死的
       return !([11254,4191,85,31,4389,4080,8789,8790,4180,9024].includes(i.attributeId) || [100001,100002].includes(i.attributeComplexId))
     })
     res.data.editor_json_11254 = res.data.productAttributeList.find(i => i.attributeId === 11254)?.attributeValue
