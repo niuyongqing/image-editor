@@ -60,3 +60,13 @@ export function adProductFindListApi(params) {
 export function adProductToggleStateApi(params) {
   return usePost('/platform-ozon/platform/ozon/advertisement/product/batch/activate', params)
 }
+
+// 删除广告产品
+export function removeApi(params) {
+  return usePost('/platform-ozon/platform/ozon/advertisement/product/remove', params)
+}
+
+// 广告产品修改竞价
+export function updateBidApi(params) {
+  return usePost('/platform-ozon/platform/ozon/advertisement/batch/update/bid', params)
+}

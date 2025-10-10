@@ -25,15 +25,3 @@ export const PLACEHOLDER_ENUM = {
   name: '产品名称',
   sku: 'SKU, 多个 SKU 间用英文逗号隔开'
 }
-
-// 广告列表 tab
-export const LIST_TABS = [
-  { label: '全部', value: 'all' },
-  { label: '登上顶端', value: 'top' },
-  { label: '模板', value: 'template' }
-]
-export const LIST_TABS_COUNT_ENUM = {
-  all: 0,
-  top: 0,
-  template: 0
-}
