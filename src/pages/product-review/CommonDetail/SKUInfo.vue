@@ -265,12 +265,12 @@
                 >
               </div>
             </template>
-            <template v-if="column.dataIndex === 'quantity'">
+            <template v-if="column.dataIndex === 'stock'">
               <div class="flex flex-col min-w-25">
                 <span><span style="color: #ff0a37">*</span> {{ column.title }}</span
                 ><a
                   class="ml-1.25"
-                  @click="batchStock('all')"
+                  @click="batchStock"
                   >批量</a
                 >
               </div>
@@ -393,15 +393,16 @@
                 </a-dropdown>
               </div>
             </template>
-            <template v-if="column.dataIndex === 'quantity'">
-              <div class="flex justify-center">
-                <span>{{ record.quantity === undefined ? 0 : record.quantity }}</span>
-                <AsyncIcon
-                  class="ml-2.5"
-                  icon="EditOutlined"
-                  @click="batchStock('single', record)"
-                ></AsyncIcon>
-              </div>
+            <template v-if="column.dataIndex === 'stock'">
+              <a-input-number
+                v-model:value="record.stock"
+                :min="0"
+                size="middle"
+                :controls="false"
+                :max="99999999"
+                :precision="2"
+                class="w-full"
+              />
             </template>
             <template v-if="column.dataIndex === 'packageLength'">
               <div class="flex">
@@ -502,13 +503,6 @@
     </a-card>
     <a-divider />
 
-    <!-- 修改库存 -->
-    <EditProdQuantity
-      :editQuantityVis="editQuantityVis"
-      :editStockList="editStockList"
-      @backQuantity="backQuantity"
-      @backCloseQuantity="editQuantityVis = false"
-    />
     <!-- 批量修改 -->
     <BatchEditModal
       :batchOpen="batchOpen"
@@ -526,17 +520,17 @@
       @handleStatsModalClose="attrVisible = false"
     />
     <!-- 批量设置变种属性 -->
-    <BatchSetColor
+    <!-- <BatchSetColor
       :setValueVis="setValueVis"
       :setColorOption="setColorOption"
       @closeColorModal="setValueVis = false"
       @confirm="confirm"
       @handleCancel="handleColorCancel"
-    />
+    /> -->
     <!-- 批量修改颜色样本大小 -->
-    <BacthEditColorImg ref="bacthEditColorImgRef" />
+    <!-- <BacthEditColorImg ref="bacthEditColorImgRef" /> -->
     <!-- 颜色样本翻译 -->
-    <ColorImgTranslation ref="colorImgTranslationRef" />
+    <!-- <ColorImgTranslation ref="colorImgTranslationRef" /> -->
   </div>
 </template>
 
@@ -544,7 +538,7 @@
   import AsyncIcon from '~/layouts/components/menu/async-icon.vue'
   import { message, Modal } from 'ant-design-vue'
   import { watermarkListApi, watermarkApi } from '@/api/common/water-mark'
-  import { productWarehouse, templateList } from '@/pages/ozon/config/api/product'
+  import { templateList } from '@/pages/ozon/config/api/product'
   import {
     updatePrice,
     endResult,
@@ -566,12 +560,11 @@
   import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
   import { FileOutlined, SettingOutlined, DownOutlined } from '@ant-design/icons-vue'
   import { v4 as uuidv4 } from 'uuid'
-  import EditProdQuantity from '@/pages/ozon/productPublish/comm/EditProdQuantity.vue'
   import SelectAttr from '@/pages/ozon/productPublish/comm/SelectAttr.vue'
-  import BatchEditModal from '@/pages/ozon/config/component/batchEditModal/index.vue'
-  import BatchSetColor from '@/pages/ozon/editWaitProduct/comm/batchSetColor.vue'
-  import ColorImgTranslation from '@/pages/ozon/editWaitProduct/comm/colorImgTranslation.vue'
-  import BacthEditColorImg from '@/pages/ozon/editWaitProduct/comm/bacthEditColorImg.vue'
+  import BatchEditModal from './BatchEditModal.vue'
+  // import BatchSetColor from '@/pages/ozon/editWaitProduct/comm/batchSetColor.vue'
+  // import ColorImgTranslation from '@/pages/ozon/editWaitProduct/comm/colorImgTranslation.vue'
+  // import BacthEditColorImg from '@/pages/ozon/editWaitProduct/comm/bacthEditColorImg.vue'
 
   const store = useProductReviewStore()
   const productDetail = computed(() => store.productDetail)
@@ -585,13 +578,11 @@
   const attributeList = ref([]) //变种主题卡片
   const tableData = ref([])
   const watermark = ref([])
-  const editQuantityVis = ref(false)
   const batchOpen = ref(false)
   const batchTitle = ref('')
   const batchType = ref('')
   const headerList = ref([]) //动态表头
   const addHeaderList = ref([])
-  const quantityRow = ref({})
   const types = ref('')
   const editStockList = ref([])
   const attrVisible = ref(false)
@@ -1104,8 +1095,7 @@
       newTableData[i].mainImages = tableData.value[i].mainImages
       newTableData[i].subImages = tableData.value[i].subImages
       newTableData[i].imageList = tableData.value[i].imageList
-      newTableData[i].quantity = tableData.value[i].quantity
-      newTableData[i].warehouseList = tableData.value[i].warehouseList
+      newTableData[i].stock = tableData.value[i].stock
       newTableData[i].packageHeight = tableData.value[i].packageHeight
       newTableData[i].packageLength = tableData.value[i].packageLength
       newTableData[i].packageWidth = tableData.value[i].packageWidth
@@ -1163,6 +1153,16 @@
     batchTitle.value = '批量修改成本价'
     batchType.value = 'costPrice'
   }
+  // 批量修改库存
+  const batchStock = () => {
+    if (tableData.value.length == 0) {
+      message.warning('请先添加sku！')
+      return
+    }
+    batchOpen.value = true
+    batchTitle.value = '批量修改库存'
+    batchType.value = 'stock'
+  }
   // 批量修改SKU
   const batchSKU = () => {
     if (tableData.value.length == 0) {
@@ -1183,53 +1183,6 @@
     batchTitle.value = '批量修改SKU标题'
     batchType.value = 'skuTitle'
   }
-  // 修改 SKU 时同步修改 warehouseList 里的 skuCode
-  const sellerSKUChange = debounce(record => {
-    record.warehouseList.forEach(item => {
-      item.skuCode = record.sellerSKU
-    })
-  }, 200)
-  // 批量修改库存
-  const batchStock = (type, row = {}) => {
-    if (tableData.value.length == 0) {
-      message.warning('请先添加sku！')
-      return
-    }
-    getEditStore(shopCode)
-    quantityRow.value = row
-    editQuantityVis.value = true
-    types.value = type
-  }
-
-  //修改库存
-  const backQuantity = (quantities, copyList) => {
-    // 生成仓库条目函数（过滤空值并映射结构）
-    const createWarehouseEntries = (skuCode, copyList) =>
-      copyList[0].children
-        .filter(item => item.stock != null && item.stock !== '')
-        .map(item => ({
-          skuCode,
-          warehouseId: item.warehouseId,
-          present: item.stock,
-          warehouseName: item.name
-        }))
-
-    // 按仓库ID去重函数
-    const deduplicateByWarehouseId = entries => Array.from(new Map(entries.map(item => [item.warehouseId, item])).values())
-
-    if (types.value === 'single') {
-      // 单规格模式
-      quantityRow.value.quantity = quantities
-      quantityRow.value.warehouseList = createWarehouseEntries(quantityRow.value.sellerSKU, copyList)
-    } else {
-      // 多规格模式
-      tableData.value.forEach(e => {
-        e.quantity = quantities
-        const entries = createWarehouseEntries(e.sellerSKU, copyList)
-        e.warehouseList = deduplicateByWarehouseId(entries)
-      })
-    }
-  }
 
   const batchPackLength = () => {
     if (tableData.value.length == 0) {
@@ -1246,18 +1199,18 @@
       case 'sku':
         tableData.value.forEach(item => {
           item.sellerSKU = batchFields.batchValue
-          item.warehouseList.forEach(warehouse => {
-            warehouse.skuCode = item.sellerSKU
-          })
         })
         break
-      case 'skuTitle':
-        tableData.value.forEach(item => {
-          item.skuTitle = batchFields.batchValue
-        })
-        break
+      // case 'skuTitle':
+      //   tableData.value.forEach(item => {
+      //     item.skuTitle = batchFields.batchValue
+      //   })
+      //   break
       case 'costPrice':
         updatePrice(tableData.value, 'costPrice', batchFields)
+        break
+      case 'stock':
+        updatePrice(tableData.value, 'stock', batchFields)
         break
       case 'packLength':
         tableData.value.forEach(item => {
@@ -1268,23 +1221,6 @@
         break
     }
     batchOpen.value = false
-  }
-
-  const getEditStore = account => {
-    let params = {
-      account: [account]
-    }
-    productWarehouse(params).then(res => {
-      editStockList.value =
-        res?.data?.map(item => {
-          return {
-            account: item.account,
-            simpleName: item.simpleName,
-            children: item.children,
-            allStock: ''
-          }
-        }) || []
-    })
   }
 
   // 获取水印列表
@@ -1377,8 +1313,7 @@
             skuTitle: '',
             sellerSKU: '',
             costPrice: null,
-            quantity: undefined,
-            warehouseList: [],
+            stock: undefined,
             packageLength: undefined,
             packageWidth: undefined,
             packageHeight: undefined,
@@ -1430,19 +1365,18 @@
   // 提取公共的newItem创建函数
   const createNewItem = (sku, dataSource) => ({
     costPrice: dataSource.costPrice || sku.costPrice,
-    quantity: dataSource.stock || sku.stock,
+    stock: dataSource.stock || sku.stock,
     packageHeight: sku.height,
     packageLength: sku.depth,
     packageWeight: sku.weight,
     packageWidth: sku.width,
     skuTitle: dataSource.name || sku.name,
-    colorImg: createColorImg(dataSource.colorImage || sku.colorImage),
-    warehouseList: formatWarehouseList(dataSource.warehouseList || sku.warehouseList, sku.skuCode),
+    // colorImg: createColorImg(dataSource.colorImage || sku.colorImage),
     sellerSKU: dataSource.skuCode || sku.skuCode,
     // imageUrl: mergeAndDeduplicateImages(dataSource, sku),
     mainImages: fillImage(sku.mainImages),
-    subImages: fillImage(sku.subImages),
-    imageList: sku.imageList || []
+    subImages: fillImage(sku.subImages)
+    // imageList: sku.imageList || []
   })
 
   // 给图片url地址添加id, 组成图片对象
@@ -1466,11 +1400,6 @@
         name: colorImage.split('/').pop()
       }
     ]
-  }
-
-  // 仓库列表格式化函数
-  const formatWarehouseList = (warehouseList, skuCode) => {
-    return warehouseList?.map(item => ({ ...item, skuCode })) || []
   }
 
   // 图片合并去重函数
@@ -1514,10 +1443,10 @@
     headerList.value = customSort(uniqueArr)
 
     // 添加颜色样本列
-    if (result.some(item => item.colorImg.length)) {
+    /* if (result.some(item => item.colorImg.length)) {
       headerList.value.unshift(CONSTANTS.TABLE_HEADER.COLOR_IMG)
       addHeaderList.value.push('colorImg')
-    }
+    } */
 
     // 添加SKU标题列
     if (result.some(item => item.skuTitle) && result.length > 1) {
@@ -1694,7 +1623,7 @@
       },
       { check: row => isEmpty(row.sellerSKU), text: '请填写SKU编号！' },
       { check: row => isEmpty(row.costPrice), text: '请填写成本价！' },
-      { check: row => isEmpty(row.quantity), text: '请填写库存！' },
+      { check: row => isEmpty(row.stock), text: '请填写库存！' },
       {
         check: row => [row.packageHeight, row.packageLength, row.packageWeight, row.packageWidth].some(v => v == null),
         message: '请填写SKU包装信息！'
@@ -1724,9 +1653,18 @@
     }
   }
 
+  // 获取用于提交的 skuList 数据
+  function getSkuList() {
+    const skuList = tableData.value.map(item => {
+      
+    })
+
+    return skuList
+  }
+
   // 抛出数据和方法，可以让父级用ref获取
   defineExpose({
-    tableData,
+    getSkuList,
     submitForm
   })
   onMounted(() => {
