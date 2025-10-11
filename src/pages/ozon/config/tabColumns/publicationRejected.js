@@ -1,6 +1,6 @@
 // 初始选品审核发布列表
 export default [
-  {
+{
     title: '序号',
     dataIndex: 'index',
     key: 'index',
@@ -71,9 +71,9 @@ export default [
     sortable: true
   },
   {
-    title: '选品理由',
-    dataIndex: 'selectReason',
-    key: 'selectReason',
+    title: '驳回备注',
+    dataIndex: 'firstAuditReason',
+    key: 'firstAuditReason',
     align: 'center',
     width: 300,
     show: true,

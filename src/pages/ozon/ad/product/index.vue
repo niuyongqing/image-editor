@@ -77,7 +77,7 @@
           <a-tab-pane
             v-for="item in LIST_TABS"
             :key="item.value"
-            :tab="`${item.label}(${LIST_TABS_COUNT_ENUM[item.value] || 0})`"
+            :tab="`${item.label}(${listTabsCountEnum[item.value] || 0})`"
           ></a-tab-pane>
         </a-tabs>
         <a-pagination
@@ -222,11 +222,12 @@
 </template>
 
 <script setup>
-  import { DEFAULT_TABLE_COLUMN, SEARCH_PROP_OPTIONS, PLACEHOLDER_ENUM, LIST_TABS, LIST_TABS_COUNT_ENUM } from './config'
+  import { DEFAULT_TABLE_COLUMN, SEARCH_PROP_OPTIONS, PLACEHOLDER_ENUM } from './config'
+  import { LIST_TABS, listTabsCountEnum } from '../management/config'
   import dayjs from 'dayjs'
   import { copyText } from '@/utils'
   import { accountCache } from '@/pages/ozon/config/api/product'
-  import { adProductListApi, adProductAddApi, adProductFindListApi, adProductToggleStateApi } from '../api'
+  import { adProductListApi, adProductAddApi, adProductFindListApi, adProductToggleStateApi, removeApi, updateBidApi } from '../api'
   import { message } from 'ant-design-vue'
   import TiledSelect from '~/components/tiled-select/index.vue'
   import SearchContentInput from '~/components/search-content-input/index.vue'
@@ -238,7 +239,7 @@
   // 被 watch 监听的搜索表单; 外层, 点击即可搜索
   const watchedSearchForm = reactive({
     sellerId: undefined,
-    tab: 'all'
+    tab: 'ALL'
   })
   // 点击'搜索'按钮再执行搜索动作
   const lazySearchForm = reactive({
@@ -296,6 +297,21 @@
     }
     delete params.searchKey
     delete params.searchValue
+
+    adProductListApi(params)
+      .then(res => {
+        total.value = res.total ?? 0
+        tableData.value = res.rows[0].list || []
+
+        const aggregationState = res.rows[0].aggregationState || []
+        for (const key in listTabsCountEnum) {
+          const target = aggregationState.find(item => item.state === key)
+          target && (listTabsCountEnum[key] = target.count ?? 0)
+        }
+      })
+      .finally(() => {
+        loading.value = false
+      })
   }
 
   function search() {
@@ -346,7 +362,15 @@
 
   // 移除
   function del(record) {
-    console.log('del')
+    const params = [{
+      id: record.id,
+      productId: record.productId,
+      account: record.account
+    }]
+
+    removeApi(params).then(res => {
+      message.success('删除成功')
+    })
   }
 
   /** 添加广告产品弹窗 */

@@ -1,129 +1,228 @@
 <template>
   <div id="configAccountCont">
     <!-- 面包屑导航 -->
-    <a-breadcrumb style="margin-bottom: 16px;">
+    <a-breadcrumb style="margin-bottom: 16px">
       <a-breadcrumb-item>首页</a-breadcrumb-item>
       <a-breadcrumb-item>产品编审</a-breadcrumb-item>
-      <a-breadcrumb-item>刊登初审</a-breadcrumb-item>
+      <a-breadcrumb-item v-if="props.Source === 'initialReviewPublication'"
+        >刊登初审</a-breadcrumb-item
+      >
+      <a-breadcrumb-item v-if="props.Source === 'pendingFinalReview'"
+        >刊登终审</a-breadcrumb-item
+      >
+      <a-breadcrumb-item v-if="props.Source === 'publicationRejected'"
+        >刊登驳回</a-breadcrumb-item
+      >
     </a-breadcrumb>
 
     <!-- 搜索筛选区域 -->
-    <a-card style="margin-top: 8px;">
-      <a-form :model="formData" layout="inline" ref="formRef" class="search-form" :wrapper-col="wrapperCol"
-        :label-col="labelCol">
+    <a-card style="margin-top: 8px">
+      <a-form
+        :model="formData"
+        layout="inline"
+        ref="formRef"
+        class="search-form"
+        :wrapper-col="wrapperCol"
+        :label-col="labelCol"
+      >
         <a-form-item label="模糊查询:">
           <a-space size="middle">
-            <a-input v-model:value="formData.productOrderNo" placeholder="请输入产品订单号" allowClear />
-            <a-input v-model:value="formData.productName" placeholder="请输入产品名称" allowClear />
+            <a-input
+              v-model:value="formData.tradeName"
+              placeholder="请输入产品名称"
+              allowClear
+            />
+            <a-input
+              v-model:value="formData.sku"
+              placeholder="请输入产品sku名称"
+              allowClear
+            />
           </a-space>
         </a-form-item>
 
         <a-form-item label="分类:">
-          <div class="category-selector-wrapper">
-            <a-dropdown trigger="click" v-model:open="openDropdown" :autoAdjustOverflow="true">
-              <a-button
-                style="width: 250px; height: 24px; display: flex; align-items: center; justify-content: space-between;"
-                @click="openDropdown = true">
-                <div v-if="formData.nodeName"
-                  style="width: 210px; text-align: left;  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                  {{ formData.nodeName }}
-                </div>
-                <div v-else
-                  style="width: 210px; text-align: left; color: rgba(0, 0, 0, 0.3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                  {{ '请选择分类' }}
-                </div>
-                <DownOutlined />
-              </a-button>
-              <template #overlay>
-                <a-menu style="width: 300px; max-height: 400px; overflow-y: auto;">
-                  <typeTree v-model:current-class="formData.currentClass" v-model:node-path="formData.nodePath"
-                    :classifyTreeData="treeData" ref="typeTreeRef" :defaultClass="false" platform="ozon" />
-                </a-menu>
-              </template>
-            </a-dropdown>
-            <a-button type="link" @click="showCategoryModal">+ 管理分类</a-button>
-            <a-button v-if="formData.nodeName" type="link" danger @click="clearCategorySelection"
-              style="margin-left: -10px;">清除</a-button>
-          </div>
+          <a-cascader
+            placeholder="请选择分类"
+            allowClear
+            v-model:value="formData.classify"
+            :options="commodityTypeList"
+            :allow-clear="true"
+            :field-names="{
+              label: 'label',
+              value: 'value',
+              children: 'children',
+            }"
+          />
         </a-form-item>
-        <a-form-item label="用户:">
-          <a-select v-model:value="formData.userId" allow-clear show-search placeholder="请选择用户"
-            :options="getAccountUserArr" mode="multiple" :maxTagCount="2" :filter-option="filterOption"
-            :fieldNames="userLabels"></a-select>
+        <a-form-item label="提交人:">
+          <a-select
+            v-model:value="formData.selectUserId"
+            allow-clear
+            show-search
+            placeholder="请选择提交人"
+            :options="getAccountUserArr"
+            mode="multiple"
+            :maxTagCount="2"
+            :filter-option="filterOption"
+            :fieldNames="userLabels"
+          ></a-select>
         </a-form-item>
         <a-form-item label="市场方向:">
-          <a-select v-model:value="formData.devAttributableMarket" :options="devAttributableMarketRevertSelect"
-            mode="multiple" :maxTagCount="2" placeholder="请输入市场方向" allowClear />
+          <a-select
+            v-model:value="formData.devAttributableMarket"
+            :options="devAttributableMarketRevertSelect"
+            mode="multiple"
+            :maxTagCount="2"
+            placeholder="请选择市场方向"
+            allowClear
+          />
         </a-form-item>
         <a-form-item label="创建时间:">
-          <a-range-picker v-model:value="formData.createTime" allow-clear :presets="datePresets" />
+          <a-range-picker
+            v-model:value="formData.createTimeList"
+            format="YYYY-MM-DD HH:mm:ss"
+            allow-clear
+            :presets="datePresets"
+          />
         </a-form-item>
 
         <a-form-item class="form-actions">
-          <a-button type="primary" @click="onSubmit" :loading="tableLoading">查询</a-button>
-          <a-button style="margin-left: 10px" @click="resetForm" :loading="tableLoading">重置</a-button>
+          <a-button type="primary" @click="searchList" :loading="tableLoading"
+            >查询</a-button
+          >
+          <a-button
+            style="margin-left: 10px"
+            @click="resetForm"
+            :loading="tableLoading"
+            >重置</a-button
+          >
           <!-- <a-button style="margin-left: 10px" @click="exportData" :loading="exportLoading">导出</a-button> -->
         </a-form-item>
       </a-form>
     </a-card>
 
     <!-- 数据展示区域 -->
-    <a-card style="margin-top: 20px;">
+    <a-card style="margin-top: 20px">
       <div class="table-header-actions">
-        <a-button @click="handleAudit" type="primary" :disabled="selectedCount === 0 || tableLoading"
-          tooltip="批量审核选中的商品">
+        <a-button
+          v-if="props.Source !== 'publicationRejected'"
+          @click="handleAudit"
+          type="primary"
+          :disabled="selectedCount === 0 || tableLoading"
+          tooltip="批量审核选中的商品"
+        >
           审核
         </a-button>
-        <span style="margin-left: 16px; color: #666;">
+        <template v-else>
+          <a-button
+            :disabled="selectedCount !== 1 || tableLoading"
+            style="margin-left: 16px"
+            @click="handleSee"
+            type="primary"
+            tooltip="批量审核选中的商品"
+          >
+            查看
+          </a-button>
+          <a-button
+            style="margin-left: 16px"
+            @click="handleAudit"
+            type="primary"
+            :disabled="selectedCount === 0 || tableLoading"
+            tooltip="批量审核选中的商品"
+          >
+            再次提交
+          </a-button>
+        </template>
+
+        <span style="margin-left: 16px; color: #666">
           已选择 {{ selectedCount }} 项
         </span>
 
-        <a-button type="default" style="margin-left: 16px;" @click="clearSelection" :disabled="selectedCount === 0">
+        <a-button
+          type="default"
+          style="margin-left: 16px"
+          @click="clearSelection"
+          :disabled="selectedCount === 0"
+        >
           清空选择
         </a-button>
       </div>
 
-      <div class="table-container" style="margin-top: 20px;">
+      <div class="table-container" style="margin-top: 20px">
         <!-- 使用封装的表格组件 -->
-        <ProductReviewTable ref="productReviewTableRef" :columns="columns" :api="setAccountlist"
-          :searchParams="formData" :currentClass="formData.currentClass" :nodePath="formData.nodePath"
-          :exportApi="exportProductList" @audit="handleProductAudit" @reset="resetForm"
-          @loading-change="handleLoadingChange" @export-loading-change="handleExportLoadingChange" />
+        <ProductReviewTable
+          ref="productReviewTableRef"
+          :columns="columns"
+          :api="commodityList"
+          :searchParams="formData"
+          :exportApi="exportProductList"
+          @audit="handleProductAudit"
+          @reset="resetForm"
+          @loading-change="handleLoadingChange"
+          @export-loading-change="handleExportLoadingChange"
+          :devAttributableMarketRevertSelect="devAttributableMarketRevertSelect"
+          @selection-change="handleSelectionChange"
+          :meansKeepGrainOptions="meansKeepGrainOptions"
+        />
       </div>
     </a-card>
-
-    <!-- 分类管理弹窗 -->
-    <typeManage v-model:modal-open="typeManageOpen" platform="ozon" @updateTree="updateTree" />
-
     <!-- 审核弹窗 -->
-    <a-modal :centered="true" v-model:open="auditOpen" :title="auditModalTitle" @ok="handleOk" @cancel="handleCancel"
-      :confirm-loading="auditLoading" okText="确认" cancelText="取消" :width="600">
+    <a-modal
+      :centered="true"
+      v-model:open="auditOpen"
+      :title="auditModalTitle"
+      @ok="handleOk"
+      @cancel="handleCancel"
+      :confirm-loading="auditLoading"
+      okText="确认"
+      cancelText="取消"
+      :width="600"
+    >
       <!-- 显示正在审核的商品信息 -->
-      <div v-if="currentAuditingProducts.length > 0" class="auditing-products-info">
+      <div
+        v-if="currentAuditingProducts.length > 0"
+        class="auditing-products-info"
+      >
         <div class="auditing-products-title">审核商品：</div>
         <div class="auditing-products-list">
-          <div v-for="(product, index) in currentAuditingProducts" :key="index" class="auditing-product-item">
-            {{ product.productName }}（订单号：{{ product.productOrderNo }}）
+          <div
+            v-for="(product, index) in currentAuditingProducts"
+            :key="index"
+            class="auditing-product-item"
+          >
+            产品名称：{{ product.commodityName }}
           </div>
         </div>
       </div>
 
       <a-form :model="auditFormData" ref="auditFormRef">
-        <a-form-item name="auditStatus">
-          <a-radio-group v-model:value="auditFormData.auditStatus">
-            <a-radio value="1" style="margin-right: 16px;">审核通过</a-radio>
-            <a-radio value="2">审核驳回</a-radio>
+        <a-form-item name="state">
+          <a-radio-group v-model:value="auditFormData.state">
+            <a-radio :value="1" style="margin-right: 16px">审核通过</a-radio>
+            <a-radio :value="0">审核驳回</a-radio>
           </a-radio-group>
         </a-form-item>
 
-        <a-form-item name="auditRemark" :rules="[{
-          required: auditFormData.auditStatus === '2',
-          message: '请输入审核备注',
-          trigger: 'blur'
-        }]">
-          <div style="margin-bottom: 8px;">备注:</div>
-          <a-textarea v-model:value="auditFormData.auditRemark" :rows="4" placeholder="请输入审核备注（驳回时必填）" allowClear
-            style="width: 100%;" :max-length="500" show-count />
+        <a-form-item
+          name="remark"
+          :rules="[
+            {
+              required: auditFormData.state === 0,
+              message: '请输入审核备注',
+              trigger: 'blur',
+            },
+          ]"
+        >
+          <div style="margin-bottom: 8px">备注:</div>
+          <a-textarea
+            v-model:value="auditFormData.remark"
+            :rows="4"
+            placeholder="请输入审核备注（驳回时必填）"
+            allowClear
+            style="width: 100%"
+            :max-length="500"
+            show-count
+          />
         </a-form-item>
       </a-form>
     </a-modal>
@@ -132,42 +231,55 @@
 
 <script setup name="initialReviewPublication">
 import {
-  setAccountlist,
-  ozonAccount,
-  exportProductList
-} from "@/pages/ozon/config/api/initialReviewPublication";
-import typeManage from '@/components/classificationTree/typeManage.vue';
+  commodityList,
+  firstAudit,
+  lastAudit,
+  rejectAudit,
+  exportProductList,
+} from "@/pages/product-review/config/api/product-review";
+import commodityTypeList from "@/utils/commodityType";
 import { ref, reactive, onMounted, computed, watch } from "vue";
 import tableHeaderInitial from "~@/pages/ozon/config/tabColumns/initialReviewPublication";
+import tableHeaderPublicationRejected from "~@/pages/ozon/config/tabColumns/publicationRejected";
 import tableHeaderPending from "~@/pages/ozon/config/tabColumns/pendingFinalReview";
-import { getClassList } from '@/components/classificationTree/api.js';
-import { DownOutlined } from '@ant-design/icons-vue';
+import { getClassList } from "@/components/classificationTree/api.js";
+import { DownOutlined } from "@ant-design/icons-vue";
 import devAttributableMarketRevertSelect from "@/utils/devAttributableMarketRevertSelect";
-import { message } from 'ant-design-vue';
-import dayjs from 'dayjs';
-import ProductReviewTable from './comm/table.vue';
-import { getAccountUser } from "@/pages/ozon/config/api/accountConfig";
+import { message } from "ant-design-vue";
+import dayjs from "dayjs";
+import ProductReviewTable from "./comm/table.vue";
+import { getAccountUser } from "@/pages/product-review/config/api/product-review";
+import { meansKeepGrains } from "@/utils/devStatusSelect";
+const router = useRouter();
 
 const props = defineProps({
   Source: {
     type: String,
-    default: 'initial-review-publication'
-  }
+    default: "initialReviewPublication",
+  },
 });
 // 组件引用
 const productReviewTableRef = ref(null);
-
+const meansKeepGrainOptions = ref(meansKeepGrains);
 // 搜索表单相关
 const formRef = ref(null);
-const formData = reactive({
-  productOrderNo: "", // 产品订单号
-  productName: "",   // 产品名称
+// 定义表单初始状态常量，便于重置
+const INITIAL_FORM_DATA = {
+  sku: "", // 产品sku名称
+  classify: "", //分类
+  meansKeepGrain: "", //仓储类别
   devAttributableMarket: [], // 市场方向
-  createTime: [],     // 创建时间范围
-  currentClass: '',   // 当前分类
-  nodePath: '',       // 选中的分类路径
-  nodeName: ''        // 选中的分类名称
-});
+  createTimeList: [], // 创建时间范围
+  selectUserId: [], //提交人
+  tradeName: "", //商品标题
+  state:
+    props.Source === "initialReviewPublication"
+      ? 10
+      : props.Source === "publicationRejected"
+        ? 70
+        : 50, // 审核状态：10 待初审，20 待编辑，30 申请重拍，40 资料员审核，50 待终审，60 终审完成，70 运营驳回 (例初审列表查询传10, 驳回列表查询传70,终审列表查询传50)
+};
+const formData = reactive({ ...INITIAL_FORM_DATA });
 
 // 表格相关
 const tableLoading = ref(false);
@@ -175,37 +287,42 @@ const selectedCount = ref(0);
 const exportLoading = ref(false);
 const columns = computed(() => {
   console.log(props.Source);
-  if (props.Source === 'initial-review-publication') {
+  if (props.Source === "initialReviewPublication") {
     return tableHeaderInitial;
+  }
+  if (props.Source === "publicationRejected") {
+    return tableHeaderPublicationRejected;
   }
   return tableHeaderPending;
 });
 
-// 分类相关
-const typeManageOpen = ref(false);
-const treeData = ref([]);
-const openDropdown = ref(false);
-const typeTreeRef = ref(null);
+// 审核接口映射
+const APIEDIT = {
+  initialReviewPublication: firstAudit,
+  publicationRejected: rejectAudit,
+  pendingFinalReview: lastAudit,
+};
 
 // 审核相关
 const auditOpen = ref(false);
 const auditLoading = ref(false);
 const auditFormRef = ref(null);
 const auditFormData = reactive({
-  auditStatus: '1', // 默认为审核通过
-  auditRemark: ''
+  state: 0, //0 未通过，1 通过
+  commodityId: "", //commodityId
+  remark: "", //remark
 });
 const currentAuditingProducts = ref([]);
 const isSingleAudit = ref(false);
 const labelCol = ref({
   style: {
-    width: '100px'
-  }
+    width: "100px",
+  },
 });
 const wrapperCol = ref({
   style: {
-    width: '305px'
-  }
+    width: "305px",
+  },
 });
 
 /**
@@ -213,17 +330,17 @@ const wrapperCol = ref({
  */
 const datePresets = computed(() => [
   {
-    label: '最近一周',
-    value: [dayjs().subtract(6, 'days'), dayjs()]
+    label: "最近一周",
+    value: [dayjs().subtract(6, "days"), dayjs()],
   },
   {
-    label: '最近一月',
-    value: [dayjs().subtract(29, 'days'), dayjs()]
+    label: "最近一月",
+    value: [dayjs().subtract(29, "days"), dayjs()],
   },
   {
-    label: '最近三月',
-    value: [dayjs().subtract(89, 'days'), dayjs()]
-  }
+    label: "最近三月",
+    value: [dayjs().subtract(89, "days"), dayjs()],
+  },
 ]);
 
 /**
@@ -234,10 +351,24 @@ const userLabels = ref({
   value: "userId",
 });
 const getAccountUserArr = ref([]);
-const getAccountUserList = () => {
-  getAccountUser({ userName: "" }).then((res) => {
-    getAccountUserArr.value = res.data;
-  });
+const getAccountUserList = async () => {
+  try {
+    // 发起请求获取用户列表
+    const res = await getAccountUser();
+    // 检查响应是否存在且包含 data 属性，并且 data 是数组
+    if (res && res.data && Array.isArray(res.data)) {
+      // 更新用户列表
+      getAccountUserArr.value = res.data;
+      if (res.data.length === 1 && res.data[0].hasOwnProperty("userId")) {
+        formData.selectUserId = [res.data[0].userId];
+      }
+    }
+  } catch (error) {
+    console.error("获取用户列表失败:", error);
+  }
+
+  // 调用表格获取列表方法
+  await productReviewTableRef?.value?.getList();
 };
 
 /**
@@ -252,30 +383,17 @@ const filterOption = (input, option) => {
  */
 const auditModalTitle = computed(() => {
   if (isSingleAudit.value) {
-    return '商品审核';
+    return "商品审核";
   }
   return `批量审核 (${currentAuditingProducts.value.length} 项)`;
-});
-
-/**
- * 监听nodePath变化，更新节点名称
- */
-watch(() => formData.nodePath, (newNodePath, oldNodePath) => {
-  if (newNodePath && newNodePath !== oldNodePath) {
-    const nodePaths = newNodePath.split(' > ');
-    formData.nodeName = nodePaths[nodePaths.length - 1];
-    // 选择分类后保持下拉菜单打开
-    openDropdown.value = false;
-  }
 });
 
 /**
  * 清除分类选择
  */
 const clearCategorySelection = () => {
-  formData.currentClass = '';
-  formData.nodeName = '';
-  formData.nodePath = '';
+  formData.classify = "";
+  formData.nodeName = "";
 };
 
 /**
@@ -304,7 +422,23 @@ const handleProductAudit = (products, singleAudit) => {
   currentAuditingProducts.value = products;
   selectedCount.value = products.length;
   resetAuditForm();
+  let isfirstAuditResulted = products.some(
+    (product) => product.firstAuditResult === 1
+  );
+  if (isfirstAuditResulted) {
+    message.warning("存在已初审商品，不能通过审核");
+    return;
+  }
   auditOpen.value = true;
+};
+
+/**
+ * 处理表格行选择变化
+ */
+const handleSelectionChange = (selectedRows) => {
+  selectedCount.value = selectedRows.length;
+  currentAuditingProducts.value = selectedRows;
+  console.log("currentAuditingProducts", currentAuditingProducts.value);
 };
 
 /**
@@ -314,8 +448,9 @@ const resetAuditForm = () => {
   if (auditFormRef.value) {
     auditFormRef.value.resetFields();
   }
-  auditFormData.auditStatus = '1';
-  auditFormData.auditRemark = '';
+  auditFormData.state = 0;
+  auditFormData.commodityId = "";
+  auditFormData.remark = "";
 };
 
 /**
@@ -325,116 +460,79 @@ const handleCancel = () => {
   resetAuditForm();
   auditOpen.value = false;
   currentAuditingProducts.value = [];
+  selectedCount.value = 0;
+  clearSelection();
 };
 
 /**
  * 提交审核
  */
 const handleOk = () => {
-  auditFormRef.value.validate().then(() => {
-    if (currentAuditingProducts.value.length === 0) {
-      message.warning('请选择要审核的商品');
-      return;
-    }
-
-    auditLoading.value = true;
-
-    // 处理多个商品的审核逻辑
-    const auditPromises = currentAuditingProducts.value.map(product => {
-      return ozonAccount({
-        productOrderNo: product.productOrderNo,
-        auditStatus: auditFormData.auditStatus,
-        auditRemark: auditFormData.auditRemark
-      });
-    });
-
-    Promise.all(auditPromises)
-      .then(results => {
-        // 检查是否所有审核都成功
-        const allSuccess = results.every(res => !!res);
-
-        if (allSuccess) {
-          message.success(`成功审核 ${currentAuditingProducts.value.length} 个商品`);
-          if (productReviewTableRef.value) {
-            productReviewTableRef.value.getList();
-          }
-          resetAuditForm();
-          auditOpen.value = false;
-          currentAuditingProducts.value = [];
-          selectedCount.value = 0;
-        } else {
-          message.error('部分商品审核失败，请重试');
-        }
-      })
-      .catch(error => {
-        message.error('审核失败，请重试');
-        console.error('审核失败:', error);
-      })
-      .finally(() => {
-        auditLoading.value = false;
-      });
-  }).catch(error => {
-    console.error('表单验证失败:', error);
-  });
-};
-
-/**
- * 更新分类树数据
- */
-const updateTree = async () => {
-  await getTreeData();
-};
-
-/**
- * 打开分类管理弹窗
- */
-const showCategoryModal = () => {
-  typeManageOpen.value = true;
-};
-
-/**
- * 在树结构中根据ID查找节点
- * @param {string} id - 节点ID
- * @param {Array} tree - 树数据
- * @returns {Object|null} 找到的节点或null
- */
-const findItemById = (id, tree) => {
-  for (let item of tree) {
-    if (item.id === id) {
-      return item;
-    }
-    if (item.childList && item.childList.length > 0) {
-      const found = findItemById(id, item.childList);
-      if (found) {
-        return found;
+  auditFormRef.value
+    .validate()
+    .then(() => {
+      if (currentAuditingProducts.value.length === 0) {
+        message.warning("请选择要审核的商品");
+        return;
       }
-    }
-  }
-  return null;
+
+      auditLoading.value = true;
+      // 根据不同的来源准备参数
+      let auditPromise;
+      // 提取公共参数
+      const commonParams = {
+        commodityId: currentAuditingProducts.value
+          .map((product) => product.commodityId)
+          ?.join(","),
+        state: auditFormData.state,
+        remark: auditFormData.remark,
+      };
+      // 根据来源选择不同的审核接口
+      auditPromise = APIEDIT[props.Source](commonParams);
+      auditPromise
+        .then((result) => {
+          // 实际根据后端接口返回格式调整判断逻辑
+          if (result?.code === 200) {
+            message.success(
+              `成功审核 ${currentAuditingProducts.value.length} 个商品`
+            );
+            if (productReviewTableRef.value) {
+              productReviewTableRef.value.getList();
+            }
+            resetAuditForm();
+            auditOpen.value = false;
+            currentAuditingProducts.value = [];
+            selectedCount.value = 0;
+          } else {
+            message.error("审核失败，请重试");
+            console.error("审核失败:", result?.message || "未知错误");
+          }
+        })
+        .catch((error) => {
+          message.error("审核失败，请重试");
+          console.error("审核失败:", error);
+        })
+        .finally(() => {
+          auditLoading.value = false;
+        });
+    })
+    .catch((error) => {
+      console.error("表单验证失败:", error);
+    });
 };
 
 /**
- * 获取分类树数据
+ * 处理查看操作
  */
-const getTreeData = async () => {
-  try {
-    const params = {
-      platform: 'ozon',
-      parentId: '0'
-    };
-    const res = await getClassList(params);
-    const dataRes = res.data || [];
-    treeData.value = dataRes;
-
-    // 如果有当前选中的分类ID，则查找并更新节点名称
-    if (formData.currentClass) {
-      const item = findItemById(formData.currentClass, treeData.value);
-      formData.nodeName = item?.name || '';
-    }
-  } catch (error) {
-    console.error('获取分类树数据失败:', error);
-    message.error('获取分类树数据失败');
-  }
+const handleSee = () => {
+  const id = currentAuditingProducts?.value[0]?.commodityId;
+  const urlData = router.resolve({
+    path: "/platform/product-review/data-for-editing-detail",
+    query: {
+      id: id,
+    },
+  });
+  window.open(urlData.href, "_blank");
 };
 
 /**
@@ -449,7 +547,7 @@ const exportData = async () => {
 /**
  * 提交搜索表单
  */
-const onSubmit = () => {
+const searchList = () => {
   if (productReviewTableRef.value) {
     productReviewTableRef.value.getList();
   }
@@ -459,17 +557,13 @@ const onSubmit = () => {
  * 重置搜索表单
  */
 const resetForm = () => {
-  if (formRef.value) {
-    formRef.value.resetFields();
-    // 确保表单数据也被重置
-    formData.productOrderNo = "";
-    formData.productName = "";
-    formData.devAttributableMarket = [];
-    formData.createTime = [];
-  }
+  // 使用初始状态常量重置表单，更简洁且易于维护
+  Object.keys(INITIAL_FORM_DATA).forEach((key) => {
+    formData[key] = JSON.parse(JSON.stringify(INITIAL_FORM_DATA[key]));
+  });
+
   // 重置分类相关状态
   clearCategorySelection();
-
   if (productReviewTableRef.value) {
     productReviewTableRef.value.getList();
   }
@@ -489,16 +583,14 @@ const handleExportLoadingChange = (loading) => {
   exportLoading.value = loading;
 };
 
-
 /**
  * 初始化
  */
 onMounted(() => {
-  getTreeData();
   getAccountUserList();
 });
 </script>
 
 <style scoped lang="less">
-@import '@/assets/styles/com-list.less';
+@import "@/assets/styles/com-list.less";
 </style>

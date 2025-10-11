@@ -201,6 +201,23 @@
   import { RightOutlined } from '@ant-design/icons-vue'
   import { cloneDeep } from 'lodash'
 
+  const props = defineProps({
+    // 末尾的分类id; 详情回显分类信息用
+    tailCategoryId: {
+      type: String,
+      default: ''
+    }
+  })
+
+  watch(
+    () => props.tailCategoryId,
+    id => {
+      if (!id) return
+
+      thirdState.selectKeys = id ? [Number(id)] : []
+    }
+  )
+
   const searchValue = ref('')
   const openSelect = ref(false) // 是否展开下拉菜单
   const selectItem = ref({}) // 选中的历史分类
@@ -323,6 +340,8 @@
     return null
   }
 
+  // 获取分类树数据
+  getCategoryTree()
   function getCategoryTree() {
     newCategoryTreeApi().then(res => {
       treeData.value = res.data || []
@@ -333,6 +352,12 @@
           value: thirdState.selectKeys[0],
           ids: path.ids
         }
+
+        emits('select', {
+          ...path,
+          value: thirdState.selectKeys[0],
+          initialization: true // 初始化状态
+        })
 
         firstState.options = treeData.value.map(item => {
           return {
@@ -409,9 +434,8 @@
     openSelect.value = false
     const path = findPathById(thirdState.selectValue.typeId, treeData.value)
     emits('select', {
-      label: path.labels,
-      value: thirdState.selectValue.typeId,
-      ids: path.ids
+      ...path,
+      value: thirdState.selectValue.typeId
     })
     handleClose()
   }
@@ -467,10 +491,12 @@
   }
 
   //  打开弹窗
-  const open = categoryId => {
+  const open = () => {
     visible.value = true
-    thirdState.selectKeys = categoryId ? [categoryId] : []
-    getCategoryTree()
+
+    firstState.open = true
+    secondState.open = true
+    thirdState.open = true
   }
 
   const handleClose = () => {
@@ -480,9 +506,9 @@
     }
     openSelect.value = false
     searchValue.value = ''
-    firstReset()
-    secondReset()
-    thirdReset()
+    // firstReset()
+    // secondReset()
+    // thirdReset()
     firstState.open = false
     secondState.open = false
     thirdState.open = false
