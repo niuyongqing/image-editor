@@ -62,8 +62,8 @@ export default [
   },
   {
     title: '提交时间',
-    dataIndex: 'updateTime',
-    key: 'updateTime',
+    dataIndex: 'selectTime',
+    key: 'selectTime',
     align: 'center',
     width: 180,
     show: true,
