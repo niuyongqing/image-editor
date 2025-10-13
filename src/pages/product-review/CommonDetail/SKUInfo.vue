@@ -275,11 +275,11 @@
                 >
               </div>
             </template>
-            <template v-if="column.dataIndex === 'packageLength'">
+            <template v-if="column.dataIndex === 'sizeInfo'">
               <span><span style="color: #ff0a37">*</span> {{ column.title }}(mm)</span
               ><a
                 class="ml-1.25"
-                @click="batchPackLength"
+                @click="batchSizeInfo"
                 >批量</a
               >
               <p>长*宽*高*重量</p>
@@ -404,12 +404,12 @@
                 class="w-full"
               />
             </template>
-            <template v-if="column.dataIndex === 'packageLength'">
+            <template v-if="column.dataIndex === 'sizeInfo'">
               <div class="flex">
                 <div class="flex items-center">
                   <div>
                     <a-input-number
-                      v-model:value="record.packageLength"
+                      v-model:value="record.length"
                       controls-position="right"
                       class="min-w-100px"
                       size="middle"
@@ -422,7 +422,7 @@
                   </div>
                   <div class="ml-2.5">
                     <a-input-number
-                      v-model:value="record.packageWidth"
+                      v-model:value="record.width"
                       controls-position="right"
                       class="min-w-100px"
                       size="middle"
@@ -435,7 +435,7 @@
                   </div>
                   <div class="ml-2.5">
                     <a-input-number
-                      v-model:value="record.packageHeight"
+                      v-model:value="record.height"
                       controls-position="right"
                       class="min-w-100px"
                       :min="0"
@@ -448,7 +448,7 @@
                   </div>
                   <div class="ml-2.5">
                     <a-input-number
-                      v-model:value="record.packageWeight"
+                      v-model:value="record.weight"
                       controls-position="right"
                       class="min-w-100px"
                       :precision="0"
@@ -545,7 +545,7 @@
     processAttributesCache,
     reorderArray,
     cartesianProduct,
-    processResult,
+    processResult2,
     processData,
     checkSellerSKU,
     hasDuplicateModelValues,
@@ -568,6 +568,7 @@
 
   const store = useProductReviewStore()
   const productDetail = computed(() => store.productDetail)
+  const rawAttributes = computed(() => store.attributes)
 
   const bacthEditColorImgRef = ref()
   const colorImgTranslationRef = ref()
@@ -856,7 +857,7 @@
         headerList.value.splice(index + 1, 0, obj)
       }
     })
-    const displayAttr = store.attributes
+    const displayAttr = rawAttributes.value
     const idMap = new Map()
     list.forEach(item => {
       idMap.set(item.id, true)
@@ -877,7 +878,7 @@
   function confirmMenuClick({ key }, record, type) {
     // 定义不同type对应的属性映射关系
     const propertyMap = {
-      size: ['packageLength', 'packageWidth', 'packageHeight', 'packageWeight'],
+      size: ['length', 'width', 'height', 'weight'],
       costPrice: ['costPrice']
     }
     // 根据type获取对应的属性列表，默认不复制任何属性
@@ -908,7 +909,7 @@
   // 处理数据格式
   const processDataFormat = (list = []) => {
     let newHeaderList = handleTheme(list)
-    const insertIndex = headerList.value.length - 6
+    const insertIndex = headerList.value.length - 5
     for (let i = list.length - 1; i >= 0; i--) {
       headerList.value.splice(insertIndex, 0, {
         dataIndex: list[i].name,
@@ -978,7 +979,7 @@
 
     /** 移除变种主题后需要重新生成变种信息 table 数据 */
     let cartesianProducts = cartesianProduct(attributeList.value)
-    let newTableData = processResult(cartesianProducts)
+    let newTableData = processResult2(cartesianProducts)
     tableData.value = newTableData
   }
   // 添加多个属性操作
@@ -1083,10 +1084,11 @@
 
   const commProceData = () => {
     let cartesianProducts = cartesianProduct(attributeList.value)
-    let newTableData = processResult(cartesianProducts)
+    let newTableData = processResult2(cartesianProducts)
     let minLength = Math.min(newTableData.length, tableData.value.length)
     for (let i = 0; i < minLength; i++) {
       // 将b数组中对应下标的数据赋值到a数组中
+      newTableData[i].id = tableData.value[i].id
       newTableData[i].skuTitle = tableData.value[i].skuTitle
       newTableData[i].sellerSKU = tableData.value[i].sellerSKU
       newTableData[i].costPrice = tableData.value[i].costPrice
@@ -1096,10 +1098,10 @@
       newTableData[i].subImages = tableData.value[i].subImages
       newTableData[i].imageList = tableData.value[i].imageList
       newTableData[i].stock = tableData.value[i].stock
-      newTableData[i].packageHeight = tableData.value[i].packageHeight
-      newTableData[i].packageLength = tableData.value[i].packageLength
-      newTableData[i].packageWidth = tableData.value[i].packageWidth
-      newTableData[i].packageWeight = tableData.value[i].packageWeight
+      newTableData[i].height = tableData.value[i].height
+      newTableData[i].length = tableData.value[i].length
+      newTableData[i].width = tableData.value[i].width
+      newTableData[i].weight = tableData.value[i].weight
     }
     return newTableData
   }
@@ -1184,14 +1186,14 @@
     batchType.value = 'skuTitle'
   }
 
-  const batchPackLength = () => {
+  const batchSizeInfo = () => {
     if (tableData.value.length == 0) {
       message.warning('请先添加sku！')
       return
     }
     batchOpen.value = true
     batchTitle.value = '批量修改尺寸'
-    batchType.value = 'packLength'
+    batchType.value = 'sizeInfo'
   }
 
   const backValue = batchFields => {
@@ -1212,9 +1214,9 @@
       case 'stock':
         updatePrice(tableData.value, 'stock', batchFields)
         break
-      case 'packLength':
+      case 'sizeInfo':
         tableData.value.forEach(item => {
-          Object.assign(item, batchFields.packageSize)
+          Object.assign(item, batchFields.sizeInfo)
         })
         break
       default:
@@ -1241,7 +1243,7 @@
   ])
 
   watch(
-    () => store.attributes,
+    () => rawAttributes.value,
     val => {
       if (val) {
         themeBtns.value = []
@@ -1314,10 +1316,10 @@
             sellerSKU: '',
             costPrice: null,
             stock: undefined,
-            packageLength: undefined,
-            packageWidth: undefined,
-            packageHeight: undefined,
-            packageWeight: undefined,
+            length: undefined,
+            width: undefined,
+            height: undefined,
+            weight: undefined,
             mainImages: [],
             subImages: [],
             imageList: [],
@@ -1364,12 +1366,13 @@
 
   // 提取公共的newItem创建函数
   const createNewItem = (sku, dataSource) => ({
+    id: sku.id,
     costPrice: dataSource.costPrice || sku.costPrice,
     stock: dataSource.stock || sku.stock,
-    packageHeight: sku.height,
-    packageLength: sku.depth,
-    packageWeight: sku.weight,
-    packageWidth: sku.width,
+    height: sku.height,
+    length: sku.depth,
+    weight: sku.weight,
+    width: sku.width,
     skuTitle: dataSource.name || sku.name,
     // colorImg: createColorImg(dataSource.colorImage || sku.colorImage),
     sellerSKU: dataSource.skuCode || sku.skuCode,
@@ -1625,7 +1628,7 @@
       { check: row => isEmpty(row.costPrice), text: '请填写成本价！' },
       { check: row => isEmpty(row.stock), text: '请填写库存！' },
       {
-        check: row => [row.packageHeight, row.packageLength, row.packageWeight, row.packageWidth].some(v => v == null),
+        check: row => [row.height, row.length, row.weight, row.width].some(v => v == null),
         message: '请填写SKU包装信息！'
       }
     ]
@@ -1655,8 +1658,54 @@
 
   // 获取用于提交的 skuList 数据
   function getSkuList() {
+    // 变种属性列表
+    const variantAttrList = attrList.value.flat()
+
     const skuList = tableData.value.map(item => {
-      
+      // SKU 属性
+      const skuAttributes = []
+      variantAttrList.forEach(name => {
+        // 从全部属性中找到对应的数据
+        const target = rawAttributes.value.find(attr => attr.name === name)
+        if (target) {
+          // 变种属性的值可能是多选(以';'分割)
+          const valueList = item[name].split(';')
+          valueList.forEach(val => {
+            // 找到值对应的 id
+            let attributeOptionId = undefined
+            if (target.options) {
+              attributeOptionId = target.options.find(opt => opt.value === val)?.id
+            }
+            skuAttributes.push({
+              id: target.relatedAttributeId,
+              intelligentAttributeId: target.intelligentAttributeId,
+              skuId: item.id,
+              skuCode: item.sellerSKU,
+              attributeId: target.id,
+              attributeName: name,
+              attributeOptionId,
+              attributeValue: val,
+              isVariant: true
+            })
+          })
+        }
+      })
+
+      const obj = {
+        skuId: item.id,
+        skuCode: item.sellerSKU,
+        length: item.length,
+        width: item.width,
+        height: item.height,
+        weight: item.weight,
+        costPrice: item.costPrice,
+        stock: item.stock,
+        mainImages: item.mainImages.map(image => image.url),
+        subImages: item.subImages.map(image => image.url),
+        skuAttributes
+      }
+
+      return obj
     })
 
     return skuList

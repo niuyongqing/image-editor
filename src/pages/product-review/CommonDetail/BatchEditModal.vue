@@ -57,14 +57,14 @@
         </div>
       </a-radio-group>
     </div>
-    <div v-else-if="batchType === 'packLength'">
+    <div v-else-if="batchType === 'sizeInfo'">
       <div style="display: flex">
         长度：
         <a-input-number
           controls-position="right"
           :min="0"
           style="width: 80%"
-          v-model:value="packageSize.packageLength"
+          v-model:value="sizeInfo.length"
           placeholder="长度"
         >
           <template #addonAfter>mm</template>
@@ -76,7 +76,7 @@
           controls-position="right"
           :min="0"
           style="width: 80%"
-          v-model:value="packageSize.packageWidth"
+          v-model:value="sizeInfo.width"
           placeholder="宽度"
         >
           <template #addonAfter>mm</template>
@@ -88,7 +88,7 @@
           controls-position="right"
           :min="0"
           style="width: 80%"
-          v-model:value="packageSize.packageHeight"
+          v-model:value="sizeInfo.height"
           placeholder="高度"
         >
           <template #addonAfter>mm</template>
@@ -100,7 +100,7 @@
           controls-position="right"
           :min="0"
           style="width: 80%"
-          v-model:value="packageSize.packageWeight"
+          v-model:value="sizeInfo.weight"
           placeholder="重量"
         >
           <template #addonAfter>g</template>
@@ -171,11 +171,11 @@
       ]
     }
   ]
-  const packageSize = reactive({
-    packageLength: undefined,
-    packageWidth: undefined,
-    packageHeight: undefined,
-    packageWeight: undefined
+  const sizeInfo = reactive({
+    length: undefined,
+    width: undefined,
+    height: undefined,
+    weight: undefined
   })
   const handleChangeNumber = () => {
     priceValue.value === 2 ? (batchValue.value = null) : (batchComputeValue.value = null)
@@ -186,7 +186,7 @@
   }
   const handleOk = () => {
     let batchFields = {
-      packageSize: cloneDeep(packageSize),
+      sizeInfo: cloneDeep(sizeInfo),
       batchValue: batchValue.value,
       priceValue: priceValue.value,
       batchComputeValue: batchComputeValue.value,
@@ -200,10 +200,10 @@
   // 封装重置表单数据的操作
   const resetFormData = () => {
     batchValue.value = ''
-    packageSize.packageLength = ''
-    packageSize.packageWidth = ''
-    packageSize.packageHeight = ''
-    packageSize.packageWeight = ''
+    sizeInfo.length = ''
+    sizeInfo.width = ''
+    sizeInfo.height = ''
+    sizeInfo.weight = ''
     batchComputeValue.value = null
     priceValue.value = 1
     computeValue.value = 'add'

@@ -254,7 +254,7 @@
                 >
                   <a-select-option
                     v-if="item.id == 85 || item.id == 31"
-                    :value="'无品牌'"
+                    value="126745801"
                     >无品牌</a-select-option
                   >
 
@@ -523,6 +523,14 @@
               target.intelligentAttributeId = item.intelligentAttributeId
             }
           })
+          // 塞上, 都塞上
+          oldAttributes.forEach(item => {
+            const target = rawData.find(attr => attr.id === item.id)
+            if (target) {
+              target.relatedAttributeId = item.relatedAttributeId
+              target.intelligentAttributeId = item.intelligentAttributeId
+            }
+          })
 
           attributeList.value = noThemeAttributesCache
 
@@ -609,7 +617,7 @@
           } else if (item.id === 85 || item.id === 31) {
             result[name] = {
               label: '无品牌',
-              value: '无品牌'
+              value: '126745801'
             }
           }
         }
@@ -791,14 +799,16 @@
       baseInfoForm.prefixDecorateName = detail.prefixDecorateName
       baseInfoForm.suffixDecorateName = detail.suffixDecorateName
       // 分类
-      baseInfoForm.categoryId = detail.categoryId
-      const categoryIdList = detail.categoryId.split(',')
-      tailCategoryId.value = categoryIdList.at(-1)
-      const params = {
-        descriptionCategoryId: categoryIdList[1],
-        typeId: categoryIdList[2]
+      if (detail.categoryId) {
+        baseInfoForm.categoryId = detail.categoryId
+        const categoryIdList = detail.categoryId.split(',')
+        tailCategoryId.value = categoryIdList.at(-1)
+        const params = {
+          descriptionCategoryId: categoryIdList[1],
+          typeId: categoryIdList[2]
+        }
+        getAttributes(params)
       }
-      getAttributes(params)
       // 链接
       if (detail.purchaseLinkUrls?.length) {
         baseInfoForm.purchaseLinkUrls = detail.purchaseLinkUrls
@@ -868,7 +878,7 @@
               attributeName: name,
               attributeOptionId: undefined,
               attributeValue: baseInfoForm.attributes[name],
-              isVariant: true
+              isVariant: false
             })
           }
           break
@@ -884,7 +894,7 @@
                 attributeName: name,
                 attributeOptionId,
                 attributeValue: targetOption ? targetOption.label : undefined,
-                isVariant: true
+                isVariant: false
               })
             })
           }
@@ -899,7 +909,7 @@
               attributeName: name,
               attributeOptionId: baseInfoForm.attributes[name].value,
               attributeValue: baseInfoForm.attributes[name].label,
-              isVariant: true
+              isVariant: false
             })
           }
           break

@@ -436,7 +436,6 @@ const onSubmit = async (type = 1) => {
     isUpdate: true
   };
   console.log('params', params);
-  return
   loading.value = true;
   add(params).then((res) => {
     message.success(res.msg);

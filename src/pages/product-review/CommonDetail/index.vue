@@ -20,7 +20,7 @@
   const store = useProductReviewStore()
   const route = useRoute()
 
-  defineExpose({ emitData })
+  defineExpose({ save })
 
   const baseInfoRef = ref()
   const SKUInfoRef = ref()
@@ -43,10 +43,18 @@
     })
   }
 
-  // 传递出数据
-  function emitData() {
+  // 保存
+  async function save() {
+    // 校验
+    const baseInfoFlag = await baseInfoRef.value.childForm()
+    const SKUFlag = SKUInfoRef.value.submitForm()
+    if (!baseInfoFlag || !SKUFlag) {
+      // message.error('')
+      return
+    }
+
+    // 获取数据
     const baseInfoForm = baseInfoRef.value.baseInfoForm
-    const submitAttributes = baseInfoRef.value.getSubmitAttributes()
     // 在外面那一层的字段
     const outerObj = {
       productId: baseInfoForm.productId,
@@ -57,13 +65,23 @@
       vat: baseInfoForm.vat,
       mainImage: '',
       competitiveInfos: baseInfoForm.competitiveInfos.filter(item => item.linkUrl).map(item => ({ linkUrl: item.linkUrl })),
-      purchaseLinkUrls: baseInfoForm.purchaseLinkUrls.filter(item => item.linkUrl).map(item => ({ linkUrl: item.linkUrl })),
+      purchaseLinkUrls: baseInfoForm.purchaseLinkUrls.filter(item => item.linkUrl).map(item => ({ linkUrl: item.linkUrl })).join(',')
     }
-
+    const submitAttributes = baseInfoRef.value.getSubmitAttributes()
+    const skuList = SKUInfoRef.value.getSkuList()
 
     const params = {
       ...outerObj,
       attributes: submitAttributes,
+      skuList
     }
+
+    updateProductDetailApi(params).then(res => {
+      message.success('保存成功')
+      // FIXME:
+      // setTimeout(() => {
+      //   window.close(0)
+      // }, 2000)
+    })
   }
 </script>

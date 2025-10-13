@@ -22,7 +22,7 @@ const columns = [
     width: 120
   },
   {
-    dataIndex: 'packageLength',
+    dataIndex: 'sizeInfo',
     title: '尺寸',
     align: 'center',
     show: true,
@@ -37,6 +37,6 @@ const columns = [
   }
 ]
 
-const otherList = ['colorImg', 'skuTitle', 'secondName', 'sellerSKU', 'costPrice', 'stock', 'packageLength', 'options']
+const otherList = ['colorImg', 'skuTitle', 'secondName', 'sellerSKU', 'costPrice', 'stock', 'sizeInfo', 'options']
 
 export { columns, otherList }

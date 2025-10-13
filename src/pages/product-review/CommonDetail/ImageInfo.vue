@@ -940,7 +940,4 @@
       })
     })
   }
-
-  // 暴露出克
-  defineExpose({  })
 </script>

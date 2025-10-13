@@ -2,12 +2,11 @@
 <template>
   <div class="text-left flex">
     <!-- LEFT -->
-     <!-- flex-1 -->
     <div
-      class=" h-[calc(100vh-60px)] overflow-auto"
+      class="flex-1 h-[calc(100vh-60px)] overflow-auto"
       style="scrollbar-width: thin"
     >
-      <!-- <PreliminaryReviewDetail /> -->
+      <PreliminaryReviewDetail />
     </div>
     <!-- RIGHT -->
     <div
@@ -32,7 +31,7 @@
 </template>
 
 <script setup>
-  // import PreliminaryReviewDetail from '../preliminary-review-detail/index.vue'
+  import PreliminaryReviewDetail from '../preliminary-review-detail/index.vue'
   import CommonDetail from '@/pages/product-review/CommonDetail/index.vue'
 
   const commonDetailRef = ref()
@@ -43,15 +42,6 @@
   }
 
   function save() {
-    const text = commonDetailRef.value.emitData()
-    console.log('emitDate', text);
-    /* formRef.value
-      .validate()
-      .then(() => {
-        console.log('cheng le')
-      })
-      .catch(err => {
-        console.log('err', err)
-      }) */
+    commonDetailRef.value.save()
   }
 </script>
