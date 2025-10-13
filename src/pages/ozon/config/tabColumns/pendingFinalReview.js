@@ -25,6 +25,15 @@ export default [
     filter: true
   },
   {
+    title: "产品名称",
+    dataIndex: "commodityName",
+    key: "commodityName",
+    align: "center",
+    width: 200,
+    show: true,
+    filter: true,
+  },
+  {
     title: '产品SKU',
     dataIndex: 'skuList',
     key: 'skuList',
@@ -71,7 +80,7 @@ export default [
     sortable: true
   },
   {
-    title: '提交备注',
+    title: '选品理由',
     dataIndex: 'selectReason',
     key: 'selectReason',
     align: 'center',

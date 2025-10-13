@@ -13,11 +13,11 @@
       v-else
       :row-selection="rowSelection"
       :columns="processedColumns"
+      :customRow=customRow
       :data-source="tableData"
       :rowKey="(row) => row?.productOrderNo || row"
-      bordered
       :pagination="false"
-      :scroll="{ y: 900 }"
+      :scroll="{ y: 980 }"
       :loading="loading"
       :row-class-name="tableRowClassName"
     >
@@ -44,7 +44,7 @@
         <!-- 市场方向列自定义渲染 -->
         <template v-else-if="column.key === 'devAttributableMarket'">
           {{
-            devAttributableMarketRevertSelect.find(
+            MarketDirection.find(
               (item) => item.value === record.devAttributableMarket
             )?.label || ""
           }}
@@ -59,12 +59,14 @@
             v-for="(item, index) in record.meansKeepGrain?.split(',') || []"
             :key="index"
           >
-            <a-tag style="margin-right: 3px" color="processing">
-              {{
-                props.meansKeepGrainOptions.find((opt) => opt.value === item)
-                  ?.label || "-"
-              }}
-            </a-tag>
+            <template v-if="props.meansKeepGrainOptions.find((opt) => opt.value === item)">
+              <a-tag style="margin-right: 3px" color="processing">
+                {{ props.meansKeepGrainOptions.find((opt) => opt.value === item)?.label }}
+              </a-tag>
+            </template>
+            <template v-else>
+              <span>{{  }}</span>
+            </template> 
           </template>
         </template>
         <!-- 分类列自定义渲染 -->
@@ -94,7 +96,7 @@
       style="margin-top: 20px; text-align: right"
       :show-total="
         (total, range) =>
-          `共 ${total} 条记录，当前显示 ${range[0]}-${range[1]} 条`
+          `第 ${range[0]}-${range[1]} 条，共 ${total} 条`
       "
       v-model:current="pages.pageNum"
       v-model:pageSize="pages.pageSize"
@@ -139,7 +141,7 @@ const props = defineProps({
     default: null,
   },
   // 开发属性可分配市场列表
-  devAttributableMarketRevertSelect: {
+  MarketDirection: {
     type: Array,
     default: () => [],
   },
@@ -279,6 +281,10 @@ const getList = async () => {
     if (Array.isArray(params.selectUserId)) {
       params.selectUserId = params.selectUserId.join(",");
     }
+    if(params.selectUserId === ""){
+      params.selectUserId = params.selectAll.join(",");
+    }
+    delete params.selectAll;
 
     // 分类处理
     if (Array.isArray(params.classify)) {
@@ -344,18 +350,27 @@ const clearSelection = () => {
 };
 
 /**
- * 处理批量审核操作
+ * 获取当前选中的商品
  */
-const handleAudit = () => {
-  console.log("selectedRowKeys", selectedRowKeys.value);
-
-  if (selectedRowKeys.value.length === 0) {
-    message.warning("请选择要审核的商品");
-    return;
-  }
-
-  emit("audit", [...selectedRowKeys.value], false);
+const getCurrentSelectedProducts = () => {
+  return selectedRowKeys.value
 };
+
+/**
+ * 自定义行点击事件
+ */
+const customRow = (record) => {
+  return {
+    // 点击行
+    onDblclick: (event) => {
+      console.log("双击行:", record);
+      // 触发自定义事件，将选中的商品传递给父组件
+      emit("edit-product", record);
+    },
+  };
+};
+
+
 
 /**
  * 处理页码变化
@@ -466,8 +481,8 @@ const onReset = () => {
 defineExpose({
   getList,
   clearSelection,
-  handleAudit,
   exportData,
+  getCurrentSelectedProducts,
 });
 </script>
 

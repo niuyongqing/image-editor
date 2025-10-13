@@ -310,7 +310,7 @@ const taskTypeOptions = reactive([
  */
 const formData = reactive({
   tradeName: "",
-  classify: "",
+  classify:[],
   skuList: "",
   devConsultLink: [""], // 初始化为空字符串数组，确保至少有一个链接输入框
   artOldType: null,
@@ -590,22 +590,22 @@ const handleSubmit = async () => {
       return;
     }
     // 测试数据
-    // const parms =
-    // {
-    //   "commodityId":"932071",
-    //   "artAsk":"<p>12312321</p>",
-    //   "devConsultLink":"[\"123213\"]",
-    //   "devDrawing":"[{\"url\":\"/prod-api/profile/upload/2025/10/08/图片1_20251008163543A008.jpg\",\"name\":\"【老品重拍】图片1.jpg\",\"width\":800,\"height\":800},{\"url\":\"/prod-api/profile/upload/2025/10/08/bd68980b-bd88-43d8-bba7-9eda9b8c3d77_20251008163546A009.jpg\",\"name\":\"【老品重拍】bd68980b-bd88-43d8-bba7-9eda9b8c3d77.jpg\",\"width\":750,\"height\":1000}]",
-    //   "artOldType":"3"
-    // }
-
-    const parms = {
-      ...formData,
-      classify: formData.classify.join(","),
-      devConsultLink: JSON.stringify(formData.devConsultLink),
-      devDrawing: JSON.stringify(formData.devDrawing),
-      commodityId: queryParams.id || "932071",
-    };
+    const parms =
+    {
+      "commodityId":"932071",
+      "artAsk":"<p>12312321</p>",
+      "devConsultLink":"[\"123213\"]",
+      "devDrawing":"[{\"url\":\"/prod-api/profile/upload/2025/10/08/图片1_20251008163543A008.jpg\",\"name\":\"【老品重拍】图片1.jpg\",\"width\":800,\"height\":800},{\"url\":\"/prod-api/profile/upload/2025/10/08/bd68980b-bd88-43d8-bba7-9eda9b8c3d77_20251008163546A009.jpg\",\"name\":\"【老品重拍】bd68980b-bd88-43d8-bba7-9eda9b8c3d77.jpg\",\"width\":750,\"height\":1000}]",
+      "artOldType":"3"
+    }
+    console.log("formData.classify", formData.classify);
+    // const parms = {
+    //   ...formData,
+    //   classify: formData.classify && Array.isArray(formData.classify) ? formData.classify.join(",") : "",
+    //   devConsultLink: JSON.stringify(formData.devConsultLink),
+    //   devDrawing: JSON.stringify(formData.devDrawing),
+    //   commodityId: queryParams.id || "932071",
+    // };
 
     // 提交表单数据的逻辑
     console.log("提交的表单数据:", parms);

@@ -242,7 +242,7 @@
       classify: searchForm.classify ? searchForm.classify.join(',') : undefined,
       startTime: searchForm.submitTime ? dayjs(searchForm.submitTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
       endTime: searchForm.submitTime ? dayjs(searchForm.submitTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
-      state: 70
+      state: 20
     }
     delete params.submitTime
 
