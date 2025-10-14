@@ -317,7 +317,7 @@
                 width="100%"
                 height="200px"
               ></video>
-              <div class="float-right">
+              <div class="text-right">
                 <a-button
                   type="link"
                   danger
@@ -329,13 +329,20 @@
               </div>
             </div>
           </div>
-          <div class="ml-7.5 flex flex-col">
+          <div
+            class="ml-7.5 flex flex-col overflow-x-auto"
+            style="scrollbar-width: thin"
+          >
             <span>详情描述视频</span>
             <div class="flex">
-              <div v-if="baseInfoForm.video.length > 0">
+              <div
+                v-if="baseInfoForm.video.length > 0"
+                class="flex"
+              >
                 <div
                   v-for="(item, i) in baseInfoForm.video"
                   :key="i"
+                  class="mr-2"
                 >
                   <video
                     controls
@@ -343,7 +350,7 @@
                     width="200px"
                     height="200px"
                   ></video>
-                  <div class="align-right">
+                  <div class="text-right">
                     <a-button
                       type="link"
                       danger
@@ -355,10 +362,7 @@
                   </div>
                 </div>
               </div>
-              <div
-                v-if="baseInfoForm.video.length < 5"
-                class="ml-3"
-              >
+              <div v-if="baseInfoForm.video.length < 5">
                 <a-upload
                   list-type="picture-card"
                   :action="uploadVideoUrl"
@@ -395,7 +399,7 @@
   const store = useProductReviewStore()
   const tailCategoryId = ref('') // 末尾的分类id
   const baseInfoForm = reactive({
-    productId: '',
+    id: '',
     productName: '',
     prefixDecorateName: '',
     suffixDecorateName: '',
@@ -794,7 +798,7 @@
   watch(
     () => store.productDetail,
     detail => {
-      baseInfoForm.productId = detail.productId
+      baseInfoForm.id = detail.id
       baseInfoForm.productName = detail.productName
       baseInfoForm.prefixDecorateName = detail.prefixDecorateName
       baseInfoForm.suffixDecorateName = detail.suffixDecorateName
@@ -958,13 +962,13 @@
 
     // 详情视频
     if (baseInfoForm.video.length) {
-      baseInfoForm.video.forEach(url => {
+      baseInfoForm.video.forEach(video => {
         submitAttributes.push({
           complexId: 100001,
           attributeId: '21841',
           attributeName: '详情视频',
           attributeOptionId: undefined,
-          attributeValue: url,
+          attributeValue: video.url,
           isVariant: false
         })
       })

@@ -23,8 +23,12 @@
           @click="save"
           >保存</a-button
         >
-        <a-button type="primary">申请拍照</a-button>
-        <a-button type="primary">提交终审</a-button>
+        <a-button
+          type="primary"
+          @click="applicationPhoto"
+          >申请拍照</a-button
+        >
+        <a-button type="primary" @click="toFinalReview">提交终审</a-button>
       </a-space>
     </div>
   </div>
@@ -43,5 +47,13 @@
 
   function save() {
     commonDetailRef.value.save()
+  }
+  
+  function applicationPhoto() {
+    commonDetailRef.value.applicationPhoto()
+  }
+
+  function toFinalReview() {
+    commonDetailRef.value.toFinalReview()
   }
 </script>

@@ -831,7 +831,7 @@
   })
   let cacheGetArr = []
   // 获取关键词所有的数据
-  const getCacheGet = new Promise((resolve, reject) => {
+  /* const getCacheGet = new Promise((resolve, reject) => {
     cacheGet()
       .then(res => {
         cacheGetArr = res.data || []
@@ -840,8 +840,10 @@
       .catch(() => {
         reject()
       })
-  })
-  const pList = [getForbidSale, getCacheGet]
+  }) */
+  // 注释掉侵权关键词
+  // const pList = [getForbidSale, getCacheGet]
+  const pList = [getForbidSale]
   Promise.all(pList).then(_ => {
     loading.value = false
     getDetail()
@@ -859,7 +861,9 @@
     loading.value = true
     try {
       let res = await storeDetail({ id })
-      const data = res.data ?? {}
+      const data = res.data
+      if (!data) return
+
       data.sku.forEach(v => {
         v.detail = v.detail || '{}'
         v.detail = JSON.parse(v.detail.replaceAll("'", '"'))

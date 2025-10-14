@@ -67,6 +67,7 @@ export const DEFAULT_TABLE_COLUMN = [
     title: '操作',
     key: 'options',
     show: true,
+    fixed: 'right',
     width: 200
   }
 ]

@@ -7,3 +7,8 @@ export function getListApi(params) {
 export function getUserListApi() {
   return useGet('/platform-ozon/platform/ozon/commodity/find/user')
 }
+
+// 添加备注(支持批量)
+export function addRemarkApi(params) {
+  return usePost('/platform-ozon/platform/ozon/commodity/add/remark', params)
+}
