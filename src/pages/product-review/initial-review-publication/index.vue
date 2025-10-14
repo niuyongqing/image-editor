@@ -253,16 +253,7 @@
       </div>
 
       <a-form :model="submitFormData" ref="submitFormRef">
-        <a-form-item
-          name="remark"
-          :rules="[
-            {
-              required: submitFormData.state === 0,
-              message: '请输入审核备注',
-              trigger: 'blur',
-            },
-          ]"
-        >
+        <a-form-item name="remark">
           <div style="margin-bottom: 8px">备注:</div>
           <a-textarea
             v-model:value="submitFormData.remark"
@@ -364,12 +355,13 @@ const submitOpen = ref(false);
 const submitLoading = ref(false);
 const submitFormRef = ref(null);
 const submitFormData = reactive({
-  state: 1, //0 未通过，1 通过
+  state: 20, //0 未通过，1 通过
   commodityId: "", //commodityId
   remark: "", //remark
 });
 
 const stateOptions = ref({
+ // 初审
  initialReviewPublication: [
     {
       label: "审核通过",
@@ -377,27 +369,25 @@ const stateOptions = ref({
     },
     {
       label: "审核驳回",
-      value: 10,
+      value: 70,
     },
   ],
+  // 提交
   publicationRejected: [
     {
       label: "审核通过",
-      value: 1,
-    },
-    {
-      label: "审核驳回",
-      value: 0,
-    },
+      value: 20,
+    }
   ],
+  // 终审
   pendingFinalReview: [
     {
       label: "审核通过",
-      value: 1,
+      value: 60,
     },
-    {
+     {
       label: "审核驳回",
-      value: 0,
+      value: 70,
     },
   ],
 })
@@ -584,7 +574,9 @@ const handleOk = () => {
   auditFormRef.value
     .validate()
     .then(() => {
-      if (currentAuditingProducts.value.length === 0) {
+            // 确保currentAuditingProducts.value存在
+      const products = currentAuditingProducts.value || [];
+      if (products.length === 0) {
         message.warning("请选择要审核的商品");
         return;
       }
@@ -592,13 +584,34 @@ const handleOk = () => {
       // 根据不同的来源准备参数
       let auditPromise;
       // 提取公共参数
-      const commonParams = {
-        id: currentAuditingProducts.value
+      let commonParams;
+
+      
+      if(props.Source === "initialReviewPublication"){
+        commonParams = {
+          id: products.length > 0 ? products.map(({ id }) => id).join(',') : '',
+          state: auditFormData.state,
+          remark: auditFormData.remark,
+        };
+      } else {
+        // 循环 将每个商品的参数添加到 commonParams 数组中
+        commonParams = products.map(({ id, state, remark }) => ({
+          id,
+          state: auditFormData.state,
+          remark: auditFormData.remark,
+          commodityId: id,
+        }));
+      }
+
+      if(props.Source === "pendingFinalReview"){
+        commonParams.commodityId = currentAuditingProducts.value
+          .map((product) => product.commodityId)
+          ?.join(",");
+      }else{
+        commonParams.commodityId = currentAuditingProducts.value
           .map((product) => product.id)
-          ?.join(","),
-        state: auditFormData.state,
-        remark: auditFormData.remark,
-      };
+          ?.join(",");
+      }
       // 根据来源选择不同的审核接口
       auditPromise = APIEDIT[props.Source](commonParams);
       auditPromise
@@ -647,8 +660,8 @@ const handleSubmitOk = () => {
   let submitPromise;
   // 提取公共参数
   const commonParams = {
-    commodityId: currentAuditingProducts.value
-      .map((product) => product.commodityId)
+    id: currentAuditingProducts.value
+      .map((product) => product.id)
       ?.join(","),
     state: submitFormData.state,
     remark: submitFormData.remark,
@@ -700,7 +713,7 @@ const handleEditProduct = (product) => {
     path: detailPagePath[props.Source],
     query: {
       id: id,
-      productId: product.intelligentProductId,
+      commodityId: product.intelligentProductId,
     },
   });
   window.open(urlData.href, "_blank");

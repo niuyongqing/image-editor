@@ -288,23 +288,23 @@ const { copy } = useClipboard();
  */
 const taskTypeOptions = reactive([
   {
-    value: "1",
+    value: 1,
     label: "运营提交",
   },
   {
-    value: "2",
+    value: 2,
     label: "shein提交",
   },
   {
-    value: "3",
+    value: 3,
     label: "服务部提交",
   },
   {
-    value: "4",
+    value: 4,
     label: "Amazon提交",
   },
   {
-    value: "5",
+    value: 5,
     label: "Ozon提交",
   },
 ]);
@@ -317,7 +317,7 @@ const formData = reactive({
   classify:[],
   skuList: "",
   devConsultLink: [""], // 初始化为空字符串数组，确保至少有一个链接输入框
-  artOldType: '5',
+  artOldType: 5,
   artAsk: "",
   devDrawing: [],
   productId: "",
@@ -595,23 +595,16 @@ const handleSubmit = async () => {
       return;
     }
     // 测试数据
-    const parms =
-    {
-      "productId": "932071",
-      "commodityId":"932071",
-      "artAsk":"<p>12312321</p>",
-      "devConsultLink":"[\"123213\"]",
-      "devDrawing":"[{\"url\":\"/prod-api/profile/upload/2025/10/08/图片1_20251008163543A008.jpg\",\"name\":\"【老品重拍】图片1.jpg\",\"width\":800,\"height\":800},{\"url\":\"/prod-api/profile/upload/2025/10/08/bd68980b-bd88-43d8-bba7-9eda9b8c3d77_20251008163546A009.jpg\",\"name\":\"【老品重拍】bd68980b-bd88-43d8-bba7-9eda9b8c3d77.jpg\",\"width\":750,\"height\":1000}]",
-      "artOldType":"3"
-    }
+    // const parms =
+    // {"tradeName":"LED灯串","classify":"03,0302,030201","skuList":"H2833,H2834,H2835","devConsultLink":"[\"请13额2\"]","artOldType":5,"artAsk":"<p>撒打发阿德是阿斯蒂芬 </p>","devDrawing":"[{\"name\":\"3.jpg\",\"url\":\"/prod-api/profile/upload/shopeeFile/2025-10-14/2025/10/14/3_20251014101830A003.jpg\",\"checked\":false,\"id\":\"240ecfba-5a5a-4656-88be-2c417a813f24\",\"width\":800,\"height\":800}]","productId":"10028","commodityId":"1110"}
     console.log("formData.classify", formData.classify);
-    // const parms = {
-    //   ...formData,
-    //   classify: formData.classify && Array.isArray(formData.classify) ? formData.classify.join(",") : "",
-    //   devConsultLink: JSON.stringify(formData.devConsultLink),
-    //   devDrawing: JSON.stringify(formData.devDrawing),
-    //   commodityId: queryParams.id || "932071",
-    // };
+    const parms = {
+      ...formData,
+      classify: formData.classify && Array.isArray(formData.classify) ? formData.classify.join(",") : "",
+      devConsultLink: JSON.stringify(formData.devConsultLink),
+      devDrawing: JSON.stringify(formData.devDrawing),
+      commodityId: queryParams.id || "932071",
+    };
 
     // 提交表单数据的逻辑
     console.log("提交的表单数据:", parms);
