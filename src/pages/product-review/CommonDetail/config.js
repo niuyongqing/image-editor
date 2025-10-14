@@ -15,14 +15,14 @@ const columns = [
     width: 180
   },
   {
-    dataIndex: 'quantity',
+    dataIndex: 'stock',
     title: '库存',
     align: 'center',
     show: true,
     width: 120
   },
   {
-    dataIndex: 'packageLength',
+    dataIndex: 'sizeInfo',
     title: '尺寸',
     align: 'center',
     show: true,
@@ -37,6 +37,6 @@ const columns = [
   }
 ]
 
-const otherList = ['colorImg', 'skuTitle', 'secondName', 'sellerSKU', 'costPrice', 'quantity', 'packageLength', 'options']
+const otherList = ['colorImg', 'skuTitle', 'secondName', 'sellerSKU', 'costPrice', 'stock', 'sizeInfo', 'options']
 
 export { columns, otherList }

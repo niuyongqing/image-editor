@@ -438,6 +438,7 @@
   import { processImageSource } from '@/pages/ozon/config/commJs/index'
 
   defineOptions({ name: 'ImageInfo' })
+  
   const collectProductId = inject('collectProductId', '')
   const databaseId = inject('databaseId', '') // 资料库 id
 

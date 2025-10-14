@@ -147,8 +147,16 @@
                 @click="goEdit(record)"
                 >编辑</a-button
               >
-              <a-button type="link">提交拍照</a-button>
-              <a-button type="link">添加备注</a-button>
+              <a-button
+                type="link"
+                @click="applicationPhoto(record)"
+                >申请拍照</a-button
+              >
+              <a-button
+                type="link"
+                @click="openRemorkModal(record.id)"
+                >添加备注</a-button
+              >
               <a-popconfirm
                 title="请确定是否删除"
                 @confirm="del(record)"
@@ -176,11 +184,27 @@
         @change="getList"
       />
     </a-card>
+
+    <!-- 备注弹窗 -->
+    <a-modal
+      title="添加备注"
+      v-model:open="remarkModalOpen"
+      width="30%"
+      :confirm-loading="remarkLoading"
+      @cancel="remarkCancel"
+      @ok="remarkOk"
+    >
+      <a-textarea
+        v-model:value="remark"
+        :rows="4"
+        placeholder="请输入备注内容"
+      />
+    </a-modal>
   </div>
 </template>
 
 <script setup>
-  import { getListApi, getUserListApi } from './api'
+  import { getListApi, getUserListApi, addRemarkApi } from './api'
   import EmptyImg from '@/assets/images/aliexpress/empty.png'
   import { DEFAULT_TABLE_COLUMN, MARKET_OPTIONS, STORAGE_OPTIONS } from './config'
   import commodityType from '~@/utils/commodityType'
@@ -242,7 +266,7 @@
       classify: searchForm.classify ? searchForm.classify.join(',') : undefined,
       startTime: searchForm.submitTime ? dayjs(searchForm.submitTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
       endTime: searchForm.submitTime ? dayjs(searchForm.submitTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
-      state: 20
+      state: 70 // FIXME: 用 30
     }
     delete params.submitTime
 
@@ -257,10 +281,65 @@
     })
   }
 
+  /** 编辑 */
   function goEdit(record) {
     window.open(`/platform/product-review/data-for-editing-detail?id=${record.id}`)
   }
 
+  /** 申请拍照 */
+  const router = useRouter()
+  function applicationPhoto(record) {
+    const query = {
+      id: record.id,
+      tradeName: record.productName, //商品名称
+      classify: record.categoryId, //商品分类
+      skuList: record.skuCodes //商品SKU列表
+    }
+
+    const urlData = router.resolve({
+      path: '/platform/product-review/pending-editing-application-photo',
+      query
+    })
+    window.open(urlData.href, '_blank')
+  }
+
+  /** 备注 */
+  let curId = ''
+  const remark = ref('')
+  const remarkModalOpen = ref(false)
+  const remarkLoading = ref(false)
+
+  // 打开弹窗
+  function openRemorkModal(id) {
+    curId = id
+    remarkModalOpen.value = true
+  }
+
+  function remarkCancel() {
+    remarkModalOpen.value = false
+    curId = ''
+    remark.value = ''
+  }
+
+  function remarkOk() {
+    remarkLoading.value = true
+    const params = {
+      id: curId,
+      remark: remark.value
+    }
+
+    addRemarkApi(params)
+      .then(res => {
+        message.success('添加备注成功')
+        getList()
+        remarkCancel
+      })
+      .finally(() => {
+        remarkLoading.value = false
+      })
+  }
+
+  /** 删除 */
   function del(record) {}
 
   // 根据分类 value 获取分类 label

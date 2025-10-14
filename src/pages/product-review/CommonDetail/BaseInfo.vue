@@ -51,24 +51,10 @@
         />
       </a-form-item>
       <a-space>
-        <a-form-item
-          label="品牌"
-          name="brand"
-          required
-        >
-          <a-input v-model:value="baseInfoForm.brand" />
-        </a-form-item>
         <a-form-item label="VAT">
           <a-select
             v-model:value="baseInfoForm.vat"
-            :options="[{ label: 'label', value: 1 }]"
-            class="w-40!"
-          />
-        </a-form-item>
-        <a-form-item label="制造国">
-          <a-select
-            v-model:value="baseInfoForm.country"
-            :options="[{ label: 'label', value: 1 }]"
+            :options="VAT_OPTIONS"
             class="w-40!"
           />
         </a-form-item>
@@ -268,7 +254,7 @@
                 >
                   <a-select-option
                     v-if="item.id == 85 || item.id == 31"
-                    :value="'无品牌'"
+                    value="126745801"
                     >无品牌</a-select-option
                   >
 
@@ -331,7 +317,7 @@
                 width="100%"
                 height="200px"
               ></video>
-              <div class="float-right">
+              <div class="text-right">
                 <a-button
                   type="link"
                   danger
@@ -343,13 +329,20 @@
               </div>
             </div>
           </div>
-          <div class="ml-7.5 flex flex-col">
+          <div
+            class="ml-7.5 flex flex-col overflow-x-auto"
+            style="scrollbar-width: thin"
+          >
             <span>详情描述视频</span>
             <div class="flex">
-              <div v-if="baseInfoForm.video.length > 0">
+              <div
+                v-if="baseInfoForm.video.length > 0"
+                class="flex"
+              >
                 <div
                   v-for="(item, i) in baseInfoForm.video"
                   :key="i"
+                  class="mr-2"
                 >
                   <video
                     controls
@@ -357,7 +350,7 @@
                     width="200px"
                     height="200px"
                   ></video>
-                  <div class="align-right">
+                  <div class="text-right">
                     <a-button
                       type="link"
                       danger
@@ -406,15 +399,14 @@
   const store = useProductReviewStore()
   const tailCategoryId = ref('') // 末尾的分类id
   const baseInfoForm = reactive({
+    id: '',
     productName: '',
     prefixDecorateName: '',
     suffixDecorateName: '',
     categoryId: undefined,
-    brand: '',
-    vat: undefined,
-    country: '',
-    competitiveInfos: [{ id: uuidv4(), link: '' }],
-    purchaseLinkUrls: [{ id: uuidv4(), link: '' }],
+    vat: 0,
+    competitiveInfos: [{ id: uuidv4(), linkUrl: '' }],
+    purchaseLinkUrls: [{ id: uuidv4(), linkUrl: '' }],
     attributes: {}, //产品属性
     desc: '',
     jsons: '',
@@ -422,6 +414,12 @@
     video: [] // 详情视频
   })
   const formRef = ref()
+  // VAT 下拉选项
+  const VAT_OPTIONS = [
+    { label: '免税', value: 0 },
+    { label: '10%', value: 10 },
+    { label: '20%', value: 20 }
+  ]
 
   // 分类
   const cascaderCategorySelectorRef = ref()
@@ -519,10 +517,28 @@
             }
             rules2.value[noThemeAttributesCache[i].name] = obj
           }
+
+          const { attributes: oldAttributes } = store.productDetail?.skuList[0] || []
+          // 塞上 intelligentAttributeId, relatedAttributeId
+          oldAttributes.forEach(item => {
+            const target = noThemeAttributesCache.find(attr => attr.id === item.id)
+            if (target) {
+              target.relatedAttributeId = item.relatedAttributeId
+              target.intelligentAttributeId = item.intelligentAttributeId
+            }
+          })
+          // 塞上, 都塞上
+          oldAttributes.forEach(item => {
+            const target = rawData.find(attr => attr.id === item.id)
+            if (target) {
+              target.relatedAttributeId = item.relatedAttributeId
+              target.intelligentAttributeId = item.intelligentAttributeId
+            }
+          })
+
           attributeList.value = noThemeAttributesCache
 
           // 赋值
-          const { attributes: oldAttributes } = store.productDetail?.skuList[0]
           const proceRes = assignValues(oldAttributes, attributeList.value)
           baseInfoForm.attributes = proceRes
         }
@@ -605,7 +621,7 @@
           } else if (item.id === 85 || item.id === 31) {
             result[name] = {
               label: '无品牌',
-              value: '无品牌'
+              value: '126745801'
             }
           }
         }
@@ -724,7 +740,7 @@
 
   // 竞品链接
   function addCompetitiveLink() {
-    baseInfoForm.competitiveInfos.push({ id: uuidv4(), link: '' })
+    baseInfoForm.competitiveInfos.push({ id: uuidv4(), linkUrl: '' })
   }
 
   function delCompetitiveLink(id) {
@@ -733,7 +749,7 @@
 
   // 采购链接
   function addPurchaseLink() {
-    baseInfoForm.purchaseLinkUrls.push({ id: uuidv4(), link: '' })
+    baseInfoForm.purchaseLinkUrls.push({ id: uuidv4(), linkUrl: '' })
   }
 
   function delPurchaseLink(id) {
@@ -782,18 +798,21 @@
   watch(
     () => store.productDetail,
     detail => {
+      baseInfoForm.id = detail.id
       baseInfoForm.productName = detail.productName
       baseInfoForm.prefixDecorateName = detail.prefixDecorateName
       baseInfoForm.suffixDecorateName = detail.suffixDecorateName
       // 分类
-      baseInfoForm.categoryId = detail.categoryId
-      const categoryIdList = detail.categoryId.split(',')
-      tailCategoryId.value = categoryIdList.at(-1)
-      const params = {
-        descriptionCategoryId: categoryIdList[1],
-        typeId: categoryIdList[2]
+      if (detail.categoryId) {
+        baseInfoForm.categoryId = detail.categoryId
+        const categoryIdList = detail.categoryId.split(',')
+        tailCategoryId.value = categoryIdList.at(-1)
+        const params = {
+          descriptionCategoryId: categoryIdList[1],
+          typeId: categoryIdList[2]
+        }
+        getAttributes(params)
       }
-      getAttributes(params)
       // 链接
       if (detail.purchaseLinkUrls?.length) {
         baseInfoForm.purchaseLinkUrls = detail.purchaseLinkUrls
@@ -845,4 +864,118 @@
     baseInfoForm.jsons = jsonContentAttr?.values?.[0]?.value || ''
     baseInfoForm.desc = descriptionAttr?.values?.[0]?.value || ''
   }
+
+  // 获取用于提交的 attributes 数据
+  function getSubmitAttributes() {
+    const submitAttributes = []
+    // 产品属性
+    let target
+    for (const name in baseInfoForm.attributes) {
+      switch (Object.prototype.toString.call(baseInfoForm.attributes[name]).slice(8, -1)) {
+        case 'String':
+          target = attributeList.value.find(item => item.name === name)
+          if (target) {
+            submitAttributes.push({
+              id: target.relatedAttributeId,
+              intelligentAttributeId: target.intelligentAttributeId,
+              attributeId: target.id,
+              attributeName: name,
+              attributeOptionId: undefined,
+              attributeValue: baseInfoForm.attributes[name],
+              isVariant: false
+            })
+          }
+          break
+        case 'Array':
+          target = attributeList.value.find(item => item.name === name)
+          if (target) {
+            baseInfoForm.attributes[name].forEach(attributeOptionId => {
+              const targetOption = target.options.find(item => item.id === attributeOptionId)
+              submitAttributes.push({
+                id: target.relatedAttributeId,
+                intelligentAttributeId: target.intelligentAttributeId,
+                attributeId: target.id,
+                attributeName: name,
+                attributeOptionId,
+                attributeValue: targetOption ? targetOption.label : undefined,
+                isVariant: false
+              })
+            })
+          }
+          break
+        case 'Object':
+          target = attributeList.value.find(item => item.name === name)
+          if (target) {
+            submitAttributes.push({
+              id: target.relatedAttributeId,
+              intelligentAttributeId: target.intelligentAttributeId,
+              attributeId: target.id,
+              attributeName: name,
+              attributeOptionId: baseInfoForm.attributes[name].value,
+              attributeValue: baseInfoForm.attributes[name].label,
+              isVariant: false
+            })
+          }
+          break
+
+        default:
+          console.error('有产品属性遗漏: ', name)
+          break
+      }
+    }
+
+    // 产品描述
+    if (baseInfoForm.desc) {
+      submitAttributes.push({
+        complexId: undefined,
+        attributeId: '4191',
+        attributeName: '产品描述',
+        attributeOptionId: undefined,
+        attributeValue: baseInfoForm.desc,
+        isVariant: false
+      })
+    }
+
+    // JSON富文本
+    if (baseInfoForm.jsons) {
+      submitAttributes.push({
+        complexId: undefined,
+        attributeId: '11254',
+        attributeName: 'JSON富文本',
+        attributeOptionId: undefined,
+        attributeValue: baseInfoForm.jsons,
+        isVariant: false
+      })
+    }
+
+    // 封面视频
+    if (baseInfoForm.coverUrl) {
+      submitAttributes.push({
+        complexId: 100002,
+        attributeId: '21845',
+        attributeName: '封面视频',
+        attributeOptionId: undefined,
+        attributeValue: baseInfoForm.coverUrl,
+        isVariant: false
+      })
+    }
+
+    // 详情视频
+    if (baseInfoForm.video.length) {
+      baseInfoForm.video.forEach(video => {
+        submitAttributes.push({
+          complexId: 100001,
+          attributeId: '21841',
+          attributeName: '详情视频',
+          attributeOptionId: undefined,
+          attributeValue: video.url,
+          isVariant: false
+        })
+      })
+    }
+
+    return submitAttributes
+  }
+
+  defineExpose({ baseInfoForm, getSubmitAttributes, childForm })
 </script>

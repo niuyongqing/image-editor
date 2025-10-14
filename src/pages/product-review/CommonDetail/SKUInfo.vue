@@ -265,21 +265,21 @@
                 >
               </div>
             </template>
-            <template v-if="column.dataIndex === 'quantity'">
+            <template v-if="column.dataIndex === 'stock'">
               <div class="flex flex-col min-w-25">
                 <span><span style="color: #ff0a37">*</span> {{ column.title }}</span
                 ><a
                   class="ml-1.25"
-                  @click="batchStock('all')"
+                  @click="batchStock"
                   >批量</a
                 >
               </div>
             </template>
-            <template v-if="column.dataIndex === 'packageLength'">
+            <template v-if="column.dataIndex === 'sizeInfo'">
               <span><span style="color: #ff0a37">*</span> {{ column.title }}(mm)</span
               ><a
                 class="ml-1.25"
-                @click="batchPackLength"
+                @click="batchSizeInfo"
                 >批量</a
               >
               <p>长*宽*高*重量</p>
@@ -393,22 +393,23 @@
                 </a-dropdown>
               </div>
             </template>
-            <template v-if="column.dataIndex === 'quantity'">
-              <div class="flex justify-center">
-                <span>{{ record.quantity === undefined ? 0 : record.quantity }}</span>
-                <AsyncIcon
-                  class="ml-2.5"
-                  icon="EditOutlined"
-                  @click="batchStock('single', record)"
-                ></AsyncIcon>
-              </div>
+            <template v-if="column.dataIndex === 'stock'">
+              <a-input-number
+                v-model:value="record.stock"
+                :min="0"
+                size="middle"
+                :controls="false"
+                :max="99999999"
+                :precision="2"
+                class="w-full"
+              />
             </template>
-            <template v-if="column.dataIndex === 'packageLength'">
+            <template v-if="column.dataIndex === 'sizeInfo'">
               <div class="flex">
                 <div class="flex items-center">
                   <div>
                     <a-input-number
-                      v-model:value="record.packageLength"
+                      v-model:value="record.length"
                       controls-position="right"
                       class="min-w-100px"
                       size="middle"
@@ -421,7 +422,7 @@
                   </div>
                   <div class="ml-2.5">
                     <a-input-number
-                      v-model:value="record.packageWidth"
+                      v-model:value="record.width"
                       controls-position="right"
                       class="min-w-100px"
                       size="middle"
@@ -434,7 +435,7 @@
                   </div>
                   <div class="ml-2.5">
                     <a-input-number
-                      v-model:value="record.packageHeight"
+                      v-model:value="record.height"
                       controls-position="right"
                       class="min-w-100px"
                       :min="0"
@@ -447,7 +448,7 @@
                   </div>
                   <div class="ml-2.5">
                     <a-input-number
-                      v-model:value="record.packageWeight"
+                      v-model:value="record.weight"
                       controls-position="right"
                       class="min-w-100px"
                       :precision="0"
@@ -502,13 +503,6 @@
     </a-card>
     <a-divider />
 
-    <!-- 修改库存 -->
-    <EditProdQuantity
-      :editQuantityVis="editQuantityVis"
-      :editStockList="editStockList"
-      @backQuantity="backQuantity"
-      @backCloseQuantity="editQuantityVis = false"
-    />
     <!-- 批量修改 -->
     <BatchEditModal
       :batchOpen="batchOpen"
@@ -526,17 +520,17 @@
       @handleStatsModalClose="attrVisible = false"
     />
     <!-- 批量设置变种属性 -->
-    <BatchSetColor
+    <!-- <BatchSetColor
       :setValueVis="setValueVis"
       :setColorOption="setColorOption"
       @closeColorModal="setValueVis = false"
       @confirm="confirm"
       @handleCancel="handleColorCancel"
-    />
+    /> -->
     <!-- 批量修改颜色样本大小 -->
-    <BacthEditColorImg ref="bacthEditColorImgRef" />
+    <!-- <BacthEditColorImg ref="bacthEditColorImgRef" /> -->
     <!-- 颜色样本翻译 -->
-    <ColorImgTranslation ref="colorImgTranslationRef" />
+    <!-- <ColorImgTranslation ref="colorImgTranslationRef" /> -->
   </div>
 </template>
 
@@ -544,14 +538,14 @@
   import AsyncIcon from '~/layouts/components/menu/async-icon.vue'
   import { message, Modal } from 'ant-design-vue'
   import { watermarkListApi, watermarkApi } from '@/api/common/water-mark'
-  import { productWarehouse, templateList } from '@/pages/ozon/config/api/product'
+  import { templateList } from '@/pages/ozon/config/api/product'
   import {
     updatePrice,
     endResult,
     processAttributesCache,
     reorderArray,
     cartesianProduct,
-    processResult,
+    processResult2,
     processData,
     checkSellerSKU,
     hasDuplicateModelValues,
@@ -566,15 +560,15 @@
   import { imageUrlUpload } from '@/pages/sample/acquisitionEdit/js/api.js'
   import { FileOutlined, SettingOutlined, DownOutlined } from '@ant-design/icons-vue'
   import { v4 as uuidv4 } from 'uuid'
-  import EditProdQuantity from '@/pages/ozon/productPublish/comm/EditProdQuantity.vue'
   import SelectAttr from '@/pages/ozon/productPublish/comm/SelectAttr.vue'
-  import BatchEditModal from '@/pages/ozon/config/component/batchEditModal/index.vue'
-  import BatchSetColor from '@/pages/ozon/editWaitProduct/comm/batchSetColor.vue'
-  import ColorImgTranslation from '@/pages/ozon/editWaitProduct/comm/colorImgTranslation.vue'
-  import BacthEditColorImg from '@/pages/ozon/editWaitProduct/comm/bacthEditColorImg.vue'
+  import BatchEditModal from './BatchEditModal.vue'
+  // import BatchSetColor from '@/pages/ozon/editWaitProduct/comm/batchSetColor.vue'
+  // import ColorImgTranslation from '@/pages/ozon/editWaitProduct/comm/colorImgTranslation.vue'
+  // import BacthEditColorImg from '@/pages/ozon/editWaitProduct/comm/bacthEditColorImg.vue'
 
   const store = useProductReviewStore()
   const productDetail = computed(() => store.productDetail)
+  const rawAttributes = computed(() => store.attributes)
 
   const bacthEditColorImgRef = ref()
   const colorImgTranslationRef = ref()
@@ -585,13 +579,11 @@
   const attributeList = ref([]) //变种主题卡片
   const tableData = ref([])
   const watermark = ref([])
-  const editQuantityVis = ref(false)
   const batchOpen = ref(false)
   const batchTitle = ref('')
   const batchType = ref('')
   const headerList = ref([]) //动态表头
   const addHeaderList = ref([])
-  const quantityRow = ref({})
   const types = ref('')
   const editStockList = ref([])
   const attrVisible = ref(false)
@@ -865,7 +857,7 @@
         headerList.value.splice(index + 1, 0, obj)
       }
     })
-    const displayAttr = store.attributes
+    const displayAttr = rawAttributes.value
     const idMap = new Map()
     list.forEach(item => {
       idMap.set(item.id, true)
@@ -886,7 +878,7 @@
   function confirmMenuClick({ key }, record, type) {
     // 定义不同type对应的属性映射关系
     const propertyMap = {
-      size: ['packageLength', 'packageWidth', 'packageHeight', 'packageWeight'],
+      size: ['length', 'width', 'height', 'weight'],
       costPrice: ['costPrice']
     }
     // 根据type获取对应的属性列表，默认不复制任何属性
@@ -917,7 +909,7 @@
   // 处理数据格式
   const processDataFormat = (list = []) => {
     let newHeaderList = handleTheme(list)
-    const insertIndex = headerList.value.length - 6
+    const insertIndex = headerList.value.length - 5
     for (let i = list.length - 1; i >= 0; i--) {
       headerList.value.splice(insertIndex, 0, {
         dataIndex: list[i].name,
@@ -987,7 +979,7 @@
 
     /** 移除变种主题后需要重新生成变种信息 table 数据 */
     let cartesianProducts = cartesianProduct(attributeList.value)
-    let newTableData = processResult(cartesianProducts)
+    let newTableData = processResult2(cartesianProducts)
     tableData.value = newTableData
   }
   // 添加多个属性操作
@@ -1092,10 +1084,11 @@
 
   const commProceData = () => {
     let cartesianProducts = cartesianProduct(attributeList.value)
-    let newTableData = processResult(cartesianProducts)
+    let newTableData = processResult2(cartesianProducts)
     let minLength = Math.min(newTableData.length, tableData.value.length)
     for (let i = 0; i < minLength; i++) {
       // 将b数组中对应下标的数据赋值到a数组中
+      newTableData[i].id = tableData.value[i].id
       newTableData[i].skuTitle = tableData.value[i].skuTitle
       newTableData[i].sellerSKU = tableData.value[i].sellerSKU
       newTableData[i].costPrice = tableData.value[i].costPrice
@@ -1104,12 +1097,11 @@
       newTableData[i].mainImages = tableData.value[i].mainImages
       newTableData[i].subImages = tableData.value[i].subImages
       newTableData[i].imageList = tableData.value[i].imageList
-      newTableData[i].quantity = tableData.value[i].quantity
-      newTableData[i].warehouseList = tableData.value[i].warehouseList
-      newTableData[i].packageHeight = tableData.value[i].packageHeight
-      newTableData[i].packageLength = tableData.value[i].packageLength
-      newTableData[i].packageWidth = tableData.value[i].packageWidth
-      newTableData[i].packageWeight = tableData.value[i].packageWeight
+      newTableData[i].stock = tableData.value[i].stock
+      newTableData[i].height = tableData.value[i].height
+      newTableData[i].length = tableData.value[i].length
+      newTableData[i].width = tableData.value[i].width
+      newTableData[i].weight = tableData.value[i].weight
     }
     return newTableData
   }
@@ -1163,6 +1155,16 @@
     batchTitle.value = '批量修改成本价'
     batchType.value = 'costPrice'
   }
+  // 批量修改库存
+  const batchStock = () => {
+    if (tableData.value.length == 0) {
+      message.warning('请先添加sku！')
+      return
+    }
+    batchOpen.value = true
+    batchTitle.value = '批量修改库存'
+    batchType.value = 'stock'
+  }
   // 批量修改SKU
   const batchSKU = () => {
     if (tableData.value.length == 0) {
@@ -1183,62 +1185,15 @@
     batchTitle.value = '批量修改SKU标题'
     batchType.value = 'skuTitle'
   }
-  // 修改 SKU 时同步修改 warehouseList 里的 skuCode
-  const sellerSKUChange = debounce(record => {
-    record.warehouseList.forEach(item => {
-      item.skuCode = record.sellerSKU
-    })
-  }, 200)
-  // 批量修改库存
-  const batchStock = (type, row = {}) => {
-    if (tableData.value.length == 0) {
-      message.warning('请先添加sku！')
-      return
-    }
-    getEditStore(shopCode)
-    quantityRow.value = row
-    editQuantityVis.value = true
-    types.value = type
-  }
 
-  //修改库存
-  const backQuantity = (quantities, copyList) => {
-    // 生成仓库条目函数（过滤空值并映射结构）
-    const createWarehouseEntries = (skuCode, copyList) =>
-      copyList[0].children
-        .filter(item => item.stock != null && item.stock !== '')
-        .map(item => ({
-          skuCode,
-          warehouseId: item.warehouseId,
-          present: item.stock,
-          warehouseName: item.name
-        }))
-
-    // 按仓库ID去重函数
-    const deduplicateByWarehouseId = entries => Array.from(new Map(entries.map(item => [item.warehouseId, item])).values())
-
-    if (types.value === 'single') {
-      // 单规格模式
-      quantityRow.value.quantity = quantities
-      quantityRow.value.warehouseList = createWarehouseEntries(quantityRow.value.sellerSKU, copyList)
-    } else {
-      // 多规格模式
-      tableData.value.forEach(e => {
-        e.quantity = quantities
-        const entries = createWarehouseEntries(e.sellerSKU, copyList)
-        e.warehouseList = deduplicateByWarehouseId(entries)
-      })
-    }
-  }
-
-  const batchPackLength = () => {
+  const batchSizeInfo = () => {
     if (tableData.value.length == 0) {
       message.warning('请先添加sku！')
       return
     }
     batchOpen.value = true
     batchTitle.value = '批量修改尺寸'
-    batchType.value = 'packLength'
+    batchType.value = 'sizeInfo'
   }
 
   const backValue = batchFields => {
@@ -1246,45 +1201,28 @@
       case 'sku':
         tableData.value.forEach(item => {
           item.sellerSKU = batchFields.batchValue
-          item.warehouseList.forEach(warehouse => {
-            warehouse.skuCode = item.sellerSKU
-          })
         })
         break
-      case 'skuTitle':
-        tableData.value.forEach(item => {
-          item.skuTitle = batchFields.batchValue
-        })
-        break
+      // case 'skuTitle':
+      //   tableData.value.forEach(item => {
+      //     item.skuTitle = batchFields.batchValue
+      //   })
+      //   break
       case 'costPrice':
         updatePrice(tableData.value, 'costPrice', batchFields)
         break
-      case 'packLength':
+      case 'stock':
+        updatePrice(tableData.value, 'stock', batchFields)
+        break
+      case 'sizeInfo':
         tableData.value.forEach(item => {
-          Object.assign(item, batchFields.packageSize)
+          Object.assign(item, batchFields.sizeInfo)
         })
         break
       default:
         break
     }
     batchOpen.value = false
-  }
-
-  const getEditStore = account => {
-    let params = {
-      account: [account]
-    }
-    productWarehouse(params).then(res => {
-      editStockList.value =
-        res?.data?.map(item => {
-          return {
-            account: item.account,
-            simpleName: item.simpleName,
-            children: item.children,
-            allStock: ''
-          }
-        }) || []
-    })
   }
 
   // 获取水印列表
@@ -1305,7 +1243,7 @@
   ])
 
   watch(
-    () => store.attributes,
+    () => rawAttributes.value,
     val => {
       if (val) {
         themeBtns.value = []
@@ -1377,12 +1315,11 @@
             skuTitle: '',
             sellerSKU: '',
             costPrice: null,
-            quantity: undefined,
-            warehouseList: [],
-            packageLength: undefined,
-            packageWidth: undefined,
-            packageHeight: undefined,
-            packageWeight: undefined,
+            stock: undefined,
+            length: undefined,
+            width: undefined,
+            height: undefined,
+            weight: undefined,
             mainImages: [],
             subImages: [],
             imageList: [],
@@ -1429,20 +1366,20 @@
 
   // 提取公共的newItem创建函数
   const createNewItem = (sku, dataSource) => ({
+    id: sku.id,
     costPrice: dataSource.costPrice || sku.costPrice,
-    quantity: dataSource.stock || sku.stock,
-    packageHeight: sku.height,
-    packageLength: sku.depth,
-    packageWeight: sku.weight,
-    packageWidth: sku.width,
+    stock: dataSource.stock || sku.stock,
+    height: sku.height,
+    length: sku.depth,
+    weight: sku.weight,
+    width: sku.width,
     skuTitle: dataSource.name || sku.name,
-    colorImg: createColorImg(dataSource.colorImage || sku.colorImage),
-    warehouseList: formatWarehouseList(dataSource.warehouseList || sku.warehouseList, sku.skuCode),
+    // colorImg: createColorImg(dataSource.colorImage || sku.colorImage),
     sellerSKU: dataSource.skuCode || sku.skuCode,
     // imageUrl: mergeAndDeduplicateImages(dataSource, sku),
     mainImages: fillImage(sku.mainImages),
-    subImages: fillImage(sku.subImages),
-    imageList: sku.imageList || []
+    subImages: fillImage(sku.subImages)
+    // imageList: sku.imageList || []
   })
 
   // 给图片url地址添加id, 组成图片对象
@@ -1466,11 +1403,6 @@
         name: colorImage.split('/').pop()
       }
     ]
-  }
-
-  // 仓库列表格式化函数
-  const formatWarehouseList = (warehouseList, skuCode) => {
-    return warehouseList?.map(item => ({ ...item, skuCode })) || []
   }
 
   // 图片合并去重函数
@@ -1514,10 +1446,10 @@
     headerList.value = customSort(uniqueArr)
 
     // 添加颜色样本列
-    if (result.some(item => item.colorImg.length)) {
+    /* if (result.some(item => item.colorImg.length)) {
       headerList.value.unshift(CONSTANTS.TABLE_HEADER.COLOR_IMG)
       addHeaderList.value.push('colorImg')
-    }
+    } */
 
     // 添加SKU标题列
     if (result.some(item => item.skuTitle) && result.length > 1) {
@@ -1694,9 +1626,9 @@
       },
       { check: row => isEmpty(row.sellerSKU), text: '请填写SKU编号！' },
       { check: row => isEmpty(row.costPrice), text: '请填写成本价！' },
-      { check: row => isEmpty(row.quantity), text: '请填写库存！' },
+      { check: row => isEmpty(row.stock), text: '请填写库存！' },
       {
-        check: row => [row.packageHeight, row.packageLength, row.packageWeight, row.packageWidth].some(v => v == null),
+        check: row => [row.height, row.length, row.weight, row.width].some(v => v == null),
         message: '请填写SKU包装信息！'
       }
     ]
@@ -1724,9 +1656,64 @@
     }
   }
 
+  // 获取用于提交的 skuList 数据
+  function getSkuList() {
+    // 变种属性列表
+    const variantAttrList = attrList.value.flat()
+
+    const skuList = tableData.value.map(item => {
+      // SKU 属性
+      const skuAttributes = []
+      variantAttrList.forEach(name => {
+        // 从全部属性中找到对应的数据
+        const target = rawAttributes.value.find(attr => attr.name === name)
+        if (target) {
+          // 变种属性的值可能是多选(以';'分割)
+          const valueList = item[name].split(';')
+          valueList.forEach(val => {
+            // 找到值对应的 id
+            let attributeOptionId = undefined
+            if (target.options) {
+              attributeOptionId = target.options.find(opt => opt.value === val)?.id
+            }
+            skuAttributes.push({
+              id: target.relatedAttributeId,
+              intelligentAttributeId: target.intelligentAttributeId,
+              skuId: item.id,
+              skuCode: item.sellerSKU,
+              attributeId: target.id,
+              attributeName: name,
+              attributeOptionId,
+              attributeValue: val,
+              isVariant: true
+            })
+          })
+        }
+      })
+
+      const obj = {
+        skuId: item.id,
+        skuCode: item.sellerSKU,
+        length: item.length,
+        width: item.width,
+        height: item.height,
+        weight: item.weight,
+        costPrice: item.costPrice,
+        stock: item.stock,
+        mainImages: item.mainImages.map(image => image.url),
+        subImages: item.subImages.map(image => image.url),
+        skuAttributes
+      }
+
+      return obj
+    })
+
+    return skuList
+  }
+
   // 抛出数据和方法，可以让父级用ref获取
   defineExpose({
-    tableData,
+    getSkuList,
     submitForm
   })
   onMounted(() => {

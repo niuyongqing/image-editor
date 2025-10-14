@@ -442,7 +442,7 @@
   const selectMenu = item => {
     selectItem.value = item
     emits('select', {
-      label: item.label.split(' / '),
+      labels: item.label.split(' / '),
       value: item.value,
       ids: item.ids
     })

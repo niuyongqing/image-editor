@@ -4,7 +4,6 @@ export const useProductReviewStore = defineStore('productReviewStore', {
     return {
       loading: false,
       attributes: {},
-      addHeaderList: [],
       productDetail: {},
       waterMarkOptions: [],
       SKUTableData: [], // 变种表格数据
