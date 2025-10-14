@@ -7,6 +7,13 @@ export const DEFAULT_TABLE_COLUMN = [
     width: 200
   },
   {
+    title: '产品名称',
+    key: 'commodityName',
+    dataIndex: 'commodityName',
+    show: true,
+    width: 200
+  },
+  {
     title: '市场方向',
     key: 'market',
     show: true,

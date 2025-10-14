@@ -1668,17 +1668,19 @@
         // 从全部属性中找到对应的数据
         const target = rawAttributes.value.find(attr => attr.name === name)
         if (target) {
+          const relatedAttributeIdList = target.relatedAttributeId?.split(',') || []
           // 变种属性的值可能是多选(以';'分割)
           const valueList = item[name].split(';')
-          valueList.forEach(val => {
+          valueList.forEach((val, i) => {
             // 找到值对应的 id
-            let attributeOptionId = undefined
+            let attributeOptionId = '0'
             if (target.options) {
-              attributeOptionId = target.options.find(opt => opt.value === val)?.id
+              attributeOptionId = target.options.find(opt => opt.value === val)?.id ?? '0'
             }
             skuAttributes.push({
-              id: target.relatedAttributeId,
+              id: relatedAttributeIdList[i],
               intelligentAttributeId: target.intelligentAttributeId,
+              complexId: '0',
               skuId: item.id,
               skuCode: item.sellerSKU,
               attributeId: target.id,

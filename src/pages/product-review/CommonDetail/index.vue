@@ -1,11 +1,94 @@
 <!-- 公共的详情页, 基于 Ozon 产品详情页 -->
 <template>
-  <div class="bg-#fff p-6">
+  <div class="bg-#fff p-6 text-left">
     <BaseInfo ref="baseInfoRef" />
 
     <SKUInfo ref="SKUInfoRef" />
 
     <ImageInfo ref="ImageInfoRef" />
+
+    <!-- 底部按钮 -->
+    <a-space class="float-right mt-10">
+      <a-button @click="close">关闭</a-button>
+
+      <!-- 资料待编辑 -->
+      <template v-if="route.path === '/platform/product-review/data-for-editing-detail'">
+        <a-button
+          type="primary"
+          :loading="saveLoading"
+          @click="save"
+          >保存</a-button
+        >
+        <a-button
+          type="primary"
+          @click="applicationPhoto"
+          >申请拍照</a-button
+        >
+        <a-button
+          type="primary"
+          :loading="reviewLoading"
+          @click="toFinalReview"
+          >提交终审</a-button
+        >
+      </template>
+
+      <!-- 刊登待审核 -->
+      <a-button
+        v-else
+        type="primary"
+        :loading="reviewLoading"
+        @click="reviewOpen = true"
+      >
+        审核
+      </a-button>
+    </a-space>
+
+    <!-- 审核弹窗 -->
+    <a-modal
+      v-model:open="reviewOpen"
+      title="审核"
+      centered
+      :confirm-loading="reviewLoading"
+      @cancel="reviewModalCancel"
+      @ok="reviewModalOk"
+    >
+      <a-form
+        :model="reviewForm"
+        ref="reviewFormRef"
+      >
+        <a-form-item name="state">
+          <a-radio-group v-model:value="reviewForm.state">
+            <a-radio
+              :value="1"
+              class="mr-4"
+              >审核通过</a-radio
+            >
+            <a-radio :value="0">审核驳回</a-radio>
+          </a-radio-group>
+        </a-form-item>
+
+        <a-form-item
+          name="remark"
+          :rules="[
+            {
+              required: reviewForm.state === 0,
+              message: '请输入审核备注',
+              trigger: 'blur'
+            }
+          ]"
+        >
+          <div class="mb-2">备注:</div>
+          <a-textarea
+            v-model:value="reviewForm.remark"
+            :rows="4"
+            :max-length="500"
+            show-count
+            allowClear
+            placeholder="请输入审核备注（驳回时必填）"
+          />
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
@@ -44,7 +127,12 @@
     })
   }
 
+  function close() {
+    window.close()
+  }
+
   /** 保存 */
+  const saveLoading = ref(false)
   async function save() {
     // 校验
     const baseInfoFlag = await baseInfoRef.value.childForm()
@@ -67,7 +155,7 @@
       competitiveInfos: baseInfoForm.competitiveInfos.filter(item => item.linkUrl).map(item => ({ linkUrl: item.linkUrl })),
       purchaseLinkUrls: baseInfoForm.purchaseLinkUrls
         .filter(item => item.linkUrl)
-        .map(item => ({ linkUrl: item.linkUrl }))
+        .map(item => item.linkUrl)
         .join(',')
     }
     const submitAttributes = baseInfoRef.value.getSubmitAttributes()
@@ -80,13 +168,18 @@
       skuList
     }
 
-    updateProductDetailApi(params).then(res => {
-      message.success('保存成功')
-      // FIXME:
-      // setTimeout(() => {
-      //   window.close(0)
-      // }, 2000)
-    })
+    saveLoading.value = true
+    updateProductDetailApi(params)
+      .then(res => {
+        message.success('保存成功')
+        // FIXME:
+        // setTimeout(() => {
+        //   window.close(0)
+        // }, 2000)
+      })
+      .finally(() => {
+        saveLoading.value = false
+      })
   }
 
   const router = useRouter()
@@ -96,7 +189,8 @@
       id: detail.id,
       tradeName: detail.productName, //商品名称
       classify: detail.categoryId, //商品分类
-      skuList: detail.skuCodes //商品SKU列表
+      skuList: detail.skuCodes, //商品SKU列表
+      productId: detail.intelligentProductId //商品ID
     }
 
     const urlData = router.resolve({
@@ -107,6 +201,7 @@
   }
 
   /** 提交终审 */
+  const reviewLoading = ref(false)
   function toFinalReview() {
     const params = {
       state: 50, // 待终审
@@ -114,11 +209,46 @@
       remark: undefined
     }
 
-    lastAudit(params).then(res => {
-      message.success('提交终审成功')
-    })
+    reviewLoading.value = true
+    lastAudit(params)
+      .then(res => {
+        message.success('提交终审成功')
+      })
+      .finally(() => {
+        reviewLoading.value = false
+      })
   }
 
-  /** 暴露出克 */
-  defineExpose({ save, applicationPhoto, toFinalReview })
+  /** 审核弹窗 */
+  const reviewOpen = ref(false)
+  const reviewFormRef = ref()
+  const reviewForm = reactive({
+    state: 1,
+    remark: ''
+  })
+
+  function reviewModalCancel() {
+    reviewOpen.value = false
+    reviewForm.state = 1
+    reviewForm.remark = ''
+  }
+
+  function reviewModalOk() {
+    reviewLoading.value = true
+    const params = {
+      state: reviewForm.state === 1 ? 60 : 70, // 60 终审完成; 70 运营驳回
+      commodityId: detail.commodityId,
+      remark: reviewForm.remark
+    }
+
+    lastAudit(params)
+      .then(res => {
+        message.success('审核成功')
+      })
+      .finally(() => {
+        reviewLoading.value = false
+      })
+  }
+
+  function review() {}
 </script>

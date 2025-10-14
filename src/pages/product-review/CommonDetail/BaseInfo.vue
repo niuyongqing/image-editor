@@ -867,7 +867,7 @@
 
   // 获取用于提交的 attributes 数据
   function getSubmitAttributes() {
-    const submitAttributes = []
+    let submitAttributes = []
     // 产品属性
     let target
     for (const name in baseInfoForm.attributes) {
@@ -878,9 +878,10 @@
             submitAttributes.push({
               id: target.relatedAttributeId,
               intelligentAttributeId: target.intelligentAttributeId,
+              complexId: '0',
               attributeId: target.id,
               attributeName: name,
-              attributeOptionId: undefined,
+              attributeOptionId: '0',
               attributeValue: baseInfoForm.attributes[name],
               isVariant: false
             })
@@ -889,11 +890,13 @@
         case 'Array':
           target = attributeList.value.find(item => item.name === name)
           if (target) {
-            baseInfoForm.attributes[name].forEach(attributeOptionId => {
+            const relatedAttributeIdList = target.relatedAttributeId?.split(',') || []
+            baseInfoForm.attributes[name].forEach((attributeOptionId, i) => {
               const targetOption = target.options.find(item => item.id === attributeOptionId)
               submitAttributes.push({
-                id: target.relatedAttributeId,
+                id: relatedAttributeIdList[i],
                 intelligentAttributeId: target.intelligentAttributeId,
+                complexId: '0',
                 attributeId: target.id,
                 attributeName: name,
                 attributeOptionId,
@@ -909,6 +912,7 @@
             submitAttributes.push({
               id: target.relatedAttributeId,
               intelligentAttributeId: target.intelligentAttributeId,
+              complexId: '0',
               attributeId: target.id,
               attributeName: name,
               attributeOptionId: baseInfoForm.attributes[name].value,
@@ -924,13 +928,17 @@
       }
     }
 
+    // 把以下固定的几项给过滤掉
+    const idList = Object.values(ATTRIBUTE_IDS)
+    submitAttributes = submitAttributes.filter(item => !idList.includes(item.attributeId))
+
     // 产品描述
     if (baseInfoForm.desc) {
       submitAttributes.push({
-        complexId: undefined,
-        attributeId: '4191',
+        complexId: '0',
+        attributeId: 4191,
         attributeName: '产品描述',
-        attributeOptionId: undefined,
+        attributeOptionId: '0',
         attributeValue: baseInfoForm.desc,
         isVariant: false
       })
@@ -939,10 +947,10 @@
     // JSON富文本
     if (baseInfoForm.jsons) {
       submitAttributes.push({
-        complexId: undefined,
-        attributeId: '11254',
+        complexId: '0',
+        attributeId: 11254,
         attributeName: 'JSON富文本',
-        attributeOptionId: undefined,
+        attributeOptionId: '0',
         attributeValue: baseInfoForm.jsons,
         isVariant: false
       })
@@ -952,9 +960,9 @@
     if (baseInfoForm.coverUrl) {
       submitAttributes.push({
         complexId: 100002,
-        attributeId: '21845',
+        attributeId: 21845,
         attributeName: '封面视频',
-        attributeOptionId: undefined,
+        attributeOptionId: '0',
         attributeValue: baseInfoForm.coverUrl,
         isVariant: false
       })
@@ -965,9 +973,9 @@
       baseInfoForm.video.forEach(video => {
         submitAttributes.push({
           complexId: 100001,
-          attributeId: '21841',
+          attributeId: 21841,
           attributeName: '详情视频',
-          attributeOptionId: undefined,
+          attributeOptionId: '0',
           attributeValue: video.url,
           isVariant: false
         })

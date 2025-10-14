@@ -149,6 +149,7 @@
               >
               <a-button
                 type="link"
+                :disabled="record.auditStatus !== 20"
                 @click="applicationPhoto(record)"
                 >申请拍照</a-button
               >
@@ -266,7 +267,7 @@
       classify: searchForm.classify ? searchForm.classify.join(',') : undefined,
       startTime: searchForm.submitTime ? dayjs(searchForm.submitTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
       endTime: searchForm.submitTime ? dayjs(searchForm.submitTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
-      state: 70 // FIXME: 用 30
+      state: '20,30,40'
     }
     delete params.submitTime
 
@@ -283,7 +284,7 @@
 
   /** 编辑 */
   function goEdit(record) {
-    window.open(`/platform/product-review/data-for-editing-detail?id=${record.id}`)
+    window.open(`/platform/product-review/data-for-editing-detail?id=${record.id}&commodityId=${record.commodityId}`)
   }
 
   /** 申请拍照 */
@@ -293,7 +294,8 @@
       id: record.id,
       tradeName: record.productName, //商品名称
       classify: record.categoryId, //商品分类
-      skuList: record.skuCodes //商品SKU列表
+      skuList: record.skuCodes, //商品SKU列表
+      productId: record.intelligentProductId, //商品ID
     }
 
     const urlData = router.resolve({
@@ -332,7 +334,7 @@
       .then(res => {
         message.success('添加备注成功')
         getList()
-        remarkCancel
+        remarkCancel()
       })
       .finally(() => {
         remarkLoading.value = false

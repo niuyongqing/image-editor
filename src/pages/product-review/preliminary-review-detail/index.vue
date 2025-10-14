@@ -851,9 +851,9 @@
   // 获取详情数据
   const route = useRoute()
   async function getDetail() {
-    const id = route.query.id
+    const id = route.query.commodityId
     if (!id) {
-      message.error('缺少详情id')
+      message.error('缺少详情commodityId')
 
       return
     }
