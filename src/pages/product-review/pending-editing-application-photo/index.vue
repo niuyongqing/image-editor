@@ -303,6 +303,10 @@ const taskTypeOptions = reactive([
     value: "4",
     label: "Amazon提交",
   },
+  {
+    value: "5",
+    label: "Ozon提交",
+  },
 ]);
 
 /**
@@ -313,9 +317,10 @@ const formData = reactive({
   classify:[],
   skuList: "",
   devConsultLink: [""], // 初始化为空字符串数组，确保至少有一个链接输入框
-  artOldType: null,
+  artOldType: '5',
   artAsk: "",
   devDrawing: [],
+  productId: "",
 });
 
 const headers = {
@@ -592,6 +597,7 @@ const handleSubmit = async () => {
     // 测试数据
     const parms =
     {
+      "productId": "932071",
       "commodityId":"932071",
       "artAsk":"<p>12312321</p>",
       "devConsultLink":"[\"123213\"]",
@@ -641,12 +647,13 @@ onMounted(() => {
   const tradeName = queryParams.get("tradeName");
   const classify = queryParams.get("classify");
   const skuList = queryParams.get("skuList");
-
+  const productId = queryParams.get("productId");
+  
   // 设置表单初始值
   formData.tradeName = tradeName || "";
   formData.classify = classify?.split(",") || "";
   formData.skuList = skuList || "";
-
+  formData.productId = productId;
   getWatermark();
 });
 

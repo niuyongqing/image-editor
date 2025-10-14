@@ -194,8 +194,8 @@
       <a-form :model="auditFormData" ref="auditFormRef">
         <a-form-item name="state">
           <a-radio-group v-model:value="auditFormData.state">
-            <a-radio :value="1" style="margin-right: 16px">审核通过</a-radio>
-            <a-radio :value="0">审核驳回</a-radio>
+            <a-radio :value="stateOptions[props.Source][0].value" style="margin-right: 16px">审核通过</a-radio>
+            <a-radio :value="stateOptions[props.Source][1].value">审核驳回</a-radio>
           </a-radio-group>
         </a-form-item>
 
@@ -203,7 +203,7 @@
           name="remark"
           :rules="[
             {
-              required: auditFormData.state === 0,
+              required: auditFormData.state === 10,
               message: '请输入审核备注',
               trigger: 'blur',
             },
@@ -369,12 +369,44 @@ const submitFormData = reactive({
   remark: "", //remark
 });
 
+const stateOptions = ref({
+ initialReviewPublication: [
+    {
+      label: "审核通过",
+      value: 20,
+    },
+    {
+      label: "审核驳回",
+      value: 10,
+    },
+  ],
+  publicationRejected: [
+    {
+      label: "审核通过",
+      value: 1,
+    },
+    {
+      label: "审核驳回",
+      value: 0,
+    },
+  ],
+  pendingFinalReview: [
+    {
+      label: "审核通过",
+      value: 1,
+    },
+    {
+      label: "审核驳回",
+      value: 0,
+    },
+  ],
+})
 // 审核相关
 const auditOpen = ref(false);
 const auditLoading = ref(false);
 const auditFormRef = ref(null);
 const auditFormData = reactive({
-  state: 0, //0 未通过，1 通过
+  state: 20, //10 驳回，20 通过
   commodityId: "", //commodityId
   remark: "", //remark
 });
@@ -515,7 +547,7 @@ const resetAuditForm = () => {
   if (auditFormRef.value) {
     auditFormRef.value.resetFields();
   }
-  auditFormData.state = 0;
+  auditFormData.state = 20;
   auditFormData.commodityId = "";
   auditFormData.remark = "";
 };
@@ -561,8 +593,8 @@ const handleOk = () => {
       let auditPromise;
       // 提取公共参数
       const commonParams = {
-        commodityId: currentAuditingProducts.value
-          .map((product) => product.commodityId)
+        id: currentAuditingProducts.value
+          .map((product) => product.id)
           ?.join(","),
         state: auditFormData.state,
         remark: auditFormData.remark,

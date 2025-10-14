@@ -31,8 +31,9 @@
           <a-image
             class="image-cell"
             :src="record.artMainImage"
-            alt="主图"
-            style="height: 80px;"
+            :fallback="EmptyImg"
+            height="80px"
+            width="80px"
           />
         </template>
         <!-- 审核状态列自定义渲染 -->
@@ -114,6 +115,7 @@
 <script setup name="ProductReviewTable">
 import { ref, reactive, computed, watch, onMounted } from "vue";
 import { message } from "ant-design-vue";
+  import EmptyImg from '@/assets/images/aliexpress/empty.png'
 import dayjs from "dayjs";
 import {
   getCommodityTypeLabel,
@@ -367,6 +369,9 @@ const customRow = (record) => {
       // 触发自定义事件，将选中的商品传递给父组件
       emit("edit-product", record);
     },
+    style: {
+      height: "80px",
+    }
   };
 };
 

@@ -71,8 +71,8 @@ export default [
   },
   {
     title: '审核时间',
-    dataIndex: 'selectTime',
-    key: 'selectTime',
+    dataIndex: 'updateTime',
+    key: 'updateTime',
     align: 'center',
     width: 180,
     show: true,
