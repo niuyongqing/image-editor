@@ -3,13 +3,16 @@
   <div class="text-left flex">
     <!-- LEFT -->
     <div
+      id="preliminary-review-detail"
       class="flex-1 h-[calc(100vh-60px)] overflow-auto"
       style="scrollbar-width: thin"
     >
       <PreliminaryReviewDetail />
+      <a-back-top />
     </div>
     <!-- RIGHT -->
     <div
+      id="common-detail"
       class="flex-1 h-[calc(100vh-60px)] overflow-auto"
       style="scrollbar-width: thin"
     >

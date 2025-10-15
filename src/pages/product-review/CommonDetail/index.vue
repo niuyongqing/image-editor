@@ -12,7 +12,7 @@
       <a-button @click="close">关闭</a-button>
 
       <!-- 资料待编辑 -->
-      <template v-if="route.path === '/platform/product-review/data-for-editing-detail'">
+      <template v-if="isEditDetail">
         <a-button
           type="primary"
           :loading="saveLoading"
@@ -43,6 +43,9 @@
       </a-button>
     </a-space>
 
+    <!-- 回到顶部 -->
+    <a-back-top :target="targetFn" />
+
     <!-- 审核弹窗 -->
     <a-modal
       v-model:open="reviewOpen"
@@ -55,29 +58,32 @@
       <a-form
         :model="reviewForm"
         ref="reviewFormRef"
+        layout="vertical"
       >
-        <a-form-item name="state">
-          <a-radio-group v-model:value="reviewForm.state">
-            <a-radio
-              :value="1"
-              class="mr-4"
-              >审核通过</a-radio
-            >
-            <a-radio :value="0">审核驳回</a-radio>
-          </a-radio-group>
+        <a-form-item name="auditStatus">
+          <div class="text-center">
+            <a-radio-group v-model:value="reviewForm.auditStatus">
+              <a-radio
+                :value="1"
+                class="mr-4"
+                >审核通过</a-radio
+              >
+              <a-radio :value="0">审核驳回</a-radio>
+            </a-radio-group>
+          </div>
         </a-form-item>
 
         <a-form-item
           name="remark"
+          label="备注"
           :rules="[
             {
-              required: reviewForm.state === 0,
+              required: reviewForm.auditStatus === 0,
               message: '请输入审核备注',
               trigger: 'blur'
             }
           ]"
         >
-          <div class="mb-2">备注:</div>
           <a-textarea
             v-model:value="reviewForm.remark"
             :rows="4"
@@ -103,6 +109,10 @@
 
   const store = useProductReviewStore()
   const route = useRoute()
+
+  provide('databaseId', route.query.commodityId)
+  // 是否为资料待编辑详情
+  const isEditDetail = computed(() => route.path === '/platform/product-review/data-for-editing-detail')
 
   const baseInfoRef = ref()
   const SKUInfoRef = ref()
@@ -204,7 +214,7 @@
   const reviewLoading = ref(false)
   function toFinalReview() {
     const params = {
-      state: 50, // 待终审
+      auditStatus: 50, // 待终审
       commodityId: detail.commodityId,
       remark: undefined
     }
@@ -223,32 +233,39 @@
   const reviewOpen = ref(false)
   const reviewFormRef = ref()
   const reviewForm = reactive({
-    state: 1,
+    auditStatus: 1,
     remark: ''
   })
 
   function reviewModalCancel() {
     reviewOpen.value = false
-    reviewForm.state = 1
+    reviewForm.auditStatus = 1
     reviewForm.remark = ''
   }
 
   function reviewModalOk() {
-    reviewLoading.value = true
-    const params = {
-      state: reviewForm.state === 1 ? 60 : 70, // 60 终审完成; 70 运营驳回
-      commodityId: detail.commodityId,
-      remark: reviewForm.remark
-    }
+    reviewFormRef.value.validate().then(_ => {
+      reviewLoading.value = true
+      const params = {
+        auditStatus: reviewForm.auditStatus === 1 ? 60 : 70, // 60 终审完成; 70 运营驳回
+        commodityId: detail.commodityId,
+        remark: reviewForm.remark
+      }
 
-    lastAudit(params)
-      .then(res => {
-        message.success('审核成功')
-      })
-      .finally(() => {
-        reviewLoading.value = false
-      })
+      lastAudit(params)
+        .then(res => {
+          message.success('审核成功')
+          reviewModalCancel()
+        })
+        .finally(() => {
+          reviewLoading.value = false
+        })
+    })
   }
 
-  function review() {}
+  /** 返回需要监听其滚动事件的元素 */
+  function targetFn() {
+    // 编辑 ? 外层父元素 : 页面顶层元素
+    return isEditDetail.value ? document.getElementById('common-detail') : document.querySelector('.ant-layout-content')
+  }
 </script>

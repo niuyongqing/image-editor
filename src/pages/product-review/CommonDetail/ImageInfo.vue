@@ -439,7 +439,7 @@
 
   defineOptions({ name: 'ImageInfo' })
   
-  const collectProductId = inject('collectProductId', '')
+  // const collectProductId = inject('collectProductId', '')
   const databaseId = inject('databaseId', '') // 资料库 id
 
   const store = useProductReviewStore()
@@ -679,7 +679,7 @@
         acquisitionModalOpen.value = true
         break
       case 'imgDataBase':
-        databaseImageModalRef.value.modalOpenFn(databaseId.value)
+        databaseImageModalRef.value.modalOpenFn(databaseId)
         break
       default:
         break

@@ -158,7 +158,7 @@
                 @click="openRemorkModal(record.id)"
                 >添加备注</a-button
               >
-              <a-popconfirm
+              <!-- <a-popconfirm
                 title="请确定是否删除"
                 @confirm="del(record)"
               >
@@ -167,7 +167,7 @@
                   danger
                   >删除</a-button
                 >
-              </a-popconfirm>
+              </a-popconfirm> -->
             </a-space>
           </template>
         </template>
@@ -267,7 +267,7 @@
       classify: searchForm.classify ? searchForm.classify.join(',') : undefined,
       startTime: searchForm.submitTime ? dayjs(searchForm.submitTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
       endTime: searchForm.submitTime ? dayjs(searchForm.submitTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
-      state: '20,30,40'
+      auditStatus: '20,30,40'
     }
     delete params.submitTime
 
@@ -284,17 +284,17 @@
 
   /** 编辑 */
   function goEdit(record) {
-    window.open(`/platform/product-review/data-for-editing-detail?id=${record.id}&commodityId=${record.commodityId}`)
+    window.open(`/platform/product-review/data-for-editing-detail?commodityId=${record.commodityId}&id=${record.intelligentProductId}`)
   }
 
   /** 申请拍照 */
   const router = useRouter()
   function applicationPhoto(record) {
     const query = {
-      id: record.id,
-      tradeName: record.productName, //商品名称
-      classify: record.categoryId, //商品分类
-      skuList: record.skuCodes, //商品SKU列表
+      id: record.commodityId,
+      tradeName: record.commodityName, //商品名称
+      classify: record.classify, //商品分类
+      skuList: record.skuList, //商品SKU列表
       productId: record.intelligentProductId, //商品ID
     }
 

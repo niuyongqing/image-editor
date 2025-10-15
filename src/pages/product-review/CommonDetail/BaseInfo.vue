@@ -813,10 +813,11 @@
         }
         getAttributes(params)
       }
-      // 链接
-      if (detail.purchaseLinkUrls?.length) {
-        baseInfoForm.purchaseLinkUrls = detail.purchaseLinkUrls
+      // 采购链接(字符串, ','分割)
+      if (detail.purchaseLinkUrls) {
+        baseInfoForm.purchaseLinkUrls = detail.purchaseLinkUrls.split(',').map(linkUrl => ({ id: uuidv4(), linkUrl }))
       }
+      // 竞品链接(数组)
       if (detail.competitiveInfos?.length) {
         baseInfoForm.competitiveInfos = detail.competitiveInfos
       }

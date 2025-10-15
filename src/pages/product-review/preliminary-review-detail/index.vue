@@ -613,6 +613,9 @@
       </a-card>
       <br />
     </a-spin>
+
+    <!-- 回到顶部(待编辑详情在左半部分) -->
+    <a-back-top :target="targetFn" :class="isEditDetail && 'left-[calc(50vw-30px)]'" />
   </div>
 </template>
 
@@ -848,8 +851,12 @@
     loading.value = false
     getDetail()
   })
-  // 获取详情数据
+
   const route = useRoute()
+  // 是否为资料待编辑详情
+  const isEditDetail = computed(() => route.path === '/platform/product-review/data-for-editing-detail')
+
+  // 获取详情数据
   async function getDetail() {
     const id = route.query.commodityId
     if (!id) {
@@ -1079,8 +1086,12 @@
     message.success('执行下载成功，请等待文件下载完成！勿重复操作')
     download.name(item.url, item.name)
   }
-  //复制产品英文描述  不带高亮描述的
-  function copyMeansEnglishDescription() {}
+
+  /** 返回需要监听其滚动事件的元素 */
+  function targetFn() {
+    // 编辑 ? 外层父元素 : 页面顶层元素
+    return isEditDetail.value ? document.getElementById('preliminary-review-detail') : document.querySelector('.ant-layout-content')
+  }
 </script>
 
 <style lang="less" scoped>

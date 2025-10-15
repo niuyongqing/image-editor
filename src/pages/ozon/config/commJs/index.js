@@ -412,6 +412,7 @@ const rebackHeadList = (id, item) => {
         type: 2,
         align: "center",
         id: 10097,
+        width: 200
       },
       {
         dataIndex: "options",
@@ -440,6 +441,7 @@ const rebackHeadList = (id, item) => {
         type: 2,
         align: "center",
         id: 9533,
+        width: 200
       },
       {
         dataIndex: "options",
