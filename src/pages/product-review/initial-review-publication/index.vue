@@ -40,19 +40,13 @@
           />
         </a-form-item>
         <a-form-item
-          :label="
-            props.Source === 'publicationRejected' ? '审核人:' : '提交人:'
-          "
+          label="提交人"
         >
           <a-select
             v-model:value="formData.selectUserId"
             allow-clear
             show-search
-            :placeholder="
-              props.Source === 'publicationRejected'
-                ? '请选择审核人'
-                : '请选择提交人'
-            "
+            placeholder="请选择提交人"
             :options="getAccountUserArr"
             mode="multiple"
             :maxTagCount="2"
@@ -151,11 +145,9 @@
           :columns="columns"
           :api="commodityList"
           :searchParams="formData"
-          :exportApi="exportProductList"
           @reset="resetForm"
           @edit-product="handleEditProduct"
           @loading-change="handleLoadingChange"
-          @export-loading-change="handleExportLoadingChange"
           :MarketDirection="MarketDirection"
           @selection-change="handleSelectionChange"
           :meansKeepGrainOptions="meansKeepGrainOptions"
@@ -192,8 +184,8 @@
       </div>
 
       <a-form :model="auditFormData" ref="auditFormRef">
-        <a-form-item name="state">
-          <a-radio-group v-model:value="auditFormData.state">
+        <a-form-item name="auditStatus">
+          <a-radio-group v-model:value="auditFormData.auditStatus">
             <a-radio :value="stateOptions[props.Source][0].value" style="margin-right: 16px">审核通过</a-radio>
             <a-radio :value="stateOptions[props.Source][1].value">审核驳回</a-radio>
           </a-radio-group>
@@ -203,7 +195,7 @@
           name="remark"
           :rules="[
             {
-              required: auditFormData.state === 10,
+              required: auditFormData.auditStatus === 10,
               message: '请输入审核备注',
               trigger: 'blur',
             },
@@ -276,19 +268,18 @@ import {
   firstAudit,
   lastAudit,
   rejectAudit,
-  exportProductList,
-} from "@/pages/product-review/config/api/product-review";
+} from "~@/pages/product-review/config/api/product-review";
 import commodityTypeList from "@/utils/commodityType";
 import { ref, reactive, onMounted, computed, watch } from "vue";
-import tableHeaderInitial from "~@/pages/ozon/config/tabColumns/initialReviewPublication";
-import tableHeaderPublicationRejected from "~@/pages/ozon/config/tabColumns/publicationRejected";
-import tableHeaderPending from "~@/pages/ozon/config/tabColumns/pendingFinalReview";
+import tableHeaderInitial from "~@/pages/product-review/config/table-config/initialReviewPublication";
+import tableHeaderPublicationRejected from "~@/pages/product-review/config/table-config/publicationRejected";
+import tableHeaderPending from "~@/pages/product-review/config/table-config/pendingFinalReview";
 import { getClassList } from "@/components/classificationTree/api.js";
 import { DownOutlined } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 import dayjs from "dayjs";
 import ProductReviewTable from "./comm/table.vue";
-import { getAccountUser } from "@/pages/product-review/config/api/product-review";
+import { getAccountUser } from "~@/pages/product-review/config/api/product-review";
 import { meansKeepGrains,MarketDirection } from "@/utils/productReview";
 const router = useRouter();
 
@@ -313,7 +304,7 @@ const INITIAL_FORM_DATA = {
   selectUserId: [], //提交人
   selectAll: [], //是否选中所有用户
   tradeName: "", //商品标题
-  state:
+  auditStatus:
     props.Source === "initialReviewPublication"
       ? 10
       : props.Source === "publicationRejected"
@@ -347,7 +338,7 @@ const APIEDIT = {
 const detailPagePath = {
   initialReviewPublication: "/platform/product-review/preliminary-review-detail",// 初审详情
   publicationRejected: "/platform/product-review/data-for-editing-detail",// 驳回详情
-  pendingFinalReview: "/platform/product-review/data-for-editing-detail",//终审详情
+  pendingFinalReview: "/platform/product-review/pending-final-review-detail",//终审详情
 };
 
 // 再次提交
@@ -355,7 +346,7 @@ const submitOpen = ref(false);
 const submitLoading = ref(false);
 const submitFormRef = ref(null);
 const submitFormData = reactive({
-  state: 20, //0 未通过，1 通过
+  auditStatus: 20, //提交固定20
   commodityId: "", //commodityId
   remark: "", //remark
 });
@@ -371,13 +362,6 @@ const stateOptions = ref({
       label: "审核驳回",
       value: 70,
     },
-  ],
-  // 提交
-  publicationRejected: [
-    {
-      label: "审核通过",
-      value: 20,
-    }
   ],
   // 终审
   pendingFinalReview: [
@@ -396,7 +380,7 @@ const auditOpen = ref(false);
 const auditLoading = ref(false);
 const auditFormRef = ref(null);
 const auditFormData = reactive({
-  state: 20, //10 驳回，20 通过
+  auditStatus: 20, //10 驳回，20 通过
   commodityId: "", //commodityId
   remark: "", //remark
 });
@@ -537,7 +521,7 @@ const resetAuditForm = () => {
   if (auditFormRef.value) {
     auditFormRef.value.resetFields();
   }
-  auditFormData.state = 20;
+  auditFormData.auditStatus = 20;
   auditFormData.commodityId = "";
   auditFormData.remark = "";
 };
@@ -549,7 +533,7 @@ const resetSubmitForm = () => {
   if (submitFormRef.value) {
     submitFormRef.value.resetFields();
   }
-  submitFormData.state = 1;
+  submitFormData.auditStatus = 1;
   submitFormData.commodityId = "";
   submitFormData.remark = "";
 };
@@ -586,32 +570,23 @@ const handleOk = () => {
       // 提取公共参数
       let commonParams;
 
-      
+      console.log("props.Source", props.Source);
       if(props.Source === "initialReviewPublication"){
         commonParams = {
           id: products.length > 0 ? products.map(({ id }) => id).join(',') : '',
-          state: auditFormData.state,
+          auditStatus: auditFormData.auditStatus,
           remark: auditFormData.remark,
         };
       } else {
         // 循环 将每个商品的参数添加到 commonParams 数组中
-        commonParams = products.map(({ id, state, remark }) => ({
+        commonParams = products.map(({ id, auditStatus, remark }) => ({
           id,
-          state: auditFormData.state,
+          auditStatus: auditFormData.auditStatus,
           remark: auditFormData.remark,
           commodityId: id,
         }));
       }
 
-      if(props.Source === "pendingFinalReview"){
-        commonParams.commodityId = currentAuditingProducts.value
-          .map((product) => product.commodityId)
-          ?.join(",");
-      }else{
-        commonParams.commodityId = currentAuditingProducts.value
-          .map((product) => product.id)
-          ?.join(",");
-      }
       // 根据来源选择不同的审核接口
       auditPromise = APIEDIT[props.Source](commonParams);
       auditPromise
@@ -637,9 +612,6 @@ const handleOk = () => {
           message.error("审核失败，请重试");
           console.error("审核失败:", error);
         })
-        .finally(() => {
-          auditLoading.value = false;
-        });
     })
     .catch((error) => {
       console.error("表单验证失败:", error);
@@ -663,7 +635,7 @@ const handleSubmitOk = () => {
     id: currentAuditingProducts.value
       .map((product) => product.id)
       ?.join(","),
-    state: submitFormData.state,
+    auditStatus: submitFormData.auditStatus,
     remark: submitFormData.remark,
   };
   // 根据来源选择不同的提交接口
@@ -691,9 +663,7 @@ const handleSubmitOk = () => {
       message.error("提交失败，请重试");
       console.error("提交失败:", error);
     })
-    .finally(() => {
-      auditLoading.value = false;
-    });
+    
 };
 
 /**
@@ -764,12 +734,6 @@ const handleLoadingChange = (loading) => {
   tableLoading.value = loading;
 };
 
-/**
- * 处理导出加载状态变化
- */
-const handleExportLoadingChange = (loading) => {
-  exportLoading.value = loading;
-};
 
 /**
  * 初始化

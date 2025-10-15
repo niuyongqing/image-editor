@@ -6,7 +6,6 @@ import commodityTypeList from "@/utils/commodityType";
  * @returns {string} - 商品类型label，格式如 分类1/分类2/分类3
  */
 export function getCommodityTypeLabel(value) {
-  console.log(value);
   // 通过传入的 value（格式如 06,0602,060201），从 commodityTypeList 中查找对应的 label。
   // 查找规则：先找第一个逗号之前的值对应的对象，再在该对象的 children 里找第二个逗号之前的值对应的对象，
   // 接着在这个对象的 children 里找第三个值对应的对象，最后将这三个对象的 label 用 / 连接后返回。

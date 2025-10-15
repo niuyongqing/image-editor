@@ -15,7 +15,7 @@
   import ImageInfo from './ImageInfo.vue'
 
   import { getDetailApi, updateProductDetailApi } from './api'
-  import { lastAudit } from '@/pages/product-review/config/api/product-review.js'
+  import { lastAudit } from '~@/pages/product-review/config/api/product-review.js'
   import { message } from 'ant-design-vue'
 
   const store = useProductReviewStore()

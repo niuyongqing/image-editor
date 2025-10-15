@@ -254,7 +254,7 @@ import {
   getCommodityTypeLabel,
 } from "~@/pages/product-review/config/untils.js";
 import WangEditorPlus from "@/components/wang-editor-plus/index.vue";
-import { batchOldStore } from "@/pages/product-review/config/api/product-review";
+import { batchOldStore } from "~@/pages/product-review/config/api/product-review";
 import DragUpload from "@/components/dragUpload/index.vue";
 import { imageUpload } from "@/pages/sample/acquisitionEdit/js/api.js";
 import commodityTypeList from "@/utils/commodityType";
@@ -596,14 +596,14 @@ const handleSubmit = async () => {
     }
     // 测试数据
     // const parms =
-    // {"tradeName":"LED灯串","classify":"03,0302,030201","skuList":"H2833,H2834,H2835","devConsultLink":"[\"请13额2\"]","artOldType":5,"artAsk":"<p>撒打发阿德是阿斯蒂芬 </p>","devDrawing":"[{\"name\":\"3.jpg\",\"url\":\"/prod-api/profile/upload/shopeeFile/2025-10-14/2025/10/14/3_20251014101830A003.jpg\",\"checked\":false,\"id\":\"240ecfba-5a5a-4656-88be-2c417a813f24\",\"width\":800,\"height\":800}]","productId":"10028","commodityId":"1110"}
+    // {"tradeName":"免缝纽扣女士高档大衣扣毛衣扣","classify":"02,0202,020212","skuList":"Y6031,Y6032,Y6033,Y6034,Y6035","devConsultLink":"[\"22\"]","artOldType":5,"artAsk":"<p>22</p>","devDrawing":"[{\"name\":\"3.jpg\",\"url\":\"/prod-api/profile/upload/shopeeFile/2025-10-14/2025/10/14/3_20251014142200A001.jpg\",\"checked\":false,\"id\":\"c4d3061b-bc88-4415-b502-9f797a5440c0\",\"width\":800,\"height\":800}]","productId":"10057","commodityId":"932055"}
     console.log("formData.classify", formData.classify);
     const parms = {
       ...formData,
       classify: formData.classify && Array.isArray(formData.classify) ? formData.classify.join(",") : "",
       devConsultLink: JSON.stringify(formData.devConsultLink),
       devDrawing: JSON.stringify(formData.devDrawing),
-      commodityId: queryParams.id || "932071",
+      commodityId: queryParams.id,
     };
 
     // 提交表单数据的逻辑
