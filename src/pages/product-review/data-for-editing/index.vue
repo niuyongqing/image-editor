@@ -144,6 +144,7 @@
             <a-space>
               <a-button
                 type="link"
+                :disabled="!record.intelligentProductId"
                 @click="goEdit(record)"
                 >编辑</a-button
               >

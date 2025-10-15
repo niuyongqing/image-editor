@@ -336,7 +336,6 @@
               <a-input
                 v-model:value.trim="record.sellerSKU"
                 size="middle"
-                @change="sellerSKUChange(record)"
               ></a-input>
             </template>
             <template v-if="!otherHeader.includes(column.dataIndex)">
@@ -1366,7 +1365,7 @@
 
   // 提取公共的newItem创建函数
   const createNewItem = (sku, dataSource) => ({
-    id: sku.id,
+    skuId: sku.id,
     costPrice: dataSource.costPrice || sku.costPrice,
     stock: dataSource.stock || sku.stock,
     height: sku.height,
@@ -1681,7 +1680,7 @@
               id: relatedAttributeIdList[i],
               intelligentAttributeId: target.intelligentAttributeId,
               complexId: '0',
-              skuId: item.id,
+              skuId: item.skuId,
               skuCode: item.sellerSKU,
               attributeId: target.id,
               attributeName: name,
@@ -1694,7 +1693,7 @@
       })
 
       const obj = {
-        skuId: item.id,
+        skuId: item.skuId,
         skuCode: item.sellerSKU,
         length: item.length,
         width: item.width,

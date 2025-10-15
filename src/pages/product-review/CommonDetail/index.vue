@@ -147,10 +147,8 @@
     // 校验
     const baseInfoFlag = await baseInfoRef.value.childForm()
     const SKUFlag = SKUInfoRef.value.submitForm()
-    if (!baseInfoFlag || !SKUFlag) {
-      // message.error('')
-      return
-    }
+    !baseInfoFlag && message.error('请完善产品属性')
+    if (!baseInfoFlag || !SKUFlag) return
 
     // 获取数据
     const baseInfoForm = baseInfoRef.value.baseInfoForm
@@ -213,11 +211,12 @@
   /** 提交终审 */
   const reviewLoading = ref(false)
   function toFinalReview() {
-    const params = {
+    const params = [{
       auditStatus: 50, // 待终审
+      id: detail.id,
       commodityId: detail.commodityId,
       remark: undefined
-    }
+    }]
 
     reviewLoading.value = true
     lastAudit(params)
@@ -246,11 +245,12 @@
   function reviewModalOk() {
     reviewFormRef.value.validate().then(_ => {
       reviewLoading.value = true
-      const params = {
+      const params = [{
         auditStatus: reviewForm.auditStatus === 1 ? 60 : 70, // 60 终审完成; 70 运营驳回
+        id: detail.id,
         commodityId: detail.commodityId,
         remark: reviewForm.remark
-      }
+      }]
 
       lastAudit(params)
         .then(res => {

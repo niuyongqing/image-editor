@@ -252,20 +252,25 @@
                   :style="'width: 80%'"
                   allowClear
                 >
-                  <a-select-option
-                    v-if="item.id == 85 || item.id == 31"
-                    value="126745801"
-                    >无品牌</a-select-option
-                  >
+                  <template v-if="[85, 31].includes(item.id)">
+                    <a-select-option
+                      v-for="option in [{ label: '无品牌', value: '126745801' }]"
+                      :key="option.value"
+                      :value="option"
+                    >
+                      {{ option.label }}
+                    </a-select-option>
+                  </template>
 
-                  <a-select-option
-                    v-else
-                    :value="v"
-                    v-for="(v, i) in item.options"
-                    :key="i"
-                  >
-                    {{ v.label }}
-                  </a-select-option>
+                  <template v-else>
+                    <a-select-option
+                      v-for="(v, i) in item.options"
+                      :key="i"
+                      :value="v"
+                    >
+                      {{ v.label }}
+                    </a-select-option>
+                  </template>
                 </a-select>
               </a-form-item>
             </div>
@@ -430,6 +435,7 @@
   }
 
   function selectCategory(data) {
+    baseInfoForm.categoryId = data.ids.join(',')
     categoryLabel.value = data.labels.join(' / ')
 
     // 初始化时, 只用于回显分类信息, 不进行后续操作
@@ -518,23 +524,26 @@
             rules2.value[noThemeAttributesCache[i].name] = obj
           }
 
-          const { attributes: oldAttributes } = store.productDetail?.skuList[0] || []
-          // 塞上 intelligentAttributeId, relatedAttributeId
-          oldAttributes.forEach(item => {
-            const target = noThemeAttributesCache.find(attr => attr.id === item.id)
-            if (target) {
-              target.relatedAttributeId = item.relatedAttributeId
-              target.intelligentAttributeId = item.intelligentAttributeId
-            }
-          })
-          // 塞上, 都塞上
-          oldAttributes.forEach(item => {
-            const target = rawData.find(attr => attr.id === item.id)
-            if (target) {
-              target.relatedAttributeId = item.relatedAttributeId
-              target.intelligentAttributeId = item.intelligentAttributeId
-            }
-          })
+          let oldAttributes = []
+          if (Object.keys(store.productDetail).length !== 0) {
+            oldAttributes = store.productDetail?.skuList?.[0].attributes
+            // 塞上 intelligentAttributeId, relatedAttributeId
+            oldAttributes.forEach(item => {
+              const target = noThemeAttributesCache.find(attr => attr.id === item.id)
+              if (target) {
+                target.relatedAttributeId = item.relatedAttributeId
+                target.intelligentAttributeId = item.intelligentAttributeId
+              }
+            })
+            // 塞上, 都塞上
+            oldAttributes.forEach(item => {
+              const target = rawData.find(attr => attr.id === item.id)
+              if (target) {
+                target.relatedAttributeId = item.relatedAttributeId
+                target.intelligentAttributeId = item.intelligentAttributeId
+              }
+            })
+          }
 
           attributeList.value = noThemeAttributesCache
 
@@ -798,6 +807,8 @@
   watch(
     () => store.productDetail,
     detail => {
+      if (Object.keys(detail).length === 0) return
+
       baseInfoForm.id = detail.id
       baseInfoForm.productName = detail.productName
       baseInfoForm.prefixDecorateName = detail.prefixDecorateName
@@ -823,7 +834,7 @@
       }
 
       // JSON富文本和视频
-      const { attributes, complexAttributes } = detail.skuList[0]
+      const { attributes, complexAttributes } = detail.skuList?.[0]
       if (!attributes || attributes.length === 0) return
       commDispose(attributes, complexAttributes)
     }
