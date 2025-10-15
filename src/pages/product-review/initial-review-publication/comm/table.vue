@@ -19,7 +19,6 @@
       :pagination="false"
       :scroll="{ y: 980 }"
       :loading="loading"
-      :row-class-name="tableRowClassName"
     >
       <template #bodyCell="{ column, record, index }">
         <!-- 索引列 -->
@@ -35,12 +34,6 @@
             height="80px"
             width="80px"
           />
-        </template>
-        <!-- 审核状态列自定义渲染 -->
-        <template v-else-if="column.key === 'auditStatus'">
-          <a-tag :color="getStatusColor(record.auditStatus)">
-            {{ getStatusText(record.auditStatus) }}
-          </a-tag>
         </template>
         <!-- 市场方向列自定义渲染 -->
         <template v-else-if="column.key === 'devAttributableMarket'">
@@ -137,11 +130,6 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
-  // 导出数据API
-  exportApi: {
-    type: Function,
-    default: null,
-  },
   // 开发属性可分配市场列表
   MarketDirection: {
     type: Array,
@@ -159,7 +147,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["audit", "reset", "loading-change"]);
+const emit = defineEmits(["audit", "reset", "loading-change", "selection-change", "export-loading-change"]);
 
 // 表格相关
 const loading = ref(false);
@@ -192,17 +180,6 @@ watch(exportLoading, (newValue) => {
 const processedColumns = computed(() => {
   // 深拷贝原始列配置，避免直接修改
   const processed = JSON.parse(JSON.stringify(props.columns));
-  console.log("processedColumns", processed);
-
-  // 添加操作列
-  // processed.push({
-  //   title: '操作',
-  //   dataIndex: 'action',
-  //   width: '100px',
-  //   align: 'center',
-  //   fixed: 'right',
-  // });
-
   return processed;
 });
 
@@ -381,6 +358,7 @@ const customRow = (record) => {
  * 处理页码变化
  */
 const handlePageChange = (page) => {
+  console.log(page);
   pages.pageNum = page;
   getList();
 };
@@ -394,36 +372,7 @@ const handlePageSizeChange = (current, pageSize) => {
   pages.pageNum = 1;
 };
 
-/**
- * 表格行样式
- */
-const tableRowClassName = (record, index) => {
-  return index % 2 === 0 ? "even-row" : "odd-row";
-};
 
-/**
- * 根据状态获取文本
- */
-const getStatusText = (status) => {
-  const statusMap = {
-    1: "已通过",
-    2: "已驳回",
-    "": "待审核",
-  };
-  return statusMap[status] || "未知";
-};
-
-/**
- * 根据状态获取颜色
- */
-const getStatusColor = (status) => {
-  const colorMap = {
-    1: "success",
-    2: "error",
-    "": "default",
-  };
-  return colorMap[status] || "default";
-};
 
 /**
  * 格式化日期时间
@@ -433,38 +382,6 @@ const formatDateTime = (dateTime) => {
   return dayjs(dateTime).format("YYYY-MM-DD HH:mm:ss");
 };
 
-/**
- * 导出数据
- */
-const exportData = async () => {
-  if (!props.exportApi) {
-    message.warning("导出功能未实现");
-    return;
-  }
-
-  try {
-    exportLoading.value = true;
-
-    const params = {
-      ...props.searchParams,
-    };
-
-    const res = await props.exportApi(params);
-
-    // 处理文件下载
-    if (res && res.url) {
-      window.open(res.url, "_blank");
-      message.success("导出成功");
-    } else {
-      message.warning("暂无数据可导出");
-    }
-  } catch (error) {
-    console.error("导出失败:", error);
-    message.error("导出失败，请重试");
-  } finally {
-    exportLoading.value = false;
-  }
-};
 
 /**
  * 重置表格
@@ -473,12 +390,6 @@ const onReset = () => {
   emit("reset");
 };
 
-// /**
-//  * 组件挂载时获取列表数据
-//  */
-// onMounted(() => {
-//   getList();
-// });
 
 /**
  * 暴露方法给父组件
@@ -486,7 +397,6 @@ const onReset = () => {
 defineExpose({
   getList,
   clearSelection,
-  exportData,
   getCurrentSelectedProducts,
 });
 </script>

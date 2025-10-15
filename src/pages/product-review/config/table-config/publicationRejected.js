@@ -61,9 +61,18 @@ export default [
     filter: true
   },
   {
-    title: '审核人',
+    title: '提交人',
     dataIndex: 'selectUserName',
     key: 'selectUserName',
+    align: 'center',
+    width: 120,
+    show: true,
+    filter: true
+  },
+  {
+    title: '审核人',
+    dataIndex: 'firstAuditName',
+    key: 'firstAuditName',
     align: 'center',
     width: 120,
     show: true,

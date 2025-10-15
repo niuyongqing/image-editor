@@ -1,12 +1,4 @@
 import request from '@/utils/request'
-// 下载
-export function exportProductList(data) {
-  return request({
-    url: `/platform-ozon/platform/ozon/setting/account/relevance/user/list`,
-    method: 'post',
-    data: data
-  })
-}
 
 // 初审审核
 export function firstAudit(data) {
