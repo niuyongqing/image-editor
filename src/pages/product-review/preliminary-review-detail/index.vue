@@ -869,7 +869,7 @@
     try {
       let res = await storeDetail({ id })
       const data = res.data
-      if (!data) return
+      if (!data) throw new Error('无详情数据')
 
       data.sku.forEach(v => {
         v.detail = v.detail || '{}'
