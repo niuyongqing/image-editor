@@ -25,6 +25,15 @@ export default [
     filter: true
   },
   {
+    title: "产品名称",
+    dataIndex: "commodityName",
+    key: "commodityName",
+    align: "center",
+    width: 200,
+    show: true,
+    filter: true,
+  },
+  {
     title: '产品SKU',
     dataIndex: 'skuList',
     key: 'skuList',
@@ -52,7 +61,7 @@ export default [
     filter: true
   },
   {
-    title: '提交人',
+    title: '审核人',
     dataIndex: 'selectUserName',
     key: 'selectUserName',
     align: 'center',
@@ -61,9 +70,9 @@ export default [
     filter: true
   },
   {
-    title: '提交时间',
-    dataIndex: 'selectTime',
-    key: 'selectTime',
+    title: '审核时间',
+    dataIndex: 'updateTime',
+    key: 'updateTime',
     align: 'center',
     width: 180,
     show: true,

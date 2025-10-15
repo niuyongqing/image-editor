@@ -56,7 +56,8 @@ export function getProductDetail(data) {
 // 申请拍照提交
 export function batchOldStore(data) {
   return request({
-    url: `/commodity-manage/commodity/store/old`,
+    // url: `/commodity-manage/commodity/store/old`,
+    url: `/platform-ozon/intelligent/product/oldArtApply`,
     method: 'post',
     data: data
   })
