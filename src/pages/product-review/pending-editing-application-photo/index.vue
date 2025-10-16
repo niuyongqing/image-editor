@@ -314,7 +314,7 @@ const taskTypeOptions = reactive([
  */
 const formData = reactive({
   tradeName: "",
-  classify:[],
+  classify: [],
   skuList: "",
   devConsultLink: [""], // 初始化为空字符串数组，确保至少有一个链接输入框
   artOldType: 5,
@@ -536,7 +536,9 @@ function imgModifySingleMenuClick({ key }, item) {
       try {
         const encryptedUrl = encryptString(urlData.href);
         window.open(
-          `/platform/ozon/editPsImage?encryptedData=${encodeURIComponent(encryptedUrl)}`,
+          `/platform/ozon/editPsImage?encryptedData=${encodeURIComponent(
+            encryptedUrl
+          )}`,
           "_blank"
         );
       } catch (error) {
@@ -586,6 +588,7 @@ const handleClose = () => {
 /**
  * 处理表单提交
  */
+const closeTimeout = ref(null);
 const handleSubmit = async () => {
   try {
     await formRef.value.validate();
@@ -594,13 +597,13 @@ const handleSubmit = async () => {
       message.error("请输入处理要求");
       return;
     }
-    // 测试数据
-    // const parms =
-    // {"tradeName":"免缝纽扣女士高档大衣扣毛衣扣","classify":"02,0202,020212","skuList":"Y6031,Y6032,Y6033,Y6034,Y6035","devConsultLink":"[\"22\"]","artOldType":5,"artAsk":"<p>22</p>","devDrawing":"[{\"name\":\"3.jpg\",\"url\":\"/prod-api/profile/upload/shopeeFile/2025-10-14/2025/10/14/3_20251014142200A001.jpg\",\"checked\":false,\"id\":\"c4d3061b-bc88-4415-b502-9f797a5440c0\",\"width\":800,\"height\":800}]","productId":"10057","commodityId":"932055"}
-    console.log("formData.classify", formData.classify);
+
     const parms = {
       ...formData,
-      classify: formData.classify && Array.isArray(formData.classify) ? formData.classify.join(",") : "",
+      classify:
+        formData.classify && Array.isArray(formData.classify)
+          ? formData.classify.join(",")
+          : "",
       devConsultLink: JSON.stringify(formData.devConsultLink),
       devDrawing: JSON.stringify(formData.devDrawing),
       commodityId: queryParams.id,
@@ -609,10 +612,16 @@ const handleSubmit = async () => {
     // 提交表单数据的逻辑
     console.log("提交的表单数据:", parms);
     batchOldStore(parms).then((res) => {
+      console.log("提交结果:", res);
       if (res.code === 200) {
         message.success("提交成功");
-      } else {
-        message.error(res?.msg || "提交失败，请重试");
+        if (closeTimeout.value) {
+          clearTimeout(closeTimeout.value);
+        }
+        // 延迟关闭弹窗，确保消息提示可见
+        closeTimeout.value = setTimeout(() => {
+          window.close();
+        }, 700);
       }
     });
   } catch (error) {
@@ -641,7 +650,7 @@ onMounted(() => {
   const classify = queryParams.get("classify");
   const skuList = queryParams.get("skuList");
   const productId = queryParams.get("productId");
-  
+
   // 设置表单初始值
   formData.tradeName = tradeName || "";
   formData.classify = classify?.split(",") || "";
@@ -654,6 +663,7 @@ onMounted(() => {
  * 组件卸载时关闭 BroadcastChannel 避免内存泄漏
  */
 onUnmounted(() => {
+  // 关闭 BroadcastChannel 避免内存泄漏
   channel.close();
 });
 </script>

@@ -11,7 +11,7 @@
         :label-col="labelCol"
       >
         <!-- 店铺账号 -->
-        <a-form-item label="店铺账号:">
+        <a-form-item label="店铺账号:" :wrapper-col="wrapperColItem">
           <a-radio-group
             v-model:value="formData.storeAccount"
             name="storeAccount"
@@ -26,24 +26,28 @@
         </a-form-item>
         <!-- 状态 -->
         <a-form-item label="状态:">
-          <a-select
+           <a-radio-group
             v-model:value="formData.status"
-            allow-clear
-            show-search
-            placeholder="请选择状态"
-            :options="statusOptions"
-          ></a-select>
+            name="status"
+          >
+            <a-radio
+              :value="item.value"
+              v-for="item in statusOptions"
+              :key="item.value"
+              >{{ item.label }}</a-radio
+            >
+          </a-radio-group>
         </a-form-item>
         <!-- 模板查询 -->
         <a-form-item label="模糊查询:">
           <a-space size="middle">
             <a-input
-              v-model:value="formData.tradeName"
+              v-model:value="formData.temName"
               placeholder="请输入模板名称"
               allowClear
             />
             <a-input
-              v-model:value="formData.sku"
+              v-model:value="formData.createUser"
               placeholder="请输入创建人"
               allowClear
             />
@@ -72,6 +76,22 @@
           tooltip="新增"
         >
           新增
+        </a-button>
+         <a-button
+          :disabled="selectedCount !== 1 || loading"
+          @click="handleSetDefault"
+          type="primary"
+          tooltip="设为默认"
+        >
+          设为默认
+        </a-button>
+          <a-button
+          :disabled="selectedCount !== 1 || loading"
+          @click="handleCopy"
+          type="primary"
+          tooltip="复制"
+        >
+          复制
         </a-button>
         <a-button
           :disabled="selectedCount !== 1 || loading"
@@ -186,10 +206,16 @@ const wrapperCol = ref({
     width: "305px",
   },
 });
+const wrapperColItem = ref({
+  style: {
+    width: "536px",
+  },
+});
+
 const columns = reactive(tableColumns);
 const INITIAL_FORM_DATA = {
   storeAccount: "0", // 店铺账号
-  status: null, // 状态
+  status: "0", // 状态
   temName: "", // 模板名称
   createUser: "", //创建人
   pageNum: 1, // 页码
@@ -241,10 +267,28 @@ const statusOptions = ref([
   },
   {
     label: "备选",
-    value: "0",
+    value: "2",
   },
 ]);
 
+/**
+ * 处理设为默认
+ */
+const handleSetDefault = () => {
+  if (currentSelectRow.value.length === 0) {
+    message.warning("请选择要设为默认的商品");
+    return;
+  }
+};
+/**
+ * 处理复制
+ */
+const handleCopy = () => {
+  if (currentSelectRow.value.length === 0) {
+    message.warning("请选择要复制的商品");
+    return;
+  }
+};
 /**
  * 处理添加备注确认
  */
@@ -301,6 +345,7 @@ const getList = async (pages = {}) => {
       // 先解构搜索参数
       ...formData,
     };
+    console.log("params", params);
     // const res = await props.api(params);
     // tableData.value = JSON.parse(JSON.stringify(res?.rows || []));
     // // 整体表格数据处理

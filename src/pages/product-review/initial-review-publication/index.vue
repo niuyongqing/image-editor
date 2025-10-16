@@ -97,6 +97,7 @@
     <!-- 数据展示区域 -->
     <a-card style="margin-top: 0.75rem">
       <div class="table-header-actions">
+        
         <a-button
           v-if="props.Source !== 'publicationRejected'"
           v-has-permi="permissionSource"
@@ -117,7 +118,6 @@
             查看
           </a-button>
           <a-button
-            v-has-permi="permissionSource"
             @click="handleAudit('submit')"
             type="primary"
             :disabled="selectedCount === 0 || tableLoading"
@@ -333,26 +333,31 @@ const columns = computed(() => {
 // 审核提交权限字符串
 const permissionSource = computed(() => {
   if (props.Source === "initialReviewPublication") {
-    return ["system:platform:ozon:intelligent:first:audit"];
+    console.log("platform:ozon:intelligent:first:audit");
+    return ["platform:ozon:intelligent:first:audit"];
   }
-  if (props.Source === "publicationRejected") {
-    return ["system:platform:ozon:intelligent:reject:audit"];
-  }
+  // if (props.Source === "publicationRejected") {
+  //   console.log("platform:ozon:intelligent:reject:audit");
+  //   return ["platform:ozon:intelligent:reject:audit"];
+  // }
   if (props.Source === "pendingFinalReview") {
-    return ["system:platform:ozon:intelligent:last:audit"];
+    console.log("platform:ozon:intelligent:last:audit");
+    return ["platform:ozon:intelligent:last:audit"];
   }
+
+
 });
 
 // 查询权限字符串
 const permissionList = computed(() => {
   if (props.Source === "initialReviewPublication") {
-    return ["system:platform:ozon:intelligent:list"];
+    return ["platform:ozon:intelligent:list"];
   }
   if (props.Source === "publicationRejected") {
-    return ["system:platform:ozon:intelligent:list"];
+    return ["platform:ozon:intelligent:list"];
   }
   if (props.Source === "pendingFinalReview") {
-    return ["system:platform:ozon:intelligent:list"];
+    return ["platform:ozon:intelligent:list"];
   }
 });
 
@@ -365,7 +370,7 @@ const APIEDIT = {
 // 详情页面路由映射
 const detailPagePath = {
   initialReviewPublication: "/platform/product-review/preliminary-review-detail",// 初审详情
-  publicationRejected: "/platform/product-review/preliminary-review-detail",// 驳回详情
+  publicationRejected: "/platform/product-review/reject-review-detail",// 驳回详情
   pendingFinalReview: "/platform/product-review/pending-final-review-detail",//终审详情
 };
 
@@ -374,7 +379,7 @@ const submitOpen = ref(false);
 const submitLoading = ref(false);
 const submitFormRef = ref(null);
 const submitFormData = reactive({
-  auditStatus: 20, //提交固定20
+  auditStatus: 10, //提交固定20
   commodityId: "", //commodityId
   remark: "", //remark
 });
@@ -561,7 +566,6 @@ const resetSubmitForm = () => {
   if (submitFormRef.value) {
     submitFormRef.value.resetFields();
   }
-  submitFormData.auditStatus = 1;
   submitFormData.commodityId = "";
   submitFormData.remark = "";
 };
