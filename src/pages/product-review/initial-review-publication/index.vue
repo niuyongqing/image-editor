@@ -78,11 +78,14 @@
           />
         </a-form-item>
         <a-form-item class="form-actions">
-          <a-button type="primary" @click="searchList" :loading="tableLoading"
+          <a-button
+            v-has-permi="permissionList"
+            type="primary"
+            @click="searchList"
+            :loading="tableLoading"
             >查询</a-button
           >
           <a-button
-            style="margin-left: 10px"
             @click="resetForm"
             :loading="tableLoading"
             >重置</a-button
@@ -96,6 +99,7 @@
       <div class="table-header-actions">
         <a-button
           v-if="props.Source !== 'publicationRejected'"
+          v-has-permi="permissionSource"
           @click="handleAudit('audit')"
           type="primary"
           :disabled="selectedCount === 0 || tableLoading"
@@ -113,6 +117,7 @@
             查看
           </a-button>
           <a-button
+            v-has-permi="permissionSource"
             @click="handleAudit('submit')"
             type="primary"
             :disabled="selectedCount === 0 || tableLoading"
@@ -325,6 +330,32 @@ const columns = computed(() => {
   return tableHeaderPending;
 });
 
+// 审核提交权限字符串
+const permissionSource = computed(() => {
+  if (props.Source === "initialReviewPublication") {
+    return ["system:platform:ozon:intelligent:first:audit"];
+  }
+  if (props.Source === "publicationRejected") {
+    return ["system:platform:ozon:intelligent:reject:audit"];
+  }
+  if (props.Source === "pendingFinalReview") {
+    return ["system:platform:ozon:intelligent:last:audit"];
+  }
+});
+
+// 查询权限字符串
+const permissionList = computed(() => {
+  if (props.Source === "initialReviewPublication") {
+    return ["system:platform:ozon:intelligent:list"];
+  }
+  if (props.Source === "publicationRejected") {
+    return ["system:platform:ozon:intelligent:list"];
+  }
+  if (props.Source === "pendingFinalReview") {
+    return ["system:platform:ozon:intelligent:list"];
+  }
+});
+
 // 审核接口映射
 const APIEDIT = {
   initialReviewPublication: firstAudit,
@@ -334,7 +365,7 @@ const APIEDIT = {
 // 详情页面路由映射
 const detailPagePath = {
   initialReviewPublication: "/platform/product-review/preliminary-review-detail",// 初审详情
-  publicationRejected: "/platform/product-review/data-for-editing-detail",// 驳回详情
+  publicationRejected: "/platform/product-review/preliminary-review-detail",// 驳回详情
   pendingFinalReview: "/platform/product-review/pending-final-review-detail",//终审详情
 };
 
@@ -684,7 +715,7 @@ const handleEditProduct = (product) => {
   const urlData = router.resolve({
     path: detailPagePath[props.Source],
     query: {
-      id: product.intelligentProductId,
+      id: product.id,
       commodityId: product.commodityId,
     },
   });
