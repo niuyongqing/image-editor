@@ -215,7 +215,7 @@
   function toFinalReview() {
     const params = [{
       auditStatus: 50, // 待终审
-      id: detail.id,
+      id: detail.selectAuditId,
       commodityId: detail.commodityId,
       remark: undefined
     }]

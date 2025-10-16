@@ -122,11 +122,14 @@
               />
             </a-popover>
           </template>
+          <template v-else-if="column.key === 'commodityName'">
+            <div class="w-80 ">{{ record.commodityName || '--' }}</div>
+          </template>
           <template v-else-if="column.key === 'market'">
             <span>{{ MARKET_OPTIONS.find(item => item.value === record.devAttributableMarket)?.label || '--' }}</span>
           </template>
           <template v-else-if="column.key === 'sku'">
-            <div class="w-100 truncate">{{ record.skuList || '--' }}</div>
+            <div class="w-100 ">{{ record.skuList || '--' }}</div>
           </template>
           <template v-else-if="column.key === 'storage'">
             <span>{{ STORAGE_OPTIONS.find(item => item.value === record.meansKeepGrain)?.label || '--' }}</span>
@@ -139,6 +142,9 @@
           </template>
           <template v-else-if="column.key === 'reviewer'">
             <span>{{ record.lastAuditUserName }}</span>
+          </template>
+          <template v-else-if="column.key === 'selectReason'">
+            <div class="w-100">{{ record.selectReason }}</div>
           </template>
           <template v-else-if="column.key === 'options'">
             <a-space>
