@@ -549,6 +549,19 @@
 
           // 赋值
           const proceRes = assignValues(oldAttributes, attributeList.value)
+          // (品牌 85: 无品牌 126745801)和(制造国 4389: 中国 90296)设默认值
+          const brandLabel = attributeList.value.find(attr => attr.id === 85)?.name
+          if (brandLabel && !proceRes[brandLabel]) {
+            proceRes[brandLabel] = {
+              label: '无品牌',
+              value: '126745801'
+            }
+          }
+          const countryLabel = attributeList.value.find(attr => attr.id === 4389)?.name
+          if (countryLabel && !(proceRes[countryLabel] && proceRes[countryLabel].length)) {
+            proceRes[countryLabel] = [90296]
+          }
+
           baseInfoForm.attributes = proceRes
         }
       })
@@ -834,7 +847,7 @@
       }
 
       // JSON富文本和视频
-      const { attributes, complexAttributes } = detail.skuList?.[0]
+      const { attributes, complexAttributes } = detail.skuList?.[0] || {}
       if (!attributes || attributes.length === 0) return
       commDispose(attributes, complexAttributes)
     }

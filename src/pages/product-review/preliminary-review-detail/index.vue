@@ -1,5 +1,5 @@
 <template>
-  <div class="text-left p-6 bg-#fff">
+  <div class="text-left p-6 pb-2 bg-#fff">
     <a-spin
       :spinning="loading"
       class="dialog-box"
@@ -612,10 +612,77 @@
         </a-row>
       </a-card>
       <br />
+      <!-- 底部按钮 -->
+      <a-space class="float-right">
+        <a-button
+          v-if="!isEditDetail"
+          @click="close"
+          >关闭</a-button
+        >
+        <a-button
+          v-if="isPreliminary"
+          type="primary"
+          @click="reviewOpen = true"
+          >审核</a-button
+        >
+      </a-space>
     </a-spin>
 
     <!-- 回到顶部(待编辑详情在左半部分) -->
-    <a-back-top :target="targetFn" :class="isEditDetail && 'left-[calc(50vw-30px)]'" />
+    <a-back-top
+      :target="targetFn"
+      :class="isEditDetail && 'left-[calc(50vw-30px)]'"
+    />
+
+    <!-- 审核弹窗 -->
+    <a-modal
+      v-model:open="reviewOpen"
+      title="审核"
+      centered
+      :confirm-loading="reviewLoading"
+      @cancel="reviewModalCancel"
+      @ok="reviewModalOk"
+    >
+      <a-form
+        :model="reviewForm"
+        ref="reviewFormRef"
+        layout="vertical"
+      >
+        <a-form-item name="auditStatus">
+          <div class="text-center">
+            <a-radio-group v-model:value="reviewForm.auditStatus">
+              <a-radio
+                :value="1"
+                class="mr-4"
+                >审核通过</a-radio
+              >
+              <a-radio :value="0">审核驳回</a-radio>
+            </a-radio-group>
+          </div>
+        </a-form-item>
+
+        <a-form-item
+          name="remark"
+          label="备注"
+          :rules="[
+            {
+              required: reviewForm.auditStatus === 0,
+              message: '请输入审核备注',
+              trigger: 'blur'
+            }
+          ]"
+        >
+          <a-textarea
+            v-model:value="reviewForm.remark"
+            :rows="4"
+            :maxlength="255"
+            show-count
+            allowClear
+            placeholder="请输入审核备注（驳回时必填）"
+          />
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
@@ -855,6 +922,10 @@
   const route = useRoute()
   // 是否为资料待编辑详情
   const isEditDetail = computed(() => route.path === '/platform/product-review/data-for-editing-detail')
+  // 初审详情
+  const isPreliminary = computed(() => route.path === '/platform/product-review/preliminary-review-detail')
+  // 驳回详情
+  const isReject = computed(() => route.path === '/platform/product-review/preliminary-review-detail')
 
   // 获取详情数据
   async function getDetail() {
@@ -1091,6 +1162,48 @@
   function targetFn() {
     // 编辑 ? 外层父元素 : 页面顶层元素
     return isEditDetail.value ? document.getElementById('preliminary-review-detail') : document.querySelector('.ant-layout-content')
+  }
+
+  function close() {
+    window.close()
+  }
+
+  /** 审核弹窗 */
+  const reviewOpen = ref(false)
+  const reviewLoading = ref(false)
+  const reviewFormRef = ref()
+  const reviewForm = reactive({
+    auditStatus: 1,
+    remark: ''
+  })
+
+  function reviewModalCancel() {
+    reviewOpen.value = false
+    reviewForm.auditStatus = 1
+    reviewForm.remark = ''
+  }
+
+  function reviewModalOk() {
+    reviewFormRef.value.validate().then(_ => {
+      const params = [
+        {
+          auditStatus: reviewForm.auditStatus === 1 ? 20 : 70, // 10 待编辑; 70 运营驳回
+          id: route.query.id,
+          commodityId: route.query.commodityId,
+          remark: reviewForm.remark
+        }
+      ]
+
+      reviewLoading.value = true
+      lastAudit(params)
+        .then(res => {
+          message.success('审核成功')
+          reviewModalCancel()
+        })
+        .finally(() => {
+          reviewLoading.value = false
+        })
+    })
   }
 </script>
 
