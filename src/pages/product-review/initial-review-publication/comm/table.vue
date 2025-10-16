@@ -23,7 +23,7 @@
       <template #bodyCell="{ column, record, index }">
         <!-- 索引列 -->
         <template v-if="column.key === 'index'">
-          {{ index + 1 }}
+          {{ index + 1 + (pages.pageNum - 1) * pages.pageSize }}
         </template>
         <!-- 主图列自定义渲染 -->
         <template v-else-if="column.key === 'artMainImage'">

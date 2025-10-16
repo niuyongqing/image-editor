@@ -106,7 +106,6 @@
         <template v-else>
           <a-button
             :disabled="selectedCount !== 1 || tableLoading"
-            style="margin-left: 16px"
             @click="handleSee"
             type="primary"
             tooltip="批量审核选中的商品"
@@ -114,7 +113,6 @@
             查看
           </a-button>
           <a-button
-            style="margin-left: 16px"
             @click="handleAudit('submit')"
             type="primary"
             :disabled="selectedCount === 0 || tableLoading"
@@ -130,7 +128,6 @@
 
         <a-button
           type="default"
-          style="margin-left: 16px"
           @click="clearSelection"
           :disabled="selectedCount === 0"
         >
@@ -195,7 +192,7 @@
           name="remark"
           :rules="[
             {
-              required: auditFormData.auditStatus === 10,
+              required: auditFormData.auditStatus === 70,
               message: '请输入审核备注',
               trigger: 'blur',
             },
@@ -208,7 +205,7 @@
             placeholder="请输入审核备注（驳回时必填）"
             allowClear
             style="width: 100%"
-            :max-length="500"
+            maxlength="255"
             show-count
           />
         </a-form-item>
@@ -253,7 +250,7 @@
             placeholder="请输入备注"
             allowClear
             style="width: 100%"
-            :max-length="500"
+            maxlength="255"
             show-count
           />
         </a-form-item>
@@ -600,15 +597,18 @@ const handleOk = () => {
               productReviewTableRef.value.getList();
             }
             resetAuditForm();
-            auditOpen.value = false;
             currentAuditingProducts.value = [];
             selectedCount.value = 0;
           } else {
             message.error("审核失败，请重试");
             console.error("审核失败:", result?.message || "未知错误");
           }
+          auditLoading.value = false;
+           auditOpen.value = false;
         })
         .catch((error) => {
+          auditLoading.value = false;
+          auditOpen.value = false;
           message.error("审核失败，请重试");
           console.error("审核失败:", error);
         })
@@ -651,15 +651,18 @@ const handleSubmitOk = () => {
           productReviewTableRef.value.getList();
         }
         resetSubmitForm();
-        submitOpen.value = false;
         currentAuditingProducts.value = [];
         selectedCount.value = 0;
       } else {
         message.error("提交失败，请重试");
         console.error("提交失败:", result?.message || "未知错误");
       }
+      submitLoading.value = false;
+      submitOpen.value = false;
     })
     .catch((error) => {
+      submitLoading.value = false;
+      submitOpen.value = false;
       message.error("提交失败，请重试");
       console.error("提交失败:", error);
     })
