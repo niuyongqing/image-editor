@@ -146,7 +146,7 @@ watch(() => remarkData.open, (val, oldVal) => {
 })
 const tableData = reactive({
   data: [],
-  total: 6000,
+  total: 0,
   loading: false,
   selectedRowKeys: [],
   selectedRows: [],
