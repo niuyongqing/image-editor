@@ -12,13 +12,17 @@
       >
         <!-- 店铺账号 -->
         <a-form-item label="店铺账号:">
-          <a-select
+          <a-radio-group
             v-model:value="formData.storeAccount"
-            allow-clear
-            show-search
-            placeholder="请选择店铺账号"
-            :options="storeAccountOptions"
-          ></a-select>
+            name="storeAccount"
+          >
+            <a-radio
+              :value="item.value"
+              v-for="item in storeAccountOptions"
+              :key="item.value"
+              >{{ item.label }}</a-radio
+            >
+          </a-radio-group>
         </a-form-item>
         <!-- 状态 -->
         <a-form-item label="状态:">
@@ -46,8 +50,7 @@
           </a-space>
         </a-form-item>
         <a-form-item class="form-actions">
-          <a-button type="primary" @click="getList" 
-          :disabled="loading"
+          <a-button type="primary" @click="getList" :disabled="loading"
             >查询</a-button
           >
           <a-button
@@ -64,8 +67,7 @@
       <div class="table-header-actions">
         <a-button
           :disabled="selectedCount !== 1 || loading"
-          style="margin-left: 16px"
-          @click="handleEdit('add',{})"
+          @click="handleEdit('add', {})"
           type="primary"
           tooltip="新增"
         >
@@ -73,16 +75,14 @@
         </a-button>
         <a-button
           :disabled="selectedCount !== 1 || loading"
-          style="margin-left: 16px"
-          @click="handleEdit('edit',currentSelectRow.value[0])"
+          @click="handleEdit('edit', currentSelectRow.value[0])"
           type="primary"
           tooltip="编辑选中的商品"
         >
           编辑
         </a-button>
         <a-button
-          style="margin-left: 16px"
-          @click="submitOpen=true"
+          @click="submitOpen = true"
           type="primary"
           :disabled="selectedCount === 0 || loading"
           tooltip="添加备注"
@@ -95,7 +95,6 @@
 
         <a-button
           type="default"
-          style="margin-left: 16px"
           @click="clearSelection"
           :disabled="selectedCount === 0"
         >
@@ -110,7 +109,7 @@
           :columns="columns"
           :loading="loading"
           @reset="resetForm"
-          @row-dblclick="(record) => handleEdit('doubleClick',record)"
+          @row-dblclick="(record) => handleEdit('doubleClick', record)"
           @loading-change="handleLoadingChange"
           @selection-change="handleSelectionChange"
           @page-change="handlePageChange"
@@ -132,10 +131,7 @@
       :width="600"
     >
       <!-- 显示正在审核的商品信息 -->
-      <div
-        v-if="currentSelectRow.length > 0"
-        class="auditing-products-info"
-      >
+      <div v-if="currentSelectRow.length > 0" class="auditing-products-info">
         <div class="auditing-products-title">产品:</div>
         <div class="auditing-products-list">
           <div
@@ -177,8 +173,8 @@ const uTableRef = ref(null);
 const loading = ref(false); //表格加载状态
 const submitOpen = ref(false); // 再次提交弹窗是否打开
 const submitLoading = ref(false); // 再次提交弹窗loading状态
-const selectedCount = ref(0);// 选中的商品数量
-const currentSelectRow = ref([]);// 当前选中的商品
+const selectedCount = ref(0); // 选中的商品数量
+const currentSelectRow = ref([]); // 当前选中的商品
 
 const labelCol = ref({
   style: {
@@ -192,7 +188,7 @@ const wrapperCol = ref({
 });
 const columns = reactive(tableColumns);
 const INITIAL_FORM_DATA = {
-  shopAccount: "", // 店铺账号
+  storeAccount: "0", // 店铺账号
   status: null, // 状态
   temName: "", // 模板名称
   createUser: "", //创建人
@@ -203,50 +199,50 @@ const formData = reactive({ ...INITIAL_FORM_DATA });
 
 // 店铺账号选项
 const storeAccountOptions = ref([
-    {
-        label: "全部",
-        value: "0",
-    },
-    {
-        label: "店铺1",
-        value: "1",
-    },
-    {
-        label: "店铺2",
-        value: "2",
-    },
-    {
-        label: "店铺3",
-        value: "3",
-    },
-    {
-        label: "店铺4",
-        value: "4",
-    },
-    {
-        label: "店铺5",
-        value: "5",
-    },
-    {
-        label: "店铺6",
-        value: "6",
-    },
+  {
+    label: "全部",
+    value: "0",
+  },
+  {
+    label: "店铺1",
+    value: "1",
+  },
+  {
+    label: "店铺2",
+    value: "2",
+  },
+  {
+    label: "店铺3",
+    value: "3",
+  },
+  {
+    label: "店铺4",
+    value: "4",
+  },
+  {
+    label: "店铺5",
+    value: "5",
+  },
+  {
+    label: "店铺6",
+    value: "6",
+  },
 ]);
 
 // 状态选项
 const statusOptions = ref([
-    {
-        label: "全部",
-        value: "0",
-    },
-    {
-        label: "默认",
-        value: "1",
-    },
-    {
-        label: "备选",
-        value: "0",
-    },
+  {
+    label: "全部",
+    value: "0",
+  },
+  {
+    label: "默认",
+    value: "1",
+  },
+  {
+    label: "备选",
+    value: "0",
+  },
 ]);
 
 /**
@@ -263,9 +259,7 @@ const handleSubmitOk = () => {
   let submitPromise;
   // 提取公共参数
   const commonParams = {
-    id: currentSelectRow.value
-      .map((product) => product.id)
-      ?.join(","),
+    id: currentSelectRow.value.map((product) => product.id)?.join(","),
     auditStatus: submitFormData.auditStatus,
     remark: submitFormData.remark,
   };
@@ -275,10 +269,8 @@ const handleSubmitOk = () => {
     .then((result) => {
       // 实际根据后端接口返回格式调整判断逻辑
       if (result?.code === 200) {
-        message.success(
-          `成功提交 ${currentSelectRow.value.length} 个商品`
-        );
-          getList();
+        message.success(`成功提交 ${currentSelectRow.value.length} 个商品`);
+        getList();
         resetSubmitForm();
         submitOpen.value = false;
         currentSelectRow.value = [];
@@ -291,11 +283,8 @@ const handleSubmitOk = () => {
     .catch((error) => {
       message.error("提交失败，请重试");
       console.error("提交失败:", error);
-    })
-    
+    });
 };
-
-
 
 // 表格数据
 const tableData = ref([]);
@@ -303,7 +292,7 @@ const tableData = ref([]);
 /**
  * 获取表格数据
  */
-const getList = async (pages={}) => {
+const getList = async (pages = {}) => {
   try {
     // 先设置loading状态为true
     loading.value = true;
@@ -331,14 +320,12 @@ const getList = async (pages={}) => {
   }
 };
 
-
 /**
  * 处理表格加载状态变化
  */
 const handleLoadingChange = (loading) => {
   loading.value = loading;
 };
-
 
 /**
  * 清除表格选择
@@ -359,14 +346,14 @@ const resetForm = () => {
       formData[key] = JSON.parse(JSON.stringify(INITIAL_FORM_DATA[key]));
     }
   });
-    getList();
+  getList();
 };
 
 /**
  * 处理表格加载状态变化
  */
 const handlePageChange = (page) => {
-    formData.pageNum = page;
+  formData.pageNum = page;
   getList();
 };
 
@@ -374,7 +361,7 @@ const handlePageChange = (page) => {
  * 处理每页条数变化
  */
 const handlePageSizeChange = (pageSize) => {
-    formData.pageSize = pageSize;
+  formData.pageSize = pageSize;
   getList();
 };
 
@@ -397,11 +384,11 @@ const handleAdd = () => {
 /**
  * 处理编辑查看单据操作
  */
-const handleEdit = (type,product) => {
-    const params = {}
-    if(type === 'edit' || type === 'doubleClick'){
-        params.id = product.id
-    }
+const handleEdit = (type, product) => {
+  const params = {};
+  if (type === "edit" || type === "doubleClick") {
+    params.id = product.id;
+  }
 
   const id = product.commodityId;
   const urlData = router.resolve({
