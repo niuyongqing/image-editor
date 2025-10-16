@@ -21,6 +21,7 @@
         >
         <a-button
           type="primary"
+          :disabled="auditStatus !== 20"
           @click="applicationPhoto"
           >申请拍照</a-button
         >
@@ -87,7 +88,7 @@
           <a-textarea
             v-model:value="reviewForm.remark"
             :rows="4"
-            :max-length="500"
+            :maxlength="255"
             show-count
             allowClear
             placeholder="请输入审核备注（驳回时必填）"
@@ -113,6 +114,7 @@
   provide('databaseId', route.query.commodityId)
   // 是否为资料待编辑详情
   const isEditDetail = computed(() => route.path === '/platform/product-review/data-for-editing-detail')
+  const auditStatus = route.query.auditStatus
 
   const baseInfoRef = ref()
   const SKUInfoRef = ref()
@@ -194,11 +196,11 @@
   /** 申请拍照 */
   function applicationPhoto() {
     const query = {
-      id: detail.id,
+      id: detail.commodityId,
       tradeName: detail.productName, //商品名称
       classify: detail.categoryId, //商品分类
       skuList: detail.skuCodes, //商品SKU列表
-      productId: detail.intelligentProductId //商品ID
+      productId: detail.id //商品ID
     }
 
     const urlData = router.resolve({

@@ -1088,6 +1088,7 @@
     for (let i = 0; i < minLength; i++) {
       // 将b数组中对应下标的数据赋值到a数组中
       newTableData[i].id = tableData.value[i].id
+      newTableData[i].skuId = tableData.value[i].skuId
       newTableData[i].skuTitle = tableData.value[i].skuTitle
       newTableData[i].sellerSKU = tableData.value[i].sellerSKU
       newTableData[i].costPrice = tableData.value[i].costPrice
@@ -1704,6 +1705,12 @@
         mainImages: item.mainImages.map(image => image.url),
         subImages: item.subImages.map(image => image.url),
         skuAttributes
+      }
+
+      // 初始时, 如果没有 skuId, 从详情里根据 skuCode 匹配对应的 skuId
+      if (!obj.skuId) {
+        const targetItem = productDetail.value.skuList.find(item => item.skuCode === obj.skuCode)
+        targetItem && (obj.skuId = targetItem.id)
       }
 
       return obj
