@@ -62,7 +62,7 @@
         >
           <a-range-picker
             v-model:value="formData.createTimeList"
-            format="YYYY-MM-DD HH:mm:ss"
+            format="YYYY-MM-DD"
             allow-clear
             :presets="datePresets"
           />
@@ -205,7 +205,7 @@
             placeholder="请输入审核备注（驳回时必填）"
             allowClear
             style="width: 100%"
-            maxlength="255"
+            :maxlength="255"
             show-count
           />
         </a-form-item>
@@ -250,7 +250,7 @@
             placeholder="请输入备注"
             allowClear
             style="width: 100%"
-            maxlength="255"
+            :maxlength="255"
             show-count
           />
         </a-form-item>
@@ -681,12 +681,11 @@ const handleSee = () => {
  */
 const handleEditProduct = (product) => {
   console.log(product);
-  const id = product.commodityId;
   const urlData = router.resolve({
     path: detailPagePath[props.Source],
     query: {
-      id: id,
-      commodityId: product.intelligentProductId,
+      id: product.intelligentProductId,
+      commodityId: product.commodityId,
     },
   });
   window.open(urlData.href, "_blank");
