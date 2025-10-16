@@ -114,7 +114,7 @@
   provide('databaseId', route.query.commodityId)
   // 是否为资料待编辑详情
   const isEditDetail = computed(() => route.path === '/platform/product-review/data-for-editing-detail')
-  const auditStatus = route.query.auditStatus
+  const auditStatus = Number(route.query.auditStatus)
 
   const baseInfoRef = ref()
   const SKUInfoRef = ref()
