@@ -126,7 +126,7 @@
             <span>{{ MARKET_OPTIONS.find(item => item.value === record.devAttributableMarket)?.label || '--' }}</span>
           </template>
           <template v-else-if="column.key === 'sku'">
-            <span>{{ record.skuList || '--' }}</span>
+            <div class="w-100 truncate">{{ record.skuList || '--' }}</div>
           </template>
           <template v-else-if="column.key === 'storage'">
             <span>{{ STORAGE_OPTIONS.find(item => item.value === record.meansKeepGrain)?.label || '--' }}</span>
@@ -144,7 +144,7 @@
             <a-space>
               <a-button
                 type="link"
-                :disabled="!record.intelligentProductId"
+                :disabled="!record.intelligentProductId || record.auditStatus !== 20"
                 @click="goEdit(record)"
                 >编辑</a-button
               >
@@ -285,7 +285,7 @@
 
   /** 编辑 */
   function goEdit(record) {
-    window.open(`/platform/product-review/data-for-editing-detail?commodityId=${record.commodityId}&id=${record.intelligentProductId}`)
+    window.open(`/platform/product-review/data-for-editing-detail?commodityId=${record.commodityId}&id=${record.intelligentProductId}&auditStatus=${record.auditStatus}`)
   }
 
   /** 申请拍照 */
