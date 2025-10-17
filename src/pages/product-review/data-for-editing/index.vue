@@ -105,22 +105,13 @@
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'image'">
-            <a-popover placement="right">
-              <template #content>
-                <img
-                  :src="record.mainImage || EmptyImg"
-                  width="400"
-                  height="400"
-                />
-              </template>
-              <a-image
-                :src="record.mainImage || EmptyImg"
-                :width="80"
-                :height="80"
-                :fallback="EmptyImg"
-                class="object-contain border border-solid border-gray-200"
-              />
-            </a-popover>
+            <a-image
+              :src="record.mainImage || EmptyImg"
+              :width="80"
+              :height="80"
+              :fallback="EmptyImg"
+              class="object-contain border border-solid border-gray-200"
+            />
           </template>
           <template v-else-if="column.key === 'commodityName'">
             <div class="w-80 ">{{ record.commodityName || '--' }}</div>
@@ -230,13 +221,6 @@
   })
   const searchFormRef = ref()
 
-  const options = [
-    { label: 'label', value: 'value' },
-    { label: 'label2', value: 'value2' }
-  ]
-  const categoryOptions = ref([])
-  categoryOptions.value = options
-
   // 提交人下拉列表
   const submiterOptions = ref([])
   getUserListApi().then(res => {
@@ -278,6 +262,7 @@
     }
     delete params.submitTime
 
+    loading.value = true
     getListApi(params).then(res => {
       total.value = res.total ?? 0
       const list = res.rows || []
@@ -286,6 +271,8 @@
         item.mainImage = mainImageList[0]
       })
       tableData.value = list
+    }).finally(() => {
+      loading.value = false
     })
   }
 
