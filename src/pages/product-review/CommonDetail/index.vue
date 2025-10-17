@@ -182,10 +182,9 @@
     updateProductDetailApi(params)
       .then(res => {
         message.success('保存成功')
-        // FIXME:
-        // setTimeout(() => {
-        //   window.close(0)
-        // }, 2000)
+        setTimeout(() => {
+          window.close(0)
+        }, 2000)
       })
       .finally(() => {
         saveLoading.value = false
