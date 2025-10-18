@@ -696,7 +696,7 @@
   import sheepProhibitionSelect from '@/utils/sheepProhibitionSelect'
   import { message } from 'ant-design-vue'
   import download from '@/api/common/download'
-  import { lastAudit } from '~@/pages/product-review/config/api/product-review.js'
+  import { firstAudit } from '~@/pages/product-review/config/api/product-review.js'
 
   defineOptions({ name: 'PreliminaryReviewDetail' })
 
@@ -1196,7 +1196,7 @@
       ]
 
       reviewLoading.value = true
-      lastAudit(params)
+      firstAudit(params)
         .then(res => {
           message.success('审核成功')
           reviewModalCancel()

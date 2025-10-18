@@ -185,7 +185,7 @@
         refreshList()
 
         setTimeout(() => {
-          window.close(0)
+          window.close()
         }, 1000)
       })
       .finally(() => {

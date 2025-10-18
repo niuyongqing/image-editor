@@ -258,7 +258,7 @@
 
   /** 编辑 */
   function goEdit(record) {
-    // window.open(`/platform/product-review/data-for-editing-detail?commodityId=${record.commodityId}&id=${record.intelligentProductId}&auditStatus=${record.auditStatus}`)
+    window.open(`/platform/intelligent-publication/database-detail?id=${record.intelligentProductId}`)
   }
 
   let curRecord = {}

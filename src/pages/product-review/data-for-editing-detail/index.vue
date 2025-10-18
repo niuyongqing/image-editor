@@ -8,7 +8,6 @@
       style="scrollbar-width: thin"
     >
       <PreliminaryReviewDetail />
-      <a-back-top />
     </div>
     <!-- RIGHT -->
     <div
