@@ -10,6 +10,7 @@
   },
   "scripts": {
     "dev": "mist --host",
+    "dev:port": "mist --host --port 3000",
     "build": "vue-tsc && mist build",
     "clear:vercel": "rm -rf ./vercel.json",
     "build:vercel": "run-s clear:vercel build:nitro",

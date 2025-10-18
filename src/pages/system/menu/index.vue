@@ -3,7 +3,7 @@ import {ref, reactive} from 'vue';
 import {getMenusListApi, delMenuApi,} from '~/api/common/menu.js'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import AddOrEdit from "~/pages/system/menu/component/addOrEdit.vue";
-import {sortBySortKey} from "~/utils/tools.js";
+// import {sortBySortKey} from "~/utils/tools.js";
 import { VXETable } from 'vxe-table';
 import 'vxe-table/lib/style.css';
 import 'vxe-pc-ui/lib/style.css';
@@ -39,7 +39,8 @@ const editData = ref({})
 const tableHeight = ref(0);
 const open = ref(false);
 const tableLoading = ref(false);
-
+const xGrid2 = ref(null);
+const newMenuData = reactive([])
 const cellDblclickEvent = ({ row, column, rowIndex, columnIndex }) => {
   edit(row)
 }
@@ -54,6 +55,67 @@ VXETable.setup({
     // 更多图标配置...
   }
 })
+
+// 处理菜单拖拽排序事件，避免无限递归
+const rowDragendEvent = ({dragRow}) => {
+  // 获取表格当前的数据
+  const newData = xGrid2.value.getTableData().tableData;
+  
+  // 非递归方式设置排序值，避免栈溢出
+  // 1. 首先按parentId分组所有数据
+  const parentMap = {};
+  
+  // 构建父节点映射关系
+  newData.forEach(item => {
+    const parentId = item.parentId || '';
+    if (!parentMap[parentId]) {
+      parentMap[parentId] = [];
+    }
+    parentMap[parentId].push(item);
+  });
+  
+  // // 2. 使用队列处理层级结构，避免递归
+  // const queue = ['']; // 从顶级节点开始
+  // while (queue.length > 0) {
+  //   const currentParentId = queue.shift();
+  //   const children = parentMap[currentParentId] || [];
+    
+  //   // 为当前层级的子节点设置排序值
+  //   children.forEach((item, index) => {
+  //     item.sort = index + 1;
+  //     console.log(`设置菜单排序: ${item.title} = ${item.sort}`);
+      
+  //     // 将当前节点的ID加入队列，以便处理其子节点
+  //     if (parentMap[item.id]) {
+  //       queue.push(item.id);
+  //     }
+  //   });
+  // }
+  
+  // 3. 专门处理拖拽节点的同级菜单排序
+  if (dragRow) {
+    const parentId = dragRow.parentId || '';
+    const siblingItems = parentMap[parentId] || [];
+    console.log('当前拖拽菜单的同级菜单:', siblingItems);
+    
+    // 确保同级菜单排序值连续
+    siblingItems.forEach((item, index) => {
+      item.sort = index + 1;
+      console.log(`设置同级菜单排序: ${item.title} = ${item.sort}`);
+    });
+  }
+  newMenuData.length = 0
+  newMenuData.push(...newData)
+  console.log('所有菜单项排序值已重置为从1开始递增');
+  console.log('数据', newData);
+  
+  }
+
+const sortConfig = reactive({
+  field: 'sort',
+  order: 'asc'
+})
+
 onMounted(()=>{
   setTableHeight();
   window.addEventListener('resize', setTableHeight);
@@ -61,93 +123,94 @@ onMounted(()=>{
 onUnmounted(() => {
   window.removeEventListener('resize', setTableHeight);
 });
-function formatMenu(route, path) {
-  return {
-    id: route.meta?.id,
-    sort: route.meta?.sort,
-    commonUse: route.meta?.commonUse,
-    parentId: route.meta?.parentId,
-    permission:route.permission,
-    title: route,
-    icon: route.meta?.icon || '',
-    path: path ?? route.path,
-    hideInMenu: route.meta?.hideInMenu || false,
-    parentKeys: route.meta?.parentKeys || [],
-    hideInBreadcrumb: route.meta?.hideInBreadcrumb || false,
-    hideChildrenInMenu: route.meta?.hideChildrenInMenu || false,
-    locale: route.meta?.locale,
-    keepAlive: route.meta?.keepAlive || false,
-    name: route.name,
-    url: route.meta?.url || '',
-    target: route.meta?.target || '_blank',
-  }
-}
+// function formatMenu(route, path) {
+//   return {
+//     id: route.meta?.id,
+//     sort: route.meta?.sort,
+//     commonUse: route.meta?.commonUse,
+//     parentId: route.meta?.parentId,
+//     permission:route.permission,
+//     title: route,
+//     icon: route.meta?.icon || '',
+//     path: path ?? route.path,
+//     hideInMenu: route.meta?.hideInMenu || false,
+//     parentKeys: route.meta?.parentKeys || [],
+//     hideInBreadcrumb: route.meta?.hideInBreadcrumb || false,
+//     hideChildrenInMenu: route.meta?.hideChildrenInMenu || false,
+//     locale: route.meta?.locale,
+//     keepAlive: route.meta?.keepAlive || false,
+//     name: route.name,
+//     url: route.meta?.url || '',
+//     target: route.meta?.target || '_blank',
+//   }
+// }
 
 
-function generateTreeRoutes(menus) {
-  const routeDataMap = /* @__PURE__ */ new Map()
-  for (const menuItem of menus) {
-    if (!menuItem.id)
-      continue
-    const route = {
-      id: menuItem.id,
-      path: menuItem.path,
-      permission:menuItem.permission,
-      name: menuItem.name,
-      component: menuItem.component,
-      redirect: menuItem.redirect || void 0,
-      sort: menuItem?.sort,
-      title: menuItem.title,
-      type: menuItem?.type,
-      commonUse: menuItem?.commonUse,
-      meta: {
-        sort: menuItem?.sort,
-        title: menuItem?.title,
-        icon: menuItem?.icon,
-        keepAlive: menuItem?.keepAlive,
-        id: menuItem?.id,
-        parentId: menuItem?.parentId,
-        affix: menuItem?.affix,
-        parentKeys: menuItem?.parentKeys,
-        url: menuItem?.url,
-        hideInMenu: menuItem?.hideInMenu,
-        hideChildrenInMenu: menuItem?.hideChildrenInMenu,
-        hideInBreadcrumb: menuItem?.hideInBreadcrumb,
-        target: menuItem?.target,
-        locale: menuItem?.locale,
-      },
-    }
-    formatMenu(route)
-    routeDataMap.set(menuItem.id, route)
-  }
-  const routeData = []
-  for (const menuItem of menus) {
-    if (!menuItem.id)
-      continue
-    const currentRoute = routeDataMap.get(menuItem.id)
-    if (!menuItem.parentId) {
-      if (currentRoute) {
-        routeData.push(currentRoute)
-      }
-    } else {
-      const pRoute = routeDataMap.get(menuItem.parentId)
-      if (currentRoute && pRoute) {
-        if (pRoute.children) {
-          pRoute.children.push(currentRoute)
-        } else {
-          pRoute.children = [currentRoute]
-        }
-      }
-    }
-  }
-  sortBySortKey(routeData);
-  return {
-    routeData,
-  }
-}
+// function generateTreeRoutes(menus) {
+//   const routeDataMap = /* @__PURE__ */ new Map()
+//   for (const menuItem of menus) {
+//     if (!menuItem.id)
+//       continue
+//     const route = {
+//       id: menuItem.id,
+//       path: menuItem.path,
+//       permission:menuItem.permission,
+//       name: menuItem.name,
+//       component: menuItem.component,
+//       redirect: menuItem.redirect || void 0,
+//       sort: menuItem?.sort,
+//       title: menuItem.title,
+//       type: menuItem?.type,
+//       commonUse: menuItem?.commonUse,
+//       meta: {
+//         sort: menuItem?.sort,
+//         title: menuItem?.title,
+//         icon: menuItem?.icon,
+//         keepAlive: menuItem?.keepAlive,
+//         id: menuItem?.id,
+//         parentId: menuItem?.parentId,
+//         affix: menuItem?.affix,
+//         parentKeys: menuItem?.parentKeys,
+//         url: menuItem?.url,
+//         hideInMenu: menuItem?.hideInMenu,
+//         hideChildrenInMenu: menuItem?.hideChildrenInMenu,
+//         hideInBreadcrumb: menuItem?.hideInBreadcrumb,
+//         target: menuItem?.target,
+//         locale: menuItem?.locale,
+//       },
+//     }
+//     formatMenu(route)
+//     routeDataMap.set(menuItem.id, route)
+//   }
+//   const routeData = []
+//   for (const menuItem of menus) {
+//     if (!menuItem.id)
+//       continue
+//     const currentRoute = routeDataMap.get(menuItem.id)
+//     if (!menuItem.parentId) {
+//       if (currentRoute) {
+//         routeData.push(currentRoute)
+//       }
+//     } else {
+//       const pRoute = routeDataMap.get(menuItem.parentId)
+//       if (currentRoute && pRoute) {
+//         if (pRoute.children) {
+//           pRoute.children.push(currentRoute)
+//         } else {
+//           pRoute.children = [currentRoute]
+//         }
+//       }
+//     }
+//   }
+//   // sortBySortKey(routeData);
+//   return {
+//     routeData,
+//   }
+// }
 
 function confirmDeleteMenu(item) {
-  delMenuApi({id: item.meta.id}).then(res => {
+  console.log('row',item)
+  delMenuApi({id: item.id}).then(res => {
     getMenusList({})
   })
 }
@@ -155,9 +218,21 @@ function confirmDeleteMenu(item) {
 function getMenusList() {
   tableLoading.value = true
   getMenusListApi({}).then((value) => {
-    dataSource.value = generateTreeRoutes(value.data).routeData
-    // 获取原数据
+    // 先处理数据生成路由数据
+    // dataSource.value = generateTreeRoutes(value.data).routeData
+    console.log('dataSource.value',dataSource.value)
+    // 获取原数据并根据sortConfig进行排序
     originalData.value = [...value.data]
+    // 根据sortConfig配置对originalData进行排序
+    if (sortConfig.field && sortConfig.order) {
+      originalData.value.sort((a, b) => {
+        const field = sortConfig.field
+        const order = sortConfig.order
+        if (a[field] < b[field]) return order === 'asc' ? -1 : 1
+        if (a[field] > b[field]) return order === 'asc' ? 1 : -1
+        return 0
+      })
+    }
   }).finally(()=>{
     tableLoading.value = false
   })
@@ -184,6 +259,8 @@ function close() {
   title.value = ''
   open.value = false
   editData.value = {}
+  // 先调用拖拽事件更新sort值
+  // rowDragendEvent()
   getMenusList()
 }
 
@@ -203,10 +280,13 @@ onBeforeMount(() => {
       <div class="table-container" ref="tableContainer">
         <vxe-table 
           border 
+          ref="xGrid2"
+          :sort-config="sortConfig"
           :row-config="rowConfig" 
           :row-drag-config="rowDragConfig"
           :column-config="columnConfig" 
           @cell-dblclick="cellDblclickEvent"
+          @row-dragend="rowDragendEvent"
           :tree-config="treeConfig" 
           class="mytable-style"
           :data="originalData" 
@@ -259,7 +339,7 @@ onBeforeMount(() => {
       </div>
 
     </a-card>
-    <add-or-edit :open="open" :title="title" :data="editData" @close="close" :menus="dataSource"></add-or-edit>
+    <add-or-edit :open="open" :title="title" :data="editData" @close="close" :menus="newMenuData"></add-or-edit>
   </div>
 </template>
 

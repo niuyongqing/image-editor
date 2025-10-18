@@ -40,6 +40,8 @@ watchEffect(()=>{
         selectedIcon.value = formData.value.icon
       }else {
         formData.value.parentId = res.data.id
+        // 默认排序字段为当前菜单的最大排序值 + 1
+        formData.value.sort = props.menus.reduce((max, item) => Math.max(max, item.sort), 0) + 1
       }
     })
 
