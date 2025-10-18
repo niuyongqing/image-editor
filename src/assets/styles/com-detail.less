@@ -15,6 +15,14 @@
   display: flex;
   text-align: left;
 }
+.flex{
+  display: flex;
+  flex-wrap: wrap; /* 关键属性：允许换行 */
+  gap: 10px; /* 项之间的间距 */
+}
+.flexItem180{
+  flex: 1 0 180px;
+}
 
 // 优化 .imageList 样式，添加间距和换行处理，提升布局灵活性
 .imageList {
@@ -200,6 +208,56 @@
 .submit-btn {
   margin-right: 16px;
 }
+.borderTop{
+  width: 100vw;
+  border-top: 1px solid #d9d9d9;
+}
+
+.module-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  margin: 16px 0;
+
+ ::v-deep(.ant-form-item) {
+    margin-right: 0 !important;
+  }
+  .module-item-label {
+    width: 130px;
+    height: 100%;
+  }
+  .module-item-content {
+    width: 100%;
+    padding-top: 30px;
+  }
+  .flex1 {
+    flex: 1;
+  }
+
+}
+
+.wInput100{
+  ::v-deep(.ant-form-item-control-input){
+    width: 100%;
+  }
+}
+
+/* 确保店铺编号字段单独占一整行且label和输入框在同一行 */
+.block-item {
+  display: block;
+  width: 100%;
+  margin-bottom: 16px;
+  
+  .ant-form-item-label {
+    float: left;
+    margin-right: 16px;
+  }
+  
+  .ant-form-item-control {
+    overflow: hidden;
+  }
+}
+
 
 /* 响应式布局 - 平板设备 */
 @media screen and (max-width: 1024px) {

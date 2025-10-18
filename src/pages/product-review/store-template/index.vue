@@ -2,163 +2,79 @@
   <div id="configAccountCont">
     <!-- 搜索筛选区域 -->
     <a-card>
-      <a-form
-        :model="formData"
-        layout="inline"
-        ref="formRef"
-        class="search-form"
-        :wrapper-col="wrapperCol"
-        :label-col="labelCol"
-      >
+      <a-form :model="formData" layout="inline" ref="formRef" class="search-form" :wrapper-col="wrapperCol"
+        :label-col="labelCol">
         <!-- 店铺账号 -->
         <a-form-item label="店铺账号:" :wrapper-col="wrapperColItem">
-          <a-radio-group
-            v-model:value="formData.storeAccount"
-            name="storeAccount"
-          >
-            <a-radio
-              :value="item.value"
-              v-for="item in storeAccountOptions"
-              :key="item.value"
-              >{{ item.label }}</a-radio
-            >
+          <a-radio-group v-model:value="formData.storeAccount" name="storeAccount">
+            <a-radio :value="item.value" v-for="item in storeAccountOptions" :key="item.value">{{ item.label
+              }}</a-radio>
           </a-radio-group>
         </a-form-item>
         <!-- 状态 -->
         <a-form-item label="状态:">
-           <a-radio-group
-            v-model:value="formData.status"
-            name="status"
-          >
-            <a-radio
-              :value="item.value"
-              v-for="item in statusOptions"
-              :key="item.value"
-              >{{ item.label }}</a-radio
-            >
+          <a-radio-group v-model:value="formData.status" name="status">
+            <a-radio :value="item.value" v-for="item in statusOptions" :key="item.value">{{ item.label }}</a-radio>
           </a-radio-group>
         </a-form-item>
         <!-- 模板查询 -->
         <a-form-item label="模糊查询:">
           <a-space size="middle">
-            <a-input
-              v-model:value="formData.temName"
-              placeholder="请输入模板名称"
-              allowClear
-            />
-            <a-input
-              v-model:value="formData.createUser"
-              placeholder="请输入创建人"
-              allowClear
-            />
+            <a-input v-model:value="formData.temName" placeholder="请输入模板名称" allowClear />
+            <a-input v-model:value="formData.createUser" placeholder="请输入创建人" allowClear />
           </a-space>
         </a-form-item>
         <a-form-item class="form-actions">
-          <a-button type="primary" @click="getList" :disabled="loading"
-            >查询</a-button
-          >
-          <a-button
-            style="margin-left: 10px"
-            @click="resetForm"
-            :disabled="loading"
-            >重置</a-button
-          >
+          <a-button type="primary" @click="getList" :disabled="loading">查询</a-button>
+          <a-button style="margin-left: 10px" @click="resetForm" :disabled="loading">重置</a-button>
         </a-form-item>
       </a-form>
     </a-card>
     <!-- 数据展示区域 -->
     <a-card style="margin-top: 0.75rem">
       <div class="table-header-actions">
-        <a-button
-          :disabled="selectedCount !== 1 || loading"
-          @click="handleEdit('add', {})"
-          type="primary"
-          tooltip="新增"
-        >
+        <a-button  @click="handleEdit('add', {})" type="primary" tooltip="新增">
           新增
         </a-button>
-         <a-button
-          :disabled="selectedCount !== 1 || loading"
-          @click="handleSetDefault"
-          type="primary"
-          tooltip="设为默认"
-        >
+        <a-button :disabled="selectedCount !== 1 || loading" @click="handleSetDefault" type="primary" tooltip="设为默认">
           设为默认
         </a-button>
-          <a-button
-          :disabled="selectedCount !== 1 || loading"
-          @click="handleCopy"
-          type="primary"
-          tooltip="复制"
-        >
+        <a-button :disabled="selectedCount !== 1 || loading" @click="handleCopy" type="primary" tooltip="复制">
           复制
         </a-button>
-        <a-button
-          :disabled="selectedCount !== 1 || loading"
-          @click="handleEdit('edit', currentSelectRow.value[0])"
-          type="primary"
-          tooltip="编辑选中的商品"
-        >
+        <a-button :disabled="selectedCount !== 1 || loading" @click="handleEdit('edit', currentSelectRow.value[0])"
+          type="primary" tooltip="编辑选中的商品">
           编辑
         </a-button>
-        <a-button
-          @click="submitOpen = true"
-          type="primary"
-          :disabled="selectedCount === 0 || loading"
-          tooltip="添加备注"
-        >
+        <a-button @click="submitOpen = true" type="primary" :disabled="selectedCount === 0 || loading" tooltip="添加备注">
           添加备注
         </a-button>
         <span style="margin-left: 16px; color: #666">
           已选择 {{ selectedCount }} 项
         </span>
 
-        <a-button
-          type="default"
-          @click="clearSelection"
-          :disabled="selectedCount === 0"
-        >
+        <a-button type="default" @click="clearSelection" :disabled="selectedCount === 0">
           清空选择
         </a-button>
       </div>
 
       <div class="table-container" style="margin-top: 20px">
         <!-- 使用封装的表格组件 -->
-        <uTable
-          ref="uTableRef"
-          :columns="columns"
-          :loading="loading"
-          @reset="resetForm"
-          @row-dblclick="(record) => handleEdit('doubleClick', record)"
-          @loading-change="handleLoadingChange"
-          @selection-change="handleSelectionChange"
-          @page-change="handlePageChange"
-          @page-size-change="handlePageSizeChange"
-        />
+        <uTable ref="uTableRef" :columns="columns" :loading="loading" @reset="resetForm"
+          @row-dblclick="(record) => handleEdit('doubleClick', record)" @loading-change="handleLoadingChange"
+          @selection-change="handleSelectionChange" @page-change="handlePageChange"
+          @page-size-change="handlePageSizeChange" />
       </div>
     </a-card>
 
     <!-- 添加备注弹窗 -->
-    <a-modal
-      :centered="true"
-      v-model:open="submitOpen"
-      title="添加备注"
-      @ok="handleSubmitOk"
-      @cancel="handleCancel('submit')"
-      :confirm-loading="submitLoading"
-      okText="确认"
-      cancelText="取消"
-      :width="600"
-    >
+    <a-modal :centered="true" v-model:open="submitOpen" title="添加备注" @ok="handleSubmitOk"
+      @cancel="handleCancel('submit')" :confirm-loading="submitLoading" okText="确认" cancelText="取消" :width="600">
       <!-- 显示正在审核的商品信息 -->
       <div v-if="currentSelectRow.length > 0" class="auditing-products-info">
         <div class="auditing-products-title">产品:</div>
         <div class="auditing-products-list">
-          <div
-            v-for="(product, index) in currentSelectRow"
-            :key="index"
-            class="auditing-product-item"
-          >
+          <div v-for="(product, index) in currentSelectRow" :key="index" class="auditing-product-item">
             产品名称:{{ product.commodityName }}
           </div>
         </div>
@@ -167,15 +83,8 @@
       <a-form :model="submitFormData" ref="submitFormRef">
         <a-form-item name="remark">
           <div style="margin-bottom: 8px">备注:</div>
-          <a-textarea
-            v-model:value="submitFormData.remark"
-            :rows="4"
-            placeholder="请输入备注"
-            allowClear
-            style="width: 100%"
-            :max-length="500"
-            show-count
-          />
+          <a-textarea v-model:value="submitFormData.remark" :rows="4" placeholder="请输入备注" allowClear style="width: 100%"
+            :max-length="500" show-count />
         </a-form-item>
       </a-form>
     </a-modal>
@@ -208,7 +117,7 @@ const wrapperCol = ref({
 });
 const wrapperColItem = ref({
   style: {
-    width: "536px",
+    minWidth: "300px",
   },
 });
 
@@ -418,30 +327,26 @@ const handleSelectionChange = (selectedRows) => {
   currentSelectRow.value = selectedRows;
   console.log("currentSelectRow", currentSelectRow.value);
 };
-// 新增
-const handleAdd = () => {
-  const urlData = router.resolve({
-    path: "/platform/product-review/store-template-detail",
-  });
-  window.open(urlData.href, "_blank");
-};
+
 
 /**
- * 处理编辑查看单据操作
+ * 处理编辑和查看单据操作
  */
 const handleEdit = (type, product) => {
   const params = {};
+  params.type = type;
+
   if (type === "edit" || type === "doubleClick") {
+    if (!product || !product.id) {
+      console.error('需要有效的 id 属性');
+      return;
+    }
     params.id = product.id;
   }
 
-  const id = product.commodityId;
   const urlData = router.resolve({
     path: "/platform/product-review/store-template-detail",
-    query: {
-      id: id,
-      commodityId: product.intelligentProductId,
-    },
+    query: params,
   });
   window.open(urlData.href, "_blank");
 };
