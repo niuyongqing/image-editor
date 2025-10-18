@@ -1200,6 +1200,13 @@
         .then(res => {
           message.success('审核成功')
           reviewModalCancel()
+
+          // 窗口通信, 刷新列表页
+          const targetWindow = window.opener
+          if (targetWindow) {
+            targetWindow.postMessage('refresh', targetWindow.location.origin)
+          }
+
           setTimeout(() => {
             window.close()
           }, 1000)
