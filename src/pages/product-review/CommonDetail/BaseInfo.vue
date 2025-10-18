@@ -9,21 +9,21 @@
       <a-form-item label="产品标题">
         <a-input
           v-model:value="baseInfoForm.productName"
-          placeholder="请输入英文产品标题"
+          placeholder="请输入中文产品标题"
           allow-clear
         />
       </a-form-item>
       <a-form-item label="前缀修饰词">
         <a-input
           v-model:value="baseInfoForm.prefixDecorateName"
-          placeholder="请输入英文前缀修饰词, 多个请用英文逗号隔开"
+          placeholder="请输入中文前缀修饰词, 多个请用英文逗号隔开"
           allow-clear
         />
       </a-form-item>
       <a-form-item label="后缀修饰词">
         <a-input
           v-model:value="baseInfoForm.suffixDecorateName"
-          placeholder="请输入英文后缀修饰词, 多个请用英文逗号隔开"
+          placeholder="请输入中文后缀修饰词, 多个请用英文逗号隔开"
           allow-clear
         />
       </a-form-item>

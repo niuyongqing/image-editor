@@ -132,7 +132,10 @@
             <span>{{ record.lastAuditUserName || record.firstAuditName }}</span>
           </template>
           <template v-else-if="column.key === 'selectReason'">
-            <div class="w-100">{{ record.selectReason }}</div>
+            <div class="w-100">{{ record.selectReason || '--' }}</div>
+          </template>
+          <template v-else-if="column.key === 'remark'">
+            <div class="w-100">{{ record.remark || '--' }}</div>
           </template>
           <template v-else-if="column.key === 'options'">
             <a-space>
@@ -150,7 +153,7 @@
               >
               <a-button
                 type="link"
-                @click="openRemorkModal(record.id)"
+                @click="openRemorkModal(record)"
                 >添加备注</a-button
               >
               <!-- <a-popconfirm
@@ -193,7 +196,10 @@
       <a-textarea
         v-model:value="remark"
         :rows="4"
+        maxlength="255"
+        show-count
         placeholder="请输入备注内容"
+        class="mb-7"
       />
     </a-modal>
   </div>
@@ -304,8 +310,9 @@
   const remarkLoading = ref(false)
 
   // 打开弹窗
-  function openRemorkModal(id) {
-    curId = id
+  function openRemorkModal(record) {
+    curId = record.id
+    remark.value = record.remark
     remarkModalOpen.value = true
   }
 

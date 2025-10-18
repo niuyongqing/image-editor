@@ -3,12 +3,14 @@ export const DEFAULT_TABLE_COLUMN = [
   {
     title: '主图',
     key: 'image',
+    fixed: 'left',
     width: 200
   },
   {
     title: '产品名称',
     key: 'commodityName',
     dataIndex: 'commodityName',
+    fixed: 'left',
     width: 200
   },
   {
@@ -57,6 +59,11 @@ export const DEFAULT_TABLE_COLUMN = [
   {
     title: '选品理由',
     key: 'selectReason',
+    width: 200
+  },
+  {
+    title: '备注',
+    key: 'remark',
     width: 200
   },
   {
