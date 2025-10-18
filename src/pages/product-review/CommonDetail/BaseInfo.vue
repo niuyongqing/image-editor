@@ -699,17 +699,16 @@
   const addItemValues = obj => {
     if (!obj.selectDate.value) return
     const { attributes } = baseInfoForm
+    attributes[obj.name] ||= [] // 若无值, 则初始化为 []
     const isExist = obj.acquiesceList.some(item => item.value === obj.selectDate.value)
     //!  判断搜索出来的是否在初始的数组中显示
     if (isExist) {
-      // attributes[obj.name].push(obj.selectDate.value);
-      const attr = attributes[obj.name] || []
-      attr?.push(obj.selectDate.value)
-      attributes[obj.name] = attr
+      // 如果已有该数据, 不再添加
+      if (!attributes[obj.name].includes(obj.selectDate.value)) {
+        attributes[obj.name].push(obj.selectDate.value)
+      }
     } else {
-      // attributes[obj.name].push(obj.selectDate.value);
-      attributes[obj.name] = attributes[obj.name] || []
-      attributes[obj.name]?.push(obj.selectDate.value)
+      attributes[obj.name].push(obj.selectDate.value)
       obj.acquiesceList.push(obj.selectDate)
     }
     obj.selectDate = undefined

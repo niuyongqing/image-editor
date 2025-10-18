@@ -696,6 +696,7 @@
   import sheepProhibitionSelect from '@/utils/sheepProhibitionSelect'
   import { message } from 'ant-design-vue'
   import download from '@/api/common/download'
+  import { lastAudit } from '~@/pages/product-review/config/api/product-review.js'
 
   defineOptions({ name: 'PreliminaryReviewDetail' })
 
@@ -1199,6 +1200,9 @@
         .then(res => {
           message.success('审核成功')
           reviewModalCancel()
+          setTimeout(() => {
+            window.close()
+          }, 1000)
         })
         .finally(() => {
           reviewLoading.value = false
