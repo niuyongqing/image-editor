@@ -62,14 +62,17 @@
         <div class="module-item-content flex flexItem180">
            <a-form-item label="首重物流费" name="templateName">
             <a-input-number
-              class="w50"
+              class="w40"
+              :controls="false"
               v-model:value="formState.templateName"
               allow-clear
               placeholder="请输入首重物流费"
             />
           </a-form-item>
            <a-form-item label="定价利润率" name="pricingMargin">
-            <a-input
+            <a-input-number
+            class="w40"
+              :controls="false"
               allow-clear
               v-model:value="formState.pricingMargin"
               placeholder="请输入定价利润率"
@@ -77,7 +80,9 @@
             />
           </a-form-item>
           <a-form-item label="折损率" name="lossRate">
-            <a-input
+            <a-input-number
+              class="w40"
+              :controls="false"
               allow-clear
               v-model:value="formState.lossRate"
               placeholder="请输入折损率"
@@ -85,7 +90,9 @@
             />
           </a-form-item>
           <a-form-item label="提现手续费" name="withdrawalFee">
-            <a-input
+            <a-input-number
+              class="w40"
+              :controls="false"
               allow-clear
               v-model:value="formState.withdrawalFee"
               placeholder="请输入提现手续费"
@@ -93,28 +100,36 @@
             />
           </a-form-item>
           <a-form-item label="物流佣金(RUB)" name="logisticsCommission">
-            <a-input
+            <a-input-number   
+              class="w40"
+              :controls="false"
               allow-clear
               v-model:value="formState.logisticsCommission"
               placeholder="请输入物流佣金(RUB)"
             />
           </a-form-item>
           <a-form-item label="平台佣金" name="platformCommission">
-            <a-input
+            <a-input-number
+              class="w40"
+              :controls="false"
               allow-clear
               v-model:value="formState.platformCommission"
               placeholder="请输入平台佣金"
             />
           </a-form-item>
           <a-form-item label="原价折扣" name="originalPriceDiscount">
-            <a-input
+            <a-input-number
+              class="w40"
+              :controls="false"
               allow-clear
               v-model:value="formState.originalPriceDiscount"
               placeholder="请输入原价折扣"
             />
           </a-form-item>
           <a-form-item label="续重物流费" name="additionalWeightLogisticsFee">
-            <a-input
+            <a-input-number
+              class="w40"
+              :controls="false"
               allow-clear
               v-model:value="formState.additionalWeightLogisticsFee"
               placeholder="请输入续重物流费"
