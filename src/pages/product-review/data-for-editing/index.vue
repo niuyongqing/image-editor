@@ -141,7 +141,7 @@
             <a-space>
               <a-button
                 type="link"
-                :disabled="!record.intelligentProductId || record.auditStatus !== 20"
+                :disabled="!record.intelligentProductId || ![20, 30, 40].includes(record.auditStatus)"
                 @click="goEdit(record)"
                 >编辑</a-button
               >

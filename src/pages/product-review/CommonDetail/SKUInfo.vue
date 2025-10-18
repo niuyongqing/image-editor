@@ -1345,7 +1345,7 @@
         return val.value
       })
 
-      newItem[attr.name] = values.join(', ')
+      newItem[attr.name] = values.join(';')
       addAttributeHeader(attr, attrHeaderList)
     })
   }
