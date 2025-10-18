@@ -128,11 +128,8 @@
           <template v-else-if="column.key === 'category'">
             <span>{{ getClassifyLabel(record.classify) }}</span>
           </template>
-          <template v-else-if="column.key === 'submiter'">
-            <span>{{ record.selectUserId }}</span>
-          </template>
           <template v-else-if="column.key === 'reviewer'">
-            <span>{{ record.lastAuditUserName }}</span>
+            <span>{{ record.lastAuditUserName || record.firstAuditName }}</span>
           </template>
           <template v-else-if="column.key === 'selectReason'">
             <div class="w-100">{{ record.selectReason }}</div>
@@ -236,6 +233,7 @@
     tableParams.pageNum = 1
     searchForm.tradeName = ''
     searchForm.sku = ''
+    searchForm.submitTime = null
     searchFormRef.value.resetFields()
 
     getList()
@@ -357,5 +355,18 @@
     }
 
     return labelList.join('/') || '--'
+  }
+
+  /** 监听编辑页保存后的跨窗口通信 */
+  window.addEventListener('message', receiveMessage)
+
+  onBeforeUnmount(() => {
+    window.removeEventListener('message', receiveMessage)
+  })
+
+  function receiveMessage(event) {
+    if (event.origin === window.location.origin && event.data === 'refresh') {
+      getList()
+    }
   }
 </script>

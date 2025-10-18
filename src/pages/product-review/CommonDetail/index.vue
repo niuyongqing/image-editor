@@ -37,7 +37,6 @@
       <a-button
         v-else
         type="primary"
-        :loading="reviewLoading"
         @click="reviewOpen = true"
       >
         审核
@@ -182,9 +181,12 @@
     updateProductDetailApi(params)
       .then(res => {
         message.success('保存成功')
+
+        refreshList()
+
         setTimeout(() => {
           window.close(0)
-        }, 2000)
+        }, 1000)
       })
       .finally(() => {
         saveLoading.value = false
@@ -212,17 +214,25 @@
   /** 提交终审 */
   const reviewLoading = ref(false)
   function toFinalReview() {
-    const params = [{
-      auditStatus: 50, // 待终审
-      id: detail.selectAuditId,
-      commodityId: detail.commodityId,
-      remark: undefined
-    }]
+    const params = [
+      {
+        auditStatus: 50, // 待终审
+        id: detail.selectAuditId,
+        commodityId: detail.commodityId,
+        remark: undefined
+      }
+    ]
 
     reviewLoading.value = true
     lastAudit(params)
       .then(res => {
         message.success('提交终审成功')
+
+        refreshList()
+
+        setTimeout(() => {
+          window.close()
+        }, 1000)
       })
       .finally(() => {
         reviewLoading.value = false
@@ -245,23 +255,39 @@
 
   function reviewModalOk() {
     reviewFormRef.value.validate().then(_ => {
-      reviewLoading.value = true
-      const params = [{
-        auditStatus: reviewForm.auditStatus === 1 ? 60 : 70, // 60 终审完成; 70 运营驳回
-        id: detail.id,
-        commodityId: detail.commodityId,
-        remark: reviewForm.remark
-      }]
+      const params = [
+        {
+          auditStatus: reviewForm.auditStatus === 1 ? 60 : 70, // 60 终审完成; 70 运营驳回
+          id: detail.id,
+          commodityId: detail.commodityId,
+          remark: reviewForm.remark
+        }
+      ]
 
+      reviewLoading.value = true
       lastAudit(params)
         .then(res => {
           message.success('审核成功')
           reviewModalCancel()
+
+          refreshList()
+
+          setTimeout(() => {
+            window.close()
+          }, 1000)
         })
         .finally(() => {
           reviewLoading.value = false
         })
     })
+  }
+
+  /** 窗口通信, 刷新列表页 */
+  const targetWindow = window.opener
+  function refreshList() {
+    if (targetWindow) {
+      targetWindow.postMessage('refresh', targetWindow.location.origin)
+    }
   }
 
   /** 返回需要监听其滚动事件的元素 */

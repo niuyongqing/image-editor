@@ -34,6 +34,7 @@ export const DEFAULT_TABLE_COLUMN = [
   {
     title: '提交人',
     key: 'submiter',
+    dataIndex: 'selectUserName',
     width: 200
   },
   {
@@ -56,7 +57,6 @@ export const DEFAULT_TABLE_COLUMN = [
   {
     title: '选品理由',
     key: 'selectReason',
-    dataIndex: 'selectReason',
     width: 200
   },
   {
