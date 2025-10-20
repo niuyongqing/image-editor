@@ -198,6 +198,7 @@
 
 <script setup>
   import { accountCache } from '@/pages/ozon/config/api/product'
+  import { message } from 'ant-design-vue'
 
   const props = defineProps({
     open: {
@@ -342,6 +343,8 @@
       }
       console.log(params)
       return
+
+      // message.success('提交刊登成功')
     })
   }
 </script>

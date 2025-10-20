@@ -70,10 +70,32 @@
 
     <!-- table 区 -->
     <a-card>
+      <a-space>
+        <a-button
+          type="primary"
+          :disabled="state.selectedRowKeys.length === 0"
+          @click="publicationModalOpen = true"
+          >批量刊登</a-button
+        >
+        <a-button
+          type="primary"
+          :disabled="state.selectedRowKeys.length === 0"
+          @click="remarkModalOpen = true"
+          >批量备注</a-button
+        >
+        <a-popconfirm
+          title="确定退回编辑吗?"
+          :disabled="state.selectedRowKeys.length === 0"
+          @confirm="batchReturnEdit"
+        >
+          <a-button :disabled="state.selectedRowKeys.length === 0">批量退回编辑</a-button>
+        </a-popconfirm>
+      </a-space>
+
       <a-pagination
         v-model:current="tableParams.pageNum"
         v-model:pageSize="tableParams.pageSize"
-        :total="total"
+        :total="state.total"
         :default-page-size="50"
         show-size-changer
         show-quick-jumper
@@ -85,9 +107,10 @@
       <a-table
         :columns="DEFAULT_TABLE_COLUMN"
         :data-source="tableData"
-        :loading="loading"
+        :loading="state.loading"
         stripe
         row-key="id"
+        :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange }"
         :pagination="false"
         :scroll="{ x: 'max-content' }"
       >
@@ -118,8 +141,8 @@
               <a-button
                 type="link"
                 :disabled="!record.intelligentProductId || record.auditStatus !== 20"
-                @click="goEdit(record)"
-                >编辑</a-button
+                @click="goDetail(record)"
+                >查看</a-button
               >
               <a-button
                 type="link"
@@ -130,12 +153,12 @@
               <a-button
                 type="link"
                 @click="openLogModal(record)"
-                >查看日志</a-button
+                >日志</a-button
               >
               <a-button
                 type="link"
                 @click="openRemorkModal(record)"
-                >添加备注</a-button
+                >备注</a-button
               >
             </a-space>
           </template>
@@ -145,7 +168,7 @@
       <a-pagination
         v-model:current="tableParams.pageNum"
         v-model:pageSize="tableParams.pageSize"
-        :total="total"
+        :total="state.total"
         :default-page-size="50"
         show-size-changer
         show-quick-jumper
@@ -167,7 +190,7 @@
       <a-textarea
         v-model:value="remark"
         :rows="4"
-        maxlength="255"
+        :maxlength="255"
         show-count
         placeholder="请输入备注内容"
         class="mb-7"
@@ -178,6 +201,7 @@
     <PublicationModal
       v-model:open="publicationModalOpen"
       :id="curRecord.id"
+      @refresh="search"
     />
   </div>
 </template>
@@ -225,16 +249,24 @@
   }
 
   /** table */
-  const loading = ref(false)
   const tableParams = reactive({
     pageNum: 1,
     pageSize: 50
   })
+  const state = reactive({
+    loading: false,
+    total: 0,
+    selectedRowKeys: []
+  })
   const tableData = ref([])
-  const total = ref(0)
+
+  function onSelectChange(selectedRowKeys) {
+    state.selectedRowKeys = selectedRowKeys
+  }
 
   getList()
   function getList() {
+    state.selectedRowKeys = []
     const params = {
       ...tableParams,
       ...searchForm,
@@ -245,35 +277,40 @@
     }
     delete params.finalAuditTime
 
-    getListApi(params).then(res => {
-      total.value = res.total ?? 0
-      const list = res.rows || []
-      list.forEach(item => {
-        const mainImageList = JSON.parse(item.artMainImage).map(image => image.url)
-        item.mainImage = mainImageList[0]
+    state.loading = true
+    getListApi(params)
+      .then(res => {
+        state.total = res.total ?? 0
+        const list = res.rows || []
+        list.forEach(item => {
+          const mainImageList = JSON.parse(item.artMainImage).map(image => image.url)
+          item.mainImage = mainImageList[0]
+        })
+        tableData.value = list
       })
-      tableData.value = list
-    })
+      .finally(() => {
+        state.loading = false
+      })
   }
 
-  /** 编辑 */
-  function goEdit(record) {
+  /** 批量退回编辑 */
+  function batchReturnEdit() {
+    console.log('退回编辑')
+  }
+
+  /** 查看详情 */
+  function goDetail(record) {
     window.open(`/platform/intelligent-publication/database-detail?id=${record.intelligentProductId}`)
   }
 
   let curRecord = {}
   /** 刊登 */
   const publicationModalOpen = ref(false)
-  const publicationModalLoading = ref(false)
 
   function openPublicationModal(record) {
     publicationModalOpen.value = true
     curRecord = record
   }
-
-  function publicationModalCancel() {}
-
-  function publicationModalOk() {}
 
   /** 日志 */
   const logModalOpen = ref(false)
@@ -304,13 +341,12 @@
   }
 
   function remarkOk() {
-    remarkLoading.value = true
     const params = {
-      id: curId,
+      id: curId ? curId : state.selectedRowKeys.join(','),
       remark: remark.value
     }
 
-    /* loading.value = true
+    /* remarkLoading.value = true
       addRemarkApi(params)
       .then(res => {
         message.success('添加备注成功')
@@ -319,8 +355,6 @@
       })
       .finally(() => {
         remarkLoading.value = false
-      }).finally(() => {
-        loading.value = false
       })
      */
   }
@@ -344,5 +378,18 @@
     }
 
     return labelList.join('/') || '--'
+  }
+
+  /** 监听编辑页保存后的跨窗口通信 */
+  window.addEventListener('message', receiveMessage)
+
+  onBeforeUnmount(() => {
+    window.removeEventListener('message', receiveMessage)
+  })
+
+  function receiveMessage(event) {
+    if (event.origin === window.location.origin && event.data === 'refresh') {
+      getList()
+    }
   }
 </script>
