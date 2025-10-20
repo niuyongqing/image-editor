@@ -12,7 +12,12 @@
     >
       <!-- 店铺编号单独占一整行 -->
       <a-form-item label="店铺编号" name="shopId" class="block-item">
-        <a-select style="width: 190px" v-model:value="formState.shopId" allow-clear placeholder="请选择店铺编号">
+        <a-select
+          style="width: 190px"
+          v-model:value="formState.shopId"
+          allow-clear
+          placeholder="请选择店铺编号"
+        >
           <!-- 这里可以根据实际需要添加选项 -->
         </a-select>
       </a-form-item>
@@ -20,8 +25,8 @@
       <!-- 其他表单字段保持内联布局 -->
       <a-form-item label="模板名称" name="templateName">
         <a-input
-        style="width: 400px"
-        allow-clear
+          style="width: 400px"
+          allow-clear
           v-model:value="formState.templateName"
           placeholder="请输入模板名称"
         />
@@ -45,7 +50,11 @@
               placeholder="请输入添加方式"
             />
           </a-form-item>
-          <a-form-item label="添加内容" name="templateContent" class="wInput100">
+          <a-form-item
+            label="添加内容"
+            name="templateContent"
+            class="wInput100"
+          >
             <a-textarea
               rows="6"
               :maxlength="255"
@@ -56,11 +65,11 @@
           </a-form-item>
         </div>
       </div>
-       <span class="borderTop"></span>
-       <div class="module-item">
+      <span class="borderTop"></span>
+      <div class="module-item">
         <div class="module-item-label">定价模板</div>
         <div class="module-item-content flex flexItem180">
-           <a-form-item label="首重物流费" name="templateName">
+          <a-form-item label="首重物流费" name="templateName">
             <a-input-number
               class="w40"
               :controls="false"
@@ -69,9 +78,9 @@
               placeholder="请输入首重物流费"
             />
           </a-form-item>
-           <a-form-item label="定价利润率" name="pricingMargin">
+          <a-form-item label="定价利润率" name="pricingMargin">
             <a-input-number
-            class="w40"
+              class="w40"
               :controls="false"
               allow-clear
               v-model:value="formState.pricingMargin"
@@ -100,7 +109,7 @@
             />
           </a-form-item>
           <a-form-item label="物流佣金(RUB)" name="logisticsCommission">
-            <a-input-number   
+            <a-input-number
               class="w40"
               :controls="false"
               allow-clear
@@ -136,18 +145,26 @@
             />
           </a-form-item>
         </div>
-        
       </div>
-     <span class="borderTop"></span>
+      <span class="borderTop"></span>
       <div class="module-item">
+        <div class="module-item-label">富文本模板</div>
         <div class="module-item-content">
-          <a-form-item label="富文本模板" name="richTextTemplate" class="wInput100">
-           <jsonEditor
-          :json-content="formState.jsons"
-          shop="没用的字段"
-          @clear="formState.jsons = ''"
-          @back-result="backResult"
-        />
+          <a-form-item
+            name="richTextTemplate"
+            class="wInput100"
+          >
+            <jsonEditor
+              ref="jsonEditorRef"
+              :is-show-edit-json="true"
+              :is-modules="false"
+              :is-intelligentize="true"
+              :json-content="formState.jsons"
+              json-width="100%"
+              shop="没用的字段"
+              @clear="formState.jsons = ''"
+              @back-result="backResult"
+            />
           </a-form-item>
         </div>
       </div>
@@ -162,7 +179,7 @@
 <script setup>
 import { reactive, ref, computed } from "vue";
 import { useRoute } from "vue-router";
-  import jsonEditor from '@/pages/ozon/config/component/json/index.vue'
+import jsonEditor from "@/pages/ozon/config/component/json/index.vue";
 // 导入表单验证规则
 import { generateRules } from "./utils/rule.js";
 
@@ -203,11 +220,10 @@ const handleValidate = (...args) => {
   console.log(args);
 };
 
-
-  /** JSON 富文本 */
-  const backResult = (jsonContent) => {
-    formState.jsons = JSON.stringify(jsonContent)
-  }
+/** JSON 富文本 */
+const backResult = (jsonContent) => {
+  formState.jsons = JSON.stringify(jsonContent);
+};
 </script>
 
 <style scoped lang="less">
@@ -227,5 +243,6 @@ const handleValidate = (...args) => {
 :deep(.ant-form-item:last-child) {
   margin-bottom: 0;
 }
+
 
 </style>

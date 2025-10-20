@@ -39,9 +39,7 @@
             }"
           />
         </a-form-item>
-        <a-form-item
-          label="提交人"
-        >
+        <a-form-item label="提交人">
           <a-select
             v-model:value="formData.selectUserId"
             allow-clear
@@ -85,11 +83,7 @@
             :loading="tableLoading"
             >查询</a-button
           >
-          <a-button
-            @click="resetForm"
-            :loading="tableLoading"
-            >重置</a-button
-          >
+          <a-button @click="resetForm" :loading="tableLoading">重置</a-button>
           <!-- <a-button style="margin-left: 10px" @click="exportData" :loading="exportLoading">导出</a-button> -->
         </a-form-item>
       </a-form>
@@ -97,7 +91,6 @@
     <!-- 数据展示区域 -->
     <a-card style="margin-top: 0.75rem">
       <div class="table-header-actions">
-        
         <a-button
           v-if="props.Source !== 'publicationRejected'"
           v-has-permi="permissionSource"
@@ -188,8 +181,14 @@
       <a-form :model="auditFormData" ref="auditFormRef">
         <a-form-item name="auditStatus">
           <a-radio-group v-model:value="auditFormData.auditStatus">
-            <a-radio :value="stateOptions[props.Source][0].value" style="margin-right: 16px">审核通过</a-radio>
-            <a-radio :value="stateOptions[props.Source][1].value">审核驳回</a-radio>
+            <a-radio
+              :value="stateOptions[props.Source][0].value"
+              style="margin-right: 16px"
+              >审核通过</a-radio
+            >
+            <a-radio :value="stateOptions[props.Source][1].value"
+              >审核驳回</a-radio
+            >
           </a-radio-group>
         </a-form-item>
 
@@ -282,7 +281,7 @@ import { message } from "ant-design-vue";
 import dayjs from "dayjs";
 import ProductReviewTable from "./comm/table.vue";
 import { getAccountUser } from "~@/pages/product-review/config/api/product-review";
-import { meansKeepGrains,MarketDirection } from "@/utils/productReview";
+import { meansKeepGrains, MarketDirection } from "@/utils/productReview";
 const router = useRouter();
 
 const props = defineProps({
@@ -310,8 +309,8 @@ const INITIAL_FORM_DATA = {
     props.Source === "initialReviewPublication"
       ? 10
       : props.Source === "publicationRejected"
-        ? 70
-        : 50, // 审核状态：10 待初审，20 待编辑，30 申请重拍，40 资料员审核，50 待终审，60 终审完成，70 运营驳回 (例初审列表查询传10, 驳回列表查询传70,终审列表查询传50)
+      ? 70
+      : 50, // 审核状态：10 待初审，20 待编辑，30 申请重拍，40 资料员审核，50 待终审，60 终审完成，70 运营驳回 (例初审列表查询传10, 驳回列表查询传70,终审列表查询传50)
 };
 const formData = reactive({ ...INITIAL_FORM_DATA });
 
@@ -344,8 +343,6 @@ const permissionSource = computed(() => {
     console.log("platform:ozon:intelligent:last:audit");
     return ["platform:ozon:intelligent:last:audit"];
   }
-
-
 });
 
 // 查询权限字符串
@@ -369,9 +366,10 @@ const APIEDIT = {
 };
 // 详情页面路由映射
 const detailPagePath = {
-  initialReviewPublication: "/platform/product-review/preliminary-review-detail",// 初审详情
-  publicationRejected: "/platform/product-review/reject-review-detail",// 驳回详情
-  pendingFinalReview: "/platform/product-review/pending-final-review-detail",//终审详情
+  initialReviewPublication:
+    "/platform/product-review/preliminary-review-detail", // 初审详情
+  publicationRejected: "/platform/product-review/reject-review-detail", // 驳回详情
+  pendingFinalReview: "/platform/product-review/pending-final-review-detail", //终审详情
 };
 
 // 再次提交
@@ -385,8 +383,8 @@ const submitFormData = reactive({
 });
 
 const stateOptions = ref({
- // 初审
- initialReviewPublication: [
+  // 初审
+  initialReviewPublication: [
     {
       label: "审核通过",
       value: 20,
@@ -402,12 +400,12 @@ const stateOptions = ref({
       label: "审核通过",
       value: 60,
     },
-     {
+    {
       label: "审核驳回",
       value: 70,
     },
   ],
-})
+});
 // 审核相关
 const auditOpen = ref(false);
 const auditLoading = ref(false);
@@ -590,7 +588,7 @@ const handleOk = () => {
   auditFormRef.value
     .validate()
     .then(() => {
-            // 确保currentAuditingProducts.value存在
+      // 确保currentAuditingProducts.value存在
       const products = currentAuditingProducts.value || [];
       if (products.length === 0) {
         message.warning("请选择要审核的商品");
@@ -603,9 +601,9 @@ const handleOk = () => {
       let commonParams;
 
       console.log("props.Source", props.Source);
-      if(props.Source === "initialReviewPublication"){
+      if (props.Source === "initialReviewPublication") {
         commonParams = {
-          id: products.length > 0 ? products.map(({ id }) => id).join(',') : '',
+          id: products.length > 0 ? products.map(({ id }) => id).join(",") : "",
           auditStatus: auditFormData.auditStatus,
           remark: auditFormData.remark,
         };
@@ -639,14 +637,14 @@ const handleOk = () => {
             console.error("审核失败:", result?.message || "未知错误");
           }
           auditLoading.value = false;
-           auditOpen.value = false;
+          auditOpen.value = false;
         })
         .catch((error) => {
           auditLoading.value = false;
           auditOpen.value = false;
           message.error("审核失败，请重试");
           console.error("审核失败:", error);
-        })
+        });
     })
     .catch((error) => {
       console.error("表单验证失败:", error);
@@ -667,9 +665,7 @@ const handleSubmitOk = () => {
   let submitPromise;
   // 提取公共参数
   const commonParams = {
-    id: currentAuditingProducts.value
-      .map((product) => product.id)
-      ?.join(","),
+    id: currentAuditingProducts.value.map((product) => product.id)?.join(","),
     auditStatus: submitFormData.auditStatus,
     remark: submitFormData.remark,
   };
@@ -700,8 +696,7 @@ const handleSubmitOk = () => {
       submitOpen.value = false;
       message.error("提交失败，请重试");
       console.error("提交失败:", error);
-    })
-    
+    });
 };
 
 /**
@@ -715,18 +710,23 @@ const handleSee = () => {
  * 处理编辑查看单据操作
  */
 const handleEditProduct = (product) => {
+  // 只有终审取得是intelligentProductId 其余的都是取得的id
+  const params = {
+    commodityId: product.commodityId,
+  };
+  if (props.Source === "pendingFinalReview") {
+    params.intelligentProductId = product.intelligentProductId;
+  } else {
+    params.id = product.id;
+  }
+
   console.log(product);
   const urlData = router.resolve({
     path: detailPagePath[props.Source],
-    query: {
-      id: product.id,
-      commodityId: product.commodityId,
-    },
+    query: params,
   });
   window.open(urlData.href, "_blank");
 };
-
-
 
 /**
  * 导出数据
@@ -752,7 +752,7 @@ const searchList = () => {
 const resetForm = () => {
   // 使用初始状态常量重置表单，更简洁且易于维护
   Object.keys(INITIAL_FORM_DATA).forEach((key) => {
-    if(key !== "selectAll"){
+    if (key !== "selectAll") {
       formData[key] = JSON.parse(JSON.stringify(INITIAL_FORM_DATA[key]));
     }
   });
@@ -771,7 +771,6 @@ const handleLoadingChange = (loading) => {
   tableLoading.value = loading;
 };
 
-
 /**
  * 初始化
  */
@@ -782,14 +781,14 @@ onMounted(() => {
 /**
  * 监听审核后的跨窗口通信
  */
-window.addEventListener('message', receiveMessage)
+window.addEventListener("message", receiveMessage);
 
 onBeforeUnmount(() => {
-  window.removeEventListener('message', receiveMessage)
-})
+  window.removeEventListener("message", receiveMessage);
+});
 
 function receiveMessage(event) {
-  if (event.origin === window.location.origin && event.data === 'refresh') {
+  if (event.origin === window.location.origin && event.data === "refresh") {
     productReviewTableRef.value.getList();
   }
 }
