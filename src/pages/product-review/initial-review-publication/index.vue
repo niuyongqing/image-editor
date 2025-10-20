@@ -197,7 +197,7 @@
           name="remark"
           :rules="[
             {
-              required: auditFormData.auditStatus === 70,
+              required: auditFormData.auditStatus === stateOptions[props.Source][1].value,
               message: '请输入审核备注',
               trigger: 'blur',
             },
@@ -310,7 +310,7 @@ const INITIAL_FORM_DATA = {
     props.Source === "initialReviewPublication"
       ? 10
       : props.Source === "publicationRejected"
-        ? 70
+        ? 20
         : 50, // 审核状态：10 待初审，20 待编辑，30 申请重拍，40 资料员审核，50 待终审，60 终审完成，70 运营驳回 (例初审列表查询传10, 驳回列表查询传70,终审列表查询传50)
 };
 const formData = reactive({ ...INITIAL_FORM_DATA });
@@ -404,7 +404,7 @@ const stateOptions = ref({
     },
      {
       label: "审核驳回",
-      value: 70,
+      value: 20,
     },
   ],
 })
