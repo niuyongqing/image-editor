@@ -123,7 +123,7 @@
   let detail = {}
   getDetail()
   function getDetail() {
-    const id = route.query.id
+    const id = route.query.intelligentProductId
     if (!id) {
       message.error('缺少详情id')
       return
