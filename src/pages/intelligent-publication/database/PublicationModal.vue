@@ -21,6 +21,36 @@
       :rules="rules"
     >
       <a-form-item
+        label="标题规则"
+        name="titleRule"
+        class="mb-0"
+      >
+        <a-radio-group v-model:value="form.titleRule">
+          <a-radio value="1">不允许重复</a-radio>
+          <a-radio
+            value="2"
+            class="[&>.ant-radio]:-translate-y-3"
+          >
+            <div class="flex">
+              重复
+              <a-form-item name="titleRepeat">
+                <a-input-number
+                  v-model:value="form.titleRepeat"
+                  :controls="false"
+                  :min="1"
+                  :max="99"
+                  :precision="0"
+                  :disabled="form.titleRule !== '2'"
+                  class="mx-1"
+                />
+              </a-form-item>
+              次
+            </div>
+          </a-radio>
+          <a-radio value="3">不限制重复次数</a-radio>
+        </a-radio-group>
+      </a-form-item>
+      <a-form-item
         label="主图规则"
         name="mainImageRule"
         class="mb-0"
@@ -227,6 +257,8 @@
 
   const formRef = ref()
   const form = reactive({
+    titleRule: '1',
+    titleRepeat: null,
     mainImageRule: '1',
     mainImageRepeat: null,
     subImageRule: '3',
@@ -241,19 +273,28 @@
   })
 
   /** 校验规则 */
-  // 主图和副图规则变动, 为[1|3]时清空校验
-  const validateImageRuleChange = (rule, value) => {
-    const field = rule.field === 'mainImageRule' ? 'mainImageRepeat' : 'subImageRepeat'
+  const KEY_VALUE_ENUM = {
+    titleRule: 'titleRepeat',
+    mainImageRule: 'mainImageRepeat',
+    subImageRule: 'subImageRepeat',
+    // 反之
+    titleRepeat: 'titleRule',
+    mainImageRepeat: 'mainImageRule',
+    subImageRepeat: 'subImageRule'
+  }
+  // 规则变动, 为[1|3]时清空校验
+  const validateRuleChange = (rule, value) => {
+    const field = KEY_VALUE_ENUM[rule.field]
     if (['1', '3'].includes(value)) {
       formRef.value.clearValidate([field])
     }
     return Promise.resolve()
   }
-  // 主图和副图的重复次数
-  const validateImageRepeat = (rule, value) => {
+  // 重复次数
+  const validateRepeatChange = (rule, value) => {
     const repeatField = rule.field
-    const imageField = repeatField === 'mainImageRepeat' ? 'mainImageRule' : 'subImageRule'
-    if (form[imageField] === '2' && !form[repeatField]) {
+    const field = KEY_VALUE_ENUM[repeatField]
+    if (form[field] === '2' && !form[repeatField]) {
       return Promise.reject('请填写重复次数')
     } else {
       return Promise.resolve()
@@ -271,10 +312,12 @@
     return Promise.resolve()
   }
   const rules = {
-    mainImageRule: [{ validator: validateImageRuleChange }],
-    mainImageRepeat: [{ validator: validateImageRepeat }],
-    subImageRule: [{ validator: validateImageRuleChange }],
-    subImageRepeat: [{ validator: validateImageRepeat }],
+    titleRule: [{ validator: validateRuleChange }],
+    titleRepeat: [{ validator: validateRepeatChange }],
+    mainImageRule: [{ validator: validateRuleChange }],
+    mainImageRepeat: [{ validator: validateRepeatChange }],
+    subImageRule: [{ validator: validateRuleChange }],
+    subImageRepeat: [{ validator: validateRepeatChange }],
     shops: [{ required: true }],
     interval: [{ validator: validateInterval }]
   }
