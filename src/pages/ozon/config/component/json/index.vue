@@ -2,7 +2,7 @@
 <template>
   <div class="mobile-detail-editor">
     <!-- 外显的部分 jsonContent -->
-    <div class="preview">
+    <div class="preview" :style="{ width: jsonWidth }">
       <pre
         class="wrap"
         style="overflow: hidden; height: 530px"
@@ -10,7 +10,7 @@
       >
         {{ JSON.parse(jsonContent) }}
       </pre>
-      <div class="mask">
+      <div class="mask" :style="{ width: jsonWidth }">
         <a-button
           type="primary"
           size="large"
@@ -22,10 +22,20 @@
         <br />
         <a-button
           size="large"
-          class="w-30"
+          class="w-30 mb-4"
           :disabled="!shop"
           @click="clear"
           >清空</a-button
+        >
+        <br />
+        <a-button
+          v-if="isShowEditJson"
+          size="large"
+          class="w-30"
+          style="padding: 0;"
+          :disabled="!shop"
+          @click="showEditJson"
+          >编辑JSON代码</a-button
         >
       </div>
     </div>
@@ -58,6 +68,7 @@
         <div class="left">
           <div class="font-bold mb-2">添加模块</div>
           <div class="module">
+            <template v-if="isModules">
             <div
               v-for="item in modules"
               :key="item.name"
@@ -72,6 +83,25 @@
                 <div>{{ item.text }}</div>
               </div>
             </div>
+            </template>
+            <template v-if="isIntelligentize">
+            <!-- 智能化刊登图片组模块 -->
+            <div
+              v-for="item in intelligentizeModuleLists"
+              :key="item.name"
+              :data-name="item.name"
+              class="module-item"
+              draggable="true"
+              @dragstart="handleDragStart"
+              @dragend="dragends"
+            >
+              <div :class="['module-item-icon', item.name]"></div>
+              <div>
+                <div>{{ item.text }}</div>
+              </div>
+            </div>
+            </template>
+
           </div>
           <div class="font-bold mb-2">使用中的模块</div>
           <a-empty
@@ -679,6 +709,37 @@
       :moduleList="moduleList"
       @rebackList="rebackList"
     ></batchModify>
+
+    <!-- JSON代码编辑对话框 -->
+    <a-modal
+      v-model:open="showJsonEdit"
+      title="编辑JSON代码"
+      width="800px"
+      height="70vh"
+      :footer="null"
+      @cancel="showJsonEdit = false"
+    >
+      <div class="json-editor-container">
+        <div class="json-editor-header">
+          <a-space>
+            <a-button type="primary" @click="formatJson" >格式化代码</a-button>
+            <a-button @click="validateJson(jsonEditContent)">验证格式</a-button>
+          </a-space>
+          <div v-if="jsonError" class="json-error-message">{{ jsonError }}</div>
+          <div v-if="jsonSuccess" class="json-success-message">{{ jsonSuccess }}</div>
+        </div>
+        <a-textarea
+            v-model:value="jsonEditContent"
+            :rows="20"
+            style="height: calc(70vh - 120px); font-family: Consolas, Monaco, monospace; font-size: 14px; line-height: 1.5;"
+            placeholder="请输入有效的JSON代码"
+          />
+        <div class="json-editor-footer">
+          <a-button @click="showJsonEdit = false">取消</a-button>
+          <a-button type="primary" @click="saveJsonEdit">保存</a-button>
+        </div>
+      </div>
+    </a-modal>
   </div>
 </template>
 
@@ -716,7 +777,23 @@
   const emits = defineEmits(['backResult', 'clear'])
   const props = defineProps({
     shop: String,
-    jsonContent: String
+    isShowEditJson: {
+      type: Boolean,
+      default: false
+    },
+    jsonWidth: {
+      type: String,
+      default: '650px'
+    },
+    jsonContent: String,
+    isModules: {
+      type: Boolean,
+      default: true
+    },
+    isIntelligentize: {
+      type: Boolean,
+      default: false
+    }
   })
   const headers = {
     Authorization: 'Bearer ' + useAuthorization().value
@@ -1080,6 +1157,18 @@
       name: 'text-image'
     }
   ])
+  // 智能化刊登模块
+  const intelligentizeModuleLists = ref([
+    {
+      text: '通用图片组',
+      name: 'image'
+    },
+    {
+      text: '专属图片',
+      name: 'image'
+    }
+  ])
+
   const TEXT_ENUM = {
     text: '文字',
     image: '图片',
@@ -1782,12 +1871,105 @@
       }
     })
   }
+
+  // JSON编辑相关状态
+  const showJsonEdit = ref(false)
+  const jsonEditContent = ref('')
+  const jsonError = ref('')
+  const jsonSuccess = ref('')
+
+  // 编辑JSON代码方法
+  function showEditJson() {
+    try {
+      // 转换当前内容为格式化的JSON字符串
+      if (props.jsonContent && Object.keys(JSON.parse(props.jsonContent)).length > 0) {
+        const parsed = JSON.parse(props.jsonContent)
+        jsonEditContent.value = JSON.stringify(parsed, null, 2)
+      } else {
+        // 如果没有内容，提供默认的空结构
+        jsonEditContent.value = JSON.stringify({ content: [], version: 0.3 }, null, 2)
+      }
+      console.log(jsonEditContent.value)
+      jsonError.value = ''
+      jsonSuccess.value = ''
+      showJsonEdit.value = true
+    } catch (error) {
+      message.error('无法解析当前JSON内容')
+    }
+  }
+
+  // 验证JSON格式
+  function validateJson(jsonStr) {
+    try {
+      JSON.parse(jsonStr)
+      jsonError.value = ''
+      jsonSuccess.value = '验证通过'
+      return true
+    } catch (error) {
+      // 提取错误行号
+      const lineMatch = error.message.match(/line (\d+)/);
+      if (lineMatch) {
+        jsonError.value = `JSON格式错误: 错误出现在第 ${lineMatch[1]} 行`;
+        jsonSuccess.value = ''
+      } else {
+        jsonError.value = `JSON格式错误: ${error.message}`;
+        jsonSuccess.value = ''
+      }
+      return false
+    }
+  }
+
+  // 保存编辑后的JSON
+  function saveJsonEdit() {
+    if (validateJson(jsonEditContent.value)) {
+      // 验证通过，保存JSON内容
+      try {
+        const parsedJson = JSON.parse(jsonEditContent.value)
+        
+        // 确保结构符合要求
+        if (!parsedJson.content || !Array.isArray(parsedJson.content)) {
+          parsedJson.content = []
+        }
+        if (!parsedJson.version) {
+          parsedJson.version = 0.3
+        }
+        
+        // 转换为字符串并更新
+        const formattedJson = JSON.stringify(parsedJson)
+        emits('backResult', parsedJson)
+        showJsonEdit.value = false
+        message.success('JSON内容保存成功')
+      } catch (error) {
+        message.error('保存失败，请重试')
+      }
+    }
+  }
+
+  // 格式化JSON代码
+  function formatJson() {
+    try {
+      const parsed = JSON.parse(jsonEditContent.value)
+      jsonEditContent.value = JSON.stringify(parsed, null, 2)
+      jsonError.value = ''
+      jsonSuccess.value = '格式化成功'  
+    } catch (error) {
+      // 提取错误行号
+      const lineMatch = error.message.match(/line (\d+)/);
+      if (lineMatch) {
+        jsonError.value = `无法格式化: JSON格式错误, 错误出现在第 ${lineMatch[1]} 行`;
+        jsonSuccess.value = ''
+      } else {
+        jsonError.value = `无法格式化: ${error.message}`;
+        jsonSuccess.value = ''
+      }
+    }
+  }
 </script>
 
 <style lang="less" scoped>
   .mobile-detail-editor {
     position: relative;
-
+    width: 100%;
     .preview {
       border: 1px solid #ccc;
       padding: 12px;
@@ -2368,10 +2550,69 @@
           }
 
           .canvas-component.active {
-            border: 1px solid #00aaff;
+              border: 1px solid #00aaff;
+            }
           }
         }
       }
     }
-  }
+
+    /* JSON编辑器样式 */
+    .json-editor-container {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .json-editor-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .json-error-message {
+      color: #ff4d4f;
+      font-size: 14px;
+      margin-left: 20px;
+    }
+
+    .json-success-message {
+      color: #52c41a;
+      font-size: 14px;
+      margin-left: 20px;
+    }
+
+    .json-editor-footer {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 15px;
+      padding-top: 10px;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .json-editor-footer .ant-btn {
+      margin-left: 10px;
+    }
+
+    /* 优化文本域样式 */
+    :deep(.ant-input-affix-wrapper) {
+      border-radius: 6px;
+    }
+
+    /* JSON文本区域自动换行 */
+    .json-editor-container :deep(.ant-input) {
+      word-break: break-all;
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
+      background-color: #fafafa;
+    }
+     
+
+    :deep(.ant-input:focus) {
+      background-color: #fff;
+    }
+  
 </style>
