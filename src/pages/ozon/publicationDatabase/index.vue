@@ -200,7 +200,9 @@ function userFilterOption(val, option) {
   return option.label.toLowerCase().includes(val.toLowerCase());
 }
 // 分类还原
-function classify(row) {
+  function classify(row) {
+  if (!row.categoryId) return '--'
+
   let commodity = row.categoryId.split(',').map(i => Number(i))
   let nameList = []
   let arr = options.commodityTypeList
@@ -269,8 +271,8 @@ async function getTableList() {
           weight += (i.weight ? Number(i.weight) : 0)
           price += (i.price ? Number(i.price) : 0)
         })
-        item.averageWeight = (weight / item.skuList.length);
-        item.averagePrice = (price / item.skuList.length);
+        item.averageWeight = (weight / item.skuList.length).toFixed(2);
+        item.averagePrice = (price / item.skuList.length).toFixed(2);
         item.mainImage = item.skuList[0].mainImages;
       }
     })

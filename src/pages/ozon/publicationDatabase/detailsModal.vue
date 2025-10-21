@@ -53,7 +53,7 @@
         <a-descriptions title="">
           <a-descriptions-item label="产品属性">
             <div class="attribute-box">
-              <div class="attribute-item" v-for="(item, index) in detailData.categoryAttributeList" :key="item.attributeId">
+              <div class="attribute-item" v-for="item in detailData.categoryAttributeList" :key="item.attributeId">
                 <a-tooltip>
                   <template #title>{{ item.attributeName }}</template>
                   <div class="attribute-item-label">
@@ -122,12 +122,12 @@
           <a-table :columns="skuInfoHeader" :data-source="detailData.data.skuList" :pagination="false"></a-table>
         </a-card>
         <a-card title="图片信息" style="width: 90%">
-          <div v-for="item in detailData.data.skuList">
+          <div v-for="item in detailData.data.skuList" :key="item.skuCode">
             <a-card :title="item.skuCode" style="width: 100%">
               <a-descriptions title="">
                 <a-descriptions-item label="主图">
                   <div class="img-box">
-                    <div class="img-item" v-for="imageUrl in item.mainImages.split(',')">
+                    <div class="img-item" v-for="(imageUrl, i) in item.mainImages.split(',')" :key="i">
                       <a-image :width="120" :src="imageUrl || EmptyImg" :fallback="EmptyImg"/>
                     </div>
                   </div>
@@ -135,8 +135,8 @@
               </a-descriptions>
               <a-descriptions title="">
                 <a-descriptions-item label="副图">
-                  <div class="img-box" v-if="item.subImages">
-                    <div class="img-item" v-for="imageUrl in item.subImages.split(',')">
+                  <div class="img-box">
+                    <div class="img-item" v-for="(imageUrl, i) in item.subImages.split(',')" :key="i">
                       <a-image :width="120" :src="imageUrl || EmptyImg" :fallback="EmptyImg"/>
                     </div>
                   </div>

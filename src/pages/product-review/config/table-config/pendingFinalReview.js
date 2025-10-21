@@ -56,7 +56,8 @@ export default [
     dataIndex: 'classify',
     key: 'classify',
     align: 'center',
-    width: 188,
+    width: 300,
+    minWidth: 300,
     show: true,
     filter: true
   },
