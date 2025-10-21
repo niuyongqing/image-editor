@@ -196,7 +196,7 @@
           name="remark"
           :rules="[
             {
-              required: auditFormData.auditStatus === 70,
+              required: auditFormData.auditStatus === stateOptions[props.Source][1].value,
               message: '请输入审核备注',
               trigger: 'blur',
             },
@@ -402,7 +402,7 @@ const stateOptions = ref({
     },
     {
       label: "审核驳回",
-      value: 70,
+      value: 20,
     },
   ],
 });
