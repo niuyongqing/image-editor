@@ -37,19 +37,13 @@
       <div class="main">
 
         <!-- 中间内容  @dragover="allowDrop"-->
-        <div
-          class="mx-auto"
-          @dragleave="dragleaves"
-          @drop="handleDrop"
-          @dragover="allowDrop"
-        >
+        <div class="mx-auto">
           <div :class="['content', pointerEventsNone && 'pointer-events-none']">
             <template v-if="moduleList.length">
               <div
                 v-for="(item, i) in moduleList"
                 :key="i"
                 :id="item.id"
-                @click="e => selectModule(item, i)"
                 :class="['content-module-item', activeId === item.id && 'active']"
               >
                 <div
@@ -1328,7 +1322,7 @@
       background-color: #f0f2f5;
       width: 100%;
       height: 100%;
-      z-index: 999;
+      z-index: 9999;
       position: fixed;
       top: 0;
       left: 48px;
