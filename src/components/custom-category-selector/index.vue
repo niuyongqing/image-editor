@@ -191,6 +191,12 @@
   function getOptions() {
     newCategoryTreeApi().then(res => {
       defaultOptions.value = res.data || []
+
+      // 如果有传入 categoryIds, 回显文本
+      if (props.categoryIds) {
+        selectedCategoryList.value = flatTreeList.value.find(item => item.uniqueCode === props.categoryIds)?.value || []
+        emits('update:categoryLabels', categoryLabels.value)
+      }
     })
   }
 
@@ -204,7 +210,6 @@
 
   // 全局搜索
   function selectGlobalItem(val, option) {
-    console.log('option', option)
     // 清空子级搜索
     searchState.global = ''
     searchState.firstLevel = ''
@@ -241,9 +246,11 @@
   }
 
   function ok() {
-    emits('update:categoryIds', categoryIdText.value)
-    emits('update:categoryLabels', categoryLabels.value)
-    emits('change', selectedCategoryList.value)
+    if (selectedCategoryList.value.length === 3) {
+      emits('update:categoryIds', categoryIdText.value)
+      emits('update:categoryLabels', categoryLabels.value)
+      emits('change', selectedCategoryList.value)
+    }
 
     cancel()
   }
