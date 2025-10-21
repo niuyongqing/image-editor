@@ -10,7 +10,7 @@
           v-model:value="formData.categoryId" 
           :options="options.commodityTypeList"
           :allow-clear="true" 
-          :field-names="{ label: 'label', value: 'value', children: 'children' }" 
+          :field-names="{ value: 'descriptionCategoryId', label: 'categoryName', children: 'children' }" 
         />
       </a-form-item>
       <a-form-item label="提交人" name="status">
@@ -72,7 +72,7 @@
     >
       <template #bodyCell="{ column: {key}, record: row }">
         <template v-if="key === 'mainImage'">
-          <a-image :width="50" :src="row.mainImage"/>
+          <a-image :width="50" :src="row.mainImage || EmptyImg" :fallback="EmptyImg"/>
         </template>
         <template v-else-if="key === 'skuList'">
           <a-tooltip>
@@ -118,6 +118,7 @@
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { addRemark, categoryTree, getList, submitEdit, userList } from './js/api';
 import { header } from './js/header';
+import EmptyImg from '@/assets/images/aliexpress/empty.png'
 import _ from "lodash";
 import { v4 as uuidv4 } from 'uuid';
 import detailsModal from './detailsModal.vue';
