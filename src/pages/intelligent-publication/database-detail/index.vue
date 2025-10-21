@@ -48,7 +48,7 @@
   const store = useProductReviewStore()
   const route = useRoute()
 
-  provide('databaseId', route.query.commodityId)
+  provide('databaseId', { value: route.query.commodityId })
 
   const baseInfoRef = ref()
   const SKUInfoRef = ref()
