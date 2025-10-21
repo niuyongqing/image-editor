@@ -609,11 +609,11 @@ const handleOk = () => {
         };
       } else {
         // 循环 将每个商品的参数添加到 commonParams 数组中
-        commonParams = products.map(({ id, auditStatus, remark }) => ({
+        commonParams = products.map(({ id,commodityId }) => ({
           id,
           auditStatus: auditFormData.auditStatus,
           remark: auditFormData.remark,
-          commodityId: id,
+          commodityId,
         }));
       }
 
