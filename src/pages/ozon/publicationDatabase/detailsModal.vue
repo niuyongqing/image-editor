@@ -9,7 +9,7 @@
       width="80%"
     >
       <a-spin :spinning="loading" wrapperClassName="dialog-box">
-        <a-card title="基础信息" style="width: calc(100% - 25px)">
+        <a-card title="基础信息" style="width: calc(100% - 25px)" class="baseInfo-card">
           <a-descriptions title="">
             <a-descriptions-item label="前缀修饰词">
               <div>{{ detailData.data.prefixDecorateName }}</div>
@@ -40,7 +40,8 @@
             <a-descriptions-item label="竞品参考链接">
               <div>
                 <div class="url-item" v-for="(item, index) in detailData.data.competitiveList" :key="item.id">
-                  {{ `${index + 1}、 ` }}<a target="_blank" :href="item">{{ item.linkUrl }}</a>
+                  {{ `${index + 1}、 ` }}
+                  <a target="_blank" :href="item.linkUrl.includes('http') ? item.linkUrl : ('//' + item.linkUrl)">{{ item.linkUrl }}</a>
                 </div>
               </div>
             </a-descriptions-item>
@@ -48,12 +49,12 @@
           <a-descriptions title="">
             <a-descriptions-item label="采购链接">
               <div class="url-item" v-for="(item, index) in detailData.data.purchaseLinkUrls?.split(',')" :key="item">
-                {{ `${index + 1}、 ` }}<a target="_blank" :href="item">{{ item }}</a>
+                {{ `${index + 1}、 ` }}
+                <a target="_blank" :href="item.includes('http') ? item : ('//' + item)">{{ item }}</a>
               </div>
             </a-descriptions-item>
           </a-descriptions>
         </a-card>
-        <br/>
         <a-card title="属性信息" style="width: calc(100% - 25px)">
           <a-descriptions title="">
             <a-descriptions-item label="产品属性" :column="1">
@@ -73,7 +74,6 @@
             </a-descriptions-item>
           </a-descriptions>
         </a-card>
-        <br/>
         <a-card title="描述信息" style="width: calc(100% - 25px)">
           <a-descriptions title="" :column="2">
             <a-descriptions-item label="产品描述">
