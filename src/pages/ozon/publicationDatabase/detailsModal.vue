@@ -128,16 +128,16 @@
                 <a-descriptions-item label="主图">
                   <div class="img-box">
                     <div class="img-item" v-for="imageUrl in item.mainImages.split(',')">
-                      <a-image :width="120" :src="imageUrl"/>
+                      <a-image :width="120" :src="imageUrl || EmptyImg" :fallback="EmptyImg"/>
                     </div>
                   </div>
                 </a-descriptions-item>
               </a-descriptions>
               <a-descriptions title="">
                 <a-descriptions-item label="副图">
-                  <div class="img-box">
+                  <div class="img-box" v-if="item.subImages">
                     <div class="img-item" v-for="imageUrl in item.subImages.split(',')">
-                      <a-image :width="120" :src="imageUrl"/>
+                      <a-image :width="120" :src="imageUrl || EmptyImg" :fallback="EmptyImg"/>
                     </div>
                   </div>
                 </a-descriptions-item>
@@ -158,6 +158,7 @@
 import _ from 'lodash';
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { getDetail } from './js/api';
+import EmptyImg from '@/assets/images/aliexpress/empty.png'
 import MobileJSONEditor from './common/MobileJSONEditor.vue';
 defineOptions({ name: "publicationDatabase_detailsModal" })
 const { proxy: _this } = getCurrentInstance()
@@ -259,6 +260,7 @@ async function getDetailFn() {
       // 以下属性需要过滤掉，其中包括不需要展示的属性，销售属性，视频等，写死的
       return !([11254,4191,85,31,4389,4080,8789,8790,4180,9024].includes(i.attributeId) || [100001,100002].includes(i.attributeComplexId))
     })
+    res.data.productAttributeList = res.data.productAttributeList || []
     res.data.editor_json_11254 = res.data.productAttributeList.find(i => i.attributeId === 11254)?.attributeValue
     detailData.video.coverUrl = res.data.productAttributeList.find(i => i.attributeComplexId === 100002)?.attributeValue
     detailData.video.videoList = res.data.productAttributeList.filter(i => i.attributeComplexId === 100001);

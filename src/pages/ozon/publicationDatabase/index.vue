@@ -10,7 +10,7 @@
           v-model:value="formData.categoryId" 
           :options="options.commodityTypeList"
           :allow-clear="true" 
-          :field-names="{ label: 'label', value: 'value', children: 'children' }" 
+          :field-names="{ value: 'descriptionCategoryId', label: 'categoryName', children: 'children' }" 
         />
       </a-form-item>
       <a-form-item label="提交人" name="status">
