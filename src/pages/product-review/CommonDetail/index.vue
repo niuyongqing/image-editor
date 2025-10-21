@@ -29,13 +29,13 @@
           type="primary"
           :loading="reviewLoading"
           @click="toFinalReview"
-          >提交终审</a-button
+          >保存并提交终审</a-button
         >
       </template>
 
       <!-- 刊登待审核 -->
       <a-button
-        v-else
+        v-if="!isEditDetail && hasPermi"
         type="primary"
         @click="reviewOpen = true"
       >
@@ -106,12 +106,15 @@
   import { getDetailApi, updateProductDetailApi } from './api'
   import { lastAudit } from '~@/pages/product-review/config/api/product-review.js'
   import { message } from 'ant-design-vue'
+  import { checkPermi, checkRole } from '~/utils/permission/component/permission.js'
 
   const store = useProductReviewStore()
   const route = useRoute()
 
-  provide('databaseId', route.query.commodityId)
+  provide('databaseId', { value: route.query.commodityId })
+  // 权限校验
   // 是否为资料待编辑详情
+  const hasPermi = computed(() => checkPermi(['platform:ozon:intelligent:first:audit']) || checkRole('admin'))
   const isEditDetail = computed(() => route.path === '/platform/product-review/data-for-editing-detail')
   const auditStatus = Number(route.query.auditStatus)
 
@@ -144,53 +147,64 @@
 
   /** 保存 */
   const saveLoading = ref(false)
-  async function save() {
-    // 校验
-    const baseInfoFlag = await baseInfoRef.value.childForm()
-    const SKUFlag = SKUInfoRef.value.submitForm()
-    !baseInfoFlag && message.error('请完善产品属性')
-    if (!baseInfoFlag || !SKUFlag) return
+  function save(skipClose = false) {
+    return new Promise(async (resolve, reject) => {
+      // 校验
+      const baseInfoFlag = await baseInfoRef.value.childForm()
+      const SKUFlag = SKUInfoRef.value.submitForm()
+      !baseInfoFlag && message.error('请完善产品属性')
+      if (!baseInfoFlag || !SKUFlag) {
+        reject()
+        return
+      }
 
-    // 获取数据
-    const baseInfoForm = baseInfoRef.value.baseInfoForm
-    // 在外面那一层的字段
-    const outerObj = {
-      productId: baseInfoForm.id,
-      productName: baseInfoForm.productName,
-      prefixDecorateName: baseInfoForm.prefixDecorateName,
-      suffixDecorateName: baseInfoForm.suffixDecorateName,
-      categoryId: baseInfoForm.categoryId,
-      vat: baseInfoForm.vat,
-      competitiveInfos: baseInfoForm.competitiveInfos.filter(item => item.linkUrl).map(item => ({ linkUrl: item.linkUrl })),
-      purchaseLinkUrls: baseInfoForm.purchaseLinkUrls
-        .filter(item => item.linkUrl)
-        .map(item => item.linkUrl)
-        .join(',')
-    }
-    const submitAttributes = baseInfoRef.value.getSubmitAttributes()
-    const skuList = SKUInfoRef.value.getSkuList()
+      // 获取数据
+      const baseInfoForm = baseInfoRef.value.baseInfoForm
+      // 在外面那一层的字段
+      const outerObj = {
+        productId: baseInfoForm.id,
+        productName: baseInfoForm.productName,
+        prefixDecorateName: baseInfoForm.prefixDecorateName,
+        suffixDecorateName: baseInfoForm.suffixDecorateName,
+        categoryId: baseInfoForm.categoryId,
+        vat: baseInfoForm.vat,
+        competitiveInfos: baseInfoForm.competitiveInfos.filter(item => item.linkUrl).map(item => ({ linkUrl: item.linkUrl })),
+        purchaseLinkUrls: baseInfoForm.purchaseLinkUrls
+          .filter(item => item.linkUrl)
+          .map(item => item.linkUrl)
+          .join(',')
+      }
+      const submitAttributes = baseInfoRef.value.getSubmitAttributes()
+      const skuList = SKUInfoRef.value.getSkuList()
 
-    const params = {
-      ...outerObj,
-      mainImage: skuList[0].mainImages[0],
-      attributes: submitAttributes,
-      skuList
-    }
+      const params = {
+        ...outerObj,
+        mainImage: skuList[0].mainImages[0],
+        attributes: submitAttributes,
+        skuList
+      }
 
-    saveLoading.value = true
-    updateProductDetailApi(params)
-      .then(res => {
-        message.success('保存成功')
+      saveLoading.value = true
+      updateProductDetailApi(params)
+        .then(res => {
+          message.success('保存成功')
 
-        refreshList()
+          refreshList()
 
-        setTimeout(() => {
-          window.close()
-        }, 1000)
-      })
-      .finally(() => {
-        saveLoading.value = false
-      })
+          !skipClose &&
+            setTimeout(() => {
+              window.close()
+            }, 1000)
+
+          resolve()
+        })
+        .catch(() => {
+          reject()
+        })
+        .finally(() => {
+          saveLoading.value = false
+        })
+    })
   }
 
   const router = useRouter()
@@ -211,30 +225,36 @@
     window.open(urlData.href, '_blank')
   }
 
-  /** 提交终审 */
+  /** 保存并提交终审 */
   const reviewLoading = ref(false)
   function toFinalReview() {
-    const params = [
-      {
-        auditStatus: 50, // 待终审
-        id: detail.selectAuditId,
-        commodityId: detail.commodityId,
-        remark: undefined
-      }
-    ]
-
     reviewLoading.value = true
-    lastAudit(params)
-      .then(res => {
-        message.success('提交终审成功')
+    save(true)
+      .then(() => {
+        const params = [
+          {
+            auditStatus: 50, // 待终审
+            id: detail.selectAuditId,
+            commodityId: detail.commodityId,
+            remark: undefined
+          }
+        ]
 
-        refreshList()
+        lastAudit(params)
+          .then(res => {
+            message.success('提交终审成功')
 
-        setTimeout(() => {
-          window.close()
-        }, 1000)
+            refreshList()
+
+            setTimeout(() => {
+              window.close()
+            }, 1000)
+          })
+          .finally(() => {
+            reviewLoading.value = false
+          })
       })
-      .finally(() => {
+      .catch(() => {
         reviewLoading.value = false
       })
   }
@@ -257,8 +277,8 @@
     reviewFormRef.value.validate().then(_ => {
       const params = [
         {
-          auditStatus: reviewForm.auditStatus === 1 ? 60 : 70, // 60 终审完成; 70 运营驳回
-          id: detail.id,
+          auditStatus: reviewForm.auditStatus === 1 ? 60 : 20, // 审核状态：10 待初审，20 待编辑，30 申请重拍，40 资料员审核，50 待终审，60 终审完成，70 运营驳回 (例初审列表查询传10, 驳回列表查询传70)
+          id: detail.selectAuditId,
           commodityId: detail.commodityId,
           remark: reviewForm.remark
         }

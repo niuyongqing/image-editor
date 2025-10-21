@@ -3,10 +3,11 @@
   <div>
     <a-form
       :model="baseInfoForm"
-      ref="formRef"
-      :label-col="{ style: { width: '85px' } }"
+      ref="ruleForm1"
+      :rules="rules"
+      :label-col="{ style: { width: '92px' } }"
     >
-      <a-form-item label="产品标题">
+      <a-form-item label="产品标题" name="productName">
         <a-input
           v-model:value="baseInfoForm.productName"
           placeholder="请输入中文产品标题"
@@ -27,7 +28,7 @@
           allow-clear
         />
       </a-form-item>
-      <a-form-item label="分类">
+      <a-form-item label="分类" name="categoryId">
         <!-- <a-select
           v-model:value="baseInfoForm.categoryId"
           :options="[{ label: 'label', value: 1 }]"
@@ -43,15 +44,9 @@
         >
           {{ categoryLabel }}
         </div>
-        <!-- 分类弹窗 -->
-        <CascaderCategorySelector
-          ref="cascaderCategorySelectorRef"
-          :tail-category-id="tailCategoryId"
-          @select="selectCategory"
-        />
       </a-form-item>
       <a-space>
-        <a-form-item label="VAT">
+        <a-form-item label="VAT" name="vat">
           <a-select
             v-model:value="baseInfoForm.vat"
             :options="VAT_OPTIONS"
@@ -277,20 +272,22 @@
           </a-form>
         </a-card>
       </a-form-item>
-      <a-form-item label="产品描述">
+      <a-form-item label="产品描述" name="desc">
         <a-textarea
           v-model:value="baseInfoForm.desc"
           :rows="6"
           show-count
         />
       </a-form-item>
-      <a-form-item label="JSON富文本">
-        <JSONEditor
-          :json-content="baseInfoForm.jsons"
-          shop="没用的字段"
-          @clear="baseInfoForm.jsons = ''"
-          @back-result="backResult"
-        />
+      <a-form-item label="JSON富文本" name="jsons">
+        <a-form-item-rest>
+          <JSONEditor
+            :json-content="baseInfoForm.jsons"
+            shop="没用的字段"
+            @clear="baseInfoForm.jsons = ''"
+            @back-result="backResult"
+          />
+        </a-form-item-rest>
       </a-form-item>
 
       <a-form-item label="视频">
@@ -388,6 +385,13 @@
       </a-form-item>
     </a-form>
     <a-divider />
+
+    <!-- 分类弹窗 -->
+    <CascaderCategorySelector
+      ref="cascaderCategorySelectorRef"
+      :tail-category-id="tailCategoryId"
+      @select="selectCategory"
+    />
   </div>
 </template>
 
@@ -418,7 +422,15 @@
     coverUrl: '', // 封面视频
     video: [] // 详情视频
   })
-  const formRef = ref()
+
+  const ruleForm1 = ref()
+  const rules = reactive({
+    productName: [{ required: true }],
+    categoryId: [{ required: true, message: '请选择分类', trigger: ['change'] }],
+    vat: [{ required: true }],
+    desc: [{ required: true }],
+    jsons: [{ required: true }],
+  })
   // VAT 下拉选项
   const VAT_OPTIONS = [
     { label: '免税', value: 0 },
@@ -716,7 +728,7 @@
 
   const childForm = async () => {
     // 收集需要校验的表单引用
-    const formRefs = [ruleForm2]
+    const formRefs = [ruleForm1, ruleForm2]
 
     // 循环遍历表单引用数组进行校验
     for (const formRef of formRefs) {

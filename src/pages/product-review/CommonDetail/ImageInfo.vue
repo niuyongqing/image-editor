@@ -679,7 +679,7 @@
         acquisitionModalOpen.value = true
         break
       case 'imgDataBase':
-        databaseImageModalRef.value.modalOpenFn(databaseId)
+        databaseImageModalRef.value.modalOpenFn(databaseId.value)
         break
       default:
         break
