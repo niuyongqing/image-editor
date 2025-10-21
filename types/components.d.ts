@@ -128,7 +128,6 @@ declare module 'vue' {
     TiledSelect: typeof import('./../src/components/tiled-select/index.vue')['default']
     TiledSelectSort: typeof import('./../src/components/tiled-select-sort/index.vue')['default']
     TokenProvider: typeof import('./../src/components/token-provider/index.vue')['default']
-    Tooltip: typeof import('ant-design-vue/es')['Tooltip']
     TypeManage: typeof import('./../src/components/classificationTree/typeManage.vue')['default']
     TypeTree: typeof import('./../src/components/classificationTree/typeTree.vue')['default']
     UploadImg: typeof import('./../src/components/pictureLibrary/uploadImg.vue')['default']
