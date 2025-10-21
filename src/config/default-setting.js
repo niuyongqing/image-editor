@@ -3,6 +3,7 @@ export default {
   "theme":"inverted",
   "logo":"/platform/160x160.ico",
   "collapsed":true,
+  "collapsedWidth":64,
   "drawerVisible":false,
   "colorPrimary":"#1677FF",
   "layout":"side",

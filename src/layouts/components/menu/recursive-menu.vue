@@ -2,6 +2,7 @@
   <template v-if="item.children && item.children.length > 0 && !item.hideChildrenInMenu">
     <a-sub-menu
       :key="item.path"
+      placement="bottomLeft"
     >
       <template v-if="item.icon" #icon>
         <AsyncIcon :icon="item.icon" />
@@ -24,22 +25,27 @@
   </template>
   <template v-else>
     <a-menu-item
+    class="aaaaa"
       :key="item.path"
     >
       <template v-if="item.icon" #icon>
         <AsyncIcon :icon="item.icon" />
       </template>
       <template v-if="!isUrl(item.path)">
-        <RouterLink v-if="link" :to="item.path">
-          {{ renderTitle(item.title) }}
-        </RouterLink>
-        <template v-else>
-          {{ renderTitle(item.title) }}
+          <RouterLink v-if="link" :to="item.path">
+            <span>
+              {{ renderTitle(item.title) }}
+            </span>
+          </RouterLink>
+          <span v-else>
+            {{ renderTitle(item.title) }}
+          </span>
         </template>
-      </template>
       <template v-else>
         <a :href="item.path" :target="item.target ?? '_blank'">
-          {{ renderTitle(item.title) }}
+          <span>
+            {{ renderTitle(item.title) }}
+          </span>
         </a>
       </template>
     </a-menu-item>
@@ -49,7 +55,6 @@
 <script setup>
 import { isFunction, isUrl } from '@v-c/utils'
 import AsyncIcon from './async-icon.vue'
-import { ref, computed } from 'vue'
 
 // 定义组件属性
 const props = defineProps({
@@ -73,6 +78,12 @@ function renderTitle(title) {
 </script>
 
 <style scoped lang="less">
+ ::v-deep(.ant-menu-submenu) {
+  display: none !important;
+}
 
+.ant-menu-submenu{
+  display: none !important;
+}
 </style>
 

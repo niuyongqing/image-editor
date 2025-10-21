@@ -10,7 +10,7 @@ export const proLayoutProps = {
   logo: stringType(),
   title: stringType(),
   collapsedWidth: numberType(48),
-  siderWidth: numberType(234),
+  siderWidth: numberType(200),
   headerHeight: numberType(48),
   menuData: arrayType(),
   fixedHeader: booleanType(false),

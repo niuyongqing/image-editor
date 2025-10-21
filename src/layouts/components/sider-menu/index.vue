@@ -4,7 +4,10 @@ import {message} from "ant-design-vue";
 import { useLayoutState } from '../../basic-layout/context.js'
 import Menu from '../menu/index.vue'
 import { useUserStore } from '~/stores/user.js'
-import { UserOutlined } from '@ant-design/icons-vue'
+import { useMultiTab } from '~/stores/multi-tab.js'
+import { useLayoutMenu } from '~/stores/layout-menu.js'
+import { UserOutlined, MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons-vue'
+import { shallowRef } from 'vue'
 
 const baseApi = import.meta.env.VITE_APP_BASE_API_DEV || ''
 const router = useRouter()
@@ -86,6 +89,8 @@ async function out(){
     :collapsed-width="collapsedWidth"
     :width="siderWidth"
     collapsible
+    :collapsed="collapsed"
+    @collapse="handleCollapsed"
     :class="cls"
     :style="siderStyle"
   >
@@ -97,6 +102,17 @@ async function out(){
     </div>
     <div class="flex-1 of-x-hidden of-y-auto scrollbar">
       <Menu />
+    </div>
+    <!-- 收缩按钮 -->
+    <div 
+      v-if="!isMobile"
+      @click="handleCollapsed(!collapsed)"
+      class="w-100% flex-shrink-0 ant-pro-sider-collapsed-button"
+      :class="theme === 'inverted' ? 'ant-pro-sider-collapsed-button-inverted' : ''"
+      style="margin-bottom: 10px; cursor: pointer; display: flex; justify-content: center; align-items: center; padding: 10px 0;"
+    >
+      <MenuFoldOutlined v-if="!collapsed" />
+      <MenuUnfoldOutlined v-else />
     </div>
     <!-- 个人设置菜单 -->
     <div
