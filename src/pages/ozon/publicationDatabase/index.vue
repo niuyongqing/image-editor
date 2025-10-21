@@ -17,7 +17,7 @@
         <a-select 
           v-model:value="formData.selectUserIdList" 
           :options="options.allUserList" 
-          mode="tags"
+          mode="multiple"
           :maxTagCount="2"
           :optionFilterProp="'label'"  
           :filterOption="userFilterOption"  
@@ -123,6 +123,7 @@ import _ from "lodash";
 import { v4 as uuidv4 } from 'uuid';
 import detailsModal from './detailsModal.vue';
 import { message, Modal } from 'ant-design-vue';
+import { processImageSource } from '../config/commJs/index';
 defineOptions({ name: "ozon_publicationDatabase" })
 const { proxy: _this } = getCurrentInstance();
 
@@ -263,7 +264,7 @@ async function getTableList() {
       item.skuCodeList = item.skuList?.map(i => i.skuCode).join() || '';
       item.averageWeight = null;
       item.averagePrice = null;
-      item.mainImage = '';
+      item.mainImage = item.mainImage || '';
       item.classify = classify(item)
       if (item.skuList?.length) {
         let weight = 0
@@ -274,8 +275,9 @@ async function getTableList() {
         })
         item.averageWeight = (weight / item.skuList.length).toFixed(2);
         item.averagePrice = (price / item.skuList.length).toFixed(2);
-        item.mainImage = item.skuList[0].mainImages;
+        !item.mainImage && (item.mainImage = item.skuList[0].mainImages);
       }
+      item.mainImage = processImageSource(item.mainImage);
     })
     tableData.data = data
     tableData.total = res.total
