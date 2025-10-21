@@ -53,8 +53,18 @@
   <a-card style="margin-top: 20px">
     <div class="table-btn-box">
       <a-space>
-        <a-button :disabled="tableData.selectedRows.length < 1" type="primary" @click="submitEditFn">提交编辑</a-button>
-        <a-button :disabled="tableData.selectedRows.length < 1" type="primary" @click="() => (remarkData.open = true)">添加备注</a-button>
+        <a-button 
+          :disabled="tableData.selectedRows.length < 1" 
+          type="primary" 
+          @click="submitEditFn"
+          v-if="checkPermi('ozon:intelligent:product-store:submit-edit')"
+        >提交编辑</a-button>
+        <a-button 
+          :disabled="tableData.selectedRows.length < 1" 
+          type="primary" 
+          @click="() => (remarkData.open = true)"
+          v-if="checkPermi('ozon:intelligent:product-store:add-remark')"
+        >添加备注</a-button>
         <!-- <a-button type="primary">Primary Button</a-button> -->
       </a-space>
     </div>
@@ -124,6 +134,7 @@ import { v4 as uuidv4 } from 'uuid';
 import detailsModal from './detailsModal.vue';
 import { message, Modal } from 'ant-design-vue';
 import { processImageSource } from '../config/commJs/index';
+import { checkPermi } from '~@/utils/permission/component/permission';
 defineOptions({ name: "ozon_publicationDatabase" })
 const { proxy: _this } = getCurrentInstance();
 
@@ -165,6 +176,10 @@ let antTableBody = null   // 表格滚动区域
 onMounted(async () => {
   let productDatabaseTable = document.querySelector('.productDatabase-table')
   antTableBody = productDatabaseTable.querySelector('.ant-table-body')
+  // 权限校验
+  if (!checkPermi('ozon:intelligent:product-store:list')) {
+    return;
+  }
   getUserList()
   await getCategoryTree()
   onSubmit()
