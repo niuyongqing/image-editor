@@ -1,22 +1,28 @@
 // 默认表头
 export const DEFAULT_TABLE_COLUMN = [
   {
+    title: '序号',
+    key: 'index',
+    fixed: 'left',
+    width: 50
+  },
+  {
     title: '主图',
     key: 'image',
     fixed: 'left',
-    width: 200
+    width: 100
   },
   {
     title: '产品名称',
     key: 'commodityName',
     dataIndex: 'commodityName',
     fixed: 'left',
-    width: 200
+    width: 140
   },
   {
     title: '市场方向',
     key: 'market',
-    width: 200
+    width: 80
   },
   {
     title: '产品SKU',
@@ -26,7 +32,7 @@ export const DEFAULT_TABLE_COLUMN = [
   {
     title: '仓储类别',
     key: 'storage',
-    width: 200
+    width: 80
   },
   {
     title: '分类',
@@ -37,40 +43,40 @@ export const DEFAULT_TABLE_COLUMN = [
     title: '提交人',
     key: 'submiter',
     dataIndex: 'selectUserName',
-    width: 200
+    width: 100
   },
   {
     title: '审核人',
     key: 'reviewer',
-    width: 200
+    width: 100
   },
   {
     title: '提交时间',
     key: 'selectTime',
     dataIndex: 'selectTime',
-    width: 200
+    width: 160
   },
   {
     title: '审核时间',
     key: 'firstAuditTime',
     dataIndex: 'firstAuditTime',
-    width: 200
+    width: 160
   },
   {
     title: '选品理由',
     key: 'selectReason',
-    width: 200
+    width: 160
   },
   {
     title: '备注',
     key: 'remark',
-    width: 200
+    width: 160
   },
   {
     title: '操作',
     key: 'options',
     fixed: 'right',
-    width: 200
+    width: 100
   }
 ]
 

@@ -103,8 +103,12 @@
         :pagination="false"
         :scroll="{ x: 'max-content' }"
       >
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'image'">
+        <template #bodyCell="{ column, record, index }">
+          <!-- 索引列 -->
+          <template v-if="column.key === 'index'">
+            {{ index + 1 + (tableParams.pageNum - 1) * tableParams.pageSize }}
+          </template>
+          <template v-else-if="column.key === 'image'">
             <a-image
               :src="record.mainImage || EmptyImg"
               :width="80"
@@ -196,7 +200,7 @@
       <a-textarea
         v-model:value="remark"
         :rows="4"
-        maxlength="255"
+        :maxlength="255"
         show-count
         placeholder="请输入备注内容"
         class="mb-7"
