@@ -277,7 +277,9 @@ async function getDetailFn() {
     detailData.video.videoList = res.data.productAttributeList.filter(i => i.attributeComplexId === 100001);
     // 从属性中找出全部的销售属性
     let aspectAll = res.data.categoryAttributeList.filter(i => i.isAspect)
-    let variantTheme = res.data.skuAttributeUseList.filter(i => !i.comboId).map(item => {
+    // 剔除掉所有依赖于其他主题的属性
+    let comboIdList = res.data.skuAttributeUseList.filter(i => i.comboId).map(i => i.comboId)
+    let variantTheme = res.data.skuAttributeUseList.filter(i => !comboIdList.includes(i.attributeId)).map(item => {
       // 找出变种主题
       let obj = {...item};
       // 变种主题的变种属性列表，一个主题可能有多个变种属性
@@ -285,7 +287,7 @@ async function getDetailFn() {
       // 一般变种主题的变种属性就是它的自身
       let attr = _.cloneDeep(obj);
       // 找出依赖于该主题的主题，将其作为变种属性
-      let comboList = res.data.skuAttributeUseList.filter(i => i.comboId === item.attributeId);
+      let comboList = res.data.skuAttributeUseList.filter(i => i.attributeId === item.comboId);
       obj.variantAttr.push(attr, ...comboList);
       // 遍历sku找出变种属性的值
       obj.attributeValue = res.data.skuList.map(i => {
@@ -308,6 +310,37 @@ async function getDetailFn() {
       })
       return obj
     })
+    // let variantTheme = res.data.skuAttributeUseList.filter(i => !i.comboId).map(item => {
+    //   // 找出变种主题
+    //   let obj = {...item};
+    //   // 变种主题的变种属性列表，一个主题可能有多个变种属性
+    //   obj.variantAttr = [];
+    //   // 一般变种主题的变种属性就是它的自身
+    //   let attr = _.cloneDeep(obj);
+    //   // 找出依赖于该主题的主题，将其作为变种属性
+    //   let comboList = res.data.skuAttributeUseList.filter(i => i.comboId === item.attributeId);
+    //   obj.variantAttr.push(attr, ...comboList);
+    //   // 遍历sku找出变种属性的值
+    //   obj.attributeValue = res.data.skuList.map(i => {
+    //     let value = {};
+    //     obj.variantAttr.forEach(a => {
+    //       let skuAttr = i.skuAttributeList.find(skua => skua.attributeId === a.attributeId);
+    //       value[a.attributeId] = skuAttr.attributeValue;
+    //     });
+    //     return value;
+    //   });
+    //   // 生成变种属性表头
+    //   obj.variantHeader = []
+    //   obj.variantAttr.forEach(i => {
+    //     let head = {
+    //       title: i.attributeName,
+    //       dataIndex: String(i.attributeId),
+    //       key: String(i.attributeId),
+    //     }
+    //     obj.variantHeader.push(head)
+    //   })
+    //   return obj
+    // })
     // console.log({variantTheme});
     detailData.variantTheme = variantTheme
     // 生成变种信息列表中的变种表头
