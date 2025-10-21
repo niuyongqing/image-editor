@@ -7,7 +7,10 @@
       :rules="rules"
       :label-col="{ style: { width: '92px' } }"
     >
-      <a-form-item label="产品标题" name="productName">
+      <a-form-item
+        label="产品标题"
+        name="productName"
+      >
         <a-input
           v-model:value="baseInfoForm.productName"
           placeholder="请输入中文产品标题"
@@ -28,16 +31,11 @@
           allow-clear
         />
       </a-form-item>
-      <a-form-item label="分类" name="categoryId">
-        <!-- <a-select
-          v-model:value="baseInfoForm.categoryId"
-          :options="[{ label: 'label', value: 1 }]"
-          :field-names="{ label: 'threeCategoryName', value: 'threeCategoryId' }"
-          placeholder="请选择分类"
-          allow-clear
-          show-search
-        /> -->
-        <a-button @click="openCascaderCategorySelector">选择分类</a-button>
+      <a-form-item
+        label="分类"
+        name="categoryId"
+      >
+        <a-button @click="categoryOpen = true">选择分类</a-button>
         <div
           v-if="categoryLabel"
           class="text-#933"
@@ -46,7 +44,10 @@
         </div>
       </a-form-item>
       <a-space>
-        <a-form-item label="VAT" name="vat">
+        <a-form-item
+          label="VAT"
+          name="vat"
+        >
           <a-select
             v-model:value="baseInfoForm.vat"
             :options="VAT_OPTIONS"
@@ -272,14 +273,20 @@
           </a-form>
         </a-card>
       </a-form-item>
-      <a-form-item label="产品描述" name="desc">
+      <a-form-item
+        label="产品描述"
+        name="desc"
+      >
         <a-textarea
           v-model:value="baseInfoForm.desc"
           :rows="6"
           show-count
         />
       </a-form-item>
-      <a-form-item label="JSON富文本" name="jsons">
+      <a-form-item
+        label="JSON富文本"
+        name="jsons"
+      >
         <a-form-item-rest>
           <JSONEditor
             :json-content="baseInfoForm.jsons"
@@ -387,16 +394,17 @@
     <a-divider />
 
     <!-- 分类弹窗 -->
-    <CascaderCategorySelector
-      ref="cascaderCategorySelectorRef"
-      :tail-category-id="tailCategoryId"
-      @select="selectCategory"
+    <CustomCategorySelector
+      v-model:open="categoryOpen"
+      v-model:category-ids="baseInfoForm.categoryId"
+      v-model:categoryLabels="categoryLabel"
+      @change="categoryChange"
     />
   </div>
 </template>
 
 <script setup>
-  import CascaderCategorySelector from './CascaderCategorySelector.vue'
+  import CustomCategorySelector from '@/components/custom-category-selector/index.vue'
   import { getAttributesApi } from './api'
   import JSONEditor from '@/pages/ozon/config/component/json/index.vue'
   import { processImageSource } from '@/pages/ozon/config/commJs/index'
@@ -406,7 +414,7 @@
   import { DeleteOutlined, PlusOutlined, MinusOutlined, QuestionCircleOutlined } from '@ant-design/icons-vue'
 
   const store = useProductReviewStore()
-  const tailCategoryId = ref('') // 末尾的分类id
+  const categoryOpen = ref(false)
   const baseInfoForm = reactive({
     id: '',
     productName: '',
@@ -429,7 +437,7 @@
     categoryId: [{ required: true, message: '请选择分类', trigger: ['change'] }],
     vat: [{ required: true }],
     desc: [{ required: true }],
-    jsons: [{ required: true }],
+    jsons: [{ required: true }]
   })
   // VAT 下拉选项
   const VAT_OPTIONS = [
@@ -439,23 +447,15 @@
   ]
 
   // 分类
-  const cascaderCategorySelectorRef = ref()
-  const categoryLabel = ref('')
+  const categoryLabel = ref('未选择分类')
 
-  function openCascaderCategorySelector() {
-    cascaderCategorySelectorRef.value.open()
-  }
-
-  function selectCategory(data) {
-    baseInfoForm.categoryId = data.ids.join(',')
-    categoryLabel.value = data.labels.join(' / ')
-
+  function categoryChange(list) {
     // 初始化时, 只用于回显分类信息, 不进行后续操作
-    if (data.initialization) return
+    // if (data.initialization) return
 
     const params = {
-      descriptionCategoryId: data.ids[1],
-      typeId: data.ids[2]
+      descriptionCategoryId: list[1].descriptionCategoryId,
+      typeId: list[2].descriptionCategoryId
     }
     getAttributes(params)
 
@@ -504,23 +504,13 @@
               label: '',
               value: ''
             }
-            if (item.id === 9070) {
-              item.options = item?.options?.map(item => {
-                return {
-                  ...item,
-                  label: item.label,
-                  value: item.value
-                }
-              })
-            } else {
-              item.options = item?.options?.map(item => {
-                return {
-                  ...item,
-                  label: item.value,
-                  value: item.id
-                }
-              })
-            }
+            item.options = item?.options?.map(item => {
+              return {
+                ...item,
+                label: item.value,
+                value: item.id
+              }
+            })
             item.acquiesceList = (item.options && item.options.slice(0, 25)) || []
             attributes[item.name] = item.selectType === 'multSelect' ? [] : undefined
             attributes['制造国(Страна-изготовитель)'] = [90296] //设置默认值
@@ -667,12 +657,7 @@
 
   const findMatchedOption = (attributeId, data, options) => {
     const matchedOption = options?.find(option => option.id === data.id)
-    if (attributeId == 9070) {
-      return {
-        label: data.value,
-        value: data.id
-      }
-    } else if (attributeId == 85 || attributeId == 31) {
+    if (attributeId == 85 || attributeId == 31) {
       return {
         label: '无品牌',
         value: data.id
@@ -841,7 +826,6 @@
       if (detail.categoryId) {
         baseInfoForm.categoryId = detail.categoryId
         const categoryIdList = detail.categoryId.split(',')
-        tailCategoryId.value = categoryIdList.at(-1)
         const params = {
           descriptionCategoryId: categoryIdList[1],
           typeId: categoryIdList[2]
