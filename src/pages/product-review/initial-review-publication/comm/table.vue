@@ -108,7 +108,7 @@
 <script setup name="ProductReviewTable">
 import { ref, reactive, computed, watch, onMounted } from "vue";
 import { message } from "ant-design-vue";
-  import EmptyImg from '@/assets/images/aliexpress/empty.png'
+import EmptyImg from '@/assets/images/aliexpress/empty.png'
 import dayjs from "dayjs";
 import {
   getCommodityTypeLabel,
