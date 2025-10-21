@@ -620,7 +620,7 @@
           >关闭</a-button
         >
         <a-button
-          v-if="isPreliminary"
+          v-if="isPreliminary && hasPermi"
           type="primary"
           @click="reviewOpen = true"
           >审核</a-button
@@ -697,8 +697,11 @@
   import { message } from 'ant-design-vue'
   import download from '@/api/common/download'
   import { firstAudit } from '~@/pages/product-review/config/api/product-review.js'
+  import { checkPermi, checkRole } from '~/utils/permission/component/permission.js'
 
   defineOptions({ name: 'PreliminaryReviewDetail' })
+
+  const hasPermi = computed(() => checkPermi(['platform:ozon:intelligent:first:audit']) || checkRole('admin'))
 
   const loading = ref(false)
   const detailData = reactive({
@@ -1186,14 +1189,12 @@
 
   function reviewModalOk() {
     reviewFormRef.value.validate().then(_ => {
-      const params = [
-        {
-          auditStatus: reviewForm.auditStatus === 1 ? 20 : 70, // 10 待编辑; 70 运营驳回
-          id: route.query.id,
-          commodityId: route.query.commodityId,
-          remark: reviewForm.remark
-        }
-      ]
+      const params = {
+        auditStatus: reviewForm.auditStatus === 1 ? 20 : 70, // 10 待编辑; 70 运营驳回
+        id: route.query.id,
+        commodityId: route.query.commodityId,
+        remark: reviewForm.remark
+      }
 
       reviewLoading.value = true
       firstAudit(params)

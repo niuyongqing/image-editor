@@ -10,14 +10,14 @@
           v-model:value="formData.categoryId" 
           :options="options.commodityTypeList"
           :allow-clear="true" 
-          :field-names="{ label: 'label', value: 'value', children: 'children' }" 
+          :field-names="{ value: 'descriptionCategoryId', label: 'categoryName', children: 'children' }" 
         />
       </a-form-item>
       <a-form-item label="提交人" name="status">
         <a-select 
           v-model:value="formData.selectUserIdList" 
           :options="options.allUserList" 
-          mode="tags"
+          mode="multiple"
           :maxTagCount="2"
           :optionFilterProp="'label'"  
           :filterOption="userFilterOption"  
@@ -72,7 +72,7 @@
     >
       <template #bodyCell="{ column: {key}, record: row }">
         <template v-if="key === 'mainImage'">
-          <a-image :width="50" :src="row.mainImage"/>
+          <a-image :width="50" :src="row.mainImage || EmptyImg" :fallback="EmptyImg"/>
         </template>
         <template v-else-if="key === 'skuList'">
           <a-tooltip>
@@ -118,10 +118,12 @@
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { addRemark, categoryTree, getList, submitEdit, userList } from './js/api';
 import { header } from './js/header';
+import EmptyImg from '@/assets/images/aliexpress/empty.png'
 import _ from "lodash";
 import { v4 as uuidv4 } from 'uuid';
 import detailsModal from './detailsModal.vue';
 import { message, Modal } from 'ant-design-vue';
+import { processImageSource } from '../config/commJs/index';
 defineOptions({ name: "ozon_publicationDatabase" })
 const { proxy: _this } = getCurrentInstance();
 
@@ -262,7 +264,7 @@ async function getTableList() {
       item.skuCodeList = item.skuList?.map(i => i.skuCode).join() || '';
       item.averageWeight = null;
       item.averagePrice = null;
-      item.mainImage = '';
+      item.mainImage = item.mainImage || '';
       item.classify = classify(item)
       if (item.skuList?.length) {
         let weight = 0
@@ -273,8 +275,9 @@ async function getTableList() {
         })
         item.averageWeight = (weight / item.skuList.length).toFixed(2);
         item.averagePrice = (price / item.skuList.length).toFixed(2);
-        item.mainImage = item.skuList[0].mainImages;
+        !item.mainImage && (item.mainImage = item.skuList[0].mainImages);
       }
+      item.mainImage = processImageSource(item.mainImage);
     })
     tableData.data = data
     tableData.total = res.total

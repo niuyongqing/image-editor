@@ -3,101 +3,111 @@
     <a-modal 
       v-model:open="modalOpen" 
       :style="{ top: '10px', padding: 0, height: '99vh' }"
-      :bodyStyle="{ height: 'calc(95vh - 100px)', 'overflow-y': 'auto' }" 
+      :bodyStyle="{ height: 'calc(95vh - 100px)', padding: '20px 0 20px 20px', background: '#fcfcfc' }" 
       :title="'产品详情'" 
       :maskClosable="false"
-      width="95%"
+      width="80%"
     >
-      <a-spin :spinning="loading" class="dialog-box">
-        <a-descriptions title="">
-          <a-descriptions-item label="前缀修饰词">
-            <div>{{ detailData.data.prefixDecorateName }}</div>
-          </a-descriptions-item>
-          <a-descriptions-item label="产品名称">
-            <div>{{ detailData.data.productName }}</div>
-          </a-descriptions-item>
-          <a-descriptions-item label="后缀修饰词">
-            <div>{{ detailData.data.suffixDecorateName }}</div>
-          </a-descriptions-item>
-          <a-descriptions-item label="产品分类">
-            <a-tag color="success" v-if="detailData.row.classify">{{ detailData.row.classify }}</a-tag>
-          </a-descriptions-item>
-          <a-descriptions-item label="品牌">
-            <div>{{ detailData.data.productAttributeList?.find(i => i.attributeId === 85)?.attributeValue || '无品牌' }}</div>
-          </a-descriptions-item>
-          <a-descriptions-item label="VAT">
-            <div>{{ (detailData.data.vat * 100) }}%</div>
-          </a-descriptions-item>
-          <a-descriptions-item label="制造国">
-            <div>{{ detailData.data.productAttributeList?.find(i => i.attributeId === 4389)?.attributeValue || '无' }}</div>
-          </a-descriptions-item>
-        </a-descriptions>
-        
-        <a-descriptions title="">
-          <a-descriptions-item label="竞品参考链接">
-            <div>
-              <div class="url-item" v-for="(item, index) in detailData.data.competitiveList" :key="item.id">
-                {{ `${index + 1}、 ` }}<a target="_blank" :href="item">{{ item.linkUrl }}</a>
-              </div>
-            </div>
-          </a-descriptions-item>
-        </a-descriptions>
-        <a-descriptions title="">
-          <a-descriptions-item label="采购链接">
-            <div class="url-item" v-for="(item, index) in detailData.data.purchaseLinkUrls?.split(',')" :key="item">
-              {{ `${index + 1}、 ` }}<a target="_blank" :href="item">{{ item }}</a>
-            </div>
-          </a-descriptions-item>
-        </a-descriptions>
-        
-        <a-descriptions title="">
-          <a-descriptions-item label="产品属性">
-            <div class="attribute-box">
-              <div class="attribute-item" v-for="item in detailData.categoryAttributeList" :key="item.attributeId">
-                <a-tooltip>
-                  <template #title>{{ item.attributeName }}</template>
-                  <div class="attribute-item-label">
-                    {{ item.attributeName }}
-                  </div>
-                </a-tooltip>：
-                <div class="attribute-item-value">
-                  {{ detailData.data.productAttributeList?.find(i => i.attributeId === item.attributeId)?.attributeValue || '无' }}
+      <a-spin :spinning="loading" wrapperClassName="dialog-box">
+        <a-card title="基础信息" style="width: calc(100% - 25px)">
+          <a-descriptions title="">
+            <a-descriptions-item label="前缀修饰词">
+              <div>{{ detailData.data.prefixDecorateName }}</div>
+            </a-descriptions-item>
+            <a-descriptions-item label="产品名称">
+              <div>{{ detailData.data.productName }}</div>
+            </a-descriptions-item>
+            <a-descriptions-item label="后缀修饰词">
+              <div>{{ detailData.data.suffixDecorateName }}</div>
+            </a-descriptions-item>
+            <a-descriptions-item label="品牌">
+              <div>{{ detailData.data.productAttributeList?.find(i => i.attributeId === 85)?.attributeValue || '无品牌' }}</div>
+            </a-descriptions-item>
+            <a-descriptions-item label="VAT">
+              <div v-if="detailData.data.vat === 0">免税</div>
+              <div v-else>{{ (detailData.data.vat * 100) }}%</div>
+            </a-descriptions-item>
+            <a-descriptions-item label="制造国">
+              <div>{{ detailData.data.productAttributeList?.find(i => i.attributeId === 4389)?.attributeValue || '无' }}</div>
+            </a-descriptions-item>
+          </a-descriptions>
+          <a-descriptions title="">
+            <a-descriptions-item label="产品分类">
+              <a-tag color="success" v-if="detailData.row.classify">{{ detailData.row.classify }}</a-tag>
+            </a-descriptions-item>
+          </a-descriptions>
+          <a-descriptions title="">
+            <a-descriptions-item label="竞品参考链接">
+              <div>
+                <div class="url-item" v-for="(item, index) in detailData.data.competitiveList" :key="item.id">
+                  {{ `${index + 1}、 ` }}<a target="_blank" :href="item">{{ item.linkUrl }}</a>
                 </div>
               </div>
-            </div>
-          </a-descriptions-item>
-        </a-descriptions>
-        
-        <a-descriptions title="">
-          <a-descriptions-item label="产品描述">
-            <div style="padding-right: 50px;">{{ detailData.data.productAttributeList?.find(i => i.attributeId === 4191)?.attributeValue || '无' }}</div>
-          </a-descriptions-item>
-          <a-descriptions-item label="JSON富文本">
-            <div v-if="detailData.data.editor_json_11254">
-              <MobileJSONEditor :jsonContent="detailData.data.editor_json_11254" :shop="''"></MobileJSONEditor>
-            </div>
-            <div v-else>{{ '无' }}</div>
-          </a-descriptions-item>
-        </a-descriptions>
-        <a-descriptions title="">
-          <a-descriptions-item label="封面视频">
-            <video v-if="detailData.video.coverUrl" controls :src="detailData.video.coverUrl" class="avatar" width="200px" height="200px">
-            </video>
-            <div v-else>无</div>
-          </a-descriptions-item>
-        </a-descriptions>
-        <a-descriptions title="">
-          <a-descriptions-item label="详情描述视频">
-            <div class="video-item" v-if="detailData.video.videoList.length > 0">
-              <div class="items" v-for="(item, index) in detailData.video.videoList" :key="index">
-                <video controls :src="item.attributeValue" class="avatar" width="200px" height="200px">
-                </video>
+            </a-descriptions-item>
+          </a-descriptions>
+          <a-descriptions title="">
+            <a-descriptions-item label="采购链接">
+              <div class="url-item" v-for="(item, index) in detailData.data.purchaseLinkUrls?.split(',')" :key="item">
+                {{ `${index + 1}、 ` }}<a target="_blank" :href="item">{{ item }}</a>
               </div>
-            </div>
-            <div v-else>无</div>
-          </a-descriptions-item>
-        </a-descriptions>
-        <a-card title="变种属性" style="width: 90%">
+            </a-descriptions-item>
+          </a-descriptions>
+        </a-card>
+        <br/>
+        <a-card title="属性信息" style="width: calc(100% - 25px)">
+          <a-descriptions title="">
+            <a-descriptions-item label="产品属性" :column="1">
+              <div class="attribute-box">
+                <div class="attribute-item" v-for="item in detailData.categoryAttributeList" :key="item.attributeId">
+                  <a-tooltip>
+                    <template #title>{{ item.attributeName }}</template>
+                    <div class="attribute-item-label">
+                      {{ item.attributeName }}
+                    </div>
+                  </a-tooltip>：
+                  <div class="attribute-item-value">
+                    {{ detailData.data.productAttributeList?.find(i => i.attributeId === item.attributeId)?.attributeValue || '无' }}
+                  </div>
+                </div>
+              </div>
+            </a-descriptions-item>
+          </a-descriptions>
+        </a-card>
+        <br/>
+        <a-card title="描述信息" style="width: calc(100% - 25px)">
+          <a-descriptions title="" :column="2">
+            <a-descriptions-item label="产品描述">
+              <a-card style="width: 90%;">
+                <div style="padding-right: 50px; height: 530px; overflow-y: auto;">{{ detailData.data.productAttributeList?.find(i => i.attributeId === 4191)?.attributeValue || '无' }}</div>
+              </a-card>
+            </a-descriptions-item>
+            <a-descriptions-item label="JSON富文本">
+              <div v-if="detailData.data.editor_json_11254">
+                <MobileJSONEditor :jsonContent="detailData.data.editor_json_11254" :shop="''"></MobileJSONEditor>
+              </div>
+              <div v-else>{{ '无' }}</div>
+            </a-descriptions-item>
+          </a-descriptions>
+          <a-descriptions title="" :column="1">
+            <a-descriptions-item label="封面视频" :labelStyle="{width: '120px'}">
+              <video v-if="detailData.video.coverUrl" controls :src="detailData.video.coverUrl" class="avatar" width="200px" height="200px">
+              </video>
+              <a-empty v-else />
+            </a-descriptions-item>
+          </a-descriptions>
+          <a-descriptions title="" :column="1">
+            <a-descriptions-item label="详情描述视频" :labelStyle="{width: '120px'}">
+              <div class="video-item" v-if="detailData.video.videoList.length > 0">
+                <div class="items" v-for="(item, index) in detailData.video.videoList" :key="index">
+                  <video controls :src="item.attributeValue" class="avatar" width="200px" height="200px">
+                  </video>
+                </div>
+              </div>
+              <a-empty v-else />
+            </a-descriptions-item>
+          </a-descriptions>
+        </a-card>
+        <a-card title="变种属性" style="width: calc(100% - 25px)">
           <div class="variantAttr-list">
             变种主题：
             <a-tag 
@@ -118,17 +128,17 @@
             </a-card>
           </div>
         </a-card>
-        <a-card title="变种信息" style="width: 90%">
+        <a-card title="变种信息" style="width: calc(100% - 25px)">
           <a-table :columns="skuInfoHeader" :data-source="detailData.data.skuList" :pagination="false"></a-table>
         </a-card>
-        <a-card title="图片信息" style="width: 90%">
+        <a-card title="图片信息" style="width: calc(100% - 25px)">
           <div v-for="item in detailData.data.skuList" :key="item.skuCode">
             <a-card :title="item.skuCode" style="width: 100%">
               <a-descriptions title="">
                 <a-descriptions-item label="主图">
                   <div class="img-box">
                     <div class="img-item" v-for="(imageUrl, i) in item.mainImages.split(',')" :key="i">
-                      <a-image :width="120" :src="imageUrl"/>
+                      <a-image :width="120" :src="processImageSource(imageUrl) || EmptyImg" :fallback="EmptyImg"/>
                     </div>
                   </div>
                 </a-descriptions-item>
@@ -137,7 +147,7 @@
                 <a-descriptions-item label="副图">
                   <div class="img-box">
                     <div class="img-item" v-for="(imageUrl, i) in item.subImages.split(',')" :key="i">
-                      <a-image :width="120" :src="imageUrl"/>
+                      <a-image :width="120" :src="processImageSource(imageUrl) || EmptyImg" :fallback="EmptyImg"/>
                     </div>
                   </div>
                 </a-descriptions-item>
@@ -158,7 +168,9 @@
 import _ from 'lodash';
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { getDetail } from './js/api';
+import EmptyImg from '@/assets/images/aliexpress/empty.png'
 import MobileJSONEditor from './common/MobileJSONEditor.vue';
+import { processImageSource } from '../config/commJs/index';
 defineOptions({ name: "publicationDatabase_detailsModal" })
 const { proxy: _this } = getCurrentInstance()
 const modalOpen = ref(false);
@@ -259,6 +271,7 @@ async function getDetailFn() {
       // 以下属性需要过滤掉，其中包括不需要展示的属性，销售属性，视频等，写死的
       return !([11254,4191,85,31,4389,4080,8789,8790,4180,9024].includes(i.attributeId) || [100001,100002].includes(i.attributeComplexId))
     })
+    res.data.productAttributeList = res.data.productAttributeList || []
     res.data.editor_json_11254 = res.data.productAttributeList.find(i => i.attributeId === 11254)?.attributeValue
     detailData.video.coverUrl = res.data.productAttributeList.find(i => i.attributeComplexId === 100002)?.attributeValue
     detailData.video.videoList = res.data.productAttributeList.filter(i => i.attributeComplexId === 100001);
@@ -338,6 +351,14 @@ defineExpose({
 })
 </script>
 <style lang="less" scoped>
+.dialog-box {
+  height: 100%;
+  overflow-y: auto;
+  .ant-spin-container {
+    display: flex;
+    flex-direction: column;
+  }
+}
 :deep(.ant-image-img) {
   width: 118px;
   height: 118px;
@@ -350,6 +371,7 @@ defineExpose({
 }
 :deep(.ant-descriptions) {
   width: 100%;
+  // background: red;
   &.devConsultLink {
     .ant-descriptions-item-content {
       flex-direction: column;
@@ -375,9 +397,12 @@ defineExpose({
     max-height: 500px;
     width: 100%;
     margin: 30px 60px;
+    display: flex;
+    flex-wrap: wrap;
     // padding: 20px;
     overflow-y: auto;
     .attribute-item {
+      width: 50%;
       display: flex;
       margin-bottom: 10px;
       .attribute-item-label {
