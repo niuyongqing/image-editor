@@ -44,7 +44,7 @@
       </a-form-item>
       <div class="formItem-row-i right">
         <a-space>
-          <a-button key="submit" type="primary" @click="onSubmit">查询</a-button>
+          <a-button key="submit" type="primary" @click="onSubmit" v-if="checkPermi(['ozon:intelligent:product-store:list'])">查询</a-button>
           <a-button key="submit" @click="resetForm">重置</a-button>
         </a-space>
       </div>
@@ -57,13 +57,13 @@
           :disabled="tableData.selectedRows.length < 1" 
           type="primary" 
           @click="submitEditFn"
-          v-if="checkPermi('ozon:intelligent:product-store:submit-edit')"
+          v-if="checkPermi(['ozon:intelligent:product-store:submit-edit'])"
         >提交编辑</a-button>
         <a-button 
           :disabled="tableData.selectedRows.length < 1" 
           type="primary" 
           @click="() => (remarkData.open = true)"
-          v-if="checkPermi('ozon:intelligent:product-store:add-remark')"
+          v-if="checkPermi(['ozon:intelligent:product-store:add-remark'])"
         >添加备注</a-button>
         <!-- <a-button type="primary">Primary Button</a-button> -->
       </a-space>
@@ -177,7 +177,7 @@ onMounted(async () => {
   let productDatabaseTable = document.querySelector('.productDatabase-table')
   antTableBody = productDatabaseTable.querySelector('.ant-table-body')
   // 权限校验
-  if (!checkPermi('ozon:intelligent:product-store:list')) {
+  if (!checkPermi(['ozon:intelligent:product-store:list'])) {
     return;
   }
   getUserList()
@@ -218,7 +218,7 @@ function userFilterOption(val, option) {
 }
 // 分类还原
   function classify(row) {
-  if (!row.categoryId) return '--'
+  if (!row.categoryId) return '无'
 
   let commodity = row.categoryId.split(',').map(i => Number(i))
   let nameList = []
@@ -346,9 +346,15 @@ function submitEditFn() {
     okText: '提交',
     cancelText: '取消',
     async onOk() {
-      await submitEdit({ productIdList });
-      tableData.selectedRowKeys = []
-      tableData.selectedRows = []
+      try {
+        await submitEdit({ productIdList });
+        tableData.selectedRowKeys = []
+        tableData.selectedRows = []
+        message.success('提交成功！')
+        getTableList()
+      } catch (error) {
+        console.error(error);
+      }
     },
   })
 }
@@ -365,6 +371,7 @@ async function addRemarkFn() {
       remark: remarkData.remark,
     };
     await addRemark(params)
+    message.success('添加成功！')
     getTableList()
     remarkData.open = false
   } catch (error) {
