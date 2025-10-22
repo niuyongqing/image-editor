@@ -96,8 +96,11 @@
         :pagination="false"
         :scroll="{ x: 'max-content' }"
       >
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'name'">
+        <template #bodyCell="{ column, record, index }">
+          <template v-if="column.key === 'index'">
+            <div>{{ index + 1 + (tableParams.pageNum - 1) * tableParams.pageSize }}</div>
+          </template>
+          <template v-else-if="column.key === 'name'">
             <div class="w-80">{{ record.name || '--' }}</div>
           </template>
           <template v-else-if="column.key === 'category'">
@@ -110,30 +113,20 @@
               checked-value="1"
               un-checked-children="停用"
               un-checked-value="0"
+              size="default"
               @change="toggleStatus(record)"
             />
           </template>
           <template v-else-if="column.key === 'remark'">
             <div class="w-100">{{ record.remark || '--' }}</div>
           </template>
-          <template v-else-if="column.key === 'options'">
+          <template v-else-if="column.key === 'operation'">
             <a-space>
               <a-button
                 type="link"
-                :disabled="!record.intelligentProductId || record.auditStatus !== 20"
+                :disabled="false && !record.intelligentProductId"
                 @click="goDetail(record)"
                 >查看</a-button
-              >
-              <a-button
-                type="link"
-                :disabled="!record.intelligentProductId || record.auditStatus !== 20"
-                @click="openPublicationModal(record)"
-                >刊登</a-button
-              >
-              <a-button
-                type="link"
-                @click="openLogModal(record)"
-                >日志</a-button
               >
               <a-button
                 type="link"

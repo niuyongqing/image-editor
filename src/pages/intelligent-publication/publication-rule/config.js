@@ -1,10 +1,16 @@
 // 默认表头
 export const DEFAULT_TABLE_COLUMN = [
   {
+    title: '序号',
+    key: 'index',
+    fixed: 'left',
+    width: 50
+  },
+  {
     title: '规则名称',
     key: 'name',
     fixed: 'left',
-    width: 200
+    width: 160
   },
   {
     title: '分类',
@@ -26,17 +32,17 @@ export const DEFAULT_TABLE_COLUMN = [
   {
     title: '状态',
     key: 'status',
-    width: 100
+    width: 80
   },
   {
     title: '备注',
     key: 'remark',
-    width: 200
+    width: 160
   },
   {
     title: '操作',
-    key: 'options',
+    key: 'operation',
     fixed: 'right',
-    width: 150
+    width: 100
   }
 ]

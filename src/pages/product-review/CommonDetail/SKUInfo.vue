@@ -38,14 +38,14 @@
                 >
                 <span>{{ items.name }}</span>
               </span>
-              <a-button
-                type="link"
+              <!-- <a-button
                 v-if="[10096, 4295].includes(items.id)"
-                @click="setColor(items)"
+                type="link"
                 style="float: right"
                 size="middle"
+                @click="setColor(items)"
                 >批量设置</a-button
-              >
+              > -->
               <a-popconfirm
                 icon-color="red"
                 title="确定要删除这个变种主题吗？"

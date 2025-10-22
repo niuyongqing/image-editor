@@ -216,7 +216,7 @@ onBeforeMount(() => {
         <a-button class="spacing" type="primary" @click="addOneMenu">添加</a-button>
       </div>
       <div class="table-container" ref="tableContainer">
-        <a-table :data-source="dataSource" :indent-size="30" :resizable="true" bordered :columns="columns" row-key="id"  :loading="tableLoading">
+        <a-table :data-source="dataSource" :indent-size="30" :resizable="true" bordered :columns="columns" row-key="id"  :loading="tableLoading" :pagination="false">
           <template #bodyCell="{ column, text, record }" :style="record.style">
             <div v-if="column.dataIndex === 'name'">
               <AsyncIcon v-if="record.meta.icon" :icon="record.meta.icon"></AsyncIcon>
