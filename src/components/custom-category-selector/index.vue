@@ -193,10 +193,15 @@
       defaultOptions.value = res.data || []
 
       // 如果有传入 categoryIds, 回显文本
-      if (props.categoryIds) {
-        selectedCategoryList.value = flatTreeList.value.find(item => item.uniqueCode === props.categoryIds)?.value || []
-        emits('update:categoryLabels', categoryLabels.value)
-      }
+      setTimeout(
+        () => {
+          if (props.categoryIds) {
+            selectedCategoryList.value = flatTreeList.value.find(item => item.uniqueCode === props.categoryIds)?.value || []
+            emits('update:categoryLabels', categoryLabels.value)
+          }
+        },
+        props.categoryIds ? 0 : 500
+      )
     })
   }
 
@@ -208,15 +213,15 @@
     thirdLevel: '' // 第三层
   })
 
-  // 全局搜索
-  function selectGlobalItem(val, option) {
+  // 全局搜索的选择
+  function selectGlobalItem(val) {
     // 清空子级搜索
     searchState.global = ''
     searchState.firstLevel = ''
     searchState.secondLevel = ''
     searchState.thirdLevel = ''
 
-    selectedCategoryList.value = option.value
+    selectedCategoryList.value = val
   }
 
   // 选中的分类集合

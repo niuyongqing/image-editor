@@ -21,7 +21,7 @@
         >
         <a-button
           type="primary"
-          :disabled="auditStatus !== 20"
+          :disabled="auditStatus !== 20 || disabledPhoto"
           @click="applicationPhoto"
           >申请拍照</a-button
         >
@@ -307,6 +307,21 @@
   function refreshList() {
     if (targetWindow) {
       targetWindow.postMessage('refresh', targetWindow.location.origin)
+    }
+  }
+
+  /** 监听编辑页保存后的跨窗口通信 */
+  window.addEventListener('message', receiveMessage)
+
+  onBeforeUnmount(() => {
+    window.removeEventListener('message', receiveMessage)
+  })
+
+  // 更新拍照状态
+  const disabledPhoto = ref(false)
+  function receiveMessage(event) {
+    if (event.origin === window.location.origin && event.data === 'toggleStatus') {
+      disabledPhoto.value = true
     }
   }
 

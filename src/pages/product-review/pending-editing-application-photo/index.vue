@@ -615,6 +615,8 @@ const handleSubmit = async () => {
       console.log("提交结果:", res);
       if (res.code === 200) {
         message.success("提交成功");
+        // 更新资料待编辑详情里申请拍照按钮状态
+        toggleStatus();
         if (closeTimeout.value) {
           clearTimeout(closeTimeout.value);
         }
@@ -628,6 +630,14 @@ const handleSubmit = async () => {
     console.log("表单验证失败:", error);
   }
 };
+
+/** 窗口通信, 更新资料待编辑详情里申请拍照按钮状态 */
+const targetWindow = window.opener
+function toggleStatus() {
+  if (targetWindow) {
+    targetWindow.postMessage('toggleStatus', targetWindow.location.origin)
+  }
+}
 
 /**
  * 水印列表 - 用于dragUpload组件

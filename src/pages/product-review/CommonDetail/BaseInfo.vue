@@ -712,6 +712,9 @@
   }
 
   const childForm = async () => {
+    if (!baseInfoForm.categoryId) {
+      message.error('请选择分类')
+    }
     // 收集需要校验的表单引用
     const formRefs = [ruleForm1, ruleForm2]
 
