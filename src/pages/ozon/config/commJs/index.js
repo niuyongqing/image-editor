@@ -148,6 +148,42 @@ const processResult = (productList) => {
   });
 };
 
+// 笛卡尔算法步骤 (修改了一些字段, 智能化刊登用)
+const processResult2 = (productList) => {
+  return productList.map((product) => {
+    let output = {
+      sellerSKU: "",
+      price: "",
+      oldPrice: "",
+      quantity: undefined,
+      warehouseList: [],
+      length: undefined,
+      width: undefined,
+      height: undefined,
+      weight: undefined,
+      mainImages: [],
+      subImages: [],
+      id: Math.random().toString(36).substring(2, 10),
+      attrIdList: [] // 变种属性 Id 合集
+    };
+    product.forEach((item) => {
+      let values = ""
+      if(item.selectType === "select" && item.modelValue !== undefined) {
+        values = item.modelValue?.label || item.modelValue[0]?.label
+      }else if(item.selectType === "multSelect" && item.modelValue !== undefined) {
+        values = item?.modelValue?.map((val) => val.label).join(";")
+      }else {
+        values = item.modelValue
+      }
+      output.attrIdList.push(item.id)
+      output[item.name] = values;
+      output["secondName"] = item?.secondModelValue || "";
+      output[item.secondName] = item?.secondModelValue || "";
+    });
+    return output;
+  });
+};
+
 // 删除表格数据
 const processData = (attributeList, tableData) => {
   // 遍历 attributeList 数组
@@ -376,6 +412,7 @@ const rebackHeadList = (id, item) => {
         type: 2,
         align: "center",
         id: 10097,
+        width: 200
       },
       {
         dataIndex: "options",
@@ -404,6 +441,7 @@ const rebackHeadList = (id, item) => {
         type: 2,
         align: "center",
         id: 9533,
+        width: 200
       },
       {
         dataIndex: "options",
@@ -702,6 +740,7 @@ export {
   reorderArray,
   cartesianProduct,
   processResult,
+  processResult2,
   processData,
   checkSellerSKU,
   hasDuplicateModelValues,

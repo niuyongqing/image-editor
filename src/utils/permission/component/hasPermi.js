@@ -10,7 +10,6 @@
      const all_permission = "*:*:*";
      const userStore = useUserStore()
      const permissions = userStore.userInfo.platformPermissions
-
      if (value && Array.isArray(value) && value.length > 0) {
        const permissionFlag = value
 

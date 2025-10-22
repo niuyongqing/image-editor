@@ -16,5 +16,17 @@ export default [
     "value": "4",
     "label": "泰国本土",
   },
+  {
+    "value": "5",
+    "label": "泰国本土和菲律宾本土",
+  },
+  {
+    "value": "6",
+    "label": "亚马逊haul",
+  },
+  {
+    "value": "7",
+    "label": "韩国",
+  },
 ]
 

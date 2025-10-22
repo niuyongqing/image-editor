@@ -116,8 +116,8 @@
   })
 
   function receiveMessage(event) {
-    if (event.origin !== window.location.origin && event.data !== 'refresh') return
-
-    getList()
+    if (event.origin === window.location.origin && event.data === 'refresh') {
+      getList()
+    }
   }
 </script>

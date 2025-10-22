@@ -219,9 +219,13 @@ async function modalOpenFn(commodityId) {
     for (const item of imageListAll) {
       let { height, width } = item 
       if (!height) {
-        let res = await getImageSize(item.url)
-        height = res.height
-        width = res.width
+        try {
+          let res = await getImageSize(item.url)
+          height = res.height
+          width = res.width
+        } catch (err) {
+          console.log('获取图片尺寸失败');
+        }
       }
       let obj = {
         id: uuidv4(),
@@ -258,6 +262,9 @@ function getImageSize(src) {
       obj.width = img.naturalWidth;
       obj.height = img.naturalHeight;
       resolve(obj)
+    }
+    img.onerror = err => {
+      reject(err)
     }
     img.src = src
   })

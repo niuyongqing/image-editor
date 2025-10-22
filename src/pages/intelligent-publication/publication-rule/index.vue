@@ -1,0 +1,357 @@
+<!-- 智能化刊登规则 列表 -->
+<template>
+  <div class="text-left">
+    <!-- 搜索区 -->
+    <a-card class="mb-3">
+      <a-form
+        :model="searchForm"
+        ref="searchFormRef"
+        layout="inline"
+      >
+        <a-form-item label="模糊查询">
+          <a-space>
+            <a-input
+              v-model:value="searchForm.name"
+              placeholder="请输入规则名称"
+              allow-clear
+            />
+          </a-space>
+        </a-form-item>
+        <a-form-item
+          label="状态"
+          name="status"
+        >
+          <a-select
+            v-model:value="searchForm.status"
+            :options="STATUS_OPTIONS"
+            placeholder="请选择状态"
+            class="w-40!"
+          />
+        </a-form-item>
+        <a-form-item>
+          <a-button
+            type="primary"
+            class="mr-2"
+            @click="search"
+            >查询</a-button
+          >
+          <a-button @click="reset">重置</a-button>
+        </a-form-item>
+      </a-form>
+    </a-card>
+
+    <!-- table 区 -->
+    <a-card>
+      <a-space>
+        <a-button
+          type="primary"
+          @click="add"
+          >新增</a-button
+        >
+        <a-popconfirm
+          title="确定启用吗?"
+          :disabled="state.selectedRowKeys.length === 0"
+          @confirm="batchActivate"
+        >
+          <a-button :disabled="state.selectedRowKeys.length === 0">批量启用</a-button>
+        </a-popconfirm>
+        <a-popconfirm
+          title="确定停用吗?"
+          :disabled="state.selectedRowKeys.length === 0"
+          @confirm="batchInactivate"
+        >
+          <a-button
+            danger
+            :disabled="state.selectedRowKeys.length === 0"
+            >批量停用</a-button
+          >
+        </a-popconfirm>
+        <a-button
+          type="primary"
+          :disabled="state.selectedRowKeys.length === 0"
+          @click="remarkModalOpen = true"
+          >批量备注</a-button
+        >
+      </a-space>
+
+      <a-pagination
+        v-model:current="tableParams.pageNum"
+        v-model:pageSize="tableParams.pageSize"
+        :total="state.total"
+        :default-page-size="50"
+        show-size-changer
+        show-quick-jumper
+        :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
+        class="mb-4 float-right"
+        @change="getList"
+      />
+
+      <a-table
+        :columns="DEFAULT_TABLE_COLUMN"
+        :data-source="tableData"
+        :loading="state.loading"
+        stripe
+        row-key="id"
+        :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange }"
+        :pagination="false"
+        :scroll="{ x: 'max-content' }"
+      >
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'name'">
+            <div class="w-80">{{ record.name || '--' }}</div>
+          </template>
+          <template v-else-if="column.key === 'category'">
+            <span>{{ getClassifyLabel(record.classify) }}</span>
+          </template>
+          <template v-else-if="column.key === 'status'">
+            <a-switch
+              :checked="record.status"
+              checked-children="启用"
+              checked-value="1"
+              un-checked-children="停用"
+              un-checked-value="0"
+              @change="toggleStatus(record)"
+            />
+          </template>
+          <template v-else-if="column.key === 'remark'">
+            <div class="w-100">{{ record.remark || '--' }}</div>
+          </template>
+          <template v-else-if="column.key === 'options'">
+            <a-space>
+              <a-button
+                type="link"
+                :disabled="!record.intelligentProductId || record.auditStatus !== 20"
+                @click="goDetail(record)"
+                >查看</a-button
+              >
+              <a-button
+                type="link"
+                :disabled="!record.intelligentProductId || record.auditStatus !== 20"
+                @click="openPublicationModal(record)"
+                >刊登</a-button
+              >
+              <a-button
+                type="link"
+                @click="openLogModal(record)"
+                >日志</a-button
+              >
+              <a-button
+                type="link"
+                @click="openRemorkModal(record)"
+                >备注</a-button
+              >
+            </a-space>
+          </template>
+        </template>
+      </a-table>
+
+      <a-pagination
+        v-model:current="tableParams.pageNum"
+        v-model:pageSize="tableParams.pageSize"
+        :total="state.total"
+        :default-page-size="50"
+        show-size-changer
+        show-quick-jumper
+        :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
+        class="float-right"
+        @change="getList"
+      />
+    </a-card>
+
+    <!-- 备注弹窗 -->
+    <a-modal
+      title="添加备注"
+      v-model:open="remarkModalOpen"
+      width="30%"
+      :confirm-loading="remarkLoading"
+      @cancel="remarkCancel"
+      @ok="remarkOk"
+    >
+      <a-textarea
+        v-model:value="remark"
+        :rows="4"
+        :maxlength="255"
+        show-count
+        placeholder="请输入备注内容"
+        class="mb-7"
+      />
+    </a-modal>
+  </div>
+</template>
+
+<script setup>
+  import { DEFAULT_TABLE_COLUMN } from './config'
+  import commodityType from '~@/utils/commodityType'
+  import { message } from 'ant-design-vue'
+
+  const router = useRouter()
+
+  /** search */
+  const searchForm = reactive({
+    name: '',
+    status: ''
+  })
+  const searchFormRef = ref()
+  // 状态选项
+  const STATUS_OPTIONS = [
+    { label: '全部', value: '' },
+    { label: '启用', value: '1' },
+    { label: '停用', value: '0' }
+  ]
+
+  function search() {
+    tableParams.pageNum = 1
+    getList()
+  }
+
+  function reset() {
+    tableParams.pageNum = 1
+    searchFormRef.value.resetFields()
+
+    getList()
+  }
+
+  /** table */
+  const tableParams = reactive({
+    pageNum: 1,
+    pageSize: 50
+  })
+  const state = reactive({
+    loading: false,
+    total: 0,
+    selectedRowKeys: []
+  })
+  const tableData = ref([])
+
+  function onSelectChange(selectedRowKeys) {
+    state.selectedRowKeys = selectedRowKeys
+  }
+
+  getList()
+  function getList() {
+    state.selectedRowKeys = []
+    const params = {
+      ...tableParams,
+      ...searchForm
+    }
+
+    tableData.value = [
+      {
+        id: 1,
+        name: 'name1',
+        status: '1',
+        remark: 'This is a text edited by Lynch on Earth.'
+      },
+      {
+        id: 2,
+        name: 'name2',
+        status: '0',
+        remark: 'https://cdn.jsdelivr.net/gh/lynch-07/images@main/20220720202931.jpeg'
+      }
+    ]
+
+    /* state.loading = true
+    xxxApi(params)
+      .then(res => {
+        state.total = res.total ?? 0
+        tableData.value = res.rows || []
+      })
+      .finally(() => {
+        state.loading = false
+      }) */
+  }
+
+  /** 批量 启用/停用 */
+  function batchActivate() {}
+
+  function batchInactivate() {}
+
+  /** 新增 */
+  function add() {
+    window.open('/platform/intelligent-publication/publication-rule-detail')
+  }
+
+  /** 查看详情 */
+  function goDetail(record) {
+    window.open(`/platform/intelligent-publication/publication-rule-detail?id=${record.intelligentProductId}`)
+  }
+
+  /** 备注 */
+  let curId = ''
+  const remark = ref('')
+  const remarkModalOpen = ref(false)
+  const remarkLoading = ref(false)
+
+  // 打开弹窗
+  function openRemorkModal(record) {
+    curId = record.id
+    remark.value = record.remark
+    remarkModalOpen.value = true
+  }
+
+  function remarkCancel() {
+    remarkModalOpen.value = false
+    curId = ''
+    remark.value = ''
+  }
+
+  function remarkOk() {
+    const params = {
+      id: curId ? curId : state.selectedRowKeys.join(','),
+      remark: remark.value
+    }
+
+    /* remarkLoading.value = true
+      addRemarkApi(params)
+      .then(res => {
+        message.success('添加备注成功')
+        getList()
+        remarkCancel()
+      })
+      .finally(() => {
+        remarkLoading.value = false
+      })
+     */
+  }
+
+  /** 切换 status */
+  function toggleStatus(record) {
+    const params = {
+      status: record.status === '1' ? '0' : '1'
+    }
+  }
+
+  // 根据分类 value 获取分类 label
+  function getClassifyLabel(classify) {
+    if (!classify) return '--'
+
+    const classifyList = classify.split(',')
+    const labelList = []
+    let currentNodes = commodityType
+
+    for (let i = 0; i < classifyList.length; i++) {
+      const value = classifyList[i]
+      const node = currentNodes.find(item => item.value === value)
+
+      if (!node) break
+
+      labelList.push(node.label)
+      currentNodes = node.children || []
+    }
+
+    return labelList.join('/') || '--'
+  }
+
+  /** 监听编辑页保存后的跨窗口通信 */
+  window.addEventListener('message', receiveMessage)
+
+  onBeforeUnmount(() => {
+    window.removeEventListener('message', receiveMessage)
+  })
+
+  function receiveMessage(event) {
+    if (event.origin === window.location.origin && event.data === 'refresh') {
+      getList()
+    }
+  }
+</script>

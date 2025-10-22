@@ -73,14 +73,21 @@
     }
   }
 
-  const menu1Config = {
-    key: 'myBtn1',
-    factory() {
-      return new MyButtonMenu()
+  // 使用try-catch处理可能的菜单重复注册问题
+  try {
+    const menu1Config = {
+      key: 'myBtn1',
+      factory() {
+        return new MyButtonMenu()
+      }
+    }
+    Boot.registerMenu(menu1Config)
+  } catch (error) {
+    // 如果是重复注册错误，忽略它
+    if (!error.message.includes('Duplicated key')) {
+      console.error('注册自定义菜单失败:', error)
     }
   }
-
-  Boot.registerMenu(menu1Config)
 
   const props = defineProps({
     // 工具栏配置
