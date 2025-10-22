@@ -1,9 +1,80 @@
-<script setup lang="js">
+<template>
+  <div>
+    <a-card style="margin-top: 10px">
+      <div style="margin-bottom: 10px;text-align: left;">
+        <a-button class="spacing" type="primary" @click="addOneMenu">添加</a-button>
+      </div>
+      <div class="table-container" ref="tableContainer">
+        <vxe-table 
+          border 
+          :expand-config="expandConfig"
+          ref="xGrid2"
+          :sort-config="sortConfig"
+          :row-config="rowConfig" 
+          :row-drag-config="rowDragConfig"
+          :column-config="columnConfig" 
+          @cell-dblclick="cellDblclickEvent"
+          @row-dragend="rowDragendEvent"
+          :tree-config="treeConfig" 
+          class="mytable-style"
+          :data="originalData" 
+          :cell-config="{height: 44}"
+          :loading="tableLoading"> 
+          <vxe-column type="seq" width="80"></vxe-column> 
+          <vxe-column  field="title" title="菜单名" width="240" tree-node drag-sort>
+            <template #default="{ row }">
+              <div>
+                <AsyncIcon v-if="row.icon || (row.meta && row.meta.icon)" :icon="row.icon || row.meta.icon"></AsyncIcon>
+                {{ row.title }}
+              </div>
+            </template>
+          </vxe-column> 
+          <vxe-column field="swmcName" title="分类" width="140"></vxe-column> 
+          <vxe-column field="sort" title="排序" width="80"></vxe-column> 
+          <vxe-column field="type" title="类型" width="100">
+            <template #default="{ row }">
+              <div v-if="row.type === 1">文件夹</div>
+              <div v-if="row.type === 2">菜单</div>
+              <div v-if="row.type === 3">按钮</div>
+            </template>
+          </vxe-column> 
+          <vxe-column field="permission" title="权限字符" width="180"></vxe-column> 
+          <vxe-column field="component" title="组件路径" min-width="200"></vxe-column> 
+          <vxe-column field="path" title="路径" min-width="150"></vxe-column> 
+          <vxe-column field="redirect" title="重定向" min-width="150"></vxe-column> 
+          <vxe-column field="hideInMenu" title="是否隐藏" width="100">
+            <template #default="{ row }">
+              <a-tag v-if="row.hideInMenu" color="#f50">是</a-tag>
+              <a-tag v-else color="#2db7f5">否</a-tag>
+            </template>
+          </vxe-column> 
+          <vxe-column field="keepAlive" title="是否保活" width="100">
+            <template #default="{ row }">
+              <a-tag v-if="row.keepAlive" color="#f50">是</a-tag>
+              <a-tag v-else color="#2db7f5">否</a-tag>
+            </template>
+          </vxe-column>
+          <vxe-column title="操作" width="152">
+            <template #default="{ row }">
+              <a-button type="link" @click.stop="add(row)" color="#2db7f5">添加</a-button>
+              <a-button type="link" @click.stop="edit(row)">编辑</a-button>
+              <a-popconfirm :title="'确定要删除菜单吗？'" @confirm="confirmDeleteMenu(row)">
+                <a-button type="text" danger>删除</a-button>
+              </a-popconfirm>
+            </template>
+          </vxe-column>
+        </vxe-table>
+      </div>
+
+    </a-card>
+    <add-or-edit :open="open" :title="title" :data="editData" @close="close" :menus="newMenuData"></add-or-edit>
+  </div>
+</template>
+<script setup>
 import {ref, reactive} from 'vue';
 import {getMenusListApi, delMenuApi,} from '~/api/common/menu.js'
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import AddOrEdit from "~/pages/system/menu/component/addOrEdit.vue";
-// import {sortBySortKey} from "~/utils/tools.js";
 import { VXETable } from 'vxe-table';
 import 'vxe-table/lib/style.css';
 import 'vxe-pc-ui/lib/style.css';
@@ -27,6 +98,12 @@ const rowDragConfig = reactive({
   showGuidesStatus: true,
   trigger: 'row',// 触发方式改为行拖动
   
+})
+const expandConfig = reactive({
+   showIcon: true,
+  iconOpen: 'vxe-icon-square-minus',
+  iconClose: 'vxe-icon-square-plus',
+  width: 50,
 })
 const treeConfig = ref({
   transform: true,
@@ -74,25 +151,6 @@ const rowDragendEvent = ({dragRow}) => {
     parentMap[parentId].push(item);
   });
   
-  // // 2. 使用队列处理层级结构，避免递归
-  // const queue = ['']; // 从顶级节点开始
-  // while (queue.length > 0) {
-  //   const currentParentId = queue.shift();
-  //   const children = parentMap[currentParentId] || [];
-    
-  //   // 为当前层级的子节点设置排序值
-  //   children.forEach((item, index) => {
-  //     item.sort = index + 1;
-  //     console.log(`设置菜单排序: ${item.title} = ${item.sort}`);
-      
-  //     // 将当前节点的ID加入队列，以便处理其子节点
-  //     if (parentMap[item.id]) {
-  //       queue.push(item.id);
-  //     }
-  //   });
-  // }
-  
-  // 3. 专门处理拖拽节点的同级菜单排序
   if (dragRow) {
     const parentId = dragRow.parentId || '';
     const siblingItems = parentMap[parentId] || [];
@@ -108,7 +166,6 @@ const rowDragendEvent = ({dragRow}) => {
   newMenuData.push(...newData)
   console.log('所有菜单项排序值已重置为从1开始递增');
   console.log('数据', newData);
-  
   }
 
 const sortConfig = reactive({
@@ -271,77 +328,7 @@ onBeforeMount(() => {
 })
 </script>
 
-<template>
-  <div>
-    <a-card style="margin-top: 10px">
-      <div style="margin-bottom: 10px;text-align: left;">
-        <a-button class="spacing" type="primary" @click="addOneMenu">添加</a-button>
-      </div>
-      <div class="table-container" ref="tableContainer">
-        <vxe-table 
-          border 
-          ref="xGrid2"
-          :sort-config="sortConfig"
-          :row-config="rowConfig" 
-          :row-drag-config="rowDragConfig"
-          :column-config="columnConfig" 
-          @cell-dblclick="cellDblclickEvent"
-          @row-dragend="rowDragendEvent"
-          :tree-config="treeConfig" 
-          class="mytable-style"
-          :data="originalData" 
-          :cell-config="{height: 44}"
-          :loading="tableLoading"> 
-          <vxe-column type="seq" width="80"></vxe-column> 
-          <vxe-column field="title" title="菜单名" width="240" tree-node drag-sort>
-            <template #default="{ row }">
-              <div>
-                <AsyncIcon v-if="row.icon || (row.meta && row.meta.icon)" :icon="row.icon || row.meta.icon"></AsyncIcon>
-                {{ row.title }}
-              </div>
-            </template>
-          </vxe-column> 
-          <vxe-column field="swmcName" title="分类" width="140"></vxe-column> 
-          <vxe-column field="sort" title="排序" width="80"></vxe-column> 
-          <vxe-column field="type" title="类型" width="100">
-            <template #default="{ row }">
-              <div v-if="row.type === 1">文件夹</div>
-              <div v-if="row.type === 2">菜单</div>
-              <div v-if="row.type === 3">按钮</div>
-            </template>
-          </vxe-column> 
-          <vxe-column field="permission" title="权限字符" width="180"></vxe-column> 
-          <vxe-column field="component" title="组件路径" min-width="200"></vxe-column> 
-          <vxe-column field="path" title="路径" min-width="150"></vxe-column> 
-          <vxe-column field="redirect" title="重定向" min-width="150"></vxe-column> 
-          <vxe-column field="hideInMenu" title="是否隐藏" width="100">
-            <template #default="{ row }">
-              <a-tag v-if="row.hideInMenu" color="#f50">是</a-tag>
-              <a-tag v-else color="#2db7f5">否</a-tag>
-            </template>
-          </vxe-column> 
-          <vxe-column field="keepAlive" title="是否保活" width="100">
-            <template #default="{ row }">
-              <a-tag v-if="row.keepAlive" color="#f50">是</a-tag>
-              <a-tag v-else color="#2db7f5">否</a-tag>
-            </template>
-          </vxe-column>
-          <vxe-column title="操作" width="152">
-            <template #default="{ row }">
-              <a-button type="link" @click.stop="add(row)" color="#2db7f5">添加</a-button>
-              <a-button type="link" @click.stop="edit(row)">编辑</a-button>
-              <a-popconfirm :title="'确定要删除菜单吗？'" @confirm="confirmDeleteMenu(row)">
-                <a-button type="text" danger>删除</a-button>
-              </a-popconfirm>
-            </template>
-          </vxe-column>
-        </vxe-table>
-      </div>
 
-    </a-card>
-    <add-or-edit :open="open" :title="title" :data="editData" @close="close" :menus="newMenuData"></add-or-edit>
-  </div>
-</template>
 
 <style scoped lang="less">
 .spacing {
@@ -363,8 +350,18 @@ onBeforeMount(() => {
   color: rgba(0, 0, 0, 0.88);
 }
 
-::v-deep(.vxe-table--render-default .vxe-cell--tree-btn>i) {
+::v-deep(.vxe-table--render-default .vxe-cell--tree-btn .vxe-table-icon-caret-right) {
    color: rgba(0, 0, 0, 0.80);
 }
+::v-deep(.vxe-table--render-default .vxe-cell--tree-btn) {
+   transform: translate(0, -65%);
+}
+
+/* 将右箭头改为加号图标 */
+::v-deep(.vxe-table--render-default .vxe-cell--tree-btn .vxe-table-icon-caret-right)::before {
+  content: "›" !important;
+  font-size: 28px;
+}
+
 
 </style>
