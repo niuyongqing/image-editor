@@ -1,6 +1,6 @@
 <!-- 刊登规则详情 -->
 <template>
-  <a-card class="text-left w-3/5 mx-auto h-[calc(100vh-60px)]">
+  <a-card class="text-left w-3/5 mx-auto h-[calc(100vh-60px)] pt-4">
     <div class="h-[calc(100vh-140px)] overflow-y-auto">
       <a-form
         ref="formRef"
@@ -8,6 +8,7 @@
         hide-required-mark
         :rules="rules"
         :label-col="{ style: { width: '120px' } }"
+        :disabled="query.type === 'view'"
       >
         <a-form-item
           label="模版名称"
@@ -314,7 +315,7 @@
       </a-form>
     </div>
 
-    <a-space class="absolute bottom-4 right-4">
+    <a-space v-if="query.type === 'edit'" class="absolute bottom-4 right-4">
       <a-button @click="close">关闭</a-button>
       <a-button
         type="primary"
@@ -338,7 +339,10 @@
   import { accountCache } from '@/pages/ozon/config/api/product'
   import CustomCategorySelector from '@/components/custom-category-selector/index.vue'
   import { message } from 'ant-design-vue'
+  import { usePostMessage } from '@/utils/postMessage'
 
+  const route = useRoute()
+  const {query} = route
   // 资料不足时的选项
   const DATA_IS_LACK_OPTIONS = [
     { label: '优先刊登排序靠前的店铺', value: '1' },
@@ -517,6 +521,7 @@
       return
 
       // message.success('提交刊登成功')
+      // usePostMessage()
     })
   }
 </script>

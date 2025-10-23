@@ -93,6 +93,7 @@
         stripe
         row-key="id"
         :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange }"
+        :custom-row="record => ({ onDblclick: () => goDetail(record) })"
         :pagination="false"
         :scroll="{ x: 'max-content' }"
       >
@@ -124,9 +125,15 @@
             <a-space>
               <a-button
                 type="link"
-                :disabled="false && !record.intelligentProductId"
+                :disabled="false && !record.id"
                 @click="goDetail(record)"
                 >查看</a-button
+              >
+              <a-button
+                type="link"
+                :disabled="false && !record.id"
+                @click="goEdit(record)"
+                >编辑</a-button
               >
               <a-button
                 type="link"
@@ -176,6 +183,7 @@
   import { DEFAULT_TABLE_COLUMN } from './config'
   import commodityType from '~@/utils/commodityType'
   import { message } from 'ant-design-vue'
+  import { useReceiveMessage } from '@/utils/postMessage'
 
   const router = useRouter()
 
@@ -222,6 +230,7 @@
 
   getList()
   function getList() {
+    console.log('getList')
     state.selectedRowKeys = []
     const params = {
       ...tableParams,
@@ -266,7 +275,12 @@
 
   /** 查看详情 */
   function goDetail(record) {
-    window.open(`/platform/intelligent-publication/publication-rule-detail?id=${record.intelligentProductId}`)
+    window.open(`/platform/intelligent-publication/publication-rule-detail?type=view&id=${record.id}`)
+  }
+
+  /** 编辑 */
+  function goEdit(record) {
+    window.open(`/platform/intelligent-publication/publication-rule-detail?type=edit&id=${record.id}`)
   }
 
   /** 备注 */
@@ -336,15 +350,5 @@
   }
 
   /** 监听编辑页保存后的跨窗口通信 */
-  window.addEventListener('message', receiveMessage)
-
-  onBeforeUnmount(() => {
-    window.removeEventListener('message', receiveMessage)
-  })
-
-  function receiveMessage(event) {
-    if (event.origin === window.location.origin && event.data === 'refresh') {
-      getList()
-    }
-  }
+  useReceiveMessage(getList)
 </script>
