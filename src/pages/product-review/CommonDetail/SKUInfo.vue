@@ -7,7 +7,6 @@
     >
       <a-card
         title="变种属性"
-        :loading="loading"
       >
         <div>
           <span class="">变种主题：</span>
@@ -171,7 +170,6 @@
       <a-card
         title="变种信息"
         class="text-left mt-5 z-11 relative"
-        :loading="loading"
       >
         <!-- 自定义变种信息 -->
         <!-- <div class="flex mb-2.5">
@@ -611,8 +609,6 @@
     Authorization: 'Bearer ' + useAuthorization().value
   }
   const uploadUrl = import.meta.env.VITE_APP_BASE_API + '/platform-ozon/platform/ozon/file/upload/img'
-
-  const loading = computed(() => store.loading)
 
   watch(
     () => tableData.value,
@@ -1301,7 +1297,7 @@
         const uniqueArr = []
         const titleSet = new Set()
 
-        if (store.dataType === 'edit') {
+        if (true) {
           // 编辑; 回显数据
           const { skuList } = productDetail.value
           skuList.forEach(sku => {
@@ -1466,12 +1462,6 @@
     const aIds = echoThemeList.map(item => item.id)
     themeBtns.value = themeBtns.value.filter(item => !aIds.includes(item.id))
     attributeList.value = matchAndAssignValues(echoThemeList, skuList)
-    store.$patch(state => {
-      state.loading = false
-    })
-    if (store.dataType === 'template') {
-      message.success('变种变种模板应用成功')
-    }
   }
 
   const filterModelValues = (sortArr, skuList) => {

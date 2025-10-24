@@ -102,6 +102,7 @@
         row-key="id"
         :pagination="false"
         :scroll="{ x: 'max-content' }"
+        :custom-row="record => ({ onDblclick: () => goEdit(record) })"
       >
         <template #bodyCell="{ column, record, index }">
           <!-- 索引列 -->

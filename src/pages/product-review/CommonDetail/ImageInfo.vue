@@ -3,18 +3,7 @@
   <a-card
     title="图片信息"
     class="mt-5"
-    :loading="loading"
   >
-    <!-- <a-tag
-      color="blue"
-      class="h-fit"
-      >说明</a-tag
-    >
-    <span>第一张图片默认为主图，点击图片拖动，即可调整图片顺序！</span>
-    <div class="text-#999">
-      单张不超过2M，只支持.jpg,.png,.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3:4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)
-    </div> -->
-
     <!-- 右上总览的操作按钮 -->
     <div class="text-right mb-6">
       <a-dropdown>
@@ -59,13 +48,6 @@
           </a-menu>
         </template>
       </a-dropdown>
-      <!-- <span class="mx-2">|</span>
-      <a-button
-        type="link"
-        :loading="downloadLoading"
-        @click="exportAllImage"
-        >导出全部图片</a-button
-      > -->
     </div>
 
     <a-card
@@ -105,7 +87,6 @@
                     </a-menu-item>
                     <a-menu-item key="imgBank">空间图片</a-menu-item>
                     <a-menu-item key="imgFromNet">网络图片</a-menu-item>
-                    <!-- <a-menu-item key="imgQuote">引用采集图片</a-menu-item> -->
                     <a-menu-item key="imgDataBase">引用资料库图片</a-menu-item>
                   </a-menu>
                 </template>
@@ -255,7 +236,6 @@
                     </a-menu-item>
                     <a-menu-item key="imgBank">空间图片</a-menu-item>
                     <a-menu-item key="imgFromNet">网络图片</a-menu-item>
-                    <!-- <a-menu-item key="imgQuote">引用采集图片</a-menu-item> -->
                     <a-menu-item key="imgDataBase">引用资料库图片</a-menu-item>
                   </a-menu>
                 </template>
@@ -403,13 +383,6 @@
     @emitImages="handleEmitImages"
   />
 
-  <!-- 引用采集图片 -->
-  <!-- <AcquisitionImageModal
-    v-model:modal-open="acquisitionModalOpen"
-    :collect-product-id="collectProductId"
-    @image-list-confirm="pushImage"
-  /> -->
-
   <!-- 资料库图片弹窗 -->
   <databaseImageModal
     ref="databaseImageModalRef"
@@ -421,10 +394,9 @@
   import { DownOutlined, BulbOutlined, CaretDownOutlined, DeleteOutlined } from '@ant-design/icons-vue'
   import Draggable from 'vuedraggable'
   import { useAuthorization } from '@/composables/authorization'
-  import { downloadAllImage, MtImageEBaseUrl } from '@/pages/sample/acquisitionEdit/js/api.js'
+  import { MtImageEBaseUrl } from '@/pages/sample/acquisitionEdit/js/api.js'
   import { batchUploadFromUrlApi } from '@/api/common/upload'
   import { watermarkApi } from '@/api/common/water-mark'
-  import download from '@/api/common/download'
   import { cloneDeep } from 'lodash'
   import { v4 as uuidv4 } from 'uuid'
   import { encryptString } from '@/utils/tools.js'
@@ -432,7 +404,6 @@
   import NetImageModal from '@/components/skuDragUpload/netImageModal.vue'
   import BacthSkuEditImg from '@/components/skuDragUpload/bacthSkuEditImg.vue'
   import ImageTranslation from '@/components/skuDragUpload/imageTranslation.vue'
-  // import AcquisitionImageModal from '@/pages/sample/acquisitionImageModal.vue'
   import databaseImageModal from '@/components/productDatabase/databaseImageModal.vue'
   import { Empty, message } from 'ant-design-vue'
   import { processImageSource } from '@/pages/ozon/config/commJs/index'
@@ -443,7 +414,6 @@
   const databaseId = inject('databaseId', '') // 资料库 id
 
   const store = useProductReviewStore()
-  const loading = computed(() => store.loading)
   const waterMarkOptions = computed(() => store.waterMarkOptions)
   const dataSource = computed(() => store.SKUTableData)
   const attrList = computed(() => store.attrList)
@@ -584,20 +554,6 @@
     })
   }
 
-  /** 导出全部图片 */
-  const downloadLoading = ref(false)
-  function exportAllImage() {
-    const imageList = allImageInfo.value.map(item => item.url.replace(import.meta.env.VITE_APP_BASE_API, ''))
-    downloadLoading.value = true
-    downloadAllImage({ imageList })
-      .then(res => {
-        download.name(res.data)
-      })
-      .finally(() => {
-        downloadLoading.value = false
-      })
-  }
-
   /** 图片应用到 按钮 */
   const PERMANENT_LIST = [{ label: '所有变种', key: 'applyAll' }]
   const confirmMenuList = computed(() => {
@@ -675,9 +631,6 @@
       case 'imgFromNet':
         netImageModalRef.value.open()
         break
-      case 'imgQuote':
-        acquisitionModalOpen.value = true
-        break
       case 'imgDataBase':
         databaseImageModalRef.value.modalOpenFn(databaseId.value)
         break
@@ -710,9 +663,6 @@
       }
     }
   }
-
-  /** 引用采集图片 */
-  const acquisitionModalOpen = ref(false)
 
   // 添加进图片, 引用采集和资料库共用
   function pushImage(list) {

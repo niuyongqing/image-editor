@@ -2,31 +2,31 @@
 <template>
   <div>
     <a-form
-      :model="baseInfoForm"
-      ref="ruleForm1"
-      :rules="rules"
-      :label-col="{ style: { width: '92px' } }"
+      :model="form"
+      ref="formRef"
+      :label-col="{ style: { width: '94px' } }"
     >
       <a-form-item
         label="产品标题"
         name="productName"
+        required
       >
         <a-input
-          v-model:value="baseInfoForm.productName"
+          v-model:value="form.productName"
           placeholder="请输入中文产品标题"
           allow-clear
         />
       </a-form-item>
       <a-form-item label="前缀修饰词">
         <a-input
-          v-model:value="baseInfoForm.prefixDecorateName"
+          v-model:value="form.prefixDecorateName"
           placeholder="请输入中文前缀修饰词, 多个请用英文逗号隔开"
           allow-clear
         />
       </a-form-item>
       <a-form-item label="后缀修饰词">
         <a-input
-          v-model:value="baseInfoForm.suffixDecorateName"
+          v-model:value="form.suffixDecorateName"
           placeholder="请输入中文后缀修饰词, 多个请用英文逗号隔开"
           allow-clear
         />
@@ -34,34 +34,33 @@
       <a-form-item
         label="分类"
         name="categoryId"
+        required
       >
         <a-button @click="categoryOpen = true">选择分类</a-button>
         <div
-          v-if="categoryLabel"
-          class="text-#933"
+          v-if="categoryLabels"
+          class="text-gray"
         >
-          {{ categoryLabel }}
+          {{ categoryLabels }}
         </div>
       </a-form-item>
-      <a-space>
-        <a-form-item
-          label="VAT"
-          name="vat"
-        >
-          <a-select
-            v-model:value="baseInfoForm.vat"
-            :options="VAT_OPTIONS"
-            class="w-40!"
-          />
-        </a-form-item>
-      </a-space>
+      <a-form-item
+        label="VAT"
+        name="vat"
+      >
+        <a-select
+          v-model:value="form.vat"
+          :options="VAT_OPTIONS"
+          class="w-40!"
+        />
+      </a-form-item>
 
       <a-divider />
 
       <a-form-item label="竞品链接">
         <div
           class="flex mb-1"
-          v-for="(item, i) in baseInfoForm.competitiveInfos"
+          v-for="(item, i) in form.competitiveInfos"
           :key="item.id"
         >
           <span class="mr-1">{{ i + 1 }}</span>
@@ -85,14 +84,14 @@
           <a-button
             type="link"
             title="添加"
-            :disabled="baseInfoForm.competitiveInfos.length > 4"
+            :disabled="form.competitiveInfos.length > 4"
             @click="addCompetitiveLink"
             ><PlusOutlined
           /></a-button>
           <a-button
             type="link"
             title="删除"
-            :disabled="baseInfoForm.competitiveInfos.length === 1"
+            :disabled="form.competitiveInfos.length === 1"
             danger
             @click="delCompetitiveLink(item.id)"
             ><MinusOutlined
@@ -105,7 +104,7 @@
       <a-form-item label="采购链接">
         <div
           class="flex mb-1"
-          v-for="(item, i) in baseInfoForm.purchaseLinkUrls"
+          v-for="(item, i) in form.purchaseLinkUrls"
           :key="item.id"
         >
           <span class="mr-1">{{ i + 1 }}</span>
@@ -129,14 +128,14 @@
           <a-button
             type="link"
             title="添加"
-            :disabled="baseInfoForm.purchaseLinkUrls.length > 4"
+            :disabled="form.purchaseLinkUrls.length > 4"
             @click="addPurchaseLink"
             ><PlusOutlined
           /></a-button>
           <a-button
             type="link"
             title="删除"
-            :disabled="baseInfoForm.purchaseLinkUrls.length === 1"
+            :disabled="form.purchaseLinkUrls.length === 1"
             danger
             @click="delPurchaseLink(item.id)"
             ><MinusOutlined
@@ -147,138 +146,96 @@
       <a-divider />
 
       <a-form-item label="产品属性">
-        <!-- <div class="min-h-12 border border-solid border-gray-200 rounded-md"></div> -->
         <a-card
           :loading="attrLoading"
-          style="position: relative; max-height: 600px; overflow-y: auto"
+          class="min-h-15 max-h-160 overflow-y-auto"
         >
-          <!-- 展开收起 -->
-          <div
-            v-if="attributeList.length"
-            w-full
-            sticky
-            top-2
-            right-0
-            z-2
-          >
-            <a-button
-              class="flex justify-end"
-              type="link"
-              @click="isExpand = !isExpand"
-            >
-              {{ isExpand ? '- 收起' : '+ 展开' }}</a-button
-            >
-          </div>
           <a-form
-            ref="ruleForm2"
-            :model="baseInfoForm.attributes"
-            :label-col="{ span: 5 }"
-            :rules="rules2"
-            style="margin-top: 25px"
+            ref="attrFormRef"
+            :model="attributesObj"
+            :label-col="{ span: 4 }"
           >
-            <div
-              v-for="(item, i) in showAttributeList"
-              :key="i"
-              style="margin: 10px; flex: 0 0 auto"
+            <a-form-item
+              v-for="item in attributeList"
+              :key="item.id"
+              :name="item.name"
+              :required="item.isRequired"
             >
-              <a-form-item
-                :name="item.name"
-                v-if="item.show"
-              >
-                <template #label>
-                  <span class="mr-2.5 truncate">{{ item.label ? item.label : item.name }}</span>
-                  <a-tooltip
-                    effect="dark"
-                    :title="item.description"
-                    placement="top"
-                  >
-                    <QuestionCircleOutlined />
-                  </a-tooltip>
-                </template>
-                <a-input
-                  v-if="item.selectType === 'input'"
-                  v-model:value="baseInfoForm.attributes[item.name]"
-                  :style="'width: 80%'"
-                  allow-clear
-                  :maxlength="item.name == '海关编码' || item.name == 'IKP公司' ? 17 : item.name == '海关编码' ? 9999999 : 100"
-                  :minlength="1000000"
-                ></a-input>
-                <div v-if="item.type == 'String' && item.isCollection && item.selectType == 'multSelect'">
-                  <div v-if="item.options && item.options.length > 25">
-                    <a-select
-                      optionFilterProp="label"
-                      show-search
-                      v-model:value="item.selectDate"
-                      allowClear
-                      style="width: 200px; margin-bottom: 5px"
-                      placeholder="请输入内容"
-                      labelInValue
-                    >
-                      <a-select-option
-                        :value="v"
-                        :label="v.label"
-                        v-for="(v, i) in item.options"
-                        :key="i"
-                        >{{ v.label }}</a-select-option
-                      >
-                    </a-select>
-                    <a-button
-                      style="margin-left: 10px"
-                      @click="addItemValues(item)"
-                      type="primary"
-                      >添加</a-button
-                    >
-                  </div>
+              <template #label>
+                <span
+                  class="mr-2 truncate"
+                  :title="item.name"
+                  >{{ item.name }}</span
+                >
+                <a-tooltip :title="item.description">
+                  <QuestionCircleOutlined />
+                </a-tooltip>
+              </template>
+
+              <a-input
+                v-if="item.selectType === 'input'"
+                v-model:value="attributesObj[item.name]"
+                allow-clear
+                placeholder="请输入"
+              />
+
+              <a-select
+                v-else-if="item.selectType === 'select'"
+                v-model:value="attributesObj[item.name]"
+                :options="item.options"
+                option-filter-prop="value"
+                :field-names="{ label: 'value', value: 'id' }"
+                label-in-value
+                show-search
+                allow-clear
+                class="w-1/3!"
+                placeholder="请选择"
+              />
+
+              <div v-else-if="item.selectType == 'multSelect'">
+                <!-- 更多的属性放在下拉框里, 选中则添加 -->
+                <div v-if="item.options && item.options.length > 25">
                   <a-form-item-rest>
-                    <a-checkbox-group
-                      v-model:value="baseInfoForm.attributes[item.name]"
-                      style="width: 80%"
-                      :options="item.acquiesceList"
-                      @change="changeRule(baseInfoForm.attributes, item.name)"
-                    >
-                    </a-checkbox-group>
+                    <a-select
+                      v-model:value="item.tempValue"
+                      :options="item.options"
+                      show-search
+                      :field-names="{ label: 'value', value: 'id' }"
+                      option-filter-prop="value"
+                      class="mb-1 w-1/3!"
+                      placeholder="更多属性值请搜索添加"
+                      @select="(val, opt) => addAttrItemVal(val, opt, item)"
+                    />
                   </a-form-item-rest>
                 </div>
-                <a-select
-                  v-model:value="baseInfoForm.attributes[item.name]"
-                  v-if="item.selectType === 'select'"
-                  optionFilterProp="label"
-                  show-search
-                  labelInValue
-                  :style="'width: 80%'"
-                  allowClear
-                >
-                  <template v-if="[85, 31].includes(item.id)">
-                    <a-select-option
-                      v-for="option in [{ label: '无品牌', value: '126745801' }]"
-                      :key="option.value"
-                      :value="option"
-                    >
-                      {{ option.label }}
-                    </a-select-option>
-                  </template>
 
-                  <template v-else>
-                    <a-select-option
-                      v-for="(v, i) in item.options"
-                      :key="i"
-                      :value="v"
+                <a-checkbox-group v-model:value="attributesObj[item.name]">
+                  <a-checkbox
+                    v-for="checkbox in item.optionPieces"
+                    :key="checkbox.id"
+                    :value="checkbox.id"
+                    :title="checkbox.value"
+                  >
+                    <span
+                      class="inline-block w-40 align-middle truncate"
+                      :title="checkbox.value"
+                      >{{ checkbox.value }}</span
                     >
-                      {{ v.label }}
-                    </a-select-option>
-                  </template>
-                </a-select>
-              </a-form-item>
-            </div>
+                  </a-checkbox>
+                </a-checkbox-group>
+              </div>
+            </a-form-item>
           </a-form>
         </a-card>
       </a-form-item>
+
       <a-form-item
         label="产品描述"
         name="desc"
+        required
       >
         <a-textarea
-          v-model:value="baseInfoForm.desc"
+          v-model:value="form.desc"
           :rows="6"
           show-count
         />
@@ -286,12 +243,13 @@
       <a-form-item
         label="JSON富文本"
         name="jsons"
+        required
       >
         <a-form-item-rest>
           <JSONEditor
-            :json-content="baseInfoForm.jsons"
+            :json-content="form.jsons"
             shop="没用的字段"
-            @clear="baseInfoForm.jsons = ''"
+            @clear="form.jsons = ''"
             @back-result="backResult"
           />
         </a-form-item-rest>
@@ -302,13 +260,14 @@
           <div>
             封面视频
             <a-upload
-              v-if="!baseInfoForm.coverUrl"
+              v-if="!form.coverVideoUrl"
               :maxCount="1"
               :action="uploadVideoUrl"
               accept=".mp4,.mov"
               list-type="picture-card"
               :headers="headers"
               :showUploadList="false"
+              :before-upload="beforeUpload"
               @change="handleCoverVideoChange"
             >
               <div>
@@ -318,11 +277,11 @@
             </a-upload>
             <div
               class="w-50 h-50"
-              v-if="baseInfoForm.coverUrl"
+              v-if="form.coverVideoUrl"
             >
               <video
                 controls
-                :src="baseInfoForm.coverUrl"
+                :src="form.coverVideoUrl"
                 width="100%"
                 height="200px"
               ></video>
@@ -345,11 +304,11 @@
             <span>详情描述视频</span>
             <div class="flex">
               <div
-                v-if="baseInfoForm.video.length > 0"
+                v-if="form.videoList.length > 0"
                 class="flex"
               >
                 <div
-                  v-for="(item, i) in baseInfoForm.video"
+                  v-for="(item, i) in form.videoList"
                   :key="i"
                   class="mr-2"
                 >
@@ -371,13 +330,14 @@
                   </div>
                 </div>
               </div>
-              <div v-if="baseInfoForm.video.length < 5">
+              <div v-if="form.videoList.length < 5">
                 <a-upload
                   list-type="picture-card"
                   :action="uploadVideoUrl"
                   :headers="headers"
                   accept=".mp4,.mov"
                   :showUploadList="false"
+                  :before-upload="beforeUpload"
                   @change="handleVideoChange"
                 >
                   <div>
@@ -396,8 +356,8 @@
     <!-- 分类弹窗 -->
     <CustomCategorySelector
       v-model:open="categoryOpen"
-      v-model:category-ids="baseInfoForm.categoryId"
-      v-model:categoryLabels="categoryLabel"
+      v-model:category-ids="form.categoryId"
+      v-model:category-labels="categoryLabels"
       @change="categoryChange"
     />
   </div>
@@ -415,30 +375,23 @@
 
   const store = useProductReviewStore()
   const categoryOpen = ref(false)
-  const baseInfoForm = reactive({
+  const form = reactive({
     id: '',
     productName: '',
     prefixDecorateName: '',
     suffixDecorateName: '',
-    categoryId: undefined,
+    categoryId: '',
     vat: 0,
     competitiveInfos: [{ id: uuidv4(), linkUrl: '' }],
     purchaseLinkUrls: [{ id: uuidv4(), linkUrl: '' }],
-    attributes: {}, //产品属性
     desc: '',
     jsons: '',
-    coverUrl: '', // 封面视频
-    video: [] // 详情视频
+    coverVideoUrl: '', // 封面视频
+    videoList: [] // 详情视频
   })
+  const attributesObj = ref({}) // 产品属性的值
 
-  const ruleForm1 = ref()
-  const rules = reactive({
-    productName: [{ required: true }],
-    categoryId: [{ required: true, message: '请选择分类', trigger: ['change'] }],
-    vat: [{ required: true }],
-    desc: [{ required: true }],
-    jsons: [{ required: true }]
-  })
+  const formRef = ref()
   // VAT 下拉选项
   const VAT_OPTIONS = [
     { label: '免税', value: 0 },
@@ -446,293 +399,169 @@
     { label: '20%', value: 20 }
   ]
 
-  // 分类
-  const categoryLabel = ref('未选择分类')
+  const categoryLabels = ref('未选择分类') // 分类 label
 
   function categoryChange(list) {
-    // 初始化时, 只用于回显分类信息, 不进行后续操作
-    // if (data.initialization) return
+    // 选择分类后校验(目的是为了清空下方 error 信息)
+    formRef.value.validateFields(['categoryId'])
 
-    const params = {
-      descriptionCategoryId: list[1].descriptionCategoryId,
-      typeId: list[2].descriptionCategoryId
-    }
-    getAttributes(params)
-
-    // 切换不同分类后SKU清空
-    store.$patch(state => {
-      state.dataType = ''
-    })
+    getAttributes()
   }
 
-  /** 产品属性(搬屎) */
+  /** 产品属性 */
+  // 定义常量ID提升可维护性
+  const ATTR_ID_ENUM = {
+    jsons: 11254,
+    desc: 4191,
+    video: 21841, // 视频链接
+    videoName: 21837, // 视频名称
+    videoProduct: 22273, // 视频产品
+    coverVideo: 21845, // 视频封面
+    nonsense1: 4080, // URL ?
+    nonsense2: 8229, // 类型
+    nonsense3: 8789, // PDF 名称
+    nonsense4: 8790, // PDF 文件
+    nonsense5: 4180, // 名称
+    nonsense6: 9024 // 卖家代码
+  }
   const attributeList = ref([])
   const attrLoading = ref(false)
-  const isExpand = ref(false)
-  const rules2 = ref({})
-  const ruleForm2 = ref()
+  const attrFormRef = ref()
 
-  const showAttributeList = computed(() => {
-    return isExpand.value ? attributeList.value : attributeList.value.filter(item => item.isRequired)
-  })
+  function getAttributes(arg = {}) {
+    const categoryIdList = form.categoryId.split(',')
+    const params = {
+      descriptionCategoryId: categoryIdList[1],
+      typeId: categoryIdList[2]
+    }
 
-  function getAttributes(params) {
     attrLoading.value = true
     getAttributesApi(params)
       .then(res => {
         const rawData = res.data || []
+
+        // 塞上 intelligentAttributeId, relatedAttributeId
+        if (Object.keys(store.productDetail).length !== 0) {
+          const attributes = store.productDetail.skuList?.[0].attributes || []
+          // 塞上, 都塞上
+          attributes.forEach(item => {
+            const target = rawData.find(attr => attr.id === item.id)
+            if (target) {
+              target.relatedAttributeId = item.relatedAttributeId
+              target.intelligentAttributeId = item.intelligentAttributeId
+            }
+          })
+        }
+
+        // 截取多选备选大于 25 的
+        rawData.forEach(item => {
+          if (item.selectType === 'multSelect') {
+            item.optionPieces = item.options ? item.options.slice(0, 25) : []
+          }
+        })
+
         // 存到 pinia 里给 SKUInfo 用
         store.$patch(state => {
           state.attributes = rawData
         })
 
-        const newAttributesCache = processAttributesCache(rawData)
-        let noThemeAttributesCache = newAttributesCache.filter(a => !a.isAspect)
-        if (noThemeAttributesCache) {
-          noThemeAttributesCache.sort((a, b) => {
-            if (a.isRequired && !b.isRequired) return -1
-            if (!a.isRequired && b.isRequired) return 1
-            return 0
-          })
+        // 过滤出需要展示的产品属性
+        const exceptList = Object.values(ATTR_ID_ENUM)
+        const nonAspectList = rawData.filter(item => !exceptList.includes(item.id)).filter(item => !item.isAspect)
+        // 将必填项提出来, 放前头
+        const requiredList = nonAspectList.filter(item => item.isRequired)
+        const nonRequiredList = nonAspectList.filter(item => !item.isRequired)
+        // 赋值
+        attributeList.value = [...requiredList, ...nonRequiredList]
 
-          let data = noThemeAttributesCache.filter(a => a.isRequired)
-          rules2.value = {}
-          let attributes = {}
-          // 属性类型处理
-          noThemeAttributesCache.forEach(item => {
-            item.selectDate = {
-              label: '',
-              value: ''
-            }
-            item.options = item?.options?.map(item => {
-              return {
-                ...item,
-                label: item.value,
-                value: item.id
-              }
-            })
-            item.acquiesceList = (item.options && item.options.slice(0, 25)) || []
-            attributes[item.name] = item.selectType === 'multSelect' ? [] : undefined
-            attributes['制造国(Страна-изготовитель)'] = [90296] //设置默认值
-          })
+        // 初始化(详情里的值回显)
+        if (arg.init) dispatchDetail()
 
-          // 属性校验
-          for (let i = 0; i < data.length; i++) {
-            let obj = {
-              required: true,
-              message: `${data[i].name} 为必填项，请填写`,
-              trigger: noThemeAttributesCache[i].selectType == 'input' ? 'blur' : 'change'
-            }
-            rules2.value[noThemeAttributesCache[i].name] = obj
-          }
+        // (品牌 85: 无品牌 126745801)设默认值
+        const brandItem = attributeList.value.find(attr => attr.id === 85)
+        if (brandItem) {
+          brandItem.options = [{ value: '无品牌', id: 126745801 }] // 字段跟接口返回的保持统一
 
-          let oldAttributes = []
-          if (Object.keys(store.productDetail).length !== 0) {
-            oldAttributes = store.productDetail?.skuList?.[0].attributes
-            // 塞上 intelligentAttributeId, relatedAttributeId
-            oldAttributes.forEach(item => {
-              const target = noThemeAttributesCache.find(attr => attr.id === item.id)
-              if (target) {
-                target.relatedAttributeId = item.relatedAttributeId
-                target.intelligentAttributeId = item.intelligentAttributeId
-              }
-            })
-            // 塞上, 都塞上
-            oldAttributes.forEach(item => {
-              const target = rawData.find(attr => attr.id === item.id)
-              if (target) {
-                target.relatedAttributeId = item.relatedAttributeId
-                target.intelligentAttributeId = item.intelligentAttributeId
-              }
-            })
-          }
-
-          attributeList.value = noThemeAttributesCache
-
-          // 赋值
-          const proceRes = assignValues(oldAttributes, attributeList.value)
-          // (品牌 85: 无品牌 126745801)和(制造国 4389: 中国 90296)设默认值
-          const brandLabel = attributeList.value.find(attr => attr.id === 85)?.name
-          if (brandLabel && !proceRes[brandLabel]) {
-            proceRes[brandLabel] = {
+          if (!attributesObj.value[brandItem.name]) {
+            // 无值才设默认值
+            attributesObj.value[brandItem.name] = {
               label: '无品牌',
-              value: '126745801'
+              value: 126745801
             }
           }
-          const countryLabel = attributeList.value.find(attr => attr.id === 4389)?.name
-          if (countryLabel && !(proceRes[countryLabel] && proceRes[countryLabel].length)) {
-            proceRes[countryLabel] = [90296]
-          }
-
-          baseInfoForm.attributes = proceRes
         }
+        // (制造国 4389: 中国 90296)设默认值
+        const countryLabel = attributeList.value.find(attr => attr.id === 4389)?.name
+        if (countryLabel && !(attributesObj.value[countryLabel] && attributesObj.value[countryLabel].length)) {
+          attributesObj.value[countryLabel] = [90296]
+        }
+
+        diffAttributesObj()
       })
       .finally(() => {
         attrLoading.value = false
       })
   }
 
-  const processAttributesCache = attributesCache => {
-    return attributesCache.map(item => {
-      item.show = true
-      if (shouldHideItem(item)) {
-        item.show = false
-      }
-      return item
-    })
-  }
-  const shouldHideItem = item => {
-    return (
-      item.id === 4080 ||
-      item.id === 8229 ||
-      item.id === 8789 ||
-      item.id === 8790 ||
-      item.id === 4180 ||
-      item.id === 4191 ||
-      item.id === 11254 ||
-      item.id === 9024 ||
-      item.attributeComplexId === '100001' ||
-      item.attributeComplexId === '100002' ||
-      (item.isAspect && !item.isRequired) ||
-      (item.isAspect && item.isCollection)
-    )
-  }
-  // 清除校验
-  const changeRule = (attributes, name) => {
-    ruleForm2.value.clearValidate(name)
-  }
+  // 回显详情
+  function dispatchDetail() {
+    if (Object.keys(store.productDetail).length !== 0) {
+      const attributes = store.productDetail.skuList?.[0].attributes || []
+      const nonVariantList = attributes.filter(item => !item.isVariant)
+      nonVariantList.forEach(item => {
+        const target = attributeList.value.find(attr => attr.id === item.id)
+        if (target) {
+          const valueList = item.values
+          switch (target.selectType) {
+            case 'input':
+              attributesObj.value[target.name] = valueList[0].value
+              break
+            case 'select':
+              attributesObj.value[target.name] = {
+                label: valueList[0].value,
+                value: valueList[0].dictionaryValueId
+              }
+              break
+            case 'multSelect':
+              attributesObj.value[target.name] = valueList.map(val => val.dictionaryValueId)
+              break
 
-  // 此方法将历史缓存中的属性值进行重新赋值
-  const assignValues = (oldAttr, attr) => {
-    let newRes = oldAttr.map(item => {
-      return {
-        ...item,
-        values: item.values.map(value => {
-          return {
-            ...value,
-            id: Number(value.dictionaryValueId),
-            info: '',
-            picture: '',
-            label: ''
-          }
-        })
-      }
-    })
-
-    const result = {}
-    // 根据b数组填充结果对象
-    attr.forEach(item => {
-      const name = item.name
-      const selectType = item.selectType
-      newRes.forEach(resItem => {
-        const attributeId = resItem.id
-        const allValidItems = resItem.values.every(item => item.value !== '')
-        if (attributeId === item.id && allValidItems) {
-          if (selectType === 'multSelect') {
-            result[name] = resItem.values.map(item => item.id)
-            item.acquiesceList = moveMatchedItemForward(
-              item.options,
-              resItem.values.map(item => item.id)
-            )
-          } else if (selectType === 'select') {
-            result[name] = findMatchedOption(attributeId, resItem.values[0], item.options)
-          } else {
-            result[name] = resItem.values[0].value
-          }
-        } else {
-          if (item.id === 4389) {
-            result[name] = [90296]
-          } else if (item.id === 85 || item.id === 31) {
-            result[name] = {
-              label: '无品牌',
-              value: '126745801'
-            }
+            default:
+              console.error('未处理类型: ', target.selectType, target.name)
+              break
           }
         }
       })
-    })
-
-    return result
+    }
   }
 
-  const findMatchedOption = (attributeId, data, options) => {
-    const matchedOption = options?.find(option => option.id === data.id)
-    if (attributeId == 85 || attributeId == 31) {
-      return {
-        label: '无品牌',
-        value: data.id
-      }
-    } else if (attributeId === 4389) {
-      return {
-        label: data.value,
-        value: [90296]
-      }
-    } else if (matchedOption) {
-      return {
-        id: matchedOption.id,
-        value: matchedOption.value,
-        label: matchedOption.label
+  // 切换分类后删除不存在的属性的值, 保留相同的属性的值
+  function diffAttributesObj() {
+    const attrNameList = attributeList.value.map(item => item.name)
+    for (const name in attributesObj.value) {
+      if (!attrNameList.includes(name)) {
+        delete attributesObj.value[name]
       }
     }
-    return null
   }
 
-  const moveMatchedItemForward = (data, arr) => {
-    const newData = []
-    const remainingData = []
-
-    for (let i = 0; i < data.length; i++) {
-      const item = data[i]
-      if (arr.includes(item.id)) {
-        newData.push(item)
-      } else {
-        remainingData.push(item)
-      }
-    }
-
-    return newData.concat(remainingData).slice(0, 25)
-  }
-
-  const addItemValues = obj => {
-    if (!obj.selectDate.value) return
-    const { attributes } = baseInfoForm
-    attributes[obj.name] ||= [] // 若无值, 则初始化为 []
-    const isExist = obj.acquiesceList.some(item => item.value === obj.selectDate.value)
+  // 添加属性的选项值
+  function addAttrItemVal(val, opt, item) {
+    attributesObj.value[item.name] ||= [] // 若无值, 则初始化为 []
+    const isExist = item.optionPieces.findIndex(ele => ele.id === val) > -1
     //!  判断搜索出来的是否在初始的数组中显示
     if (isExist) {
       // 如果已有该数据, 不再添加
-      if (!attributes[obj.name].includes(obj.selectDate.value)) {
-        attributes[obj.name].push(obj.selectDate.value)
+      if (!attributesObj.value[item.name].includes(val)) {
+        attributesObj.value[item.name].push(val)
       }
     } else {
-      attributes[obj.name].push(obj.selectDate.value)
-      obj.acquiesceList.push(obj.selectDate)
+      attributesObj.value[item.name].push(val)
+      item.optionPieces.push(opt)
     }
-    obj.selectDate = undefined
-  }
-
-  const childForm = async () => {
-    if (!baseInfoForm.categoryId) {
-      message.error('请选择分类')
-    }
-    // 收集需要校验的表单引用
-    const formRefs = [ruleForm1, ruleForm2]
-
-    // 循环遍历表单引用数组进行校验
-    for (const formRef of formRefs) {
-      try {
-        // 如果表单引用不存在，跳过本次循环
-        if (!formRef.value) continue
-
-        // 调用表单的 validate 方法进行校验
-        await formRef.value.validate()
-      } catch (error) {
-        // 若校验失败，捕获错误并返回 false
-        return false
-      }
-    }
-    // 所有表单都校验通过，返回 true
-    return true
+    nextTick(() => {
+      item.tempValue = undefined
+    })
   }
 
   function copy(text) {
@@ -761,25 +590,26 @@
 
   // 竞品链接
   function addCompetitiveLink() {
-    baseInfoForm.competitiveInfos.push({ id: uuidv4(), linkUrl: '' })
+    form.competitiveInfos.push({ id: uuidv4(), linkUrl: '' })
   }
 
   function delCompetitiveLink(id) {
-    baseInfoForm.competitiveInfos = baseInfoForm.competitiveInfos.filter(item => item.id !== id)
+    form.competitiveInfos = form.competitiveInfos.filter(item => item.id !== id)
   }
 
   // 采购链接
   function addPurchaseLink() {
-    baseInfoForm.purchaseLinkUrls.push({ id: uuidv4(), linkUrl: '' })
+    form.purchaseLinkUrls.push({ id: uuidv4(), linkUrl: '' })
   }
 
   function delPurchaseLink(id) {
-    baseInfoForm.purchaseLinkUrls = baseInfoForm.purchaseLinkUrls.filter(item => item.id !== id)
+    form.purchaseLinkUrls = form.purchaseLinkUrls.filter(item => item.id !== id)
   }
 
   /** JSON 富文本 */
   function backResult(jsonContent) {
-    baseInfoForm.jsons = JSON.stringify(jsonContent)
+    form.jsons = JSON.stringify(jsonContent)
+    formRef.value.validateFields(['jsons'])
   }
 
   /** 视频 */
@@ -788,10 +618,19 @@
   }
   const uploadVideoUrl = import.meta.env.VITE_APP_BASE_API + '/platform-ozon/platform/ozon/file/upload/video'
 
+  // 视频上传预处理
+  function beforeUpload(file) {
+    // 限制 100M
+    if (file.size / 1024 / 1024 > 100) {
+      message.warning('视频文件超过100M')
+      return false
+    }
+  }
+
   const handleCoverVideoChange = info => {
     if (info.file.status === 'done') {
       if (info.file.response.code == 200) {
-        baseInfoForm.coverUrl = processImageSource(info.file.response.url)
+        form.coverVideoUrl = processImageSource(info.file.response.url)
       } else {
         message.error(info.file.response.msg)
       }
@@ -800,7 +639,7 @@
   const handleVideoChange = info => {
     if (info.file.status === 'done') {
       if (info.file.response.code == 200) {
-        baseInfoForm.video.push({
+        form.videoList.push({
           url: processImageSource(info.file.response.url)
         })
       } else {
@@ -809,10 +648,10 @@
     }
   }
   const removeVideo = () => {
-    baseInfoForm.coverUrl = ''
+    form.coverVideoUrl = ''
   }
   const removeVideoList = i => {
-    baseInfoForm.video.splice(i, 1)
+    form.videoList.splice(i, 1)
   }
 
   /** 详情回显 */
@@ -821,80 +660,59 @@
     detail => {
       if (Object.keys(detail).length === 0) return
 
-      baseInfoForm.id = detail.id
-      baseInfoForm.productName = detail.productName
-      baseInfoForm.prefixDecorateName = detail.prefixDecorateName
-      baseInfoForm.suffixDecorateName = detail.suffixDecorateName
+      form.id = detail.id
+      form.productName = detail.productName
+      form.prefixDecorateName = detail.prefixDecorateName
+      form.suffixDecorateName = detail.suffixDecorateName
+
       // 分类
       if (detail.categoryId) {
-        baseInfoForm.categoryId = detail.categoryId
-        const categoryIdList = detail.categoryId.split(',')
-        const params = {
-          descriptionCategoryId: categoryIdList[1],
-          typeId: categoryIdList[2]
-        }
-        getAttributes(params)
+        form.categoryId = detail.categoryId
+
+        getAttributes({ init: true })
       }
+
       // 采购链接(字符串, ','分割)
       if (detail.purchaseLinkUrls) {
-        baseInfoForm.purchaseLinkUrls = detail.purchaseLinkUrls.split(',').map(linkUrl => ({ id: uuidv4(), linkUrl }))
+        form.purchaseLinkUrls = detail.purchaseLinkUrls.split(',').map(linkUrl => ({ id: uuidv4(), linkUrl }))
       }
       // 竞品链接(数组)
       if (detail.competitiveInfos?.length) {
-        baseInfoForm.competitiveInfos = detail.competitiveInfos
+        form.competitiveInfos = detail.competitiveInfos
       }
 
-      // JSON富文本和视频
-      const { attributes, complexAttributes } = detail.skuList?.[0] || {}
-      if (!attributes || attributes.length === 0) return
-      commDispose(attributes, complexAttributes)
-    }
-  )
+      const { attributes = [], complexAttributes = [] } = detail.skuList?.[0]
+      // 详描
+      const descObj = attributes.find(attr => attr.id === ATTR_ID_ENUM.desc)
+      form.desc = descObj?.values?.[0]?.value
+      // JSON富文本
+      const jsonsObj = attributes.find(attr => attr.id === ATTR_ID_ENUM.jsons)
+      form.jsons = jsonsObj?.values?.[0]?.value || ''
 
-  // 定义常量ID提升可维护性
-  const ATTRIBUTE_IDS = {
-    JSON_CONTENT: 11254,
-    DESCRIPTION: 4191,
-    VIDEO: 21841,
-    COVER_IMAGE: 21845
-  }
-
-  function commDispose(attributes, complexAttributes) {
-    // 完善空值检查并使用可选链
-    const copyAttr = attributes?.filter(a => a.id === ATTRIBUTE_IDS.JSON_CONTENT || a.id === ATTRIBUTE_IDS.DESCRIPTION) || []
-
-    // 处理复杂属性-视频
-    if (Array.isArray(complexAttributes)) {
+      // 视频
       complexAttributes.forEach(item => {
         switch (item.id) {
-          case ATTRIBUTE_IDS.VIDEO:
-            baseInfoForm.video =
-              item.values?.map(e => ({
-                url: processImageSource(e?.value || '')
+          case ATTR_ID_ENUM.video:
+            form.videoList =
+              item.values?.map(ele => ({
+                url: processImageSource(ele.value)
               })) || []
             break
-          case ATTRIBUTE_IDS.COVER_IMAGE:
-            baseInfoForm.coverUrl = processImageSource(item.values?.[0]?.value || '')
+          case ATTR_ID_ENUM.coverVideo:
+            form.coverVideoUrl = processImageSource(item.values[0]?.value || '')
             break
         }
       })
     }
-
-    // 处理普通属性 不用循环处理是为了防止数据在变动时无法重置或更新
-    const jsonContentAttr = copyAttr.find(attr => attr.id === ATTRIBUTE_IDS.JSON_CONTENT)
-    const descriptionAttr = copyAttr.find(attr => attr.id === ATTRIBUTE_IDS.DESCRIPTION)
-
-    baseInfoForm.jsons = jsonContentAttr?.values?.[0]?.value || ''
-    baseInfoForm.desc = descriptionAttr?.values?.[0]?.value || ''
-  }
+  )
 
   // 获取用于提交的 attributes 数据
   function getSubmitAttributes() {
     let submitAttributes = []
     // 产品属性
     let target
-    for (const name in baseInfoForm.attributes) {
-      switch (Object.prototype.toString.call(baseInfoForm.attributes[name]).slice(8, -1)) {
+    for (const name in attributesObj.value) {
+      switch (Object.prototype.toString.call(attributesObj.value[name]).slice(8, -1)) {
         case 'String':
           target = attributeList.value.find(item => item.name === name)
           if (target) {
@@ -905,7 +723,7 @@
               attributeId: target.id,
               attributeName: name,
               attributeOptionId: '0',
-              attributeValue: baseInfoForm.attributes[name],
+              attributeValue: attributesObj.value[name],
               isVariant: false
             })
           }
@@ -914,7 +732,7 @@
           target = attributeList.value.find(item => item.name === name)
           if (target) {
             const relatedAttributeIdList = target.relatedAttributeId?.split(',') || []
-            baseInfoForm.attributes[name].forEach((attributeOptionId, i) => {
+            attributesObj.value[name].forEach((attributeOptionId, i) => {
               const targetOption = target.options.find(item => item.id === attributeOptionId)
               submitAttributes.push({
                 id: relatedAttributeIdList[i],
@@ -938,8 +756,8 @@
               complexId: '0',
               attributeId: target.id,
               attributeName: name,
-              attributeOptionId: baseInfoForm.attributes[name].value,
-              attributeValue: baseInfoForm.attributes[name].label,
+              attributeOptionId: attributesObj.value[name].value,
+              attributeValue: attributesObj.value[name].label,
               isVariant: false
             })
           }
@@ -952,48 +770,48 @@
     }
 
     // 把以下固定的几项给过滤掉
-    const idList = Object.values(ATTRIBUTE_IDS)
+    const idList = Object.values(ATTR_ID_ENUM)
     submitAttributes = submitAttributes.filter(item => !idList.includes(item.attributeId))
 
     // 产品描述
-    if (baseInfoForm.desc) {
+    if (form.desc) {
       submitAttributes.push({
         complexId: '0',
         attributeId: 4191,
         attributeName: '产品描述',
         attributeOptionId: '0',
-        attributeValue: baseInfoForm.desc,
+        attributeValue: form.desc,
         isVariant: false
       })
     }
 
     // JSON富文本
-    if (baseInfoForm.jsons) {
+    if (form.jsons) {
       submitAttributes.push({
         complexId: '0',
         attributeId: 11254,
         attributeName: 'JSON富文本',
         attributeOptionId: '0',
-        attributeValue: baseInfoForm.jsons,
+        attributeValue: form.jsons,
         isVariant: false
       })
     }
 
     // 封面视频
-    if (baseInfoForm.coverUrl) {
+    if (form.coverVideoUrl) {
       submitAttributes.push({
         complexId: 100002,
         attributeId: 21845,
         attributeName: '封面视频',
         attributeOptionId: '0',
-        attributeValue: baseInfoForm.coverUrl,
+        attributeValue: form.coverVideoUrl,
         isVariant: false
       })
     }
 
     // 详情视频
-    if (baseInfoForm.video.length) {
-      baseInfoForm.video.forEach(video => {
+    if (form.videoList.length) {
+      form.videoList.forEach(video => {
         submitAttributes.push({
           complexId: 100001,
           attributeId: 21841,
@@ -1008,5 +826,40 @@
     return submitAttributes
   }
 
-  defineExpose({ baseInfoForm, getSubmitAttributes, childForm })
+  // 校验并提交数据
+  function emitData() {
+    // 给分类一个特殊关照
+    if (!form.categoryId) message.error('请选择分类!')
+
+    Promise.all([formRef.value.validate(), attrFormRef.value.validate()])
+      .then(() => {
+        // 外层值
+        const outerObj = {
+          productId: form.id,
+          productName: form.productName,
+          prefixDecorateName: form.prefixDecorateName,
+          suffixDecorateName: form.suffixDecorateName,
+          categoryId: form.categoryId,
+          vat: form.vat,
+          competitiveInfos: form.competitiveInfos.filter(item => item.linkUrl).map(item => ({ linkUrl: item.linkUrl })),
+          purchaseLinkUrls: form.purchaseLinkUrls
+            .filter(item => item.linkUrl)
+            .map(item => item.linkUrl)
+            .join(',')
+        }
+
+        // 产品属性
+        const submitAttributes = getSubmitAttributes()
+
+        return {
+          ...outerObj,
+          attributes: submitAttributes
+        }
+      })
+      .catch(err => {
+        return false
+      })
+  }
+
+  defineExpose({ emitData })
 </script>

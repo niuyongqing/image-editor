@@ -329,7 +329,7 @@
     <CustomCategorySelector
       v-model:open="categoryOpen"
       v-model:category-ids="form.categoryIds"
-      v-model:categoryLabels="categoryLabels"
+      v-model:category-labels="categoryLabels"
       @change="validateCategory"
     />
   </a-card>

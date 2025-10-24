@@ -230,7 +230,6 @@
 
   getList()
   function getList() {
-    console.log('getList')
     state.selectedRowKeys = []
     const params = {
       ...tableParams,
