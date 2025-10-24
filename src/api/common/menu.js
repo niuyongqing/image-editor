@@ -37,6 +37,8 @@ export function editCommonUseMenu(parameter) {
 
 // 更新菜单排序的API函数
 export function updateMenuSortApi(parameter) {
-  return usePost("/system/platform/router/sort", parameter)
+  return usePost("/system/platform/router/menuMove", parameter)
 }
+
+
 

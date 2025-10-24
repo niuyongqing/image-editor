@@ -1,7 +1,7 @@
 <template>
   <a-drawer
-    :width="620"
-    :style="{ paddingLeft: paddingLeft, transition: 'padding-left 0.3s ease' }"
+    :width="400"
+    :style="{ transform: `translateX(${paddingLeft})`, opacity: 1, transition: 'transform 0.3s ease, opacity 0.3s ease' }"
     title="菜单收藏"
     :body-style="{ padding: '12px 40px 0 20px' }"
     :placement="placement"

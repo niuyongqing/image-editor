@@ -101,10 +101,7 @@ const onOpenChange = (keys) => {
 };
 const placement = ref("left");
 
-// 暴露方法和状态给父组件
-defineExpose({
-  collapsed,
-});
+
 </script>
 
 <style scoped lang="less">

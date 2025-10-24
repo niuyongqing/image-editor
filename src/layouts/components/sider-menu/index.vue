@@ -7,10 +7,8 @@
     :trigger="null"
     :collapsed-width="collapsedWidth"
     :width="siderWidth"
-    :inlineCollapsed="collapsed"
     collapsible
     :collapsed="collapsed"
-    @collapse="handleCollapsed"
     :class="cls"
     :style="siderStyle"
   >
@@ -25,7 +23,7 @@
       </a>
     </div>
     <div class="flex-1 of-x-hidden of-y-auto scrollbar">
-      <Menu ref="menuRef" />
+      <Menu />
     </div>
     <!-- 常驻菜单模板 -->
     <!-- 引入新的抽屉菜单组件 -->
@@ -174,10 +172,16 @@ const siderStyle = computed(() => {
     paddingTop: `${
       layout.value !== "side" && !isMobile.value ? headerHeight.value : 0
     }px`,
-    transition:
-      "background-color 0.4s ease 0s, min-width 0.4s ease 0s, max-width 0.4s cubic-bezier(0.645, 0.045, 0.355, 1) 0s",
-    willChange: "transform, width, min-width, max-width, background-color",
+    // 保留完整的过渡效果，同时优化性能
+    transition: "transform 0.3s ease 0s, width 0.3s ease 0s, min-width 0.3s ease 0s, max-width 0.3s cubic-bezier(0.645, 0.045, 0.355, 1) 0s,",
+    willChange: "transform, width, min-width, max-width",
     transform: "translateZ(0)",
+    // 添加硬件加速
+    backfaceVisibility: "hidden",
+    // 使用CSS硬件加速的更多属性
+    perspective: "1000px",
+    // 减少布局重排
+    contain: "layout style",
   };
   if (layout.value === "mix" && header.value === false)
     style.paddingTop = "0px";
@@ -191,7 +195,6 @@ const cls = computed(() => ({
 const showLogo = computed(() => {
   return (layout.value === "side" || isMobile.value) && layout.value !== "mix";
 });
-const menuRef = ref(null);
 const drawerMenuRef = ref(null);
 
 // 处理抽屉关闭事件
@@ -201,22 +204,10 @@ const onDrawerClose = () => {
 
 // 设置常驻菜单模板打开
 const setMenu = () => {
-  const collapsed = menuRef.value?.collapsed || false;
-  // 如果菜单没有展开，抽屉和菜单一起展开
-  if (collapsed) {
-    handleCollapsed(false);
-    drawerOpen.value = true;
-    paddingLeft.value = "200px";
-  }
-  // 如果菜单展开了且抽屉也展开了，就只关闭抽屉
-  else if (drawerOpen.value) {
-    drawerOpen.value = false;
-  }
-  // 如果菜单展开了，抽屉没有展开，菜单不变抽屉展开
-  else {
-    drawerOpen.value = true;
-    paddingLeft.value = "200px";
-  }
+  // 仅控制抽屉开关
+  drawerOpen.value = !drawerOpen.value;
+  // 抽屉展开时同步 paddingLeft
+  paddingLeft.value = collapsed.value ? '50px' : '200px';    
 };
 const paddingLeft = ref("200px");
 const handleCollapsedFun = (isFlag) => {
@@ -265,16 +256,17 @@ async function out() {
 }
 
 .menuCollapsedIcon {
-  width: 50px;
-  height: 50px;
+  width: 30px;
+  text-align: center;
   overflow: hidden;
-  line-height: 50px;
-  font-size: 50px;
-  transform: translateY(-50%) scale(0.5);
+  font-size: 22px;
   position: absolute;
   top: 50%;
-  right: -25px;
+  right: -15px;
   cursor: pointer;
   z-index: 999999999999;
+  // 硬件加速
+  transform: translateY(-50%) translateZ(0);
+  will-change: transform;
 }
 </style>

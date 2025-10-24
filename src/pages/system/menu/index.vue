@@ -1,367 +1,550 @@
 <template>
   <div>
     <a-card style="margin-top: 10px">
-      <div style="margin-bottom: 10px;text-align: left;">
-        <a-button class="spacing" type="primary" @click="addOneMenu">添加</a-button>
+      <div style="margin-bottom: 10px; text-align: left">
+        <a-button class="spacing" type="primary" @click="addOneMenu"
+          >添加</a-button
+        >
+        <a-button class="spacing" type="primary" @click="dragMenuSave"
+          >拖拽保存</a-button
+        >
       </div>
       <div class="table-container" ref="tableContainer">
-        <vxe-table 
-          border 
-          :expand-config="expandConfig"
+        <vxe-table
+          border
           ref="xGrid2"
+          class="mytable-style"
           :sort-config="sortConfig"
-          :row-config="rowConfig" 
+          :row-config="rowConfig"
           :row-drag-config="rowDragConfig"
-          :column-config="columnConfig" 
+          :column-config="columnConfig"
           @cell-dblclick="cellDblclickEvent"
           @row-dragend="rowDragendEvent"
-          :tree-config="treeConfig" 
-          class="mytable-style"
-          :data="originalData" 
-          :cell-config="{height: 44}"
-          :loading="tableLoading"> 
-          <vxe-column type="seq" width="80"></vxe-column> 
-          <vxe-column  field="title" title="菜单名" width="240" tree-node drag-sort>
+          :tree-config="treeConfig"
+          :data="topLevelMenuList"
+          :loading="tableLoading"
+          height="1100"
+        >
+          <vxe-column type="seq" width="80" fixed="left"></vxe-column>
+          <vxe-column
+            fixed="left"
+            field="title"
+            title="菜单名"
+            tree-node
+            drag-sort
+            :key-field="'title'"
+          >
             <template #default="{ row }">
-              <div>
-                <AsyncIcon v-if="row.icon || (row.meta && row.meta.icon)" :icon="row.icon || row.meta.icon"></AsyncIcon>
+              <div class="menu-title-container">
+                <!-- 简化图标判断逻辑，减少不必要的属性访问 -->
+                <AsyncIcon
+                  v-if="row.icon || (row.meta && row.meta.icon)"
+                  :icon="row.icon || row.meta.icon"
+                  :component-key="`icon-${row.id}`"
+                ></AsyncIcon>
                 {{ row.title }}
               </div>
             </template>
-          </vxe-column> 
-          <vxe-column field="swmcName" title="分类" width="140"></vxe-column> 
-          <vxe-column field="sort" title="排序" width="80"></vxe-column> 
-          <vxe-column field="type" title="类型" width="100">
+          </vxe-column>
+          <vxe-column field="classify" title="分类">
+            <template #default="{ row }">
+              <div>{{ classifyMap[row.classify] || "" }}</div>
+            </template>
+          </vxe-column>
+          <vxe-column field="sort" title="排序" width="50" />
+          <vxe-column field="type" title="类型" >
             <template #default="{ row }">
               <div v-if="row.type === 1">文件夹</div>
               <div v-if="row.type === 2">菜单</div>
               <div v-if="row.type === 3">按钮</div>
             </template>
-          </vxe-column> 
-          <vxe-column field="permission" title="权限字符" width="180"></vxe-column> 
-          <vxe-column field="component" title="组件路径" min-width="200"></vxe-column> 
-          <vxe-column field="path" title="路径" min-width="150"></vxe-column> 
-          <vxe-column field="redirect" title="重定向" min-width="150"></vxe-column> 
-          <vxe-column field="hideInMenu" title="是否隐藏" width="100">
+          </vxe-column>
+          <vxe-column
+            field="permission"
+            title="权限字符"
+          ></vxe-column>
+          <vxe-column field="component" title="组件路径"></vxe-column>
+          <vxe-column field="path" title="路径"></vxe-column>
+          <vxe-column
+            field="redirect"
+            title="重定向"
+          ></vxe-column>
+          <vxe-column field="hideInMenu" title="是否隐藏">
             <template #default="{ row }">
-              <a-tag v-if="row.hideInMenu" color="#f50">是</a-tag>
-              <a-tag v-else color="#2db7f5">否</a-tag>
-            </template>
-          </vxe-column> 
-          <vxe-column field="keepAlive" title="是否保活" width="100">
-            <template #default="{ row }">
-              <a-tag v-if="row.keepAlive" color="#f50">是</a-tag>
-              <a-tag v-else color="#2db7f5">否</a-tag>
+              <a-tag :color="row.hideInMenu ? '#f50' : '#2db7f5'">
+                {{ row.hideInMenu ? '是' : '否' }}
+              </a-tag>
             </template>
           </vxe-column>
-          <vxe-column title="操作" width="152">
+          <vxe-column field="keepAlive" title="是否保活" >
             <template #default="{ row }">
-              <a-button type="link" @click.stop="add(row)" color="#2db7f5">添加</a-button>
+              <a-tag :color="row.keepAlive ? '#f50' : '#2db7f5'">
+                {{ row.keepAlive ? '是' : '否' }}
+              </a-tag>
+            </template>
+          </vxe-column>
+          <vxe-column title="操作" fixed="right">
+            <template #default="{ row }">
+              <a-button type="link" @click.stop="add(row)" color="#2db7f5"
+                >添加</a-button
+              >
               <a-button type="link" @click.stop="edit(row)">编辑</a-button>
-              <a-popconfirm :title="'确定要删除菜单吗？'" @confirm="confirmDeleteMenu(row)">
+              <a-popconfirm
+                :title="'确定要删除菜单吗？'"
+                @confirm="confirmDeleteMenu(row)"
+              >
                 <a-button type="text" danger>删除</a-button>
               </a-popconfirm>
             </template>
           </vxe-column>
         </vxe-table>
       </div>
-
     </a-card>
-    <add-or-edit :open="open" :title="title" :data="editData" @close="close" :menus="newMenuData"></add-or-edit>
+    <add-or-edit
+      ref="addOrEditRef"
+      :open="open"
+      :title="title"
+      :data="editData"
+      @close="close"
+      @getMenuClassify="getMenuClassify"
+      @refreshMenu="refreshMenu"
+      @getMenusList="getMenusList"
+      :menus="treeMenuData"
+      :classify="classifyList"
+    ></add-or-edit>
   </div>
 </template>
 <script setup>
-import {ref, reactive} from 'vue';
-import {getMenusListApi, delMenuApi,} from '~/api/common/menu.js'
+import { ref, onMounted, nextTick, onBeforeUnmount } from "vue";
+import {
+  getMenusListApi,
+  delMenuApi,
+  updateMenuSortApi,
+  selectMenuClassify,
+} from "~/api/common/menu.js";
+import { VXETable } from "vxe-table";
+
+// 使用更高效的同步引入方式加载图标组件，避免展开时的异步加载延迟
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import AddOrEdit from "~/pages/system/menu/component/addOrEdit.vue";
-import { VXETable } from 'vxe-table';
-import 'vxe-table/lib/style.css';
-import 'vxe-pc-ui/lib/style.css';
-import { VxeTable, VxeColumn } from 'vxe-table';
-const tableContainer = ref(null);
-const dataSource = ref([])
-const originalData = ref([])
-// 使用originalData作为vxe-table的数据源
-const rowConfig = reactive({ 
-  drag: true,
-  isCurrent: true,
-  isHover: true,
-})
-const columnConfig = reactive({
-  resizable: true,// 列宽可以拖拽
-})
+import { message } from "ant-design-vue";
+import "vxe-table/lib/style.css";
+import {
+  splitMenuDataForLazyLoad,
+  fetchMenuChildren,
+  buildCompleteMenuTree,
+} from "./menuDataUtils";
 
-const rowDragConfig = reactive({
+// 在组件中引入userStore
+import { useUserStore } from "~/stores/user.js";
+VXETable.setup({
+  icon: {
+    TABLE_DRAG_STATUS_SUB_ROW: "vxe-icon-add-sub",
+    // 更多图标配置...
+  },
+});
+// 更新菜单数据
+const refreshMenu = async () => {
+  const userStore = useUserStore();
+  await userStore.generateDynamicRoutes();
+};
+const tableContainer = ref(null);
+const originalData = ref([]); // 只保留一个数据源
+// 使用局部常量代替响应式对象，减少内存占用
+const rowConfig = {
+  drag: true,
+  isHover: true,
+};
+const columnConfig = {};
+
+const rowDragConfig = {
+  isCrossDrag: true,
+  isSelfToChildDrag: true,
+  isToChildDrag: true,
   isPeerDrag: true,
-    showIcon: false,
+  showIcon: false,
   showGuidesStatus: true,
-  trigger: 'row',// 触发方式改为行拖动
-  
-})
-const expandConfig = reactive({
-   showIcon: true,
-  iconOpen: 'vxe-icon-square-minus',
-  iconClose: 'vxe-icon-square-plus',
-  width: 50,
-})
+  trigger: "row",
+};
+
+// 优化树形配置，禁用不必要的特性
 const treeConfig = ref({
   transform: true,
-  rowField: 'id',
-  parentField: 'parentId',
-})
+  rowField: "id",
+  parentField: "parentId",
+  lazy: true,
+  hasChild: "hasChild",
+  loadMethod({ row }) {
+    // 使用工具函数异步加载子菜单
+    return fetchMenuChildren(childrenMapList, row.id).then((children) => {
+      // 记录加载的子菜单，用于保存时重建完整菜单树
+      completeChildrenMap.set(row.id, [...children]);
+      return children;
+    });
+  },
+});
 
-const title = ref(''); // 当前点击按钮是添加还是编辑
-const editData = ref({})
-const tableHeight = ref(0);
+const addOrEditRef = ref(null);
+const title = ref(""); // 当前点击按钮是添加还是编辑
+const editData = ref({});
 const open = ref(false);
 const tableLoading = ref(false);
 const xGrid2 = ref(null);
-const newMenuData = reactive([])
+let treeMenuData = [];
+let topLevelMenuList = [];
+let childrenMapList = new Map();
+// 存储完整的子菜单数据，用于重建菜单树
+const completeChildrenMap = new Map();
+// 使用普通Map存储拖拽数据，支持clear()方法
+const draggedMenuMap = new Map();
+const classifyList = ref([]);
+const classifyMap = ref({}); // 用于快速查找分类名称的映射
 const cellDblclickEvent = ({ row, column, rowIndex, columnIndex }) => {
-  edit(row)
-}
-const setTableHeight = () => {
-  if (tableContainer.value) {
-    tableHeight.value = window.innerHeight - tableContainer.value.getBoundingClientRect().top - 100; // 偏移量可根据需求调整
-  }
+  edit(row);
 };
-VXETable.setup({
-   icon: {
-    TABLE_DRAG_STATUS_SUB_ROW: 'vxe-icon-add-sub',
-    // 更多图标配置...
-  }
-})
 
-// 处理菜单拖拽排序事件，避免无限递归
-const rowDragendEvent = ({dragRow}) => {
-  // 获取表格当前的数据
-  const newData = xGrid2.value.getTableData().tableData;
-  
-  // 非递归方式设置排序值，避免栈溢出
-  // 1. 首先按parentId分组所有数据
-  const parentMap = {};
-  
-  // 构建父节点映射关系
-  newData.forEach(item => {
-    const parentId = item.parentId || '';
-    if (!parentMap[parentId]) {
-      parentMap[parentId] = [];
+// 获取菜单分类并构建映射 - 优化为同步构建映射
+function getMenuClassify() {
+  selectMenuClassify().then((res) => {
+    const data = res.data || [];
+    classifyList.value = data;
+    // 使用对象字面量并循环赋值，减少数组方法调用
+    const map = Object.create(null); // 使用Object.create(null)避免原型链查找
+    for (let i = 0, len = data.length; i < len; i++) {
+      const item = data[i];
+      map[item.id] = item.name;
     }
-    parentMap[parentId].push(item);
+    classifyMap.value = map;
   });
-  
-  if (dragRow) {
-    const parentId = dragRow.parentId || '';
-    const siblingItems = parentMap[parentId] || [];
-    console.log('当前拖拽菜单的同级菜单:', siblingItems);
-    
-    // 确保同级菜单排序值连续
-    siblingItems.forEach((item, index) => {
-      item.sort = index + 1;
-      console.log(`设置同级菜单排序: ${item.title} = ${item.sort}`);
-    });
-  }
-  newMenuData.length = 0
-  newMenuData.push(...newData)
-  console.log('所有菜单项排序值已重置为从1开始递增');
-  console.log('数据', newData);
+}
+
+// 添加防抖函数 - 优化闭包结构
+function debounce(fn, delay = 100) {
+  let timer = null;
+  return function (...args) {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => {
+      fn.apply(this, args);
+      timer = null; // 清理定时器引用
+    }, delay);
+  };
+}
+
+// 创建防抖版本的拖拽处理函数
+const debouncedRowDragend = debounce((dragRow, tableData) => {
+  if (!dragRow || !tableData) return;
+
+  // 直接处理拖拽行的同级元素，避免构建整个映射
+  const parentId = dragRow.parentId || "";
+
+  // 就地更新排序，避免创建额外数组
+  let siblingCount = 0;
+  for (let i = 0, len = tableData.length; i < len; i++) {
+    const item = tableData[i];
+    if ((item.parentId || "") === parentId) {
+      item.sort = ++siblingCount;
+    }
   }
 
-const sortConfig = reactive({
-  field: 'sort',
-  order: 'asc'
-})
+  // 使用WeakMap存储拖拽数据，避免内存泄漏
+  const parentKey = parentId || "root";
+  const parentGroup = draggedMenuMap.get(parentKey) || {
+    parentId,
+    sortMenus: [],
+  };
 
-onMounted(()=>{
-  setTableHeight();
-  window.addEventListener('resize', setTableHeight);
-})
-onUnmounted(() => {
-  window.removeEventListener('resize', setTableHeight);
+  // 复用数组而不是创建新数组
+  parentGroup.sortMenus.length = 0;
+  for (let i = 0, len = tableData.length; i < len; i++) {
+    const item = tableData[i];
+    if ((item.parentId || "") === parentId) {
+      // 最小化对象创建
+      parentGroup.sortMenus.push({
+        id: item.id,
+        // 移除不必要的title属性
+        sort: item.sort,
+        parentId: item.parentId,
+      });
+    }
+  }
+
+  draggedMenuMap.set(parentKey, parentGroup);
+}, 200);
+
+// 处理菜单拖拽排序事件 - 优化内存使用
+const rowDragendEvent = ({ dragRow }) => {
+  if (!xGrid2.value || !dragRow) return;
+  // 获取表格当前的数据
+  const tableData = xGrid2.value.getTableData().tableData;
+  // 使用防抖函数处理，减少频繁计算
+  debouncedRowDragend(dragRow, tableData);
+};
+
+const sortConfig = {
+  field: "sort",
+  order: "asc",
+};
+
+// 拖拽保存菜单排序 - 优化数据转换
+const dragMenuSave = () => {
+  // 从WeakMap转换为数组格式
+  const draggedMenuArray = [];
+  draggedMenuMap.forEach((group) => {
+    draggedMenuArray.push(group);
+  });
+
+  updateMenuSortApi(draggedMenuArray).then((res) => {
+    if (res.code === 200) {
+      message.success("菜单排序更新成功");
+      // 清理WeakMap中的数据
+      draggedMenuMap.clear();
+      // 刷新菜单数据
+      refreshMenu();
+    } else {
+      message.error(res.msg || "菜单排序更新失败");
+    }
+  });
+};
+
+onMounted(() => {
+  // 加载菜单数据
+  getMenusList();
+  // 获取分类数据
+  getMenuClassify();
 });
-// function formatMenu(route, path) {
-//   return {
-//     id: route.meta?.id,
-//     sort: route.meta?.sort,
-//     commonUse: route.meta?.commonUse,
-//     parentId: route.meta?.parentId,
-//     permission:route.permission,
-//     title: route,
-//     icon: route.meta?.icon || '',
-//     path: path ?? route.path,
-//     hideInMenu: route.meta?.hideInMenu || false,
-//     parentKeys: route.meta?.parentKeys || [],
-//     hideInBreadcrumb: route.meta?.hideInBreadcrumb || false,
-//     hideChildrenInMenu: route.meta?.hideChildrenInMenu || false,
-//     locale: route.meta?.locale,
-//     keepAlive: route.meta?.keepAlive || false,
-//     name: route.name,
-//     url: route.meta?.url || '',
-//     target: route.meta?.target || '_blank',
-//   }
-// }
-
-
-// function generateTreeRoutes(menus) {
-//   const routeDataMap = /* @__PURE__ */ new Map()
-//   for (const menuItem of menus) {
-//     if (!menuItem.id)
-//       continue
-//     const route = {
-//       id: menuItem.id,
-//       path: menuItem.path,
-//       permission:menuItem.permission,
-//       name: menuItem.name,
-//       component: menuItem.component,
-//       redirect: menuItem.redirect || void 0,
-//       sort: menuItem?.sort,
-//       title: menuItem.title,
-//       type: menuItem?.type,
-//       commonUse: menuItem?.commonUse,
-//       meta: {
-//         sort: menuItem?.sort,
-//         title: menuItem?.title,
-//         icon: menuItem?.icon,
-//         keepAlive: menuItem?.keepAlive,
-//         id: menuItem?.id,
-//         parentId: menuItem?.parentId,
-//         affix: menuItem?.affix,
-//         parentKeys: menuItem?.parentKeys,
-//         url: menuItem?.url,
-//         hideInMenu: menuItem?.hideInMenu,
-//         hideChildrenInMenu: menuItem?.hideChildrenInMenu,
-//         hideInBreadcrumb: menuItem?.hideInBreadcrumb,
-//         target: menuItem?.target,
-//         locale: menuItem?.locale,
-//       },
-//     }
-//     formatMenu(route)
-//     routeDataMap.set(menuItem.id, route)
-//   }
-//   const routeData = []
-//   for (const menuItem of menus) {
-//     if (!menuItem.id)
-//       continue
-//     const currentRoute = routeDataMap.get(menuItem.id)
-//     if (!menuItem.parentId) {
-//       if (currentRoute) {
-//         routeData.push(currentRoute)
-//       }
-//     } else {
-//       const pRoute = routeDataMap.get(menuItem.parentId)
-//       if (currentRoute && pRoute) {
-//         if (pRoute.children) {
-//           pRoute.children.push(currentRoute)
-//         } else {
-//           pRoute.children = [currentRoute]
-//         }
-//       }
-//     }
-//   }
-//   // sortBySortKey(routeData);
-//   return {
-//     routeData,
-//   }
-// }
 
 function confirmDeleteMenu(item) {
-  console.log('row',item)
-  delMenuApi({id: item.id}).then(res => {
-    getMenusList({})
-  })
+  if (!item || !item.id) return;
+  delMenuApi({ id: item.id }).then((res) => {
+    // 先清理缓存再重新获取数据
+    draggedMenuMap.clear();
+    getMenusList();
+    refreshMenu();
+  });
 }
 
-function getMenusList() {
-  tableLoading.value = true
-  getMenusListApi({}).then((value) => {
-    // 先处理数据生成路由数据
-    // dataSource.value = generateTreeRoutes(value.data).routeData
-    console.log('dataSource.value',dataSource.value)
-    // 获取原数据并根据sortConfig进行排序
-    originalData.value = [...value.data]
-    // 根据sortConfig配置对originalData进行排序
-    if (sortConfig.field && sortConfig.order) {
-      originalData.value.sort((a, b) => {
-        const field = sortConfig.field
-        const order = sortConfig.order
-        if (a[field] < b[field]) return order === 'asc' ? -1 : 1
-        if (a[field] > b[field]) return order === 'asc' ? 1 : -1
-        return 0
-      })
+/**
+ * 将菜单列表转换为树结构 - 优化内存使用
+ * @param {Array} menuList - 原始菜单列表
+ */
+const getTreeMenu = (menuList) => {
+  if (!menuList || !menuList.length) {
+    treeMenuData = [];
+    return;
+  }
+
+  // 使用局部变量构建树结构
+  const map = Object.create(null); // 使用Object.create(null)避免原型链查找
+  const result = [];
+  const len = menuList.length;
+
+  // 单次遍历构建树结构，避免两次遍历
+  for (let i = 0; i < len; i++) {
+    const item = menuList[i];
+    const id = item.id;
+
+    // 如果节点不存在，则创建
+    if (!map[id]) {
+      map[id] = { children: [] };
     }
-  }).finally(()=>{
-    tableLoading.value = false
-  })
+
+    // 合并属性，避免完整复制对象
+    Object.assign(map[id], item);
+
+    const parentId = item.parentId;
+
+    if (!parentId || parentId === null) {
+      // 顶级节点
+      result.push(map[id]);
+    } else {
+      // 确保父节点存在
+      if (!map[parentId]) {
+        map[parentId] = { children: [] };
+      }
+      // 子节点，挂到父节点下
+      map[parentId].children.push(map[id]);
+    }
+  }
+  treeMenuData = JSON.parse(JSON.stringify(result));
+  // 初始化，拆分菜单数据用于懒加载
+  const { topLevelMenus, childrenMap } = splitMenuDataForLazyLoad(result);
+  // 直接赋值
+  topLevelMenuList = topLevelMenus;
+  console.log("childrenMap:", childrenMap);
+  childrenMapList = childrenMap;
+  // 复制原始子菜单映射到完整子菜单映射
+  childrenMapList.forEach((children, parentId) => {
+    completeChildrenMap.set(parentId, [...children]);
+  });
+};
+
+function getMenusList() {
+  tableLoading.value = true;
+  getMenusListApi({})
+    .then((value) => {
+      // 使用局部变量缓存数据
+      const data = value.data || [];
+
+      // 先创建树结构
+      getTreeMenu(data);
+
+      // 直接使用数据，避免不必要的排序和复制
+      // 只有在明确需要排序时才执行排序
+      if (sortConfig.field && sortConfig.order) {
+        // 原地排序，避免创建新数组
+        const sortField = sortConfig.field;
+        const sortOrder = sortConfig.order;
+
+        // 先复制一份引用，避免直接修改原始数据
+        const sortedData = [...data];
+
+        // 执行排序
+        sortedData.sort((a, b) => {
+          // 避免重复访问属性
+          const aVal = a[sortField];
+          const bVal = b[sortField];
+
+          // 优化比较逻辑
+          if (aVal === undefined || aVal === null)
+            return sortOrder === "asc" ? -1 : 1;
+          if (bVal === undefined || bVal === null)
+            return sortOrder === "asc" ? 1 : -1;
+
+          if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
+          if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
+          return 0;
+        });
+
+        originalData.value = sortedData;
+      } else {
+        originalData.value = data;
+      }
+    })
+    .finally(() => {
+      tableLoading.value = false;
+    });
 }
 
 function edit(pam) {
-  title.value = '编辑'
-  open.value = true
-  editData.value = pam
+  title.value = "编辑";
+  open.value = true;
+  // 创建副本避免修改原始数据
+  editData.value = { ...pam };
 }
 
 function add(pam) {
-  title.value = '新增'
-  open.value = true
-  editData.value = pam
+  title.value = "新增";
+  open.value = true;
+  // 创建副本避免修改原始数据
+  editData.value = { ...pam };
 }
 
 function addOneMenu() {
-  title.value = '添加一级菜单'
-  open.value = true
+  title.value = "添加一级菜单";
+  open.value = true;
+  // 添加一级菜单
+  const maxSort = getMaxMenuSort() + 1;
+  addOrEditRef.value.setParentMenu(maxSort);
 }
+
+const getMaxMenuSort = () => {
+  let maxSort = 0;
+  // 使用局部变量缓存treeMenuData，减少响应式访问
+  const menuData = topLevelMenuList;
+  // 缓存长度属性
+  const len = menuData.length;
+
+  // 直接循环获取最大值，避免额外的属性访问
+  for (let i = 0; i < len; i++) {
+    const item = menuData[i];
+    if (item && item.sort > maxSort) {
+      maxSort = item.sort;
+    }
+  }
+  return maxSort;
+};
 
 function close() {
-  title.value = ''
-  open.value = false
-  editData.value = {}
-  // 先调用拖拽事件更新sort值
-  // rowDragendEvent()
-  getMenusList()
+  title.value = "";
+  open.value = false;
+  // 清空对象而不是创建新对象
+  Object.keys(editData.value).forEach((key) => {
+    delete editData.value[key];
+  });
 }
 
+// 组件卸载前清理资源，避免内存泄漏
+onBeforeUnmount(() => {
+  // 清理拖拽数据
+  draggedMenuMap.clear();
+  // 清空响应式数据
+  originalData.value = [];
+  classifyList.value = [];
+  classifyMap.value = {};
+  // 清空editData
+  Object.keys(editData.value).forEach((key) => {
+    delete editData.value[key];
+  });
+});
 
-// vxe-table 已在模板中直接定义列配置，无需外部columns数组
-onBeforeMount(() => {
-  getMenusList({});
-})
+// 已在上面的onMounted中处理
 </script>
-
-
 
 <style scoped lang="less">
 .spacing {
   margin-right: 10px;
 }
 
-.ant-table th,
-.ant-table td {
-  text-align: center;
-}
-
-::v-deep(.ant-card) {
+/* 优化样式选择器，减少深度选择器的使用 */
+:deep(.ant-card) {
   padding: 6px;
 }
-::v-deep(.mytable-style.vxe-table) {
-  color: rgba(0, 0, 0, 0.80);
+:deep(.mytable-style.vxe-table) {
+  color: rgba(0, 0, 0, 0.8);
+  /* 减少重绘和回流 */
+  will-change: transform;
+  /* 禁用动画效果以提高性能 */
+  transition: none;
 }
-::v-deep(.mytable-style.vxe-table .vxe-header--column) {
+:deep(.mytable-style.vxe-table .vxe-header--column) {
   color: rgba(0, 0, 0, 0.88);
 }
-
-::v-deep(.vxe-table--render-default .vxe-cell--tree-btn .vxe-table-icon-caret-right) {
-   color: rgba(0, 0, 0, 0.80);
+:deep(
+    .vxe-table--render-default .vxe-cell--tree-btn .vxe-table-icon-caret-right
+  ) {
+  color: rgba(0, 0, 0, 0.8);
+  /* 提升图标响应速度 */
+  pointer-events: auto;
 }
-::v-deep(.vxe-table--render-default .vxe-cell--tree-btn) {
-   transform: translate(0, -65%);
+:deep(.vxe-table--render-default .vxe-cell--tree-btn) {
+  transform: translate(0, -65%);
+  /* 优化点击区域 */
+  padding: 0;
+  margin: 0;
 }
 
-/* 将右箭头改为加号图标 */
-::v-deep(.vxe-table--render-default .vxe-cell--tree-btn .vxe-table-icon-caret-right)::before {
-  content: "›" !important;
-  font-size: 28px;
+/* 优化展开图标，使用更简单的样式 */
+:deep(
+    .vxe-table--render-default .vxe-cell--tree-btn .vxe-table-icon-caret-right
+  )::before {
+  content: "+" !important;
+  font-size: 16px;
+  line-height: 1;
+  display: inline-block;
+  transition: none;
+}
+:deep(
+    .vxe-table--render-default .vxe-cell--tree-btn-expanded .vxe-table-icon-caret-right
+  )::before {
+  content: "-" !important;
 }
 
-
+/* 优化菜单标题容器样式 */
+.menu-title-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  /* 避免不必要的重绘 */
+  transform: none;
+}
 </style>
