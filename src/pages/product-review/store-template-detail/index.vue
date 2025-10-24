@@ -168,6 +168,21 @@
           </a-form-item>
         </div>
       </div>
+            <span class="borderTop"></span>
+      <div class="module-item">
+        <div class="module-item-label">富文本模板</div>
+        <div class="module-item-content">
+          <a-form-item
+            name="richTextTemplate"
+            class="wInput100"
+          >
+            <watermarkTable
+              ref="watermarkTableRef"
+              :dataSource="watermarkTableData"
+            />
+          </a-form-item>
+        </div>
+      </div>
       <!-- 操作按钮 -->
       <div class="form-actions mt-24">
         <a-button type="primary" html-type="submit">提交</a-button>
@@ -180,6 +195,7 @@
 import { reactive, ref, computed } from "vue";
 import { useRoute } from "vue-router";
 import jsonEditor from "@/pages/ozon/config/component/json/index.vue";
+import watermarkTable from "./comm/watermarkTable.vue";
 // 导入表单验证规则
 import { generateRules } from "./utils/rule.js";
 
@@ -189,7 +205,8 @@ const id = ref(route.query.id);
 const labelCol = { style: { width: "100px" } };
 // 表单引用
 const formRef = ref();
-
+// 水印表格
+const watermarkTableData = ref([])
 // 表单数据
 const formState = reactive({
   shopId: "",
