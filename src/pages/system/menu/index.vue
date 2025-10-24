@@ -52,34 +52,28 @@
             </template>
           </vxe-column>
           <vxe-column field="sort" title="排序" width="50" />
-          <vxe-column field="type" title="类型" >
+          <vxe-column field="type" title="类型">
             <template #default="{ row }">
               <div v-if="row.type === 1">文件夹</div>
               <div v-if="row.type === 2">菜单</div>
               <div v-if="row.type === 3">按钮</div>
             </template>
           </vxe-column>
-          <vxe-column
-            field="permission"
-            title="权限字符"
-          ></vxe-column>
+          <vxe-column field="permission" title="权限字符"></vxe-column>
           <vxe-column field="component" title="组件路径"></vxe-column>
           <vxe-column field="path" title="路径"></vxe-column>
-          <vxe-column
-            field="redirect"
-            title="重定向"
-          ></vxe-column>
+          <vxe-column field="redirect" title="重定向"></vxe-column>
           <vxe-column field="hideInMenu" title="是否隐藏">
             <template #default="{ row }">
               <a-tag :color="row.hideInMenu ? '#f50' : '#2db7f5'">
-                {{ row.hideInMenu ? '是' : '否' }}
+                {{ row.hideInMenu ? "是" : "否" }}
               </a-tag>
             </template>
           </vxe-column>
-          <vxe-column field="keepAlive" title="是否保活" >
+          <vxe-column field="keepAlive" title="是否保活">
             <template #default="{ row }">
               <a-tag :color="row.keepAlive ? '#f50' : '#2db7f5'">
-                {{ row.keepAlive ? '是' : '否' }}
+                {{ row.keepAlive ? "是" : "否" }}
               </a-tag>
             </template>
           </vxe-column>
@@ -376,8 +370,37 @@ const getTreeMenu = (menuList) => {
   childrenMapList.forEach((children, parentId) => {
     completeChildrenMap.set(parentId, [...children]);
   });
+
+  defaultSort();
 };
 
+// 默认排序
+const defaultSort = () => {
+  // 为顶级菜单排序
+  if (topLevelMenuList && topLevelMenuList.length > 0) {
+    topLevelMenuList.sort((a, b) => {
+      const sortA = a.sort || a.orderNum || 0;
+      const sortB = b.sort || b.orderNum || 0;
+      return sortA - sortB;
+    });
+  }
+
+  // 为所有子菜单排序
+  childrenMapList.forEach((children, parentId) => {
+    if (children && children.length > 0) {
+      children.sort((a, b) => {
+        const sortA = a.sort || a.orderNum || 0;
+        const sortB = b.sort || b.orderNum || 0;
+        return sortA - sortB;
+      });
+    }
+
+    // 同步更新完整子菜单映射
+    if (completeChildrenMap.has(parentId)) {
+      completeChildrenMap.set(parentId, [...children]);
+    }
+  });
+};
 function getMenusList() {
   tableLoading.value = true;
   getMenusListApi({})
@@ -387,38 +410,6 @@ function getMenusList() {
 
       // 先创建树结构
       getTreeMenu(data);
-
-      // 直接使用数据，避免不必要的排序和复制
-      // 只有在明确需要排序时才执行排序
-      if (sortConfig.field && sortConfig.order) {
-        // 原地排序，避免创建新数组
-        const sortField = sortConfig.field;
-        const sortOrder = sortConfig.order;
-
-        // 先复制一份引用，避免直接修改原始数据
-        const sortedData = [...data];
-
-        // 执行排序
-        sortedData.sort((a, b) => {
-          // 避免重复访问属性
-          const aVal = a[sortField];
-          const bVal = b[sortField];
-
-          // 优化比较逻辑
-          if (aVal === undefined || aVal === null)
-            return sortOrder === "asc" ? -1 : 1;
-          if (bVal === undefined || bVal === null)
-            return sortOrder === "asc" ? 1 : -1;
-
-          if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
-          if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
-          return 0;
-        });
-
-        originalData.value = sortedData;
-      } else {
-        originalData.value = data;
-      }
     })
     .finally(() => {
       tableLoading.value = false;
@@ -527,8 +518,6 @@ onBeforeUnmount(() => {
   margin: -20px -15px;
   cursor: pointer;
 }
-
-
 
 /* 优化菜单标题容器样式 */
 .menu-title-container {
