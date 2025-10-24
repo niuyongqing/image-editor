@@ -517,27 +517,18 @@ onBeforeUnmount(() => {
   pointer-events: auto;
 }
 :deep(.vxe-table--render-default .vxe-cell--tree-btn) {
-  transform: translate(0, -65%);
-  /* 优化点击区域 */
-  padding: 0;
-  margin: 0;
+  /* 修改为使用flex布局实现完美居中 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translate(25%, 0);
+  /* 扩大点击区域：增大内边距 */
+  padding: 20px 15px;
+  margin: -20px -15px;
+  cursor: pointer;
 }
 
-/* 优化展开图标，使用更简单的样式 */
-:deep(
-    .vxe-table--render-default .vxe-cell--tree-btn .vxe-table-icon-caret-right
-  )::before {
-  content: "+" !important;
-  font-size: 16px;
-  line-height: 1;
-  display: inline-block;
-  transition: none;
-}
-:deep(
-    .vxe-table--render-default .vxe-cell--tree-btn-expanded .vxe-table-icon-caret-right
-  )::before {
-  content: "-" !important;
-}
+
 
 /* 优化菜单标题容器样式 */
 .menu-title-container {
