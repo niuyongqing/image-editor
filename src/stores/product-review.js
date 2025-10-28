@@ -3,11 +3,9 @@ export const useProductReviewStore = defineStore('productReviewStore', {
   state: () => {
     return {
       attributes: {},
-      productDetail: {},
-      waterMarkOptions: [],
+      detail: {},
       SKUTableData: [], // 变种表格数据
       attrList: [], // 变种属性列表
-      addHeaderList: [], // 设置颜色和标题
     }
   }
 })

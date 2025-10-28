@@ -396,7 +396,7 @@
   import { useAuthorization } from '@/composables/authorization'
   import { MtImageEBaseUrl } from '@/pages/sample/acquisitionEdit/js/api.js'
   import { batchUploadFromUrlApi } from '@/api/common/upload'
-  import { watermarkApi } from '@/api/common/water-mark'
+  import { watermarkListApi, watermarkApi } from '@/api/common/water-mark'
   import { cloneDeep } from 'lodash'
   import { v4 as uuidv4 } from 'uuid'
   import { encryptString } from '@/utils/tools.js'
@@ -409,16 +409,15 @@
   import { processImageSource } from '@/pages/ozon/config/commJs/index'
 
   defineOptions({ name: 'ImageInfo' })
-  
-  // const collectProductId = inject('collectProductId', '')
+
   const databaseId = inject('databaseId', '') // 资料库 id
 
   const store = useProductReviewStore()
-  const waterMarkOptions = computed(() => store.waterMarkOptions)
   const dataSource = computed(() => store.SKUTableData)
   const attrList = computed(() => store.attrList)
 
   const props = defineProps({
+    // TODO: 限制图片最大数量
     maxCount: {
       type: Number,
       default: 30
@@ -429,6 +428,16 @@
   const headers = { Authorization: useAuthorization().value }
   const uploadImageUrl = import.meta.env.VITE_APP_BASE_API + '/platform-ozon/platform/ozon/file/upload/img'
   const databaseImageModalRef = ref(null) // 资料库图片弹窗 REF
+
+  /** 水印 */
+  const watermarkOptions = ref([])
+
+  getWatermark()
+  function getWatermark() {
+    watermarkListApi().then(res => {
+      watermarkOptions.value = res.data || []
+    })
+  }
 
   watch(
     () => dataSource.value,

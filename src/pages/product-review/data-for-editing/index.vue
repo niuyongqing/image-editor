@@ -125,7 +125,7 @@
             <span>{{ MARKET_OPTIONS.find(item => item.value === record.devAttributableMarket)?.label || '--' }}</span>
           </template>
           <template v-else-if="column.key === 'sku'">
-            <div class="w-100 ">{{ record.skuList || '--' }}</div>
+            <div class="w-100 ">{{ record.skuCodes || record.skuList || '--' }}</div>
           </template>
           <template v-else-if="column.key === 'storage'">
             <span>{{ STORAGE_OPTIONS.find(item => item.value === record.meansKeepGrain)?.label || '--' }}</span>
@@ -297,7 +297,7 @@
       id: record.commodityId,
       tradeName: record.commodityName, //商品名称
       classify: record.classify, //商品分类
-      skuList: record.skuList, //商品SKU列表
+      skuList: record.skuCodes || record.skuList, //商品SKU列表
       productId: record.intelligentProductId, //商品ID
     }
 

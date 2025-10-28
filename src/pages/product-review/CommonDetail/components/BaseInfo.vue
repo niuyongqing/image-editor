@@ -4,6 +4,7 @@
     <a-form
       :model="form"
       ref="formRef"
+      :rules="rules"
       :label-col="{ style: { width: '94px' } }"
     >
       <a-form-item
@@ -17,17 +18,23 @@
           allow-clear
         />
       </a-form-item>
-      <a-form-item label="前缀修饰词">
+      <a-form-item
+        label="前缀修饰词"
+        name="prefixDecorateName"
+      >
         <a-input
           v-model:value="form.prefixDecorateName"
-          placeholder="请输入中文前缀修饰词, 多个请用英文逗号隔开"
+          placeholder="请输入中文前缀修饰词, 多个请用中文逗号隔开"
           allow-clear
         />
       </a-form-item>
-      <a-form-item label="后缀修饰词">
+      <a-form-item
+        label="后缀修饰词"
+        name="suffixDecorateName"
+      >
         <a-input
           v-model:value="form.suffixDecorateName"
-          placeholder="请输入中文后缀修饰词, 多个请用英文逗号隔开"
+          placeholder="请输入中文后缀修饰词, 多个请用中文逗号隔开"
           allow-clear
         />
       </a-form-item>
@@ -148,7 +155,7 @@
       <a-form-item label="产品属性">
         <a-card
           :loading="attrLoading"
-          class="min-h-15 max-h-160 overflow-y-auto"
+          class="min-h-15 max-h-150 overflow-y-auto"
         >
           <a-form
             ref="attrFormRef"
@@ -172,12 +179,23 @@
                 </a-tooltip>
               </template>
 
-              <a-input
-                v-if="item.selectType === 'input'"
-                v-model:value="attributesObj[item.name]"
-                allow-clear
-                placeholder="请输入"
-              />
+              <template v-if="item.selectType === 'input'">
+                <a-input
+                  v-if="item.type === 'String'"
+                  v-model:value="attributesObj[item.name]"
+                  allow-clear
+                  placeholder="请输入"
+                />
+                <a-input-number
+                  v-else
+                  v-model:value="attributesObj[item.name]"
+                  :controls="false"
+                  :precision="0"
+                  :min="0"
+                  :max="99999"
+                  placeholder="请输入"
+                />
+              </template>
 
               <a-select
                 v-else-if="item.selectType === 'select'"
@@ -232,7 +250,7 @@
       <a-form-item
         label="产品描述"
         name="desc"
-        required
+        :required="descRequired"
       >
         <a-textarea
           v-model:value="form.desc"
@@ -365,7 +383,7 @@
 
 <script setup>
   import CustomCategorySelector from '@/components/custom-category-selector/index.vue'
-  import { getAttributesApi } from './api'
+  import { getAttributesApi } from '../api'
   import JSONEditor from '@/pages/ozon/config/component/json/index.vue'
   import { processImageSource } from '@/pages/ozon/config/commJs/index'
   import { v4 as uuidv4 } from 'uuid'
@@ -392,6 +410,17 @@
   const attributesObj = ref({}) // 产品属性的值
 
   const formRef = ref()
+
+  const validateComma = (_, value) => {
+    if (!value) return Promise.reject('请输入修饰词')
+    if (value.includes(',')) return Promise.reject('请使用中文逗号分割')
+    return Promise.resolve()
+  }
+  const rules = reactive({
+    prefixDecorateName: [{ required: true, validator: validateComma }],
+    suffixDecorateName: [{ required: true, validator: validateComma }]
+  })
+
   // VAT 下拉选项
   const VAT_OPTIONS = [
     { label: '免税', value: 0 },
@@ -407,6 +436,8 @@
 
     getAttributes()
   }
+
+  const descRequired = ref(false)
 
   /** 产品属性 */
   // 定义常量ID提升可维护性
@@ -440,9 +471,13 @@
       .then(res => {
         const rawData = res.data || []
 
+        // 判断产品描述是否必填
+        const descItem = rawData.find(item => item.id === ATTR_ID_ENUM.desc)
+        descItem && (descRequired.value = descItem.isRequired)
+
         // 塞上 intelligentAttributeId, relatedAttributeId
-        if (Object.keys(store.productDetail).length !== 0) {
-          const attributes = store.productDetail.skuList?.[0].attributes || []
+        if (Object.keys(store.detail).length !== 0) {
+          const attributes = store.detail.skuList?.[0].attributes || []
           // 塞上, 都塞上
           attributes.forEach(item => {
             const target = rawData.find(attr => attr.id === item.id)
@@ -505,8 +540,8 @@
 
   // 回显详情
   function dispatchDetail() {
-    if (Object.keys(store.productDetail).length !== 0) {
-      const attributes = store.productDetail.skuList?.[0].attributes || []
+    if (Object.keys(store.detail).length !== 0) {
+      const attributes = store.detail.skuList?.[0].attributes || []
       const nonVariantList = attributes.filter(item => !item.isVariant)
       nonVariantList.forEach(item => {
         const target = attributeList.value.find(attr => attr.id === item.id)
@@ -656,7 +691,7 @@
 
   /** 详情回显 */
   watch(
-    () => store.productDetail,
+    () => store.detail,
     detail => {
       if (Object.keys(detail).length === 0) return
 
