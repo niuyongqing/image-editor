@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>店铺模板页面测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-case {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        .success {
+            color: #52c41a;
+        }
+        .error {
+            color: #f5222d;
+        }
+        .warning {
+            color: #faad14;
+        }
+        .info {
+            color: #1890ff;
+        }
+        .code {
+            background-color: #f0f0f0;
+            padding: 5px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>店铺模板页面优化测试</h1>
+    
+    <div class="test-section">
+        <h2>测试场景</h2>
+        
+        <div class="test-case">
+            <h3 class="info">1. 空选择测试</h3>
+            <p>测试场景：不选择任何模板，直接点击操作按钮</p>
+            <p>预期结果：显示"请选择要操作的模板"提示</p>
+            <p class="code">修复代码：添加了 <code>!currentSelectRow.value || currentSelectRow.value.length === 0</code> 检查</p>
+        </div>
+        
+        <div class="test-case">
+            <h3 class="info">2. 属性访问安全测试</h3>
+            <p>测试场景：选择模板后，访问模板属性</p>
+            <p>预期结果：安全访问模板属性，即使属性为空也不会报错</p>
+            <p class="code">修复代码：使用 <code>currentSelectRow.value?.[0]?.shopTemplateName</code> 可选链操作符</p>
+        </div>
+        
+        <div class="test-case">
+            <h3 class="info">3. 表单验证测试</h3>
+            <p>测试场景：提交空表单或无效数据</p>
+            <p>预期结果：显示具体错误信息，而不是通用错误</p>
+            <p class="code">修复代码：优化了validateForm函数，提取第一个错误字段信息</p>
+        </div>
+        
+        <div class="test-case">
+            <h3 class="info">4. API错误处理测试</h3>
+            <p>测试场景：API调用失败</p>
+            <p>预期结果：显示详细的错误信息</p>
+            <p class="code">修复代码：优化了handleApiCall函数，从响应中提取错误信息</p>
+        </div>
+        
+        <div class="test-case">
+            <h3 class="info">5. 用户交互提示测试</h3>
+            <p>测试场景：各种操作的用户提示</p>
+            <p>预期结果：提示信息更加清晰、具体</p>
+            <p class="code">修复代码：优化了各种提示文本，添加了更详细的说明</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>测试步骤</h2>
+        <ol>
+            <li>打开店铺模板页面</li>
+            <li>不选择任何模板，尝试点击"停用"、"设为默认"、"复制"、"添加备注"等按钮</li>
+            <li>选择一个模板，测试各种操作</li>
+            <li>测试表单验证，提交空表单或无效数据</li>
+            <li>检查所有提示信息是否清晰、准确</li>
+        </ol>
+    </div>
+    
+    <div class="test-section">
+        <h2>修复的问题</h2>
+        <ul>
+            <li class="success">✓ 修复了"Cannot read properties of undefined (reading 'shopTemplateName')"错误</li>
+            <li class="success">✓ 添加了安全属性访问，使用可选链操作符</li>
+            <li class="success">✓ 优化了表单验证，提供更具体的错误信息</li>
+            <li class="success">✓ 改进了API错误处理，显示详细错误信息</li>
+            <li class="success">✓ 优化了用户交互提示，使操作更清晰</li>
+            <li class="success">✓ 清理了冗余代码，提高了可维护性</li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h2>测试结果</h2>
+        <p>请在实际环境中测试以上场景，确认所有功能正常工作。</p>
+        <p>如果发现问题，请检查浏览器控制台是否有错误信息。</p>
+    </div>
+</body>
+</html>

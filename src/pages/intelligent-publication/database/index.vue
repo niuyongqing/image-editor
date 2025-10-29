@@ -203,6 +203,7 @@
       :id="curRecord.id"
       @refresh="search"
     />
+     <LogIndexUpgradeGP ref="logIndexUpgradeGPRef"></LogIndexUpgradeGP>
   </div>
 </template>
 
@@ -215,6 +216,10 @@
   import dayjs from 'dayjs'
   import { message } from 'ant-design-vue'
   import PublicationModal from './PublicationModal.vue'
+  import LogIndexUpgradeGP from './LogModal.vue';
+
+
+  const logIndexUpgradeGPEl = useTemplateRef('logIndexUpgradeGPRef');
 
   const router = useRouter()
 
@@ -313,11 +318,10 @@
   }
 
   /** 日志 */
-  const logModalOpen = ref(false)
   const logModalLoading = ref(false)
 
   function openLogModal(record) {
-    logModalOpen.value = true
+    logIndexUpgradeGPEl.value.open();
     curRecord = record
   }
 

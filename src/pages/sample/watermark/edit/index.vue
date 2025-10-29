@@ -545,6 +545,7 @@
           const targetWindow = window.opener
           if (targetWindow) {
             targetWindow.postMessage('refresh', targetWindow.location.origin)
+            targetWindow.postMessage({ type: 'params', params: params }, targetWindow.location.origin)
           }
           // 成功后延时关闭当前窗口, 交互友好
           setTimeout(() => {

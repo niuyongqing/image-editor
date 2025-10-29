@@ -12,18 +12,18 @@
     <a-table
       v-else
       :row-selection="enableSelection ? rowSelection : null"
-      :columns="processedColumns"
+      :columns="columns"
       :customRow="customRowHandler"
       :data-source="dataSource"
       :rowKey="rowKey"
-      :pagination="false"
       :scroll="scrollConfig"
       :loading="loading"
       :rowClassName="rowClassName"
+      @resizeColumn="handleResizeColumn"
     >
       <template #bodyCell="{ column, record, index }">
         <!-- 索引列 -->
-        <template v-if="column.type === 'index'">
+        <template v-if="column.key === 'index'">
           {{ index + 1 + (pagination.pageNum - 1) * pagination.pageSize }}
         </template>
         <!-- 图片类字段 -->
@@ -61,9 +61,7 @@
     <a-pagination
       v-if="showPagination"
       style="margin-top: 20px; text-align: right"
-      :show-total="
-        (total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`
-      "
+      :show-total="(total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`"
       v-model:current="pagination.pageNum"
       v-model:pageSize="pagination.pageSize"
       :total="pagination.total"
@@ -141,7 +139,7 @@ const props = defineProps({
   // 表格滚动配置
   scrollConfig: {
     type: Object,
-    default: () => ({ y: 980 }),
+    default: () => ({x: 'max-content', y: 980 }),
   },
   // 空状态文本
   emptyText: {
@@ -167,7 +165,15 @@ const emit = defineEmits([
   "row-dblclick",
   "page-change",
   "page-size-change",
+  "resize-column",
 ]);
+
+/**
+ * 处理列宽调整事件
+ */
+const handleResizeColumn = (w, col) => {
+  col.width = w;
+}
 
 // 表格选择相关
 const selectedRowKeys = ref([]);
@@ -185,9 +191,9 @@ const processedColumns = computed(() => {
  */
 const rowSelection = {
   selectedRowKeys,
-  onChange: (_, selectedRows) => {
-    selectedRowKeys.value = selectedRows;
-    emit("selection-change", selectedRowKeys.value);
+  onChange: (selectedRowKeysArr, selectedRows) => {
+    selectedRowKeys.value = selectedRowKeysArr;
+    emit("selection-change", selectedRows);
   },
 };
 
