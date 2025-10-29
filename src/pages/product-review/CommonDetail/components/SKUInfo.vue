@@ -417,8 +417,6 @@
   const filteredAspectList = computed(() => aspectList.value.filter(item => selectedAspectKeyList.value.includes(item.key)))
   // 非空的, 参与生成 SKU 的变种属性
   const usefulAspect = computed(() => {
-    // if (filteredAspectList.value.length === 0) return []
-
     const list = filteredAspectList.value.map(item => {
       const aspectNameList = item.columns.slice(0, -1).map(column => column.title)
       const nonEmptyTableData = item.tableData.filter(record => aspectNameList.some(aspectName => nonEmpty(record[aspectName])))
@@ -464,6 +462,17 @@
     }
 
     return false
+  })
+  // 有用到的变种属性行 id; (从变种信息表格中收集, 因 SKU 可删除, 未被引用的变种属性同步移除)
+  const usefulAspectRowUuidList = computed(() => {
+    const uuidSet = new Set()
+    SKUTableData.value.forEach(item => {
+      item.parentUuidList.forEach(uuid => {
+        uuidSet.add(uuid)
+      })
+    })
+
+    return uuidSet
   })
   // SKU 的变种属性表头
   const aspectColumns = computed(() => {
@@ -574,45 +583,45 @@
 
   // 生成 SKU 组合 (! KEY FUNCTION !)
   function generateSKUCombinations() {
-    if (usefulAspect.value.length === 0) return [{ uuid: uuidv4() }]
+    return usefulAspect.value.reduce(
+      (combinations, item) => {
+        // 对现有组合进行扩展
+        return combinations.flatMap(combination =>
+          item.nonEmptyTableData.map(record => {
+            // 收集父级 uuid, 做未使用变种的 tree shaking
+            const newObj = { uuid: uuidv4(), parentUuidList: combination.parentUuidList ? [...combination.parentUuidList] : [] }
+            newObj.parentUuidList.push(record.uuid)
+            for (const key in record) {
+              if (key === 'uuid') continue
 
-    return usefulAspect.value.reduce((combinations, item) => {
-      // 如果是第一个属性，直接创建初始组合
-      if (combinations.length === 0) {
-        return item.nonEmptyTableData.map(record => {
-          const obj = { uuid: uuidv4() }
-          for (const key in record) {
-            if (key === 'uuid') continue
+              newObj[key] = getValue(record[key], 'label')
+            }
 
-            obj[key] = getValue(record[key], 'label')
-          }
-
-          return obj
-        })
-      }
-
-      // 对现有组合进行扩展
-      return combinations.flatMap(combination =>
-        item.nonEmptyTableData.map(record => {
-          const obj = { uuid: uuidv4() }
-          for (const key in record) {
-            if (key === 'uuid') continue
-
-            obj[key] = getValue(record[key], 'label')
-          }
-
-          return {
-            ...combination,
-            ...obj
-          }
-        })
-      )
-    }, [])
+            return {
+              ...combination,
+              ...newObj
+            }
+          })
+        )
+      },
+      [{ uuid: uuidv4() }]
+    )
   }
 
   // 移除一行 SKU
   function removeSKUTableRow(record) {
     SKUTableData.value = SKUTableData.value.filter(item => item.uuid !== record.uuid)
+
+    // 反向删除未被引用的变种属性
+    usefulAspect.value.forEach(item => {
+      item.nonEmptyTableData.forEach(record => {
+        if (!usefulAspectRowUuidList.value.has(record.uuid)) {
+          aspectList.value.forEach(item2 => {
+            item2.tableData = item2.tableData.filter(row => row.uuid !== record.uuid)
+          })
+        }
+      })
+    })
   }
 
   /** 校验并提交数据 */
