@@ -153,6 +153,7 @@
               <a-button
                 type="link"
                 class="ml-1"
+                @click="SKUCodeModalOpen = true"
                 >批量</a-button
               >
             </template>
@@ -162,6 +163,7 @@
               <a-button
                 type="link"
                 class="ml-1"
+                @click="costPriceModalOpen = true"
                 >批量</a-button
               >
             </template>
@@ -171,6 +173,7 @@
               <a-button
                 type="link"
                 class="ml-1"
+                @click="stockModalOpen = true"
                 >批量</a-button
               >
             </template>
@@ -180,6 +183,7 @@
               <a-button
                 type="link"
                 class="ml-1"
+                @click="quantityModalOpen = true"
                 >批量</a-button
               >
             </template>
@@ -189,6 +193,7 @@
               <a-button
                 type="link"
                 class="ml-1"
+                @click="unitModalOpen = true"
                 >批量</a-button
               >
             </template>
@@ -198,6 +203,7 @@
               <a-button
                 type="link"
                 class="ml-1"
+                @click="sizeModalOpen = true"
                 >批量</a-button
               >
             </template>
@@ -207,6 +213,7 @@
               <a-button
                 type="link"
                 class="ml-1"
+                @click="weightModalOpen = true"
                 >批量</a-button
               >
             </template>
@@ -318,6 +325,49 @@
     </a-card>
 
     <a-divider />
+
+    <!-- 弹窗 -->
+    <SKUCodeModal
+      v-model:open="SKUCodeModalOpen"
+      ref="SKUCodeModalRef"
+      @ok="SKUCodeOk"
+    />
+
+    <CostPriceModal
+      v-model:open="costPriceModalOpen"
+      ref="costPriceModalRef"
+      @ok="costPriceOk"
+    />
+
+    <StockModal
+      v-model:open="stockModalOpen"
+      ref="stockModalRef"
+      @ok="stockOk"
+    />
+
+    <QuantityModal
+      v-model:open="quantityModalOpen"
+      ref="quantityModalRef"
+      @ok="quantityOk"
+    />
+
+    <UnitModal
+      v-model:open="unitModalOpen"
+      ref="unitModalRef"
+      @ok="unitOk"
+    />
+
+    <SizeModal
+      v-model:open="sizeModalOpen"
+      ref="sizeModalRef"
+      @ok="sizeOk"
+    />
+
+    <WeightModal
+      v-model:open="weightModalOpen"
+      ref="weightModalRef"
+      @ok="weightOk"
+    />
   </div>
 </template>
 
@@ -326,6 +376,13 @@
   import { message } from 'ant-design-vue'
   import { v4 as uuidv4 } from 'uuid'
   import { PlusOutlined, MinusOutlined, DeleteOutlined } from '@ant-design/icons-vue'
+  import SKUCodeModal from './components/SKUCodeModal.vue'
+  import CostPriceModal from './components/CostPriceModal.vue'
+  import StockModal from './components/StockModal.vue'
+  import QuantityModal from './components/QuantityModal.vue'
+  import UnitModal from './components/UnitModal.vue'
+  import SizeModal from './components/SizeModal.vue'
+  import WeightModal from './components/WeightModal.vue'
 
   const store = useProductReviewStore()
   const detail = computed(() => store.detail)
@@ -622,6 +679,63 @@
         }
       })
     })
+  }
+
+  /** 弹窗(批量操作) */
+  // SKUCode
+  const SKUCodeModalRef = ref()
+  const SKUCodeModalOpen = ref(false)
+
+  function SKUCodeOk() {
+    SKUCodeModalRef.value.submit(SKUTableData.value)
+  }
+
+  // costPrice
+  const costPriceModalRef = ref()
+  const costPriceModalOpen = ref(false)
+
+  function costPriceOk() {
+    costPriceModalRef.value.modify(SKUTableData.value)
+  }
+
+  // stock
+  const stockModalRef = ref()
+  const stockModalOpen = ref(false)
+
+  function stockOk() {
+    stockModalRef.value.modify(SKUTableData.value)
+  }
+
+  // quantity
+  const quantityModalRef = ref()
+  const quantityModalOpen = ref(false)
+
+  function quantityOk() {
+    quantityModalRef.value.modify(SKUTableData.value)
+  }
+
+  // unit
+  const unitModalRef = ref()
+  const unitModalOpen = ref(false)
+
+  function unitOk() {
+    unitModalRef.value.modify(SKUTableData.value)
+  }
+
+  // size
+  const sizeModalRef = ref()
+  const sizeModalOpen = ref(false)
+
+  function sizeOk() {
+    sizeModalRef.value.modify(SKUTableData.value)
+  }
+
+  // weight
+  const weightModalRef = ref()
+  const weightModalOpen = ref(false)
+
+  function weightOk() {
+    weightModalRef.value.modify(SKUTableData.value)
   }
 
   /** 校验并提交数据 */
