@@ -36,21 +36,13 @@
           </template>
 
           <template #extra>
-            <a-space>
-              <!-- TODO: -->
-              <a-button
-                v-if="item.columns[0].options"
-                type="link"
-                >批量设置</a-button
-              >
-              <a-button
-                v-if="!item.isRequired"
-                type="link"
-                danger
-                @click="removeAspect(item)"
-                >移除</a-button
-              >
-            </a-space>
+            <a-button
+              v-if="!item.isRequired"
+              type="link"
+              danger
+              @click="removeAspect(item)"
+              >移除</a-button
+            >
           </template>
 
           <a-table
@@ -60,9 +52,22 @@
             :pagination="false"
           >
             <template #headerCell="{ title, column }">
-              <template v-if="column.isRequired">
-                <span class="text-[#ff4d4f]">*</span>
+              <!-- v-if="true" 是为了无条件渲染 -->
+              <template v-if="true">
+                <span
+                  v-if="column.isRequired"
+                  class="text-[#ff4d4f] mr-1"
+                  >*</span
+                >
                 <span>{{ title }}</span>
+                <!-- 店小蜜做法: column.selectType === 'multSelect' (感觉没逻辑) -->
+                <!-- v-if="column.options" -->
+                <a-button
+                  v-if="title !== '操作'"
+                  type="link"
+                  @click="batchAddAspectRow(column, item.tableData)"
+                  >批量</a-button
+                >
               </template>
             </template>
 
@@ -157,6 +162,7 @@
                 >批量</a-button
               >
             </template>
+            <!-- TODO: 应用到同 xx 变种 -->
             <template v-else-if="title === '成本价'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
@@ -326,7 +332,15 @@
 
     <a-divider />
 
-    <!-- 弹窗 -->
+    <!-- 批量添加变种属性(行 hang) 弹窗 -->
+    <AddAspectRowModal
+      v-model:open="addAspectRowModalOpen"
+      :column-data="columnData"
+      :aspect-data="aspectData"
+      @ok="batchAddAspectRowConfirm"
+    />
+
+    <!-- 变种信息表格批量编辑弹窗 -->
     <SKUCodeModal
       v-model:open="SKUCodeModalOpen"
       ref="SKUCodeModalRef"
@@ -376,6 +390,8 @@
   import { message } from 'ant-design-vue'
   import { v4 as uuidv4 } from 'uuid'
   import { PlusOutlined, MinusOutlined, DeleteOutlined } from '@ant-design/icons-vue'
+
+  import AddAspectRowModal from './components/AddAspectRowModal.vue'
   import SKUCodeModal from './components/SKUCodeModal.vue'
   import CostPriceModal from './components/CostPriceModal.vue'
   import StockModal from './components/StockModal.vue'
@@ -607,6 +623,42 @@
     })
 
     item.tableData = [row]
+  }
+
+  // 批量添加变种属性(行 hang) 打开弹窗
+  const addAspectRowModalOpen = ref(false)
+  const columnData = ref({})
+  const aspectData = ref([])
+  function batchAddAspectRow(column, tableData) {
+    columnData.value = column
+    aspectData.value = tableData
+    addAspectRowModalOpen.value = true
+  }
+
+  // 批量添加变种属性弹窗确认
+  function batchAddAspectRowConfirm(newAspectData) {
+    for (const val of newAspectData) {
+      let continueFlag = false
+      // 如果有行, 且行存在空值, 先填充行; 再有多余的就往后添加新行
+      for (const item of aspectData.value) {
+        if (!nonEmpty(item[columnData.value.name])) {
+          item[columnData.value.name] = columnData.value.selectType === 'multSelect' ? [val] : val
+          continueFlag = true
+
+          break
+        }
+      }
+      if (continueFlag) continue
+
+      const row = { uuid: uuidv4() }
+      // just focus on self (如果是结对属性, 另一个值让双向绑定去隐式生成)
+      row[columnData.value.name] = columnData.value.selectType === 'multSelect' ? [val] : val
+
+      aspectData.value.push(row)
+    }
+
+    columnData.value = {}
+    aspectData.value = []
   }
 
   // 添加一行变种主题
