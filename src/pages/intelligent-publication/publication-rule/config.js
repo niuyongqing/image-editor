@@ -15,19 +15,19 @@ export const DEFAULT_TABLE_COLUMN = [
   {
     title: '分类',
     key: 'category',
-    width: 100
+    width: 160
   },
   {
     title: '平均成本价区间',
     key: 'averageCostPriceRange',
     dataIndex: 'averageCostPriceRange',
-    width: 160
+    width: 100
   },
   {
     title: '平均重量区间',
     key: 'averageWeightRange',
     dataIndex: 'averageWeightRange',
-    width: 160
+    width: 100
   },
   {
     title: '状态',

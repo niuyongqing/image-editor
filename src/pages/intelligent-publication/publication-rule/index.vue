@@ -11,7 +11,7 @@
         <a-form-item label="模糊查询">
           <a-space>
             <a-input
-              v-model:value="searchForm.name"
+              v-model:value="searchForm.ruleName"
               placeholder="请输入规则名称"
               allow-clear
             />
@@ -48,24 +48,24 @@
           @click="add"
           >新增</a-button
         >
-        <a-popconfirm
+        <!-- <a-popconfirm
           title="确定启用吗?"
           :disabled="state.selectedRowKeys.length === 0"
-          @confirm="batchActivate"
+          @confirm="batchToggleStatus({ status: 1 })"
         >
           <a-button :disabled="state.selectedRowKeys.length === 0">批量启用</a-button>
         </a-popconfirm>
         <a-popconfirm
           title="确定停用吗?"
           :disabled="state.selectedRowKeys.length === 0"
-          @confirm="batchInactivate"
+          @confirm="batchToggleStatus({ status: 0 })"
         >
           <a-button
             danger
             :disabled="state.selectedRowKeys.length === 0"
             >批量停用</a-button
           >
-        </a-popconfirm>
+        </a-popconfirm> -->
         <a-button
           type="primary"
           :disabled="state.selectedRowKeys.length === 0"
@@ -102,24 +102,31 @@
             <div>{{ index + 1 + (tableParams.pageNum - 1) * tableParams.pageSize }}</div>
           </template>
           <template v-else-if="column.key === 'name'">
-            <div class="w-80">{{ record.name || '--' }}</div>
+            <div class="w-50">{{ record.ruleName || '--' }}</div>
           </template>
           <template v-else-if="column.key === 'category'">
-            <span>{{ getClassifyLabel(record.classify) }}</span>
+            <a-tag color="success">{{ getCategoryLabel(record.categoryId) }}</a-tag>
+          </template>
+          <template v-else-if="column.key === 'averageCostPriceRange'">
+            <span>[ {{ record.costPriceMin || '_' }}, {{ record.costPriceMax || '_' }} ]</span>
+          </template>
+          <template v-else-if="column.key === 'averageWeightRange'">
+            <span>[ {{ record.weightMin || '_' }} , {{ record.weightMax || '_' }} ]</span>
           </template>
           <template v-else-if="column.key === 'status'">
             <a-switch
               :checked="record.status"
               checked-children="启用"
-              checked-value="1"
+              :checked-value="1"
               un-checked-children="停用"
-              un-checked-value="0"
+              :un-checked-value="0"
+              :loading="record.loading"
               size="default"
               @change="toggleStatus(record)"
             />
           </template>
           <template v-else-if="column.key === 'remark'">
-            <div class="w-100">{{ record.remark || '--' }}</div>
+            <div class="w-50">{{ record.remark || '--' }}</div>
           </template>
           <template v-else-if="column.key === 'operation'">
             <a-space>
@@ -181,7 +188,8 @@
 
 <script setup>
   import { DEFAULT_TABLE_COLUMN } from './config'
-  import commodityType from '~@/utils/commodityType'
+  import { listApi, updateRuleStatusApi, updateRuleRemarkApi } from '../js/api'
+  import { newCategoryTreeApi } from '@/pages/product-review/CommonDetail/api'
   import { message } from 'ant-design-vue'
   import { useReceiveMessage } from '@/utils/postMessage'
 
@@ -189,15 +197,15 @@
 
   /** search */
   const searchForm = reactive({
-    name: '',
-    status: ''
+    ruleName: '',
+    status: 2
   })
   const searchFormRef = ref()
   // 状态选项
   const STATUS_OPTIONS = [
-    { label: '全部', value: '' },
-    { label: '启用', value: '1' },
-    { label: '停用', value: '0' }
+    { label: '全部', value: 2 },
+    { label: '启用', value: 1 },
+    { label: '停用', value: 0 }
   ]
 
   function search() {
@@ -208,6 +216,7 @@
   function reset() {
     tableParams.pageNum = 1
     searchFormRef.value.resetFields()
+    searchForm.ruleName = ''
 
     getList()
   }
@@ -236,36 +245,72 @@
       ...searchForm
     }
 
-    tableData.value = [
-      {
-        id: 1,
-        name: 'name1',
-        status: '1',
-        remark: 'This is a text edited by Lynch on Earth.'
-      },
-      {
-        id: 2,
-        name: 'name2',
-        status: '0',
-        remark: 'https://cdn.jsdelivr.net/gh/lynch-07/images@main/20220720202931.jpeg'
-      }
-    ]
-
-    /* state.loading = true
-    xxxApi(params)
+    state.loading = true
+    listApi(params)
       .then(res => {
         state.total = res.total ?? 0
-        tableData.value = res.rows || []
+        tableData.value = res.data || []
       })
       .finally(() => {
         state.loading = false
-      }) */
+      })
+  }
+
+  /** 分类数据 */
+  const flatTreeList = ref([])
+
+  getOptions()
+  function getOptions() {
+    newCategoryTreeApi().then(res => {
+      const rawData = res.data || []
+      const flatList = []
+
+      // 遍历第一级
+      for (const level1 of rawData) {
+        // 遍历第二级
+        for (const level2 of level1.children) {
+          // 遍历第三级
+          for (const level3 of level2.children) {
+            // 将路径添加到结果数组
+            const resLevel1 = { categoryName: level1.categoryName, descriptionCategoryId: level1.descriptionCategoryId }
+            const resLevel2 = { categoryName: level2.categoryName, descriptionCategoryId: level2.descriptionCategoryId }
+            const resLevel3 = { categoryName: level3.categoryName, descriptionCategoryId: level3.descriptionCategoryId }
+            const valueArr = [resLevel1, resLevel2, resLevel3]
+            const label = valueArr.map(item => item.categoryName).join(' / ')
+            const uniqueCode = valueArr.map(item => item.descriptionCategoryId).join(',')
+
+            flatList.push({ label, uniqueCode, value: valueArr })
+          }
+        }
+      }
+
+      flatTreeList.value = flatList
+    })
+  }
+
+  // 获取分类 label
+  function getCategoryLabel(categoryIds) {
+    return flatTreeList.value.find(item => item.uniqueCode === categoryIds)?.label || '--'
   }
 
   /** 批量 启用/停用 */
-  function batchActivate() {}
+  /* function batchToggleStatus({ status = 1 }) {
+    return new Promise(resolve => {
+      const params = {
+        ruleId: state.selectedRowKeys.join(','),
+        status
+      }
 
-  function batchInactivate() {}
+      updateRuleStatusApi(params)
+        .then(res => {
+          message.success('批量修改状态成功')
+          getList()
+        })
+        .finally(() => {
+          resolve()
+        })
+    })
+  } */
 
   /** 新增 */
   function add() {
@@ -303,12 +348,12 @@
 
   function remarkOk() {
     const params = {
-      id: curId ? curId : state.selectedRowKeys.join(','),
+      ruleId: curId ? curId : state.selectedRowKeys.join(','),
       remark: remark.value
     }
 
-    /* remarkLoading.value = true
-      addRemarkApi(params)
+    remarkLoading.value = true
+    updateRuleRemarkApi(params)
       .then(res => {
         message.success('添加备注成功')
         getList()
@@ -317,35 +362,24 @@
       .finally(() => {
         remarkLoading.value = false
       })
-     */
   }
 
   /** 切换 status */
   function toggleStatus(record) {
     const params = {
-      status: record.status === '1' ? '0' : '1'
-    }
-  }
-
-  // 根据分类 value 获取分类 label
-  function getClassifyLabel(classify) {
-    if (!classify) return '--'
-
-    const classifyList = classify.split(',')
-    const labelList = []
-    let currentNodes = commodityType
-
-    for (let i = 0; i < classifyList.length; i++) {
-      const value = classifyList[i]
-      const node = currentNodes.find(item => item.value === value)
-
-      if (!node) break
-
-      labelList.push(node.label)
-      currentNodes = node.children || []
+      ruleId: record.id,
+      status: record.status === 1 ? 0 : 1
     }
 
-    return labelList.join('/') || '--'
+    record.loading = true
+    updateRuleStatusApi(params)
+      .then(res => {
+        message.success('修改状态成功')
+        getList()
+      })
+      .finally(() => {
+        record.loading = false
+      })
   }
 
   /** 监听编辑页保存后的跨窗口通信 */
