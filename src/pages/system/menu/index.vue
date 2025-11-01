@@ -25,7 +25,7 @@
           :loading="tableLoading"
           height="1100"
         >
-          <vxe-column type="seq" width="80" fixed="left"></vxe-column>
+          <vxe-column type="seq" fixed="left" width="80"></vxe-column>
           <vxe-column
             fixed="left"
             field="title"
@@ -51,7 +51,7 @@
               <div>{{ classifyMap[row.classify] || "" }}</div>
             </template>
           </vxe-column>
-          <vxe-column field="sort" title="排序" width="50" />
+          <vxe-column field="sort" title="排序" />
           <vxe-column field="type" title="类型" >
             <template #default="{ row }">
               <div v-if="row.type === 1">文件夹</div>
@@ -155,7 +155,9 @@ const rowConfig = {
   drag: true,
   isHover: true,
 };
-const columnConfig = {};
+const columnConfig = {
+  resizable: true,
+};
 
 const rowDragConfig = {
   isCrossDrag: true,
@@ -283,6 +285,7 @@ const rowDragendEvent = ({ dragRow }) => {
 const sortConfig = {
   field: "sort",
   order: "asc",
+  remote: false, // 使用本地排序而不是远程排序
 };
 
 // 拖拽保存菜单排序 - 优化数据转换
@@ -333,14 +336,21 @@ const getTreeMenu = (menuList) => {
     return;
   }
 
+  // 先对菜单列表进行排序
+  const sortedMenuList = [...menuList].sort((a, b) => {
+    const aSort = a.sort || 0;
+    const bSort = b.sort || 0;
+    return aSort - bSort;
+  });
+
   // 使用局部变量构建树结构
   const map = Object.create(null); // 使用Object.create(null)避免原型链查找
   const result = [];
-  const len = menuList.length;
+  const len = sortedMenuList.length;
 
   // 单次遍历构建树结构，避免两次遍历
   for (let i = 0; i < len; i++) {
-    const item = menuList[i];
+    const item = sortedMenuList[i];
     const id = item.id;
 
     // 如果节点不存在，则创建
@@ -376,6 +386,8 @@ const getTreeMenu = (menuList) => {
   childrenMapList.forEach((children, parentId) => {
     completeChildrenMap.set(parentId, [...children]);
   });
+
+  
 };
 
 function getMenusList() {
@@ -388,37 +400,8 @@ function getMenusList() {
       // 先创建树结构
       getTreeMenu(data);
 
-      // 直接使用数据，避免不必要的排序和复制
-      // 只有在明确需要排序时才执行排序
-      if (sortConfig.field && sortConfig.order) {
-        // 原地排序，避免创建新数组
-        const sortField = sortConfig.field;
-        const sortOrder = sortConfig.order;
-
-        // 先复制一份引用，避免直接修改原始数据
-        const sortedData = [...data];
-
-        // 执行排序
-        sortedData.sort((a, b) => {
-          // 避免重复访问属性
-          const aVal = a[sortField];
-          const bVal = b[sortField];
-
-          // 优化比较逻辑
-          if (aVal === undefined || aVal === null)
-            return sortOrder === "asc" ? -1 : 1;
-          if (bVal === undefined || bVal === null)
-            return sortOrder === "asc" ? 1 : -1;
-
-          if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
-          if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
-          return 0;
-        });
-
-        originalData.value = sortedData;
-      } else {
-        originalData.value = data;
-      }
+      // 直接使用数据，vxe-table 会根据 sortConfig 自动排序
+      originalData.value = data;
     })
     .finally(() => {
       tableLoading.value = false;

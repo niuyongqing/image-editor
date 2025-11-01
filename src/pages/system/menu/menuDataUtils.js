@@ -19,8 +19,15 @@ export function splitMenuDataForLazyLoad(fullMenuData) {
     
     // 如果有子菜单，先移除并存储到映射中
     if (menuCopy.children && menuCopy.children.length > 0) {
-      // 保存子菜单到映射中
-      childrenMap.set(menuCopy.id, menuCopy.children.map(processMenu));
+      // 对子菜单进行排序
+      const sortedChildren = [...menuCopy.children].sort((a, b) => {
+        const aSort = a.sort || 0;
+        const bSort = b.sort || 0;
+        return aSort - bSort;
+      });
+      
+      // 保存排序后的子菜单到映射中
+      childrenMap.set(menuCopy.id, sortedChildren.map(processMenu));
       // 保留hasChild标记，但移除children数组
       menuCopy.hasChild = true;
       delete menuCopy.children;
@@ -58,8 +65,15 @@ export function fetchMenuChildren(childrenMap, parentId) {
     setTimeout(() => {
       const children = childrenMap.get(parentId) || [];
       
+      // 对子菜单进行排序
+      const sortedChildren = [...children].sort((a, b) => {
+        const aSort = a.sort || 0;
+        const bSort = b.sort || 0;
+        return aSort - bSort;
+      });
+      
       // 处理子菜单，递归检查是否有自己的子菜单
-      const processedChildren = children.map(child => {
+      const processedChildren = sortedChildren.map(child => {
         const childCopy = { ...child };
         
         // 检查是否有子菜单（通过childrenMap检查，而不是直接访问children属性）
