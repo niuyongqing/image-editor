@@ -44,10 +44,10 @@ export const COLUMNS = [
 
 // 售卖单位
 export const UNIT_OPTIONS = [
-  { label: '个(Piece)(шт)', ch: '个', en: 'Piece', ru: 'шт' },
-  { label: '套(Set)(комплект)', ch: '套', en: 'Set', ru: 'комплект' },
-  { label: '双(Pair)(Пара)', ch: '双', en: 'Pair', ru: 'Пара' },
-  { label: '瓶(Bottle)(бутылка)', ch: '瓶', en: 'Bottle', ru: 'бутылка' },
-  { label: '包(Bag)(сумка)', ch: '包', en: 'Bag', ru: 'сумка' },
-  { label: '片(Sheet)(лист)', ch: '片', en: 'Sheet', ru: 'лист' }
+  { label: '个/Piece/шт', ch: '个', en: 'Piece', ru: 'шт' },
+  { label: '套/Set/комплект', ch: '套', en: 'Set', ru: 'комплект' },
+  { label: '双/Pair/Пара', ch: '双', en: 'Pair', ru: 'Пара' },
+  { label: '瓶/Bottle/бутылка', ch: '瓶', en: 'Bottle', ru: 'бутылка' },
+  { label: '包/Bag/сумка', ch: '包', en: 'Bag', ru: 'сумка' },
+  { label: '片/Sheet/лист', ch: '片', en: 'Sheet', ru: 'лист' }
 ]

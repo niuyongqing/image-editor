@@ -53,6 +53,7 @@
     <a-card
       v-for="(SKU, i) in dataSource"
       :key="i"
+      class="mb-6"
     >
       <div class="inline-block align-top ml-4">
         <div
