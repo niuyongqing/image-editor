@@ -51,35 +51,29 @@
               <div>{{ classifyMap[row.classify] || "" }}</div>
             </template>
           </vxe-column>
-          <vxe-column field="sort" title="排序" />
-          <vxe-column field="type" title="类型" >
+          <vxe-column field="sort" title="排序" width="50" />
+          <vxe-column field="type" title="类型">
             <template #default="{ row }">
               <div v-if="row.type === 1">文件夹</div>
               <div v-if="row.type === 2">菜单</div>
               <div v-if="row.type === 3">按钮</div>
             </template>
           </vxe-column>
-          <vxe-column
-            field="permission"
-            title="权限字符"
-          ></vxe-column>
+          <vxe-column field="permission" title="权限字符"></vxe-column>
           <vxe-column field="component" title="组件路径"></vxe-column>
           <vxe-column field="path" title="路径"></vxe-column>
-          <vxe-column
-            field="redirect"
-            title="重定向"
-          ></vxe-column>
+          <vxe-column field="redirect" title="重定向"></vxe-column>
           <vxe-column field="hideInMenu" title="是否隐藏">
             <template #default="{ row }">
               <a-tag :color="row.hideInMenu ? '#f50' : '#2db7f5'">
-                {{ row.hideInMenu ? '是' : '否' }}
+                {{ row.hideInMenu ? "是" : "否" }}
               </a-tag>
             </template>
           </vxe-column>
-          <vxe-column field="keepAlive" title="是否保活" >
+          <vxe-column field="keepAlive" title="是否保活">
             <template #default="{ row }">
               <a-tag :color="row.keepAlive ? '#f50' : '#2db7f5'">
-                {{ row.keepAlive ? '是' : '否' }}
+                {{ row.keepAlive ? "是" : "否" }}
               </a-tag>
             </template>
           </vxe-column>
@@ -387,9 +381,36 @@ const getTreeMenu = (menuList) => {
     completeChildrenMap.set(parentId, [...children]);
   });
 
-  
+  defaultSort();
 };
 
+// 默认排序
+const defaultSort = () => {
+  // 为顶级菜单排序
+  if (topLevelMenuList && topLevelMenuList.length > 0) {
+    topLevelMenuList.sort((a, b) => {
+      const sortA = a.sort || a.orderNum || 0;
+      const sortB = b.sort || b.orderNum || 0;
+      return sortA - sortB;
+    });
+  }
+
+  // 为所有子菜单排序
+  childrenMapList.forEach((children, parentId) => {
+    if (children && children.length > 0) {
+      children.sort((a, b) => {
+        const sortA = a.sort || a.orderNum || 0;
+        const sortB = b.sort || b.orderNum || 0;
+        return sortA - sortB;
+      });
+    }
+
+    // 同步更新完整子菜单映射
+    if (completeChildrenMap.has(parentId)) {
+      completeChildrenMap.set(parentId, [...children]);
+    }
+  });
+};
 function getMenusList() {
   tableLoading.value = true;
   getMenusListApi({})
@@ -399,9 +420,6 @@ function getMenusList() {
 
       // 先创建树结构
       getTreeMenu(data);
-
-      // 直接使用数据，vxe-table 会根据 sortConfig 自动排序
-      originalData.value = data;
     })
     .finally(() => {
       tableLoading.value = false;
@@ -500,26 +518,15 @@ onBeforeUnmount(() => {
   pointer-events: auto;
 }
 :deep(.vxe-table--render-default .vxe-cell--tree-btn) {
-  transform: translate(0, -65%);
-  /* 优化点击区域 */
-  padding: 0;
-  margin: 0;
-}
-
-/* 优化展开图标，使用更简单的样式 */
-:deep(
-    .vxe-table--render-default .vxe-cell--tree-btn .vxe-table-icon-caret-right
-  )::before {
-  content: "+" !important;
-  font-size: 16px;
-  line-height: 1;
-  display: inline-block;
-  transition: none;
-}
-:deep(
-    .vxe-table--render-default .vxe-cell--tree-btn-expanded .vxe-table-icon-caret-right
-  )::before {
-  content: "-" !important;
+  /* 修改为使用flex布局实现完美居中 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translate(25%, 0);
+  /* 扩大点击区域：增大内边距 */
+  padding: 20px 15px;
+  margin: -20px -15px;
+  cursor: pointer;
 }
 
 /* 优化菜单标题容器样式 */
