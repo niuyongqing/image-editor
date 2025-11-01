@@ -2,6 +2,7 @@
 <template>
   <a-modal
     :open="open"
+    :mask-closable="false"
     title="批量修改成本价"
     width="35%"
     @cancel="cancel"

@@ -2,6 +2,7 @@
 <template>
   <a-modal
     :open="open"
+    :mask-closable="false"
     title="批量修改策划数量"
     width="35%"
     @cancel="cancel"
@@ -114,7 +115,7 @@
       }
 
       return function (item) {
-        item.quantity = absoluteNum.value
+        item.planNum = absoluteNum.value
       }
     } else {
       // 相对 按数量或百分比增减
@@ -129,32 +130,32 @@
       switch (addType.value) {
         case '1':
           addFn = function (item) {
-            item.quantity += relativeNum.value
+            item.planNum += relativeNum.value
           }
           break
         case '2':
           addFn = function (item) {
-            item.quantity -= relativeNum.value
+            item.planNum -= relativeNum.value
           }
           break
         case '3':
           addFn = function (item) {
-            item.quantity *= relativeNum.value
+            item.planNum *= relativeNum.value
           }
           break
         case '4':
           addFn = function (item) {
-            item.quantity /= relativeNum.value
+            item.planNum /= relativeNum.value
           }
           break
         case '5':
           addFn = function (item) {
-            item.quantity *= 1 + relativeNum.value / 100
+            item.planNum *= 1 + relativeNum.value / 100
           }
           break
         case '6':
           addFn = function (item) {
-            item.quantity *= 1 - relativeNum.value / 100
+            item.planNum *= 1 - relativeNum.value / 100
           }
 
         default:
@@ -164,17 +165,17 @@
       switch (saveType.value) {
         case '1':
           saveFn = function (item) {
-            item.quantity = Number(item.quantity.toFixed(2))
+            item.planNum = Number(item.planNum.toFixed(2))
           }
           break
         case '2':
           saveFn = function (item) {
-            item.quantity = Math.round(item.quantity)
+            item.planNum = Math.round(item.planNum)
           }
           break
         case '3':
           saveFn = function (item) {
-            item.quantity = Math.ceil(item.quantity)
+            item.planNum = Math.ceil(item.planNum)
           }
 
         default:
@@ -194,8 +195,8 @@
 
     for (const record of tableData) {
       fn(record)
-      if (record.quantity <= 0) {
-        record.quantity = null
+      if (record.planNum <= 0) {
+        record.planNum = null
         message.warning('修改后不能为负数或0, 请核实后再修改哦~')
 
         break

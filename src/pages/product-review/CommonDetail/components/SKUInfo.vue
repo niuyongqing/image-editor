@@ -150,6 +150,7 @@
           :data-source="SKUTableData"
           row-key="uuid"
           :pagination="false"
+          :scroll="{ x: 'max-content' }"
         >
           <template #headerCell="{ title }">
             <template v-if="title === 'SKU'">
@@ -162,7 +163,6 @@
                 >批量</a-button
               >
             </template>
-            <!-- TODO: 应用到同 xx 变种 -->
             <template v-else-if="title === '成本价'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
@@ -234,86 +234,196 @@
               />
             </template>
             <template v-else-if="column.title === '成本价'">
-              <a-input-number
-                v-model:value="record.costPrice"
-                :controls="false"
-                :precision="2"
-                :min="0.01"
-                :max="99999"
-                placeholder="请输入数值"
-                class="w-full"
-              />
+              <div class="flex">
+                <a-input-number
+                  v-model:value="record.costPrice"
+                  :controls="false"
+                  :precision="2"
+                  :min="0.01"
+                  :max="99999"
+                  placeholder="请输入数值"
+                  class="flex-1"
+                />
+                <a-dropdown>
+                  <a-button
+                    type="link"
+                    class="flex-none"
+                    ><CopyOutlined
+                  /></a-button>
+                  <template #overlay>
+                    <a-menu @click="confirmMenuClick($event, record, 'costPrice')">
+                      <a-menu-item
+                        v-for="item in applyToMenuList"
+                        :key="item.key"
+                        >{{ item.label }}</a-menu-item
+                      >
+                    </a-menu>
+                  </template>
+                </a-dropdown>
+              </div>
             </template>
             <template v-else-if="column.title === '库存'">
-              <a-input-number
-                v-model:value="record.stock"
-                :controls="false"
-                :precision="0"
-                :min="1"
-                :max="99999"
-                placeholder="请输入数值"
-                class="w-full"
-              />
+              <div class="flex">
+                <a-input-number
+                  v-model:value="record.stock"
+                  :controls="false"
+                  :precision="0"
+                  :min="1"
+                  :max="99999"
+                  placeholder="请输入数值"
+                  class="flex-1"
+                />
+                <a-dropdown>
+                  <a-button
+                    type="link"
+                    class="flex-none"
+                    ><CopyOutlined
+                  /></a-button>
+                  <template #overlay>
+                    <a-menu @click="confirmMenuClick($event, record, 'stock')">
+                      <a-menu-item
+                        v-for="item in applyToMenuList"
+                        :key="item.key"
+                        >{{ item.label }}</a-menu-item
+                      >
+                    </a-menu>
+                  </template>
+                </a-dropdown>
+              </div>
             </template>
             <template v-else-if="column.title === '策划数量'">
-              <a-input-number
-                v-model:value="record.quantity"
-                :controls="false"
-                :precision="0"
-                :min="1"
-                :max="99999"
-                placeholder="请输入数值"
-                class="w-full"
-              />
+              <div class="flex">
+                <a-input-number
+                  v-model:value="record.planNum"
+                  :controls="false"
+                  :precision="0"
+                  :min="1"
+                  :max="99999"
+                  placeholder="请输入数值"
+                  class="flex-1"
+                />
+                <a-dropdown>
+                  <a-button
+                    type="link"
+                    class="flex-none"
+                    ><CopyOutlined
+                  /></a-button>
+                  <template #overlay>
+                    <a-menu @click="confirmMenuClick($event, record, 'planNum')">
+                      <a-menu-item
+                        v-for="item in applyToMenuList"
+                        :key="item.key"
+                        >{{ item.label }}</a-menu-item
+                      >
+                    </a-menu>
+                  </template>
+                </a-dropdown>
+              </div>
             </template>
             <template v-else-if="column.title === '售卖单位'">
-              <a-input
-                v-model:value="record.unit"
-                placeholder="请输入"
-                class="w-full"
-              />
+              <div class="flex">
+                <a-select
+                  v-model:value="record.saleUnit"
+                  :options="UNIT_OPTIONS"
+                  :field-names="{ value: 'ru' }"
+                  placeholder="请选择"
+                  class="min-w-40"
+                />
+                <a-dropdown>
+                  <a-button
+                    type="link"
+                    class="flex-none"
+                    ><CopyOutlined
+                  /></a-button>
+                  <template #overlay>
+                    <a-menu @click="confirmMenuClick($event, record, 'saleUnit')">
+                      <a-menu-item
+                        v-for="item in applyToMenuList"
+                        :key="item.key"
+                        >{{ item.label }}</a-menu-item
+                      >
+                    </a-menu>
+                  </template>
+                </a-dropdown>
+              </div>
             </template>
             <template v-else-if="column.title === '尺寸(mm)'">
-              <a-space>
-                <a-input-number
-                  v-model:value="record.length"
-                  :controls="false"
-                  :precision="0"
-                  :min="1"
-                  :max="99999"
-                  placeholder="长"
-                  class="w-full"
-                />
-                <a-input-number
-                  v-model:value="record.width"
-                  :controls="false"
-                  :precision="0"
-                  :min="1"
-                  :max="99999"
-                  placeholder="宽"
-                  class="w-full"
-                />
-                <a-input-number
-                  v-model:value="record.height"
-                  :controls="false"
-                  :precision="0"
-                  :min="1"
-                  :max="99999"
-                  placeholder="高"
-                  class="w-full"
-                />
-              </a-space>
+              <div class="flex">
+                <a-space>
+                  <a-input-number
+                    v-model:value="record.length"
+                    :controls="false"
+                    :precision="0"
+                    :min="1"
+                    :max="99999"
+                    placeholder="长"
+                    class="w-full min-w-20"
+                  />
+                  <a-input-number
+                    v-model:value="record.width"
+                    :controls="false"
+                    :precision="0"
+                    :min="1"
+                    :max="99999"
+                    placeholder="宽"
+                    class="w-full min-w-20"
+                  />
+                  <a-input-number
+                    v-model:value="record.height"
+                    :controls="false"
+                    :precision="0"
+                    :min="1"
+                    :max="99999"
+                    placeholder="高"
+                    class="w-full min-w-20"
+                  />
+                </a-space>
+                <a-dropdown>
+                  <a-button
+                    type="link"
+                    class="flex-none"
+                    ><CopyOutlined
+                  /></a-button>
+                  <template #overlay>
+                    <a-menu @click="confirmMenuClick($event, record, 'size')">
+                      <a-menu-item
+                        v-for="item in applyToMenuList"
+                        :key="item.key"
+                        >{{ item.label }}</a-menu-item
+                      >
+                    </a-menu>
+                  </template>
+                </a-dropdown>
+              </div>
             </template>
             <template v-else-if="column.title === '重量(g)'">
-              <a-input-number
-                v-model:value="record.weight"
-                :controls="false"
-                :precision="0"
-                :min="1"
-                :max="99999"
-                placeholder="请输入数值"
-                class="w-full"
-              />
+              <div class="flex">
+                <a-input-number
+                  v-model:value="record.weight"
+                  :controls="false"
+                  :precision="0"
+                  :min="1"
+                  :max="99999"
+                  placeholder="请输入数值"
+                  class="flex-1"
+                />
+                <a-dropdown>
+                  <a-button
+                    type="link"
+                    class="flex-none"
+                    ><CopyOutlined
+                  /></a-button>
+                  <template #overlay>
+                    <a-menu @click="confirmMenuClick($event, record, 'weight')">
+                      <a-menu-item
+                        v-for="item in applyToMenuList"
+                        :key="item.key"
+                        >{{ item.label }}</a-menu-item
+                      >
+                    </a-menu>
+                  </template>
+                </a-dropdown>
+              </div>
             </template>
             <template v-else-if="column.title === '操作'">
               <a-button
@@ -344,6 +454,7 @@
     <SKUCodeModal
       v-model:open="SKUCodeModalOpen"
       ref="SKUCodeModalRef"
+      :joined-aspect-name-list="joinedAspectNameList"
       @ok="SKUCodeOk"
     />
 
@@ -386,10 +497,11 @@
 </template>
 
 <script setup>
-  import { COLUMNS } from './config'
+  import { COLUMNS, UNIT_OPTIONS } from './config'
   import { message } from 'ant-design-vue'
   import { v4 as uuidv4 } from 'uuid'
-  import { PlusOutlined, MinusOutlined, DeleteOutlined } from '@ant-design/icons-vue'
+  import { PlusOutlined, MinusOutlined, DeleteOutlined, CopyOutlined } from '@ant-design/icons-vue'
+  import { processImageSource } from '@/pages/ozon/config/commJs/index'
 
   import AddAspectRowModal from './components/AddAspectRowModal.vue'
   import SKUCodeModal from './components/SKUCodeModal.vue'
@@ -410,6 +522,7 @@
     list => {
       if (list.length) {
         getAspectList()
+        assignDetail()
       }
     }
   )
@@ -554,7 +667,7 @@
       for (const key in item.nonEmptyTableData[0]) {
         if (key === 'uuid') continue
 
-        list.push({ title: key, key, dataIndex: key, width: 100 })
+        list.push({ title: key, key, dataIndex: key, width: 120 })
       }
     })
 
@@ -562,7 +675,130 @@
   })
   // SKU 表头(合并变种属性表头和常量表头)
   const SKUColumns = computed(() => [...aspectColumns.value, ...COLUMNS])
+
+  // 应用到同 xx 变种
+  const PERMANENT_LIST = [{ label: '应用到全部', key: 'applyAll' }]
+  const joinedAspectNameList = computed(() =>
+    filteredAspectList.value.map(item =>
+      item.columns
+        .slice(0, -1)
+        .map(column => column.title)
+        .join('&')
+    )
+  )
+  const applyToMenuList = computed(() => {
+    const list = joinedAspectNameList.value.map(name => ({ label: `应用到同 ${name} 的变种`, key: name }))
+
+    return [...PERMANENT_LIST, ...list]
+  })
   /** computed END */
+
+  watch(
+    () => joinedAspectNameList.value,
+    list => {
+      // 存到小菠萝里
+      store.$patch(state => {
+        state.joinedAspectNameList = list
+      })
+    }
+  )
+
+  /** 详情回显 */
+  function assignDetail() {
+    // 回显选中的变种主题按钮
+    const variantList = detail.value.skuList[0].attributes.filter(item => item.isVariant)
+    const keySet = new Set()
+    filteredAspectBtnList.value.forEach(item => {
+      if (variantList.some(ele => String(item.key).split('-').map(Number).includes(ele.id))) {
+        keySet.add(item.key)
+      }
+    })
+    if (keySet.size) selectedAspectKeyList.value.push(...Array.from(keySet))
+
+    // 填充 filteredAspectList 中 tableData 数据
+    const { skuList } = detail.value
+    const valObj = {} // 收集值(去重)
+    filteredAspectList.value.forEach(item => {
+      valObj[item.name] = {}
+    })
+    skuList.forEach(item => {
+      const variantList = item.attributes.filter(item => item.isVariant) // 以 variantList 为准
+      filteredAspectList.value.forEach(item => {
+        const obj = {}
+        let key = ''
+        item.columns.slice(0, -1).forEach(col => {
+          obj[col.name] = variantList.find(ele => ele.id === col.id)?.values || []
+          key += obj[col.name].map(val => val.value).join(',')
+        })
+        // 为了去重, 经历九转十八弯
+        valObj[item.name][key] = obj
+      })
+    })
+    filteredAspectList.value.forEach(item => {
+      item.tableData = Object.values(valObj[item.name]).map(obj => {
+        const row = { uuid: uuidv4() }
+        const itemAspectList = item.columns.slice(0, -1)
+        itemAspectList.forEach(ele => {
+          row[ele.name] = nonEmpty(obj[ele.name]) ? getValueByType(obj[ele.name], ele.selectType) : getDetaultByType(ele.selectType)
+        })
+
+        return row
+      })
+    })
+
+    function getValueByType(list, selectType) {
+      switch (selectType) {
+        case 'select':
+          return { label: list[0].value, value: list[0].dictionaryValueId }
+        case 'multSelect':
+          return list.map(item => ({ label: item.value, value: item.dictionaryValueId }))
+        case 'input':
+        default:
+          return list[0].value
+      }
+    }
+
+    // 填充表格数据(根据变种值组成唯一 key 来匹配数据)
+    nextTick(() => {
+      const recordUuidList = []
+      skuList.forEach(sku => {
+        const variantList = sku.attributes.filter(item => item.isVariant)
+        const skuKey = aspectColumns.value
+          .map(col => {
+            const id = rawAttributes.value.find(attr => attr.name === col.title).id
+            const target = variantList.find(attr => attr.id === id)
+
+            return target ? target.values.map(val => val.value).join(',') : ''
+          })
+          .join('-')
+
+        const record = SKUTableData.value.find(record => {
+          const recordKey = aspectColumns.value.map(col => record[col.title]).join('-')
+
+          return recordKey === skuKey
+        })
+
+        if (record) {
+          recordUuidList.push(record.uuid)
+
+          record.skuCode = sku.skuCode
+          record.costPrice = sku.costPrice
+          record.stock = sku.stock
+          record.planNum = sku.planNum
+          record.saleUnit = sku.saleUnit
+          record.length = sku.depth
+          record.width = sku.width
+          record.height = sku.height
+          record.weight = sku.weight
+          record.mainImages = sku.mainImages.map(url => ({ id: uuidv4(), url: processImageSource(url) }))
+          record.subImages = sku.subImages.map(url => ({ id: uuidv4(), url: processImageSource(url) }))
+        }
+      })
+
+      // 移除多余数据(因在提交时可能会删除几条 SKU)
+      SKUTableData.value = SKUTableData.value.filter(record => recordUuidList.includes(record.uuid))
+    })
+  }
 
   // 根据 selectType 获取默认值
   function getDetaultByType(selectType) {
@@ -685,12 +921,39 @@
     list => {
       if (hasDuplicateAspect.value) return
 
+      // 备份老数据
+      const oldSKUData = SKUDataToMap(SKUTableData.value)
+      // 生成新表格数据
       SKUTableData.value = generateSKUCombinations()
+      // 赋值老数据
+      assignOldSKUData(oldSKUData)
     },
     { deep: true }
   )
 
-  // 生成 SKU 组合 (! KEY FUNCTION !)
+  watch(
+    () => SKUTableData.value,
+    data => {
+      store.$patch(state => {
+        state.SKUTableData = data
+      })
+    }
+  )
+
+  /**
+   * @description SKU列表数据转map,方便映射查找，判断SKU数据对比复用
+   * @param SKUList  SKU列表
+   * @returns SKUKey做键, SKU数据做值的SKU查找映射
+   */
+  function SKUDataToMap(SKUList) {
+    return SKUList.reduce((map, SKU) => {
+      const SKUKey = aspectColumns.value.map(col => SKU[col.title]).join('-')
+      map[SKUKey] = SKU
+      return map
+    }, {})
+  }
+
+  /** 生成 SKU 组合 (! KEY FUNCTION !) */
   function generateSKUCombinations() {
     return usefulAspect.value.reduce(
       (combinations, item) => {
@@ -713,8 +976,21 @@
           })
         )
       },
-      [{ uuid: uuidv4() }]
+      [{ uuid: uuidv4(), mainImages: [], subImages: [] }]
     )
+  }
+
+  // 赋值老数据
+  function assignOldSKUData(oldSKUData) {
+    SKUTableData.value.forEach((record, i) => {
+      const SKUKey = aspectColumns.value.map(col => record[col.title]).join('-')
+      if (oldSKUData[SKUKey]) {
+        SKUTableData.value[i] = {
+          ...oldSKUData[SKUKey],
+          uuid: record.uuid
+        }
+      }
+    })
   }
 
   // 移除一行 SKU
@@ -731,6 +1007,40 @@
         }
       })
     })
+  }
+
+  /** 应用到同 xx 变种 */
+  function confirmMenuClick({ key }, record, prop) {
+    if (key === 'applyAll') {
+      if (prop === 'size') {
+        SKUTableData.value.forEach(item => {
+          item.length = record.length
+          item.width = record.width
+          item.height = record.height
+        })
+      } else {
+        SKUTableData.value.forEach(item => {
+          item[prop] = record[prop]
+        })
+      }
+    } else {
+      const nameList = key.split('&')
+      if (prop === 'size') {
+        SKUTableData.value.forEach(item => {
+          if (nameList.every(name => item[name] === record[name])) {
+            item.length = record.length
+            item.width = record.width
+            item.height = record.height
+          }
+        })
+      } else {
+        SKUTableData.value.forEach(item => {
+          if (nameList.every(name => item[name] === record[name])) {
+            item[prop] = record[prop]
+          }
+        })
+      }
+    }
   }
 
   /** 弹窗(批量操作) */
@@ -758,7 +1068,7 @@
     stockModalRef.value.modify(SKUTableData.value)
   }
 
-  // quantity
+  // planNum
   const quantityModalRef = ref()
   const quantityModalOpen = ref(false)
 
@@ -766,7 +1076,7 @@
     quantityModalRef.value.modify(SKUTableData.value)
   }
 
-  // unit
+  // saleUnit
   const unitModalRef = ref()
   const unitModalOpen = ref(false)
 
@@ -791,7 +1101,136 @@
   }
 
   /** 校验并提交数据 */
-  function emitData() {}
+  // 校验
+  function validate() {
+    let flag = true
+    // 必填变种属性是否有空
+    loop1: for (const item of filteredAspectList.value) {
+      for (const column of item.columns.slice(0, -1)) {
+        if (column.isRequired) {
+          if (item.tableData.some(record => !nonEmpty(record[column.name]))) {
+            message.error('有必填属性未填写')
+
+            flag = false
+            break loop1
+          }
+        }
+      }
+    }
+
+    if (!flag) return false // 短路
+    // SKUTable 是否有空
+    const list = [...COLUMNS.slice(0, -1), { title: '长', key: 'length' }, { title: '宽', key: 'width' }, { title: '高', key: 'height' }].filter(item => item.key !== 'size')
+    loop2: for (const item of list) {
+      for (const record of SKUTableData.value) {
+        if (!nonEmpty(record[item.key])) {
+          message.error(`有 ${item.title} 未填写`)
+
+          flag = false
+          break loop2
+        }
+      }
+    }
+
+    if (!flag) return false // 短路
+    // SKUCode 不能相同
+    const SKUCodeList = SKUTableData.value.map(record => record.skuCode)
+    const SKUCodeSet = new Set(SKUCodeList)
+    if (SKUCodeList.length !== SKUCodeSet.size) {
+      message.error('SKU 编码不能重复')
+
+      flag = false
+    }
+
+    if (!flag) return false // 短路
+    // 校验图片数量
+    const min = 5
+    const max = 12
+    for (const record of SKUTableData.value) {
+      if (record.mainImages.length < min || record.mainImages.length > max) {
+        message.error('主图的数量不符合限制')
+
+        flag = false
+        break
+      }
+      if (record.subImages.length < min || record.subImages.length > max) {
+        message.error('副图的数量不符合限制')
+
+        flag = false
+        break
+      }
+    }
+
+    return flag
+  }
+
+  function emitData() {
+    // 校验
+    if (validate()) {
+      const skuList = SKUTableData.value.map(item => {
+        // SKU 属性
+        const skuAttributes = []
+        aspectColumns.value
+          .map(col => col.key)
+          .forEach(name => {
+            // 从全部属性中找到对应的数据
+            const target = rawAttributes.value.find(attr => attr.name === name)
+            if (target) {
+              const relatedAttributeIdList = target.relatedAttributeId?.split(',') || []
+              // 变种属性的值可能是多选(以','分割)
+              const valueList = item[name].split(',')
+              valueList.forEach((val, i) => {
+                // 找到值对应的 id
+                let attributeOptionId = '0'
+                if (target.options) {
+                  attributeOptionId = target.options.find(opt => opt.value === val)?.id ?? '0'
+                }
+                skuAttributes.push({
+                  id: relatedAttributeIdList[i],
+                  intelligentAttributeId: target.intelligentAttributeId,
+                  complexId: '0',
+                  skuId: item.skuId,
+                  skuCode: item.skuCode,
+                  attributeId: target.id,
+                  attributeName: name,
+                  attributeOptionId,
+                  attributeValue: val,
+                  isVariant: true
+                })
+              })
+            }
+          })
+
+        const obj = {
+          skuId: item.skuId,
+          skuCode: item.skuCode,
+          costPrice: item.costPrice,
+          stock: item.stock,
+          planNum: item.planNum,
+          saleUnit: item.saleUnit,
+          length: item.length,
+          width: item.width,
+          height: item.height,
+          weight: item.weight,
+          mainImages: item.mainImages.map(image => image.url),
+          subImages: item.subImages.map(image => image.url),
+          skuAttributes
+        }
+
+        // 初始时, 如果没有 skuId, 从详情里根据 skuCode 匹配对应的 skuId
+        if (!obj.skuId) {
+          const targetItem = detail.value.skuList.find(item => item.skuCode === obj.skuCode)
+          targetItem && (obj.skuId = targetItem.id)
+        }
+
+        return obj
+      })
+
+      return skuList
+    } else {
+      return false
+    }
+  }
 
   // 抛出数据和方法，可以让父级用ref获取
   defineExpose({ emitData })

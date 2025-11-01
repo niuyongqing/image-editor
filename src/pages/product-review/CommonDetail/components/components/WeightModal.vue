@@ -2,6 +2,7 @@
 <template>
   <a-modal
     :open="open"
+    :mask-closable="false"
     title="批量修改重量"
     width="35%"
     @cancel="cancel"

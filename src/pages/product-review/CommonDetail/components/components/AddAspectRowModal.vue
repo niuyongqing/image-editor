@@ -2,6 +2,7 @@
 <template>
   <a-modal
     :open="open"
+    :mask-closable="false"
     title="批量设置变种属性"
     @cancel="cancel"
     @ok="ok"

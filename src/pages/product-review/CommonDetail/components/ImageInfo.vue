@@ -15,7 +15,7 @@
         <template #overlay>
           <a-menu @click="addWaterMark">
             <a-menu-item
-              v-for="waterMark in waterMarkOptions"
+              v-for="waterMark in watermarkOptions"
               :key="waterMark.id"
             >
               <div>
@@ -94,7 +94,11 @@
             </div>
 
             <div class="text-right">
-              <span>【{{ SKU.mainImages.length }}/{{ maxCount }}】图片 </span>
+              <span
+                >图片【<span :class="(SKU.mainImages.length < minCount || SKU.mainImages.length > maxCount) && 'text-red font-bold'">{{ SKU.mainImages.length }}</span
+                >】</span
+              >
+              <span class="text-gray">{{ `(建议上传${minCount} ~ ${maxCount}张)` }}</span>
               <a-dropdown>
                 <a-button
                   type="link"
@@ -104,7 +108,7 @@
                 <template #overlay>
                   <a-menu @click="addWaterMark($event, SKU, 'mainImages')">
                     <a-menu-item
-                      v-for="waterMark in waterMarkOptions"
+                      v-for="waterMark in watermarkOptions"
                       :key="waterMark.id"
                     >
                       <div>
@@ -181,7 +185,7 @@
                     <a-dropdown>
                       <a-button type="link"><BulbOutlined class="text-base" /><CaretDownOutlined /></a-button>
                       <template #overlay>
-                        <a-menu @click="imgModifySingleMenuClick($event, image)">
+                        <a-menu @click="imgModifySingleMenuClick($event, image, 'mainImages')">
                           <a-menu-item key="ps">在线p图</a-menu-item>
                           <a-menu-item key="translate">图片翻译</a-menu-item>
                           <!-- <a-menu-item key="whiteBg">图片白底</a-menu-item> -->
@@ -192,6 +196,7 @@
                     <a-button
                       type="link"
                       title="删除"
+                      danger
                       ><DeleteOutlined
                         class="text-base"
                         @click="delImg(SKU, image.id, 'mainImages')"
@@ -243,7 +248,11 @@
             </div>
 
             <div class="text-right">
-              <span>【{{ SKU.subImages.length }}/{{ maxCount }}】图片 </span>
+              <span
+                >图片【<span :class="(SKU.subImages.length < minCount || SKU.subImages.length > maxCount) && 'text-red font-bold'">{{ SKU.subImages.length }}</span
+                >】</span
+              >
+              <span class="text-gray">{{ `(建议上传${minCount} ~ ${maxCount}张)` }}</span>
               <a-dropdown>
                 <a-button
                   type="link"
@@ -253,7 +262,7 @@
                 <template #overlay>
                   <a-menu @click="addWaterMark($event, SKU, 'subImages')">
                     <a-menu-item
-                      v-for="waterMark in waterMarkOptions"
+                      v-for="waterMark in watermarkOptions"
                       :key="waterMark.id"
                     >
                       <div>
@@ -330,7 +339,7 @@
                     <a-dropdown>
                       <a-button type="link"><BulbOutlined class="text-base" /><CaretDownOutlined /></a-button>
                       <template #overlay>
-                        <a-menu @click="imgModifySingleMenuClick($event, image)">
+                        <a-menu @click="imgModifySingleMenuClick($event, image, 'subImages')">
                           <a-menu-item key="ps">在线p图</a-menu-item>
                           <a-menu-item key="translate">图片翻译</a-menu-item>
                           <!-- <a-menu-item key="whiteBg">图片白底</a-menu-item> -->
@@ -341,6 +350,7 @@
                     <a-button
                       type="link"
                       title="删除"
+                      danger
                       ><DeleteOutlined
                         class="text-base"
                         @click="delImg(SKU, image.id, 'subImages')"
@@ -414,13 +424,16 @@
 
   const store = useProductReviewStore()
   const dataSource = computed(() => store.SKUTableData)
-  const attrList = computed(() => store.attrList)
+  const joinedAspectNameList = computed(() => store.joinedAspectNameList)
 
   const props = defineProps({
-    // TODO: 限制图片最大数量
+    minCount: {
+      type: Number,
+      default: 5
+    },
     maxCount: {
       type: Number,
-      default: 30
+      default: 12
     }
   })
 
@@ -471,7 +484,12 @@
 
   // 变种属性名称列表
   const attrKeyList = computed(() => {
-    return attrList.value.flat()
+    const list = []
+    joinedAspectNameList.value.forEach(joinedName => {
+      list.push(...joinedName.split('&'))
+    })
+
+    return list
   })
 
   /** 批量加水印 */
@@ -566,7 +584,7 @@
   /** 图片应用到 按钮 */
   const PERMANENT_LIST = [{ label: '所有变种', key: 'applyAll' }]
   const confirmMenuList = computed(() => {
-    const variantAttrList = attrList.value.map(list => list.join('-')).map(name => ({ label: `同 ${name} 的变种`, key: name }))
+    const variantAttrList = joinedAspectNameList.value.map(name => ({ label: `同 ${name} 的变种`, key: name }))
 
     return [...PERMANENT_LIST, ...variantAttrList]
   })
@@ -584,7 +602,7 @@
         item.mainImages = cloneDeep(SKU.mainImages)
       })
     } else {
-      const keyList = key.split('-')
+      const keyList = key.split('&')
       dataSource.value.forEach(item => {
         if (keyList.every(key => item[key] === SKU[key])) {
           item.mainImages = cloneDeep(SKU.mainImages)
@@ -606,7 +624,7 @@
         item.subImages = cloneDeep(SKU.subImages)
       })
     } else {
-      const keyList = key.split('-')
+      const keyList = key.split('&')
       dataSource.value.forEach(item => {
         if (keyList.every(key => item[key] === SKU[key])) {
           item.subImages = cloneDeep(SKU.subImages)
@@ -708,19 +726,14 @@
   // 美图设计室回传图片数据
   const channel = new BroadcastChannel('mtImageEditor')
   channel.onmessage = event => {
-    // console.log('接收到美图设计室回传图片数据:', event.data);
-
     // 数据有效性检查
     if (!event.data || !event.data.base64) {
-      console.error('美图设计室回传数据不完整或无效')
       message.error('图片数据处理失败，请重试')
       return
     }
 
     MtImageEBaseUrl({ imageData: event.data.base64 })
       .then(res => {
-        // console.log('上传处理结果:', res);
-
         if (res.code === 200 && res.msg) {
           mtImageEBaseUrl.value = res.msg
 
@@ -749,7 +762,7 @@
   function updateImageById(imageId, newImageUrl, recordId) {
     // 遍历所有SKU的图片列表
     for (const SKU of dataSource.value) {
-      const targetImage = SKU[keyName].find(img => img.id === imageId)
+      const targetImage = SKU[keyNameProp.value].find(img => img.id === imageId)
       if (targetImage) {
         // 更新目标图片URL - 确保使用ref.value获取实际URL值
         targetImage.url = newImageUrl.value
@@ -786,8 +799,10 @@
     channel.close()
   })
 
+  const keyNameProp = ref('mainImages') // [mainImages, subImages] 特供给 ps 用
   // 编辑单张图片
-  function imgModifySingleMenuClick({ key }, item) {
+  function imgModifySingleMenuClick({ key }, item, keyName) {
+    keyNameProp.value = keyName
     switch (key) {
       case 'translate':
         translateImageList.value = [item]

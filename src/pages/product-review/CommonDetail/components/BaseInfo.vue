@@ -153,9 +153,18 @@
       <a-divider />
 
       <a-form-item label="产品属性">
+        <!-- 展开/收起 -->
+        <a-button
+          type="link"
+          class="absolute -top-6 right-0"
+          @click="fold = !fold"
+        >
+          <span v-if="fold">展开 <DownOutlined /></span>
+          <span v-else>收起 <UpOutlined /></span>
+        </a-button>
         <a-card
           :loading="attrLoading"
-          class="min-h-15 max-h-150 overflow-y-auto"
+          class="min-h-15 max-h-170 overflow-y-auto"
         >
           <a-form
             ref="attrFormRef"
@@ -163,7 +172,7 @@
             :label-col="{ span: 4 }"
           >
             <a-form-item
-              v-for="item in attributeList"
+              v-for="item in filteredAttributeList"
               :key="item.id"
               :name="item.name"
               :required="item.isRequired"
@@ -389,7 +398,7 @@
   import { v4 as uuidv4 } from 'uuid'
   import { copyText } from '@/utils'
   import { message } from 'ant-design-vue'
-  import { DeleteOutlined, PlusOutlined, MinusOutlined, QuestionCircleOutlined } from '@ant-design/icons-vue'
+  import { UpOutlined, DownOutlined, DeleteOutlined, PlusOutlined, MinusOutlined, QuestionCircleOutlined } from '@ant-design/icons-vue'
 
   const store = useProductReviewStore()
   const categoryOpen = ref(false)
@@ -438,6 +447,7 @@
   }
 
   const descRequired = ref(false)
+  const fold = ref(false)
 
   /** 产品属性 */
   // 定义常量ID提升可维护性
@@ -458,6 +468,9 @@
   const attributeList = ref([])
   const attrLoading = ref(false)
   const attrFormRef = ref()
+
+  // 显示的属性列表(fold: 5条; unfold: all;)
+  const filteredAttributeList = computed(() => (fold.value ? attributeList.value.slice(0, 5) : attributeList.value))
 
   function getAttributes(arg = {}) {
     const categoryIdList = form.categoryId.split(',')
@@ -866,7 +879,7 @@
     // 给分类一个特殊关照
     if (!form.categoryId) message.error('请选择分类!')
 
-    Promise.all([formRef.value.validate(), attrFormRef.value.validate()])
+    return Promise.all([formRef.value.validate(), attrFormRef.value.validate()])
       .then(() => {
         // 外层值
         const outerObj = {

@@ -2,6 +2,7 @@
 <template>
   <a-modal
     :open="open"
+    :mask-closable="false"
     title="SKU高级生成"
     width="45%"
     @cancel="cancel"
@@ -81,8 +82,7 @@
           </div>
         </div>
 
-        <!-- TODO: -->
-        <p class="font-bold mt-2">生成SKU前缀</p>
+        <p class="font-bold mt-2">拼接变种属性</p>
         <div class="flex mb-4">
           <template
             v-for="(item, i) in variantList"
@@ -152,17 +152,24 @@
     open: {
       type: Boolean,
       default: false
+    },
+    joinedAspectNameList: {
+      type: Array,
+      default: () => []
     }
   })
   const emits = defineEmits(['update:open', 'ok'])
 
-  watch(() => props.open, open => {
-    if (open) {
-      nextTick(() => {
-        document.getElementById('autofocus_dom').focus()
-      })
+  watch(
+    () => props.open,
+    open => {
+      if (open) {
+        nextTick(() => {
+          document.getElementById('autofocus_dom').focus()
+        })
+      }
     }
-  })
+  )
 
   /** tabs */
   const activeKey = ref('generate') // generate-生成; modify-修改;
@@ -227,8 +234,17 @@
 
       // 勾选添加变种属性
       if (attachVariant.value) {
-        // TODO:
-        record.skuCode += record.cookedAttrValueList.join('-')
+        const aspectStr = props.joinedAspectNameList
+          .map(joinedAspectName =>
+            joinedAspectName
+              .split('&')
+              .map(name => record[name])
+              .filter(Boolean)
+              .join(',')
+          )
+          .join('-')
+
+        record.skuCode += aspectStr
       }
     })
   }

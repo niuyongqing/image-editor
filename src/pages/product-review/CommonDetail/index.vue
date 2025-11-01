@@ -89,7 +89,7 @@
             :rows="4"
             :maxlength="255"
             show-count
-            allowClear
+            allow-clear
             placeholder="请输入审核备注（驳回时必填）"
           />
         </a-form-item>
@@ -99,9 +99,9 @@
 </template>
 
 <script setup>
-  import BaseInfo from './BaseInfo.vue'
-  import SKUInfo from './SKUInfo.vue'
-  import ImageInfo from './ImageInfo.vue'
+  import BaseInfo from './components/BaseInfo.vue'
+  import SKUInfo from './components/SKUInfo.vue'
+  import ImageInfo from './components/ImageInfo.vue'
 
   import { getDetailApi, updateProductDetailApi } from './api'
   import { lastAudit } from '~@/pages/product-review/config/api/product-review.js'
@@ -135,8 +135,7 @@
     getDetailApi(id).then(res => {
       detail = res.data || {}
       store.$patch(state => {
-        state.productDetail = detail
-        state.dataType = 'edit'
+        state.detail = detail
       })
     })
   }
@@ -149,38 +148,18 @@
   const saveLoading = ref(false)
   function save(skipClose = false) {
     return new Promise(async (resolve, reject) => {
-      // 校验
-      const baseInfoFlag = await baseInfoRef.value.childForm()
-      const SKUFlag = SKUInfoRef.value.submitForm()
-      !baseInfoFlag && message.error('请完善产品属性')
-      if (!baseInfoFlag || !SKUFlag) {
-        reject()
+      // 获取数据
+      const baseInfo = await baseInfoRef.value.emitData()
+      const skuList = SKUInfoRef.value.emitData()
+      if (!baseInfo || !skuList) {
+        reject('校验不通过')
         return
       }
 
-      // 获取数据
-      const baseInfoForm = baseInfoRef.value.baseInfoForm
-      // 在外面那一层的字段
-      const outerObj = {
-        productId: baseInfoForm.id,
-        productName: baseInfoForm.productName,
-        prefixDecorateName: baseInfoForm.prefixDecorateName,
-        suffixDecorateName: baseInfoForm.suffixDecorateName,
-        categoryId: baseInfoForm.categoryId,
-        vat: baseInfoForm.vat,
-        competitiveInfos: baseInfoForm.competitiveInfos.filter(item => item.linkUrl).map(item => ({ linkUrl: item.linkUrl })),
-        purchaseLinkUrls: baseInfoForm.purchaseLinkUrls
-          .filter(item => item.linkUrl)
-          .map(item => item.linkUrl)
-          .join(',')
-      }
-      const submitAttributes = baseInfoRef.value.getSubmitAttributes()
-      const skuList = SKUInfoRef.value.getSkuList()
-
       const params = {
-        ...outerObj,
+        ...baseInfo,
         mainImage: skuList[0].mainImages[0],
-        attributes: submitAttributes,
+        subImage: skuList[0].subImages[0],
         skuList
       }
 

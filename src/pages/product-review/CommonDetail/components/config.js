@@ -3,7 +3,7 @@ export const COLUMNS = [
   {
     title: 'SKU',
     key: 'skuCode',
-    width: 100
+    width: 150
   },
   {
     title: '成本价',
@@ -17,13 +17,13 @@ export const COLUMNS = [
   },
   {
     title: '策划数量',
-    key: 'quantity',
+    key: 'planNum',
     width: 80
   },
   {
     title: '售卖单位',
-    key: 'unit',
-    width: 80
+    key: 'saleUnit',
+    width: 120
   },
   {
     title: '尺寸(mm)',
@@ -40,4 +40,14 @@ export const COLUMNS = [
     key: 'operate',
     width: 40
   }
+]
+
+// 售卖单位
+export const UNIT_OPTIONS = [
+  { label: '个(Piece)(шт)', ch: '个', en: 'Piece', ru: 'шт' },
+  { label: '套(Set)(комплект)', ch: '套', en: 'Set', ru: 'комплект' },
+  { label: '双(Pair)(Пара)', ch: '双', en: 'Pair', ru: 'Пара' },
+  { label: '瓶(Bottle)(бутылка)', ch: '瓶', en: 'Bottle', ru: 'бутылка' },
+  { label: '包(Bag)(сумка)', ch: '包', en: 'Bag', ru: 'сумка' },
+  { label: '片(Sheet)(лист)', ch: '片', en: 'Sheet', ru: 'лист' }
 ]

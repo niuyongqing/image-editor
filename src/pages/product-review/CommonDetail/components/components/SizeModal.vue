@@ -2,6 +2,7 @@
 <template>
   <a-modal
     :open="open"
+    :mask-closable="false"
     title="批量修改尺寸"
     @cancel="cancel"
     @ok="ok"
