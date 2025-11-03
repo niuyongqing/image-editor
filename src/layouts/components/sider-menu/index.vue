@@ -78,7 +78,7 @@ async function out(){
 <template>
   <div v-if="fixedSider"/>
   <a-layout-sider
-      style="position: relative;z-index: 9999"
+      style="position: relative;z-index: 9999;"
     v-if="splitMenus ? (selectedMenus ?? []).length > 0 : true"
     :theme="theme === 'inverted' ? 'dark' : 'light'"
     :collapsed="collapsed && !isMobile"

@@ -56,6 +56,11 @@ export default [
     dataIndex: 'status_name',
     key: 'status',
     align: 'center',
+    type: 'tag',
+    tagColor: {
+      '默认': '#108ee9',
+      '备选': '#87d068',
+    },
     width: 200,
     minWidth: 200,
     show: true,
@@ -72,5 +77,41 @@ export default [
     show: true,
     filter: true,
     resizable: true,
+  },
+  {
+    title: '操作',
+    key: 'action',
+    align: 'center',
+    width: 300,
+    fixed: 'right',
+    resizable: false,
+    actions: [
+      {
+        label: '编辑',
+        eventName: 'edit',
+        danger: false
+      },
+      {
+        label: '查看',
+        eventName: 'view',
+        danger: false
+      },
+
+      {
+        label: '复制',
+        eventName: 'copy',
+        danger: false
+      },
+      {
+        label: '设为默认',
+        eventName: 'used',
+        danger: false,
+        popconfirm: {
+          title: '确定要将这条模板设为默认吗？',
+          okText: '确定',
+          cancelText: '取消'
+        }
+      }
+    ]
   },
 ]

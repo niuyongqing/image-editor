@@ -24,3 +24,8 @@ export function watermarkEditApi(params) {
 export function watermarkDelApi(id) {
   return usePost('/platform-setting/platform/setting/template/watermark/del', { id })
 }
+
+// 更换
+export function watermarkReplaceApi(params) {
+  return usePost('/platform-ozon/intelligent/shop/template/replace/template', params)
+}

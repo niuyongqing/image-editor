@@ -16,14 +16,20 @@
           class="form-item-radio"
           :wrapper-col="wrapperColItem"
         >
-          <a-radio-group v-model:value="formData.account" name="account">
-            <a-radio
-              :value="item.account"
-              v-for="item in accountList"
-              :key="item.account"
-              >{{ item.simpleName }}</a-radio
-            >
-          </a-radio-group>
+          <selectComm
+            class="ml-23"
+            :isShowAll="false"
+            :options="accountList"
+            :fieldObj="{
+              fieldKey: 'account',
+              fieldLabel: 'simpleName',
+            }"
+            @backSelectItem="
+              (val) => {
+                (formData.account = val), getList();
+              }
+            "
+          ></selectComm>
         </a-form-item>
         <!-- 状态 -->
         <a-form-item label="状态:">
@@ -55,51 +61,20 @@
           <a-button type="primary" @click="getList" :disabled="loading"
             >查询</a-button
           >
-          <a-button
-            @click="resetForm"
-            :disabled="loading"
-            >重置</a-button
-          >
+          <a-button @click="resetForm" :disabled="loading">重置</a-button>
         </a-form-item>
       </a-form>
     </a-card>
     <!-- 数据展示区域 -->
     <a-card class="mt-2">
       <div class="table-header-actions">
-        <a-button :disabled="selectedCount !== 0" @click="handleEdit('add', {})" type="primary" title="创建新的店铺模板">
+        <a-button
+          :disabled="selectedCount !== 0"
+          @click="handleEdit('add', {})"
+          type="primary"
+          title="创建新的店铺模板"
+        >
           新增
-        </a-button>
-        <a-button
-          :disabled="selectedCount !== 1 || loading"
-          @click="handleStopOrUsed(0)"
-          type="primary"
-          title="将选中的模板设为默认模板"
-        >
-          设为默认
-        </a-button>
-        <a-button
-          :disabled="selectedCount !== 1 || loading"
-          @click="handleStopOrUsed(1)"
-          type="primary"
-          title="停用选中的模板，使其不再作为默认模板"
-        >
-          停用
-        </a-button>
-        <a-button
-          :disabled="selectedCount !== 1 || loading"
-          @click="handleCopy"
-          type="primary"
-          title="复制选中的模板到其他店铺"
-        >
-          复制
-        </a-button>
-        <a-button
-          :disabled="selectedCount !== 1 || loading"
-          @click="handleEdit('edit', currentSelectRow[0])"
-          type="primary"
-          title="编辑选中的模板信息"
-        >
-          编辑
         </a-button>
         <a-button
           @click="handleSubmit"
@@ -132,12 +107,16 @@
           :loading="loading"
           @reset="resetForm"
           :pagination="pagination"
-          @row-dblclick="(record) => handleEdit('doubleClick', record)"
           @loading-change="handleLoadingChange"
           @selection-change="handleSelectionChange"
           @page-change="handlePageChange"
-          @page-size-change="handlePageSizeChange"
-        />
+          @edit="(record) => handleEdit('edit', record)"
+          @view="(record) => handleEdit('view', record)"
+          @row-dblclick="(record) => handleEdit('view', record)"
+          @copy="handleCopy"
+          @used="handleUsed"
+        >
+        </uTable>
       </div>
     </a-card>
 
@@ -149,14 +128,16 @@
       @ok="handleSubmitOk"
       @cancel="handleModalCancel('submit')"
       :confirm-loading="submitLoading"
-      okText="下一步"
+      okText="确认"
       cancelText="取消"
       :width="500"
       class="common-modal"
     >
       <!-- 显示要添加备注的模板信息 -->
       <div v-if="currentSelectRow.length > 0" class="modal-info">
-        <div class="modal-info-title">已选择的模板 ({{ currentSelectRow.length }}个):</div>
+        <div class="modal-info-title">
+          已选择的模板 ({{ currentSelectRow.length }}个):
+        </div>
         <div class="modal-info-list">
           <div
             v-for="(template, index) in currentSelectRow"
@@ -174,14 +155,14 @@
           <a-textarea
             v-model:value="submitFormData.remark"
             :rows="4"
-            placeholder="请输入备注内容，例如：模板用途、使用说明等"
+            placeholder="请输入备注内容"
             allowClear
             class="form-input"
             :maxlength="255"
             show-count
           />
           <div class="form-tip">
-            提示：备注信息将显示给所有用户，请确保内容准确、清晰
+            提示：备注信息将显示给所有能看到该模板的用户，请确保内容准确清晰
           </div>
         </a-form-item>
       </a-form>
@@ -208,7 +189,12 @@
             模板名称: {{ currentSelectRow[0].shopTemplateName || "未命名模板" }}
           </div>
           <div class="modal-info-item">
-            所属店铺: {{ currentSelectRow[0].simpleName || currentSelectRow[0].account || "未知" }}
+            所属店铺:
+            {{
+              currentSelectRow[0].simpleName ||
+              currentSelectRow[0].account ||
+              "未知"
+            }}
           </div>
         </div>
       </div>
@@ -223,6 +209,8 @@
             v-model:value="copyFormData.targetAccount"
             placeholder="请选择要复制到的店铺账号"
             class="form-input"
+            show-search
+            :filterOption="filterOption"
             allowClear
           >
             <a-select-option
@@ -234,7 +222,7 @@
             </a-select-option>
           </a-select>
           <div class="form-tip">
-            提示：选择目标店铺后，将在新页面中打开模板编辑器，您可以修改模板信息后保存
+            提示：选择目标店铺后，将在新页面中打开模板编辑页面，您可以修改模板信息后保存
           </div>
         </a-form-item>
       </a-form>
@@ -262,6 +250,7 @@ import {
   getShopList,
   stopShopTemplate,
   addRemarkShopTemplate,
+  delShopTemplate,
 } from "@/pages/product-review/store-template/api.js";
 
 // 添加缺失的变量定义
@@ -281,19 +270,20 @@ const submitLoading = ref(false); // 再次提交弹窗loading状态
 const copyOpen = ref(false); // 复制弹窗是否打开
 const copyLoading = ref(false); // 复制弹窗loading状态
 const selectedCount = ref(0); // 选中的商品数量
-const currentSelectRow = ref([]); // 当前选中的商品
-
-const labelCol = ref({
+const currentSelectRow = reactive([]); // 当前选中的商品
+const tableData = ref([]);
+const accountList = ref([]);
+const labelCol = reactive({
   style: {
     width: "100px",
   },
 });
-const wrapperCol = ref({
+const wrapperCol = reactive({
   style: {
     width: "305px",
   },
 });
-const wrapperColItem = ref({
+const wrapperColItem = reactive({
   style: {
     minWidth: "300px",
   },
@@ -318,7 +308,7 @@ const INITIAL_FORM_DATA = {
 const formData = reactive({ ...INITIAL_FORM_DATA });
 
 // 状态选项
-const statusOptions = ref([
+const statusOptions = reactive([
   {
     label: "全部",
     value: "",
@@ -333,65 +323,33 @@ const statusOptions = ref([
   },
 ]);
 
-/**
- * 处理停用或使用
- */
-const handleStopOrUsed = (type) => {
-  if (!currentSelectRow.value || currentSelectRow.value.length === 0) {
-    message.warning("请选择要操作的模板");
-    return;
+// 过滤选项
+const filterOption = (inputValue, option) => {
+  const label = option.simpleName; // 因为你的数据中有 simpleName 字段
+  return label.toLowerCase().includes(inputValue.toLowerCase());
+};
+
+// 处理设为默认或备选模板
+const handleUsed = async (record) => {
+  try {
+    const templateId = record?.id;
+    const account = record?.account;
+    // 构建请求参数
+    const requestData = {
+      id: templateId,
+      account: account,
+      status: 0 
+    };
+
+    await stopShopTemplate(requestData);
+    message.success("已设为默认模板");
+    // 重新获取列表数据
+    getList();
+  } catch (error) {
+    message.error("设为默认失败：" + (error.message || "未知错误"));
+    // 阻止对话框关闭
+    return Promise.reject();
   }
-
-  // 使用confirm对话框确认操作
-  aModal.confirm({
-    title: type === 1 ? "停用模板" : "设为默认",
-    content: () => {
-      const templateName = currentSelectRow.value?.[0]?.shopTemplateName || "该模板";
-      return h("div", { style: { padding: "20px" } }, [
-        h(
-          "p",
-          { style: "color: #f5222d; margin-bottom: 10px;" },
-          type === 1 
-            ? `确定要停用模板"${templateName}"吗？停用后该模板将不再作为默认模板使用。` 
-            : `确定要将模板"${templateName}"设为默认吗？设为默认后，该模板将作为首选模板使用。`
-        ),
-        h(
-          "p",
-          { style: "color: #666; font-size: 12px;" },
-          "此操作将立即生效，请确认是否继续。"
-        ),
-      ]);
-    },
-    okText: "确认",
-    cancelText: "取消",
-    async onOk() {
-      try {
-        const templateId = currentSelectRow.value?.[0]?.id;
-        const account = currentSelectRow.value?.[0]?.account;
-        // 构建请求参数
-        const requestData = {
-          id: templateId,
-          account: account,
-          status: type === 0 ? 0 : 1, // 0默认 1使备选
-        };
-
-        await stopShopTemplate(requestData);
-        message.success(type === 1 ? "模板停用成功" : "已设为默认模板");
-        // 重新获取列表数据
-        getList();
-        // 清空选中状态
-        clearSelection();
-      } catch (error) {
-        message.error(
-          type === 0
-            ? "设为默认失败：" + (error.message || "未知错误")
-            : "模板停用失败：" + (error.message || "未知错误")
-        );
-        // 阻止对话框关闭
-        return Promise.reject();
-      }
-    },
-  });
 };
 
 // 通用弹窗处理函数
@@ -435,39 +393,32 @@ const handleApiCall = async (apiCall, successMessage, errorMessage) => {
   } catch (error) {
     console.error(errorMessage, error);
     // 尝试从错误响应中获取更详细的错误信息
-    const errorMsg = error?.response?.data?.message || error?.message || errorMessage;
+    const errorMsg =
+      error?.response?.data?.message || error?.message || errorMessage;
     message.error(errorMsg);
     return false;
   }
 };
 
-/**
- * 处理复制
- */
-const handleCopy = () => {
-  if (!currentSelectRow.value || currentSelectRow.value.length === 0) {
-    message.warning("请选择要复制的商品");
-    return;
-  }
+// 处理复制模板
+const handleCopy = (record) => {
+  currentSelectRow[0] = record;
   // 打开复制弹窗
   copyOpen.value = true;
   // 重置表单数据
   copyFormData.value.targetAccount = null;
 };
 
-/**
- * 处理复制确认
- */
+// 处理复制模板确认
 const handleCopyOk = async () => {
   const isValid = await validateForm(copyFormRef.value);
   if (!isValid) return;
-  
+
   try {
     copyOpen.value = false;
     copyLoading.value = true;
     const params = {
-      id: currentSelectRow.value?.[0]?.id,
-      status: "1",
+      id: currentSelectRow?.[0]?.id,
       account: copyFormData.value.targetAccount,
       type: "copy",
     };
@@ -485,21 +436,14 @@ const handleCopyOk = async () => {
   }
 };
 
-/**
- * 处理复制弹窗取消
- */
-/**
- * 处理复制弹窗取消
- */
+// 处理复制模板弹窗取消
 const handleCopyCancel = () => {
   handleModalCancel("copy");
 };
 
-/**
- * 处理添加备注弹窗打开
- */
+// 处理添加备注弹窗打开
 const handleSubmit = () => {
-  if (!currentSelectRow.value || currentSelectRow.value.length === 0) {
+  if (!currentSelectRow || currentSelectRow.length === 0) {
     message.warning("请选择要添加备注的模板");
     return;
   }
@@ -507,16 +451,17 @@ const handleSubmit = () => {
   submitFormData.remark = "";
 };
 
-/**
- * 处理添加备注确认
- */
+// 处理添加备注确认
 const handleSubmitOk = async () => {
-  if (!currentSelectRow.value || currentSelectRow.value.length === 0) {
+  if (!currentSelectRow || currentSelectRow.length === 0) {
     message.warning("请选择要添加备注的模板");
     return;
   }
 
-  if (!submitFormData.value.remark || submitFormData.value.remark.trim() === "") {
+  if (
+    !submitFormData.value.remark ||
+    submitFormData.value.remark.trim() === ""
+  ) {
     message.warning("请输入备注内容");
     return;
   }
@@ -524,75 +469,38 @@ const handleSubmitOk = async () => {
   const isValid = await validateForm(submitFormRef.value);
   if (!isValid) return;
 
-  // 显示确认对话框
-  aModal.confirm({
-    title: "确认添加备注",
-    content: () => {
-      const templateNames = currentSelectRow.value.map(item => 
-        item?.shopTemplateName || "未命名模板"
-      ).join("、");
-      
-      return h("div", { style: { padding: "20px" } }, [
-        h(
-          "p",
-          { style: "margin-bottom: 10px;" },
-          `确定要为以下${currentSelectRow.value.length}个模板添加备注吗？`
-        ),
-        h(
-          "p",
-          { style: "color: #1890ff; margin-bottom: 10px; word-break: break-all;" },
-          templateNames
-        ),
-        h(
-          "p",
-          { style: "margin-bottom: 10px;" },
-          `备注内容：${submitFormData.value.remark}`
-        ),
-        h(
-          "p",
-          { style: "color: #666; font-size: 12px;" },
-          "添加备注后，其他用户可以查看这些备注信息。"
-        ),
-      ]);
-    },
-    okText: "确认添加",
-    cancelText: "取消",
-    async onOk() {
-      try {
-        submitLoading.value = true;
+  try {
+    submitLoading.value = true;
 
-        const apiCall = () =>
-          addRemarkShopTemplate({
-            ids: currentSelectRow.value.map((item) => item?.id),
-            remark: submitFormData.value.remark,
-          });
+    const apiCall = () =>
+      addRemarkShopTemplate({
+        ids: currentSelectRow.map((item) => item?.id),
+        remark: submitFormData.value.remark,
+      });
 
-        const success = await handleApiCall(
-          apiCall,
-          `成功为 ${currentSelectRow.value.length} 个模板添加备注`,
-          "备注添加失败"
-        );
+    const success = await handleApiCall(
+      apiCall,
+      `成功为 ${currentSelectRow.length} 个模板添加备注`,
+      "备注添加失败"
+    );
 
-        if (success) {
-          submitOpen.value = false;
-          submitFormData.remark = "";
-          getList();
-          resetSubmitForm();
-          currentSelectRow.value = [];
-          selectedCount.value = 0;
-        }
+    if (success) {
+      submitOpen.value = false;
+      submitFormData.remark = "";
+      getList();
+      resetSubmitForm();
+      currentSelectRow.splice(0, currentSelectRow.length); // 清空数组
+      selectedCount.value = 0;
+    }
 
-        submitLoading.value = false;
-      } catch (error) {
-        message.error("添加备注失败：" + (error.message || "未知错误"));
-        submitLoading.value = false;
-        return Promise.reject();
-      }
-    },
-  });
+    submitLoading.value = false;
+  } catch (error) {
+    message.error("添加备注失败：" + (error.message || "未知错误"));
+    submitLoading.value = false;
+    return Promise.reject();
+  }
 };
 
-const accountList = ref([]);
 const getShopLists = async () => {
   const res = await getShopList();
   if (res.code === 200) {
@@ -606,11 +514,6 @@ const getShopLists = async () => {
 };
 
 // 表格数据
-const tableData = ref([]);
-
-/**
- * 获取表格数据
- */
 const getList = async (pages = {}) => {
   try {
     // 先设置loading状态为true
@@ -630,8 +533,8 @@ const getList = async (pages = {}) => {
         accountList.value.find((account) => account.account === item.account)
           ?.simpleName || item.account;
       item.status_name =
-        statusOptions.value.find((status) => status.value === item.status)
-          ?.label || item.status;
+        statusOptions.find((status) => status.value === item.status)?.label ||
+        item.status;
     });
     pagination.total = res?.total || 0;
     // 清除选中状态
@@ -646,25 +549,22 @@ const getList = async (pages = {}) => {
   }
 };
 
-/**
- * 处理表格加载状态变化
- */
+// 处理表格加载状态变化
 const handleLoadingChange = (loading) => {
   loading.value = loading;
 };
 
-/**
- * 清除表格选择
- */
+// 清除表格选择
 const clearSelection = () => {
   if (uTableRef.value) {
     uTableRef.value.clearSelection();
   }
+  // 同时清空currentSelectRow数组
+  currentSelectRow.splice(0, currentSelectRow.length);
+  selectedCount.value = 0;
 };
 
-/**
- * 重置提交表单
- */
+// 重置提交表单
 const resetSubmitForm = () => {
   submitFormData.value.remark = "";
   if (submitFormRef.value) {
@@ -672,11 +572,8 @@ const resetSubmitForm = () => {
   }
 };
 
-/**
- * 重置搜索表单
- */
+// 重置搜索表单
 const resetForm = () => {
-  // 使用初始状态常量重置表单，更简洁且易于维护
   Object.keys(INITIAL_FORM_DATA).forEach((key) => {
     if (key !== "selectAll") {
       formData[key] = JSON.parse(JSON.stringify(INITIAL_FORM_DATA[key]));
@@ -685,39 +582,26 @@ const resetForm = () => {
   getList();
 };
 
-/**
- * 处理表格加载状态变化
- */
+// 处理页码和条数变化
 const handlePageChange = (page) => {
   pagination.pageNum = page;
   getList();
 };
 
-/**
- * 处理每页条数变化
- */
-const handlePageSizeChange = (pageSize) => {
-  pagination.pageSize = pageSize;
-  getList();
-};
 
-/**
- * 处理表格行选择变化
- */
+// 处理表格行选择变化
 const handleSelectionChange = (selectedRows) => {
   selectedCount.value = selectedRows.length;
-  currentSelectRow.value = selectedRows;
-  console.log("currentSelectRow", currentSelectRow.value);
+  currentSelectRow.splice(0, currentSelectRow.length, ...selectedRows); // 更新数组内容
+  console.log("currentSelectRow", currentSelectRow);
 };
 
-/**
- * 处理编辑和查看单据操作
- */
+// 处理编辑和查看单据操作
 const handleEdit = (type, product) => {
   const params = {};
   params.type = type;
 
-  if (type === "edit" || type === "doubleClick") {
+  if (type === "edit" || type === "view") {
     if (!product || !product.id) {
       console.error("需要有效的 id 属性");
       return;
@@ -730,6 +614,38 @@ const handleEdit = (type, product) => {
     query: params,
   });
   window.open(urlData.href, "_blank");
+};
+
+/**
+ * 处理查看操作
+ */
+const handleView = (record) => {
+  router.push({
+    path: "/product-review/store-template/detail",
+    query: {
+      id: record.id,
+      type: "view",
+    },
+  });
+};
+
+/**
+ * 处理删除操作
+ */
+const handleDelete = (record) => {
+  delShopTemplate(record.id)
+    .then((res) => {
+      if (res.code === 200) {
+        message.success("删除成功");
+        getList(); // 刷新表格数据
+      } else {
+        message.error(res.msg || "删除失败");
+      }
+    })
+    .catch((error) => {
+      console.error("删除失败:", error);
+      message.error("删除失败，请稍后重试");
+    });
 };
 
 // 监听浏览器窗口通信
