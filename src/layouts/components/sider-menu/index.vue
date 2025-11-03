@@ -253,59 +253,6 @@ async function out() {
   }
 }
 </script>
-
-<template>
-  <div v-if="fixedSider"/>
-  <a-layout-sider
-      style="position: relative;z-index: 9999;"
-    v-if="splitMenus ? (selectedMenus ?? []).length > 0 : true"
-    :theme="theme === 'inverted' ? 'dark' : 'light'"
-    :collapsed="collapsed && !isMobile"
-    :trigger="null"
-    :collapsed-width="collapsedWidth"
-    :width="siderWidth"
-    collapsible
-    :class="cls"
-    :style="siderStyle"
-  >
-    <div v-if="showLogo" class="ant-pro-sider-logo" :class="collapsed && !isMobile ? 'ant-pro-sider-collapsed' : ''">
-      <a>
-        <img :src="logo" alt="logo">
-        <h1 v-if="!collapsed || isMobile">{{ title }}</h1>
-      </a>
-    </div>
-    <div class="flex-1 of-x-hidden of-y-auto scrollbar">
-      <Menu />
-    </div>
-    <!-- 个人设置菜单 -->
-    <div
-      v-if="!isMobile && leftCollapsed"
-      @click="gotoSetting"
-      class="w-100% flex-shrink-0 ant-pro-sider-collapsed-button goto"
-      :class="theme === 'inverted' ? 'ant-pro-sider-collapsed-button-inverted' : ''"
-    >
-      <div>
-        <a-popover placement="right">
-          <template #content>
-            <div style="display: inline">
-              <a-button  class="out-and-goto" @click="out">退出登录</a-button>
-            </div>
-          </template>
-          <div>
-            <div style="display: flex;justify-content: center;border-radius: 50%">
-              <img v-if="userInfo?.sysUser?.avatar" :src="`${baseApi}${userInfo.sysUser.avatar}`" alt="avatar" style="width: 30px;height: 30px;border-radius: 50%" />
-              <a-avatar v-else :size="30">
-                <template #icon><UserOutlined /></template>
-              </a-avatar>
-            </div>
-            <div class="truncate font-bold p-1" :text="userInfo?.userInfo?.username">{{userInfo?userInfo.username:""}}</div>
-          </div>
-        </a-popover>
-      </div>
-    </div>
-  </a-layout-sider>
-</template>
-
 <style lang="less">
 @import "./index.less";
 .menuSetIcon {
