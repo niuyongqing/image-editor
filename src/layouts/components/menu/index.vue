@@ -132,7 +132,7 @@
 
 <style scoped lang="less">
   .menu {
-    width: 48px;
+    width: 60px;
     height: auto;
     cursor: pointer;
     font-size: 12px;

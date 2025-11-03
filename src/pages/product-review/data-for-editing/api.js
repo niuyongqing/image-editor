@@ -12,3 +12,8 @@ export function getUserListApi() {
 export function addRemarkApi(params) {
   return usePost('/platform-ozon/platform/ozon/commodity/add/remark', params)
 }
+
+// 日志列表
+export function getLogListApi(params) {
+  return usePost('/platform-ozon/intelligent/publish/log/list', params)
+}
