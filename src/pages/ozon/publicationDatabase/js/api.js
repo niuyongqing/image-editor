@@ -83,3 +83,13 @@ export function submitEdit(data) {
     data: data,
   })
 }
+
+// 智能化刊登-获取店铺(暂无使用)
+export function shopListApi() {
+  return useGet('/platform-ozon/intelligent/product-store/find/shop')
+}
+
+// 智能化刊登-提交刊登
+export function publishApi(params) {
+  return usePost('/platform-ozon/intelligent/product-store/submit/publish', params)
+}

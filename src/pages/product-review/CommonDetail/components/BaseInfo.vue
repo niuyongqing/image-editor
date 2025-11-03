@@ -905,6 +905,9 @@
         }
       })
       .catch(err => {
+        const errMsg = err.errorFields[0].errors[0]
+        message.error(errMsg)
+
         return false
       })
   }

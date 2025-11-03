@@ -65,6 +65,12 @@
           @click="() => (remarkData.open = true)"
           v-if="checkPermi(['ozon:intelligent:product-store:add-remark'])"
         >添加备注</a-button>
+        <a-button 
+          v-if="checkPermi(['ozon:intelligent:product-store:submit-publish'])"
+          type="primary" 
+          :disabled="tableData.selectedRows.length === 0" 
+          @click="openPublicationModal()"
+        >批量刊登</a-button>
         <!-- <a-button type="primary">Primary Button</a-button> -->
       </a-space>
     </div>
@@ -100,7 +106,7 @@
           <div v-else></div>
         </template>
         <template v-else-if="key === 'operation'">
-          <a-button type="link" @click="openPublicationModal(row)">刊登</a-button>
+          <a-button v-if="checkPermi(['ozon:intelligent:product-store:submit-publish'])" type="link" @click="openPublicationModal(row)">刊登</a-button>
         </template>
       </template>
     </a-table>
@@ -128,8 +134,8 @@
   <!-- 刊登弹窗 -->
   <PublicationModal
     v-model:open="publicationModalOpen"
-    :id="''"
-    @refresh="onSubmit"
+    :id-list="idList"
+    @refresh="tableData.selectedRowKeys = []"
   />
 </div>
 </template>
@@ -392,8 +398,16 @@ async function addRemarkFn() {
 
 /** 刊登 */
 const publicationModalOpen = ref(false)
+const idList = ref([])
 
 function openPublicationModal(record) {
+  if (record) {
+    // 单项
+    idList.value = [record.id]
+  } else {
+    // 批量
+    idList.value = tableData.selectedRowKeys
+  }
   publicationModalOpen.value = true
 }
 </script>
