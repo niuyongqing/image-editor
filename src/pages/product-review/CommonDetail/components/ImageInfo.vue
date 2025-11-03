@@ -434,7 +434,7 @@
     },
     maxCount: {
       type: Number,
-      default: 12
+      default: 30
     }
   })
 

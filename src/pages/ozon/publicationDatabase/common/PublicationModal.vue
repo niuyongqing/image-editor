@@ -39,11 +39,11 @@
                   v-model:value="form.titleRepeat"
                   :controls="false"
                   :min="1"
-                  :max="99"
+                  :max="999"
                   :precision="0"
                   :disabled="form.titleRule !== '2'"
-                  class="mx-1"
-                  placeholder="选中后填写"
+                  class="mx-1 w-38"
+                  placeholder="选中后填写, 最大: 999"
                 />
               </a-form-item>
               次
@@ -70,11 +70,11 @@
                   v-model:value="form.mainImageRepeat"
                   :controls="false"
                   :min="1"
-                  :max="99"
+                  :max="999"
                   :precision="0"
                   :disabled="form.mainImageRule !== '2'"
-                  class="mx-1"
-                  placeholder="选中后填写"
+                  class="mx-1 w-38"
+                  placeholder="选中后填写, 最大: 999"
                 />
               </a-form-item>
               次
@@ -101,11 +101,11 @@
                   v-model:value="form.subImageRepeat"
                   :controls="false"
                   :min="1"
-                  :max="99"
+                  :max="999"
                   :precision="0"
                   :disabled="form.subImageRule !== '2'"
-                  class="mx-1"
-                  placeholder="选中后填写"
+                  class="mx-1 w-38"
+                  placeholder="选中后填写, 最大: 999"
                 />
               </a-form-item>
               次
@@ -116,19 +116,19 @@
       </a-form-item>
       <a-form-item
         label="资料不足时"
-        name="dataIsLack"
+        name="insufficientType"
       >
         <a-radio-group
-          v-model:value="form.dataIsLack"
+          v-model:value="form.insufficientType"
           :options="DATA_IS_LACK_OPTIONS"
         />
       </a-form-item>
       <a-form-item
         label="刊登模式"
-        name="publicationMode"
+        name="publishType"
       >
         <a-radio-group
-          v-model:value="form.publicationMode"
+          v-model:value="form.publishType"
           :options="PUBLICATION_OPTIONS"
         />
       </a-form-item>
@@ -232,6 +232,7 @@
 
 <script setup>
   import { accountCache } from '@/pages/ozon/config/api/product'
+  import { publishApi } from '../js/api'
   import { message } from 'ant-design-vue'
 
   const props = defineProps({
@@ -239,24 +240,24 @@
       type: Boolean,
       default: false
     },
-    id: {
-      type: [String, Number],
-      default: ''
+    idList: {
+      type: Array,
+      default: () => []
     }
   })
-  const emits = defineEmits(['update:open'])
+  const emits = defineEmits(['update:open', 'refresh'])
 
   // 资料不足时的选项
   const DATA_IS_LACK_OPTIONS = [
-    { label: '优先刊登排序靠前的店铺', value: '1' },
-    { label: '优先刊登排序靠后的店铺', value: '2' },
-    { label: '随机刊登店铺', value: '3' },
-    { label: '允许重复产品刊登多个店铺', value: '4' }
+    { label: '优先刊登排序靠前的店铺', value: 1 },
+    { label: '优先刊登排序靠后的店铺', value: 2 },
+    { label: '随机刊登店铺', value: 3 },
+    { label: '允许重复产品刊登多个店铺', value: 4 }
   ]
   // 刊登模式选项
   const PUBLICATION_OPTIONS = [
-    { label: '手动刊登', value: '1' },
-    { label: '自动刊登', value: '2' }
+    { label: '手动刊登', value: 2 },
+    { label: '自动刊登', value: 1 }
   ]
 
   const formRef = ref()
@@ -267,8 +268,8 @@
     mainImageRepeat: null,
     subImageRule: '3',
     subImageRepeat: null,
-    dataIsLack: '3', // 资料不足时
-    publicationMode: '1',
+    insufficientType: 3, // 资料不足时
+    publishType: 2,
     shops: [],
     productIntervalMin: 5, // 不同商品间隔时间
     productIntervalMax: 10,
@@ -340,17 +341,16 @@
     })
   }
 
-  const checkAll = ref(true)
+  const checkAll = ref(false)
   const indeterminate = ref(false)
   // 弹窗打开时, 全选店铺
   watch(
     () => props.open,
     open => {
       if (open) {
-        console.log(props.id)
-        checkAll.value = true
+        checkAll.value = false
         indeterminate.value = false
-        form.shops = shopList.value.map(item => item.account)
+        form.shops = []
       }
     }
   )
@@ -380,17 +380,48 @@
   const loading = ref(false)
   function ok() {
     formRef.value.validate().then(() => {
-      const params = { id: props.id, ...form }
-      if (params.mainImageRule !== '2') {
-        delete params.mainImageRepeat
+      const params = { ...form, idList: props.idList }
+      if (params.titleRule === '2') {
+        params.titleRepeatCount = form.titleRepeat
+      } else {
+        params.titleRepeatCount = form.titleRule === '1' ? 0 : -1
       }
-      if (params.subImageRule !== '2') {
-        delete params.subImageRepeat
+      if (params.mainImageRule === '2') {
+        params.mainImgRepeatCount = form.mainImageRepeat
+      } else {
+        params.mainImgRepeatCount = form.mainImageRule === '1' ? 0 : -1
       }
-      console.log(params)
-      return
+      if (params.subImageRule === '2') {
+        params.subImgRepeatCount = form.subImageRepeat
+      } else {
+        params.subImgRepeatCount = form.subImageRule === '1' ? 0 : -1
+      }
+      params.accountList = form.shops
+      params.shopIntervalTime = `${form.productIntervalMin},${form.productIntervalMax}`
+      params.productIntervalTime = `${form.shopIntervalMin},${form.shopIntervalMax}`
 
-      // message.success('提交刊登成功')
+      delete params.titleRule
+      delete params.titleRepeat
+      delete params.mainImageRule
+      delete params.mainImageRepeat
+      delete params.subImageRule
+      delete params.subImageRepeat
+      delete params.shops
+      delete params.productIntervalMin
+      delete params.productIntervalMax
+      delete params.shopIntervalMin
+      delete params.shopIntervalMax
+
+      loading.value = true
+      publishApi(params)
+        .then(res => {
+          message.success('提交刊登成功')
+          emits('refresh')
+          cancel()
+        })
+        .finally(() => {
+          loading.value = false
+        })
     })
   }
 </script>

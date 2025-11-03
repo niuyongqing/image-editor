@@ -1145,7 +1145,7 @@
     if (!flag) return false // 短路
     // 校验图片数量
     const min = 5
-    const max = 12
+    const max = 30
     for (const record of SKUTableData.value) {
       if (record.mainImages.length < min || record.mainImages.length > max) {
         message.error('主图的数量不符合限制')
