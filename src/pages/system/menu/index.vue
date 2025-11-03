@@ -154,10 +154,10 @@ const columnConfig = {
 };
 
 const rowDragConfig = {
-  isCrossDrag: true,
-  isSelfToChildDrag: true,
-  isToChildDrag: true,
-  isPeerDrag: true,
+  isCrossDrag: false, // 禁止跨级拖拽
+  isSelfToChildDrag: false, // 禁止拖拽到自己的子级
+  isToChildDrag: false, // 禁止拖拽成子节点
+  isPeerDrag: true, // 允许同级拖拽排序
   showIcon: false,
   showGuidesStatus: true,
   trigger: "row",
@@ -522,12 +522,19 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  transform: translate(25%, 0);
+  transform: translate(20%, 0);
+  border-radius: 8px;
   /* 扩大点击区域：增大内边距 */
-  padding: 20px 15px;
-  margin: -20px -15px;
+  padding: 12px 10px 12px 12px;
+  margin: -12px -10px -12px -12px;
   cursor: pointer;
+  border: 1px solid transparent;
 }
+:deep(.vxe-table--render-default .vxe-cell--tree-btn):hover {
+  border: 1px solid #69b1ff;
+}
+
+
 
 /* 优化菜单标题容器样式 */
 .menu-title-container {

@@ -50,7 +50,7 @@
 
     <!-- 设置按钮 -->
     <a-tooltip placement="top" :z-index="999999" color="#1677ff">
-      <template #title >
+      <template #title>
         <span>设置常驻菜单</span>
       </template>
       <div
@@ -60,17 +60,28 @@
         :class="
           theme === 'inverted' ? 'ant-pro-sider-collapsed-button-inverted' : ''
         "
-        style="
-          margin-bottom: 10px;
-          cursor: pointer;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          padding: 10px 0;
-          font-size: 18px;
-        "
       >
-        <SettingOutlined />
+        <svg
+          t="1762150486483"
+          class="icon"
+          viewBox="0 0 1024 1024"
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+          p-id="21808"
+          width="24"
+          height="24"
+        >
+          <path
+            d="M845.59 959.04H176.74c-19.56 0-35.41-15.85-35.41-35.41V97.4c0-19.56 15.85-35.41 35.41-35.41h480.74c10.26 0 20.02 4.46 26.74 12.2l188.11 216.89a35.416 35.416 0 0 1 8.66 23.21v609.33c0.01 19.57-15.84 35.42-35.4 35.42z m-633.44-70.82h598.04V327.51l-168.86-194.7H212.15v755.41z"
+            fill="#ffffff"
+            p-id="21809"
+          ></path>
+          <path
+            d="M376.02 771.06c-7.38 0-14.72-2.31-20.92-6.84a35.434 35.434 0 0 1-13.77-35.67l26.78-130.56-99.38-90.14c-10.32-9.34-14.18-23.86-9.91-37.1a35.35 35.35 0 0 1 29.72-24.3l134.38-15.23 56.12-121.45a35.395 35.395 0 0 1 32.14-20.56c13.81 0 26.36 8.03 32.14 20.56l56.1 121.45 134.4 15.23a35.393 35.393 0 0 1 29.72 24.3c4.26 13.26 0.4 27.76-9.91 37.1l-99.4 90.14 26.78 130.56a35.434 35.434 0 0 1-13.77 35.67c-11.2 8.18-26.11 9.13-38.17 2.34l-117.88-65.8-117.9 65.8a35.31 35.31 0 0 1-17.27 4.5zM374.29 508l56.35 51.1a35.35 35.35 0 0 1 10.91 33.33l-15.31 74.63 67.68-37.77a35.364 35.364 0 0 1 34.5 0l67.66 37.77-15.31-74.63a35.342 35.342 0 0 1 10.91-33.33l56.35-51.1-76.38-8.66a35.342 35.342 0 0 1-28.16-20.33l-32.31-69.97-32.33 69.97a35.392 35.392 0 0 1-28.16 20.33l-76.4 8.66z"
+            fill="#ffffff"
+            p-id="21810"
+          ></path>
+        </svg>
       </div>
     </a-tooltip>
 
@@ -131,7 +142,6 @@ import {
   UserOutlined,
   LeftCircleTwoTone,
   RightCircleTwoTone,
-  SettingOutlined,
   StepForwardOutlined,
   StepBackwardOutlined,
 } from "@ant-design/icons-vue";
@@ -173,7 +183,8 @@ const siderStyle = computed(() => {
       layout.value !== "side" && !isMobile.value ? headerHeight.value : 0
     }px`,
     // 保留完整的过渡效果，同时优化性能
-    transition: "transform 0.3s ease 0s, width 0.3s ease 0s, min-width 0.3s ease 0s, max-width 0.3s cubic-bezier(0.645, 0.045, 0.355, 1) 0s,",
+    transition:
+      "transform 0.3s ease 0s, width 0.3s ease 0s, min-width 0.3s ease 0s, max-width 0.3s cubic-bezier(0.645, 0.045, 0.355, 1) 0s,",
     willChange: "transform, width, min-width, max-width",
     transform: "translateZ(0)",
     // 添加硬件加速
@@ -207,7 +218,7 @@ const setMenu = () => {
   // 仅控制抽屉开关
   drawerOpen.value = !drawerOpen.value;
   // 抽屉展开时同步 paddingLeft
-  paddingLeft.value = collapsed.value ? '50px' : '200px';    
+  paddingLeft.value = collapsed.value ? "50px" : "200px";
 };
 const paddingLeft = ref("200px");
 const handleCollapsedFun = (isFlag) => {
@@ -244,6 +255,15 @@ async function out() {
 </script>
 <style lang="less">
 @import "./index.less";
+.menuSetIcon {
+  margin-bottom: 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 0;
+  padding-left: 3px;
+}
 
 .goto {
   display: inline;
