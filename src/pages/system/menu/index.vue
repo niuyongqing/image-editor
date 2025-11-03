@@ -289,7 +289,8 @@ const dragMenuSave = () => {
   draggedMenuMap.forEach((group) => {
     draggedMenuArray.push(group);
   });
-
+if (!draggedMenuArray.length) return message.warning("请先拖拽排序");
+tableLoading.value = true;
   updateMenuSortApi(draggedMenuArray).then((res) => {
     if (res.code === 200) {
       message.success("菜单排序更新成功");
@@ -300,6 +301,7 @@ const dragMenuSave = () => {
     } else {
       message.error(res.msg || "菜单排序更新失败");
     }
+    tableLoading.value = false;
   });
 };
 
@@ -533,8 +535,6 @@ onBeforeUnmount(() => {
 :deep(.vxe-table--render-default .vxe-cell--tree-btn):hover {
   border: 1px solid #69b1ff;
 }
-
-
 
 /* 优化菜单标题容器样式 */
 .menu-title-container {
