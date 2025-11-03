@@ -1,42 +1,48 @@
 // 默认表头
 export const DEFAULT_TABLE_COLUMN = [
   {
+    title: '序号',
+    key: 'index',
+    fixed: 'left',
+    width: 50
+  },
+  {
     title: '规则名称',
     key: 'name',
     fixed: 'left',
-    width: 200
+    width: 160
   },
   {
     title: '分类',
     key: 'category',
-    width: 100
+    width: 160
   },
   {
     title: '平均成本价区间',
     key: 'averageCostPriceRange',
     dataIndex: 'averageCostPriceRange',
-    width: 160
+    width: 100
   },
   {
     title: '平均重量区间',
     key: 'averageWeightRange',
     dataIndex: 'averageWeightRange',
-    width: 160
+    width: 100
   },
   {
     title: '状态',
     key: 'status',
-    width: 100
+    width: 80
   },
   {
     title: '备注',
     key: 'remark',
-    width: 200
+    width: 160
   },
   {
     title: '操作',
-    key: 'options',
+    key: 'operation',
     fixed: 'right',
-    width: 150
+    width: 100
   }
 ]

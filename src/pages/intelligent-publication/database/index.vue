@@ -136,7 +136,7 @@
           <template v-else-if="column.key === 'remark'">
             <div class="w-100">{{ record.remark || '--' }}</div>
           </template>
-          <template v-else-if="column.key === 'options'">
+          <template v-else-if="column.key === 'operation'">
             <a-space>
               <a-button
                 type="link"

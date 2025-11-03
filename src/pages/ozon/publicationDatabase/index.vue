@@ -99,6 +99,9 @@
           </a-tag>
           <div v-else></div>
         </template>
+        <template v-else-if="key === 'operation'">
+          <a-button type="link" @click="openPublicationModal(row)">刊登</a-button>
+        </template>
       </template>
     </a-table>
     <br/>
@@ -121,6 +124,13 @@
   <a-modal v-model:open="remarkData.open" title="添加备注" @ok="addRemarkFn">
     <a-textarea v-model:value="remarkData.remark" placeholder="请输入备注" :rows="4" />
   </a-modal>
+
+  <!-- 刊登弹窗 -->
+  <PublicationModal
+    v-model:open="publicationModalOpen"
+    :id="''"
+    @refresh="onSubmit"
+  />
 </div>
 </template>
 
@@ -135,6 +145,7 @@ import detailsModal from './detailsModal.vue';
 import { message, Modal } from 'ant-design-vue';
 import { processImageSource } from '../config/commJs/index';
 import { checkPermi } from '~@/utils/permission/component/permission';
+import PublicationModal from './common/PublicationModal.vue'
 defineOptions({ name: "ozon_publicationDatabase" })
 const { proxy: _this } = getCurrentInstance();
 
@@ -377,6 +388,13 @@ async function addRemarkFn() {
   } catch (error) {
     console.error(error);
   }
+}
+
+/** 刊登 */
+const publicationModalOpen = ref(false)
+
+function openPublicationModal(record) {
+  publicationModalOpen.value = true
 }
 </script>
 <style lang="less" scoped>

@@ -202,7 +202,7 @@
               :max="99999"
             />
           </template>
-          <template v-else-if="column.key === 'options'">
+          <template v-else-if="column.key === 'operation'">
             <a-popconfirm
               title="确定移除吗?"
               @confirm="remove(record.id)"
@@ -314,7 +314,7 @@
     { title: '产品标题/产品 ID', key: 'name', width: 250 },
     { title: '售价', key: 'price', width: 60 },
     { title: '竞价', key: 'bidding', width: 80 },
-    { title: '操作', key: 'options', width: 50 }
+    { title: '操作', key: 'operation', width: 50 }
   ]
   const columns = computed(() => {
     if (form.productAutopilotStrategy === 'TOP_MAX_CLICKS') {

@@ -37,9 +37,9 @@
 </template>
 
 <script setup>
-  import BaseInfo from '@/pages/product-review/CommonDetail/BaseInfo.vue'
-  import SKUInfo from '@/pages/product-review/CommonDetail/SKUInfo.vue'
-  import ImageInfo from '@/pages/product-review/CommonDetail/ImageInfo.vue'
+  import BaseInfo from '@/pages/product-review/CommonDetail/components/BaseInfo.vue'
+  import SKUInfo from '@/pages/product-review/CommonDetail/components/SKUInfo.vue'
+  import ImageInfo from '@/pages/product-review/CommonDetail/components/ImageInfo.vue'
   import PublicationModal from '../database/PublicationModal.vue'
 
   import { getDetailApi } from '@/pages/product-review/CommonDetail/api'

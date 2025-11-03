@@ -3,18 +3,7 @@
   <a-card
     title="图片信息"
     class="mt-5"
-    :loading="loading"
   >
-    <!-- <a-tag
-      color="blue"
-      class="h-fit"
-      >说明</a-tag
-    >
-    <span>第一张图片默认为主图，点击图片拖动，即可调整图片顺序！</span>
-    <div class="text-#999">
-      单张不超过2M，只支持.jpg,.png,.jpeg格式；普通分类图片尺寸为200*200-4320*7680，服装、鞋靴和饰品类目-最低分辨率为900*1200，建议纵横比为3:4；服装、鞋靴和配饰类目，背景应为灰色(#f2f3f5)
-    </div> -->
-
     <!-- 右上总览的操作按钮 -->
     <div class="text-right mb-6">
       <a-dropdown>
@@ -26,7 +15,7 @@
         <template #overlay>
           <a-menu @click="addWaterMark">
             <a-menu-item
-              v-for="waterMark in waterMarkOptions"
+              v-for="waterMark in watermarkOptions"
               :key="waterMark.id"
             >
               <div>
@@ -59,18 +48,12 @@
           </a-menu>
         </template>
       </a-dropdown>
-      <!-- <span class="mx-2">|</span>
-      <a-button
-        type="link"
-        :loading="downloadLoading"
-        @click="exportAllImage"
-        >导出全部图片</a-button
-      > -->
     </div>
 
     <a-card
       v-for="(SKU, i) in dataSource"
       :key="i"
+      class="mb-6"
     >
       <div class="inline-block align-top ml-4">
         <div
@@ -105,7 +88,6 @@
                     </a-menu-item>
                     <a-menu-item key="imgBank">空间图片</a-menu-item>
                     <a-menu-item key="imgFromNet">网络图片</a-menu-item>
-                    <!-- <a-menu-item key="imgQuote">引用采集图片</a-menu-item> -->
                     <a-menu-item key="imgDataBase">引用资料库图片</a-menu-item>
                   </a-menu>
                 </template>
@@ -113,7 +95,11 @@
             </div>
 
             <div class="text-right">
-              <span>【{{ SKU.mainImages.length }}/{{ maxCount }}】图片 </span>
+              <span
+                >图片【<span :class="(SKU.mainImages.length < minCount || SKU.mainImages.length > maxCount) && 'text-red font-bold'">{{ SKU.mainImages.length }}</span
+                >】</span
+              >
+              <span class="text-gray">{{ `(建议上传${minCount} ~ ${maxCount}张)` }}</span>
               <a-dropdown>
                 <a-button
                   type="link"
@@ -123,7 +109,7 @@
                 <template #overlay>
                   <a-menu @click="addWaterMark($event, SKU, 'mainImages')">
                     <a-menu-item
-                      v-for="waterMark in waterMarkOptions"
+                      v-for="waterMark in watermarkOptions"
                       :key="waterMark.id"
                     >
                       <div>
@@ -200,7 +186,7 @@
                     <a-dropdown>
                       <a-button type="link"><BulbOutlined class="text-base" /><CaretDownOutlined /></a-button>
                       <template #overlay>
-                        <a-menu @click="imgModifySingleMenuClick($event, image)">
+                        <a-menu @click="imgModifySingleMenuClick($event, image, 'mainImages')">
                           <a-menu-item key="ps">在线p图</a-menu-item>
                           <a-menu-item key="translate">图片翻译</a-menu-item>
                           <!-- <a-menu-item key="whiteBg">图片白底</a-menu-item> -->
@@ -211,6 +197,7 @@
                     <a-button
                       type="link"
                       title="删除"
+                      danger
                       ><DeleteOutlined
                         class="text-base"
                         @click="delImg(SKU, image.id, 'mainImages')"
@@ -255,7 +242,6 @@
                     </a-menu-item>
                     <a-menu-item key="imgBank">空间图片</a-menu-item>
                     <a-menu-item key="imgFromNet">网络图片</a-menu-item>
-                    <!-- <a-menu-item key="imgQuote">引用采集图片</a-menu-item> -->
                     <a-menu-item key="imgDataBase">引用资料库图片</a-menu-item>
                   </a-menu>
                 </template>
@@ -263,7 +249,11 @@
             </div>
 
             <div class="text-right">
-              <span>【{{ SKU.subImages.length }}/{{ maxCount }}】图片 </span>
+              <span
+                >图片【<span :class="(SKU.subImages.length < minCount || SKU.subImages.length > maxCount) && 'text-red font-bold'">{{ SKU.subImages.length }}</span
+                >】</span
+              >
+              <span class="text-gray">{{ `(建议上传${minCount} ~ ${maxCount}张)` }}</span>
               <a-dropdown>
                 <a-button
                   type="link"
@@ -273,7 +263,7 @@
                 <template #overlay>
                   <a-menu @click="addWaterMark($event, SKU, 'subImages')">
                     <a-menu-item
-                      v-for="waterMark in waterMarkOptions"
+                      v-for="waterMark in watermarkOptions"
                       :key="waterMark.id"
                     >
                       <div>
@@ -350,7 +340,7 @@
                     <a-dropdown>
                       <a-button type="link"><BulbOutlined class="text-base" /><CaretDownOutlined /></a-button>
                       <template #overlay>
-                        <a-menu @click="imgModifySingleMenuClick($event, image)">
+                        <a-menu @click="imgModifySingleMenuClick($event, image, 'subImages')">
                           <a-menu-item key="ps">在线p图</a-menu-item>
                           <a-menu-item key="translate">图片翻译</a-menu-item>
                           <!-- <a-menu-item key="whiteBg">图片白底</a-menu-item> -->
@@ -361,6 +351,7 @@
                     <a-button
                       type="link"
                       title="删除"
+                      danger
                       ><DeleteOutlined
                         class="text-base"
                         @click="delImg(SKU, image.id, 'subImages')"
@@ -403,13 +394,6 @@
     @emitImages="handleEmitImages"
   />
 
-  <!-- 引用采集图片 -->
-  <!-- <AcquisitionImageModal
-    v-model:modal-open="acquisitionModalOpen"
-    :collect-product-id="collectProductId"
-    @image-list-confirm="pushImage"
-  /> -->
-
   <!-- 资料库图片弹窗 -->
   <databaseImageModal
     ref="databaseImageModalRef"
@@ -421,10 +405,9 @@
   import { DownOutlined, BulbOutlined, CaretDownOutlined, DeleteOutlined } from '@ant-design/icons-vue'
   import Draggable from 'vuedraggable'
   import { useAuthorization } from '@/composables/authorization'
-  import { downloadAllImage, MtImageEBaseUrl } from '@/pages/sample/acquisitionEdit/js/api.js'
+  import { MtImageEBaseUrl } from '@/pages/sample/acquisitionEdit/js/api.js'
   import { batchUploadFromUrlApi } from '@/api/common/upload'
-  import { watermarkApi } from '@/api/common/water-mark'
-  import download from '@/api/common/download'
+  import { watermarkListApi, watermarkApi } from '@/api/common/water-mark'
   import { cloneDeep } from 'lodash'
   import { v4 as uuidv4 } from 'uuid'
   import { encryptString } from '@/utils/tools.js'
@@ -432,26 +415,26 @@
   import NetImageModal from '@/components/skuDragUpload/netImageModal.vue'
   import BacthSkuEditImg from '@/components/skuDragUpload/bacthSkuEditImg.vue'
   import ImageTranslation from '@/components/skuDragUpload/imageTranslation.vue'
-  // import AcquisitionImageModal from '@/pages/sample/acquisitionImageModal.vue'
   import databaseImageModal from '@/components/productDatabase/databaseImageModal.vue'
   import { Empty, message } from 'ant-design-vue'
   import { processImageSource } from '@/pages/ozon/config/commJs/index'
 
   defineOptions({ name: 'ImageInfo' })
-  
-  // const collectProductId = inject('collectProductId', '')
+
   const databaseId = inject('databaseId', '') // 资料库 id
 
   const store = useProductReviewStore()
-  const loading = computed(() => store.loading)
-  const waterMarkOptions = computed(() => store.waterMarkOptions)
   const dataSource = computed(() => store.SKUTableData)
-  const attrList = computed(() => store.attrList)
+  const joinedAspectNameList = computed(() => store.joinedAspectNameList)
 
   const props = defineProps({
+    minCount: {
+      type: Number,
+      default: 5
+    },
     maxCount: {
       type: Number,
-      default: 30
+      default: 12
     }
   })
 
@@ -459,6 +442,16 @@
   const headers = { Authorization: useAuthorization().value }
   const uploadImageUrl = import.meta.env.VITE_APP_BASE_API + '/platform-ozon/platform/ozon/file/upload/img'
   const databaseImageModalRef = ref(null) // 资料库图片弹窗 REF
+
+  /** 水印 */
+  const watermarkOptions = ref([])
+
+  getWatermark()
+  function getWatermark() {
+    watermarkListApi().then(res => {
+      watermarkOptions.value = res.data || []
+    })
+  }
 
   watch(
     () => dataSource.value,
@@ -492,7 +485,12 @@
 
   // 变种属性名称列表
   const attrKeyList = computed(() => {
-    return attrList.value.flat()
+    const list = []
+    joinedAspectNameList.value.forEach(joinedName => {
+      list.push(...joinedName.split('&'))
+    })
+
+    return list
   })
 
   /** 批量加水印 */
@@ -584,24 +582,10 @@
     })
   }
 
-  /** 导出全部图片 */
-  const downloadLoading = ref(false)
-  function exportAllImage() {
-    const imageList = allImageInfo.value.map(item => item.url.replace(import.meta.env.VITE_APP_BASE_API, ''))
-    downloadLoading.value = true
-    downloadAllImage({ imageList })
-      .then(res => {
-        download.name(res.data)
-      })
-      .finally(() => {
-        downloadLoading.value = false
-      })
-  }
-
   /** 图片应用到 按钮 */
   const PERMANENT_LIST = [{ label: '所有变种', key: 'applyAll' }]
   const confirmMenuList = computed(() => {
-    const variantAttrList = attrList.value.map(list => list.join('-')).map(name => ({ label: `同 ${name} 的变种`, key: name }))
+    const variantAttrList = joinedAspectNameList.value.map(name => ({ label: `同 ${name} 的变种`, key: name }))
 
     return [...PERMANENT_LIST, ...variantAttrList]
   })
@@ -619,7 +603,7 @@
         item.mainImages = cloneDeep(SKU.mainImages)
       })
     } else {
-      const keyList = key.split('-')
+      const keyList = key.split('&')
       dataSource.value.forEach(item => {
         if (keyList.every(key => item[key] === SKU[key])) {
           item.mainImages = cloneDeep(SKU.mainImages)
@@ -641,7 +625,7 @@
         item.subImages = cloneDeep(SKU.subImages)
       })
     } else {
-      const keyList = key.split('-')
+      const keyList = key.split('&')
       dataSource.value.forEach(item => {
         if (keyList.every(key => item[key] === SKU[key])) {
           item.subImages = cloneDeep(SKU.subImages)
@@ -675,9 +659,6 @@
       case 'imgFromNet':
         netImageModalRef.value.open()
         break
-      case 'imgQuote':
-        acquisitionModalOpen.value = true
-        break
       case 'imgDataBase':
         databaseImageModalRef.value.modalOpenFn(databaseId.value)
         break
@@ -710,9 +691,6 @@
       }
     }
   }
-
-  /** 引用采集图片 */
-  const acquisitionModalOpen = ref(false)
 
   // 添加进图片, 引用采集和资料库共用
   function pushImage(list) {
@@ -749,19 +727,14 @@
   // 美图设计室回传图片数据
   const channel = new BroadcastChannel('mtImageEditor')
   channel.onmessage = event => {
-    // console.log('接收到美图设计室回传图片数据:', event.data);
-
     // 数据有效性检查
     if (!event.data || !event.data.base64) {
-      console.error('美图设计室回传数据不完整或无效')
       message.error('图片数据处理失败，请重试')
       return
     }
 
     MtImageEBaseUrl({ imageData: event.data.base64 })
       .then(res => {
-        // console.log('上传处理结果:', res);
-
         if (res.code === 200 && res.msg) {
           mtImageEBaseUrl.value = res.msg
 
@@ -790,7 +763,7 @@
   function updateImageById(imageId, newImageUrl, recordId) {
     // 遍历所有SKU的图片列表
     for (const SKU of dataSource.value) {
-      const targetImage = SKU[keyName].find(img => img.id === imageId)
+      const targetImage = SKU[keyNameProp.value].find(img => img.id === imageId)
       if (targetImage) {
         // 更新目标图片URL - 确保使用ref.value获取实际URL值
         targetImage.url = newImageUrl.value
@@ -827,8 +800,10 @@
     channel.close()
   })
 
+  const keyNameProp = ref('mainImages') // [mainImages, subImages] 特供给 ps 用
   // 编辑单张图片
-  function imgModifySingleMenuClick({ key }, item) {
+  function imgModifySingleMenuClick({ key }, item, keyName) {
+    keyNameProp.value = keyName
     switch (key) {
       case 'translate':
         translateImageList.value = [item]

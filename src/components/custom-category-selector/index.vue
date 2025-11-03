@@ -3,6 +3,7 @@
   <a-modal
     title="选择分类"
     :open="open"
+    :mask-closable="false"
     width="996px"
     @cancel="cancel"
     @ok="ok"

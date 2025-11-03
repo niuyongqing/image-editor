@@ -143,7 +143,7 @@
             ><a-tag :color="record.state === '在售' ? 'green' : 'default'">{{ record.state }}</a-tag></template
           >
 
-          <template v-else-if="column.key === 'options'">
+          <template v-else-if="column.key === 'operation'">
             <a-button
               type="link"
               @click="add(record)"
@@ -289,7 +289,7 @@
     { title: '原价', key: 'oldPrice' },
     { title: '库存', key: 'stock' },
     { title: '状态', key: 'state' },
-    { title: '操作', key: 'options' }
+    { title: '操作', key: 'operation' }
   ]
 
   // 搜索类型
