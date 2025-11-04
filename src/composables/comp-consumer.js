@@ -16,7 +16,8 @@ export function useCompConsumer() {
       return node
     }
     const Comp = createVNode(node)
-    if (!Comp.type)
+    // 确保Comp.type是一个对象而不是Symbol
+    if (!Comp.type || typeof Comp.type !== 'object')
       Comp.type = {}
     Comp.type.name = routeName
     compMap.set(routeName, Comp)

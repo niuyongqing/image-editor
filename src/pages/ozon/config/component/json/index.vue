@@ -329,7 +329,7 @@
                     <a-button
                       type="text"
                       title="复制"
-                      @click.stop="moduleCopy(i)"
+                      @click.stop="moduleCopy(i,item.type)"
                     >
                       <CopyOutlined class="text-lg" />
                     </a-button>
@@ -356,7 +356,7 @@
         <!-- 右侧详情 -->
         <div
           class="right-panel"
-          v-if="showRight"
+          v-if="showRight && !isIntelligentize"
         >
           <a-form class="rightForm">
             <template v-if="activeModule.type === 'text'">
@@ -414,9 +414,9 @@
                 </a-radio-group>
               </a-form-item>
             </template>
-            <template v-if="activeModule.type === 'image' || activeModule.type === 'GeneralImage' || activeModule.type === 'ExclusiveImage'">
+            <template v-if="activeModule.type === 'image'">
               <div class="flex items-center justify-between">
-                <h2 style="margin-bottom: 0">{{ activeModule.type === 'GeneralImage' ? '通用图片组' : activeModule.type === 'ExclusiveImage' ? '专属图片' : '图片' }}</h2>
+                <h2 style="margin-bottom: 0">图片</h2>
                 <DropdownOfImage @emit-images="batchPicture">
                   <a-button type="link">批量传图</a-button>
                 </DropdownOfImage>
@@ -1361,21 +1361,15 @@
     }
   }
 
-  // 当在有效放置目标上放置元素时触发此事件
-  function handleDrop(e) {
-    if (!pointerEventsNone.value) return
-
-    const type = e.dataTransfer.getData('componentName')
-    
-    // 智能刊登模式下的拖拽限制
-    if (props.isIntelligentize) {
-      // 检查通用图片组是否已存在（只能拖拽一次）
+  const validateImageList = (type,callback=()=>{})=> {
+    let isValid = false
+     // 检查通用图片组是否已存在（只能拖拽一次）
       if (type === 'GeneralImage') {
         const hasGeneralImage = moduleList.value.some(item => item.type === 'GeneralImage')
         if (hasGeneralImage) {
           message.warning('通用图片组只能添加一次')
-          moduleDel()
-          return
+          callback()
+          isValid = true
         }
       }
       
@@ -1384,11 +1378,22 @@
         const exclusiveImageCount = moduleList.value.filter(item => item.type === 'ExclusiveImage').length
         if (exclusiveImageCount >= 5) {
           message.warning('专属图片最多只能添加5次')
-          moduleDel()
-          return
+          callback()
+          isValid = true
         }
       }
-      
+       return isValid
+  }
+
+  // 当在有效放置目标上放置元素时触发此事件
+  function handleDrop(e) {
+    if (!pointerEventsNone.value) return
+
+    const type = e.dataTransfer.getData('componentName')
+    
+    // 智能刊登模式下的拖拽限制
+    if (props.isIntelligentize) {
+      if (validateImageList(type,moduleDel)) return
     }
 
     let moduleItem = { type, id: uuidv4() }
@@ -1523,7 +1528,11 @@
     activeModuleIndex.value = i + 1
     scroll(moduleList.value[i + 1].id)
   }
-  function moduleCopy(i) {
+  function moduleCopy(i,type) {
+    // 检查是否为智能刊登模式
+    if (props.isIntelligentize) {
+      if (validateImageList(type)) return
+    }
     const item = {
       ...moduleList.value[i],
       id: uuidv4()
@@ -1696,6 +1705,14 @@
     
     // 智能刊登模式下，只返回位置标识
     if (props.isIntelligentize) {
+      // 智能刊登模式下，最起码有一个通用图片模块和一个专属图片模块
+      const hasGeneralImage = moduleList.value.some(item => item.type === 'GeneralImage')
+      const hasExclusiveImage = moduleList.value.some(item => item.type === 'ExclusiveImage')
+      if (!hasGeneralImage || !hasExclusiveImage) {
+        message.warning('最少有一个通用图片模块和一个专属图片模块')
+        return
+      }
+      
       // 筛选出通用图片组和专属图片，保持它们在列表中的实际顺序
       const imageModules = moduleList.value.filter(
         item => item.type === 'GeneralImage' || item.type === 'ExclusiveImage'

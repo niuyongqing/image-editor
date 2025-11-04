@@ -1,11 +1,11 @@
 <template>
-  <div class="pending-editing-container ml-16 mr-16">
-    <a-form ref="formRef" layout="inline" :model="formState" :label-col="labelCol" :rules="storeTemplateRules"
+  <div v-loading="subLoading" loading-full="true" class="pending-editing-container ml-16 mr-16">
+    <a-form ref="formRef"  layout="inline" :model="formState" :label-col="labelCol" :rules="storeTemplateRules"
       @finish="handleFinish" @finishFailed="handleFinishFailed">
       <!-- 店铺编号单独占一整行 -->
       <a-form-item label="店铺账号" name="account" class="block-item">
-        <a-select :disabled="isDesable" style="width: 300px" v-model:value="formState.account" :placeholder="`请选择店铺账号`" allow-clear
-          :fieldNames="{ label: 'simpleName', value: 'account' }" :options="accountList" />
+        <a-select :disabled="isDesable" style="width: 300px" v-model:value="formState.account" show-search :filterOption="filterOption" :placeholder="`请选择店铺账号`" allow-clear
+          :fieldNames="{ label: 'simpleName', value: 'account'}" :options="accountList" />
       </a-form-item>
 
       <!-- 其他表单字段保持内联布局 -->
@@ -91,7 +91,7 @@
         <div class="module-item-label">水印模板</div>
         <div class="module-item-content">
           <a-form-item name="richTextTemplate" class="wInput100">
-            <watermarkTable ref="watermarkTableRef" :dataSource="templateList" @waterMarkTableDataItem="waterMarkTableDataItem"/>
+            <watermarkTable ref="watermarkTableRef" />
           </a-form-item>
         </div>
       </div>
@@ -117,18 +117,19 @@ import {
 import { storeTemplateRules } from "./validationRules.js";
 import { message } from "ant-design-vue";
 
-// 路由相关
+// 路由相关 - 不需要响应式
 const route = useRoute();
 const query = ref(route.query);
 const labelCol = { style: { width: "110px" } };
 // 表单引用
 const formRef = ref();
-// 水印表格
-const templateList = ref([]);
+const watermarkTableRef = ref();
+const accountList = reactive([]);
 
-const accountList = ref([]);
+// 提交全局loading状态
+const subLoading = ref(false);
 
-// 产品描述添加方式列表
+// 产品描述添加方式列表 - 不需要响应式
 const productDescAddTypeList = [
   {
     value: 0,
@@ -139,8 +140,6 @@ const productDescAddTypeList = [
     label: "在产品描述后",
   },
 ];
-
-
 
 // 表单数据
 const formState = reactive({
@@ -185,14 +184,21 @@ const formState = reactive({
 });
 
 const isDesable = computed(() => {
-  return query.value.type === "doubleClick"
+  return query.value.type === "view"
 })
+
+
+// 店铺账号筛选
+const filterOption = (inputValue, option) => {
+  const label = option.simpleName; // 因为你的数据中有 simpleName 字段
+  return label.toLowerCase().includes(inputValue.toLowerCase());
+}
 
 // 获取店铺列表
 const getShopLists = async () => {
   const res = await getShopList();
   if (res.code === 200) {
-    accountList.value = res?.data || [];
+    accountList.splice(0, accountList.length, ...(res?.data || []));
   }
 };
 
@@ -214,7 +220,13 @@ const resetForm = () => {
 
 // 提交表单
 const submitForm = async () => {
-  try {
+  try { 
+    subLoading.value = true;
+    // 获取水印模版id
+    const watermarkIds = watermarkTableRef.value.watermarkTableRefIds();
+    // 合并表单数据
+    Object.assign(formState, watermarkIds);
+    // 校验表单
     await formRef.value.validate();
     // 校验通过，继续提交表单
     const api = query.value.id ? updateShopTemplate : createShopTemplate;
@@ -225,7 +237,6 @@ const submitForm = async () => {
       // 刷新详情页
       getDetails(query.value.id);
       // 刷新列表页
-      console.log("刷新列表页");
       const channel = new BroadcastChannel("store_template_getList");
       channel.postMessage({ action: "refreshList" });
     } else {
@@ -233,9 +244,19 @@ const submitForm = async () => {
         res.msg || (query.value.id ? "更新店铺模板失败" : "创建店铺模板失败")
       );
     }
+    subLoading.value = false;
   } catch (error) {
-    // 校验未通过，统一由 antdv 表单提示
-    console.warn("表单校验失败", error);
+    subLoading.value = false;
+    // 校验未通过，显示用户友好的提示信息
+    if (error.errorFields) {
+      // 表单验证错误
+      message.error("表单校验失败，请检查输入内容是否正确");
+      console.warn("表单校验失败", error);
+    } else {
+      // 其他错误
+      message.error("提交失败，请稍后重试");
+      console.error("提交表单时发生错误", error);
+    }
   }
 };
 
@@ -248,33 +269,25 @@ const backResult = (jsonContent) => {
 };
 
 const getDetails = async (id) => {
+  subLoading.value = true;
   const res = await getShopTemplateDetails(id);
   if (res.code === 200) {
     Object.assign(formState, res.data);
-    templateList.value = (res.data.templateList || []).map((item, index) => ({
-      ...item,
-      imageName: index === 0 ? '主图水印' : index === 1 ? '副图水印' : item.imageName
-    }));
+    const { mainImgWmTemplateId, subImgWmTemplateId } = res.data;
+    // 初始化水印表格
+    watermarkTableRef.value.getWatermarkList(mainImgWmTemplateId, subImgWmTemplateId);
+    console.log('res.data', res.data)
     if (query.value.type === "copy") {
       console.log(query.value);
-      formState.status = query.value.status || "";
+      formState.status = 1;
       formState.account = query.value.account || "";
     }
   } else {
     message.error(res.msg || "获取店铺模板详情失败");
   }
+  subLoading.value = false;
 };
 
-/** 水印表格数据项 */
-const waterMarkTableDataItem = (params) => {
-  console.log('params', params)
-  console.log('templateList', templateList.value)
-  // 通过id字段更新对应项
-  const index = templateList.value.findIndex(item => Number(item.id) === Number(params.id));
-  if (index !== -1) {
-    templateList.value[index] = { ...templateList.value[index], ...params };
-  }
-}
 
 onMounted(() => {
   getShopLists();
