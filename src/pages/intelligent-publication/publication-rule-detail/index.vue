@@ -340,7 +340,7 @@
 
 <script setup>
   import { accountCache } from '@/pages/ozon/config/api/product'
-  import { createPublishRuleApi, updatePublishRuleApi, ruleDetailApi } from '../js/api'
+  import { createPublishRuleApi, updatePublishRuleApi, ruleDetailApi } from '../js/publication-rule-api'
   import CustomCategorySelector from '@/components/custom-category-selector/index.vue'
   import { message } from 'ant-design-vue'
   import { usePostMessage } from '@/utils/postMessage'

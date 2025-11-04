@@ -157,6 +157,7 @@
       }
 
       const params = {
+        selectRecordId: route.query.selectRecordId, // 资料待编辑列表 id
         ...baseInfo,
         mainImage: skuList[0].mainImages[0],
         subImage: skuList[0].subImages[0],

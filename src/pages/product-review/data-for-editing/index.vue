@@ -287,7 +287,9 @@
 
   /** 编辑 */
   function goEdit(record) {
-    window.open(`/platform/product-review/data-for-editing-detail?commodityId=${record.commodityId}&intelligentProductId=${record.intelligentProductId}&auditStatus=${record.auditStatus}`)
+    const query = `commodityId=${record.commodityId}&intelligentProductId=${record.intelligentProductId}&auditStatus=${record.auditStatus}&selectRecordId=${record.id}`
+    
+    window.open(`/platform/product-review/data-for-editing-detail?${query}`)
   }
 
   /** 申请拍照 */
