@@ -1,33 +1,56 @@
 <template>
-  <div
-    id="appTableBox"
-    class="appTableBox"
-  >
+  <div id="appTableBox" class="appTableBox">
     <a-card style="margin-bottom: 10px">
       <div class="table-title">
-        <a-space>
-          <!--  顶部左侧区域 -->
-          <slot name="leftTool"></slot>
-          <div></div>
-        </a-space>
-        <a-space>
-          <!-- 顶部右侧工具按钮插槽 -->
-          <slot name="rightTool"></slot>
-          <a-button
-            type="primary"
-            @click="tableSetting"
-          >
-            <template #icon>
-              <SettingOutlined />
-            </template>
-            {{ btnLoading.dropAble ? '保存表格设置' : '表格设置' }}
-          </a-button>
-        </a-space>
+        <div class="table-title-item">
+          <a-space>
+            <!--  顶部左侧区域 -->
+            <slot name="leftTool"></slot>
+            <div></div>
+          </a-space>
+        </div>
+        <div class="table-title-item item-right">
+          <a-space>
+            <!-- 顶部右侧工具按钮插槽 -->
+            <slot name="rightTool"></slot>
+            <a-popover placement="bottomRight" trigger="click">
+              <template #content>
+                <div class="tableSetting-box">
+                  <div 
+                    class="tableSetting-columnRow" 
+                    v-for="item in columns"
+                    :key="item.key"
+                  >
+                    <div class="columnRow-title">{{ item.title }}</div>
+                    <a-checkbox v-model:checked="item.show">显示</a-checkbox>
+                    <a-checkbox v-model:checked="item.fixedLeft" @change="e => fixedCheckboxChange(item, 'left')">固定左侧</a-checkbox>
+                    <a-checkbox v-model:checked="item.fixedRight" @change="e => fixedCheckboxChange(item, 'right')">固定右侧</a-checkbox>
+                  </div>
+                </div>
+                <div class="tableSetting-btn">
+                  <a-space>
+                    <a-button @click="tableSetting">重置设置</a-button>
+                    <a-button type="primary" @click="tableSetting">保存设置</a-button>
+                  </a-space>
+                </div>
+              </template>
+              <template #title>
+                <span>表格设置</span>
+              </template>
+              <a-button type="primary" @click="columnDrop()">
+                <template #icon>
+                  <SettingOutlined />
+                </template>
+                {{ '表格设置' }}
+              </a-button>
+            </a-popover>
+          </a-space>
+        </div>
       </div>
       <div class="table-content">
         <a-table
           v-bind="$attrs"
-          :columns="columns"
+          :columns="columns.filter(i => i.show)"
           :data-source="dataSource"
         >
           <template #headerCell="{ column }">
@@ -37,9 +60,8 @@
             >
               {{ column?.title }}
             </slot>
-            <!-- {{ column.name }} -->
           </template>
-          <template #bodyCell="{ column, record }">
+          <template #bodyCell="{ column, record, index }">
             <slot
               name="bodyCell"
               :record="record"
@@ -48,7 +70,6 @@
             >
               {{ record[column?.key] }}
             </slot>
-            <!-- {{ record[column.key] }} -->
           </template>
         </a-table>
       </div>
@@ -74,7 +95,7 @@ const props = defineProps({
   tableHeard: {
     // 原始表头
     type: Array,
-    default: () => [],
+    default: () => ([]),
   },
   dataSource: {
     type: Array,
@@ -83,95 +104,22 @@ const props = defineProps({
   filterColumns: {
     // 当前展示的表头，用v-model直接绑定即可
     type: Array,
-    default: () => [],
+    default: () => ([]),
   },
-  tableLoading: {
-    // 表格加载状态
-    type: Boolean,
-    default: false,
-  },
-  subsidiaryTableLoading: {
-    // 附属表格加载状态
-    type: Boolean,
-    default: false,
-  },
-  showSubsidiaryTable: Boolean, // 是否展示附表，默认不展示
 });
 const btnLoading = reactive({
   dropAble: false,
   resetSetting: false,
 });
-const heightX = ref(0); // 高度拖拉初始值
-const heightX2 = ref(0);
 const filterColumns = ref([]);
 const columns = ref([]);
-const tableData = reactive({
-  header: [
-    {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: 'Age',
-      dataIndex: 'age',
-      key: 'age',
-    },
-    {
-      title: 'Address',
-      dataIndex: 'address',
-      key: 'address',
-    },
-    {
-      title: 'Tags',
-      key: 'tags',
-      dataIndex: 'tags',
-    },
-    {
-      title: 'Action',
-      key: 'action',
-    },
-  ],
-  data: [
-    {
-      key: '1',
-      name: 'John Brown',
-      age: 32,
-      address: 'New York No. 1 Lake Park',
-      tags: ['nice', 'developer'],
-    },
-    {
-      key: '2',
-      name: 'Jim Green',
-      age: 42,
-      address: 'London No. 1 Lake Park',
-      tags: ['loser'],
-    },
-    {
-      key: '3',
-      name: 'Joe Black',
-      age: 32,
-      address: 'Sidney No. 1 Lake Park',
-      tags: ['cool', 'teacher'],
-    },
-  ],
-  total: 0,
-  loading: false,
-  selectedRowKeys: [],
-  selectedRows: [],
-
-  params: {
-    pageNum: 1,
-    pageSize: 50,
-    // "order": "descending", // 倒正序，必须 descending/ascending
-    // "prop": "complete_time" // 排序列，必须
-  },
-});
 const columnList = computed(() => {
   return props.tableHeard.map(i => {
     let obj = {
       sorter: false,
       fixed: false,
+      fixedLeft: false,
+      fixedRight: false,
       show: true,
       ...i,
     };
@@ -182,26 +130,9 @@ const columnList = computed(() => {
 onMounted(() => {
   nextTick(() => {
     getSettingList();
-    getInnerHeight();
+    // columnDrop();
   });
 });
-// 获取当前的dom高度
-function getInnerHeight() {
-  // let appTableBox = document.querySelector('#appTableBox')
-  let height = window.innerHeight;
-  if (props.showSubsidiaryTable) {
-    heightX.value = height - 344 - 200; // 344是工具栏及附表的初始高度  200是瞎写的
-    heightX2.value = 268;
-  } else {
-    heightX.value = height - 200;
-  }
-  // _this.$forceUpdate()
-}
-function updateDom(val) {
-  // console.log(555);
-  heightX2.value = val;
-  _this.$forceUpdate();
-}
 // 显示/隐藏
 function settingChange(item, value) {
   columns.value.forEach(col => {
@@ -232,10 +163,21 @@ function getSettingList() {
     }
   });
 }
+/**
+ * 固定表头
+ * @param col  表头对象
+ * @param type 固定方式
+ */
+function fixedCheckboxChange(col, type) {
+  console.log({col, type});
+  if (type === 'left') {
+    col
+  }
+}
 // 重置表格
 async function resetSettings() {
   if (!props.resetSetMenu) {
-    columns.value = props.tableHeard;
+    columns.value = columnList.value;
     filterColumns.value = columns.value.filter(item => item.show);
     return;
   }
@@ -243,8 +185,8 @@ async function resetSettings() {
   try {
     await settingTableEdit({ menu: props.resetSetMenu, table: null });
     message.success('已保存');
-    columns.value = props.tableHeard;
-    filterColumns.value = props.tableHeard;
+    columns.value = columnList.value;
+    filterColumns.value = columnList.value;
     emit('update:filterColumns', filterColumns.value);
   } catch (error) {
     console.error(error);
@@ -255,7 +197,7 @@ async function resetSettings() {
 async function tableSetting(value) {
   // 保存表格列设置
   btnLoading.dropAble = !btnLoading.dropAble;
-  columnDrop();
+  // columnDrop();
   if (!props.resetSetMenu) return;
   if (!btnLoading.dropAble) {
     try {
@@ -274,27 +216,29 @@ async function tableSetting(value) {
 let sortable = null; // 拖拽对象实例
 //列拖拽
 function columnDrop() {
-  const wrapperTr = document.querySelector('.ant-table-thead tr');
-  if (!wrapperTr) return;
-  if (!btnLoading.dropAble) {
-    sortable.destroy();
-    sortable = null;
-    return;
-  }
-  sortable = Sortable.create(wrapperTr, {
-    animation: 300,
-    delay: 0,
-    onEnd: evt => {
-      dropColumn(evt);
-    },
-  });
+  setTimeout(() => {
+    const wrapperTr = document.querySelector('.tableSetting-box');
+    if (!wrapperTr) return;
+    // if (!btnLoading.dropAble) {
+    //   sortable.destroy();
+    //   sortable = null;
+    //   return;
+    // }
+    sortable = Sortable.create(wrapperTr, {
+      animation: 300,
+      delay: 0,
+      onEnd: evt => {
+        dropColumn(evt);
+      },
+    });
+  }, 200);
 }
 // 保存拖拽列
 function dropColumn(evt) {
   let headers = cloneDeep(filterColumns.value);
-  const oldItem = headers[evt.oldIndex - 1];
-  headers.splice(evt.oldIndex - 1, 1);
-  headers.splice(evt.newIndex - 1, 0, oldItem);
+  const oldItem = headers[evt.oldIndex];
+  headers.splice(evt.oldIndex, 1);
+  headers.splice(evt.newIndex, 0, oldItem);
   filterColumns.value = headers;
   emit('update:filterColumns', filterColumns.value);
 }
@@ -312,6 +256,13 @@ function dropColumn(evt) {
     justify-content: space-between;
     height: 24px;
     margin-bottom: 10px;
+    .table-title-item {
+      width: 50%;
+      &.item-right {
+        display: flex;
+        justify-content: flex-end;
+      }
+    }
   }
   .table-content {
     width: 100%;
@@ -330,5 +281,29 @@ function dropColumn(evt) {
       height: 100%;
     }
   }
+}
+.tableSetting-box {
+  max-height: 500px;
+  overflow-y: auto;
+  .tableSetting-columnRow {
+    height: 30px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin: 4px 0;
+    background: #fafafa;
+    .columnRow-title {
+      width: 200px;
+      cursor: all-scroll;
+      padding-left: 4px;
+    }
+    :deep(.ant-checkbox-wrapper) {
+      margin-left: 16px;
+    }
+  }
+}
+.tableSetting-btn {
+  padding: 8px 0;
+  text-align: right;
 }
 </style>

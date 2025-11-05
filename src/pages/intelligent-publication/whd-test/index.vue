@@ -2,9 +2,11 @@
 <div id="publication_sequence" class="publication_sequence">
   <!-- <test></test> -->
   <app-table-box 
+    v-model:filter-columns="tableData.filterColumns"
     :data-source="tableData.data" 
     :table-heard="tableData.header"
     reset-set-menu="whdTestHeader"
+    :row-selection="{ selectedRowKeys: tableData.selectedRowKeys, onChange: onSelectChange }"
   >
     <template #headerCell="{ column }">
       <template v-if="column.key === 'name'">
@@ -21,6 +23,25 @@
       <template v-if="key === 'tags'">
         {{ row[key].join() }}
       </template>
+    </template>
+
+    <template #leftTool>
+      <a-button 
+        type="primary" 
+      >提交编辑</a-button>
+      <a-button 
+        type="primary" 
+      >添加备注</a-button>
+      <a-button type="primary">Primary Button</a-button>
+    </template>
+    <template #rightTool>
+      <a-button 
+        type="primary" 
+      >提交编辑</a-button>
+      <a-button 
+        type="primary" 
+      >添加备注</a-button>
+      <a-button type="primary">Primary Button</a-button>
     </template>
   </app-table-box> 
 </div>
@@ -87,7 +108,7 @@ const tableData = reactive({
   loading: false,
   selectedRowKeys: [],
   selectedRows: [],
-
+  filterColumns: [],
   params: {
     pageNum: 1,
     pageSize: 50,
@@ -95,6 +116,12 @@ const tableData = reactive({
     // "prop": "complete_time" // 排序列，必须
   },
 });
+
+// 复选框
+function onSelectChange(keys, rows) {
+  tableData.selectedRowKeys = keys
+  tableData.selectedRows = rows
+}
 </script>
 
 <style lang="less" scoped>
