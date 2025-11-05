@@ -2,10 +2,12 @@
   <a-drawer
     :width="400"
     :style="{ transform: `translateX(${paddingLeft})`, opacity: 1, transition: 'transform 0.3s ease, opacity 0.3s ease' }"
-    title="菜单收藏"
+    title="菜单设置"
     :body-style="{ padding: '12px 40px 0 20px' }"
     :placement="placement"
     :open="open"
+    class="drawer-collapse-menu"
+    :maskClosable="false"
     @close="onClose"
   >
     <a-collapse
@@ -14,6 +16,7 @@
       :style="{ width: '100%', border: 'none' }"
       :class="collapsed ? 'ant-pro-collapse-menu' : ''"
       ghost
+      :expandIcon="getExpandIcon"
     >
       <!-- 根级菜单 -->
       <template v-for="item in selectedMenus">
@@ -36,13 +39,14 @@
                   <span>{{ renderTitle(item.title) }}</span>
                   <a-tooltip placement="top">
                     <template #title>
-                      {{ item.commonUse === 0 ? "点击收藏" : "取消收藏" }}
+                      {{ item.commonUse === 0 ? "点击常驻" : "取消常驻" }}
                     </template>
-                    <img
+                    <AsyncIcon
                       @click.stop="handleCollect(item)"
-                      class="startIcon"
-                      :src="item.commonUse === 0 ? noStartIcon : startIcon"
-                      alt=""
+                      :style="{ color: item.commonUse === 0 ? '#999' : '#1890ff', marginLeft: 'auto', cursor: 'pointer' }"
+                      id="commonUse"
+                      icon="PushpinOutlined"
+                      size="15px"
                     />
                   </a-tooltip>
                 </div>
@@ -54,8 +58,6 @@
                   :key="child.path"
                   :item="child"
                   :on-collect="handleCollect"
-                  :start-icon="startIcon"
-                  :no-start-icon="noStartIcon"
                 />
               </div>
             </a-collapse-panel>
@@ -73,13 +75,14 @@
                   <span>{{ renderTitle(item.title) }}</span>
                   <a-tooltip placement="top">
                     <template #title>
-                      {{ item.commonUse === 0 ? "点击收藏" : "取消收藏" }}
+                      {{ item.commonUse === 0 ? "点击常驻" : "取消常驻" }}
                     </template>
-                    <img
+                    <AsyncIcon
                       @click.stop="handleCollect(item)"
-                      class="startIcon"
-                      :src="item.commonUse === 0 ? noStartIcon : startIcon"
-                      alt=""
+                      :style="{ color: item.commonUse === 0 ? '#999' : '#1890ff', marginLeft: 'auto', cursor: 'pointer' }"
+                      id="commonUse"
+                      icon="PushpinOutlined"
+                      size="15px"
                     />
                   </a-tooltip>
                 </div>
@@ -94,13 +97,14 @@
                   <span>{{ renderTitle(item.title) }}</span>
                   <a-tooltip placement="top">
                     <template #title>
-                      {{ item.commonUse === 0 ? "点击收藏" : "取消收藏" }}
+                      {{ item.commonUse === 0 ? "点击常驻" : "取消常驻" }}
                     </template>
-                    <img
+                    <AsyncIcon
                       @click.stop="handleCollect(item)"
-                      class="startIcon"
-                      :src="item.commonUse === 0 ? noStartIcon : startIcon"
-                      alt=""
+                      :style="{ color: item.commonUse === 0 ? '#999' : '#1890ff', marginLeft: 'auto', cursor: 'pointer' }"
+                      id="commonUse"
+                      icon="PushpinOutlined"
+                      size="15px"
                     />
                   </a-tooltip>
                 </div>
@@ -115,20 +119,27 @@
 
 <script setup>
 // 导入必要的依赖
-import { ref, computed } from "vue";
+import { ref, computed, createVNode } from "vue";
 import recursiveDrawerMenu from "./recursive-drawer-menu.vue";
 import { message } from "ant-design-vue";
 import AsyncIcon from "./async-icon.vue";
+import { DownOutlined, UpOutlined } from "@ant-design/icons-vue";
 import { editCommonUseMenu } from "~/api/common/menu.js";
 import { isUrl, isFunction } from "@v-c/utils";
 import { useUserStore } from "~/stores/user.js";
-import startIcon from "@/assets/images/common/start.png";
-import noStartIcon from "@/assets/images/common/noStart.png";
 
 // 渲染菜单标题
 function renderTitle(title) {
   if (isFunction(title)) return title();
   return title;
+}
+
+// 获取展开图标
+function getExpandIcon(panelProps) {
+  // 判断当前面板是否展开
+  const isExpanded = panelProps.isActive;
+  // 使用直接导入的createVNode创建组件
+  return createVNode(isExpanded ? UpOutlined : DownOutlined);
 }
 
 // 定义组件属性
@@ -166,13 +177,13 @@ const refreshMenu = async () => {
   await userStore.generateDynamicRoutes();
 };
 
-// 处理菜单收藏功能
+// 处理菜单常驻功能
 const handleCollect = (item) => {
   const newType = item.commonUse === 1 ? 0 : 1;
   editCommonUseMenu({ commonUse: newType, menuId: item.id }).then((res) => {
     if (res.code === 200) {
       item.commonUse = newType;
-      message.success(newType === 1 ? "收藏成功" : "取消成功");
+      message.success(newType === 1 ? "常驻成功" : "取消成功");
       refreshMenu();
     } else {
       message.error(res.msg);
@@ -238,16 +249,13 @@ defineExpose({
   }
 }
 
-/* 收藏图标样式 */
-.startIcon {
-  width: 16px;
-  height: 16px;
-  margin-left: auto;
-  cursor: pointer;
-  transition: all 0.2s ease;
+/* 常驻图标样式 */
+#commonUse {
+  transform: rotate(-40deg);
+  transition: all 0.3s ease;
 
   &:hover {
-    transform: scale(1.2);
+    transform: scale(1.2) rotate(-40deg) !important;
     filter: brightness(1.2);
   }
 }
@@ -280,12 +288,15 @@ defineExpose({
 ::v-deep(.ant-collapse) {
   padding-right: 0 !important;
   margin-right: 0 !important;
+
 }
 
 /* 确保折叠面板头部的右边距为0 */
 ::v-deep(.ant-collapse-header) {
   padding: 8px 0 8px 16px !important;
+ 
 }
+
 
 /* 确保折叠面板项的右边距为0 */
 ::v-deep(.ant-collapse-item) {
@@ -305,5 +316,12 @@ defineExpose({
 /* 确保paddingLeft样式平滑过渡 */
 .ant-drawer {
   transition: padding-left 0.3s ease;
+}
+</style>
+<style lang="less">
+.drawer-collapse-menu {
+    .ant-drawer-header-title {
+    flex-flow: row-reverse;
+  }
 }
 </style>

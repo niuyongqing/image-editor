@@ -10,8 +10,9 @@
         class="custom-collapse"
         :style="{ width: '100%' }"
         v-model:activeKey="childActiveKeys"
+         :expandIcon="getExpandIcon"
       >
-        <a-collapse-panel :key="item.path" sty>
+        <a-collapse-panel :key="item.path">
           <template #header>
             <div class="menu-item-content">
               <async-icon
@@ -22,13 +23,14 @@
               <span>{{ renderTitle(item.title) }}</span>
               <a-tooltip placement="top">
                 <template #title>
-                  {{ item.commonUse === 0 ? "点击收藏" : "取消收藏" }}
+                  {{ item.commonUse === 0 ? "点击常驻" : "取消常驻" }}
                 </template>
-                <img
-                  @click.prevent="handleCollect(item)"
-                  class="startIcon"
-                  :src="item.commonUse === 0 ? noStartIcon : startIcon"
-                  alt=""
+                <AsyncIcon
+                  @click.stop="handleCollect(item)"
+                  :style="{ color: item.commonUse === 0 ? '#999' : '#1890ff', marginLeft: 'auto', cursor: 'pointer' }"
+                  id="commonUse"
+                  icon="PushpinOutlined"
+                  size="15px"
                 />
               </a-tooltip>
             </div>
@@ -39,8 +41,6 @@
               :key="child.path"
               :item="child"
               :on-collect="handleCollect"
-              :start-icon="startIcon"
-              :no-start-icon="noStartIcon"
             />
           </div>
         </a-collapse-panel>
@@ -57,13 +57,14 @@
         <span>{{ renderTitle(item.title) }}</span>
         <a-tooltip placement="top">
           <template #title>
-            {{ item.commonUse === 0 ? "点击收藏" : "取消收藏" }}
+            {{ item.commonUse === 0 ? "点击常驻" : "取消常驻" }}
           </template>
-          <img
-            @click.prevent="handleCollect(item)"
-            class="startIcon"
-            :src="item.commonUse === 0 ? noStartIcon : startIcon"
-            alt=""
+          <AsyncIcon
+            @click.stop="handleCollect(item)"
+            :style="{ color: item.commonUse === 0 ? '#999' : '#1890ff', marginLeft: 'auto', cursor: 'pointer' }"
+            id="commonUse"
+            icon="PushpinOutlined"
+            size="15px"
           />
         </a-tooltip>
       </div>
@@ -73,11 +74,11 @@
 
 <script setup>
 // 导入必要的依赖
-import { ref, computed } from "vue";
+import { ref, computed, createVNode } from "vue";
 import AsyncIcon from "./async-icon.vue";
 import { isUrl, isFunction } from "@v-c/utils";
 import recursiveDrawerMenu from "./recursive-drawer-menu.vue";
-import { CaretRightOutlined } from "@ant-design/icons-vue";
+import { DownOutlined, UpOutlined } from "@ant-design/icons-vue";
 // 定义组件属性
 const props = defineProps({
   item: {
@@ -86,14 +87,6 @@ const props = defineProps({
   },
   onCollect: {
     type: Function,
-    required: true,
-  },
-  startIcon: {
-    type: String,
-    required: true,
-  },
-  noStartIcon: {
-    type: String,
     required: true,
   },
 });
@@ -107,6 +100,14 @@ function renderTitle(title) {
 // 子级折叠面板的激活状态
 const childActiveKeys = ref([]);
 
+// 获取展开图标
+function getExpandIcon(panelProps) {
+  // 判断当前面板是否展开
+  const isExpanded = panelProps.isActive;
+  // 使用直接导入的createVNode创建组件
+  return createVNode(isExpanded ? UpOutlined : DownOutlined);
+}
+
 // 判断是否有子菜单
 const hasChildren = computed(() => {
   return (
@@ -116,7 +117,7 @@ const hasChildren = computed(() => {
   );
 });
 
-// 处理收藏功能
+// 处理常驻功能
 function handleCollect(item) {
   props.onCollect(item);
 }
@@ -145,19 +146,16 @@ function handleCollect(item) {
   transform: scale(1.01);
 }
 
-/* 收藏图标样式 */
-.startIcon {
-  width: 16px;
-  height: 16px;
-  margin-left: auto;
-  cursor: pointer;
+/* 常驻图标样式 */
+#commonUse {
+  transform: rotate(-40deg);
   transition: all 0.2s ease;
 }
 
-/* 收藏图标悬浮效果 */
-.startIcon:hover {
-  transform: scale(1.1);
-  filter: brightness(1.1);
+/* 常驻图标悬浮效果 */
+#commonUse:hover {
+  transform: scale(1.2) rotate(-40deg) !important;
+  filter: brightness(1.2);
 }
 
 /* 子菜单内容样式 */
