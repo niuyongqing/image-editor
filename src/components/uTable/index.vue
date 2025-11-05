@@ -11,6 +11,7 @@
     <!-- 表格数据 -->
     <a-table
       v-else
+      :pagination="false"
       :row-selection="enableSelection ? rowSelection : null"
       :columns="columns"
       :customRow="customRowHandler"
@@ -175,7 +176,7 @@ const props = defineProps({
     type: Object,
     default: () => ({
       pageNum: 1,
-      pageSize: 50,
+      pageSize: 20,
       total: 0,
     }),
   },
@@ -202,7 +203,7 @@ const props = defineProps({
   // 每页条数选项
   pageSizeOptions: {
     type: Array,
-    default: () => ['1', '50', '100', '200'],
+    default: () => ['10','20', '50', '100'],
   },
   // 行key字段名
   rowKey: {

@@ -60,13 +60,13 @@ export function getShopList() {
 }
 
 /**
- * // 停用店铺模板
+ * // 默认模板
  * @param {*} data 
  * @returns 
  */
 export function stopShopTemplate(data) {
   return request({
-    url: '/platform-ozon/intelligent/shop/template/enable',
+    url: '/platform-ozon/intelligent/shop/template/setting/default',
     method: 'POST',
     data: data
   })

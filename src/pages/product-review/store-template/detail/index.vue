@@ -156,23 +156,23 @@ const formState = reactive({
   // 产品描述添加方式：0 在产品描述前，1 在产品描述后
   productDescAddType: null,
   // 首重物流费
-  firstPriorityLogisticFee: null,
+  firstPriorityLogisticFee: 2.8,
   // 续重物流费
-  continuedLogisticFee: null,
+  continuedLogisticFee: 0.032,
   // 定价利润率，单位%
-  profitRate: null,
+  profitRate: 23,
   // 折损率，单位%
-  lossRate: null,
+  lossRate: 2,
   // 提现手续费率，单位%
-  withdrawalFeeRate: null,
+  withdrawalFeeRate: 2,
   // 物流佣金（RUB）
-  logisticCommissionRate: null,
+  logisticCommissionRate: 15,
   // 平台佣金费率，单位%
-  platformCommissionRate: null,
+  platformCommissionRate: 12,
   // 原价折扣率，单位%
-  originalDiscountRate: null,
+  originalDiscountRate: 60,
   // 折扣率，单位%
-  discountRate: null,
+  discountRate: 3,
   // 富文本模版图片位置：例如standard,1,2,3,4
   jsonEditorImgIndex: "standard,1,2,3,4,5",
   // 主图水印模版id
