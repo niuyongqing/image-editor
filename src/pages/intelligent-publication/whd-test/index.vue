@@ -331,7 +331,7 @@
       isSummary
     >
       <template #leftTool>
-        <a-button type="primary">提交编辑</a-button>
+        <a-button type="primary" @click="openModal">提交编辑</a-button>
         <a-button type="primary">添加备注</a-button>
         <a-button type="primary">Primary Button</a-button>
         <a-button type="primary">提交编辑</a-button>
@@ -431,10 +431,24 @@
         />
       </template>
     </app-table-box>
+
+    <!-- 使用自定义footer -->
+    <AppModal v-model="customModalVisible" title="自定义底部弹窗1">
+      <template #appContent>
+        <p>弹窗内容</p>
+      </template>
+      
+      <template #appFooter>
+        <a-button @click="handleCustomCancel">自定义取消</a-button>
+        <a-button type="primary" @click="handleCustomOk">自定义确定</a-button>
+        <a-button type="dashed">其他操作</a-button>
+      </template>
+    </AppModal>
   </div>
 </template>
 
 <script setup>
+import appModal from '~/components/common/appModal/index.vue';
 import appTableBox from '~/components/common/appTableBox/index.vue';
 defineOptions({ name: 'publication_sequence' });
 const { proxy: _this } = getCurrentInstance();
@@ -1151,6 +1165,7 @@ const tableData = reactive({
 });
 const current1 = ref(1);
 const current2 = ref(2);
+const customModalVisible = ref(false)
 let dataList = []
 onMounted(() => {
   for (let i = 0; i < 5; i++) {
@@ -1208,6 +1223,21 @@ function customRow(row) {
       console.log({ row }, 'dblclick');
     },
   };
+}
+
+function openModal() {
+  customModalVisible.value = true
+}
+
+// 自定义底部弹窗事件
+function handleCustomCancel() {
+  console.log('自定义取消操作')
+  customModalVisible.value = false
+}
+
+function handleCustomOk() {
+  console.log('自定义确定操作')
+  customModalVisible.value = false
 }
 </script>
 
