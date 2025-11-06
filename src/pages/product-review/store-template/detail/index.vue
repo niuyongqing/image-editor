@@ -91,14 +91,14 @@
         <div class="module-item-label">水印模板</div>
         <div class="module-item-content">
           <a-form-item name="richTextTemplate" class="wInput100">
-            <watermarkTable ref="watermarkTableRef" />
+            <watermarkTable ref="watermarkTableRef" :disabled="isDesable" />
           </a-form-item>
         </div>
       </div>
       <!-- 操作按钮 -->
       <div class="form-actions mt-24">
-        <a-button type="primary" @click="submitForm">提交</a-button>
-        <a-button style="margin-left: 10px" @click="resetForm">重置</a-button>
+        <a-button :disabled="isDesable" type="primary" @click="submitForm">提交</a-button>
+        <a-button :disabled="isDesable" style="margin-left: 10px" @click="resetForm">重置</a-button>
       </div>
     </a-form>
   </div>
@@ -125,7 +125,7 @@ const labelCol = { style: { width: "110px" } };
 const formRef = ref();
 const watermarkTableRef = ref();
 const accountList = reactive([]);
-
+let timer = null;
 // 提交全局loading状态
 const subLoading = ref(false);
 
@@ -230,15 +230,25 @@ const submitForm = async () => {
     await formRef.value.validate();
     // 校验通过，继续提交表单
     const api = query.value.id ? updateShopTemplate : createShopTemplate;
+    if (query.value.copyId) {
+      delete formState.id;
+    }
     const res = await api(formState);
     if (res.code === 200) {
       message.success(query.value.id ? "更新店铺模板成功" : "创建店铺模板成功");
-      resetForm();
-      // 刷新详情页
-      getDetails(query.value.id);
       // 刷新列表页
       const channel = new BroadcastChannel("store_template_getList");
       channel.postMessage({ action: "refreshList" });
+      resetForm();
+      // 刷新详情页
+      if (!query.value.id) {
+        //延迟1秒关闭窗口
+        timer = setTimeout(() => {
+          window.close()
+        }, 1000);
+      }else{
+        getDetails(query.value.id);
+      }
     } else {
       message.error(
         res.msg || (query.value.id ? "更新店铺模板失败" : "创建店铺模板失败")
@@ -274,7 +284,7 @@ const getDetails = async (id) => {
   if (res.code === 200) {
     Object.assign(formState, res.data);
     const { mainImgWmTemplateId, subImgWmTemplateId } = res.data;
-    // 初始化水印表格
+    // 详情水印表格
     watermarkTableRef.value.getWatermarkList(mainImgWmTemplateId, subImgWmTemplateId);
     console.log('res.data', res.data)
     if (query.value.type === "copy") {
@@ -292,8 +302,19 @@ const getDetails = async (id) => {
 onMounted(() => {
   getShopLists();
   // 详情页初始化
-  if (query.value.id) {
-    getDetails(query.value.id);
+  if (query.value.id || query.value.copyId) {
+    getDetails(query.value.id || query.value.copyId);
+  }else{
+    // 新增
+    watermarkTableRef.value.getWatermarkList(null, null);
+  }
+
+});
+
+onUnmounted(() => {
+  // 组件卸载时清除定时器
+  if (timer) {
+    clearTimeout(timer);
   }
 });
 </script>

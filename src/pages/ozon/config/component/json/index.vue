@@ -30,7 +30,7 @@
         >
         <br />
         <a-button
-          v-if="isModules"
+          v-if="isShowEditJson"
           size="large"
           class="w-30"
           style="padding: 0;"
@@ -124,7 +124,7 @@
               >
                 <div>
                   <HolderOutlined class="mx-2" />
-                  <span>{{ TEXT_ENUM[item.type] }}</span>
+                  <span>{{getModuleText(item,index) }}</span>
                 </div>
                 <div class="optionBtn">
                   <a-space>
@@ -194,6 +194,7 @@
                       v-if="!imgs.src.length"
                     >
                       <PictureOutlined :style="{ fontSize: '60px', color: '#a0a3a6' }" />
+                      <span>{{ getModuleText(item,i)  }}</span>
                       <span>文件格式为 JPEG、JPG、PNG，大小不能超过10MB</span>
                     </div>
                     <img
@@ -813,6 +814,16 @@
     return null
   }
 
+  const getModuleText = (item, index) => {
+    // 获取模块类型的基础文本
+    const moduleTypeText = TEXT_ENUM[item.type] || '未知模块';
+    // 智能刊登模式下，显示positions[index]的信息
+    if (props.isIntelligentize && item.position !== "standard") {
+        return TEXT_ENUM[item.type] + ' ' + item.position
+    }
+    return moduleTypeText;
+  }
+
   const showEdit = ref(false)
   // 单个传图
   const uploadChange = (info, record) => {
@@ -1360,7 +1371,7 @@
       ]
     }
   }
-
+  // 智能化刊登专用教研
   const validateImageList = (type,callback=()=>{})=> {
     let isValid = false
      // 检查通用图片组是否已存在（只能拖拽一次）

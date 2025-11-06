@@ -5,6 +5,7 @@
         type="primary"
         class="create-button"
         size="middle"
+        :disabled="disabled"
         @click="addWatermark"
       >创建模版</a-button>
     </div>
@@ -33,14 +34,15 @@
         </template>
         <template v-else-if="column.key === 'operation'">
           <a-space>
-            <a-button type="link" @click="changeWatermark(record)">更换</a-button>
-            <a-button type="link" @click="editWatermark(record)">编辑</a-button>
+            <a-button type="link" :disabled="disabled" @click="changeWatermark(record)">更换</a-button>
+            <a-button type="link" :disabled="disabled" @click="editWatermark(record)">编辑</a-button>
             <a-popconfirm
             title="确定删除吗?"
             @confirm="delWatermark(record.id)"
           >
             <a-button
               type="link"
+              :disabled="disabled"
               danger
               >删除</a-button
             >
@@ -103,6 +105,12 @@ import {
 import { message } from "ant-design-vue";
 
 const emit = defineEmits([]);
+const props = defineProps({
+  disabled: {
+    type: Boolean,
+    default: false
+  }
+});
 
 // ==================== 响应式数据 ====================
 // 使用ref创建响应式数组，而不是reactive
