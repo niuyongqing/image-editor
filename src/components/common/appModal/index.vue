@@ -5,6 +5,7 @@
     :width="width"
     :maskClosable="false"
     :keyboard="false"
+    v-bind="$attrs"
     @ok="handleOk"
     @cancel="handleCancel"
   >
@@ -22,7 +23,6 @@
 </template>
 
 <script setup>
-import { min } from 'lodash'
 import { ref, watch } from 'vue'
 
 // 定义组件的props
