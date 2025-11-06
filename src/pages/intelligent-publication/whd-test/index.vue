@@ -28,6 +28,7 @@
     <template #leftTool>
       <a-button 
         type="primary" 
+        @click="openModal"
       >提交编辑</a-button>
       <a-button 
         type="primary" 
@@ -44,11 +45,26 @@
       <a-button type="primary">Primary Button</a-button>
     </template>
   </app-table-box> 
+
+
+  <!-- 使用自定义footer -->
+  <AppModal v-model="customModalVisible" title="自定义底部弹窗1">
+    <template #appContent>
+      <p>弹窗内容</p>
+    </template>
+    
+    <template #appFooter>
+      <a-button @click="handleCustomCancel">自定义取消</a-button>
+      <a-button type="primary" @click="handleCustomOk">自定义确定</a-button>
+      <a-button type="dashed">其他操作</a-button>
+    </template>
+  </AppModal>
 </div>
 </template>
 
 <script setup>
 import appTableBox from '~/components/common/appTableBox/index.vue'
+import appModal from '~/components/common/appModal/index.vue'
 defineOptions({ name: "publication_sequence" })
 const { proxy: _this } = getCurrentInstance();
 
@@ -117,11 +133,32 @@ const tableData = reactive({
   },
 });
 
+// 弹窗相关
+const customModalVisible = ref(false)
+
 // 复选框
 function onSelectChange(keys, rows) {
   tableData.selectedRowKeys = keys
   tableData.selectedRows = rows
 }
+
+const openModal = () => {
+  customModalVisible.value = true
+}
+
+// 自定义底部弹窗事件
+const handleCustomCancel = () => {
+  console.log('自定义取消操作')
+  customModalVisible.value = false
+}
+
+const handleCustomOk = () => {
+  console.log('自定义确定操作')
+  customModalVisible.value = false
+}
+
+
+
 </script>
 
 <style lang="less" scoped>
