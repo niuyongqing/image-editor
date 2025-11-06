@@ -44,14 +44,33 @@
         theme === 'inverted' ? 'ant-pro-sider-collapsed-button-inverted' : ''
       "
     >
-      <LeftCircleTwoTone v-if="!collapsed" />
-      <RightCircleTwoTone v-else />
+      <svg
+        t="1762393332550"
+        class="RightCircleOutlinedSvg"
+        :class="collapsed ? 'rotate-180' : ''"
+        viewBox="0 0 1024 1024"
+        version="1.1"
+        xmlns="http://www.w3.org/2000/svg"
+        p-id="44942"
+        data-spm-anchor-id="a313x.search_index.0.i41.5ab93a81N7wBQc"
+        width="24"
+        height="24"
+      >
+        <path
+          d="M303.8 989.24c-14.52 0-29.04-5.64-40.08-16.8-22.2-22.32-22.2-58.56 0-80.99999999L640.04 511.76 263.72 131.95999999c-22.2-22.32-22.2-58.68 0-80.99999999 22.2-22.44 58.08-22.44 80.39999999 0l416.40000001 420.36c22.2 22.32 22.2 58.68 1e-8 81L344.00000001 972.44c-11.16 11.28-25.56 16.8-40.20000001 16.8z"
+          p-id="44943"
+          fill="#ffffff"
+        ></path>
+      </svg>
+      <!-- <RightCircleOutlined /> -->
+      <!-- <LeftCircleTwoTone class="menuCollapsedIconColor1" v-if="!collapsed" />
+      <RightCircleTwoTone class="menuCollapsedIconColor1" v-else /> -->
     </div>
 
     <!-- 个人设置菜单 -->
     <div v-if="!isMobile">
       <div class="setMenu-box">
-                <a-tooltip placement="top" :z-index="999999" color="#1677ff">
+        <a-tooltip placement="top" :z-index="999999" color="#1677ff">
           <template #title>
             <div style="display: inline">
               <a-button class="out-and-goto" @click="out">退出登录</a-button>
@@ -106,7 +125,6 @@
             </svg>
           </div>
         </a-tooltip>
-
       </div>
       <!-- <div
               class="truncate font-bold p-1"
@@ -132,6 +150,7 @@ import {
   RightCircleTwoTone,
   StepForwardOutlined,
   StepBackwardOutlined,
+  RightCircleOutlined,
 } from "@ant-design/icons-vue";
 import { shallowRef, ref } from "vue";
 
@@ -263,6 +282,11 @@ async function out() {
   cursor: pointer;
 }
 
+.selected {
+  background: linear-gradient(135deg, #4f46e5, #6366f1) !important;
+  color: white !important;
+}
+
 .menuCollapsedIcon {
   width: 30px;
   text-align: center;
@@ -277,6 +301,7 @@ async function out() {
   transform: translateY(-50%) translateZ(0);
   will-change: transform;
 }
+
 .setMenu-box {
   display: flex;
   justify-content: center;
@@ -288,5 +313,15 @@ async function out() {
     height: 30px;
     padding-top: 3px;
   }
+}
+.RightCircleOutlinedSvg {
+ background: #1677ff;
+//  background: linear-gradient(to right, #1c1866, #6366f1);
+ border-radius: 50%;
+ padding: 5px;
+ padding-left:6px;
+}
+.rotate-180 {
+  transform: rotate(180deg);
 }
 </style>

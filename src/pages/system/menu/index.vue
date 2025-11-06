@@ -116,14 +116,16 @@ import {
   updateMenuSortApi,
   selectMenuClassify,
 } from "~/api/common/menu.js";
-import { VXETable } from "vxe-table"
-import { DownOutlined, UpOutlined } from '@ant-design/icons-vue';
-import { h } from 'vue'
+import { VXETable } from "vxe-table";
+import { DownOutlined, UpOutlined } from "@ant-design/icons-vue";
+import { h } from "vue";
 
 // 配置图标 - 使用VXETable的箭头图标名称
 VXETable.setIcon({
-  'vxe-icon-arrow-right': (renderOpts) => h(DownOutlined, { class: renderOpts.className }),
-  'vxe-icon-arrow-down': (renderOpts) => h(UpOutlined, { class: renderOpts.className })
+  "vxe-icon-arrow-right": (renderOpts) =>
+    h(DownOutlined, { class: renderOpts.className }),
+  "vxe-icon-arrow-down": (renderOpts) =>
+    h(UpOutlined, { class: renderOpts.className }),
 });
 
 // 使用更高效的同步引入方式加载图标组件，避免展开时的异步加载延迟
@@ -174,9 +176,9 @@ const treeConfig = ref({
   parentField: "parentId",
   lazy: true,
   hasChild: "hasChild",
-  trigger: 'row',
-  iconOpen: 'vxe-icon-arrow-right',
-      iconClose: 'vxe-icon-arrow-down',
+  trigger: "row",
+  iconOpen: "vxe-icon-arrow-right",
+  iconClose: "vxe-icon-arrow-down",
   loadMethod({ row }) {
     // 使用工具函数异步加载子菜单
     return fetchMenuChildren(childrenMapList, row.id).then((children) => {
@@ -296,8 +298,8 @@ const dragMenuSave = () => {
   draggedMenuMap.forEach((group) => {
     draggedMenuArray.push(group);
   });
-if (!draggedMenuArray.length) return message.warning("请先拖拽排序");
-tableLoading.value = true;
+  if (!draggedMenuArray.length) return message.warning("请先拖拽排序");
+  tableLoading.value = true;
   updateMenuSortApi(draggedMenuArray).then((res) => {
     if (res.code === 200) {
       message.success("菜单排序更新成功");
@@ -534,8 +536,8 @@ onBeforeUnmount(() => {
   border-radius: 8px;
 }
 
-:deep(.vxe-table--render-default .vxe-cell--tree-btn>i) {
-  font-size: 14px !important;
+:deep(.vxe-table--render-default .vxe-cell--tree-btn > i) {
+  transform: scale(0.8);
 }
 
 /* 优化菜单标题容器样式 */
