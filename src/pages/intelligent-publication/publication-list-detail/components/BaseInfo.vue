@@ -4,9 +4,21 @@
     <a-form
       :model="form"
       ref="formRef"
-      :rules="rules"
       :label-col="{ style: { width: '94px' } }"
     >
+      <a-form-item
+        label="店铺账号"
+        name="account"
+      >
+        <a-select
+          v-model:value="form.account"
+          :options="accountList"
+          :field-names="{ label: 'simpleName', value: 'account' }"
+          option-filter-prop="simpleName"
+          show-search
+          class="w-60!"
+        />
+      </a-form-item>
       <a-form-item
         label="产品标题"
         name="productName"
@@ -15,26 +27,6 @@
         <a-input
           v-model:value="form.productName"
           placeholder="请输入中文产品标题"
-          allow-clear
-        />
-      </a-form-item>
-      <a-form-item
-        label="前缀修饰词"
-        name="prefixDecorateName"
-      >
-        <a-input
-          v-model:value="form.prefixDecorateName"
-          placeholder="请输入中文前缀修饰词, 多个请用中文逗号隔开"
-          allow-clear
-        />
-      </a-form-item>
-      <a-form-item
-        label="后缀修饰词"
-        name="suffixDecorateName"
-      >
-        <a-input
-          v-model:value="form.suffixDecorateName"
-          placeholder="请输入中文后缀修饰词, 多个请用中文逗号隔开"
           allow-clear
         />
       </a-form-item>
@@ -60,94 +52,6 @@
           :options="VAT_OPTIONS"
           class="w-40!"
         />
-      </a-form-item>
-
-      <a-divider />
-
-      <a-form-item label="竞品链接">
-        <div
-          class="flex mb-1"
-          v-for="(item, i) in form.competitiveInfos"
-          :key="item.id"
-        >
-          <span class="mr-1">{{ i + 1 }}</span>
-          <a-input
-            v-model:value="item.linkUrl"
-            placeholder="请输入网址"
-          />
-
-          <a-button
-            type="link"
-            @click="copy(item.linkUrl)"
-          >
-            复制
-          </a-button>
-          <a-button
-            type="link"
-            @click="open(item.linkUrl)"
-          >
-            访问
-          </a-button>
-          <a-button
-            type="link"
-            title="添加"
-            :disabled="form.competitiveInfos.length > 4"
-            @click="addCompetitiveLink"
-            ><PlusOutlined
-          /></a-button>
-          <a-button
-            type="link"
-            title="删除"
-            :disabled="form.competitiveInfos.length === 1"
-            danger
-            @click="delCompetitiveLink(item.id)"
-            ><MinusOutlined
-          /></a-button>
-        </div>
-      </a-form-item>
-
-      <a-divider />
-
-      <a-form-item label="采购链接">
-        <div
-          class="flex mb-1"
-          v-for="(item, i) in form.purchaseLinkUrls"
-          :key="item.id"
-        >
-          <span class="mr-1">{{ i + 1 }}</span>
-          <a-input
-            v-model:value="item.linkUrl"
-            placeholder="请输入网址"
-          />
-
-          <a-button
-            type="link"
-            @click="copy(item.linkUrl)"
-          >
-            复制
-          </a-button>
-          <a-button
-            type="link"
-            @click="open(item.linkUrl)"
-          >
-            访问
-          </a-button>
-          <a-button
-            type="link"
-            title="添加"
-            :disabled="form.purchaseLinkUrls.length > 4"
-            @click="addPurchaseLink"
-            ><PlusOutlined
-          /></a-button>
-          <a-button
-            type="link"
-            title="删除"
-            :disabled="form.purchaseLinkUrls.length === 1"
-            danger
-            @click="delPurchaseLink(item.id)"
-            ><MinusOutlined
-          /></a-button>
-        </div>
       </a-form-item>
 
       <a-divider />
@@ -392,7 +296,8 @@
 
 <script setup>
   import CustomCategorySelector from '@/components/custom-category-selector/index.vue'
-  import { getAttributesApi } from '../api'
+  import { getAttributesApi } from '@/pages/product-review/CommonDetail/api'
+  import { accountCache } from '@/pages/ozon/config/api/product'
   import JSONEditor from '@/pages/ozon/config/component/json/index.vue'
   import { processImageSource } from '@/pages/ozon/config/commJs/index'
   import { v4 as uuidv4 } from 'uuid'
@@ -404,13 +309,10 @@
   const categoryOpen = ref(false)
   const form = reactive({
     id: '',
+    account: undefined,
     productName: '',
-    prefixDecorateName: '',
-    suffixDecorateName: '',
     categoryId: '',
     vat: 0,
-    competitiveInfos: [{ id: uuidv4(), linkUrl: '' }],
-    purchaseLinkUrls: [{ id: uuidv4(), linkUrl: '' }],
     desc: '',
     jsons: '',
     coverVideoUrl: '', // 封面视频
@@ -419,16 +321,6 @@
   const attributesObj = ref({}) // 产品属性的值
 
   const formRef = ref()
-
-  const validateComma = (_, value) => {
-    if (!value) return Promise.reject('请输入修饰词')
-    if (value.includes(',')) return Promise.reject('请使用中文逗号分割')
-    return Promise.resolve()
-  }
-  const rules = reactive({
-    prefixDecorateName: [{ required: true, validator: validateComma }],
-    suffixDecorateName: [{ required: true, validator: validateComma }]
-  })
 
   // VAT 下拉选项
   const VAT_OPTIONS = [
@@ -472,6 +364,20 @@
   // 显示的属性列表(fold: 5条; unfold: all;)
   const filteredAttributeList = computed(() => (fold.value ? attributeList.value.slice(0, 5) : attributeList.value))
 
+  // 店铺账号
+  const accountList = ref([])
+
+  getAccountList()
+  function getAccountList() {
+    accountCache().then(res => {
+      accountList.value = res.data || []
+      if (accountList.value.length === 0) {
+        message.error('当前账号没有配置店铺, 请前往「账号配置」添加, 或联系管理员')
+      }
+    })
+  }
+
+  // 获取属性
   function getAttributes(arg = {}) {
     const categoryIdList = form.categoryId.split(',')
     const params = {
@@ -636,24 +542,6 @@
     window.open(link)
   }
 
-  // 竞品链接
-  function addCompetitiveLink() {
-    form.competitiveInfos.push({ id: uuidv4(), linkUrl: '' })
-  }
-
-  function delCompetitiveLink(id) {
-    form.competitiveInfos = form.competitiveInfos.filter(item => item.id !== id)
-  }
-
-  // 采购链接
-  function addPurchaseLink() {
-    form.purchaseLinkUrls.push({ id: uuidv4(), linkUrl: '' })
-  }
-
-  function delPurchaseLink(id) {
-    form.purchaseLinkUrls = form.purchaseLinkUrls.filter(item => item.id !== id)
-  }
-
   /** JSON 富文本 */
   function backResult(jsonContent) {
     form.jsons = JSON.stringify(jsonContent)
@@ -709,24 +597,14 @@
       if (Object.keys(detail).length === 0) return
 
       form.id = detail.id
+      form.account = detail.account
       form.productName = detail.productName
-      form.prefixDecorateName = detail.prefixDecorateName
-      form.suffixDecorateName = detail.suffixDecorateName
 
       // 分类
       if (detail.categoryId) {
         form.categoryId = detail.categoryId
 
         getAttributes({ init: true })
-      }
-
-      // 采购链接(字符串, ','分割)
-      if (detail.purchaseLinkUrls) {
-        form.purchaseLinkUrls = detail.purchaseLinkUrls.split(',').map(linkUrl => ({ id: uuidv4(), linkUrl }))
-      }
-      // 竞品链接(数组)
-      if (detail.competitiveInfos?.length) {
-        form.competitiveInfos = detail.competitiveInfos
       }
 
       const { attributes = [], complexAttributes = [] } = detail.skuList?.[0]
@@ -885,16 +763,10 @@
         // 外层值
         const outerObj = {
           productId: form.id,
+          account: form.account,
           productName: form.productName,
-          prefixDecorateName: form.prefixDecorateName,
-          suffixDecorateName: form.suffixDecorateName,
           categoryId: form.categoryId,
-          vat: form.vat,
-          competitiveInfos: form.competitiveInfos.filter(item => item.linkUrl).map(item => ({ linkUrl: item.linkUrl })),
-          purchaseLinkUrls: form.purchaseLinkUrls
-            .filter(item => item.linkUrl)
-            .map(item => item.linkUrl)
-            .join(',')
+          vat: form.vat
         }
 
         // 产品属性

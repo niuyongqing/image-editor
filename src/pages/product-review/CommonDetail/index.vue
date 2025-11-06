@@ -16,7 +16,7 @@
         <a-button
           type="primary"
           :loading="saveLoading"
-          @click="save"
+          @click="save()"
           >保存</a-button
         >
         <a-button

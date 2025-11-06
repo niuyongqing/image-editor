@@ -51,6 +51,13 @@ export default [
     filter: false,
   },
   {
+    title: '刊登模式',
+    dataIndex: 'publishType',
+    align: "center",
+    width: 200,
+    filter: false,
+  },
+  {
     title: '时间',
     dataIndex: 'createdAt',
     align: "center",

@@ -125,7 +125,7 @@
           </template>
           <template v-else-if="column.key === 'title'">
             <div class="w-80">{{ record.productName || '--' }}</div>
-            <div>id: {{ record.waitPublishProductId }}</div>
+            <div>产品ID: {{ record.waitPublishProductId }}</div>
           </template>
           <template v-else-if="column.key === 'publishType'">
             <div>{{ PUBLISH_TYPE_ENUM[record.publishType] || '--' }}</div>
@@ -163,7 +163,7 @@
               <a-button
                 type="link"
                 @click="goEdit(record)"
-                >{{ record.publishStatus === 10 ? '编辑' : '查看' }}</a-button
+                >{{ [10, 40].includes(record.publishStatus) ? '编辑' : '查看' }}</a-button
               >
               <a-button
                 type="link"
@@ -367,16 +367,16 @@
     return new Promise((resolve, reject) => {
       // 批量; 检查是否有不允许编辑的数据
       const list = tableData.value.filter(item => state.selectedRowKeys.includes(item.waitPublishProductId))
-      if (list.some(item => item.publishStatus !== 10)) {
-        message.error('只允许刊登『待刊登』状态的产品')
+      if (list.some(item => ![10, 40].includes(item.publishStatus))) {
+        message.error('只允许刊登『待刊登, 刊登失败』状态的产品')
         reject('YOU SHALL NOT PASS!')
 
         return
       }
 
-      batchSubmitToPublishApi({ waitPublishProductList: state.selectedRowKeys })
+      batchSubmitToPublishApi({ waitPublishProductIdList: state.selectedRowKeys })
         .then(res => {
-          message.success('刊登成功')
+          message.info(res.data)
           getList()
         })
         .finally(() => {
@@ -391,9 +391,9 @@
 
   function cancel(record) {
     return new Promise((resolve, reject) => {
-      let waitPublishProductIds = []
+      let waitPublishProductIdList = []
       if (record) {
-        waitPublishProductIds = [record.waitPublishProductId]
+        waitPublishProductIdList = [record.waitPublishProductId]
       } else {
         // 批量; 检查是否有不允许编辑的数据
         const list = tableData.value.filter(item => state.selectedRowKeys.includes(item.waitPublishProductId))
@@ -404,10 +404,10 @@
           return
         }
 
-        waitPublishProductIds = state.selectedRowKeys
+        waitPublishProductIdList = state.selectedRowKeys
       }
 
-      cancelApi({ waitPublishProductIds })
+      cancelApi({ waitPublishProductIdList })
         .then(res => {
           message.success('取消成功')
           getList()

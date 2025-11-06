@@ -5,7 +5,10 @@
 
     <SKUInfo ref="SKUInfoRef" />
 
-    <ImageInfo ref="ImageInfoRef" />
+    <ImageInfo
+      ref="ImageInfoRef"
+      :main-images-count-min="1"
+    />
 
     <!-- 底部按钮 -->
     <a-space class="float-right mt-10">
@@ -15,8 +18,15 @@
         v-if="showSaveBtn"
         type="primary"
         :loading="saveLoading"
-        @click="save"
+        @click="save()"
         >保存</a-button
+      >
+      <a-button
+        v-if="showSaveBtn"
+        type="primary"
+        :loading="saveLoading"
+        @click="saveThenPublish"
+        >保存并刊登</a-button
       >
     </a-space>
 
@@ -26,11 +36,11 @@
 </template>
 
 <script setup>
-  import BaseInfo from '@/pages/product-review/CommonDetail/components/BaseInfo.vue'
-  import SKUInfo from '@/pages/product-review/CommonDetail/components/SKUInfo.vue'
+  import BaseInfo from './components/BaseInfo.vue'
+  import SKUInfo from './components/SKUInfo.vue'
   import ImageInfo from '@/pages/product-review/CommonDetail/components/ImageInfo.vue'
 
-  import { detailApi, updateProductDetailApi } from '../js/publication-list-api'
+  import { detailApi, updateProductDetailApi, submitToPublishApi } from '../js/publication-list-api'
   import { message } from 'ant-design-vue'
   import { checkPermi, checkRole } from '~/utils/permission/component/permission.js'
 
@@ -58,7 +68,7 @@
 
     detailApi(id).then(res => {
       detail = res.data || {}
-      showSaveBtn.value = detail.publishStatus === 10
+      showSaveBtn.value = [10, 40].includes(detail.publishStatus)
       store.$patch(state => {
         state.detail = detail
       })
@@ -71,36 +81,65 @@
 
   /** 保存 */
   const saveLoading = ref(false)
-  async function save() {
-    // 获取数据
-    const baseInfo = await baseInfoRef.value.emitData()
-    const skuList = SKUInfoRef.value.emitData()
-    if (!baseInfo || !skuList) {
-      return
-    }
+  async function save(skipClose = false) {
+    return new Promise(async (resolve, reject) => {
+      // 获取数据
+      const baseInfo = await baseInfoRef.value.emitData()
+      const skuList = SKUInfoRef.value.emitData()
+      if (!baseInfo || !skuList) {
+        reject('校验不通过')
+        return
+      }
 
-    const params = {
-      productId: route.query.waitPublishProductId,
-      ...baseInfo,
-      mainImage: skuList[0].mainImages[0],
-      subImage: skuList[0].subImages[0],
-      skuList
-    }
+      const params = {
+        productId: route.query.waitPublishProductId,
+        ...baseInfo,
+        mainImage: skuList[0].mainImages[0],
+        subImage: skuList[0].subImages[0],
+        skuList
+      }
 
+      saveLoading.value = true
+      updateProductDetailApi(params)
+        .then(res => {
+          message.success('保存成功')
+
+          refreshList()
+
+          !skipClose &&
+            setTimeout(() => {
+              window.close()
+            }, 1000)
+
+          resolve()
+        })
+        .catch(err => {
+          reject(err)
+        })
+        .finally(() => {
+          saveLoading.value = false
+        })
+    })
+  }
+
+  /** 保存并刊登 */
+  function saveThenPublish() {
     saveLoading.value = true
-    updateProductDetailApi(params)
-      .then(res => {
-        message.success('保存成功')
+    save(true).then(() => {
+      submitToPublishApi(route.query.waitPublishProductId)
+        .then(res => {
+          message.success('保存并刊登成功')
 
-        refreshList()
+          refreshList()
 
-        setTimeout(() => {
-          window.close()
-        }, 1000)
-      })
-      .finally(() => {
-        saveLoading.value = false
-      })
+          setTimeout(() => {
+            window.close()
+          }, 1000)
+        })
+        .finally(() => {
+          saveLoading.value = false
+        })
+    })
   }
 
   /** 窗口通信, 刷新列表页 */
@@ -108,21 +147,6 @@
   function refreshList() {
     if (targetWindow) {
       targetWindow.postMessage('refresh', targetWindow.location.origin)
-    }
-  }
-
-  /** 监听编辑页保存后的跨窗口通信 */
-  window.addEventListener('message', receiveMessage)
-
-  onBeforeUnmount(() => {
-    window.removeEventListener('message', receiveMessage)
-  })
-
-  // 更新拍照状态
-  const disabledPhoto = ref(false)
-  function receiveMessage(event) {
-    if (event.origin === window.location.origin && event.data === 'toggleStatus') {
-      disabledPhoto.value = true
     }
   }
 
