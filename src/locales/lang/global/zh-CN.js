@@ -8,7 +8,8 @@ export default {
   'app.welcome.link.fetch-blocks': '获取全部区块',
   'app.welcome.link.block-list': '基于 block 开发，快速构建标准页面',
   // settingDrawer
-  'app.setting.pagestyle': '整体风格设置',
+  'app.setting.pagestyle': '布局设置',
+  'app.setting.pagestyle.Overall': '整体风格设置',
   'app.setting.pagestyle.dark': '暗色菜单风格',
   'app.setting.pagestyle.light': '亮色菜单风格',
   'app.setting.pagestyle.inverted': '反转色菜单色风格',
