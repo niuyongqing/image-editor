@@ -274,7 +274,6 @@ const submitForm = async () => {
 
 /** JSON 富文本 */
 const backResult = (jsonContent) => {
-  console.log(jsonContent);
   formState.jsonEditorImgIndex = jsonContent.positions.join(",") || "";
 };
 
@@ -288,7 +287,6 @@ const getDetails = async (id) => {
     watermarkTableRef.value.getWatermarkList(mainImgWmTemplateId, subImgWmTemplateId);
     console.log('res.data', res.data)
     if (query.value.type === "copy") {
-      console.log(query.value);
       formState.status = 1;
       formState.account = query.value.account || "";
     }
