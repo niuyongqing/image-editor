@@ -539,6 +539,11 @@ const getList = async (type = "search") => {
       params.pageNum = 1;
       params.pageSize = 20;
     }
+    Object.keys(params).forEach((key) => {
+      if (typeof params[key] === "string") {
+        params[key] = params[key].trim();
+      }
+    });
     console.log("params", params);
     const res = await getStoreTemplateList(params);
     tableData.value = JSON.parse(JSON.stringify(res?.rows || []));
@@ -555,8 +560,8 @@ const getList = async (type = "search") => {
     // 清除选中状态
     uTableRef?.value?.clearSelection();
   } catch (error) {
-    console.error("获取产品列表失败:", error);
-    message.error("获取产品列表失败");
+    console.error("获取店铺模板列表失败:", error);
+    message.error("获取店铺模板列表失败");
     tableData.value = [];
     pagination.total = 0;
   } finally {
