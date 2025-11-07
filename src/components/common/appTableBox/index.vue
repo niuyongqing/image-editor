@@ -134,8 +134,11 @@
           <template #summary v-if="isSummary">
             <slot name="summary"></slot>
           </template>
-          <template #expandedRowRender v-if="isExpandedRowRender">
-            <slot name="expandedRowRender"></slot>
+          <template #expandedRowRender="{ record }" v-if="isExpandedRowRender">
+            <slot name="expandedRowRender" :record="record"></slot>
+          </template>
+          <template #expandColumnTitle>
+            <slot name="expandColumnTitle"></slot>
           </template>
         </a-table>
       </div>
