@@ -25,9 +25,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 
-// 定义组件的props
 const props = defineProps({
-  // 控制弹窗显示 (v-model支持)
   modelValue: {
     type: Boolean,
     default: false
@@ -42,7 +40,6 @@ const props = defineProps({
     type: [String, Number],
     default: '70%'
   },
-  // 自定义footer插槽是否显示
   contentHeight: {
     type: [String, Number],
     default: '200px'
@@ -52,10 +49,8 @@ const props = defineProps({
 // 定义emit事件
 const emit = defineEmits(['update:modelValue', 'ok', 'cancel', 'open', 'close'])
 
-// 内部状态管理
 const internalOpen = ref(props.modelValue)
 
-// 监听外部modelValue变化
 watch(() => props.modelValue, (newVal) => {
   internalOpen.value = newVal
   if (newVal) {
@@ -76,14 +71,12 @@ watch(internalOpen, (newVal) => {
 // 确定按钮事件
 const handleOk = (e) => {
   emit('ok', e)
-  // 需要手动关闭弹窗，因为Ant Design Modal不会自动关闭
   internalOpen.value = false
 }
 
 // 取消按钮事件
 const handleCancel = (e) => {
   emit('cancel', e)
-  // 需要手动关闭弹窗
   internalOpen.value = false
 }
 
@@ -107,6 +100,4 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-/* 可以添加自定义样式 */
-</style>
+<style scoped></style>
