@@ -117,6 +117,16 @@ import {
   selectMenuClassify,
 } from "~/api/common/menu.js";
 import { VXETable } from "vxe-table";
+import { DownOutlined, UpOutlined } from "@ant-design/icons-vue";
+import { h } from "vue";
+
+// 配置图标 - 使用VXETable的箭头图标名称
+VXETable.setIcon({
+  "vxe-icon-arrow-right": (renderOpts) =>
+    h(DownOutlined, { class: renderOpts.className }),
+  "vxe-icon-arrow-down": (renderOpts) =>
+    h(UpOutlined, { class: renderOpts.className }),
+});
 
 // 使用更高效的同步引入方式加载图标组件，避免展开时的异步加载延迟
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
@@ -131,12 +141,7 @@ import {
 
 // 在组件中引入userStore
 import { useUserStore } from "~/stores/user.js";
-VXETable.setup({
-  icon: {
-    TABLE_DRAG_STATUS_SUB_ROW: "vxe-icon-add-sub",
-    // 更多图标配置...
-  },
-});
+
 // 更新菜单数据
 const refreshMenu = async () => {
   const userStore = useUserStore();
@@ -148,6 +153,7 @@ const originalData = ref([]); // 只保留一个数据源
 const rowConfig = {
   drag: true,
   isHover: true,
+  isCurrent: true,
 };
 const columnConfig = {
   resizable: true,
@@ -170,6 +176,9 @@ const treeConfig = ref({
   parentField: "parentId",
   lazy: true,
   hasChild: "hasChild",
+  trigger: "row",
+  iconOpen: "vxe-icon-arrow-right",
+  iconClose: "vxe-icon-arrow-down",
   loadMethod({ row }) {
     // 使用工具函数异步加载子菜单
     return fetchMenuChildren(childrenMapList, row.id).then((children) => {
@@ -289,8 +298,8 @@ const dragMenuSave = () => {
   draggedMenuMap.forEach((group) => {
     draggedMenuArray.push(group);
   });
-if (!draggedMenuArray.length) return message.warning("请先拖拽排序");
-tableLoading.value = true;
+  if (!draggedMenuArray.length) return message.warning("请先拖拽排序");
+  tableLoading.value = true;
   updateMenuSortApi(draggedMenuArray).then((res) => {
     if (res.code === 200) {
       message.success("菜单排序更新成功");
@@ -516,24 +525,19 @@ onBeforeUnmount(() => {
     .vxe-table--render-default .vxe-cell--tree-btn .vxe-table-icon-caret-right
   ) {
   color: rgba(0, 0, 0, 0.8);
-  /* 提升图标响应速度 */
   pointer-events: auto;
 }
 :deep(.vxe-table--render-default .vxe-cell--tree-btn) {
-  /* 修改为使用flex布局实现完美居中 */
+  /* 修改为使用flex布局实现居中 */
   display: flex;
   align-items: center;
   justify-content: center;
-  transform: translate(20%, 0);
+  transform: translate(20%, 1);
   border-radius: 8px;
-  /* 扩大点击区域：增大内边距 */
-  padding: 12px 10px 12px 12px;
-  margin: -12px -10px -12px -12px;
-  cursor: pointer;
-  border: 1px solid transparent;
 }
-:deep(.vxe-table--render-default .vxe-cell--tree-btn):hover {
-  border: 1px solid #69b1ff;
+
+:deep(.vxe-table--render-default .vxe-cell--tree-btn > i) {
+  transform: scale(0.8);
 }
 
 /* 优化菜单标题容器样式 */

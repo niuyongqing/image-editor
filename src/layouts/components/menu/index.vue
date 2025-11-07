@@ -14,7 +14,7 @@
         <div class="recursive-menu-container">
           <template v-for="item in selectedMenus">
             <template v-if="!item.hideInMenu">
-              <RecursiveMenu menuType="menu" :key="item.path" :item="item" />
+              <RecursiveMenu :key="item.path" :item="item" />
             </template>
           </template>
         </div>

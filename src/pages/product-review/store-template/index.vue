@@ -18,12 +18,16 @@
         >
           <selectComm
             class="ml-23"
-            :isShowAll="false"
             :options="accountList"
             :fieldObj="{
               fieldKey: 'account',
               fieldLabel: 'simpleName',
             }"
+            @backSelectAll="
+              (val) => {
+                (formData.account = null), getList();
+              }
+            "
             @backSelectItem="
               (val) => {
                 (formData.account = val), getList();
@@ -97,10 +101,10 @@
         </a-button>
       </div>
 
-      <div class="table-container mt-4">
+      <div class="table-container mt-3">
         <!-- 使用封装的表格组件 -->
         <uTable
-          :scrollConfig="{ y: 500 }"
+          :scrollConfig="{ y: 880 }"
           ref="uTableRef"
           :dataSource="tableData"
           :columns="columns"
@@ -205,21 +209,20 @@
           :rules="[{ required: true, message: '请选择目标店铺账号' }]"
         >
           <div class="form-label">目标店铺账号:</div>
+          <!-- 
+          <a-select v-model:value="copyFormData.targetAccount" show-search :filterOption="filterOption" :placeholder="`请选择要复制到的店铺账号`" allow-clear
+          :fieldNames="{ label: 'simpleName', value: 'account'}" :options="accountList" /> -->
+
           <a-select
             v-model:value="copyFormData.targetAccount"
             placeholder="请选择要复制到的店铺账号"
             class="form-input"
             show-search
+            :fieldNames="{ label: 'simpleName', value: 'account' }"
             :filterOption="filterOption"
+            :options="accountList"
             allowClear
           >
-            <a-select-option
-              v-for="item in accountList.filter((item) => item.account !== '')"
-              :key="item.account"
-              :value="item.account"
-            >
-              {{ item.simpleName }}
-            </a-select-option>
           </a-select>
           <div class="form-tip">
             提示：选择目标店铺后，将在新页面中打开模板编辑页面，您可以修改模板信息后保存
@@ -292,7 +295,7 @@ const wrapperColItem = reactive({
 // 分页配置
 const pagination = reactive({
   pageNum: 1,
-  pageSize: 50,
+  pageSize: 20,
   total: 0,
 });
 
@@ -302,8 +305,6 @@ const INITIAL_FORM_DATA = {
   status: "", // 状态
   shopTemplateName: "", // 模板名称
   createUserName: "", //创建人
-  pageNum: 1, // 页码
-  pageSize: 50, // 每页条数
 };
 const formData = reactive({ ...INITIAL_FORM_DATA });
 
@@ -325,7 +326,9 @@ const statusOptions = reactive([
 
 // 过滤选项
 const filterOption = (inputValue, option) => {
+  console.log(inputValue, option);
   const label = option.simpleName; // 因为你的数据中有 simpleName 字段
+  console.log(label);
   return label.toLowerCase().includes(inputValue.toLowerCase());
 };
 
@@ -338,7 +341,6 @@ const handleUsed = async (record) => {
     const requestData = {
       id: templateId,
       account: account,
-      status: 0 
     };
 
     await stopShopTemplate(requestData);
@@ -418,7 +420,7 @@ const handleCopyOk = async () => {
     copyOpen.value = false;
     copyLoading.value = true;
     const params = {
-      id: currentSelectRow?.[0]?.id,
+      copyId: currentSelectRow?.[0]?.id,
       account: copyFormData.value.targetAccount,
       type: "copy",
     };
@@ -471,7 +473,6 @@ const handleSubmitOk = async () => {
 
   try {
     submitLoading.value = true;
-
     const apiCall = () =>
       addRemarkShopTemplate({
         ids: currentSelectRow.map((item) => item?.id),
@@ -505,16 +506,11 @@ const getShopLists = async () => {
   const res = await getShopList();
   if (res.code === 200) {
     accountList.value = res?.data || [];
-    // 加一个全部的选项
-    accountList.value.unshift({
-      account: "",
-      simpleName: "全部",
-    });
   }
 };
 
 // 表格数据
-const getList = async (pages = {}) => {
+const getList = async (type = "search") => {
   try {
     // 先设置loading状态为true
     loading.value = true;
@@ -524,6 +520,10 @@ const getList = async (pages = {}) => {
       ...formData,
       ...pagination,
     };
+    if (type === "search") {
+      params.pageNum = 1;
+      params.pageSize = 20;
+    }
     console.log("params", params);
     const res = await getStoreTemplateList(params);
     tableData.value = JSON.parse(JSON.stringify(res?.rows || []));
@@ -585,9 +585,8 @@ const resetForm = () => {
 // 处理页码和条数变化
 const handlePageChange = (page) => {
   pagination.pageNum = page;
-  getList();
+  getList("handPage");
 };
-
 
 // 处理表格行选择变化
 const handleSelectionChange = (selectedRows) => {
