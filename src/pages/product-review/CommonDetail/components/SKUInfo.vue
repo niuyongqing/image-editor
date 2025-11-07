@@ -775,6 +775,8 @@
         const record = SKUTableData.value.find(record => {
           const recordKey = aspectColumns.value.map(col => record[col.title]).join('-')
 
+          if (!skuKey || !recordKey) return false
+
           return recordKey === skuKey
         })
 
@@ -796,7 +798,9 @@
       })
 
       // 移除多余数据(因在提交时可能会删除几条 SKU)
-      SKUTableData.value = SKUTableData.value.filter(record => recordUuidList.includes(record.uuid))
+      if (recordUuidList.length) {
+        SKUTableData.value = SKUTableData.value.filter(record => recordUuidList.includes(record.uuid))
+      }
     })
   }
 
@@ -918,11 +922,11 @@
 
   watch(
     () => usefulAspect.value,
-    list => {
+    (_, oldList) => {
       if (hasDuplicateAspect.value) return
 
       // 备份老数据
-      const oldSKUData = SKUDataToMap(SKUTableData.value)
+      const oldSKUData = SKUDataToMap(oldList, SKUTableData.value)
       // 生成新表格数据
       SKUTableData.value = generateSKUCombinations()
       // 赋值老数据
@@ -945,10 +949,20 @@
    * @param SKUList  SKU列表
    * @returns SKUKey做键, SKU数据做值的SKU查找映射
    */
-  function SKUDataToMap(SKUList) {
+  function SKUDataToMap(oldList, SKUList) {
+    const oldAspectNames = []
+    oldList.forEach(item => {
+      for (const key in item.nonEmptyTableData[0]) {
+        if (key === 'uuid') continue
+
+        oldAspectNames.push(key)
+      }
+    })
+
     return SKUList.reduce((map, SKU) => {
-      const SKUKey = aspectColumns.value.map(col => SKU[col.title]).join('-')
-      map[SKUKey] = SKU
+      const SKUKey = oldAspectNames.map(name => SKU[name]).join('-')
+      SKUKey && (map[SKUKey] = SKU)
+
       return map
     }, {})
   }
