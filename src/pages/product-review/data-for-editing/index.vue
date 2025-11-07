@@ -195,6 +195,7 @@
       v-model:open="remarkModalOpen"
       width="30%"
       :confirm-loading="remarkLoading"
+      :mask-closable="false"
       @cancel="remarkCancel"
       @ok="remarkOk"
     >

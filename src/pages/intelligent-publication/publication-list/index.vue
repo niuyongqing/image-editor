@@ -225,7 +225,7 @@
   import dayjs from 'dayjs'
   import { COLUMNS } from '../js/publication-list-config'
   import { accountCache } from '@/pages/ozon/config/api/product'
-  import { listApi, submitToPublishApi, batchSubmitToPublishApi, cancelApi } from '../js/publication-list-api'
+  import { listApi, submitToPublishApi, batchSubmitToPublishApi, cancelApi, batchAddRemarkApi } from '../js/publication-list-api'
   import { message } from 'ant-design-vue'
   import EmptyImg from '@/assets/images/aliexpress/empty.png'
 
@@ -420,7 +420,7 @@
 
   // 打开弹窗
   function openRemorkModal(record) {
-    curId = record.id
+    curId = record.waitPublishProductId
     remark.value = record.remark
     remarkModalOpen.value = true
   }
@@ -433,12 +433,12 @@
 
   function remarkOk() {
     const params = {
-      id: curId,
+      waitPublishProductIdList: curId ? [curId] : state.selectedRowKeys,
       remark: remark.value
     }
 
     remarkLoading.value = true
-    addRemarkApi(params)
+    batchAddRemarkApi(params)
       .then(res => {
         message.success('添加备注成功')
         getList()

@@ -28,3 +28,8 @@ export function updateProductDetailApi(params) {
 export function cancelApi(params) {
   return usePost('/platform-ozon/intelligent/waitPublishProduct/cancel/batch', params)
 }
+
+// 取消刊登
+export function batchAddRemarkApi(params) {
+  return usePost('/platform-ozon/intelligent/waitPublishProduct/batchAddRemark', params)
+}

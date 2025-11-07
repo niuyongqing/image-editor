@@ -5,6 +5,7 @@
     title="提交刊登"
     width="50%"
     :confirm-loading="loading"
+    :mask-closable="false"
     @cancel="cancel"
     @ok="ok"
   >
@@ -130,6 +131,7 @@
         <a-radio-group
           v-model:value="form.publishType"
           :options="PUBLICATION_OPTIONS"
+          @change="clearField"
         />
       </a-form-item>
       <a-form-item
@@ -171,7 +173,7 @@
         label="刊登频率"
         name="interval"
       >
-        <div class="flex">
+        <!-- <div class="flex">
           同店铺不同商品间隔时间:
           <a-form-item class="mb-2">
             <a-input-number
@@ -197,13 +199,14 @@
             />
           </a-form-item>
           分钟
-        </div>
+        </div> -->
         <div class="flex">
           同商品不同店铺间隔时间:
           <a-form-item class="mb-0">
             <a-input-number
               v-model:value="form.shopIntervalMin"
               :controls="false"
+              :disabled="form.publishType === 2"
               :min="1"
               :max="999"
               :precision="0"
@@ -216,6 +219,7 @@
             <a-input-number
               v-model:value="form.shopIntervalMax"
               :controls="false"
+              :disabled="form.publishType === 2"
               :min="1"
               :max="999"
               :precision="0"
@@ -251,8 +255,8 @@
   const DATA_IS_LACK_OPTIONS = [
     { label: '优先刊登排序靠前的店铺', value: 1 },
     { label: '优先刊登排序靠后的店铺', value: 2 },
-    { label: '随机刊登店铺', value: 3 },
-    { label: '允许重复产品刊登多个店铺', value: 4 }
+    { label: '随机刊登店铺', value: 3 }
+    // { label: '允许重复产品刊登多个店铺', value: 4 }
   ]
   // 刊登模式选项
   const PUBLICATION_OPTIONS = [
@@ -308,6 +312,8 @@
   }
   // 刊登频率
   const validateInterval = () => {
+    if (form.publishType === 2) return Promise.resolve()
+
     const intervalList = [form.productIntervalMin, form.productIntervalMax, form.shopIntervalMin, form.shopIntervalMax]
     if (!intervalList.every(Boolean)) {
       return Promise.reject('请填写刊登频率')
@@ -326,6 +332,11 @@
     subImageRepeat: [{ validator: validateRepeatChange }],
     shops: [{ required: true }],
     interval: [{ validator: validateInterval }]
+  }
+
+  // 选择刊登模式时, 清空刊登频率的校验信息
+  function clearField() {
+    formRef.value.clearValidate(['interval'])
   }
 
   /** 店铺列表 */
@@ -397,7 +408,7 @@
         params.subImgRepeatCount = form.subImageRule === '1' ? 0 : -1
       }
       params.accountList = form.shops
-      params.shopIntervalTime = `${form.productIntervalMin},${form.productIntervalMax}`
+      // params.shopIntervalTime = `${form.productIntervalMin},${form.productIntervalMax}`
       params.productIntervalTime = `${form.shopIntervalMin},${form.shopIntervalMax}`
 
       delete params.titleRule
