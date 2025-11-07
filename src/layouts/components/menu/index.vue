@@ -106,11 +106,26 @@ const placement = ref("left");
 
 <style scoped lang="less">
 .ant-pro-sider-menu {
+  ::v-deep(.ant-menu-submenu-title) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+  }
   ::v-deep(.ant-menu-submenu-arrow) {
     display: none !important;
   }
   ::v-deep(.ant-menu-item-icon) {
     scale: 1.5;
+    // transform: translateX(4px);
+  }
+  /* 隐藏收缩状态下的一级菜单标题 */
+  ::v-deep(.ant-menu-title-content) {
+    display: none;
+  }
+  /* 确保一级子菜单标题在展开时正常显示 */
+  ::v-deep(.ant-menu-sub.ant-menu-inline > .ant-menu-item > .ant-menu-title-content) {
+    display: block;
   }
 }
 </style>
