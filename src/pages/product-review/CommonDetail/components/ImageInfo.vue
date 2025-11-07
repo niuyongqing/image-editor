@@ -96,10 +96,10 @@
 
             <div class="text-right">
               <span
-                >图片【<span :class="(SKU.mainImages.length < minCount || SKU.mainImages.length > maxCount) && 'text-red font-bold'">{{ SKU.mainImages.length }}</span
+                >图片【<span :class="(SKU.mainImages.length < mainImagesCountMin || SKU.mainImages.length > mainImagesCountMax) && 'text-red font-bold'">{{ SKU.mainImages.length }}</span
                 >】</span
               >
-              <span class="text-gray">{{ `(建议上传${minCount} ~ ${maxCount}张)` }}</span>
+              <span class="text-gray">{{ `(建议上传${mainImagesCountMin} ~ ${mainImagesCountMax}张)` }}</span>
               <a-dropdown>
                 <a-button
                   type="link"
@@ -250,10 +250,10 @@
 
             <div class="text-right">
               <span
-                >图片【<span :class="(SKU.subImages.length < minCount || SKU.subImages.length > maxCount) && 'text-red font-bold'">{{ SKU.subImages.length }}</span
+                >图片【<span :class="(SKU.subImages.length < subImagesCountMin || SKU.subImages.length > subImagesCountMax) && 'text-red font-bold'">{{ SKU.subImages.length }}</span
                 >】</span
               >
-              <span class="text-gray">{{ `(建议上传${minCount} ~ ${maxCount}张)` }}</span>
+              <span class="text-gray">{{ `(建议上传${subImagesCountMin} ~ ${subImagesCountMax}张)` }}</span>
               <a-dropdown>
                 <a-button
                   type="link"
@@ -428,11 +428,19 @@
   const joinedAspectNameList = computed(() => store.joinedAspectNameList)
 
   const props = defineProps({
-    minCount: {
+    mainImagesCountMin: {
       type: Number,
       default: 5
     },
-    maxCount: {
+    mainImagesCountMax: {
+      type: Number,
+      default: 30
+    },
+    subImagesCountMin: {
+      type: Number,
+      default: 5
+    },
+    subImagesCountMax: {
       type: Number,
       default: 30
     }

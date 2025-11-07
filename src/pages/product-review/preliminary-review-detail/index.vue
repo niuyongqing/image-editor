@@ -848,9 +848,9 @@
       case 'all':
         return detailData.data.artMainImage
       case 'dev':
-        return detailData.data.artMainImage.filter(item => !item.name.includes('美工图片'))
+        return detailData.data.artMainImage.filter(item => !item.name.includes('美工'))
       case 'art':
-        return detailData.data.artMainImage.filter(item => item.name.includes('美工图片'))
+        return detailData.data.artMainImage.filter(item => item.name.includes('美工'))
       default:
         return []
     }
@@ -865,9 +865,9 @@
       case 'all':
         return detailData.data.artAssistantImage
       case 'dev':
-        return detailData.data.artAssistantImage.filter(item => !item.name.includes('美工图片'))
+        return detailData.data.artAssistantImage.filter(item => !item.name.includes('美工'))
       case 'art':
-        return detailData.data.artAssistantImage.filter(item => item.name.includes('美工图片'))
+        return detailData.data.artAssistantImage.filter(item => item.name.includes('美工'))
       default:
         return []
     }
@@ -882,9 +882,9 @@
       case 'all':
         return detailData.data.artSkuImage
       case 'dev':
-        return detailData.data.artSkuImage.filter(item => !item.name.includes('美工图片'))
+        return detailData.data.artSkuImage.filter(item => !item.name.includes('美工'))
       case 'art':
-        return detailData.data.artSkuImage.filter(item => item.name.includes('美工图片'))
+        return detailData.data.artSkuImage.filter(item => item.name.includes('美工'))
       default:
         return []
     }

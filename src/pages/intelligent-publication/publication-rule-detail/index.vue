@@ -214,6 +214,7 @@
           <a-radio-group
             v-model:value="form.publishType"
             :options="PUBLICATION_OPTIONS"
+            @change="clearField"
           />
         </a-form-item>
         <a-form-item
@@ -257,7 +258,7 @@
           label="刊登频率"
           name="interval"
         >
-          <div class="flex">
+          <!-- <div class="flex">
             同店铺不同商品间隔时间:
             <a-form-item class="mb-2">
               <a-input-number
@@ -283,13 +284,14 @@
               />
             </a-form-item>
             分钟
-          </div>
+          </div> -->
           <div class="flex">
             同商品不同店铺间隔时间:
             <a-form-item class="mb-0">
               <a-input-number
                 v-model:value="form.shopIntervalMin"
                 :controls="false"
+                :disabled="form.publishType === 2"
                 :min="1"
                 :max="999"
                 :precision="0"
@@ -302,6 +304,7 @@
               <a-input-number
                 v-model:value="form.shopIntervalMax"
                 :controls="false"
+                :disabled="form.publishType === 2"
                 :min="1"
                 :max="999"
                 :precision="0"
@@ -340,7 +343,7 @@
 
 <script setup>
   import { accountCache } from '@/pages/ozon/config/api/product'
-  import { createPublishRuleApi, updatePublishRuleApi, ruleDetailApi } from '../js/api'
+  import { createPublishRuleApi, updatePublishRuleApi, ruleDetailApi } from '../js/publication-rule-api'
   import CustomCategorySelector from '@/components/custom-category-selector/index.vue'
   import { message } from 'ant-design-vue'
   import { usePostMessage } from '@/utils/postMessage'
@@ -351,8 +354,8 @@
   const DATA_IS_LACK_OPTIONS = [
     { label: '优先刊登排序靠前的店铺', value: 1 },
     { label: '优先刊登排序靠后的店铺', value: 2 },
-    { label: '随机刊登店铺', value: 3 },
-    { label: '允许重复产品刊登多个店铺', value: 4 }
+    { label: '随机刊登店铺', value: 3 }
+    // { label: '允许重复产品刊登多个店铺', value: 4 }
   ]
   // 刊登模式选项
   const PUBLICATION_OPTIONS = [
@@ -427,6 +430,8 @@
   }
   // 刊登频率
   const validateInterval = () => {
+    if (form.publishType === 2) return Promise.resolve()
+
     const intervalList = [form.productIntervalMin, form.productIntervalMax, form.shopIntervalMin, form.shopIntervalMax]
     if (!intervalList.every(Boolean)) {
       return Promise.reject('请填写刊登频率')
@@ -457,6 +462,10 @@
   // 选择分类后校验(目的是为了清空下方 error 信息)
   function validateCategory() {
     formRef.value.validateFields(['categoryId'])
+  }
+  // 选择刊登模式时, 清空刊登频率的校验信息
+  function clearField() {
+    formRef.value.clearValidate(['interval'])
   }
 
   /** 店铺列表 */
@@ -537,8 +546,8 @@
       setTimeout(() => {
         checkboxChange(form.shops)
       }, 0)
-      form.productIntervalMin = +detail.shopIntervalTime.split(',')[0]
-      form.productIntervalMax = +detail.shopIntervalTime.split(',')[1]
+      // form.productIntervalMin = +detail.shopIntervalTime.split(',')[0]
+      // form.productIntervalMax = +detail.shopIntervalTime.split(',')[1]
       form.shopIntervalMin = +detail.productIntervalTime.split(',')[0]
       form.shopIntervalMax = +detail.productIntervalTime.split(',')[1]
     })
@@ -582,7 +591,7 @@
       }
       params.insufficientType = form.dataIsLack
       params.accounts = form.shops
-      params.shopIntervalTime = `${form.productIntervalMin},${form.productIntervalMax}`
+      // params.shopIntervalTime = `${form.productIntervalMin},${form.productIntervalMax}`
       params.productIntervalTime = `${form.shopIntervalMin},${form.shopIntervalMax}`
 
       delete params.titleRule

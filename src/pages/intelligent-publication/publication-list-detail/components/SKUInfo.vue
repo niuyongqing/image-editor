@@ -153,7 +153,11 @@
           :scroll="{ x: 'max-content' }"
         >
           <template #headerCell="{ title }">
-            <template v-if="title === 'SKU'">
+            <template v-if="title === '标题'">
+              <span class="text-[#ff4d4f]">*</span>
+              <span>{{ title }}</span>
+            </template>
+            <template v-else-if="title === 'SKU'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
               <a-button
@@ -193,16 +197,6 @@
                 >批量</a-button
               >
             </template>
-            <template v-else-if="title === '售卖单位'">
-              <span class="text-[#ff4d4f]">*</span>
-              <span>{{ title }}</span>
-              <a-button
-                type="link"
-                class="ml-1"
-                @click="unitModalOpen = true"
-                >批量</a-button
-              >
-            </template>
             <template v-else-if="title === '尺寸(mm)'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
@@ -226,7 +220,14 @@
           </template>
 
           <template #bodyCell="{ record, column }">
-            <template v-if="column.title === 'SKU'">
+            <template v-if="column.title === '标题'">
+              <a-input
+                v-model:value="record.skuTitle"
+                placeholder="请输入"
+                class="w-full"
+              />
+            </template>
+            <template v-else-if="column.title === 'SKU'">
               <a-input
                 v-model:value="record.skuCode"
                 placeholder="请输入"
@@ -310,33 +311,6 @@
                   /></a-button>
                   <template #overlay>
                     <a-menu @click="confirmMenuClick($event, record, 'planNum')">
-                      <a-menu-item
-                        v-for="item in applyToMenuList"
-                        :key="item.key"
-                        >{{ item.label }}</a-menu-item
-                      >
-                    </a-menu>
-                  </template>
-                </a-dropdown>
-              </div>
-            </template>
-            <template v-else-if="column.title === '售卖单位'">
-              <div class="flex">
-                <a-select
-                  v-model:value="record.saleUnit"
-                  :options="UNIT_OPTIONS"
-                  :field-names="{ value: 'ru' }"
-                  placeholder="请选择"
-                  class="min-w-40"
-                />
-                <a-dropdown>
-                  <a-button
-                    type="link"
-                    class="flex-none"
-                    ><CopyOutlined
-                  /></a-button>
-                  <template #overlay>
-                    <a-menu @click="confirmMenuClick($event, record, 'saleUnit')">
                       <a-menu-item
                         v-for="item in applyToMenuList"
                         :key="item.key"
@@ -476,12 +450,6 @@
       @ok="quantityOk"
     />
 
-    <UnitModal
-      v-model:open="unitModalOpen"
-      ref="unitModalRef"
-      @ok="unitOk"
-    />
-
     <SizeModal
       v-model:open="sizeModalOpen"
       ref="sizeModalRef"
@@ -497,20 +465,19 @@
 </template>
 
 <script setup>
-  import { COLUMNS, UNIT_OPTIONS } from './config'
+  import { COLUMNS } from './config'
   import { message } from 'ant-design-vue'
   import { v4 as uuidv4 } from 'uuid'
   import { PlusOutlined, MinusOutlined, DeleteOutlined, CopyOutlined } from '@ant-design/icons-vue'
   import { processImageSource } from '@/pages/ozon/config/commJs/index'
 
-  import AddAspectRowModal from './components/AddAspectRowModal.vue'
-  import SKUCodeModal from './components/SKUCodeModal.vue'
-  import CostPriceModal from './components/CostPriceModal.vue'
-  import StockModal from './components/StockModal.vue'
-  import QuantityModal from './components/QuantityModal.vue'
-  import UnitModal from './components/UnitModal.vue'
-  import SizeModal from './components/SizeModal.vue'
-  import WeightModal from './components/WeightModal.vue'
+  import AddAspectRowModal from '@/pages/product-review/CommonDetail/components/components/AddAspectRowModal.vue'
+  import SKUCodeModal from '@/pages/product-review/CommonDetail/components/components/SKUCodeModal.vue'
+  import CostPriceModal from '@/pages/product-review/CommonDetail/components/components/CostPriceModal.vue'
+  import StockModal from '@/pages/product-review/CommonDetail/components/components/StockModal.vue'
+  import QuantityModal from '@/pages/product-review/CommonDetail/components/components/QuantityModal.vue'
+  import SizeModal from '@/pages/product-review/CommonDetail/components/components/SizeModal.vue'
+  import WeightModal from '@/pages/product-review/CommonDetail/components/components/WeightModal.vue'
 
   const store = useProductReviewStore()
   const detail = computed(() => store.detail)
@@ -784,10 +751,10 @@
           recordUuidList.push(record.uuid)
 
           record.skuCode = sku.skuCode
+          record.skuTitle = sku.skuTitle
           record.costPrice = sku.costPrice
           record.stock = sku.stock
           record.planNum = sku.planNum
-          record.saleUnit = sku.saleUnit
           record.length = sku.depth
           record.width = sku.width
           record.height = sku.height
@@ -1090,14 +1057,6 @@
     quantityModalRef.value.modify(SKUTableData.value)
   }
 
-  // saleUnit
-  const unitModalRef = ref()
-  const unitModalOpen = ref(false)
-
-  function unitOk() {
-    unitModalRef.value.modify(SKUTableData.value)
-  }
-
   // size
   const sizeModalRef = ref()
   const sizeModalOpen = ref(false)
@@ -1158,16 +1117,18 @@
 
     if (!flag) return false // 短路
     // 校验图片数量
-    const min = 5
-    const max = 30
+    const mainMin = 1
+    const mainMax = 30
+    const subMin = 5
+    const subMax = 30
     for (const record of SKUTableData.value) {
-      if (record.mainImages.length < min || record.mainImages.length > max) {
+      if (record.mainImages.length < mainMin || record.mainImages.length > mainMax) {
         message.error('主图的数量不符合限制')
 
         flag = false
         break
       }
-      if (record.subImages.length < min || record.subImages.length > max) {
+      if (record.subImages.length < subMin || record.subImages.length > subMax) {
         message.error('副图的数量不符合限制')
 
         flag = false
@@ -1217,11 +1178,11 @@
 
         const obj = {
           skuId: item.skuId,
+          skuTitle: item.skuTitle,
           skuCode: item.skuCode,
           costPrice: item.costPrice,
           stock: item.stock,
           planNum: item.planNum,
-          saleUnit: item.saleUnit,
           length: item.length,
           width: item.width,
           height: item.height,

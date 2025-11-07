@@ -73,6 +73,15 @@
                 </a-form-item>
               </a-form>
             </a-form-item>
+            <a-form-item label="刊登模式：">
+              <div class="text-left ml-2.5">
+                <TiledSelect
+                  v-model:value="formData.publishType"
+                  :options="PUBLISH_TYPE_OPTIONS"
+                  @change="getList"
+                />
+              </div>
+            </a-form-item>
             <a-form-item label="排序方式：">
               <div class="flex align-start">
                 <a-button v-for="item in strList" :key="item.prop" class="mx-2.5"
@@ -481,6 +490,9 @@
                       </div>
                     </div>
                   </div>
+                  <div v-else-if="column.dataIndex === 'publishType'">
+                    <div>{{ PUBLISH_TYPE_OPTIONS.find(opt => opt.value === record.publishType)?.label || '--' }}</div>
+                  </div>
                   <div v-else-if="column.dataIndex === 'createdAt'" class="flex flex-col items-start">
                     <div>
                       创建时间：<span class="text-[#9e9f9e]">{{ timestampToDateTime(record.createTime) }}</span>
@@ -618,6 +630,7 @@ const formData = reactive({
   account: "",
   sku: "",
   name: "",
+  publishType: "",
   prop: "create_time",
   order: "desc",
   state: "",
@@ -638,6 +651,11 @@ const advancedForm = reactive({
   timeSearch: "update_time",
   time: [],
 });
+// 刊登模式选项
+const PUBLISH_TYPE_OPTIONS = [
+  { label: '智能化刊登', value: 1 },
+  { label: '运营刊登', value: 2 }
+];
 const dropCol = tableHead;
 let tabList = tabDicList;
 let discLists = attrList;

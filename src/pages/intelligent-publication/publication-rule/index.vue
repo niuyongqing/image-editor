@@ -171,6 +171,7 @@
       v-model:open="remarkModalOpen"
       width="30%"
       :confirm-loading="remarkLoading"
+      :mask-closable="false"
       @cancel="remarkCancel"
       @ok="remarkOk"
     >
@@ -188,7 +189,7 @@
 
 <script setup>
   import { DEFAULT_TABLE_COLUMN } from './config'
-  import { listApi, updateRuleStatusApi, updateRuleRemarkApi } from '../js/api'
+  import { listApi, updateRuleStatusApi, updateRuleRemarkApi } from '../js/publication-rule-api'
   import { newCategoryTreeApi } from '@/pages/product-review/CommonDetail/api'
   import { message } from 'ant-design-vue'
   import { useReceiveMessage } from '@/utils/postMessage'
