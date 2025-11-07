@@ -39,10 +39,7 @@
     <!-- 收缩按钮 -->
     <div
       @click="handleCollapsedFun(!collapsed)"
-      class="w-100% flex-shrink-0 ant-pro-sider-collapsed-button menuCollapsedIcon"
-      :class="
-        theme === 'inverted' ? 'ant-pro-sider-collapsed-button-inverted' : ''
-      "
+      class="w-100% flex-shrink-0  menuCollapsedIcon"
     >
       <svg
         t="1762393332550"
