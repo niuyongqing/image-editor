@@ -25,7 +25,7 @@ export default {
   "compactAlgorithm":false,
   "headerHeight":48,
   "copyright":"Xin Zhan Technology 2025",
-  "animationName":"none"
+  "animationName":"slide-fadein-right"
 }
 export const animationNameList = [
   {
