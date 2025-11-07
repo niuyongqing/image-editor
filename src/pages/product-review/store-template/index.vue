@@ -1,7 +1,7 @@
 <template>
-  <div id="configAccountCont">
+  <div v-loading="loading" id="configAccountCont">
     <!-- 搜索筛选区域 -->
-    <a-card>
+    <a-card id="searchCardForm" ref="searchCardFormRef">
       <a-form
         :model="formData"
         class="search-form"
@@ -62,10 +62,10 @@
           </a-space>
         </a-form-item>
         <a-form-item class="form-actions">
-          <a-button type="primary" @click="getList" :disabled="loading"
+          <a-button type="primary" @click="getList" :disabled="tableLoading"
             >查询</a-button
           >
-          <a-button @click="resetForm" :disabled="loading">重置</a-button>
+          <a-button @click="resetForm" :disabled="tableLoading">重置</a-button>
         </a-form-item>
       </a-form>
     </a-card>
@@ -83,7 +83,7 @@
         <a-button
           @click="handleSubmit"
           type="primary"
-          :disabled="selectedCount === 0 || loading"
+          :disabled="selectedCount === 0 || tableLoading"
           title="为选中的模板添加备注信息"
         >
           添加备注
@@ -104,11 +104,11 @@
       <div class="table-container mt-3">
         <!-- 使用封装的表格组件 -->
         <uTable
-          :scrollConfig="{ y: 880 }"
+          :scrollConfig="{ y: uTableHeight }"
           ref="uTableRef"
           :dataSource="tableData"
           :columns="columns"
-          :loading="loading"
+          :loading="tableLoading"
           @reset="resetForm"
           :pagination="pagination"
           @loading-change="handleLoadingChange"
@@ -255,6 +255,20 @@ import {
   addRemarkShopTemplate,
   delShopTemplate,
 } from "@/pages/product-review/store-template/api.js";
+import { useTableHeight} from '@/composables/useTableHeight';
+const formRef = ref(null);
+const searchCardFormRef = ref(null);
+
+// 使用公共的表格高度计算方法
+const { tableHeight: uTableHeight, loading: loading, calculateTableHeight } = useTableHeight({
+  elementId: 'searchCardForm',
+  elementRef: searchCardFormRef,
+  isHandleResize: true,
+  offsetHeight: 220,
+  minHeight: 300,
+  defaultHeight: 150,
+  delay: 300
+});
 
 // 添加缺失的变量定义
 const submitFormRef = ref(null);
@@ -267,7 +281,7 @@ const copyFormData = ref({
 });
 const router = useRouter();
 const uTableRef = ref(null);
-const loading = ref(false); //表格加载状态
+const tableLoading = ref(false); // 表格加载状态
 const submitOpen = ref(false); // 再次提交弹窗是否打开
 const submitLoading = ref(false); // 再次提交弹窗loading状态
 const copyOpen = ref(false); // 复制弹窗是否打开
@@ -276,6 +290,7 @@ const selectedCount = ref(0); // 选中的商品数量
 const currentSelectRow = reactive([]); // 当前选中的商品
 const tableData = ref([]);
 const accountList = ref([]);
+
 const labelCol = reactive({
   style: {
     width: "100px",
@@ -513,7 +528,7 @@ const getShopLists = async () => {
 const getList = async (type = "search") => {
   try {
     // 先设置loading状态为true
-    loading.value = true;
+    tableLoading.value = true;
     // 构建请求参数，确保分页参数优先
     const params = {
       // 先解构搜索参数
@@ -524,6 +539,11 @@ const getList = async (type = "search") => {
       params.pageNum = 1;
       params.pageSize = 20;
     }
+    Object.keys(params).forEach((key) => {
+      if (typeof params[key] === "string") {
+        params[key] = params[key].trim();
+      }
+    });
     console.log("params", params);
     const res = await getStoreTemplateList(params);
     tableData.value = JSON.parse(JSON.stringify(res?.rows || []));
@@ -540,18 +560,18 @@ const getList = async (type = "search") => {
     // 清除选中状态
     uTableRef?.value?.clearSelection();
   } catch (error) {
-    console.error("获取产品列表失败:", error);
-    message.error("获取产品列表失败");
+    console.error("获取店铺模板列表失败:", error);
+    message.error("获取店铺模板列表失败");
     tableData.value = [];
     pagination.total = 0;
   } finally {
-    loading.value = false;
+    tableLoading.value = false;
   }
 };
 
 // 处理表格加载状态变化
 const handleLoadingChange = (loading) => {
-  loading.value = loading;
+  tableLoading.value = loading;
 };
 
 // 清除表格选择
@@ -654,10 +674,19 @@ channel.onmessage = function (event) {
     getList();
   }
 };
-
+/**
+ * 获取表格高度 - 使用公共方法
+ */
+const getUTableHeight = () => {
+  calculateTableHeight((height) => {
+    // 可以在这里添加额外的处理逻辑
+    console.log('表格高度计算完成:', height);
+  });
+};
 onMounted(() => {
   getShopLists();
   getList();
+  getUTableHeight();
 });
 </script>
 <style scoped lang="less">

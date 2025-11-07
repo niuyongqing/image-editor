@@ -22,7 +22,7 @@ export default {
   "keepAlive":true,
   "accordionMode":false,
   "leftCollapsed":true,
-  "compactAlgorithm":true,
+  "compactAlgorithm":false,
   "headerHeight":48,
   "copyright":"Xin Zhan Technology 2025",
   "animationName":"none"
