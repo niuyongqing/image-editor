@@ -320,8 +320,9 @@ async function out() {
  border-radius: 50%;
  padding: 5px;
  padding-left:6px;
+ transform: rotate(180deg);
 }
 .rotate-180 {
-  transform: rotate(180deg);
+  transform: rotate(0);
 }
 </style>
