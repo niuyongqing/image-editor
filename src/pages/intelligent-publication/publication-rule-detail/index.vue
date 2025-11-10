@@ -17,6 +17,7 @@
           <a-input
             v-model:value="form.ruleName"
             allow-clear
+            :maxlength="1024"
             placeholder="请输入模版名称"
             class="w-1/2"
           />
@@ -51,8 +52,7 @@
               <a-input-number
                 v-model:value="form.costPriceMin"
                 :controls="false"
-                :min="0.01"
-                :max="9999"
+                :min="0"
                 :precision="2"
                 placeholder="最低"
                 class="mr-1"
@@ -63,8 +63,7 @@
               <a-input-number
                 v-model:value="form.costPriceMax"
                 :controls="false"
-                :min="0.01"
-                :max="9999"
+                :min="0"
                 :precision="2"
                 placeholder="最高"
                 class="ml-1"
@@ -81,8 +80,7 @@
               <a-input-number
                 v-model:value="form.weightMin"
                 :controls="false"
-                :min="0.01"
-                :max="9999"
+                :min="0"
                 :precision="2"
                 placeholder="最低"
                 class="mr-1"
@@ -93,8 +91,7 @@
               <a-input-number
                 v-model:value="form.weightMax"
                 :controls="false"
-                :min="0.01"
-                :max="9999"
+                :min="0"
                 :precision="2"
                 placeholder="最高"
                 class="ml-1"
