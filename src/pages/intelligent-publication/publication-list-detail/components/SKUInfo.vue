@@ -190,12 +190,12 @@
             <template v-else-if="title === '策划数量'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
-              <a-button
+              <!-- <a-button
                 type="link"
                 class="ml-1"
                 @click="quantityModalOpen = true"
                 >批量</a-button
-              >
+              > -->
             </template>
             <template v-else-if="title === '尺寸(mm)'">
               <span class="text-[#ff4d4f]">*</span>
@@ -298,12 +298,13 @@
                   v-model:value="record.planNum"
                   :controls="false"
                   :precision="0"
+                  disabled
                   :min="1"
                   :max="99999"
                   placeholder="请输入数值"
                   class="flex-1"
                 />
-                <a-dropdown>
+                <!-- <a-dropdown>
                   <a-button
                     type="link"
                     class="flex-none"
@@ -318,7 +319,7 @@
                       >
                     </a-menu>
                   </template>
-                </a-dropdown>
+                </a-dropdown> -->
               </div>
             </template>
             <template v-else-if="column.title === '尺寸(mm)'">
