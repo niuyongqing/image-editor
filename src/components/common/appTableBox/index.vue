@@ -105,10 +105,9 @@
           :scroll="scroll"
           bordered
           :pagination="false"
-          resizable
         >
-          <template #headerCell="{ column }">
-            <div class="resizable-header">
+          <template #headerCell="{ column }" >
+            <div class="resizable-header" v-if="column.key">
               <slot
                 :name="'headerCell'"
                 :column="column"
@@ -136,9 +135,6 @@
           </template>
           <template #expandedRowRender="{ record }" v-if="isExpandedRowRender">
             <slot name="expandedRowRender" :record="record"></slot>
-          </template>
-          <template #expandColumnTitle>
-            <slot name="expandColumnTitle"></slot>
           </template>
         </a-table>
       </div>
