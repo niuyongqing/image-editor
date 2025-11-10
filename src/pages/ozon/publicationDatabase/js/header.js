@@ -116,6 +116,7 @@ export const header = [
   },
   {
     title: '操作',
+    fixed: 'right',
     key: 'operation',
     width: 100
   }

@@ -107,6 +107,11 @@
         </template>
         <template v-else-if="key === 'operation'">
           <a-button v-if="checkPermi(['ozon:intelligent:product-store:submit-publish'])" type="link" @click="openPublicationModal(row)">刊登</a-button>
+          <a-button
+                type="link"
+                @click="openLogModal(row)"
+                >日志</a-button
+              >
         </template>
       </template>
     </a-table>
@@ -137,12 +142,21 @@
     :id-list="idList"
     @refresh="tableData.selectedRowKeys = []"
   />
+<!-- 日志弹窗 -->
+  <LogModal
+      ref="logModalRef"
+      :visible="logModalVisible"
+      :loading="logLoading"
+      :log-data="logData"
+      @update:visible="logModalVisible = $event"
+      @open="handleLogModalOpen"
+    />
 </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-import { addRemark, categoryTree, getList, submitEdit, userList } from './js/api';
+import { addRemark, categoryTree, getList, submitEdit, userList,getLogListApi } from './js/api';
 import { header } from './js/header';
 import EmptyImg from '@/assets/images/aliexpress/empty.png'
 import _ from "lodash";
@@ -152,6 +166,7 @@ import { message, Modal } from 'ant-design-vue';
 import { processImageSource } from '../config/commJs/index';
 import { checkPermi } from '~@/utils/permission/component/permission';
 import PublicationModal from './common/PublicationModal.vue'
+import LogModal from "@/components/logModal/index.vue";
 defineOptions({ name: "ozon_publicationDatabase" })
 const { proxy: _this } = getCurrentInstance();
 
@@ -409,6 +424,125 @@ function openPublicationModal(record) {
     idList.value = tableData.selectedRowKeys
   }
   publicationModalOpen.value = true
+}
+
+/** 日志 */
+const logModalRef = ref();
+const logModalVisible = ref(false);
+const logLoading = ref(false);
+const logData = ref([]);
+const currentLogRecord = ref(null);
+function openLogModal(record) {
+  logModalRef.value.openModal(record);
+}
+
+// 处理日志弹窗打开事件
+function handleLogModalOpen(record) {
+  currentLogRecord.value = record;
+  logModalVisible.value = true;
+  fetchLogData(record);
+}
+
+// 获取日志数据
+function fetchLogData(record) {
+  logLoading.value = true;
+  getLogListApi({ productIds: [10395] })
+    .then((res) => {
+      // 模拟三份日志数据
+      logData.value = [
+        {
+          id: 1,
+          productId: 10395,
+          submitType: 1,
+          submitName: "admin",
+          titleRule: 1,
+          mainRule: 12,
+          imageRule: 12,
+          insufficientType: 12,
+          publishType: 12,
+          simpleName: "Ozon29--Warm Home",
+          shopIntervalTime: 12,
+          productIntervalTime: 12,
+          createTime: "2025-07-01 11:30:34",
+          updateTime: "2025-08-01 11:37:52",
+        },
+
+        {
+          id: 2,
+          productId: 103951,
+          submitType: 1,
+          submitName: "admin",
+          titleRule: 1,
+          mainRule: 12,
+          imageRule: 12,
+          insufficientType: 2,
+          publishType: 12,
+          simpleName: "Ozon29--Warm Home",
+          shopIntervalTime: 12,
+          productIntervalTime: 12,
+          createTime: "2025-05-01 11:30:34",
+          updateTime: "2025-10-01 11:37:52",
+        },
+
+        {
+          id: 3,
+          productId: 103952,
+          submitType: 1,
+          submitName: "admin",
+          titleRule: 1,
+          mainRule: 12,
+          imageRule: 12,
+          insufficientType: 1,
+          publishType: 12,
+          simpleName: "Ozon29--Warm Home",
+          shopIntervalTime: 12,
+          productIntervalTime: 12,
+          createTime: "2025-03-01 11:30:34",
+          updateTime: "2025-12-01 11:37:52",
+        },
+        {
+          id: 4,
+          productId: 103954,
+          submitType: 1,
+          submitName: "admin",
+          titleRule: 1,
+          mainRule: 12,
+          imageRule: 12,
+          insufficientType: 3,
+          publishType: 12,
+          simpleName: "Ozon27--Warm Home",
+          shopIntervalTime: 12,
+          productIntervalTime: 12,
+          createTime: "2025-02-01 11:30:34",
+          updateTime: "2025-12-01 11:37:52",
+        },
+        {
+          id: 5,
+          productId: 103955,
+          submitType: 1,
+          submitName: "admin",
+          titleRule: 1,
+          mainRule: 12,
+          imageRule: 12,
+          insufficientType:4,
+          publishType: 2,
+          simpleName: "Ozon28--Warm Home",
+          shopIntervalTime: 12,
+          productIntervalTime: 12,
+          createTime: "2026-01-01 11:30:34",
+          updateTime: "2026-02-01 11:37:52",
+        },
+      ];
+      logData.value.push(...logData.value);
+      logData.value.push(...logData.value);
+    })
+    .catch((error) => {
+      console.error("获取日志数据失败:", error);
+      logData.value = [];
+    })
+    .finally(() => {
+      logLoading.value = false;
+    });
 }
 </script>
 <style lang="less" scoped>

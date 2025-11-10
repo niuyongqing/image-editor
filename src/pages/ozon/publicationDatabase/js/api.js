@@ -93,3 +93,8 @@ export function shopListApi() {
 export function publishApi(params) {
   return usePost('/platform-ozon/intelligent/product-store/submit/publish', params)
 }
+
+// 智能化刊登-日志列表
+export function getLogListApi(params) {
+  return usePost('/platform-ozon/intelligent/publish/log/list', params)
+}
