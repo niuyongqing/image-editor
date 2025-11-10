@@ -154,9 +154,10 @@ import Menu from "../menu/index.vue";
 import { useUserStore } from "~/stores/user.js";
 import { useMultiTab } from "~/stores/multi-tab.js";
 import { useLayoutMenu } from "~/stores/layout-menu.js";
+import { useAppStore } from "~/stores/app.js";
 import DrawerMenu from "../menu/drawer-menu.vue";
 import { CloseOutlined, SettingOutlined } from "@ant-design/icons-vue";
-import { toggleSettingDrawer } from "@/utils/event-bus";
+import EventBus from "@/utils/event-bus";
 import {
   UserOutlined,
   LeftCircleTwoTone,
@@ -249,6 +250,13 @@ const handleCollapsedFun = (isFlag) => {
   } else {
     paddingLeft.value = "200px";
   }
+};
+// 更新抽屉菜单打开状态
+const toggleSettingDrawer = () => {
+  // 从store中获取当前抽屉状态
+  const appStore = useAppStore();
+  const currentState = appStore.layoutSetting.drawerVisible;
+  EventBus.emit('updateDrawerStateHandleVisible', !currentState);
 };
 
 const gotoSetting = () => {
