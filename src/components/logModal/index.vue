@@ -5,6 +5,7 @@
     :title="title"
     :width="width"
     destroyOnClose
+    @ok="handleCancel"
     @cancel="handleCancel"
   >
     <div class="log-modal-container">
@@ -49,7 +50,7 @@
           <!-- 日志节点 -->
           <div
             v-for="(log, index) in paginatedLogs"
-            :key="log.id || index"
+            :key="log.id ? `log-${log.id}` : `log-index-${index}`"
             class="log-timeline-item"
           >
             <!-- 节点圆点 -->
@@ -67,7 +68,7 @@
                   <div class="log-time">
                     提交时间: {{ formatTime(log.createTime) }}
                   </div>
-                   <!-- <div class="log-time">
+                  <!-- <div class="log-time">
                     更新时间: {{ formatTime(log.updateTime) }}
                   </div> -->
                 </div>
@@ -81,7 +82,7 @@
                       <div
                         class="log-detail-item"
                         v-for="(value, key) in getLogDetails(currentLogDetail)"
-                        :key="key"
+                        :key="`detail-${key}`"
                       >
                         <span class="log-detail-label"
                           >{{ getDetailFieldLabel(key) }}:</span
@@ -198,10 +199,7 @@ const filteredLogs = computed(() => {
     logs = logs.filter((log) => {
       if (!log.createTime) return false;
       const logDate = dayjs(log.createTime);
-      return (
-        logDate.isAfter(startDate) &&
-        logDate.isBefore(endDate)
-      );
+      return logDate.isAfter(startDate) && logDate.isBefore(endDate);
     });
   }
 
@@ -277,38 +275,41 @@ const getDetailFieldLabel = (fieldName) => {
 const formatLogValue = (fieldName, value) => {
   if (value === null || value === undefined) return "-";
   if (typeof value === "object") return JSON.stringify(value, null, 2);
-  
+
   // 处理重复次数相关字段 (titleRule, mainRule, imageRule)
-  if (['titleRule', 'mainRule', 'imageRule'].includes(fieldName)) {
+  if (["titleRule", "mainRule", "imageRule"].includes(fieldName)) {
     switch (value) {
-      case 0: return '不允许重复';
-      case -1: return '不限制重复次数';
-      default: return `允许重复${value}次`;
+      case 0:
+        return "不允许重复";
+      case -1:
+        return "不限制重复次数";
+      default:
+        return `允许重复${value}次`;
     }
   }
-  
+
   // 处理资料不足时策略
-  if (fieldName === 'insufficientType') {
+  if (fieldName === "insufficientType") {
     const strategies = {
-      1: '优先刊登排序靠前的店铺',
-      2: '优先刊登排序靠后的店铺',
-      3: '随机刊登店铺',
-      4: '允许重复产品刊登多个店铺'
+      1: "优先刊登排序靠前的店铺",
+      2: "优先刊登排序靠后的店铺",
+      3: "随机刊登店铺",
+      4: "允许重复产品刊登多个店铺",
     };
-    console.log('fieldName:', fieldName, 'value:', value);
+    console.log("fieldName:", fieldName, "value:", value);
     return strategies[value] || String(value);
   }
-  
+
   // 处理提交类型（已有getSubmitTypeText，但这里也可以保持一致性）
-  if (fieldName === 'submitType' || fieldName === 'publishType') {
-    return value === 1 ? '按钮提交' : `类型: ${value}`;
+  if (fieldName === "submitType" || fieldName === "publishType") {
+    return value === 1 ? "按钮提交" : `类型: ${value}`;
   }
-  
+
   // 处理时间间隔字段，添加单位
-  if (['shopIntervalTime', 'productIntervalTime'].includes(fieldName)) {
+  if (["shopIntervalTime", "productIntervalTime"].includes(fieldName)) {
     return `${value} 分钟`;
   }
-  
+
   return String(value);
 };
 
@@ -338,7 +339,6 @@ const getLogDetails = (log) => {
 // 显示日志详情
 const showLogDetails = (log) => {
   currentLogDetail.value = log;
-
 };
 
 // 打开弹窗方法
@@ -358,7 +358,6 @@ watch(
     }
   }
 );
-
 const handleUpdateOpen = (value) => {
   emit("update:visible", value);
   if (!value) {
@@ -517,7 +516,6 @@ defineExpose({
   // font-weight: 600;
   font-size: 13px;
   padding-right: 8px;
-  
 }
 
 .log-detail-value {
@@ -525,7 +523,6 @@ defineExpose({
   font-size: 13px;
   line-height: 1.4;
 }
-
 
 .log-pagination {
   margin-top: 16px;
@@ -540,9 +537,9 @@ defineExpose({
   .ant-tooltip-content {
     min-width: 280px !important;
   }
-  .ant-tooltip-inner  {
+  .ant-tooltip-inner {
     min-width: 280px !important;
     padding: 6px 16px;
   }
 }
-</style >
+</style>
