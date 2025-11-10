@@ -46,6 +46,8 @@
 
   const store = useProductReviewStore()
   const route = useRoute()
+  const commodityId = ref('')
+  provide('databaseId', commodityId)
 
   // 权限校验
   // 是否为资料待编辑详情
@@ -69,6 +71,7 @@
     detailApi(id).then(res => {
       detail = res.data || {}
       showSaveBtn.value = [10, 40].includes(detail.publishStatus)
+      commodityId.value = detail.commodityId
       store.$patch(state => {
         state.detail = detail
       })

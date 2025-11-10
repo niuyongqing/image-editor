@@ -570,7 +570,8 @@
 
   function save() {
     formRef.value.validate().then(() => {
-      const params = { ...form, ruleId: query.id }
+      const accounts = shopList.value.filter(shop => form.shops.includes(shop.account)).map(shop => shop.account)
+      const params = { ...form, accounts, ruleId: query.id }
       if (params.titleRule === '2') {
         params.titleRepeatCount = form.titleRepeat
       } else {
@@ -587,7 +588,6 @@
         params.subImgRepeatCount = form.subImageRule === '1' ? 0 : -1
       }
       params.insufficientType = form.dataIsLack
-      params.accounts = form.shops
       // params.shopIntervalTime = `${form.productIntervalMin},${form.productIntervalMax}`
       params.productIntervalTime = `${form.shopIntervalMin},${form.shopIntervalMax}`
 

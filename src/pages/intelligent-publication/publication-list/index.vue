@@ -131,7 +131,10 @@
             <div>{{ PUBLISH_TYPE_ENUM[record.publishType] || '--' }}</div>
           </template>
           <template v-else-if="column.key === 'publishStatus'">
-            <a-tag :color="STATUS_TAG_COLOR_ENUM[record.publishStatus]">{{ STATUS_ENUM[record.publishStatus] || '--' }}</a-tag>
+            <a-tooltip v-if="record.errorMessage" :title="record.errorMessage" color="#fff" :overlay-style="{ maxWidth: '500px' }" :overlay-inner-style="{ color: '#ff4d4f' }">
+              <a-tag :color="STATUS_TAG_COLOR_ENUM[record.publishStatus]">{{ STATUS_ENUM[record.publishStatus] || '--' }}</a-tag>
+            </a-tooltip>
+            <a-tag v-else :color="STATUS_TAG_COLOR_ENUM[record.publishStatus]">{{ STATUS_ENUM[record.publishStatus] || '--' }}</a-tag>
           </template>
           <template v-else-if="['skuCode', 'price', 'originalPrice', 'stock'].includes(column.key)">
             <div
@@ -156,7 +159,7 @@
             <a-space>
               <a-button
                 type="link"
-                :disabled="record.publishStatus !== 10"
+                :disabled="![10, 40].includes(record.publishStatus)"
                 @click="publish(record)"
                 >刊登</a-button
               >
