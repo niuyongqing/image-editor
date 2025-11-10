@@ -6,14 +6,14 @@ import {
   SettingOutlined,
 } from "@ant-design/icons-vue";
 import { useClipboard } from "@v-c/utils";
-import { onMounted } from "vue";
+import { onMounted, onUnmounted } from "vue";
 import Body from "./body.vue";
 import BlockCheckbox from "./block-checkbox.vue";
 import ThemeColor from "./theme-color.vue";
 import LayoutSetting from "./layout-setting.vue";
 import RegionalSetting from "./regional-setting.vue";
 import OtherSetting from "./other-setting.vue";
-import { registerSettingDrawer, updateDrawerState } from "@/utils/event-bus";
+import EventBus from "@/utils/event-bus";
 
 defineOptions({
   name: "SettingDrawer",
@@ -75,7 +75,6 @@ function copySetting() {
 }
 function handleVisible(open) {
   emit("update:open", open);
-  updateDrawerState(open);
 }
 function changeTheme(theme) {
   emit("settingChange", "theme", theme);
@@ -98,9 +97,13 @@ defineExpose({
 
 // 组件挂载时注册实例
 onMounted(() => {
-  registerSettingDrawer({ handleVisible, open });
-  // 初始化抽屉状态
-  updateDrawerState(open.value);
+  EventBus.on("updateDrawerStateHandleVisible", (open) => {
+    handleVisible(open);
+  });
+});
+
+onUnmounted(() => {
+  EventBus.off("updateDrawerStateHandleVisible");
 });
 </script>
 
@@ -292,7 +295,7 @@ onMounted(() => {
 <style lang="less">
 @import "./index.less";
 .drawer-collapse-setting {
-    .ant-drawer-header-title {
+  .ant-drawer-header-title {
     flex-flow: row-reverse;
     .ant-drawer-close {
       margin-inline-end: 0 !important;
