@@ -50,7 +50,7 @@
           <!-- 日志节点 -->
           <div
             v-for="(log, index) in paginatedLogs"
-            :key="log.id ? `log-${log.id}` : `log-index-${index}`"
+            :key="log.id ? `log-${log.id}-${index}` : `log-index-${index}`"
             class="log-timeline-item"
           >
             <!-- 节点圆点 -->
