@@ -167,15 +167,29 @@
                 >批量</a-button
               >
             </template>
-            <template v-else-if="title === '成本价'">
+            <template v-else-if="title === '售价'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
               <a-button
                 type="link"
                 class="ml-1"
-                @click="costPriceModalOpen = true"
+                @click="openPriceModal('price')"
                 >批量</a-button
               >
+            </template>
+            <template v-else-if="title === '原价'">
+              <span class="text-[#ff4d4f]">*</span>
+              <span>{{ title }}</span>
+              <a-button
+                type="link"
+                class="ml-1"
+                @click="openPriceModal('oldPrice')"
+                >批量</a-button
+              >
+            </template>
+            <template v-else-if="title === '成本价'">
+              <span class="text-[#ff4d4f]">*</span>
+              <span>{{ title }}</span>
             </template>
             <template v-else-if="title === '库存'">
               <span class="text-[#ff4d4f]">*</span>
@@ -190,12 +204,6 @@
             <template v-else-if="title === '策划数量'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
-              <!-- <a-button
-                type="link"
-                class="ml-1"
-                @click="quantityModalOpen = true"
-                >批量</a-button
-              > -->
             </template>
             <template v-else-if="title === '尺寸(mm)'">
               <span class="text-[#ff4d4f]">*</span>
@@ -234,10 +242,10 @@
                 class="w-full"
               />
             </template>
-            <template v-else-if="column.title === '成本价'">
+            <template v-else-if="column.title === '售价'">
               <div class="flex">
                 <a-input-number
-                  v-model:value="record.costPrice"
+                  v-model:value="record.price"
                   :controls="false"
                   :precision="2"
                   :min="0.01"
@@ -252,7 +260,7 @@
                     ><CopyOutlined
                   /></a-button>
                   <template #overlay>
-                    <a-menu @click="confirmMenuClick($event, record, 'costPrice')">
+                    <a-menu @click="confirmMenuClick($event, record, 'price')">
                       <a-menu-item
                         v-for="item in applyToMenuList"
                         :key="item.key"
@@ -261,6 +269,49 @@
                     </a-menu>
                   </template>
                 </a-dropdown>
+              </div>
+            </template>
+            <template v-else-if="column.title === '原价'">
+              <div class="flex">
+                <a-input-number
+                  v-model:value="record.oldPrice"
+                  :controls="false"
+                  :precision="2"
+                  :min="0.01"
+                  :max="99999"
+                  placeholder="请输入数值"
+                  class="flex-1"
+                />
+                <a-dropdown>
+                  <a-button
+                    type="link"
+                    class="flex-none"
+                    ><CopyOutlined
+                  /></a-button>
+                  <template #overlay>
+                    <a-menu @click="confirmMenuClick($event, record, 'oldPrice')">
+                      <a-menu-item
+                        v-for="item in applyToMenuList"
+                        :key="item.key"
+                        >{{ item.label }}</a-menu-item
+                      >
+                    </a-menu>
+                  </template>
+                </a-dropdown>
+              </div>
+            </template>
+            <template v-else-if="column.title === '成本价'">
+              <div class="flex">
+                <a-input-number
+                  v-model:value="record.costPrice"
+                  :controls="false"
+                  :precision="2"
+                  disabled
+                  :min="0.01"
+                  :max="99999"
+                  placeholder="请输入数值"
+                  class="flex-1"
+                />
               </div>
             </template>
             <template v-else-if="column.title === '库存'">
@@ -304,22 +355,6 @@
                   placeholder="请输入数值"
                   class="flex-1"
                 />
-                <!-- <a-dropdown>
-                  <a-button
-                    type="link"
-                    class="flex-none"
-                    ><CopyOutlined
-                  /></a-button>
-                  <template #overlay>
-                    <a-menu @click="confirmMenuClick($event, record, 'planNum')">
-                      <a-menu-item
-                        v-for="item in applyToMenuList"
-                        :key="item.key"
-                        >{{ item.label }}</a-menu-item
-                      >
-                    </a-menu>
-                  </template>
-                </a-dropdown> -->
               </div>
             </template>
             <template v-else-if="column.title === '尺寸(mm)'">
@@ -433,22 +468,18 @@
       @ok="SKUCodeOk"
     />
 
-    <CostPriceModal
-      v-model:open="costPriceModalOpen"
-      ref="costPriceModalRef"
-      @ok="costPriceOk"
+    <!-- 售价和原价批量修改弹窗 -->
+    <PriceModal
+      v-model:open="priceModalOpen"
+      :field="priceField"
+      ref="priceModalRef"
+      @ok="priceOk"
     />
 
     <StockModal
       v-model:open="stockModalOpen"
       ref="stockModalRef"
       @ok="stockOk"
-    />
-
-    <QuantityModal
-      v-model:open="quantityModalOpen"
-      ref="quantityModalRef"
-      @ok="quantityOk"
     />
 
     <SizeModal
@@ -474,9 +505,8 @@
 
   import AddAspectRowModal from '@/pages/product-review/CommonDetail/components/components/AddAspectRowModal.vue'
   import SKUCodeModal from '@/pages/product-review/CommonDetail/components/components/SKUCodeModal.vue'
-  import CostPriceModal from '@/pages/product-review/CommonDetail/components/components/CostPriceModal.vue'
+  import PriceModal from './PriceModal.vue'
   import StockModal from '@/pages/product-review/CommonDetail/components/components/StockModal.vue'
-  import QuantityModal from '@/pages/product-review/CommonDetail/components/components/QuantityModal.vue'
   import SizeModal from '@/pages/product-review/CommonDetail/components/components/SizeModal.vue'
   import WeightModal from '@/pages/product-review/CommonDetail/components/components/WeightModal.vue'
 
@@ -753,6 +783,8 @@
 
           record.skuCode = sku.skuCode
           record.skuTitle = sku.skuTitle
+          record.price = sku.price
+          record.oldPrice = sku.oldPrice
           record.costPrice = sku.costPrice
           record.stock = sku.stock
           record.planNum = sku.planNum
@@ -1034,12 +1066,18 @@
     SKUCodeModalRef.value.submit(SKUTableData.value)
   }
 
-  // costPrice
-  const costPriceModalRef = ref()
-  const costPriceModalOpen = ref(false)
+  // price(售价和原价)
+  const priceModalRef = ref()
+  const priceModalOpen = ref(false)
+  const priceField = ref('')
 
-  function costPriceOk() {
-    costPriceModalRef.value.modify(SKUTableData.value)
+  function openPriceModal(field) {
+    priceField.value = field
+    priceModalOpen.value = true
+  }
+
+  function priceOk() {
+    priceModalRef.value.modify(SKUTableData.value)
   }
 
   // stock
@@ -1048,14 +1086,6 @@
 
   function stockOk() {
     stockModalRef.value.modify(SKUTableData.value)
-  }
-
-  // planNum
-  const quantityModalRef = ref()
-  const quantityModalOpen = ref(false)
-
-  function quantityOk() {
-    quantityModalRef.value.modify(SKUTableData.value)
   }
 
   // size
@@ -1181,6 +1211,8 @@
           skuId: item.skuId,
           skuTitle: item.skuTitle,
           skuCode: item.skuCode,
+          price: item.price,
+          oldPrice: item.oldPrice,
           costPrice: item.costPrice,
           stock: item.stock,
           planNum: item.planNum,
