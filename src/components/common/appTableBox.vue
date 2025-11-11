@@ -1,8 +1,5 @@
 <template>
-  <div
-    id="appTableBox"
-    class="appTableBox"
-  >
+  <div id="appTableBox" class="appTableBox">
     <a-card style="margin-bottom: 10px">
       <div class="table-title">
         <div class="table-title-item">
@@ -14,188 +11,109 @@
         </div>
         <div class="table-title-item item-right">
           <a-space>
-            <a-popconfirm
-              title="是否保存?"
-              ok-text="是"
-              cancel-text="否"
-              @confirm="tableSetting(columns.list)"
-              v-if="columns.columnChange"
-            >
-              <a-button
-                type="dashed"
-                danger
-                :loading="btnLoading"
-              >
+            <a-popconfirm title="是否保存?" ok-text="是" cancel-text="否" @confirm="tableSetting(columns.list)"
+              v-if="columns.columnChange">
+              <a-button type="dashed" danger :loading="btnLoading">
                 保存当前列表视图
               </a-button>
             </a-popconfirm>
             <!-- 顶部右侧工具按钮插槽 -->
             <slot name="rightTool"></slot>
-            <a-popover
-              placement="bottomRight"
-              trigger="click"
-              v-if="isTableSetting"
-            >
+            <a-popover placement="bottomRight" trigger="click" v-if="isTableSetting">
               <template #content>
                 <div class="tableSetting-box leftList">
-                  <div
-                    class="tableSetting-columnRow"
-                    v-for="item in columns.leftList"
-                    :key="item.key"
-                  >
+                  <div class="tableSetting-columnRow" v-for="item in columns.leftList" :key="item.key">
                     <div class="columnRow-title">{{ item.title }}</div>
                     <a-checkbox v-model:checked="item.show">显示</a-checkbox>
-                    <a-checkbox
-                      v-model:checked="item.fixedLeft"
+                    <a-checkbox 
+                      v-model:checked="item.fixedLeft" 
                       :disabled="!item.show"
                       @change="e => fixedCheckboxChange(item, 'left')"
-                    >
-                      固定左侧
-                    </a-checkbox>
-                    <a-checkbox
-                      v-model:checked="item.fixedRight"
+                    >固定左侧</a-checkbox>
+                    <a-checkbox 
+                      v-model:checked="item.fixedRight" 
                       :disabled="!item.show"
                       @change="e => fixedCheckboxChange(item, 'right')"
-                    >
-                      固定右侧
-                    </a-checkbox>
+                    >固定右侧</a-checkbox>
                   </div>
                 </div>
                 <div class="tableSetting-box centerList">
-                  <div
-                    class="tableSetting-columnRow"
-                    v-for="item in columns.centerList"
-                    :key="item.key"
-                  >
+                  <div class="tableSetting-columnRow" v-for="item in columns.centerList" :key="item.key">
                     <div class="columnRow-title">{{ item.title }}</div>
                     <a-checkbox v-model:checked="item.show">显示</a-checkbox>
-                    <a-checkbox
-                      v-model:checked="item.fixedLeft"
+                    <a-checkbox 
+                      v-model:checked="item.fixedLeft" 
                       :disabled="!item.show"
                       @change="e => fixedCheckboxChange(item, 'left')"
-                    >
-                      固定左侧
-                    </a-checkbox>
-                    <a-checkbox
-                      v-model:checked="item.fixedRight"
+                    >固定左侧</a-checkbox>
+                    <a-checkbox 
+                      v-model:checked="item.fixedRight" 
                       :disabled="!item.show"
                       @change="e => fixedCheckboxChange(item, 'right')"
-                    >
-                      固定右侧
-                    </a-checkbox>
+                    >固定右侧</a-checkbox>
                   </div>
                 </div>
                 <div class="tableSetting-box rightList">
-                  <div
-                    class="tableSetting-columnRow"
-                    v-for="item in columns.rightList"
-                    :key="item.key"
-                  >
+                  <div class="tableSetting-columnRow" v-for="item in columns.rightList" :key="item.key">
                     <div class="columnRow-title">{{ item.title }}</div>
                     <a-checkbox v-model:checked="item.show">显示</a-checkbox>
-                    <a-checkbox
-                      v-model:checked="item.fixedLeft"
+                    <a-checkbox 
+                      v-model:checked="item.fixedLeft" 
                       :disabled="!item.show"
                       @change="e => fixedCheckboxChange(item, 'left')"
-                    >
-                      固定左侧
-                    </a-checkbox>
-                    <a-checkbox
-                      v-model:checked="item.fixedRight"
+                    >固定左侧</a-checkbox>
+                    <a-checkbox 
+                      v-model:checked="item.fixedRight" 
                       :disabled="!item.show"
                       @change="e => fixedCheckboxChange(item, 'right')"
-                    >
-                      固定右侧
-                    </a-checkbox>
+                    >固定右侧</a-checkbox>
                   </div>
                 </div>
                 <div class="tableSetting-btn">
                   <a-space>
-                    <a-button
-                      @click="tableSetting(null)"
-                      :loading="btnLoading"
-                    >
-                      重置设置
-                    </a-button>
-                    <a-button
-                      type="primary"
-                      @click="tableSetting(columns.list)"
-                      :loading="btnLoading"
-                    >
-                      保存设置
-                    </a-button>
+                    <a-button @click="tableSetting(null)" :loading="btnLoading">重置设置</a-button>
+                    <a-button type="primary" @click="tableSetting(columns.list)" :loading="btnLoading">保存设置</a-button>
                   </a-space>
                 </div>
               </template>
               <template #title>
                 <span>表格设置</span>
               </template>
-              <a-button
-                type="primary"
-                @click="columnDrop()"
-              >
-                <template #icon>
-                  <SettingOutlined />
-                </template>
+              <a-button type="primary" @click="columnDrop()">
+                <template #icon><SettingOutlined /></template>
                 {{ '表格设置' }}
               </a-button>
             </a-popover>
           </a-space>
         </div>
       </div>
-      <div
-        class="table-content"
-        :class="`${resetSetMenu}-table`"
-      >
-        <a-table
-          v-bind="$attrs"
-          :columns="columns.list.filter(i => i.show)"
-          :data-source="dataSource"
+      <div class="table-content" :class="`${resetSetMenu}-table`">
+        <a-table 
+          v-bind="$attrs" 
+          :columns="columns.list.filter(i => i.show)" 
+          :data-source="dataSource" 
           :scroll="scroll"
-          bordered
           :pagination="false"
+          bordered 
         >
           <template #headerCell="{ column }">
-            <div
-              class="resizable-header"
-              v-if="column.key"
-            >
-              <slot
-                :name="'headerCell'"
-                :column="column"
-              >
+            <div class="resizable-header" v-if="column.key">
+              <slot :name="'headerCell'" :column="column">
                 {{ column?.title }}
               </slot>
-              <div
-                class="resizable-header-right"
-                @mousedown.stop="e => onMouseDown(e, column)"
-              ></div>
+              <div class="resizable-header-right" @mousedown.stop="e => onMouseDown(e, column)"></div>
             </div>
           </template>
           <template #bodyCell="{ column, record, index }">
-            <slot
-              name="bodyCell"
-              :record="record"
-              :index="index"
-              :column="column"
-            >
+            <slot name="bodyCell" :record="record" :index="index" :column="column">
               {{ record[column?.key] }}
             </slot>
           </template>
-          <template
-            #summary
-            v-if="isSummary"
-          >
+          <template #summary v-if="isSummary">
             <slot name="summary"></slot>
           </template>
-          <template
-            #expandedRowRender="{ record }"
-            v-if="isExpandedRowRender"
-          >
-            <slot
-              name="expandedRowRender"
-              :record="record"
-            ></slot>
+          <template #expandedRowRender="{ record }" v-if="isExpandedRowRender">
+            <slot name="expandedRowRender" :record="record"></slot>
           </template>
         </a-table>
       </div>
@@ -207,12 +125,11 @@
 </template>
 
 <script setup>
-import { EyeOutlined, SettingOutlined } from '@ant-design/icons-vue';
+import { SettingOutlined } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
 import { cloneDeep } from 'lodash-es';
 import Sortable from 'sortablejs';
 import { onMounted, reactive, ref } from 'vue';
-import { settingList, settingTableEdit } from './js/api';
 defineOptions({ name: 'appTableBox' });
 const { proxy: _this } = getCurrentInstance();
 const emit = defineEmits(['update:filterColumns']);
@@ -247,10 +164,10 @@ const props = defineProps({
   },
   isSummary: Boolean, // 启用总结行插槽
   isExpandedRowRender: Boolean, // 启用行展开插槽
-  isTableSetting: {
+  isTableSetting: {             // 是否启用表格设置
     type: Boolean,
     default: true,
-  }
+  },
 });
 const btnLoading = ref(false);
 const columns = reactive({
@@ -262,10 +179,11 @@ const columns = reactive({
   resizingColumnKey: null,
   columnChange: false,
 });
+// 原始表格
 const columnList = computed(() => {
   return props.tableHeader.map((i, index) => {
     let obj = {
-      sorter: index % 3 === 1,
+      sorter: false,
       fixed: false,
       fixedLeft: false,
       fixedRight: false,
@@ -285,16 +203,12 @@ onMounted(async () => {
     resizDomSetting();
   });
 });
-watch(
-  () => columns.list,
-  (val, oldVal) => {
-    columns.columnChange = true;
-    emit('update:filterColumns', columns.list);
-  },
-  {
-    deep: true,
-  }
-);
+watch(() => columns.list, (val, oldVal) => {
+  columns.columnChange = true;
+  emit('update:filterColumns', columns.list);
+}, {
+  deep: true,
+});
 // 获取表头
 async function getSettingList() {
   if (!props.resetSetMenu) {
@@ -307,7 +221,7 @@ async function getSettingList() {
   columns.rightList = columns.list.filter(i => i.fixed === 'right');
   columns.centerList = columns.list.filter(i => !i.fixed);
   columns.columnChange = false;
-  return Promise.resolve()
+  return Promise.resolve();
 }
 /**
  * 固定表头
@@ -408,7 +322,7 @@ async function tableSetting(val) {
 }
 //列拖拽
 function columnDrop() {
-  let arr = ['leftList', 'centerList', 'rightList',]
+  let arr = ['leftList', 'centerList', 'rightList'];
   setTimeout(() => {
     arr.forEach(item => {
       const wrapperTr = document.querySelector(`.tableSetting-box.${item}`);
@@ -420,7 +334,7 @@ function columnDrop() {
           dropColumn(evt, item);
         },
       });
-    })
+    });
   }, 200);
 }
 // 保存拖拽列
@@ -438,7 +352,7 @@ function dropColumn(evt, key) {
  * @param data 表头数据
  */
 function updateHeader(data) {
-  let localTableHeader = JSON.parse((localStorage.getItem('localTableHeader') || '[]'));
+  let localTableHeader = JSON.parse(localStorage.getItem('localTableHeader') || '[]');
   let obj = {
     menu: props.resetSetMenu,
     data: data,
@@ -456,15 +370,16 @@ function updateHeader(data) {
  * 获取表头数据
  */
 function getHeader() {
-  let localTableHeader = JSON.parse((localStorage.getItem('localTableHeader') || '[]'));
+  let localTableHeader = JSON.parse(localStorage.getItem('localTableHeader') || '[]');
   let header = localTableHeader.find(i => i.menu === props.resetSetMenu);
   let obj = {
     menu: props.resetSetMenu,
-    data: (header ? header.data : null),
+    data: header ? header.data : null,
   };
   return obj;
 }
 </script>
+
 <style lang="less" scoped>
 .appTableBox {
   width: 100%;
@@ -472,28 +387,34 @@ function getHeader() {
   padding: 10px;
   display: flex;
   flex-direction: column;
+
   .table-title {
     width: 100%;
     display: flex;
     justify-content: space-between;
     height: 24px;
     margin-bottom: 10px;
+
     .table-title-item {
       width: 48%;
+
       &.item-right {
         display: flex;
         justify-content: flex-end;
       }
+
       :deep(.ant-space) {
         flex-wrap: wrap;
       }
     }
   }
+
   .table-content {
     width: 100%;
     height: calc(100% - 344px);
     // margin-bottom: 10px;
   }
+
   .table-pagination {
     display: flex;
     align-items: center;
@@ -501,19 +422,23 @@ function getHeader() {
     height: 40px;
     width: 100%;
   }
+
   .subsidiaryTable-content {
     width: 100%;
     height: 276px;
   }
+
   :deep(.ant-spin-nested-loading) {
     width: 100%;
     height: 100%;
+
     .ant-spin-container {
       width: 100%;
       height: 100%;
     }
   }
 }
+
 :deep(.ant-table-cell-ellipsis.ant-table-cell-fix-left-last .ant-table-cell-content) {
   overflow: visible;
 }
@@ -524,6 +449,7 @@ function getHeader() {
   align-items: center;
   justify-content: center;
 }
+
 .resizable-header-right {
   width: 6px;
   height: 100%;
@@ -532,13 +458,16 @@ function getHeader() {
   right: -8px;
   z-index: 999;
   cursor: col-resize;
+
   &.sorters {
     right: -3px;
   }
 }
+
 .tableSetting-box {
   max-height: 300px;
   overflow-y: auto;
+
   .tableSetting-columnRow {
     height: 30px;
     display: flex;
@@ -546,16 +475,19 @@ function getHeader() {
     cursor: pointer;
     margin: 4px 0;
     background: #fafafa;
+
     .columnRow-title {
       width: 200px;
       cursor: all-scroll;
       padding-left: 4px;
     }
+
     :deep(.ant-checkbox-wrapper) {
       margin-left: 16px;
     }
   }
 }
+
 .tableSetting-btn {
   padding: 8px 0;
   text-align: right;
