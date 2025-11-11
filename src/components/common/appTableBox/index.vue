@@ -18,7 +18,7 @@
               title="是否保存?"
               ok-text="是"
               cancel-text="否"
-              @confirm="tableSetting"
+              @confirm="tableSetting(columns.list)"
               v-if="columns.columnChange"
             >
               <a-button
@@ -34,12 +34,61 @@
             <a-popover
               placement="bottomRight"
               trigger="click"
+              v-if="isTableSetting"
             >
               <template #content>
-                <div class="tableSetting-box">
+                <div class="tableSetting-box leftList">
                   <div
                     class="tableSetting-columnRow"
-                    v-for="item in columns.list"
+                    v-for="item in columns.leftList"
+                    :key="item.key"
+                  >
+                    <div class="columnRow-title">{{ item.title }}</div>
+                    <a-checkbox v-model:checked="item.show">显示</a-checkbox>
+                    <a-checkbox
+                      v-model:checked="item.fixedLeft"
+                      :disabled="!item.show"
+                      @change="e => fixedCheckboxChange(item, 'left')"
+                    >
+                      固定左侧
+                    </a-checkbox>
+                    <a-checkbox
+                      v-model:checked="item.fixedRight"
+                      :disabled="!item.show"
+                      @change="e => fixedCheckboxChange(item, 'right')"
+                    >
+                      固定右侧
+                    </a-checkbox>
+                  </div>
+                </div>
+                <div class="tableSetting-box centerList">
+                  <div
+                    class="tableSetting-columnRow"
+                    v-for="item in columns.centerList"
+                    :key="item.key"
+                  >
+                    <div class="columnRow-title">{{ item.title }}</div>
+                    <a-checkbox v-model:checked="item.show">显示</a-checkbox>
+                    <a-checkbox
+                      v-model:checked="item.fixedLeft"
+                      :disabled="!item.show"
+                      @change="e => fixedCheckboxChange(item, 'left')"
+                    >
+                      固定左侧
+                    </a-checkbox>
+                    <a-checkbox
+                      v-model:checked="item.fixedRight"
+                      :disabled="!item.show"
+                      @change="e => fixedCheckboxChange(item, 'right')"
+                    >
+                      固定右侧
+                    </a-checkbox>
+                  </div>
+                </div>
+                <div class="tableSetting-box rightList">
+                  <div
+                    class="tableSetting-columnRow"
+                    v-for="item in columns.rightList"
                     :key="item.key"
                   >
                     <div class="columnRow-title">{{ item.title }}</div>
@@ -63,14 +112,14 @@
                 <div class="tableSetting-btn">
                   <a-space>
                     <a-button
-                      @click="resetSettings"
+                      @click="tableSetting(null)"
                       :loading="btnLoading"
                     >
                       重置设置
                     </a-button>
                     <a-button
                       type="primary"
-                      @click="tableSetting"
+                      @click="tableSetting(columns.list)"
                       :loading="btnLoading"
                     >
                       保存设置
@@ -106,8 +155,11 @@
           bordered
           :pagination="false"
         >
-          <template #headerCell="{ column }" >
-            <div class="resizable-header" v-if="column.key">
+          <template #headerCell="{ column }">
+            <div
+              class="resizable-header"
+              v-if="column.key"
+            >
               <slot
                 :name="'headerCell'"
                 :column="column"
@@ -130,11 +182,20 @@
               {{ record[column?.key] }}
             </slot>
           </template>
-          <template #summary v-if="isSummary">
+          <template
+            #summary
+            v-if="isSummary"
+          >
             <slot name="summary"></slot>
           </template>
-          <template #expandedRowRender="{ record }" v-if="isExpandedRowRender">
-            <slot name="expandedRowRender" :record="record"></slot>
+          <template
+            #expandedRowRender="{ record }"
+            v-if="isExpandedRowRender"
+          >
+            <slot
+              name="expandedRowRender"
+              :record="record"
+            ></slot>
           </template>
         </a-table>
       </div>
@@ -161,7 +222,7 @@ const props = defineProps({
     type: String,
     default: '',
   },
-  tableHeard: {
+  tableHeader: {
     // 原始表头
     type: Array,
     default: () => [],
@@ -184,18 +245,25 @@ const props = defineProps({
       x: '1800px',
     }),
   },
-  isSummary: Boolean,               // 启用总结行插槽
-  isExpandedRowRender: Boolean,     // 启用行展开插槽
+  isSummary: Boolean, // 启用总结行插槽
+  isExpandedRowRender: Boolean, // 启用行展开插槽
+  isTableSetting: {
+    type: Boolean,
+    default: true,
+  }
 });
 const btnLoading = ref(false);
 const columns = reactive({
   list: [],
+  leftList: [],
+  rightList: [],
+  centerList: [],
   isResizing: false,
   resizingColumnKey: null,
   columnChange: false,
 });
 const columnList = computed(() => {
-  return props.tableHeard.map((i, index) => {
+  return props.tableHeader.map((i, index) => {
     let obj = {
       sorter: index % 3 === 1,
       fixed: false,
@@ -217,27 +285,29 @@ onMounted(async () => {
     resizDomSetting();
   });
 });
-watch(() => columns.list, (val, oldVal) => {
-  columns.columnChange = true;
-  emit('update:filterColumns', columns.list);
-}, {
-  deep: true,
-})
+watch(
+  () => columns.list,
+  (val, oldVal) => {
+    columns.columnChange = true;
+    emit('update:filterColumns', columns.list);
+  },
+  {
+    deep: true,
+  }
+);
 // 获取表头
 async function getSettingList() {
   if (!props.resetSetMenu) {
     console.error('缺少resetSetMenu！');
     return;
   }
-  try {
-    let res = await settingList({ menu: props.resetSetMenu });
-    if (res.code === 200) {
-      columns.list = res.data?.table ? JSON.parse(res.data.table) : cloneDeep(columnList.value);
-      columns.columnChange = false;
-    }
-  } catch (error) {
-    console.error(error);
-  }
+  let { data } = getHeader();
+  columns.list = data ? data : cloneDeep(columnList.value);
+  columns.leftList = columns.list.filter(i => i.fixed === 'left');
+  columns.rightList = columns.list.filter(i => i.fixed === 'right');
+  columns.centerList = columns.list.filter(i => !i.fixed);
+  columns.columnChange = false;
+  return Promise.resolve()
 }
 /**
  * 固定表头
@@ -254,10 +324,10 @@ function fixedCheckboxChange(col, type) {
     col.fixedLeft = false;
     col.fixed = col.fixedRight ? 'right' : false;
   }
-  let leftList = columns.list.filter(i => i.fixed === 'left');
-  let rightList = columns.list.filter(i => i.fixed === 'right');
-  let list = columns.list.filter(i => !i.fixed);
-  columns.list = [...leftList, ...list, ...rightList];
+  columns.leftList = columns.list.filter(i => i.fixed === 'left');
+  columns.rightList = columns.list.filter(i => i.fixed === 'right');
+  columns.centerList = columns.list.filter(i => !i.fixed);
+  columns.list = [...columns.leftList, ...columns.centerList, ...columns.rightList];
 }
 // 处理拖动dom
 function resizDomSetting() {
@@ -324,61 +394,75 @@ function onMouseDown(event, column) {
   document.addEventListener('mousemove', mouseMoveHandler);
   document.addEventListener('mouseup', mouseUpHandler);
 }
-// 重置表格
-async function resetSettings() {
-  btnLoading.value = true;
-  try {
-    await settingTableEdit({ menu: props.resetSetMenu, table: null });
-    message.success('已保存');
-    columns.list = cloneDeep(columnList.value);
-    nextTick(() => {
-      columns.columnChange = false;
-    })
-  } catch (error) {
-    console.error(error);
-  }
-  btnLoading.value = false;
-}
 // 保存表格设置
-async function tableSetting(value) {
+async function tableSetting(val) {
   btnLoading.value = true;
-  try {
-    let params = {
-      menu: props.resetSetMenu,
-      table: JSON.stringify(columns.list),
-    };
-    await settingTableEdit(params);
-    await getSettingList();
-    columns.columnChange = false;
-    message.success('已保存');
-  } catch (error) {
-    console.error(error);
-  }
+  updateHeader(val);
+  getSettingList();
   btnLoading.value = false;
-  return Promise.resolve()
+  nextTick(() => {
+    message.success('已保存');
+    columns.columnChange = false;
+  });
+  return Promise.resolve();
 }
-let sortable = null; // 拖拽对象实例
 //列拖拽
 function columnDrop() {
+  let arr = ['leftList', 'centerList', 'rightList',]
   setTimeout(() => {
-    const wrapperTr = document.querySelector('.tableSetting-box');
-    if (!wrapperTr) return;
-    sortable = Sortable.create(wrapperTr, {
-      animation: 300,
-      delay: 0,
-      onEnd: evt => {
-        dropColumn(evt);
-      },
-    });
+    arr.forEach(item => {
+      const wrapperTr = document.querySelector(`.tableSetting-box.${item}`);
+      if (!wrapperTr) return;
+      Sortable.create(wrapperTr, {
+        animation: 300,
+        delay: 0,
+        onEnd: evt => {
+          dropColumn(evt, item);
+        },
+      });
+    })
   }, 200);
 }
 // 保存拖拽列
-function dropColumn(evt) {
-  let headers = cloneDeep(columns.list);
+function dropColumn(evt, key) {
+  let headers = cloneDeep(columns[key]);
   const oldItem = headers[evt.oldIndex];
   headers.splice(evt.oldIndex, 1);
   headers.splice(evt.newIndex, 0, oldItem);
-  columns.list = headers;
+  columns[key] = headers;
+  columns.list = [...columns.leftList, ...columns.centerList, ...columns.rightList];
+}
+
+/**
+ * // 更新表头
+ * @param data 表头数据
+ */
+function updateHeader(data) {
+  let localTableHeader = JSON.parse((localStorage.getItem('localTableHeader') || '[]'));
+  let obj = {
+    menu: props.resetSetMenu,
+    data: data,
+  };
+  let header = localTableHeader.find(i => i.menu === obj.menu);
+  if (header) {
+    header.data = data;
+  } else {
+    localTableHeader.push(obj);
+  }
+  let str = JSON.stringify(localTableHeader);
+  localStorage.setItem('localTableHeader', str);
+}
+/**
+ * 获取表头数据
+ */
+function getHeader() {
+  let localTableHeader = JSON.parse((localStorage.getItem('localTableHeader') || '[]'));
+  let header = localTableHeader.find(i => i.menu === props.resetSetMenu);
+  let obj = {
+    menu: props.resetSetMenu,
+    data: (header ? header.data : null),
+  };
+  return obj;
 }
 </script>
 <style lang="less" scoped>
@@ -453,7 +537,7 @@ function dropColumn(evt) {
   }
 }
 .tableSetting-box {
-  max-height: 500px;
+  max-height: 300px;
   overflow-y: auto;
   .tableSetting-columnRow {
     height: 30px;
