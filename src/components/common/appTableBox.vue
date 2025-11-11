@@ -90,15 +90,16 @@
       <div class="table-content" :class="`${resetSetMenu}-table`">
         <a-table 
           v-bind="$attrs" 
-          :columns="columns.list.filter(i => i.show)" 
+          :columns="showHeader" 
           :data-source="dataSource" 
           :scroll="scroll"
           :pagination="false"
+          :customRow="customRow" 
           bordered 
         >
           <template #headerCell="{ column }">
             <div class="resizable-header" v-if="column.key">
-              <slot :name="'headerCell'" :column="column">
+              <slot name="headerCell" :column="column">
                 {{ column?.title }}
               </slot>
               <div class="resizable-header-right" @mousedown.stop="e => onMouseDown(e, column)"></div>
@@ -108,16 +109,21 @@
             <slot name="bodyCell" :record="record" :index="index" :column="column">
               {{ record[column?.key] }}
             </slot>
+            <template v-if="!!options && column.key === 'options'">
+              <a-space>
+                <slot name="options" :record="record" :column="column"></slot>
+              </a-space>
+            </template>
           </template>
-          <template #summary v-if="isSummary">
+          <template #summary v-if="!!summary">
             <slot name="summary"></slot>
           </template>
-          <template #expandedRowRender="{ record }" v-if="isExpandedRowRender">
+          <template #expandedRowRender="{ record }" v-if="!!expandedRowRender">
             <slot name="expandedRowRender" :record="record"></slot>
           </template>
         </a-table>
       </div>
-      <div class="table-pagination">
+      <div class="table-pagination" v-if="!!pagination">
         <slot name="pagination"></slot>
       </div>
     </a-card>
@@ -129,10 +135,14 @@ import { SettingOutlined } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
 import { cloneDeep } from 'lodash-es';
 import Sortable from 'sortablejs';
-import { onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, useSlots } from 'vue';
 defineOptions({ name: 'appTableBox' });
 const { proxy: _this } = getCurrentInstance();
-const emit = defineEmits(['update:filterColumns']);
+/**
+ * rowClick         行单击事件
+ * rowDoubleClick   行双击事件
+ */
+const emit = defineEmits(['update:filterColumns', 'rowClick', 'rowDoubleClick']);
 const props = defineProps({
   resetSetMenu: {
     // 表头唯一标识，不能重复，必传
@@ -162,13 +172,24 @@ const props = defineProps({
       x: '1800px',
     }),
   },
-  isSummary: Boolean, // 启用总结行插槽
-  isExpandedRowRender: Boolean, // 启用行展开插槽
   isTableSetting: {             // 是否启用表格设置
     type: Boolean,
     default: true,
   },
 });
+const {
+  leftTool,             // 左侧工具button插槽名
+  rightTool,            // 右侧工具button插槽名
+  headerCell,           // 表格表头插槽名
+  bodyCell,             // 表格内容行插槽名
+  options,              // 表格行操作列插槽名
+  summary,              // 表格合计行插槽名
+  expandedRowRender,    // 表格展开插槽名
+  pagination            // 表格分页器插槽名
+} = useSlots();
+
+// console.log({slots});
+
 const btnLoading = ref(false);
 const columns = reactive({
   list: [],
@@ -179,23 +200,26 @@ const columns = reactive({
   resizingColumnKey: null,
   columnChange: false,
 });
-// 原始表格
-const columnList = computed(() => {
-  return props.tableHeader.map((i, index) => {
-    let obj = {
-      sorter: false,
-      fixed: false,
-      fixedLeft: false,
-      fixedRight: false,
-      show: true,
-      ...i,
-      resizable: false,
-    };
-    return obj;
-  });
-});
+// 原始表头
+const columnList = ref([]);
+let optionsColumn = {
+  sorter: false,
+  fixed: 'right',
+  show: true,
+  resizable: false,
+  key: 'options',
+  title: '操作',
+  width: 150,
+  align: 'left'
+};
+const showHeader = computed(() => {
+  let list = columns.list.filter(i => i.show);
+  list = !!options ? [...list, optionsColumn] : list;
+  return list;
+})
 //  获取columns
 onMounted(async () => {
+  generateHeader()
   await getSettingList();
   nextTick(() => {
     columns.columnChange = false;
@@ -209,6 +233,21 @@ watch(() => columns.list, (val, oldVal) => {
 }, {
   deep: true,
 });
+// 重新生成表头
+function generateHeader() {
+  columnList.value = props.tableHeader.map((i, index) => {
+    let obj = {
+      sorter: false,
+      fixed: false,
+      fixedLeft: false,
+      fixedRight: false,
+      show: true,
+      ...i,
+      resizable: false,
+    };
+    return obj;
+  });
+}
 // 获取表头
 async function getSettingList() {
   if (!props.resetSetMenu) {
@@ -242,6 +281,29 @@ function fixedCheckboxChange(col, type) {
   columns.rightList = columns.list.filter(i => i.fixed === 'right');
   columns.centerList = columns.list.filter(i => !i.fixed);
   columns.list = [...columns.leftList, ...columns.centerList, ...columns.rightList];
+}
+let clickTimer = null; // 处理单击和双击冲突的定时器
+// 自定义行属性（同时绑定单击和双击）
+function customRow(row) {
+  return {
+    onClick: () => {
+      // 清除之前的定时器
+      if (clickTimer) clearTimeout(clickTimer);
+      // 设置新定时器（250ms内没有双击则视为单击）
+      clickTimer = setTimeout(() => {
+        // rowClick(row)
+        // console.log({ row }, 'click');
+        emit('rowClick', row)
+      }, 250);
+    },
+    onDblclick: () => {
+      // 双击时立即清除单击定时器
+      clearTimeout(clickTimer);
+      // rowDblclick(row);
+      // console.log({ row }, 'dblclick');
+      emit('rowDoubleClick', row)
+    },
+  };
 }
 // 处理拖动dom
 function resizDomSetting() {
