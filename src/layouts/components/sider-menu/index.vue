@@ -82,7 +82,7 @@
           />
           <a-avatar v-else :size="30">
             <template #icon>
-              <UserOutlined />
+              <UserOutlined  @click="gotoSetting"/>
             </template>
           </a-avatar>
         </a-tooltip>
