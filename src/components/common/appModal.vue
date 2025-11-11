@@ -1,0 +1,103 @@
+<template>
+  <a-modal
+    v-model:open="internalOpen"
+    :title="title"
+    :width="width"
+    :maskClosable="false"
+    :keyboard="false"
+    v-bind="$attrs"
+    @ok="handleOk"
+    @cancel="handleCancel"
+  >
+    <!-- 默认插槽，用于放置弹窗的主要内容 -->
+     <div class="appModalContent" :style="{ height: contentHeight }">
+       <slot name="appContent"></slot>
+     </div>
+
+    <template #footer>
+      <a-space>
+        <slot name="appFooter"></slot>
+      </a-space>
+    </template>
+  </a-modal>
+</template>
+
+<script setup>
+import { ref, watch } from 'vue'
+
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    default: false
+  },
+  // 标题
+  title: {
+    type: String,
+    default: ''
+  },
+  // 宽度
+  width: {
+    type: [String, Number],
+    default: '70%'
+  },
+  contentHeight: {
+    type: [String, Number],
+    default: '200px'
+  },
+})
+
+// 定义emit事件
+const emit = defineEmits(['update:modelValue', 'ok', 'cancel', 'open', 'close'])
+
+const internalOpen = ref(props.modelValue)
+
+watch(() => props.modelValue, (newVal) => {
+  internalOpen.value = newVal
+  if (newVal) {
+    emit('open')
+  } else {
+    emit('close')
+  }
+})
+
+// 监听内部open变化，同步到外部
+watch(internalOpen, (newVal) => {
+  emit('update:modelValue', newVal)
+  if (!newVal) {
+    emit('close')
+  }
+})
+
+// 确定按钮事件
+const handleOk = (e) => {
+  emit('ok', e)
+  internalOpen.value = false
+}
+
+// 取消按钮事件
+const handleCancel = (e) => {
+  emit('cancel', e)
+  internalOpen.value = false
+}
+
+// 暴露方法给父组件
+const openModal = () => {
+  internalOpen.value = true
+  emit('open')
+}
+
+const closeModal = () => {
+  internalOpen.value = false
+  emit('close')
+}
+
+// 定义暴露的方法
+defineExpose({
+  openModal,
+  closeModal,
+  handleOk,
+  handleCancel
+})
+</script>
+
+<style scoped></style>
