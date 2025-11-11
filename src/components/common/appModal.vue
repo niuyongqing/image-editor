@@ -6,98 +6,90 @@
     :maskClosable="false"
     :keyboard="false"
     v-bind="$attrs"
-    @ok="handleOk"
-    @cancel="handleCancel"
   >
     <!-- 默认插槽，用于放置弹窗的主要内容 -->
-     <div class="appModalContent" :style="{ height: contentHeight }">
-       <slot name="appContent"></slot>
-     </div>
+    <div
+      class="appModalContent"
+      :style="{ 'maxHeight': contentHeight }"
+    >
+      <slot name="appContent"></slot>
+    </div>
 
     <template #footer>
       <a-space>
-        <slot name="appFooter"></slot>
+        <slot name="appFooter">
+          <a-button @click="handleCustomCancel">取消</a-button>
+          <a-button type="primary" @click="handleCustomOk">确定</a-button>
+        </slot>
       </a-space>
     </template>
   </a-modal>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch } from 'vue';
 
 const props = defineProps({
   modelValue: {
     type: Boolean,
-    default: false
+    default: false,
   },
   // 标题
   title: {
     type: String,
-    default: ''
+    default: '',
   },
   // 宽度
   width: {
-    type: [String, Number],
-    default: '70%'
+    type: [String],
+    default: '70%',
   },
   contentHeight: {
-    type: [String, Number],
-    default: '200px'
+    type: [String],
+    default: '600px',
   },
-})
+});
 
 // 定义emit事件
-const emit = defineEmits(['update:modelValue', 'ok', 'cancel', 'open', 'close'])
-
-const internalOpen = ref(props.modelValue)
-
-watch(() => props.modelValue, (newVal) => {
-  internalOpen.value = newVal
-  if (newVal) {
-    emit('open')
-  } else {
-    emit('close')
-  }
-})
+const emit = defineEmits(['update:modelValue', 'open', 'close', 'cancel', 'ok']);
+const internalOpen = ref(props.modelValue);
+watch(() => props.modelValue, newVal => {
+  internalOpen.value = newVal;
+});
 
 // 监听内部open变化，同步到外部
-watch(internalOpen, (newVal) => {
-  emit('update:modelValue', newVal)
-  if (!newVal) {
-    emit('close')
+watch(() => internalOpen.value, (newVal, oldVal) => {
+  emit('update:modelValue', newVal);
+  if (newVal) {
+    emit('open')
   }
-})
-
-// 确定按钮事件
-const handleOk = (e) => {
-  emit('ok', e)
-  internalOpen.value = false
-}
-
-// 取消按钮事件
-const handleCancel = (e) => {
-  emit('cancel', e)
-  internalOpen.value = false
-}
-
+  if (!newVal) {
+    emit('close');
+  }
+});
 // 暴露方法给父组件
 const openModal = () => {
-  internalOpen.value = true
-  emit('open')
-}
+  internalOpen.value = true;
+};
 
 const closeModal = () => {
-  internalOpen.value = false
-  emit('close')
+  internalOpen.value = false;
+};
+const handleCustomCancel = () => {
+  emit('cancel')
 }
-
+const handleCustomOk = () => {
+  emit('ok')
+}
 // 定义暴露的方法
 defineExpose({
   openModal,
   closeModal,
-  handleOk,
-  handleCancel
-})
+});
 </script>
 
-<style scoped></style>
+<style scoped lang="less">
+.appModalContent {
+  overflow-y: auto;
+}
+</style>
