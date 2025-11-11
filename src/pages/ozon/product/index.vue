@@ -654,7 +654,7 @@ const advancedForm = reactive({
 // 刊登模式选项
 const PUBLISH_TYPE_OPTIONS = [
   { label: '智能化刊登', value: 1 },
-  { label: '运营刊登', value: 2 }
+  { label: '运营刊登', value: 0 }
 ];
 const dropCol = tableHead;
 let tabList = tabDicList;

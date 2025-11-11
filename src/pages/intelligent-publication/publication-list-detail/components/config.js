@@ -11,6 +11,16 @@ export const COLUMNS = [
     width: 150
   },
   {
+    title: '售价',
+    key: 'price',
+    width: 60
+  },
+  {
+    title: '原价',
+    key: 'oldPrice',
+    width: 60
+  },
+  {
     title: '成本价',
     key: 'costPrice',
     width: 60
