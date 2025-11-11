@@ -230,7 +230,7 @@ import commodityType from "~@/utils/commodityType";
 import dayjs from "dayjs";
 import { message } from "ant-design-vue";
 import PublicationModal from "./PublicationModal.vue";
-import LogModal from "@/components/logModal/index.vue";
+
 
   const router = useRouter()
 
