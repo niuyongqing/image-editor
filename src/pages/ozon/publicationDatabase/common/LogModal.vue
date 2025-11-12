@@ -142,7 +142,7 @@ const props = defineProps({
   },
   width: {
     type: Number,
-    default: 600,
+    default: 800,
   },
   logData: {
     type: Array,
@@ -260,6 +260,7 @@ const getFieldLabel = (fieldName) => {
 const getDetailFieldLabel = (fieldName) => {
   const fieldLabelMap = {
     ...props.fieldLabels,
+    productId: "商品ID",
     titleRule: "标题规则",
     mainRule: "主图规则",
     imageRule: "副图规则",
@@ -296,7 +297,6 @@ const formatLogValue = (fieldName, value) => {
       3: "随机刊登店铺",
       4: "允许重复产品刊登多个店铺",
     };
-    console.log("fieldName:", fieldName, "value:", value);
     return strategies[value] || String(value);
   }
 
