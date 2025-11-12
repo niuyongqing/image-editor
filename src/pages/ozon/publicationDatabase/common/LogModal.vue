@@ -516,6 +516,8 @@ defineExpose({
   // font-weight: 600;
   font-size: 13px;
   padding-right: 8px;
+  //不换行
+  white-space: nowrap;
 }
 
 .log-detail-value {
@@ -535,10 +537,10 @@ defineExpose({
 // .log-detail-tooltip是外层样式 避免影响全局
 .log-detail-tooltip {
   .ant-tooltip-content {
-    min-width: 280px !important;
+    min-width: 380px !important;
   }
   .ant-tooltip-inner {
-    min-width: 280px !important;
+    min-width: 380px !important;
     padding: 6px 16px;
   }
 }
