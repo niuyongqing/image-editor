@@ -9,13 +9,14 @@
       >创建模版</a-button
     >
 
-    <a-table
+    <AppTableBox
       bordered
       row-key="id"
-      :columns="COLUMNS"
+      reset-set-menu="watermark"
+      :table-header="COLUMNS"
       :data-source="tableData"
       :loading="loading"
-      :pagination="false"
+      :custom-row="record => ({ onDblclick: () => edit(record.id) })"
     >
       <template #bodyCell="{ record, column }">
         <template v-if="column.title === '水印内容'">
@@ -48,7 +49,7 @@
           </a-popconfirm>
         </template>
       </template>
-    </a-table>
+    </AppTableBox>
   </div>
 </template>
 
