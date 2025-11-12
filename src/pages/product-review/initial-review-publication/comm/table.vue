@@ -1,23 +1,48 @@
 <template>
   <div class="product-review-table">
     <!-- 使用appTableBox组件替换原有表格 -->
-    <app-table-box ref="tableBoxRef" resetSetMenu="product-review-table" :tableHeader="processedColumns"
-      :dataSource="tableData" :filterColumns="filterColumns" v-model:filterColumns="filterColumns" :scroll="{ y: 980 }"
-      :loading="loading" :row-selection="rowSelection" :rowKey="(row) => row?.productOrderNo || row"
-      @rowClick="handleRowClick" @rowDoubleClick="handleRowDoubleClick">
+    <app-table-box
+      ref="tableBoxRef"
+      resetSetMenu="product-review-table"
+      :tableHeader="processedColumns"
+      :dataSource="tableData"
+      :filterColumns="filterColumns"
+      v-model:filterColumns="filterColumns"
+      :scroll="{ y: 980 }"
+      :loading="loading"
+      :row-selection="rowSelection"
+      :rowKey="(row) => row?.productOrderNo || row"
+      @rowClick="handleRowClick"
+      @rowDoubleClick="handleRowDoubleClick"
+    >
       <!-- 左侧工具栏插槽 -->
       <template #leftTool>
         <!-- 审核按钮 -->
-        <a-button v-if="props.Source !== 'publicationRejected'" v-has-permi="permissionSource"
-          @click="handleAudit('audit')" type="primary" :disabled="selectedCount === 0 || loading" tooltip="批量审核选中的商品">
+        <a-button
+          v-if="props.Source !== 'publicationRejected'"
+          v-has-permi="permissionSource"
+          @click="handleAudit('audit')"
+          type="primary"
+          :disabled="selectedCount === 0 || loading"
+          tooltip="批量审核选中的商品"
+        >
           审核
         </a-button>
         <template v-else>
-          <a-button :disabled="selectedCount !== 1 || loading" @click="handleSee" type="primary" tooltip="批量审核选中的商品">
+          <a-button
+            :disabled="selectedCount !== 1 || loading"
+            @click="handleSee"
+            type="primary"
+            tooltip="批量审核选中的商品"
+          >
             查看
           </a-button>
-          <a-button @click="handleAudit('submit')" type="primary" :disabled="selectedCount === 0 || loading"
-            tooltip="再次提交选中的商品">
+          <a-button
+            @click="handleAudit('submit')"
+            type="primary"
+            :disabled="selectedCount === 0 || loading"
+            tooltip="再次提交选中的商品"
+          >
             再次提交
           </a-button>
         </template>
@@ -27,11 +52,17 @@
       <template #bodyCell="{ column, record, index }">
         <!-- 索引列 -->
         <template v-if="column.key === 'index'">
-          {{ index + 1 + (pages.pageNum - 1) * pages.pageSize }}
+          {{ index + 1 + (Number(pages.pageNum) - 1) * Number(pages.pageSize) }}
         </template>
         <!-- 主图列自定义渲染 -->
         <template v-else-if="column.key === 'artMainImage'">
-          <a-image class="image-cell" :src="record.artMainImage" :fallback="EmptyImg" height="80px" width="80px" />
+          <a-image
+            class="image-cell"
+            :src="record.artMainImage"
+            :fallback="EmptyImg"
+            height="80px"
+            width="80px"
+          />
         </template>
         <!-- 市场方向列自定义渲染 -->
         <template v-else-if="column.key === 'devAttributableMarket'">
@@ -47,20 +78,34 @@
         </template>
         <!-- 仓储类别列自定义渲染 -->
         <template v-else-if="column.key === 'meansKeepGrain'">
-          <template v-for="(item, index) in record.meansKeepGrain?.split(',') || []" :key="index">
-            <template v-if="props.meansKeepGrainOptions.find((opt) => opt.value === item)">
+          <template
+            v-for="(item, index) in record.meansKeepGrain?.split(',') || []"
+            :key="index"
+          >
+            <template
+              v-if="
+                props.meansKeepGrainOptions.find((opt) => opt.value === item)
+              "
+            >
               <a-tag style="margin-right: 3px" color="processing">
-                {{props.meansKeepGrainOptions.find((opt) => opt.value === item)?.label}}
+                {{
+                  props.meansKeepGrainOptions.find((opt) => opt.value === item)
+                    ?.label
+                }}
               </a-tag>
             </template>
             <template v-else>
-              <span>{{ }}</span>
+              <span>{{}}</span>
             </template>
           </template>
         </template>
         <!-- 分类列自定义渲染 -->
         <template v-else-if="column.key === 'classify'">
-          <a-tag v-if="record.classify" style="margin-right: 3px" color="#87d068">
+          <a-tag
+            v-if="record.classify"
+            style="margin-right: 3px"
+            color="#87d068"
+          >
             {{ getCommodityTypeLabelFun(record.classify) }}
           </a-tag>
         </template>
@@ -77,11 +122,13 @@
 
       <!-- 分页插槽 -->
       <template #pagination>
-        <a-pagination style="margin-top: 20px; text-align: right" :show-total="(total, range) =>
-          `第 ${range[0]}-${range[1]} 条，共 ${total} 条`
-          " v-model:current="pages.pageNum" v-model:pageSize="pages.pageSize" :total="pages.total" class="pages"
-          :defaultPageSize="50" :showSizeChanger="true" :pageSizeOptions="['50', '100', '200']"
-          @change="handlePageChange" @showSizeChange="handlePageSizeChange" />
+        <appTablePagination
+          @pageNumChange="handlePageChange"
+          @pageSizeChange="handlePageSizeChange"
+          v-model:current="pages.pageNum"
+          v-model:pageSize="pages.pageSize"
+          :total="pages.total"
+        />
       </template>
     </app-table-box>
   </div>
@@ -90,9 +137,10 @@
 <script setup name="ProductReviewTable">
 import { ref, reactive, computed, watch, onMounted } from "vue";
 import { message } from "ant-design-vue";
-import EmptyImg from '@/assets/images/aliexpress/empty.png'
+import EmptyImg from "@/assets/images/aliexpress/empty.png";
 import dayjs from "dayjs";
 import AppTableBox from "@/components/common/appTableBox.vue";
+import appTablePagination from "@/components/common/appTablePagination.vue";
 import {
   getCommodityTypeLabel,
   getSkuList,
@@ -151,7 +199,13 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["audit", "loading-change", "selection-change", "export-loading-change", "edit-product"]);
+const emit = defineEmits([
+  "audit",
+  "loading-change",
+  "selection-change",
+  "export-loading-change",
+  "edit-product",
+]);
 
 // 表格相关
 const loading = ref(false);
@@ -381,25 +435,24 @@ const clearSelection = () => {
  * 获取当前选中的商品
  */
 const getCurrentSelectedProducts = () => {
-  return selectedRowKeys.value
+  return selectedRowKeys.value;
 };
 
 /**
  * 处理页码变化
  */
-const handlePageChange = (page) => {
-  console.log(page);
-  pages.pageNum = page;
+const handlePageChange = (val) => {
+  pages.pageNum = Number(val);
   getList();
 };
 
 /**
  * 处理每页条数变化
  */
-const handlePageSizeChange = (current, pageSize) => {
+const handlePageSizeChange = (val) => {
   // 确保pageSize是数字类型
-  pages.pageSize = Number(pageSize);
-  pages.pageNum = 1;
+  pages.pageSize = Number(val);
+  getList();
 };
 
 /**
@@ -409,7 +462,6 @@ const formatDateTime = (dateTime) => {
   if (!dateTime) return "";
   return dayjs(dateTime).format("YYYY-MM-DD HH:mm:ss");
 };
-
 
 /**
  * 暴露方法给父组件
