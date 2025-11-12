@@ -1,6 +1,6 @@
 <template>
   <div id="appTableBox" class="appTableBox">
-    <a-card style="margin-bottom: 10px">
+    <a-card>
       <div class="table-title">
         <div class="table-title-item">
           <a-space>
@@ -446,7 +446,7 @@ function getHeader() {
 .appTableBox {
   width: 100%;
   height: 100%;
-  padding: 10px;
+  padding: 4px;
   display: flex;
   flex-direction: column;
 
