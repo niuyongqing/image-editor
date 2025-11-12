@@ -1,25 +1,29 @@
 <template>
   <div class="product-review-table">
-    <!-- 表格为空时显示 -->
-    <div v-if="!loading && tableData.length === 0" class="empty-state">
-      <a-empty description="暂无符合条件的数据" />
-      <div style="margin-top: 16px">
-        <a-button type="link" @click="onReset">清空筛选条件</a-button>
-      </div>
-    </div>
+    <!-- 使用appTableBox组件替换原有表格 -->
+    <app-table-box ref="tableBoxRef" resetSetMenu="product-review-table" :tableHeader="processedColumns"
+      :dataSource="tableData" :filterColumns="filterColumns" v-model:filterColumns="filterColumns" :scroll="{ y: 980 }"
+      :loading="loading" :row-selection="rowSelection" :rowKey="(row) => row?.productOrderNo || row"
+      @rowClick="handleRowClick" @rowDoubleClick="handleRowDoubleClick">
+      <!-- 左侧工具栏插槽 -->
+      <template #leftTool>
+        <!-- 审核按钮 -->
+        <a-button v-if="props.Source !== 'publicationRejected'" v-has-permi="permissionSource"
+          @click="handleAudit('audit')" type="primary" :disabled="selectedCount === 0 || loading" tooltip="批量审核选中的商品">
+          审核
+        </a-button>
+        <template v-else>
+          <a-button :disabled="selectedCount !== 1 || loading" @click="handleSee" type="primary" tooltip="批量审核选中的商品">
+            查看
+          </a-button>
+          <a-button @click="handleAudit('submit')" type="primary" :disabled="selectedCount === 0 || loading"
+            tooltip="再次提交选中的商品">
+            再次提交
+          </a-button>
+        </template>
+      </template>
 
-    <!-- 表格数据 -->
-    <a-table
-      v-else
-      :row-selection="rowSelection"
-      :columns="processedColumns"
-      :customRow=customRow
-      :data-source="tableData"
-      :rowKey="(row) => row?.productOrderNo || row"
-      :pagination="false"
-      :scroll="{ y: 980 }"
-      :loading="loading"
-    >
+      <!-- 表格内容插槽 -->
       <template #bodyCell="{ column, record, index }">
         <!-- 索引列 -->
         <template v-if="column.key === 'index'">
@@ -27,13 +31,7 @@
         </template>
         <!-- 主图列自定义渲染 -->
         <template v-else-if="column.key === 'artMainImage'">
-          <a-image
-            class="image-cell"
-            :src="record.artMainImage"
-            :fallback="EmptyImg"
-            height="80px"
-            width="80px"
-          />
+          <a-image class="image-cell" :src="record.artMainImage" :fallback="EmptyImg" height="80px" width="80px" />
         </template>
         <!-- 市场方向列自定义渲染 -->
         <template v-else-if="column.key === 'devAttributableMarket'">
@@ -49,27 +47,20 @@
         </template>
         <!-- 仓储类别列自定义渲染 -->
         <template v-else-if="column.key === 'meansKeepGrain'">
-          <template
-            v-for="(item, index) in record.meansKeepGrain?.split(',') || []"
-            :key="index"
-          >
+          <template v-for="(item, index) in record.meansKeepGrain?.split(',') || []" :key="index">
             <template v-if="props.meansKeepGrainOptions.find((opt) => opt.value === item)">
               <a-tag style="margin-right: 3px" color="processing">
-                {{ props.meansKeepGrainOptions.find((opt) => opt.value === item)?.label }}
+                {{props.meansKeepGrainOptions.find((opt) => opt.value === item)?.label}}
               </a-tag>
             </template>
             <template v-else>
-              <span>{{  }}</span>
-            </template> 
+              <span>{{ }}</span>
+            </template>
           </template>
         </template>
         <!-- 分类列自定义渲染 -->
         <template v-else-if="column.key === 'classify'">
-          <a-tag
-            v-if="record.classify"
-            style="margin-right: 3px"
-            color="#87d068"
-          >
+          <a-tag v-if="record.classify" style="margin-right: 3px" color="#87d068">
             {{ getCommodityTypeLabelFun(record.classify) }}
           </a-tag>
         </template>
@@ -83,25 +74,16 @@
           {{ record[column.key] }}
         </template>
       </template>
-    </a-table>
 
-    <!-- 分页 -->
-    <a-pagination
-      style="margin-top: 20px; text-align: right"
-      :show-total="
-        (total, range) =>
+      <!-- 分页插槽 -->
+      <template #pagination>
+        <a-pagination style="margin-top: 20px; text-align: right" :show-total="(total, range) =>
           `第 ${range[0]}-${range[1]} 条，共 ${total} 条`
-      "
-      v-model:current="pages.pageNum"
-      v-model:pageSize="pages.pageSize"
-      :total="pages.total"
-      class="pages"
-      :defaultPageSize="50"
-      :showSizeChanger="true"
-      :pageSizeOptions="['50', '100', '200']"
-      @change="handlePageChange"
-      @showSizeChange="handlePageSizeChange"
-    />
+          " v-model:current="pages.pageNum" v-model:pageSize="pages.pageSize" :total="pages.total" class="pages"
+          :defaultPageSize="50" :showSizeChanger="true" :pageSizeOptions="['50', '100', '200']"
+          @change="handlePageChange" @showSizeChange="handlePageSizeChange" />
+      </template>
+    </app-table-box>
   </div>
 </template>
 
@@ -110,10 +92,12 @@ import { ref, reactive, computed, watch, onMounted } from "vue";
 import { message } from "ant-design-vue";
 import EmptyImg from '@/assets/images/aliexpress/empty.png'
 import dayjs from "dayjs";
+import AppTableBox from "@/components/common/appTableBox.vue";
 import {
   getCommodityTypeLabel,
   getSkuList,
 } from "~@/pages/product-review/config/untils.js";
+
 const props = defineProps({
   // 表格列定义
   columns: {
@@ -145,15 +129,37 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  // 来源类型
+  Source: {
+    type: String,
+    default: "initialReviewPublication",
+  },
+  // 审核提交权限字符串
+  permissionSource: {
+    type: Array,
+    default: () => [],
+  },
+  // 当前选中的商品数量
+  selectedCount: {
+    type: Number,
+    default: 0,
+  },
+  // 当前审核的商品列表
+  currentAuditingProducts: {
+    type: Array,
+    default: () => [],
+  },
 });
 
-const emit = defineEmits(["audit", "reset", "loading-change", "selection-change", "export-loading-change"]);
+const emit = defineEmits(["audit", "loading-change", "selection-change", "export-loading-change", "edit-product"]);
 
 // 表格相关
 const loading = ref(false);
 const tableData = ref([]);
 const selectedRowKeys = ref([]);
 const exportLoading = ref(false);
+const filterColumns = ref([]);
+const tableBoxRef = ref(null);
 const pages = reactive({
   pageNum: 1,
   pageSize: 50,
@@ -196,6 +202,49 @@ const rowSelection = {
   // getCheckboxProps: (record) => ({
   //   disabled: !!record.auditStatus, // 已审核的商品不可选
   // })
+};
+
+/**
+ * 处理行点击事件
+ */
+const handleRowClick = (record) => {
+  console.log("单击行:", record);
+};
+
+/**
+ * 处理行双击事件
+ */
+const handleRowDoubleClick = (record) => {
+  console.log("双击行:", record);
+  // 触发自定义事件，将选中的商品传递给父组件
+  emit("edit-product", record);
+};
+
+/**
+ * 处理审核操作
+ */
+const handleAudit = (type) => {
+  // 获取当前选中的商品
+  const selectedProducts = getCurrentSelectedProducts();
+  if (selectedProducts.length === 0) {
+    message.warning("请选择要审核的商品");
+    return;
+  }
+  // 触发审核事件，将选中的商品和操作类型传递给父组件
+  emit("audit", selectedProducts, type);
+};
+
+/**
+ * 处理查看操作
+ */
+const handleSee = () => {
+  const selectedProducts = getCurrentSelectedProducts();
+  if (selectedProducts.length === 0) {
+    message.warning("请选择要查看的商品");
+    return;
+  }
+  // 触发编辑产品事件，将选中的商品传递给父组件
+  emit("edit-product", selectedProducts[0]);
 };
 
 /**
@@ -260,7 +309,7 @@ const getList = async () => {
     if (Array.isArray(params.selectUserId)) {
       params.selectUserId = params.selectUserId.join(",");
     }
-    if(params.selectUserId === ""){
+    if (params.selectUserId === "") {
       params.selectUserId = params.selectAll.join(",");
     }
     delete params.selectAll;
@@ -336,25 +385,6 @@ const getCurrentSelectedProducts = () => {
 };
 
 /**
- * 自定义行点击事件
- */
-const customRow = (record) => {
-  return {
-    // 点击行
-    onDblclick: (event) => {
-      console.log("双击行:", record);
-      // 触发自定义事件，将选中的商品传递给父组件
-      emit("edit-product", record);
-    },
-    style: {
-      height: "80px",
-    }
-  };
-};
-
-
-
-/**
  * 处理页码变化
  */
 const handlePageChange = (page) => {
@@ -372,22 +402,12 @@ const handlePageSizeChange = (current, pageSize) => {
   pages.pageNum = 1;
 };
 
-
-
 /**
  * 格式化日期时间
  */
 const formatDateTime = (dateTime) => {
   if (!dateTime) return "";
   return dayjs(dateTime).format("YYYY-MM-DD HH:mm:ss");
-};
-
-
-/**
- * 重置表格
- */
-const onReset = () => {
-  emit("reset");
 };
 
 
@@ -404,6 +424,7 @@ defineExpose({
 <style scoped>
 .product-review-table {
   width: 100%;
+  text-align: left;
 }
 
 .empty-state {
