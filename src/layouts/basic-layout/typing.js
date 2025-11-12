@@ -9,7 +9,7 @@ export const proLayoutProps = {
   layout: stringType('mix'),
   logo: stringType(),
   title: stringType(),
-  collapsedWidth: numberType(48),
+  collapsedWidth: numberType(72),
   siderWidth: numberType(234),
   headerHeight: numberType(48),
   menuData: arrayType(),

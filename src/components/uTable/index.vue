@@ -11,19 +11,20 @@
     <!-- 表格数据 -->
     <a-table
       v-else
+      :pagination="false"
       :row-selection="enableSelection ? rowSelection : null"
-      :columns="processedColumns"
+      :columns="columns"
       :customRow="customRowHandler"
       :data-source="dataSource"
       :rowKey="rowKey"
-      :pagination="false"
       :scroll="scrollConfig"
       :loading="loading"
       :rowClassName="rowClassName"
+      @resizeColumn="handleResizeColumn"
     >
       <template #bodyCell="{ column, record, index }">
         <!-- 索引列 -->
-        <template v-if="column.type === 'index'">
+        <template v-if="column.key === 'index'">
           {{ index + 1 + (pagination.pageNum - 1) * pagination.pageSize }}
         </template>
         <!-- 图片类字段 -->
@@ -40,6 +41,12 @@
         <template v-else-if="column.type === 'datetime'">
           {{ formatDateTime(record[column.dataIndex || column.key], column.format) }}
         </template>
+        <!-- tag 类字段 -->
+        <template v-else-if="column.type === 'tag'">
+          <a-tag :color="column.tagColor[record[column.dataIndex || column.key]] || 'default'">
+            {{ record[column.dataIndex || column.key] }}
+          </a-tag>
+        </template>
         <!-- 自定义渲染 -->
         <template v-else-if="column.customRender">
           <!-- 允许通过scoped slot自定义渲染 -->
@@ -50,10 +57,78 @@
             </template>
           </slot>
         </template>
+        <!-- 操作列 -->
+        <template v-else-if="column.key === 'action'">
+          <slot name="action" :record="record" :column="column" :index="index">
+            <!-- 如果有配置按钮，则使用配置的按钮 -->
+              <a-space>
+                <template v-for="(action, actionIndex) in column.actions" :key="actionIndex">
+                  <!-- 普通按钮 -->
+                  <a-button 
+                    v-if="!action.danger && !action.popconfirm"
+                    type="link" 
+                    size="small" 
+                    @click="handleActionClick(action.eventName, record)"
+                    :disabled="action.disabled && action.disabled(record)"
+                  >
+                    {{ action.label }}
+                  </a-button>
+                  
+                  <!-- 危险按钮 -->
+                  <a-button 
+                    v-else-if="action.danger && !action.popconfirm"
+                    type="link" 
+                    size="small" 
+                    danger
+                    @click="handleActionClick(action.eventName, record)"
+                    :disabled="action.disabled && action.disabled(record)"
+                  >
+                    {{ action.label }}
+                  </a-button>
+                  
+                  <!-- 带确认的普通按钮 -->
+                  <a-popconfirm
+                    v-else-if="!action.danger && action.popconfirm"
+                    :title="action.popconfirm.title || '确定执行此操作吗？'"
+                    :ok-text="action.popconfirm.okText || '确定'"
+                    :cancel-text="action.popconfirm.cancelText || '取消'"
+                    @confirm="handleActionClick(action.eventName, record)"
+                  >
+                    <a-button 
+                      type="link" 
+                      size="small"
+                      :disabled="action.disabled && action.disabled(record)"
+                    >
+                      {{ action.label }}
+                    </a-button>
+                  </a-popconfirm>
+                  
+                  <!-- 带确认的危险按钮 -->
+                  <a-popconfirm
+                    v-else-if="action.danger && action.popconfirm"
+                    :title="action.popconfirm.title || '确定要删除这条记录吗？'"
+                    :ok-text="action.popconfirm.okText || '确定'"
+                    :cancel-text="action.popconfirm.cancelText || '取消'"
+                    @confirm="handleActionClick(action.eventName, record)"
+                  >
+                    <a-button 
+                      type="link" 
+                      size="small" 
+                      danger
+                      :disabled="action.disabled && action.disabled(record)"
+                    >
+                      {{ action.label }}
+                    </a-button>
+                  </a-popconfirm>
+                </template>
+              </a-space>
+          </slot>
+        </template>
         <!-- 其他列默认渲染 -->
         <template v-else>
           {{ record[column.dataIndex || column.key] }}
         </template>
+
       </template>
     </a-table>
 
@@ -61,9 +136,7 @@
     <a-pagination
       v-if="showPagination"
       style="margin-top: 20px; text-align: right"
-      :show-total="
-        (total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`
-      "
+      :show-total="(total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`"
       v-model:current="pagination.pageNum"
       v-model:pageSize="pagination.pageSize"
       :total="pagination.total"
@@ -72,7 +145,6 @@
       :showSizeChanger="showSizeChanger"
       :pageSizeOptions="pageSizeOptions"
       @change="handlePageChange"
-      @showSizeChange="handlePageSizeChange"
     />
   </div>
 </template>
@@ -104,7 +176,7 @@ const props = defineProps({
     type: Object,
     default: () => ({
       pageNum: 1,
-      pageSize: 50,
+      pageSize: 20,
       total: 0,
     }),
   },
@@ -131,7 +203,7 @@ const props = defineProps({
   // 每页条数选项
   pageSizeOptions: {
     type: Array,
-    default: () => ['50', '100', '200'],
+    default: () => ['10','20', '50', '100'],
   },
   // 行key字段名
   rowKey: {
@@ -141,7 +213,7 @@ const props = defineProps({
   // 表格滚动配置
   scrollConfig: {
     type: Object,
-    default: () => ({ y: 980 }),
+    default: () => ({x: 'max-content', y: 980 }),
   },
   // 空状态文本
   emptyText: {
@@ -160,14 +232,28 @@ const props = defineProps({
   },
 });
 
-// 事件定义
+// 使用固定的事件列表
 const emit = defineEmits([
   "reset",
   "selection-change",
   "row-dblclick",
   "page-change",
   "page-size-change",
+  "resize-column",
+  "edit",
+  "delete",
+  "copy",
+  "view",
+  "stop",
+  "used"
 ]);
+
+/**
+ * 处理列宽调整事件
+ */
+const handleResizeColumn = (w, col) => {
+  col.width = w;
+}
 
 // 表格选择相关
 const selectedRowKeys = ref([]);
@@ -185,9 +271,9 @@ const processedColumns = computed(() => {
  */
 const rowSelection = {
   selectedRowKeys,
-  onChange: (_, selectedRows) => {
-    selectedRowKeys.value = selectedRows;
-    emit("selection-change", selectedRowKeys.value);
+  onChange: (selectedRowKeysArr, selectedRows) => {
+    selectedRowKeys.value = selectedRowKeysArr;
+    emit("selection-change", selectedRows);
   },
 };
 
@@ -236,18 +322,22 @@ const handlePageChange = (page) => {
   emit("page-change", Number(page));
 };
 
-/**
- * 处理每页条数变化
- */
-const handlePageSizeChange = (pageSize) => {
-  emit("page-size-change", Number(pageSize));
-};
 
 /**
  * 重置表格
  */
 const handleReset = () => {
   emit("reset");
+};
+
+
+/**
+ * 处理动态操作按钮点击
+ */
+const handleActionClick = (eventName, record) => {
+  if (eventName) {
+    emit(eventName, record);
+  }
 };
 
 /**

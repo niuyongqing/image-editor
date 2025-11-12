@@ -132,7 +132,7 @@
 
 <style scoped lang="less">
   .menu {
-    width: 48px;
+    width: 72px;
     height: auto;
     cursor: pointer;
     font-size: 12px;
@@ -195,7 +195,7 @@
       </template>
     </a-menu>
     <a-drawer
-      style="margin-left: 50px"
+      style="margin-left: 74px"
       :width="!showMenu ? 513 : 213"
       :body-style="{ padding: '0px' }"
       :closable="false"

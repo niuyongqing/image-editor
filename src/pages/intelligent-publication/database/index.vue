@@ -203,73 +203,89 @@
       :id="curRecord.id"
       @refresh="search"
     />
+    <LogModal
+      ref="logModalRef"
+      :visible="logModalVisible"
+      :loading="logLoading"
+      :log-data="logData"
+      @update:visible="logModalVisible = $event"
+      @open="handleLogModalOpen"
+    />
   </div>
 </template>
 
 <script setup>
-  import { getUserListApi, getListApi } from '@/pages/product-review/data-for-editing/api'
-  import EmptyImg from '@/assets/images/aliexpress/empty.png'
-  import { DEFAULT_TABLE_COLUMN } from './config'
-  import { MARKET_OPTIONS, STORAGE_OPTIONS } from '@/pages/product-review/data-for-editing/config'
-  import commodityType from '~@/utils/commodityType'
-  import dayjs from 'dayjs'
-  import { message } from 'ant-design-vue'
-  import PublicationModal from './PublicationModal.vue'
+import {
+  getUserListApi,
+  getListApi,
+  getLogListApi,
+} from "@/pages/product-review/data-for-editing/api";
+import EmptyImg from "@/assets/images/aliexpress/empty.png";
+import { DEFAULT_TABLE_COLUMN } from "./config";
+import {
+  MARKET_OPTIONS,
+  STORAGE_OPTIONS,
+} from "@/pages/product-review/data-for-editing/config";
+import commodityType from "~@/utils/commodityType";
+import dayjs from "dayjs";
+import { message } from "ant-design-vue";
+import PublicationModal from "./PublicationModal.vue";
+
 
   const router = useRouter()
 
-  /** search */
-  const searchForm = reactive({
+/** search */
+const searchForm = reactive({
     tradeName: '',
     sku: '',
-    classify: undefined,
-    selectUserId: undefined,
+  classify: undefined,
+  selectUserId: undefined,
     finalAuditTime: null
   })
   const searchFormRef = ref()
 
-  // 提交人下拉列表
+// 提交人下拉列表
   const submiterOptions = ref([])
   getUserListApi().then(res => {
     submiterOptions.value = res.data || []
   })
 
-  function search() {
+function search() {
     tableParams.pageNum = 1
     getList()
-  }
+}
 
-  function reset() {
+function reset() {
     tableParams.pageNum = 1
     searchForm.tradeName = ''
     searchForm.sku = ''
     searchFormRef.value.resetFields()
 
     getList()
-  }
+}
 
-  /** table */
-  const tableParams = reactive({
-    pageNum: 1,
+/** table */
+const tableParams = reactive({
+  pageNum: 1,
     pageSize: 50
   })
-  const state = reactive({
-    loading: false,
-    total: 0,
+const state = reactive({
+  loading: false,
+  total: 0,
     selectedRowKeys: []
   })
   const tableData = ref([])
 
-  function onSelectChange(selectedRowKeys) {
+function onSelectChange(selectedRowKeys) {
     state.selectedRowKeys = selectedRowKeys
-  }
+}
 
   getList()
-  function getList() {
+function getList() {
     state.selectedRowKeys = []
-    const params = {
-      ...tableParams,
-      ...searchForm,
+  const params = {
+    ...tableParams,
+    ...searchForm,
       classify: searchForm.classify ? searchForm.classify.join(',') : undefined,
       startTime: searchForm.finalAuditTime ? dayjs(searchForm.finalAuditTime[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
       endTime: searchForm.finalAuditTime ? dayjs(searchForm.finalAuditTime[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
@@ -278,7 +294,7 @@
     delete params.finalAuditTime
 
     state.loading = true
-    getListApi(params)
+  getListApi(params)
       .then(res => {
         state.total = res.total ?? 0
         const list = res.rows || []
@@ -287,66 +303,177 @@
           item.mainImage = mainImageList[0]
         })
         tableData.value = list
-      })
-      .finally(() => {
+    })
+    .finally(() => {
         state.loading = false
       })
-  }
+}
 
-  /** 批量退回编辑 */
-  function batchReturnEdit() {
+/** 批量退回编辑 */
+function batchReturnEdit() {
     console.log('退回编辑')
-  }
+}
 
-  /** 查看详情 */
-  function goDetail(record) {
+/** 查看详情 */
+function goDetail(record) {
     window.open(`/platform/intelligent-publication/database-detail?id=${record.intelligentProductId}`)
-  }
+}
 
   let curRecord = {}
-  /** 刊登 */
+/** 刊登 */
   const publicationModalOpen = ref(false)
 
-  function openPublicationModal(record) {
+function openPublicationModal(record) {
     publicationModalOpen.value = true
     curRecord = record
-  }
+}
 
-  /** 日志 */
-  const logModalOpen = ref(false)
-  const logModalLoading = ref(false)
+/** 日志 */
+const logModalRef = ref();
+const logModalVisible = ref(false);
+const logLoading = ref(false);
+const logData = ref([]);
+const currentLogRecord = ref(null);
 
-  function openLogModal(record) {
-    logModalOpen.value = true
-    curRecord = record
-  }
+function openLogModal(record) {
+  logModalRef.value.openModal(record);
+}
 
-  /** 备注 */
+// 处理日志弹窗打开事件
+function handleLogModalOpen(record) {
+  currentLogRecord.value = record;
+  logModalVisible.value = true;
+  fetchLogData(record);
+}
+
+// 获取日志数据
+function fetchLogData(record) {
+  logLoading.value = true;
+  getLogListApi({ productIds: [10395] })
+    .then((res) => {
+      // 模拟三份日志数据
+      logData.value = [
+        {
+          id: 1,
+          productId: 10395,
+          submitType: 1,
+          submitName: "admin",
+          titleRule: 1,
+          mainRule: 12,
+          imageRule: 12,
+          insufficientType: 12,
+          publishType: 12,
+          simpleName: "Ozon29--Warm Home",
+          shopIntervalTime: 12,
+          productIntervalTime: 12,
+          createTime: "2025-07-01 11:30:34",
+          updateTime: "2025-08-01 11:37:52",
+        },
+
+        {
+          id: 2,
+          productId: 103951,
+          submitType: 1,
+          submitName: "admin",
+          titleRule: 1,
+          mainRule: 12,
+          imageRule: 12,
+          insufficientType: 2,
+          publishType: 12,
+          simpleName: "Ozon29--Warm Home",
+          shopIntervalTime: 12,
+          productIntervalTime: 12,
+          createTime: "2025-05-01 11:30:34",
+          updateTime: "2025-10-01 11:37:52",
+        },
+
+        {
+          id: 3,
+          productId: 103952,
+          submitType: 1,
+          submitName: "admin",
+          titleRule: 1,
+          mainRule: 12,
+          imageRule: 12,
+          insufficientType: 1,
+          publishType: 12,
+          simpleName: "Ozon29--Warm Home",
+          shopIntervalTime: 12,
+          productIntervalTime: 12,
+          createTime: "2025-03-01 11:30:34",
+          updateTime: "2025-12-01 11:37:52",
+        },
+        {
+          id: 4,
+          productId: 103954,
+          submitType: 1,
+          submitName: "admin",
+          titleRule: 1,
+          mainRule: 12,
+          imageRule: 12,
+          insufficientType: 3,
+          publishType: 12,
+          simpleName: "Ozon27--Warm Home",
+          shopIntervalTime: 12,
+          productIntervalTime: 12,
+          createTime: "2025-02-01 11:30:34",
+          updateTime: "2025-12-01 11:37:52",
+        },
+        {
+          id: 5,
+          productId: 103955,
+          submitType: 1,
+          submitName: "admin",
+          titleRule: 1,
+          mainRule: 12,
+          imageRule: 12,
+          insufficientType:4,
+          publishType: 2,
+          simpleName: "Ozon28--Warm Home",
+          shopIntervalTime: 12,
+          productIntervalTime: 12,
+          createTime: "2026-01-01 11:30:34",
+          updateTime: "2026-02-01 11:37:52",
+        },
+      ];
+      logData.value.push(...logData.value);
+      logData.value.push(...logData.value);
+    })
+    .catch((error) => {
+      console.error("获取日志数据失败:", error);
+      logData.value = [];
+    })
+    .finally(() => {
+      logLoading.value = false;
+    });
+}
+
+/** 备注 */
   let curId = ''
   const remark = ref('')
   const remarkModalOpen = ref(false)
   const remarkLoading = ref(false)
 
-  // 打开弹窗
-  function openRemorkModal(record) {
+// 打开弹窗
+function openRemorkModal(record) {
     curId = record.id
     remark.value = record.remark
     remarkModalOpen.value = true
-  }
+}
 
-  function remarkCancel() {
+function remarkCancel() {
     remarkModalOpen.value = false
     curId = ''
     remark.value = ''
-  }
+}
 
-  function remarkOk() {
-    const params = {
+function remarkOk() {
+  const params = {
       id: curId ? curId : state.selectedRowKeys.join(','),
       remark: remark.value
     }
 
-    /* remarkLoading.value = true
+  /* remarkLoading.value = true
       addRemarkApi(params)
       .then(res => {
         message.success('添加备注成功')
@@ -357,17 +484,17 @@
         remarkLoading.value = false
       })
      */
-  }
+}
 
-  // 根据分类 value 获取分类 label
-  function getClassifyLabel(classify) {
+// 根据分类 value 获取分类 label
+function getClassifyLabel(classify) {
     if (!classify) return '--'
 
     const classifyList = classify.split(',')
     const labelList = []
     let currentNodes = commodityType
 
-    for (let i = 0; i < classifyList.length; i++) {
+  for (let i = 0; i < classifyList.length; i++) {
       const value = classifyList[i]
       const node = currentNodes.find(item => item.value === value)
 
@@ -375,21 +502,21 @@
 
       labelList.push(node.label)
       currentNodes = node.children || []
-    }
-
-    return labelList.join('/') || '--'
   }
 
-  /** 监听编辑页保存后的跨窗口通信 */
+    return labelList.join('/') || '--'
+}
+
+/** 监听编辑页保存后的跨窗口通信 */
   window.addEventListener('message', receiveMessage)
 
-  onBeforeUnmount(() => {
+onBeforeUnmount(() => {
     window.removeEventListener('message', receiveMessage)
   })
 
-  function receiveMessage(event) {
+function receiveMessage(event) {
     if (event.origin === window.location.origin && event.data === 'refresh') {
       getList()
-    }
   }
+}
 </script>

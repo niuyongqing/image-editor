@@ -6,7 +6,7 @@
       <pre
         class="wrap"
         style="overflow: hidden; height: 530px"
-        v-if="jsonContent && Object.keys(jsonContent).length > 0"
+        v-if="isModules && jsonContent && Object.keys(jsonContent).length > 0"
       >
         {{ JSON.parse(jsonContent) }}
       </pre>
@@ -21,6 +21,7 @@
         >
         <br />
         <a-button
+        v-if="isModules"
           size="large"
           class="w-30 mb-4"
           :disabled="!shop"
@@ -95,7 +96,7 @@
               @dragstart="handleDragStart"
               @dragend="dragends"
             >
-              <div :class="['module-item-icon', item.name]"></div>
+              <div :class="['module-item-icon', item.type]"></div>
               <div>
                 <div>{{ item.text }}</div>
               </div>
@@ -123,7 +124,7 @@
               >
                 <div>
                   <HolderOutlined class="mx-2" />
-                  <span>{{ TEXT_ENUM[item.type] }}</span>
+                  <span>{{getModuleText(item,index) }}</span>
                 </div>
                 <div class="optionBtn">
                   <a-space>
@@ -183,7 +184,7 @@
                     :auto-size="{ minRows: 1 }"
                   />
                 </div>
-                <div v-else-if="item.type === 'image'">
+                <div v-else-if="item.type === 'image' || item.type === 'GeneralImage' || item.type === 'ExclusiveImage'">
                   <div
                     v-for="(imgs, i) in item.img"
                     :key="i"
@@ -193,6 +194,7 @@
                       v-if="!imgs.src.length"
                     >
                       <PictureOutlined :style="{ fontSize: '60px', color: '#a0a3a6' }" />
+                      <span>{{ getModuleText(item,i)  }}</span>
                       <span>文件格式为 JPEG、JPG、PNG，大小不能超过10MB</span>
                     </div>
                     <img
@@ -328,7 +330,7 @@
                     <a-button
                       type="text"
                       title="复制"
-                      @click.stop="moduleCopy(i)"
+                      @click.stop="moduleCopy(i,item.type)"
                     >
                       <CopyOutlined class="text-lg" />
                     </a-button>
@@ -355,7 +357,7 @@
         <!-- 右侧详情 -->
         <div
           class="right-panel"
-          v-if="showRight"
+          v-if="showRight && !isIntelligentize"
         >
           <a-form class="rightForm">
             <template v-if="activeModule.type === 'text'">
@@ -776,7 +778,10 @@
 
   const emits = defineEmits(['backResult', 'clear'])
   const props = defineProps({
-    shop: String,
+    shop: {
+      type: [String, Boolean],
+      default: ''
+    },
     isShowEditJson: {
       type: Boolean,
       default: false
@@ -807,6 +812,16 @@
       }
     }
     return null
+  }
+
+  const getModuleText = (item, index) => {
+    // 获取模块类型的基础文本
+    const moduleTypeText = TEXT_ENUM[item.type] || '未知模块';
+    // 智能刊登模式下，显示positions[index]的信息
+    if (props.isIntelligentize && item.position !== "standard") {
+        return TEXT_ENUM[item.type] + ' ' + item.position
+    }
+    return moduleTypeText;
   }
 
   const showEdit = ref(false)
@@ -1161,18 +1176,22 @@
   const intelligentizeModuleLists = ref([
     {
       text: '通用图片组',
-      name: 'image'
+      name: 'GeneralImage',
+      type: 'image'
     },
     {
       text: '专属图片',
-      name: 'image'
+      name: 'ExclusiveImage',
+      type: 'image'
     }
   ])
 
   const TEXT_ENUM = {
     text: '文字',
     image: '图片',
-    'text-image': '图文'
+    'text-image': '图文',
+    GeneralImage: '通用图片组',
+    ExclusiveImage: '专属图片'
   }
   const activeId = ref('')
   // 拖拽方法
@@ -1352,12 +1371,42 @@
       ]
     }
   }
+  // 智能化刊登专用教研
+  const validateImageList = (type,callback=()=>{})=> {
+    let isValid = false
+     // 检查通用图片组是否已存在（只能拖拽一次）
+      if (type === 'GeneralImage') {
+        const hasGeneralImage = moduleList.value.some(item => item.type === 'GeneralImage')
+        if (hasGeneralImage) {
+          message.warning('通用图片组只能添加一次')
+          callback()
+          isValid = true
+        }
+      }
+      
+      // 检查专属图片数量（最多拖拽6次）
+      if (type === 'ExclusiveImage') {
+        const exclusiveImageCount = moduleList.value.filter(item => item.type === 'ExclusiveImage').length
+        if (exclusiveImageCount >= 5) {
+          message.warning('专属图片最多只能添加5次')
+          callback()
+          isValid = true
+        }
+      }
+       return isValid
+  }
 
   // 当在有效放置目标上放置元素时触发此事件
   function handleDrop(e) {
     if (!pointerEventsNone.value) return
 
     const type = e.dataTransfer.getData('componentName')
+    
+    // 智能刊登模式下的拖拽限制
+    if (props.isIntelligentize) {
+      if (validateImageList(type,moduleDel)) return
+    }
+
     let moduleItem = { type, id: uuidv4() }
     if (type == 'text') {
       moduleItem = { ...moduleItem, ...cloneDeep(textDefault) }
@@ -1365,6 +1414,22 @@
       moduleItem = { ...moduleItem, ...cloneDeep(imgDefaulet) }
     } else if (type == 'text-image') {
       moduleItem = { ...moduleItem, ...cloneDeep(imgTextDefaulet) }
+    } else if (type == 'GeneralImage') {
+      // 通用图片组使用与图片相同的默认配置
+      moduleItem = { ...moduleItem, ...cloneDeep(imgDefaulet) }
+      // 智能刊登模式下添加位置标识
+      if (props.isIntelligentize) {
+        moduleItem.position = 'standard'
+      }
+    } else if (type == 'ExclusiveImage') {
+      // 专属图片使用与图片相同的默认配置
+      moduleItem = { ...moduleItem, ...cloneDeep(imgDefaulet) }
+      // 智能刊登模式下添加位置标识
+      if (props.isIntelligentize) {
+        // 计算当前专属图片的数量，作为位置标识
+        const currentCount = moduleList.value.filter(item => item.type === 'ExclusiveImage').length
+        moduleItem.position = String(currentCount + 1)
+      }
     }
     // 插入拖过来的模块(即为替换掉提示模块)
     const index = moduleList.value.findIndex(item => item.type === 'placement-area')
@@ -1474,7 +1539,11 @@
     activeModuleIndex.value = i + 1
     scroll(moduleList.value[i + 1].id)
   }
-  function moduleCopy(i) {
+  function moduleCopy(i,type) {
+    // 检查是否为智能刊登模式
+    if (props.isIntelligentize) {
+      if (validateImageList(type)) return
+    }
     const item = {
       ...moduleList.value[i],
       id: uuidv4()
@@ -1644,6 +1713,35 @@
       message.error('至少添加一个模块信息')
       return
     }
+    
+    // 智能刊登模式下，只返回位置标识
+    if (props.isIntelligentize) {
+      // 智能刊登模式下，最起码有一个通用图片模块和一个专属图片模块
+      const hasGeneralImage = moduleList.value.some(item => item.type === 'GeneralImage')
+      const hasExclusiveImage = moduleList.value.some(item => item.type === 'ExclusiveImage')
+      if (!hasGeneralImage || !hasExclusiveImage) {
+        message.warning('最少有一个通用图片模块和一个专属图片模块')
+        return
+      }
+      
+      // 筛选出通用图片组和专属图片，保持它们在列表中的实际顺序
+      const imageModules = moduleList.value.filter(
+        item => item.type === 'GeneralImage' || item.type === 'ExclusiveImage'
+      )
+      
+      // 提取位置标识，保持与模块列表相同的顺序
+      const positions = imageModules.map(item => item.position)
+      
+      finallyObj.value = {
+        positions: positions,
+        version: 0.3
+      }
+      emits('backResult', finallyObj.value)
+      closeTemp()
+      return
+    }
+    
+    // 非智能刊登模式，按原逻辑处理
     let res = []
     let obj = {}
     moduleList.value.forEach(item => {
@@ -1665,6 +1763,8 @@
           res.push(obj)
           break
         case 'image':
+        case 'GeneralImage':
+        case 'ExclusiveImage':
           obj = cloneDeep(ozonPic)
           obj.blocks = item.img.map(el => {
             return {
@@ -1767,8 +1867,58 @@
   function openEditor() {
     show.value = true
     if (!props.jsonContent) return
+    
+    // 智能刊登模式下的处理
+    if (props.isIntelligentize) {
+      let positions = []
+      
+      // 检查是否是JSON格式
+      try {
+        const parsed = JSON.parse(props.jsonContent) || {}
+        positions = parsed.positions || []
+      } catch (e) {
+        // 如果不是JSON格式，可能是逗号分隔的字符串
+        if (typeof props.jsonContent === 'string' && props.jsonContent.includes(',')) {
+          positions = props.jsonContent.split(',')
+        } else if (typeof props.jsonContent === 'string' && props.jsonContent.trim()) {
+          // 单个位置标识
+          positions = [props.jsonContent.trim()]
+        }
+      }
+      
+      // 根据位置标识创建对应的模块
+      positions.forEach(position => {
+        let moduleItem
+        
+        if (position === 'standard') {
+          // 通用图片组
+          moduleItem = {
+            ...cloneDeep(imgDefaulet),
+            type: 'GeneralImage',
+            id: uuidv4(),
+            position: 'standard'
+          }
+        } else {
+          // 专属图片
+          moduleItem = {
+            ...cloneDeep(imgDefaulet),
+            type: 'ExclusiveImage',
+            id: uuidv4(),
+            position: position
+          }
+        }
+        
+        moduleList.value.push(moduleItem)
+      })
+      return
+    }
+    
+    // 非智能刊登模式，按原逻辑处理
     const val = props.jsonContent
-    const { content } = JSON.parse(val) || []
+    const parsed = JSON.parse(val) || {}
+    const { content } = parsed
+    if (!content) return
+    
     content.forEach(item => {
       if (item.widgetName === 'raTextBlock') {
         let textObj = cloneDeep(textDefault)

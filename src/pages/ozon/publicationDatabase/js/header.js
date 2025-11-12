@@ -114,4 +114,10 @@ export const header = [
     sorter: false,
     align: "center",
   },
+  {
+    title: '操作',
+    fixed: 'right',
+    key: 'operation',
+    width: 100
+  }
 ]

@@ -45,7 +45,7 @@
         </template>
         <!-- SKU列表列自定义渲染 -->
         <template v-else-if="column.key === 'skuList'">
-          {{ getSkuListFun(record.skuList) }}
+          {{ getSkuListFun(record) }}
         </template>
         <!-- 仓储类别列自定义渲染 -->
         <template v-else-if="column.key === 'meansKeepGrain'">
@@ -223,7 +223,11 @@ function getMeansKeepGrainOptions(val) {
  * @returns {string} - 格式化后的SKU字符串
  */
 function getSkuListFun(e) {
-  return getSkuList(e);
+  const sku = e.skuCodes || e.skuList;
+  if(sku){
+    return getSkuList(sku);
+  }
+  return "";
 }
 
 /**
