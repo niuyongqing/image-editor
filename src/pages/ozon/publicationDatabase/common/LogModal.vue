@@ -177,7 +177,10 @@ const pageSize = ref(10);
 const currentRecord = ref(null);
 const detailVisible = ref(false);
 const currentLogDetail = ref(null);
-
+   const typeMap = {
+    1: "按钮提交",
+    2: "自动提交",
+  };
 // 计算属性：过滤后的日志数据
 const filteredLogs = computed(() => {
   let logs = [...props.logData];
@@ -302,7 +305,7 @@ const formatLogValue = (fieldName, value) => {
 
   // 处理提交类型（已有getSubmitTypeText，但这里也可以保持一致性）
   if (fieldName === "submitType" || fieldName === "publishType") {
-    return value === 1 ? "按钮提交" : `类型: ${value}`;
+    return typeMap[value] || `类型: ${value}`;
   }
 
   // 处理时间间隔字段，添加单位
@@ -315,9 +318,6 @@ const formatLogValue = (fieldName, value) => {
 
 // 获取提交类型文本
 const getSubmitTypeText = (type) => {
-  const typeMap = {
-    1: "按钮提交",
-  };
   return typeMap[type] || `类型: ${type}`;
 };
 
