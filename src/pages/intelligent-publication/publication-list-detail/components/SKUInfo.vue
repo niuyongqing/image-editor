@@ -975,7 +975,7 @@
         return combinations.flatMap(combination =>
           item.nonEmptyTableData.map(record => {
             // 收集父级 uuid, 做未使用变种的 tree shaking
-            const newObj = { uuid: uuidv4(), parentUuidList: combination.parentUuidList ? [...combination.parentUuidList] : [] }
+            const newObj = { uuid: uuidv4(), mainImages: [], subImages: [], parentUuidList: combination.parentUuidList ? [...combination.parentUuidList] : [] }
             newObj.parentUuidList.push(record.uuid)
             for (const key in record) {
               if (key === 'uuid') continue
@@ -1184,7 +1184,7 @@
             if (target) {
               const relatedAttributeIdList = target.relatedAttributeId?.split(',') || []
               // 变种属性的值可能是多选(以','分割)
-              const valueList = item[name].split(',')
+              const valueList = String(item[name]).split(',')
               valueList.forEach((val, i) => {
                 // 找到值对应的 id
                 let attributeOptionId = '0'
