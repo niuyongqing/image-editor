@@ -178,8 +178,8 @@ const currentRecord = ref(null);
 const detailVisible = ref(false);
 const currentLogDetail = ref(null);
    const typeMap = {
-    1: "按钮提交",
-    2: "自动提交",
+    1: "自动提交",
+    2: "按钮提交",
   };
 // 计算属性：过滤后的日志数据
 const filteredLogs = computed(() => {
