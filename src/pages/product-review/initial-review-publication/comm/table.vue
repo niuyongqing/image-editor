@@ -8,7 +8,7 @@
       :dataSource="tableData"
       :filterColumns="filterColumns"
       v-model:filterColumns="filterColumns"
-      :scroll="{ y: 980 }"
+      :scroll="{ y: 940 }"
       :loading="loading"
       :row-selection="rowSelection"
       :rowKey="(row) => row?.productOrderNo || row"
