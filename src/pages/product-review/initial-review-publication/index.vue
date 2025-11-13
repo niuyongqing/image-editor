@@ -50,7 +50,8 @@
             :maxTagCount="2"
             :filter-option="filterOption"
             :fieldNames="userLabels"
-          ></a-select>
+          >
+          </a-select>
         </a-form-item>
 
         <a-form-item
@@ -90,62 +91,23 @@
     </a-card>
     <!-- 数据展示区域 -->
     <a-card style="margin-top: 0.75rem">
-      <div class="table-header-actions">
-        <a-button
-          v-if="props.Source !== 'publicationRejected'"
-          v-has-permi="permissionSource"
-          @click="handleAudit('audit')"
-          type="primary"
-          :disabled="selectedCount === 0 || tableLoading"
-          tooltip="批量审核选中的商品"
-        >
-          审核
-        </a-button>
-        <template v-else>
-          <a-button
-            :disabled="selectedCount !== 1 || tableLoading"
-            @click="handleSee"
-            type="primary"
-            tooltip="批量审核选中的商品"
-          >
-            查看
-          </a-button>
-          <a-button
-            @click="handleAudit('submit')"
-            type="primary"
-            :disabled="selectedCount === 0 || tableLoading"
-            tooltip="再次提交选中的商品"
-          >
-            再次提交
-          </a-button>
-        </template>
-
-        <span style="margin-left: 16px; color: #666">
-          已选择 {{ selectedCount }} 项
-        </span>
-
-        <a-button
-          type="default"
-          @click="clearSelection"
-          :disabled="selectedCount === 0"
-        >
-          清空选择
-        </a-button>
-      </div>
-
-      <div class="table-container" style="margin-top: 20px">
+      <div class="table-container">
         <!-- 使用封装的表格组件 -->
         <ProductReviewTable
           ref="productReviewTableRef"
           :columns="columns"
           :api="commodityList"
           :searchParams="formData"
-          @reset="resetForm"
           @edit-product="handleEditProduct"
           @loading-change="handleLoadingChange"
           :MarketDirection="MarketDirection"
           @selection-change="handleSelectionChange"
           :meansKeepGrainOptions="meansKeepGrainOptions"
+          :Source="Source"
+          :permissionSource="permissionSource"
+          :selectedCount="selectedCount"
+          :currentAuditingProducts="currentAuditingProducts"
+          @audit="handleAudit"
         />
       </div>
     </a-card>
@@ -196,7 +158,9 @@
           name="remark"
           :rules="[
             {
-              required: auditFormData.auditStatus === stateOptions[props.Source][1].value,
+              required:
+                auditFormData.auditStatus ===
+                stateOptions[props.Source][1].value,
               message: '请输入审核备注',
               trigger: 'blur',
             },
@@ -319,7 +283,6 @@ const tableLoading = ref(false);
 const selectedCount = ref(0);
 const exportLoading = ref(false);
 const columns = computed(() => {
-  console.log(props.Source);
   if (props.Source === "initialReviewPublication") {
     return tableHeaderInitial;
   }
@@ -332,15 +295,10 @@ const columns = computed(() => {
 // 审核提交权限字符串
 const permissionSource = computed(() => {
   if (props.Source === "initialReviewPublication") {
-    console.log("platform:ozon:intelligent:first:audit");
     return ["platform:ozon:intelligent:first:audit"];
   }
-  // if (props.Source === "publicationRejected") {
-  //   console.log("platform:ozon:intelligent:reject:audit");
-  //   return ["platform:ozon:intelligent:reject:audit"];
-  // }
+
   if (props.Source === "pendingFinalReview") {
-    console.log("platform:ozon:intelligent:last:audit");
     return ["platform:ozon:intelligent:last:audit"];
   }
 });
@@ -366,8 +324,7 @@ const APIEDIT = {
 };
 // 详情页面路由映射
 const detailPagePath = {
-  initialReviewPublication:
-    "/platform/product-review/preliminary-review-detail", // 初审详情
+  initialReviewPublication: "/platform/product-review/preliminary-review-detail", // 初审详情
   publicationRejected: "/platform/product-review/reject-review-detail", // 驳回详情
   pendingFinalReview: "/platform/product-review/pending-final-review-detail", //终审详情
 };
@@ -503,16 +460,13 @@ const clearSelection = () => {
 /**
  * 处理批量审核操作
  */
-const handleAudit = (type) => {
-  if (productReviewTableRef.value) {
-    currentAuditingProducts.value =
-      productReviewTableRef.value.getCurrentSelectedProducts();
-    if (currentAuditingProducts.value.length === 0) {
-      message.warning("请选择要审核的商品");
-      return;
-    }
-    handleProductAudit(currentAuditingProducts.value, type);
+const handleAudit = (selectedProducts, type) => {
+  currentAuditingProducts.value = selectedProducts;
+  if (currentAuditingProducts.value.length === 0) {
+    message.warning("请选择要审核的商品");
+    return;
   }
+  handleProductAudit(currentAuditingProducts.value, type);
 };
 
 /**
@@ -522,13 +476,6 @@ const handleProductAudit = (products, type) => {
   currentAuditingProducts.value = products;
   selectedCount.value = products.length;
   resetAuditForm();
-  // let isfirstAuditResulted = products.some(
-  //   (product) => product.firstAuditResult === 1
-  // );
-  // if (isfirstAuditResulted) {
-  //   message.warning("存在已初审商品，不能通过审核");
-  //   return;
-  // }
   if (type === "audit") {
     auditOpen.value = true;
   } else {
@@ -542,7 +489,6 @@ const handleProductAudit = (products, type) => {
 const handleSelectionChange = (selectedRows) => {
   selectedCount.value = selectedRows.length;
   currentAuditingProducts.value = selectedRows;
-  console.log("currentAuditingProducts", currentAuditingProducts.value);
 };
 
 /**
@@ -600,7 +546,6 @@ const handleOk = () => {
       // 提取公共参数
       let commonParams;
 
-      console.log("props.Source", props.Source);
       if (props.Source === "initialReviewPublication") {
         commonParams = {
           id: products.length > 0 ? products.map(({ id }) => id).join(",") : "",
@@ -609,7 +554,7 @@ const handleOk = () => {
         };
       } else {
         // 循环 将每个商品的参数添加到 commonParams 数组中
-        commonParams = products.map(({ id,commodityId }) => ({
+        commonParams = products.map(({ id, commodityId }) => ({
           id,
           auditStatus: auditFormData.auditStatus,
           remark: auditFormData.remark,
@@ -720,7 +665,6 @@ const handleEditProduct = (product) => {
     params.id = product.id;
   }
 
-  console.log(product);
   const urlData = router.resolve({
     path: detailPagePath[props.Source],
     query: params,
