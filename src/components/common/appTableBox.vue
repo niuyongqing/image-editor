@@ -456,11 +456,10 @@ function getHeader() {
     justify-content: space-between;
     height: 24px;
     margin-bottom: 10px;
-
     .table-title-item {
-      width: 48%;
-
-      &.item-right {
+      width: 60%;
+      &.item-right { 
+        width: 38%;
         display: flex;
         justify-content: flex-end;
       }
@@ -470,7 +469,6 @@ function getHeader() {
       }
     }
   }
-
   .table-content {
     width: 100%;
     height: calc(100% - 344px);

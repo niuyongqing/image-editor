@@ -3,9 +3,10 @@
   <a-card>
     <a-form 
       v-bind="$attrs" 
-      :model="props.formData" 
+      :model="form.formData" 
       ref="appTableFormRef"
       :rules="rules"
+      :class="{'mini-form': mini}"
     >
       <div class="formItem-box">
         <slot name="formItemBox"></slot>
@@ -71,7 +72,8 @@ const props = defineProps({
   rules: {
     type: Object,
     default: () => ({})
-  }
+  },
+  mini: Boolean,            // 是否采用小型紧凑
 });
 const form = reactive({
   formData: {},
@@ -81,8 +83,18 @@ const form = reactive({
   currentDom: null,
 });
 const btnLoading = ref(false);
+watch(() => props.formData, (val, oldVal) => {
+  // form.formData = val
+  Object.assign(form.formData, val)
+  if (form.formData !== val) {
+    emit('update:formData', form.formData)
+  }
+}, {
+  deep: true,
+})
 onMounted(() => {
-  // form.formData = cloneDeep(props.formData);
+  form.formData = cloneDeep(props.formData);
+  emit('update:formData', form.formData)
   form.currentDom = document.querySelector('#appTableForm');
   form.copyFormData = cloneDeep(props.formData);
   getSettingList();
@@ -200,10 +212,13 @@ async function onSubmit() {
 }
 // 重置
 function resetForm() {
-  _this.$refs.appTableFormRef.resetFields();
   let data = cloneDeep(form.copyFormData);
   // console.log(111, data);
-  emit('update:formData', data);
+  Object.assign(form.formData, data)
+  emit('update:formData', form.formData);
+  nextTick(() => {
+    _this.$refs.appTableFormRef.resetFields();
+  })
 }
 </script>
 <style lang="less" scoped>
@@ -229,9 +244,68 @@ function resetForm() {
     }
     .ant-form-item-control {
       width: 200px;
+      .ant-picker {
+        width: 100%;
+        .ant-picker-range-separator {
+          padding: 0 4px;
+        }
+      }
+    }
+    .ant-form-item-explain.ant-form-item-explain-connected.ant-form-show-help {
+      height: 16px;
+      & > div {
+        height: 16px;
+        line-height: 16px;
+        font-size: 12px;
+      }
     }
     &.item-hide {
       display: none;
+    }
+  }
+  :deep(.mini-form .ant-form-item) {
+    margin: 0 8px 8px 0;
+    .ant-form-item-label {
+      width: 120px;
+      text-align: right;
+      * {
+        height: 20px;
+        line-height: 20px;
+        font-size: 12px !important;
+      }
+    }
+    .ant-form-item-control {
+      width: 180px;
+      .ant-picker {
+        width: 100%;
+        .ant-picker-range-separator {
+          padding: 0 4px;
+        }
+      }
+      .ant-select {
+        height: 20px;
+        * {
+          height: 20px;
+          font-size: 12px;
+          line-height: 20px;
+        }
+        .ant-select-arrow {
+          top: calc(50% - 2px);
+        }
+      }
+      input {
+        font-size: 12px !important;
+        height: 20px !important;
+        line-height: 20px;
+      }
+    }
+    .ant-form-item-explain.ant-form-item-explain-connected.ant-form-show-help {
+      height: 8px;
+      & > div {
+        height: 8px;
+        line-height: 8px;
+        font-size: 7px;
+      }
     }
   }
 }
