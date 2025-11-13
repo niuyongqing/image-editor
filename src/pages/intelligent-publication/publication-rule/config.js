@@ -18,16 +18,16 @@ export const DEFAULT_TABLE_COLUMN = [
     width: 160
   },
   {
-    title: '平均成本价区间',
+    title: '平均成本价区间(CNY)',
     key: 'averageCostPriceRange',
     dataIndex: 'averageCostPriceRange',
-    width: 100
+    width: 120
   },
   {
-    title: '平均重量区间',
+    title: '平均重量区间(g)',
     key: 'averageWeightRange',
     dataIndex: 'averageWeightRange',
-    width: 100
+    width: 120
   },
   {
     title: '状态',

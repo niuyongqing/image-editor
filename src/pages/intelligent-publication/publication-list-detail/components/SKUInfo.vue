@@ -167,7 +167,7 @@
                 >批量</a-button
               >
             </template>
-            <template v-else-if="title === '售价'">
+            <template v-else-if="title === '售价(CNY)'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
               <a-button
@@ -177,7 +177,7 @@
                 >批量</a-button
               >
             </template>
-            <template v-else-if="title === '原价'">
+            <template v-else-if="title === '原价(CNY)'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
               <a-button
@@ -187,7 +187,7 @@
                 >批量</a-button
               >
             </template>
-            <template v-else-if="title === '成本价'">
+            <template v-else-if="title === '成本价(CNY)'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
             </template>
@@ -242,7 +242,7 @@
                 class="w-full"
               />
             </template>
-            <template v-else-if="column.title === '售价'">
+            <template v-else-if="column.title === '售价(CNY)'">
               <div class="flex">
                 <a-input-number
                   v-model:value="record.price"
@@ -271,7 +271,7 @@
                 </a-dropdown>
               </div>
             </template>
-            <template v-else-if="column.title === '原价'">
+            <template v-else-if="column.title === '原价(CNY)'">
               <div class="flex">
                 <a-input-number
                   v-model:value="record.oldPrice"
@@ -300,7 +300,7 @@
                 </a-dropdown>
               </div>
             </template>
-            <template v-else-if="column.title === '成本价'">
+            <template v-else-if="column.title === '成本价(CNY)'">
               <div class="flex">
                 <a-input-number
                   v-model:value="record.costPrice"

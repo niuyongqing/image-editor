@@ -41,13 +41,13 @@ export const COLUMNS = [
     width: 100
   },
   {
-    title: '售价',
+    title: '售价(CNY)',
     key: 'price',
     align: 'center',
     width: 100
   },
   {
-    title: '原价',
+    title: '原价(CNY)',
     key: 'originalPrice',
     align: 'center',
     width: 100
