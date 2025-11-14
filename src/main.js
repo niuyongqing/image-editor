@@ -13,6 +13,8 @@ import router from '~/router'
 import '~/router/router-guard'
 import 'ant-design-vue/dist/reset.css'
 import '~/assets/styles/reset.css'
+import '~/assets/styles/antDesignVueCustomize.less'
+// import
 import 'uno.css'
 
 import Antd from 'ant-design-vue';
