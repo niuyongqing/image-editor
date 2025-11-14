@@ -37,7 +37,7 @@
       <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
         <a-form-item-rest>
           <div flex gap-10px style="width: 300px;">
-            <a-input v-model:value="formData.productName" placeholder="商品名"></a-input>
+            <a-input v-model:value="formData.productName" placeholder="产品标题"></a-input>
             <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
           </div>
         </a-form-item-rest>

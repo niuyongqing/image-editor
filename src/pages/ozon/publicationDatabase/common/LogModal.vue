@@ -310,7 +310,9 @@ const formatLogValue = (fieldName, value) => {
 
   // 处理时间间隔字段，添加单位
   if (["shopIntervalTime", "productIntervalTime"].includes(fieldName)) {
-    return `${value} 分钟`;
+    if (!value) return "-";
+    const interval = value?.split(",");
+    return `${interval?.[0] || "-"} - ${interval?.[1] || "-"} 分钟`;
   }
 
   return String(value);
