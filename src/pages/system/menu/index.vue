@@ -21,11 +21,12 @@
           @cell-dblclick="cellDblclickEvent"
           @row-dragend="rowDragendEvent"
           :tree-config="treeConfig"
-          :data="topLevelMenuList"
+          :data="newTopLevelMenuList"
           :loading="tableLoading"
+          header-align="center"
           height="1100"
         >
-          <vxe-column type="seq" fixed="left" width="80"></vxe-column>
+          <vxe-column type="seq" fixed="left" align="center" width="80"></vxe-column>
           <vxe-column
             fixed="left"
             field="title"
@@ -51,7 +52,7 @@
               <div>{{ classifyMap[row.classify] || "" }}</div>
             </template>
           </vxe-column>
-          <vxe-column field="sort" title="排序" width="50" />
+          <vxe-column field="sort" align="center" title="排序" width="80" />
           <vxe-column field="type" title="类型">
             <template #default="{ row }">
               <div v-if="row.type === 1">文件夹</div>
@@ -63,21 +64,21 @@
           <vxe-column field="component" title="组件路径"></vxe-column>
           <vxe-column field="path" title="路径"></vxe-column>
           <vxe-column field="redirect" title="重定向"></vxe-column>
-          <vxe-column field="hideInMenu" title="是否隐藏">
+          <vxe-column field="hideInMenu" align="center" title="是否隐藏">
             <template #default="{ row }">
               <a-tag :color="row.hideInMenu ? '#f50' : '#2db7f5'">
                 {{ row.hideInMenu ? "是" : "否" }}
               </a-tag>
             </template>
           </vxe-column>
-          <vxe-column field="keepAlive" title="是否保活">
+          <vxe-column field="keepAlive" align="center" title="是否保活">
             <template #default="{ row }">
               <a-tag :color="row.keepAlive ? '#f50' : '#2db7f5'">
                 {{ row.keepAlive ? "是" : "否" }}
               </a-tag>
             </template>
           </vxe-column>
-          <vxe-column title="操作" fixed="right">
+          <vxe-column title="操作" fixed="right" align="center">
             <template #default="{ row }">
               <a-button type="link" @click.stop="add(row)" color="#2db7f5"
                 >添加</a-button
@@ -92,6 +93,12 @@
             </template>
           </vxe-column>
         </vxe-table>
+        <vxe-pager
+          v-model:currentPage="pageVO.currentPage"
+          v-model:pageSize="pageVO.pageSize"
+          :total="pageVO.total"
+          @page-change="pageChange">
+        </vxe-pager>
       </div>
     </a-card>
     <add-or-edit
@@ -141,6 +148,28 @@ import {
 
 // 在组件中引入userStore
 import { useUserStore } from "~/stores/user.js";
+
+const pageVO = reactive({
+  total: 0,
+  currentPage: 1,
+  pageSize: 20
+})
+const newTopLevelMenuList = ref([])
+// 前端分页
+const handlePageData = () => {
+  tableLoading.value = true
+  setTimeout(() => {
+    const { pageSize, currentPage } = pageVO
+    pageVO.total = topLevelMenuList.length
+    newTopLevelMenuList.value = topLevelMenuList.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+    tableLoading.value = false
+  }, 100)
+}
+const pageChange = ({ pageSize, currentPage }) => {
+  pageVO.currentPage = currentPage
+  pageVO.pageSize = pageSize
+  handlePageData()
+}
 
 // 更新菜单数据
 const refreshMenu = async () => {
@@ -385,6 +414,7 @@ const getTreeMenu = (menuList) => {
   const { topLevelMenus, childrenMap } = splitMenuDataForLazyLoad(result);
   // 直接赋值
   topLevelMenuList = topLevelMenus;
+  handlePageData()
   console.log("childrenMap:", childrenMap);
   childrenMapList = childrenMap;
   // 复制原始子菜单映射到完整子菜单映射

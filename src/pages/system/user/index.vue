@@ -311,10 +311,7 @@ const showTotal = (total, range) => {
         </template>
         <template #bodyCell="{ column, record }">
           <div v-if="column.dataIndex === 'avatar'" style="text-align: center">
-            <a-avatar
-              v-if="record.avatar"
-              :src="record.avatar"
-            ></a-avatar>
+            <a-avatar v-if="record.avatar" :src="record.avatar"></a-avatar>
             <a-image
               v-else
               size="small"
