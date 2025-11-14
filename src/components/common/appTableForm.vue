@@ -4,7 +4,7 @@
     <a-form 
       v-bind="$attrs" 
       v-show="form.formShow"
-      :model="form.formData" 
+      :model="formData" 
       ref="appTableFormRef"
       :rules="rules"
       :class="{'mini-form': mini}"
@@ -59,7 +59,7 @@
 <script setup>
 import { message } from 'ant-design-vue';
 import { cloneDeep, debounce } from 'lodash-es';
-import { ref, reactive, onMounted, onBeforeUnmount, computed, watchPostEffect, useSlots } from 'vue';
+import { ref, reactive, onMounted, onBeforeUnmount, computed, toRefs, useSlots } from 'vue';
 import asyncIcon from '~@/layouts/components/menu/async-icon.vue';
 defineOptions({ name: "appTableForm" });
 const { proxy: _this } = getCurrentInstance();
@@ -79,8 +79,8 @@ const props = defineProps({
   },
   mini: Boolean,            // 是否采用小型紧凑
 });
+const { formData } = toRefs(props); 
 const form = reactive({
-  formData: {},             // 表单绑定数据
   copyFormData: {},         // 原始数据用于重置
   settingList: [],          // 设置列表
   formShow: true,
@@ -91,21 +91,7 @@ let currentDom = null;      // 当前组件dom
 let contentDom = null;      // 滚动容器dom
 const btnLoading = ref(false);
 const { formItemBox, formItemRow, } = useSlots();
-watch(() => props.formData, (val, oldVal) => {
-  // form.formData = val
-  Object.assign(form.formData, val);
-  if (form.formData !== val) {
-    emit('update:formData', form.formData);
-  }
-}, {
-  deep: true,
-});
-watch(() => form.offsetHeight, (val, oldVal) => {
-  emit('formHeightChange', val);
-});
 onMounted(() => {
-  form.formData = cloneDeep(props.formData);
-  emit('update:formData', form.formData);
   currentDom = document.querySelector('#appTableForm');
   contentDom = document.querySelector('.ant-layout-content');
   form.copyFormData = cloneDeep(props.formData);
@@ -138,6 +124,7 @@ function formShowFn() {
 // 获取当前表单组件高度
 function getHeight() {
   form.offsetHeight = currentDom.offsetHeight;
+  emit('formHeightChange', val);
 }
 // 生成筛选条件设置列表
 function generateSettingNameList(val) {
@@ -241,7 +228,7 @@ function formItemShow(val) {
 async function onSubmit() {
   try {
     await _this.$refs.appTableFormRef.validateFields();
-    emit('onSubmit');
+    emit('onSubmit', cloneDeep(formData));
   } catch (error) {
     message.error('请填写必填项！');
   }
@@ -250,8 +237,8 @@ async function onSubmit() {
 function resetForm() {
   let data = cloneDeep(form.copyFormData);
   // console.log(111, data);
-  Object.assign(form.formData, data);
-  emit('update:formData', form.formData);
+  Object.assign(formData, data);
+  emit('update:formData', formData);
   nextTick(() => {
     _this.$refs.appTableFormRef.resetFields();
   });
