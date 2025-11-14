@@ -302,10 +302,6 @@ const initDataSource = (mainImgWmTemplateId, subImgWmTemplateId) => {
     (item) => Number(item.id) === Number(subImgWmTemplateId)
   );
 
-  console.log("tableData", tableData.value);
-  console.log(mainImgWmTemplateId, subImgWmTemplateId);
-  console.log(mainImgWmTemplate, subImgWmTemplate);
-
   // 使用新数组替换原数组，确保响应性
   const newDataSource = [];
 
@@ -335,21 +331,21 @@ const initDataSource = (mainImgWmTemplateId, subImgWmTemplateId) => {
 
 // ==================== API调用 ====================
 /**
- * 获取水印列表数据
+ * 父组件调用获取水印列表数据
  * @param {string|number} mainImgWmTemplateId - 主图水印模板ID
  * @param {string|number} subImgWmTemplateId - 副图水印模板ID
  */
-const getWatermarkList = async (mainImgWmTemplateId, subImgWmTemplateId) => {
+const getWatermarkList = async (mainImgWmTemplateId, subImgWmTemplateId,type='edit') => {
   loading.value = true;
   try {
     // 没分页, 没入参
     const res = await watermarkListApi();
     tableData.value = res.data || [];
     // 初始化数据源
-    initDataSource(mainImgWmTemplateId, subImgWmTemplateId);
-    console.log("tableData.value", tableData.value);
+    if(type==='edit'){
+      initDataSource(mainImgWmTemplateId, subImgWmTemplateId);
+    }
   } catch (error) {
-    console.error("获取水印列表失败:", error);
     message.error("获取水印列表失败，请稍后重试");
   } finally {
     loading.value = false;
@@ -424,8 +420,6 @@ const changeWatermark = (record) => {
  * @param {string|number} id - 水印ID
  */
 const delWatermark = (id) => {
-  console.log("删除水印ID:", id);
-
   const currentIndex = dataSource.value.findIndex((item) => item.id === id);
   if (currentIndex !== -1) {
     const emptyTemplate = createEmptyWatermarkTemplate("", currentIndex);
@@ -447,11 +441,14 @@ const addWatermark = () => {
  */
 const receiveMessage = (event) => {
   // 验证消息来源和类型
-  if (event.origin !== window.location.origin || event.data.type !== "params") {
+  if (event.origin !== window.location.origin || event.data.type !== "params" || !event.data.params) {
     return;
   }
-
-  console.log("接收到跨窗口消息:", event.data.params);
+  // 判断是否是新建水印
+  if (!event.data.params.id) {
+    getWatermarkList('', '','get');
+    return;
+  }
 
   try {
     // 更新当前选中行数据
