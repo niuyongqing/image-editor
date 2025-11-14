@@ -26,7 +26,7 @@
           allowClear
         ></a-select>
       </a-form-item>
-      <a-form-item label="审核时间" name="completeTime">
+      <a-form-item label="完成时间" name="completeTime">
         <a-range-picker 
           v-model:value="formData.completeTime" 
           allowClear 
