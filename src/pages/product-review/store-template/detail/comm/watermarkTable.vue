@@ -440,13 +440,14 @@ const addWatermark = () => {
  * @param {MessageEvent} event - 消息事件
  */
 const receiveMessage = (event) => {
+  // 刷新水印列表
+  getWatermarkList('', '','get');
   // 验证消息来源和类型
   if (event.origin !== window.location.origin || event.data.type !== "params" || !event.data.params) {
     return;
   }
-  // 判断是否是新建水印
+  // 新建水印不更新数据
   if (!event.data.params.id) {
-    getWatermarkList('', '','get');
     return;
   }
 
