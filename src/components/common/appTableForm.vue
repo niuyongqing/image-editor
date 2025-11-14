@@ -124,7 +124,7 @@ function formShowFn() {
 // 获取当前表单组件高度
 function getHeight() {
   form.offsetHeight = currentDom.offsetHeight;
-  emit('formHeightChange', val);
+  emit('formHeightChange', form.offsetHeight);
 }
 // 生成筛选条件设置列表
 function generateSettingNameList(val) {
@@ -236,9 +236,8 @@ async function onSubmit() {
 // 重置
 function resetForm() {
   let data = cloneDeep(form.copyFormData);
-  // console.log(111, data);
   Object.assign(formData, data);
-  emit('update:formData', formData);
+  emit('update:formData', formData);    // 这个其实都可以不用的
   nextTick(() => {
     _this.$refs.appTableFormRef.resetFields();
   });
