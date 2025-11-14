@@ -17,6 +17,7 @@
           :wrapper-col="wrapperColItem"
         >
           <selectComm
+            ref="selectCommRef"
             class="ml-23"
             :options="accountList"
             :fieldObj="{
@@ -255,23 +256,28 @@ import {
   addRemarkShopTemplate,
   delShopTemplate,
 } from "@/pages/product-review/store-template/api.js";
-import { useTableHeight} from '@/composables/useTableHeight';
+import { useTableHeight } from "@/composables/useTableHeight";
 const formRef = ref(null);
 const searchCardFormRef = ref(null);
 
 // 使用公共的表格高度计算方法
-const { tableHeight: uTableHeight, loading: loading, calculateTableHeight } = useTableHeight({
-  elementId: 'searchCardForm',
+const {
+  tableHeight: uTableHeight,
+  loading: loading,
+  calculateTableHeight,
+} = useTableHeight({
+  elementId: "searchCardForm",
   elementRef: searchCardFormRef,
   isHandleResize: true,
   offsetHeight: 220,
   minHeight: 300,
   defaultHeight: 150,
-  delay: 300
+  delay: 300,
 });
 
-// 添加缺失的变量定义
+// 添加dom引用字段
 const submitFormRef = ref(null);
+const selectCommRef = ref(null);
 const submitFormData = ref({
   remark: "",
 });
@@ -595,10 +601,10 @@ const resetSubmitForm = () => {
 // 重置搜索表单
 const resetForm = () => {
   Object.keys(INITIAL_FORM_DATA).forEach((key) => {
-    if (key !== "selectAll") {
-      formData[key] = JSON.parse(JSON.stringify(INITIAL_FORM_DATA[key]));
-    }
+    formData[key] = JSON.parse(JSON.stringify(INITIAL_FORM_DATA[key]));
   });
+  // 调用selectCommRef的selectAll方法
+  selectCommRef.value.selectAll();
   getList();
 };
 
@@ -680,7 +686,7 @@ channel.onmessage = function (event) {
 const getUTableHeight = () => {
   calculateTableHeight((height) => {
     // 可以在这里添加额外的处理逻辑
-    console.log('表格高度计算完成:', height);
+    console.log("表格高度计算完成:", height);
   });
 };
 onMounted(() => {

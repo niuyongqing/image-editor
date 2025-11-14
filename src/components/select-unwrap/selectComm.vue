@@ -41,6 +41,9 @@ const selectItem = (index, account) => {
   selectedIndex.value = index;
   emit("backSelectItem", account);
 };
+defineExpose({
+  selectAll,
+});
 </script>
 <style lang="less" scoped>
 .accountForm {
