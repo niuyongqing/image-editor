@@ -126,8 +126,13 @@
   </a-card>
   <detailsModal ref="publicationDatabase_detailsModal"></detailsModal>
   <!-- 添加备注弹窗 -->
-  <a-modal v-model:open="remarkData.open" title="添加备注" @ok="addRemarkFn">
-    <a-textarea v-model:value="remarkData.remark" placeholder="请输入备注" :rows="4" />
+  <a-modal class="remark-modal" v-model:open="remarkData.open" title="添加备注" @ok="addRemarkFn">
+    <a-textarea
+     v-model:value="remarkData.remark"
+      :maxlength="255"
+      show-count
+      placeholder="请输入备注"
+      :rows="4" />
   </a-modal>
 
   <!-- 刊登弹窗 -->
@@ -471,6 +476,14 @@ function fetchLogData(record) {
   justify-content: flex-end;
   :deep(.ant-select-selector) {
     width: 100px !important;
+  }
+}
+</style>
+
+<style lang="less">
+.remark-modal {
+  .ant-modal-footer {
+    margin-top: 24px;
   }
 }
 </style>

@@ -5,7 +5,6 @@
     :title="title"
     :width="width"
     destroyOnClose
-    @ok="handleCancel"
     @cancel="handleCancel"
   >
     <div class="log-modal-container">
@@ -122,6 +121,9 @@
         />
       </div>
     </div>
+     <template #footer>
+        <a-button type="primary"  @click="handleCancel">确定</a-button>
+      </template>
   </a-modal>
 </template>
 
