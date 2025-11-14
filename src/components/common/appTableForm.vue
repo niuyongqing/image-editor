@@ -1,5 +1,5 @@
 <template>
-<div id="appTableForm" class="appTableForm" :class="{'stickyTop': form.scrollTop >= form.offsetHeight}">
+<div id="appTableForm" class="appTableForm" :class="{'stickyTop': form.scrollTop > form.offsetHeight}">
   <a-card>
     <a-form 
       v-bind="$attrs" 
@@ -19,8 +19,8 @@
       </div>
       <div class="formItem-row right">
         <a-space>
-          <a-button key="submit" @click="resetForm">重置</a-button>
           <a-button key="submit" type="primary" @click="onSubmit">查询</a-button>
+          <a-button key="submit" @click="resetForm">重置</a-button>
           <a-popover placement="bottomRight" trigger="click">
             <template #content>
               <div class="formSetting-box">
