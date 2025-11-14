@@ -81,7 +81,7 @@
       :scroll="{ y: 'calc(80vh - 120px)', x: '2000px' }"
       :pagination="false"
       :customRow="customRow" 
-      rowKey="key_uid"
+      rowKey="id"
       :row-selection="{ selectedRowKeys: tableData.selectedRowKeys, onChange: onSelectChange }"
       :loading="tableData.loading"
       class="productDatabase-table"
@@ -171,7 +171,7 @@ import { message, Modal } from 'ant-design-vue';
 import { processImageSource } from '../config/commJs/index';
 import { checkPermi } from '~@/utils/permission/component/permission';
 import PublicationModal from './common/PublicationModal.vue'
-import LogModal from "./common/logModal.vue";
+import LogModal from "./common/LogModal.vue";
 defineOptions({ name: "ozon_publicationDatabase" })
 const { proxy: _this } = getCurrentInstance();
 
@@ -311,7 +311,6 @@ async function getTableList() {
     let res = await getList(params)
     let data = res.data ?? []
     data.forEach((item, index) => {
-      item.key_uid = uuidv4()
       item.rowIndex = ((tableData.params.pageNum - 1) * tableData.params.pageSize + index + 1);
       item.skuCodeList = item.skuList?.map(i => i.skuCode).join() || '';
       item.averageWeight = null;

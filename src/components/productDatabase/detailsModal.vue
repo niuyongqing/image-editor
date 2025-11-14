@@ -2,7 +2,7 @@
   <div id="productDatabase_detailsModal" class="productDatabase_detailsModal">
     <a-modal v-model:open="modalOpen" :style="{ top: '10px', padding: 0, height: '99vh' }"
       :bodyStyle="{ height: 'calc(95vh - 100px)', 'overflow-y': 'auto' }" :title="'产品详情'" :maskClosable="false"
-      width="95%">
+      width="80%">
       <a-spin :spinning="loading" class="dialog-box">
         <a-descriptions title="基本信息">
           <a-descriptions-item label="产品名称">
