@@ -6,7 +6,7 @@
       :title="'现有产品'"
       :footer="false" 
       :maskClosable="false" 
-      width="95%"
+      width="80%"
     >
       <div class="dialog-box">
         <a-card class="mt-2.5">
