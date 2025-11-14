@@ -245,10 +245,14 @@
 
 <script setup>
 import test from './test.vue';
-const appModal = () => import('~/components/common/appModal.vue');
-const appTableBox = () => import('~/components/common/appTableBox.vue');
-const appTablePagination = () => import('~@/components/common/appTablePagination.vue');
-const appTableForm = () => import('~@/components/common/appTableForm.vue');
+// const appModal = () => import('~/components/common/appModal.vue');
+// const appTableBox = () => import('~/components/common/appTableBox.vue');
+// const appTablePagination = () => import('~/components/common/appTablePagination.vue');
+// const appTableForm = () => import('~/components/common/appTableForm.vue');
+import appModal from '~/components/common/appModal.vue';
+import appTableBox from '~/components/common/appTableBox.vue';
+import appTablePagination from '~@/components/common/appTablePagination.vue';
+import appTableForm from '~@/components/common/appTableForm.vue';
 import { v4 as uuidv4 } from 'uuid';
 defineOptions({ name: 'publication_sequence' });
 const { proxy: _this } = getCurrentInstance();
