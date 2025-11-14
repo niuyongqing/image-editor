@@ -228,7 +228,7 @@ function formItemShow(val) {
 async function onSubmit() {
   try {
     await _this.$refs.appTableFormRef.validateFields();
-    emit('onSubmit', cloneDeep(formData));
+    emit('onSubmit', cloneDeep(formData.value));
   } catch (error) {
     message.error('请填写必填项！');
   }
@@ -236,8 +236,8 @@ async function onSubmit() {
 // 重置
 function resetForm() {
   let data = cloneDeep(form.copyFormData);
-  Object.assign(formData, data);
-  emit('update:formData', formData);    // 这个其实都可以不用的
+  Object.assign(formData.value, data);
+  emit('update:formData', formData.value);
   nextTick(() => {
     _this.$refs.appTableFormRef.resetFields();
   });
