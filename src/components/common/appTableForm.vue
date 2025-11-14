@@ -1,17 +1,20 @@
 <template>
-<div id="appTableForm" class="appTableForm">
+<div id="appTableForm" class="appTableForm" :class="{'stickyTop': form.scrollTop >= form.offsetHeight}">
   <a-card>
     <a-form 
       v-bind="$attrs" 
+      v-show="form.formShow"
       :model="form.formData" 
       ref="appTableFormRef"
       :rules="rules"
       :class="{'mini-form': mini}"
     >
-      <div class="formItem-box">
+      <div class="formItem-box" v-if="!!formItemBox">
+        <!-- 标准筛选项使用该插槽 -->
         <slot name="formItemBox"></slot>
       </div>
-      <div class="formItem-row">
+      <div class="formItem-row" v-if="!!formItemRow">
+        <!-- 自定义宽度的筛选项用这个插槽，独占一行 -->
         <slot name="formItemRow"></slot>
       </div>
       <div class="formItem-row right">
@@ -27,6 +30,7 @@
                 </div>
               </div>
               <div class="formSetting-btn">
+                <!-- 筛选项设置列表是根据form-item的name属性生成，没有设置name的项和必填项不会出现在设置列表 -->
                 <a-space>
                   <a-button @click="formSetting(null)" :loading="btnLoading">重置设置</a-button>
                   <a-button type="primary" @click="formSetting(form.settingList)" :loading="btnLoading">保存设置</a-button>
@@ -45,13 +49,17 @@
       </div>
     </a-form>
   </a-card>
+  <div class="form-show-btn" @click="formShowFn">
+    <asyncIcon v-show="form.formShow" icon="UpCircleOutlined"></asyncIcon>
+    <asyncIcon v-show="!form.formShow" icon="DownCircleOutlined"></asyncIcon>
+  </div>
 </div>
 </template>
 
 <script setup>
 import { message } from 'ant-design-vue';
-import { cloneDeep } from 'lodash-es';
-import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue';
+import { cloneDeep, debounce } from 'lodash-es';
+import { ref, reactive, onMounted, onBeforeUnmount, computed, watchPostEffect, useSlots } from 'vue';
 import asyncIcon from '~@/layouts/components/menu/async-icon.vue';
 defineOptions({ name: "appTableForm" });
 const { proxy: _this } = getCurrentInstance();
@@ -65,10 +73,6 @@ const props = defineProps({
     type: Object,
     default: () => ({})
   },
-  settingNameList: {
-    type: Array,
-    default: () => ([])
-  },
   rules: {
     type: Object,
     default: () => ({})
@@ -76,54 +80,85 @@ const props = defineProps({
   mini: Boolean,            // 是否采用小型紧凑
 });
 const form = reactive({
-  formData: {},
-  copyFormData: {},
-  settingList: [],
-
-  currentDom: null,
+  formData: {},             // 表单绑定数据
+  copyFormData: {},         // 原始数据用于重置
+  settingList: [],          // 设置列表
+  formShow: true,
+  offsetHeight: null,       // 当前表单组件高度
+  scrollTop: null,          // 当前外滚动条的高度
 });
+let currentDom = null;      // 当前组件dom
+let contentDom = null;      // 滚动容器dom
 const btnLoading = ref(false);
+const { formItemBox, formItemRow, } = useSlots();
 watch(() => props.formData, (val, oldVal) => {
   // form.formData = val
-  Object.assign(form.formData, val)
+  Object.assign(form.formData, val);
   if (form.formData !== val) {
-    emit('update:formData', form.formData)
+    emit('update:formData', form.formData);
   }
 }, {
   deep: true,
-})
+});
+watch(() => form.offsetHeight, (val, oldVal) => {
+  emit('formHeightChange', val);
+});
 onMounted(() => {
   form.formData = cloneDeep(props.formData);
-  emit('update:formData', form.formData)
-  form.currentDom = document.querySelector('#appTableForm');
+  emit('update:formData', form.formData);
+  currentDom = document.querySelector('#appTableForm');
+  contentDom = document.querySelector('.ant-layout-content');
   form.copyFormData = cloneDeep(props.formData);
   getSettingList();
   getHeight();
+  // scrollFn()
+  contentDom.addEventListener('scroll', scrollFn);
 });
+onBeforeUnmount(() => {
+  contentDom.removeEventListener('scroll', scrollFn);
+});
+const scrollFn = debounce(e => {
+  form.scrollTop = contentDom.scrollTop;
+  // form.formShow = (form.scrollTop <= form.offsetHeight)
+  if (form.scrollTop > form.offsetHeight) {
+    form.formShow = false;
+  } else if (form.scrollTop === 0) {
+    form.formShow = true;
+  }
+}, 50);
+function formShowFn() {
+  if (!form.formShow) {
+    contentDom.scrollTop = 0;
+  }
+  form.formShow = !form.formShow;
+  setTimeout(() => {
+    getHeight();
+  }, 60);
+}
 // 获取当前表单组件高度
 function getHeight() {
-  let offsetHeight = form.currentDom.offsetHeight;
-  emit('formHeightChange', offsetHeight);
+  form.offsetHeight = currentDom.offsetHeight;
 }
 // 生成筛选条件设置列表
-function generateSettingNameList() {
-  let dom = document.querySelector('.appTableForm');
-  let formItemList = [...dom.querySelectorAll('.ant-form-item')];
+function generateSettingNameList(val) {
+  let formItemList = [...currentDom.querySelectorAll('.ant-form-item')];
   let list = [];
   formItemList.forEach(item => {
-    item.classList.remove('item-hide');
-    props.settingNameList.forEach(name => {
-      let label = item.querySelector(`[for="form_item_${name}"]`);
-      if (label) {
-        let obj = {
-          name: name,
-          label: label.innerText,
-          formItem: item,
-          show: true,
-        };
-        list.push(obj);
-      }
-    });
+    // 本地没有数据说明是未设置或重置，显示全部项
+    !val && item.classList.remove('item-hide');
+    // console.log({val: !val});
+    let label = item.querySelector('label');
+    let f = null;
+    label && (f = label.getAttribute('for'));
+    if (f && !label.className.includes('ant-form-item-required')) {
+      let obj = {
+        name: f.split('_')[2],
+        label: label.innerText,
+        formItem: item,
+        show: true,
+      };
+      list.push(obj);
+    }
   });
   return list;
 }
@@ -134,7 +169,7 @@ async function getSettingList() {
     return;
   }
   let { data } = getFrom();
-  let settingList = generateSettingNameList();
+  let settingList = generateSettingNameList(data);
   if (data) {
     data.forEach(item => {
       let dom = settingList.find(i => i.name === item.name);
@@ -198,6 +233,7 @@ function formItemShow(val) {
     val.formItem.classList.remove('item-hide');
   } else {
     val.formItem.classList.add('item-hide');
+    // console.log(22, val.formItem);
   }
   getHeight();
 }
@@ -214,27 +250,21 @@ async function onSubmit() {
 function resetForm() {
   let data = cloneDeep(form.copyFormData);
   // console.log(111, data);
-  Object.assign(form.formData, data)
+  Object.assign(form.formData, data);
   emit('update:formData', form.formData);
   nextTick(() => {
     _this.$refs.appTableFormRef.resetFields();
-  })
+  });
 }
 </script>
 <style lang="less" scoped>
 #appTableForm.appTableForm {
   padding: 4px;
-  .formItem-box {
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-  }
-  .formItem-row {
-    width: 100%;
-    &.right {
-      display: flex;
-      justify-content: flex-end;
-    }
+  position: relative;
+  &.stickyTop {
+    position: sticky;
+    top: 0;
+    z-index: 10;
   }
   :deep(.ant-form-item) {
     margin: 0 16px 16px 0;
@@ -306,6 +336,45 @@ function resetForm() {
         line-height: 8px;
         font-size: 7px;
       }
+    }
+  }
+  .formItem-box {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    :deep(.ant-form-item):last-child {
+      .ant-form-item-control {
+        width: auto;
+      }
+    }
+  }
+  .formItem-row {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    &.right {
+      justify-content: flex-end;
+    }
+    :deep(.ant-form-item) {
+      .ant-form-item-control {
+        width: auto;
+      }
+    }
+  }
+  .form-show-btn {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    bottom: -8px;
+    left: calc(50% - 16px);
+    cursor: pointer;
+    span {
+      font-size: 24px !important;
+      color: #4e5969;
+      opacity: 0.3; /* 整个元素及内容半透明 */
     }
   }
 }
