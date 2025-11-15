@@ -59,7 +59,7 @@
               />
             </a-form-item>
             至
-            <a-form-item class="mb-0">
+            <a-form-item class="mb-0 mr-1">
               <a-input-number
                 v-model:value="form.costPriceMax"
                 :controls="false"
@@ -69,6 +69,7 @@
                 class="ml-1"
               />
             </a-form-item>
+            (CNY)
           </div>
         </a-form-item>
         <a-form-item
@@ -87,7 +88,7 @@
               />
             </a-form-item>
             至
-            <a-form-item class="mb-0">
+            <a-form-item class="mb-0 mr-1">
               <a-input-number
                 v-model:value="form.weightMax"
                 :controls="false"
@@ -97,6 +98,7 @@
                 class="ml-1"
               />
             </a-form-item>
+            (g)
           </div>
         </a-form-item>
 

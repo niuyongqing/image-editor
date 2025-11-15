@@ -5,7 +5,6 @@
     :title="title"
     :width="width"
     destroyOnClose
-    @ok="handleCancel"
     @cancel="handleCancel"
   >
     <div class="log-modal-container">
@@ -122,6 +121,9 @@
         />
       </div>
     </div>
+     <template #footer>
+        <a-button type="primary"  @click="handleCancel">确定</a-button>
+      </template>
   </a-modal>
 </template>
 
@@ -142,7 +144,7 @@ const props = defineProps({
   },
   width: {
     type: Number,
-    default: 600,
+    default: 800,
   },
   logData: {
     type: Array,
@@ -177,7 +179,10 @@ const pageSize = ref(10);
 const currentRecord = ref(null);
 const detailVisible = ref(false);
 const currentLogDetail = ref(null);
-
+   const typeMap = {
+    1: "自动提交",
+    2: "按钮提交",
+  };
 // 计算属性：过滤后的日志数据
 const filteredLogs = computed(() => {
   let logs = [...props.logData];
@@ -260,6 +265,7 @@ const getFieldLabel = (fieldName) => {
 const getDetailFieldLabel = (fieldName) => {
   const fieldLabelMap = {
     ...props.fieldLabels,
+    productId: "商品ID",
     titleRule: "标题规则",
     mainRule: "主图规则",
     imageRule: "副图规则",
@@ -296,18 +302,19 @@ const formatLogValue = (fieldName, value) => {
       3: "随机刊登店铺",
       4: "允许重复产品刊登多个店铺",
     };
-    console.log("fieldName:", fieldName, "value:", value);
     return strategies[value] || String(value);
   }
 
   // 处理提交类型（已有getSubmitTypeText，但这里也可以保持一致性）
   if (fieldName === "submitType" || fieldName === "publishType") {
-    return value === 1 ? "按钮提交" : `类型: ${value}`;
+    return typeMap[value] || `类型: ${value}`;
   }
 
   // 处理时间间隔字段，添加单位
   if (["shopIntervalTime", "productIntervalTime"].includes(fieldName)) {
-    return `${value} 分钟`;
+    if (!value) return "-";
+    const interval = value?.split(",");
+    return `${interval?.[0] || "-"} - ${interval?.[1] || "-"} 分钟`;
   }
 
   return String(value);
@@ -315,9 +322,6 @@ const formatLogValue = (fieldName, value) => {
 
 // 获取提交类型文本
 const getSubmitTypeText = (type) => {
-  const typeMap = {
-    1: "按钮提交",
-  };
   return typeMap[type] || `类型: ${type}`;
 };
 
@@ -516,6 +520,8 @@ defineExpose({
   // font-weight: 600;
   font-size: 13px;
   padding-right: 8px;
+  //不换行
+  white-space: nowrap;
 }
 
 .log-detail-value {
@@ -535,10 +541,10 @@ defineExpose({
 // .log-detail-tooltip是外层样式 避免影响全局
 .log-detail-tooltip {
   .ant-tooltip-content {
-    min-width: 280px !important;
+    min-width: 380px !important;
   }
   .ant-tooltip-inner {
-    min-width: 280px !important;
+    min-width: 380px !important;
     padding: 6px 16px;
   }
 }

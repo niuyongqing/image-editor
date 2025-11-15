@@ -6,9 +6,9 @@ export const COLUMNS = [
     width: 150
   },
   {
-    title: '成本价',
+    title: '成本价(CNY)',
     key: 'costPrice',
-    width: 80
+    width: 150
   },
   {
     title: '库存',

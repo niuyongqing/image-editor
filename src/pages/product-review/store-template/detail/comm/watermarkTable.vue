@@ -7,9 +7,10 @@
         size="middle"
         :disabled="disabled"
         @click="addWatermark"
-      >创建模版</a-button>
+        >创建模版</a-button
+      >
     </div>
-    
+
     <a-table
       :columns="COLUMNS"
       :data-source="dataSource"
@@ -34,19 +35,24 @@
         </template>
         <template v-else-if="column.key === 'operation'">
           <a-space>
-            <a-button type="link" :disabled="disabled" @click="changeWatermark(record)">更换</a-button>
-            <a-button type="link" :disabled="disabled" @click="editWatermark(record)">编辑</a-button>
-            <a-popconfirm
-            title="确定删除吗?"
-            @confirm="delWatermark(record.id)"
-          >
             <a-button
               type="link"
               :disabled="disabled"
-              danger
-              >删除</a-button
+              @click="changeWatermark(record)"
+              >更换</a-button
             >
-          </a-popconfirm>
+            <a-button
+              type="link"
+              :disabled="disabled"
+              @click="editWatermark(record)"
+              >编辑</a-button
+            >
+            <a-popconfirm
+              title="确定删除吗?"
+              @confirm="delWatermark(record.id)"
+            >
+              <a-button type="link" :disabled="disabled" danger>删除</a-button>
+            </a-popconfirm>
           </a-space>
         </template>
       </template>
@@ -66,13 +72,30 @@
             v-model:value="submitFormData.shopTemplateId"
             placeholder="请选择水印模板"
             style="width: 100%"
+            option-label-prop="label"
           >
             <a-select-option
               v-for="item in tableData"
               :key="item.id"
               :value="item.id"
+              :label="item.title"
             >
-              {{ item.title }}
+              <!-- 显示模版名称 -->
+              <div class="select-option-content">
+                <span class="template-title">{{ item.title }}</span>
+                <!-- 显示水印内容 -->
+                <div class="watermark-preview">
+                  <span v-if="item.type === 1" class="image-preview">
+                    <img
+                      width="30px"
+                      :src="item.content"
+                      alt="水印图片"
+                      class="watermark-image"
+                    />
+                  </span>
+                  <span v-else class="text-preview">{{ item.content }}</span>
+                </div>
+              </div>
             </a-select-option>
           </a-select>
         </div>
@@ -86,7 +109,9 @@
                 alt="水印预览"
                 class="preview-image"
               />
-              <span v-else class="preview-text">{{ getSelectedWatermarkContent() }}</span>
+              <span v-else class="preview-text">{{
+                getSelectedWatermarkContent()
+              }}</span>
             </div>
             <div v-else class="preview-placeholder">请选择水印模板查看预览</div>
           </div>
@@ -97,7 +122,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, onBeforeUnmount, onMounted, nextTick, computed } from "vue";
+import {
+  ref,
+  reactive,
+  onBeforeUnmount,
+  onMounted,
+  nextTick,
+  computed,
+} from "vue";
 import {
   watermarkListApi,
   watermarkDelApi,
@@ -108,8 +140,8 @@ const emit = defineEmits([]);
 const props = defineProps({
   disabled: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 });
 
 // ==================== 响应式数据 ====================
@@ -166,13 +198,13 @@ const COLUMNS = [
 // 水印类型映射 - 不需要响应式
 const WATERMARK_TYPE_MAP = {
   1: "图片",
-  2: "文字"
+  2: "文字",
 };
 
 // 水印名称映射 - 不需要响应式
 const WATERMARK_NAME_MAP = {
   0: "主图水印",
-  1: "副图水印"
+  1: "副图水印",
 };
 
 // ==================== 工具函数 ====================
@@ -183,11 +215,11 @@ const WATERMARK_NAME_MAP = {
  * @returns {object} 空水印模板对象
  */
 const createEmptyWatermarkTemplate = (id, index) => ({
-  id: id || '',
+  id: id || "",
   imageName: WATERMARK_NAME_MAP[index],
   title: "",
   content: "",
-  type: '',
+  type: "",
 });
 
 /**
@@ -198,7 +230,7 @@ const createEmptyWatermarkTemplate = (id, index) => ({
  */
 const debounce = (func, wait) => {
   let timeout;
-  return function(...args) {
+  return function (...args) {
     clearTimeout(timeout);
     timeout = setTimeout(() => func.apply(this, args), wait);
   };
@@ -213,8 +245,9 @@ const debounce = (func, wait) => {
  */
 const updateDataSourceItem = (id, newData, index = null) => {
   const newDataSource = [...dataSource.value];
-  const itemIndex = index !== null ? index : newDataSource.findIndex(item => item.id === id);
-  
+  const itemIndex =
+    index !== null ? index : newDataSource.findIndex((item) => item.id === id);
+
   if (itemIndex !== -1) {
     Object.assign(newDataSource[itemIndex], newData);
     dataSource.value = newDataSource;
@@ -228,8 +261,10 @@ const updateDataSourceItem = (id, newData, index = null) => {
  * 计算是否有有效的选择项
  */
 const hasValidSelection = computed(() => {
-  return submitFormData.shopTemplateId && 
-         tableData.value.some(item => item.id === submitFormData.shopTemplateId);
+  return (
+    submitFormData.shopTemplateId &&
+    tableData.value.some((item) => item.id === submitFormData.shopTemplateId)
+  );
 });
 
 /**
@@ -266,49 +301,51 @@ const initDataSource = (mainImgWmTemplateId, subImgWmTemplateId) => {
   const subImgWmTemplate = tableData.value.find(
     (item) => Number(item.id) === Number(subImgWmTemplateId)
   );
-  
-  console.log("tableData", tableData.value);
-  console.log(mainImgWmTemplateId, subImgWmTemplateId);
-  console.log(mainImgWmTemplate, subImgWmTemplate);
-  
+
   // 使用新数组替换原数组，确保响应性
   const newDataSource = [];
-  
+
   // 处理主图水印
   if (!mainImgWmTemplate) {
     newDataSource[0] = createEmptyWatermarkTemplate(mainImgWmTemplateId, 0);
   } else {
-    newDataSource[0] = { ...mainImgWmTemplate, imageName: WATERMARK_NAME_MAP[0] };
+    newDataSource[0] = {
+      ...mainImgWmTemplate,
+      imageName: WATERMARK_NAME_MAP[0],
+    };
   }
 
   // 处理副图水印
   if (!subImgWmTemplate) {
     newDataSource[1] = createEmptyWatermarkTemplate(subImgWmTemplateId, 1);
   } else {
-    newDataSource[1] = { ...subImgWmTemplate, imageName: WATERMARK_NAME_MAP[1] };
+    newDataSource[1] = {
+      ...subImgWmTemplate,
+      imageName: WATERMARK_NAME_MAP[1],
+    };
   }
-  
+
   // 一次性更新dataSource，确保响应性
   dataSource.value = newDataSource;
 };
 
 // ==================== API调用 ====================
 /**
- * 获取水印列表数据
+ * 父组件调用获取水印列表数据
  * @param {string|number} mainImgWmTemplateId - 主图水印模板ID
  * @param {string|number} subImgWmTemplateId - 副图水印模板ID
  */
-const getWatermarkList = async (mainImgWmTemplateId, subImgWmTemplateId) => {
+const getWatermarkList = async (mainImgWmTemplateId, subImgWmTemplateId,type='edit') => {
   loading.value = true;
   try {
     // 没分页, 没入参
     const res = await watermarkListApi();
     tableData.value = res.data || [];
     // 初始化数据源
-    initDataSource(mainImgWmTemplateId, subImgWmTemplateId);
-    console.log("tableData.value", tableData.value);
+    if(type==='edit'){
+      initDataSource(mainImgWmTemplateId, subImgWmTemplateId);
+    }
   } catch (error) {
-    console.error("获取水印列表失败:", error);
     message.error("获取水印列表失败，请稍后重试");
   } finally {
     loading.value = false;
@@ -332,25 +369,27 @@ const handleSubmitOk = () => {
   const selectedItem = tableData.value.find(
     (item) => item.id === submitFormData.shopTemplateId
   );
-  
+
   if (!selectedItem) {
     message.error("请选择要更换的水印模板");
     return;
   }
-  
+
   // 更新数据源
   const currentId = currentSelectRow.value.id;
-  const currentIndex = dataSource.value.findIndex(item => item.id === currentId);
-  
+  const currentIndex = dataSource.value.findIndex(
+    (item) => item.id === currentId
+  );
+
   if (currentIndex !== -1) {
     const updatedData = {
       ...selectedItem,
-      imageName: WATERMARK_NAME_MAP[currentIndex] || selectedItem.imageName
+      imageName: WATERMARK_NAME_MAP[currentIndex] || selectedItem.imageName,
     };
-    
+
     updateDataSourceItem(currentId, updatedData, currentIndex);
   }
-  
+
   handleModalCancel();
 };
 
@@ -360,7 +399,7 @@ const handleSubmitOk = () => {
  */
 const editWatermark = (record) => {
   currentSelectRow.value = record;
-  if(record.id) {
+  if (record.id) {
     window.open(`/platform/dev/sample/watermark/edit?id=${record.id}`);
   } else {
     message.error("请先点击更换按钮选择一个水印模板");
@@ -381,11 +420,9 @@ const changeWatermark = (record) => {
  * @param {string|number} id - 水印ID
  */
 const delWatermark = (id) => {
-  console.log("删除水印ID:", id);
-  
-  const currentIndex = dataSource.value.findIndex(item => item.id === id);
+  const currentIndex = dataSource.value.findIndex((item) => item.id === id);
   if (currentIndex !== -1) {
-    const emptyTemplate = createEmptyWatermarkTemplate('', currentIndex);
+    const emptyTemplate = createEmptyWatermarkTemplate("", currentIndex);
     updateDataSourceItem(id, emptyTemplate, currentIndex);
   }
 };
@@ -394,7 +431,7 @@ const delWatermark = (id) => {
  * 跳转创建/编辑页
  */
 const addWatermark = () => {
-  window.open('/platform/dev/sample/watermark/edit');
+  window.open("/platform/dev/sample/watermark/edit");
 };
 
 // ==================== 跨窗口通信 ====================
@@ -403,27 +440,34 @@ const addWatermark = () => {
  * @param {MessageEvent} event - 消息事件
  */
 const receiveMessage = (event) => {
+  // 刷新水印列表
+  getWatermarkList('', '','get');
   // 验证消息来源和类型
-  if (event.origin !== window.location.origin || event.data.type !== "params") {
+  if (event.origin !== window.location.origin || event.data.type !== "params" || !event.data.params) {
     return;
   }
-  
-  console.log("接收到跨窗口消息:", event.data.params);
-  
+  // 新建水印不更新数据
+  if (!event.data.params.id) {
+    return;
+  }
+
   try {
     // 更新当前选中行数据
     Object.assign(currentSelectRow.value, event.data.params);
-    
+
     // 更新当前选中行在dataSource中的数据
     const currentId = currentSelectRow.value.id;
-    const currentIndex = dataSource.value.findIndex(item => item.id === currentId);
-    
+    const currentIndex = dataSource.value.findIndex(
+      (item) => item.id === currentId
+    );
+
     if (currentIndex !== -1) {
       const updatedData = {
         ...currentSelectRow.value,
-        imageName: WATERMARK_NAME_MAP[currentIndex] || currentSelectRow.value.imageName
+        imageName:
+          WATERMARK_NAME_MAP[currentIndex] || currentSelectRow.value.imageName,
       };
-      
+
       updateDataSourceItem(currentId, updatedData, currentIndex);
     }
   } catch (error) {
@@ -457,32 +501,36 @@ onBeforeUnmount(() => {
  */
 const watermarkTableRefIds = () => {
   return {
-    mainImgWmTemplateId: dataSource.value[0]?.id ? Number(dataSource.value[0].id) : null,
-    subImgWmTemplateId: dataSource.value[1]?.id ? Number(dataSource.value[1].id) : null,
+    mainImgWmTemplateId: dataSource.value[0]?.id
+      ? Number(dataSource.value[0].id)
+      : null,
+    subImgWmTemplateId: dataSource.value[1]?.id
+      ? Number(dataSource.value[1].id)
+      : null,
   };
 };
 
 // 暴露方法给父组件
 defineExpose({
   watermarkTableRefIds,
-  getWatermarkList
+  getWatermarkList,
 });
 </script>
 
 <style lang="less" scoped>
 .watermark-table {
   width: 100%;
-  
+
   .button-container {
     display: flex;
     justify-content: flex-end;
     margin-bottom: 16px;
-    
+
     .create-button {
       // 保持与原来一致的样式
     }
   }
-  
+
   .watermark-content {
     display: flex;
     justify-content: center;
@@ -504,7 +552,7 @@ defineExpose({
       font-weight: 500;
     }
   }
-  
+
   .preview-content {
     border: 1px dashed #d9d9d9;
     border-radius: 4px;
@@ -514,22 +562,59 @@ defineExpose({
     display: flex;
     align-items: center;
     justify-content: center;
-    
+
     .watermark-preview {
       .preview-image {
         max-width: 200px;
         max-height: 100px;
         object-fit: contain;
       }
-      
+
       .preview-text {
         font-size: 16px;
         color: #666;
       }
     }
-    
+
     .preview-placeholder {
       color: #999;
+    }
+  }
+}
+
+// 下拉选项样式
+.select-option-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  .template-title {
+    font-weight: 500;
+  }
+
+  .watermark-preview {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-left: 8px;
+    .image-preview {
+      display: inline-flex;
+      align-items: center;
+
+      .watermark-image {
+        max-width: 60px;
+        max-height: 30px;
+        object-fit: contain;
+      }
+    }
+
+    .text-preview {
+      color: #666;
+      margin-left: 8px;
+      // font-size: 12px;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
   }
 }

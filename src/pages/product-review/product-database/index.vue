@@ -1,6 +1,6 @@
 <template>
 <div id="productDatabase_index" class="productDatabase_index">
-  <a-modal 
+  <!-- <a-modal 
     v-model:open="modalOpen" 
     :style="{ top: '10px', padding: 0, height: '99vh' }" 
     :title="'产品资料库'"
@@ -8,7 +8,8 @@
     :maskClosable="false"
     width="80%"
   >
-    <div class="dialog-box">
+  </a-modal> -->
+  <div class="dialog-box">
       <a-card class="mt-2.5">
         <a-form :model="formData" layout="inline" :label-col="{ span: 6 }">
           <div class="formItem-row">
@@ -246,7 +247,6 @@
         />
       </div>
     </div>
-  </a-modal>
   <!-- 详情弹窗 -->
   <detailsModal ref="detailsModalRef" @handleSelect="handleSelect"/>
 </div>
@@ -257,7 +257,7 @@ import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
 import { storeList } from '@/api/common/selectProduct';
 import { useSelectProduct } from './js/useSelectProduct';
 import { header } from './js/header';
-import detailsModal from './detailsModal.vue';
+import detailsModal from './comm/detailsModal.vue';
 import _ from "lodash";
 import devAttributableMarketRevert from '~@/utils/devAttributableMarketRevert';
 import classifyRevert from '~@/utils/classifyRevert';
@@ -266,7 +266,7 @@ import { camelCase, toLowerLine } from '~@/utils';
 defineOptions({ name: "productDatabase_index" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['handleSelect']);
-const modalOpen = ref(false);
+// const modalOpen = ref(false);
 const { 
   commodityTypeList, 
   storeStatus, 
@@ -311,13 +311,13 @@ const tableData = reactive({
 })
 let copyFormData = {};   // 表单参数
 let antTableBody = null   // 表格滚动区域
-watch(() => modalOpen.value, (val, oldVal) => {
-  if (!val) {
-    reset();
-  }
-})
+// watch(() => modalOpen.value, (val, oldVal) => {
+//   if (!val) {
+//     reset();
+//   }
+// })
 function modalOpenFn() {
-  modalOpen.value = true
+  // modalOpen.value = true
   nextTick(() => {
     onSubmit()
     let productDatabaseTable = document.querySelector('.productDatabase-table')
@@ -416,7 +416,7 @@ function detailsModalOpen(row) {
 function handleSelect(row) {
   emit('handleSelect', _.cloneDeep(row))
   reset()
-  modalOpen.value = false;
+  // modalOpen.value = false;
 }
 
 // 主图显示
@@ -564,7 +564,10 @@ const tagMap = (code) => {
   };
   return tasStatus[code] || '';
 };
-
+onMounted(() => {
+  // 初始化数据
+  modalOpenFn();
+})
 defineExpose({
   modalOpenFn,
 })
@@ -599,12 +602,6 @@ defineExpose({
     justify-content: flex-end;
     margin-left: auto;
   }
-  // .formItem-row-i {
-  //   width: 50%;
-  //   display: flex;
-  //   justify-content: space-between;
-  //   align-items: center;
-  // }
 }
 :deep(.ant-tag) {
   margin-bottom: 6px;

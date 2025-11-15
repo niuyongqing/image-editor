@@ -11,17 +11,17 @@ export const COLUMNS = [
     width: 150
   },
   {
-    title: '售价',
+    title: '售价(CNY)',
     key: 'price',
     width: 60
   },
   {
-    title: '原价',
+    title: '原价(CNY)',
     key: 'oldPrice',
     width: 60
   },
   {
-    title: '成本价',
+    title: '成本价(CNY)',
     key: 'costPrice',
     width: 60
   },

@@ -8,6 +8,15 @@
         ref="searchFormRef"
         layout="inline"
       >
+        <a-form-item
+          label="状态"
+          name="status"
+        >
+          <a-radio-group
+            v-model:value="searchForm.status"
+            :options="STATUS_OPTIONS"
+          />
+        </a-form-item>
         <a-form-item label="模糊查询">
           <a-space>
             <a-input
@@ -16,17 +25,6 @@
               allow-clear
             />
           </a-space>
-        </a-form-item>
-        <a-form-item
-          label="状态"
-          name="status"
-        >
-          <a-select
-            v-model:value="searchForm.status"
-            :options="STATUS_OPTIONS"
-            placeholder="请选择状态"
-            class="w-40!"
-          />
         </a-form-item>
         <a-form-item>
           <a-button

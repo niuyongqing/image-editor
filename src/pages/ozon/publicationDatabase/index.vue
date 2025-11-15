@@ -26,7 +26,7 @@
           allowClear
         ></a-select>
       </a-form-item>
-      <a-form-item label="审核时间" name="completeTime">
+      <a-form-item label="完成时间" name="completeTime">
         <a-range-picker 
           v-model:value="formData.completeTime" 
           allowClear 
@@ -37,7 +37,7 @@
       <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
         <a-form-item-rest>
           <div flex gap-10px style="width: 300px;">
-            <a-input v-model:value="formData.productName" placeholder="商品名"></a-input>
+            <a-input v-model:value="formData.productName" placeholder="产品标题"></a-input>
             <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
           </div>
         </a-form-item-rest>
@@ -81,7 +81,7 @@
       :scroll="{ y: 'calc(80vh - 120px)', x: '2000px' }"
       :pagination="false"
       :customRow="customRow" 
-      rowKey="key_uid"
+      rowKey="id"
       :row-selection="{ selectedRowKeys: tableData.selectedRowKeys, onChange: onSelectChange }"
       :loading="tableData.loading"
       class="productDatabase-table"
@@ -132,8 +132,13 @@
   </a-card>
   <detailsModal ref="publicationDatabase_detailsModal"></detailsModal>
   <!-- 添加备注弹窗 -->
-  <a-modal v-model:open="remarkData.open" title="添加备注" @ok="addRemarkFn">
-    <a-textarea v-model:value="remarkData.remark" placeholder="请输入备注" :rows="4" />
+  <a-modal class="remark-modal" v-model:open="remarkData.open" title="添加备注" @ok="addRemarkFn">
+    <a-textarea
+     v-model:value="remarkData.remark"
+      :maxlength="255"
+      show-count
+      placeholder="请输入备注"
+      :rows="4" />
   </a-modal>
 
   <!-- 刊登弹窗 -->
@@ -166,7 +171,7 @@ import { message, Modal } from 'ant-design-vue';
 import { processImageSource } from '../config/commJs/index';
 import { checkPermi } from '~@/utils/permission/component/permission';
 import PublicationModal from './common/PublicationModal.vue'
-import LogModal from "./common/logModal.vue";
+import LogModal from "./common/LogModal.vue";
 defineOptions({ name: "ozon_publicationDatabase" })
 const { proxy: _this } = getCurrentInstance();
 
@@ -306,7 +311,6 @@ async function getTableList() {
     let res = await getList(params)
     let data = res.data ?? []
     data.forEach((item, index) => {
-      item.key_uid = uuidv4()
       item.rowIndex = ((tableData.params.pageNum - 1) * tableData.params.pageSize + index + 1);
       item.skuCodeList = item.skuList?.map(i => i.skuCode).join() || '';
       item.averageWeight = null;
@@ -446,95 +450,11 @@ function handleLogModalOpen(record) {
 // 获取日志数据
 function fetchLogData(record) {
   logLoading.value = true;
-  getLogListApi({ productIds: [10395] })
+  getLogListApi({ productIds: [record.id] })
     .then((res) => {
-      // 模拟三份日志数据
-      logData.value = [
-        {
-          id: 1,
-          productId: 10395,
-          submitType: 1,
-          submitName: "admin",
-          titleRule: 1,
-          mainRule: 12,
-          imageRule: 12,
-          insufficientType: 12,
-          publishType: 12,
-          simpleName: "Ozon29--Warm Home",
-          shopIntervalTime: 12,
-          productIntervalTime: 12,
-          createTime: "2025-07-01 11:30:34",
-          updateTime: "2025-08-01 11:37:52",
-        },
-
-        {
-          id: 2,
-          productId: 103951,
-          submitType: 1,
-          submitName: "admin",
-          titleRule: 1,
-          mainRule: 12,
-          imageRule: 12,
-          insufficientType: 2,
-          publishType: 12,
-          simpleName: "Ozon29--Warm Home",
-          shopIntervalTime: 12,
-          productIntervalTime: 12,
-          createTime: "2025-05-01 11:30:34",
-          updateTime: "2025-10-01 11:37:52",
-        },
-
-        {
-          id: 3,
-          productId: 103952,
-          submitType: 1,
-          submitName: "admin",
-          titleRule: 1,
-          mainRule: 12,
-          imageRule: 12,
-          insufficientType: 1,
-          publishType: 12,
-          simpleName: "Ozon29--Warm Home",
-          shopIntervalTime: 12,
-          productIntervalTime: 12,
-          createTime: "2025-03-01 11:30:34",
-          updateTime: "2025-12-01 11:37:52",
-        },
-        {
-          id: 4,
-          productId: 103954,
-          submitType: 1,
-          submitName: "admin",
-          titleRule: 1,
-          mainRule: 12,
-          imageRule: 12,
-          insufficientType: 3,
-          publishType: 12,
-          simpleName: "Ozon27--Warm Home",
-          shopIntervalTime: 12,
-          productIntervalTime: 12,
-          createTime: "2025-02-01 11:30:34",
-          updateTime: "2025-12-01 11:37:52",
-        },
-        {
-          id: 5,
-          productId: 103955,
-          submitType: 1,
-          submitName: "admin",
-          titleRule: 1,
-          mainRule: 12,
-          imageRule: 12,
-          insufficientType:4,
-          publishType: 2,
-          simpleName: "Ozon28--Warm Home",
-          shopIntervalTime: 12,
-          productIntervalTime: 12,
-          createTime: "2026-01-01 11:30:34",
-          updateTime: "2026-02-01 11:37:52",
-        },
-      ];
-      logData.value.push(...logData.value);
-      logData.value.push(...logData.value);
+      if(res.code === 200) {
+        logData.value = res.data || []
+      }
     })
     .catch((error) => {
       console.error("获取日志数据失败:", error);
@@ -562,6 +482,14 @@ function fetchLogData(record) {
   justify-content: flex-end;
   :deep(.ant-select-selector) {
     width: 100px !important;
+  }
+}
+</style>
+
+<style lang="less">
+.remark-modal {
+  .ant-modal-footer {
+    margin-top: 24px;
   }
 }
 </style>
