@@ -63,7 +63,7 @@ function onChange(page, pageSize) {
 <style lang="less" scoped>
 .appTablePagination {
   width: 100%;
-  margin: 20px 0;
+  margin: 16px 0;
   display: flex;
   justify-content: flex-end;
   align-items: center;
