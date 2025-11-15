@@ -1,31 +1,42 @@
 <script setup>
-import { CloseOutlined, CopyOutlined, NotificationOutlined, SettingOutlined } from '@ant-design/icons-vue'
-import { useClipboard } from '@v-c/utils'
-import Body from './body.vue'
-import BlockCheckbox from './block-checkbox.vue'
-import ThemeColor from './theme-color.vue'
-import LayoutSetting from './layout-setting.vue'
-import RegionalSetting from './regional-setting.vue'
-import OtherSetting from './other-setting.vue'
+import {
+  CloseOutlined,
+  CopyOutlined,
+  NotificationOutlined,
+  SettingOutlined,
+} from "@ant-design/icons-vue";
+import { useClipboard } from "@v-c/utils";
+import { onMounted, onUnmounted } from "vue";
+import Body from "./body.vue";
+import BlockCheckbox from "./block-checkbox.vue";
+import ThemeColor from "./theme-color.vue";
+import LayoutSetting from "./layout-setting.vue";
+import RegionalSetting from "./regional-setting.vue";
+import OtherSetting from "./other-setting.vue";
+import EventBus from "@/utils/event-bus";
 
 defineOptions({
-  name: 'SettingDrawer',
-})
+  name: "SettingDrawer",
+});
 const props = defineProps({
   open: { type: Boolean, required: false },
-  theme: { type: String, required: false, default: 'light' },
+  theme: { type: String, required: false, default: "light" },
   colorPrimary: { type: String, required: false },
-  colorList: { type: Array, required: false, default: () => [
-    { key: 'techBlue', color: '#1677FF' },
-    { key: 'daybreak', color: '#1890ff' },
-    { key: 'dust', color: '#F5222D' },
-    { key: 'volcano', color: '#FA541C' },
-    { key: 'sunset', color: '#FAAD14' },
-    { key: 'cyan', color: '#13C2C2' },
-    { key: 'green', color: '#52C41A' },
-    { key: 'geekblue', color: '#2F54EB' },
-    { key: 'purple', color: '#722ED1' },
-  ] },
+  colorList: {
+    type: Array,
+    required: false,
+    default: () => [
+      { key: "techBlue", color: "#1677FF" },
+      { key: "daybreak", color: "#1890ff" },
+      { key: "dust", color: "#F5222D" },
+      { key: "volcano", color: "#FA541C" },
+      { key: "sunset", color: "#FAAD14" },
+      { key: "cyan", color: "#13C2C2" },
+      { key: "green", color: "#52C41A" },
+      { key: "geekblue", color: "#2F54EB" },
+      { key: "purple", color: "#722ED1" },
+    ],
+  },
   layout: { type: String, required: false },
   contentWidth: { type: String, required: false },
   fixedHeader: { type: Boolean, required: false },
@@ -48,35 +59,57 @@ const props = defineProps({
   animationNameList: { type: Array, required: false },
   layoutSetting: { type: Object, required: false },
   t: { type: Function, required: false },
-})
-const emit = defineEmits(['update:open', 'settingChange'])
-const { copy } = useClipboard()
-const prefixCls = shallowRef('ant-pro-drawer-setting')
-const { message } = useGlobalConfig()
+});
+const emit = defineEmits(["update:open", "settingChange"]);
+const { copy } = useClipboard();
+const prefixCls = shallowRef("ant-pro-drawer-setting");
+const { message } = useGlobalConfig();
 function copySetting() {
-  copy(JSON.stringify(props.layoutSetting ?? {}))
-  message?.success(props?.t?.('app.setting.copyinfo', '拷贝成功，请到 config/default-settings.js 中替换默认配置'))
+  copy(JSON.stringify(props.layoutSetting ?? {}));
+  message?.success(
+    props?.t?.(
+      "app.setting.copyinfo",
+      "拷贝成功，请到 config/default-settings.js 中替换默认配置"
+    )
+  );
 }
 function handleVisible(open) {
-  emit('update:open', open)
+  emit("update:open", open);
 }
 function changeTheme(theme) {
-  emit('settingChange', 'theme', theme)
+  emit("settingChange", "theme", theme);
 }
 function changeColor(color) {
-  emit('settingChange', 'colorPrimary', color)
+  emit("settingChange", "colorPrimary", color);
 }
 function changeLayout(layout) {
-  emit('settingChange', 'layout', layout)
+  emit("settingChange", "layout", layout);
 }
 function changeSettingLayout(key, value) {
-  emit('settingChange', key, value)
+  emit("settingChange", key, value);
 }
-const { token } = useAntdToken()
+const { token } = useAntdToken();
+
+// 暴露方法给父组件或全局调用
+defineExpose({
+  handleVisible,
+});
+
+// 组件挂载时注册实例
+onMounted(() => {
+  EventBus.on("updateDrawerStateHandleVisible", (open) => {
+    handleVisible(open);
+  });
+});
+
+onUnmounted(() => {
+  EventBus.off("updateDrawerStateHandleVisible");
+});
 </script>
 
 <template>
   <div
+    v-if="false"
     :class="`${prefixCls}-handle`"
     :style="{
       backgroundColor: token?.colorPrimary,
@@ -96,9 +129,18 @@ const { token } = useAntdToken()
       style="font-size: 20px"
     />
   </div>
-  <a-drawer :open="open" :width="300" placement="right" :closable="false" @update:open="handleVisible">
+  <a-drawer
+    :open="open"
+    :width="300"
+    placement="right"
+    :maskClosable="false"
+    :title="t?.('app.setting.pagestyle.Overall') ?? '整体风格设置'"
+    class="drawer-collapse-setting"
+    @update:open="handleVisible"
+  >
     <template #handle>
       <div
+        v-if="false"
         :class="`${prefixCls}-handle`"
         :style="{
           position: 'absolute',
@@ -112,12 +154,16 @@ const { token } = useAntdToken()
       >
         <CloseOutlined
           v-if="open"
-          :class="`${prefixCls}-handle-icon${props.theme === 'light' ? '' : '-dark'}`"
+          :class="`${prefixCls}-handle-icon${
+            props.theme === 'light' ? '' : '-dark'
+          }`"
           style="font-size: 20px"
         />
         <SettingOutlined
           v-else
-          :class="`${prefixCls}-handle-icon${props.theme === 'light' ? '' : '-dark'}`"
+          :class="`${prefixCls}-handle-icon${
+            props.theme === 'light' ? '' : '-dark'
+          }`"
           style="font-size: 20px"
         />
       </div>
@@ -150,7 +196,12 @@ const { token } = useAntdToken()
         </div>
       </Body>
       <Body :title="t?.('app.setting.themecolor') ?? '主题色'">
-        <ThemeColor :t="t" :color-list="colorList" :color="colorPrimary" @change="changeColor" />
+        <ThemeColor
+          :t="t"
+          :color-list="colorList"
+          :color="colorPrimary"
+          @change="changeColor"
+        />
       </Body>
       <a-divider />
       <Body :title="t?.('app.setting.pagestyle.mode') ?? '导航模式'">
@@ -210,7 +261,12 @@ const { token } = useAntdToken()
       </Body>
       <a-divider />
       <Body :title="t?.('app.setting.othersettings') ?? '其他设置'">
-        <OtherSetting :t="t" :color-weak="colorWeak" :color-gray="colorGray" @change-setting="changeSettingLayout" />
+        <OtherSetting
+          :t="t"
+          :color-weak="colorWeak"
+          :color-gray="colorGray"
+          @change-setting="changeSettingLayout"
+        />
       </Body>
       <a-divider />
       <Body>
@@ -219,8 +275,8 @@ const { token } = useAntdToken()
             type="warning"
             show-icon
             :message="
-              t?.('app.setting.production.hint')
-                ?? '配置栏只在开发环境用于预览，生产环境不会展现，请拷贝后手动修改配置文件'
+              t?.('app.setting.production.hint') ??
+              '配置栏只在开发环境用于预览，生产环境不会展现，请拷贝后手动修改配置文件'
             "
           >
             <template #icon>
@@ -228,7 +284,7 @@ const { token } = useAntdToken()
             </template>
           </a-alert>
           <a-button @click="copySetting">
-            <CopyOutlined /> {{ t?.('app.setting.copy', '拷贝设置') }}
+            <CopyOutlined /> {{ t?.("app.setting.copy", "拷贝设置") }}
           </a-button>
         </div>
       </Body>
@@ -237,5 +293,13 @@ const { token } = useAntdToken()
 </template>
 
 <style lang="less">
-@import './index.less';
+@import "./index.less";
+.drawer-collapse-setting {
+  .ant-drawer-header-title {
+    flex-flow: row-reverse;
+    .ant-drawer-close {
+      margin-inline-end: 0 !important;
+    }
+  }
+}
 </style>
