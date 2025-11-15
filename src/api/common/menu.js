@@ -35,3 +35,10 @@ export function editCommonUseMenu(parameter) {
   return usePost("/system/platform/router/common/use",parameter)
 }
 
+// 更新菜单排序的API函数
+export function updateMenuSortApi(parameter) {
+  return usePost("/system/platform/router/menuMove", parameter)
+}
+
+
+

@@ -2,7 +2,7 @@ export default {
   "title":"馨站ERP",
   "theme":"inverted",
   "logo":"/platform/160x160.ico",
-  "collapsed":true,
+  "collapsed":false,
   "drawerVisible":false,
   "colorPrimary":"#1677FF",
   "layout":"side",
@@ -22,10 +22,10 @@ export default {
   "keepAlive":true,
   "accordionMode":false,
   "leftCollapsed":true,
-  "compactAlgorithm":true,
+  "compactAlgorithm":false,
   "headerHeight":48,
   "copyright":"Xin Zhan Technology 2025",
-  "animationName":"none"
+  "animationName":"slide-fadein-right"
 }
 export const animationNameList = [
   {

@@ -1,6 +1,5 @@
 // 商品分类还原
 import commodityType from "@/utils/commodityType";
-
 export default function (row) {
   if (row == undefined) {
     return null;

@@ -98,6 +98,15 @@ importers:
       vuedraggable:
         specifier: ^4.1.0
         version: 4.1.0(vue@3.5.20(typescript@5.5.4))
+      vxe-pc-ui:
+        specifier: ~4.9.41
+        version: 4.9.41(vue@3.5.20(typescript@5.5.4))
+      vxe-table:
+        specifier: ~4.16.20
+        version: 4.16.20(vue@3.5.20(typescript@5.5.4))
+      xe-utils:
+        specifier: ~3.7.9
+        version: 3.7.9
     devDependencies:
       '@antfu/eslint-config':
         specifier: ^2.27.3
@@ -2591,6 +2600,11 @@ packages:
   '@vueuse/shared@10.11.1':
     resolution: {integrity: sha512-LHpC8711VFZlDaYUXEBbFBCQ7GS3dVU9mjOhhMhXP6txTV4EhYQg/KGnQuvt/sPAtoUKq7VVUnL6mVtFoL42sA==}
 
+  '@vxe-ui/core@4.2.12':
+    resolution: {integrity: sha512-g6gNDykKrKLzxsDDFDYTD/6tWrV9AfSaU7WIlKCO67BSXgKDMaEVTsH7ZZ7fI5qkOO9DH1vo07kbacyBNx7gSQ==}
+    peerDependencies:
+      vue: ^3.2.0
+
   '@wangeditor/basic-modules@1.1.7':
     resolution: {integrity: sha512-cY9CPkLJaqF05STqfpZKWG4LpxTMeGSIIF1fHvfm/mz+JXatCagjdkbxdikOuKYlxDdeqvOeBmsUBItufDLXZg==}
     peerDependencies:
@@ -3752,6 +3766,9 @@ packages:
 
   dom-scroll-into-view@2.0.1:
     resolution: {integrity: sha512-bvVTQe1lfaUr1oFzZX80ce9KLDlZ3iU+XGNE/bz9HnGdklTieqsbmsLHe+rT2XWqopvL0PckkYqN7ksmm5pe3w==}
+
+  dom-zindex@1.0.6:
+    resolution: {integrity: sha512-FKWIhiU96bi3xpP9ewRMgANsoVmMUBnMnmpCT6dPMZOunVYJQmJhSRruoI0XSPoHeIif3kyEuiHbFrOJwEJaEA==}
 
   dom7@3.0.0:
     resolution: {integrity: sha512-oNlcUdHsC4zb7Msx7JN3K0Nro1dzJ48knvBOnDPKJ2GV9wl1i5vydJZUSyOfrkKFDZEud/jBsTk92S/VGSAe/g==}
@@ -7600,6 +7617,12 @@ packages:
     peerDependencies:
       vue: ^3.0.1
 
+  vxe-pc-ui@4.9.41:
+    resolution: {integrity: sha512-CsaRv7d2NGRkVUOWhF+vHdcS7j1NgGZ5A16564645zS4lIUxkn4pADEieyDsA8GTlNwCZmyYmGtjMfOsUKlcNg==}
+
+  vxe-table@4.16.20:
+    resolution: {integrity: sha512-AUEOqgr/4fFZ9SBg2akepkadI3c8Ct7/zG/gkurUvCIbixsoZr78c4NStmdhLxlFjUeQkiKb8ukesZsjLloAhA==}
+
   w3c-hr-time@1.0.2:
     resolution: {integrity: sha512-z8P5DvDNjKDoFIHK7q8r8lackT6l+jo/Ye3HOle7l9nICP9lf1Ci25fy9vHd0JOWewkIFzXIEig3TdKT7JQ5fQ==}
     deprecated: Use your platform's native performance.now() and performance.timeOrigin.
@@ -7780,6 +7803,9 @@ packages:
   wsl-utils@0.1.0:
     resolution: {integrity: sha512-h3Fbisa2nKGPxCpm89Hk33lBLsnaGBvctQopaBSOW/uIs6FTe1ATyAnKFJrzVs9vpGdsTe73WF3V4lIsk4Gacw==}
     engines: {node: '>=18'}
+
+  xe-utils@3.7.9:
+    resolution: {integrity: sha512-LWH6M7g+TKX8P2fqGxDPgJQygiULhbMtpmfxTMxJTUjuUv9y2+I45UCcVLh5AnmJSxDV1xTxsq7G5P9Eid06JQ==}
 
   xml-name-validator@3.0.0:
     resolution: {integrity: sha512-A5CUptxDsvxKJEU3yO6DuWBSJz/qizqzJKOMIfUJHETbBw/sFaDxgd6fxm1ewUaM0jZ444Fc5vC5ROYurg/4Pw==}
@@ -10445,6 +10471,12 @@ snapshots:
       - '@vue/composition-api'
       - vue
 
+  '@vxe-ui/core@4.2.12(vue@3.5.20(typescript@5.5.4))':
+    dependencies:
+      dom-zindex: 1.0.6
+      vue: 3.5.20(typescript@5.5.4)
+      xe-utils: 3.7.9
+
   '@wangeditor/basic-modules@1.1.7(@wangeditor/core@1.1.19(@uppy/core@2.3.4)(@uppy/xhr-upload@2.1.3(@uppy/core@2.3.4))(dom7@3.0.0)(is-hotkey@0.2.0)(lodash.camelcase@4.3.0)(lodash.clonedeep@4.5.0)(lodash.debounce@4.0.8)(lodash.foreach@4.5.0)(lodash.isequal@4.5.0)(lodash.throttle@4.1.1)(lodash.toarray@4.4.0)(nanoid@3.3.11)(slate@0.72.8)(snabbdom@3.6.2))(dom7@3.0.0)(lodash.throttle@4.1.1)(nanoid@3.3.11)(slate@0.72.8)(snabbdom@3.6.2)':
     dependencies:
       '@wangeditor/core': 1.1.19(@uppy/core@2.3.4)(@uppy/xhr-upload@2.1.3(@uppy/core@2.3.4))(dom7@3.0.0)(is-hotkey@0.2.0)(lodash.camelcase@4.3.0)(lodash.clonedeep@4.5.0)(lodash.debounce@4.0.8)(lodash.foreach@4.5.0)(lodash.isequal@4.5.0)(lodash.throttle@4.1.1)(lodash.toarray@4.4.0)(nanoid@3.3.11)(slate@0.72.8)(snabbdom@3.6.2)
@@ -10753,6 +10785,9 @@ snapshots:
       vue-i18n: 10.0.8(vue@3.5.20(typescript@5.5.4))
       vue-router: 4.5.1(vue@3.5.20(typescript@5.5.4))
       vuedraggable: 4.1.0(vue@3.5.20(typescript@5.5.4))
+      vxe-pc-ui: 4.9.41(vue@3.5.20(typescript@5.5.4))
+      vxe-table: 4.16.20(vue@3.5.20(typescript@5.5.4))
+      xe-utils: 3.7.9
     transitivePeerDependencies:
       - '@vue/composition-api'
       - bufferutil
@@ -11706,6 +11741,8 @@ snapshots:
   dom-align@1.12.4: {}
 
   dom-scroll-into-view@2.0.1: {}
+
+  dom-zindex@1.0.6: {}
 
   dom7@3.0.0:
     dependencies:
@@ -16197,6 +16234,18 @@ snapshots:
       sortablejs: 1.14.0
       vue: 3.5.20(typescript@5.5.4)
 
+  vxe-pc-ui@4.9.41(vue@3.5.20(typescript@5.5.4)):
+    dependencies:
+      '@vxe-ui/core': 4.2.12(vue@3.5.20(typescript@5.5.4))
+    transitivePeerDependencies:
+      - vue
+
+  vxe-table@4.16.20(vue@3.5.20(typescript@5.5.4)):
+    dependencies:
+      vxe-pc-ui: 4.9.41(vue@3.5.20(typescript@5.5.4))
+    transitivePeerDependencies:
+      - vue
+
   w3c-hr-time@1.0.2:
     dependencies:
       browser-process-hrtime: 1.0.0
@@ -16401,6 +16450,8 @@ snapshots:
   wsl-utils@0.1.0:
     dependencies:
       is-wsl: 3.1.0
+
+  xe-utils@3.7.9: {}
 
   xml-name-validator@3.0.0:
     optional: true

@@ -4,7 +4,7 @@ import * as Icons from '@ant-design/icons-vue';
 import {addMenuApi, updateMenuApi, selectById, selectMenuClassify,addMenuClassify} from '~/api/common/menu.js'
 import { message } from 'ant-design-vue';
 import { DownOutlined } from '@ant-design/icons-vue';
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close','getMenuClassify','refreshMenu','getMenusList']);
 const loading = ref(false);
 const formData = ref({})
 const inputClassify = ref('')
@@ -12,7 +12,6 @@ const inputClassify = ref('')
 // 获取所有图标名称和组件
 const columns = ['setTwoToneColor','setTwoToneColor','default','getTwoToneColor','createFromIconfontCN']
 const iconNames = Object.keys(Icons).filter(name => !!Icons[name]).filter(v=> !columns.includes(v));
-const classify = ref([])
 const openAddClassify = ref(false)
 // 计算出当前要显示的图标组件
 const displayedIcon = computed(() => Icons[selectedIcon.value]);
@@ -30,9 +29,12 @@ const props = defineProps({
   title:{type:String, required: true, default:''},
   data:{type:Object,required: false, default:{}},
   menus:{type:Array, required: true, default:[]},
+  classify:{type:Array, required: false, default:[]},
 })
 watchEffect(()=>{
   if(props.data.id){
+    console.log(props.menus)
+    console.log(props.data.id)
     selectById({id:props.data.id}).then(res=>{
       if(props.title === '编辑'){
         formData.value = res.data
@@ -40,6 +42,29 @@ watchEffect(()=>{
         selectedIcon.value = formData.value.icon
       }else {
         formData.value.parentId = res.data.id
+        // 默认排序字段为当前层级的最大排序值 + 1
+        console.log(props.menus)
+        console.log(res.data.id)
+        // 从树形结构中查找指定ID的节点并获取其子节点
+        const findNodeById = (tree, id) => {
+          for (let node of tree) {
+            if (node.id === id) {
+              return node;
+            }
+            if (node.children && node.children.length > 0) {
+              const found = findNodeById(node.children, id);
+              if (found) return found;
+            }
+          }
+          return null;
+        };
+        // 查找当前父节点
+        const parentNode = findNodeById(props.menus, res.data.id);
+        // 获取子节点并计算最大排序值
+        const children = parentNode?.children || [];
+        const maxSort = children.reduce((max, item) => Math.max(max, item.sort || 0), 0);
+        formData.value.sort = maxSort + 1;
+        console.log('当前父节点子项最大排序值:', maxSort, '，新排序值:', formData.value.sort);
       }
     })
 
@@ -50,10 +75,12 @@ watchEffect(()=>{
   getMenuClassify()
 })
 
+const setParentMenu = (sortMax) => {
+  formData.value.sort = sortMax
+}
+
 function getMenuClassify(){
-  selectMenuClassify().then(res=>{
-    classify.value = res.data
-  })
+  emit('getMenuClassify')
 }
 
 function handleOk() {
@@ -63,6 +90,8 @@ function handleOk() {
       if(res.code == 200){
         formData.value = {};
         message.success(res.msg);
+        emit('getMenusList');
+        emit('refreshMenu');
         close()
       }else {
         message.error(res.msg);
@@ -77,6 +106,8 @@ function handleOk() {
       if(res.code == 200){
         formData.value = {};
         message.success(res.msg);
+        emit('getMenusList');
+        emit('refreshMenu');
         close()
       }else {
         message.error(res.msg);
@@ -104,6 +135,10 @@ function addClassifyOk() {
   })
 }
 
+defineExpose({
+  setParentMenu
+})
+
 
 </script>
 
@@ -112,7 +147,7 @@ function addClassifyOk() {
     <a-card>
       <a-form :model="formData"  label-align="right" @finish="handleOk" >
         <a-form-item label="上一级菜单" name="parentId" v-if="title === '新增' || title === '编辑'" :rules="[{ required: false, message: '上一级' }]" >
-          <a-tree-select v-model:value="formData.parentId" :tree-data="menus" :fieldNames="{children:'children',label:'name',value:'id'}" ></a-tree-select>
+          <a-tree-select v-model:value="formData.parentId" :tree-data="menus" :fieldNames="{children:'children',label:'title',value:'id'}" placeholder="请选择父级菜单" style="width: 100%"></a-tree-select>
         </a-form-item>
         <a-form-item label="类型" name="type" :rules="[{ required: true }]">
           <a-select v-model:value="formData.type" >
@@ -166,7 +201,7 @@ function addClassifyOk() {
         <a-form-item label="重定向" name="redirect" v-if="formData.type != 3" :rules="[{ required: false }]">
           <a-input v-model:value="formData.redirect" />
         </a-form-item>
-        <a-form-item label="排序" name="sort" :rules="[{ required: true }]">
+        <a-form-item label="排序" name="sort" >
           <a-input-number v-model:value="formData.sort" style="width: 100%"/>
         </a-form-item>
         <a-form-item label="是否隐藏" name="hideInMenu" :rules="[{ required: true,message: '请选择是否隐藏' }]">
