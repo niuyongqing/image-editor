@@ -6,6 +6,7 @@
       v-model:formData="searchForm"
       reset-set-menu="dataFormEditing"
       @on-submit="getList"
+      @formHeightChange="height => { formHeight = height }"
     >
       <template #formItemBox>
         <a-form-item
@@ -87,9 +88,8 @@
       reset-set-menu="dataForEditing"
       stripe
       row-key="id"
-      :pagination="false"
-      :scroll="{ x: 'max-content', y: 'calc(100vh - 320px)' }"
-      :custom-row="record => ({ onDblclick: () => goEdit(record) })"
+      :scroll="scrollConfig"
+      @rowDoubleClick="record => goEdit(record)"
     >
       <template #bodyCell="{ column, record, index }">
         <!-- 索引列 -->
@@ -211,6 +211,7 @@
     selectUserId: undefined,
     submitTime: null
   })
+  const formHeight = ref(0)
 
   // 提交人下拉列表
   const submiterOptions = ref([])
@@ -226,6 +227,13 @@
   })
   const tableData = ref([])
   const total = ref(0)
+
+  const scrollConfig = computed(() => {
+    return {
+      x: 'max-content',
+      y: `calc(100vh - 210px - ${formHeight.value}px)`
+    }
+  })
 
   getList()
   function getList() {
