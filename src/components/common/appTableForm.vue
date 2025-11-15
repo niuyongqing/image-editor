@@ -78,6 +78,10 @@ const props = defineProps({
     default: () => ({})
   },
   mini: Boolean,            // 是否采用小型紧凑
+  labelWidth: {
+    type: [String, Number],
+    default: '150',
+  }
 });
 const { formData } = toRefs(props); 
 const form = reactive({
@@ -91,6 +95,10 @@ let currentDom = null;      // 当前组件dom
 let contentDom = null;      // 滚动容器dom
 const btnLoading = ref(false);
 const { formItemBox, formItemRow, } = useSlots();
+const labelWidth = computed(() => {
+  let width = props.mini ? (Number(props.labelWidth) * 0.8) : props.labelWidth;
+  return width + 'px';
+})
 onMounted(() => {
   currentDom = document.querySelector('#appTableForm');
   contentDom = document.querySelector('.ant-layout-content');
@@ -255,7 +263,7 @@ function resetForm() {
   :deep(.ant-form-item) {
     margin: 0 16px 16px 0;
     .ant-form-item-label {
-      width: 150px;
+      width: v-bind(labelWidth);
       text-align: right;
     }
     .ant-form-item-control {
@@ -282,7 +290,7 @@ function resetForm() {
   :deep(.mini-form .ant-form-item) {
     margin: 0 8px 8px 0;
     .ant-form-item-label {
-      width: 120px;
+      width: v-bind(labelWidth);
       text-align: right;
       * {
         height: 20px;

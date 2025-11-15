@@ -168,8 +168,7 @@ const props = defineProps({
     // 表格滚动属性
     type: Object,
     default: () => ({
-      y: 'calc(80vh - 120px)',
-      x: '1800px',
+      y: `${window.innerHeight - 74}px`,
     }),
   },
   isTableSetting: {             // 是否启用表格设置
@@ -216,6 +215,15 @@ const showHeader = computed(() => {
   let list = columns.list.filter(i => i.show);
   list = !!options ? [...list, optionsColumn] : list;
   return list;
+})
+const tableBodyMaxHeight = computed(() => {
+  let maxHeight = '';
+  if (typeof props.scroll.y === 'number') {
+    maxHeight = props.scroll.y + 'px'
+  } else {
+    maxHeight = props.scroll.y
+  }
+  return maxHeight;
 })
 //  获取columns
 onMounted(async () => {
@@ -291,16 +299,12 @@ function customRow(row) {
       if (clickTimer) clearTimeout(clickTimer);
       // 设置新定时器（250ms内没有双击则视为单击）
       clickTimer = setTimeout(() => {
-        // rowClick(row)
-        // console.log({ row }, 'click');
         emit('rowClick', row)
       }, 250);
     },
     onDblclick: () => {
       // 双击时立即清除单击定时器
       clearTimeout(clickTimer);
-      // rowDblclick(row);
-      // console.log({ row }, 'dblclick');
       emit('rowDoubleClick', row)
     },
   };
@@ -445,7 +449,7 @@ function getHeader() {
 <style lang="less" scoped>
 .appTableBox {
   width: 100%;
-  height: 100%;
+  // height: 100%;
   padding: 4px;
   display: flex;
   flex-direction: column;
@@ -455,12 +459,12 @@ function getHeader() {
     display: flex;
     justify-content: space-between;
     height: 24px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     .table-title-item {
       width: 60%;
+      display: flex;
       &.item-right { 
         width: 38%;
-        display: flex;
         justify-content: flex-end;
       }
 
@@ -471,15 +475,20 @@ function getHeader() {
   }
   .table-content {
     width: 100%;
-    height: calc(100% - 344px);
+    // height: calc(100% - 344px);
     // margin-bottom: 10px;
+    :deep(.ant-table) {
+      .ant-table-body {
+        height: v-bind(tableBodyMaxHeight) !important;
+      }
+    }
   }
 
   .table-pagination {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    height: 40px;
+    // height: 40px;
     width: 100%;
   }
 
