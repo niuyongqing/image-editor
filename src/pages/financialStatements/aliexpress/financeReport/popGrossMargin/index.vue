@@ -7,13 +7,13 @@
         </a-form-item>
       </template>
     </app-table-form>
-    <app-table-box :reset-set-menu="resetSetMenu" :table-header="columns" :data-source="tableData" @change="tableDataChange">
+    <app-table-box :reset-set-menu="resetSetMenu" :table-header="columns" :data-source="tableData" :scroll="{x: 1800,y: tableHeight}" @change="tableDataChange">
       <template #headerCell="{ column }">
         <div class="custom-header-group" :class="getHeaderClass(column)">
-          <!-- 副标题 -->
-          <div class="group-title" v-if="column.groupShow">
-            {{ column.group }}
-          </div>
+<!--          &lt;!&ndash; 副标题 &ndash;&gt;-->
+<!--          <div class="group-title" v-if="column.groupShow">-->
+<!--            {{ column.group }}-->
+<!--          </div>-->
           <!-- 主标题 -->
           <div class="main-title">
             {{ column.title }}
@@ -36,6 +36,11 @@ const appTableForm = defineAsyncComponent(() => import('@/components/common/appT
 const resetSetMenu = 'popGrossMargin';
 const tableData = ref([]);
 const searchForm = reactive({ name: '' });
+
+//进入页面计算表格高度
+const tableHeight = computed(() => {
+  return window.innerHeight - 390
+})
 
 // 处理列配置，确保有 group 属性
 const columns = computed(() => {
@@ -119,6 +124,9 @@ const tableDataChange = (pagination, filters, sorter) => {
 </script>
 
 <style lang="less" scoped>
+:deep(.ant-table-thead > tr .ant-table-cell-scrollbar){
+  display: none;
+}
 // 表头分组样式
 :deep(.ant-table-thead > tr > th) {
   vertical-align: bottom !important;
