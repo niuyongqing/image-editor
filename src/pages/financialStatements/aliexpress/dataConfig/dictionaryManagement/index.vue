@@ -1,7 +1,7 @@
 <template>
 <div id="dictionaryManagement_index" class="dictionaryManagement_index">
   <div class="index-box left">
-    <a-card style="width: 100%;">
+    <a-card>
       <a-menu
         v-model:selectedKeys="dictionary.selectedKeys"
         mode="inline"
@@ -16,6 +16,7 @@
       @onSubmit="onSubmit"
       @formHeightChange="formHeightChange" 
       resetSetMenu="dictionaryManagement"
+      label-width="100"
     >
       <template #formItemBox>
         <a-form-item label="字典名称" name="itemName">
@@ -28,10 +29,11 @@
       :data-source="dictionary.data"
       reset-set-menu="dictionaryManagement" 
       :scroll="{y: tableScrollHeihth}"
+      :loading="tableLoading"
     >
       <template #bodyCell="{ column: { key }, record: row }">
         <template v-if="key === 'dictType'">
-          {{ dictionary.itemList.find(i => i.dictType === row[key]).dictName }}
+          {{ row.dictName }}
         </template>
         <template v-else-if="key === 'status'">
           <a-switch 
@@ -44,12 +46,12 @@
           />
         </template>
       </template>
-      <template #options>
-        <a-button type="link">编辑</a-button>
+      <template #options="{ record: row }">
+        <a-button type="link" @click="rowEdit(row)">编辑</a-button>
       </template>
       <template #leftTool>
-        <a-button type="primary">导入新增</a-button>
-        <a-button type="primary">新增</a-button>
+        <a-button type="primary" @click="modalInfo.uploadOpen = !modalInfo.uploadOpen">导入新增</a-button>
+        <a-button type="primary" @click="rowEdit()">新增</a-button>
       </template>
       <template #pagination>
         <app-table-pagination
@@ -62,26 +64,72 @@
       </template>
     </appTableBox>
   </div>
-  <appModal></appModal>
+  <editModal 
+    v-model:open="modalInfo.editOpen" 
+    :row-info="modalInfo.row"
+    :dictItem="dictionary.itemInfo"
+    @save="getItemList"
+  ></editModal>
+  <appModal 
+    v-model:openValue="modalInfo.uploadOpen" 
+    :width="'600px'"
+    title="上传新增"
+  >
+    <template #appContent>
+      <a-steps
+        direction="vertical"
+        :current="null"
+        class="custom-steps-no-hover"
+      >
+        <a-step title="导出">
+          <!-- <template #icon>
+            <a-icon type="safety-certificate" />
+          </template> -->
+          <template #description>
+            <div>
+              <p>点击导出模板按钮下载导出模板</p>
+              <a-button type="primary">导出模板</a-button>
+            </div>
+          </template>
+        </a-step>
+        <a-step title="导入">
+          <!-- <template #icon>
+            <a-icon type="safety-certificate" />
+          </template> -->
+          <template #description>
+            <div>
+              <p>点击上传按钮导入Excel文件</p>
+              <a-button type="primary">上传</a-button>
+            </div>
+          </template>
+        </a-step>
+      </a-steps>
+    </template>
+    <template #appFooter>
+      <a-button type="primary" @click="modalInfo.uploadOpen = !modalInfo.uploadOpen">确认</a-button>
+    </template>
+  </appModal>
 </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
+import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue';
 import { itemList, itemStatus, typeList } from './js/api';
 import { dictionaryManagement_header } from './js/tableHeader';
 import appTableForm from '~@/components/common/appTableForm.vue';
 import appTableBox from '~@/components/common/appTableBox.vue';
 import appTablePagination from '~@/components/common/appTablePagination.vue';
 import appModal from '~@/components/common/appModal.vue';
+import editModal from './components/editModal.vue';
 import { message } from 'ant-design-vue';
-defineOptions({ name: "dictionaryManagement_index" })
-const { proxy: _this } = getCurrentInstance()
+defineOptions({ name: "dictionaryManagement_index" });
+const { proxy: _this } = getCurrentInstance();
 const dictionary = reactive({
   data: [],
   total: 0,
   itemList: [],
-  
+  itemInfo: {},
+
   selectedKeys: [],
   tableParams: {
     "pageNum": 1,
@@ -89,76 +137,92 @@ const dictionary = reactive({
     "order": "DESC",
     "prop": "create_time"
   }
-})
-const modalInfo = reactive({})
+});
+const tableLoading = ref(false);
+const modalInfo = reactive({
+  row: {},
+  editOpen: false,
+  uploadOpen: false,
+});
 const formData = reactive({
   itemName: undefined,
-})
-const formParams = {}
-const formHeight = ref(0)
+});
+const formParams = {};
+const formHeight = ref(0);
 const innerHeight = computed(() => {
   return (window.innerHeight * 0.95) + 'px';
-})
+});
 const tableScrollHeihth = computed(() => {
-  return ((window.innerHeight * 0.96) - 20 - 24 - 24 - 8 - 40 - 56 - formHeight.value) + 'px';
-})
+  return ((window.innerHeight * 0.96) - 20 - 24 - 24 - 8 - 40 - 56 - formHeight.value);
+});
 onMounted(async () => {
-  await getTypeList()
-  await getItemList()
-})
+  await getTypeList();
+  await getItemList();
+});
 // 获取字典类型列表
 async function getTypeList() {
   try {
-    let res = await typeList()
+    let res = await typeList();
     res.data = res.data ?? [];
     res.data.forEach(item => {
-      item.key = item.dictType
-      item.label = item.dictName
-      item.title = item.dictName
-    })
+      item.key = item.dictType;
+      item.label = item.dictName;
+      item.title = item.dictName;
+    });
     dictionary.itemList = res.data;
-    dictionary.selectedKeys.push(res.data[0]?.dictType)
+    dictionary.selectedKeys.push(res.data[0]?.dictType);
+    dictionary.itemInfo = res.data[0];
   } catch (error) {
     console.error(error);
   }
 }
 // 点击字典类型
 function itemSelect({ item, key, selectedKeys }) {
-  console.log({ item, key, selectedKeys });
+  // console.log({ item, key, selectedKeys });
+  dictionary.itemInfo = item;
+  formData.itemName = '';
+  onSubmit();
 }
 // 分页器页数变化
 function pageNumChange(val) {
-  dictionary.tableParams.pageNum = val
-  getItemList()
+  dictionary.tableParams.pageNum = val;
+  getItemList();
 }
 // 分页器每页条数变化
 function pageSizeChange(val) {
   dictionary.tableParams.pageSize = val;
-  pageNumChange(1)
+  pageNumChange(1);
 }
 // 点击搜索
 function onSubmit(val) {
-  Object.assign(formParams, formData)
-  pageNumChange(1)
+  Object.assign(formParams, formData);
+  pageNumChange(1);
 }
 async function statusChange(val, row) {
   // console.log({val, row});
   let params = {
     "itemId": row.itemId,
     "status": val,
-  }
+  };
   try {
-    await itemStatus(params)
-    message.success(val === 'enabled' ? '启用成功！':'停用成功！')
+    await itemStatus(params);
+    message.success(val === 'enabled' ? '启用成功！' : '停用成功！');
   } catch (error) {
     row.status = val !== 'enabled' ? 'enabled' : 'disabled';
   }
+}
+// 新增/编辑字典数据
+function rowEdit(row = {}) {
+  // console.log({ row });
+  modalInfo.row = row;
+  modalInfo.editOpen = !modalInfo.editOpen;
 }
 function formHeightChange(val) {
   formHeight.value = val;
 }
 // 获取字典数据
 async function getItemList(val) {
+
   let params = {
     "itemName": formParams.itemName,
     "itemValue": "",
@@ -169,15 +233,22 @@ async function getItemList(val) {
     "pageSize": dictionary.tableParams.pageSize,
     "order": "DESC",
     "prop": "create_time"
+  };
+  tableLoading.value = true;
+  try {
+    let res = await itemList(params);
+    let data = res.data;
+    data.map((item, index) => {
+      item.rowIndex = index + 1;
+      item.dictName = dictionary.itemList.find(i => i.dictType === item.dictType).dictName;
+      // item.statusType = (item.status === 'enabled');
+    });
+    dictionary.total = res.total;
+    dictionary.data = data;
+  } catch (error) {
+    console.error(error);
   }
-  let res = await itemList(params);
-  let data = res.data;
-  data.map((item, index) => {
-    item.rowIndex = index + 1;
-    // item.statusType = (item.status === 'enabled');
-  })
-  // dictionary.total = res.total
-  dictionary.data = data;
+  tableLoading.value = false;
 }
 </script>
 <style lang="less" scoped>
@@ -189,10 +260,17 @@ async function getItemList(val) {
     &.left {
       padding: 4px;
       width: 150px;
+      :deep(.ant-card) {
+        width: 100%;
+        height: 100%;
+      }
     }
     &.right {
       width: calc(100% - 150px);
     }
+  }
+  :deep(.ant-menu.ant-menu-root) {
+    border-inline-end: transparent;
   }
 }
 </style>
