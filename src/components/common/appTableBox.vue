@@ -462,9 +462,9 @@ function getHeader() {
     margin-bottom: 8px;
     .table-title-item {
       width: 60%;
+      display: flex;
       &.item-right { 
         width: 38%;
-        display: flex;
         justify-content: flex-end;
       }
 
