@@ -1,10 +1,10 @@
 <template>
-<div id="appTableForm" class="appTableForm" :class="{'stickyTop': form.scrollTop >= form.offsetHeight}">
+<div id="appTableForm" class="appTableForm" :class="{'stickyTop': form.scrollTop > form.offsetHeight}">
   <a-card>
     <a-form 
       v-bind="$attrs" 
       v-show="form.formShow"
-      :model="form.formData" 
+      :model="formData" 
       ref="appTableFormRef"
       :rules="rules"
       :class="{'mini-form': mini}"
@@ -19,8 +19,8 @@
       </div>
       <div class="formItem-row right">
         <a-space>
-          <a-button key="submit" @click="resetForm">重置</a-button>
           <a-button key="submit" type="primary" @click="onSubmit">查询</a-button>
+          <a-button key="submit" @click="resetForm">重置</a-button>
           <a-popover placement="bottomRight" trigger="click">
             <template #content>
               <div class="formSetting-box">
@@ -59,7 +59,7 @@
 <script setup>
 import { message } from 'ant-design-vue';
 import { cloneDeep, debounce } from 'lodash-es';
-import { ref, reactive, onMounted, onBeforeUnmount, computed, watchPostEffect, useSlots } from 'vue';
+import { ref, reactive, onMounted, onBeforeUnmount, computed, toRefs, useSlots } from 'vue';
 import asyncIcon from '~@/layouts/components/menu/async-icon.vue';
 defineOptions({ name: "appTableForm" });
 const { proxy: _this } = getCurrentInstance();
@@ -78,9 +78,13 @@ const props = defineProps({
     default: () => ({})
   },
   mini: Boolean,            // 是否采用小型紧凑
+  labelWidth: {
+    type: [String, Number],
+    default: '150',
+  }
 });
+const { formData } = toRefs(props); 
 const form = reactive({
-  formData: {},             // 表单绑定数据
   copyFormData: {},         // 原始数据用于重置
   settingList: [],          // 设置列表
   formShow: true,
@@ -91,21 +95,11 @@ let currentDom = null;      // 当前组件dom
 let contentDom = null;      // 滚动容器dom
 const btnLoading = ref(false);
 const { formItemBox, formItemRow, } = useSlots();
-watch(() => props.formData, (val, oldVal) => {
-  // form.formData = val
-  Object.assign(form.formData, val);
-  if (form.formData !== val) {
-    emit('update:formData', form.formData);
-  }
-}, {
-  deep: true,
-});
-watch(() => form.offsetHeight, (val, oldVal) => {
-  emit('formHeightChange', val);
-});
+const labelWidth = computed(() => {
+  let width = props.mini ? (Number(props.labelWidth) * 0.8) : props.labelWidth;
+  return width + 'px';
+})
 onMounted(() => {
-  form.formData = cloneDeep(props.formData);
-  emit('update:formData', form.formData);
   currentDom = document.querySelector('#appTableForm');
   contentDom = document.querySelector('.ant-layout-content');
   form.copyFormData = cloneDeep(props.formData);
@@ -138,6 +132,7 @@ function formShowFn() {
 // 获取当前表单组件高度
 function getHeight() {
   form.offsetHeight = currentDom.offsetHeight;
+  emit('formHeightChange', form.offsetHeight);
 }
 // 生成筛选条件设置列表
 function generateSettingNameList(val) {
@@ -241,7 +236,7 @@ function formItemShow(val) {
 async function onSubmit() {
   try {
     await _this.$refs.appTableFormRef.validateFields();
-    emit('onSubmit');
+    emit('onSubmit', cloneDeep(formData.value));
   } catch (error) {
     message.error('请填写必填项！');
   }
@@ -249,9 +244,8 @@ async function onSubmit() {
 // 重置
 function resetForm() {
   let data = cloneDeep(form.copyFormData);
-  // console.log(111, data);
-  Object.assign(form.formData, data);
-  emit('update:formData', form.formData);
+  Object.assign(formData.value, data);
+  emit('update:formData', formData.value);
   nextTick(() => {
     _this.$refs.appTableFormRef.resetFields();
   });
@@ -269,7 +263,7 @@ function resetForm() {
   :deep(.ant-form-item) {
     margin: 0 16px 16px 0;
     .ant-form-item-label {
-      width: 150px;
+      width: v-bind(labelWidth);
       text-align: right;
     }
     .ant-form-item-control {
@@ -296,7 +290,7 @@ function resetForm() {
   :deep(.mini-form .ant-form-item) {
     margin: 0 8px 8px 0;
     .ant-form-item-label {
-      width: 120px;
+      width: v-bind(labelWidth);
       text-align: right;
       * {
         height: 20px;
