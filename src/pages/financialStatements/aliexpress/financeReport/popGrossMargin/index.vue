@@ -1,5 +1,6 @@
 <template>
   <div>
+<!--    搜索区域-->
     <app-table-form :reset-set-menu="resetSetMenu" v-model:formData="searchForm" @onSubmit="onSubmit" :mini="true">
       <template #formItemBox>
         <a-form-item label="Activity name" name="name">
@@ -7,7 +8,13 @@
         </a-form-item>
       </template>
     </app-table-form>
+
     <app-table-box :reset-set-menu="resetSetMenu" :table-header="columns" :data-source="tableData" :scroll="{x: 1800,y: tableHeight}" @change="tableDataChange">
+<!--      按钮区域-->
+      <template #leftTool>
+        <a-button type="primary"><ArrowDownOutlined />导出</a-button>
+      </template>
+<!--      表格个性化区域-->
       <template #headerCell="{ column }">
         <div class="custom-header-group" :class="getHeaderClass(column)">
 <!--          &lt;!&ndash; 副标题 &ndash;&gt;-->
@@ -20,49 +27,38 @@
           </div>
         </div>
       </template>
+<!--      分页器区域-->
+      <template #pagination>
+        <pagination v-model:current="tableParms.pageNum" v-model:pageSize="tableParms.pageSize" :total="tableParms.total" @pageNumChange="pageNumChange" @pageSizeChange="pageSizeChange"></pagination>
+      </template>
     </app-table-box>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, defineAsyncComponent, onMounted, computed } from 'vue';
 defineOptions({ name: 'popGrossMargin' });
+import { ref, reactive, defineAsyncComponent, onMounted, computed } from 'vue';
+import { ArrowDownOutlined } from "@ant-design/icons-vue";
 import tableHeader from '@/pages/financialStatements/aliexpress/financeReport/popGrossMargin/js/tableHeader.js';
 
 // 异步加载组件
 const appTableBox = defineAsyncComponent(() => import('@/components/common/appTableBox.vue'));
 const appTableForm = defineAsyncComponent(() => import('@/components/common/appTableForm.vue'));
+const pagination = defineAsyncComponent(() => import('@/components/common/appTablePagination.vue'));
 
 const resetSetMenu = 'popGrossMargin';
 const tableData = ref([]);
-const searchForm = reactive({ name: '' });
 
-//进入页面计算表格高度
-const tableHeight = computed(() => {
-  return window.innerHeight - 390
-})
-
-// 处理列配置，确保有 group 属性
-const columns = computed(() => {
-  return tableHeader.map(col => ({
-    ...col,
-    // 确保每个列都有 group 属性，如果没有就设为空字符串
-    group: col.group || ''
-  }));
+const tableParms = reactive({
+  pageNum: 1,
+  pageSize: 50,
+  total: 0,
 });
-
-// 根据 group 返回对应的 CSS 类名
-const getHeaderClass = (column) => {
-  const groupMap = {
-    '利润': 'profit-group',
-    '收入': 'income-group',
-    '成本': 'cost-group',
-    '支出': 'expenditure-group',
-    '其他': 'other-group',
-    '': 'default-group'
-  };
-  return groupMap[column.group] || 'default-group';
-};
+const searchForm = reactive({
+  pageNum: 1,
+  pageSize: 50,
+  name: ''
+});
 
 onMounted(() => {
   tableData.value = [
@@ -114,13 +110,52 @@ onMounted(() => {
   ];
 });
 
+//进入页面计算表格高度
+const tableHeight = computed(() => {
+  return window.innerHeight - 320
+})
+
+// 处理列配置，确保有 group 属性
+const columns = computed(() => {
+  return tableHeader.map(col => ({
+    ...col,
+    // 确保每个列都有 group 属性，如果没有就设为空字符串
+    group: col.group || ''
+  }));
+});
+
+// 根据 group 返回对应的 CSS 类名
+const getHeaderClass = (column) => {
+  const groupMap = {
+    '利润': 'profit-group',
+    '收入': 'income-group',
+    '成本': 'cost-group',
+    '支出': 'expenditure-group',
+    '其他': 'other-group',
+    '': 'default-group'
+  };
+  return groupMap[column.group] || 'default-group';
+};
+
+//查询回调
 const onSubmit = (e) => {
   console.log(searchForm);
 };
 
+//表格排序操作
 const tableDataChange = (pagination, filters, sorter) => {
   console.log(sorter);
 };
+
+//页数回调
+const pageNumChange = (val) =>{
+  console.log(val);
+}
+
+//页数大小回调
+const pageSizeChange = (val) =>{
+  console.log(val);
+}
 </script>
 
 <style lang="less" scoped>
