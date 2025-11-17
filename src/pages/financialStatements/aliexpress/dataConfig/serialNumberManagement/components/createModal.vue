@@ -12,27 +12,31 @@
         :label-col="{ span: 4 }"
         ref="formRef"
       >
-        <a-form-item label="字典类型" name="dictType">
-          {{ props.dictItem.dictName }}
-        </a-form-item>
-        <a-form-item
-          label="字典名称"
-          name="itemName"
-          :rules="[{ required: true, message: '请填写字典名称!' }]"
+        <a-form-item 
+          label="年份" 
+          name="year" 
+          :rules="[{ required: true, message: '请输入年份!' }]"
         >
-          <a-input v-model:value="formData.itemName" />
+          <a-date-picker 
+            v-model:value="formData.year" 
+            picker="year" 
+            value-format="YYYY"
+          />
+        </a-form-item>
+        <a-form-item 
+          label="月份" 
+          name="month"
+          :rules="[{ required: true, message: '请输入月份!' }]"
+        >
+          <a-select
+            v-model:value="formData.month"
+            :options="options.monthList"
+            placeholder="请输入月份"
+            allowClear
+          ></a-select>
         </a-form-item>
         <a-form-item label="备注" name="remark">
           <a-textarea v-model:value="formData.remark" :rows="3"/>
-        </a-form-item>
-        <a-form-item label="状态" name="status">
-          <a-switch 
-            v-model:checked="formData.status" 
-            checked-children="启用" 
-            un-checked-children="停用" 
-            :checkedValue="'enabled'"
-            :unCheckedValue="'disabled'"
-          />
         </a-form-item>
       </a-form>
     </template>
@@ -45,9 +49,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
+import { ref, reactive, h } from 'vue'
+import { generateVersion } from '../js/api';
+import dayjs from 'dayjs';
 import appModal from '~@/components/common/appModal.vue'
-import { itemSave } from '../js/api';
+import asyncIcon from '~@/layouts/components/menu/async-icon.vue';
+import { Modal } from 'ant-design-vue';
+import { InfoCircleOutlined } from '@ant-design/icons-vue';
 defineOptions({ name: "dictionaryManagement_editModal" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:open', 'save'])
@@ -56,39 +64,27 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  rowInfo: {
+  options: {
     type: Object,
-    default: () => ({})
-  },
-  dictItem: {
-    type: Object,
-    default: () => ({})
+    default: () => ({
+      monthList: []
+    })
   }
 })
 const openValue = ref(false);
 const btnLoading = ref(false)
 const formData = reactive({
-  itemId: null,
-  itemName: '',
-  itemValue: '',
-  // 'itemSort': 1,
-  dictType: '',
-  status: 'enabled',
+  year: dayjs(),
+  month: undefined,
   remark: ''
 });
 const resetData = {
-  itemId: null,
-  itemName: '',
-  itemValue: '',
-  // 'itemSort': 1,
-  dictType: '',
-  status: 'enabled',
+  year: dayjs(),
+  month: undefined,
   remark: ''
 }
 // const { open, rowInfo } = toRefs(props)
-const title = computed(() => {
-  return props.rowInfo.itemId ? '编辑' : '新增';
-});
+const title = '生成流水号';
 watch(() => props.open, (val, oldVal) => {
   openValue.value = val;
 });
@@ -109,14 +105,27 @@ function handleCustomCancel() {
 }
 async function handleCustomOk() {
   try {
+    await _this.$refs.formRef.validateFields()
     btnLoading.value = true;
-    let params = {
-      ...formData,
-      dictType: props.dictItem.dictType
-    }
-    await itemSave(params)
-    emit('save')
-    handleCustomCancel()
+    const customContent = h('p', { style: { color: '#ff4d4f' } }, '数据计算需要占用大量服务器资源，请确认数据已经完全确认过后再操作！');
+    Modal.confirm({
+      title: '确定要生成流水号吗？',
+      content: customContent, // 插入自定义DOM节点
+      okText: '确认',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          let params = {
+            ...formData,
+          }
+          await generateVersion(params)
+          emit('save')
+          handleCustomCancel()
+        } catch (error) {
+          console.error(error);
+        }
+      } // 点击确认时触发
+    });
   } catch (error) {
     console.error(error);
   }

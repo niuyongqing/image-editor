@@ -14,48 +14,36 @@ function getParamsFn(data) {
 }
 
 /**
- * // 字典类型列表
+ * // 流水号列表
  * @param {*} data
  * @returns
  */
 export function typeList(data) {
   return request({
-    url: '/report-aliexpress/report/aliexpress/dict/type-list',
+    url: '/report-aliexpress/report/aliexpress/report-version/type-list',
     method: 'post',
   })
 }
 /**
- * // 字典列表
+ * // 生成流水号
  * @param {*} data
  * @returns
  */
-export function itemList(data) {
+export function generateVersion(data) {
   return request({
-    url: '/report-aliexpress/report/aliexpress/dict/item-list',
+    url: '/report-aliexpress/report/aliexpress/report-version/generate',
     method: 'post',
     data: data,
   })
 }
 /**
- * // 字典保存
+ * // ERP用户信息查询
  * @param {*} data
  * @returns
  */
-export function itemSave(data) {
+export function userList(data) {
   return request({
-    url: '/report-aliexpress/report/aliexpress/dict/item-save',
-    method: 'post',
-    data: data
-  })
-}
-/**
- * // 字典状态更新
- * @param {*} data
- * @returns
- */
-export function itemStatus(data) {
-  return request({
-    url: '/report-aliexpress/report/aliexpress/dict/item-status',
+    url: '/xinzhan-system/user/by-dept-name',
     method: 'post',
     data: data
   })
