@@ -11,6 +11,10 @@
 
 <!--    表格区域-->
     <app-table-box :reset-set-menu="resetSetMenu" :table-header="tableHeader" :data-source="tableData" :scroll="{x: 1800,y: tableHeight}" @change="tableDataChange">
+<!--      操作区-->
+      <template #options="{ record, column }">
+        <a-button type="link">回溯版本</a-button>
+      </template>
 <!--      分页器区域-->
       <template #pagination>
         <pagination v-model:current="tableParms.pageNum" v-model:pageSize="tableParms.pageSize" :total="tableParms.total" @pageNumChange="pageNumChange" @pageSizeChange="pageSizeChange"></pagination>
@@ -49,7 +53,7 @@ const tableParms = reactive({
 const searchForm = reactive({
   pageNum: 1,
   pageSize: 50,
-  month: []
+  month: null
 });
 
 onMounted(() => {
