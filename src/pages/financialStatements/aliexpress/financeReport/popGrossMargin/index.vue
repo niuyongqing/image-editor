@@ -1,7 +1,7 @@
 <template>
   <div>
 <!--    搜索区域-->
-    <app-table-form :reset-set-menu="resetSetMenu" v-model:formData="searchForm" @onSubmit="onSubmit" :mini="true">
+    <app-table-form :reset-set-menu="resetSetMenu" v-model:formData="searchForm" @onSubmit="onSubmit">
       <template #formItemBox>
         <a-form-item label="店铺" name="name">
           <a-select v-model:value="searchForm.name" mode="multiple" show-search allowClear :maxTagCount="1" placeholder="请输入店铺">
