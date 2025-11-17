@@ -4,17 +4,41 @@
     <app-table-form :reset-set-menu="resetSetMenu" v-model:formData="searchForm" @onSubmit="onSubmit" :mini="true">
       <template #formItemBox>
         <a-form-item label="店铺" name="name">
-          <a-select v-model:value="searchForm.name" mode="multiple" placeholder="请输入店铺">
+          <a-select v-model:value="searchForm.name" mode="multiple" show-search allowClear :maxTagCount="1" placeholder="请输入店铺">
             <a-select-option v-for="shop in shopOptions" :key="shop" :value="shop">
               {{ shop }}
+            </a-select-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item label="部门" name="dept">
+          <a-select v-model:value="searchForm.dept" mode="multiple" show-search allowClear :maxTagCount="1" placeholder="请输入部门">
+            <a-select-option v-for="dept in deptOptions" :key="dept" :value="dept">
+              {{ dept }}
+            </a-select-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item label="运营人员" name="people">
+          <a-select v-model:value="searchForm.people" mode="multiple" show-search allowClear :maxTagCount="1" placeholder="请输入运营人员">
+            <a-select-option v-for="people in peopleOptions" :key="people" :value="people">
+              {{ people }}
+            </a-select-option>
+          </a-select>
+        </a-form-item>
+      </template>
+      <template #formItemRow>
+        <a-form-item label="日期" name="people">
+          <a-select v-model:value="searchForm.people" mode="multiple" show-search allowClear :maxTagCount="1" placeholder="请输入运营人员">
+            <a-select-option v-for="people in peopleOptions" :key="people" :value="people">
+              {{ people }}
             </a-select-option>
           </a-select>
         </a-form-item>
       </template>
     </app-table-form>
 
+<!--    表格区域-->
     <app-table-box :reset-set-menu="resetSetMenu" :table-header="columns" :data-source="tableData" :scroll="{x: 1800,y: tableHeight}" @change="tableDataChange">
-<!--      按钮区域-->
+<!--      按钮-->
       <template #leftTool>
         <a-button type="primary"><ArrowDownOutlined />导出</a-button>
       </template>
@@ -53,6 +77,8 @@ const pagination = defineAsyncComponent(() => import('@/components/common/appTab
 const resetSetMenu = 'popGrossMargin';
 const tableData = ref([]);
 const shopOptions = ref(['店铺1', '店铺2', '店铺3']);
+const deptOptions = ref(['部门1', '部门2', '部门3']);
+const peopleOptions = ref(['人员1', '人员2', '人员3'])
 
 const tableParms = reactive({
   pageNum: 1,
@@ -62,7 +88,9 @@ const tableParms = reactive({
 const searchForm = reactive({
   pageNum: 1,
   pageSize: 50,
-  name: []
+  name: [],
+  dept: [],
+  people: [],
 });
 
 onMounted(() => {

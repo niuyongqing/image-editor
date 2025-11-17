@@ -10,8 +10,6 @@ declare module 'vue' {
     AAlert: typeof import('ant-design-vue/es')['Alert']
     AApp: typeof import('ant-design-vue/es')['App']
     AAvatar: typeof import('ant-design-vue/es')['Avatar']
-    ABreadcrumb: typeof import('ant-design-vue/es')['Breadcrumb']
-    ABreadcrumbItem: typeof import('ant-design-vue/es')['BreadcrumbItem']
     AButton: typeof import('ant-design-vue/es')['Button']
     ACard: typeof import('ant-design-vue/es')['Card']
     Access: typeof import('./../src/components/access/index.vue')['default']
