@@ -60,3 +60,30 @@ export function itemStatus(data) {
     data: data
   })
 }
+/**
+ * // 字典模板下载
+ * @param {*} data
+ * @returns
+ */
+export function itemTempExport(data) {
+  return request({
+    url: '/report-aliexpress/report/aliexpress/dict/item-temp-export',
+    method: 'post',
+    data: data
+  })
+}
+/**
+ * // 字典导入
+ * @param {*} data
+ * @returns
+ */
+export function itemImport(data) {
+  return request({
+    url: '/report-aliexpress/report/aliexpress/dict/item-import',
+    method: 'post',
+    data: data,
+    headers: {  
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
