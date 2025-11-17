@@ -268,6 +268,7 @@ function resetForm() {
     }
     .ant-form-item-control {
       width: 200px;
+      min-width: 200px;
       .ant-picker {
         width: 100%;
         .ant-picker-range-separator {
@@ -300,6 +301,7 @@ function resetForm() {
     }
     .ant-form-item-control {
       width: 180px;
+      min-width: 180px;
       .ant-picker {
         width: 100%;
         .ant-picker-range-separator {
