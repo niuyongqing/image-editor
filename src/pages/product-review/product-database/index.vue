@@ -113,7 +113,7 @@
         :loading="tableData.loading" class="productDatabase-table">
         <template #bodyCell="{ column: { key }, record }">
           <template v-if="key === 'action'">
-            <a-button @click="handleSelect(record)" type="link">选中</a-button>
+            <!-- <a-button @click="handleSelect(record)" type="link">选中</a-button> -->
             <a-button @click="listingPicks([record])" type="link">智能选品</a-button>
             <a-button @click="detailsModalOpen(record)" type="link">详情</a-button>
             <!-- v-has-permi="['system:store:intelligent:selection:product']" -->
@@ -135,8 +135,8 @@
             <span v-if="record.devAccount == 8">菲律宾本土仓开发</span>
           </template>
           <template v-else-if="key === 'isIntelligent'">
-            <a-tag v-if="record.isIntelligent == 0" color="error">未参加</a-tag>
-            <a-tag v-else color="success">已参加</a-tag>
+            <a-tag v-if="record.isIntelligent == 0" color="error">未选品</a-tag>
+            <a-tag v-else color="success">已选品</a-tag>
           </template>
           <template v-else-if="key === 'devAttributableMarket'">
             <div v-html="devAttributableMarket(record.devAttributableMarket)"></div>
@@ -597,6 +597,7 @@ const handleEditProduct = (product) => {
   // 只有终审取得是intelligentProductId 其余的都是取得的id
   const params = {
     commodityId: product.commodityId,
+    id: product.id,
   };
   console.log(product);
   const urlData = router.resolve({
