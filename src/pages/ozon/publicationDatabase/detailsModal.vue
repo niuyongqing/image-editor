@@ -196,13 +196,6 @@ const publishHead = [
     align: 'center',
     width: 180
   },
-  // {
-  //   dataIndex: 'price',
-  //   title: '策划数量',
-  //   show: true,
-  //   align: 'center',
-  //   width: 180
-  // },
   {
     dataIndex: 'costPrice',
     title: '成本价（CNY）',
@@ -213,6 +206,20 @@ const publishHead = [
   {
     dataIndex: 'stock',
     title: '库存',
+    show: true,
+    align: 'center',
+    width: 120
+  },
+  {
+    title: '策划数量',
+    dataIndex: 'planNum',
+    show: true,
+    align: 'center',
+    width: 80
+  },
+  {
+    title: '售卖单位',
+    dataIndex: 'saleUnit',
     show: true,
     align: 'center',
     width: 120
