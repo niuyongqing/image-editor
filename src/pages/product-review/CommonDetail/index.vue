@@ -208,9 +208,8 @@
   /** 保存并提交终审 */
   const reviewLoading = ref(false)
   function toFinalReview() {
-    reviewLoading.value = true
-    save(true)
-      .then(() => {
+    save(true).then(() => {
+        reviewLoading.value = true
         const params = [
           {
             auditStatus: 50, // 待终审

@@ -16,6 +16,7 @@
           :field-names="{ label: 'simpleName', value: 'account' }"
           option-filter-prop="simpleName"
           show-search
+          disabled
           class="w-60!"
         />
       </a-form-item>
@@ -35,7 +36,7 @@
         name="categoryId"
         required
       >
-        <a-button @click="categoryOpen = true">选择分类</a-button>
+        <a-button disabled @click="categoryOpen = true">选择分类</a-button>
         <div
           v-if="categoryLabels"
           class="text-gray"
