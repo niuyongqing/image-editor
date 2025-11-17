@@ -3,8 +3,12 @@
 <!--    搜索区域-->
     <app-table-form :reset-set-menu="resetSetMenu" v-model:formData="searchForm" @onSubmit="onSubmit" :mini="true">
       <template #formItemBox>
-        <a-form-item label="Activity name" name="name">
-          <a-input v-model:value="searchForm.name" />
+        <a-form-item label="店铺" name="name">
+          <a-select v-model:value="searchForm.name" mode="multiple" placeholder="请输入店铺">
+            <a-select-option v-for="shop in shopOptions" :key="shop" :value="shop">
+              {{ shop }}
+            </a-select-option>
+          </a-select>
         </a-form-item>
       </template>
     </app-table-form>
@@ -48,6 +52,7 @@ const pagination = defineAsyncComponent(() => import('@/components/common/appTab
 
 const resetSetMenu = 'popGrossMargin';
 const tableData = ref([]);
+const shopOptions = ref(['店铺1', '店铺2', '店铺3']);
 
 const tableParms = reactive({
   pageNum: 1,
@@ -57,7 +62,7 @@ const tableParms = reactive({
 const searchForm = reactive({
   pageNum: 1,
   pageSize: 50,
-  name: ''
+  name: []
 });
 
 onMounted(() => {
