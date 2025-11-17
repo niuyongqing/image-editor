@@ -1,16 +1,5 @@
 export const header = [
   {
-    title: "操作",
-    dataIndex: "action",
-    key: "action",
-    slot: "action",
-    align: "center",
-    sorter: false,
-    show: true,
-    width: 130,
-    fixed: 'left',
-  },
-  {
     title: "主图",
     dataIndex: "artMainImage",
     key: "artMainImage",
@@ -73,6 +62,16 @@ export const header = [
     key: "status",
     slot: "status",
     sortField: "status", // 排序字段
+    align: "center",
+    sorter: true,
+    width: 140,
+  },
+  {
+    title: "是否智能刊登",
+    dataIndex: "isIntelligent",
+    key: "isIntelligent",
+    slot: "isIntelligent",
+    sortField: "isIntelligent", // 排序字段
     align: "center",
     sorter: true,
     width: 140,
@@ -235,5 +234,16 @@ export const header = [
     sorter: false,
     width: 120,
     align: "center",
+  },
+    {
+    title: "操作",
+    dataIndex: "action",
+    key: "action",
+    slot: "action",
+    align: "center",
+    sorter: false,
+    show: true,
+    width: 180,
+    fixed: 'right',
   },
 ]
