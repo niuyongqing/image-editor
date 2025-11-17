@@ -52,7 +52,7 @@ const pagination = defineAsyncComponent(() => import('@/components/common/appTab
 
 const resetSetMenu = 'popGrossMargin';
 const tableData = ref([]);
-const shopOptions = ref(['店铺1', '店铺2', '店铺3'  ]);
+const shopOptions = ref(['店铺1', '店铺2', '店铺3']);
 
 const tableParms = reactive({
   pageNum: 1,
