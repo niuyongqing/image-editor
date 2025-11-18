@@ -1150,7 +1150,7 @@
     // 校验图片数量
     const mainMin = 1
     const mainMax = 999
-    const subMin = 1
+    const subMin = 5
     const subMax = 999
     for (const record of SKUTableData.value) {
       if (record.mainImages.length < mainMin || record.mainImages.length > mainMax) {
