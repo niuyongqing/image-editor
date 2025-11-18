@@ -173,6 +173,11 @@
                 @click="openRemorkModal(record)"
                 >备注</a-button
               >
+              <a-button
+                type="link"
+                @click="goFather(record)"
+                >来源</a-button
+              >
               <a-popconfirm
                 title="确定取消刊登?"
                 :disabled="record.publishStatus !== 10"
@@ -390,6 +395,11 @@
 
   function goEdit(record) {
     window.open(`/platform/intelligent-publication/publication-list-detail?waitPublishProductId=${record.waitPublishProductId}`)
+  }
+
+  // 跳转到来源产品详情
+  function goFather(record) {
+    window.open(`/platform/intelligent-publication/publication-list-source-detail?intelligentProductId=${record.intelligentProductId}`)
   }
 
   function cancel(record) {
