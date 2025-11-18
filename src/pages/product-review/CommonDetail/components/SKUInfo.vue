@@ -1157,18 +1157,18 @@
     }
 
     if (!flag) return false // 短路
-    // 校验图片数量
-    const min = 5
-    const max = 30
+    // 校验图片数量 (说是不限制, 但至少得传1张吧, 也不能传个大几百张吧)
+    const min = 1
+    const max = 999
     for (const record of SKUTableData.value) {
       if (record.mainImages.length < min || record.mainImages.length > max) {
-        message.error('主图的数量不符合限制')
+        message.error('主图的数量不符合限制, 请至少上传一张图片')
 
         flag = false
         break
       }
       if (record.subImages.length < min || record.subImages.length > max) {
-        message.error('副图的数量不符合限制')
+        message.error('副图的数量不符合限制, 请至少上传一张图片')
 
         flag = false
         break
