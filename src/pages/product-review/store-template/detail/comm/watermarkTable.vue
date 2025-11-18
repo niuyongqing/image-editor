@@ -216,7 +216,7 @@ const userInfo = computed(() => {
 })
 
 const templateDisabled = (record) => {
-  return record.userId !== userInfo.value.userid || props.disabled
+  return record.userId !== userInfo.value.userid || props.disabled || !record.title
 }
 // ==================== 工具函数 ====================
 /**
