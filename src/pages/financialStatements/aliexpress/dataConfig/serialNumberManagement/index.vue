@@ -109,6 +109,7 @@ import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue';
 import { serialNumberManagement_header } from './js/tableHeader';
 import { versionList, userList, acceptVersion } from './js/api';
 import dayjs from 'dayjs';
+import { monthList } from '~@/pages/financialStatements/common/data';
 import createModal from './components/createModal.vue';
 defineOptions({ name: "serialNumberManagement_index" });
 const { proxy: _this } = getCurrentInstance();
@@ -136,7 +137,7 @@ const formData = reactive({
 });
 const formParams = {};
 const options = reactive({
-  monthList: [],              // 月
+  monthList,              // 月
   allUserList: [],            // 人员列表
   rangeOptions: [
     {
@@ -153,14 +154,10 @@ const options = reactive({
     },
   ],
 });
-options.monthList = Array.from({ length: 12 }, (_, i) => ({
-  value: (i + 1).toString().padStart(2, '0'),
-  label: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'][i]
-}));
 const formHeight = ref(0);
-const innerHeight = computed(() => {
-  return (window.innerHeight * 0.95) + 'px';
-});
+// const innerHeight = computed(() => {
+//   return (window.innerHeight * 0.95) + 'px';
+// });
 const tableScrollHeihth = computed(() => {
   return ((window.innerHeight * 0.96) - 20 - 24 - 24 - 8 - 40 - 56 - formHeight.value);
 });
