@@ -99,6 +99,8 @@
                     />
                   </span>
                   <span v-else class="text-preview">{{ item.content }}</span>
+                  <!-- 显示是否为当前用户创建的水印 -->
+                  <span v-if="item.isUserCreated" class="user-created">（当前用户创建）</span>
                 </div>
               </div>
             </a-select-option>
@@ -341,6 +343,18 @@ const initDataSource = (mainImgWmTemplateId, subImgWmTemplateId) => {
   dataSource.value = newDataSource;
 };
 
+// 根据userInfo.value.userid查出当前用户创建的水印放在前面 并且针对数据添加一个isUserCreated字段为true其余为false
+const sortUserIdData = (list) => {
+  return list.sort((a, b) => {
+    return a.userId === userInfo.value.userid ? -1 : 1;
+  }).map(item => ({
+    ...item,
+    isUserCreated: item.userId === userInfo.value.userid
+  }))
+}
+
+
+
 // ==================== API调用 ====================
 /**
  * 父组件调用获取水印列表数据
@@ -353,7 +367,9 @@ const getWatermarkList = async (mainImgWmTemplateId, subImgWmTemplateId,type='ed
   try {
     // 没分页, 没入参
     const res = await watermarkAllListApi();
-    tableData.value = res.data || [];
+    
+    tableData.value = sortUserIdData(res.data || [])
+    console.log('tableData.value',tableData.value)
     // 初始化数据源
     if(type==='edit'){
       initDataSource(mainImgWmTemplateId, subImgWmTemplateId);
@@ -646,6 +662,11 @@ defineExpose({
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+    .user-created {
+      color: #409eff;
+      font-size: 12px;
+      margin-left: 8px;
     }
   }
 }
