@@ -2,7 +2,7 @@
 <template>
   <appModal v-model:openValue="internalVisible" width="40%" title="导入新增" @cancel="handleCancel" @ok="handleOk">
     <template #appContent>
-      <a-steps direction="vertical" :current="null" class="custom-steps-no-hover">
+      <a-steps direction="vertical" :current="current" class="custom-steps-no-hover">
         <a-step title="导出">
           <template #description>
             <div>
@@ -48,6 +48,7 @@ const emit = defineEmits(['update:visible'])
 //定义变量
 const headers = { Authorization: useAuthorization().value }
 const uploadUrl = import.meta.env.VITE_APP_BASE_API + "/common/upload";
+const current = ref(0)
 const fileList = ref([])
 const internalVisible = ref(props.visible)
 
@@ -63,6 +64,7 @@ watch(internalVisible, (newVal) => {
 // 处理取消
 const handleCancel = () => {
   fileList.value = []
+  current.value = 0
   emit('update:visible', false)
 }
 
@@ -73,6 +75,7 @@ const handleOk = () => {
     return
   }
   console.log(fileList.value)
+  current.value += 1
   handleCancel()
 }
 
@@ -80,6 +83,7 @@ const handleOk = () => {
 const handleExportTemplate = () => {
   // 导出模板逻辑
   message.success('模板导出成功')
+  current.value += 1
 }
 
 // 文件上传前处理
