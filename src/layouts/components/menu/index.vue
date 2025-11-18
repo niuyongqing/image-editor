@@ -113,16 +113,57 @@ watch(
     }
   }
 );
+let rootSubmenuKeys = computed(() => {
+  return selectedMenus.value?.map(item => item.path) || [];
+});
+
+// 查找具有相同父级的菜单项
+const findSiblingMenuKeys = (key) => {
+  // 从菜单数据映射中找到当前菜单项
+  const menuItem = layoutMenuStore.menuDataMap.get(key);
+  if (!menuItem || !menuItem.parentId) {
+    // 如果没有父级，则属于根级菜单
+    return rootSubmenuKeys.value;
+  }
+  
+  // 找到父级菜单项
+  for (const [path, item] of layoutMenuStore.menuDataMap.entries()) {
+    if (item.id === menuItem.parentId) {
+      // 返回父级菜单的所有子菜单路径
+      if (item.children && item.children.length) {
+        return item.children.map(child => child.path);
+      }
+      break;
+    }
+  }
+  
+  // 如果找不到父级或父级没有子菜单，则返回根级菜单
+  return rootSubmenuKeys.value;
+};
 
 // 处理菜单展开收起事件
 const onOpenChange = (keys) => {
-  // 手风琴模式 点开一个菜单的时候 关闭其他菜单
+  // 手风琴模式 点开一个菜单的时候 关闭其他同级菜单
+  const latestOpenKey = keys.find(key => openKeys.value.indexOf(key) === -1);
+  
+  if (latestOpenKey) {
+    // 找到同级菜单项
+    const siblingKeys = findSiblingMenuKeys(latestOpenKey);
+    
+    // 如果最新打开的菜单在同级菜单中，则只保留它和它的父级菜单
+    if (siblingKeys.includes(latestOpenKey)) {
+      // 保留所有非同级菜单的展开项
+      const nonSiblingKeys = openKeys.value.filter(key => !siblingKeys.includes(key));
+      openKeys.value = [...nonSiblingKeys, latestOpenKey];
+    } else {
+      // 如果不是同级菜单，则正常处理
+      openKeys.value = keys;
+    }
+  } else {
+    openKeys.value = keys;
+  }
+  
   console.log(keys);
-  // if (keys.length > 1) {
-  //   openKeys.value = [keys[keys.length - 1]];
-  // }
-  // 直接保存当前展开状态
-  preOpenKeys.value = keys;
 };
 
 onMounted(() => {
