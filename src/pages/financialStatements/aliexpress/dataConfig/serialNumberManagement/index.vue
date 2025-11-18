@@ -27,13 +27,13 @@
           allowClear
         ></a-select>
       </a-form-item>
-      <a-form-item label="流水号" name="version">
+      <!-- <a-form-item label="流水号" name="serialNumber">
         <a-input 
-          v-model:value="formData.version" 
+          v-model:value="formData.serialNumber" 
           placeholder="请输入流水号"
           allowClear
         ></a-input>
-      </a-form-item>
+      </a-form-item> -->
       <a-form-item label="创建人" name="createUserId">
         <a-select 
           v-model:value="formData.createUserId" 
@@ -50,7 +50,6 @@
           v-model:value="formData.createTime"
           :presets="options.rangeOptions"
           format="YYYY-MM-DD"
-          value-format="YYYY-MM-DD"
         />
       </a-form-item>
     </template>
@@ -61,6 +60,7 @@
     reset-set-menu="serialNumberManagement" 
     :scroll="{y: tableScrollHeihth, x: 1800}"
     :loading="tableLoading"
+    rowKey="id"
   >
     <template #bodyCell="{ column: { key }, record: row }">
       <template v-if="key === 'dictType'">
@@ -124,15 +124,15 @@ const serialNumber = reactive({
     "pageNum": 1,
     "pageSize": 20,
     "order": "DESC",
-    "prop": "create_time"
+    "prop": "serial_number"
   }
 });
 const tableLoading = ref(false);
 const createModalOpen = ref(false);
 const formData = reactive({
   dataYear: dayjs().year() + '',
-  dataMonth: undefined,
-  version: '',
+  dataMonth: dayjs().month() + '',
+  serialNumber: '',
   createTime: [],
   createUserId: null,
   createTimeStart: null,
@@ -210,8 +210,8 @@ function onSubmit(val) {
   formParams.month = formParams.month ?? '';
   let createTime = formData.createTime || [];
   if (createTime[0] && createTime[1]) {
-    formParams.createTimeStart = `${createTime[0]} 00:00:00`;
-    formParams.createTimeEnd = `${createTime[1]} 23:59:59`;
+    formParams.createTimeStart = createTime[0].startOf('day').valueOf();
+    formParams.createTimeEnd = createTime[1].endOf('day').valueOf();
   }
   delete formParams.createTime;
   pageNumChange(1);
@@ -220,10 +220,7 @@ function onSubmit(val) {
 async function getVersionList(val) {
   let params = {
     ...formParams,
-    "pageNum": serialNumber.tableParams.pageNum,
-    "pageSize": serialNumber.tableParams.pageSize,
-    "order": "DESC",
-    "prop": "create_time"
+    ...serialNumber.tableParams,
   };
   tableLoading.value = true;
   // console.log({params});

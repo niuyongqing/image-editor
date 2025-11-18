@@ -14,7 +14,7 @@
         <a-form-item 
           label="年份" 
           name="dataYear" 
-          :rules="[{ required: true, message: '请输入年份!' }]"
+          :rules="[{ required: true, message: '请选择年份!' }]"
         >
           <a-date-picker 
             v-model:value="formData.dataYear" 
@@ -25,7 +25,7 @@
         <a-form-item 
           label="月份" 
           name="dataMonth"
-          :rules="[{ required: true, message: '请输入月份!' }]"
+          :rules="[{ required: true, message: '请选择月份!' }]"
         >
           <a-select
             v-model:value="formData.dataMonth"
@@ -52,9 +52,7 @@ import { ref, reactive, h } from 'vue'
 import { generateVersion } from '../js/api';
 import dayjs from 'dayjs';
 import appModal from '~@/components/common/appModal.vue'
-import asyncIcon from '~@/layouts/components/menu/async-icon.vue';
 import { Modal } from 'ant-design-vue';
-import { InfoCircleOutlined } from '@ant-design/icons-vue';
 defineOptions({ name: "dictionaryManagement_editModal" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:open', 'save'])
@@ -74,12 +72,12 @@ const openValue = ref(false);
 const btnLoading = ref(false)
 const formData = reactive({
   dataYear: dayjs().year() + '',
-  dataMonth: undefined,
+  dataMonth: dayjs().month() + '',
   remark: ''
 });
 const resetData = {
   dataYear: dayjs().year() + '',
-  dataMonth: undefined,
+  dataMonth: dayjs().month() + '',
   remark: ''
 }
 // const { open, rowInfo } = toRefs(props)
