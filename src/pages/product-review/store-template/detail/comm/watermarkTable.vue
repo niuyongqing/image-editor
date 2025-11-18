@@ -336,6 +336,7 @@ const initDataSource = (mainImgWmTemplateId, subImgWmTemplateId) => {
  * @param {string|number} subImgWmTemplateId - 副图水印模板ID
  */
 const getWatermarkList = async (mainImgWmTemplateId, subImgWmTemplateId,type='edit') => {
+  console.log('mainImgWmTemplateId',mainImgWmTemplateId)
   loading.value = true;
   try {
     // 没分页, 没入参
@@ -440,12 +441,12 @@ const addWatermark = () => {
  * @param {MessageEvent} event - 消息事件
  */
 const receiveMessage = (event) => {
-  // 刷新水印列表
-  getWatermarkList('', '','get');
   // 验证消息来源和类型
   if (event.origin !== window.location.origin || event.data.type !== "params" || !event.data.params) {
     return;
   }
+  // 刷新水印列表
+  getWatermarkList('', '','get');
   // 新建水印不更新数据
   if (!event.data.params.id) {
     return;
