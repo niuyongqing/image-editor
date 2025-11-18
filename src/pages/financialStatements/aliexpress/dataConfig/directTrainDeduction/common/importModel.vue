@@ -43,7 +43,7 @@ const props = defineProps({
 })
 
 // 定义emit事件
-const emit = defineEmits(['update:visible', 'cancel', 'importSuccess'])
+const emit = defineEmits(['update:visible'])
 
 const headers = { Authorization: useAuthorization().value }
 const uploadUrl = import.meta.env.VITE_APP_BASE_API + "/common/upload";
@@ -66,7 +66,6 @@ watch(internalVisible, (newVal) => {
 const handleCancel = () => {
   fileList.value = []
   emit('update:visible', false)
-  emit('cancel')
 }
 
 // 处理确定
@@ -75,7 +74,7 @@ const handleOk = () => {
     message.warning('请先上传文件')
     return
   }
-  emit('importSuccess', fileList.value)
+  console.log(fileList.value)
   handleCancel()
 }
 
