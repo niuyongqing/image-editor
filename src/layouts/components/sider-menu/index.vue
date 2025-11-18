@@ -239,7 +239,7 @@ const setMenu = () => {
   // 仅控制抽屉开关
   drawerOpen.value = !drawerOpen.value;
   // 抽屉展开时同步 paddingLeft
-  paddingLeft.value = collapsed.value ? "50px" : "200px";
+  paddingLeft.value = collapsed.value ? "50px" : `${siderWidth.value}px`;
 };
 const paddingLeft = ref("200px");
 const handleCollapsedFun = (isFlag) => {
@@ -248,7 +248,7 @@ const handleCollapsedFun = (isFlag) => {
   if (isFlag) {
     paddingLeft.value = "50px";
   } else {
-    paddingLeft.value = "200px";
+    paddingLeft.value = `${siderWidth.value}px`;
   }
 };
 // 更新抽屉菜单打开状态
