@@ -24,6 +24,12 @@
         <a-button type="primary" @click="importModel = true"><upload-outlined />导入新增</a-button>
         <a-button type="primary"><VerticalAlignBottomOutlined />导出</a-button>
       </template>
+
+      <template #bodyCell="{ column, record, index }">
+        <div v-if="column.dataIndex === 'netProfit'">
+          {{ timeFormats.full(record.netProfit) }}
+        </div>
+      </template>
 <!--      操作区-->
       <template #options="{ record, column }">
         <a-button type="text" danger>删除</a-button>
@@ -45,6 +51,7 @@
 defineOptions({ name: 'directTrainDeduction' });
 import { ref, reactive, defineAsyncComponent, onMounted, computed } from 'vue';
 import { UploadOutlined,VerticalAlignBottomOutlined,DeleteOutlined } from '@ant-design/icons-vue';
+import { timeFormats } from "~/utils/dateUtils.js";
 import tableHeader from '@/pages/financialStatements/aliexpress/dataConfig/directTrainDeduction/js/tableHeader.js';
 
 // 异步加载组件
@@ -74,16 +81,16 @@ onMounted(() => {
   tableData.value = [
     {
       id: 1,
-      netProfit: '150.25',
+      netProfit: '1763436448158',
       sourceProfit: '17.36',
       shopProfitRate: '120.25',
       actualProfit: '',
       orderAmount: '102.21',
-      refundAmount: '21.36'
+      refundAmount: '1705386625000 '
     },
     {
       id: 2,
-      netProfit: '150.25',
+      netProfit: '1763436448158',
       sourceProfit: '',
       shopProfitRate: '',
       actualProfit: '90.56',
@@ -92,7 +99,7 @@ onMounted(() => {
     },
     {
       id: 3,
-      netProfit: '150.25',
+      netProfit: '1763436448158',
       sourceProfit: '',
       shopProfitRate: '',
       actualProfit: '90.56',
@@ -101,7 +108,7 @@ onMounted(() => {
     },
     {
       id: 4,
-      netProfit: '150.25',
+      netProfit: '1763436448158',
       sourceProfit: '17.36',
       shopProfitRate: '120.25',
       actualProfit: '',
@@ -110,7 +117,7 @@ onMounted(() => {
     },
     {
       id: 5,
-      netProfit: '150.25',
+      netProfit: '1763436448158',
       sourceProfit: '17.36',
       shopProfitRate: '120.25',
       actualProfit: '',
