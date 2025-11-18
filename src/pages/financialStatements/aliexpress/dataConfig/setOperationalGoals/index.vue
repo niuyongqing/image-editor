@@ -82,9 +82,12 @@
     :scroll="{y: tableScrollHeihth, x: 1800}"
     :loading="tableLoading"
   >
-    <template #bodyCell="{ column: { key }, record: row }">
-      <template v-if="key === 'createTime'">
-        {{ timeFormats.full(row.createTime) }}
+    <template #bodyCell="{ column, record }">
+      <template v-if="column.dataIndex === 'createTime'">
+        {{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
+      </template>
+      <template v-if="column.dataIndex === 'updateTime'">
+        {{ dayjs(record.updateTime).format('YYYY-MM-DD HH:mm:ss') }}
       </template>
     </template>
     <template #leftTool>
@@ -122,7 +125,6 @@ import { monthList } from '~@/pages/financialStatements/common/data';
 import { setOperationalGoals_header } from './js/tableHeader';
 import { dictList,versionList,operationalGoalsList } from './js/api';
 import createModal from './components/createModal.vue'
-import { timeFormats } from '~/utils/dateUtils.js'
 
 defineOptions({ name: "setOperationalGoals_index" })
 

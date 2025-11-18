@@ -17,7 +17,7 @@
     </app-table-form>
 
 <!--    表格区域-->
-    <app-table-box :reset-set-menu="resetSetMenu" :table-header="tableHeader" :data-source="tableData" :scroll="{x: 1800,y: tableHeight}" @change="tableDataChange">
+    <app-table-box :reset-set-menu="resetSetMenu" :table-header="tableHeader" :data-source="tableData" :scroll="{x: 1800,y: tableHeight}" row-key="id" :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange}" @change="tableDataChange">
 <!--      按钮-->
       <template #leftTool>
         <a-button type="primary" danger><DeleteOutlined />批量删除</a-button>
@@ -47,23 +47,24 @@
 </template>
 
 <script setup>
-/*                     直通车扣费                  */
-defineOptions({ name: 'directTrainDeduction' });
+/*                     ERP续费                  */
+defineOptions({ name: 'erpRenew' });
 import { ref, reactive, defineAsyncComponent, onMounted, computed } from 'vue';
 import { UploadOutlined,VerticalAlignBottomOutlined,DeleteOutlined } from '@ant-design/icons-vue';
 import { timeFormats } from "~/utils/dateUtils.js";
-import tableHeader from '@/pages/financialStatements/aliexpress/dataConfig/directTrainDeduction/js/tableHeader.js';
+import tableHeader from '@/pages/financialStatements/aliexpress/dataConfig/erpRenew/js/tableHeader.js';
 
 // 异步加载组件
 const appTableBox = defineAsyncComponent(() => import('@/components/common/appTableBox.vue'));
 const appTableForm = defineAsyncComponent(() => import('@/components/common/appTableForm.vue'));
 const pagination = defineAsyncComponent(() => import('@/components/common/appTablePagination.vue'));
-const ImportModal  = defineAsyncComponent(() => import('@/pages/financialStatements/aliexpress/dataConfig/directTrainDeduction/common/importModel.vue'));
+const ImportModal  = defineAsyncComponent(() => import('@/pages/financialStatements/aliexpress/dataConfig/erpRenew/common/importModel.vue'));
 
-const resetSetMenu = 'directTrainDeduction';
+const resetSetMenu = 'erpRenew';
 const importModel = ref(false);//导入新增弹框
 const tableData = ref([]);
 const shopOptions = ref(['店铺1', '店铺2', '店铺3']);
+const selectedRowKeys = ref([]);
 
 const tableParms = reactive({
   pageNum: 1,
@@ -139,6 +140,9 @@ const onSubmit = (e) => {
 
 //表格排序操作
 const tableDataChange = (pagination, filters, sorter) => {
+  if ( !sorter ){
+    return false;
+  }
   console.log(sorter);
 };
 
@@ -150,6 +154,11 @@ const pageNumChange = (val) =>{
 //页数大小回调
 const pageSizeChange = (val) =>{
   console.log(val);
+}
+
+const onSelectChange = (selectedKeys, selectedRows) =>{
+  selectedRowKeys.value = selectedKeys;
+  console.log(selectedRowKeys);
 }
 
 </script>
