@@ -30,6 +30,7 @@
       reset-set-menu="dictionaryManagement" 
       :scroll="{y: tableScrollHeihth}"
       :loading="tableLoading"
+      rowKey="itemId"
     >
       <template #bodyCell="{ column: { key }, record: row }">
         <template v-if="key === 'dictType'">
@@ -42,6 +43,7 @@
             un-checked-children="已停用" 
             :checkedValue="'enabled'"
             :unCheckedValue="'disabled'"
+            :disabled="row.disabledSwitch"
             @change="(checked, event) => statusChange(checked, row)"
           />
         </template>
@@ -142,7 +144,8 @@
       </a-spin>
     </template>
     <template #appFooter>
-      <a-button type="primary" @click="modalInfo.uploadOpen = !modalInfo.uploadOpen">确认</a-button>
+      <a-button v-if="uploadInfo.result !== 'success'" @click="modalInfo.uploadOpen = !modalInfo.uploadOpen">取消</a-button>
+      <a-button v-if="uploadInfo.result === 'success'" type="primary" @click="itemImportedFn">确认</a-button>
     </template>
   </appModal>
 </div>
@@ -260,7 +263,9 @@ async function statusChange(val, row) {
     "status": val,
   };
   try {
+    dictionary.data.forEach(i => i.disabledSwitch = true)
     await itemStatus(params);
+    dictionary.data.forEach(i => i.disabledSwitch = false)
     message.success(val === 'enabled' ? '启用成功！' : '停用成功！');
   } catch (error) {
     row.status = val !== 'enabled' ? 'enabled' : 'disabled';
@@ -277,7 +282,6 @@ function formHeightChange(val) {
 }
 // 获取字典数据
 async function getItemList(val) {
-
   let params = {
     "itemName": formParams.itemName,
     "itemValue": "",
@@ -296,6 +300,7 @@ async function getItemList(val) {
     data.map((item, index) => {
       item.rowIndex = index + 1;
       item.dictName = dictionary.itemList.find(i => i.dictType === item.dictType).dictName;
+      item.disabledSwitch = false;
       // item.statusType = (item.status === 'enabled');
     });
     dictionary.total = res.total;
@@ -337,6 +342,11 @@ async function customRequest({ file }) {
     uploadInfo.result = 'error'
   }
   uploadInfo.loading = false;
+}
+// 上传成功之后方法
+function itemImportedFn() {
+  modalInfo.uploadOpen = !modalInfo.uploadOpen;
+  getItemList();
 }
 </script>
 <style lang="less" scoped>
