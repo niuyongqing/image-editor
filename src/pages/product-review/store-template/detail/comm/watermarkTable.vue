@@ -231,6 +231,7 @@ const createEmptyWatermarkTemplate = (id, index) => ({
   title: "",
   content: "",
   type: "",
+  disabled: false,
 });
 
 /**
