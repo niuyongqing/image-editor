@@ -18,6 +18,11 @@
 
 <!--    表格区域-->
     <app-table-box :reset-set-menu="resetSetMenu" :table-header="tableHeader" :data-source="tableData" :scroll="{x: 1800,y: tableHeight}" @change="tableDataChange">
+<!--      按钮-->
+      <template #leftTool>
+        <a-button type="primary" @click="importModel = true"><upload-outlined />导入新增</a-button>
+        <a-button type="primary" @click="importModel = true"><upload-outlined />导出</a-button>
+      </template>
 <!--      操作区-->
       <template #options="{ record, column }">
         <a-button type="text" danger>删除</a-button>
@@ -27,6 +32,10 @@
         <pagination v-model:current="tableParms.pageNum" v-model:pageSize="tableParms.pageSize" :total="tableParms.total" @pageNumChange="pageNumChange" @pageSizeChange="pageSizeChange"></pagination>
       </template>
     </app-table-box>
+
+
+<!--    导入新增弹框-->
+    <ImportModal v-model:visible="importModel" @importSuccess="handleImportSuccess" @cancel="handleImportCancel"/>
   </div>
 </template>
 
@@ -34,14 +43,17 @@
 /*                     直通车扣费                  */
 defineOptions({ name: 'directTrainDeduction' });
 import { ref, reactive, defineAsyncComponent, onMounted, computed } from 'vue';
+import { UploadOutlined } from '@ant-design/icons-vue';
 import tableHeader from '@/pages/financialStatements/aliexpress/dataConfig/directTrainDeduction/js/tableHeader.js';
 
 // 异步加载组件
 const appTableBox = defineAsyncComponent(() => import('@/components/common/appTableBox.vue'));
 const appTableForm = defineAsyncComponent(() => import('@/components/common/appTableForm.vue'));
 const pagination = defineAsyncComponent(() => import('@/components/common/appTablePagination.vue'));
+const ImportModal  = defineAsyncComponent(() => import('@/pages/financialStatements/aliexpress/dataConfig/directTrainDeduction/common/importModel.vue'));
 
 const resetSetMenu = 'directTrainDeduction';
+const importModel = ref(false);//导入新增弹框
 const tableData = ref([]);
 const shopOptions = ref(['店铺1', '店铺2', '店铺3']);
 
@@ -131,6 +143,19 @@ const pageNumChange = (val) =>{
 const pageSizeChange = (val) =>{
   console.log(val);
 }
+
+// 导入成功回调
+const handleImportSuccess = (fileList) => {
+  console.log('导入成功', fileList);
+  // 这里可以重新加载表格数据
+  // loadTableData()
+}
+
+// 导入取消回调
+const handleImportCancel = () => {
+  console.log('导入取消');
+}
+
 </script>
 
 <style lang="less" scoped>
