@@ -112,6 +112,7 @@
                 @click="openLogModal(row)"
                 >日志</a-button
               >
+          <a-button type="link" @click="openListModal(row)">查看序列</a-button>
         </template>
       </template>
     </a-table>
@@ -156,6 +157,9 @@
       @update:visible="logModalVisible = $event"
       @open="handleLogModalOpen"
     />
+
+    <!-- 刊登序列弹窗 -->
+    <ListModal v-model:open="listModalOpen" :id="curId" />
 </div>
 </template>
 
@@ -172,6 +176,7 @@ import { processImageSource } from '../config/commJs/index';
 import { checkPermi } from '~@/utils/permission/component/permission';
 import PublicationModal from './common/PublicationModal.vue'
 import LogModal from "./common/LogModal.vue";
+import ListModal from './common/ListModal.vue';
 defineOptions({ name: "ozon_publicationDatabase" })
 const { proxy: _this } = getCurrentInstance();
 
@@ -463,6 +468,15 @@ function fetchLogData(record) {
     .finally(() => {
       logLoading.value = false;
     });
+}
+
+/** 查看序列 */
+const curId = ref()
+const listModalOpen = ref(false)
+
+function openListModal(row) {
+  curId.value = row.id
+  listModalOpen.value = true
 }
 </script>
 <style lang="less" scoped>
