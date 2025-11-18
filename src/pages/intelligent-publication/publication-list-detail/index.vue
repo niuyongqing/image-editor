@@ -7,7 +7,7 @@
 
     <ImageInfo
       ref="ImageInfoRef"
-      :main-images-count-min="1"
+      :main-images-count-min="3"
     />
 
     <!-- 底部按钮 -->
