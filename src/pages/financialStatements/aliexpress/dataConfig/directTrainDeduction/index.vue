@@ -20,6 +20,7 @@
     <app-table-box :reset-set-menu="resetSetMenu" :table-header="tableHeader" :data-source="tableData" :scroll="{x: 1800,y: tableHeight}" @change="tableDataChange">
 <!--      按钮-->
       <template #leftTool>
+        <a-button type="primary" danger><DeleteOutlined />批量删除</a-button>
         <a-button type="primary" @click="importModel = true"><upload-outlined />导入新增</a-button>
         <a-button type="primary"><VerticalAlignBottomOutlined />导出</a-button>
       </template>
@@ -43,7 +44,7 @@
 /*                     直通车扣费                  */
 defineOptions({ name: 'directTrainDeduction' });
 import { ref, reactive, defineAsyncComponent, onMounted, computed } from 'vue';
-import { UploadOutlined,VerticalAlignBottomOutlined } from '@ant-design/icons-vue';
+import { UploadOutlined,VerticalAlignBottomOutlined,DeleteOutlined } from '@ant-design/icons-vue';
 import tableHeader from '@/pages/financialStatements/aliexpress/dataConfig/directTrainDeduction/js/tableHeader.js';
 
 // 异步加载组件
