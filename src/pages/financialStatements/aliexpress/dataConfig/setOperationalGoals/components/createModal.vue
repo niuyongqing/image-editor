@@ -189,7 +189,7 @@ async function handleCustomOk() {
         add(params).then(res => {
           btnLoading.value = false;
           if (res.code === 200) {
-            message.success('模板导出成功')
+            message.success('新增成功')
             handleCustomCancel();
             emit('save');
           } else {

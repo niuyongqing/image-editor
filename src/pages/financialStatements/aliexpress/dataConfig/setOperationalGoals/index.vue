@@ -82,10 +82,11 @@
     :scroll="{y: tableScrollHeihth, x: 1800}"
     :loading="tableLoading"
   >
-    <!-- <template #bodyCell="{ column: { key }, record: row }">
-
-
-    </template> -->
+    <template #bodyCell="{ column: { key }, record: row }">
+      <template v-if="key === 'createTime'">
+        {{ timeFormats.full(row.createTime) }}
+      </template>
+    </template>
     <template #leftTool>
       <a-button type="primary" >导入新增</a-button>
       <a-button type="primary" @click="addOpen = true">新增</a-button>
@@ -121,6 +122,7 @@ import { monthList } from '~@/pages/financialStatements/common/data';
 import { setOperationalGoals_header } from './js/tableHeader';
 import { dictList,versionList,operationalGoalsList } from './js/api';
 import createModal from './components/createModal.vue'
+import { timeFormats } from '~/utils/dateUtils.js'
 
 defineOptions({ name: "setOperationalGoals_index" })
 
@@ -225,8 +227,8 @@ function getVersionList() {
       options.serialNumberList = [
         { label: '待生成', value: '' }, // 默认选项放在第一位
         ...res.data.map(item => ({
-          label: item.version,
-          value: item.version,
+          label: item.serialNumber,
+          value: item.serialNumber,
         }))
       ];
     }

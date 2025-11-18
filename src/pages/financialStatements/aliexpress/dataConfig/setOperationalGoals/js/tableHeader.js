@@ -8,14 +8,14 @@ export const setOperationalGoals_header = [
   },
   {
     title: '年份',
-    key: 'year',
-    dataIndex: 'year',
+    key: 'dataYear',
+    dataIndex: 'dataYear',
     width: 100,
   },
   {
     title: '月份',
-    key: 'month',
-    dataIndex: 'month',
+    key: 'dataMonth',
+    dataIndex: 'dataMonth',
     width: 100,
   },
   {
@@ -27,14 +27,14 @@ export const setOperationalGoals_header = [
   },
   {
     title: '小组',
-    key: 'groupName',
-    dataIndex: 'groupName',
+    key: 'group',
+    dataIndex: 'group',
     width: 100,
   },
   {
     title: '运营',
-    key: 'shopUserName',
-    dataIndex: 'shopUserName',
+    key: 'userName',
+    dataIndex: 'userName',
     width: 150,
     align: 'center'
   },
@@ -47,8 +47,8 @@ export const setOperationalGoals_header = [
   },
   {
     title: 'GMV上浮目标（万元）',
-    key: 'gmvFloatTarget',
-    dataIndex: 'gmvFloatTarget',
+    key: 'gmvIncreaseTarget',
+    dataIndex: 'gmvIncreaseTarget',
     width: 180,
     align: 'center'
   },
@@ -61,8 +61,8 @@ export const setOperationalGoals_header = [
   },
   {
     title: '创建人',
-    key: 'createUser',
-    dataIndex: 'createUser',
+    key: 'createUserName',
+    dataIndex: 'createUserName',
     width: 150,
     align: 'center'
   },
