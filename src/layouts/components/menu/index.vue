@@ -116,10 +116,12 @@ watch(
 
 // 处理菜单展开收起事件
 const onOpenChange = (keys) => {
-  // 直接保存当前展开状态
-  preOpenKeys.value = keys;
+  // 手风琴模式 点开一个菜单的时候 关闭其他菜单
+  console.log(keys);
+  if (keys.length > 1) {
+    openKeys.value = [keys[keys.length - 1]];
+  }
 };
-const placement = ref("left");
 
 onMounted(() => {
   // 初始化时更新当前路由的展开菜单项
@@ -153,3 +155,4 @@ onMounted(() => {
   }
 }
 </style>
+
