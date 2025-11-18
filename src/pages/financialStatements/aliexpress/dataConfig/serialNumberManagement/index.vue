@@ -10,18 +10,18 @@
     <template #formItemBox>
       <a-form-item 
         label="年份" 
-        name="year" 
+        name="dataYear" 
         :rules="[{ required: true, message: '请输入年份!' }]"
       >
         <a-date-picker 
-          v-model:value="formData.year" 
+          v-model:value="formData.dataYear" 
           picker="year" 
           value-format="YYYY"
         />
       </a-form-item>
-      <a-form-item label="月份" name="month">
+      <a-form-item label="月份" name="dataMonth">
         <a-select
-          v-model:value="formData.month"
+          v-model:value="formData.dataMonth"
           :options="options.monthList"
           placeholder="请输入月份"
           allowClear
@@ -70,13 +70,16 @@
         <a-tag color="success" v-if="row.status === 'finished'">已完成</a-tag>
         <a-tag color="processing" v-else>计算中</a-tag>
       </template>
+      <template v-if="key === 'createTime'">
+        {{ dayjs(row[key]).format('YYYY-MM-DD HH:mm:ss') }}
+      </template>
       <template v-else-if="key === 'accept'">
         <a-switch 
           v-model:checked="row.accept" 
           checked-children="是" 
           un-checked-children="否" 
           @change="(checked, event) => acceptChange(checked, row)"
-          :disabled="row.status === 'running'"
+          :disabled="row.status === 'running' || row.disabledSwitch"
         />
       </template>
       <template v-else-if="['sfdghsdfhdfs','serfhgsdfgds','rdtjfsafsdgf','rtjdvsdfds','hujlkhfdgsdgf','sdfhsdfasfasf','adrfghdfsads',].includes(key)">
@@ -127,8 +130,8 @@ const serialNumber = reactive({
 const tableLoading = ref(false);
 const createModalOpen = ref(false);
 const formData = reactive({
-  year: dayjs().year() + '',
-  month: undefined,
+  dataYear: dayjs().year() + '',
+  dataMonth: undefined,
   version: '',
   createTime: [],
   createUserId: null,
@@ -229,6 +232,7 @@ async function getVersionList(val) {
     let data = res.data;
     data.map((item, index) => {
       item.rowIndex = index + 1;
+      item.disabledSwitch = false;
       // item.dictName = serialNumber.itemList.find(i => i.dictType === item.dictType).dictName;
       // item.statusType = (item.status === 'enabled');
     });
@@ -243,6 +247,7 @@ async function getVersionList(val) {
 async function acceptChange(val, row) {
   // console.log({val, row});
   try {
+    serialNumber.data.forEach(i => (i.disabledSwitch = true));
     await acceptVersion({ id: row.id });
   } catch (error) {
     console.error(error);
