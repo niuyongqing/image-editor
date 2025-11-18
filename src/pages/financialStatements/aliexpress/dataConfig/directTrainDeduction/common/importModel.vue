@@ -45,12 +45,10 @@ const props = defineProps({
 // 定义emit事件
 const emit = defineEmits(['update:visible'])
 
+//定义变量
 const headers = { Authorization: useAuthorization().value }
 const uploadUrl = import.meta.env.VITE_APP_BASE_API + "/common/upload";
-
-// 本地状态
 const fileList = ref([])
-
 const internalVisible = ref(props.visible)
 
 // 监听外部 visible 的变化
