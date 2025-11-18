@@ -26,7 +26,7 @@ export const setOperationalGoals_header = [
     align: 'center'
   },
   {
-    title: '组',
+    title: '小组',
     key: 'groupName',
     dataIndex: 'groupName',
     width: 100,

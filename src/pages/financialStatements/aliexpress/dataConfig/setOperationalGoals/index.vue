@@ -10,17 +10,17 @@
     <template #formItemBox>
       <a-form-item 
         label="年份" 
-        name="year"
+        name="dataYear"
       >
         <a-date-picker 
-          v-model:value="formData.year" 
+          v-model:value="formData.dataYear" 
           picker="year" 
           value-format="YYYY"
         />
       </a-form-item>
-      <a-form-item label="月份" name="month">
+      <a-form-item label="月份" name="dataMonth">
         <a-select
-          v-model:value="formData.month"
+          v-model:value="formData.dataMonth"
           :options="options.monthList"
           placeholder="请选择月份"
           allowClear
@@ -34,27 +34,35 @@
           :options="options.departmentList" 
           :optionFilterProp="'label'"  
           :filterOption="userFilterOption"  
+          mode="multiple"
+          :maxTagCount="1" 
           placeholder="请选择部门" 
           allowClear
         ></a-select>
       </a-form-item>
-      <a-form-item label="组" name="groups">
+      <a-form-item label="小组" name="groups">
         <a-select 
           v-model:value="formData.groups" 
           show-search
           :options="options.groupList" 
-          :optionFilterProp="'label'"  
+          :optionFilterProp="'label'" 
+          mode="multiple" 
+          :maxTagCount="1" 
           :filterOption="userFilterOption"  
-          placeholder="请选择组" 
+          placeholder="请选择小组" 
           allowClear
         ></a-select>
       </a-form-item>
-      <a-form-item label="运营" name="shopUserName">
+      <a-form-item label="运营" name="userName">
         <a-select
-          v-model:value="formData.shopUserName"
+          v-model:value="formData.userName"
           style="width: 100%" 
           placeholder="请输入关键字"
           :options="options.shopUserNameList"
+          :filterOption="userFilterOption"  
+          :optionFilterProp="'label'"
+          show-search
+          
         ></a-select>
       </a-form-item>
       <a-form-item label="流水号" name="serialNumber">
@@ -80,14 +88,14 @@
     </template> -->
     <template #leftTool>
       <a-button type="primary" >导入新增</a-button>
-      <a-button type="primary" >新增</a-button>
+      <a-button type="primary" @click="addOpen = true">新增</a-button>
       <a-button type="primary" danger >删除</a-button>
     </template>
     <!-- 操作区 -->
-    <template #options="{ record, column }">
-      <a-button type="link">编辑</a-button>
-      <a-button type="link">删除</a-button>
-      <a-button type="text">日志</a-button>
+    <template #options="{ record }">
+      <a-button type="link" @click="editAccount(record)">编辑</a-button>
+      <a-button type="link" @click="editAccount(record)">删除</a-button>
+      <a-button type="text" @click="editAccount(record)">日志</a-button>
     </template>
     <template #pagination>
       <app-table-pagination
@@ -99,6 +107,11 @@
       ></app-table-pagination>
     </template>
   </appTableBox>
+  <create-modal 
+    v-model:open="addOpen" 
+    :options="options"
+    @save="getOperationalGoalsList"
+  ></create-modal>
   </div>
 </template>
 
@@ -106,11 +119,13 @@
 import dayjs from 'dayjs';
 import { monthList } from '~@/pages/financialStatements/common/data';
 import { setOperationalGoals_header } from './js/tableHeader';
-import { dictList,versionList } from './js/api';
+import { dictList,versionList,operationalGoalsList } from './js/api';
+import createModal from './components/createModal.vue'
 
 defineOptions({ name: "setOperationalGoals_index" })
 
 const tableLoading = ref(false);
+const addOpen = ref(false);
 const setOperationalGoals = reactive({
   data: [],
   total: 0,
@@ -122,11 +137,11 @@ const setOperationalGoals = reactive({
   }
 });
 const formData = reactive({
-  year: dayjs(),
-  month: dayjs().format('MMMM'),
+  dataYear: dayjs(),
+  dataMonth: dayjs().format('MM'),
   departments: [],
   groups: [],
-  shopUserName: '',
+  userName: '',
   serialNumber: '',
 });
 const options = reactive({
@@ -148,9 +163,7 @@ function userFilterOption(val, option) {
   return option.label.toLowerCase().includes(val.toLowerCase());
 }
 
-function onSubmit(val) {
-  console.log(val)
-}
+
 
 function formHeightChange(height) {
   formHeight.value = height;
@@ -201,26 +214,53 @@ async function getCommonDictList() {
     // 可以在这里添加错误处理逻辑，如重试机制或用户提示
   }
 }
-
+// 查询流水号列表
 function getVersionList() {
-  console.log({formData})
   let params = {
-    dataYear: dayjs(formData.year).year(),
-    dataMonth: dayjs(formData.month).month() + 1
+    dataYear: dayjs(formData.dataYear).format('YYYY'),
+    dataMonth: dayjs(formData.dataMonth).format('MM')
   };
   versionList(params).then(res => {
     if (res.code === 200) {
-      options.serialNumberList = res.data.map(item => ({
-        label: item.version,
-        value: item.version,
-      }));
+      options.serialNumberList = [
+        { label: '待生成', value: '' }, // 默认选项放在第一位
+        ...res.data.map(item => ({
+          label: item.version,
+          value: item.version,
+        }))
+      ];
     }
   })
 }
-
+// 获取运营目标列表
+function getOperationalGoalsList() {
+  let params = {
+    dataYear: dayjs(formData.dataYear).year(),
+    dataMonth: dayjs(formData.dataMonth).month() + 1,
+    departments: formData.departments,
+    groups: formData.groups,
+    userName: formData.userName,
+    serialNumber: formData.serialNumber,
+    pageNum: setOperationalGoals.tableParams.pageNum,
+    pageSize: setOperationalGoals.tableParams.pageSize,
+    order: "DESC",
+    prop: "create_time"
+  };
+  operationalGoalsList(params).then(res => {
+    if (res.code === 200) {
+      setOperationalGoals.data = res.data;
+      setOperationalGoals.total = res.total;
+    }
+  })
+}
+// 查询
+function onSubmit() {
+  getOperationalGoalsList();
+}
 onMounted(() => {
   getCommonDictList();
   getVersionList();
+  getOperationalGoalsList();
 });
 </script>
 <style lang="less" scoped></style>

@@ -24,3 +24,42 @@ export function versionList(data) {
     data
   })
 }
+
+/**
+ * 运营目标列表
+ * @param {*} data
+ * @returns
+ */
+export function operationalGoalsList(data) {
+  return request({
+    url: `/report-aliexpress/aliexpress/operation/configItem/list`,
+    method: 'post',
+    data
+  })
+}
+
+/**
+ * 新增运营目标
+ * @param {*} data
+ * @returns
+ */
+export function add(data) {
+  return request({
+    url: `/report-aliexpress/aliexpress/operation/configItem/add`,
+    method: 'post',
+    data
+  })
+}
+
+/**
+ * 新增运营目标
+ * @param {*} data
+ * @returns
+ */
+export function checkUnique(data) {
+  return request({
+    url: `/report-aliexpress/aliexpress/operation/configItem/checkUnique?dataYear=${data.dataYear}&dataMonth=${data.dataMonth}&userName=${data.userName}`,
+    method: 'get',
+    
+  })
+}
