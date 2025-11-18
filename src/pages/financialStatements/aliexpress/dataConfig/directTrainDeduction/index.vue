@@ -1,10 +1,17 @@
 <template>
   <div>
 <!--    搜索区域-->
-    <app-table-form :reset-set-menu="resetSetMenu" v-model:formData="searchForm" :rules="searchRules" @onSubmit="onSubmit">
-      <template #formItemRow>
-        <a-form-item label="版本月份" name="month">
+    <app-table-form :reset-set-menu="resetSetMenu" v-model:formData="searchForm" @onSubmit="onSubmit">
+      <template #formItemBox>
+        <a-form-item label="月份" name="month">
           <a-range-picker v-model:value="searchForm.month" picker="month" :bordered="true" format="YYYY-MM" value-format="YYYY-MM"/>
+        </a-form-item>
+        <a-form-item label="店铺" name="name">
+          <a-select v-model:value="searchForm.name" mode="multiple" show-search allowClear :maxTagCount="1" placeholder="请输入店铺">
+            <a-select-option v-for="shop in shopOptions" :key="shop" :value="shop">
+              {{ shop }}
+            </a-select-option>
+          </a-select>
         </a-form-item>
       </template>
     </app-table-form>
@@ -13,7 +20,7 @@
     <app-table-box :reset-set-menu="resetSetMenu" :table-header="tableHeader" :data-source="tableData" :scroll="{x: 1800,y: tableHeight}" @change="tableDataChange">
 <!--      操作区-->
       <template #options="{ record, column }">
-        <a-button type="link">回溯版本</a-button>
+        <a-button type="text" danger>删除</a-button>
       </template>
 <!--      分页器区域-->
       <template #pagination>
@@ -24,27 +31,19 @@
 </template>
 
 <script setup>
-/*                     版本管理                  */
-defineOptions({ name: 'versionConfig' });
+/*                     直通车扣费                  */
+defineOptions({ name: 'directTrainDeduction' });
 import { ref, reactive, defineAsyncComponent, onMounted, computed } from 'vue';
-import tableHeader from '@/pages/financialStatements/aliexpress/dataConfig/versionConfig/js/tableHeader.js';
+import tableHeader from '@/pages/financialStatements/aliexpress/dataConfig/directTrainDeduction/js/tableHeader.js';
 
 // 异步加载组件
 const appTableBox = defineAsyncComponent(() => import('@/components/common/appTableBox.vue'));
 const appTableForm = defineAsyncComponent(() => import('@/components/common/appTableForm.vue'));
 const pagination = defineAsyncComponent(() => import('@/components/common/appTablePagination.vue'));
 
-const resetSetMenu = 'versionConfig';
+const resetSetMenu = 'directTrainDeduction';
 const tableData = ref([]);
-const searchRules = {
-  month: [
-    {
-      required: true,
-      message: '请选择月份',
-      trigger: 'change',
-    },
-  ],
-};
+const shopOptions = ref(['店铺1', '店铺2', '店铺3']);
 
 const tableParms = reactive({
   pageNum: 1,
@@ -54,7 +53,8 @@ const tableParms = reactive({
 const searchForm = reactive({
   pageNum: 1,
   pageSize: 50,
-  month: null
+  month: null,
+  name: [],
 });
 
 onMounted(() => {
