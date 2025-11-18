@@ -116,7 +116,7 @@
           </template>
           <template v-else-if="column.key === 'mainImage'">
             <a-image
-              :src="fixedUrl(record.mainImage)"
+              :src="fixedUrl(record)"
               :width="80"
               :height="80"
               :fallback="EmptyImg"
@@ -355,7 +355,8 @@
     getList()
   }
 
-  function fixedUrl(url) {
+  function fixedUrl(record) {
+    let url = record.productSkuList?.[0]?.mainImages
     if (!url) return EmptyImg
 
     if (url.startsWith('http') || url.startsWith('/prod-api')) return url
