@@ -29,6 +29,7 @@ import { message } from "ant-design-vue";
 import { editCommonUseMenu } from "~/api/common/menu.js";
 import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import { useLayoutState } from "../../basic-layout/context.js";
+import { useLayoutMenu } from "~/stores/layout-menu.js";
 import { useRoute, useRouter } from "vue-router";
 import { isFunction } from "@v-c/utils";
 import { ref, reactive, computed, watch } from "vue";
@@ -47,6 +48,24 @@ const {
 const router = useRouter();
 const route = useRoute();
 
+// 获取布局菜单store实例
+const layoutMenuStore = useLayoutMenu();
+
+// 更新当前路由的展开菜单项
+const updateOpenKeysForCurrentRoute = () => {
+  const currentRoute = router.currentRoute.value;
+  const originPath = currentRoute.meta?.originPath ?? currentRoute.path;
+  
+  // 从菜单数据映射中找到当前路由对应的菜单项
+  if (layoutMenuStore.menuDataMap.has(originPath)) {
+    const menuItem = layoutMenuStore.menuDataMap.get(originPath);
+    // 设置展开的菜单项为当前菜单项的所有父级路径
+    if (menuItem?.matched) {
+      openKeys.value = menuItem.matched.map(item => item.path);
+    }
+  }
+};
+
 // 展开的菜单键
 const openKeys = ref([]);
 // 之前展开的菜单键，用于收缩时保存状态
@@ -64,6 +83,7 @@ watch(
   (newPath) => {
     // 当路由变化时，更新选中的菜单项
     handleSelectedKeys([newPath]);
+
   },
   { immediate: true }
 );
@@ -101,7 +121,11 @@ const onOpenChange = (keys) => {
 };
 const placement = ref("left");
 
-
+onMounted(() => {
+  // 初始化时更新当前路由的展开菜单项
+  updateOpenKeysForCurrentRoute();
+  
+});
 </script>
 
 <style scoped lang="less">
