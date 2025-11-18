@@ -1,8 +1,13 @@
 /** 水印管理 */
 
-// 列表
+// 当前用户水印列表
 export function watermarkListApi() {
   return useGet('/platform-setting/platform/setting/template/watermark/list')
+}
+
+// 所有水印列表
+export function watermarkAllListApi() {
+  return useGet('/platform-setting/platform/setting/template/watermark/allList')
 }
 
 // 详情

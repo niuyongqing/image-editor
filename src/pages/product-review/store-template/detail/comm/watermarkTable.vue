@@ -136,7 +136,7 @@ import {
   computed,
 } from "vue";
 import {
-  watermarkListApi,
+  watermarkAllListApi,
   watermarkDelApi,
 } from "@/pages/sample/watermark/api.js";
 import { message } from "ant-design-vue";
@@ -216,7 +216,7 @@ const userInfo = computed(() => {
 })
 
 const templateDisabled = (record) => {
-  return record.userId !== userInfo.value.userid || props.disabled
+  return record.userId !== userInfo.value.userid || props.disabled || !record.title
 }
 // ==================== 工具函数 ====================
 /**
@@ -352,7 +352,7 @@ const getWatermarkList = async (mainImgWmTemplateId, subImgWmTemplateId,type='ed
   loading.value = true;
   try {
     // 没分页, 没入参
-    const res = await watermarkListApi();
+    const res = await watermarkAllListApi();
     tableData.value = res.data || [];
     // 初始化数据源
     if(type==='edit'){
