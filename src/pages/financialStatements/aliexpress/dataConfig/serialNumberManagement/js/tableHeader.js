@@ -21,14 +21,14 @@ export const serialNumberManagement_header = [
   },
   {
     title: '年份',
-    key: 'year',
-    dataIndex: 'year',
+    key: 'dataYear',
+    dataIndex: 'dataYear',
     width: 100,
   },
   {
     title: '月份',
-    key: 'month',
-    dataIndex: 'month',
+    key: 'dataMonth',
+    dataIndex: 'dataMonth',
     width: 100,
   },
   {

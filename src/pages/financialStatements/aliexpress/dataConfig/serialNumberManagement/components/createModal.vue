@@ -13,22 +13,22 @@
       >
         <a-form-item 
           label="年份" 
-          name="year" 
+          name="dataYear" 
           :rules="[{ required: true, message: '请输入年份!' }]"
         >
           <a-date-picker 
-            v-model:value="formData.year" 
+            v-model:value="formData.dataYear" 
             picker="year" 
             value-format="YYYY"
           />
         </a-form-item>
         <a-form-item 
           label="月份" 
-          name="month"
+          name="dataMonth"
           :rules="[{ required: true, message: '请输入月份!' }]"
         >
           <a-select
-            v-model:value="formData.month"
+            v-model:value="formData.dataMonth"
             :options="options.monthList"
             placeholder="请输入月份"
             allowClear
@@ -73,13 +73,13 @@ const props = defineProps({
 const openValue = ref(false);
 const btnLoading = ref(false)
 const formData = reactive({
-  year: dayjs().year() + '',
-  month: undefined,
+  dataYear: dayjs().year() + '',
+  dataMonth: undefined,
   remark: ''
 });
 const resetData = {
-  year: dayjs().year() + '',
-  month: undefined,
+  dataYear: dayjs().year() + '',
+  dataMonth: undefined,
   remark: ''
 }
 // const { open, rowInfo } = toRefs(props)
