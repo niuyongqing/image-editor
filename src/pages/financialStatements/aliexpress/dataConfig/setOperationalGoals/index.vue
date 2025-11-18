@@ -67,6 +67,7 @@
 
 <script setup>
 import dayjs from 'dayjs';
+import { monthList } from '~@/pages/financialStatements/common/data';
 defineOptions({ name: "setOperationalGoals_index" })
 const formData = reactive({
   year: dayjs(),
@@ -77,16 +78,11 @@ const formData = reactive({
   serialNumber: '',
 });
 const options = reactive({
-  monthList: [],  // 月
+  monthList,  // 月
   departmentList: [], // 部门列表
   groupList: [], // 组列表
   serialNumberList: [], // 流水号列表
 })
-options.monthList = Array.from({ length: 12 }, (_, i) => ({
-  value: (i + 1).toString().padStart(2, '0'),
-  label: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'][i]
-}));
-console.log(options.monthList)
 
 function userFilterOption(val, option) {
   // 将输入值和选项的 label（姓名）都转为小写，实现不区分大小写的模糊匹配
