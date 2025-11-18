@@ -66,15 +66,21 @@
       <template v-if="key === 'dictType'">
         {{ row.dictName }}
       </template>
-      <template v-else-if="key === 'status'">
+      <template v-if="key === 'status'">
+        <a-tag color="success" v-if="row.status === 'finished'">已完成</a-tag>
+        <a-tag color="processing" v-else>计算中</a-tag>
+      </template>
+      <template v-else-if="key === 'accept'">
         <a-switch 
-          v-model:checked="row.status" 
-          checked-children="已启用" 
-          un-checked-children="已停用" 
-          :checkedValue="'enabled'"
-          :unCheckedValue="'disabled'"
-          @change="(checked, event) => statusChange(checked, row)"
+          v-model:checked="row.accept" 
+          checked-children="是" 
+          un-checked-children="否" 
+          @change="(checked, event) => acceptChange(checked, row)"
+          :disabled="row.status === 'running'"
         />
+      </template>
+      <template v-else-if="['sfdghsdfhdfs','serfhgsdfgds','rdtjfsafsdgf','rtjdvsdfds','hujlkhfdgsdgf','sdfhsdfasfasf','adrfghdfsads',].includes(key)">
+        <a-button type="link" @click="viewReport(row, key)">查看</a-button>
       </template>
     </template>
     <template #leftTool>
@@ -90,18 +96,23 @@
       ></app-table-pagination>
     </template>
   </appTableBox>
-  <create-modal v-model:open="createModalOpen" :options="options"></create-modal>
+  <create-modal 
+    v-model:open="createModalOpen" 
+    :options="options"
+    @save="getVersionList"
+  ></create-modal>
 </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-import { serialNumberManagement_header } from './js/tableHeader'
-import { typeList, userList } from './js/api';
+import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue';
+import { serialNumberManagement_header } from './js/tableHeader';
+import { versionList, userList, acceptVersion } from './js/api';
 import dayjs from 'dayjs';
+import { monthList } from '~@/pages/financialStatements/common/data';
 import createModal from './components/createModal.vue';
-defineOptions({ name: "serialNumberManagement_index" })
-const { proxy: _this } = getCurrentInstance()
+defineOptions({ name: "serialNumberManagement_index" });
+const { proxy: _this } = getCurrentInstance();
 
 const serialNumber = reactive({
   data: [],
@@ -116,17 +127,17 @@ const serialNumber = reactive({
 const tableLoading = ref(false);
 const createModalOpen = ref(false);
 const formData = reactive({
-  year: dayjs(),
+  year: dayjs().year() + '',
   month: undefined,
-  version: undefined,
-  createTime: [undefined, undefined],
-  createUserId: undefined,
-  createTimeStart: '',
-  createTimeEnd: '',
+  version: '',
+  createTime: [],
+  createUserId: null,
+  createTimeStart: null,
+  createTimeEnd: null,
 });
 const formParams = {};
 const options = reactive({
-  monthList: [],              // 月
+  monthList,              // 月
   allUserList: [],            // 人员列表
   rangeOptions: [
     {
@@ -142,22 +153,18 @@ const options = reactive({
       value: [dayjs().add(-3, 'M'), dayjs()],
     },
   ],
-})
-options.monthList = Array.from({ length: 12 }, (_, i) => ({
-  value: (i + 1).toString().padStart(2, '0'),
-  label: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'][i]
-}));
-const formHeight = ref(0);
-const innerHeight = computed(() => {
-  return (window.innerHeight * 0.95) + 'px';
 });
+const formHeight = ref(0);
+// const innerHeight = computed(() => {
+//   return (window.innerHeight * 0.95) + 'px';
+// });
 const tableScrollHeihth = computed(() => {
   return ((window.innerHeight * 0.96) - 20 - 24 - 24 - 8 - 40 - 56 - formHeight.value);
 });
 onMounted(() => {
-  getUserList()
-  onSubmit()
-})
+  getUserList();
+  onSubmit();
+});
 function formHeightChange(val) {
   formHeight.value = val;
 }
@@ -178,8 +185,8 @@ async function getUserList() {
       return {
         label: i.userName,
         value: i.userId
-      }
-    })
+      };
+    });
   } catch (error) {
     console.error(error);
   }
@@ -187,7 +194,7 @@ async function getUserList() {
 // 分页器页数变化
 function pageNumChange(val) {
   serialNumber.tableParams.pageNum = val;
-  getTypeList();
+  getVersionList();
 }
 // 分页器每页条数变化
 function pageSizeChange(val) {
@@ -197,16 +204,17 @@ function pageSizeChange(val) {
 // 点击搜索
 function onSubmit(val) {
   Object.assign(formParams, formData);
+  formParams.month = formParams.month ?? '';
   let createTime = formData.createTime || [];
   if (createTime[0] && createTime[1]) {
-    formParams.createTimeStart = `${createTime[0]} 00:00:00`
-    formParams.createTimeEnd = `${createTime[1]} 23:59:59`  
+    formParams.createTimeStart = `${createTime[0]} 00:00:00`;
+    formParams.createTimeEnd = `${createTime[1]} 23:59:59`;
   }
   delete formParams.createTime;
   pageNumChange(1);
 }
-// 获取字典数据
-async function getTypeList(val) {
+// 获取流水号数据
+async function getVersionList(val) {
   let params = {
     ...formParams,
     "pageNum": serialNumber.tableParams.pageNum,
@@ -215,8 +223,9 @@ async function getTypeList(val) {
     "prop": "create_time"
   };
   tableLoading.value = true;
+  // console.log({params});
   try {
-    let res = await typeList(params);
+    let res = await versionList(params);
     let data = res.data;
     data.map((item, index) => {
       item.rowIndex = index + 1;
@@ -230,7 +239,20 @@ async function getTypeList(val) {
   }
   tableLoading.value = false;
 }
-</script>
-<style lang="less" scoped>
+// 是否采用
+async function acceptChange(val, row) {
+  // console.log({val, row});
+  try {
+    await acceptVersion({ id: row.id });
+  } catch (error) {
+    console.error(error);
+  }
+  getVersionList();
+}
+// 查看对应报表
+function viewReport(row, key) {
+  console.log({ row, key });
 
-</style>
+}
+</script>
+<style lang="less" scoped></style>

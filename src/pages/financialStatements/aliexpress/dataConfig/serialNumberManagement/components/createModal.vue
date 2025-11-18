@@ -3,7 +3,6 @@
   <appModal 
     v-model:open-value="openValue" 
     width="600px"
-    @open="modalOpenFn"
     :title="title"
   >
     <template #appContent>
@@ -74,12 +73,12 @@ const props = defineProps({
 const openValue = ref(false);
 const btnLoading = ref(false)
 const formData = reactive({
-  year: dayjs(),
+  year: dayjs().year() + '',
   month: undefined,
   remark: ''
 });
 const resetData = {
-  year: dayjs(),
+  year: dayjs().year() + '',
   month: undefined,
   remark: ''
 }
@@ -92,13 +91,6 @@ watch(() => openValue.value, (val, oldVal) => {
   emit('update:open', val);
   !val && (Object.assign(formData, resetData))
 });
-function modalOpenFn() {
-  if (props.rowInfo.itemId) {
-    Object.keys(formData).forEach(key => {
-      formData[key] = props.rowInfo[key];
-    });
-  } 
-}
 function handleCustomCancel() {
   _this.$refs.formRef.resetFields()
   openValue.value = false

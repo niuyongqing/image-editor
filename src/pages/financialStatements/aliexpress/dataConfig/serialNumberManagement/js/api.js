@@ -18,10 +18,11 @@ function getParamsFn(data) {
  * @param {*} data
  * @returns
  */
-export function typeList(data) {
+export function versionList(data) {
   return request({
-    url: '/report-aliexpress/report/aliexpress/report-version/type-list',
+    url: '/report-aliexpress/report/aliexpress/report-version/list',
     method: 'post',
+    data: data,
   })
 }
 /**
@@ -32,6 +33,18 @@ export function typeList(data) {
 export function generateVersion(data) {
   return request({
     url: '/report-aliexpress/report/aliexpress/report-version/generate',
+    method: 'post',
+    data: data,
+  })
+}
+/**
+ * // 采用流水号
+ * @param {*} data
+ * @returns
+ */
+export function acceptVersion(data) {
+  return request({
+    url: '/report-aliexpress/report/aliexpress/report-version/accept',
     method: 'post',
     data: data,
   })
