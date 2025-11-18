@@ -118,9 +118,11 @@ watch(
 const onOpenChange = (keys) => {
   // 手风琴模式 点开一个菜单的时候 关闭其他菜单
   console.log(keys);
-  if (keys.length > 1) {
-    openKeys.value = [keys[keys.length - 1]];
-  }
+  // if (keys.length > 1) {
+  //   openKeys.value = [keys[keys.length - 1]];
+  // }
+  // 直接保存当前展开状态
+  preOpenKeys.value = keys;
 };
 
 onMounted(() => {
