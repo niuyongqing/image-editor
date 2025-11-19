@@ -11,5 +11,5 @@ export function infringementList(params) {
 
 //店铺列表
 export function dictList(params) {
-    return useGet('/finance-data/report-aliexpress/report/aliexpress/dict/item-list/dict_shop', params)
+    return useGet('/report-aliexpress/report/aliexpress/dict/item-list/dict_shop', params)
 }

@@ -8,8 +8,8 @@
         </a-form-item>
         <a-form-item label="店铺" name="simpleName">
           <a-select v-model:value="searchForm.simpleName" mode="multiple" show-search allowClear :maxTagCount="1" placeholder="请输入店铺">
-            <a-select-option v-for="shop in shopOptions" :key="shop" :value="shop">
-              {{ shop }}
+            <a-select-option v-for="shop in shopOptions" :key="shop.value" :value="shop.value">
+              {{ shop.label }}
             </a-select-option>
           </a-select>
         </a-form-item>
@@ -181,7 +181,12 @@ const paginationChange = (val) =>{
 const getDictList = async () =>{
   try {
     let obj = await dictList()
-    shopOptions.value = obj.data;
+    shopOptions.value = obj.data.map(item => {
+      return {
+        label: item.itemValue,
+        value: item.itemId,
+      }
+    });
   }
   catch (error) {
     message.error('获取数据失败，请重试')
