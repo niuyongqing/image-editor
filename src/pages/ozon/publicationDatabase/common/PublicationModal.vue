@@ -206,7 +206,7 @@
               v-model:value="form.shopIntervalMin"
               :controls="false"
               :disabled="form.publishType === 2"
-              :min="1"
+              :min="3"
               :max="999"
               :precision="0"
               placeholder="最少"
