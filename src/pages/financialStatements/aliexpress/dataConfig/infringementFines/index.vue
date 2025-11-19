@@ -167,16 +167,26 @@ const tableDataChange = (pagination, filters, sorter) => {
 
 //页数回调
 const paginationChange = (val) =>{
-  searchForm.pageNum = val.page;
+  searchForm.pageNum = val.validPage;
   searchForm.pageSize = val.pageSize;
-
+  getList()
 }
 
 //获取列表
 const getList = async () =>{
   try {
+    let data = {
+      pageNum: searchForm.pageNum,
+      pageSize: searchForm.pageSize,
+      startMonth: searchForm.startTime,
+      endMonth: searchForm.endTime,
+      simpleName: searchForm.simpleName,
+      userName: searchForm.userName,
+      startTime: searchForm.startTime,
+      endTime: searchForm.endTime,
+    }
     loadingConfig.spinning = true;
-    let obj = await infringementList(searchForm)
+    let obj = await infringementList(data)
     tableData.value = obj.data
     tableParms.total = obj.total
   }
