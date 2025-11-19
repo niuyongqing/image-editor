@@ -162,6 +162,11 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+  // 是否选中所有用户
+  selectAll: {
+    type: Array,
+    default: () => [],
+  },
   // 开发属性可分配市场列表
   MarketDirection: {
     type: Array,
@@ -364,9 +369,8 @@ const getList = async () => {
       params.selectUserId = params.selectUserId.join(",");
     }
     if (params.selectUserId === "") {
-      params.selectUserId = params.selectAll.join(",");
+      params.selectUserId = props.selectAll.join(",");
     }
-    delete params.selectAll;
 
     // 分类处理
     if (Array.isArray(params.classify)) {
