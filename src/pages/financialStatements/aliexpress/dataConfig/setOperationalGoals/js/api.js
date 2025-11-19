@@ -63,3 +63,41 @@ export function checkUnique(data) {
     
   })
 }
+
+
+/**
+ * 下载新增运营目标模板
+ * @param {*} data
+ * @returns
+ */
+export function downloadTemplate() {
+  return request({
+    url: `/report-aliexpress/aliexpress/operation/configItem/downloadTemplate`,
+    method: 'get',
+  })
+}
+
+/**
+ * 下载新增运营目标模板
+ * @param {*} data
+ * @returns
+ */
+export function detail(id) {
+  return request({
+    url: `/report-aliexpress/aliexpress/operation/configItem/detail?id=${id}`,
+    method: 'get',
+  })
+}
+
+/**
+ * 下载新增运营目标模板
+ * @param {*} data
+ * @returns
+ */
+export function updateItem(data) {
+  return request({
+    url: `/report-aliexpress/aliexpress/operation/configItem/update`,
+    method: 'post',
+    data
+  })
+}

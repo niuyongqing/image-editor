@@ -3,7 +3,7 @@
   <appModal 
     v-model:open-value="openValue" 
     width="700px"
-    :title="title"
+    :title="pageType === 'add' ? '新增' : '编辑'"
   >
     <template #appContent>
       <!-- :label-col="{ span: 6 }" -->
@@ -24,6 +24,7 @@
               picker="year" 
               value-format="YYYY"
               class="w-full"
+              :disabled="pageType === 'edit'"
             />
           </a-form-item>
           <a-form-item label="部门：" name="department">
@@ -39,6 +40,7 @@
             v-model:value="formData.userName"
             placeholder="请输入关键字"
             :options="options.shopUserNameList"
+            :disabled="pageType === 'edit'"
           ></a-select>
         </a-form-item>
         </div>
@@ -52,6 +54,7 @@
               :options="options.monthList"
               placeholder="请输入月份"
               allowClear
+              :disabled="pageType === 'edit'"
             ></a-select>
           </a-form-item>
           <a-form-item label="小组：" name="group">
@@ -88,11 +91,13 @@
 
 <script setup>
 import dayjs from 'dayjs';
-import appModal from '~@/components/common/appModal.vue'
 import { message } from 'ant-design-vue';
-import { add,checkUnique } from '../js/api.js'
+import { add,checkUnique,updateItem } from '../js/api.js'
+import { id } from 'date-fns/locale';
 
 defineOptions({ name: "setOperationalGoals_createModal" })
+
+const appModal = defineAsyncComponent(() => import('@/components/common/appModal.vue'));
 
 const emit = defineEmits(['update:open', 'save'])
 const props = defineProps({
@@ -105,12 +110,21 @@ const props = defineProps({
     default: () => ({
       monthList: []
     })
+  },
+  pageType: {
+    type: String,
+    default: 'add',
+  },
+  detailData: {
+    type: Object,
+    default: () => ({})
   }
 })
 const openValue = ref(false);
 const btnLoading = ref(false);
 const formRef = ref(null);
 const formData = reactive({
+  id: '',
   dataYear: dayjs(),
   dataMonth: dayjs().format('MM'),
   department: '',
@@ -152,7 +166,7 @@ const rules = reactive({
       trigger: 'blur'
     }],
 })
-const title = '新增';
+
 watch(() => props.open, (val, oldVal) => {
   openValue.value = val;
 });
@@ -160,6 +174,27 @@ watch(() => openValue.value, (val, oldVal) => {
   emit('update:open', val);
   !val && (Object.assign(formData, resetData))
 });
+
+watch(() => props.detailData, (val, oldVal) => {
+  if (val.id) {
+    const {id, dataYear,dataMonth, department, group, userName, gmvBaseTarget, gmvIncreaseTarget, gmvChallengeTarget } = val
+    let newObj = {
+      id,
+      dataYear,
+      dataMonth,
+      department, 
+      group, 
+      userName, 
+      gmvBaseTarget, 
+      gmvIncreaseTarget, 
+      gmvChallengeTarget
+    }
+    Object.assign(formData, newObj)
+  }
+})
+
+
+
 function handleCustomCancel() {
   formRef.value.resetFields()
   openValue.value = false
@@ -167,7 +202,6 @@ function handleCustomCancel() {
 async function handleCustomOk() {
   try {
     await formRef.value.validate();
-    console.log('表单验证通过，数据:', formData);
     btnLoading.value = true;
     let params = {
       ...formData,
@@ -180,30 +214,50 @@ async function handleCustomOk() {
       dataMonth: dayjs(formData.dataMonth).format('MM'),
       userName: formData.userName,
     }
-    console.log(queryParams,'queryParams');
-    checkUnique(queryParams).then(res => {
-      if (res.data) {
-        message.success('该运营目标已存在')
-        return
-      }else {
-        add(params).then(res => {
-          btnLoading.value = false;
-          if (res.code === 200) {
-            message.success('新增成功')
-            handleCustomCancel();
-            emit('save');
-          } else {
-            message.error('新增失败');
-          }
-        })
-      }
-    }).finally(() => {
-      btnLoading.value = false;
-    })
+    if (props.pageType === 'add') {
+      checkUnique(queryParams).then(res => {
+        if (res.data) {
+          message.warning('该运营目标已存在')
+          return
+        }else {
+          addForm(params) 
+        }
+      }).finally(() => {
+        btnLoading.value = false;
+      })
+    }else {
+      editForm(params)
+    }
 
   } catch (error) {
-    console.log('表单验证失败:', error);
+    message.error('表单验证失败，请检查输入');
   }
+}
+
+function addForm(params) {
+  add(params).then(res => {
+    btnLoading.value = false;
+    if (res.code === 200) {
+      message.success('新增成功')
+      handleCustomCancel();
+      emit('save');
+    } else {
+      message.error('新增失败');
+    }
+  })
+}
+
+function editForm(params) {
+  updateItem(params).then(res => {
+    btnLoading.value = false;
+    if (res.code === 200) {
+      message.success('编辑成功')
+      handleCustomCancel();
+      emit('save');
+    } else {
+      message.error('编辑失败');
+    }
+  })
 }
 </script>
 <style lang="less" scoped>

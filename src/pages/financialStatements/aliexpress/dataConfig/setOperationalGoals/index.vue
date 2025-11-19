@@ -81,8 +81,13 @@
     reset-set-menu="setOperationalGoals" 
     :scroll="{y: tableScrollHeihth, x: 1800}"
     :loading="tableLoading"
+    :row-selection="rowSelection"
+    rowKey="id"
   >
-    <template #bodyCell="{ column, record }">
+    <template #bodyCell="{ column, record,index }">
+      <template v-if="column.dataIndex === 'rowIndex'">
+        {{ index + 1 }}
+      </template>
       <template v-if="column.dataIndex === 'createTime'">
         {{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
       </template>
@@ -91,15 +96,15 @@
       </template>
     </template>
     <template #leftTool>
-      <a-button type="primary" >导入新增</a-button>
-      <a-button type="primary" @click="addOpen = true">新增</a-button>
-      <a-button type="primary" danger >删除</a-button>
+      <a-button type="primary" :disabled="isDisabled" @click="importModel = true">导入新增</a-button>
+      <a-button type="primary" @click="addItem" :disabled="isDisabled">新增</a-button>
+      <a-button type="primary" danger :disabled="isDisabled" @click="deleteAccount">删除</a-button>
     </template>
     <!-- 操作区 -->
     <template #options="{ record }">
       <a-button type="link" @click="editAccount(record)">编辑</a-button>
-      <a-button type="link" @click="editAccount(record)">删除</a-button>
-      <a-button type="text" @click="editAccount(record)">日志</a-button>
+      <a-button type="link" danger @click="deleteAccount(record)">删除</a-button>
+      <a-button type="text" @click="detailAccount(record)">日志</a-button>
     </template>
     <template #pagination>
       <app-table-pagination
@@ -114,8 +119,17 @@
   <create-modal 
     v-model:open="addOpen" 
     :options="options"
+    :pageType="pageType"
+    :detailData="detailData"
     @save="getOperationalGoalsList"
   ></create-modal>
+  <!-- 导入新增弹框-->
+  <ImportModal v-model:visible="importModel"/>
+
+  <!-- 日志弹框 -->
+  <log-modal 
+    v-model:visible="logVisible" 
+  ></log-modal>
   </div>
 </template>
 
@@ -123,13 +137,31 @@
 import dayjs from 'dayjs';
 import { monthList } from '~@/pages/financialStatements/common/data';
 import { setOperationalGoals_header } from './js/tableHeader';
-import { dictList,versionList,operationalGoalsList } from './js/api';
-import createModal from './components/createModal.vue'
+import { dictList,versionList,operationalGoalsList,detail } from './js/api';
+import { message } from 'ant-design-vue'
 
 defineOptions({ name: "setOperationalGoals_index" })
 
+// 异步加载组件
+const appTableBox = defineAsyncComponent(() => import('@/components/common/appTableBox.vue'));
+const appTableForm = defineAsyncComponent(() => import('@/components/common/appTableForm.vue'));
+const pagination = defineAsyncComponent(() => import('@/components/common/appTablePagination.vue'));
+const ImportModal  = defineAsyncComponent(() => import('./components/importModel.vue'));
+const createModal = defineAsyncComponent(() => import('./components/createModal.vue'));
+// 日志弹框组件
+const logModal = defineAsyncComponent(() => import('./components/logModal.vue'));
+
 const tableLoading = ref(false);
 const addOpen = ref(false);
+const selectedRowList = ref([]); // 选中的行
+const isDisabled = ref(false);
+// 日志弹框是否显示
+const logVisible = ref(false);
+// 导入新增弹框是否显示
+const importModel = ref(false);
+const pageType = ref('add');
+const detailData = ref({});
+
 const setOperationalGoals = reactive({
   data: [],
   total: 0,
@@ -156,6 +188,22 @@ const options = reactive({
   shopUserNameList: [], // 运营列表
 })
 
+// 监听流水号是否为空禁用按钮
+watch(() => formData.serialNumber, (newVal, oldVal) => {
+  isDisabled.value = newVal !== '';
+},{
+  immediate: true,
+});
+
+const rowSelection = computed(() => {
+  return {
+    selectedRowKeys: selectedRowList.value,
+    onChange: (rowKeys, rows) => {
+      selectedRowList.value = rowKeys; //只接收ID
+    },
+  };
+});
+
 const formHeight = ref(0);
 const tableScrollHeihth = computed(() => {
   return ((window.innerHeight * 0.96) - 20 - 24 - 24 - 8 - 40 - 56 - formHeight.value);
@@ -167,22 +215,22 @@ function userFilterOption(val, option) {
   return option.label.toLowerCase().includes(val.toLowerCase());
 }
 
-
-
 function formHeightChange(height) {
   formHeight.value = height;
 }
 
 // 分页器页数变化
 function pageNumChange(val) {
+  log(val,'val');
   setOperationalGoals.tableParams.pageNum = val;
+  getOperationalGoalsList();
 }
 // 分页器每页条数变化
 function pageSizeChange(val) {
   setOperationalGoals.tableParams.pageSize = val;
   pageNumChange(1);
 }
-
+// 
 async function getCommonDictList() {
   try {
     // 使用 Promise.all 并发请求三个字典数据
@@ -254,6 +302,7 @@ function getOperationalGoalsList() {
     if (res.code === 200) {
       setOperationalGoals.data = res.data;
       setOperationalGoals.total = res.total;
+      selectedRowList.value = []; // 清空选中的行
     }
   })
 }
@@ -261,6 +310,40 @@ function getOperationalGoalsList() {
 function onSubmit() {
   getOperationalGoalsList();
 }
+
+// 删除
+function deleteAccount(record = {} ) {
+  // deleteOperationalGoals({ id: record.id }).then(res => {
+  //   if (res.code === 200) {
+  //     message.success('删除成功');
+  //     getOperationalGoalsList();
+  //   }
+  // })
+}
+// 编辑
+function editAccount(record = {} ) {
+  pageType.value = 'edit';
+  addOpen.value = true;
+  detail(record.id).then(res => {
+    if (res.code === 200) {
+      detailData.value = res.data;
+    }
+  })
+}
+
+function addItem() {
+  pageType.value = 'add';
+  addOpen.value = true;
+}
+
+// 详情
+function detailAccount(record = {} ) {
+  logVisible.value = true;
+  
+}
+
+
+
 onMounted(() => {
   getCommonDictList();
   getVersionList();
