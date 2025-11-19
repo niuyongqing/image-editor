@@ -257,7 +257,7 @@ const storInfo = reactive({
     {
       label: "按更新时间",
       type: "bottom",
-      value: "update_tiem",
+      value: "update_time",
       prop: 2,
       isDefault: false,
     },
