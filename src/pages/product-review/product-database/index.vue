@@ -569,15 +569,10 @@ const listingPicks = (currentRow = []) => {
   // 检查选中的商品是否有已初审商品 isIntelligent 0:未参加,1:审核中,2:审核完成
   let products = currentRow;
   if (products.some(product => Number(product.isIntelligent) !== 0)) {
-    message.warning('存在已智能刊登商品，不能重复刊登');
+    message.warning('当前产品已选品,请勿重复操作');
     return;
   }
 
-  if (products.some(product => Number(product.status) !== 1)) {
-    message.warning('不是已完成状态商品，不能智能选品');
-    return;
-  }
-  
   // 设置选中的商品ID
   selectedProductIds.value = currentRow.map(v => v.commodityId);
   
