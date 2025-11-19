@@ -7,8 +7,8 @@
           <a-range-picker v-model:value="searchForm.month" :bordered="true" format="YYYY-MM" value-format="YYYY-MM"/>
         </a-form-item>
         <a-form-item label="店铺" name="simpleName">
-          <a-select v-model:value="searchForm.simpleName" mode="multiple" show-search allowClear :maxTagCount="1" placeholder="请输入店铺">
-            <a-select-option v-for="shop in shopOptions" :key="shop.value" :value="shop.value">
+          <a-select v-model:value="searchForm.simpleName" mode="multiple" show-search :filter-option="simpleNameFilterOption" allowClear :maxTagCount="1" placeholder="请输入店铺">
+            <a-select-option v-for="shop in shopOptions" :key="shop.value" :value="shop.value" :label="shop.label">
               {{ shop.label }}
             </a-select-option>
           </a-select>
@@ -232,6 +232,11 @@ const handleSearch = (value) =>{
       });
     })
   }, 500);
+}
+
+//店铺搜索事件
+const simpleNameFilterOption = (input, option) =>{
+  return option.label.toLowerCase().includes(input.toLowerCase());
 }
 
 const onSelectChange = (selectedKeys, selectedRows) =>{
