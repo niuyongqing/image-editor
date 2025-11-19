@@ -67,7 +67,7 @@ export const header = [
     width: 140,
   },
   {
-    title: "是否智能刊登",
+    title: "是否智能选品",
     dataIndex: "isIntelligent",
     key: "isIntelligent",
     slot: "isIntelligent",

@@ -1197,6 +1197,30 @@
   // 拖拽方法
   const pointerEventsNone = ref(false)
 
+  /**
+   * 计算专属图片模块的最小未使用位置值
+   * @returns {string} 最小的未使用位置值
+   */
+  function getMinUnusedPosition() {
+    // 获取所有已存在的专属图片的位置
+    const existingPositions = moduleList.value
+      .filter(item => item.type === 'ExclusiveImage' && item.position)
+      .map(item => parseInt(item.position))
+      .sort((a, b) => a - b)
+    
+    // 找到最小的未使用位置值
+    let newPosition = 1
+    for (const pos of existingPositions) {
+      if (pos === newPosition) {
+        newPosition++
+      } else if (pos > newPosition) {
+        break
+      }
+    }
+    
+    return String(newPosition)
+  }
+
   function handleDragStart(e) {
     pointerEventsNone.value = true
     e.dataTransfer.setData('componentName', e.target.dataset.name)
@@ -1426,9 +1450,7 @@
       moduleItem = { ...moduleItem, ...cloneDeep(imgDefaulet) }
       // 智能刊登模式下添加位置标识
       if (props.isIntelligentize) {
-        // 计算当前专属图片的数量，作为位置标识
-        const currentCount = moduleList.value.filter(item => item.type === 'ExclusiveImage').length
-        moduleItem.position = String(currentCount + 1)
+        moduleItem.position = getMinUnusedPosition()
       }
     }
     // 插入拖过来的模块(即为替换掉提示模块)
@@ -1549,6 +1571,12 @@
       id: uuidv4()
     }
     const moduleItem = cloneDeep(item)
+    
+    // 如果是专属图片类型，需要重新计算位置
+    if (props.isIntelligentize && moduleItem.type === 'ExclusiveImage') {
+      moduleItem.position = getMinUnusedPosition()
+    }
+    
     moduleList.value.splice(i + 1, 0, moduleItem)
     selectModule(moduleItem, i + 1)
   }
