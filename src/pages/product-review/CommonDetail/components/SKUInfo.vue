@@ -353,8 +353,8 @@
                   <a-input-number
                     v-model:value="record.length"
                     :controls="false"
-                    :precision="0"
-                    :min="1"
+                    :precision="2"
+                    :min="0.01"
                     :max="99999"
                     placeholder="长"
                     class="w-full min-w-20"
@@ -362,8 +362,8 @@
                   <a-input-number
                     v-model:value="record.width"
                     :controls="false"
-                    :precision="0"
-                    :min="1"
+                    :precision="2"
+                    :min="0.01"
                     :max="99999"
                     placeholder="宽"
                     class="w-full min-w-20"
@@ -371,8 +371,8 @@
                   <a-input-number
                     v-model:value="record.height"
                     :controls="false"
-                    :precision="0"
-                    :min="1"
+                    :precision="2"
+                    :min="0.01"
                     :max="99999"
                     placeholder="高"
                     class="w-full min-w-20"
@@ -401,8 +401,8 @@
                 <a-input-number
                   v-model:value="record.weight"
                   :controls="false"
-                  :precision="0"
-                  :min="1"
+                  :precision="2"
+                  :min="0.01"
                   :max="99999"
                   placeholder="请输入数值"
                   class="flex-1"
@@ -1249,5 +1249,5 @@
   }
 
   // 抛出数据和方法，可以让父级用ref获取
-  defineExpose({ emitData })
+  defineExpose({ filteredAspectList, emitData })
 </script>
