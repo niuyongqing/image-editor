@@ -280,8 +280,8 @@ async function getDetailFn() {
     })
     res.data.productAttributeList = res.data.productAttributeList || []
     res.data.editor_json_11254 = res.data.productAttributeList.find(i => i.attributeId === 11254)?.attributeValue
-    detailData.video.coverUrl = res.data.productAttributeList.find(i => i.attributeComplexId === 100002)?.attributeValue
-    detailData.video.videoList = res.data.productAttributeList.filter(i => i.attributeComplexId === 100001);
+    detailData.video.coverUrl = res.data.productAttributeList.find(i => i.complexId === 100002)?.attributeValue
+    detailData.video.videoList = res.data.productAttributeList.filter(i => i.complexId === 100001);
     // 从属性中找出全部的销售属性
     let aspectAll = res.data.categoryAttributeList.filter(i => i.isAspect)
     // 剔除掉所有依赖于其他主题的属性
