@@ -293,6 +293,7 @@ const { state: formData, reset } = useResetReactive({
   sku: "", // sku
   description: "", // 描述
 });
+// 默认查询已完成状态商品
 formData.status = '1';
 const tableData = reactive({
   data: [],
