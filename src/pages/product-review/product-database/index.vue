@@ -120,7 +120,7 @@
           </template>
           <template v-else-if="key === 'artMainImage'">
             <a-image-preview-group>
-              <a-image :width="50" v-for="(item, index) in artMainImageSrc(record)" :src="item" :key="index" />
+              <a-image  width="50px" height="50px" :fallback="EmptyImg" v-for="(item, index) in artMainImageSrc(record)" :src="item || EmptyImg" :key="index" />
             </a-image-preview-group>
           </template>
           <template v-else-if="key === 'devAccount'">
@@ -252,6 +252,7 @@ import devAttributableMarketRevert from "~@/utils/devAttributableMarketRevert";
 import classifyRevert from "~@/utils/classifyRevert";
 import devProhibitPlatformRevert from "~@/utils/devProhibitPlatformRevert";
 import { camelCase, toLowerLine } from "~@/utils";
+import EmptyImg from '@/assets/images/aliexpress/empty.png'
 defineOptions({ name: "productDatabase_index" });
 const { proxy: _this } = getCurrentInstance();
 const emit = defineEmits(["handleSelect"]);
@@ -292,6 +293,7 @@ const { state: formData, reset } = useResetReactive({
   sku: "", // sku
   description: "", // 描述
 });
+formData.status = '1';
 const tableData = reactive({
   data: [],
   total: 0,
@@ -569,10 +571,15 @@ const listingPicks = (currentRow = []) => {
   // 检查选中的商品是否有已初审商品 isIntelligent 0:未参加,1:审核中,2:审核完成
   let products = currentRow;
   if (products.some(product => Number(product.isIntelligent) !== 0)) {
-    message.warning('当前产品已选品,请勿重复操作');
+    message.warning('存在已智能刊登商品，不能重复刊登');
     return;
   }
 
+  if (products.some(product => Number(product.status) !== 1)) {
+    message.warning('不是已完成状态商品，不能智能选品');
+    return;
+  }
+  
   // 设置选中的商品ID
   selectedProductIds.value = currentRow.map(v => v.commodityId);
   
