@@ -120,7 +120,7 @@
           </template>
           <template v-else-if="key === 'artMainImage'">
             <a-image-preview-group>
-              <a-image :width="50" v-for="(item, index) in artMainImageSrc(record)" :src="item" :key="index" />
+              <a-image  width="50px" height="50px" :fallback="EmptyImg" v-for="(item, index) in artMainImageSrc(record)" :src="item || EmptyImg" :key="index" />
             </a-image-preview-group>
           </template>
           <template v-else-if="key === 'devAccount'">
@@ -252,6 +252,7 @@ import devAttributableMarketRevert from "~@/utils/devAttributableMarketRevert";
 import classifyRevert from "~@/utils/classifyRevert";
 import devProhibitPlatformRevert from "~@/utils/devProhibitPlatformRevert";
 import { camelCase, toLowerLine } from "~@/utils";
+import EmptyImg from '@/assets/images/aliexpress/empty.png'
 defineOptions({ name: "productDatabase_index" });
 const { proxy: _this } = getCurrentInstance();
 const emit = defineEmits(["handleSelect"]);
@@ -292,6 +293,8 @@ const { state: formData, reset } = useResetReactive({
   sku: "", // sku
   description: "", // 描述
 });
+// 默认查询已完成状态商品
+formData.status = '1';
 const tableData = reactive({
   data: [],
   total: 0,
