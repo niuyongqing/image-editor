@@ -61,7 +61,7 @@
       </template>
 <!--      分页器区域-->
       <template #pagination>
-        <pagination v-model:current="tableParms.pageNum" v-model:pageSize="tableParms.pageSize" :total="tableParms.total" @pageNumChange="pageNumChange" @pageSizeChange="pageSizeChange"></pagination>
+        <pagination v-model:current="tableParms.pageNum" v-model:pageSize="tableParms.pageSize" :total="tableParms.total" @change="paginationChange"></pagination>
       </template>
     </app-table-box>
 
@@ -187,6 +187,10 @@ const tableHeight = computed(() => {
 
 //查询回调
 const onSubmit = (data) => {
+  searchForm.pageNum = 1
+  searchForm.pageSize = 50;
+  tableParms.pageNum = 1
+  tableParms.pageSize = 50;
   searchForm.updateTimeStart = data.updateTime?.[0] ?? ''
   searchForm.updateTimeEnd =  data.updateTime?.[1] ?? ''
   getVersionList(searchForm)
@@ -198,14 +202,13 @@ const tableDataChange = (pagination, filters, sorter) => {
 };
 
 //页数回调
-const pageNumChange = (val) =>{
-  console.log(val);
+const paginationChange = (page, pageSize) =>{
+  console.log(page, pageSize);
+  // searchForm.pageNum = val.page;
+  // searchForm.pageSize = val.pageSize;
+  getVersionList()
 }
 
-//页数大小回调
-const pageSizeChange = (val) =>{
-  console.log(val);
-}
 </script>
 
 <style lang="less" scoped>
