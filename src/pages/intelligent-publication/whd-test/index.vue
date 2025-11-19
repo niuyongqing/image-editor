@@ -1,135 +1,133 @@
 <template>
   <div id="publication_sequence" class="publication_sequence">
     <!-- <test></test> -->
-    <a-card>
-      <a-form :model="formData" layout="inline">
-        <a-form-item label="审核时间" name="completeTime">
-          <a-range-picker v-model:value="formData.completeTime" allowClear format="YYYY-MM-DD"
-            valueFormat="YYYY-MM-DD" />
+    <appTableForm 
+      v-model:formData="formData" 
+      @formHeightChange="formHeightChange"
+      reset-set-menu="whdTestHeader" 
+      :mini="true"
+      :rules="rules"
+      @onSubmit="onSubmit"
+    >
+      <template #formItemBox>
+        <a-form-item 
+          label="sdgsd" 
+          name="categoryId"
+          :rules="[{ required: true, message: 'Please input your password!' }]"
+        >
+          <a-input v-model:value="formData.categoryId" placeholder="商品名"></a-input>
         </a-form-item>
-        <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
+        <a-form-item label="半托管JIT利润率目标">
+          <a-input v-model:value="formData.tradeName" placeholder="商品名"></a-input>
+        </a-form-item>
+        <a-form-item label="红烧冬瓜梵蒂冈梵冈" name="asdgasdfasd">
           <a-form-item-rest>
-            <div flex gap-10px style="width: 300px">
+            <div style="display: flex;">
+              <a-checkbox v-model:checked="formData.rrrr">Checkbox</a-checkbox>
+            </div>
+          </a-form-item-rest>
+        </a-form-item>
+        <a-form-item 
+          label="sadggfasd" 
+          name="afhgsdgfasd"
+          :rules="[{ required: true, message: 'Please input your password!' }]"
+        >
+          <a-input v-model:value="formData.afhgsdgfasd" placeholder="商品名"></a-input>
+        </a-form-item>
+        <a-form-item label="模糊查找" name="asdfasdfasd">
+          <a-input v-model:value="formData.asdfasdfasd" placeholder="商品名"></a-input>
+        </a-form-item>
+        <a-form-item label="是大法官" name="dfgjfdghsdfg">
+          <a-date-picker v-model:value="formData.productName" />
+        </a-form-item>
+        <a-form-item label="sfdgdfsg" name="asdfasdf">
+          <a-radio-group v-model:value="formData.asdfasdf" name="radioGroup">
+            <a-radio value="1">A</a-radio>
+            <a-radio value="2">B</a-radio>
+          </a-radio-group>
+        </a-form-item>
+        <a-form-item label="煽风点火对手方" name="sadgasdgsdagf">
+          <a-range-picker v-model:value="formData.ccc" />
+        </a-form-item>
+        <a-form-item label="十多个十多个" name="asdfgasdgfas">
+          <a-select v-model:value="formData.ddd">
+            <a-select-option value="demo">ERG</a-select-option>
+            <a-select-option value="demo">哈哈aSDFASDGASDGASDGASDGASDFGSDAFGSDFHDSFHFSGFDGJFG</a-select-option>
+            <a-select-option value="demo">哈DFHBDF 哈</a-select-option>
+            <a-select-option value="demo">DFG哈哈</a-select-option>
+            <a-select-option value="demo">哈哈</a-select-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item label="十色调个手" name="asdfasdfsad">
+          <a-switch v-model:checked="formData.rrfghjgfhjrr" />
+        </a-form-item>
+        <a-form-item label="十色调个手" name="asdgasdgasd">
+          <a-form-item-rest>
+            <div flex gap-10px style="width: 400px">
               <a-input v-model:value="formData.productName" placeholder="商品名"></a-input>
+              <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
               <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
             </div>
           </a-form-item-rest>
         </a-form-item>
-        <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
+      </template>
+      <template #formItemRow>
+        <a-form-item label="豆腐干豆腐" name="asdfasdfaseed">
+          <a-cascader 
+            placeholder="产品分类" 
+            allowClear 
+            style="width: 400px;"
+            v-model:value="formData.tradeName" 
+            :options="[]"
+            :allow-clear="true" 
+            :field-names="{ value: 'descriptionCategoryId', label: 'categoryName', children: 'children' }" 
+          />
+        </a-form-item>
+        <a-form-item label="半托管JIT东方率目标" name="asdfsadf">
           <a-form-item-rest>
-            <div flex gap-10px style="width: 300px">
+            <div flex gap-10px style="width: 600px">
               <a-input v-model:value="formData.productName" placeholder="商品名"></a-input>
+              <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
+              <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
+              <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
               <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
             </div>
           </a-form-item-rest>
         </a-form-item>
-        <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
+        <a-form-item label="红烧冬瓜梵蒂冈梵冈" name="asdfgsadf">
           <a-form-item-rest>
-            <div flex gap-10px style="width: 300px">
-              <a-input v-model:value="formData.productName" placeholder="商品名"></a-input>
+            <div style="display: flex;">
+              <a-checkbox v-model:checked="formData.rrrr">Checkbox</a-checkbox>
+              <a-checkbox v-model:checked="formData.rrrr">Checkbox</a-checkbox>
+              <a-checkbox v-model:checked="formData.rrrr">Checkbox</a-checkbox>
+              <a-checkbox v-model:checked="formData.rrrr">Checkbox</a-checkbox>
+              <a-checkbox v-model:checked="formData.rrrr">Checkbox</a-checkbox>
+            </div>
+          </a-form-item-rest>
+        </a-form-item>
+        <a-form-item label="半托管JIT东方率目标" name="sdfhdsfg">
+          <a-form-item-rest>
+            <div flex gap-10px style="width: 600px">
+              <a-input v-model:value="formData.skuCode" placeholder="商品名"></a-input>
+              <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
+              <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
+              <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
               <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
             </div>
           </a-form-item-rest>
         </a-form-item>
-        <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
-          <a-form-item-rest>
-            <div flex gap-10px style="width: 300px">
-              <a-input v-model:value="formData.productName" placeholder="商品名"></a-input>
-              <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
-            </div>
-          </a-form-item-rest>
-        </a-form-item>
-        <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
-          <a-form-item-rest>
-            <div flex gap-10px style="width: 300px">
-              <a-input v-model:value="formData.productName" placeholder="商品名"></a-input>
-              <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
-            </div>
-          </a-form-item-rest>
-        </a-form-item>
-        <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
-          <a-form-item-rest>
-            <div flex gap-10px style="width: 300px">
-              <a-input v-model:value="formData.productName" placeholder="商品名"></a-input>
-              <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
-            </div>
-          </a-form-item-rest>
-        </a-form-item>
-        <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
-          <a-form-item-rest>
-            <div flex gap-10px style="width: 300px">
-              <a-input v-model:value="formData.productName" placeholder="商品名"></a-input>
-              <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
-            </div>
-          </a-form-item-rest>
-        </a-form-item>
-        <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
-          <a-form-item-rest>
-            <div flex gap-10px style="width: 300px">
-              <a-input v-model:value="formData.productName" placeholder="商品名"></a-input>
-              <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
-            </div>
-          </a-form-item-rest>
-        </a-form-item>
-        <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
-          <a-form-item-rest>
-            <div flex gap-10px style="width: 300px">
-              <a-input v-model:value="formData.productName" placeholder="商品名"></a-input>
-              <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
-            </div>
-          </a-form-item-rest>
-        </a-form-item>
-        <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
-          <a-form-item-rest>
-            <div flex gap-10px style="width: 300px">
-              <a-input v-model:value="formData.productName" placeholder="商品名"></a-input>
-              <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
-            </div>
-          </a-form-item-rest>
-        </a-form-item>
-        <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
-          <a-form-item-rest>
-            <div flex gap-10px style="width: 300px">
-              <a-input v-model:value="formData.productName" placeholder="商品名"></a-input>
-              <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
-            </div>
-          </a-form-item-rest>
-        </a-form-item>
-        <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
-          <a-form-item-rest>
-            <div flex gap-10px style="width: 300px">
-              <a-input v-model:value="formData.productName" placeholder="商品名"></a-input>
-              <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
-            </div>
-          </a-form-item-rest>
-        </a-form-item>
-        <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
-          <a-form-item-rest>
-            <div flex gap-10px style="width: 300px">
-              <a-input v-model:value="formData.productName" placeholder="商品名"></a-input>
-              <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
-            </div>
-          </a-form-item-rest>
-        </a-form-item>
-        <div class="formItem-row-i right">
-          <a-space>
-            <a-button key="submit">重置</a-button>
-            <a-button key="submit" type="primary">
-              查询
-            </a-button>
-          </a-space>
-        </div>
-      </a-form>
-    </a-card>
+      </template>
+    </appTableForm>
     <app-table-box 
-      v-model:filter-columns="tableData.filterColumns" 
+      v-model:filter-columns="columns" 
       :data-source="tableData.data"
       :table-header="tableData.header" 
       reset-set-menu="whdTestHeader" 
       rowKey="rowKey"
       :row-selection="{ selectedRowKeys: tableData.selectedRowKeys, onChange: onSelectChange }" 
       @change="tableChange"
-      :customRow="customRow" isSummary is-expanded-row-render
+      :customRow="customRow"
+      :scroll="{x: 1, y: false}"
     >
       <template #leftTool>
         <a-button type="primary" @click="openModal">提交编辑</a-button>
@@ -193,11 +191,15 @@
           </a-tag>
         </template>
       </template>
+      <!-- <template #options>
+        <a-button type="primary" @click="openModal">提交编辑</a-button>
+        <a-button type="primary">添加备注</a-button>
+      </template> -->
       <template #summary>
         <a-table-summary :fixed="'bottom'">
           <a-table-summary-row>
             <a-table-summary-cell>{{ '合计' }}</a-table-summary-cell>
-            <a-table-summary-cell></a-table-summary-cell>
+            <!-- <a-table-summary-cell></a-table-summary-cell> -->
             <a-table-summary-cell align="right" v-for="item in tableData.filterColumns.filter(i => i.show)"
               :key="item.key">
               {{ dataTotal && dataTotal[item.key] }}
@@ -205,9 +207,9 @@
           </a-table-summary-row>
         </a-table-summary>
       </template>
-      <template #expandedRowRender="{ record: row }">
+      <!-- <template #expandedRowRender="{ record: row }">
         {{ row.rowKey }}
-      </template>
+      </template> -->
 
       <template #pagination>
         <!-- <a-pagination
@@ -227,7 +229,7 @@
     </app-table-box>
 
     <!-- 使用自定义footer -->
-    <appModal v-model:modelValue="customModalVisible" title="自定义底部弹窗1" @close="closeModal" @open="openModalFn">
+    <appModal v-model:openValue="customModalVisible" title="自定义底部弹窗1" @close="closeModal" @open="openModalFn">
       <template #appContent>
         <p>弹窗内容</p>
       </template>
@@ -242,19 +244,54 @@
 </template>
 
 <script setup>
+import test from './test.vue';
+// const appModal = () => import('~/components/common/appModal.vue');
+// const appTableBox = () => import('~/components/common/appTableBox.vue');
+// const appTablePagination = () => import('~/components/common/appTablePagination.vue');
+// const appTableForm = () => import('~/components/common/appTableForm.vue');
 import appModal from '~/components/common/appModal.vue';
 import appTableBox from '~/components/common/appTableBox.vue';
 import appTablePagination from '~@/components/common/appTablePagination.vue';
+import appTableForm from '~@/components/common/appTableForm.vue';
 import { v4 as uuidv4 } from 'uuid';
 defineOptions({ name: 'publication_sequence' });
 const { proxy: _this } = getCurrentInstance();
 
-const { state: formData, reset } = useResetReactive({
-  categoryId: [], // 分类
+const formData = reactive({
+  categoryId: '', // 分类
   selectUserIdList: [],
   completeTime: [], // 完成时间
   skuCode: '',
   productName: '', // 商品名称
+  tradeName: '',
+  aaa: '',
+  bbb: '',
+  ccc: [],
+  vvv: '',
+  ddd: '',
+  rrrr: '',
+  vvvvdfs: '',
+  sdfsd: '',
+  fgdfg: false,
+  rrfghjgfhjrr: false,
+  dfhh: '',
+  dfhdfh: '',
+  sdgdfg: '',
+  asdgasdfasd: '',
+  afhgsdgfasd: '',
+  asdfasdfasd: '',
+  asdfasdf: '',
+  asdfasdf: '',
+  radioGroup: '',
+  sadgasdgsdagf: '',
+  asdfgasdgfas: '',
+  asdfasdfsad: '',
+  asdgasdgasd: '',
+  asdfasdfaseed: '',
+  asdfsadf: '',
+  asdfgsadf: '',
+  sdfhdsfg: '',
+  dfgjfdghsdfg: '',
 });
 const tableData = reactive({
   header: [
@@ -959,6 +996,7 @@ const tableData = reactive({
     // "prop": "complete_time" // 排序列，必须
   },
 });
+const columns = reactive([])
 const current1 = ref(1);
 const current2 = ref(2);
 const customModalVisible = ref(false);
@@ -968,6 +1006,16 @@ const paginations = reactive({
   total: 2000,
 });
 let dataList = [];
+const rules = {
+  asdfasdfasd: [
+    { required: true, message: 'Please input Activity name', trigger: 'blur', }
+  ]
+}
+watch(() => formData, (val, oldVal) => {
+  console.log({val, oldVal});
+}, {
+  deep: true,
+})
 onMounted(() => {
   for (let i = 0; i < 2; i++) {
     tableData.data.forEach((item, index) => {
@@ -1009,6 +1057,13 @@ const dataTotal = computed(() => {
   });
   return obj;
 });
+function formHeightChange(val) {
+  // console.log({val}, 'height');
+  
+}
+function onSubmit(val) {
+  console.log(formData, {val});
+}
 // 复选框
 function onSelectChange(keys, rows) {
   tableData.selectedRowKeys = keys;
