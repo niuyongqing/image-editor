@@ -2,15 +2,52 @@
   <div>
 <!--    搜索区域-->
     <app-table-form :reset-set-menu="resetSetMenu" v-model:formData="searchForm" :rules="searchRules" @onSubmit="onSubmit">
-      <template #formItemRow>
+      <template #formItemBox>
         <a-form-item label="版本月份" name="month">
-          <a-range-picker v-model:value="searchForm.month" picker="month" :bordered="true" format="YYYY-MM" value-format="YYYY-MM"/>
+          <a-date-picker v-model:value="searchForm.month" :bordered="true" format="YYYY-MM" value-format="YYYY-MM"/>
+        </a-form-item>
+        <a-form-item label="状态" name="status">
+          <a-select v-model:value="searchForm.status" :options="statusOptions" placeholder="请选择状态" allowClear></a-select>
+        </a-form-item>
+        <a-form-item label="操作人" name="userName">
+          <a-select
+              v-model:value="searchForm.userName"
+              show-search
+              allow-clear
+              :filter-option="false"
+              :not-found-content="userNameLoading ? '加载中...' : '暂无数据'"
+              :options="userNameOptions"
+              :loading="userNameLoading"
+              @search="handleSearch"
+              placeholder="请输入关键词搜索"
+          >
+            <template #notFoundContent>
+              <div v-if="userNameLoading">
+                <a-spin size="small" />
+                <span style="margin-left: 8px">加载中...</span>
+              </div>
+              <div v-else>暂无数据</div>
+            </template>
+          </a-select>
+        </a-form-item>
+      </template>
+      <template #formItemRow>
+        <a-form-item label="操作时间" name="updateTime">
+          <a-range-picker v-model:value="searchForm.updateTime" format="YYYY-MM-DD HH:mm:ss" value-format="YYYY-MM-DD HH:mm:ss" :default-time="['T00:00:00.000Z', 'T23:59:59.000Z']"/>
         </a-form-item>
       </template>
     </app-table-form>
 
 <!--    表格区域-->
-    <app-table-box :reset-set-menu="resetSetMenu" :table-header="tableHeader" :data-source="tableData" row-key="id" :scroll="{x: 1800,y: tableHeight}" @change="tableDataChange">
+    <app-table-box
+        :reset-set-menu="resetSetMenu"
+        :table-header="tableHeader"
+        :data-source="tableData"
+        row-key="id"
+        :scroll="{x: 1800,y: tableHeight}"
+        @change="tableDataChange"
+        :loading="loadingConfig"
+    >
       <template #bodyCell="{ column, record, index }">
         <div v-if="column.dataIndex === 'status'">
           <div v-if="record.status === 1" flex flex-between flex-center><div class="ver-true"></div><div>使用版本</div></div>
@@ -24,7 +61,7 @@
       </template>
 <!--      分页器区域-->
       <template #pagination>
-        <pagination v-model:current="tableParms.pageNum" v-model:pageSize="tableParms.pageSize" :total="tableParms.total" @pageNumChange="pageNumChange" @pageSizeChange="pageSizeChange"></pagination>
+        <pagination v-model:current="tableParms.pageNum" v-model:pageSize="tableParms.pageSize" :total="tableParms.total" @change="paginationChange"></pagination>
       </template>
     </app-table-box>
 
@@ -39,7 +76,9 @@
 /*                     版本管理                  */
 defineOptions({ name: 'versionConfig' });
 import { ref, reactive, defineAsyncComponent, onMounted, computed } from 'vue';
+import { userList, versionList } from "~/pages/financialStatements/aliexpress/dataConfig/versionConfig/js/api.js";
 import tableHeader from '@/pages/financialStatements/aliexpress/dataConfig/versionConfig/js/tableHeader.js';
+import { message } from "ant-design-vue";
 
 // 异步加载组件
 const appTableBox = defineAsyncComponent(() => import('@/components/common/appTableBox.vue'));
@@ -48,8 +87,38 @@ const pagination = defineAsyncComponent(() => import('@/components/common/appTab
 const editSealingTime = defineAsyncComponent(() => import('@/pages/financialStatements/aliexpress/dataConfig/versionConfig/common/editSealingTime.vue'));
 
 const resetSetMenu = 'versionConfig';
+//操作人
+const searchTimeout = ref(null); //防抖定时器
+const searchKeyword = ref(''); //储存输入的值
+const userNameLoading = ref(false); //loading
+const userNameOptions = ref([]); //搜索出来的数组
+
+//更改封账时间 弹框
 const editSealingTimeModel = ref(false);
+
+//表格数据
 const tableData = ref([]);
+
+//表格loading配置
+const loadingConfig = ref({
+  spinning: false,
+  tip: '数据加载中，请稍候...',
+  delay: 300,
+})
+
+//状态选择框
+const statusOptions = [
+    {
+      label: "使用版本",
+      value: 1
+    },
+    {
+      label: "历史版本",
+      value: 0
+    }
+]
+
+//搜索校验
 const searchRules = {
   month: [
     {
@@ -68,67 +137,63 @@ const tableParms = reactive({
 const searchForm = reactive({
   pageNum: 1,
   pageSize: 50,
-  month: null
+  month: null,
+  status: null,
+  userName: null,
+  updateTime: null,
+  updateTimeStart: '',
+  updateTimeEnd: '',
 });
 
 onMounted(() => {
-  tableData.value = [
-    {
-      id: 1,
-      status: 0,
-      sourceProfit: '17.36',
-      shopProfitRate: '120.25',
-      actualProfit: '',
-      orderAmount: '102.21',
-      refundAmount: '21.36'
-    },
-    {
-      id: 2,
-      status: 1,
-      sourceProfit: '',
-      shopProfitRate: '',
-      actualProfit: '90.56',
-      orderAmount: '102.21',
-      refundAmount: '21.36'
-    },
-    {
-      id: 3,
-      status: 1,
-      sourceProfit: '',
-      shopProfitRate: '',
-      actualProfit: '90.56',
-      orderAmount: '102.21',
-      refundAmount: '21.36'
-    },
-    {
-      id: 4,
-      netProfit: '150.25',
-      sourceProfit: '17.36',
-      shopProfitRate: '120.25',
-      actualProfit: '',
-      orderAmount: '102.21',
-      refundAmount: '21.36'
-    },
-    {
-      id: 5,
-      netProfit: '150.25',
-      sourceProfit: '17.36',
-      shopProfitRate: '120.25',
-      actualProfit: '',
-      orderAmount: '102.21',
-      refundAmount: '21.36'
-    }
-  ];
+  getVersionList()
 });
+
+//获取列表
+const getVersionList = async () =>{
+  try {
+    loadingConfig.spinning = true;
+    let obj = await versionList(searchForm)
+    tableData.value = obj.data
+    tableParms.total = obj.total
+  }
+  catch (error) {
+    message.error('获取数据失败，请重试')
+  } finally {
+    loadingConfig.spinning = true;
+  }
+}
+
+//操作人远程搜索
+const handleSearch = (value) =>{
+  searchKeyword.value = value;
+  clearTimeout(searchTimeout.value);
+  searchTimeout.value = setTimeout(() => {
+    userList({userName: searchKeyword.value}).then((res) => {
+      userNameOptions.value = res.data.map((item) => {
+        return {
+          label: item.userName,
+          value: item.userName,
+        }
+      });
+    })
+  }, 500);
+}
 
 //进入页面计算表格高度
 const tableHeight = computed(() => {
-  return window.innerHeight - 320
+  return window.innerHeight - 360
 })
 
 //查询回调
-const onSubmit = (e) => {
-  console.log(searchForm);
+const onSubmit = (data) => {
+  searchForm.pageNum = 1
+  searchForm.pageSize = 50;
+  tableParms.pageNum = 1
+  tableParms.pageSize = 50;
+  searchForm.updateTimeStart = data.updateTime?.[0] ?? ''
+  searchForm.updateTimeEnd =  data.updateTime?.[1] ?? ''
+  getVersionList(searchForm)
 };
 
 //表格排序操作
@@ -137,14 +202,13 @@ const tableDataChange = (pagination, filters, sorter) => {
 };
 
 //页数回调
-const pageNumChange = (val) =>{
-  console.log(val);
+const paginationChange = (page, pageSize) =>{
+  console.log(page, pageSize);
+  // searchForm.pageNum = val.page;
+  // searchForm.pageSize = val.pageSize;
+  getVersionList()
 }
 
-//页数大小回调
-const pageSizeChange = (val) =>{
-  console.log(val);
-}
 </script>
 
 <style lang="less" scoped>

@@ -55,7 +55,8 @@ function pageSizeChange(val) {
 };
 function onChange(page, pageSize) {
   // console.log({ page, pageSize }, 'change');
-  emit('change', { page, pageSize });
+  const validPage = page === 0 ? 1 : page;
+  emit('change', { validPage, pageSize });
   // emit('update:current', page)
   // emit('update:pageSize', pageSize)
 }
