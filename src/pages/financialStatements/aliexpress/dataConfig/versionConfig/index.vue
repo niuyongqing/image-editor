@@ -4,7 +4,7 @@
     <app-table-form :reset-set-menu="resetSetMenu" v-model:formData="searchForm" :rules="searchRules" @onSubmit="onSubmit">
       <template #formItemBox>
         <a-form-item label="版本月份" name="month">
-          <a-date-picker v-model:value="searchForm.month" :bordered="true" format="YYYY-MM" value-format="YYYY-MM"/>
+          <a-range-picker v-model:value="searchForm.month" :bordered="true" format="YYYY-MM" value-format="YYYY-MM"/>
         </a-form-item>
         <a-form-item label="状态" name="status">
           <a-select v-model:value="searchForm.status" :options="statusOptions" placeholder="请选择状态" allowClear></a-select>
@@ -202,10 +202,9 @@ const tableDataChange = (pagination, filters, sorter) => {
 };
 
 //页数回调
-const paginationChange = (page, pageSize) =>{
-  console.log(page, pageSize);
-  // searchForm.pageNum = val.page;
-  // searchForm.pageSize = val.pageSize;
+const paginationChange = (val) =>{
+  searchForm.pageNum = val.page;
+  searchForm.pageSize = val.pageSize;
   getVersionList()
 }
 

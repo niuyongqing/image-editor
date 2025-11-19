@@ -4,14 +4,41 @@
     <app-table-form :reset-set-menu="resetSetMenu" v-model:formData="searchForm" @onSubmit="onSubmit">
       <template #formItemBox>
         <a-form-item label="月份" name="month">
-          <a-range-picker v-model:value="searchForm.month" picker="month" :bordered="true" format="YYYY-MM" value-format="YYYY-MM"/>
+          <a-range-picker v-model:value="searchForm.month" :bordered="true" format="YYYY-MM" value-format="YYYY-MM"/>
         </a-form-item>
-        <a-form-item label="店铺" name="name">
-          <a-select v-model:value="searchForm.name" mode="multiple" show-search allowClear :maxTagCount="1" placeholder="请输入店铺">
+        <a-form-item label="店铺" name="simpleName">
+          <a-select v-model:value="searchForm.simpleName" mode="multiple" show-search allowClear :maxTagCount="1" placeholder="请输入店铺">
             <a-select-option v-for="shop in shopOptions" :key="shop" :value="shop">
               {{ shop }}
             </a-select-option>
           </a-select>
+        </a-form-item>
+        <a-form-item label="操作人" name="userName">
+          <a-select
+              v-model:value="searchForm.userName"
+              show-search
+              allow-clear
+              :filter-option="false"
+              :not-found-content="userNameLoading ? '加载中...' : '暂无数据'"
+              :options="userNameOptions"
+              :loading="userNameLoading"
+              @search="handleSearch"
+              placeholder="请输入关键词搜索"
+          >
+            <template #notFoundContent>
+              <div v-if="userNameLoading">
+                <a-spin size="small" />
+                <span style="margin-left: 8px">加载中...</span>
+              </div>
+              <div v-else>暂无数据</div>
+            </template>
+          </a-select>
+        </a-form-item>
+      </template>
+
+      <template #formItemRow>
+        <a-form-item label="操作时间" name="time">
+          <a-range-picker v-model:value="searchForm.time" format="YYYY-MM-DD HH:mm:ss" value-format="YYYY-MM-DD HH:mm:ss" show-time/>
         </a-form-item>
       </template>
     </app-table-form>
@@ -44,7 +71,7 @@
       </template>
 <!--      分页器区域-->
       <template #pagination>
-        <pagination v-model:current="tableParms.pageNum" v-model:pageSize="tableParms.pageSize" :total="tableParms.total" @pageNumChange="pageNumChange" @pageSizeChange="pageSizeChange"></pagination>
+        <pagination v-model:current="tableParms.pageNum" v-model:pageSize="tableParms.pageSize" :total="tableParms.total" @change="paginationChange"></pagination>
       </template>
     </app-table-box>
 
@@ -56,8 +83,11 @@
 
 <script setup>
 /*                     侵权罚款                  */
+
 defineOptions({ name: 'infringementFines' });
 import { ref, reactive, defineAsyncComponent, onMounted, computed } from 'vue';
+import { message } from "ant-design-vue";
+import { infringementList, userList } from "~/pages/financialStatements/aliexpress/dataConfig/infringementFines/js/api.js";
 import { UploadOutlined,VerticalAlignBottomOutlined,DeleteOutlined } from '@ant-design/icons-vue';
 import { timeFormats } from "~/utils/dateUtils.js";
 import tableHeader from '@/pages/financialStatements/aliexpress/dataConfig/infringementFines/js/tableHeader.js';
@@ -69,6 +99,13 @@ const pagination = defineAsyncComponent(() => import('@/components/common/appTab
 const ImportModal  = defineAsyncComponent(() => import('@/pages/financialStatements/aliexpress/dataConfig/infringementFines/common/importModel.vue'));
 
 const resetSetMenu = 'infringementFines';
+
+//操作人
+const searchTimeout = ref(null); //防抖定时器
+const searchKeyword = ref(''); //储存输入的值
+const userNameLoading = ref(false); //loading
+const userNameOptions = ref([]); //搜索出来的数组
+
 const importModel = ref(false);//导入新增弹框
 const loadingConfig = ref({
   spinning: false,
@@ -76,6 +113,7 @@ const loadingConfig = ref({
   delay: 300,
 })
 const tableData = ref([]);
+const selectedRowsArr = ref([]); //勾选的数据
 const shopOptions = ref(['店铺1', '店铺2', '店铺3']);
 const selectedRowKeys = ref([]);
 
@@ -88,57 +126,17 @@ const searchForm = reactive({
   pageNum: 1,
   pageSize: 50,
   month: null,
-  name: [],
+  startMonth: '',
+  endMonth: '',
+  simpleName: [],
+  userName: null,
+  time: null,
+  startTime: '',
+  endTime: '',
 });
 
 onMounted(() => {
-  tableData.value = [
-    {
-      id: 1,
-      netProfit: '1763436448158',
-      sourceProfit: '17.36',
-      shopProfitRate: '120.25',
-      actualProfit: '',
-      orderAmount: '102.21',
-      refundAmount: '1705386625000 '
-    },
-    {
-      id: 2,
-      netProfit: '1763436448158',
-      sourceProfit: '',
-      shopProfitRate: '',
-      actualProfit: '90.56',
-      orderAmount: '102.21',
-      refundAmount: '21.36'
-    },
-    {
-      id: 3,
-      netProfit: '1763436448158',
-      sourceProfit: '',
-      shopProfitRate: '',
-      actualProfit: '90.56',
-      orderAmount: '102.21',
-      refundAmount: '21.36'
-    },
-    {
-      id: 4,
-      netProfit: '1763436448158',
-      sourceProfit: '17.36',
-      shopProfitRate: '120.25',
-      actualProfit: '',
-      orderAmount: '102.21',
-      refundAmount: '21.36'
-    },
-    {
-      id: 5,
-      netProfit: '1763436448158',
-      sourceProfit: '17.36',
-      shopProfitRate: '120.25',
-      actualProfit: '',
-      orderAmount: '102.21',
-      refundAmount: '21.36'
-    }
-  ];
+  getList()
 });
 
 //进入页面计算表格高度
@@ -147,8 +145,16 @@ const tableHeight = computed(() => {
 })
 
 //查询回调
-const onSubmit = (e) => {
-  console.log(searchForm);
+const onSubmit = (data) => {
+  searchForm.pageNum = 1
+  searchForm.pageSize = 50;
+  tableParms.pageNum = 1
+  tableParms.pageSize = 50;
+  searchForm.startTime = data.time?.[0] ?? ''
+  searchForm.endTime =  data.time?.[1] ?? ''
+  searchForm.startMonth = data.month?.[0] ?? ''
+  searchForm.endMonth =  data.month?.[1] ?? ''
+  getList()
 };
 
 //表格排序操作
@@ -160,17 +166,46 @@ const tableDataChange = (pagination, filters, sorter) => {
 };
 
 //页数回调
-const pageNumChange = (val) =>{
-  console.log(val);
+const paginationChange = (val) =>{
+  searchForm.pageNum = val.page;
+  searchForm.pageSize = val.pageSize;
+
 }
 
-//页数大小回调
-const pageSizeChange = (val) =>{
-  console.log(val);
+//获取列表
+const getList = async () =>{
+  try {
+    loadingConfig.spinning = true;
+    let obj = await infringementList(searchForm)
+    tableData.value = obj.data
+    tableParms.total = obj.total
+  }
+  catch (error) {
+    message.error('获取数据失败，请重试')
+  } finally {
+    loadingConfig.spinning = true;
+  }
+}
+
+//操作人远程搜索
+const handleSearch = (value) =>{
+  searchKeyword.value = value;
+  clearTimeout(searchTimeout.value);
+  searchTimeout.value = setTimeout(() => {
+    userList({userName: searchKeyword.value}).then((res) => {
+      userNameOptions.value = res.data.map((item) => {
+        return {
+          label: item.userName,
+          value: item.userName,
+        }
+      });
+    })
+  }, 500);
 }
 
 const onSelectChange = (selectedKeys, selectedRows) =>{
   selectedRowKeys.value = selectedKeys;
+  selectedRowsArr.value = selectedRows;
 }
 
 </script>
