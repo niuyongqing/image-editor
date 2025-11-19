@@ -87,7 +87,11 @@
 defineOptions({ name: 'infringementFines' });
 import { ref, reactive, defineAsyncComponent, onMounted, computed } from 'vue';
 import { message } from "ant-design-vue";
-import { infringementList, userList } from "~/pages/financialStatements/aliexpress/dataConfig/infringementFines/js/api.js";
+import {
+  dictList,
+  infringementList,
+  userList
+} from "~/pages/financialStatements/aliexpress/dataConfig/infringementFines/js/api.js";
 import { UploadOutlined,VerticalAlignBottomOutlined,DeleteOutlined } from '@ant-design/icons-vue';
 import { timeFormats } from "~/utils/dateUtils.js";
 import tableHeader from '@/pages/financialStatements/aliexpress/dataConfig/infringementFines/js/tableHeader.js';
@@ -114,7 +118,7 @@ const loadingConfig = ref({
 })
 const tableData = ref([]);
 const selectedRowsArr = ref([]); //勾选的数据
-const shopOptions = ref(['店铺1', '店铺2', '店铺3']);
+const shopOptions = ref([]); //店铺列表
 const selectedRowKeys = ref([]);
 
 const tableParms = reactive({
@@ -136,6 +140,7 @@ const searchForm = reactive({
 });
 
 onMounted(() => {
+  getDictList()
   getList()
 });
 
@@ -170,6 +175,17 @@ const paginationChange = (val) =>{
   searchForm.pageNum = val.validPage;
   searchForm.pageSize = val.pageSize;
   getList()
+}
+
+//获取店铺列表
+const getDictList = async () =>{
+  try {
+    let obj = await dictList()
+    shopOptions.value = obj.data;
+  }
+  catch (error) {
+    message.error('获取数据失败，请重试')
+  }
 }
 
 //获取列表
