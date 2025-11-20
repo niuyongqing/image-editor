@@ -70,6 +70,7 @@
         </a-form-item>
         <a-form-item>
           <a-button
+            v-has-permi="['platform:ozon:intelligent:edit:list']"
             type="primary"
             class="mr-2"
             @click="search"
