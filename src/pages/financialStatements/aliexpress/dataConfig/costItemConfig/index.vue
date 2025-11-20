@@ -13,7 +13,7 @@
                     show-search
                     allowClear
                     :maxTagCount="1"
-                    placeholder="请输入店铺"
+                    placeholder="请输入费用项"
           >
             <template #notFoundContent>
               <div v-if="costItemLoading">
@@ -39,7 +39,7 @@
                     show-search
                     allowClear
                     :maxTagCount="1"
-                    placeholder="请输入店铺"
+                    placeholder="请输入费用类型"
           >
             <template #notFoundContent>
               <div v-if="costTypeLoading">
@@ -65,7 +65,7 @@
                     show-search
                     allowClear
                     :maxTagCount="1"
-                    placeholder="请输入店铺"
+                    placeholder="请输入业务模式"
           >
             <template #notFoundContent>
               <div v-if="businessModelLoading">
@@ -94,7 +94,7 @@
               :options="operatorOptions"
               :loading="operatorLoading"
               @search="handleSearch"
-              placeholder="请输入关键词搜索"
+              placeholder="请输入操作人"
           >
             <template #notFoundContent>
               <div v-if="operatorLoading">

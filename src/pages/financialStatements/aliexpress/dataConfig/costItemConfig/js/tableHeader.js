@@ -27,6 +27,7 @@ export default  [
         dataIndex: 'remark',
         align: 'center',
         sorter: false,
+        ellipsis: true
     },
     {
         title: '操作人',
