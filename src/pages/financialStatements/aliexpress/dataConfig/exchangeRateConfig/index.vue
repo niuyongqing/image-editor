@@ -106,12 +106,7 @@ defineOptions({ name: 'exchangeRateConfig' });
 import { ref, reactive, defineAsyncComponent, onMounted, computed } from 'vue';
 import dayjs from "dayjs";
 import { message } from "ant-design-vue";
-import {
-  batchDelete,
-  exportExchangeRate,
-  infringementList,
-  userList
-} from "~/pages/financialStatements/aliexpress/dataConfig/exchangeRateConfig/js/api.js";
+import { batchDelete, exportExchangeRate, infringementList, userList } from "~/pages/financialStatements/aliexpress/dataConfig/exchangeRateConfig/js/api.js";
 import { UploadOutlined,VerticalAlignBottomOutlined,DeleteOutlined } from '@ant-design/icons-vue';
 import tableHeader from '@/pages/financialStatements/aliexpress/dataConfig/exchangeRateConfig/js/tableHeader.js';
 import download from "~/api/common/download.js";
