@@ -119,6 +119,7 @@
         :scroll="{x: 1800,y: tableHeight}" row-key="id"
         :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
         @change="tableDataChange"
+        @rowDoubleClick="editItem"
         :loading="loadingConfig"
     >
       <template #bodyCell="{ column, record, index }">
@@ -338,6 +339,7 @@ const handleBusinessModelSearch = (value) =>{
 
 //编辑
 const editItem = (data) => {
+  console.log(data)
   itemId = data.id;
   editCostItemModel.value = true;
 }
