@@ -30,7 +30,7 @@ export function rejectAudit(data) {
 // 获取表单列表
 export function commodityList(data) {
   return request({
-    url: `/platform-ozon/platform/ozon/commodity/list`,
+    url: `/platform-ozon/platform/ozon/commodity/editList`,
     method: 'post',
     data: data
   })
