@@ -1,4 +1,0 @@
-// This constant defines the name of the configuration file that will be used in the production environment
-export var GLOB_CONFIG_FILE_NAME = 'platform/_app.config.js';
-// This constant sets the output directory for the Vite package
-export var OUTPUT_DIR = 'platform';

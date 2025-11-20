@@ -164,7 +164,7 @@ import detailsModal from './detailsModal.vue';
 import { message, Modal } from 'ant-design-vue';
 import { processImageSource } from '../config/commJs/index';
 import { checkPermi } from '~@/utils/permission/component/permission';
-import LogModal from "./common/logModal.vue";
+import LogModal from "./common/LogModal.vue";
 defineOptions({ name: "ozon_publicationDatabase" })
 const { proxy: _this } = getCurrentInstance();
 

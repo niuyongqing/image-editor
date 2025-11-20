@@ -294,7 +294,7 @@ defineExpose({
     justify-content: flex-end;
   }
   .box-title {
-    width: calc(100%- 20px);
+    width: calc(100% - 20px);
     height: 30px;
     display: flex;
     justify-content: space-between;
