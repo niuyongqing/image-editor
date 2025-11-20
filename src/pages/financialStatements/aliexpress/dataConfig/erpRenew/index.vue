@@ -3,6 +3,10 @@
     <!--    搜索区域-->
     <app-table-form :reset-set-menu="resetSetMenu" v-model:formData="searchForm" @onSubmit="onSubmit">
       <template #formItemBox>
+        <a-form-item label="月份" name="month">
+          <a-range-picker v-model:value="searchForm.month" :bordered="true" format="YYYY-MM" value-format="YYYY-MM"/>
+        </a-form-item>
+
         <a-form-item label="店铺" name="shopName">
           <a-select v-model:value="searchForm.shopName"
                     :filter-option="false"
@@ -29,9 +33,6 @@
           </a-select>
         </a-form-item>
 
-      </template>
-
-      <template #formItemRow>
         <a-form-item label="操作人" name="userName">
           <a-select
               v-model:value="searchForm.userName"
@@ -53,6 +54,9 @@
             </template>
           </a-select>
         </a-form-item>
+      </template>
+
+      <template #formItemRow>
         <a-form-item label="操作时间" name="time">
           <a-range-picker v-model:value="searchForm.time" format="YYYY-MM-DD HH:mm:ss" value-format="YYYY-MM-DD HH:mm:ss" show-time/>
         </a-form-item>
@@ -67,7 +71,6 @@
         :scroll="{x: 1800,y: tableHeight}" row-key="id"
         :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
         @change="tableDataChange"
-        @rowDoubleClick="delItem"
         :loading="loadingConfig"
     >
       <!--      按钮-->
@@ -102,10 +105,9 @@
 <script setup>
 /*                     EPR续费                  */
 
-import { DeleteOutlined, UploadOutlined, VerticalAlignBottomOutlined } from "@ant-design/icons-vue";
-
 defineOptions({ name: 'erpRenew' });
 import { ref, reactive, defineAsyncComponent, onMounted, computed } from 'vue';
+import { DeleteOutlined, UploadOutlined, VerticalAlignBottomOutlined } from "@ant-design/icons-vue";
 import dayjs from "dayjs";
 import { message } from "ant-design-vue";
 import { eprList, userList, batchDelete, exportEprList } from "~/pages/financialStatements/aliexpress/dataConfig/erpRenew/js/api.js";
@@ -149,10 +151,13 @@ const tableTotal = ref(0);
 const searchForm = reactive({
   pageNum: 1,
   pageSize: 50,
-  prop: 'createTime',
+  prop: 'dataYearMonth',
   order: 'desc',
   shopName: null,
   userName: null,
+  month: null,
+  startMonth: '',
+  endMonth: '',
   time: null,
   startTime: '',
   endTime: '',
@@ -181,6 +186,8 @@ const onSubmit = (data) => {
   searchForm.pageSize = 50;
   searchForm.startTime = data.time?.[0] ?? ''
   searchForm.endTime =  data.time?.[1] ?? ''
+  searchForm.startMonth = data.month?.[0] ?? ''
+  searchForm.endMonth =  data.month?.[1] ?? ''
   getList()
 };
 
@@ -196,6 +203,8 @@ const getList = async () =>{
       userName: searchForm.userName,
       startTime: searchForm.startTime ? new Date(searchForm.startTime).getTime() : null,
       endTime: searchForm.endTime ? new Date(searchForm.endTime).getTime() : null,
+      startMonth: searchForm.startMonth ? new Date ( searchForm.startMonth ).getTime () : null,
+      endMonth: searchForm.endMonth ? new Date(searchForm.endMonth).getTime() : null,
     }
     loadingConfig.value.spinning = true;
     let obj = await eprList(data)
