@@ -324,13 +324,13 @@ async function getTableList() {
       item.classify = classify(item)
       if (item.skuList?.length) {
         let weight = 0
-        let price = 0
+        let costPrice = 0
         item.skuList.forEach(i => {
           weight += (i.weight ? Number(i.weight) : 0)
-          price += (i.price ? Number(i.price) : 0)
+          costPrice += (i.costPrice ? Number(i.costPrice) : 0)
         })
         item.averageWeight = (weight / item.skuList.length).toFixed(2);
-        item.averagePrice = (price / item.skuList.length).toFixed(2);
+        item.averagePrice = (costPrice / item.skuList.length).toFixed(2);
         !item.mainImage && (item.mainImage = item.skuList[0].mainImages);
       }
       item.mainImage = processImageSource(item.mainImage);
