@@ -7,7 +7,7 @@ export const DEFAULT_TABLE_COLUMN = [
   { title: '广告类型', key: 'type' },
   { title: '广告策略', key: 'strategy' },
   { title: '竞价', key: 'bidding' },
-  { title: '操作', key: 'options' }
+  { title: '操作', key: 'operation' }
 ]
 
 // 搜索类型

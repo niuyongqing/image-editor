@@ -159,7 +159,7 @@ defineExpose({
 </script>
 
 <style lang="less" scoped>
-:deep(.ant-card-body) {
+::v-deep(.ant-card-body) {
     padding: 1px;
 }
 
