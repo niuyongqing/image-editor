@@ -236,8 +236,6 @@ const onSubmit = (data) => {
   searchForm.pageSize = 50;
   searchForm.operateTimeBegin = data.time?.[0] ?? ''
   searchForm.operateTimeEnd =  data.time?.[1] ?? ''
-  searchForm.startMonth = data.month?.[0] ?? ''
-  searchForm.endMonth =  data.month?.[1] ?? ''
   getList()
 };
 
