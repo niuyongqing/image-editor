@@ -1,6 +1,6 @@
 // 资料待编辑列表(初审列表同一个接口)
 export function getListApi(params) {
-  return usePost('/platform-ozon/platform/ozon/commodity/list', params)
+  return usePost('/platform-ozon/platform/ozon/commodity/editList', params)
 }
 
 // 提交人列表
