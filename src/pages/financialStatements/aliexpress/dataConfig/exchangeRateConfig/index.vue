@@ -73,7 +73,7 @@
     >
 <!--      按钮-->
       <template #leftTool>
-        <a-button type="primary" danger><DeleteOutlined />批量删除</a-button>
+        <a-button type="primary" danger @click="del" :loading="delBtnLoading"><DeleteOutlined />批量删除</a-button>
         <a-button type="primary" @click="importModel = true"><upload-outlined />导入新增</a-button>
         <a-button type="primary" @click="exportList" :loading="exoprtBtnLoading"><VerticalAlignBottomOutlined />导出</a-button>
       </template>
@@ -85,7 +85,7 @@
       </template>
 <!--      操作区-->
       <template #options="{ record, column }">
-        <a-button type="text" danger>删除</a-button>
+        <a-button type="text" danger @click="itemDel(record)">删除</a-button>
       </template>
 <!--      分页器区域-->
       <template #pagination>
@@ -107,6 +107,7 @@ import { ref, reactive, defineAsyncComponent, onMounted, computed } from 'vue';
 import dayjs from "dayjs";
 import { message } from "ant-design-vue";
 import {
+  batchDelete,
   exportExchangeRate,
   infringementList,
   userList
@@ -136,6 +137,7 @@ const currencyNameSearNameLoading = ref(false); //loading
 const currencyNameOptions = ref([]); //币种名称列表
 
 const exoprtBtnLoading = ref(false);//导出按钮loading
+const delBtnLoading = ref(false);//删除按钮Loading
 const importModel = ref(false);//导入新增弹框
 const loadingConfig = ref({
   spinning: false,
@@ -257,6 +259,31 @@ const exportList = () =>{
   else {
     message.error('请先选择列表数据导出')
   }
+}
+
+//批量删除
+const del = () =>{
+  if ( selectedRowsArr.value.length > 0 ){
+    delBtnLoading.value = true;
+    batchDelete({ids: selectedRowsArr.value.map(item =>{ return item.id })}).then(res => {
+      message.success(res.msg)
+    }).finally(() => {
+      delBtnLoading.value = false;
+      getList()
+    })
+  }
+  else {
+    message.error('请先选择列表数据删除')
+  }
+}
+
+//单个删除
+const itemDel = (row) =>{
+  batchDelete({ids: [row.id]}).then(res => {
+    message.success(res.msg)
+  }).finally(() => {
+    getList()
+  })
 }
 
 //币种名称搜索事件
