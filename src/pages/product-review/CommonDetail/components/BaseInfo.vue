@@ -202,7 +202,7 @@
                   :precision="0"
                   :min="0"
                   :max="99999"
-                  placeholder="请输入"
+                  placeholder="请输入数值"
                 />
               </template>
 
@@ -913,5 +913,5 @@
       })
   }
 
-  defineExpose({ emitData })
+  defineExpose({ attributesObj, form, emitData })
 </script>

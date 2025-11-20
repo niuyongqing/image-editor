@@ -116,7 +116,7 @@
           </template>
           <template v-else-if="column.key === 'mainImage'">
             <a-image
-              :src="fixedUrl(record.mainImage)"
+              :src="fixedUrl(record)"
               :width="80"
               :height="80"
               :fallback="EmptyImg"
@@ -172,6 +172,11 @@
                 type="link"
                 @click="openRemorkModal(record)"
                 >备注</a-button
+              >
+              <a-button
+                type="link"
+                @click="goFather(record)"
+                >来源</a-button
               >
               <a-popconfirm
                 title="确定取消刊登?"
@@ -350,7 +355,8 @@
     getList()
   }
 
-  function fixedUrl(url) {
+  function fixedUrl(record) {
+    let url = record.productSkuList?.[0]?.mainImages
     if (!url) return EmptyImg
 
     if (url.startsWith('http') || url.startsWith('/prod-api')) return url
@@ -390,6 +396,11 @@
 
   function goEdit(record) {
     window.open(`/platform/intelligent-publication/publication-list-detail?waitPublishProductId=${record.waitPublishProductId}`)
+  }
+
+  // 跳转到来源产品详情
+  function goFather(record) {
+    window.open(`/platform/intelligent-publication/publication-list-source-detail?intelligentProductId=${record.intelligentProductId}`)
   }
 
   function cancel(record) {

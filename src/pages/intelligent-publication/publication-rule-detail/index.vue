@@ -1,6 +1,6 @@
 <!-- 刊登规则详情 -->
 <template>
-  <a-card class="text-left w-3/5 mx-auto h-[calc(100vh-60px)] pt-4">
+  <a-card class="text-left h-[calc(100vh-60px)] pt-4">
     <div class="h-[calc(100vh-140px)] overflow-y-auto">
       <a-form
         ref="formRef"
@@ -290,7 +290,7 @@
                 v-model:value="form.shopIntervalMin"
                 :controls="false"
                 :disabled="form.publishType === 2"
-                :min="1"
+                :min="3"
                 :max="999"
                 :precision="0"
                 placeholder="最少"
@@ -620,7 +620,7 @@
       const requestApi = query.id ? updatePublishRuleApi : createPublishRuleApi
       requestApi(params)
         .then(res => {
-          message.success('提交刊登成功')
+          message.success('保存成功')
           usePostMessage()
 
           setTimeout(() => {

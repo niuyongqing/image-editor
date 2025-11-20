@@ -238,8 +238,8 @@
                 <a-input-number
                   v-model:value="record.costPrice"
                   :controls="false"
-                  :precision="2"
-                  :min="0.01"
+                  :precision="4"
+                  :min="0.0001"
                   :max="99999"
                   placeholder="请输入数值"
                   class="flex-1"
@@ -353,8 +353,8 @@
                   <a-input-number
                     v-model:value="record.length"
                     :controls="false"
-                    :precision="0"
-                    :min="1"
+                    :precision="2"
+                    :min="0.01"
                     :max="99999"
                     placeholder="长"
                     class="w-full min-w-20"
@@ -362,8 +362,8 @@
                   <a-input-number
                     v-model:value="record.width"
                     :controls="false"
-                    :precision="0"
-                    :min="1"
+                    :precision="2"
+                    :min="0.01"
                     :max="99999"
                     placeholder="宽"
                     class="w-full min-w-20"
@@ -371,8 +371,8 @@
                   <a-input-number
                     v-model:value="record.height"
                     :controls="false"
-                    :precision="0"
-                    :min="1"
+                    :precision="2"
+                    :min="0.01"
                     :max="99999"
                     placeholder="高"
                     class="w-full min-w-20"
@@ -401,8 +401,8 @@
                 <a-input-number
                   v-model:value="record.weight"
                   :controls="false"
-                  :precision="0"
-                  :min="1"
+                  :precision="2"
+                  :min="0.01"
                   :max="99999"
                   placeholder="请输入数值"
                   class="flex-1"
@@ -1157,18 +1157,20 @@
     }
 
     if (!flag) return false // 短路
-    // 校验图片数量
-    const min = 5
-    const max = 30
+    // 校验图片数量 (说是不限制, 但至少得传1张吧, 也不能传个大几百张吧)
+    const min = 1
+    const max = 999
+    const min2 = 5
+    const max2 = 999
     for (const record of SKUTableData.value) {
       if (record.mainImages.length < min || record.mainImages.length > max) {
-        message.error('主图的数量不符合限制')
+        message.error('主图的数量不符合限制, 请至少上传一张图片')
 
         flag = false
         break
       }
-      if (record.subImages.length < min || record.subImages.length > max) {
-        message.error('副图的数量不符合限制')
+      if (record.subImages.length < min2 || record.subImages.length > max2) {
+        message.error('副图的数量不符合限制, 请至少上传5张图片')
 
         flag = false
         break
@@ -1247,5 +1249,5 @@
   }
 
   // 抛出数据和方法，可以让父级用ref获取
-  defineExpose({ emitData })
+  defineExpose({ filteredAspectList, emitData })
 </script>

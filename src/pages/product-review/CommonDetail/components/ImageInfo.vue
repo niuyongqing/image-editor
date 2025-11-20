@@ -430,7 +430,7 @@
   const props = defineProps({
     mainImagesCountMin: {
       type: Number,
-      default: 5
+      default: 3
     },
     mainImagesCountMax: {
       type: Number,

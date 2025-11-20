@@ -305,9 +305,9 @@
                 <a-input-number
                   v-model:value="record.costPrice"
                   :controls="false"
-                  :precision="2"
+                  :precision="4"
                   disabled
-                  :min="0.01"
+                  :min="0.0001"
                   :max="99999"
                   placeholder="请输入数值"
                   class="flex-1"
@@ -363,8 +363,8 @@
                   <a-input-number
                     v-model:value="record.length"
                     :controls="false"
-                    :precision="0"
-                    :min="1"
+                    :precision="2"
+                    :min="0.01"
                     :max="99999"
                     placeholder="长"
                     class="w-full min-w-20"
@@ -372,8 +372,8 @@
                   <a-input-number
                     v-model:value="record.width"
                     :controls="false"
-                    :precision="0"
-                    :min="1"
+                    :precision="2"
+                    :min="0.01"
                     :max="99999"
                     placeholder="宽"
                     class="w-full min-w-20"
@@ -381,8 +381,8 @@
                   <a-input-number
                     v-model:value="record.height"
                     :controls="false"
-                    :precision="0"
-                    :min="1"
+                    :precision="2"
+                    :min="0.01"
                     :max="99999"
                     placeholder="高"
                     class="w-full min-w-20"
@@ -411,8 +411,8 @@
                 <a-input-number
                   v-model:value="record.weight"
                   :controls="false"
-                  :precision="0"
-                  :min="1"
+                  :precision="2"
+                  :min="0.01"
                   :max="99999"
                   placeholder="请输入数值"
                   class="flex-1"
@@ -1149,18 +1149,18 @@
     if (!flag) return false // 短路
     // 校验图片数量
     const mainMin = 1
-    const mainMax = 30
+    const mainMax = 999
     const subMin = 5
-    const subMax = 30
+    const subMax = 999
     for (const record of SKUTableData.value) {
       if (record.mainImages.length < mainMin || record.mainImages.length > mainMax) {
-        message.error('主图的数量不符合限制')
+        message.error('主图的数量不符合限制, 请至少上传一张图片')
 
         flag = false
         break
       }
       if (record.subImages.length < subMin || record.subImages.length > subMax) {
-        message.error('副图的数量不符合限制')
+        message.error('副图的数量不符合限制, 请至少上传一张图片')
 
         flag = false
         break
