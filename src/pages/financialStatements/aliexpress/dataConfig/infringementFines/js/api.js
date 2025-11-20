@@ -13,3 +13,8 @@ export function infringementList(params) {
 export function dictList(params) {
     return useGet('/report-aliexpress/report/aliexpress/dict/item-list/dict_shop', params)
 }
+
+//导出文件
+export function exportTemplate(params) {
+    return useGet('/report/aliexpress/infringement/fine/download/template', params)
+}
