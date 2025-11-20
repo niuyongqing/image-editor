@@ -170,7 +170,7 @@ onMounted(() => {
 
 //进入页面计算表格高度
 const tableHeight = computed(() => {
-  return window.innerHeight - 360
+  return window.innerHeight - 330
 })
 
 //表格排序操作
