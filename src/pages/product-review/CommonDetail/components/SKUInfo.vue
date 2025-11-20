@@ -238,8 +238,8 @@
                 <a-input-number
                   v-model:value="record.costPrice"
                   :controls="false"
-                  :precision="2"
-                  :min="0.01"
+                  :precision="4"
+                  :min="0.0001"
                   :max="99999"
                   placeholder="请输入数值"
                   class="flex-1"
