@@ -1868,8 +1868,10 @@
             ...block,
             img: {
               ...block.img,
-              src: block.img.src.replace('/prod-api', ''),
-              srcMobile: block.img.srcMobile.replace('/prod-api', '')
+              // src: block.img.src.replace('/prod-api', ''),
+              // srcMobile: block.img.srcMobile.replace('/prod-api', '')
+              src: block.img.src,
+              srcMobile: block.img.srcMobile
             }
           }
         })
