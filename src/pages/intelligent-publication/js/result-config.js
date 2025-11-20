@@ -3,39 +3,39 @@ export const DEFAULT_COLUMNS = [
     title: '标题/产品ID',
     dataIndex: 'name',
     align: 'center',
-    width: 500,
+    width: 460,
     filter: false
   },
 
   {
     title: 'SKU信息',
     dataIndex: 'sku',
-    align: 'center',
+    // align: 'center',
     width: 200
   },
   {
     title: '售价',
     dataIndex: 'price',
     align: 'center',
-    width: 200
+    width: 100
   },
   {
     title: '原价',
     dataIndex: 'oldPrice',
     align: 'center',
-    width: 200
+    width: 100
   },
   {
     title: '最低价',
     dataIndex: 'minPrice',
     align: 'center',
-    width: 200
+    width: 100
   },
   {
     title: '总库存',
     dataIndex: 'stock',
     align: 'center',
-    width: 200
+    width: 100
   },
   {
     title: '错误信息',
@@ -47,14 +47,14 @@ export const DEFAULT_COLUMNS = [
     title: '状态',
     dataIndex: 'state', // state
     align: 'center',
-    width: 200,
+    width: 100,
     filter: false
   },
   {
     title: '刊登模式',
     dataIndex: 'publishType',
     align: 'center',
-    width: 200,
+    width: 120,
     filter: false
   },
   {
@@ -67,8 +67,8 @@ export const DEFAULT_COLUMNS = [
   {
     title: '操作',
     dataIndex: 'option',
-    align: 'center',
-    width: 180,
+    align: 'right',
+    width: 240,
     filter: false
   }
 ]
