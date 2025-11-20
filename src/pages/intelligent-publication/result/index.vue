@@ -215,7 +215,7 @@
             <a-popconfirm
               title="确认删除(此删除仅代表在erp上删除)？"
               :disabled="selectedRows.length === 0"
-              @comfirm="deleteItem()"
+              @confirm="deleteItem()"
               @cancel="setUncheck"
             >
               <a-button
@@ -839,7 +839,7 @@
                     >
                     <a-popconfirm
                       title="确认删除(此删除仅代表在erp上删除)？"
-                      @comfirm="deleteItem(record)"
+                      @confirm="deleteItem(record)"
                       @cancel="setUncheck"
                     >
                       <a-button
