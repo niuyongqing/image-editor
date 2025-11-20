@@ -7,6 +7,7 @@ import { message } from 'ant-design-vue';
 import { Table } from 'ant-design-vue';
 import AddOrEdit from "~/pages/system/user/component/addOrEdit.vue";
 import {checkPermi} from "~/utils/permission/component/permission.js";
+import appTableForm from "@/components/common/appTableForm.vue";
 import man1 from '@/assets/images/userPhoto/man1.png'
 import man2 from '@/assets/images/userPhoto/man2.png'
 import man3 from '@/assets/images/userPhoto/man3.png'
@@ -15,6 +16,7 @@ import woman1 from '@/assets/images/userPhoto/woman1.png'
 import woman2 from '@/assets/images/userPhoto/woman2.png'
 import woman3 from '@/assets/images/userPhoto/woman3.png'
 import woman4 from '@/assets/images/userPhoto/woman4.png'
+
 // 随机下面的头像
 const randomAvatar = (sex) => {
   // 过滤出符合性别要求的头像
@@ -206,11 +208,6 @@ const handlePageSizeChange = (val) => {
 };
 
 
-function handleFinishFailed() {
-
-}
-
-
 function setStatus(item) {
   changeStatusApi(item).then(res=>{
     message.success(res.msg)
@@ -261,43 +258,41 @@ const showTotal = (total, range) => {
 
 <template>
   <div>
-    <a-form
-      layout="inline"
-      :model="formState"
-      @finish="handleFinish"
-      @finishFailed="handleFinishFailed"
-      style="margin-top: 10px"
+    <!-- 搜索筛选区域 -->
+    <appTableForm
+      class="pt-2"
+      @onSubmit="handleFinish"
+      resetSetMenu="user-list"
+      v-model:formData="formState"
     >
-      <a-form-item>
-        <a-input
-          v-model:value="formState.userName"
-          placeholder="姓名"
-        ></a-input>
-      </a-form-item>
-      <a-form-item>
-        <a-input
-          v-model:value="formState.phonenumber"
-          placeholder="手机号码"
-        ></a-input>
-      </a-form-item>
-      <a-form-item>
-        <a-range-picker
-          v-model:value="formState.picker"
-          :placeholder="['创建开始', '创建结束']"
-        />
-      </a-form-item>
-      <a-form-item>
-        <a-button type="primary" html-type="submit">查询</a-button>
-        <a-button style="margin-left: 10px" @click="resetForm">重置</a-button>
-      </a-form-item>
-    </a-form>
+      <template #formItemBox>
+        <a-form-item label="姓名" name="userName">
+          <a-input
+            v-model:value="formState.userName"
+            placeholder="姓名"
+          ></a-input>
+        </a-form-item>
+        <a-form-item label="手机号码" name="phonenumber">
+          <a-input
+            v-model:value="formState.phonenumber"
+            placeholder="手机号码"
+          ></a-input>
+        </a-form-item>
+        <a-form-item label="创建时间" name="picker">
+          <a-range-picker
+            v-model:value="formState.picker"
+            :placeholder="['创建开始', '创建结束']"
+          />
+        </a-form-item>
+      </template>
+    </appTableForm>
     <a-card style="margin-top: 10px; padding: 0">
       <app-table-box
         :align="'left'"
         resetSetMenu="product-list"
         :table-header="columns"
         :data-source="tableData"
-        :scroll="{ y: 1000 }"
+        :scroll="{ y: 930 }"
         v-model:filter-columns="columns"
       >
         <!-- 左侧工具栏 -->

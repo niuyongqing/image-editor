@@ -125,7 +125,7 @@ const formState = ref({
 })
 const setTableHeight = () => {
   if (tableContainer.value) {
-    tableHeight.value = window.innerHeight - tableContainer.value.getBoundingClientRect().top - 100; // 偏移量可根据需求调整
+    tableHeight.value = window.innerHeight - tableContainer.value.getBoundingClientRect().top - 230; // 偏移量可根据需求调整
   }
 };
 
@@ -173,9 +173,6 @@ function handleTableChange(pageNum, pageSize) {
   handleFinish();
 }
 
-function handleFinishFailed() {
-
-}
 
 function setStatus(item) {
   changeStatusApi({ roleId: item.roleId, status: item.status }).then(res => {
@@ -406,41 +403,40 @@ const handlePageSizeChange = (val) => {
 
 <template>
   <div>
-    <a-form
-      layout="inline"
-      :model="formState"
-      @finish="handleFinish"
-      @finishFailed="handleFinishFailed"
+    <!-- 搜索筛选区域 -->
+    <appTableForm
+      class="pt-2"
+      @onSubmit="handleFinish"
+      resetSetMenu="user-list"
+      v-model:formData="formState"
     >
-      <a-form-item>
-        <a-input
-          v-model:value="formState.roleName"
-          placeholder="角色名称"
-        ></a-input>
-      </a-form-item>
-      <a-form-item>
-        <a-select
-          ref="select"
-          v-model:value="formState.status"
-          style="width: 200px; text-align: left"
-          allow-clear
-          placeholder="角色状态"
-        >
-          <a-select-option value="0">正常</a-select-option>
-          <a-select-option value="1">停用</a-select-option>
-        </a-select>
-      </a-form-item>
-      <a-form-item>
-        <a-range-picker
-          v-model:value="formState.picker"
-          :placeholder="['创建开始', '创建结束']"
-        />
-      </a-form-item>
-      <a-form-item>
-        <a-button type="primary" html-type="submit">查询</a-button>
-        <a-button style="margin-left: 10px" @click="resetForm">重置</a-button>
-      </a-form-item>
-    </a-form>
+      <template #formItemBox>
+        <a-form-item label="角色名称" name="roleName">
+          <a-input
+            v-model:value="formState.roleName"
+            placeholder="角色名称"
+          ></a-input>
+        </a-form-item>
+        <a-form-item label="角色状态" name="status">
+          <a-select
+            ref="select"
+            v-model:value="formState.status"
+            style="width: 200px; text-align: left"
+            allow-clear
+            placeholder="角色状态"
+          >
+            <a-select-option value="0">正常</a-select-option>
+            <a-select-option value="1">停用</a-select-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item label="创建时间" name="picker">
+          <a-range-picker
+            v-model:value="formState.picker"
+            :placeholder="['创建开始', '创建结束']"
+          />
+        </a-form-item>
+      </template>
+    </appTableForm>
 
     <a-card style="margin-top: 10px; padding: 0">
       <div
@@ -482,9 +478,6 @@ const handlePageSizeChange = (val) => {
                   <div v-if="column.dataIndex === 'status'">
                     {{ record.status === "0" ? "正常" : "禁用" }}
                   </div>
-                  <!--                  <div v-if="column.dataIndex === 'option'" >-->
-                  <!--                    <a-popconfirm title="确定删除吗？" ok-text="Yes" cancel-text="No" @confirm="delRoleUser(record)"  v-if="record.userName !== 'admin' && checkPermi(['system:platform:role:edit'])" ><a  color="red">删除</a></a-popconfirm>-->
-                  <!--                  </div>-->
                 </template>
               </a-table>
             </p>
@@ -534,88 +527,15 @@ const handlePageSizeChange = (val) => {
           </template>
 
           <template #pagination>
-          <appTablePagination
-            @pageNumChange="handlePageChange"
-            @pageSizeChange="handlePageSizeChange"
-            v-model:current="pagination.current"
-            v-model:pageSize="pagination.pageSize"
-            :total="pagination.total"
-          />
-        </template>
+            <appTablePagination
+              @pageNumChange="handlePageChange"
+              @pageSizeChange="handlePageSizeChange"
+              v-model:current="pagination.current"
+              v-model:pageSize="pagination.pageSize"
+              :total="pagination.total"
+            />
+          </template>
         </app-table-box>
-        <!-- <a-table
-          bordered
-          :dataSource="tableData"
-          rowKey="roleId"
-          :columns="columns"
-          :pagination="false"
-          :scroll="{ y: tableHeight, x: '100%', virtual: true }"
-          :loading="tableLoading"
-          :expandedRowKeys="expandedKeys"
-          @expandedRowsChange="getRoleUserList"
-        >
-          <template #expandedRowRender="{ record }">
-            <p style="margin: 0">
-              <a-table
-                bordered
-                :dataSource="record.dateil ? record.dateil : []"
-                rowKey="userId"
-                :columns="userColumns"
-                :loading="userTableLoading"
-                :pagination="false"
-              >
-                <template #bodyCell="{ column, record }">
-                  <div v-if="column.dataIndex === 'status'">
-                    {{ record.status === "0" ? "正常" : "禁用" }}
-                  </div>
-                </template>
-              </a-table>
-            </p>
-          </template>
-          <template #bodyCell="{ column, record }">
-            <div v-if="column.dataIndex === 'status'">
-              <a-switch
-                v-if="record.userName !== 'admin'"
-                v-model:checked="record.status"
-                checkedValue="0"
-                unCheckedValue="1"
-                @change="setStatus(record)"
-                :disabled="!checkPermi(['system:platform:role:edit'])"
-              />
-            </div>
-            <div v-if="column.dataIndex === 'option'">
-              <a-button
-                @click="copy(record)"
-                type="text"
-                color="amber"
-                v-if="checkPermi(['system:platform:role:edit'])"
-                >复制权限</a-button
-              >
-              <a-button
-                @click="allocationRole(record)"
-                type="text"
-                color="emerald"
-                v-if="checkPermi(['system:platform:role:edit'])"
-                >分配用户</a-button
-              >
-              <a-button
-                @click="edit(record)"
-                type="text"
-                color="blue"
-                v-if="checkPermi(['system:platform:role:edit'])"
-                >编辑</a-button
-              >
-              <a-popconfirm
-                title="确定删除吗？"
-                ok-text="Yes"
-                cancel-text="No"
-                @confirm="del(record)"
-                v-if="checkPermi(['system:platform:role:del'])"
-                ><a color="red">删除</a></a-popconfirm
-              >
-            </div>
-          </template>
-        </a-table> -->
       </div>
     </a-card>
     <add-or-edit
