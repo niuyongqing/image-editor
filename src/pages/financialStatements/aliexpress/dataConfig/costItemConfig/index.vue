@@ -339,7 +339,6 @@ const handleBusinessModelSearch = (value) =>{
 
 //编辑
 const editItem = (data) => {
-  console.log(data)
   itemId = data.id;
   editCostItemModel.value = true;
 }
