@@ -114,7 +114,7 @@
         <template #bodyCell="{ column: { key }, record }">
           <template v-if="key === 'action'">
             <!-- <a-button @click="handleSelect(record)" type="link">选中</a-button> -->
-            <a-button @click="listingPicks([record])" type="link">智能选品</a-button>
+            <a-button v-has-permi="['system:store:intelligent:selection:product']" @click="listingPicks([record])" type="link">智能选品</a-button>
             <a-button @click="detailsModalOpen(record)" type="link">详情</a-button>
             <!-- v-has-permi="['system:store:intelligent:selection:product']" -->
           </template>
