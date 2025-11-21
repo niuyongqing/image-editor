@@ -250,16 +250,6 @@ const handleSearch = (value) =>{
   }, 500);
 }
 
-//费用项远程搜索
-const handleShopNameModelSearch = (value) =>{
-  searchForm.shopName = value;
-  shopNameSearchKeyword.value = value;
-  clearTimeout(shopNameSearchTimeout.value);
-  shopNameSearchTimeout.value = setTimeout(() => {
-    getList()
-  }, 500);
-}
-
 //删除单个
 const delItem = (row) => {
   batchDelete({ids: [row.id]}).then(res => {
