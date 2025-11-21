@@ -12,6 +12,7 @@
         ref="formRef"
         :rules="rules"
         :labelAlign="'left'"
+        :label-col="{ span: 6 }"
       >
       <div class="flex flex-wrap justify-between">
         <div class="w-48%">
@@ -27,11 +28,11 @@
               :disabled="pageType === 'edit'"
             />
           </a-form-item>
-          <a-form-item label="部门：" name="department">
+          <a-form-item label="店铺：" name="shopName">
           <a-select
-            v-model:value="formData.department"
-            :options="options.departmentList"
-            placeholder="请选择部门"
+            v-model:value="formData.shopName"
+            :options="options.shopList"
+            placeholder="请选择店铺"
             allowClear
           ></a-select>
         </a-form-item>
@@ -57,27 +58,35 @@
               :disabled="pageType === 'edit'"
             ></a-select>
           </a-form-item>
-          <a-form-item label="小组：" name="group">
+          <a-form-item label="品类：" name="categoryName">
             <a-select
-              v-model:value="formData.group"
-              :options="options.groupList"
-              placeholder="请选择组"
+              v-model:value="formData.categoryName"
+              :options="options.categoryList"
+              placeholder="请选择品类"
               allowClear
             ></a-select>
           </a-form-item>
         </div>
       </div>
-      <a-form-item label="GMV基础目标（万元）：" name="gmvBaseTarget">
-        <a-input-number v-model:value="formData.gmvBaseTarget" :min="0" 
-        :controls="false" placeholder="请输入GMV基础目标" class="w-50%" />
+      <a-form-item label="POP利润率目标：" name="popProfitRate">
+        <a-input-number v-model:value="formData.popProfitRate" :min="0" 
+        :controls="false" placeholder="请输入POP利润率目标" class="w-50%" addon-after="%" />
       </a-form-item>
-      <a-form-item label="GMV上浮目标（万元）：" name="gmvIncreaseTarget">
-        <a-input-number v-model:value="formData.gmvIncreaseTarget" :min="0" 
-        :controls="false" placeholder="请输入GMV上浮目标" class="w-50%" />
+      <a-form-item label="半托管JIT利润率目标：" name="semiManagedJITProfitRate">
+        <a-input-number v-model:value="formData.semiManagedJITProfitRate" :min="0" 
+        :controls="false" placeholder="请输入半托管JIT利润率目标" class="w-50%" addon-after="%" />
       </a-form-item>
-      <a-form-item label="GMV挑战目标（万元）：" name="gmvChallengeTarget">
-        <a-input-number v-model:value="formData.gmvChallengeTarget" :min="0" 
-        :controls="false" placeholder="请输入GMV挑战目标" class="w-50%" />
+      <a-form-item label="半托管仓发利润率目标：" name="semiManagedWarehouseProfitRate">
+        <a-input-number v-model:value="formData.semiManagedWarehouseProfitRate" :min="0" 
+        :controls="false" placeholder="请输入半托管仓发利润率目标" class="w-50%" addon-after="%" />
+      </a-form-item>
+      <a-form-item label="全托管JIT利润率目标：" name="fullyManagedJITProfitRate">
+        <a-input-number v-model:value="formData.fullyManagedJITProfitRate" :min="0" 
+        :controls="false" placeholder="请输入全托管JIT利润率目标" class="w-50%" addon-after="%" />
+      </a-form-item>
+      <a-form-item label="全托管仓发利润率目标：" name="fullyManagedWarehouseProfitRate">
+        <a-input-number v-model:value="formData.fullyManagedWarehouseProfitRate" :min="0" 
+        :controls="false" placeholder="请输入全托管仓发利润率目标" class="w-50%" addon-after="%" />
       </a-form-item>
       </a-form>
     </template>
@@ -97,7 +106,6 @@ import { add,checkUnique,updateItem } from '../js/api.js'
 defineOptions({ name: "setOperationalGoals_createModal" })
 
 const appModal = defineAsyncComponent(() => import('@/components/common/appModal.vue'));
-
 
 const emit = defineEmits(['update:open',])
 const props = defineProps({
@@ -127,42 +135,56 @@ const formData = reactive({
   id: '',
   dataYear: dayjs(),
   dataMonth: dayjs().format('MM'),
-  department: '',
-  group : '',
+  shopName: '',
+  categoryName: '',
   userName: '',
-  gmvBaseTarget: '',
-  gmvIncreaseTarget: '',
-  gmvChallengeTarget: '',
+  popProfitRate: '',
+  semiManagedJITProfitRate: '',
+  semiManagedWarehouseProfitRate: '',
+  fullyManagedJITProfitRate: '',
+  fullyManagedWarehouseProfitRate: '',
 });
 const resetData = {
   dataYear: dayjs(),
   dataMonth: dayjs().format('MM'),
-  department: '',
-  group: '',
+  shopName: '',
+  categoryName: '',
   userName: '',
-  gmvBaseTarget: '',
-  gmvIncreaseTarget: '',
-  gmvChallengeTarget: '',
+  popProfitRate: '',
+  semiManagedJITProfitRate: '',
+  semiManagedWarehouseProfitRate: '',
+  fullyManagedJITProfitRate: '',
+  fullyManagedWarehouseProfitRate: '',
 }
 const rules = reactive({
   dataYear: [{ required: true, message: '请选择年份!' }],
   dataMonth: [{ required: true, message: '请选择月份!' }],
-  department: [{ required: true, message: '请选择部门!' }],
-  groups: [{ required: true, message: '请选择小组!' }],
+  categoryName: [{ required: true, message: '请选择部门!' }],
+  shopName: [{ required: true, message: '请选择店铺!' }],
   userName: [{ required: true, message: '请选择运营!' }],
-  gmvBaseTarget: [{ required: true, message: '请输入GMV基础目标!' },{ 
+  popProfitRate: [{ required: true, message: '请输入POP利润率目标!' },{ 
       pattern: /^(?=.*[1-9])\d*(?:\.\d+)?$/, 
-      message: 'GMV基础目标必须大于0!',
+      message: 'POP利润率目标必须大于0!',
       trigger: 'blur'
     }],
-  gmvIncreaseTarget: [{ required: true, message: '请输入GMV上浮目标!' },{ 
+  semiManagedJITProfitRate: [{ required: true, message: '请输入半托管JIT利润率目标!' },{ 
       pattern: /^(?=.*[1-9])\d*(?:\.\d+)?$/, 
-      message: 'GMV上浮目标必须大于0!',
+      message: '半托管JIT利润率目标必须大于0!',
       trigger: 'blur'
     }],
-  gmvChallengeTarget: [{ required: true, message: '请输入GMV挑战目标!' },{ 
+  semiManagedWarehouseProfitRate: [{ required: true, message: '请输入半托管仓发利润率目标!' },{ 
       pattern: /^(?=.*[1-9])\d*(?:\.\d+)?$/, 
-      message: 'GMV挑战目标必须大于0!',
+      message: '半托管仓发利润率目标必须大于0!',
+      trigger: 'blur'
+    }],
+  fullyManagedJITProfitRate: [{ required: true, message: '请输入全托管JIT利润率目标!' },{ 
+      pattern: /^(?=.*[1-9])\d*(?:\.\d+)?$/, 
+      message: '全托管JIT利润率目标必须大于0!',
+      trigger: 'blur'
+    }],
+  fullyManagedWarehouseProfitRate: [{ required: true, message: '请输入全托管仓发利润率目标!' },{ 
+      pattern: /^(?=.*[1-9])\d*(?:\.\d+)?$/, 
+      message: '全托管仓发利润率目标必须大于0!',
       trigger: 'blur'
     }],
 })
@@ -177,18 +199,24 @@ watch(() => openValue.value, (val, oldVal) => {
 
 watch(() => props.detailData, (val, oldVal) => {
   if (val.id) {
-    const {id, dataYear,dataMonth, department, group, userName, gmvBaseTarget, gmvIncreaseTarget, gmvChallengeTarget } = val
+    const {id, dataYear,dataMonth, shopName, userName, categoryName,
+      profitRateTargetPop, profitRateTargetSemiJIT, profitRateTargetSemiStore, 
+      profitRateTargetFullJIT, profitRateTargetFullStore } = val
+    console.log(profitRateTargetFullStore,'profitRateTargetFullStore');
     let newObj = {
       id,
       dataYear,
       dataMonth,
-      department, 
-      group, 
+      shopName, 
       userName, 
-      gmvBaseTarget, 
-      gmvIncreaseTarget, 
-      gmvChallengeTarget
+      categoryName,
+      popProfitRate: Math.round(profitRateTargetPop *100),
+      semiManagedJITProfitRate: Math.round(profitRateTargetSemiJIT *100),
+      semiManagedWarehouseProfitRate: Math.round(profitRateTargetSemiStore *100),
+      fullyManagedJITProfitRate: Math.round(profitRateTargetFullJIT *100),
+      fullyManagedWarehouseProfitRate: Math.round(profitRateTargetFullStore *100),
     }
+    console.log(newObj,'newObj');
     Object.assign(formData, newObj)
   }
 })
@@ -212,7 +240,7 @@ async function handleCustomOk() {
     let queryParams = {
       dataYear: dayjs(formData.dataYear).format('YYYY'),
       dataMonth: dayjs(formData.dataMonth).format('MM'),
-      userName: formData.userName,
+      shopName: formData.shopName,
     }
     if (props.pageType === 'add') {
       checkUnique(queryParams).then(res => {

@@ -59,7 +59,7 @@ const emit = defineEmits(['update:visible'])
 
 //定义变量
 const headers = { Authorization: useAuthorization().value }
-const uploadUrl = import.meta.env.VITE_APP_BASE_API + "/report-aliexpress/aliexpress/operation/configItem/import";
+const uploadUrl = import.meta.env.VITE_APP_BASE_API + "/report-aliexpress/aliexpress/shop/configItem/import";
 const current = ref(0)
 const fileList = ref([])
 const internalVisible = ref(props.visible)

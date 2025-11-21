@@ -58,9 +58,9 @@ export function add(data) {
  */
 export function checkUnique(data) {
   return request({
-    url: `/report-aliexpress/aliexpress/operation/configItem/checkUnique?dataYear=${data.dataYear}&dataMonth=${data.dataMonth}&userName=${data.userName}`,
-    method: 'get',
-    
+    url: `/report-aliexpress/aliexpress/operation/configItem/checkUnique`,
+    method: 'post',
+    data
   })
 }
 
@@ -73,12 +73,12 @@ export function checkUnique(data) {
 export function downloadTemplate() {
   return request({
     url: `/report-aliexpress/aliexpress/operation/configItem/downloadTemplate`,
-    method: 'get',
+    method: 'post',
   })
 }
 
 /**
- * 下载新增运营目标模板
+ * 编辑运营目标详情
  * @param {*} data
  * @returns
  */
@@ -90,7 +90,7 @@ export function detail(id) {
 }
 
 /**
- * 下载新增运营目标模板
+ * 编辑运营目标
  * @param {*} data
  * @returns
  */
@@ -99,5 +99,30 @@ export function updateItem(data) {
     url: `/report-aliexpress/aliexpress/operation/configItem/update`,
     method: 'post',
     data
+  })
+}
+
+/**
+ * 删除运营目标
+ * @param {*} data
+ * @returns
+ */
+export function batchDelete(data) {
+  return request({
+    url: `/report-aliexpress/aliexpress/operation/configItem/batchDelete`,
+    method: 'post',
+    data
+  })
+}
+
+/**
+ * 日志列表
+ * @param {*} data
+ * @returns
+ */
+export function logList(data) {
+  return request({
+    url: `/report-aliexpress/report/aliexpress/log/list/${data}`,
+    method: 'get',
   })
 }
