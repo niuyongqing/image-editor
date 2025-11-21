@@ -294,7 +294,7 @@ const handleSearch = (value) =>{
   searchKeyword.value = value;
   clearTimeout(searchTimeout.value);
   searchTimeout.value = setTimeout(() => {
-    userList({operator: searchKeyword.value}).then((res) => {
+    userList({userName: searchKeyword.value}).then((res) => {
       operatorOptions.value = res.data.map((item) => {
         return {
           label: item.userName,
