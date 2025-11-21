@@ -7,29 +7,6 @@
           <a-range-picker picker="month" v-model:value="searchForm.month" :bordered="true" format="YYYYMM" value-format="YYYYMM"/>
         </a-form-item>
 
-        <a-form-item label="店铺" name="shopName">
-          <a-select v-model:value="searchForm.shopName"
-                    mode="multiple"
-                    :option="shopNameOptions"
-                    :loading="shopNameModelLoading"
-                    show-search
-                    allowClear
-                    placeholder="请输入店铺"
-          >
-            <template #notFoundContent>
-              <div v-if="shopNameModelLoading">
-                <a-spin size="small" />
-                <span style="margin-left: 8px">加载中...</span>
-              </div>
-              <div v-else>暂无数据</div>
-            </template>
-
-            <a-select-option v-for="option in shopNameOptions" :key="option.value" :value="option.label">
-              {{ option.label }}
-            </a-select-option>
-          </a-select>
-        </a-form-item>
-
         <a-form-item label="操作人" name="userName">
           <a-select
               v-model:value="searchForm.userName"
@@ -51,9 +28,7 @@
             </template>
           </a-select>
         </a-form-item>
-      </template>
 
-      <template #formItemRow>
         <a-form-item label="操作时间" name="time">
           <a-range-picker v-model:value="searchForm.time" format="YYYY-MM-DD HH:mm:ss" value-format="YYYY-MM-DD HH:mm:ss" show-time/>
         </a-form-item>
@@ -128,10 +103,6 @@ const searchKeyword = ref(''); //储存输入的值
 const userNameLoading = ref(false); //loading
 const userNameOptions = ref([]); //搜索出来的数组
 
-//店铺
-const shopNameModelLoading = ref(false); //loading
-const shopNameOptions = ref([]); //搜索出来的数组
-
 const loadingConfig = ref({
   spinning: false,
   tip: '数据加载中，请稍候...',
@@ -151,7 +122,6 @@ const searchForm = reactive({
   pageSize: 50,
   prop: 'dataYearMonth',
   order: 'desc',
-  shopName: [],
   userName: null,
   month: null,
   startMonth: '',
@@ -162,13 +132,12 @@ const searchForm = reactive({
 });
 
 onMounted(() => {
-  getDictList()
   getList()
 });
 
 //进入页面计算表格高度
 const tableHeight = computed(() => {
-  return window.innerHeight - 330
+  return window.innerHeight - 290
 })
 
 //表格排序操作
@@ -190,22 +159,6 @@ const onSubmit = (data) => {
   getList()
 };
 
-//获取店铺列表
-const getDictList = async () =>{
-  try {
-    let obj = await dictList()
-    shopNameOptions.value = obj.data.map(item => {
-      return {
-        label: item.itemValue,
-        value: item.itemId,
-      }
-    });
-  }
-  catch (error) {
-    message.error('获取数据失败，请重试')
-  }
-}
-
 //获取列表
 const getList = async () =>{
   try {
@@ -214,7 +167,6 @@ const getList = async () =>{
       pageSize: searchForm.pageSize,
       prop: searchForm.prop,
       order: searchForm.order,
-      shopName: searchForm.shopName,
       userName: searchForm.userName,
       startTime: searchForm.startTime ? new Date(searchForm.startTime).getTime() : null,
       endTime: searchForm.endTime ? new Date(searchForm.endTime).getTime() : null,
