@@ -9,24 +9,13 @@
 
         <a-form-item label="店铺" name="shopName">
           <a-select v-model:value="searchForm.shopName"
-                    :filter-option="false"
+                    mode="multiple"
                     :option="shopNameOptions"
-                    :not-found-content="shopNameModelLoading ? '加载中...' : '暂无数据'"
                     :loading="shopNameModelLoading"
-                    @search="handleShopNameModelSearch"
                     show-search
                     allowClear
-                    :maxTagCount="1"
                     placeholder="请输入业务模式"
           >
-            <template #notFoundContent>
-              <div v-if="shopNameModelLoading">
-                <a-spin size="small" />
-                <span style="margin-left: 8px">加载中...</span>
-              </div>
-              <div v-else>暂无数据</div>
-            </template>
-
             <a-select-option v-for="option in shopNameOptions" :key="option.value" :value="option.label">
               {{ option.label }}
             </a-select-option>
@@ -110,7 +99,7 @@ import { ref, reactive, defineAsyncComponent, onMounted, computed } from 'vue';
 import { DeleteOutlined, UploadOutlined, VerticalAlignBottomOutlined } from "@ant-design/icons-vue";
 import dayjs from "dayjs";
 import { message } from "ant-design-vue";
-import { directExpressFeeList, userList, batchDelete, exportEprList } from "~/pages/financialStatements/aliexpress/dataConfig/directTrainDeduction/js/api.js";
+import { directExpressFeeList, userList, batchDelete, exportEprList,dictList } from "~/pages/financialStatements/aliexpress/dataConfig/directTrainDeduction/js/api.js";
 import tableHeader from '@/pages/financialStatements/aliexpress/dataConfig/directTrainDeduction/js/tableHeader.js';
 import download from "~/api/common/download.js";
 
@@ -129,8 +118,6 @@ const userNameLoading = ref(false); //loading
 const userNameOptions = ref([]); //搜索出来的数组
 
 //店铺
-const shopNameSearchTimeout = ref(null); //防抖定时器
-const shopNameSearchKeyword = ref(''); //储存输入的值
 const shopNameModelLoading = ref(false); //loading
 const shopNameOptions = ref([]); //搜索出来的数组
 
@@ -153,7 +140,7 @@ const searchForm = reactive({
   pageSize: 50,
   prop: 'dataYearMonth',
   order: 'desc',
-  shopName: null,
+  shopName: [],
   userName: null,
   month: null,
   startMonth: '',
@@ -164,6 +151,7 @@ const searchForm = reactive({
 });
 
 onMounted(() => {
+  getDictList()
   getList()
 });
 
@@ -191,6 +179,22 @@ const onSubmit = (data) => {
   getList()
 };
 
+//获取店铺列表
+const getDictList = async () =>{
+  try {
+    let obj = await dictList()
+    shopNameOptions.value = obj.data.map(item => {
+      return {
+        label: item.itemValue,
+        value: item.itemId,
+      }
+    });
+  }
+  catch (error) {
+    message.error('获取数据失败，请重试')
+  }
+}
+
 //获取列表
 const getList = async () =>{
   try {
@@ -209,13 +213,6 @@ const getList = async () =>{
     loadingConfig.value.spinning = true;
     let obj = await directExpressFeeList(data)
     tableData.value = obj.data
-    //获取列表里面的店铺名称 下拉框数据
-    shopNameOptions.value = tableData.value.map(item => {
-      return {
-        label: item.shopName,
-        value: item.id,
-      }
-    })
     tableTotal.value = obj.total
   }
   catch (error) {
@@ -240,16 +237,6 @@ const handleSearch = (value) =>{
         }
       });
     })
-  }, 500);
-}
-
-//费用项远程搜索
-const handleShopNameModelSearch = (value) =>{
-  searchForm.shopName = value;
-  shopNameSearchKeyword.value = value;
-  clearTimeout(shopNameSearchTimeout.value);
-  shopNameSearchTimeout.value = setTimeout(() => {
-    getList()
   }, 500);
 }
 

@@ -22,3 +22,8 @@ export function batchDelete(params) {
 export function exportEprList(params) {
     return usePost('/report-aliexpress/aliexpress/epr-renew/export', params)
 }
+
+//店铺列表
+export function dictList(params) {
+    return useGet('/report-aliexpress/report/aliexpress/dict/item-list/dict_shop', params)
+}

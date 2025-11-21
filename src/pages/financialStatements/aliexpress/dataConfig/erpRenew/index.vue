@@ -9,14 +9,11 @@
 
         <a-form-item label="店铺" name="shopName">
           <a-select v-model:value="searchForm.shopName"
-                    :filter-option="false"
+                    mode="multiple"
                     :option="shopNameOptions"
-                    :not-found-content="shopNameModelLoading ? '加载中...' : '暂无数据'"
                     :loading="shopNameModelLoading"
-                    @search="handleShopNameModelSearch"
                     show-search
                     allowClear
-                    :maxTagCount="1"
                     placeholder="请输入业务模式"
           >
             <template #notFoundContent>
@@ -110,7 +107,7 @@ import { ref, reactive, defineAsyncComponent, onMounted, computed } from 'vue';
 import { DeleteOutlined, UploadOutlined, VerticalAlignBottomOutlined } from "@ant-design/icons-vue";
 import dayjs from "dayjs";
 import { message } from "ant-design-vue";
-import { eprList, userList, batchDelete, exportEprList } from "~/pages/financialStatements/aliexpress/dataConfig/erpRenew/js/api.js";
+import { eprList, userList, batchDelete, exportEprList,dictList } from "~/pages/financialStatements/aliexpress/dataConfig/erpRenew/js/api.js";
 import tableHeader from '@/pages/financialStatements/aliexpress/dataConfig/erpRenew/js/tableHeader.js';
 import download from "~/api/common/download.js";
 
@@ -153,7 +150,7 @@ const searchForm = reactive({
   pageSize: 50,
   prop: 'dataYearMonth',
   order: 'desc',
-  shopName: null,
+  shopName: [],
   userName: null,
   month: null,
   startMonth: '',
@@ -164,6 +161,7 @@ const searchForm = reactive({
 });
 
 onMounted(() => {
+  getDictList()
   getList()
 });
 
@@ -191,6 +189,22 @@ const onSubmit = (data) => {
   getList()
 };
 
+//获取店铺列表
+const getDictList = async () =>{
+  try {
+    let obj = await dictList()
+    shopNameOptions.value = obj.data.map(item => {
+      return {
+        label: item.itemValue,
+        value: item.itemId,
+      }
+    });
+  }
+  catch (error) {
+    message.error('获取数据失败，请重试')
+  }
+}
+
 //获取列表
 const getList = async () =>{
   try {
@@ -209,13 +223,6 @@ const getList = async () =>{
     loadingConfig.value.spinning = true;
     let obj = await eprList(data)
     tableData.value = obj.data
-    //获取列表里面的店铺名称 下拉框数据
-    shopNameOptions.value = tableData.value.map(item => {
-      return {
-        label: item.shopName,
-        value: item.id,
-      }
-    })
     tableTotal.value = obj.total
   }
   catch (error) {
