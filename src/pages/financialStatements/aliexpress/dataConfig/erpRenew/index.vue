@@ -126,8 +126,6 @@ const userNameLoading = ref(false); //loading
 const userNameOptions = ref([]); //搜索出来的数组
 
 //店铺
-const shopNameSearchTimeout = ref(null); //防抖定时器
-const shopNameSearchKeyword = ref(''); //储存输入的值
 const shopNameModelLoading = ref(false); //loading
 const shopNameOptions = ref([]); //搜索出来的数组
 
