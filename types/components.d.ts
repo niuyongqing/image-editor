@@ -48,6 +48,7 @@ declare module 'vue' {
     ApiSelect: typeof import('./../src/components/baseForm/componetns/ApiSelect.vue')['default']
     APopconfirm: typeof import('ant-design-vue/es')['Popconfirm']
     APopover: typeof import('ant-design-vue/es')['Popover']
+    AppButton: typeof import('./../src/components/common/appButton.vue')['default']
     AppModal: typeof import('./../src/components/common/appModal.vue')['default']
     AppTableBox: typeof import('./../src/components/common/appTableBox.vue')['default']
     AppTableForm: typeof import('./../src/components/common/appTableForm.vue')['default']
