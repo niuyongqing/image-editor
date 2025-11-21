@@ -59,7 +59,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { exportTemplate } from "~/pages/financialStatements/aliexpress/dataConfig/erpRenew/js/api.js";
+import { exportTemplate } from "~/pages/financialStatements/aliexpress/dataConfig/exchangeRateConfig/js/api.js";
 import { UploadOutlined, VerticalAlignBottomOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import axios from "axios";
@@ -139,7 +139,7 @@ const executeUpload = async ( file ) => {
   try {
     const formData = new FormData ();
     formData.append ( 'file', file );
-    return await axios.post ( '/prod-api/report-aliexpress/aliexpress/epr-renew/import', formData, {
+    return await axios.post ( '/prod-api/report-aliexpress/aliexpress/config/exchangeRate/import', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         'Authorization': useAuthorization ().value
@@ -165,13 +165,10 @@ const handleOk = async () => {
       handleCancel ();
     }
     else {
-      message.error(result.data.msg)
+      message.error('导入失败')
     }
   } catch ( error ) {
-    loading.value = false
     console.error ( '导入过程出错:', error );
-  } finally {
-    loading.value = false
   }
 }
 

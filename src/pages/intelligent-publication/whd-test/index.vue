@@ -305,7 +305,7 @@ const formData = reactive({
 const tableData = reactive({
   header: [
     // 基础信息列（1-5）
-    { key: 'reportDate', title: '报表日期', width: 120, align: 'center' },
+    { key: 'reportDate', title: '报表日期', width: 120, align: 'center', sorter: true },
     { key: 'accountPeriod', title: '所属期间', width: 100, align: 'center' },
     { key: 'accountCode', title: '科目代码', width: 100 },
     { key: 'accountName', title: '科目名称', width: 150 },
@@ -1117,9 +1117,13 @@ function onSubmit(val) {
 function onSelectChange(keys, rows) {
   tableData.selectedRowKeys = keys;
   tableData.selectedRows = rows;
+  console.log(111);
 }
 // 分页
-function tableChange(pagination, filters, sorter, { currentDataSource }) {
+function tableChange(pagination, filters, sorter) {
+  if (!sorter) {
+    return;
+  }
   console.log({ sorter });
 }
 

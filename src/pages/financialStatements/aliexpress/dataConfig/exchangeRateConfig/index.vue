@@ -1,38 +1,36 @@
 <template>
   <div>
-    <!--    搜索区域-->
+<!--    搜索区域-->
     <app-table-form :reset-set-menu="resetSetMenu" v-model:formData="searchForm" @onSubmit="onSubmit">
       <template #formItemBox>
         <a-form-item label="月份" name="month">
           <a-range-picker picker="month" v-model:value="searchForm.month" :bordered="true" format="YYYY-MM" value-format="YYYY-MM"/>
         </a-form-item>
-
-        <a-form-item label="店铺" name="shopName">
-          <a-select v-model:value="searchForm.shopName"
+        <a-form-item label="币种名称" name="currencyName">
+          <a-select v-model:value="searchForm.currencyName"
                     :filter-option="false"
-                    :option="shopNameOptions"
-                    :not-found-content="shopNameModelLoading ? '加载中...' : '暂无数据'"
-                    :loading="shopNameModelLoading"
-                    @search="handleShopNameModelSearch"
+                    :option="currencyNameOptions"
+                    :not-found-content="currencyNameSearNameLoading ? '加载中...' : '暂无数据'"
+                    :loading="currencyNameSearNameLoading"
+                    @search="handleCurrencyNameSearch"
                     show-search
                     allowClear
                     :maxTagCount="1"
-                    placeholder="请输入业务模式"
+                    placeholder="请输入店铺"
           >
             <template #notFoundContent>
-              <div v-if="shopNameModelLoading">
+              <div v-if="currencyNameSearNameLoading">
                 <a-spin size="small" />
                 <span style="margin-left: 8px">加载中...</span>
               </div>
               <div v-else>暂无数据</div>
             </template>
 
-            <a-select-option v-for="option in shopNameOptions" :key="option.value" :value="option.label">
+            <a-select-option v-for="option in currencyNameOptions" :key="option.value" :value="option.label">
               {{ option.label }}
             </a-select-option>
           </a-select>
         </a-form-item>
-
         <a-form-item label="操作人" name="userName">
           <a-select
               v-model:value="searchForm.userName"
@@ -43,7 +41,7 @@
               :options="userNameOptions"
               :loading="userNameLoading"
               @search="handleSearch"
-              placeholder="请输入操作人"
+              placeholder="请输入关键词搜索"
           >
             <template #notFoundContent>
               <div v-if="userNameLoading">
@@ -63,7 +61,7 @@
       </template>
     </app-table-form>
 
-    <!--    表格区域-->
+<!--    表格区域-->
     <app-table-box
         :reset-set-menu="resetSetMenu"
         :table-header="tableHeader"
@@ -73,54 +71,53 @@
         @change="tableDataChange"
         :loading="loadingConfig"
     >
-      <!--      按钮-->
+<!--      按钮-->
       <template #leftTool>
         <a-button type="primary" danger @click="del" :loading="delBtnLoading"><DeleteOutlined />批量删除</a-button>
-        <a-button type="primary" @click="importBtnModel = true"><upload-outlined />导入新增</a-button>
+        <a-button type="primary" @click="importModel = true"><upload-outlined />导入新增</a-button>
         <a-button type="primary" @click="exportList" :loading="exoprtBtnLoading"><VerticalAlignBottomOutlined />导出</a-button>
       </template>
 
       <template #bodyCell="{ column, record, index }">
-        <div v-if="column.dataIndex === 'createTime'">
-          {{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
+        <div v-if="column.dataIndex === 'updateTime'">
+          {{ dayjs(record.updateTime).format('YYYY-MM-DD HH:mm:ss') }}
         </div>
       </template>
-      <!--      操作区-->
+<!--      操作区-->
       <template #options="{ record, column }">
-        <a-button type="text" danger @click="delItem(record)">删除</a-button>
+        <a-button type="text" danger @click="itemDel(record)">删除</a-button>
       </template>
-      <!--      分页器区域-->
+<!--      分页器区域-->
       <template #pagination>
         <pagination v-model:current="searchForm.pageNum" v-model:pageSize="searchForm.pageSize" :total="tableTotal" @change="paginationChange"></pagination>
       </template>
     </app-table-box>
 
 
-
-    <!--    编辑-->
-    <importModel v-model:visible="importBtnModel" :resetSetMenu="resetSetMenu" @update:listData="getList"></importModel>
+<!--    导入新增弹框-->
+    <ImportModal v-model:visible="importModel" @update:listData="getList"/>
   </div>
 </template>
 
 <script setup>
-/*                     直通车扣费                  */
+/*                     汇率管理                  */
 
-defineOptions({ name: 'directTrainDeduction' });
+defineOptions({ name: 'exchangeRateConfig' });
 import { ref, reactive, defineAsyncComponent, onMounted, computed } from 'vue';
-import { DeleteOutlined, UploadOutlined, VerticalAlignBottomOutlined } from "@ant-design/icons-vue";
 import dayjs from "dayjs";
 import { message } from "ant-design-vue";
-import { directExpressFeeList, userList, batchDelete, exportEprList } from "~/pages/financialStatements/aliexpress/dataConfig/directTrainDeduction/js/api.js";
-import tableHeader from '@/pages/financialStatements/aliexpress/dataConfig/directTrainDeduction/js/tableHeader.js';
+import { batchDelete, exportExchangeRate, infringementList, userList } from "~/pages/financialStatements/aliexpress/dataConfig/exchangeRateConfig/js/api.js";
+import { UploadOutlined,VerticalAlignBottomOutlined,DeleteOutlined } from '@ant-design/icons-vue';
+import tableHeader from '@/pages/financialStatements/aliexpress/dataConfig/exchangeRateConfig/js/tableHeader.js';
 import download from "~/api/common/download.js";
 
 // 异步加载组件
 const appTableBox = defineAsyncComponent(() => import('@/components/common/appTableBox.vue'));
 const appTableForm = defineAsyncComponent(() => import('@/components/common/appTableForm.vue'));
 const pagination = defineAsyncComponent(() => import('@/components/common/appTablePagination.vue'));
-const importModel = defineAsyncComponent(() => import('@/pages/financialStatements/aliexpress/dataConfig/directTrainDeduction/common/importModel.vue'));
+const ImportModal  = defineAsyncComponent(() => import('@/pages/financialStatements/aliexpress/dataConfig/exchangeRateConfig/common/importModel.vue'));
 
-const resetSetMenu = 'directTrainDeduction';
+const resetSetMenu = 'exchangeRateConfig';
 
 //操作人
 const searchTimeout = ref(null); //防抖定时器
@@ -128,24 +125,23 @@ const searchKeyword = ref(''); //储存输入的值
 const userNameLoading = ref(false); //loading
 const userNameOptions = ref([]); //搜索出来的数组
 
-//店铺
-const shopNameSearchTimeout = ref(null); //防抖定时器
-const shopNameSearchKeyword = ref(''); //储存输入的值
-const shopNameModelLoading = ref(false); //loading
-const shopNameOptions = ref([]); //搜索出来的数组
+//币种名称
+const currencyNameSearchTimeout = ref(null); //防抖定时器
+const currencyNameSearchKeyword = ref(''); //储存输入的值
+const currencyNameSearNameLoading = ref(false); //loading
+const currencyNameOptions = ref([]); //币种名称列表
 
+const exoprtBtnLoading = ref(false);//导出按钮loading
+const delBtnLoading = ref(false);//删除按钮Loading
+const importModel = ref(false);//导入新增弹框
 const loadingConfig = ref({
   spinning: false,
   tip: '数据加载中，请稍候...',
   delay: 300,
 })
-
 const tableData = ref([]);
 const selectedRowsArr = ref([]); //勾选的数据
 const selectedRowKeys = ref([]);
-const importBtnModel = ref(false);
-const delBtnLoading = ref(false);
-const exoprtBtnLoading = ref(false);
 
 const tableTotal = ref(0);
 const searchForm = reactive({
@@ -153,11 +149,11 @@ const searchForm = reactive({
   pageSize: 50,
   prop: 'dataYearMonth',
   order: 'desc',
-  shopName: null,
-  userName: null,
   month: null,
   startMonth: '',
   endMonth: '',
+  currencyName: null,
+  userName: null,
   time: null,
   startTime: '',
   endTime: '',
@@ -199,7 +195,7 @@ const getList = async () =>{
       pageSize: searchForm.pageSize,
       prop: searchForm.prop,
       order: searchForm.order,
-      shopName: searchForm.shopName,
+      currencyName: searchForm.currencyName,
       userName: searchForm.userName,
       startTime: searchForm.startTime ? new Date(searchForm.startTime).getTime() : null,
       endTime: searchForm.endTime ? new Date(searchForm.endTime).getTime() : null,
@@ -207,12 +203,12 @@ const getList = async () =>{
       endMonth: searchForm.endMonth ? new Date(searchForm.endMonth).getTime() : null,
     }
     loadingConfig.value.spinning = true;
-    let obj = await directExpressFeeList(data)
+    let obj = await infringementList(data)
     tableData.value = obj.data
-    //获取列表里面的店铺名称 下拉框数据
-    shopNameOptions.value = tableData.value.map(item => {
+    // 获取列表里面的币种名称 下拉框数据
+    currencyNameOptions.value = tableData.value.map(item => {
       return {
-        label: item.shopName,
+        label: item.currencyName,
         value: item.id,
       }
     })
@@ -243,23 +239,21 @@ const handleSearch = (value) =>{
   }, 500);
 }
 
-//费用项远程搜索
-const handleShopNameModelSearch = (value) =>{
-  searchForm.shopName = value;
-  shopNameSearchKeyword.value = value;
-  clearTimeout(shopNameSearchTimeout.value);
-  shopNameSearchTimeout.value = setTimeout(() => {
-    getList()
-  }, 500);
-}
-
-//删除单个
-const delItem = (row) => {
-  batchDelete({ids: [row.id]}).then(res => {
-    message.success(res.msg)
-  }).finally(() => {
-    getList()
-  })
+//导出
+const exportList = () =>{
+  if ( selectedRowsArr.value.length > 0 ){
+    exoprtBtnLoading.value = true;
+    exportExchangeRate({ids: selectedRowsArr.value.map(item =>{ return item.id })}).then(res => {
+      download.name(res.data);
+      message.success(res.msg)
+    }).finally(() => {
+      exoprtBtnLoading.value = false;
+      getList()
+    })
+  }
+  else {
+    message.error('请先选择列表数据导出')
+  }
 }
 
 //批量删除
@@ -278,21 +272,23 @@ const del = () =>{
   }
 }
 
-//导出
-const exportList = () =>{
-  if ( selectedRowsArr.value.length > 0 ){
-    exoprtBtnLoading.value = true;
-    exportEprList({ids: selectedRowsArr.value.map(item =>{ return item.id })}).then(res => {
-      download.name(res.data);
-      message.success(res.msg)
-    }).finally(() => {
-      exoprtBtnLoading.value = false;
-      getList()
-    })
-  }
-  else {
-    message.error('请先选择列表数据导出')
-  }
+//单个删除
+const itemDel = (row) =>{
+  batchDelete({ids: [row.id]}).then(res => {
+    message.success(res.msg)
+  }).finally(() => {
+    getList()
+  })
+}
+
+//币种名称搜索事件
+const handleCurrencyNameSearch = (value) =>{
+  searchForm.currencyName = value;
+  currencyNameSearchKeyword.value = value;
+  clearTimeout(currencyNameSearchTimeout.value);
+  currencyNameSearchTimeout.value = setTimeout(() => {
+    getList()
+  }, 500);
 }
 
 const onSelectChange = (selectedKeys, selectedRows) =>{

@@ -4,7 +4,7 @@
     <app-table-form :reset-set-menu="resetSetMenu" v-model:formData="searchForm" :rules="searchRules" @onSubmit="onSubmit">
       <template #formItemBox>
         <a-form-item label="版本月份" name="month">
-          <a-date-picker v-model:value="searchForm.month" :bordered="true" format="YYYY-MM" value-format="YYYY-MM"/>
+          <a-range-picker v-model:value="searchForm.month" :bordered="true" format="YYYY-MM" value-format="YYYY-MM"/>
         </a-form-item>
         <a-form-item label="状态" name="status">
           <a-select v-model:value="searchForm.status" :options="statusOptions" placeholder="请选择状态" allowClear></a-select>
@@ -138,6 +138,8 @@ const searchForm = reactive({
   pageNum: 1,
   pageSize: 50,
   month: null,
+  startMonth: '',
+  endMonth: '',
   status: null,
   userName: null,
   updateTime: null,
@@ -152,8 +154,18 @@ onMounted(() => {
 //获取列表
 const getVersionList = async () =>{
   try {
+    let data = {
+      pageNum: searchForm.pageNum,
+      pageSize: searchForm.pageSize,
+      startMonth: searchForm.startMonth,
+      endMonth: searchForm.endMonth,
+      status: searchForm.status,
+      userName: searchForm.userName,
+      updateTimeStart: searchForm.updateTimeStart,
+      updateTimeEnd: searchForm.updateTimeEnd,
+    }
     loadingConfig.spinning = true;
-    let obj = await versionList(searchForm)
+    let obj = await versionList(data)
     tableData.value = obj.data
     tableParms.total = obj.total
   }
@@ -193,6 +205,8 @@ const onSubmit = (data) => {
   tableParms.pageSize = 50;
   searchForm.updateTimeStart = data.updateTime?.[0] ?? ''
   searchForm.updateTimeEnd =  data.updateTime?.[1] ?? ''
+  searchForm.startMonth = data.month?.[0] ?? ''
+  searchForm.endMonth =  data.month?.[1] ?? ''
   getVersionList(searchForm)
 };
 
@@ -202,10 +216,9 @@ const tableDataChange = (pagination, filters, sorter) => {
 };
 
 //页数回调
-const paginationChange = (page, pageSize) =>{
-  console.log(page, pageSize);
-  // searchForm.pageNum = val.page;
-  // searchForm.pageSize = val.pageSize;
+const paginationChange = (val) =>{
+  searchForm.pageNum = val.validPage;
+  searchForm.pageSize = val.pageSize;
   getVersionList()
 }
 

@@ -8,8 +8,8 @@ export const serialNumberManagement_header = [
   },
   {
     title: '流水号',
-    key: 'version',
-    dataIndex: 'version',
+    key: 'serialNumber',
+    dataIndex: 'serialNumber',
     width: 150,
   },
   {
