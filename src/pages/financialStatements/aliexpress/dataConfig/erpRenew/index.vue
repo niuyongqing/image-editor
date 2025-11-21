@@ -4,7 +4,7 @@
     <app-table-form :reset-set-menu="resetSetMenu" v-model:formData="searchForm" @onSubmit="onSubmit">
       <template #formItemBox>
         <a-form-item label="月份" name="month">
-          <a-range-picker v-model:value="searchForm.month" :bordered="true" format="YYYY-MM" value-format="YYYY-MM"/>
+          <a-range-picker picker="month" v-model:value="searchForm.month" :bordered="true" format="YYYY-MM" value-format="YYYY-MM"/>
         </a-form-item>
 
         <a-form-item label="店铺" name="shopName">
