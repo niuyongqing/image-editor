@@ -1,18 +1,35 @@
 <template>
   <div>
-<!--    搜索区域-->
+    <!--    搜索区域-->
     <app-table-form :reset-set-menu="resetSetMenu" v-model:formData="searchForm" @onSubmit="onSubmit">
       <template #formItemBox>
         <a-form-item label="月份" name="month">
-          <a-range-picker v-model:value="searchForm.month" :bordered="true" format="YYYY-MM" value-format="YYYY-MM"/>
+          <a-range-picker picker="month" v-model:value="searchForm.month" :bordered="true" format="YYYYMM" value-format="YYYYMM"/>
         </a-form-item>
-        <a-form-item label="店铺" name="simpleName">
-          <a-select v-model:value="searchForm.simpleName" mode="multiple" show-search :filter-option="simpleNameFilterOption" allowClear :maxTagCount="1" placeholder="请输入店铺">
-            <a-select-option v-for="shop in shopOptions" :key="shop.value" :value="shop.value" :label="shop.label">
-              {{ shop.label }}
+
+        <a-form-item label="店铺" name="shopName">
+          <a-select v-model:value="searchForm.shopName"
+                    mode="multiple"
+                    :option="shopNameOptions"
+                    :loading="shopNameModelLoading"
+                    show-search
+                    allowClear
+                    placeholder="请输入店铺"
+          >
+            <template #notFoundContent>
+              <div v-if="shopNameModelLoading">
+                <a-spin size="small" />
+                <span style="margin-left: 8px">加载中...</span>
+              </div>
+              <div v-else>暂无数据</div>
+            </template>
+
+            <a-select-option v-for="option in shopNameOptions" :key="option.value" :value="option.label">
+              {{ option.label }}
             </a-select-option>
           </a-select>
         </a-form-item>
+
         <a-form-item label="操作人" name="userName">
           <a-select
               v-model:value="searchForm.userName"
@@ -23,7 +40,7 @@
               :options="userNameOptions"
               :loading="userNameLoading"
               @search="handleSearch"
-              placeholder="请输入关键词搜索"
+              placeholder="请输入操作人"
           >
             <template #notFoundContent>
               <div v-if="userNameLoading">
@@ -43,7 +60,7 @@
       </template>
     </app-table-form>
 
-<!--    表格区域-->
+    <!--    表格区域-->
     <app-table-box
         :reset-set-menu="resetSetMenu"
         :table-header="tableHeader"
@@ -53,31 +70,35 @@
         @change="tableDataChange"
         :loading="loadingConfig"
     >
-<!--      按钮-->
+      <!--      按钮-->
       <template #leftTool>
-        <a-button type="primary" danger><DeleteOutlined />批量删除</a-button>
-        <a-button type="primary" @click="importModel = true"><upload-outlined />导入新增</a-button>
-        <a-button type="primary"><VerticalAlignBottomOutlined />导出</a-button>
+        <a-button type="primary" danger @click="del" :loading="delBtnLoading"><DeleteOutlined />批量删除</a-button>
+        <a-button type="primary" @click="importBtnModel = true"><upload-outlined />导入新增</a-button>
+        <a-button type="primary" @click="exportList" :loading="exoprtBtnLoading"><VerticalAlignBottomOutlined />导出</a-button>
       </template>
 
       <template #bodyCell="{ column, record, index }">
-        <div v-if="column.dataIndex === 'netProfit'">
-          {{ timeFormats.full(record.netProfit) }}
+        <div v-if="column.dataIndex === 'createTime'">
+          {{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
+        </div>
+        <div v-if="column.dataIndex === 'updateTime'">
+          {{ dayjs(record.updateTime).format('YYYY-MM-DD HH:mm:ss') }}
         </div>
       </template>
-<!--      操作区-->
+      <!--      操作区-->
       <template #options="{ record, column }">
-        <a-button type="text" danger>删除</a-button>
+        <a-button type="text" danger @click="delItem(record)">删除</a-button>
       </template>
-<!--      分页器区域-->
+      <!--      分页器区域-->
       <template #pagination>
-        <pagination v-model:current="tableParms.pageNum" v-model:pageSize="tableParms.pageSize" :total="tableParms.total" @change="paginationChange"></pagination>
+        <pagination v-model:current="searchForm.pageNum" v-model:pageSize="searchForm.pageSize" :total="tableTotal" @change="paginationChange"></pagination>
       </template>
     </app-table-box>
 
 
-<!--    导入新增弹框-->
-    <ImportModal v-model:visible="importModel"/>
+
+    <!--    编辑-->
+    <importModel v-model:visible="importBtnModel" :resetSetMenu="resetSetMenu" @update:listData="getList"></importModel>
   </div>
 </template>
 
@@ -86,21 +107,18 @@
 
 defineOptions({ name: 'infringementFines' });
 import { ref, reactive, defineAsyncComponent, onMounted, computed } from 'vue';
+import { DeleteOutlined, UploadOutlined, VerticalAlignBottomOutlined } from "@ant-design/icons-vue";
+import dayjs from "dayjs";
 import { message } from "ant-design-vue";
-import {
-  dictList,
-  infringementList,
-  userList
-} from "~/pages/financialStatements/aliexpress/dataConfig/infringementFines/js/api.js";
-import { UploadOutlined,VerticalAlignBottomOutlined,DeleteOutlined } from '@ant-design/icons-vue';
-import { timeFormats } from "~/utils/dateUtils.js";
+import { eprList, userList, batchDelete, exportEprList,dictList } from "~/pages/financialStatements/aliexpress/dataConfig/infringementFines/js/api.js";
 import tableHeader from '@/pages/financialStatements/aliexpress/dataConfig/infringementFines/js/tableHeader.js';
+import download from "~/api/common/download.js";
 
 // 异步加载组件
 const appTableBox = defineAsyncComponent(() => import('@/components/common/appTableBox.vue'));
 const appTableForm = defineAsyncComponent(() => import('@/components/common/appTableForm.vue'));
 const pagination = defineAsyncComponent(() => import('@/components/common/appTablePagination.vue'));
-const ImportModal  = defineAsyncComponent(() => import('@/pages/financialStatements/aliexpress/dataConfig/infringementFines/common/importModel.vue'));
+const importModel = defineAsyncComponent(() => import('@/pages/financialStatements/aliexpress/dataConfig/infringementFines/common/importModel.vue'));
 
 const resetSetMenu = 'infringementFines';
 
@@ -110,30 +128,36 @@ const searchKeyword = ref(''); //储存输入的值
 const userNameLoading = ref(false); //loading
 const userNameOptions = ref([]); //搜索出来的数组
 
-const importModel = ref(false);//导入新增弹框
+//店铺
+const shopNameSearchTimeout = ref(null); //防抖定时器
+const shopNameSearchKeyword = ref(''); //储存输入的值
+const shopNameModelLoading = ref(false); //loading
+const shopNameOptions = ref([]); //搜索出来的数组
+
 const loadingConfig = ref({
   spinning: false,
   tip: '数据加载中，请稍候...',
   delay: 300,
 })
+
 const tableData = ref([]);
 const selectedRowsArr = ref([]); //勾选的数据
-const shopOptions = ref([]); //店铺列表
 const selectedRowKeys = ref([]);
+const importBtnModel = ref(false);
+const delBtnLoading = ref(false);
+const exoprtBtnLoading = ref(false);
 
-const tableParms = reactive({
-  pageNum: 1,
-  pageSize: 50,
-  total: 0,
-});
+const tableTotal = ref(0);
 const searchForm = reactive({
   pageNum: 1,
   pageSize: 50,
+  prop: 'dataYearMonth',
+  order: 'desc',
+  shopName: [],
+  userName: null,
   month: null,
   startMonth: '',
   endMonth: '',
-  simpleName: [],
-  userName: null,
   time: null,
   startTime: '',
   endTime: '',
@@ -146,21 +170,8 @@ onMounted(() => {
 
 //进入页面计算表格高度
 const tableHeight = computed(() => {
-  return window.innerHeight - 320
+  return window.innerHeight - 330
 })
-
-//查询回调
-const onSubmit = (data) => {
-  searchForm.pageNum = 1
-  searchForm.pageSize = 50;
-  tableParms.pageNum = 1
-  tableParms.pageSize = 50;
-  searchForm.startTime = data.time?.[0] ?? ''
-  searchForm.endTime =  data.time?.[1] ?? ''
-  searchForm.startMonth = data.month?.[0] ?? ''
-  searchForm.endMonth =  data.month?.[1] ?? ''
-  getList()
-};
 
 //表格排序操作
 const tableDataChange = (pagination, filters, sorter) => {
@@ -170,18 +181,22 @@ const tableDataChange = (pagination, filters, sorter) => {
   console.log(sorter);
 };
 
-//页数回调
-const paginationChange = (val) =>{
-  searchForm.pageNum = val.validPage;
-  searchForm.pageSize = val.pageSize;
+//查询回调
+const onSubmit = (data) => {
+  searchForm.pageNum = 1
+  searchForm.pageSize = 50;
+  searchForm.startTime = data.time?.[0] ?? ''
+  searchForm.endTime =  data.time?.[1] ?? ''
+  searchForm.startMonth = data.month?.[0] ?? ''
+  searchForm.endMonth =  data.month?.[1] ?? ''
   getList()
-}
+};
 
 //获取店铺列表
 const getDictList = async () =>{
   try {
     let obj = await dictList()
-    shopOptions.value = obj.data.map(item => {
+    shopNameOptions.value = obj.data.map(item => {
       return {
         label: item.itemValue,
         value: item.itemId,
@@ -199,22 +214,26 @@ const getList = async () =>{
     let data = {
       pageNum: searchForm.pageNum,
       pageSize: searchForm.pageSize,
-      startMonth: searchForm.startTime,
-      endMonth: searchForm.endTime,
-      simpleName: searchForm.simpleName,
+      prop: searchForm.prop,
+      order: searchForm.order,
+      shopName: searchForm.shopName,
       userName: searchForm.userName,
-      startTime: searchForm.startTime,
-      endTime: searchForm.endTime,
+      startTime: searchForm.startTime ? new Date(searchForm.startTime).getTime() : null,
+      endTime: searchForm.endTime ? new Date(searchForm.endTime).getTime() : null,
+      startMonth: searchForm.startMonth ,
+      endMonth: searchForm.endMonth,
     }
-    loadingConfig.spinning = true;
-    let obj = await infringementList(data)
+    loadingConfig.value.spinning = true;
+    let obj = await eprList(data)
     tableData.value = obj.data
-    tableParms.total = obj.total
+    tableTotal.value = obj.total
   }
   catch (error) {
     message.error('获取数据失败，请重试')
   } finally {
-    loadingConfig.spinning = true;
+    loadingConfig.value.spinning = false;
+    selectedRowsArr.value = []
+    selectedRowKeys.value = []
   }
 }
 
@@ -234,14 +253,58 @@ const handleSearch = (value) =>{
   }, 500);
 }
 
-//店铺搜索事件
-const simpleNameFilterOption = (input, option) =>{
-  return option.label.toLowerCase().includes(input.toLowerCase());
+//删除单个
+const delItem = (row) => {
+  batchDelete({ids: [row.id]}).then(res => {
+    message.success(res.msg)
+  }).finally(() => {
+    getList()
+  })
+}
+
+//批量删除
+const del = () =>{
+  if ( selectedRowsArr.value.length > 0 ){
+    delBtnLoading.value = true;
+    batchDelete({ids: selectedRowsArr.value.map(item =>{ return item.id })}).then(res => {
+      message.success(res.msg)
+    }).finally(() => {
+      delBtnLoading.value = false;
+      getList()
+    })
+  }
+  else {
+    message.error('请先选择列表数据删除')
+  }
+}
+
+//导出
+const exportList = () =>{
+  if ( selectedRowsArr.value.length > 0 ){
+    exoprtBtnLoading.value = true;
+    exportEprList({ids: selectedRowsArr.value.map(item =>{ return item.id })}).then(res => {
+      download.name(res.data);
+      message.success(res.msg)
+    }).finally(() => {
+      exoprtBtnLoading.value = false;
+      getList()
+    })
+  }
+  else {
+    message.error('请先选择列表数据导出')
+  }
 }
 
 const onSelectChange = (selectedKeys, selectedRows) =>{
   selectedRowKeys.value = selectedKeys;
   selectedRowsArr.value = selectedRows;
+}
+
+//页数回调
+const paginationChange = (val) =>{
+  searchForm.pageNum = val.validPage;
+  searchForm.pageSize = val.pageSize;
+  getList()
 }
 
 </script>

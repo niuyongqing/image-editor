@@ -74,7 +74,7 @@ const props = defineProps ( {
 } )
 
 // 定义emit事件
-const emit = defineEmits ( [ 'update:visible'] )
+const emit = defineEmits ( [ 'update:visible','update:listData'] )
 
 // 定义变量
 const headers = { Authorization: useAuthorization().value }
@@ -101,6 +101,7 @@ const handleCancel = () => {
   selectedFile.value = null
   current.value = 0
   emit ( 'update:visible', false )
+  emit( 'update:listData' )
 }
 
 // 文件上传前处理
@@ -138,7 +139,7 @@ const executeUpload = async ( file ) => {
   try {
     const formData = new FormData ();
     formData.append ( 'file', file );
-    return await axios.post ( '/report/aliexpress/infringement/fine/import', formData, {
+    return await axios.post ( '/prod-api/report-aliexpress/aliexpress/epr-renew/import', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         'Authorization': useAuthorization ().value
@@ -156,18 +157,21 @@ const handleOk = async () => {
     message.warning ( '请先选择文件' );
     return;
   }
-
   try {
     loading.value = true
     const result = await executeUpload ( selectedFile.value );
-    console.log( result );
-    if ( result.code === 200 ) {
-      message.success ( '导入成功' );
+    if ( result.data.code === 200 ) {
+      message.success(result.data.msg)
+      handleCancel ();
+    }
+    else {
+      message.error(result.data.msg)
     }
   } catch ( error ) {
+    loading.value = false
     console.error ( '导入过程出错:', error );
   } finally {
-    handleCancel ();
+    loading.value = false
   }
 }
 
@@ -175,8 +179,7 @@ const handleOk = async () => {
 const handleExportTemplate = () => {
   exportTemplateLoading.value = true
   exportTemplate().then(res =>{
-    message.success(res.msg);
-    download.name(res.msg);
+    download.name(res.data);
     message.success ( '模板导出成功' )
     current.value = 1
   }).finally(() =>{
