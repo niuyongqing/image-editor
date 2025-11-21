@@ -4,23 +4,23 @@ export function userList(params) {
 }
 
 //列表接口
-export function directExpressFeeList(params) {
-    return usePost('/report-aliexpress/aliexpress/DirectExpressFee/list', params)
+export function eprList(params) {
+    return usePost('/report-aliexpress/report/aliexpress/return/package/list', params)
 }
 
 //导出文件
 export function exportTemplate(params) {
-    return usePost('/report-aliexpress/aliexpress/DirectExpressFee/downloadTemplate', params)
+    return useGet('/report-aliexpress/report/aliexpress/return/package/download/template', params)
 }
 
 //批量删除
 export function batchDelete(params) {
-    return usePost('/report-aliexpress/aliexpress/DirectExpressFee/batchDelete', params)
+    return usePost('/report-aliexpress/report/aliexpress/return/package/batch/del', params)
 }
 
 //导出列表数据
 export function exportEprList(params) {
-    return usePost('/report-aliexpress/aliexpress/DirectExpressFee/export', params)
+    return usePost('/report-aliexpress/report/aliexpress/return/package/export', params)
 }
 
 //店铺列表

@@ -59,7 +59,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { exportTemplate } from "~/pages/financialStatements/aliexpress/dataConfig/infringementFines/js/api.js";
+import { exportTemplate } from "~/pages/financialStatements/aliexpress/dataConfig/halfPipeFreight/js/api.js";
 import { UploadOutlined, VerticalAlignBottomOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import axios from "axios";
@@ -139,7 +139,7 @@ const executeUpload = async ( file ) => {
   try {
     const formData = new FormData ();
     formData.append ( 'file', file );
-    return await axios.post ( '/prod-api/report-aliexpress/report/aliexpress/infringement/fine/import', formData, {
+    return await axios.post ( '/prod-api/report-aliexpress/report/aliexpress/freight/import', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         'Authorization': useAuthorization ().value

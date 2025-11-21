@@ -81,6 +81,9 @@
         <div v-if="column.dataIndex === 'createTime'">
           {{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
         </div>
+        <div v-if="column.dataIndex === 'updateTime'">
+          {{ dayjs(record.updateTime).format('YYYY-MM-DD HH:mm:ss') }}
+        </div>
       </template>
       <!--      操作区-->
       <template #options="{ record, column }">
@@ -100,24 +103,24 @@
 </template>
 
 <script setup>
-/*                     EPR续费                  */
+/*                     半托管运费                  */
 
-defineOptions({ name: 'erpRenew' });
+defineOptions({ name: 'halfPipeFreight' });
 import { ref, reactive, defineAsyncComponent, onMounted, computed } from 'vue';
 import { DeleteOutlined, UploadOutlined, VerticalAlignBottomOutlined } from "@ant-design/icons-vue";
 import dayjs from "dayjs";
 import { message } from "ant-design-vue";
-import { eprList, userList, batchDelete, exportEprList,dictList } from "~/pages/financialStatements/aliexpress/dataConfig/erpRenew/js/api.js";
-import tableHeader from '@/pages/financialStatements/aliexpress/dataConfig/erpRenew/js/tableHeader.js';
+import { eprList, userList, batchDelete, exportEprList,dictList } from "~/pages/financialStatements/aliexpress/dataConfig/halfPipeFreight/js/api.js";
+import tableHeader from '@/pages/financialStatements/aliexpress/dataConfig/halfPipeFreight/js/tableHeader.js';
 import download from "~/api/common/download.js";
 
 // 异步加载组件
 const appTableBox = defineAsyncComponent(() => import('@/components/common/appTableBox.vue'));
 const appTableForm = defineAsyncComponent(() => import('@/components/common/appTableForm.vue'));
 const pagination = defineAsyncComponent(() => import('@/components/common/appTablePagination.vue'));
-const importModel = defineAsyncComponent(() => import('@/pages/financialStatements/aliexpress/dataConfig/erpRenew/common/importModel.vue'));
+const importModel = defineAsyncComponent(() => import('@/pages/financialStatements/aliexpress/dataConfig/halfPipeFreight/common/importModel.vue'));
 
-const resetSetMenu = 'erpRenew';
+const resetSetMenu = 'halfPipeFreight';
 
 //操作人
 const searchTimeout = ref(null); //防抖定时器
@@ -126,6 +129,8 @@ const userNameLoading = ref(false); //loading
 const userNameOptions = ref([]); //搜索出来的数组
 
 //店铺
+const shopNameSearchTimeout = ref(null); //防抖定时器
+const shopNameSearchKeyword = ref(''); //储存输入的值
 const shopNameModelLoading = ref(false); //loading
 const shopNameOptions = ref([]); //搜索出来的数组
 
