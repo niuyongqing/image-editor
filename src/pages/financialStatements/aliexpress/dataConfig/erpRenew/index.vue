@@ -14,7 +14,7 @@
                     :loading="shopNameModelLoading"
                     show-search
                     allowClear
-                    placeholder="请输入业务模式"
+                    placeholder="请输入店铺"
           >
             <template #notFoundContent>
               <div v-if="shopNameModelLoading">
