@@ -1,18 +1,18 @@
 <template>
   <div id="logModal">
-    <appModal v-model:open-value="openValue" width="700px" :title="'日志'" :footer="null">
+    <appModal v-model:open-value="openValue" width="500px" :title="'日志'" :footer="null">
       <template #appContent>
         <a-timeline class="mt-5" v-if="logData.length > 0">
           <a-timeline-item v-for="item in logData" :key="item.id">
             <div>
-              <div style="font-family: bold">{{ item.userName }}</div>
-              <div style="color: #888888">
+              <div>{{ item.userName }}</div>
+              <div class="text-[#888888]">
                 {{ item.track }}
-                <span style="font-size: 12px">({{ item.action }})</span>
+                <span class="text-[12px]">({{ item.action }})</span>
               </div>
-              <div style="color: #888888">{{ item.content }}</div>
+              <div class="text-[#888888]">{{ item.content }}</div>
               <div>
-                <a-tooltip placement="top" effect="light" :overlayInnerStyle="{ width: '350px', padding: '3px' }">
+                <a-tooltip placement="top" effect="light" :overlayInnerStyle="{ width: '400px', padding: '3px' }">
                   <template #title>
                     <json-viewer :value="item.newContent"></json-viewer>
                   </template>
@@ -20,7 +20,7 @@
                 </a-tooltip>
               </div>
               <div>
-                <a-tooltip placement="top" effect="light" :overlayInnerStyle="{ width: '350px', padding: '3px' }">
+                <a-tooltip placement="top" effect="light" :overlayInnerStyle="{ width: '400px', padding: '3px' }">
                   <template #title>
                     <json-viewer :value="item.oldContent"></json-viewer>
                   </template>
@@ -30,7 +30,7 @@
             </div>
           </a-timeline-item>
         </a-timeline>
-        <a-empty v-else style="margin-top: 20px" />
+        <a-empty v-else class="mt-5" />
       </template>
     </appModal>
   </div>
@@ -38,7 +38,6 @@
 
 <script setup>
 import { message } from 'ant-design-vue'
-import { te } from 'date-fns/locale';
 import { template } from 'xe-utils';
 
 const appModal = defineAsyncComponent(() => import('@/components/common/appModal.vue'));
@@ -99,6 +98,4 @@ watch(() => props.logData, (newVal) => {
   }
 })
 </script>
-<style lang="less" scoped>
-
-</style>
+<style lang="less" scoped></style>

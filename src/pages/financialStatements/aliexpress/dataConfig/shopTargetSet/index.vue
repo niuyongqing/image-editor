@@ -13,7 +13,7 @@
         <a-form-item label="运营" name="userName">
           <a-select v-model:value="formData.userName" style="width: 100%" placeholder="请输入关键字"
             :options="options.shopUserNameList" :filterOption="userFilterOption" :optionFilterProp="'label'"
-            show-search></a-select>
+            show-search allowClear></a-select>
         </a-form-item>
         <a-form-item label="店铺" name="shopName">
           <a-select v-model:value="formData.shopName" show-search :options="options.shopList" :optionFilterProp="'label'"
@@ -22,7 +22,7 @@
         <a-form-item label="品类" name="categoryNames">
           <a-select v-model:value="formData.categoryNames" style="width: 100%" placeholder="请选择"
             :options="options.categoryList" :filterOption="userFilterOption" :optionFilterProp="'label'"
-            show-search mode="multiple" :maxTagCount="1"></a-select>
+            show-search mode="multiple" :maxTagCount="1" allowClear></a-select>
         </a-form-item>
         <a-form-item label="流水号" name="serialNumber">
           <a-select v-model:value="formData.serialNumber" :options="options.serialNumberList" placeholder="请选择流水号"
@@ -32,7 +32,7 @@
     </appTableForm>
     <appTableBox :table-header="shopTargetSet_header" :data-source="shopTargetSet.data"
       reset-set-menu="shopTargetSet" :scroll="{ y: tableScrollHeihth, x: 1800 }" :loading="tableLoading"
-      :row-selection="rowSelection" rowKey="id">
+      :row-selection="rowSelection" rowKey="id" @rowDoubleClick="editAccount">
       <template #bodyCell="{ column, record, index }">
         <template v-if="column.dataIndex === 'rowIndex'">
           {{ index + 1 }}
@@ -51,14 +51,14 @@
       </template>
       <!-- 操作区 -->
       <template #options="{ record }">
-        <a-button type="link" @click="editAccount(record)">编辑</a-button>
-        <a-button type="link" danger @click="deleteAccount(record)">删除</a-button>
+        <a-button type="link" v-if="!isDisabled" @click="editAccount(record)">编辑</a-button>
+        <a-button type="link" danger v-if="!isDisabled" @click="deleteAccount(record)">删除</a-button>
         <a-button type="text" @click="cheackLog(record)">日志</a-button>
       </template>
       <template #pagination>
-        <app-table-pagination v-model:current="shopTargetSet.tableParams.pageNum"
-          v-model:page-size="shopTargetSet.tableParams.pageSize" :total="shopTargetSet.total"
-          @pageNumChange="pageNumChange" @pageSizeChange="pageSizeChange"></app-table-pagination>
+        <app-table-pagination v-model:current="formData.pageNum"
+          v-model:page-size="formData.pageSize" :total="shopTargetSet.total"
+          @change="paginationChange"></app-table-pagination>
       </template>
     </appTableBox>
     <createModal
@@ -66,6 +66,8 @@
       :options="options"
       :page-type="pageType"
       :detail-data="detailData"
+      @setPageType="pageType = 'add'"
+      :isDisabled="isDisabled"
     />
     <!-- 导入新增弹框-->
     <ImportModal v-model:visible="importModel" />
@@ -84,6 +86,7 @@ import { shopTargetSet_header } from './js/tableHeader.js';
 import { dictList, versionList } from '~@/pages/financialStatements/aliexpress/dataConfig/setOperationalGoals/js/api.js';
 import { shopTargetSetList,detail,logList,batchDelete } from './js/api.js';
 import { message, Modal } from 'ant-design-vue'
+import { preciseDecimalToPercentage } from './js/comm.js'
 
 defineOptions({ name: "shopTargetSet" })
 
@@ -91,7 +94,7 @@ const appTableForm = defineAsyncComponent(() => import('@/components/common/appT
 const appTableBox = defineAsyncComponent(() => import('@/components/common/appTableBox.vue'));
 const createModal = defineAsyncComponent(() => import('./components/createModal.vue'));
 // 导入新增弹框组件
-const ImportModal = defineAsyncComponent(() => import('./components/importModal.vue'));
+const ImportModal = defineAsyncComponent(() => import('./components/importModel.vue'));
 
 const logModal = defineAsyncComponent(() => import('./components/logModal.vue'));
 // 删除弹框组件
@@ -114,13 +117,7 @@ const importModel = ref(false);
 
 const shopTargetSet = reactive({
   data: [],
-  total: 0,
-  tableParams: {
-    "pageNum": 1,
-    "pageSize": 20,
-    "order": "DESC",
-    "prop": "create_time"
-  }
+  total: 0
 });
 const formData = reactive({
   dataYear: dayjs(),
@@ -129,6 +126,10 @@ const formData = reactive({
   shopName: '',
   categoryNames: [],
   serialNumber: '',
+  pageNum: 1,
+  pageSize: 50,
+  order: "DESC",
+  prop: "create_time"
 });
 const options = reactive({
   monthList,  // 月
@@ -170,14 +171,10 @@ function userFilterOption(val, option) {
 }
 
 // 分页器页数变化
-function pageNumChange(val) {
-  shopTargetSet.tableParams.pageNum = val;
-  getOperationalGoalsList();
-}
-// 分页器每页条数变化
-function pageSizeChange(val) {
-  shopTargetSet.tableParams.pageSize = val;
-  pageNumChange(1);
+function paginationChange(val) {
+  formData.pageNum = val.validPage;
+  formData.pageSize = val.pageSize;
+  getShopTargetSetList();
 }
 
 // 查询公共字典
@@ -238,6 +235,8 @@ function getVersionList() {
 
 // 查询
 function onSubmit() {
+  formData.pageNum = 1;
+  formData.pageSize = 50;
   getShopTargetSetList();
 }
 
@@ -290,20 +289,20 @@ function getShopTargetSetList() {
     shopName: formData.shopName,
     categoryNames: formData.categoryNames,
     serialNumber: formData.serialNumber,
-    pageNum: shopTargetSet.tableParams.pageNum,
-    pageSize: shopTargetSet.tableParams.pageSize,
-    order: shopTargetSet.tableParams.order,
-    prop: shopTargetSet.tableParams.prop
+    pageNum: formData.pageNum,
+    pageSize: formData.pageSize,
+    order: formData.order,
+    prop: formData.prop
   };
   shopTargetSetList(params).then(res => {
     if (res.code === 200) {
       shopTargetSet.data = res.data.map(item => ({
         ...item,
-        profitRateTargetPop: (item.profitRateTargetPop + '%'),
-        profitRateTargetSemiJIT: (item.profitRateTargetSemiJIT + '%'),
-        profitRateTargetSemiStore: (item.profitRateTargetSemiStore + '%'),
-        profitRateTargetFullJIT: (item.profitRateTargetFullJIT + '%'),
-        profitRateTargetFullStore: (item.profitRateTargetFullStore + '%'),
+        profitRateTargetPop: preciseDecimalToPercentage(item.profitRateTargetPop,2),
+        profitRateTargetSemiJIT: preciseDecimalToPercentage(item.profitRateTargetSemiJIT,2),
+        profitRateTargetSemiStore: preciseDecimalToPercentage(item.profitRateTargetSemiStore,2),
+        profitRateTargetFullJIT: preciseDecimalToPercentage(item.profitRateTargetFullJIT,2),
+        profitRateTargetFullStore: preciseDecimalToPercentage(item.profitRateTargetFullStore,2),
       })) || [];
       shopTargetSet.total = res.total || 0;
     }

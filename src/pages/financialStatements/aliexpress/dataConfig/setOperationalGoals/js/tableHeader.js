@@ -11,12 +11,14 @@ export const setOperationalGoals_header = [
     key: 'dataYear',
     dataIndex: 'dataYear',
     width: 100,
+    align: 'center'
   },
   {
     title: '月份',
     key: 'dataMonth',
     dataIndex: 'dataMonth',
     width: 100,
+    align: 'center'
   },
   {
     title: '部门',

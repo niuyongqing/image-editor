@@ -25,7 +25,7 @@
               picker="year" 
               value-format="YYYY"
               class="w-full"
-              :disabled="pageType === 'edit'"
+              :disabled="isDisabled"
             />
           </a-form-item>
           <a-form-item label="店铺：" name="shopName">
@@ -34,6 +34,10 @@
             :options="options.shopList"
             placeholder="请选择店铺"
             allowClear
+            :filterOption="userFilterOption" 
+            :optionFilterProp="'label'"
+            show-search
+            :disabled="isDisabled"
           ></a-select>
         </a-form-item>
         <a-form-item label="运营：" name="userName">
@@ -41,7 +45,10 @@
             v-model:value="formData.userName"
             placeholder="请输入关键字"
             :options="options.shopUserNameList"
-            :disabled="pageType === 'edit'"
+            :disabled="isDisabled"
+            :filterOption="userFilterOption" 
+            :optionFilterProp="'label'"
+            show-search
           ></a-select>
         </a-form-item>
         </div>
@@ -55,7 +62,7 @@
               :options="options.monthList"
               placeholder="请输入月份"
               allowClear
-              :disabled="pageType === 'edit'"
+              :disabled="isDisabled"
             ></a-select>
           </a-form-item>
           <a-form-item label="品类：" name="categoryName">
@@ -64,35 +71,39 @@
               :options="options.categoryList"
               placeholder="请选择品类"
               allowClear
+              :filterOption="userFilterOption" 
+              :optionFilterProp="'label'"
+              show-search
+              :disabled="isDisabled"
             ></a-select>
           </a-form-item>
         </div>
       </div>
       <a-form-item label="POP利润率目标：" name="popProfitRate">
         <a-input-number v-model:value="formData.popProfitRate" :min="0" 
-        :controls="false" placeholder="请输入POP利润率目标" class="w-50%" addon-after="%" />
+        :controls="false" placeholder="请输入POP利润率目标" class="w-50%" addon-after="%" :precision="2" :disabled="isDisabled" />
       </a-form-item>
       <a-form-item label="半托管JIT利润率目标：" name="semiManagedJITProfitRate">
-        <a-input-number v-model:value="formData.semiManagedJITProfitRate" :min="0" 
-        :controls="false" placeholder="请输入半托管JIT利润率目标" class="w-50%" addon-after="%" />
+        <a-input-number v-model:value="formData.semiManagedJITProfitRate" :min="0" :precision="2"
+        :controls="false" placeholder="请输入半托管JIT利润率目标" class="w-50%" addon-after="%" :disabled="isDisabled" />
       </a-form-item>
       <a-form-item label="半托管仓发利润率目标：" name="semiManagedWarehouseProfitRate">
-        <a-input-number v-model:value="formData.semiManagedWarehouseProfitRate" :min="0" 
-        :controls="false" placeholder="请输入半托管仓发利润率目标" class="w-50%" addon-after="%" />
+        <a-input-number v-model:value="formData.semiManagedWarehouseProfitRate" :min="0" :precision="2"
+        :controls="false" placeholder="请输入半托管仓发利润率目标" class="w-50%" addon-after="%" :disabled="isDisabled" />
       </a-form-item>
       <a-form-item label="全托管JIT利润率目标：" name="fullyManagedJITProfitRate">
-        <a-input-number v-model:value="formData.fullyManagedJITProfitRate" :min="0" 
-        :controls="false" placeholder="请输入全托管JIT利润率目标" class="w-50%" addon-after="%" />
+        <a-input-number v-model:value="formData.fullyManagedJITProfitRate" :min="0" :precision="2"
+        :controls="false" placeholder="请输入全托管JIT利润率目标" class="w-50%" addon-after="%" :disabled="isDisabled" />
       </a-form-item>
       <a-form-item label="全托管仓发利润率目标：" name="fullyManagedWarehouseProfitRate">
-        <a-input-number v-model:value="formData.fullyManagedWarehouseProfitRate" :min="0" 
-        :controls="false" placeholder="请输入全托管仓发利润率目标" class="w-50%" addon-after="%" />
+        <a-input-number v-model:value="formData.fullyManagedWarehouseProfitRate" :min="0" :precision="2"
+        :controls="false" placeholder="请输入全托管仓发利润率目标" class="w-50%" addon-after="%" :disabled="isDisabled" />
       </a-form-item>
       </a-form>
     </template>
     <template #appFooter>
       <a-button @click="handleCustomCancel">取消</a-button>
-      <a-button type="primary" @click="handleCustomOk" :loading="btnLoading">确定</a-button>
+      <a-button type="primary" @click="handleCustomOk" v-if="!isDisabled" :loading="btnLoading">确定</a-button>
     </template>
   </appModal>
 </div>
@@ -107,7 +118,7 @@ defineOptions({ name: "setOperationalGoals_createModal" })
 
 const appModal = defineAsyncComponent(() => import('@/components/common/appModal.vue'));
 
-const emit = defineEmits(['update:open',])
+const emit = defineEmits(['update:open','setPageType'])
 const props = defineProps({
   open: {
     type: Boolean,
@@ -126,6 +137,10 @@ const props = defineProps({
   detailData: {
     type: Object,
     default: () => ({})
+  },
+  isDisabled: {
+    type: Boolean,
+    default: false,
   }
 })
 const openValue = ref(false);
@@ -202,7 +217,6 @@ watch(() => props.detailData, (val, oldVal) => {
     const {id, dataYear,dataMonth, shopName, userName, categoryName,
       profitRateTargetPop, profitRateTargetSemiJIT, profitRateTargetSemiStore, 
       profitRateTargetFullJIT, profitRateTargetFullStore } = val
-    console.log(profitRateTargetFullStore,'profitRateTargetFullStore');
     let newObj = {
       id,
       dataYear,
@@ -210,22 +224,25 @@ watch(() => props.detailData, (val, oldVal) => {
       shopName, 
       userName, 
       categoryName,
-      popProfitRate: Math.round(profitRateTargetPop *100),
-      semiManagedJITProfitRate: Math.round(profitRateTargetSemiJIT *100),
-      semiManagedWarehouseProfitRate: Math.round(profitRateTargetSemiStore *100),
-      fullyManagedJITProfitRate: Math.round(profitRateTargetFullJIT *100),
-      fullyManagedWarehouseProfitRate: Math.round(profitRateTargetFullStore *100),
+      popProfitRate: profitRateTargetPop * 100,
+      semiManagedJITProfitRate: profitRateTargetSemiJIT * 100,
+      semiManagedWarehouseProfitRate: profitRateTargetSemiStore * 100,
+      fullyManagedJITProfitRate: profitRateTargetFullJIT * 100,
+      fullyManagedWarehouseProfitRate: profitRateTargetFullStore * 100,
     }
-    console.log(newObj,'newObj');
     Object.assign(formData, newObj)
   }
 })
 
-
+function userFilterOption(val, option) {
+  // 将输入值和选项的 label（姓名）都转为小写，实现不区分大小写的模糊匹配
+  return option.label.toLowerCase().includes(val.toLowerCase());
+}
 
 function handleCustomCancel() {
   formRef.value.resetFields()
   openValue.value = false
+  emit('setPageType');
 }
 async function handleCustomOk() {
   try {
@@ -233,10 +250,14 @@ async function handleCustomOk() {
     btnLoading.value = true;
     let params = {
       ...formData,
+      popProfitRate: formData.popProfitRate /100,
+      semiManagedJITProfitRate: formData.semiManagedJITProfitRate /100,
+      semiManagedWarehouseProfitRate: formData.semiManagedWarehouseProfitRate /100,
+      fullyManagedJITProfitRate: formData.fullyManagedJITProfitRate /100,
+      fullyManagedWarehouseProfitRate: formData.fullyManagedWarehouseProfitRate /100,
       dataYear: dayjs(formData.dataYear).format('YYYY'),
       dataMonth: dayjs(formData.dataMonth).format('MM'),
     }
-    console.log(params,'params');
     let queryParams = {
       dataYear: dayjs(formData.dataYear).format('YYYY'),
       dataMonth: dayjs(formData.dataMonth).format('MM'),
@@ -245,7 +266,7 @@ async function handleCustomOk() {
     if (props.pageType === 'add') {
       checkUnique(queryParams).then(res => {
         if (res.data) {
-          message.warning('该运营目标已存在')
+          message.warning('该店铺目标已存在')
           return
         }else {
           addForm(params) 
@@ -258,6 +279,7 @@ async function handleCustomOk() {
     }
 
   } catch (error) {
+    console.log(error,'error');
     message.error('表单验证失败，请检查输入');
   }
 }

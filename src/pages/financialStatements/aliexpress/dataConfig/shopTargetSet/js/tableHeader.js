@@ -11,12 +11,14 @@ export const shopTargetSet_header = [
     key: 'dataYear',
     dataIndex: 'dataYear',
     width: 80,
+    align: 'center'
   },
   {
     title: '月份',
     key: 'dataMonth',
     dataIndex: 'dataMonth',
     width: 80,
+    align: 'center'
   },
   {
     title: '店铺',
@@ -40,35 +42,35 @@ export const shopTargetSet_header = [
     align: 'center'
   },
   {
-    title: 'POP利润率目标（%）',
+    title: 'POP利润率目标',
     key: 'profitRateTargetPop',
     dataIndex: 'profitRateTargetPop',
     width: 180,
     align: 'center'
   },
   {
-    title: '半托管JIT利润率目标（%）',
+    title: '半托管JIT利润率目标',
     key: 'profitRateTargetSemiJIT',
     dataIndex: 'profitRateTargetSemiJIT',
     width: 180,
     align: 'center'
   },
   {
-    title: '半托管仓发利润率目标（%）',
+    title: '半托管仓发利润率目标',
     key: 'profitRateTargetSemiStore',
     dataIndex: 'profitRateTargetSemiStore',
     width: 200,
     align: 'center'
   },
   {
-    title: '全托管JIT利润率目标（%）',
+    title: '全托管JIT利润率目标',
     key: 'profitRateTargetFullJIT',
     dataIndex: 'profitRateTargetFullJIT',
     width: 180,
     align: 'center'
   },
   {
-    title: '全托管仓发利润率目标（%）',
+    title: '全托管仓发利润率目标',
     key: 'profitRateTargetFullStore',
     dataIndex: 'profitRateTargetFullStore',
     width: 200,

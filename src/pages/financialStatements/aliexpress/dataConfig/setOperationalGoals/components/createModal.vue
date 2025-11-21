@@ -24,7 +24,7 @@
               picker="year" 
               value-format="YYYY"
               class="w-full"
-              :disabled="pageType === 'edit'"
+              :disabled="isDisabled"
             />
           </a-form-item>
           <a-form-item label="部门：" name="department">
@@ -33,6 +33,10 @@
             :options="options.departmentList"
             placeholder="请选择部门"
             allowClear
+            :filterOption="userFilterOption" 
+            :optionFilterProp="'label'"
+            show-search
+            :disabled="isDisabled"
           ></a-select>
         </a-form-item>
         <a-form-item label="运营：" name="userName">
@@ -40,7 +44,10 @@
             v-model:value="formData.userName"
             placeholder="请输入关键字"
             :options="options.shopUserNameList"
-            :disabled="pageType === 'edit'"
+            :disabled="isDisabled"
+            :filterOption="userFilterOption" 
+            :optionFilterProp="'label'"
+            show-search
           ></a-select>
         </a-form-item>
         </div>
@@ -54,7 +61,7 @@
               :options="options.monthList"
               placeholder="请输入月份"
               allowClear
-              :disabled="pageType === 'edit'"
+              :disabled="isDisabled"
             ></a-select>
           </a-form-item>
           <a-form-item label="小组：" name="group">
@@ -63,27 +70,31 @@
               :options="options.groupList"
               placeholder="请选择组"
               allowClear
+              :filterOption="userFilterOption" 
+              :optionFilterProp="'label'"
+              show-search
+              :disabled="isDisabled"
             ></a-select>
           </a-form-item>
         </div>
       </div>
       <a-form-item label="GMV基础目标（万元）：" name="gmvBaseTarget">
         <a-input-number v-model:value="formData.gmvBaseTarget" :min="0" 
-        :controls="false" placeholder="请输入GMV基础目标" class="w-50%" />
+        :controls="false" placeholder="请输入GMV基础目标" class="w-50%" :disabled="isDisabled" />
       </a-form-item>
       <a-form-item label="GMV上浮目标（万元）：" name="gmvIncreaseTarget">
         <a-input-number v-model:value="formData.gmvIncreaseTarget" :min="0" 
-        :controls="false" placeholder="请输入GMV上浮目标" class="w-50%" />
+        :controls="false" placeholder="请输入GMV上浮目标" class="w-50%" :disabled="isDisabled" />
       </a-form-item>
       <a-form-item label="GMV挑战目标（万元）：" name="gmvChallengeTarget">
         <a-input-number v-model:value="formData.gmvChallengeTarget" :min="0" 
-        :controls="false" placeholder="请输入GMV挑战目标" class="w-50%" />
+        :controls="false" placeholder="请输入GMV挑战目标" class="w-50%" :disabled="isDisabled" />
       </a-form-item>
       </a-form>
     </template>
     <template #appFooter>
       <a-button @click="handleCustomCancel">取消</a-button>
-      <a-button type="primary" @click="handleCustomOk" :loading="btnLoading">确定</a-button>
+      <a-button type="primary" @click="handleCustomOk" v-if="!isDisabled" :loading="btnLoading">确定</a-button>
     </template>
   </appModal>
 </div>
@@ -99,7 +110,7 @@ defineOptions({ name: "setOperationalGoals_createModal" })
 const appModal = defineAsyncComponent(() => import('@/components/common/appModal.vue'));
 
 
-const emit = defineEmits(['update:open',])
+const emit = defineEmits(['update:open','setPageType'])
 const props = defineProps({
   open: {
     type: Boolean,
@@ -118,6 +129,10 @@ const props = defineProps({
   detailData: {
     type: Object,
     default: () => ({})
+  },
+  isDisabled: {
+    type: Boolean,
+    default: false,
   }
 })
 const openValue = ref(false);
@@ -193,11 +208,15 @@ watch(() => props.detailData, (val, oldVal) => {
   }
 })
 
-
+function userFilterOption(val, option) {
+  // 将输入值和选项的 label（姓名）都转为小写，实现不区分大小写的模糊匹配
+  return option.label.toLowerCase().includes(val.toLowerCase());
+}
 
 function handleCustomCancel() {
   formRef.value.resetFields()
   openValue.value = false
+  emit('setPageType');
 }
 async function handleCustomOk() {
   try {

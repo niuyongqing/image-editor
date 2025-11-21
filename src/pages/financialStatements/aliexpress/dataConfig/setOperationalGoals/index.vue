@@ -22,7 +22,7 @@
         <a-form-item label="运营" name="userName">
           <a-select v-model:value="formData.userName" style="width: 100%" placeholder="请输入关键字"
             :options="options.shopUserNameList" :filterOption="userFilterOption" :optionFilterProp="'label'"
-            show-search></a-select>
+            show-search allowClear></a-select>
         </a-form-item>
         <a-form-item label="流水号" name="serialNumber">
           <a-select v-model:value="formData.serialNumber" :options="options.serialNumberList" placeholder="请选择流水号"
@@ -32,7 +32,7 @@
     </appTableForm>
     <appTableBox :table-header="setOperationalGoals_header" :data-source="setOperationalGoals.data"
       reset-set-menu="setOperationalGoals" :scroll="{ y: tableScrollHeihth, x: 1800 }" :loading="tableLoading"
-      :row-selection="rowSelection" rowKey="id">
+      :row-selection="rowSelection" rowKey="id" @rowDoubleClick="editAccount">
       <template #bodyCell="{ column, record, index }">
         <template v-if="column.dataIndex === 'rowIndex'">
           {{ index + 1 }}
@@ -51,18 +51,18 @@
       </template>
       <!-- 操作区 -->
       <template #options="{ record }">
-        <a-button type="link" @click="editAccount(record)">编辑</a-button>
-        <a-button type="link" danger @click="deleteAccount(record)">删除</a-button>
+        <a-button type="link" v-if="!isDisabled" @click="editAccount(record)">编辑</a-button>
+        <a-button type="link" v-if="!isDisabled" danger @click="deleteAccount(record)">删除</a-button>
         <a-button type="text" @click="cheackLog(record)">日志</a-button>
       </template>
       <template #pagination>
-        <app-table-pagination v-model:current="setOperationalGoals.tableParams.pageNum"
-          v-model:page-size="setOperationalGoals.tableParams.pageSize" :total="setOperationalGoals.total"
-          @pageNumChange="pageNumChange" @pageSizeChange="pageSizeChange"></app-table-pagination>
+        <app-table-pagination v-model:current="formData.pageNum"
+          v-model:page-size="formData.pageSize" :total="setOperationalGoals.total"
+          @change="paginationChange"></app-table-pagination>
       </template>
     </appTableBox>
     <create-modal v-model:open="addOpen" :options="options" :pageType="pageType"
-      :detailData="detailData"></create-modal>
+      :detailData="detailData" @setPageType="pageType = 'add'" :isDisabled="isDisabled"></create-modal>
     <!-- 导入新增弹框-->
     <ImportModal v-model:visible="importModel" />
 
@@ -110,13 +110,7 @@ const idList = ref([]);
 const logData = ref([]);
 const setOperationalGoals = reactive({
   data: [],
-  total: 0,
-  tableParams: {
-    "pageNum": 1,
-    "pageSize": 20,
-    "order": "DESC",
-    "prop": "create_time"
-  }
+  total: 0
 });
 const formData = reactive({
   dataYear: dayjs(),
@@ -125,6 +119,10 @@ const formData = reactive({
   groups: [],
   userName: '',
   serialNumber: '',
+  pageNum: 1,
+  pageSize: 50,
+  order: "DESC",
+  prop: "create_time"
 });
 const options = reactive({
   monthList,  // 月
@@ -166,15 +164,12 @@ function userFilterOption(val, option) {
 }
 
 // 分页器页数变化
-function pageNumChange(val) {
-  setOperationalGoals.tableParams.pageNum = val;
+function paginationChange(val) {
+  formData.pageNum = val.validPage;
+  formData.pageSize = val.pageSize;
   getOperationalGoalsList();
 }
-// 分页器每页条数变化
-function pageSizeChange(val) {
-  setOperationalGoals.tableParams.pageSize = val;
-  pageNumChange(1);
-}
+
 // 查询公共字典
 async function getCommonDictList() {
   try {
@@ -239,10 +234,10 @@ function getOperationalGoalsList() {
     groups: formData.groups,
     userName: formData.userName,
     serialNumber: formData.serialNumber,
-    pageNum: setOperationalGoals.tableParams.pageNum,
-    pageSize: setOperationalGoals.tableParams.pageSize,
-    order: setOperationalGoals.tableParams.order,
-    prop: setOperationalGoals.tableParams.prop
+    pageNum: formData.pageNum,
+    pageSize: formData.pageSize,
+    order: formData.order,
+    prop: formData.prop
   };
   operationalGoalsList(params).then(res => {
     if (res.code === 200) {
@@ -256,6 +251,8 @@ function getOperationalGoalsList() {
 }
 // 查询
 function onSubmit() {
+  formData.pageNum = 1;
+  formData.pageSize = 50;
   getOperationalGoalsList();
 }
 

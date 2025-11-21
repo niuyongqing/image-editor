@@ -15,18 +15,13 @@
           <template #description>
             <div>
               <p>点击上传按钮导入Excel文件</p>
-              <a-upload :action="uploadUrl" :headers="headers" :showUploadList="false" 
+              <a-upload :action="uploadUrl" :headers="headers" :show-upload-list="{showPreviewIcon: true, showRemoveIcon: false}" 
                 v-model:file-list="fileList" accept=".xlsx,.xls" 
                 :maxCount="1" @change="handleFileChange">
                 <a-button type="primary">
                   <upload-outlined />上传
                 </a-button>
               </a-upload>
-            </div>
-            <div class="mt-2.5">
-              <div class="item text-[#1f2329]" v-for="(item, index) in fileList" :key="index">
-                {{ item.name }}
-              </div>
             </div>
           </template>
         </a-step>
