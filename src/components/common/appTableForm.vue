@@ -268,6 +268,7 @@ function resetForm() {
     }
     .ant-form-item-control {
       width: 200px;
+      min-width: 200px;
       .ant-picker {
         width: 100%;
         .ant-picker-range-separator {
@@ -300,27 +301,63 @@ function resetForm() {
     }
     .ant-form-item-control {
       width: 180px;
+      min-width: 180px;
       .ant-picker {
         width: 100%;
         .ant-picker-range-separator {
           padding: 0 4px;
         }
       }
-      .ant-select {
-        height: 20px;
-        * {
-          height: 20px;
-          font-size: 12px;
-          line-height: 20px;
-        }
-        .ant-select-arrow {
-          top: calc(50% - 2px);
-        }
-      }
       input {
         font-size: 12px !important;
         height: 20px !important;
         line-height: 20px;
+      }
+      .ant-form-item-control-input {
+        min-height: 20px;
+        .ant-form-item-control-input-content {
+          min-height: 20px;
+        }
+      }
+      .ant-select {
+        width: 100%;
+        height: 20px;
+        .ant-select-selector {
+          height: 20px;
+          line-height: 18px;
+          padding-top: 0;
+          padding-bottom: 0;
+          margin: 0;
+          .ant-select-selection-item {
+            line-height: 18px;
+          }
+          .ant-select-selection-overflow {
+            height: 14px;
+            line-height: 12px;
+            padding-top: 0;
+            padding-bottom: 0;
+            padding-top: 0;
+            & * {
+              height: 100% !important;
+              font-size: 8px !important;
+              line-height: 14px;
+              margin-top: 0;
+              margin-bottom: 0;
+              padding-top: 0;
+            }
+          }
+          input {
+            font-size: 12px !important;
+            height: 16px !important;
+            line-height: 16px;
+          }
+          .ant-select-selection-placeholder {
+            font-size: 10px;
+          }
+        }
+        .ant-select-arrow {
+          top: 50%
+        }
       }
     }
     .ant-form-item-explain.ant-form-item-explain-connected.ant-form-show-help {

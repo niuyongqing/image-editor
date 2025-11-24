@@ -49,16 +49,7 @@
         <a-form-item label="煽风点火对手方" name="sadgasdgsdagf">
           <a-range-picker v-model:value="formData.ccc" />
         </a-form-item>
-        <a-form-item label="十多个十多个" name="asdfgasdgfas">
-          <a-select v-model:value="formData.ddd">
-            <a-select-option value="demo">ERG</a-select-option>
-            <a-select-option value="demo">哈哈aSDFASDGASDGASDGASDGASDFGSDAFGSDFHDSFHFSGFDGJFG</a-select-option>
-            <a-select-option value="demo">哈DFHBDF 哈</a-select-option>
-            <a-select-option value="demo">DFG哈哈</a-select-option>
-            <a-select-option value="demo">哈哈</a-select-option>
-          </a-select>
-        </a-form-item>
-        <a-form-item label="十色调个手" name="asdfasdfsad">
+        <a-form-item label="十色调个手" name="dfgdsfg">
           <a-switch v-model:checked="formData.rrfghjgfhjrr" />
         </a-form-item>
         <a-form-item label="十色调个手" name="asdgasdgasd">
@@ -70,10 +61,27 @@
             </div>
           </a-form-item-rest>
         </a-form-item>
+        <a-form-item label="十多个十多个" name="asdfgasdgfas">
+          <!-- <a-select v-model:value="formData.ddd">
+            <a-select-option value="demo">ERG</a-select-option>
+            <a-select-option value="demo">哈哈aSDFASDGASDGASDGASDGASDFGSDAFGSDFHDSFHFSGFDGJFG</a-select-option>
+            <a-select-option value="demo">哈DFHBDF 哈</a-select-option>
+            <a-select-option value="demo">DFG哈哈</a-select-option>
+            <a-select-option value="demo">哈哈</a-select-option>
+          </a-select> -->
+          <a-select
+            v-model:value="formData.ddd"
+            :options="options"
+            mode="multiple"
+            allowClear
+            placeholder="Please select"
+            @popupScroll="popupScroll"
+          ></a-select>
+        </a-form-item>
       </template>
       <template #formItemRow>
         <a-form-item label="豆腐干豆腐" name="asdfasdfaseed">
-          <a-cascader 
+          <!-- <a-cascader 
             placeholder="产品分类" 
             allowClear 
             style="width: 400px;"
@@ -81,7 +89,8 @@
             :options="[]"
             :allow-clear="true" 
             :field-names="{ value: 'descriptionCategoryId', label: 'categoryName', children: 'children' }" 
-          />
+          /> -->
+          <a-cascader v-model:value="formData.tradeName" :options="options1" placeholder="Please select" />
         </a-form-item>
         <a-form-item label="半托管JIT东方率目标" name="asdfsadf">
           <a-form-item-rest>
@@ -268,7 +277,7 @@ const formData = reactive({
   bbb: '',
   ccc: [],
   vvv: '',
-  ddd: '',
+  ddd: [],
   rrrr: '',
   vvvvdfs: '',
   sdfsd: '',
@@ -296,7 +305,7 @@ const formData = reactive({
 const tableData = reactive({
   header: [
     // 基础信息列（1-5）
-    { key: 'reportDate', title: '报表日期', width: 120, align: 'center' },
+    { key: 'reportDate', title: '报表日期', width: 120, align: 'center', sorter: true },
     { key: 'accountPeriod', title: '所属期间', width: 100, align: 'center' },
     { key: 'accountCode', title: '科目代码', width: 100 },
     { key: 'accountName', title: '科目名称', width: 150 },
@@ -1005,14 +1014,51 @@ const paginations = reactive({
   pageSize: 50,
   total: 2000,
 });
+const options = [...Array(25)].map((_, i) => ({
+  value: (i + 10).toString(36) + (i + 1),
+}));
 let dataList = [];
 const rules = {
   asdfasdfasd: [
     { required: true, message: 'Please input Activity name', trigger: 'blur', }
   ]
 }
+const options1 = [
+  {
+    value: 'zhejiang',
+    label: 'Zhejiang',
+    children: [
+      {
+        value: 'hangzhou',
+        label: 'Hangzhou',
+        children: [
+          {
+            value: 'xihu',
+            label: 'West Lake',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    value: 'jiangsu',
+    label: 'Jiangsu',
+    children: [
+      {
+        value: 'nanjing',
+        label: 'Nanjing',
+        children: [
+          {
+            value: 'zhonghuamen',
+            label: 'Zhong Hua Men',
+          },
+        ],
+      },
+    ],
+  },
+];
 watch(() => formData, (val, oldVal) => {
-  console.log({val, oldVal});
+  // console.log({val, oldVal});
 }, {
   deep: true,
 })
@@ -1031,6 +1077,9 @@ onMounted(() => {
 });
 const onChange = pageNumber => {
   console.log('Page: ', pageNumber);
+};
+const popupScroll = () => {
+  console.log('popupScroll');
 };
 // 分页变化
 function pageNumChange(val) {
@@ -1068,9 +1117,13 @@ function onSubmit(val) {
 function onSelectChange(keys, rows) {
   tableData.selectedRowKeys = keys;
   tableData.selectedRows = rows;
+  console.log(111);
 }
 // 分页
-function tableChange(pagination, filters, sorter, { currentDataSource }) {
+function tableChange(pagination, filters, sorter) {
+  if (!sorter) {
+    return;
+  }
   console.log({ sorter });
 }
 

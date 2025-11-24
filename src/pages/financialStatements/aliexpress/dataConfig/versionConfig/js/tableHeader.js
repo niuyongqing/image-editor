@@ -1,0 +1,66 @@
+// tableHeader.js
+export default  [
+    {
+        title: '版本号',
+        key: 'versionNo',
+        dataIndex: 'versionNo',
+        align: 'center',
+        sorter: false,
+    },
+    {
+        title: '版本年份',
+        key: 'dataYear',
+        dataIndex: 'dataYear',
+        align: 'center',
+        sorter: false,
+    },
+    {
+        title: '版本月份',
+        key: 'dataMonth',
+        dataIndex: 'dataMonth',
+        align: 'center',
+        sorter: false,
+    },
+    {
+        title: '状态',
+        key: 'status',
+        dataIndex: 'status',
+        align: 'center',
+        sorter: false,
+    },
+    {
+        title: '版本封账时间',
+        key: 'sealingTime',
+        dataIndex: 'sealingTime',
+        align: 'center',
+        sorter: false,
+    },
+    {
+        title: '创建人',
+        key: 'createPerson',
+        dataIndex: 'createPerson',
+        align: 'center',
+        sorter: false,
+    },
+    {
+        title: '创建时间',
+        key: 'createTime',
+        dataIndex: 'createTime',
+        align: 'center',
+        sorter: false,
+    },
+    {
+        title: '更新人',
+        key: 'updatePerson',
+        dataIndex: 'updatePerson',
+        align: 'center',
+        sorter: false,
+    },
+    {
+        title: '更新时间',
+        key: 'updateTime',
+        dataIndex: 'updateTime',
+        align: 'center',
+        sorter: false,
+    },
+];
