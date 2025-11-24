@@ -101,12 +101,14 @@ const columns = [
   },{
     title: '电话号码',
     dataIndex: 'phonenumber',
+    align: 'right',
     key: 'phonenumber',
   },{
     title: '状态',
     dataIndex: 'status',
     key: 'status',
-    width: 50,
+    align: 'center',
+    width: 80,
   },{
     title: 'Email',
     dataIndex: 'email',
@@ -114,7 +116,9 @@ const columns = [
   },{
     title: '创建时间',
     dataIndex: 'createTime',
+    align: 'center',
     key: 'createTime',
+    width: 200,
   },{
     title: '备注',
     dataIndex: 'remark',
@@ -124,6 +128,7 @@ const columns = [
     dataIndex: 'option',
     fixed: 'right',
     key: 'option',
+    align: 'center',
     width: 100,
   },
 ]

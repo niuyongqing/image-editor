@@ -3,6 +3,7 @@
     <!-- 搜索筛选区域 -->
     <appTableForm
       @onSubmit="searchList"
+      @formHeightChange="handleFormHeightChange"
       resetSetMenu="initialReviewPublication"
       v-model:formData="formData"
     >
@@ -96,6 +97,7 @@
           :permissionSource="permissionSource"
           :selectedCount="selectedCount"
           :currentAuditingProducts="currentAuditingProducts"
+          :formHeight="formHeight"
           @audit="handleAudit"
         />
       </div>
@@ -427,6 +429,13 @@ const getAccountUserList = async () => {
 
   // 调用表格获取列表方法
   await productReviewTableRef?.value?.getList();
+};
+
+const formHeight = ref(98);
+// 处理搜索筛选区域高度变化
+const handleFormHeightChange = (val) => {
+  formHeight.value = val;
+  console.log("搜索筛选区域高度变化:", val);
 };
 
 /**

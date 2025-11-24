@@ -8,7 +8,7 @@
       :dataSource="tableData"
       :filterColumns="filterColumns"
       v-model:filterColumns="filterColumns"
-      :scroll="{ y: 940 }"
+      :scroll="{ y: 1050 - props.formHeight }"
       :loading="loading"
       :row-selection="rowSelection"
       :rowKey="(row) => row?.productOrderNo || row"
@@ -60,8 +60,8 @@
             class="image-cell"
             :src="record.artMainImage"
             :fallback="EmptyImg"
-            height="80px"
-            width="80px"
+            height="40px"
+            width="40px"
           />
         </template>
         <!-- 市场方向列自定义渲染 -->
@@ -104,7 +104,7 @@
           <a-tag
             v-if="record.classify"
             style="margin-right: 3px"
-            color="#87d068"
+            color="success"
           >
             {{ getCommodityTypeLabelFun(record.classify) }}
           </a-tag>
@@ -202,6 +202,11 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  // 搜索筛选区域高度
+  formHeight: {
+    type: Number,
+    default: 0,
+  },
 });
 
 const emit = defineEmits([
@@ -224,7 +229,6 @@ const pages = reactive({
   pageSize: 50,
   total: 0,
 });
-
 /**
  * 监听loading状态变化，通知父组件
  */
@@ -292,6 +296,7 @@ const handleAudit = (type) => {
   // 触发审核事件，将选中的商品和操作类型传递给父组件
   emit("audit", selectedProducts, type);
 };
+
 
 /**
  * 处理查看操作
@@ -480,13 +485,7 @@ defineExpose({
   getCurrentSelectedProducts,
 });
 </script>
-
-<style scoped>
-.product-review-table {
-  width: 100%;
-  text-align: left;
-}
-
+<style>
 .empty-state {
   text-align: center;
   padding: 40px 0;

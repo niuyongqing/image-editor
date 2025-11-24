@@ -35,6 +35,7 @@ const expandedKeys = ref([])
     title: '角色编号',
     dataIndex: 'roleId',
     key: 'roleId',
+    align: 'right',
     width: 100,
   }, {
     title: '角色名称',
@@ -44,17 +45,20 @@ const expandedKeys = ref([])
     title: '显示顺序',
     dataIndex: 'sort',
     key: 'sort',
+    align: 'right',
     width: 100,
   }, {
     title: '状态',
     dataIndex: 'status',
     key: 'status',
-    width: 50,
+    align: 'center',
+    width:80,
   }, {
     title: '创建时间',
     dataIndex: 'createTime',
     key: 'createTime',
-    width: 150,
+    align: 'center',
+    width: 200,
   }, {
     title: '备注',
     dataIndex: 'remark',
@@ -62,7 +66,9 @@ const expandedKeys = ref([])
   }, {
     title: '操作',
     dataIndex: 'option',
+    align: 'center',
     key: 'option',
+    fixed: 'right',
     width: 250,
   },
 ]
