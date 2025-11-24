@@ -5,17 +5,19 @@ export const header = [
     key: "rowIndex",
     slot: "rowIndex",
     align: "center",
+    fixed: "left",
     sorter: false,
-    width: 60,
+    width: 50,
   },
   {
     title: "示意图",
     dataIndex: "mainImage",
     key: "mainImage",
     slot: "mainImage",
-    align: "center",
+    align: "left",
+    fixed: 'left',
     sorter: false,
-    width: 80,
+    width: 50,
   },
   {
     title: "产品标题",
@@ -23,16 +25,16 @@ export const header = [
     key: "productName",
     slot: "productName",
     sortField: "dev_attributable_market", // 排序字段
-    align: "center",
+    align: "left",
     sorter: false,
-    width: 150,
+    width: 200,
   },
   {
     title: "SKU",
     dataIndex: "skuList",
     key: "skuList",
     slot: "skuList",
-    align: "center",
+    align: "left",
     sortField: "sku_list", // 排序字段
     sorter: false,
     width: 200,
@@ -44,7 +46,7 @@ export const header = [
     slot: "averagePrice",
     sorter: false,
     sortField: "means_related", // 排序字段
-    align: "center",
+    align: "right",
     width: 80,
   },
   {
@@ -53,7 +55,7 @@ export const header = [
     key: "averageWeight",
     sorter: false,
     sortField: "trade_name", // 排序字段
-    align: "center",
+    align: "right",
     width: 80,
   },
   {
@@ -71,7 +73,7 @@ export const header = [
     dataIndex: "selectUserName",
     key: "selectUserName",
     sortField: "selectUserName", // 排序字段
-    align: "center",
+    align: "left",
     sorter: false,
     width: 80,
   },
@@ -83,14 +85,14 @@ export const header = [
     dataIndex: "selectTime",
     sortField: "complete_time",
     sorter: false,
-    width: 100,
+    width: 150,
   },
   {
     title: "审核人",
     dataIndex: "lastAuditUserName",
     key: "lastAuditUserName",
     slot: "lastAuditUserName",
-    align: "center",
+    align: "left",
     sorter: false,
     width: 80,
   },
@@ -102,7 +104,7 @@ export const header = [
     align: "center",
     sortField: "dev_prohibit_platform",
     sorter: false,
-    width: 100,
+    width: 150,
   },
   {
     title: "备注",
@@ -112,11 +114,12 @@ export const header = [
     sortField: "means_remark",
     width: 120,
     sorter: false,
-    align: "center",
+    align: "left",
   },
   {
     title: '操作',
     fixed: 'right',
+    align: "center",
     key: 'operation',
     width: 140
   }
