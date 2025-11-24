@@ -58,7 +58,7 @@
           :loading="loading"
         >
           <template #headerCell="{ column }">
-            <template v-if="column.key === 'options'">
+            <template v-if="column.key === 'operation'">
               <a-button
                 type="link"
                 @click="addAll"
@@ -102,7 +102,7 @@
               </div>
             </template>
             <template v-else-if="column.key === 'price'">{{ `${record.currency}  ${record.price}` }}</template>
-            <template v-else-if="column.key === 'options'">
+            <template v-else-if="column.key === 'operation'">
               <a-dropdown>
                 <template #overlay>
                   <a-menu @click="({ key }) => handleAdd(key, record)">
@@ -130,7 +130,7 @@
           :loading="loading"
         >
           <template #headerCell="{ column }">
-            <template v-if="column.key === 'options'">
+            <template v-if="column.key === 'operation'">
               <a-button
                 type="link"
                 @click="removeAll"
@@ -174,7 +174,7 @@
               </div>
             </template>
             <template v-else-if="column.key === 'price'">{{ `${record.currency}  ${record.price}` }}</template>
-            <template v-else-if="column.key === 'options'">
+            <template v-else-if="column.key === 'operation'">
               <a-button
                 type="link"
                 @click="remove(record.id)"
@@ -260,7 +260,7 @@
     { title: '图片', key: 'image', width: 60 },
     { title: '产品标题/产品 ID', key: 'title', width: 250 },
     { title: '产品价格', key: 'price', width: 60 },
-    { title: '添加全部', key: 'options', width: 50 }
+    { title: '添加全部', key: 'operation', width: 50 }
   ]
 
   const loading = ref(false)

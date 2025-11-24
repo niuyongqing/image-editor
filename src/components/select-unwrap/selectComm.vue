@@ -1,7 +1,7 @@
 <template>
   <div id="selectComm">
     <div class="accountForm">
-      <a-button @click="selectAll" :type="isAllSelected ? 'primary' : ''"
+      <a-button v-if="isShowAll" @click="selectAll" :type="isAllSelected ? 'primary' : ''"
         >全部</a-button
       >
       <a-button
@@ -20,6 +20,10 @@ import { ref, reactive, onMounted, computed, watchPostEffect } from "vue";
 const isAllSelected = ref(true);
 const selectedIndex = ref(null);
 const props = defineProps({
+  isShowAll: {
+    type: Boolean,
+    default: true,
+  },
   options: Array,
   fieldObj: Object,
 });
@@ -37,6 +41,9 @@ const selectItem = (index, account) => {
   selectedIndex.value = index;
   emit("backSelectItem", account);
 };
+defineExpose({
+  selectAll,
+});
 </script>
 <style lang="less" scoped>
 .accountForm {

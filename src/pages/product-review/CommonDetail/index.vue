@@ -13,10 +13,11 @@
 
       <!-- 资料待编辑 -->
       <template v-if="isEditDetail">
+        <a-button @click="translateOpen = true">翻译</a-button>
         <a-button
           type="primary"
           :loading="saveLoading"
-          @click="save"
+          @click="save()"
           >保存</a-button
         >
         <a-button
@@ -45,6 +46,59 @@
 
     <!-- 回到顶部 -->
     <a-back-top :target="targetFn" />
+
+    <!-- 翻译弹窗 -->
+    <a-modal
+      v-model:open="translateOpen"
+      title="翻译"
+      :mask-closable="false"
+      :confirm-loading="translateLoading"
+      @cancel="translateCancel"
+      @ok="translate"
+    >
+      <a-form
+        :model="translateForm"
+        :label-col="{ style: { width: '80px' } }"
+        ref="translateFormRef"
+      >
+        <a-form-item label="翻译语种">
+          <div class="flex">
+            <a-select
+              v-model:value="translateForm.sourceLanguageCode"
+              :options="SOURCE_LANGUAGE_OPTIONS"
+              placeholder="请选择源语言"
+            />
+            <span class="mx-2">→</span>
+            <a-form-item-rest>
+              <a-select
+                v-model:value="translateForm.targetLanguageCode"
+                :options="TARGET_LANGUAGE_OPTIONS"
+                placeholder="请选择目标语言"
+              />
+            </a-form-item-rest>
+          </div>
+        </a-form-item>
+
+        <a-form-item
+          name="field"
+          label="翻译内容"
+          :rules="[
+            {
+              required: true,
+              type: 'array',
+              min: 1,
+              message: '请选择翻译字段',
+              trigger: 'change'
+            }
+          ]"
+        >
+          <a-checkbox-group
+            v-model:value="translateForm.field"
+            :options="FIELD_OPTIONS"
+          />
+        </a-form-item>
+      </a-form>
+    </a-modal>
 
     <!-- 审核弹窗 -->
     <a-modal
@@ -89,7 +143,7 @@
             :rows="4"
             :maxlength="255"
             show-count
-            allowClear
+            allow-clear
             placeholder="请输入审核备注（驳回时必填）"
           />
         </a-form-item>
@@ -99,11 +153,12 @@
 </template>
 
 <script setup>
-  import BaseInfo from './BaseInfo.vue'
-  import SKUInfo from './SKUInfo.vue'
-  import ImageInfo from './ImageInfo.vue'
+  import BaseInfo from './components/BaseInfo.vue'
+  import SKUInfo from './components/SKUInfo.vue'
+  import ImageInfo from './components/ImageInfo.vue'
 
   import { getDetailApi, updateProductDetailApi } from './api'
+  import { yandexTranslateApi } from '@/api/common/translate.js'
   import { lastAudit } from '~@/pages/product-review/config/api/product-review.js'
   import { message } from 'ant-design-vue'
   import { checkPermi, checkRole } from '~/utils/permission/component/permission.js'
@@ -135,8 +190,7 @@
     getDetailApi(id).then(res => {
       detail = res.data || {}
       store.$patch(state => {
-        state.productDetail = detail
-        state.dataType = 'edit'
+        state.detail = detail
       })
     })
   }
@@ -145,42 +199,276 @@
     window.close()
   }
 
+  /** 翻译 */
+  const rawAttributes = computed(() => store.attributes)
+
+  const translateLoading = ref(false)
+  const translateOpen = ref(false)
+  const translateForm = reactive({
+    sourceLanguageCode: 'zh',
+    targetLanguageCode: 'ru',
+    field: []
+  })
+  const translateFormRef = ref()
+
+  const SOURCE_LANGUAGE_OPTIONS = [
+    { label: '中文', value: 'zh' },
+    { label: '英语', value: 'en' }
+  ]
+  const TARGET_LANGUAGE_OPTIONS = [{ label: '俄语', value: 'ru' }]
+  const FIELD_OPTIONS = [
+    { label: '产品属性', value: '1' },
+    { label: 'JSON富文本', value: '2' },
+    // { label: '变种属性', value: '3' }
+  ]
+
+  function translateCancel() {
+    translateOpen.value = false
+
+    translateForm.sourceLanguageCode = 'zh'
+    translateForm.targetLanguageCode = 'ru'
+    translateFormRef.value.resetFields()
+  }
+
+  function translate() {
+    translateFormRef.value.validate().then(_ => {
+      const attributesObj = baseInfoRef.value.attributesObj
+      const form = baseInfoRef.value.form
+      const filteredAspectList = SKUInfoRef.value.filteredAspectList
+
+      const contentJSON = {}
+      const attributes = []
+      const jsons = []
+      const aspects = []
+      // 产品属性
+      if (translateForm.field.includes('1')) {
+        const stringNameList = rawAttributes.value.filter(item => item.selectType === 'input' && item.type === 'String').map(item => item.name)
+        stringNameList.forEach(name => {
+          const value = attributesObj[name]
+          if (containsLanguage(value, translateForm.sourceLanguageCode)) {
+            attributes.push({ name, value })
+          }
+        })
+      }
+      // JSON富文本
+      if (translateForm.field.includes('2')) {
+        jsons.push(...collectJsonFields(form.jsons))
+      }
+      // 变种属性
+      if (translateForm.field.includes('3')) {
+        filteredAspectList.forEach(item => {
+          const stringNameList = item.columns
+            .slice(0, -1)
+            .filter(col => col.selectType === 'input' && col.type === 'String')
+            .map(col => col.name)
+          stringNameList.forEach(name => {
+            item.tableData.forEach(row => {
+              const value = row[name]
+              if (containsLanguage(value, translateForm.sourceLanguageCode)) {
+                aspects.push(value)
+              }
+            })
+          })
+        })
+      }
+
+      // 校验
+      if (attributes.length === 0 && jsons.length === 0 && aspects.length === 0) {
+        message.warning('所选内容中不包含可翻译的文本')
+        return
+      }
+
+      contentJSON.attributes = attributes.length > 0 ? attributes.map(item => item.value) : undefined
+      contentJSON.jsons = jsons.length > 0 ? jsons : undefined
+      contentJSON.aspects = aspects.length > 0 ? aspects : undefined
+
+      const params = {
+        sourceLanguageCode: translateForm.sourceLanguageCode,
+        targetLanguageCode: translateForm.targetLanguageCode,
+        contentJSON
+      }
+
+      // 调用翻译接口
+      translateLoading.value = true
+      yandexTranslateApi(params)
+        .then(res => {
+          const data = res.data || []
+          if (attributes.length > 0) {
+            const targetAttributes = data.filter(item => item.name === 'attributes')
+            attributes.forEach((item, i) => {
+              attributesObj[item.name] = targetAttributes[i].value
+            })
+          }
+
+          if (jsons.length > 0) {
+            const targetJsons = data.filter(item => item.name === 'jsons').map(item => item.value)
+            form.jsons = replaceJsonFields(form.jsons, targetJsons)
+          }
+
+          if (aspects.length > 0) {
+            const targetAspects = data.filter(item => item.name === 'aspects').map(item => item.value)
+            let i = 0
+            filteredAspectList.forEach(item => {
+              const stringNameList = item.columns
+                .slice(0, -1)
+                .filter(col => col.selectType === 'input' && col.type === 'String')
+                .map(col => col.name)
+              stringNameList.forEach(name => {
+                item.tableData.forEach(row => {
+                  const value = row[name]
+                  if (containsLanguage(value, translateForm.sourceLanguageCode)) {
+                    row[name] = targetAspects[i]
+                    i++
+                  }
+                })
+              })
+            })
+          }
+
+          message.success('翻译成功')
+          translateOpen.value = false
+          translateCancel()
+        })
+        .finally(() => {
+          translateLoading.value = false
+        })
+    })
+  }
+
+  // 判断文本中是否包含 中文/英语
+  function containsLanguage(text, language) {
+    if (!text) return false
+
+    let regex
+    if (language === 'zh') {
+      regex = /[\u4e00-\u9fff]/
+    } else if (language === 'en') {
+      regex = /[a-zA-Z]/
+    } else {
+      return false
+    }
+
+    return regex.test(text)
+  }
+
+  // 收集 jsons 中待翻译的字段
+  function collectJsonFields(jsonStr) {
+    if (!jsonStr) return []
+
+    try {
+      const jsonArray = JSON.parse(jsonStr).content || []
+      const fields = []
+      jsonArray.forEach(item => {
+        // 文本
+        if (item.widgetName === 'raTextBlock') {
+          if (item.title.content.length) {
+            const str = item.title.content.join('\n')
+            if (containsLanguage(str, translateForm.sourceLanguageCode)) {
+              fields.push(str)
+            }
+          }
+          if (item.text.content.length) {
+            const str = item.text.content.join('\n')
+            if (containsLanguage(str, translateForm.sourceLanguageCode)) {
+              fields.push(str)
+            }
+          }
+        } else {
+          // raShowcase 图片和图文共用, 除 roll(图片)外是图文
+          if (item.type !== 'roll') {
+            item.blocks.forEach(block => {
+              if (block.title.content.length) {
+                const str = block.title.content.join('\n')
+                if (containsLanguage(str, translateForm.sourceLanguageCode)) {
+                  fields.push(str)
+                }
+              }
+              if (block.text.content.length) {
+                const str = block.text.content.join('\n')
+                if (containsLanguage(str, translateForm.sourceLanguageCode)) {
+                  fields.push(str)
+                }
+              }
+            })
+          }
+        }
+      })
+      return fields
+    } catch (err) {
+      console.error(err)
+      return []
+    }
+  }
+
+  // 替换 jsons 中被翻译的字段
+  function replaceJsonFields(jsonStr, targets) {
+    let i = 0
+    const jsonArray = JSON.parse(jsonStr).content || []
+    const fields = []
+    jsonArray.forEach(item => {
+      // 文本
+      if (item.widgetName === 'raTextBlock') {
+        if (item.title.content.length) {
+          const str = item.title.content.join('\n')
+          if (containsLanguage(str, translateForm.sourceLanguageCode)) {
+            item.title.content = targets[i].split('\n')
+            i++
+          }
+        }
+        if (item.text.content.length) {
+          const str = item.text.content.join('\n')
+          if (containsLanguage(str, translateForm.sourceLanguageCode)) {
+            item.text.content = targets[i].split('\n')
+            i++
+          }
+        }
+      } else {
+        // raShowcase 图片和图文共用, 除 roll(图片)外是图文
+        if (item.type !== 'roll') {
+          item.blocks.forEach(block => {
+            if (block.title.content.length) {
+              const str = block.title.content.join('\n')
+              if (containsLanguage(str, translateForm.sourceLanguageCode)) {
+                block.title.content = targets[i].split('\n')
+                i++
+              }
+            }
+            if (block.text.content.length) {
+              const str = block.text.content.join('\n')
+              if (containsLanguage(str, translateForm.sourceLanguageCode)) {
+                block.text.content = targets[i].split('\n')
+                i++
+              }
+            }
+          })
+        }
+      }
+    })
+
+    const obj = {
+      ...JSON.parse(jsonStr),
+      content: jsonArray
+    }
+    return JSON.stringify(obj)
+  }
+
   /** 保存 */
   const saveLoading = ref(false)
   function save(skipClose = false) {
     return new Promise(async (resolve, reject) => {
-      // 校验
-      const baseInfoFlag = await baseInfoRef.value.childForm()
-      const SKUFlag = SKUInfoRef.value.submitForm()
-      !baseInfoFlag && message.error('请完善产品属性')
-      if (!baseInfoFlag || !SKUFlag) {
-        reject()
+      // 获取数据
+      const baseInfo = await baseInfoRef.value.emitData()
+      const skuList = SKUInfoRef.value.emitData()
+      if (!baseInfo || !skuList) {
+        reject('校验不通过')
         return
       }
 
-      // 获取数据
-      const baseInfoForm = baseInfoRef.value.baseInfoForm
-      // 在外面那一层的字段
-      const outerObj = {
-        productId: baseInfoForm.id,
-        productName: baseInfoForm.productName,
-        prefixDecorateName: baseInfoForm.prefixDecorateName,
-        suffixDecorateName: baseInfoForm.suffixDecorateName,
-        categoryId: baseInfoForm.categoryId,
-        vat: baseInfoForm.vat,
-        competitiveInfos: baseInfoForm.competitiveInfos.filter(item => item.linkUrl).map(item => ({ linkUrl: item.linkUrl })),
-        purchaseLinkUrls: baseInfoForm.purchaseLinkUrls
-          .filter(item => item.linkUrl)
-          .map(item => item.linkUrl)
-          .join(',')
-      }
-      const submitAttributes = baseInfoRef.value.getSubmitAttributes()
-      const skuList = SKUInfoRef.value.getSkuList()
-
       const params = {
-        ...outerObj,
+        selectRecordId: route.query.selectRecordId, // 资料待编辑列表 id
+        ...baseInfo,
         mainImage: skuList[0].mainImages[0],
-        attributes: submitAttributes,
+        subImage: skuList[0].subImages[0],
         skuList
       }
 
@@ -228,9 +516,9 @@
   /** 保存并提交终审 */
   const reviewLoading = ref(false)
   function toFinalReview() {
-    reviewLoading.value = true
     save(true)
       .then(() => {
+        reviewLoading.value = true
         const params = [
           {
             auditStatus: 50, // 待终审

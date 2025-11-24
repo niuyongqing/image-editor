@@ -294,18 +294,18 @@ const permissionSource = computed(() => {
   }
 });
 
-// 查询权限字符串
-const permissionList = computed(() => {
-  if (props.Source === "initialReviewPublication") {
-    return ["platform:ozon:intelligent:list"];
-  }
-  if (props.Source === "publicationRejected") {
-    return ["platform:ozon:intelligent:list"];
-  }
-  if (props.Source === "pendingFinalReview") {
-    return ["platform:ozon:intelligent:list"];
-  }
-});
+// // 查询权限字符串
+// const permissionList = computed(() => {
+//   if (props.Source === "initialReviewPublication") {
+//     return ["platform:ozon:intelligent:list"];
+//   }
+//   if (props.Source === "publicationRejected") {
+//     return ["platform:ozon:intelligent:list"];
+//   }
+//   if (props.Source === "pendingFinalReview") {
+//     return ["platform:ozon:intelligent:list"];
+//   }
+// });
 
 // 审核接口映射
 const APIEDIT = {
@@ -736,4 +736,31 @@ function receiveMessage(event) {
 
 <style scoped lang="less">
 @import "@/assets/styles/com-list.less";
+/* 审核弹窗样式 */
+.auditing-products-info {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #f0f9ff;
+  border-radius: 4px;
+  border-left: 4px solid #1890ff;
+
+  .auditing-products-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .auditing-products-list {
+    max-height: 200px;
+    overflow-y: auto;
+
+    .auditing-product-item {
+      padding: 4px 0;
+      border-bottom: 1px dashed #e8e8e8;
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+  }
+}
 </style>

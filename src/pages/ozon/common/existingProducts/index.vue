@@ -6,7 +6,7 @@
       :title="'现有产品'"
       :footer="false" 
       :maskClosable="false" 
-      width="95%"
+      width="80%"
     >
       <div class="dialog-box">
         <a-card class="mt-2.5">
@@ -257,7 +257,7 @@ const storInfo = reactive({
     {
       label: "按更新时间",
       type: "bottom",
-      value: "update_tiem",
+      value: "update_time",
       prop: 2,
       isDefault: false,
     },
