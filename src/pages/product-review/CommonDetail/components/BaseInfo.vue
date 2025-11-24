@@ -264,6 +264,7 @@
         <a-textarea
           v-model:value="form.desc"
           :rows="6"
+          placeholder="请输入英文描述"
           show-count
         />
       </a-form-item>
@@ -425,9 +426,37 @@
     if (value.includes(',')) return Promise.reject('请使用中文逗号分割')
     return Promise.resolve()
   }
+
+  const validateLanguage = (language) => {
+    return (_, value) => {
+      if (containsLanguage(value, language)) {
+        const langText = language === 'zh' ? '中文' : '英文'
+        return Promise.reject(`不能包含 ${langText}`)
+      }
+      return Promise.resolve()
+    }
+  }
+
+  // 判断文本中是否包含 中文/英语
+  function containsLanguage(text, language) {
+    if (!text) return false
+
+    let regex
+    if (language === 'zh') {
+      regex = /[\u4e00-\u9fff]/
+    } else if (language === 'en') {
+      regex = /[a-zA-Z]/
+    } else {
+      return false
+    }
+
+    return regex.test(text)
+  }
+
   const rules = reactive({
     prefixDecorateName: [{ required: true, validator: validateComma }],
-    suffixDecorateName: [{ required: true, validator: validateComma }]
+    suffixDecorateName: [{ required: true, validator: validateComma }],
+    desc: [{ validator: validateLanguage('zh') }]
   })
 
   // VAT 下拉选项
