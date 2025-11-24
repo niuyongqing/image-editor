@@ -1,31 +1,13 @@
 <template>
   <div id="configAccountCont">
     <!-- 搜索筛选区域 -->
-    <a-card>
-      <a-form
-        :model="formData"
-        layout="inline"
-        ref="formRef"
-        class="search-form"
-        :wrapper-col="wrapperCol"
-        :label-col="labelCol"
-      >
-        <a-form-item label="模糊查询:">
-          <a-space size="middle">
-            <a-input
-              v-model:value="formData.tradeName"
-              placeholder="请输入产品名称"
-              allowClear
-            />
-            <a-input
-              v-model:value="formData.sku"
-              placeholder="请输入产品sku名称"
-              allowClear
-            />
-          </a-space>
-        </a-form-item>
-
-        <a-form-item label="分类:">
+    <appTableForm
+      @onSubmit="searchList"
+      resetSetMenu="initialReviewPublication"
+      v-model:formData="formData"
+    >
+      <template #formItemRow>
+        <a-form-item name="classify" label="分类:">
           <a-cascader
             placeholder="请选择分类"
             allowClear
@@ -39,7 +21,7 @@
             }"
           />
         </a-form-item>
-        <a-form-item label="提交人">
+        <a-form-item name="selectUserId" label="提交人">
           <a-select
             v-model:value="formData.selectUserId"
             allow-clear
@@ -50,10 +32,21 @@
             :maxTagCount="2"
             :filter-option="filterOption"
             :fieldNames="userLabels"
-          ></a-select>
+          >
+          </a-select>
         </a-form-item>
-
+        <a-form-item name="devAttributableMarket" label="市场方向:">
+          <a-select
+            v-model:value="formData.devAttributableMarket"
+            :options="MarketDirection"
+            mode="multiple"
+            :maxTagCount="2"
+            placeholder="请选择市场方向"
+            allowClear
+          />
+        </a-form-item>
         <a-form-item
+          name="createTimeList"
           :label="
             props.Source === 'publicationRejected' ? '审核时间:' : '提交时间:'
           "
@@ -65,87 +58,45 @@
             :presets="datePresets"
           />
         </a-form-item>
-        <a-form-item label="市场方向:">
-          <a-select
-            v-model:value="formData.devAttributableMarket"
-            :options="MarketDirection"
-            mode="multiple"
-            :maxTagCount="2"
-            placeholder="请选择市场方向"
-            allowClear
-          />
+        <a-form-item name="tradeName" label="模糊查询:">
+          <div class="flex items-center">
+            <a-input
+              class="mr-2"
+              v-model:value="formData.tradeName"
+              placeholder="请输入产品名称"
+              allowClear
+            />
+            <a-form-item-rest>
+              <a-input
+                v-model:value="formData.sku"
+                placeholder="请输入产品sku名称"
+                allowClear
+              />
+            </a-form-item-rest>
+          </div>
         </a-form-item>
-        <a-form-item class="form-actions">
-          <a-button
-            v-has-permi="permissionList"
-            type="primary"
-            @click="searchList"
-            :loading="tableLoading"
-            >查询</a-button
-          >
-          <a-button @click="resetForm" :loading="tableLoading">重置</a-button>
-          <!-- <a-button style="margin-left: 10px" @click="exportData" :loading="exportLoading">导出</a-button> -->
-        </a-form-item>
-      </a-form>
-    </a-card>
+      </template>
+    </appTableForm>
     <!-- 数据展示区域 -->
     <a-card style="margin-top: 0.75rem">
-      <div class="table-header-actions">
-        <a-button
-          v-if="props.Source !== 'publicationRejected'"
-          v-has-permi="permissionSource"
-          @click="handleAudit('audit')"
-          type="primary"
-          :disabled="selectedCount === 0 || tableLoading"
-          tooltip="批量审核选中的商品"
-        >
-          审核
-        </a-button>
-        <template v-else>
-          <a-button
-            :disabled="selectedCount !== 1 || tableLoading"
-            @click="handleSee"
-            type="primary"
-            tooltip="批量审核选中的商品"
-          >
-            查看
-          </a-button>
-          <a-button
-            @click="handleAudit('submit')"
-            type="primary"
-            :disabled="selectedCount === 0 || tableLoading"
-            tooltip="再次提交选中的商品"
-          >
-            再次提交
-          </a-button>
-        </template>
-
-        <span style="margin-left: 16px; color: #666">
-          已选择 {{ selectedCount }} 项
-        </span>
-
-        <a-button
-          type="default"
-          @click="clearSelection"
-          :disabled="selectedCount === 0"
-        >
-          清空选择
-        </a-button>
-      </div>
-
-      <div class="table-container" style="margin-top: 20px">
+      <div class="table-container">
         <!-- 使用封装的表格组件 -->
         <ProductReviewTable
           ref="productReviewTableRef"
           :columns="columns"
           :api="commodityList"
           :searchParams="formData"
-          @reset="resetForm"
+          :selectAll="selectAll"
           @edit-product="handleEditProduct"
           @loading-change="handleLoadingChange"
           :MarketDirection="MarketDirection"
           @selection-change="handleSelectionChange"
           :meansKeepGrainOptions="meansKeepGrainOptions"
+          :Source="Source"
+          :permissionSource="permissionSource"
+          :selectedCount="selectedCount"
+          :currentAuditingProducts="currentAuditingProducts"
+          @audit="handleAudit"
         />
       </div>
     </a-card>
@@ -196,7 +147,9 @@
           name="remark"
           :rules="[
             {
-              required: auditFormData.auditStatus === stateOptions[props.Source][1].value,
+              required:
+                auditFormData.auditStatus ===
+                stateOptions[props.Source][1].value,
               message: '请输入审核备注',
               trigger: 'blur',
             },
@@ -282,6 +235,7 @@ import dayjs from "dayjs";
 import ProductReviewTable from "./comm/table.vue";
 import { getAccountUser } from "~@/pages/product-review/config/api/product-review";
 import { meansKeepGrains, MarketDirection } from "@/utils/productReview";
+import appTableForm from "@/components/common/appTableForm.vue";
 const router = useRouter();
 
 const props = defineProps({
@@ -295,6 +249,7 @@ const productReviewTableRef = ref(null);
 const meansKeepGrainOptions = ref(meansKeepGrains);
 // 搜索表单相关
 const formRef = ref(null);
+const selectAll = reactive([]); //是否选中所有用户
 // 定义表单初始状态常量，便于重置
 const INITIAL_FORM_DATA = {
   sku: "", // 产品sku名称
@@ -303,7 +258,7 @@ const INITIAL_FORM_DATA = {
   devAttributableMarket: [], // 市场方向
   createTimeList: [], // 创建时间范围
   selectUserId: [], //提交人
-  selectAll: [], //是否选中所有用户
+
   tradeName: "", //商品标题
   auditStatus:
     props.Source === "initialReviewPublication"
@@ -319,7 +274,6 @@ const tableLoading = ref(false);
 const selectedCount = ref(0);
 const exportLoading = ref(false);
 const columns = computed(() => {
-  console.log(props.Source);
   if (props.Source === "initialReviewPublication") {
     return tableHeaderInitial;
   }
@@ -332,15 +286,10 @@ const columns = computed(() => {
 // 审核提交权限字符串
 const permissionSource = computed(() => {
   if (props.Source === "initialReviewPublication") {
-    console.log("platform:ozon:intelligent:first:audit");
     return ["platform:ozon:intelligent:first:audit"];
   }
-  // if (props.Source === "publicationRejected") {
-  //   console.log("platform:ozon:intelligent:reject:audit");
-  //   return ["platform:ozon:intelligent:reject:audit"];
-  // }
+
   if (props.Source === "pendingFinalReview") {
-    console.log("platform:ozon:intelligent:last:audit");
     return ["platform:ozon:intelligent:last:audit"];
   }
 });
@@ -464,8 +413,12 @@ const getAccountUserList = async () => {
       getAccountUserArr.value = res.data;
       if (res.data.length > 0 && res.data[0].hasOwnProperty("userId")) {
         // 初始化默认选中所有用户
-        formData.selectAll = res.data.map((item) => item.userId);
-        formData.selectUserId = formData.selectAll;
+        selectAll.splice(
+          0,
+          selectAll.length,
+          ...res.data.map((item) => item.userId)
+        );
+        formData.selectUserId = selectAll;
       }
     }
   } catch (error) {
@@ -503,16 +456,13 @@ const clearSelection = () => {
 /**
  * 处理批量审核操作
  */
-const handleAudit = (type) => {
-  if (productReviewTableRef.value) {
-    currentAuditingProducts.value =
-      productReviewTableRef.value.getCurrentSelectedProducts();
-    if (currentAuditingProducts.value.length === 0) {
-      message.warning("请选择要审核的商品");
-      return;
-    }
-    handleProductAudit(currentAuditingProducts.value, type);
+const handleAudit = (selectedProducts, type) => {
+  currentAuditingProducts.value = selectedProducts;
+  if (currentAuditingProducts.value.length === 0) {
+    message.warning("请选择要审核的商品");
+    return;
   }
+  handleProductAudit(currentAuditingProducts.value, type);
 };
 
 /**
@@ -522,13 +472,6 @@ const handleProductAudit = (products, type) => {
   currentAuditingProducts.value = products;
   selectedCount.value = products.length;
   resetAuditForm();
-  // let isfirstAuditResulted = products.some(
-  //   (product) => product.firstAuditResult === 1
-  // );
-  // if (isfirstAuditResulted) {
-  //   message.warning("存在已初审商品，不能通过审核");
-  //   return;
-  // }
   if (type === "audit") {
     auditOpen.value = true;
   } else {
@@ -542,7 +485,6 @@ const handleProductAudit = (products, type) => {
 const handleSelectionChange = (selectedRows) => {
   selectedCount.value = selectedRows.length;
   currentAuditingProducts.value = selectedRows;
-  console.log("currentAuditingProducts", currentAuditingProducts.value);
 };
 
 /**
@@ -600,7 +542,6 @@ const handleOk = () => {
       // 提取公共参数
       let commonParams;
 
-      console.log("props.Source", props.Source);
       if (props.Source === "initialReviewPublication") {
         commonParams = {
           id: products.length > 0 ? products.map(({ id }) => id).join(",") : "",
@@ -609,7 +550,7 @@ const handleOk = () => {
         };
       } else {
         // 循环 将每个商品的参数添加到 commonParams 数组中
-        commonParams = products.map(({ id,commodityId }) => ({
+        commonParams = products.map(({ id, commodityId }) => ({
           id,
           auditStatus: auditFormData.auditStatus,
           remark: auditFormData.remark,
@@ -720,7 +661,6 @@ const handleEditProduct = (product) => {
     params.id = product.id;
   }
 
-  console.log(product);
   const urlData = router.resolve({
     path: detailPagePath[props.Source],
     query: params,
