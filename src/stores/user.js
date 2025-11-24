@@ -16,12 +16,14 @@ export const useUserStore = defineStore("user", () => {
   const userInfo = shallowRef();
   const token = useAuthorization();
   const avatar = computed(() => userInfo.value?.avatar);
+  const userRouterAuth = ref([]);
   const nickname = computed(
     () => userInfo.value?.nickname ?? userInfo.value?.username
   );
   const roles = computed(() => userInfo.value?.roles);
   const getMenuRoutes = async () => {
     const { data } = await getRoleMenusApi();
+    userRouterAuth.value = data ?? [];
     return generateTreeRoutes(data ?? []);
   };
   const generateDynamicRoutes = async () => {
@@ -72,5 +74,6 @@ export const useUserStore = defineStore("user", () => {
     generateDynamicRoutes,
     avatar,
     nickname,
+    userRouterAuth,
   };
 });

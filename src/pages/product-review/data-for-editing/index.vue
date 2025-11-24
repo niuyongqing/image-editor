@@ -147,13 +147,13 @@
             <a-space>
               <a-button
                 type="link"
-                :disabled="!record.intelligentProductId || ![20, 30, 40].includes(record.auditStatus)"
+                :disabled="!record.intelligentProductId || ![20, 30, 40].includes(record.auditStatus) || !hasEditPermission"
                 @click="goEdit(record)"
                 >编辑</a-button
               >
               <a-button
                 type="link"
-                :disabled="record.auditStatus !== 20"
+                :disabled="record.auditStatus !== 20 || !hasAddPhoto"
                 @click="applicationPhoto(record)"
                 >申请拍照</a-button
               >
@@ -219,6 +219,10 @@
   import commodityType from '~@/utils/commodityType'
   import dayjs from 'dayjs'
   import { message } from 'ant-design-vue'
+  import { useUserStore } from "~/stores/user.js";
+  const userStore = useUserStore();
+  const hasEditPermission = userStore.userRouterAuth?.some(item => item.path === '/platform/product-review/data-for-editing-detail');
+  const hasAddPhoto = userStore.userRouterAuth?.some(item => item.path === '/platform/product-review/pending-editing-application-photo');
 
   /** search */
   const searchForm = reactive({
@@ -289,8 +293,11 @@
 
   /** 编辑 */
   function goEdit(record) {
+    if (!hasEditPermission) {
+      message.error('您没有编辑权限')
+      return
+    }
     const query = `commodityId=${record.commodityId}&intelligentProductId=${record.intelligentProductId}&auditStatus=${record.auditStatus}&selectRecordId=${record.id}`
-    
     window.open(`/platform/product-review/data-for-editing-detail?${query}`)
   }
 

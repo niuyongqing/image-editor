@@ -77,7 +77,6 @@
         </a-form-item>
         <a-form-item class="form-actions">
           <a-button
-            v-has-permi="permissionList"
             type="primary"
             @click="searchList"
             :loading="tableLoading"
@@ -335,28 +334,24 @@ const permissionSource = computed(() => {
     console.log("platform:ozon:intelligent:first:audit");
     return ["platform:ozon:intelligent:first:audit"];
   }
-  // if (props.Source === "publicationRejected") {
-  //   console.log("platform:ozon:intelligent:reject:audit");
-  //   return ["platform:ozon:intelligent:reject:audit"];
-  // }
   if (props.Source === "pendingFinalReview") {
     console.log("platform:ozon:intelligent:last:audit");
     return ["platform:ozon:intelligent:last:audit"];
   }
 });
 
-// 查询权限字符串
-const permissionList = computed(() => {
-  if (props.Source === "initialReviewPublication") {
-    return ["platform:ozon:intelligent:list"];
-  }
-  if (props.Source === "publicationRejected") {
-    return ["platform:ozon:intelligent:list"];
-  }
-  if (props.Source === "pendingFinalReview") {
-    return ["platform:ozon:intelligent:list"];
-  }
-});
+// // 查询权限字符串
+// const permissionList = computed(() => {
+//   if (props.Source === "initialReviewPublication") {
+//     return ["platform:ozon:intelligent:list"];
+//   }
+//   if (props.Source === "publicationRejected") {
+//     return ["platform:ozon:intelligent:list"];
+//   }
+//   if (props.Source === "pendingFinalReview") {
+//     return ["platform:ozon:intelligent:list"];
+//   }
+// });
 
 // 审核接口映射
 const APIEDIT = {
