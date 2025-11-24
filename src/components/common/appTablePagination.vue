@@ -75,3 +75,15 @@ function onChange(page, pageSize) {
   emit('change', { validPage, pageSize });
 }
 </script>
+<style lang="less" scoped>
+.appTablePagination {
+  width: 100%;
+  margin: 16px 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  :deep(.ant-select-selector) {
+    width: 100px !important;
+  }
+}
+</style>
