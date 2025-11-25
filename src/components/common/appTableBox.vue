@@ -204,6 +204,8 @@ const columnList = ref([]);
 let optionsColumn = {
   sorter: false,
   fixed: 'right',
+  fixedLeft: false,
+  fixedRight: true,
   show: true,
   resizable: false,
   key: 'options',
@@ -213,7 +215,7 @@ let optionsColumn = {
 };
 const showHeader = computed(() => {
   let list = columns.list.filter(i => i.show);
-  list = !!options ? [...list, optionsColumn] : list;
+  // list = !!options ? [...list, optionsColumn] : list;
   return list;
 })
 const tableBodyMaxHeight = computed(() => {
@@ -263,7 +265,14 @@ async function getSettingList() {
     return;
   }
   let { data } = getHeader();
-  columns.list = data ? data : cloneDeep(columnList.value);
+  if (data) {
+    columns.list = data
+  } else {
+    let list = cloneDeep(columnList.value);
+    let col = cloneDeep(optionsColumn)
+    columns.list = !!options ? [...list, col] : list;
+  }
+  // list = !!options ? [...list, optionsColumn] : list;
   columns.leftList = columns.list.filter(i => i.fixed === 'left');
   columns.rightList = columns.list.filter(i => i.fixed === 'right');
   columns.centerList = columns.list.filter(i => !i.fixed);
