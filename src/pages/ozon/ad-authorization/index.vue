@@ -107,7 +107,8 @@
     {
       title: '授权时间',
       key: 'updateTime',
-      dataIndex: 'updateTime'
+      dataIndex: 'updateTime',
+      align: 'center'
     },
     {
       title: '操作',
