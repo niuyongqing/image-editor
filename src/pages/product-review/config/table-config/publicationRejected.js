@@ -14,7 +14,7 @@ export default [
     key: 'artMainImage',
     align: 'center',
     fixed: 'left',
-    width: 60,
+    width: 80,
   },
   {
     title: '市场方向',
@@ -95,7 +95,7 @@ export default [
     dataIndex: 'firstAuditReason',
     key: 'firstAuditReason',
     align: 'left',
-    width: 200,
+    width: 300,
     show: true,
   },
 ]

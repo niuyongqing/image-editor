@@ -1,6 +1,6 @@
 import { ref, nextTick, onUnmounted } from 'vue';
 import { debounce } from 'lodash-es';
-
+import { useLayoutState } from "~/layouts/basic-layout/context.js";
 /**
  * 计算表格高度的公共方法
  * @param {Object} options 配置选项
@@ -145,3 +145,4 @@ export function useTableHeight(options = {}) {
     calculateTableHeight,
   };
 }
+

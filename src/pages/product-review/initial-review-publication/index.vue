@@ -2,7 +2,6 @@
   <div id="configAccountCont">
     <!-- 搜索筛选区域 -->
     <appTableForm
-    
       @onSubmit="searchList"
       @formHeightChange="handleFormHeightChange"
       resetSetMenu="initialReviewPublication"
@@ -80,25 +79,27 @@
       </template>
     </appTableForm>
     <!-- 数据展示区域 -->
-        <!-- 使用封装的表格组件 -->
-        <ProductReviewTable
-          ref="productReviewTableRef"
-          :columns="columns"
-          :api="commodityList"
-          :searchParams="formData"
-          :selectAll="selectAll"
-          @edit-product="handleEditProduct"
-          @loading-change="handleLoadingChange"
-          :MarketDirection="MarketDirection"
-          @selection-change="handleSelectionChange"
-          :meansKeepGrainOptions="meansKeepGrainOptions"
-          :Source="Source"
-          :permissionSource="permissionSource"
-          :selectedCount="selectedCount"
-          :currentAuditingProducts="currentAuditingProducts"
-          :formHeight="formHeight"
-          @audit="handleAudit"
-        />
+    <!-- 使用封装的表格组件 -->
+    <div ref="tableContainerParent">
+    <ProductReviewTable
+      ref="productReviewTableRef"
+      :columns="columns"
+      :api="commodityList"
+      :searchParams="formData"
+      :selectAll="selectAll"
+      @edit-product="handleEditProduct"
+      @loading-change="handleLoadingChange"
+      :MarketDirection="MarketDirection"
+      @selection-change="handleSelectionChange"
+      :meansKeepGrainOptions="meansKeepGrainOptions"
+      :Source="Source"
+      :permissionSource="permissionSource"
+      :selectedCount="selectedCount"
+      :currentAuditingProducts="currentAuditingProducts"
+      :formHeight="formHeight"
+      @audit="handleAudit"
+    />
+    </div>
     <!-- 审核弹窗 -->
     <a-modal
       :centered="true"
@@ -235,6 +236,8 @@ import ProductReviewTable from "./comm/table.vue";
 import { getAccountUser } from "~@/pages/product-review/config/api/product-review";
 import { meansKeepGrains, MarketDirection } from "@/utils/productReview";
 import appTableForm from "@/components/common/appTableForm.vue";
+import { useLayoutState } from "~/layouts/basic-layout/context.js";
+const { autoTableWidth } = useLayoutState();
 const router = useRouter();
 
 const props = defineProps({
@@ -716,13 +719,15 @@ const resetForm = () => {
 const handleLoadingChange = (loading) => {
   tableLoading.value = loading;
 };
-
+const autoWidth = ref(0);
 /**
  * 初始化
  */
 onMounted(() => {
   getAccountUserList();
+  // autoWidth.value = autoTableWidth;
 });
+
 
 /**
  * 监听审核后的跨窗口通信
