@@ -95,7 +95,7 @@
         <a-table 
           :columns="showHeader" 
           :data-source="dataSource" 
-          :scroll="scroll"
+          :scroll="scrollData"
           :pagination="false"
           :customRow="customRow" 
           bordered 
@@ -171,9 +171,7 @@ const props = defineProps({
   scroll: {
     // 表格滚动属性
     type: Object,
-    default: () => ({
-      y: `${window.innerHeight - 74}px`,
-    }),
+    default: () => ({}),
   },
   isTableSetting: {             // 是否启用表格设置
     type: Boolean,
@@ -218,18 +216,34 @@ let optionsColumn = {
   width: 150,
   align: 'left'
 };
+const heightInfo = reactive({
+  formDom: null,          // 搜索表单实例
+  formHeight: 0,          // 表单高度
+  outerDomHeight: 0,      // 除了表单之外计算出来的滚动高度
+})
 const showHeader = computed(() => {
   let list = columns.list.filter(i => i.show);
   // list = !!options ? [...list, optionsColumn] : list;
   return list;
 })
-const tableBodyMaxHeight = computed(() => {
+const scrollData = computed(() => {
   let maxHeight = '';
-  if (typeof props.scroll.y === 'number') {
-    maxHeight = props.scroll.y + 'px'
+  if (props.scroll.y) {
+    if (typeof props.scroll.y === 'number') {
+      maxHeight = props.scroll.y + 'px'
+    } else {
+      maxHeight = props.scroll.y
+    }
   } else {
-    maxHeight = props.scroll.y
+    maxHeight = heightInfo.outerDomHeight - heightInfo.formHeight
   }
+  return {
+    y: maxHeight,
+    ...props.scroll,
+  };
+})
+const scrollHeigth = computed(() => {
+  let maxHeight = heightInfo.outerDomHeight - heightInfo.formHeight;
   return maxHeight;
 })
 //  获取columns
@@ -240,14 +254,35 @@ onMounted(async () => {
     columns.columnChange = false;
     // columnDrop();
     resizDomSetting();
+    getHeight()
   });
 });
+onUnmounted(() => {
+  heightInfo.formDom.disconnect();
+})
 watch(() => columns.list, (val, oldVal) => {
   columns.columnChange = true;
   emit('update:filterColumns', columns.list);
 }, {
   deep: true,
 });
+function getHeight() {
+  let dom = document.querySelector(`.${props.resetSetMenu}-appTableBox`)
+  let tableOtherCountHeight = dom.querySelector('.table-otherCount')?.offsetHeight || 0;
+  let tableTitleHeight = dom.querySelector('.table-title')?.offsetHeight || 0;
+  let tablePaginationHeight = dom.querySelector('.table-pagination')?.offsetHeight || 0;
+  let tableHeaderHeight = dom.querySelector('.ant-table-header')?.offsetHeight || 0;
+  let tableSummaryHeight = dom.querySelector('.ant-table-summary table')?.offsetHeight || 0;
+  heightInfo.outerDomHeight = (window.innerHeight * 0.96) - tableOtherCountHeight - tableTitleHeight - tablePaginationHeight - tableHeaderHeight - tableSummaryHeight - 20
+
+  const targetDom = document.getElementById('appTableForm');
+  if (!targetDom) return;
+  // 1. 监听尺寸变化（ResizeObserver）
+  heightInfo.formDom = new ResizeObserver((entries) => {
+    heightInfo.formHeight = entries[0].contentRect.height;
+  });
+  heightInfo.formDom.observe(targetDom);
+}
 // 重新生成表头
 function generateHeader() {
   columnList.value = props.tableHeader.map((i, index) => {
@@ -493,7 +528,7 @@ function getHeader() {
     // margin-bottom: 10px;
     :deep(.ant-table) {
       .ant-table-body {
-        height: v-bind(tableBodyMaxHeight) !important;
+        height: v-bind(scrollHeigth) !important;
       }
     }
   }

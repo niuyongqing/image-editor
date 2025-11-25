@@ -1,5 +1,9 @@
 <template>
-<div id="appTableForm" class="appTableForm" :class="{'stickyTop': form.scrollTop > form.offsetHeight}">
+<div 
+  id="appTableForm" 
+  class="appTableForm" 
+  :class="`${form.scrollTop > form.offsetHeight ? 'stickyTop ':''}${resetSetMenu}-appTableForm`"
+>
   <a-card>
     <a-form 
       v-bind="$attrs" 
@@ -104,7 +108,7 @@ const labelWidth = computed(() => {
   return width + 'px';
 })
 onMounted(() => {
-  currentDom = document.querySelector('#appTableForm');
+  currentDom = document.querySelector(`.${props.resetSetMenu}-appTableForm`);
   contentDom = document.querySelector('.ant-layout-content');
   form.copyFormData = cloneDeep(props.formData);
   getSettingList();
