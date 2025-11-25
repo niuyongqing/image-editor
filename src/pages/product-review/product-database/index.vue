@@ -206,8 +206,8 @@
         <template v-else-if="key === 'artMainImage'">
           <a-image-preview-group>
             <a-image
-              width="40px"
-              height="40px"
+              width="60px"
+              height="60px"
               :fallback="EmptyImg"
               v-for="(item, index) in artMainImageSrc(record)"
               :src="item || EmptyImg"

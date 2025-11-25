@@ -6,7 +6,7 @@ export const header = [
     slot: "artMainImage",
     align: "center",
     sorter: false,
-    width: 60,
+    width: 80,
   },
   {
     title: "开发理由",
@@ -64,7 +64,7 @@ export const header = [
     sortField: "status", // 排序字段
     align: "center",
     sorter: true,
-    width: 140,
+    width: 100,
   },
   {
     title: "是否智能选品",
@@ -74,7 +74,7 @@ export const header = [
     sortField: "isIntelligent", // 排序字段
     align: "center",
     sorter: true,
-    width: 140,
+    width: 100,
   },
   {
     title: "重量",
@@ -121,7 +121,7 @@ export const header = [
     sortField: "meansAuditTime", // 排序字段
     align: "center",
     sorter: true,
-    width: 180,
+    width: 150,
   },
   {
     title: "完成时间",
@@ -131,7 +131,7 @@ export const header = [
     dataIndex: "completeTime",
     sortField: "complete_time",
     sorter: true,
-    width: 180,
+    width: 150,
   },
   {
     title: "仓储选品时间",
@@ -140,7 +140,7 @@ export const header = [
     slot: "phSelectionTime",
     align: "center",
     sorter: false,
-    width: 180,
+    width: 150,
   },
   {
     title: "禁止刊登平台",

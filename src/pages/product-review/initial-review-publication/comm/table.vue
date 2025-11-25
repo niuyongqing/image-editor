@@ -60,8 +60,8 @@
             class="image-cell"
             :src="record.artMainImage"
             :fallback="EmptyImg"
-            height="40px"
-            width="40px"
+            height="60px"
+            width="60px"
           />
         </template>
         <!-- 市场方向列自定义渲染 -->

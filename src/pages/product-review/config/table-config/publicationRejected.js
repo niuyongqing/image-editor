@@ -12,8 +12,9 @@ export default [
     title: '主图',
     dataIndex: 'artMainImage',
     key: 'artMainImage',
-   fixed: 'left',
-    width: 50,
+    align: 'center',
+    fixed: 'left',
+    width: 60,
   },
   {
     title: '市场方向',
@@ -57,7 +58,7 @@ export default [
     dataIndex: 'classify',
     key: 'classify',
     align: 'center',
-    width: 200,
+    width: 330,
     show: true,
     filter: true
   },
@@ -65,8 +66,8 @@ export default [
     title: '提交人',
     dataIndex: 'selectUserName',
     key: 'selectUserName',
-    align: 'left',
-    width: 120,
+    align: 'center',
+    width: 100,
     show: true,
     filter: true
   },
@@ -75,7 +76,7 @@ export default [
     dataIndex: 'firstAuditName',
     key: 'firstAuditName',
     align: 'center',
-    width: 120,
+    width: 100, 
     show: true,
     filter: true
   },
@@ -94,7 +95,7 @@ export default [
     dataIndex: 'firstAuditReason',
     key: 'firstAuditReason',
     align: 'left',
-    width: 300,
+    width: 200,
     show: true,
   },
 ]

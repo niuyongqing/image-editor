@@ -1,7 +1,7 @@
 <template>
   <div id="configAccountCont">
     <!-- 搜索筛选区域 -->
-    <appTableForm @formHeightChange="handleFormHeightChange"  @onSubmit="getList" resetSetMenu="store-template" v-model:formData="formData">
+    <appTableForm  @formHeightChange="handleFormHeightChange"  @onSubmit="getList" resetSetMenu="store-template" v-model:formData="formData">
       <template #formItemRow>
         <!-- 状态 -->
         <a-form-item label="状态:" name="status">
@@ -35,9 +35,9 @@
         </a-form-item>
       </template>
     </appTableForm>
-    <AppTableBox :dataSource="tableData" :tableHeader="columns" :scroll="{ y:680 }"
+    <AppTableBox :dataSource="tableData" :tableHeader="columns" :scroll="{ y:2100 }"
       resetSetMenu="ozon_publicationDatabase" @rowDoubleClick="(record) => handleEdit('view', record)" rowKey="id"
-      :rowSelection="{ onChange: handleSelectionChange }" >
+      :rowSelection="{ selectedRowKeys: filterSelectedRows,onChange: handleSelectionChange }" >
       <template #leftTool>
         <a-button :disabled="selectedCount !== 0" @click="handleEdit('add', {})" type="primary" title="创建新的店铺模板">
           新增
@@ -272,7 +272,7 @@ const copyFormData = ref({
   targetAccount: null,
 });
 const router = useRouter();
-const uTableRef = ref(null);
+// const uTableRef = ref(null);
 const tableLoading = ref(false); // 表格加载状态
 const submitOpen = ref(false); // 再次提交弹窗是否打开
 const submitLoading = ref(false); // 再次提交弹窗loading状态
@@ -280,6 +280,7 @@ const copyOpen = ref(false); // 复制弹窗是否打开
 const copyLoading = ref(false); // 复制弹窗loading状态
 const selectedCount = ref(0); // 选中的商品数量
 const currentSelectRow = reactive([]); // 当前选中的商品
+const filterSelectedRows = ref([]); // 存储选中行的keys，用于表格选择状态同步
 const tableData = ref([]);
 const accountList = ref([]);
 
@@ -533,6 +534,7 @@ const handleSubmitOk = async () => {
   }
 };
 
+
 const getShopLists = async () => {
   const res = await getShopList();
   if (res.code === 200) {
@@ -553,7 +555,7 @@ const getList = async (type = "search") => {
     };
     if (type === "search") {
       params.pageNum = 1;
-      params.pageSize = 20;
+      params.pageSize = 50;
     }
     Object.keys(params).forEach((key) => {
       if (typeof params[key] === "string") {
@@ -574,7 +576,7 @@ const getList = async (type = "search") => {
     });
     pagination.total = res?.total || 0;
     // 清除选中状态
-    uTableRef?.value?.clearSelection();
+    clearSelection();
   } catch (error) {
     console.error("获取店铺模板列表失败:", error);
     message.error("获取店铺模板列表失败");
@@ -592,11 +594,13 @@ const handleLoadingChange = (loading) => {
 
 // 清除表格选择
 const clearSelection = () => {
-  if (uTableRef.value) {
-    uTableRef.value.clearSelection();
-  }
-  // 同时清空currentSelectRow数组
+  // 调用handleSelectionChange传入空数组来清空所有选择状态
+  handleSelectionChange([], []);
+  // 额外确保filterSelectedRows被清空
+  filterSelectedRows.value = [];
+  // 确保currentSelectRow数组被清空
   currentSelectRow.splice(0, currentSelectRow.length);
+  // 确保选中数量为0
   selectedCount.value = 0;
 };
 
@@ -634,10 +638,14 @@ const handlePageSizeChange = (val) => {
 };
 
 // 处理表格行选择变化
-const handleSelectionChange = (selectedRows) => {
-  // const handleSelectionChange =  {
-  selectedCount.value = selectedRows.length;
-  currentSelectRow.splice(0, currentSelectRow.length, ...selectedRows); // 更新数组内容
+const handleSelectionChange = (selectedRowKeys, selectedRows) => {
+  // 更新选中数量
+  selectedCount.value = selectedRowKeys.length;
+  // 更新选中的行数据
+  currentSelectRow.splice(0, currentSelectRow.length, ...selectedRows);
+  // 更新选中行的keys，用于表格选择状态同步
+  filterSelectedRows.value = [...selectedRowKeys];
+  console.log("selectedRows", selectedRows);
   console.log("currentSelectRow", currentSelectRow);
 };
 

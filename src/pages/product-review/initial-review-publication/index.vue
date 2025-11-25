@@ -2,6 +2,7 @@
   <div id="configAccountCont">
     <!-- 搜索筛选区域 -->
     <appTableForm
+    
       @onSubmit="searchList"
       @formHeightChange="handleFormHeightChange"
       resetSetMenu="initialReviewPublication"
@@ -79,8 +80,6 @@
       </template>
     </appTableForm>
     <!-- 数据展示区域 -->
-    <a-card style="margin-top: 0.75rem">
-      <div class="table-container">
         <!-- 使用封装的表格组件 -->
         <ProductReviewTable
           ref="productReviewTableRef"
@@ -100,8 +99,6 @@
           :formHeight="formHeight"
           @audit="handleAudit"
         />
-      </div>
-    </a-card>
     <!-- 审核弹窗 -->
     <a-modal
       :centered="true"

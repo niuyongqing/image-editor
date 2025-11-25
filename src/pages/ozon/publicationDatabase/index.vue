@@ -93,7 +93,7 @@
     > -->
       <template #bodyCell="{ column: {key}, record: row }">
         <template v-if="key === 'mainImage'">
-          <a-image :width="40" :src="row.mainImage || EmptyImg" :fallback="EmptyImg"/>
+          <a-image :width="60" :src="row.mainImage || EmptyImg" :fallback="EmptyImg"/>
         </template>
         <template v-else-if="key === 'skuList'">
           <a-tooltip>
@@ -105,7 +105,7 @@
         </template>
         <template v-else-if="key === 'categoryId'">
           <!-- <div>{{ classify(row) }}</div> -->
-          <a-tag color="success" v-if="row.classify">
+          <a-tag color="success" class="mr-0" v-if="row.classify">
             <div style="white-space: pre-wrap;">{{ row.classify }}</div>
           </a-tag>
           <div v-else></div>
