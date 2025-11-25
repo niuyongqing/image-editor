@@ -1,6 +1,10 @@
 <template>
-  <div id="appTableBox" class="appTableBox">
+  <div id="appTableBox" class="appTableBox" :class="`${resetSetMenu}-appTableBox`">
     <a-card>
+      <!--   表格 按钮设置区域上方其他功能插槽，如tabs，分页器等   -->
+      <div class="table-otherCount" v-if="!!otherCount">
+        <slot name="otherCount"></slot>
+      </div>
       <div class="table-title">
         <div class="table-title-item">
           <a-space>
@@ -177,6 +181,7 @@ const props = defineProps({
   },
 });
 const {
+  otherCount,           // 最上方插槽，防止tabs，上分页器等
   leftTool,             // 左侧工具button插槽名
   rightTool,            // 右侧工具button插槽名
   headerCell,           // 表格表头插槽名
