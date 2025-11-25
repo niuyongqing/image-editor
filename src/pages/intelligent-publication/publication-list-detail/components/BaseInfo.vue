@@ -4,6 +4,7 @@
     <a-form
       :model="form"
       ref="formRef"
+      :rules="rules"
       :label-col="{ style: { width: '94px' } }"
     >
       <a-form-item
@@ -169,6 +170,7 @@
         <a-textarea
           v-model:value="form.desc"
           :rows="6"
+          placeholder="请输入英文描述"
           show-count
         />
       </a-form-item>
@@ -322,6 +324,36 @@
   const attributesObj = ref({}) // 产品属性的值
 
   const formRef = ref()
+
+  const validateLanguage = (language) => {
+    return (_, value) => {
+      if (containsLanguage(value, language)) {
+        const langText = language === 'zh' ? '中文' : '英文'
+        return Promise.reject(`不能包含 ${langText}`)
+      }
+      return Promise.resolve()
+    }
+  }
+
+  // 判断文本中是否包含 中文/英语
+  function containsLanguage(text, language) {
+    if (!text) return false
+
+    let regex
+    if (language === 'zh') {
+      regex = /[\u4e00-\u9fff]/
+    } else if (language === 'en') {
+      regex = /[a-zA-Z]/
+    } else {
+      return false
+    }
+
+    return regex.test(text)
+  }
+
+  const rules = reactive({
+    desc: [{ validator: validateLanguage('zh') }]
+  })
 
   // VAT 下拉选项
   const VAT_OPTIONS = [

@@ -27,6 +27,7 @@
           >申请拍照</a-button
         >
         <a-button
+          v-if="hasEditPermi"
           type="primary"
           :loading="reviewLoading"
           @click="toFinalReview"
@@ -159,7 +160,7 @@
 
   import { getDetailApi, updateProductDetailApi } from './api'
   import { yandexTranslateApi } from '@/api/common/translate.js'
-  import { lastAudit } from '~@/pages/product-review/config/api/product-review.js'
+  import { lastAudit, auditApi } from '~@/pages/product-review/config/api/product-review.js'
   import { message } from 'ant-design-vue'
   import { checkPermi, checkRole } from '~/utils/permission/component/permission.js'
 
@@ -170,6 +171,7 @@
   // 权限校验
   // 是否为资料待编辑详情
   const hasPermi = computed(() => checkPermi(['platform:ozon:intelligent:first:audit']) || checkRole('admin'))
+  const hasEditPermi = computed(() => checkPermi(['platform:ozon:intelligent:edit:list']) || checkRole('admin'))
   const isEditDetail = computed(() => route.path === '/platform/product-review/data-for-editing-detail')
   const auditStatus = Number(route.query.auditStatus)
 
@@ -528,7 +530,7 @@
           }
         ]
 
-        lastAudit(params)
+        auditApi(params)
           .then(res => {
             message.success('提交终审成功')
 

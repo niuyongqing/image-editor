@@ -72,7 +72,8 @@
     },
     {
       title: '类型',
-      key: 'type'
+      key: 'type',
+      align: 'center'
     },
     {
       title: '操作',
