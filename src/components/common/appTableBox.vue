@@ -89,13 +89,13 @@
       </div>
       <div class="table-content" :class="`${resetSetMenu}-table`">
         <a-table 
-          v-bind="$attrs" 
           :columns="showHeader" 
           :data-source="dataSource" 
           :scroll="scroll"
           :pagination="false"
           :customRow="customRow" 
           bordered 
+          v-bind="$attrs" 
         >
           <template #headerCell="{ column }">
             <div class="resizable-header" v-if="column.key">

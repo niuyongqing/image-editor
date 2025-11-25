@@ -26,7 +26,11 @@
               <div class="formSetting-box">
                 <div class="formSetting-itemRow" v-for="item in form.settingList" :key="item.name">
                   <div class="itemRow-title">{{ item.label }}</div>
-                  <a-checkbox v-model:checked="item.show" @change="e => formItemShow(item, e)">显示</a-checkbox>
+                  <a-checkbox 
+                    v-model:checked="item.show" 
+                    @change="e => formItemShow(item, e)"
+                    :disabled="item.disabled"
+                  >{{ item.disabled ? '必填项':'显示' }}</a-checkbox>
                 </div>
               </div>
               <div class="formSetting-btn">
@@ -116,6 +120,9 @@ const scrollFn = debounce(e => {
   // form.formShow = (form.scrollTop <= form.offsetHeight)
   if (form.scrollTop > form.offsetHeight) {
     form.formShow = false;
+    setTimeout(() => {
+      contentDom.scrollTop += 10
+    }, 20);
   } else if (form.scrollTop === 0) {
     form.formShow = true;
   }
@@ -145,12 +152,13 @@ function generateSettingNameList(val) {
     let label = item.querySelector('label');
     let f = null;
     label && (f = label.getAttribute('for'));
-    if (f && !label.className.includes('ant-form-item-required')) {
+    if (f) {
       let obj = {
         name: f.split('_')[2],
         label: label.innerText,
         formItem: item,
         show: true,
+        disabled: label.className.includes('ant-form-item-required')
       };
       list.push(obj);
     }
