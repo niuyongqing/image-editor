@@ -20,3 +20,8 @@ export function storeDetail(data) {
 export function cacheGet() {
   return useGet("/commodity-manage/infringe1/cache/get");
 }
+
+// 智能刊登选品
+export function commdity(data) {
+  return usePost("/platform-ozon/platform/ozon/commodity/select", data)
+}

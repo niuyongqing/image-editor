@@ -19,7 +19,6 @@
     <a-form
       ref="formRef"
       :model="form"
-      hide-required-mark
       :rules="rules"
     >
       <a-form-item
@@ -207,7 +206,7 @@
               v-model:value="form.shopIntervalMin"
               :controls="false"
               :disabled="form.publishType === 2"
-              :min="1"
+              :min="3"
               :max="999"
               :precision="0"
               placeholder="最少"
@@ -323,20 +322,24 @@
     }
     return Promise.resolve()
   }
-  const rules = {
-    titleRule: [{ validator: validateRuleChange }],
+  const rules = reactive({
+    titleRule: [{ validator: validateRuleChange, required: true }],
     titleRepeat: [{ validator: validateRepeatChange }],
-    mainImageRule: [{ validator: validateRuleChange }],
+    mainImageRule: [{ validator: validateRuleChange, required: true }],
     mainImageRepeat: [{ validator: validateRepeatChange }],
-    subImageRule: [{ validator: validateRuleChange }],
+    subImageRule: [{ validator: validateRuleChange, required: true }],
     subImageRepeat: [{ validator: validateRepeatChange }],
+    insufficientType: [{ required: true }],
+    publishType: [{ required: true }],
     shops: [{ required: true }],
     interval: [{ validator: validateInterval }]
-  }
+  })
 
   // 选择刊登模式时, 清空刊登频率的校验信息
   function clearField() {
     formRef.value.clearValidate(['interval'])
+
+    rules.interval[0].required = form.publishType === 1
   }
 
   /** 店铺列表 */

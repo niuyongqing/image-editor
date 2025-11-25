@@ -2,5 +2,7 @@
     <initialReviewPublication Source="publicationRejected" />
 </template>
 <script setup lang="ts">
-import initialReviewPublication from "~@/pages/product-review/initial-review-publication/index.vue";
+import { defineAsyncComponent } from 'vue';
+// 动态加载组件，实现懒加载优化
+const initialReviewPublication = defineAsyncComponent(() => import("~@/pages/product-review/initial-review-publication/index.vue"));
 </script>

@@ -1,23 +1,12 @@
 export const header = [
   {
-    title: "操作",
-    dataIndex: "action",
-    key: "action",
-    slot: "action",
-    align: "center",
-    sorter: false,
-    show: true,
-    width: 130,
-    fixed: 'left',
-  },
-  {
     title: "主图",
     dataIndex: "artMainImage",
     key: "artMainImage",
     slot: "artMainImage",
     align: "center",
     sorter: false,
-    width: 120,
+    width: 80,
   },
   {
     title: "开发理由",
@@ -34,7 +23,7 @@ export const header = [
     key: "devAttributableMarket",
     slot: "devAttributableMarket",
     sortField: "dev_attributable_market", // 排序字段
-    align: "center",
+    align: "left",
     sorter: true,
     width: 120,
   },
@@ -43,10 +32,10 @@ export const header = [
     dataIndex: "skuList",
     key: "skuList",
     slot: "skuList",
-    align: "center",
+    align: "left",
     sortField: "sku_list", // 排序字段
     sorter: true,
-    width: 120,
+    width: 160,
   },
   {
     title: "同款产品",
@@ -64,7 +53,7 @@ export const header = [
     key: "tradeName",
     sorter: true,
     sortField: "trade_name", // 排序字段
-    align: "center",
+    align: "left",
     width: 320,
   },
   {
@@ -75,13 +64,23 @@ export const header = [
     sortField: "status", // 排序字段
     align: "center",
     sorter: true,
-    width: 140,
+    width: 100,
+  },
+  {
+    title: "是否智能选品",
+    dataIndex: "isIntelligent",
+    key: "isIntelligent",
+    slot: "isIntelligent",
+    sortField: "isIntelligent", // 排序字段
+    align: "center",
+    sorter: true,
+    width: 100,
   },
   {
     title: "重量",
     dataIndex: "skuWeight",
     key: "skuWeight",
-    align: "center",
+    align: "right",
     sortField: "sku_weight",
     sorter: true,
     width: 140,
@@ -90,7 +89,7 @@ export const header = [
     title: "30天销量",
     dataIndex: "sellCount",
     key: "sellCount",
-    align: "center",
+    align: "right",
     sortField: "sell_count",
     sorter: true,
     width: 140,
@@ -122,7 +121,7 @@ export const header = [
     sortField: "meansAuditTime", // 排序字段
     align: "center",
     sorter: true,
-    width: 180,
+    width: 150,
   },
   {
     title: "完成时间",
@@ -132,7 +131,7 @@ export const header = [
     dataIndex: "completeTime",
     sortField: "complete_time",
     sorter: true,
-    width: 180,
+    width: 150,
   },
   {
     title: "仓储选品时间",
@@ -141,7 +140,7 @@ export const header = [
     slot: "phSelectionTime",
     align: "center",
     sorter: false,
-    width: 180,
+    width: 150,
   },
   {
     title: "禁止刊登平台",
@@ -224,9 +223,9 @@ export const header = [
     key: "meansRemark",
     slot: "meansRemark",
     sortField: "means_remark",
-    width: 120,
+    width: 200,
     sorter: true,
-    align: "center",
+    align: "left",
   },
   {
     title: "商品ID",
@@ -234,6 +233,17 @@ export const header = [
     key: "commodityId",
     sorter: false,
     width: 120,
+    align: "right",
+  },
+    {
+    title: "操作",
+    dataIndex: "action",
+    key: "action",
+    slot: "action",
     align: "center",
+    sorter: false,
+    show: true,
+    width: 180,
+    fixed: 'right',
   },
 ]

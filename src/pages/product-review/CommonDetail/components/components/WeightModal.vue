@@ -15,9 +15,9 @@
           <a-input-number
             v-model:value="absoluteNum"
             :controls="false"
-            :min="0"
+            :min="0.01"
             :max="999999"
-            :precision="0"
+            :precision="2"
             :disabled="radio !== '1'"
             placeholder="请输入"
             class="w-104"

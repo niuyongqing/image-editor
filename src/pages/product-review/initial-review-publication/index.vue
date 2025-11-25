@@ -2,7 +2,9 @@
   <div id="configAccountCont">
     <!-- 搜索筛选区域 -->
     <appTableForm
+    
       @onSubmit="searchList"
+      @formHeightChange="handleFormHeightChange"
       resetSetMenu="initialReviewPublication"
       v-model:formData="formData"
     >
@@ -78,8 +80,6 @@
       </template>
     </appTableForm>
     <!-- 数据展示区域 -->
-    <a-card style="margin-top: 0.75rem">
-      <div class="table-container">
         <!-- 使用封装的表格组件 -->
         <ProductReviewTable
           ref="productReviewTableRef"
@@ -96,10 +96,9 @@
           :permissionSource="permissionSource"
           :selectedCount="selectedCount"
           :currentAuditingProducts="currentAuditingProducts"
+          :formHeight="formHeight"
           @audit="handleAudit"
         />
-      </div>
-    </a-card>
     <!-- 审核弹窗 -->
     <a-modal
       :centered="true"
@@ -294,18 +293,18 @@ const permissionSource = computed(() => {
   }
 });
 
-// 查询权限字符串
-const permissionList = computed(() => {
-  if (props.Source === "initialReviewPublication") {
-    return ["platform:ozon:intelligent:list"];
-  }
-  if (props.Source === "publicationRejected") {
-    return ["platform:ozon:intelligent:list"];
-  }
-  if (props.Source === "pendingFinalReview") {
-    return ["platform:ozon:intelligent:list"];
-  }
-});
+// // 查询权限字符串
+// const permissionList = computed(() => {
+//   if (props.Source === "initialReviewPublication") {
+//     return ["platform:ozon:intelligent:list"];
+//   }
+//   if (props.Source === "publicationRejected") {
+//     return ["platform:ozon:intelligent:list"];
+//   }
+//   if (props.Source === "pendingFinalReview") {
+//     return ["platform:ozon:intelligent:list"];
+//   }
+// });
 
 // 审核接口映射
 const APIEDIT = {
@@ -427,6 +426,13 @@ const getAccountUserList = async () => {
 
   // 调用表格获取列表方法
   await productReviewTableRef?.value?.getList();
+};
+
+const formHeight = ref(98);
+// 处理搜索筛选区域高度变化
+const handleFormHeightChange = (val) => {
+  formHeight.value = val;
+  console.log("搜索筛选区域高度变化:", val);
 };
 
 /**

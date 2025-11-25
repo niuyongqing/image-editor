@@ -1,11 +1,10 @@
 <!-- 刊登规则详情 -->
 <template>
-  <a-card class="text-left w-3/5 mx-auto h-[calc(100vh-60px)] pt-4">
+  <a-card class="text-left h-[calc(100vh-60px)] pt-4">
     <div class="h-[calc(100vh-140px)] overflow-y-auto">
       <a-form
         ref="formRef"
         :model="form"
-        hide-required-mark
         :rules="rules"
         :label-col="{ style: { width: '120px' } }"
         :disabled="query.type === 'view'"
@@ -291,7 +290,7 @@
                 v-model:value="form.shopIntervalMin"
                 :controls="false"
                 :disabled="form.publishType === 2"
-                :min="1"
+                :min="3"
                 :max="999"
                 :precision="0"
                 placeholder="最少"
@@ -391,12 +390,18 @@
   // [成本价, 重量]
   const validateRange = rule => {
     const rangeList = [form[`${rule.field}Min`], form[`${rule.field}Max`]]
-    if (!rangeList.every(Boolean)) {
-      return Promise.reject('请填写区间')
+    if (rangeList.every(num => num === null)) {
+      // 啥都没填
+      return Promise.resolve()
+    }
+    if (rangeList.some(num => num === null)) {
+      // 有一个没填
+      return Promise.reject('请填写完整的区间值')
     }
     if (form[`${rule.field}Min`] >= form[`${rule.field}Max`]) {
       return Promise.reject('前一个数值要小于后一个数值')
     }
+    
     return Promise.resolve()
   }
   // [标题, 主图, 副图]枚举
@@ -440,20 +445,23 @@
     }
     return Promise.resolve()
   }
-  const rules = {
+  const rules = reactive({
     ruleName: [{ required: true }],
+    status: [{ required: true }],
     categoryId: [{ required: true }],
     costPrice: [{ validator: validateRange }],
     weight: [{ validator: validateRange }],
-    titleRule: [{ validator: validateRuleChange }],
+    titleRule: [{ validator: validateRuleChange, required: true }],
     titleRepeat: [{ validator: validateRepeatChange }],
-    mainImageRule: [{ validator: validateRuleChange }],
+    mainImageRule: [{ validator: validateRuleChange, required: true }],
     mainImageRepeat: [{ validator: validateRepeatChange }],
     subImageRule: [{ validator: validateRuleChange }],
-    subImageRepeat: [{ validator: validateRepeatChange }],
+    subImageRepeat: [{ validator: validateRepeatChange, required: true }],
+    dataIsLack: [{ required: true }],
+    publishType: [{ required: true }],
     shops: [{ required: true }],
     interval: [{ validator: validateInterval }]
-  }
+  })
 
   /** 产品分类 */
   const categoryOpen = ref(false)
@@ -465,6 +473,8 @@
   // 选择刊登模式时, 清空刊登频率的校验信息
   function clearField() {
     formRef.value.clearValidate(['interval'])
+
+    rules.interval[0].required = form.publishType === 1
   }
 
   /** 店铺列表 */
@@ -610,7 +620,7 @@
       const requestApi = query.id ? updatePublishRuleApi : createPublishRuleApi
       requestApi(params)
         .then(res => {
-          message.success('提交刊登成功')
+          message.success('保存成功')
           usePostMessage()
 
           setTimeout(() => {

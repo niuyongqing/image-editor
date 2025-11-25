@@ -97,8 +97,8 @@
       </div>
       <!-- 操作按钮 -->
       <div class="form-actions mt-24">
-        <a-button :disabled="isDesable" type="primary" @click="submitForm">提交</a-button>
-        <a-button :disabled="isDesable" style="margin-left: 10px" @click="resetForm">重置</a-button>
+        <a-button  @click="close">关闭</a-button>
+        <a-button :disabled="isDesable" style="margin-left: 10px" type="primary" @click="submitForm">保存</a-button>
       </div>
     </a-form>
   </div>
@@ -270,7 +270,10 @@ const submitForm = async () => {
   }
 };
 
-
+// 关闭窗口
+const close = () => {
+  window.close()
+}
 
 /** JSON 富文本 */
 const backResult = (jsonContent) => {

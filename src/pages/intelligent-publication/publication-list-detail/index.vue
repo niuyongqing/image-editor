@@ -7,7 +7,7 @@
 
     <ImageInfo
       ref="ImageInfoRef"
-      :main-images-count-min="1"
+      :main-images-count-min="3"
     />
 
     <!-- 底部按钮 -->
@@ -127,8 +127,8 @@
 
   /** 保存并刊登 */
   function saveThenPublish() {
-    saveLoading.value = true
     save(true).then(() => {
+      saveLoading.value = true
       submitToPublishApi(route.query.waitPublishProductId)
         .then(res => {
           message.success('保存并刊登成功')

@@ -43,7 +43,7 @@
             >
             <a-button
               type="link"
-              :disabled="disabled"
+              :disabled="templateDisabled(record)"
               @click="editWatermark(record)"
               >编辑</a-button
             >
@@ -51,7 +51,12 @@
               title="确定删除吗?"
               @confirm="delWatermark(record.id)"
             >
-              <a-button type="link" :disabled="disabled" danger>删除</a-button>
+              <a-button
+                type="link"
+                :disabled="disabled"
+                danger
+                >删除</a-button
+              >
             </a-popconfirm>
           </a-space>
         </template>
@@ -94,6 +99,8 @@
                     />
                   </span>
                   <span v-else class="text-preview">{{ item.content }}</span>
+                  <!-- 显示是否为当前用户创建的水印 -->
+                  <span v-if="item.isUserCreated" class="user-created">（当前用户创建）</span>
                 </div>
               </div>
             </a-select-option>
@@ -131,11 +138,11 @@ import {
   computed,
 } from "vue";
 import {
-  watermarkListApi,
+  watermarkAllListApi,
   watermarkDelApi,
 } from "@/pages/sample/watermark/api.js";
 import { message } from "ant-design-vue";
-
+import { useUserStore } from "~/stores/user.js";
 const emit = defineEmits([]);
 const props = defineProps({
   disabled: {
@@ -206,7 +213,13 @@ const WATERMARK_NAME_MAP = {
   0: "主图水印",
   1: "副图水印",
 };
+const userInfo = computed(() => {
+  return useUserStore().userInfo;
+})
 
+const templateDisabled = (record) => {
+  return record.userId !== userInfo.value.userid || props.disabled || !record.title
+}
 // ==================== 工具函数 ====================
 /**
  * 创建空水印模板的工厂函数
@@ -220,6 +233,7 @@ const createEmptyWatermarkTemplate = (id, index) => ({
   title: "",
   content: "",
   type: "",
+  disabled: false,
 });
 
 /**
@@ -301,7 +315,6 @@ const initDataSource = (mainImgWmTemplateId, subImgWmTemplateId) => {
   const subImgWmTemplate = tableData.value.find(
     (item) => Number(item.id) === Number(subImgWmTemplateId)
   );
-
   // 使用新数组替换原数组，确保响应性
   const newDataSource = [];
 
@@ -309,11 +322,13 @@ const initDataSource = (mainImgWmTemplateId, subImgWmTemplateId) => {
   if (!mainImgWmTemplate) {
     newDataSource[0] = createEmptyWatermarkTemplate(mainImgWmTemplateId, 0);
   } else {
+    // 主图水印存在，判断是否是当前用户创建的
     newDataSource[0] = {
       ...mainImgWmTemplate,
       imageName: WATERMARK_NAME_MAP[0],
     };
   }
+
 
   // 处理副图水印
   if (!subImgWmTemplate) {
@@ -324,10 +339,21 @@ const initDataSource = (mainImgWmTemplateId, subImgWmTemplateId) => {
       imageName: WATERMARK_NAME_MAP[1],
     };
   }
-
   // 一次性更新dataSource，确保响应性
   dataSource.value = newDataSource;
 };
+
+// 根据userInfo.value.userid查出当前用户创建的水印放在前面 并且针对数据添加一个isUserCreated字段为true其余为false
+const sortUserIdData = (list) => {
+  return list.sort((a, b) => {
+    return a.userId === userInfo.value.userid ? -1 : 1;
+  }).map(item => ({
+    ...item,
+    isUserCreated: item.userId === userInfo.value.userid
+  }))
+}
+
+
 
 // ==================== API调用 ====================
 /**
@@ -336,11 +362,14 @@ const initDataSource = (mainImgWmTemplateId, subImgWmTemplateId) => {
  * @param {string|number} subImgWmTemplateId - 副图水印模板ID
  */
 const getWatermarkList = async (mainImgWmTemplateId, subImgWmTemplateId,type='edit') => {
+  console.log('mainImgWmTemplateId',mainImgWmTemplateId)
   loading.value = true;
   try {
     // 没分页, 没入参
-    const res = await watermarkListApi();
-    tableData.value = res.data || [];
+    const res = await watermarkAllListApi();
+    
+    tableData.value = sortUserIdData(res.data || [])
+    console.log('tableData.value',tableData.value)
     // 初始化数据源
     if(type==='edit'){
       initDataSource(mainImgWmTemplateId, subImgWmTemplateId);
@@ -366,6 +395,8 @@ const handleModalCancel = () => {
  */
 const handleSubmitOk = () => {
   // 根据submitFormData.shopTemplateId查找tableData.value中对应的item
+  console.log('submitFormData.shopTemplateId',submitFormData.shopTemplateId)
+  console.log('tableData.value',tableData.value)
   const selectedItem = tableData.value.find(
     (item) => item.id === submitFormData.shopTemplateId
   );
@@ -377,9 +408,24 @@ const handleSubmitOk = () => {
 
   // 更新数据源
   const currentId = currentSelectRow.value.id;
-  const currentIndex = dataSource.value.findIndex(
-    (item) => item.id === currentId
-  );
+  // 使用索引而不是ID来确定要更新的行，这样更可靠
+  let currentIndex = -1;
+  
+  // 如果currentId存在，尝试通过ID查找
+  if (currentId) {
+    currentIndex = dataSource.value.findIndex((item) => item.id === currentId);
+  }
+  
+  // 如果通过ID找不到，尝试通过imageName查找
+  if (currentIndex === -1 && currentSelectRow.value.imageName) {
+    currentIndex = dataSource.value.findIndex((item) => item.imageName === currentSelectRow.value.imageName);
+  }
+  
+  // 如果还是找不到，默认使用第一行（主图水印）
+  if (currentIndex === -1) {
+    console.warn('无法确定要更新的水印行，默认使用第一行（主图水印）');
+    currentIndex = 0;
+  }
 
   if (currentIndex !== -1) {
     const updatedData = {
@@ -387,7 +433,7 @@ const handleSubmitOk = () => {
       imageName: WATERMARK_NAME_MAP[currentIndex] || selectedItem.imageName,
     };
 
-    updateDataSourceItem(currentId, updatedData, currentIndex);
+    updateDataSourceItem(dataSource.value[currentIndex].id, updatedData, currentIndex);
   }
 
   handleModalCancel();
@@ -411,6 +457,7 @@ const editWatermark = (record) => {
  * @param {object} record - 当前行数据
  */
 const changeWatermark = (record) => {
+  console.log('changeWatermark',record)
   currentSelectRow.value = record;
   submitOpen.value = true;
 };
@@ -440,12 +487,12 @@ const addWatermark = () => {
  * @param {MessageEvent} event - 消息事件
  */
 const receiveMessage = (event) => {
-  // 刷新水印列表
-  getWatermarkList('', '','get');
   // 验证消息来源和类型
   if (event.origin !== window.location.origin || event.data.type !== "params" || !event.data.params) {
     return;
   }
+  // 刷新水印列表
+  getWatermarkList('', '','get');
   // 新建水印不更新数据
   if (!event.data.params.id) {
     return;
@@ -615,6 +662,11 @@ defineExpose({
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+    .user-created {
+      color: #409eff;
+      font-size: 12px;
+      margin-left: 8px;
     }
   }
 }

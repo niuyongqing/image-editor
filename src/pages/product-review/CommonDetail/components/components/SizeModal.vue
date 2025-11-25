@@ -12,9 +12,9 @@
       <a-input-number
         v-model:value="length"
         :controls="false"
-        :min="0"
+        :min="0.01"
         :max="99999"
-        :precision="0"
+        :precision="2"
         class="w-30"
         placeholder="长(mm)"
         :id="open ? 'autofocus_dom' : ''"
@@ -22,18 +22,18 @@
       <a-input-number
         v-model:value="width"
         :controls="false"
-        :min="0"
+        :min="0.01"
         :max="99999"
-        :precision="0"
+        :precision="2"
         class="w-30"
         placeholder="宽(mm)"
       />
       <a-input-number
         v-model:value="height"
         :controls="false"
-        :min="0"
+        :min="0.01"
         :max="99999"
-        :precision="0"
+        :precision="2"
         class="w-30"
         placeholder="高(mm)"
       />

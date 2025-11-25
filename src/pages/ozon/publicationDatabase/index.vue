@@ -1,7 +1,12 @@
 <template>
 <div id="ozon_publicationDatabase" class="ozon_publicationDatabase">
-  <a-card>
-    <a-form :model="formData" layout="inline">
+    <appTableForm
+      @onSubmit="onSubmit"
+      @formHeightChange="handleFormHeightChange"
+      resetSetMenu="ozon_publicationDatabase"
+      v-model:formData="formData"
+    >
+    <template #formItemRow>
       <a-form-item label="产品分类" name="categoryId">
         <a-cascader 
           placeholder="产品分类" 
@@ -42,17 +47,19 @@
           </div>
         </a-form-item-rest>
       </a-form-item>
-      <div class="formItem-row-i right">
-        <a-space>
-          <a-button key="submit" type="primary" @click="onSubmit" v-if="checkPermi(['ozon:intelligent:product-store:list'])">查询</a-button>
-          <a-button key="submit" @click="resetForm">重置</a-button>
-        </a-space>
-      </div>
-    </a-form>
-  </a-card>
-  <a-card style="margin-top: 20px">
-    <div class="table-btn-box">
-      <a-space>
+      </template>
+      </appTableForm>
+     <app-table-box
+      :dataSource="tableData.data"
+      :tableHeader="header"
+      resetSetMenu="ozon_publicationDatabase"
+      @rowDoubleClick="detailsModalOpen"
+      rowKey="id"
+      :row-selection="{ selectedRowKeys: tableData.selectedRowKeys, onChange: onSelectChange }"
+      :loading="tableData.loading"
+      :scroll="{ y: 1100 - formHeight, x: '2000px' }"
+    >
+    <template #leftTool>
         <a-button 
           :disabled="tableData.selectedRows.length < 1" 
           type="primary" 
@@ -72,10 +79,8 @@
           @click="openPublicationModal()"
         >批量刊登</a-button>
         <!-- <a-button type="primary">Primary Button</a-button> -->
-      </a-space>
-    </div>
-    <br/>
-    <a-table 
+      </template>
+    <!-- <a-table 
       :columns="header" 
       :data-source="tableData.data" 
       :scroll="{ y: 'calc(80vh - 120px)', x: '2000px' }"
@@ -85,10 +90,10 @@
       :row-selection="{ selectedRowKeys: tableData.selectedRowKeys, onChange: onSelectChange }"
       :loading="tableData.loading"
       class="productDatabase-table"
-    >
+    > -->
       <template #bodyCell="{ column: {key}, record: row }">
         <template v-if="key === 'mainImage'">
-          <a-image :width="50" :src="row.mainImage || EmptyImg" :fallback="EmptyImg"/>
+          <a-image :width="60" :src="row.mainImage || EmptyImg" :fallback="EmptyImg"/>
         </template>
         <template v-else-if="key === 'skuList'">
           <a-tooltip>
@@ -100,7 +105,7 @@
         </template>
         <template v-else-if="key === 'categoryId'">
           <!-- <div>{{ classify(row) }}</div> -->
-          <a-tag color="success" v-if="row.classify">
+          <a-tag color="success" class="mr-0" v-if="row.classify">
             <div style="white-space: pre-wrap;">{{ row.classify }}</div>
           </a-tag>
           <div v-else></div>
@@ -112,11 +117,11 @@
                 @click="openLogModal(row)"
                 >日志</a-button
               >
+          <a-button type="link" @click="openListModal(row)">查看序列</a-button>
         </template>
       </template>
-    </a-table>
-    <br/>
-    <div class="pagination-box">
+    <!-- </a-table> -->
+     <template #pagination>
       <a-pagination 
         @update:current="pageNumChange" 
         @update:page-size="pageSizeChange"
@@ -128,8 +133,9 @@
         show-size-changer 
         showQuickJumper 
       />
-    </div>
-  </a-card>
+    </template>
+    </app-table-box>
+     
   <detailsModal ref="publicationDatabase_detailsModal"></detailsModal>
   <!-- 添加备注弹窗 -->
   <a-modal class="remark-modal" v-model:open="remarkData.open" title="添加备注" @ok="addRemarkFn">
@@ -156,6 +162,9 @@
       @update:visible="logModalVisible = $event"
       @open="handleLogModalOpen"
     />
+
+    <!-- 刊登序列弹窗 -->
+    <ListModal v-model:open="listModalOpen" :id="curId" />
 </div>
 </template>
 
@@ -172,6 +181,9 @@ import { processImageSource } from '../config/commJs/index';
 import { checkPermi } from '~@/utils/permission/component/permission';
 import PublicationModal from './common/PublicationModal.vue'
 import LogModal from "./common/LogModal.vue";
+import ListModal from './common/ListModal.vue';
+import appTableForm from "@/components/common/appTableForm.vue";
+import AppTableBox from "@/components/common/appTableBox.vue";
 defineOptions({ name: "ozon_publicationDatabase" })
 const { proxy: _this } = getCurrentInstance();
 
@@ -208,11 +220,7 @@ const tableData = reactive({
     // "prop": "complete_time" // 排序列，必须
   }
 })
-let antTableBody = null   // 表格滚动区域
-
 onMounted(async () => {
-  let productDatabaseTable = document.querySelector('.productDatabase-table')
-  antTableBody = productDatabaseTable.querySelector('.ant-table-body')
   // 权限校验
   if (!checkPermi(['ozon:intelligent:product-store:list'])) {
     return;
@@ -221,6 +229,13 @@ onMounted(async () => {
   await getCategoryTree()
   onSubmit()
 })
+
+const formHeight = ref(98);
+// 处理搜索筛选区域高度变化
+const handleFormHeightChange = (val) => {
+  formHeight.value = val;
+  console.log("搜索筛选区域高度变化:", val);
+};
 async function getCategoryTree(params) {
   try {
     let res = await categoryTree()
@@ -319,13 +334,13 @@ async function getTableList() {
       item.classify = classify(item)
       if (item.skuList?.length) {
         let weight = 0
-        let price = 0
+        let costPrice = 0
         item.skuList.forEach(i => {
           weight += (i.weight ? Number(i.weight) : 0)
-          price += (i.price ? Number(i.price) : 0)
+          costPrice += (i.costPrice ? Number(i.costPrice) : 0)
         })
         item.averageWeight = (weight / item.skuList.length).toFixed(2);
-        item.averagePrice = (price / item.skuList.length).toFixed(2);
+        item.averagePrice = (costPrice / item.skuList.length).toFixed(2);
         !item.mainImage && (item.mainImage = item.skuList[0].mainImages);
       }
       item.mainImage = processImageSource(item.mainImage);
@@ -334,7 +349,7 @@ async function getTableList() {
     tableData.total = res.total
     // console.log({res});
     // 滚动条回到顶部
-    antTableBody.scrollTop = 0
+    // antTableBody.scrollTop = 0
   } catch (error) {
     console.error(error)
   }
@@ -463,6 +478,15 @@ function fetchLogData(record) {
     .finally(() => {
       logLoading.value = false;
     });
+}
+
+/** 查看序列 */
+const curId = ref()
+const listModalOpen = ref(false)
+
+function openListModal(row) {
+  curId.value = row.id
+  listModalOpen.value = true
 }
 </script>
 <style lang="less" scoped>

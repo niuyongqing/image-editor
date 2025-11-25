@@ -90,11 +90,13 @@ const columns = ref([
     dataIndex: 'orderNum',
     key: 'orderNum',
     width: '100px',
+    align: 'right',
     style: { textAlign: 'center' },
   }, {
     title: '状态',
     dataIndex: 'status',
     key: 'status',
+    align: 'center',
     width: '100px',
     style: { textAlign: 'center' },
   }, {
@@ -102,12 +104,15 @@ const columns = ref([
     dataIndex: 'createTime',
     key: 'createTime',
     width: '200px',
+    align: 'center',
     style: { textAlign: 'center' },
   }, {
     title: '操作',
     dataIndex: 'option',
     key: 'option',
-    width: '200px'
+    width: '200px',
+    align: 'center',
+    fixed: 'right',
   }
 ])
 const setTableHeight = () => {

@@ -1,8 +1,8 @@
 <script setup lang="js">
 
-import { ref, unref } from 'vue'
+import {ref,unref} from 'vue'
 import { format } from 'date-fns';
-import { changeStatusApi, delUserApi, getUserListApi, deptTreeSelect } from '~/api/common/user.js'
+import {changeStatusApi, delUserApi, getUserListApi,deptTreeSelect} from '~/api/common/user.js'
 import { message } from 'ant-design-vue';
 import { Table } from 'ant-design-vue';
 import AddOrEdit from "~/pages/system/user/component/addOrEdit.vue";
@@ -16,6 +16,7 @@ import woman1 from '@/assets/images/userPhoto/woman1.png'
 import woman2 from '@/assets/images/userPhoto/woman2.png'
 import woman3 from '@/assets/images/userPhoto/woman3.png'
 import woman4 from '@/assets/images/userPhoto/woman4.png'
+
 // 随机下面的头像
 const randomAvatar = (sex) => {
   // 过滤出符合性别要求的头像
@@ -76,7 +77,7 @@ const pagination = ref({
   current: 1,
   pageSize: 50,
   total: 0, // 例如，总条目数为50
-  pageSizeOptions: ['50', '100', '200'],
+  pageSizeOptions: ['50','100','200'],
 });
 const tableHeight = ref(0);
 const tableContainer = ref(null);
@@ -93,36 +94,41 @@ const columns = [
     dataIndex: 'userName',
     fixed: 'left',
     key: 'userName',
-  }, {
+  },{
     title: '别名',
     dataIndex: 'nickName',
     key: 'nickName',
-  }, {
+  },{
     title: '电话号码',
     dataIndex: 'phonenumber',
+    align: 'right',
     key: 'phonenumber',
-  }, {
+  },{
     title: '状态',
     dataIndex: 'status',
     key: 'status',
-    width: 50,
-  }, {
+    align: 'center',
+    width: 80,
+  },{
     title: 'Email',
     dataIndex: 'email',
     key: 'email',
-  }, {
+  },{
     title: '创建时间',
     dataIndex: 'createTime',
+    align: 'center',
     key: 'createTime',
-  }, {
+    width: 200,
+  },{
     title: '备注',
     dataIndex: 'remark',
     key: 'remark',
-  }, {
+  },{
     title: '操作',
     dataIndex: 'option',
     fixed: 'right',
     key: 'option',
+    align: 'center',
     width: 100,
   },
 ]
@@ -133,11 +139,11 @@ const dept = ref([])
 const tableLoading = ref(false);
 
 const formState = ref({
-  userName: "",
-  phonenumber: "",
-  picker: [],
-  pageNum: 1,
-  pageSize: 50
+  userName:"",
+  phonenumber:"",
+  picker:[],
+  pageNum:1,
+  pageSize:50
 })
 const setTableHeight = () => {
   if (tableContainer.value) {
@@ -145,11 +151,11 @@ const setTableHeight = () => {
   }
 };
 
-onMounted(() => {
+onMounted(()=>{
   handleFinish()
   setTableHeight();
   window.addEventListener('resize', setTableHeight);
-  deptTreeSelect().then(res => {
+  deptTreeSelect().then(res=>{
     dept.value = res.data
   })
 })
@@ -161,18 +167,18 @@ const tableData = ref([])
 function handleFinish() {
   const [startDate, endDate] = formState.value.picker || [];
   let data = {
-    userName: formState.value.userName,
-    phonenumber: formState.value.phonenumber,
-    beginTime: startDate ? format(new Date(startDate), 'yyyy-MM-dd') : "",
-    endTime: endDate ? format(new Date(endDate), 'yyyy-MM-dd') : "",
-    pageNum: formState.value.pageNum,
-    pageSize: formState.value.pageSize
+    userName:formState.value.userName,
+    phonenumber:formState.value.phonenumber,
+    beginTime:startDate?format(new Date(startDate), 'yyyy-MM-dd'):"",
+    endTime:endDate?format(new Date(endDate), 'yyyy-MM-dd'):"",
+    pageNum:formState.value.pageNum,
+    pageSize:formState.value.pageSize
   }
   tableLoading.value = true;
-  getUserListApi(data).then(res => {
+  getUserListApi(data).then(res=>{
     tableData.value = res.rows
     pagination.value.total = res.total
-  }).finally(() => {
+  }).finally(()=>{
     tableLoading.value = false;
   })
 }
@@ -208,7 +214,7 @@ const handlePageSizeChange = (val) => {
 
 
 function setStatus(item) {
-  changeStatusApi(item).then(res => {
+  changeStatusApi(item).then(res=>{
     message.success(res.msg)
   })
 }
@@ -226,7 +232,7 @@ function addUser() {
 }
 
 function del(item) {
-  delUserApi(item).then(res => {
+  delUserApi(item).then(res=>{
     message.success(res.msg)
     handleFinish();
   })
@@ -235,11 +241,11 @@ function del(item) {
 
 const resetForm = () => {
   formState.value = {
-    userName: "",
-    phonenumber: "",
-    picker: [],
-    pageNum: 1,
-    pageSize: pagination.value.pageSize
+    userName:"",
+    phonenumber:"",
+    picker:[],
+    pageNum:1,
+    pageSize:pagination.value.pageSize
   };
   handleFinish()
 }
@@ -393,6 +399,7 @@ html {
   padding: 0;
   height: 100%;
 }
+
 ::v-deep(.ant-image .ant-image-img) {
   border-radius: 50%;
   overflow: hidden;

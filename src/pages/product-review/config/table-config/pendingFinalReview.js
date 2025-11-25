@@ -13,14 +13,15 @@ export default [
     dataIndex: 'artMainImage',
     key: 'artMainImage',
     align: 'center',
-    width: 120,
+    fixed: 'left',
+    width: 60,
   },
   {
     title: '市场方向',
     dataIndex: 'devAttributableMarket',
     key: 'devAttributableMarket',
-    align: 'center',
-    width: 150,
+    align: 'left',
+    width: 120,
     show: true,
     filter: true
   },
@@ -28,8 +29,9 @@ export default [
     title: "产品名称",
     dataIndex: "commodityName",
     key: "commodityName",
-    align: "center",
+    align: "left",
     width: 200,
+    minWidth: 200,
     show: true,
     filter: true,
   },
@@ -37,8 +39,8 @@ export default [
     title: '产品SKU',
     dataIndex: 'skuList',
     key: 'skuList',
-    align: 'center',
-    width: 200,
+    align: 'left',
+    width: 120,
     show: true,
     filter: true
   },
@@ -47,7 +49,7 @@ export default [
     dataIndex: 'meansKeepGrain',
     key: 'meansKeepGrain',
     align: 'center',
-    width: 188,
+    width: 200,
     show: true,
     filter: true
   },
@@ -56,8 +58,7 @@ export default [
     dataIndex: 'classify',
     key: 'classify',
     align: 'center',
-    width: 300,
-    minWidth: 300,
+    width: 330,
     show: true,
     filter: true
   },
@@ -66,7 +67,7 @@ export default [
     dataIndex: 'selectUserName',
     key: 'selectUserName',
     align: 'center',
-    width: 120,
+    width: 100,
     show: true,
     filter: true
   },
@@ -75,7 +76,7 @@ export default [
     dataIndex: 'selectTime',
     key: 'selectTime',
     align: 'center',
-    width: 180,
+    width: 150,
     show: true,
     filter: true,
     sortable: true
@@ -84,8 +85,8 @@ export default [
     title: '选品理由',
     dataIndex: 'selectReason',
     key: 'selectReason',
-    align: 'center',
-    width: 300,
+    align: 'left',
+    width: 200,
     show: true,
   }
 ]

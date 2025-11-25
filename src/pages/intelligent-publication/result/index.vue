@@ -176,16 +176,6 @@
               </a-form-item>
             </a-form>
           </a-form-item>
-          <!-- <a-form-item label="刊登模式：">
-            <div class="text-left ml-2.5">
-              <TiledSelect
-                v-model:value="formData.publishType"
-                :options="PUBLISH_TYPE_OPTIONS"
-                ref="publishTypeRef"
-                @change="getList"
-              />
-            </div>
-          </a-form-item> -->
           <a-form-item label="排序方式：">
             <div class="flex align-start">
               <a-button
@@ -215,86 +205,50 @@
           style="width: 100%; height: 38px"
           class="flex justify-between"
         >
-          <div>
-            <a-space :size="10">
-              <a-dropdown :disabled="selectedRows.length === 0">
-                <template #overlay>
-                  <a-menu @click="handleMenuClick">
-                    <a-menu-item
-                      key="deactivate"
-                      v-if="activeName !== '已归档'"
-                    >
-                      批量归档
-                    </a-menu-item>
-                    <a-menu-item key="remark"> 批量备注 </a-menu-item>
-                    <a-menu-item key="delete"> 批量删除 </a-menu-item>
-                    <a-menu-divider />
-                    <a-menu-item key="price"> 批量修改售价 </a-menu-item>
-                    <a-menu-item key="oldPrice"> 批量修改原价 </a-menu-item>
-                    <a-menu-item key="stock"> 批量修改库存 </a-menu-item>
-                    <a-menu-item key="all"> 全属性修改 </a-menu-item>
-                  </a-menu>
-                </template>
-                <a-button type="primary">
-                  批量操作
-                  <DownOutlined />
-                </a-button>
-              </a-dropdown>
-            </a-space>
-          </div>
-          <div>
-            <a-space :size="10">
+          <a-space>
+            <a-button
+              type="primary"
+              :disabled="selectedRows.length === 0"
+              @click="addRemark()"
+              >批量备注</a-button
+            >
+            <a-popconfirm
+              title="确认删除(此删除仅代表在erp上删除)？"
+              :disabled="selectedRows.length === 0"
+              @confirm="deleteItem()"
+              @cancel="setUncheck"
+            >
               <a-button
-                type="link"
-                @click="shopSet"
+                danger
+                :disabled="selectedRows.length === 0"
+                >批量删除</a-button
               >
-                <AsyncIcon icon="SettingOutlined" />
-                店铺设置
+            </a-popconfirm>
+          </a-space>
+
+          <a-space>
+            <a-dropdown>
+              <template #overlay>
+                <a-menu @click="handleAsyncClick">
+                  <a-menu-item
+                    key="All"
+                    :loading="syncLoading"
+                    >同步全部产品</a-menu-item
+                  >
+                  <a-menu-item
+                    key="single"
+                    :loading="syncLoading"
+                    :disabled="selectedRows.length === 0"
+                    >同步选中产品</a-menu-item
+                  >
+                </a-menu>
+              </template>
+              <a-button type="primary">
+                同步产品
+                <DownOutlined />
               </a-button>
-              <!-- <a-button
-                type="primary"
-                @click="add()"
-                >创建产品</a-button
-              > -->
-              <a-dropdown>
-                <template #overlay>
-                  <a-menu @click="handleExport">
-                    <a-menu-item key="page">按页导出</a-menu-item>
-                    <a-menu-item
-                      key="number"
-                      :disabled="selectedRows.length === 0"
-                      >按勾选导出</a-menu-item
-                    >
-                  </a-menu>
-                </template>
-                <a-button type="primary">
-                  导出产品
-                  <DownOutlined />
-                </a-button>
-              </a-dropdown>
-              <a-dropdown>
-                <template #overlay>
-                  <a-menu @click="handleAsyncClick">
-                    <a-menu-item
-                      key="All"
-                      :loading="syncLoading"
-                      >同步全部产品</a-menu-item
-                    >
-                    <a-menu-item
-                      key="single"
-                      :loading="syncLoading"
-                      :disabled="selectedRows.length === 0"
-                      >同步选中产品</a-menu-item
-                    >
-                  </a-menu>
-                </template>
-                <a-button type="primary">
-                  同步产品
-                  <DownOutlined />
-                </a-button>
-              </a-dropdown>
-            </a-space>
-          </div>
+            </a-dropdown>
+          </a-space>
         </div>
         <div class="flex items-baseline justify-between">
           <a-tabs
@@ -372,7 +326,8 @@
                 ><span>总产品({{ tbItem.count }})</span>
               </div>
               <div class="mr-15px">
-                <a-dropdown>
+                <a-button v-if="tbItem.count > 1" type="link" @click="edit(tbItem, 'all')">编辑总产品</a-button>
+                <!-- <a-dropdown>
                   <a
                     class="ant-dropdown-link mr-15px block"
                     @click.prevent
@@ -387,7 +342,7 @@
                       <a-menu-item @click="copyItems(tbItem, 'all')"> 复制为"新产品" </a-menu-item>
                     </a-menu>
                   </template>
-                </a-dropdown>
+                </a-dropdown> -->
               </div>
             </div>
             <a-table
@@ -469,10 +424,7 @@
                     {{ getStateLabel(record.state) }}
                   </a-tag>
                 </div>
-                <div
-                  v-else-if="column.dataIndex === 'sku'"
-                  class="text-left"
-                >
+                <div v-else-if="column.dataIndex === 'sku'">
                   <div>
                     <div class="text-[#1677ff] cursor-pointer">
                       <a-tooltip placement="topLeft">
@@ -680,7 +632,7 @@
                         </div>
                         <span
                           v-else
-                          class="ml-2.5"
+                          class="ml-2"
                           >{{ 0.0 }}分</span
                         >
                       </div>
@@ -848,7 +800,7 @@
                           <a-button
                             type="primary"
                             :disabled="record.errors && record.errors.length == 0"
-                            class="ml-5"
+                            class="ml-2"
                             >更多信息</a-button
                           >
                         </a-popover>
@@ -859,10 +811,7 @@
                 <div v-else-if="column.dataIndex === 'publishType'">
                   <div>{{ PUBLISH_TYPE_OPTIONS.find(opt => opt.value === record.publishType)?.label || '--' }}</div>
                 </div>
-                <div
-                  v-else-if="column.dataIndex === 'createdAt'"
-                  class="flex flex-col items-start"
-                >
+                <div v-else-if="column.dataIndex === 'createdAt'">
                   <div>
                     创建时间：<span class="text-[#9e9f9e]">{{ timestampToDateTime(record.createTime) }}</span>
                   </div>
@@ -871,7 +820,37 @@
                   </div>
                 </div>
                 <div v-else-if="column.dataIndex === 'option'">
-                  <a-row>
+                  <a-space>
+                    <a-button
+                      v-if="record.state !== '已归档'"
+                      type="link"
+                      @click="edit(record, 'single')"
+                      >编辑</a-button
+                    >
+                    <a-button
+                      type="link"
+                      @click="syncOne(record)"
+                      >同步</a-button
+                    >
+                    <a-button
+                      type="link"
+                      @click="addRemark(record)"
+                      >备注</a-button
+                    >
+                    <a-popconfirm
+                      title="确认删除(此删除仅代表在erp上删除)？"
+                      @confirm="deleteItem(record)"
+                      @cancel="setUncheck"
+                    >
+                      <a-button
+                        type="link"
+                        danger
+                        >删除</a-button
+                      >
+                    </a-popconfirm>
+                  </a-space>
+
+                  <!-- <a-row>
                     <a-col
                       :span="11"
                       v-if="record.state !== '已归档'"
@@ -908,8 +887,8 @@
                               style="color: #e6a23c"
                             >
                               <a-popconfirm
-                                ok-text="YES"
-                                cancel-text="NO"
+                                ok-text="确定"
+                                cancel-text="取消"
                                 title="归档吗？"
                                 @confirm="deactivate(record)"
                               >
@@ -919,8 +898,8 @@
                             <a-menu-item @click="addRemark(record)"> 备注 </a-menu-item>
                             <a-menu-item style="color: red">
                               <a-popconfirm
-                                ok-text="YES"
-                                cancel-text="NO"
+                                ok-text="确定"
+                                cancel-text="取消"
                                 title="删除代表该产品在ozon平台删除，确定删除吗？"
                                 @confirm="deleteItem(record)"
                               >
@@ -931,7 +910,7 @@
                         </template>
                       </a-dropdown>
                     </a-col>
-                  </a-row>
+                  </a-row> -->
                 </div>
               </template>
             </a-table>
@@ -1172,7 +1151,7 @@
     {
       label: '按更新时间',
       type: 'bottom',
-      value: 'update_tiem',
+      value: 'update_time',
       prop: 2,
       isDefault: false
     },
@@ -1958,6 +1937,7 @@
     getAccount()
   })
 </script>
+
 <style lang="less" scoped>
   .outContent {
     border: 1px solid #ccc;
