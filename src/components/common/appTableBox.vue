@@ -235,7 +235,7 @@ const scrollData = computed(() => {
       maxHeight = props.scroll.y
     }
   } else {
-    maxHeight = heightInfo.outerDomHeight - heightInfo.formHeight
+    maxHeight = (heightInfo.outerDomHeight - heightInfo.formHeight) + 'px';
   }
   return {
     y: maxHeight,
@@ -243,7 +243,7 @@ const scrollData = computed(() => {
   };
 })
 const scrollHeigth = computed(() => {
-  let maxHeight = heightInfo.outerDomHeight - heightInfo.formHeight;
+  let maxHeight = (heightInfo.outerDomHeight - heightInfo.formHeight) + 'px';
   return maxHeight;
 })
 //  获取columns
