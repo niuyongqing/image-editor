@@ -118,11 +118,9 @@ onBeforeUnmount(() => {
 const scrollFn = debounce(e => {
   form.scrollTop = contentDom.scrollTop;
   // form.formShow = (form.scrollTop <= form.offsetHeight)
-  if (form.scrollTop > form.offsetHeight) {
+  if (form.formShow && (form.scrollTop > form.offsetHeight)) {
     form.formShow = false;
-    setTimeout(() => {
-      contentDom.scrollTop += 10
-    }, 20);
+    contentDom.scrollTop += 10
   } else if (form.scrollTop === 0) {
     form.formShow = true;
   }
