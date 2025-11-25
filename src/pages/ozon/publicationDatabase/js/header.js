@@ -17,7 +17,7 @@ export const header = [
     align: "center",
     fixed: 'left',
     sorter: false,
-    width: 60,
+    width: 80,
   },
   {
     title: "产品标题",
