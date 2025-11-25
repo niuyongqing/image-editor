@@ -1,48 +1,22 @@
 <template>
-  <div>
+  <div ref="tableContainerParent">
     <a-card style="margin-top: 10px">
       <div style="margin-bottom: 10px; text-align: left">
-        <a-button class="spacing" type="primary" @click="addOneMenu"
-          >添加</a-button
-        >
-        <a-button class="spacing" type="primary" @click="dragMenuSave"
-          >拖拽保存</a-button
-        >
+        <a-button class="spacing" type="primary" @click="addOneMenu">添加</a-button>
+        <a-button class="spacing" type="primary" @click="dragMenuSave">拖拽保存</a-button>
       </div>
-      <div class="table-container" ref="tableContainer">
-        <vxe-table
-          border
-          ref="xGrid2"
-          class="mytable-style"
-          :sort-config="sortConfig"
-          :row-config="rowConfig"
-          :row-drag-config="rowDragConfig"
-          :column-config="columnConfig"
-          @cell-dblclick="cellDblclickEvent"
-          @row-dragend="rowDragendEvent"
-          :tree-config="treeConfig"
-          :data="newTopLevelMenuList"
-          :loading="tableLoading"
-          header-align="center"
-          height="1100"
-        >
+      <div :style="{ width: autoWidth }" class="table-container" ref="tableContainer">
+        <vxe-table border ref="xGrid2" class="mytable-style" :sort-config="sortConfig" :row-config="rowConfig"
+          :row-drag-config="rowDragConfig" :column-config="columnConfig" @cell-dblclick="cellDblclickEvent"
+          @row-dragend="rowDragendEvent" :tree-config="treeConfig" :data="newTopLevelMenuList" :loading="tableLoading"
+          header-align="center" height="1100">
           <vxe-column type="seq" fixed="left" align="center" width="80"></vxe-column>
-          <vxe-column
-            fixed="left"
-            field="title"
-            title="菜单名"
-            tree-node
-            drag-sort
-            :key-field="'title'"
-          >
+          <vxe-column fixed="left" field="title" title="菜单名" tree-node drag-sort :key-field="'title'">
             <template #default="{ row }">
               <div class="menu-title-container">
                 <!-- 简化图标判断逻辑，减少不必要的属性访问 -->
-                <AsyncIcon
-                  v-if="row.icon || (row.meta && row.meta.icon)"
-                  :icon="row.icon || row.meta.icon"
-                  :component-key="`icon-${row.id}`"
-                ></AsyncIcon>
+                <AsyncIcon v-if="row.icon || (row.meta && row.meta.icon)" :icon="row.icon || row.meta.icon"
+                  :component-key="`icon-${row.id}`"></AsyncIcon>
                 {{ row.title }}
               </div>
             </template>
@@ -80,39 +54,22 @@
           </vxe-column>
           <vxe-column title="操作" fixed="right" align="center">
             <template #default="{ row }">
-              <a-button type="link" @click.stop="add(row)" color="#2db7f5"
-                >添加</a-button
-              >
+              <a-button type="link" @click.stop="add(row)" color="#2db7f5">添加</a-button>
               <a-button type="link" @click.stop="edit(row)">编辑</a-button>
-              <a-popconfirm
-                :title="'确定要删除菜单吗？'"
-                @confirm="confirmDeleteMenu(row)"
-              >
+              <a-popconfirm :title="'确定要删除菜单吗？'" @confirm="confirmDeleteMenu(row)">
                 <a-button type="text" danger>删除</a-button>
               </a-popconfirm>
             </template>
           </vxe-column>
         </vxe-table>
-        <vxe-pager
-          v-model:currentPage="pageVO.currentPage"
-          v-model:pageSize="pageVO.pageSize"
-          :total="pageVO.total"
+        <vxe-pager v-model:currentPage="pageVO.currentPage" v-model:pageSize="pageVO.pageSize" :total="pageVO.total"
           @page-change="pageChange">
         </vxe-pager>
       </div>
     </a-card>
-    <add-or-edit
-      ref="addOrEditRef"
-      :open="open"
-      :title="title"
-      :data="editData"
-      @close="close"
-      @getMenuClassify="getMenuClassify"
-      @refreshMenu="refreshMenu"
-      @getMenusList="getMenusList"
-      :menus="treeMenuData"
-      :classify="classifyList"
-    ></add-or-edit>
+    <add-or-edit ref="addOrEditRef" :open="open" :title="title" :data="editData" @close="close"
+      @getMenuClassify="getMenuClassify" @refreshMenu="refreshMenu" @getMenusList="getMenusList" :menus="treeMenuData"
+      :classify="classifyList"></add-or-edit>
   </div>
 </template>
 <script setup>
@@ -126,6 +83,19 @@ import {
 import { VXETable } from "vxe-table";
 import { DownOutlined, UpOutlined } from "@ant-design/icons-vue";
 import { h } from "vue";
+import { useLayoutState } from "~/layouts/basic-layout/context.js";
+const { collapsed } = useLayoutState();
+const tableContainerParent = ref(null);
+let timer1 = null;
+const autoWidth = ref("2260px");
+watch(
+  () => collapsed.value,
+  (newVal) => {
+    timer1 = setTimeout(() => {
+      autoWidth.value = tableContainerParent.value.clientWidth - 20 + "px";
+    }, 220);
+  }
+);
 
 // 配置图标 - 使用VXETable的箭头图标名称
 VXETable.setIcon({
@@ -152,24 +122,27 @@ import { useUserStore } from "~/stores/user.js";
 const pageVO = reactive({
   total: 0,
   currentPage: 1,
-  pageSize: 20
-})
-const newTopLevelMenuList = ref([])
+  pageSize: 20,
+});
+const newTopLevelMenuList = ref([]);
 // 前端分页
 const handlePageData = () => {
-  tableLoading.value = true
+  tableLoading.value = true;
   setTimeout(() => {
-    const { pageSize, currentPage } = pageVO
-    pageVO.total = topLevelMenuList.length
-    newTopLevelMenuList.value = topLevelMenuList.slice((currentPage - 1) * pageSize, currentPage * pageSize)
-    tableLoading.value = false
-  }, 100)
-}
+    const { pageSize, currentPage } = pageVO;
+    pageVO.total = topLevelMenuList.length;
+    newTopLevelMenuList.value = topLevelMenuList.slice(
+      (currentPage - 1) * pageSize,
+      currentPage * pageSize
+    );
+    tableLoading.value = false;
+  }, 100);
+};
 const pageChange = ({ pageSize, currentPage }) => {
-  pageVO.currentPage = currentPage
-  pageVO.pageSize = pageSize
-  handlePageData()
-}
+  pageVO.currentPage = currentPage;
+  pageVO.pageSize = pageSize;
+  handlePageData();
+};
 
 // 更新菜单数据
 const refreshMenu = async () => {
@@ -253,8 +226,8 @@ function getMenuClassify() {
 }
 
 // 添加防抖函数 - 优化闭包结构
-function debounce(fn, delay = 100) {
   let timer = null;
+function debounce(fn, delay = 100) {
   return function (...args) {
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => {
@@ -414,7 +387,7 @@ const getTreeMenu = (menuList) => {
   const { topLevelMenus, childrenMap } = splitMenuDataForLazyLoad(result);
   // 直接赋值
   topLevelMenuList = topLevelMenus;
-  handlePageData()
+  handlePageData();
   console.log("childrenMap:", childrenMap);
   childrenMapList = childrenMap;
   // 复制原始子菜单映射到完整子菜单映射
@@ -527,12 +500,19 @@ onBeforeUnmount(() => {
   Object.keys(editData.value).forEach((key) => {
     delete editData.value[key];
   });
+  timer = null;
+  clearTimeout(timer1);
 });
 
 // 已在上面的onMounted中处理
 </script>
 
 <style scoped lang="less">
+.table-container {
+  // width: 2260px;
+  margin: 0 auto;
+}
+
 .spacing {
   margin-right: 10px;
 }
@@ -541,6 +521,7 @@ onBeforeUnmount(() => {
 :deep(.ant-card) {
   padding: 6px;
 }
+
 :deep(.mytable-style.vxe-table) {
   color: rgba(0, 0, 0, 0.8);
   /* 减少重绘和回流 */
@@ -548,15 +529,16 @@ onBeforeUnmount(() => {
   /* 禁用动画效果以提高性能 */
   transition: none;
 }
+
 :deep(.mytable-style.vxe-table .vxe-header--column) {
   color: rgba(0, 0, 0, 0.88);
 }
-:deep(
-    .vxe-table--render-default .vxe-cell--tree-btn .vxe-table-icon-caret-right
-  ) {
+
+:deep(.vxe-table--render-default .vxe-cell--tree-btn .vxe-table-icon-caret-right) {
   color: rgba(0, 0, 0, 0.8);
   pointer-events: auto;
 }
+
 :deep(.vxe-table--render-default .vxe-cell--tree-btn) {
   /* 修改为使用flex布局实现居中 */
   display: flex;
