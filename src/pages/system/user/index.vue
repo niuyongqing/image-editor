@@ -297,79 +297,76 @@ const showTotal = (total, range) => {
         </a-form-item>
       </template>
     </appTableForm>
-    <a-card style="margin-top: 10px; padding: 0">
-      <app-table-box
-        :align="'left'"
-        resetSetMenu="product-list"
-        :table-header="columns"
-        :data-source="tableData"
-        :scroll="{ y: 930 }"
-        v-model:filter-columns="columns"
-      >
-        <!-- 左侧工具栏 -->
-        <template #leftTool>
-          <a-button
-            type="primary"
-            @click="addUser"
-            v-has-permi="['system:user:add']"
-            >新增</a-button
-          >
-        </template>
-        <template #bodyCell="{ column, record }">
-          <div v-if="column.dataIndex === 'avatar'" style="text-align: center">
-            <a-avatar v-if="record.avatar" :src="record.avatar"></a-avatar>
-            <a-image
-              v-else
-              size="small"
-              :src="randomAvatar(record.sex)"
-            ></a-image>
-          </div>
-          <div v-if="column.dataIndex === 'status'">
-            <a-switch
-              v-if="record.userName !== 'admin'"
-              v-model:checked="record.status"
-              checkedValue="0"
-              unCheckedValue="1"
-              @change="setStatus(record)"
-              :disabled="!checkPermi(['system:user:edit'])"
-            />
-          </div>
-          <div v-if="column.dataIndex === 'option'">
-            <a-button
-              @click="edit(record)"
-              type="text"
-              color="blue"
-              v-if="
-                record.userName !== 'admin' && checkPermi(['system:user:edit'])
-              "
-              >编辑</a-button
-            >
-            <a-popconfirm
-              title="确定删除吗？"
-              ok-text="Yes"
-              cancel-text="No"
-              @confirm="del(record)"
-              v-if="
-                record.userName !== 'admin' &&
-                checkPermi(['system:user:remove'])
-              "
-              ><a color="red">删除</a></a-popconfirm
-            >
-          </div>
-        </template>
-        <!-- 分页插槽 -->
-        <template #pagination>
-          <appTablePagination
-            @pageNumChange="handlePageChange"
-            @pageSizeChange="handlePageSizeChange"
-            v-model:current="pagination.current"
-            v-model:pageSize="pagination.pageSize"
-            :total="pagination.total"
+    <app-table-box
+      :align="'left'"
+      resetSetMenu="product-list"
+      :table-header="columns"
+      :data-source="tableData"
+      :scroll="{ y: 930 }"
+      v-model:filter-columns="columns"
+    >
+      <!-- 左侧工具栏 -->
+      <template #leftTool>
+        <a-button
+          type="primary"
+          @click="addUser"
+          v-has-permi="['system:user:add']"
+          >新增</a-button
+        >
+      </template>
+      <template #bodyCell="{ column, record }">
+        <div v-if="column.dataIndex === 'avatar'" style="text-align: center">
+          <a-avatar v-if="record.avatar" :src="record.avatar"></a-avatar>
+          <a-image
+            v-else
+            size="small"
+            :src="randomAvatar(record.sex)"
+          ></a-image>
+        </div>
+        <div v-if="column.dataIndex === 'status'">
+          <a-switch
+            v-if="record.userName !== 'admin'"
+            v-model:checked="record.status"
+            checkedValue="0"
+            unCheckedValue="1"
+            @change="setStatus(record)"
+            :disabled="!checkPermi(['system:user:edit'])"
           />
-        </template>
-      </app-table-box>
-
-      <!-- <div class="table-container" ref="tableContainer" style="text-align: left" >
+        </div>
+        <div v-if="column.dataIndex === 'option'">
+          <a-button
+            @click="edit(record)"
+            type="text"
+            color="blue"
+            v-if="
+              record.userName !== 'admin' && checkPermi(['system:user:edit'])
+            "
+            >编辑</a-button
+          >
+          <a-popconfirm
+            title="确定删除吗？"
+            ok-text="Yes"
+            cancel-text="No"
+            @confirm="del(record)"
+            v-if="
+              record.userName !== 'admin' && checkPermi(['system:user:remove'])
+            "
+            ><a color="red">删除</a></a-popconfirm
+          >
+        </div>
+      </template>
+      <!-- 分页插槽 -->
+      <template #pagination>
+        <appTablePagination
+          @pageNumChange="handlePageChange"
+          @pageSizeChange="handlePageSizeChange"
+          v-model:current="pagination.current"
+          v-model:pageSize="pagination.pageSize"
+          :total="pagination.total"
+        />
+      </template>
+    </app-table-box>
+    <!-- <div class="table-container" ref="tableContainer" style="text-align: left" >
         <a-button type="primary" style="margin-bottom: 10px;" @click="addUser"  v-has-permi="['system:user:add']">新增</a-button>
         <a-table bordered :dataSource="tableData" :columns="columns" :pagination="false" :scroll="{ y: tableHeight, x: '100%',virtual: true }" :loading="tableLoading">
           <template #bodyCell="{ column, record}">
@@ -383,7 +380,6 @@ const showTotal = (total, range) => {
         </a-table>
         <a-pagination style="text-align: right;margin-top: 10px;" :current="pagination.pageNum" :page-size="pagination.pageSize" :page-size-options="pagination.pageSizeOptions" :show-quick-jumper="true" :show-less-items="true" :show-title="true" :show-total="showTotal" :total="pagination.total" @change="handleTableChange"/>
     </div> -->
-    </a-card>
     <add-or-edit
       :title="title"
       :open="open"
