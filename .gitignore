@@ -2,6 +2,4 @@
 .idea
 dist
 /package-lock.json
-/vite.config.ts
-/.env.development
 platform
