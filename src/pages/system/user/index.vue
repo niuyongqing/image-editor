@@ -93,25 +93,31 @@ const columns = [
     title: '姓名',
     dataIndex: 'userName',
     fixed: 'left',
+    align: 'center',
+    width: 200,
     key: 'userName',
   },{
     title: '别名',
     dataIndex: 'nickName',
+     align: 'center',
+    width: 200,
     key: 'nickName',
   },{
     title: '电话号码',
     dataIndex: 'phonenumber',
-    align: 'right',
+    width: 250,
+    align: 'center',
     key: 'phonenumber',
   },{
     title: '状态',
     dataIndex: 'status',
     key: 'status',
     align: 'center',
-    width: 80,
+    width: 100,
   },{
     title: 'Email',
     dataIndex: 'email',
+    width: 260,
     key: 'email',
   },{
     title: '创建时间',
