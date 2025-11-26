@@ -496,13 +496,13 @@
 
                       </a-col>
                       <a-col :span="11">
-                        <a-dropdown>
+                        <a-dropdown trigger="click">
                           <a class="ant-dropdown-link">
                             更多
                             <DownOutlined />
                           </a>
                           <template #overlay>
-                            <a-menu>
+                            <a-menu  class="w-40" >
                               <a-menu-item style="color: #67c23a" @click="syncOne(record)">
                                 同步
                               </a-menu-item>
@@ -519,6 +519,16 @@
                                 <a-popconfirm ok-text="YES" cancel-text="NO" title="删除代表该产品在ozon平台删除，确定删除吗？" @confirm="deleteItem(record)">
                                   <span>删除</span>
                                 </a-popconfirm>
+                              </a-menu-item>
+                              <a-menu-item>
+                          <a-tooltip placement="left" color="#fff" trigger="click">
+                            <template #title>
+                              <div class="text-[#1677ff] mr-2" href="#" @click="participateAdvertisement('click',record.sku)">加入点击付费广告</div>
+                              <div class="text-[#1677ff]" href="#" @click="participateAdvertisement('order',record.sku)">加入订单付费广告</div>
+                            </template>
+                              <span class="cursor-pointer" >参加广告</span>
+                          </a-tooltip>
+
                               </a-menu-item>
                             </a-menu>
                           </template>
@@ -1588,6 +1598,13 @@ const getShopSet = () => {
     shopCurryList.value = res?.data ?? [];
   });
 };
+// 参加广告
+const participateAdvertisement = (type, sku) => {
+  copyText(sku);
+  message.success(`参加${type}广告成功`);
+}
+
+
 // tabs的商品统计条数赋值
 watch(tabQuantity, (newValue, oldValue) => {
   if (newValue.length === 0) {
