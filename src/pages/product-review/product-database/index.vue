@@ -135,8 +135,8 @@
             <span v-if="record.devAccount == 8">菲律宾本土仓开发</span>
           </template>
           <template v-else-if="key === 'isIntelligent'">
-            <a-tag v-if="record.isIntelligent == 0" color="error">未选品</a-tag>
-            <a-tag v-else color="success">已选品</a-tag>
+            <a-tag v-if="record.isIntelligent == 1 || record.isIntelligent == 2" color="success">已选品</a-tag>
+            <a-tag v-else color="error">未选品</a-tag>
           </template>
           <template v-else-if="key === 'devAttributableMarket'">
             <div v-html="devAttributableMarket(record.devAttributableMarket)"></div>
