@@ -7,3 +7,4 @@ dist
 /.env.development.local
 platform
 .vscode
+types
