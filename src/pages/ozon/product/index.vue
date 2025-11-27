@@ -92,6 +92,20 @@
                 <a-dropdown :disabled="selectedRows.length === 0">
                   <template #overlay>
                     <a-menu @click="handleMenuClick">
+                      <a-menu-item key="advertising">
+                        <a-tooltip placement="right" color="#fff">
+                          <template #title>
+                            <div class="text-[#1677ff] cursor-pointer p-1 hover:bg-[#1677ff] hover:text-white" href="#"
+                              @click="participateAdvertisement('click', selectedRows)">加入点击付费广告</div>
+                            <div class="text-[#1677ff] cursor-pointer p-1 hover:bg-[#1677ff] hover:text-white" href="#"
+                              @click="participateAdvertisement('order', selectedRows)">加入订单付费广告</div>
+                          </template>
+                          <div>
+                            <span class="cursor-pointer mr-4">批量参加广告</span>
+                            <RightOutlined/>
+                          </div>
+                        </a-tooltip>
+                      </a-menu-item>
                       <a-menu-item key="deactivate" v-if="activeName !== '已归档'">
                         批量归档
                       </a-menu-item>
@@ -102,6 +116,7 @@
                       <a-menu-item key="oldPrice"> 批量修改原价 </a-menu-item>
                       <a-menu-item key="stock"> 批量修改库存 </a-menu-item>
                       <a-menu-item key="all"> 全属性修改 </a-menu-item>
+
                     </a-menu>
                   </template>
                   <a-button type="primary">
@@ -298,7 +313,7 @@
                                   </div>
                                   <div>
                                     <span class="text-[#999]">至少填写{{ record.productsScore[0].groups[0].improveAtLeast
-                                    }}个属性可得最大分数</span>
+                                      }}个属性可得最大分数</span>
                                     <ul>
                                       <li v-for="(item, index) in record.productsScore[0].groups[0].improveAttributes"
                                         :key="index">
@@ -329,7 +344,7 @@
                                   </div>
                                   <div>
                                     <span class="text-[#999]">至少填写{{ record.productsScore[0].groups[1].improveAtLeast
-                                    }}个属性可得最大分数</span>
+                                      }}个属性可得最大分数</span>
                                     <ul>
                                       <li v-for="(item, index) in record.productsScore[0].groups[1].improveAttributes"
                                         :key="index">
@@ -360,7 +375,7 @@
                                   </div>
                                   <div>
                                     <span class="text-[#999]">至少填写{{ record.productsScore[0].groups[2].improveAtLeast
-                                    }}个属性可得最大分数</span>
+                                      }}个属性可得最大分数</span>
                                     <ul>
                                       <li v-for="(item, index) in record.productsScore[0].groups[2].improveAttributes"
                                         :key="index">
@@ -391,7 +406,7 @@
                                   </div>
                                   <div>
                                     <span class="text-[#999]">至少填写{{ record.productsScore[0].groups[3].improveAtLeast
-                                    }}个属性可得最大分数</span>
+                                      }}个属性可得最大分数</span>
                                     <ul>
                                       <li>Ozon视频： 链接</li>
                                       <li>Ozon.视频封面：链接</li>
@@ -424,8 +439,8 @@
                   </div>
                   <div v-else-if="column.dataIndex === 'oldPrice'">
                     <span class="text-[#1677ff]" v-if="!(singleVisible && itemId == record.id)">{{ record.currencyCode
-                    }} {{
-                        record.oldPrice }}</span>
+                      }} {{
+                      record.oldPrice }}</span>
                     <div v-else class="inline-block">
                       <a-input-number class="mr-2.5 w-30" v-model:value="record.oldPrice" placeholder="请输原价格" :min="0"
                         :precision="2"></a-input-number>
@@ -446,7 +461,8 @@
                       <a-button type="primary" @click="checkOldPrice(record)">确定</a-button>
                     </div>
                     <AsyncIcon v-if="!(minPriceVisible && itemId == record.id) && record.state === '在售'"
-                      class="cursor-pointer text-[#1677ff] ml-2.5" icon="EditOutlined" @click="handelEditminPrice(record)">
+                      class="cursor-pointer text-[#1677ff] ml-2.5" icon="EditOutlined"
+                      @click="handelEditminPrice(record)">
                     </AsyncIcon>
                   </div>
                   <div v-else-if="column.dataIndex === 'stock'">
@@ -496,13 +512,13 @@
 
                       </a-col>
                       <a-col :span="11">
-                        <a-dropdown trigger="click">
+                        <a-dropdown>
                           <a class="ant-dropdown-link">
                             更多
                             <DownOutlined />
                           </a>
                           <template #overlay>
-                            <a-menu  class="w-40" >
+                            <a-menu class="w-30">
                               <a-menu-item style="color: #67c23a" @click="syncOne(record)">
                                 同步
                               </a-menu-item>
@@ -516,19 +532,24 @@
                               </a-menu-item>
                               <a-menu-item @click="addRemark(record)"> 备注 </a-menu-item>
                               <a-menu-item style="color: red">
-                                <a-popconfirm ok-text="YES" cancel-text="NO" title="删除代表该产品在ozon平台删除，确定删除吗？" @confirm="deleteItem(record)">
+                                <a-popconfirm ok-text="YES" cancel-text="NO" title="删除代表该产品在ozon平台删除，确定删除吗？"
+                                  @confirm="deleteItem(record)">
                                   <span>删除</span>
                                 </a-popconfirm>
                               </a-menu-item>
                               <a-menu-item>
-                          <a-tooltip placement="left" color="#fff" trigger="click">
-                            <template #title>
-                              <div class="text-[#1677ff] mr-2" href="#" @click="participateAdvertisement('click',record.sku)">加入点击付费广告</div>
-                              <div class="text-[#1677ff]" href="#" @click="participateAdvertisement('order',record.sku)">加入订单付费广告</div>
-                            </template>
-                              <span class="cursor-pointer" >参加广告</span>
-                          </a-tooltip>
-
+                                <a-tooltip placement="right" color="#fff">
+                                  <template #title>
+                                    <div class="text-[#1677ff] cursor-pointer p-1 hover:bg-[#1677ff] hover:text-white"
+                                      href="#" @click="participateAdvertisement('click',[record])">加入点击付费广告</div>
+                                    <div class="text-[#1677ff] cursor-pointer p-1 hover:bg-[#1677ff] hover:text-white"
+                                      href="#" @click="participateAdvertisement('order',[record])">加入订单付费广告</div>
+                                  </template>
+                                  <div>
+                                  <span class="cursor-pointer mr-4">参加广告</span>
+                                  <RightOutlined/>
+                                  </div>
+                                </a-tooltip>
                               </a-menu-item>
                             </a-menu>
                           </template>
@@ -570,6 +591,9 @@
     <!-- 店铺设置 -->
     <shopSetModal :shopSetVisible="shopSetVisible" :shopCurryList="shopCurryList"
       @handleShopSetClose="shopSetVisible = false" @refreshShopSet="getShopSet"></shopSetModal>
+    <!-- 广告设置 -->
+    <advertisingModal :open="advertisingVisible" :type="advertisingModalType" @update:open="handleVisibleChange"
+      @ok="handleOk" :productsList="productsList"></advertisingModal>
   </div>
 </template>
 
@@ -591,7 +615,9 @@ import {
   exportProduct,
   shopCurrency,
   brandCategory,
-  moveCategoryApi
+  moveCategoryApi,
+  getAdvertisingOrder,
+  getAdvertisingClick,
 } from "../config/api/product";
 import { warehouseList } from "../config/api/storeManagement";
 import { tabDicList, attrList, colors } from "../config/commDic/defDic";
@@ -614,15 +640,19 @@ import {
   CloudUploadOutlined,
   DownloadOutlined,
   DownOutlined,
+  RightOutlined
 } from "@ant-design/icons-vue";
 import download from "~/api/common/download";
 import typeTree from '@/components/classificationTree/typeTree.vue';
 import { groupProductCountApi } from '../config/api/draft'
 import SideBar from '@/pages/ozon/config/component/SideBar/index.vue';
+import advertisingModal from './comm/advertisingModal.vue';
 
 const { copy } = useClipboard();
 const OzonProduct = ref(null);
 const formRef = ref(null);
+const advertisingVisible = ref(false);
+
 const formData = reactive({
   id: "",
   account: "",
@@ -685,6 +715,7 @@ const copyList = ref([]);
 const shopCurryList = ref([]);
 const asyncErrData = ref([]);
 const brandList = ref([]);
+
 const errorColumns = [
   {
     title: "错误字段",
@@ -795,6 +826,25 @@ async function typeNodeClick(node) {
   }
 };
 
+// 广告添加
+const handleOk = async (params) => {
+  const api = advertisingModalType === 'click' ? getAdvertisingClick : getAdvertisingOrder
+  try {
+    const res = await api(params)
+    if (res.code === 200) {
+     message.success('广告添加成功')
+     getList()
+    }
+  } catch (error) {
+     message.error('广告添加失败')
+    console.error(error)
+  }
+  advertisingVisible.value = false
+}
+
+const handleVisibleChange = (visible) => {
+  advertisingVisible.value = visible
+}
 /** 左侧边栏 */
 const defaultActive = ref('0')
 let categoryId = '0'
@@ -1114,6 +1164,9 @@ const handleAsyncClick = (e) => {
 
 // 批量修改库存、重量、尺寸等
 const handleMenuClick = (e) => {
+  if (e.key === "advertising") {
+    return;
+  }
   if (e.key === "remark") {
     addRemark();
   } else if (e.key === "delete") {
@@ -1598,10 +1651,26 @@ const getShopSet = () => {
     shopCurryList.value = res?.data ?? [];
   });
 };
+
+const productsList = ref([]);
+const advertisingModalType = ref('click')
+
 // 参加广告
-const participateAdvertisement = (type, sku) => {
-  copyText(sku);
-  message.success(`参加${type}广告成功`);
+const participateAdvertisement = (type, records) => {
+  if (!records.length) {
+    message.error("请选择商品");
+    return;
+  }
+  // 必须是同一个店铺
+  const accounts = records.map(item => item.account);
+  if (new Set(accounts).size !== 1) {
+    message.error("批量加入广告不支持多店铺，请选择同一店铺产品后操作");
+    return;
+  }
+  console.log(type, records);
+  productsList.value = records;
+  advertisingModalType.value = type
+  handleVisibleChange(true);
 }
 
 

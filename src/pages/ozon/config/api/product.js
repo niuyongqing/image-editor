@@ -365,6 +365,33 @@ export function moveCategoryApi(params) {
   return usePost('/platform-ozon/platform/ozon/product/move/category', params)
 }
 
+// 获取全部广告活动
+export function getAdvertisingActivityList(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/advertisement/activity/list',
+    method: 'post',
+    data
+  })
+}
+
+// 加入点击付费广告
+export function getAdvertisingClick(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/product/add/advertising',
+    method: 'post',
+    data
+  })
+}
+
+// 加入订单付费广告
+export function getAdvertisingOrder(data) {
+  return request({
+    url: '/platform-ozon/platform/ozon/product/add/order/advertising',
+    method: 'post',
+    data
+  })
+}
+
 // 根据资料库ID查询关联的分类详情数据
 export function dataBaseDetail(data) {
   return request({
