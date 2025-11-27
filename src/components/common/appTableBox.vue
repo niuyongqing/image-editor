@@ -171,9 +171,13 @@ const props = defineProps({
   scroll: {
     // 表格滚动属性
     type: Object,
-    default: () => ({}),
+    default: () => ({ x: 800 }),
   },
   isTableSetting: {             // 是否启用表格设置
+    type: Boolean,
+    default: true,
+  },
+  autoHeight: {             // 是否启用表格设置
     type: Boolean,
     default: true,
   },
@@ -237,14 +241,11 @@ const scrollData = computed(() => {
   } else {
     maxHeight = (heightInfo.outerDomHeight - heightInfo.formHeight) + 'px';
   }
-  return {
-    y: maxHeight,
-    ...props.scroll,
-  };
+  return props.autoHeight ? { y: maxHeight, ...props.scroll } : props.scroll;
 })
 const scrollHeigth = computed(() => {
   let maxHeight = (heightInfo.outerDomHeight - heightInfo.formHeight) + 'px';
-  return maxHeight;
+  return props.autoHeight ? maxHeight : 'auto';
 })
 //  获取columns
 onMounted(async () => {
@@ -266,14 +267,21 @@ watch(() => columns.list, (val, oldVal) => {
 }, {
   deep: true,
 });
+// 计算查询表单和表格滚动区的总高度
 function getHeight() {
   let dom = document.querySelector(`.${props.resetSetMenu}-appTableBox`)
+  let antTabsHeight = document.querySelector('.ant-tabs.ant-tabs-top')?.offsetHeight || 0;
   let tableOtherCountHeight = dom.querySelector('.table-otherCount')?.offsetHeight || 0;
   let tableTitleHeight = dom.querySelector('.table-title')?.offsetHeight || 0;
   let tablePaginationHeight = dom.querySelector('.table-pagination')?.offsetHeight || 0;
-  let tableHeaderHeight = dom.querySelector('.ant-table-header')?.offsetHeight || 0;
+  // let tableHeaderHeight = dom.querySelector('.ant-table-header')?.offsetHeight || 0;
   let tableSummaryHeight = dom.querySelector('.ant-table-summary table')?.offsetHeight || 0;
-  heightInfo.outerDomHeight = (window.innerHeight * 0.96) - tableOtherCountHeight - tableTitleHeight - tablePaginationHeight - tableHeaderHeight - tableSummaryHeight - 20
+  // console.log({
+  //   antTabsHeight,tableOtherCountHeight,tableTitleHeight,tablePaginationHeight,tableSummaryHeight
+  // });
+  
+  heightInfo.outerDomHeight = window.innerHeight - antTabsHeight - tableOtherCountHeight - (tableTitleHeight + 8) - tablePaginationHeight - 40 - tableSummaryHeight - 20 - 24 - 10 - 8
+  // 总高度 - 页签栏高度 - 表格最上方插槽高度 - 表格工具按钮栏高度+margin-bottom - 分页器插槽高度 - 表头高度（固定40） - 合计行高度 - main容器上下margin（20） - 表格组件card容器上下padding（24） - 横向滚动条高度（10） - 表格组件和查询表单组件的上下padding（8）
 
   const targetDom = document.getElementById('appTableForm');
   if (!targetDom) return;

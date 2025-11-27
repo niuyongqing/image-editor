@@ -52,15 +52,6 @@
         <a-form-item label="十色调个手" name="dfgdsfg">
           <a-switch v-model:checked="formData.rrfghjgfhjrr" />
         </a-form-item>
-        <a-form-item label="十色调个手" name="asdgasdgasd">
-          <a-form-item-rest>
-            <div flex gap-10px style="width: 400px">
-              <a-input v-model:value="formData.productName" placeholder="商品名"></a-input>
-              <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
-              <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
-            </div>
-          </a-form-item-rest>
-        </a-form-item>
         <a-form-item label="十多个十多个" name="asdfgasdgfas">
           <!-- <a-select v-model:value="formData.ddd">
             <a-select-option value="demo">ERG</a-select-option>
@@ -77,6 +68,15 @@
             placeholder="Please select"
             @popupScroll="popupScroll"
           ></a-select>
+        </a-form-item>
+        <a-form-item label="十色调个手" name="asdgasdgasd">
+          <a-form-item-rest>
+            <div flex gap-10px style="width: 400px">
+              <a-input v-model:value="formData.productName" placeholder="商品名"></a-input>
+              <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
+              <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
+            </div>
+          </a-form-item-rest>
         </a-form-item>
       </template>
       <template #formItemRow>
@@ -136,7 +136,7 @@
       :row-selection="{ selectedRowKeys: tableData.selectedRowKeys, onChange: onSelectChange }" 
       @change="tableChange"
       :customRow="customRow"
-      :scroll="{x: 1, y: false}"
+      :auto-height="true"
     >
       <template #leftTool>
         <a-button type="primary" @click="openModal">提交编辑</a-button>
@@ -144,31 +144,6 @@
         <a-button type="primary">Primary Button</a-button>
         <a-button type="primary">提交编辑</a-button>
         <a-button type="primary">添加备注</a-button>
-        <!-- <a-button type="primary">Primary Button</a-button>
-        <a-button type="primary">提交编辑</a-button>
-        <a-button type="primary">添加备注</a-button>
-        <a-button type="primary">Primary Button</a-button>
-        <a-button type="primary">提交编辑</a-button>
-        <a-button type="primary">添加备注</a-button>
-        <a-button type="primary">Primary Button</a-button>
-        <a-button type="primary">提交编辑</a-button>
-        <a-button type="primary">添加备注</a-button>
-        <a-button type="primary">Primary Button</a-button>
-        <a-button type="primary">提交编辑</a-button>
-        <a-button type="primary">添加备注</a-button>
-        <a-button type="primary">Primary Button</a-button>
-        <a-button type="primary">提交编辑</a-button>
-        <a-button type="primary">添加备注</a-button>
-        <a-button type="primary">Primary Button</a-button>
-        <a-button type="primary">提交编辑</a-button>
-        <a-button type="primary">添加备注</a-button>
-        <a-button type="primary">Primary Button</a-button>
-        <a-button type="primary">提交编辑</a-button>
-        <a-button type="primary">添加备注</a-button>
-        <a-button type="primary">Primary Button</a-button>
-        <a-button type="primary">提交编辑</a-button>
-        <a-button type="primary">添加备注</a-button>
-        <a-button type="primary">Primary Button</a-button> -->
       </template>
       <template #rightTool>
         <a-button type="primary">提交编辑</a-button>
@@ -200,22 +175,25 @@
           </a-tag>
         </template>
       </template>
-      <!-- <template #options>
-        <a-button type="primary" @click="openModal">提交编辑</a-button>
-        <a-button type="primary">添加备注</a-button>
-      </template> -->
-      <template #summary>
+      <template #options>
+        <a-button type="text" @click="openModal">
+          <span style="color: green;">编辑</span>
+        </a-button>
+        <a-button type="text">
+          <span style="color: red;">备注</span>
+        </a-button>
+      </template>
+      <!-- <template #summary>
         <a-table-summary :fixed="'bottom'">
           <a-table-summary-row>
             <a-table-summary-cell>{{ '合计' }}</a-table-summary-cell>
-            <!-- <a-table-summary-cell></a-table-summary-cell> -->
             <a-table-summary-cell align="right" v-for="item in tableData.filterColumns.filter(i => i.show)"
               :key="item.key">
               {{ dataTotal && dataTotal[item.key] }}
             </a-table-summary-cell>
           </a-table-summary-row>
         </a-table-summary>
-      </template>
+      </template> -->
       <!-- <template #expandedRowRender="{ record: row }">
         {{ row.rowKey }}
       </template> -->
@@ -307,7 +285,7 @@ const tableData = reactive({
     // 基础信息列（1-5）
     { key: 'reportDate', title: '报表日期', width: 120, align: 'center', sorter: true },
     { key: 'accountPeriod', title: '所属期间', width: 100, align: 'center' },
-    { key: 'accountCode', title: '科目代码', width: 100 },
+    { key: 'accountCode', title: '科目代码', width: 100, fixed: 'left' },
     { key: 'accountName', title: '科目名称', width: 150 },
     { key: 'currency', title: '币种', width: 80 },
 
