@@ -289,7 +289,7 @@ function getHeight() {
   const targetDom = document.getElementById('appTableForm');
   if (!targetDom) return;
   // 1. 监听尺寸变化（ResizeObserver）
-  heightInfo.formDom = new ResizeObserver((entries) => {
+  heightInfo.formDom = new ResizeObserver(entries => {
     heightInfo.formHeight = entries[0].contentRect.height;
   });
   heightInfo.formDom.observe(targetDom);
