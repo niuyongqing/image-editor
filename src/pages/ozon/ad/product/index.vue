@@ -185,7 +185,7 @@
 
           <template v-else-if="column.key === 'bidding'">{{ record.bidding || '--' }}</template>
 
-          <template v-else-if="column.key === 'options'">
+          <template v-else-if="column.key === 'operation'">
             <a-popconfirm
               title="移除广告产品后数据将会清空，请确定是否移除"
               @confirm="del(record)"

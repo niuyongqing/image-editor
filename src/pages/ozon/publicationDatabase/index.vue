@@ -26,7 +26,7 @@
           allowClear
         ></a-select>
       </a-form-item>
-      <a-form-item label="审核时间" name="completeTime">
+      <a-form-item label="完成时间" name="completeTime">
         <a-range-picker 
           v-model:value="formData.completeTime" 
           allowClear 
@@ -37,7 +37,7 @@
       <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
         <a-form-item-rest>
           <div flex gap-10px style="width: 300px;">
-            <a-input v-model:value="formData.productName" placeholder="商品名"></a-input>
+            <a-input v-model:value="formData.productName" placeholder="产品标题"></a-input>
             <a-input v-model:value="formData.skuCode" placeholder="SKU"></a-input>
           </div>
         </a-form-item-rest>
@@ -65,6 +65,12 @@
           @click="() => (remarkData.open = true)"
           v-if="checkPermi(['ozon:intelligent:product-store:add-remark'])"
         >添加备注</a-button>
+        <a-button 
+          v-if="checkPermi(['ozon:intelligent:product-store:submit-publish'])"
+          type="primary" 
+          :disabled="tableData.selectedRows.length === 0" 
+          @click="openPublicationModal()"
+        >批量刊登</a-button>
         <!-- <a-button type="primary">Primary Button</a-button> -->
       </a-space>
     </div>
@@ -75,7 +81,7 @@
       :scroll="{ y: 'calc(80vh - 120px)', x: '2000px' }"
       :pagination="false"
       :customRow="customRow" 
-      rowKey="key_uid"
+      rowKey="id"
       :row-selection="{ selectedRowKeys: tableData.selectedRowKeys, onChange: onSelectChange }"
       :loading="tableData.loading"
       class="productDatabase-table"
@@ -99,6 +105,15 @@
           </a-tag>
           <div v-else></div>
         </template>
+        <template v-else-if="key === 'operation'">
+          <a-button v-if="checkPermi(['ozon:intelligent:product-store:submit-publish'])" type="link" @click="openPublicationModal(row)">刊登</a-button>
+          <a-button
+                type="link"
+                @click="openLogModal(row)"
+                >日志</a-button
+              >
+          <a-button type="link" @click="openListModal(row)">查看序列</a-button>
+        </template>
       </template>
     </a-table>
     <br/>
@@ -118,15 +133,39 @@
   </a-card>
   <detailsModal ref="publicationDatabase_detailsModal"></detailsModal>
   <!-- 添加备注弹窗 -->
-  <a-modal v-model:open="remarkData.open" title="添加备注" @ok="addRemarkFn">
-    <a-textarea v-model:value="remarkData.remark" placeholder="请输入备注" :rows="4" />
+  <a-modal class="remark-modal" v-model:open="remarkData.open" title="添加备注" @ok="addRemarkFn">
+    <a-textarea
+     v-model:value="remarkData.remark"
+      :maxlength="255"
+      show-count
+      placeholder="请输入备注"
+      :rows="4" />
   </a-modal>
+
+  <!-- 刊登弹窗 -->
+  <PublicationModal
+    v-model:open="publicationModalOpen"
+    :id-list="idList"
+    @refresh="tableData.selectedRowKeys = []"
+  />
+<!-- 日志弹窗 -->
+  <LogModal
+      ref="logModalRef"
+      :visible="logModalVisible"
+      :loading="logLoading"
+      :log-data="logData"
+      @update:visible="logModalVisible = $event"
+      @open="handleLogModalOpen"
+    />
+
+    <!-- 刊登序列弹窗 -->
+    <ListModal v-model:open="listModalOpen" :id="curId" />
 </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
-import { addRemark, categoryTree, getList, submitEdit, userList } from './js/api';
+import { addRemark, categoryTree, getList, submitEdit, userList,getLogListApi } from './js/api';
 import { header } from './js/header';
 import EmptyImg from '@/assets/images/aliexpress/empty.png'
 import _ from "lodash";
@@ -135,6 +174,9 @@ import detailsModal from './detailsModal.vue';
 import { message, Modal } from 'ant-design-vue';
 import { processImageSource } from '../config/commJs/index';
 import { checkPermi } from '~@/utils/permission/component/permission';
+import PublicationModal from './common/PublicationModal.vue'
+import LogModal from "./common/LogModal.vue";
+import ListModal from './common/ListModal.vue';
 defineOptions({ name: "ozon_publicationDatabase" })
 const { proxy: _this } = getCurrentInstance();
 
@@ -274,7 +316,6 @@ async function getTableList() {
     let res = await getList(params)
     let data = res.data ?? []
     data.forEach((item, index) => {
-      item.key_uid = uuidv4()
       item.rowIndex = ((tableData.params.pageNum - 1) * tableData.params.pageSize + index + 1);
       item.skuCodeList = item.skuList?.map(i => i.skuCode).join() || '';
       item.averageWeight = null;
@@ -283,13 +324,13 @@ async function getTableList() {
       item.classify = classify(item)
       if (item.skuList?.length) {
         let weight = 0
-        let price = 0
+        let costPrice = 0
         item.skuList.forEach(i => {
           weight += (i.weight ? Number(i.weight) : 0)
-          price += (i.price ? Number(i.price) : 0)
+          costPrice += (i.costPrice ? Number(i.costPrice) : 0)
         })
         item.averageWeight = (weight / item.skuList.length).toFixed(2);
-        item.averagePrice = (price / item.skuList.length).toFixed(2);
+        item.averagePrice = (costPrice / item.skuList.length).toFixed(2);
         !item.mainImage && (item.mainImage = item.skuList[0].mainImages);
       }
       item.mainImage = processImageSource(item.mainImage);
@@ -378,6 +419,65 @@ async function addRemarkFn() {
     console.error(error);
   }
 }
+
+/** 刊登 */
+const publicationModalOpen = ref(false)
+const idList = ref([])
+
+function openPublicationModal(record) {
+  if (record) {
+    // 单项
+    idList.value = [record.id]
+  } else {
+    // 批量
+    idList.value = tableData.selectedRowKeys
+  }
+  publicationModalOpen.value = true
+}
+
+/** 日志 */
+const logModalRef = ref();
+const logModalVisible = ref(false);
+const logLoading = ref(false);
+const logData = ref([]);
+const currentLogRecord = ref(null);
+function openLogModal(record) {
+  logModalRef.value.openModal(record);
+}
+
+// 处理日志弹窗打开事件
+function handleLogModalOpen(record) {
+  currentLogRecord.value = record;
+  logModalVisible.value = true;
+  fetchLogData(record);
+}
+
+// 获取日志数据
+function fetchLogData(record) {
+  logLoading.value = true;
+  getLogListApi({ productIds: [record.id] })
+    .then((res) => {
+      if(res.code === 200) {
+        logData.value = res.data || []
+      }
+    })
+    .catch((error) => {
+      console.error("获取日志数据失败:", error);
+      logData.value = [];
+    })
+    .finally(() => {
+      logLoading.value = false;
+    });
+}
+
+/** 查看序列 */
+const curId = ref()
+const listModalOpen = ref(false)
+
+function openListModal(row) {
+  curId.value = row.id
+  listModalOpen.value = true
+}
 </script>
 <style lang="less" scoped>
 .table-btn-box {
@@ -396,6 +496,14 @@ async function addRemarkFn() {
   justify-content: flex-end;
   :deep(.ant-select-selector) {
     width: 100px !important;
+  }
+}
+</style>
+
+<style lang="less">
+.remark-modal {
+  .ant-modal-footer {
+    margin-top: 24px;
   }
 }
 </style>

@@ -1,3 +1,5 @@
+import { reactive } from "vue";
+
 const globalConfig = reactive({})
 export function useGlobalConfig() {
   return globalConfig

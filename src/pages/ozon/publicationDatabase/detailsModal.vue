@@ -196,13 +196,6 @@ const publishHead = [
     align: 'center',
     width: 180
   },
-  // {
-  //   dataIndex: 'price',
-  //   title: '策划数量',
-  //   show: true,
-  //   align: 'center',
-  //   width: 180
-  // },
   {
     dataIndex: 'costPrice',
     title: '成本价（CNY）',
@@ -213,6 +206,20 @@ const publishHead = [
   {
     dataIndex: 'stock',
     title: '库存',
+    show: true,
+    align: 'center',
+    width: 120
+  },
+  {
+    title: '策划数量',
+    dataIndex: 'planNum',
+    show: true,
+    align: 'center',
+    width: 80
+  },
+  {
+    title: '售卖单位',
+    dataIndex: 'saleUnit',
     show: true,
     align: 'center',
     width: 120
@@ -273,8 +280,8 @@ async function getDetailFn() {
     })
     res.data.productAttributeList = res.data.productAttributeList || []
     res.data.editor_json_11254 = res.data.productAttributeList.find(i => i.attributeId === 11254)?.attributeValue
-    detailData.video.coverUrl = res.data.productAttributeList.find(i => i.attributeComplexId === 100002)?.attributeValue
-    detailData.video.videoList = res.data.productAttributeList.filter(i => i.attributeComplexId === 100001);
+    detailData.video.coverUrl = res.data.productAttributeList.find(i => i.attributeId === 21845)?.attributeValue
+    detailData.video.videoList = res.data.productAttributeList.filter(i => i.attributeId === 21841);
     // 从属性中找出全部的销售属性
     let aspectAll = res.data.categoryAttributeList.filter(i => i.isAspect)
     // 剔除掉所有依赖于其他主题的属性

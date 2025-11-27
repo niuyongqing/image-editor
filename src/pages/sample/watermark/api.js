@@ -1,8 +1,13 @@
 /** 水印管理 */
 
-// 列表
+// 当前用户水印列表
 export function watermarkListApi() {
   return useGet('/platform-setting/platform/setting/template/watermark/list')
+}
+
+// 所有水印列表
+export function watermarkAllListApi() {
+  return useGet('/platform-setting/platform/setting/template/watermark/allList')
 }
 
 // 详情
@@ -23,4 +28,9 @@ export function watermarkEditApi(params) {
 // 删除
 export function watermarkDelApi(id) {
   return usePost('/platform-setting/platform/setting/template/watermark/del', { id })
+}
+
+// 更换
+export function watermarkReplaceApi(params) {
+  return usePost('/platform-ozon/intelligent/shop/template/replace/template', params)
 }

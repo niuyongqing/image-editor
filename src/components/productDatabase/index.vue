@@ -6,7 +6,7 @@
     :title="'产品资料库'"
     :footer="false" 
     :maskClosable="false"
-    width="95%"
+    width="80%"
   >
     <div class="dialog-box">
       <a-card class="mt-2.5">

@@ -18,6 +18,11 @@ export function lastAudit(data) {
   })
 }
 
+// 也是审核接口
+export function auditApi(params) {
+  return usePost('/platform-ozon/platform/ozon/commodity/edit/audit', params)
+}
+
 //驳回审核
 export function rejectAudit(data) {
   return request({
@@ -30,7 +35,7 @@ export function rejectAudit(data) {
 // 获取表单列表
 export function commodityList(data) {
   return request({
-    url: `/platform-ozon/platform/ozon/commodity/list`,
+    url: `/platform-ozon/platform/ozon/commodity/editList`,
     method: 'post',
     data: data
   })

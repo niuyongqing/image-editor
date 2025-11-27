@@ -295,7 +295,7 @@ declare global {
   const useStyleTag: typeof import('@vueuse/core')['useStyleTag']
   const useSupported: typeof import('@vueuse/core')['useSupported']
   const useSwipe: typeof import('@vueuse/core')['useSwipe']
-  const useTableHeight: typeof import('../src/composables/useTableAuto.js')['useTableHeight']
+  const useTableHeight: typeof import('../src/composables/useTableHeight.js')['useTableHeight']
   const useTableQuery: typeof import('../src/composables/table-query.js')['useTableQuery']
   const useTableWidth: typeof import('../src/composables/useTableAuto.js')['useTableWidth']
   const useTemplateRef: typeof import('vue')['useTemplateRef']

@@ -20,7 +20,7 @@ export const DEFAULT_TABLE_COLUMN = [
   { title: 'CPM', key: 'cpm' },
   { title: '活动状态', key: 'activityState', fixed: 'right' },
   { title: '启用状态', key: 'state', fixed: 'right' },
-  { title: '操作', key: 'options', fixed: 'right' }
+  { title: '操作', key: 'operation', fixed: 'right' }
 ]
 
 // 广告类型枚举

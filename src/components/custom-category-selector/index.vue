@@ -3,6 +3,7 @@
   <a-modal
     title="选择分类"
     :open="open"
+    :mask-closable="false"
     width="996px"
     @cancel="cancel"
     @ok="ok"
@@ -196,7 +197,8 @@
       setTimeout(
         () => {
           if (props.categoryIds) {
-            selectedCategoryList.value = flatTreeList.value.find(item => item.uniqueCode === props.categoryIds)?.value || []
+            const list = flatTreeList.value.find(item => item.uniqueCode === props.categoryIds)?.value || []
+            selectedCategoryList.value = [...list]
             emits('update:categoryLabels', categoryLabels.value)
           }
         },
@@ -221,7 +223,7 @@
     searchState.secondLevel = ''
     searchState.thirdLevel = ''
 
-    selectedCategoryList.value = val
+    selectedCategoryList.value = [...val]
   }
 
   // 选中的分类集合
