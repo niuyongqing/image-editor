@@ -103,19 +103,19 @@
         >
           <template #headerCell="{ column }">
             <div class="resizable-header" v-if="column.key">
-              <slot name="headerCell" :column="column">
+              <slot name="headerCell" :column="column || {}">
                 {{ column?.title }}
               </slot>
               <div class="resizable-header-right" @mousedown.stop="e => onMouseDown(e, column)"></div>
             </div>
           </template>
           <template #bodyCell="{ column, record, index }">
-            <slot name="bodyCell" :record="record" :index="index" :column="column">
+            <slot name="bodyCell" :record="record || {}" :index="index" :column="column || {}">
               {{ record[column?.key] }}
             </slot>
             <template v-if="!!options && column.key === 'options'">
               <a-space>
-                <slot name="options" :record="record" :column="column"></slot>
+                <slot name="options" :record="record || {}" :column="column || {}"></slot>
               </a-space>
             </template>
           </template>
@@ -123,7 +123,7 @@
             <slot name="summary"></slot>
           </template>
           <template #expandedRowRender="{ record }" v-if="!!expandedRowRender">
-            <slot name="expandedRowRender" :record="record"></slot>
+            <slot name="expandedRowRender" :record="record || {}"></slot>
           </template>
         </a-table>
       </div>
@@ -255,7 +255,9 @@ onMounted(async () => {
     columns.columnChange = false;
     // columnDrop();
     resizDomSetting();
-    getHeight()
+    setTimeout(() => {
+      getHeight()
+    }, 100);
   });
 });
 onUnmounted(() => {
@@ -274,14 +276,15 @@ function getHeight() {
   let tableOtherCountHeight = dom.querySelector('.table-otherCount')?.offsetHeight || 0;
   let tableTitleHeight = dom.querySelector('.table-title')?.offsetHeight || 0;
   let tablePaginationHeight = dom.querySelector('.table-pagination')?.offsetHeight || 0;
-  // let tableHeaderHeight = dom.querySelector('.ant-table-header')?.offsetHeight || 0;
+  let tableHeaderHeight = dom.querySelector('.ant-table-header thead')?.offsetHeight || 0;
+  // let thead = dom.querySelector('.ant-table-header thead');
   let tableSummaryHeight = dom.querySelector('.ant-table-summary table')?.offsetHeight || 0;
   // console.log({
-  //   antTabsHeight,tableOtherCountHeight,tableTitleHeight,tablePaginationHeight,tableSummaryHeight
+  //   antTabsHeight,tableOtherCountHeight,tableTitleHeight,tablePaginationHeight,tableSummaryHeight,tableHeaderHeight,thead
   // });
   
-  heightInfo.outerDomHeight = window.innerHeight - antTabsHeight - tableOtherCountHeight - (tableTitleHeight + 8) - tablePaginationHeight - 40 - tableSummaryHeight - 20 - 24 - 10 - 8
-  // 总高度 - 页签栏高度 - 表格最上方插槽高度 - 表格工具按钮栏高度+margin-bottom - 分页器插槽高度 - 表头高度（固定40） - 合计行高度 - main容器上下margin（20） - 表格组件card容器上下padding（24） - 横向滚动条高度（10） - 表格组件和查询表单组件的上下padding（8）
+  heightInfo.outerDomHeight = window.innerHeight - antTabsHeight - tableOtherCountHeight - (tableTitleHeight + 8) - tablePaginationHeight - tableHeaderHeight - tableSummaryHeight - 20 - 24 - 10 - 8;
+  // 总高度 - 页签栏高度 - 表格最上方插槽高度 - 表格工具按钮栏高度+margin-bottom - 分页器插槽高度 - 表头高度 - 合计行高度 - main容器上下margin（20） - 表格组件card容器上下padding（24） - 横向滚动条高度（10） - 表格组件和查询表单组件的上下padding（8）
 
   const targetDom = document.getElementById('appTableForm');
   if (!targetDom) return;
