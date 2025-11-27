@@ -313,9 +313,20 @@ async function getSettingList() {
     columns.list = !!options ? [...list, col] : list;
   }
   // list = !!options ? [...list, optionsColumn] : list;
-  columns.leftList = columns.list.filter(i => i.fixed === 'left');
-  columns.rightList = columns.list.filter(i => i.fixed === 'right');
+  columns.leftList = columns.list.filter(i => {
+    if (i.fixed === 'left') {
+      i.fixedLeft = true
+    }
+    return i.fixed === 'left'
+  });
+  columns.rightList = columns.list.filter(i => {
+    if (i.fixed === 'right') {
+      i.fixedRight = true
+    }
+    return i.fixed === 'right'
+  });
   columns.centerList = columns.list.filter(i => !i.fixed);
+  columns.list = [...columns.leftList, ...columns.centerList, ...columns.rightList];
   columns.columnChange = false;
   return Promise.resolve();
 }
