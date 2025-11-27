@@ -4,60 +4,69 @@
     <template #content>
       <div class="appShopSelect-accountForm">
         <div
-          v-if="isShowAll" 
-          class="ant-btn"
-          @click="selectAll" 
-          :class="isAllSelected ? 'primary' : ''"
-        >全部</div>
-        <div
           @click="selectItem(index, item)"
           class="ant-btn"
-          :class="selectedIndex === index ? 'primary' : ''"
-          v-for="(item, index) in options"
-          :key="item[fieldObj.fieldKey]"
-        >{{ item[fieldObj.fieldLabel] }}</div>
+          :class="account === item[fieldObj.value] ? 'primary' : ''"
+          v-for="(item, index) in optionList"
+          :key="item[fieldObj.value]"
+        >{{ item[fieldObj.label] }}</div>
       </div>
     </template>
     <a-button class="appShopSelect-btn">
-      <span class="appShopSelect-btn-text">{{ isAllSelected ? '全部' : actionItem[fieldObj.fieldLabel] }}</span>
+      <span class="appShopSelect-btn-text">{{ actionItem[fieldObj.label] }}</span>
     </a-button>
   </a-popover>
 </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
+import { ref, computed } from 'vue'
 defineOptions({ name: "appShopSelect" })
 const { proxy: _this } = getCurrentInstance()
-const isAllSelected = ref(true);
-const selectedIndex = ref(null);
-const actionItem = ref({})
 const props = defineProps({
+  account: {
+    type: String,
+    default: ''
+  },
   isShowAll: {
     type: Boolean,
     default: true,
   },
   options: Array,
-  fieldObj: Object,
+  fieldObj: {
+    type: Object,
+    default: () => ({
+      label: 'label',
+      value: 'value'
+    })
+  },
+
 });
 // 使用defineEmits获取emit函数
-const emit = defineEmits(["backSelectAll", "backSelectItem"]);
-const selectAll = () => {
-  isAllSelected.value = true;
-  selectedIndex.value = null;
-  emit("backSelectAll");
-};
-const selectItem = (index, item) => {
-  if (isAllSelected.value) {
-    isAllSelected.value = false;
+const emit = defineEmits(["selectItem", 'update:account']);
+const actionItem = ref({})    // 被选中的项
+const optionList = computed(() => {
+  let list = props.options;
+  if (props.isShowAll) {
+    let obj = {}
+    obj[props.fieldObj.label] = '全部'
+    obj[props.fieldObj.value] = ''
+    list = [obj, ...list]
   }
+  return list;
+})
+watch(() => props.account, (val, oldVal) => {
+  actionItem.value = optionList.value.find(i => i[props.fieldObj.value] === val) || {};
+}, {
+  // deep: true,
+  immediate: true,
+})
+const selectItem = (index, item) => {
   actionItem.value = item
-  selectedIndex.value = index;
-  emit("backSelectItem", item[props.fieldObj.fieldKey]);
+  emit('update:account', item[props.fieldObj.value]);
+  emit('selectItem', item[props.fieldObj.value])
 };
-defineExpose({
-  selectAll,
-});
+// defineExpose({});
 </script>
 <style lang="less" scoped>
 .appShopSelect {
