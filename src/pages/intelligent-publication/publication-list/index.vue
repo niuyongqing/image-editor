@@ -2,79 +2,60 @@
 <template>
   <div class="text-left">
     <!-- 搜索区 -->
-    <a-card>
-      <a-descriptions :column="1">
-        <a-descriptions-item label="店铺账号">
+    <AppTableForm
+      v-model:formData="searchForm"
+      reset-set-menu="publicationList"
+      @on-submit="getList"
+    >
+      <template #formItemRow>
+        <a-form-item
+          label="店铺账号"
+          name="account"
+        >
           <TiledSelect
-            v-model:value="watchedSearchForm.account"
+            v-model:value="searchForm.account"
             :options="accountList"
             :field-names="{ label: 'simpleName', value: 'account' }"
           />
-        </a-descriptions-item>
-        <a-descriptions-item label="搜索类型">
-          <TiledSelect
-            v-model:value="lazySearchForm.searchKey"
-            :options="SEARCH_PROP_OPTIONS"
-            :append-all="false"
-          />
-        </a-descriptions-item>
-        <a-descriptions-item
-          label="搜索内容"
-          :content-style="{ 'flex-direction': 'column' }"
+        </a-form-item>
+        <a-form-item
+          label="刊登模式"
+          name="publishType"
         >
-          <a-space align="start">
-            <SearchContentInput
-              v-model:value="lazySearchForm.searchValue"
-              hide-control
-              :placeholder="PLACEHOLDER_ENUM[lazySearchForm.searchKey]"
-              @enter="search"
-            />
-            <a-button
-              type="primary"
-              :loading="state.loading"
-              @click="search"
-              >搜索</a-button
-            >
-          </a-space>
-        </a-descriptions-item>
-        <a-descriptions-item label="刊登模式">
           <TiledSelect
-            v-model:value="watchedSearchForm.publishType"
+            v-model:value="searchForm.publishType"
             :options="PUBLISH_TYPE_OPTIONS"
           />
-        </a-descriptions-item>
-      </a-descriptions>
-    </a-card>
-
-    <a-space class="my-4">
-      <a-button
-        type="primary"
-        :disabled="state.selectedRowKeys.length === 0"
-        @click="batchPublish"
-        >批量刊登</a-button
-      >
-      <a-button
-        type="primary"
-        :disabled="state.selectedRowKeys.length === 0"
-        @click="remarkModalOpen = true"
-        >批量备注</a-button
-      >
-      <a-popconfirm
-        title="确定取消刊登?"
-        :disabled="state.selectedRowKeys.length === 0"
-        @confirm="cancel()"
-      >
-        <a-button
-          type="primary"
-          danger
-          :disabled="state.selectedRowKeys.length === 0"
-          >批量取消</a-button
+        </a-form-item>
+        <a-form-item
+          label="模糊查询"
+          name="mult"
         >
-      </a-popconfirm>
-    </a-space>
+          <a-form-item-rest>
+            <a-space>
+              <a-input
+                v-model:value="searchForm.productName"
+                placeholder="标题"
+                allow-clear
+              />
+              <a-input
+                v-model:value="searchForm.skuCode"
+                placeholder="产品编码 SKU"
+                allow-clear
+              />
+              <a-input
+                v-model:value="searchForm.intelligentWaitProductId"
+                placeholder="产品ID"
+                allow-clear
+              />
+            </a-space>
+          </a-form-item-rest>
+        </a-form-item>
+      </template>
+    </AppTableForm>
 
     <!-- TABLE 区 -->
-    <a-card>
+    <a-card class="mt-2">
       <div class="flex justify-between items-center">
         <a-tabs
           v-model:activeKey="activeTab"
@@ -87,29 +68,55 @@
             :tab="item.label"
           ></a-tab-pane>
         </a-tabs>
-        <a-pagination
+
+        <AppTablePagination
           v-model:current="tableParams.pageNum"
           v-model:pageSize="tableParams.pageSize"
           :total="state.total"
-          :default-page-size="50"
-          show-size-changer
-          show-quick-jumper
-          :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
           @change="getList"
         />
       </div>
 
-      <a-table
+      <AppTableBox
         :loading="state.loading"
-        :columns="COLUMNS"
+        :table-header="COLUMNS"
         :data-source="tableData"
         stripe
         row-key="waitPublishProductId"
-        :pagination="false"
-        :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange }"
-        :custom-row="record => ({ onDblclick: () => goEdit(record) })"
+        reset-set-menu="publicationList"
         :scroll="{ x: 'max-content' }"
+        :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange }"
+        @rowDoubleClick="record => goEdit(record)"
       >
+        <template #leftTool>
+          <a-space>
+            <a-button
+              type="primary"
+              :disabled="state.selectedRowKeys.length === 0"
+              @click="batchPublish"
+              >批量刊登</a-button
+            >
+            <a-button
+              type="primary"
+              :disabled="state.selectedRowKeys.length === 0"
+              @click="remarkModalOpen = true"
+              >批量备注</a-button
+            >
+            <a-popconfirm
+              title="确定取消刊登?"
+              :disabled="state.selectedRowKeys.length === 0"
+              @confirm="cancel()"
+            >
+              <a-button
+                type="primary"
+                danger
+                :disabled="state.selectedRowKeys.length === 0"
+                >批量取消</a-button
+              >
+            </a-popconfirm>
+          </a-space>
+        </template>
+
         <template #bodyCell="{ column, record, index }">
           <template v-if="column.key === 'index'">
             <div>{{ index + 1 + (tableParams.pageNum - 1) * tableParams.pageSize }}</div>
@@ -131,10 +138,20 @@
             <div>{{ PUBLISH_TYPE_ENUM[record.publishType] || '--' }}</div>
           </template>
           <template v-else-if="column.key === 'publishStatus'">
-            <a-tooltip v-if="record.errorMessage" :title="record.errorMessage" color="#fff" :overlay-style="{ maxWidth: '500px' }" :overlay-inner-style="{ color: '#ff4d4f' }">
+            <a-tooltip
+              v-if="record.errorMessage"
+              :title="record.errorMessage"
+              color="#fff"
+              :overlay-style="{ maxWidth: '500px' }"
+              :overlay-inner-style="{ color: '#ff4d4f' }"
+            >
               <a-tag :color="STATUS_TAG_COLOR_ENUM[record.publishStatus]">{{ STATUS_ENUM[record.publishStatus] || '--' }}</a-tag>
             </a-tooltip>
-            <a-tag v-else :color="STATUS_TAG_COLOR_ENUM[record.publishStatus]">{{ STATUS_ENUM[record.publishStatus] || '--' }}</a-tag>
+            <a-tag
+              v-else
+              :color="STATUS_TAG_COLOR_ENUM[record.publishStatus]"
+              >{{ STATUS_ENUM[record.publishStatus] || '--' }}</a-tag
+            >
           </template>
           <template v-else-if="['skuCode', 'price', 'originalPrice', 'stock'].includes(column.key)">
             <div
@@ -193,19 +210,16 @@
             </a-space>
           </template>
         </template>
-      </a-table>
 
-      <a-pagination
-        v-model:current="tableParams.pageNum"
-        v-model:pageSize="tableParams.pageSize"
-        class="text-right mt-3"
-        :total="state.total"
-        :default-page-size="50"
-        show-size-changer
-        show-quick-jumper
-        :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
-        @change="getList"
-      />
+        <template #pagination>
+          <AppTablePagination
+            v-model:current="tableParams.pageNum"
+            v-model:pageSize="tableParams.pageSize"
+            :total="state.total"
+            @change="getList"
+          />
+        </template>
+      </AppTableBox>
     </a-card>
 
     <!-- 备注弹窗 -->
@@ -239,13 +253,12 @@
 
   /** ======= data ======= */
   const accountList = ref([])
-  const watchedSearchForm = reactive({
+  const searchForm = reactive({
     account: undefined,
-    publishType: undefined
-  })
-  const lazySearchForm = reactive({
-    searchKey: 'productName',
-    searchValue: undefined
+    publishType: undefined,
+    productName: '',
+    skuCode: '',
+    intelligentWaitProductId: ''
   })
   const SEARCH_PROP_OPTIONS = [
     { label: '标题', value: 'productName' },
@@ -291,15 +304,6 @@
   const remarkModalOpen = ref(false)
   const remarkLoading = ref(false)
 
-  /** ======= watch ======= */
-  watch(
-    () => watchedSearchForm,
-    _ => {
-      search()
-    },
-    { deep: true }
-  )
-
   /** ======= liftcycle hooks ======= */
   getAccountList()
 
@@ -332,9 +336,8 @@
     state.selectedRowKeys = []
     const params = {
       ...tableParams,
-      ...watchedSearchForm,
-      accountList: watchedSearchForm.account ? [watchedSearchForm.account] : accountList.value.map(item => item.account),
-      [lazySearchForm.searchKey]: lazySearchForm.searchValue,
+      ...searchForm,
+      accountList: searchForm.account ? [searchForm.account] : accountList.value.map(item => item.account),
       publishStatus: activeTab.value
     }
     delete params.account

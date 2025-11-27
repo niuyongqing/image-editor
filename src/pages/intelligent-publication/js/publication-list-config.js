@@ -4,6 +4,7 @@ export const COLUMNS = [
     title: '序号',
     key: 'index',
     fixed: 'left',
+    align: 'center',
     width: 50
   },
   {
@@ -27,11 +28,13 @@ export const COLUMNS = [
   {
     title: '刊登模式',
     key: 'publishType',
+    align: 'center',
     width: 100
   },
   {
     title: '状态',
     key: 'publishStatus',
+    align: 'center',
     width: 100
   },
   {
@@ -43,24 +46,25 @@ export const COLUMNS = [
   {
     title: '售价(CNY)',
     key: 'price',
-    align: 'center',
+    align: 'right',
     width: 100
   },
   {
     title: '原价(CNY)',
     key: 'originalPrice',
-    align: 'center',
+    align: 'right',
     width: 100
   },
   {
     title: '库存',
     key: 'stock',
-    align: 'center',
+    align: 'right',
     width: 100
   },
   {
     title: '时间',
     key: 'time',
+    align: 'center',
     width: 220
   },
   {
@@ -72,6 +76,7 @@ export const COLUMNS = [
     title: '操作',
     key: 'operation',
     fixed: 'right',
+    align: 'right',
     width: 100
   }
 ]

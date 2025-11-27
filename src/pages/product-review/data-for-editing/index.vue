@@ -4,7 +4,7 @@
     <!-- 搜索区 -->
     <AppTableForm
       v-model:formData="searchForm"
-      reset-set-menu="dataFormEditing"
+      reset-set-menu="dataForEditing"
       @on-submit="getList"
       @formHeightChange="height => { formHeight = height }"
     >
@@ -18,7 +18,6 @@
             :options="commodityType"
             change-on-select
             placeholder="请选择分类"
-            class="w-60!"
           />
         </a-form-item>
         <a-form-item
@@ -30,7 +29,6 @@
             :options="MARKET_OPTIONS"
             placeholder="请选择市场方向"
             allow-clear
-            class="w-40!"
           />
         </a-form-item>
         <a-form-item
@@ -43,7 +41,6 @@
             :field-names="{ label: 'userName', value: 'userId' }"
             placeholder="请选择提交人"
             allow-clear
-            class="w-40!"
           />
         </a-form-item>
         <a-form-item
@@ -55,9 +52,6 @@
             :disabled-date="cur => cur && cur > Date.now()"
           />
         </a-form-item>
-      </template>
-
-      <template #formItemRow>
         <a-form-item
           label="模糊查询"
           name="mult"
@@ -78,6 +72,9 @@
           </a-form-item-rest>
         </a-form-item>
       </template>
+
+      <!-- <template #formItemRow>
+      </template> -->
     </AppTableForm>
 
     <!-- table 区 -->
