@@ -6,12 +6,12 @@
 >
   <a-card>
     <a-form 
-      v-bind="$attrs" 
       v-show="form.formShow"
       :model="formData" 
       ref="appTableFormRef"
       :rules="rules"
       :class="{'mini-form': mini}"
+      v-bind="$attrs" 
     >
       <div class="formItem-box" v-if="!!formItemBox">
         <!-- 标准筛选项使用该插槽 -->
@@ -89,6 +89,10 @@ const props = defineProps({
   labelWidth: {
     type: [String, Number],
     default: '150',
+  },
+  hideNameList: {           // 默认隐藏的项
+    type: Array,
+    default: () => ([])
   }
 });
 const { formData } = toRefs(props); 
@@ -155,13 +159,18 @@ function generateSettingNameList(val) {
     let f = null;
     label && (f = label.getAttribute('for'));
     if (f) {
+      let name = f.split('_')[2]
       let obj = {
-        name: f.split('_')[2],
+        name,
         label: label.innerText,
         formItem: item,
-        show: true,
+        show: !props.hideNameList.includes(name),
         disabled: label.className.includes('ant-form-item-required')
       };
+      if (!val && !obj.show) {
+        // 重置时候默认隐藏的项
+        item.classList.add('item-hide');
+      }
       list.push(obj);
     }
   });

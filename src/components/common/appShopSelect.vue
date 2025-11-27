@@ -18,7 +18,9 @@
         >{{ item[fieldObj.fieldLabel] }}</div>
       </div>
     </template>
-    <a-button class="appShopSelect-btn">{{ isAllSelected ? '全部' : actionItem[fieldObj.fieldLabel] }}</a-button>
+    <a-button class="appShopSelect-btn">
+      <span class="appShopSelect-btn-text">{{ isAllSelected ? '全部' : actionItem[fieldObj.fieldLabel] }}</span>
+    </a-button>
   </a-popover>
 </div>
 </template>
@@ -65,6 +67,15 @@ defineExpose({
     width: 100%; 
     height: 100%; 
     text-align: left;
+    display: flex;
+    align-items: center;
+    .appShopSelect-btn-text {
+      display: inline-block;
+      width: 100%;
+      white-space: nowrap; 
+      overflow: hidden; 
+      text-overflow: ellipsis; 
+    }
   }
 }
 .appShopSelect-accountForm {
