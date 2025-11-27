@@ -777,7 +777,7 @@
         const record = SKUTableData.value.find(record => {
           const recordKey = aspectColumns.value.map(col => record[col.title]).join('-')
 
-          if (!skuKey || !recordKey) return false
+          // if (!skuKey || !recordKey) return false
 
           return recordKey === skuKey
         })
