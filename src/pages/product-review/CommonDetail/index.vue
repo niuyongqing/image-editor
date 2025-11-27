@@ -221,7 +221,7 @@
   const FIELD_OPTIONS = [
     { label: '产品属性', value: '1' },
     { label: 'JSON富文本', value: '2' },
-    // { label: '变种属性', value: '3' }
+    { label: '变种属性', value: '3' }
   ]
 
   function translateCancel() {
@@ -265,7 +265,8 @@
             .map(col => col.name)
           stringNameList.forEach(name => {
             item.tableData.forEach(row => {
-              const value = row[name]
+              // const value = row[name]
+              const value = row[name].value
               if (containsLanguage(value, translateForm.sourceLanguageCode)) {
                 aspects.push(value)
               }
@@ -317,9 +318,9 @@
                 .map(col => col.name)
               stringNameList.forEach(name => {
                 item.tableData.forEach(row => {
-                  const value = row[name]
+                  const value = row[name].value
                   if (containsLanguage(value, translateForm.sourceLanguageCode)) {
-                    row[name] = targetAspects[i]
+                    row[name].value = targetAspects[i]
                     i++
                   }
                 })

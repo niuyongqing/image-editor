@@ -65,7 +65,7 @@
                 <a-button
                   v-if="title !== '操作'"
                   type="link"
-                  @click="batchAddAspectRow(column, item.tableData)"
+                  @click="batchAddAspectRow(column, item)"
                   >批量</a-button
                 >
               </template>
@@ -75,13 +75,13 @@
               <template v-if="column.selectType === 'input'">
                 <a-input
                   v-if="column.type === 'String'"
-                  v-model:value="record[column.title]"
+                  v-model:value="record[column.title].value"
                   placeholder="请输入"
                   class="w-full"
                 />
                 <a-input-number
                   v-else
-                  v-model:value="record[column.title]"
+                  v-model:value="record[column.title].value"
                   :controls="false"
                   :precision="0"
                   :min="0"
@@ -593,6 +593,8 @@
   }
 
   /** computed START */
+  // name array of selectType is 'input'
+  const typeInputNameList = computed(() => rawAttributes.value.filter(item => item.isAspect && item.selectType === 'input').map(item => item.name))
   // 变种主题可选项(非必填的以按钮形式供选)
   const aspectBtnList = computed(() => aspectList.value.filter(item => !item.isRequired))
   // 过滤出已选择后的可选项(显示的按钮)
@@ -704,7 +706,7 @@
   /** 详情回显 */
   function assignDetail() {
     // 回显选中的变种主题按钮
-    const variantList = detail.value.skuList[0].attributes.filter(item => item.isVariant)
+    const variantList = detail.value.skuList[0]?.attributes.filter(item => item.isVariant) || []
     const keySet = new Set()
     filteredAspectBtnList.value.forEach(item => {
       if (variantList.some(ele => String(item.key).split('-').map(Number).includes(ele.id))) {
@@ -751,6 +753,8 @@
         case 'multSelect':
           return list.map(item => ({ label: item.value, value: item.dictionaryValueId }))
         case 'input':
+          // input 躯壳, 都是躯壳
+          return { uuid: uuidv4(), value: list[0].value }
         default:
           return list[0].value
       }
@@ -814,6 +818,8 @@
       case 'multSelect':
         return []
       case 'input':
+        // input 用一个 id 来绑定输入的值
+        return { uuid: uuidv4(), value: '' }
       default:
         return ''
     }
@@ -826,10 +832,11 @@
       case 'Array':
         return Boolean(val.length)
       case 'Object':
-        return Boolean(Object.keys(val).length)
+        // return Boolean(Object.keys(val).length)
+        return !['', null, undefined].includes(val.value)
       case 'String':
       default:
-        return Boolean(val)
+        return !['', null, undefined].includes(val)
     }
   }
 
@@ -840,7 +847,9 @@
       case 'Array':
         return val.map(item => item[prop]).join(',')
       case 'Object':
-        return val[prop]
+        // input 情况的特判; 为了在 selectType === 'input' 时也能取到文本值
+        const oppositeProp = prop === 'label' ? 'value' : 'label'
+        return val[prop] || val[oppositeProp]
       case 'String':
       default:
         return val
@@ -868,10 +877,12 @@
   // 批量添加变种属性(行 hang) 打开弹窗
   const addAspectRowModalOpen = ref(false)
   const columnData = ref({})
+  const filteredAspectItem = ref({})
   const aspectData = ref([])
-  function batchAddAspectRow(column, tableData) {
+  function batchAddAspectRow(column, item) {
     columnData.value = column
-    aspectData.value = tableData
+    filteredAspectItem.value = item
+    aspectData.value = item.tableData
     addAspectRowModalOpen.value = true
   }
 
@@ -882,7 +893,7 @@
       // 如果有行, 且行存在空值, 先填充行; 再有多余的就往后添加新行
       for (const item of aspectData.value) {
         if (!nonEmpty(item[columnData.value.name])) {
-          item[columnData.value.name] = columnData.value.selectType === 'multSelect' ? [val] : val
+          item[columnData.value.name] = getValByType(val, columnData.value.selectType)
           continueFlag = true
 
           break
@@ -890,15 +901,43 @@
       }
       if (continueFlag) continue
 
-      const row = { uuid: uuidv4() }
+      /* const row = { uuid: uuidv4() }
       // just focus on self (如果是结对属性, 另一个值让双向绑定去隐式生成)
-      row[columnData.value.name] = columnData.value.selectType === 'multSelect' ? [val] : val
+      row[columnData.value.name] = getValByType(val, columnData.value.selectType)
+
+      aspectData.value.push(row) */
+
+      const itemAspectList = filteredAspectItem.value.columns.slice(0, -1)
+      const row = { uuid: uuidv4() }
+      itemAspectList.forEach(ele => {
+        if (ele.name === columnData.value.name) {
+          row[ele.name] = getValByType(val, ele.selectType)
+        } else {
+          row[ele.name] = getDetaultByType(ele.selectType)
+        }
+      })
 
       aspectData.value.push(row)
     }
 
     columnData.value = {}
+    filteredAspectItem.value = {}
     aspectData.value = []
+
+    // 赋值方法
+    function getValByType(val, selectType) {
+      switch (selectType) {
+        case 'multSelect':
+          return [val]
+        case 'select':
+          return val
+        case 'input':
+          // input 躯壳, 都是躯壳
+          return { uuid: uuidv4(), value: val }
+        default:
+          return val
+      }
+    }
   }
 
   // 添加一行变种主题
@@ -960,7 +999,19 @@
     })
 
     return SKUList.reduce((map, SKU) => {
-      const SKUKey = oldAspectNames.map(name => SKU[name]).join('-')
+      const list = []
+      oldAspectNames.forEach(name => {
+        if (typeInputNameList.value.includes(name)) {
+          // 拿 input 值的 uuid
+          const nameId = rawAttributes.value.find(attr => attr.name === name).id
+          const inputUuid = oldList.find(item => String(item.key).includes(nameId)).nonEmptyTableData.find(row => SKU.parentUuidList.includes(row.uuid))[name].uuid
+
+          list.push(inputUuid)
+        } else {
+          list.push(SKU[name])
+        }
+      })
+      const SKUKey = list.join('-')
       SKUKey && (map[SKUKey] = SKU)
 
       return map
@@ -997,12 +1048,32 @@
   // 赋值老数据
   function assignOldSKUData(oldSKUData) {
     SKUTableData.value.forEach((record, i) => {
-      const SKUKey = aspectColumns.value.map(col => record[col.title]).join('-')
+      const list = []
+      aspectColumns.value.forEach(col => {
+        if (typeInputNameList.value.includes(col.title)) {
+          // 拿 input 值的 uuid
+          const nameId = rawAttributes.value.find(attr => attr.name === col.title).id
+          const inputUuid = usefulAspect.value.find(item => String(item.key).includes(nameId)).nonEmptyTableData.find(row => record.parentUuidList.includes(row.uuid))[col.title].uuid
+
+          list.push(inputUuid)
+        } else {
+          list.push(record[col.title])
+        }
+      })
+      const SKUKey = list.join('-')
+
       if (oldSKUData[SKUKey]) {
-        SKUTableData.value[i] = {
+        const obj = {
           ...oldSKUData[SKUKey],
           uuid: record.uuid
         }
+        aspectColumns.value.forEach(col => {
+          if (typeInputNameList.value.includes(col.title)) {
+            obj[col.title] = record[col.title] // 更新 input 的新值
+          }
+        })
+
+        SKUTableData.value[i] = obj
       }
     })
   }
@@ -1220,8 +1291,8 @@
           width: item.width,
           height: item.height,
           weight: item.weight,
-          mainImages: item.mainImages.map(image => image.url),
-          subImages: item.subImages.map(image => image.url),
+          mainImages: item.mainImages.map(image => processImageSource(image.url)),
+          subImages: item.subImages.map(image => processImageSource(image.url)),
           skuAttributes
         }
 
