@@ -13,6 +13,19 @@
           </a-space>
         </a-form-item>
         <a-form-item label="分类" name="categoryId">
+        <a-cascader 
+          placeholder="分类" 
+          allowClear 
+          style="width: 300px;"
+          v-model:value="searchForm.categoryId" 
+          :options="commodityTypeList"
+          :allow-clear="true" 
+          show-search
+          :filterOption="filterOption"
+          :field-names="{ value: 'descriptionCategoryId', label: 'categoryName', children: 'children' }" 
+        />
+      </a-form-item>
+        <!-- <a-form-item label="分类" name="categoryId">
           <a-select filterable style="width: 600px" v-model:value="searchForm.categoryId" :options="flatTreeList" 
           :field-names="{
             label: 'label',
@@ -21,7 +34,7 @@
           show-search
           :filterOption="filterOption"
           placeholder="分类" allowClear></a-select>
-        </a-form-item>
+        </a-form-item> -->
         <a-form-item>
           <a-button type="primary" class="mr-2" @click="search">查询</a-button>
           <a-button @click="reset">重置</a-button>
@@ -116,12 +129,13 @@
   import { newCategoryTreeApi } from '@/pages/product-review/CommonDetail/api'
   import { message } from 'ant-design-vue'
   import { useReceiveMessage } from '@/utils/postMessage'
+
   const router = useRouter()
 
   /** search */
   const searchForm = reactive({
     ruleName: '',
-    categoryId: null,
+    categoryId: [],
     status: 2
   })
   const searchFormRef = ref()
@@ -134,7 +148,7 @@
 
   // 过滤选项
 const filterOption = (inputValue, option) => {
-  const label = option.label; // 因为你的数据中有 simpleName 字段
+  const label = option.categoryName; // 因为你的数据中有 categoryName 字段
   return label.toLowerCase().includes(inputValue.toLowerCase());
 };
 
@@ -147,7 +161,7 @@ const filterOption = (inputValue, option) => {
     tableParams.pageNum = 1
     searchFormRef.value.resetFields()
     searchForm.ruleName = ''
-    searchForm.categoryId = null
+    searchForm.categoryId = []
 
     getList()
   }
@@ -175,6 +189,7 @@ const filterOption = (inputValue, option) => {
       ...tableParams,
       ...searchForm
     }
+    params.categoryId = params.categoryId.join(',')
     state.loading = true
     listApi(params)
       .then(res => {
@@ -186,12 +201,16 @@ const filterOption = (inputValue, option) => {
       })
   }
 
+  // 查询条件分类数据
+  const commodityTypeList = ref([])
+
   /** 分类数据 */
   const flatTreeList = ref([])
 
   getOptions()
   function getOptions() {
     newCategoryTreeApi().then(res => {
+      commodityTypeList.value = res.data || []
       const rawData = res.data || []
       const flatList = []
 

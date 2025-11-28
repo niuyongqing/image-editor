@@ -1,5 +1,5 @@
 <template>
-  <div id="productDatabase_index" class="productDatabase_index">
+  <div v-loading="loadingFull" id="productDatabase_index" class="productDatabase_index">
     <!-- <a-modal 
     v-model:open="modalOpen" 
     :style="{ top: '10px', padding: 0, height: '99vh' }" 
@@ -265,7 +265,7 @@ const emit = defineEmits(["handleSelect"]);
 // 智能刊登选品弹窗相关
 const listingPicksVisible = ref(false);
 const selectedProductIds = ref([]);
-
+const loadingFull = ref(false);
 // 表格多选相关
 const selectedRows = ref([]);
 const selectedRowKeys = ref([]);
@@ -336,6 +336,11 @@ function modalOpenFn() {
     antTableBody = productDatabaseTable.querySelector(".ant-table-body");
   });
 }
+
+function changeTableLoading(val) {
+  loadingFull.value = val;
+}
+
 function meansForbidAttributeFilterOption(val, option) {
   // console.log({val, option});
   return option.attributes.includes(val);
@@ -645,6 +650,7 @@ onMounted(() => {
 });
 defineExpose({
   modalOpenFn,
+  changeTableLoading,
 });
 </script>
 <style lang="less" scoped>
