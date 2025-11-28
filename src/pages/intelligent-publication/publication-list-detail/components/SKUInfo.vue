@@ -145,6 +145,10 @@
         title="变种信息"
         class="text-left mt-4"
       >
+        <template #extra>
+          <a-checkbox-group v-model:value="checkedList" :options="RIGHT_OPTIONS" />
+        </template>
+
         <a-table
           :columns="SKUColumns"
           :data-source="SKUTableData"
@@ -153,7 +157,7 @@
           :scroll="{ x: 'max-content' }"
         >
           <template #headerCell="{ title }">
-            <template v-if="title === '标题'">
+            <template v-if="title === 'SKU标题'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
             </template>
@@ -228,7 +232,7 @@
           </template>
 
           <template #bodyCell="{ record, column }">
-            <template v-if="column.title === '标题'">
+            <template v-if="column.title === 'SKU标题'">
               <a-input
                 v-model:value="record.skuTitle"
                 placeholder="请输入"
@@ -350,7 +354,7 @@
                   :controls="false"
                   :precision="0"
                   disabled
-                  :min="1"
+                  :min="0"
                   :max="99999"
                   placeholder="请输入数值"
                   class="flex-1"
@@ -673,8 +677,12 @@
 
     return list
   })
+  // 右侧 未被勾选的 checkbox
+  const excludedList = computed(() =>
+    RIGHT_OPTIONS.map(item => item.value).filter(val => !checkedList.value.includes(val))
+  )
   // SKU 表头(合并变种属性表头和常量表头)
-  const SKUColumns = computed(() => [...aspectColumns.value, ...COLUMNS])
+  const SKUColumns = computed(() => [...aspectColumns.value, ...COLUMNS.filter(col => !excludedList.value.includes(col.key))])
 
   // 应用到同 xx 变种
   const PERMANENT_LIST = [{ label: '应用到全部', key: 'applyAll' }]
@@ -716,7 +724,12 @@
     if (keySet.size) selectedAspectKeyList.value.push(...Array.from(keySet))
 
     // 填充 filteredAspectList 中 tableData 数据
-    const { skuList } = detail.value
+    const { skuList = [] } = detail.value
+    if (skuList.length && skuList[0].skuTitle) {
+      !checkedList.value.includes('skuTitle') && checkedList.value.push('skuTitle')
+    } else {
+      checkedList.value = checkedList.value.filter(item => item !== 'skuTitle')
+    }
     const valObj = {} // 收集值(去重)
     filteredAspectList.value.forEach(item => {
       valObj[item.name] = {}
@@ -958,6 +971,12 @@
 
   /** 变种信息(SKU 表格) */
   const SKUTableData = ref([{ uuid: uuidv4() }])
+  // 右侧的勾选选项
+  const RIGHT_OPTIONS = [
+    { label: 'SKU标题', value: 'skuTitle' }
+  ]
+  // 选中的 checkbox
+  const checkedList = ref(['skuTitle'])
 
   watch(
     () => usefulAspect.value,
@@ -1195,7 +1214,7 @@
 
     if (!flag) return false // 短路
     // SKUTable 是否有空
-    const list = [...COLUMNS.slice(0, -1), { title: '长', key: 'length' }, { title: '宽', key: 'width' }, { title: '高', key: 'height' }].filter(item => item.key !== 'size')
+    const list = [...COLUMNS.slice(0, -1).filter(col => !excludedList.value.includes(col.key)), { title: '长', key: 'length' }, { title: '宽', key: 'width' }, { title: '高', key: 'height' }].filter(item => item.key !== 'size')
     loop2: for (const item of list) {
       for (const record of SKUTableData.value) {
         if (!nonEmpty(record[item.key])) {
@@ -1244,6 +1263,8 @@
   function emitData() {
     // 校验
     if (validate()) {
+      // 是否包含 SKU 标题
+      const includeSKUTitle = checkedList.value.includes('skuTitle')
       const skuList = SKUTableData.value.map(item => {
         // SKU 属性
         const skuAttributes = []
@@ -1280,8 +1301,8 @@
 
         const obj = {
           skuId: item.skuId,
-          skuTitle: item.skuTitle,
-          skuCode: item.skuCode,
+          skuTitle: includeSKUTitle ? item.skuTitle : '',
+          skuCode: item.skuCode.trim(),
           price: item.price,
           oldPrice: item.oldPrice,
           costPrice: item.costPrice,

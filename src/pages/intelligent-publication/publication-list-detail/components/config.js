@@ -1,7 +1,7 @@
 // 变种信息表头
 export const COLUMNS = [
   {
-    title: '标题',
+    title: 'SKU标题',
     key: 'skuTitle',
     width: 220
   },
