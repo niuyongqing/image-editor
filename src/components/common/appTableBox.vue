@@ -100,17 +100,28 @@
           :customRow="customRow" 
           bordered 
           v-bind="$attrs" 
+          :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
         >
-          <template #headerCell="{ column }">
+          <template #headerCell="{ title, column }">
             <div class="resizable-header" v-if="column.key">
-              <slot name="headerCell" :column="column || {}">
+              <slot 
+                name="headerCell" 
+                :column="column || {}"
+                :title="title"
+              >
                 {{ column?.title }}
               </slot>
               <div class="resizable-header-right" @mousedown.stop="e => onMouseDown(e, column)"></div>
             </div>
           </template>
-          <template #bodyCell="{ column, record, index }">
-            <slot name="bodyCell" :record="record || {}" :index="index" :column="column || {}">
+          <template #bodyCell="{ column, record, index, text }">
+            <slot 
+              name="bodyCell" 
+              :record="record || {}" 
+              :index="index" 
+              :column="column || {}"
+              :text="text"
+            >
               {{ record[column?.key] }}
             </slot>
             <template v-if="!!options && column.key === 'options'">
@@ -122,8 +133,14 @@
           <template #summary v-if="!!summary">
             <slot name="summary"></slot>
           </template>
-          <template #expandedRowRender="{ record }" v-if="!!expandedRowRender">
-            <slot name="expandedRowRender" :record="record || {}"></slot>
+          <template #expandedRowRender="{ record, index, indent, expanded }" v-if="!!expandedRowRender">
+            <slot 
+              name="expandedRowRender" 
+              :record="record || {}"
+              :index="index"
+              :indent="indent"
+              :expanded="expanded"
+            ></slot>
           </template>
         </a-table>
       </div>
@@ -247,10 +264,9 @@ const scrollHeigth = computed(() => {
   let maxHeight = (heightInfo.outerDomHeight - heightInfo.formHeight) + 'px';
   return props.autoHeight ? maxHeight : 'auto';
 })
-//  获取columns
-onMounted(async () => {
-  generateHeader()
-  await getSettingList();
+generateHeader();
+getSettingList();
+onMounted(() => {
   nextTick(() => {
     columns.columnChange = false;
     // columnDrop();
@@ -310,7 +326,7 @@ function generateHeader() {
   });
 }
 // 获取表头
-async function getSettingList() {
+function getSettingList() {
   if (!props.resetSetMenu) {
     console.error('缺少resetSetMenu！');
     return;
@@ -339,7 +355,6 @@ async function getSettingList() {
   columns.centerList = columns.list.filter(i => !i.fixed);
   columns.list = [...columns.leftList, ...columns.centerList, ...columns.rightList];
   columns.columnChange = false;
-  return Promise.resolve();
 }
 /**
  * 固定表头
@@ -581,6 +596,9 @@ function getHeader() {
 
 :deep(.ant-table-cell-ellipsis.ant-table-cell-fix-left-last .ant-table-cell-content) {
   overflow: visible;
+}
+:deep(.table-striped) td {
+  background-color: #fafafa;
 }
 
 .resizable-header {

@@ -8,14 +8,26 @@
       :hide-name-list="['sdgdfg']"
     >
       <template #formItemBox>
-        <a-form-item label="店铺" name="sdgdfg">
-          <appShopSelect :options="shopData" :fieldObj="shopObj" v-model:account="formData.account"></appShopSelect>
-        </a-form-item>
         <a-form-item label="年份" name="dataYear">
           <a-date-picker v-model:value="formData.dataYear" picker="year" value-format="YYYY" :allowClear="false" />
         </a-form-item>
         <a-form-item label="月份" name="dataMonth">
           <a-select v-model:value="formData.dataMonth" :options="options.monthList" placeholder="请选择月份"></a-select>
+        </a-form-item>
+        <a-form-item label="月份" name="sadgsd">
+          <a-select v-model:value="formData.dataMonth" :options="options.monthList" placeholder="请选择月份"></a-select>
+        </a-form-item>
+        <a-form-item label="月份" name="sdgdfg">
+          <a-select v-model:value="formData.dataMonth" :options="options.monthList" placeholder="请选择月份"></a-select>
+        </a-form-item>
+        <!-- <a-form-item label="月份" name="dfhdsfh">
+          <a-select v-model:value="formData.dataMonth" :options="options.monthList" placeholder="请选择月份"></a-select>
+        </a-form-item> -->
+        <a-form-item label="月份" name="dfhdfhgdsf">
+          <a-select allowClear v-model:value="formData.dataMonth" :options="options.monthList" placeholder="请选择月份"></a-select>
+        </a-form-item>
+        <a-form-item label="店铺" name="sdgdfg">
+          <appShopSelect :multiple="true" :options="shopData" :fieldObj="shopObj" v-model:account="formData.account"></appShopSelect>
         </a-form-item>
       </template>
     </appTableForm>
@@ -102,7 +114,7 @@
 
         <template v-else>
           <template v-if="column.dataIndex === 'category'">
-            <span>{{ catrgoryEnum[record.groupName] || '' }}</span>
+            <span>{{ catrgoryEnum[record.groupName] }}</span>
           </template>
           <template v-else-if="isNumericColumn(column.dataIndex)">
             <span class="numeric-value text-right! block">
@@ -122,6 +134,52 @@
           <template v-else>
             <span class="text-right">{{ text !== undefined && text !== null ? text : '' }}</span>
           </template>
+          <!-- <template v-if="column.dataIndex === 'deptName'">
+            <div class="summary-content font-700 bg-orange-500">
+              {{ getSummaryLabel(record) }}
+            </div>
+          </template>
+          <template v-else-if="isNumericColumn(column.dataIndex) && record[column.dataIndex] !== undefined">
+            <div class="summary-content numeric font-700 text-right">
+              {{ formatSummaryValue(column.dataIndex, record[column.dataIndex]) }}
+            </div>
+          </template>
+          
+          <template v-else-if="column.dataIndex?.includes('Achieve')">
+            <a-tag :color="getAchieveColor(text)">
+              {{ formatAchieveText(text) }}
+            </a-tag>
+          </template>
+          <template v-else-if="['groupName', 'category', 'shopUserName'].includes(column.dataIndex)">
+            <span></span>
+          </template>
+          <template v-else>
+            <span class="text-right font-700">{{ text !== undefined && text !== null ? text : '' }}</span>
+          </template>
+        </template>
+
+        <template v-else>
+          <template v-if="column.dataIndex === 'category'">
+            <span>{{ catrgoryEnum[record.groupName] || '' }}</span>
+          </template>
+          <template v-else-if="isNumericColumn(column.dataIndex)">
+            <span class="numeric-value text-right! block">
+              {{ formatCellValue(column.dataIndex, text) }}
+            </span>
+          </template>
+          <template v-else-if="column.dataIndex?.includes('Rate') || column.dataIndex?.includes('Target')">
+            <a-tag :color="getRateColor(text)">
+              {{ formatRate(text) }}
+            </a-tag>
+          </template>
+          <template v-else-if="column.dataIndex?.includes('Achieve')">
+            <a-tag :color="getAchieveColor(text)">
+              {{ formatAchieveText(text) }}
+            </a-tag>
+          </template>
+          <template v-else>
+            <span class="text-right">{{ text !== undefined && text !== null ? text : '' }}</span>
+          </template> -->
         </template>
       </template>
       <template #leftTool>
@@ -905,6 +963,8 @@ const formatSummaryValue = (field, value) => {
 };
 
 const formatCellValue = (field, value) => {
+  console.log({field, value});
+  
   if (value === undefined || value === null) return '';
   if (field.includes('Rate')) {
     return `${(parseFloat(value) * 100).toFixed(2)}%`;
@@ -2112,7 +2172,7 @@ const getgoalCompletionReport = async () => {
         "remark": null
       }
     ];
-  }, 100);
+  }, 300);
 }
 
 // 导出
