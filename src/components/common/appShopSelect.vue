@@ -6,89 +6,150 @@
         <div
           @click="selectItem(index, item)"
           class="ant-btn"
-          :class="account === item[fieldObj.value] ? 'primary' : ''"
+          :class="selectItemClass(item)"
           v-for="(item, index) in optionList"
-          :key="item[fieldObj.value]"
-        >{{ item[fieldObj.label] }}</div>
+          :key="item[fieldValue]"
+        >{{ item[fieldLabel] }}</div>
       </div>
     </template>
-    <a-button class="appShopSelect-btn">
-      <span class="appShopSelect-btn-text">{{ actionItem[fieldObj.label] }}</span>
-    </a-button>
+    <div class="appShopSelect-btn">
+      <span class="appShopSelect-btn-text">
+        {{ actionItem.length > 0 ? actionItem[0][fieldLabel]:'' }}
+        {{ actionItem.map(i => i[fieldLabel]).join(' , ') }}
+      </span>
+      <span class="appShopSelect-btn-num" v-if="multiple && actionItem.length > 1">
+        {{ `  +${actionItem.length - 1}` }}
+      </span>
+      <asyncIcon 
+        v-if="multiple && actionItem.length > 0" 
+        icon="CloseCircleOutlined"
+        @click.stop="allowClear"
+      ></asyncIcon>
+    </div>
   </a-popover>
 </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-defineOptions({ name: "appShopSelect" })
-const { proxy: _this } = getCurrentInstance()
+import { ref, computed } from 'vue';
+import asyncIcon from '~@/layouts/components/menu/async-icon.vue';
+defineOptions({ name: "appShopSelect" });
+const { proxy: _this } = getCurrentInstance();
 const props = defineProps({
-  account: {
-    type: String,
+  account: {            // 绑定字段 v-model:account
+    type: [String, Array],
     default: ''
   },
-  isShowAll: {
+  isShowAll: {          // 是否启用全选按钮，一般用于单选
     type: Boolean,
     default: true,
   },
-  options: Array,
-  fieldObj: {
+  options: Array,       // 展示数据
+  fieldObj: {           // 配置字段 label：展示字段 value：值
     type: Object,
     default: () => ({
       label: 'label',
       value: 'value'
     })
   },
-
+  multiple: Boolean,    // 是否多选
 });
 // 使用defineEmits获取emit函数
 const emit = defineEmits(["selectItem", 'update:account']);
-const actionItem = ref({})    // 被选中的项
+const actionItem = ref([]);    // 被选中的项
+let {label: fieldLabel, value: fieldValue} = props.fieldObj
 const optionList = computed(() => {
   let list = props.options;
   if (props.isShowAll) {
-    let obj = {}
-    obj[props.fieldObj.label] = '全部'
-    obj[props.fieldObj.value] = ''
-    list = [obj, ...list]
+    let obj = {};
+    obj[fieldLabel] = '全部';
+    obj[fieldValue] = '';
+    list = [obj, ...list];
   }
   return list;
-})
+});
 watch(() => props.account, (val, oldVal) => {
-  actionItem.value = optionList.value.find(i => i[props.fieldObj.value] === val) || {};
+  if (props.multiple) {
+    let data = val && Array.isArray(val) ? val : [];
+    actionItem.value = optionList.value.filter(i => data.includes(i[fieldValue]));
+  } else {
+    actionItem.value = [optionList.value.find(i => i[fieldValue] === val) || {}];
+  }
 }, {
   // deep: true,
   immediate: true,
-})
-const selectItem = (index, item) => {
-  actionItem.value = item
-  emit('update:account', item[props.fieldObj.value]);
-  emit('selectItem', item[props.fieldObj.value])
+});
+function selectItem(index, item) {
+  let data = null;
+  if (props.multiple) {
+    data = actionItem.value.map(i => i[fieldValue]);
+    if (data.includes(item[fieldValue])) {
+      data = data.filter(i => i !== item[fieldValue]);
+      actionItem.value = actionItem.value.filter(i => i[fieldValue] !== item[fieldValue]);
+    } else {
+      data.push(item[fieldValue]);
+      actionItem.value.push(item);
+    }
+  } else {
+    actionItem.value = [];
+    actionItem.value.push(item);
+    data = item[fieldValue];
+  }
+  emit('update:account', data);
+  emit('selectItem', data);
 };
+function selectItemClass(item) {
+  return props.account === item[fieldValue] || ((props.multiple && Array.isArray(props.account)) && props.account.some(i => i === item[fieldValue])) ? 'primary' : ''
+}
+function allowClear() {
+  actionItem.value = [];
+  let data = props.multiple ? [] : '';
+  emit('update:account', data);
+  emit('selectItem', data);
+}
 // defineExpose({});
 </script>
 <style lang="less" scoped>
 .appShopSelect {
-  width: 100%;
+  width: 400px;
   height: 100%;
   .appShopSelect-btn {
     width: 100%; 
-    height: 100%; 
+    height: 24px; 
+    font-size: 14px;
+    padding: 0px 7px;
+    border-radius: 4px;
     text-align: left;
     display: flex;
     align-items: center;
+    background-color: #fff;
+    border: 1px solid #d9d9d9;
+    cursor: pointer;
+    &:hover {
+      // color: #4096ff;
+      border-color: #4096ff;
+    }
     .appShopSelect-btn-text {
       display: inline-block;
-      width: 100%;
+      // width: calc(100% - 20px);
       white-space: nowrap; 
       overflow: hidden; 
       text-overflow: ellipsis; 
+      margin-right: 4px;
+    }
+    .appShopSelect-btn-num {
+      margin-right: 8px;
+    }
+    :deep(.anticon) {
+      margin-left: auto;
+      &:hover {
+        color: #8c8c8c;
+      }
     }
   }
 }
 .appShopSelect-accountForm {
-  width: 1200px;
+  width: 1600px;
   display: flex;
   flex-wrap: wrap;
   .ant-btn {
