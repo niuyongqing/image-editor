@@ -297,7 +297,7 @@
                   v-model:value="record.planNum"
                   :controls="false"
                   :precision="0"
-                  :min="0"
+                  :min="1"
                   :max="99999"
                   placeholder="请输入数值"
                   class="flex-1"

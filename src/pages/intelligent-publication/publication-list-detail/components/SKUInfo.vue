@@ -354,7 +354,7 @@
                   :controls="false"
                   :precision="0"
                   disabled
-                  :min="0"
+                  :min="1"
                   :max="99999"
                   placeholder="请输入数值"
                   class="flex-1"

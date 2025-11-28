@@ -108,8 +108,8 @@
   function getAddLogic() {
     if (radio.value === '1') {
       // 直接修改
-      if (absoluteNum.value === null) {
-        message.warning('修改值不能为空')
+      if (!absoluteNum.value) {
+        message.warning('修改值不能为空或为 0')
 
         return
       }
@@ -119,8 +119,8 @@
       }
     } else {
       // 相对 按数量或百分比增减
-      if (relativeNum.value === null) {
-        message.warning('修改值不能为空')
+      if (!relativeNum.value) {
+        message.warning('修改值不能为空或为 0')
 
         return
       }
@@ -195,9 +195,9 @@
 
     for (const record of tableData) {
       fn(record)
-      if (record.planNum < 0) {
+      if (record.planNum <= 0) {
         record.planNum = null
-        message.warning('修改后不能为负数, 请核实后再修改哦~')
+        message.warning('修改后不能为负数或为 0, 请核实后再修改哦~')
 
         break
       }
