@@ -14,7 +14,7 @@
     </template>
     <div class="appShopSelect-btn">
       <span class="appShopSelect-btn-text">
-        {{ actionItem.length > 0 ? actionItem[0][fieldLabel]:'' }}
+        <!-- {{ actionItem.length > 0 ? actionItem[0][fieldLabel]:'' }} -->
         {{ actionItem.map(i => i[fieldLabel]).join(' , ') }}
       </span>
       <span class="appShopSelect-btn-num" v-if="multiple && actionItem.length > 1">
@@ -95,8 +95,9 @@ function selectItem(index, item) {
     actionItem.value.push(item);
     data = item[fieldValue];
   }
+  let option = [...actionItem.value]
   emit('update:account', data);
-  emit('selectItem', data);
+  emit('selectItem', { data, option });
 };
 function selectItemClass(item) {
   return props.account === item[fieldValue] || ((props.multiple && Array.isArray(props.account)) && props.account.some(i => i === item[fieldValue])) ? 'primary' : ''
