@@ -106,7 +106,7 @@ function allowClear() {
   actionItem.value = [];
   let data = props.multiple ? [] : '';
   emit('update:account', data);
-  emit('selectItem', data);
+  emit('selectItem', { data, option: [] });
 }
 // defineExpose({});
 </script>
