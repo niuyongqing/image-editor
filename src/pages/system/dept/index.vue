@@ -1,16 +1,5 @@
 <template>
   <div>
-    <a-card style="margin-top: 10px">
-      <div style="margin-bottom: 10px; text-align: left">
-        <a-button
-          class="spacing"
-          type="primary"
-          @click="addDept"
-          v-has-permi="['system:dept:add']"
-          >添加</a-button
-        >
-      </div>
-
       <app-table-box
         :align="'left'"
         resetSetMenu="product-list"
@@ -21,6 +10,15 @@
         row-key="deptId"
         :loading="tableLoading"
       >
+      <template #leftTool>
+        <a-button
+          class="spacing"
+          type="primary"
+          @click="addDept"
+          v-has-permi="['system:dept:add']"
+          >添加</a-button
+        >
+      </template>
         <template #bodyCell="{ column, text, record }" :style="record.style">
           <div v-if="column.dataIndex === 'status'">
             <a-tag v-if="record.status === '0'" color="#2db7f5">正常</a-tag>
@@ -51,7 +49,7 @@
           </div>
         </template>
       </app-table-box>
-    </a-card>
+
     <add-or-edit
       :data="editData"
       :title="title"
