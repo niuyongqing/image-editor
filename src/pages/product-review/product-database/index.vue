@@ -232,7 +232,7 @@
       </div>
     </div>
     <!-- 详情弹窗 -->
-    <detailsModal ref="detailsModalRef" @handleSelect="handleSelect" />
+    <detailsModal @listingPicks="listingPicks" ref="detailsModalRef" @handleSelect="handleSelect" />
   
     <!-- 智能刊登选品弹窗 -->
     <listingPicksModal 
