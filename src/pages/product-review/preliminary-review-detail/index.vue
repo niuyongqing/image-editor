@@ -307,6 +307,43 @@
         </a-row>
       </a-card>
       <br />
+      <!-- Ozon图 -->
+      <a-card title="Ozon图">
+        <a-empty
+          description="没有Ozon图"
+          v-if="!(Array.isArray(detailData.data.artOzonImage) && detailData.data.artOzonImage.length > 0)"
+        />
+        <a-row
+          v-else
+          style="display: flex; justify-content: flex-start; align-items: center; flex-wrap: wrap"
+        >
+          <div
+            v-for="(item, index) in images(detailData.data.artOzonImage)"
+            :key="index"
+            style="margin-right: 6px"
+          >
+            <a-col :span="3">
+              <a-card
+                :bodyStyle="{ padding: '0px' }"
+                style="width: 200px; margin-bottom: 10px"
+              >
+                <a-image :src="item.url" />
+                <div
+                  class="bottom clearfix"
+                  :style="
+                    item.name.includes('美工处理')
+                      ? 'background-image: linear-gradient(267deg, #ffffff, #3ad6ff80); font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; width: 100%;'
+                      : 'font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; background-image: linear-gradient(60deg, #ffffff, #FFB03A); width: 100%'
+                  "
+                >
+                  {{ item.name.length > 15 ? item.name.substring(0, 15) + '...' : item.name }}
+                </div>
+              </a-card>
+            </a-col>
+          </div>
+        </a-row>
+      </a-card>
+      <br />
       <!-- Amazon场景主图 -->
       <a-card title="Amazon场景主图">
         <a-empty
@@ -991,6 +1028,9 @@ const selectedProductIds = ref([]);
       }
       if (data.artAssistantImage !== '' && data.artAssistantImage !== null) {
         data.artAssistantImage = JSON.parse(data.artAssistantImage)
+      }
+      if (data.artOzonImage) {
+        data.artOzonImage = JSON.parse(data.artOzonImage)
       }
 
       if (data.artSkuImage !== '' && data.artSkuImage !== null) {
