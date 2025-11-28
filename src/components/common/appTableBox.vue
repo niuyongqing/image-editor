@@ -1,6 +1,10 @@
 <template>
-  <div id="appTableBox" class="appTableBox">
+  <div id="appTableBox" class="appTableBox" :class="`${resetSetMenu}-appTableBox`">
     <a-card>
+      <!--   表格 按钮设置区域上方其他功能插槽，如tabs，分页器等   -->
+      <div class="table-otherCount" v-if="!!otherCount">
+        <slot name="otherCount"></slot>
+      </div>
       <div class="table-title">
         <div class="table-title-item">
           <a-space>
@@ -89,37 +93,54 @@
       </div>
       <div class="table-content" :class="`${resetSetMenu}-table`">
         <a-table 
-          v-bind="$attrs" 
           :columns="showHeader" 
           :data-source="dataSource" 
-          :scroll="scroll"
+          :scroll="scrollData"
           :pagination="false"
           :customRow="customRow" 
           bordered 
+          v-bind="$attrs" 
+          :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
         >
-          <template #headerCell="{ column }">
+          <template #headerCell="{ title, column }">
             <div class="resizable-header" v-if="column.key">
-              <slot name="headerCell" :column="column">
+              <slot 
+                name="headerCell" 
+                :column="column || {}"
+                :title="title"
+              >
                 {{ column?.title }}
               </slot>
               <div class="resizable-header-right" @mousedown.stop="e => onMouseDown(e, column)"></div>
             </div>
           </template>
-          <template #bodyCell="{ column, record, index }">
-            <slot name="bodyCell" :record="record" :index="index" :column="column">
+          <template #bodyCell="{ column, record, index, text }">
+            <slot 
+              name="bodyCell" 
+              :record="record || {}" 
+              :index="index" 
+              :column="column || {}"
+              :text="text"
+            >
               {{ record[column?.key] }}
             </slot>
             <template v-if="!!options && column.key === 'options'">
               <a-space>
-                <slot name="options" :record="record" :column="column"></slot>
+                <slot name="options" :record="record || {}" :column="column || {}"></slot>
               </a-space>
             </template>
           </template>
           <template #summary v-if="!!summary">
             <slot name="summary"></slot>
           </template>
-          <template #expandedRowRender="{ record }" v-if="!!expandedRowRender">
-            <slot name="expandedRowRender" :record="record"></slot>
+          <template #expandedRowRender="{ record, index, indent, expanded }" v-if="!!expandedRowRender">
+            <slot 
+              name="expandedRowRender" 
+              :record="record || {}"
+              :index="index"
+              :indent="indent"
+              :expanded="expanded"
+            ></slot>
           </template>
         </a-table>
       </div>
@@ -167,16 +188,19 @@ const props = defineProps({
   scroll: {
     // 表格滚动属性
     type: Object,
-    default: () => ({
-      y: `${window.innerHeight - 74}px`,
-    }),
+    default: () => ({ x: 800 }),
   },
   isTableSetting: {             // 是否启用表格设置
     type: Boolean,
     default: true,
   },
+  autoHeight: {             // 是否启用表格设置
+    type: Boolean,
+    default: true,
+  },
 });
 const {
+  otherCount,           // 最上方插槽，防止tabs，上分页器等
   leftTool,             // 左侧工具button插槽名
   rightTool,            // 右侧工具button插槽名
   headerCell,           // 表格表头插槽名
@@ -204,6 +228,8 @@ const columnList = ref([]);
 let optionsColumn = {
   sorter: false,
   fixed: 'right',
+  fixedLeft: false,
+  fixedRight: true,
   show: true,
   resizable: false,
   key: 'options',
@@ -211,36 +237,79 @@ let optionsColumn = {
   width: 150,
   align: 'left'
 };
+const heightInfo = reactive({
+  formDom: null,          // 搜索表单实例
+  formHeight: 0,          // 表单高度
+  outerDomHeight: 0,      // 除了表单之外计算出来的滚动高度
+})
 const showHeader = computed(() => {
   let list = columns.list.filter(i => i.show);
-  list = !!options ? [...list, optionsColumn] : list;
+  // list = !!options ? [...list, optionsColumn] : list;
   return list;
 })
-const tableBodyMaxHeight = computed(() => {
+const scrollData = computed(() => {
   let maxHeight = '';
-  if (typeof props.scroll.y === 'number') {
-    maxHeight = props.scroll.y + 'px'
+  if (props.scroll.y) {
+    if (typeof props.scroll.y === 'number') {
+      maxHeight = props.scroll.y + 'px'
+    } else {
+      maxHeight = props.scroll.y
+    }
   } else {
-    maxHeight = props.scroll.y
+    maxHeight = (heightInfo.outerDomHeight - heightInfo.formHeight) + 'px';
   }
-  return maxHeight;
+  return props.autoHeight ? { y: maxHeight, ...props.scroll } : props.scroll;
 })
-//  获取columns
-onMounted(async () => {
-  generateHeader()
-  await getSettingList();
+const scrollHeigth = computed(() => {
+  let maxHeight = (heightInfo.outerDomHeight - heightInfo.formHeight) + 'px';
+  return props.autoHeight ? maxHeight : 'auto';
+})
+generateHeader();
+getSettingList();
+onMounted(() => {
   nextTick(() => {
     columns.columnChange = false;
     // columnDrop();
     resizDomSetting();
+    setTimeout(() => {
+      getHeight()
+    }, 100);
   });
 });
+onUnmounted(() => {
+  heightInfo.formDom.disconnect();
+})
 watch(() => columns.list, (val, oldVal) => {
   columns.columnChange = true;
   emit('update:filterColumns', columns.list);
 }, {
   deep: true,
 });
+// 计算查询表单和表格滚动区的总高度
+function getHeight() {
+  let dom = document.querySelector(`.${props.resetSetMenu}-appTableBox`)
+  let antTabsHeight = document.querySelector('.ant-tabs.ant-tabs-top')?.offsetHeight || 0;
+  let tableOtherCountHeight = dom.querySelector('.table-otherCount')?.offsetHeight || 0;
+  let tableTitleHeight = dom.querySelector('.table-title')?.offsetHeight || 0;
+  let tablePaginationHeight = dom.querySelector('.table-pagination')?.offsetHeight || 0;
+  let tableHeaderHeight = dom.querySelector('.ant-table-header thead')?.offsetHeight || 0;
+  // let thead = dom.querySelector('.ant-table-header thead');
+  let tableSummaryHeight = dom.querySelector('.ant-table-summary table')?.offsetHeight || 0;
+  // console.log({
+  //   antTabsHeight,tableOtherCountHeight,tableTitleHeight,tablePaginationHeight,tableSummaryHeight,tableHeaderHeight,thead
+  // });
+  
+  heightInfo.outerDomHeight = window.innerHeight - antTabsHeight - tableOtherCountHeight - (tableTitleHeight + 8) - tablePaginationHeight - tableHeaderHeight - tableSummaryHeight - 20 - 24 - 10 - 8;
+  // 总高度 - 页签栏高度 - 表格最上方插槽高度 - 表格工具按钮栏高度+margin-bottom - 分页器插槽高度 - 表头高度 - 合计行高度 - main容器上下margin（20） - 表格组件card容器上下padding（24） - 横向滚动条高度（10） - 表格组件和查询表单组件的上下padding（8）
+
+  const targetDom = document.getElementById('appTableForm');
+  if (!targetDom) return;
+  // 1. 监听尺寸变化（ResizeObserver）
+  heightInfo.formDom = new ResizeObserver(entries => {
+    heightInfo.formHeight = entries[0].contentRect.height;
+  });
+  heightInfo.formDom.observe(targetDom);
+}
 // 重新生成表头
 function generateHeader() {
   columnList.value = props.tableHeader.map((i, index) => {
@@ -257,18 +326,35 @@ function generateHeader() {
   });
 }
 // 获取表头
-async function getSettingList() {
+function getSettingList() {
   if (!props.resetSetMenu) {
     console.error('缺少resetSetMenu！');
     return;
   }
   let { data } = getHeader();
-  columns.list = data ? data : cloneDeep(columnList.value);
-  columns.leftList = columns.list.filter(i => i.fixed === 'left');
-  columns.rightList = columns.list.filter(i => i.fixed === 'right');
+  if (data) {
+    columns.list = data
+  } else {
+    let list = cloneDeep(columnList.value);
+    let col = cloneDeep(optionsColumn)
+    columns.list = !!options ? [...list, col] : list;
+  }
+  // list = !!options ? [...list, optionsColumn] : list;
+  columns.leftList = columns.list.filter(i => {
+    if (i.fixed === 'left') {
+      i.fixedLeft = true
+    }
+    return i.fixed === 'left'
+  });
+  columns.rightList = columns.list.filter(i => {
+    if (i.fixed === 'right') {
+      i.fixedRight = true
+    }
+    return i.fixed === 'right'
+  });
   columns.centerList = columns.list.filter(i => !i.fixed);
+  columns.list = [...columns.leftList, ...columns.centerList, ...columns.rightList];
   columns.columnChange = false;
-  return Promise.resolve();
 }
 /**
  * 固定表头
@@ -479,7 +565,7 @@ function getHeader() {
     // margin-bottom: 10px;
     :deep(.ant-table) {
       .ant-table-body {
-        height: v-bind(tableBodyMaxHeight) !important;
+        height: v-bind(scrollHeigth) !important;
       }
     }
   }
@@ -510,6 +596,9 @@ function getHeader() {
 
 :deep(.ant-table-cell-ellipsis.ant-table-cell-fix-left-last .ant-table-cell-content) {
   overflow: visible;
+}
+:deep(.table-striped) td {
+  background-color: #fafafa;
 }
 
 .resizable-header {
