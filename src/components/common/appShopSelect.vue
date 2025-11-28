@@ -100,7 +100,7 @@ const selectItem = (index, item) => {
     cursor: pointer;
     &.primary {
       color: #fff;
-      background-color: #4096ff;
+      background-color: #1677ff;
     }
   }
 }
