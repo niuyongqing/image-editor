@@ -1,6 +1,6 @@
 <template>
   <div id="productDatabase_detailsModal" class="productDatabase_detailsModal">
-    <a-modal v-model:open="modalOpen" :style="{ top: '10px', padding: 0, height: '99vh' }"
+    <a-modal v-model:open="modalOpen" :class="origin === 'product-database' ? 'ml-96' : ''" :style="{ top: '10px', padding: 0, height: '99vh' }"
       :bodyStyle="{ height: 'calc(95vh - 100px)', 'overflow-y': 'auto' }" :title="'产品详情'" :maskClosable="false"
       width="80%">
       <a-spin :spinning="loading" class="dialog-box">
@@ -270,7 +270,7 @@
         <br />
       </a-spin>
       <template #footer>
-        <a-button key="back" type="primary" @click="handleSelect">选中</a-button>
+        <a-button v-if="origin !== 'product-database'" key="back" type="primary" @click="handleSelect">选中</a-button>
         <a-button key="back" @click="closeModalFn">关闭</a-button>
       </template>
     </a-modal>
@@ -433,7 +433,11 @@ const roleName = computed(() => {
 const sale = computed(() => {
   return userStore.userInfo.sysUser.roles[0].sale;
 });
-async function modalOpenFn({ row, forbidSaleList, cacheGetArr }) {
+const origin = ref('');
+async function modalOpenFn({ row, forbidSaleList, cacheGetArr },ori = '') {
+  if(ori === 'product-database'){
+    origin.value = ori;
+  }
   detailData.cacheGetArr = cacheGetArr;
   detailData.forbidSaleList = forbidSaleList;
   detailData.row = row
