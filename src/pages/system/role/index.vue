@@ -443,21 +443,6 @@ const handlePageSizeChange = (val) => {
         </a-form-item>
       </template>
     </appTableForm>
-
-    <a-card style="margin-top: 10px; padding: 0">
-      <div
-        class="table-container"
-        ref="tableContainer"
-        style="text-align: left"
-      >
-        <a-button
-          type="primary"
-          style="margin-bottom: 10px"
-          @click="addUser"
-          v-has-permi="['system:platform:role:add']"
-          >新增</a-button
-        >
-
         <app-table-box
           :align="'left'"
           resetSetMenu="product-list"
@@ -470,6 +455,14 @@ const handlePageSizeChange = (val) => {
           :expandedRowKeys="expandedKeys"
           @expandedRowsChange="getRoleUserList"
         >
+        <template #leftTool>
+          <a-button
+          type="primary"
+          @click="addUser"
+          v-has-permi="['system:platform:role:add']"
+          >新增</a-button
+        >
+            </template>
           <template #expandedRowRender="{ record }">
             <p style="margin: 0">
               <a-table
@@ -542,8 +535,6 @@ const handlePageSizeChange = (val) => {
             />
           </template>
         </app-table-box>
-      </div>
-    </a-card>
     <add-or-edit
       :open="open"
       :title="title"
