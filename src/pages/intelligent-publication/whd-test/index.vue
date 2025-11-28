@@ -963,7 +963,7 @@ const formatSummaryValue = (field, value) => {
 };
 
 const formatCellValue = (field, value) => {
-  console.log({field, value});
+  // console.log({field, value});
   
   if (value === undefined || value === null) return '';
   if (field.includes('Rate')) {

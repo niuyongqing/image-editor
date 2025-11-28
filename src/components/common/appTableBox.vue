@@ -111,7 +111,7 @@
               >
                 {{ column?.title }}
               </slot>
-              <div class="resizable-header-right" @mousedown.stop="e => onMouseDown(e, column)"></div>
+              <div v-if="!column.children" class="resizable-header-right" @mousedown.stop="e => onMouseDown(e, column)"></div>
             </div>
           </template>
           <template #bodyCell="{ column, record, index, text }">
@@ -215,16 +215,16 @@ const {
 
 const btnLoading = ref(false);
 const columns = reactive({
-  list: [],
-  leftList: [],
+  list: [],                 // 实际表头
+  leftList: [],             // 固定在左侧的表头
   rightList: [],
   centerList: [],
   isResizing: false,
   resizingColumnKey: null,
-  columnChange: false,
+  columnChange: false,        
+
+  columnList: [],         // 原始表头
 });
-// 原始表头
-const columnList = ref([]);
 let optionsColumn = {
   sorter: false,
   fixed: 'right',
@@ -312,7 +312,7 @@ function getHeight() {
 }
 // 重新生成表头
 function generateHeader() {
-  columnList.value = props.tableHeader.map((i, index) => {
+  columns.columnList = props.tableHeader.map((i, index) => {
     let obj = {
       sorter: false,
       fixed: false,
@@ -335,7 +335,7 @@ function getSettingList() {
   if (data) {
     columns.list = data
   } else {
-    let list = cloneDeep(columnList.value);
+    let list = cloneDeep(columns.columnList);
     let col = cloneDeep(optionsColumn)
     columns.list = !!options ? [...list, col] : list;
   }
@@ -354,6 +354,7 @@ function getSettingList() {
   });
   columns.centerList = columns.list.filter(i => !i.fixed);
   columns.list = [...columns.leftList, ...columns.centerList, ...columns.rightList];
+  setColumnItem(columns.list);
   columns.columnChange = false;
 }
 /**
@@ -375,6 +376,7 @@ function fixedCheckboxChange(col, type) {
   columns.rightList = columns.list.filter(i => i.fixed === 'right');
   columns.centerList = columns.list.filter(i => !i.fixed);
   columns.list = [...columns.leftList, ...columns.centerList, ...columns.rightList];
+  setColumnItem(columns.list);
 }
 let clickTimer = null; // 处理单击和双击冲突的定时器
 // 自定义行属性（同时绑定单击和双击）
@@ -407,15 +409,46 @@ function resizDomSetting() {
     columnSorters.after(resizable);
   });
 }
+// 根据key找出表头对象
+function getColumnItem(key, data) {
+  let col = null;
+  let list = data ? data : columns.list
+  list.some(item => {
+    // console.log(item.key === key, item.key, key);
+    if (item.key === key) {
+      col = item;
+    } else if (item.children && item.children.length > 0) {
+      col = getColumnItem(key, item.children);
+    }
+    return col;
+  });
+  return col
+}
+// 设置深层级表头的固定方式
+function setColumnItem(data, pData) {
+  data.forEach(item => {
+    if (pData) {
+      item.fixed = pData.fixed;
+      item.fixedLeft = pData.fixedLeft;
+      item.fixedRight = pData.fixedRight;
+    }
+    if (item.children && item.children.length > 0) {
+      setColumnItem(item.children, item);
+    } 
+  })
+}
 // 点击拖拽设置列宽
 function onMouseDown(event, column) {
   // console.log({ event, column });
+  // 只能拖拽最底层表头
+  if (column.children) return;
   const startX = event.clientX; // 获取鼠标初始位置
   const startWidth = column.width || 0; // 获取初始宽度
   columns.isResizing = true;
   columns.resizingColumnKey = column.key;
   let animationFrameId; // 为了让移动更丝滑
-  let val = columns.list.find(i => i.key === column.key);
+  // let val = columns.list.find(i => i.key === column.key);
+  let val = getColumnItem(column.key);
   let parentElement = event.target.parentNode;
   let target = event.target.cloneNode();
   let sorter = val.sorter;
@@ -461,16 +494,13 @@ function onMouseDown(event, column) {
   document.addEventListener('mouseup', mouseUpHandler);
 }
 // 保存表格设置
-async function tableSetting(val) {
-  btnLoading.value = true;
+function tableSetting(val) {
   updateHeader(val);
   getSettingList();
-  btnLoading.value = false;
   nextTick(() => {
     message.success('已保存');
     columns.columnChange = false;
   });
-  return Promise.resolve();
 }
 //列拖拽
 function columnDrop() {
@@ -602,32 +632,33 @@ function getHeader() {
 }
 
 .resizable-header {
+  // height: 40px;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.resizable-header-right {
-  width: 6px;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  right: -8px;
-  z-index: 999;
-  cursor: col-resize;
-
-  &.sorters {
-    right: -3px;
+  .resizable-header-right {
+    width: 6px;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    right: -8px;
+    z-index: 999;
+    cursor: col-resize;
+  
+    &.sorters {
+      right: -3px;
+    }
   }
 }
+
 
 .tableSetting-box {
   max-height: 300px;
   overflow-y: auto;
 
   .tableSetting-columnRow {
-    height: 30px;
+    min-height: 30px;
     display: flex;
     align-items: center;
     cursor: pointer;
