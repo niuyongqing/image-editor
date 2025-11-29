@@ -1,28 +1,32 @@
 <!-- 水印管理 列表 -->
 <template>
   <div class="text-left">
-    <a-button
-      type="primary"
-      class="float-right mb-4"
-      size="middle"
-      @click="add"
-      >创建模版</a-button
-    >
-
-    <a-table
+    <AppTableBox
       bordered
       row-key="id"
-      :columns="COLUMNS"
+      reset-set-menu="watermark"
+      :table-header="COLUMNS"
       :data-source="tableData"
       :loading="loading"
-      :pagination="false"
+      :scroll="{ x: 'fit-content', y: 'calc(100vh - 170px)' }"
+      @rowDoubleClick="record => edit(record.id)"
     >
+      <template #leftTool>
+        <a-button
+          type="primary"
+          class="float-right mb-4"
+          @click="add"
+          >创建模版</a-button
+        >
+      </template>
+
       <template #bodyCell="{ record, column }">
         <template v-if="column.title === '水印内容'">
           <a-image
             v-if="record.type === 1"
             :src="record.content"
             :width="60"
+            :height="60"
             class="object-contain"
           />
           <span v-else>{{ record.content }}</span>
@@ -48,7 +52,7 @@
           </a-popconfirm>
         </template>
       </template>
-    </a-table>
+    </AppTableBox>
   </div>
 </template>
 
@@ -68,7 +72,8 @@
     },
     {
       title: '类型',
-      key: 'type'
+      key: 'type',
+      align: 'center'
     },
     {
       title: '操作',

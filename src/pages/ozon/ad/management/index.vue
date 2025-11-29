@@ -2,103 +2,85 @@
 <template>
   <div class="text-left">
     <!-- 搜索区 -->
-    <a-card>
-      <a-descriptions :column="1">
-        <a-descriptions-item label="选择日期">
-          <TiledDateSelect v-model:value="watchedSearchForm.dateRange" />
-        </a-descriptions-item>
-        <a-descriptions-item label="店铺账号">
+    <AppTableForm
+      v-model:formData="searchForm"
+      reset-set-menu="adManagement"
+      @on-submit="getList"
+    >
+      <template #formItemRow>
+        <a-form-item
+          label="选择日期"
+          name="dateRange"
+        >
+          <TiledDateSelect v-model:value="searchForm.dateRange" />
+        </a-form-item>
+        <a-form-item
+          label="店铺账号"
+          name="account"
+        >
           <TiledSelect
-            v-model:value="watchedSearchForm.account"
+            v-model:value="searchForm.account"
             :options="accountList"
             :field-names="{ label: 'simpleName', value: 'account' }"
           />
-        </a-descriptions-item>
-        <a-descriptions-item label="搜索类型">
-          <TiledSelect
-            v-model:value="lazySearchForm.searchKey"
-            :options="SEARCH_PROP_OPTIONS"
-            :append-all="false"
-          />
-        </a-descriptions-item>
-        <a-descriptions-item
-          label="搜索内容"
-          :content-style="{ 'flex-direction': 'column' }"
+        </a-form-item>
+        <a-form-item
+          label="付款类型"
+          name="payType"
         >
-          <a-space align="start">
-            <SearchContentInput
-              v-model:value="lazySearchForm.searchValue"
-              :hide-control="['title'].includes(lazySearchForm.searchKey)"
-              :placeholder="PLACEHOLDER_ENUM[lazySearchForm.searchKey]"
-              @enter="search"
-            />
-            <a-button
-              type="primary"
-              :loading="loading"
-              @click="search"
-              >搜索</a-button
-            >
-          </a-space>
-        </a-descriptions-item>
-        <a-descriptions-item label="付款类型">
           <TiledSelect
-            v-model:value="watchedSearchForm.payType"
+            v-model:value="searchForm.payType"
             :options="PAY_TYPE_OPTIONS"
           />
-        </a-descriptions-item>
-        <a-descriptions-item label="启用状态">
+        </a-form-item>
+        <a-form-item
+          label="启用状态"
+          name="state"
+        >
           <TiledSelect
-            v-model:value="watchedSearchForm.state"
+            v-model:value="searchForm.state"
             :options="ENABLE_STATE_OPTIONS"
           />
-        </a-descriptions-item>
-        <a-descriptions-item label="活动状态">
+        </a-form-item>
+        <a-form-item
+          label="活动状态"
+          name="activityState"
+        >
           <TiledSelect
-            v-model:value="watchedSearchForm.activityState"
+            v-model:value="searchForm.activityState"
             :options="ACTIVE_STATE_OPTIONS"
           />
-        </a-descriptions-item>
-      </a-descriptions>
-    </a-card>
-
-    <!-- 按钮区 -->
-    <div class="my-4 flex justify-between">
-      <a-dropdown :disabled="selectedRows.length === 0">
-        <template #overlay>
-          <a-menu @click="handleMenuClick">
-            <a-menu-item key="1">批量修改预算</a-menu-item>
-            <a-menu-item key="2">批量开启</a-menu-item>
-            <a-menu-item key="3">批量关闭</a-menu-item>
-          </a-menu>
-        </template>
-        <a-button
-          type="primary"
-          title="勾选广告后批量操作"
-          >批量操作 <DownOutlined
-        /></a-button>
-      </a-dropdown>
-
-      <a-space>
-        <a-button
-          type="primary"
-          @click="add"
-          >创建广告</a-button
+        </a-form-item>
+        <a-form-item
+          label="模糊查询"
+          name="mult"
         >
-        <a-button
-          :loading="syncLoading"
-          @click="sync"
-          >同步广告</a-button
-        >
-      </a-space>
-    </div>
+          <a-form-item-rest>
+            <a-space>
+              <a-input
+                v-model:value="searchForm.title"
+                placeholder="活动名称"
+                allow-clear
+              />
+              <a-input
+                v-model:value="searchForm.id"
+                placeholder="活动 ID, 多个 ID 间用英文逗号隔开"
+                allow-clear
+              />
+            </a-space>
+          </a-form-item-rest>
+        </a-form-item>
+      </template>
+    </AppTableForm>
 
     <!-- TABLE 区 -->
-    <a-card>
+    <a-card class="mt-2">
       <div class="flex justify-between items-center">
         <a-tabs
-          v-model:activeKey="watchedSearchForm.tab"
+          v-model:activeKey="searchForm.tab"
           :animated="false"
           class="flex-1"
+          @change="search"
         >
           <a-tab-pane
             v-for="item in LIST_TABS"
@@ -106,30 +88,57 @@
             :tab="`${item.label}(${listTabsCountEnum[item.value] || 0})`"
           ></a-tab-pane>
         </a-tabs>
-        <a-pagination
+
+        <AppTablePagination
           v-model:current="tableParams.pageNum"
           v-model:pageSize="tableParams.pageSize"
           :total="total"
-          :default-page-size="50"
-          show-size-changer
-          show-quick-jumper
-          :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
-          class="flex-none"
           @change="getList"
         />
       </div>
 
-      <a-table
-        :columns="DEFAULT_TABLE_COLUMN"
+      <AppTableBox
+        :table-header="DEFAULT_TABLE_COLUMN"
         :data-source="tableData"
         :loading="loading"
+        reset-set-menu="adManagement"
         stripe
         ref="tableRef"
         row-key="id"
-        :pagination="false"
-        :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }"
         :scroll="{ x: 'max-content' }"
+        :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }"
+        @rowDoubleClick="record => goDetail('view', record)"
       >
+        <template #leftTool>
+          <a-space>
+            <a-dropdown :disabled="selectedRows.length === 0">
+              <template #overlay>
+                <a-menu @click="handleMenuClick">
+                  <a-menu-item key="1">批量修改预算</a-menu-item>
+                  <a-menu-item key="2">批量开启</a-menu-item>
+                  <a-menu-item key="3">批量关闭</a-menu-item>
+                </a-menu>
+              </template>
+              <a-button
+                type="primary"
+                title="勾选广告后批量操作"
+                >批量操作 <DownOutlined
+              /></a-button>
+            </a-dropdown>
+
+            <a-button
+              type="primary"
+              @click="add"
+              >创建广告</a-button
+            >
+            <a-button
+              :loading="syncLoading"
+              @click="sync"
+              >同步广告</a-button
+            >
+          </a-space>
+        </template>
+
         <template #headerCell="{ column }">
           <template v-if="column.title === '订单量'">
             <span class="mr-1">{{ column.title }}</span>
@@ -276,19 +285,16 @@
             </a-dropdown>
           </template>
         </template>
-      </a-table>
 
-      <a-pagination
-        v-model:current="tableParams.pageNum"
-        v-model:pageSize="tableParams.pageSize"
-        class="text-right mt-3"
-        :total="total"
-        :default-page-size="50"
-        show-size-changer
-        show-quick-jumper
-        :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
-        @change="getList"
-      />
+        <template #pagination>
+          <AppTablePagination
+            v-model:current="tableParams.pageNum"
+            v-model:pageSize="tableParams.pageSize"
+            :total="total"
+            @change="getList"
+          />
+        </template>
+      </AppTableBox>
     </a-card>
   </div>
 </template>
@@ -319,19 +325,15 @@
 
   const router = useRouter()
   const accountList = ref([])
-  // 被 watch 监听的搜索表单; 外层, 点击即可搜索
-  const watchedSearchForm = reactive({
+  const searchForm = reactive({
     dateRange: [dayjs().subtract(7, 'day'), dayjs()],
     account: undefined,
     payType: undefined,
     state: undefined,
     activityState: undefined,
+    title: undefined,
+    id: undefined,
     tab: 'ALL'
-  })
-  // 点击'搜索'按钮再执行搜索动作
-  const lazySearchForm = reactive({
-    searchKey: 'title', // 搜索类型
-    searchValue: undefined // 搜索内容
   })
   const tableParams = reactive({
     pageNum: 1,
@@ -342,14 +344,6 @@
   const loading = ref(false)
   const selectedRowKeys = ref([])
   const selectedRows = ref([])
-
-  watch(
-    () => watchedSearchForm,
-    () => {
-      search()
-    },
-    { deep: true }
-  )
 
   getAccountList()
   function getAccountList() {
@@ -377,15 +371,11 @@
     selectedRows.value = []
 
     const params = {
-      ...watchedSearchForm,
-      ...lazySearchForm,
-      [lazySearchForm.searchKey]: lazySearchForm.searchValue,
+      ...searchForm,
       ...tableParams
-      // startTime: watchedSearchForm.dateRange ? dayjs(watchedSearchForm.dateRange[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
-      // endTime: watchedSearchForm.dateRange ? dayjs(watchedSearchForm.dateRange[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined
+      // startTime: searchForm.dateRange ? dayjs(searchForm.dateRange[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined,
+      // endTime: searchForm.dateRange ? dayjs(searchForm.dateRange[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined
     }
-    delete params.searchKey
-    delete params.searchValue
     delete params.dateRange
 
     adListApi(params)
@@ -439,7 +429,7 @@
   const syncLoading = ref(false)
   function sync() {
     syncLoading.value = true
-    adSyncApi({ account: watchedSearchForm.account || '' })
+    adSyncApi({ account: searchForm.account || '' })
       .then(() => {
         message.success('同步成功')
         getList()

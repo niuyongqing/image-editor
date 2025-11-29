@@ -2,118 +2,146 @@
 <template>
   <div class="text-left">
     <!-- 搜索区 -->
-    <a-card class="mb-3">
-      <a-form :model="searchForm" ref="searchFormRef" layout="inline">
-        <a-form-item label="状态" name="status">
-          <a-radio-group v-model:value="searchForm.status" :options="STATUS_OPTIONS" />
+    <AppTableForm
+      v-model:formData="searchForm"
+      reset-set-menu="publicationRule"
+      @formHeightChange="
+        height => {
+          formHeight = height
+        }
+      "
+      @on-submit="getList"
+    >
+      <template #formItemRow>
+        <a-form-item
+          label="状态"
+          name="status"
+        >
+          <a-radio-group
+            v-model:value="searchForm.status"
+            :options="STATUS_OPTIONS"
+          />
         </a-form-item>
-        <a-form-item label="模糊查询">
+        <a-form-item
+          label="模糊查询"
+          name="mult"
+        >
           <a-space>
             <a-input v-model:value="searchForm.ruleName" placeholder="请输入规则名称" allow-clear />
           </a-space>
         </a-form-item>
-        <a-form-item label="分类" name="categoryId">
-        <a-cascader 
-          placeholder="分类" 
-          allowClear 
-          style="width: 300px;"
-          v-model:value="searchForm.categoryId" 
-          :options="commodityTypeList"
-          :allow-clear="true" 
-          show-search
-          :filterOption="filterOption"
-          :field-names="{ value: 'descriptionCategoryId', label: 'categoryName', children: 'children' }" 
-        />
-      </a-form-item>
-        <!-- <a-form-item label="分类" name="categoryId">
-          <a-select filterable style="width: 600px" v-model:value="searchForm.categoryId" :options="flatTreeList" 
-          :field-names="{
-            label: 'label',
-            value: 'uniqueCode',
-          }"
-          show-search
-          :filterOption="filterOption"
-          placeholder="分类" allowClear></a-select>
-        </a-form-item> -->
-        <a-form-item>
-          <a-button type="primary" class="mr-2" @click="search">查询</a-button>
-          <a-button @click="reset">重置</a-button>
-        </a-form-item>
-      </a-form>
-    </a-card>
+      </template>
+    </AppTableForm>
 
     <!-- table 区 -->
-    <a-card>
-      <a-space>
-        <a-button type="primary" @click="add">新增</a-button>
-        <!-- <a-popconfirm
-          title="确定启用吗?"
-          :disabled="state.selectedRowKeys.length === 0"
-          @confirm="batchToggleStatus({ status: 1 })"
-        >
-          <a-button :disabled="state.selectedRowKeys.length === 0">批量启用</a-button>
-        </a-popconfirm>
-        <a-popconfirm
-          title="确定停用吗?"
-          :disabled="state.selectedRowKeys.length === 0"
-          @confirm="batchToggleStatus({ status: 0 })"
-        >
+    <AppTableBox
+      :table-header="DEFAULT_TABLE_COLUMN"
+      :data-source="tableData"
+      :loading="state.loading"
+      reset-set-menu="publicationRule"
+      stripe
+      row-key="id"
+      :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange }"
+      :scroll="scrollConfig"
+      @rowDoubleClick="record => goEdit(record)"
+    >
+      <template #leftTool>
+        <a-space>
           <a-button
-            danger
-            :disabled="state.selectedRowKeys.length === 0"
-            >批量停用</a-button
+            type="primary"
+            @click="add"
+            >新增</a-button
           >
-        </a-popconfirm> -->
-        <a-button type="primary" :disabled="state.selectedRowKeys.length === 0"
-          @click="remarkModalOpen = true">批量备注</a-button>
-      </a-space>
+          <!-- <a-popconfirm
+            title="确定启用吗?"
+            :disabled="state.selectedRowKeys.length === 0"
+            @confirm="batchToggleStatus({ status: 1 })"
+          >
+            <a-button :disabled="state.selectedRowKeys.length === 0">批量启用</a-button>
+          </a-popconfirm>
+          <a-popconfirm
+            title="确定停用吗?"
+            :disabled="state.selectedRowKeys.length === 0"
+            @confirm="batchToggleStatus({ status: 0 })"
+          >
+            <a-button
+              danger
+              :disabled="state.selectedRowKeys.length === 0"
+              >批量停用</a-button
+            >
+          </a-popconfirm> -->
+          <a-button
+            type="primary"
+            :disabled="state.selectedRowKeys.length === 0"
+            @click="remarkModalOpen = true"
+            >批量备注</a-button
+          >
+        </a-space>
+      </template>
 
-      <a-pagination v-model:current="tableParams.pageNum" v-model:pageSize="tableParams.pageSize" :total="state.total"
-        :default-page-size="50" show-size-changer show-quick-jumper
-        :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`" class="mb-4 float-right"
-        @change="getList" />
-
-      <a-table :columns="DEFAULT_TABLE_COLUMN" :data-source="tableData" :loading="state.loading" stripe row-key="id"
-        :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange }"
-        :custom-row="record => ({ onDblclick: () => goDetail(record) })" :pagination="false"
-        :scroll="{ x: 'max-content' }">
-        <template #bodyCell="{ column, record, index }">
-          <template v-if="column.key === 'index'">
-            <div>{{ index + 1 + (tableParams.pageNum - 1) * tableParams.pageSize }}</div>
-          </template>
-          <template v-else-if="column.key === 'name'">
-            <div class="w-50">{{ record.ruleName || '--' }}</div>
-          </template>
-          <template v-else-if="column.key === 'category'">
-            <a-tag color="success">{{ getCategoryLabel(record.categoryId) }}</a-tag>
-          </template>
-          <template v-else-if="column.key === 'averageCostPriceRange'">
-            <span>[ {{ record.costPriceMin || '_' }}, {{ record.costPriceMax || '_' }} ]</span>
-          </template>
-          <template v-else-if="column.key === 'averageWeightRange'">
-            <span>[ {{ record.weightMin || '_' }} , {{ record.weightMax || '_' }} ]</span>
-          </template>
-          <template v-else-if="column.key === 'status'">
-            <a-switch :checked="record.status" checked-children="启用" :checked-value="1" un-checked-children="停用"
-              :un-checked-value="0" :loading="record.loading" size="default" @change="toggleStatus(record)" />
-          </template>
-          <template v-else-if="column.key === 'remark'">
-            <div class="w-50">{{ record.remark || '--' }}</div>
-          </template>
-          <template v-else-if="column.key === 'operation'">
-            <a-space>
-              <a-button type="link" :disabled="false && !record.id" @click="goDetail(record)">查看</a-button>
-              <a-button type="link" :disabled="false && !record.id" @click="goEdit(record)">编辑</a-button>
-              <a-button type="link" @click="openRemorkModal(record)">备注</a-button>
-            </a-space>
-          </template>
+      <template #bodyCell="{ column, record, index }">
+        <template v-if="column.key === 'index'">
+          <div>{{ index + 1 + (tableParams.pageNum - 1) * tableParams.pageSize }}</div>
         </template>
-      </a-table>
+        <template v-else-if="column.key === 'name'">
+          <div class="w-50">{{ record.ruleName || '--' }}</div>
+        </template>
+        <template v-else-if="column.key === 'category'">
+          <a-tag color="success">{{ getCategoryLabel(record.categoryId) }}</a-tag>
+        </template>
+        <template v-else-if="column.key === 'averageCostPriceRange'">
+          <span>[ {{ record.costPriceMin || '_' }}, {{ record.costPriceMax || '_' }} ]</span>
+        </template>
+        <template v-else-if="column.key === 'averageWeightRange'">
+          <span>[ {{ record.weightMin || '_' }} , {{ record.weightMax || '_' }} ]</span>
+        </template>
+        <template v-else-if="column.key === 'status'">
+          <a-switch
+            :checked="record.status"
+            checked-children="启用"
+            :checked-value="1"
+            un-checked-children="停用"
+            :un-checked-value="0"
+            :loading="record.loading"
+            size="default"
+            @change="toggleStatus(record)"
+          />
+        </template>
+        <template v-else-if="column.key === 'remark'">
+          <div class="w-50">{{ record.remark || '--' }}</div>
+        </template>
+        <template v-else-if="column.key === 'operation'">
+          <a-space>
+            <a-button
+              type="link"
+              :disabled="false && !record.id"
+              @click="goDetail(record)"
+              >查看</a-button
+            >
+            <a-button
+              type="link"
+              :disabled="false && !record.id"
+              @click="goEdit(record)"
+              >编辑</a-button
+            >
+            <a-button
+              type="link"
+              @click="openRemorkModal(record)"
+              >备注</a-button
+            >
+          </a-space>
+        </template>
+      </template>
 
-      <a-pagination v-model:current="tableParams.pageNum" v-model:pageSize="tableParams.pageSize" :total="state.total"
-        :default-page-size="50" show-size-changer show-quick-jumper
-        :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`" class="float-right" @change="getList" />
-    </a-card>
+      <template #pagination>
+        <AppTablePagination
+          v-model:current="tableParams.pageNum"
+          v-model:pageSize="tableParams.pageSize"
+          :total="state.total"
+          @change="getList"
+        />
+      </template>
+    </AppTableBox>
 
     <!-- 备注弹窗 -->
     <a-modal title="添加备注" v-model:open="remarkModalOpen" width="30%" :confirm-loading="remarkLoading"
@@ -129,6 +157,7 @@
   import { newCategoryTreeApi } from '@/pages/product-review/CommonDetail/api'
   import { message } from 'ant-design-vue'
   import { useReceiveMessage } from '@/utils/postMessage'
+  import AppTableBox from '~@/components/common/appTableBox.vue'
 
   const router = useRouter()
 
@@ -138,33 +167,13 @@
     categoryId: [],
     status: 2
   })
-  const searchFormRef = ref()
   // 状态选项
   const STATUS_OPTIONS = [
     { label: '全部', value: 2 },
     { label: '启用', value: 1 },
     { label: '停用', value: 0 }
   ]
-
-  // 过滤选项
-const filterOption = (inputValue, option) => {
-  const label = option.categoryName; // 因为你的数据中有 categoryName 字段
-  return label.toLowerCase().includes(inputValue.toLowerCase());
-};
-
-  function search() {
-    tableParams.pageNum = 1
-    getList()
-  }
-
-  function reset() {
-    tableParams.pageNum = 1
-    searchFormRef.value.resetFields()
-    searchForm.ruleName = ''
-    searchForm.categoryId = []
-
-    getList()
-  }
+  const formHeight = ref(0)
 
   /** table */
   const tableParams = reactive({
@@ -177,6 +186,12 @@ const filterOption = (inputValue, option) => {
     selectedRowKeys: []
   })
   const tableData = ref([])
+  const scrollConfig = computed(() => {
+    return {
+      x: 'max-content',
+      y: `calc(100vh - 246px - ${formHeight.value}px)`
+    }
+  })
 
   function onSelectChange(selectedRowKeys) {
     state.selectedRowKeys = selectedRowKeys

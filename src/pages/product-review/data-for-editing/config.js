@@ -32,6 +32,7 @@ export const DEFAULT_TABLE_COLUMN = [
   {
     title: '仓储类别',
     key: 'storage',
+    align: 'center',
     width: 80
   },
   {
@@ -43,23 +44,27 @@ export const DEFAULT_TABLE_COLUMN = [
     title: '提交人',
     key: 'submiter',
     dataIndex: 'selectUserName',
+    align: 'center',
     width: 100
   },
   {
     title: '审核人',
     key: 'reviewer',
+    align: 'center',
     width: 100
   },
   {
     title: '提交时间',
     key: 'selectTime',
     dataIndex: 'selectTime',
+    align: 'center',
     width: 160
   },
   {
     title: '审核时间',
     key: 'firstAuditTime',
     dataIndex: 'firstAuditTime',
+    align: 'center',
     width: 160
   },
   {
