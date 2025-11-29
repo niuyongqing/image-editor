@@ -171,7 +171,7 @@
   // 权限校验
   // 是否为资料待编辑详情
   const hasPermi = computed(() => checkPermi(['platform:ozon:intelligent:first:audit']) || checkRole('admin'))
-  const hasEditPermi = computed(() => checkPermi(['platform:ozon:intelligent:edit:list']) || checkRole('admin'))
+  const hasEditPermi = computed(() => checkPermi(['platform:ozon:intelligent:edit:audit']) || checkRole('admin'))
   const isEditDetail = computed(() => route.path === '/platform/product-review/data-for-editing-detail')
   const auditStatus = Number(route.query.auditStatus)
 
