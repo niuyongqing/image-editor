@@ -189,7 +189,7 @@ const filterOption = (inputValue, option) => {
       ...tableParams,
       ...searchForm
     }
-    params.categoryId = params.categoryId.join(',')
+    params.categoryId = params.categoryId?.join(',')
     state.loading = true
     listApi(params)
       .then(res => {
