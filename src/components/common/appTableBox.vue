@@ -103,7 +103,7 @@
           v-bind="$attrs" 
           :row-class-name="rowClassName"
           ref="tableRef"
-          v-if="tableInfo.data.length"
+          v-if="tableInfo.updateIf"
         >
           <template #headerCell="{ title, column }">
             <div class="resizable-header" v-if="column.key">
@@ -256,6 +256,7 @@ const heightInfo = reactive({
 const tableInfo = reactive({
   data: [],              // 用于渲染的表格数据
   sortable: null,             // Sortable实例
+  updateIf: true,
 })
 const showHeader = computed(() => {
   let list = columns.list.filter(i => i.show);
@@ -302,9 +303,10 @@ watch(() => columns.list, (val, oldVal) => {
   deep: true,
 });
 watch(() => props.dataSource, (val, oldVal) => {
-  tableInfo.data = []
+  tableInfo.updateIf = false;
   tableInfo.data = cloneDeep(val)
   setTableData(tableInfo.data)
+  tableInfo.updateIf = true;
 }, {
   deep: true,
   immediate: true,
