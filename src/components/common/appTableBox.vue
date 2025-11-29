@@ -99,6 +99,7 @@
           :pagination="false"
           :customRow="customRow" 
           bordered 
+          :row-key="rowKey"
           v-bind="$attrs" 
           :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
         >
@@ -123,6 +124,7 @@
               :text="text"
             >
               {{ record[column?.key] }}
+              <!-- <appEllipsisTooltip :title="record[column.key || column.dataIndex]"></appEllipsisTooltip> -->
             </slot>
             <template v-if="!!options && column.key === 'options'">
               <a-space>
@@ -157,6 +159,8 @@ import { message } from 'ant-design-vue';
 import { cloneDeep } from 'lodash-es';
 import Sortable from 'sortablejs';
 import { computed, onMounted, reactive, ref, useSlots } from 'vue';
+
+import appEllipsisTooltip from '@/components/common/appEllipsisTooltip.vue';
 defineOptions({ name: 'appTableBox' });
 const { proxy: _this } = getCurrentInstance();
 /**
@@ -179,6 +183,10 @@ const props = defineProps({
     // 表格数据
     type: Array,
     default: () => [],
+  },
+  rowKey: {
+    type: [String, Function, Number],
+    default: undefined
   },
   filterColumns: {
     // 当前展示的表头，用v-model直接绑定即可
@@ -277,7 +285,7 @@ onMounted(() => {
   });
 });
 onUnmounted(() => {
-  heightInfo.formDom.disconnect();
+  heightInfo.formDom && heightInfo.formDom.disconnect();
 })
 watch(() => columns.list, (val, oldVal) => {
   columns.columnChange = true;

@@ -1,17 +1,18 @@
 <template>
-  <a-table
+  <appTableBox
     ref="tableRef"
     :columns="columns"
     :data-source="treeData"
+    :reset-set-menu="'sdsdfsadfsad'"
     :tree-data-props="{ children: 'children', title: 'name' }"
     :row-class-name="rowClassName"
-    row-key="key"
     bordered
   />
 </template>
 
 <script setup>
 import { ref, onMounted, watch, nextTick } from 'vue';
+import appTableBox from '~@/components/common/appTableBox.vue';
 import Sortable from 'sortablejs';
 
 // 模拟树形表格数据（含层级、父节点标识）
@@ -29,7 +30,7 @@ const treeData = ref([
   },
   {
     key: '2',
-    name: '父节点2',
+    name: '父节点2dfgdfgasdfgasdgasdfgasdgfsgsdgsdgsadgs',
     children: [
       { key: '2-1', name: '子节点2-1', level: 1, parentKey: '2' },
       {
@@ -50,8 +51,12 @@ const treeData = ref([
 
 // 表格列配置
 const columns = ref([
-  { title: '名称', dataIndex: 'name', key: 'name' },
-  { title: '层级', dataIndex: 'level', key: 'level' },
+  { title: '名称', dataIndex: 'name', key: 'name', width: 100 },
+  { title: '层级', dataIndex: 'level', key: 'level', width: 200 },
+  { title: '层级', dataIndex: 'sdgsdg', key: 'sdgsdg', width: 200 },
+  { title: '层级', dataIndex: 'ergdfg', key: 'ergdfg', width: 200 },
+  { title: '层级', dataIndex: 'er5sdfs', key: 'er5sdfs', width: 200 },
+  { title: '层级', dataIndex: 'ertsdf', key: 'ertsdf', width: 200 },
 ]);
 
 const tableRef = ref(null);
@@ -89,6 +94,8 @@ const initSortable = () => {
     },
     // 拖拽结束后更新树形数据
     onEnd: (evt) => {
+      console.log({evt});
+      
       const { oldIndex, newIndex } = evt;
       const sourceEl = evt.item;
       const sourceParentKey = sourceEl.getAttribute('data-parent-key');
