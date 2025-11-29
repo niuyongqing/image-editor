@@ -94,14 +94,16 @@
       <div class="table-content" :class="`${resetSetMenu}-table`">
         <a-table 
           :columns="showHeader" 
-          :data-source="dataSource" 
+          :data-source="tableInfo.data" 
           :scroll="scrollData"
           :pagination="false"
           :customRow="customRow" 
           bordered 
           :row-key="rowKey"
           v-bind="$attrs" 
-          :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
+          :row-class-name="rowClassName"
+          ref="tableRef"
+          v-if="tableInfo.data.length"
         >
           <template #headerCell="{ title, column }">
             <div class="resizable-header" v-if="column.key">
@@ -206,6 +208,7 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  rowDrag: Boolean,         // 是否启用行拖拽
 });
 const {
   otherCount,           // 最上方插槽，防止tabs，上分页器等
@@ -250,6 +253,10 @@ const heightInfo = reactive({
   formHeight: 0,          // 表单高度
   outerDomHeight: 0,      // 除了表单之外计算出来的滚动高度
 })
+const tableInfo = reactive({
+  data: [],              // 用于渲染的表格数据
+  sortable: null,             // Sortable实例
+})
 const showHeader = computed(() => {
   let list = columns.list.filter(i => i.show);
   // list = !!options ? [...list, optionsColumn] : list;
@@ -281,6 +288,7 @@ onMounted(() => {
     resizDomSetting();
     setTimeout(() => {
       getHeight()
+      dragInit()
     }, 300);
   });
 });
@@ -293,6 +301,14 @@ watch(() => columns.list, (val, oldVal) => {
 }, {
   deep: true,
 });
+watch(() => props.dataSource, (val, oldVal) => {
+  tableInfo.data = []
+  tableInfo.data = cloneDeep(val)
+  setTableData(tableInfo.data)
+}, {
+  deep: true,
+  immediate: true,
+})
 // 计算查询表单和表格滚动区的总高度
 function getHeight() {
   let dom = document.querySelector(`.${props.resetSetMenu}-appTableBox`)
@@ -405,6 +421,21 @@ function customRow(row) {
     },
   };
 }
+
+// 为每行绑定层级和父节点ID的DOM属性
+function rowClassName(record, index) {
+  // 异步获取行元素并绑定data属性（确保DOM已渲染）
+  nextTick(() => {
+    const rowEl = document.querySelector(`tr[data-row-key="${record[props.rowKey]}"]`);
+    if (rowEl) {
+      rowEl.setAttribute('data-level', record.level);
+      rowEl.setAttribute('data-drag-key', record._dragKey);
+      rowEl.setAttribute('data-parent-key', record._parentKey);
+    }
+  });
+  // 斑马纹设定
+  return (index % 2 === 1 ? 'table-striped' : null);
+};
 // 处理拖动dom
 function resizDomSetting() {
   let thead = document.querySelector(`.${props.resetSetMenu}-table`);
@@ -567,6 +598,91 @@ function getHeader() {
     data: header ? header.data : null,
   };
   return obj;
+}
+
+// 拖拽相关方法
+function dragInit() {
+  if (!props.rowDrag) return;
+  // setTableData(tableInfo.data)
+  initSortable()
+}
+// 初始化拖拽逻辑
+function initSortable() {
+  const tableEl = _this.$refs.tableRef?.$el;
+  if (!tableEl) return;
+
+  // 获取表格tbody（Ant Design Vue 4.x DOM结构）
+  const tbody = tableEl.querySelector('.ant-table-tbody');
+  if (!tbody) return;
+
+  // 销毁旧实例，避免重复绑定
+  if (tableInfo.sortable) tableInfo.sortable.destroy();
+
+  // 创建Sortable实例
+  tableInfo.sortable = new Sortable(tbody, {
+    animation: 150,
+    handle: '.ant-table-row', // 整行可拖拽
+    // 拖拽校验：仅同层级+同父节点允许拖拽
+    onMove: (evt) => {
+      console.log({ evt });
+      const sourceEl = evt.dragged;
+      const targetEl = evt.related;
+
+      // 从DOM属性获取层级和父节点ID
+      const sourceLevel = sourceEl.getAttribute('data-level');
+      const sourceParentKey = sourceEl.getAttribute('data-parent-key');
+      const targetLevel = targetEl?.getAttribute('data-level');
+      const targetParentKey = targetEl?.getAttribute('data-parent-key');
+
+      // 层级或父节点不一致则阻止拖拽
+      return sourceLevel === targetLevel && sourceParentKey === targetParentKey;
+    },
+    // 拖拽结束后更新树形数据
+    onEnd: (evt) => {
+      
+      const { oldIndex, newIndex } = evt;
+      const sourceEl = evt.item;
+      const sourceParentKey = sourceEl.getAttribute('data-parent-key');
+      const sourceLevel = sourceEl.getAttribute('data-level');
+
+      // 递归查找当前父节点的子数组
+      // const findParentChildren = (data, parentKey) => {
+      //   for (const item of data) {
+      //     if (item.key === parentKey) return item.children;
+      //     if (item.children) {
+      //       const res = findParentChildren(item.children, parentKey);
+      //       if (res) return res;
+      //     }
+      //   }
+      //   // 顶级节点（level=0）直接返回根数组
+      //   return sourceLevel === '0' ? data : null;
+      // };
+
+      // // 调整子数组顺序并触发响应式更新
+      // const targetChildren = findParentChildren(treeData.value, sourceParentKey);
+      // if (targetChildren) {
+      //   const [movedItem] = targetChildren.splice(oldIndex, 1);
+      //   targetChildren.splice(newIndex, 0, movedItem);
+      //   treeData.value = [...treeData.value]; // 触发视图更新
+      // }
+    },
+  });
+};
+function setTableData(data, pNode = null) {
+  data.forEach((item, index) => {
+    if (pNode) {
+      item.level = (pNode.level + 1);
+      item._dragKey = `${pNode._dragKey}-${index}`;
+      item._parentKey = pNode._dragKey;
+    } else {
+      item.level = 1;
+      item._dragKey = `${index}`;
+      item._parentKey = '';
+    }
+    if (item.children?.length) {
+      setTableData(item.children, item);
+    }
+  });
 }
 </script>
 
