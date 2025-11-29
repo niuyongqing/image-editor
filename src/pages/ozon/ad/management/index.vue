@@ -18,10 +18,10 @@
           label="店铺账号"
           name="account"
         >
-          <TiledSelect
-            v-model:value="searchForm.account"
+          <AppShopSelect
+            v-model:account="searchForm.account"
             :options="accountList"
-            :field-names="{ label: 'simpleName', value: 'account' }"
+            :field-obj="{ label: 'simpleName', value: 'account' }"
           />
         </a-form-item>
         <a-form-item
@@ -319,7 +319,6 @@
   import { adSyncApi, adSyncSingleApi, adListApi, toggleActivateApi } from '../api'
   import { message } from 'ant-design-vue'
   import TiledSelect from '~/components/tiled-select/index.vue'
-  import SearchContentInput from '~/components/search-content-input/index.vue'
   import TiledDateSelect from '../commComponents/TiledDateSelect.vue'
   import { CopyOutlined, DownOutlined, QuestionCircleOutlined } from '@ant-design/icons-vue'
 

@@ -12,10 +12,10 @@
           label="店铺账号"
           name="account"
         >
-          <TiledSelect
-            v-model:value="searchForm.account"
+          <AppShopSelect
+            v-model:account="searchForm.account"
             :options="accountList"
-            :field-names="{ label: 'simpleName', value: 'account' }"
+            :field-obj="{ label: 'simpleName', value: 'account' }"
           />
         </a-form-item>
         <a-form-item
