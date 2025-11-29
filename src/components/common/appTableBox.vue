@@ -306,7 +306,9 @@ watch(() => props.dataSource, (val, oldVal) => {
   tableInfo.updateIf = false;
   tableInfo.data = cloneDeep(val)
   setTableData(tableInfo.data)
-  tableInfo.updateIf = true;
+  setTimeout(() => {
+    tableInfo.updateIf = true;
+  }, 100);
 }, {
   deep: true,
   immediate: true,
