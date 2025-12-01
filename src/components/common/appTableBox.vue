@@ -23,7 +23,12 @@
             </a-popconfirm>
             <!-- 顶部右侧工具按钮插槽 -->
             <slot name="rightTool"></slot>
-            <a-popover placement="bottomRight" trigger="click" v-if="isTableSetting">
+            <a-popover 
+              placement="bottomRight" 
+              trigger="click" 
+              v-if="isTableSetting"
+              @openChange="e => columnDrop(e)"
+            >
               <template #content>
                 <div class="tableSetting-box leftList">
                   <div class="tableSetting-columnRow" v-for="item in columns.leftList" :key="item.key">
@@ -83,7 +88,7 @@
               <template #title>
                 <span>表格设置</span>
               </template>
-              <a-button type="primary" @click="columnDrop()">
+              <a-button type="primary">
                 <template #icon><SettingOutlined /></template>
                 {{ '表格设置' }}
               </a-button>
@@ -101,7 +106,7 @@
           bordered 
           :row-key="rowKey"
           v-bind="$attrs" 
-          :row-class-name="rowClassName"
+          :row-class-name="rowClassNameFn"
           ref="tableRef"
           v-if="tableInfo.updateIf"
         >
@@ -190,6 +195,10 @@ const props = defineProps({
     type: [String, Function, Number],
     default: undefined
   },
+  rowClassName: {
+    type: [String, Function],
+    default: '',
+  },
   filterColumns: {
     // 当前展示的表头，用v-model直接绑定即可
     type: Array,
@@ -204,7 +213,7 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
-  autoHeight: {             // 是否启用表格设置
+  autoHeight: {             // 是否启用表格自适应
     type: Boolean,
     default: true,
   },
@@ -286,10 +295,8 @@ onMounted(() => {
   nextTick(() => {
     columns.columnChange = false;
     // columnDrop();
-    resizDomSetting();
     setTimeout(() => {
       getHeight()
-      dragInit()
     }, 300);
   });
 });
@@ -308,10 +315,14 @@ watch(() => props.dataSource, (val, oldVal) => {
   setTableData(tableInfo.data)
   setTimeout(() => {
     tableInfo.updateIf = true;
-  }, 100);
+    nextTick(dragInit())
+  });
 }, {
   deep: true,
   immediate: true,
+})
+watch(() => tableInfo.data, () => {
+  nextTick(dragInit())
 })
 // 计算查询表单和表格滚动区的总高度
 function getHeight() {
@@ -427,18 +438,19 @@ function customRow(row) {
 }
 
 // 为每行绑定层级和父节点ID的DOM属性
-function rowClassName(record, index) {
+function rowClassNameFn(record, index) {
   // 异步获取行元素并绑定data属性（确保DOM已渲染）
   nextTick(() => {
     const rowEl = document.querySelector(`tr[data-row-key="${record[props.rowKey]}"]`);
     if (rowEl) {
-      rowEl.setAttribute('data-level', record.level);
+      rowEl.setAttribute('data-level', record._level);
       rowEl.setAttribute('data-drag-key', record._dragKey);
       rowEl.setAttribute('data-parent-key', record._parentKey);
     }
   });
-  // 斑马纹设定
-  return (index % 2 === 1 ? 'table-striped' : null);
+  let className = typeof props.rowClassName === 'string' ? props.rowClassName : props.rowClassName(record, index);
+  let striped = index % 2 === 1 ? 'table-striped' : '';   // 斑马纹设定
+  return striped + (className ? (striped ? ` ${className}` : className) : '');
 };
 // 处理拖动dom
 function resizDomSetting() {
@@ -486,6 +498,7 @@ function onMouseDown(event, column) {
   // 只能拖拽最底层表头
   if (column.children) return;
   const startX = event.clientX; // 获取鼠标初始位置
+
   const startWidth = column.width || 0; // 获取初始宽度
   columns.isResizing = true;
   columns.resizingColumnKey = column.key;
@@ -546,9 +559,10 @@ function tableSetting(val) {
   });
 }
 //列拖拽
-function columnDrop() {
+function columnDrop(e) {
+  if (!e) return;
   let arr = ['leftList', 'centerList', 'rightList'];
-  setTimeout(() => {
+  nextTick(() => {
     arr.forEach(item => {
       const wrapperTr = document.querySelector(`.tableSetting-box.${item}`);
       if (!wrapperTr) return;
@@ -560,7 +574,7 @@ function columnDrop() {
         },
       });
     });
-  }, 200);
+  })
 }
 // 保存拖拽列
 function dropColumn(evt, key) {
@@ -606,16 +620,21 @@ function getHeader() {
 
 // 拖拽相关方法
 function dragInit() {
-  if (!props.rowDrag) return;
   // setTableData(tableInfo.data)
-  initSortable()
+  setTimeout(() => {
+    resizDomSetting();
+    initSortable()
+  });
 }
 // 初始化拖拽逻辑
 function initSortable() {
+  if (!props.rowDrag) return;
   const tableEl = _this.$refs.tableRef?.$el;
+  // console.log(tableEl);
+  
   if (!tableEl) return;
-
-  // 获取表格tbody（Ant Design Vue 4.x DOM结构）
+  
+  // 获取表格tbody（Ant Design Vue 4.x DOM结构）  
   const tbody = tableEl.querySelector('.ant-table-tbody');
   if (!tbody) return;
 
@@ -629,8 +648,8 @@ function initSortable() {
     // 拖拽校验：仅同层级+同父节点允许拖拽
     onMove: (evt) => {
       console.log({ evt });
-      const sourceEl = evt.dragged;
-      const targetEl = evt.related;
+      const sourceEl = evt.dragged;         // 拖拽节点
+      const targetEl = evt.related;         // 被放置的节点
 
       // 从DOM属性获取层级和父节点ID
       const sourceLevel = sourceEl.getAttribute('data-level');
@@ -648,26 +667,46 @@ function initSortable() {
       const sourceEl = evt.item;
       const sourceParentKey = sourceEl.getAttribute('data-parent-key');
       const sourceLevel = sourceEl.getAttribute('data-level');
+      const sourceDragKey = sourceEl.getAttribute('data-drag-key');
+      console.log({sourceParentKey,sourceLevel,sourceDragKey});
+      
 
       // 递归查找当前父节点的子数组
+      function findParentChildren(data, parentKey) {
+        if (!parentKey) {
+          return null;
+        }
+        let parentNode = null;
+        data.some(item => {
+          if (item._dragKey === parentKey) {
+            parentNode = item
+          } else if (item.children?.length) {
+            parentNode = findParentChildren(item.children, parentKey)
+          }
+          return parentNode;
+        })
+        return parentNode;
+      }
       // const findParentChildren = (data, parentKey) => {
       //   for (const item of data) {
-      //     if (item.key === parentKey) return item.children;
+      //     if (item._dragKey === parentKey) return item.children;
       //     if (item.children) {
       //       const res = findParentChildren(item.children, parentKey);
       //       if (res) return res;
       //     }
       //   }
       //   // 顶级节点（level=0）直接返回根数组
-      //   return sourceLevel === '0' ? data : null;
+      //   return sourceLevel === '1' ? data : null;
       // };
 
-      // // 调整子数组顺序并触发响应式更新
-      // const targetChildren = findParentChildren(treeData.value, sourceParentKey);
+      // 调整子数组顺序并触发响应式更新
+      const targetChildren = findParentChildren(tableInfo.data, sourceParentKey);
+      // console.log({targetChildren});
+      
       // if (targetChildren) {
       //   const [movedItem] = targetChildren.splice(oldIndex, 1);
       //   targetChildren.splice(newIndex, 0, movedItem);
-      //   treeData.value = [...treeData.value]; // 触发视图更新
+      //   tableInfo.data = [...tableInfo.data]; // 触发视图更新
       // }
     },
   });
@@ -675,11 +714,11 @@ function initSortable() {
 function setTableData(data, pNode = null) {
   data.forEach((item, index) => {
     if (pNode) {
-      item.level = (pNode.level + 1);
+      item._level = (pNode._level + 1);
       item._dragKey = `${pNode._dragKey}-${index}`;
       item._parentKey = pNode._dragKey;
     } else {
-      item.level = 1;
+      item._level = 1;
       item._dragKey = `${index}`;
       item._parentKey = '';
     }
