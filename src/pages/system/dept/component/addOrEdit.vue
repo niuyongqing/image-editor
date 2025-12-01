@@ -39,7 +39,7 @@
             <a-radio value="1">停用</a-radio>
           </a-radio-group>
         </a-form-item>
-        <a-form-item style="display: flex; text-align: right">
+        <a-form-item style="display: flex; text-align: right; justify-content: flex-end;">
           <a-button @click="close" style="margin-right: 10px">取消</a-button>
           <a-button type="primary" html-type="submit">确定</a-button>
         </a-form-item>
@@ -64,10 +64,10 @@ const props = defineProps({
 })
 const formData = ref({})
 const labelCol = {
-  span: 3,
+  span: 4,
 }
 const wrapperCol = {
-  span: 21,
+  span: 20,
 }
 const loading = ref(false)
 let userData = []
