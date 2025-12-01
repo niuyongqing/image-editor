@@ -8,3 +8,4 @@ dist
 platform
 .vscode
 types
+!auto-imports.d.ts

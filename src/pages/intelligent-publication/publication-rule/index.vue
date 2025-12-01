@@ -27,13 +27,22 @@
           name="mult"
         >
           <a-space>
-            <a-input
-              v-model:value="searchForm.ruleName"
-              placeholder="请输入规则名称"
-              allow-clear
-            />
+            <a-input v-model:value="searchForm.ruleName" placeholder="请输入规则名称" allow-clear />
           </a-space>
         </a-form-item>
+      <a-form-item label="分类" name="categoryId">
+        <a-cascader 
+          placeholder="分类" 
+          allowClear 
+          style="width: 300px;"
+          v-model:value="searchForm.categoryId" 
+          :options="commodityTypeList"
+          :allow-clear="true" 
+          show-search
+          :filterOption="filterOption"
+          :field-names="{ value: 'descriptionCategoryId', label: 'categoryName', children: 'children' }" 
+        />
+      </a-form-item>
       </template>
     </AppTableForm>
 
@@ -148,23 +157,9 @@
     </AppTableBox>
 
     <!-- 备注弹窗 -->
-    <a-modal
-      title="添加备注"
-      v-model:open="remarkModalOpen"
-      width="30%"
-      :confirm-loading="remarkLoading"
-      :mask-closable="false"
-      @cancel="remarkCancel"
-      @ok="remarkOk"
-    >
-      <a-textarea
-        v-model:value="remark"
-        :rows="4"
-        :maxlength="255"
-        show-count
-        placeholder="请输入备注内容"
-        class="mb-7"
-      />
+    <a-modal title="添加备注" v-model:open="remarkModalOpen" width="30%" :confirm-loading="remarkLoading"
+      :mask-closable="false" @cancel="remarkCancel" @ok="remarkOk">
+      <a-textarea v-model:value="remark" :rows="4" :maxlength="255" show-count placeholder="请输入备注内容" class="mb-7" />
     </a-modal>
   </div>
 </template>
@@ -182,6 +177,7 @@
   /** search */
   const searchForm = reactive({
     ruleName: '',
+    categoryId: [],
     status: 2
   })
   // 状态选项
@@ -191,6 +187,26 @@
     { label: '停用', value: 0 }
   ]
   const formHeight = ref(0)
+
+  // 过滤选项
+const filterOption = (inputValue, option) => {
+  const label = option.categoryName; // 因为你的数据中有 categoryName 字段
+  return label.toLowerCase().includes(inputValue.toLowerCase());
+};
+
+  function search() {
+    tableParams.pageNum = 1
+    getList()
+  }
+
+  function reset() {
+    tableParams.pageNum = 1
+    searchFormRef.value.resetFields()
+    searchForm.ruleName = ''
+    searchForm.categoryId = []
+
+    getList()
+  }
 
   /** table */
   const tableParams = reactive({
@@ -221,7 +237,7 @@
       ...tableParams,
       ...searchForm
     }
-
+    params.categoryId = params.categoryId?.join(',')
     state.loading = true
     listApi(params)
       .then(res => {
@@ -233,12 +249,16 @@
       })
   }
 
+  // 查询条件分类数据
+  const commodityTypeList = ref([])
+
   /** 分类数据 */
   const flatTreeList = ref([])
 
   getOptions()
   function getOptions() {
     newCategoryTreeApi().then(res => {
+      commodityTypeList.value = res.data || []
       const rawData = res.data || []
       const flatList = []
 
@@ -260,7 +280,7 @@
           }
         }
       }
-
+      console.log(flatList)
       flatTreeList.value = flatList
     })
   }
