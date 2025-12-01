@@ -1,5 +1,5 @@
 <template>
-  <div id="productDatabase_index" class="productDatabase_index">
+  <div v-loading="loadingFull" id="productDatabase_index" class="productDatabase_index">
     <!-- <a-modal 
     v-model:open="modalOpen" 
     :style="{ top: '10px', padding: 0, height: '99vh' }" 
@@ -108,14 +108,19 @@
           </div>
         </a-form>
       <br />
-      <a-table :columns="header" :data-source="tableData.data" :scroll="{ y: 'calc(80vh - 120px)', x: '3200px' }"
+      <a-button class="float-left mb-2" v-has-permi="['system:store:intelligent:selection:product']" @click="batchListingPicks" type="primary" :disabled="selectedRowKeys.length === 0">批量智能选品</a-button>
+      <a-table :columns="header" :data-source="tableData.data" :scroll="{ y: 'calc(84vh - 120px)', x: '3200px' }"
         :pagination="false" :customRow="customRow" rowKey="commodityId" @change="tableChange"
-        :loading="tableData.loading" class="productDatabase-table">
+        :loading="tableData.loading" class="productDatabase-table"
+        :row-selection="{
+          selectedRowKeys: selectedRowKeys,
+          onChange: onSelectChange
+        }">
         <template #bodyCell="{ column: { key }, record }">
           <template v-if="key === 'action'">
             <!-- <a-button @click="handleSelect(record)" type="link">选中</a-button> -->
             <a-button v-has-permi="['system:store:intelligent:selection:product']" @click="listingPicks([record])" type="link">智能选品</a-button>
-            <a-button @click="detailsModalOpen(record)" type="link">详情</a-button>
+            <a-button @click="handleEditProduct(record);" type="link">详情</a-button>
             <!-- v-has-permi="['system:store:intelligent:selection:product']" -->
           </template>
           <template v-else-if="key === 'artMainImage'">
@@ -135,8 +140,8 @@
             <span v-if="record.devAccount == 8">菲律宾本土仓开发</span>
           </template>
           <template v-else-if="key === 'isIntelligent'">
-            <a-tag v-if="record.isIntelligent == 0" color="error">未选品</a-tag>
-            <a-tag v-else color="success">已选品</a-tag>
+            <a-tag v-if="record.isIntelligent == 1 || record.isIntelligent == 2" color="success">已选品</a-tag>
+            <a-tag v-else color="error">未选品</a-tag>
           </template>
           <template v-else-if="key === 'devAttributableMarket'">
             <div v-html="devAttributableMarket(record.devAttributableMarket)"></div>
@@ -227,7 +232,7 @@
       </div>
     </div>
     <!-- 详情弹窗 -->
-    <!-- <detailsModal ref="detailsModalRef" @handleSelect="handleSelect" /> -->
+    <detailsModal @listingPicks="listingPicks" ref="detailsModalRef" @handleSelect="handleSelect" />
   
     <!-- 智能刊登选品弹窗 -->
     <listingPicksModal 
@@ -245,7 +250,7 @@ import { Modal, message } from 'ant-design-vue';
 import { storeList, commdity } from "@/api/common/selectProduct";
 import { useSelectProduct } from "./js/useSelectProduct";
 import { header } from "./js/header";
-// import detailsModal from "./comm/detailsModal.vue";
+import detailsModal from "./comm/detailsModal.vue";
 import listingPicksModal from "./comm/listingPicksModal.vue";
 import _ from "lodash";
 import devAttributableMarketRevert from "~@/utils/devAttributableMarketRevert";
@@ -260,6 +265,16 @@ const emit = defineEmits(["handleSelect"]);
 // 智能刊登选品弹窗相关
 const listingPicksVisible = ref(false);
 const selectedProductIds = ref([]);
+const loadingFull = ref(false);
+// 表格多选相关
+const selectedRows = ref([]);
+const selectedRowKeys = ref([]);
+
+// 处理表格选中变化
+const onSelectChange = (newSelectedRowKeys, newSelectedRows) => {
+  selectedRowKeys.value = newSelectedRowKeys;
+  selectedRows.value = newSelectedRows;
+};
 
 // const modalOpen = ref(false);
 const {
@@ -321,6 +336,11 @@ function modalOpenFn() {
     antTableBody = productDatabaseTable.querySelector(".ant-table-body");
   });
 }
+
+function changeTableLoading(val) {
+  loadingFull.value = val;
+}
+
 function meansForbidAttributeFilterOption(val, option) {
   // console.log({val, option});
   return option.attributes.includes(val);
@@ -376,6 +396,9 @@ async function getTableList() {
     // console.log({res});
     // 滚动条回到顶部
     antTableBody.scrollTop = 0;
+    // 重置选中状态
+    selectedRows.value = [];
+    selectedRowKeys.value = [];
   } catch (error) {
     console.error(error);
   }
@@ -406,14 +429,13 @@ function rowClick(row) {
 }
 // 打开详情弹窗
 function detailsModalOpen(row) {
-  handleEditProduct(row);
-  // const detailsModalData = {
-  //   row,
-  //   forbidSaleList: forbidSaleList.value,
-  //   cacheGetArr: cacheGetArr.value,
-  //   meansKeepGrains: meansKeepGrains.value,
-  // };
-  // _this.$refs.detailsModalRef.modalOpenFn(detailsModalData);
+  const detailsModalData = {
+    row,
+    forbidSaleList: forbidSaleList.value,
+    cacheGetArr: cacheGetArr.value,
+    meansKeepGrains: meansKeepGrains.value,
+  };
+  _this.$refs.detailsModalRef.modalOpenFn(detailsModalData,'product-database');
 }
 // 选中商品
 function handleSelect(row) {
@@ -588,9 +610,21 @@ const listingPicks = (currentRow = []) => {
   listingPicksVisible.value = true;
 };
 
+// 批量智能选品
+const batchListingPicks = () => {
+  if (selectedRows.value.length === 0) {
+    message.warning('请先选择商品');
+    return;
+  }
+  listingPicks(selectedRows.value);
+};
+
 // 处理智能刊登选品成功
 const handleListingPicksSuccess = () => {
   // 可以在这里添加额外的成功处理逻辑
+  // 选品成功后清空选中状态
+  selectedRows.value = [];
+  selectedRowKeys.value = [];
 };
 const router = useRouter();
 /**
@@ -616,6 +650,7 @@ onMounted(() => {
 });
 defineExpose({
   modalOpenFn,
+  changeTableLoading,
 });
 </script>
 <style lang="less" scoped>

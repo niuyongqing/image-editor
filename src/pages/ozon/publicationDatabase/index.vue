@@ -106,7 +106,7 @@
           <div v-else></div>
         </template>
         <template v-else-if="key === 'operation'">
-          <a-button v-if="checkPermi(['ozon:intelligent:product-store:submit-publish'])" type="link" @click="openPublicationModal(row)">刊登</a-button>
+          <a-button v-if="checkPermi(['ozon:intelligent:product-store:submit-publish'])" type="link" :title="row.disabledPublication ? '请稍后再尝试' : ''" :disabled="row.disabledPublication" @click="openPublicationModal(row)">刊登</a-button>
           <a-button
                 type="link"
                 @click="openLogModal(row)"
@@ -165,6 +165,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
+import dayjs from 'dayjs';
 import { addRemark, categoryTree, getList, submitEdit, userList,getLogListApi } from './js/api';
 import { header } from './js/header';
 import EmptyImg from '@/assets/images/aliexpress/empty.png'
@@ -334,6 +335,8 @@ async function getTableList() {
         !item.mainImage && (item.mainImage = item.skuList[0].mainImages);
       }
       item.mainImage = processImageSource(item.mainImage);
+      // 终审完成半小时后可手动刊登
+      item.disabledPublication = dayjs().diff(dayjs(item.lastAuditTime), 'minute') < 30;
     })
     tableData.data = data
     tableData.total = res.total
@@ -430,6 +433,10 @@ function openPublicationModal(record) {
     idList.value = [record.id]
   } else {
     // 批量
+    if (tableData.selectedRows.some(item => item.disabledPublication)) {
+      message.warning('所选产品中有终审完成后半小时内的产品，请稍后再尝试刊登！')
+      return
+    }
     idList.value = tableData.selectedRowKeys
   }
   publicationModalOpen.value = true
