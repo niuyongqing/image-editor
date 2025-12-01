@@ -1,7 +1,7 @@
 <template>
   <a-modal :open="props.open" :title="title"  :confirm-loading="loading" html-type="submit" :footer="null" :closable="false">
     <a-card>
-      <a-form :model="formData"  label-align="right" @finish="handleOk" >
+      <a-form :model="formData"  label-align="right" @finish="handleOk" :label-col="labelCol" :wrapper-col="wrapperCol">
         <a-form-item label="上一级" name="parentId"  :rules="[{ required: true}]" v-if="formData.deptId !== 100">
           <a-tree-select v-model:value="formData.parentId" :tree-data="dept" :fieldNames="{children:'children',label:'deptName',value:'deptId'}" allow-clear></a-tree-select>
         </a-form-item>
@@ -12,7 +12,20 @@
           <a-input-number v-model:value="formData.orderNum" style="width: 100%"></a-input-number>
         </a-form-item>
         <a-form-item label="负责人" name="leader" >
-          <a-input v-model:value="formData.leader"></a-input>
+           <a-select
+            v-model:value="formData.leader"
+            show-search
+            allow-clear
+            placeholder="请选择用户"
+            :default-active-first-option="false"
+            :show-arrow="false"
+            :not-found-content="null"
+            :options="getAccountUserArr"
+            :filter-option="filterOption"
+            :field-names="{
+              label: 'userName',
+              value: 'userId',
+            }"></a-select>
         </a-form-item>
         <a-form-item label="电话" name="phone" >
           <a-input v-model:value="formData.phone"></a-input>
@@ -39,6 +52,9 @@
 import {ref} from 'vue'
 import {addDept, editDept} from "~/api/common/dept";
 import {message} from "ant-design-vue";
+import {
+  getAccountUser,
+} from "@/pages/ozon/config/api/accountConfig";
 const emit = defineEmits(['close']);
 const props = defineProps({
   open:{ type: Boolean, required: true, default:false },
@@ -47,7 +63,14 @@ const props = defineProps({
   dept:{type:Array, required: true, default:[]},
 })
 const formData = ref({})
+const labelCol = {
+  span: 3,
+}
+const wrapperCol = {
+  span: 21,
+}
 const loading = ref(false)
+let userData = []
 watchEffect(()=>{
   formData.value.status = '0'
   if(props.data.deptId){
@@ -61,9 +84,36 @@ watchEffect(()=>{
     }
   }
 })
+
+
+const filterOption = (input, option) => {
+  return option.userName.indexOf(input) >= 0;
+};
+
+
+const getAccountUserArr = ref([])
+const userLabels = {
+  label: "userName",
+  value: "userId",
+};
+function getUserList() {
+     getAccountUser({ userName: "" }).then((res) => {
+      // 处理userId为str类型 跟接口回显保持类型一致
+      res.data.forEach(item => {
+        if(item.userId){
+          item.userId = item.userId 
+          + ''
+        }
+      })
+    getAccountUserArr.value = res.data;
+  });
+}
 function handleOk(){
   loading.value = true;
   if(props.title === '编辑部门'){
+    if(formData.value.leader === undefined){
+      formData.value.leader = ''
+    }
     editDept(formData.value).then(res => {
       if(res.code === 200){
         message.success(res.msg);
@@ -94,7 +144,9 @@ function close() {
   props.data.value = {}
   emit('close', false);
 }
-
+onMounted(() => {
+  getUserList()
+})
 </script>
 
 <style scoped lang="less">
