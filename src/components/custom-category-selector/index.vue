@@ -1,26 +1,12 @@
 <!-- 仿店小蜜的可搜索分类选择器 -->
 <template>
-  <a-modal
-    title="选择分类"
-    :open="open"
-    :mask-closable="false"
-    width="996px"
-    @cancel="cancel"
-    @ok="ok"
-  >
-    <a-select
-      :options="flatTreeFilteredOptions"
-      placeholder="搜索分类名称"
-      allow-clear
-      show-search
-      :filter-option="false"
-      :list-height="547"
-      :dropdown-style="{ height: '555px' }"
-      class="w-full"
-      @search="val => (searchState.global = val)"
-      @select="selectGlobalItem"
-    >
-      <template #suffixIcon><SearchOutlined /></template>
+  <a-modal title="选择分类" :open="open" :mask-closable="false" width="996px" @cancel="cancel" @ok="ok">
+    <a-select :options="flatTreeFilteredOptions" placeholder="搜索分类名称" allow-clear show-search :filter-option="false"
+      :list-height="547" :dropdown-style="{ height: '555px' }" class="w-full"
+      @search="val => (searchState.global = val)" @select="selectGlobalItem">
+      <template #suffixIcon>
+        <SearchOutlined />
+      </template>
     </a-select>
     <div class="my-3">{{ categoryLabels }}</div>
 
@@ -28,25 +14,17 @@
     <div class="flex justify-around">
       <!-- 第一级 -->
       <a-card class="w-77">
-        <a-input
-          v-model:value="searchState.firstLevel"
-          allow-clear
-          class="mb-2"
-        >
-          <template #suffix><SearchOutlined /></template>
+        <a-input v-model:value="searchState.firstLevel" allow-clear class="mb-2">
+          <template #suffix>
+            <SearchOutlined />
+          </template>
         </a-input>
         <div class="overflow-y-auto h-100">
-          <div
-            v-for="item in firstFilteredOptions"
-            :key="item.id"
+          <div v-for="item in firstFilteredOptions" :key="item.id"
             class="py-1 px-2 hover:bg-[#0000000f] cursor-pointer flex items-center"
             :class="item.descriptionCategoryId === selectedCategoryList[0]?.descriptionCategoryId && 'bg-#e6f4ff!'"
-            @click="selectFirst(item)"
-          >
-            <div
-              class="flex-1 mr-2 truncate"
-              :title="item.categoryName"
-            >
+            @click="selectFirst(item)">
+            <div class="flex-1 mr-2 truncate" :title="item.categoryName">
               {{ item.categoryName }}
             </div>
             <RightOutlined class="flex-none" />
@@ -55,25 +33,17 @@
       </a-card>
       <!-- 第二级 -->
       <a-card class="w-77">
-        <a-input
-          v-model:value="searchState.secondLevel"
-          allow-clear
-          class="mb-2"
-        >
-          <template #suffix><SearchOutlined /></template>
+        <a-input v-model:value="searchState.secondLevel" allow-clear class="mb-2">
+          <template #suffix>
+            <SearchOutlined />
+          </template>
         </a-input>
         <div class="overflow-y-auto h-100">
-          <div
-            v-for="item in secondFilteredOptions"
-            :key="item.id"
+          <div v-for="item in secondFilteredOptions" :key="item.id"
             class="py-1 px-2 hover:bg-[#0000000f] cursor-pointer flex items-center"
             :class="item.descriptionCategoryId === selectedCategoryList[1]?.descriptionCategoryId && 'bg-#e6f4ff!'"
-            @click="selectSecond(item)"
-          >
-            <div
-              class="flex-1 mr-2 truncate"
-              :title="item.categoryName"
-            >
+            @click="selectSecond(item)">
+            <div class="flex-1 mr-2 truncate" :title="item.categoryName">
               {{ item.categoryName }}
             </div>
             <RightOutlined class="flex-none" />
@@ -82,25 +52,16 @@
       </a-card>
       <!-- 第三级 -->
       <a-card class="w-77">
-        <a-input
-          v-model:value="searchState.thirdLevel"
-          allow-clear
-          class="mb-2"
-        >
-          <template #suffix><SearchOutlined /></template>
+        <a-input v-model:value="searchState.thirdLevel" allow-clear class="mb-2">
+          <template #suffix>
+            <SearchOutlined />
+          </template>
         </a-input>
         <div class="overflow-y-auto h-100">
-          <div
-            v-for="item in thirdFilteredOptions"
-            :key="item.id"
-            class="py-1 px-2 hover:bg-[#0000000f] cursor-pointer"
+          <div v-for="item in thirdFilteredOptions" :key="item.id" class="py-1 px-2 hover:bg-[#0000000f] cursor-pointer"
             :class="item.descriptionCategoryId === selectedCategoryList[2]?.descriptionCategoryId && 'bg-#e6f4ff!'"
-            @click="selectThird(item)"
-          >
-            <div
-              class="truncate"
-              :title="item.categoryName"
-            >
+            @click="selectThird(item)">
+            <div class="truncate" :title="item.categoryName">
               {{ item.categoryName }}
             </div>
           </div>
@@ -113,9 +74,14 @@
 <script setup>
   import { SearchOutlined, RightOutlined } from '@ant-design/icons-vue'
   import { newCategoryTreeApi } from '@/pages/product-review/CommonDetail/api'
+  import { message } from 'ant-design-vue'
 
   const props = defineProps({
     open: {
+      type: Boolean,
+      default: false
+    },
+    changeOnSelect: {
       type: Boolean,
       default: false
     },
@@ -197,8 +163,23 @@
       setTimeout(
         () => {
           if (props.categoryIds) {
-            const list = flatTreeList.value.find(item => item.uniqueCode === props.categoryIds)?.value || []
-            selectedCategoryList.value = [...list]
+            const categoryIdList = props.categoryIds.split(',').map(Number)
+            if (categoryIdList.length === 3) {
+              const list = flatTreeList.value.find(item => item.uniqueCode === props.categoryIds)?.value || []
+              selectedCategoryList.value = [...list]
+            } else {
+              selectedCategoryList.value = []
+              categoryIdList.forEach((id, index) => {
+                const dataEnum = {
+                  '1': firstOptions.value,
+                  '2': secondOptions.value,
+                  '3': thirdOptions.value
+                }
+                const item = dataEnum[index + 1].find(item => item.descriptionCategoryId === id)
+                selectedCategoryList.value.push(item)
+              })
+            }
+
             emits('update:categoryLabels', categoryLabels.value)
           }
         },
@@ -253,11 +234,19 @@
   }
 
   function ok() {
-    if (selectedCategoryList.value.length === 3) {
-      emits('update:categoryIds', categoryIdText.value)
-      emits('update:categoryLabels', categoryLabels.value)
-      emits('change', selectedCategoryList.value)
+    if (selectedCategoryList.value.length === 0) {
+      message.error('请选择分类')
+      return
     }
+
+    if (!props.changeOnSelect && selectedCategoryList.value.length !== 3) {
+      message.error('请选择三级分类')
+      return
+    }
+
+    emits('update:categoryIds', categoryIdText.value)
+    emits('update:categoryLabels', categoryLabels.value)
+    emits('change', selectedCategoryList.value)
 
     cancel()
   }
