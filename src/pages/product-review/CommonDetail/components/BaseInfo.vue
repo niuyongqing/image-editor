@@ -264,6 +264,7 @@
         <a-textarea
           v-model:value="form.desc"
           :rows="6"
+          placeholder="请输入英文描述"
           show-count
         />
       </a-form-item>
@@ -425,9 +426,37 @@
     if (value.includes(',')) return Promise.reject('请使用中文逗号分割')
     return Promise.resolve()
   }
+
+  const validateLanguage = (language) => {
+    return (_, value) => {
+      if (containsLanguage(value, language)) {
+        const langText = language === 'zh' ? '中文' : '英文'
+        return Promise.reject(`不能包含 ${langText}`)
+      }
+      return Promise.resolve()
+    }
+  }
+
+  // 判断文本中是否包含 中文/英语
+  function containsLanguage(text, language) {
+    if (!text) return false
+
+    let regex
+    if (language === 'zh') {
+      regex = /[\u4e00-\u9fff]/
+    } else if (language === 'en') {
+      regex = /[a-zA-Z]/
+    } else {
+      return false
+    }
+
+    return regex.test(text)
+  }
+
   const rules = reactive({
     prefixDecorateName: [{ required: true, validator: validateComma }],
-    suffixDecorateName: [{ required: true, validator: validateComma }]
+    suffixDecorateName: [{ required: true, validator: validateComma }],
+    desc: [{ validator: validateLanguage('zh') }]
   })
 
   // VAT 下拉选项
@@ -490,7 +519,7 @@
 
         // 塞上 intelligentAttributeId, relatedAttributeId
         if (Object.keys(store.detail).length !== 0) {
-          const attributes = store.detail.skuList?.[0].attributes || []
+          const attributes = store.detail.skuList?.[0]?.attributes || []
           // 塞上, 都塞上
           attributes.forEach(item => {
             const target = rawData.find(attr => attr.id === item.id)
@@ -525,8 +554,8 @@
         // 初始化(详情里的值回显)
         if (arg.init) dispatchDetail()
 
-        // (品牌 85: 无品牌 126745801)设默认值
-        const brandItem = attributeList.value.find(attr => attr.id === 85)
+        // (品牌 85: 无品牌 126745801)设默认值 | 后面又发现一个 id 为 31 的品牌, 加上
+        const brandItem = attributeList.value.find(attr => [85, 31].includes(attr.id))
         if (brandItem) {
           brandItem.options = [{ value: '无品牌', id: 126745801 }] // 字段跟接口返回的保持统一
 
@@ -729,7 +758,7 @@
         form.competitiveInfos = detail.competitiveInfos
       }
 
-      const { attributes = [], complexAttributes = [] } = detail.skuList?.[0]
+      const { attributes = [], complexAttributes = [] } = detail.skuList?.[0] || {}
       // 详描
       const descObj = attributes.find(attr => attr.id === ATTR_ID_ENUM.desc)
       form.desc = descObj?.values?.[0]?.value

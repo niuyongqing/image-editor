@@ -24,7 +24,7 @@
           </template>
           <template v-else-if="column.key === 'mainImage'">
             <a-image
-              :src="fixedUrl(record.mainImage)"
+              :src="record.mainImage"
               :width="80"
               :height="80"
               :fallback="EmptyImg"
@@ -171,6 +171,10 @@
       .then(res => {
         state.total = res.total ?? 0
         tableData.value = res.data || []
+        tableData.value.forEach(item => {
+          const mainImage = item.productSkuList?.[0]?.mainImages || item.mainImage
+          item.mainImage = fixedUrl(mainImage)
+        })
       })
       .finally(() => {
         state.loading = false
