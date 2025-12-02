@@ -196,7 +196,7 @@ const props = defineProps({
   },
   rowKey: {
     type: [String, Function],
-    default: undefined
+    default: 'key'
   },
   rowClassName: {
     type: [String, Function],
