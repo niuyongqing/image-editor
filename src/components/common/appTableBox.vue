@@ -108,7 +108,7 @@
           :row-class-name="rowClassNameFn"
           ref="tableRef"
           :expanded-row-keys="tableInfo.expandedRowKeys"
-          @update:expanded-row-keys="(val) => emit('update:expandedRowKeys', val)"
+          @update:expanded-row-keys="expandedRowKeysFn"
           v-bind="$attrs" 
           :key="tableInfo.key"
         >
@@ -176,8 +176,14 @@ const { proxy: _this } = getCurrentInstance();
 /**
  * rowClick         行单击事件
  * rowDoubleClick   行双击事件
- */
-const emit = defineEmits(['update:filterColumns', 'update:expandedRowKeys', 'rowClick', 'rowDoubleClick']);
+ *//*  */
+const emit = defineEmits([
+  'update:filterColumns',
+  'update:expandedRowKeys',
+  'rowClick',
+  'rowDoubleClick',
+  'dragEnd'
+]);
 const props = defineProps({
   resetSetMenu: {
     // 表头唯一标识，不能重复，必传
@@ -231,7 +237,7 @@ const props = defineProps({
   rowDrag: Boolean,         // 是否启用行拖拽
 });
 const {
-  otherCount,           // 最上方插槽，防止tabs，上分页器等
+  otherCount,           // 最上方插槽，放置tabs，上分页器等
   leftTool,             // 左侧工具button插槽名
   rightTool,            // 右侧工具button插槽名
   headerCell,           // 表格表头插槽名
@@ -305,9 +311,9 @@ getSettingList();
 onMounted(() => {
   nextTick(() => {
     columns.columnChange = false;
-    // columnDrop();
     setTimeout(() => {
       getHeight()
+      resizDomSetting();
     }, 300);
   });
 });
@@ -331,15 +337,19 @@ watch(() => props.dataSource, (val, oldVal) => {
   tableInfo.data = cloneDeep(val)
   setTableData(tableInfo.data)
   tableInfo.key = uuid()
-  setTimeout(() => {
-    nextTick(dragInit())
-  });
+  nextTick(dragInit())
 }, {
   deep: true,
   immediate: true,
 })
-watch(() => tableInfo.data, () => {
-  nextTick(dragInit())
+watch(() => props.rowDrag, (val) => {
+  tableInfo.key = uuid()
+  if (val) {
+    nextTick(dragInit())
+  } else {
+    if (tableInfo.sortable) tableInfo.sortable.destroy();
+    tableInfo.sortable = null
+  }
 })
 // 计算查询表单和表格滚动区的总高度
 function getHeight() {
@@ -453,8 +463,8 @@ function customRow(row) {
     },
   };
 }
-function rowKeyFn(record, index) {
-  let rowKey = typeof props.rowKey === 'string' ? record[props.rowKey] : props.rowKey(record, index);
+function rowKeyFn(record) {
+  let rowKey = typeof props.rowKey === 'string' ? record[props.rowKey] : props.rowKey(record);
   // console.log({rowKey});
   return rowKey;
 }
@@ -471,8 +481,14 @@ function rowClassNameFn(record, index) {
   });
   let className = typeof props.rowClassName === 'string' ? props.rowClassName : props.rowClassName(record, index);
   let striped = index % 2 === 1 ? 'table-striped' : '';   // 斑马纹设定
-  return striped + (className ? (striped ? ` ${className}` : className) : '');
+  let dragClass = props.rowDrag ? ` table-drag` : '';     // 拖拽样式
+  return striped + (className ? (striped ? ` ${className}` : className) : '') + dragClass;
 };
+// 树形表格展开行变化
+function expandedRowKeysFn(val) {
+  tableInfo.expandedRowKeys = [...val];
+  emit('update:expandedRowKeys', val)
+}
 // 处理拖动dom
 function resizDomSetting() {
   let thead = document.querySelector(`.${props.resetSetMenu}-table`);
@@ -643,12 +659,12 @@ function getHeader() {
 function dragInit() {
   // setTableData(tableInfo.data)
   setTimeout(() => {
-    resizDomSetting();
     initSortable()
+    // 同步展开信息
+    emit('update:expandedRowKeys', tableInfo.expandedRowKeys)
   });
 }
 // 初始化拖拽逻辑
-let dragVerify = false;
 function initSortable() {
   if (!props.rowDrag) return;
   const tableEl = _this.$refs.tableRef?.$el;
@@ -682,36 +698,16 @@ function initSortable() {
       const targetParentKey = targetEl?.getAttribute('data-parent-key');
 
       // 层级或父节点不一致则阻止拖拽
-      dragVerify = sourceLevel === targetLevel && sourceParentKey === targetParentKey;
       return sourceLevel === targetLevel && sourceParentKey === targetParentKey;
     },
     // 拖拽结束后更新树形数据
     onEnd: (evt) => {
-      // if (!dragVerify) {
-      //   tableInfo.data = [...tableInfo.data]
-      // };
       const sourceEl = evt.item;
       const sourceParentKey = sourceEl.getAttribute('data-parent-key');
       const sourceLevel = sourceEl.getAttribute('data-level');
       const sourceDragKey = sourceEl.getAttribute('data-drag-key');
       // console.log({sourceParentKey,sourceLevel,sourceDragKey});
       // console.log({sourceParentKey});
-      // 递归查找当前排序层级的父节点
-      function findParentChildren(data, parentKey) {
-        if (parentKey === `${props.resetSetMenu}_parentKey`) {
-          return null;
-        }
-        let parentNode = null;
-        data.some(item => {
-          if (item._dragKey === parentKey) {
-            parentNode = item
-          } else if (item.children?.length) {
-            parentNode = findParentChildren(item.children, parentKey)
-          }
-          return parentNode;
-        })
-        return parentNode;
-      }
       let expandedRowKeys = [...tableInfo.expandedRowKeys]
       nextTick(() => {
         // 调整子数组顺序并触发响应式更新
@@ -727,12 +723,15 @@ function initSortable() {
         } else {
           tableInfo.data = [...rowList]
         }
-        // console.log({rowList});
-        // setTableData(tableInfo.data)
-        // tableInfo.data = [...tableInfo.data]
         // 通过改变key来更新表格
         tableInfo.key = uuid()
-        tableInfo.expandedRowKeys = expandedRowKeys
+        tableInfo.expandedRowKeys = expandedRowKeys;
+        let obj = {
+          node: findParentChildren(children, sourceDragKey),
+          parentNode,
+          findParentChildren: children,
+        }
+        emit('dragEnd', cloneDeep(obj))
         setTimeout(() => {
           initSortable()
         }, 200);
@@ -740,6 +739,22 @@ function initSortable() {
     },
   });
 };
+// 递归查找当前排序层级的父节点
+function findParentChildren(data, parentKey) {
+  if (parentKey === `${props.resetSetMenu}_parentKey`) {
+    return null;
+  }
+  let parentNode = null;
+  data.some(item => {
+    if (item._dragKey === parentKey) {
+      parentNode = item
+    } else if (item.children?.length) {
+      parentNode = findParentChildren(item.children, parentKey)
+    }
+    return parentNode;
+  })
+  return parentNode;
+}
 // 处理树形结构数据，添加必要属性
 function setTableData(data, pNode = null) {
   // console.log(_this.$attrs.defaultExpandAllRows, _this.$attrs);
@@ -830,6 +845,9 @@ function setTableData(data, pNode = null) {
 }
 :deep(.table-striped) td {
   background-color: #fafafa;
+}
+:deep(.table-drag) td {
+  cursor: all-scroll;
 }
 
 .resizable-header {
