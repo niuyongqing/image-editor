@@ -2,11 +2,10 @@
 .idea
 dist
 /package-lock.json
-/vite.config.ts
-/.env.development
-/.env.development.local
-.vscode
-.trae
 platform
+<<<<<<< HEAD
 types
 !auto-imports.d.ts
+=======
+.vscode
+>>>>>>> standardComponent-whd-251126

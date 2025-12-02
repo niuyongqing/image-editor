@@ -28,9 +28,13 @@ import 'vxe-pc-ui/es/style.css'
 import VxeUITable from 'vxe-table'
 import 'vxe-table/es/style.css'
 
+import Vue3JsonViewer from 'vue3-json-viewer'
+import 'vue3-json-viewer/dist/vue3-json-viewer.css';
+
 const pinia = createPinia()
 async function start() {
   const app = createApp(Root)
+  app.use(Vue3JsonViewer)
   app.use(pinia)
   await setupI18n(app)
   setupDirective(app)

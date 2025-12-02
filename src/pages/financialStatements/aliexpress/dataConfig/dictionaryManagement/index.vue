@@ -30,6 +30,7 @@
       reset-set-menu="dictionaryManagement" 
       :scroll="{y: tableScrollHeihth}"
       :loading="tableLoading"
+      rowKey="itemId"
     >
       <template #bodyCell="{ column: { key }, record: row }">
         <template v-if="key === 'dictType'">
@@ -42,6 +43,7 @@
             un-checked-children="已停用" 
             :checkedValue="'enabled'"
             :unCheckedValue="'disabled'"
+            :disabled="row.disabledSwitch"
             @change="(checked, event) => statusChange(checked, row)"
           />
         </template>
@@ -74,39 +76,76 @@
     v-model:openValue="modalInfo.uploadOpen" 
     :width="'600px'"
     title="上传新增"
+    :closable="false"
   >
     <template #appContent>
-      <a-steps
-        direction="vertical"
-        :current="null"
-        class="custom-steps-no-hover"
-      >
-        <a-step title="导出">
-          <!-- <template #icon>
-            <a-icon type="safety-certificate" />
-          </template> -->
-          <template #description>
-            <div>
-              <p>点击导出模板按钮下载导出模板</p>
-              <a-button type="primary">导出模板</a-button>
-            </div>
-          </template>
-        </a-step>
-        <a-step title="导入">
-          <!-- <template #icon>
-            <a-icon type="safety-certificate" />
-          </template> -->
-          <template #description>
-            <div>
-              <p>点击上传按钮导入Excel文件</p>
-              <a-button type="primary">上传</a-button>
-            </div>
-          </template>
-        </a-step>
-      </a-steps>
+      <a-spin :spinning="uploadInfo.loading">
+        <a-steps
+          direction="vertical"
+          :current="null"
+          class="custom-steps-no-hover"
+          v-if="!uploadInfo.result"
+        >
+          <a-step title="导出">
+            <!-- <template #icon>
+              <a-icon type="safety-certificate" />
+            </template> -->
+            <template #description>
+              <div>
+                <p>点击导出模板按钮下载导出模板</p>
+                <a-button type="primary" @click="itemTempExportFn">导出模板</a-button>
+              </div>
+            </template>
+          </a-step>
+          <a-step title="导入">
+            <!-- <template #icon>
+              <a-icon type="safety-certificate" />
+            </template> -->
+            <template #description>
+              <div>
+                <p>点击上传按钮导入Excel文件</p>
+                <a-upload
+                  v-model:file-list="uploadInfo.fileList"
+                  :show-upload-list="false"
+                  :action="''"
+                  :customRequest="customRequest"
+                  :before-upload="beforeUpload"
+                >
+                  <a-button type="primary">
+                    <async-icon :icon="'UploadOutlined'"></async-icon>
+                    上传
+                  </a-button>
+                </a-upload>
+              </div>
+            </template>
+          </a-step>
+        </a-steps>
+        <div v-if="uploadInfo.result">
+          <a-result
+            :status="uploadInfo.result"
+            :title="uploadInfo.message"
+          >
+            <template #extra v-if="uploadInfo.result === 'error'">
+              <a-upload
+                v-model:file-list="uploadInfo.fileList"
+                :show-upload-list="false"
+                :action="''"
+                :customRequest="customRequest"
+                :before-upload="beforeUpload"
+              >
+                <a-button type="primary">
+                  <async-icon :icon="'UploadOutlined'"></async-icon>
+                  重新上传
+                </a-button>
+              </a-upload>
+            </template>
+          </a-result>
+        </div>
+      </a-spin>
     </template>
     <template #appFooter>
-      <a-button type="primary" @click="modalInfo.uploadOpen = !modalInfo.uploadOpen">确认</a-button>
+      <a-button v-if="uploadInfo.result !== 'success'" @click="modalInfo.uploadOpen = !modalInfo.uploadOpen">取消</a-button>
+      <a-button v-if="uploadInfo.result === 'success'" type="primary" @click="itemImportedFn">确认</a-button>
     </template>
   </appModal>
 </div>
@@ -114,14 +153,16 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue';
-import { itemList, itemStatus, typeList } from './js/api';
+import { itemImport, itemList, itemStatus, itemTempExport, typeList } from './js/api';
 import { dictionaryManagement_header } from './js/tableHeader';
+import asyncIcon from '~@/layouts/components/menu/async-icon.vue';
 import appTableForm from '~@/components/common/appTableForm.vue';
 import appTableBox from '~@/components/common/appTableBox.vue';
 import appTablePagination from '~@/components/common/appTablePagination.vue';
 import appModal from '~@/components/common/appModal.vue';
 import editModal from './components/editModal.vue';
 import { message } from 'ant-design-vue';
+import download from '~@/api/common/download';
 defineOptions({ name: "dictionaryManagement_index" });
 const { proxy: _this } = getCurrentInstance();
 const dictionary = reactive({
@@ -148,6 +189,12 @@ const formData = reactive({
   itemName: undefined,
 });
 const formParams = {};
+const uploadInfo = reactive({
+  fileList: [],
+  result: '',
+  message: '',
+  loading: false,
+})
 const formHeight = ref(0);
 const innerHeight = computed(() => {
   return (window.innerHeight * 0.95) + 'px';
@@ -155,6 +202,17 @@ const innerHeight = computed(() => {
 const tableScrollHeihth = computed(() => {
   return ((window.innerHeight * 0.96) - 20 - 24 - 24 - 8 - 40 - 56 - formHeight.value);
 });
+watch(() => modalInfo.uploadOpen, (val, oldVal) => {
+  if (!val) {
+    let obj = {
+      fileList: [],
+      result: '',
+      message: '',
+      loading: false,
+    }
+    Object.assign(uploadInfo, obj)
+  }
+})
 onMounted(async () => {
   await getTypeList();
   await getItemList();
@@ -205,7 +263,9 @@ async function statusChange(val, row) {
     "status": val,
   };
   try {
+    dictionary.data.forEach(i => i.disabledSwitch = true)
     await itemStatus(params);
+    dictionary.data.forEach(i => i.disabledSwitch = false)
     message.success(val === 'enabled' ? '启用成功！' : '停用成功！');
   } catch (error) {
     row.status = val !== 'enabled' ? 'enabled' : 'disabled';
@@ -222,7 +282,6 @@ function formHeightChange(val) {
 }
 // 获取字典数据
 async function getItemList(val) {
-
   let params = {
     "itemName": formParams.itemName,
     "itemValue": "",
@@ -241,6 +300,7 @@ async function getItemList(val) {
     data.map((item, index) => {
       item.rowIndex = index + 1;
       item.dictName = dictionary.itemList.find(i => i.dictType === item.dictType).dictName;
+      item.disabledSwitch = false;
       // item.statusType = (item.status === 'enabled');
     });
     dictionary.total = res.total;
@@ -249,6 +309,44 @@ async function getItemList(val) {
     console.error(error);
   }
   tableLoading.value = false;
+}
+// 下载导入模板
+async function itemTempExportFn(params) {
+  try {
+    let res = await itemTempExport()
+    // console.log({res});
+    download.name(res.data)
+  } catch (error) {
+    console.error(error);
+  }
+}
+// 上传前校验
+function beforeUpload(file) {
+  let suffix = file.name.split('.')[file.name.split('.').length - 1].toLocaleLowerCase();
+  return suffix === 'xlsx';
+};
+// 自定义上传
+async function customRequest({ file }) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('dictType', dictionary.selectedKeys[0]);
+  try {
+    uploadInfo.loading = true;
+    let res = await itemImport(formData)
+    // console.log({ res });
+    uploadInfo.message = res.msg;
+    uploadInfo.result = 'success'
+  } catch (error) {
+    console.log({ error });
+    uploadInfo.message = error.msg;
+    uploadInfo.result = 'error'
+  }
+  uploadInfo.loading = false;
+}
+// 上传成功之后方法
+function itemImportedFn() {
+  modalInfo.uploadOpen = !modalInfo.uploadOpen;
+  getItemList();
 }
 </script>
 <style lang="less" scoped>
