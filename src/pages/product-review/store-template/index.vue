@@ -20,16 +20,16 @@
         </a-form-item>
         <!-- 店铺账号 -->
         <a-form-item label="店铺账号:" class="form-item-radio" name="account" :wrapper-col="wrapperColItem">
-          <selectComm ref="selectCommRef" :options="accountList" :fieldObj="{
+          <selectComm ref="selectCommRef"  :options="accountList" :fieldObj="{
             fieldKey: 'account',
             fieldLabel: 'simpleName',
           }" @backSelectAll="
               (val) => {
-                (formData.account = null), getList();
+                (formData.account = null);
               }
             " @backSelectItem="
               (val) => {
-                (formData.account = val), getList();
+                (formData.account = val);
               }
             "></selectComm>
         </a-form-item>
@@ -332,6 +332,12 @@ const statusOptions = reactive([
     value: 1,
   },
 ]);
+
+watch(() => formData.account, (newVal, oldVal) => {
+  if (newVal === '') {
+    selectCommRef.value?.selectAll(false);
+  }
+});
 
 // 过滤选项
 const filterOption = (inputValue, option) => {

@@ -1,73 +1,131 @@
 <template>
   <div id="configAccountCont">
-    <a-card style="margin-top: 20px">
-      <a-form :model="formState" layout="inline" ref="formRef">
-        <a-form-item label="用户：" name="userId">
-          <a-select v-model:value="formState.userId" allow-clear show-search placeholder="请选择用户" style="width: 200px"
-            :options="getAccountUserArr" :filter-option="filterOption" :fieldNames="userLabels"></a-select>
+    <appTableForm
+      ref="formRef"
+      v-model:formData="formState"
+      reset-set-menu="configAccountCont"
+      @onSubmit="onSubmit"
+    >
+      <template #formItemBox>
+        <a-form-item label="用户：" name="userId" class="text-left">
+          <a-select
+            v-model:value="formState.userId"
+            allow-clear
+            show-search
+            placeholder="请选择用户"
+            style="width: 200px"
+            :options="getAccountUserArr"
+            :filter-option="filterOption"
+            :fieldNames="userLabels"
+          ></a-select>
         </a-form-item>
-        <a-form-item label="部门：" name="depId">
-          <a-cascader v-model:value="formState.depId" :options="depOptions" style="width: 200px"
-            placeholder="Please select" :fieldNames="depLabels" />
+        <a-form-item label="部门：" name="depId" class="text-left">
+          <a-cascader
+            v-model:value="formState.depId"
+            :options="depOptions"
+            style="width: 200px"
+            placeholder="请选择部门"
+            :fieldNames="depLabels"
+          />
         </a-form-item>
-        <a-form-item>
-          <a-button type="primary" @click="onSubmit">查询</a-button>
-          <a-button style="margin-left: 10px" @click="restForm">重置</a-button>
-        </a-form-item>
-      </a-form>
-    </a-card>
-    <a-card style="margin-top: 20px">
-      <div>
-        <a-row>
-          <a-col :span="1.5" style="margin: 0 5px"><a-button type="primary"
-              v-has-permi="['platform:ozon:account:relevance:add']" @click="showAdd = true">新增</a-button></a-col>
-          <a-col :span="1.5" style="margin: 0 5px"><a-button @click="showEdit = true"
-              v-has-permi="['platform:ozon:account:relevance:update']"
-              :disabled="selectedRowKeys.length !== 1">修改</a-button></a-col>
-          <a-col :span="1.5" style="margin: 0 5px">
-            <a-popconfirm placement="top" ok-text="Yes" cancel-text="No" @confirm="confirm"
-              :disabled="selectedRowKeys.length !== 1">
-              <template #title>
-                <p>是否确定删除？</p>
-              </template>
-              <a-button type="primary" danger v-has-permi="['platform:ozon:account:relevance:del']"
-                :disabled="selectedRowKeys.length !== 1">删除</a-button>
-            </a-popconfirm>
-          </a-col>
-        </a-row>
-      </div>
-      <div style="margin-top: 20px">
-        <a-table :row-selection="rowSelection" :columns="columns" :data-source="tableData" :rowKey="(row) => row"
-          bordered :pagination="false">
-          <template #bodyCell="{ column, record }">
-            <template v-if="column.key === 'userId'">
-              <span>
-                {{ hideUser(record.userId) }}
-              </span>
+      </template>
+    </appTableForm>
+      <app-table-box
+        v-model:filter-columns="columns"
+        :data-source="tableData"
+        :table-header="columns"
+        reset-set-menu="configAccountCont"
+        :rowKey="(row) => row"
+        :row-selection="rowSelection"
+        :scroll="{ x: 1 }"
+      >
+        <template #leftTool>
+          <a-button
+            type="primary"
+            v-has-permi="['platform:ozon:account:relevance:add']"
+            @click="showAdd = true"
+            >新增</a-button
+          >
+          <a-button
+            @click="showEdit = true"
+            v-has-permi="['platform:ozon:account:relevance:update']"
+            :disabled="selectedRowKeys.length !== 1"
+            >修改</a-button
+          >
+          <a-popconfirm
+            placement="top"
+            ok-text="Yes"
+            cancel-text="No"
+            @confirm="confirm"
+            :disabled="selectedRowKeys.length !== 1"
+          >
+            <template #title>
+              <p>是否确定删除？</p>
             </template>
-            <template v-if="column.key === 'account'">
-              <span v-for="(item, index) in getsimpleName(record.account)" :key="index">
-                <a-tag color="blue" class="mt-1.5">{{
-                 item
-                }}</a-tag>
-              </span>
-            </template>
-            <template v-if="column.key === 'depId'">
-              <a-cascader style="width: 100%" v-model:value="record.depId" :options="depOptions"
-                :field-names="depLabels" :disabled="true">
-              </a-cascader>
-            </template>
+            <a-button
+              type="primary"
+              danger
+              v-has-permi="['platform:ozon:account:relevance:del']"
+              :disabled="selectedRowKeys.length !== 1"
+              >删除</a-button
+            >
+          </a-popconfirm>
+        </template>
+        <template #bodyCell="{ column, record, index }">
+          <!-- 索引列 -->
+        <template v-if="column.key === 'index'">
+          {{ index + 1 + (pages.pageNum - 1) * pages.pageSize }}
+        </template>
+          <template v-if="column.key === 'userId'">
+            <span>
+              {{ hideUser(record.userId) }}
+            </span>
           </template>
-        </a-table>
-        <a-pagination style="margin-top: 20px;text-align: right;" :show-total="(total) => `共 ${total} 条`"
-          v-model:current="pages.pageNum" v-model:pageSize="pages.pageSize" :total="pages.total" class="pages"
-          :defaultPageSize="50" :showSizeChanger="true" :pageSizeOptions="[50, 100, 200]" @change="getList" />
-      </div>
-    </a-card>
-    <addAccountConfig :showAdd="showAdd" :depOptions="depOptions" :getAccountUserArr="getAccountUserArr"
-      @backAddForm="backAddForm"></addAccountConfig>
-    <editAccountConfig :showEdit="showEdit" :depOptions="depOptions" :getAccountUserArr="getAccountUserArr"
-      @backEditForm="backEditForm" :selectedRowKeys="selectedRowKeys"></editAccountConfig>
+          <template v-if="column.key === 'account'">
+            <span
+              v-for="(item, index) in getsimpleName(record.account)"
+              :key="index"
+            >
+              <a-tag color="blue" class="mt-1.5">{{ item }}</a-tag>
+            </span>
+          </template>
+          <template v-if="column.key === 'depId'">
+            <a-cascader
+              style="width: 100%"
+              v-model:value="record.depId"
+              :options="depOptions"
+              :field-names="depLabels"
+              :disabled="true"
+            >
+            </a-cascader>
+          </template>
+        </template>
+        <template #pagination>
+          <appTablePagination
+            :total="pages.total"
+            v-model:current="pages.pageNum"
+            v-model:pageSize="pages.pageSize"
+            class="pages"
+            :defaultPageSize="50"
+            :showSizeChanger="true"
+            @pageNumChange="pageNumChange" 
+          @pageSizeChange="pageSizeChange"
+          />
+        </template>
+      </app-table-box>
+    <addAccountConfig
+      :showAdd="showAdd"
+      :depOptions="depOptions"
+      :getAccountUserArr="getAccountUserArr"
+      @backAddForm="backAddForm"
+    ></addAccountConfig>
+    <editAccountConfig
+      :showEdit="showEdit"
+      :depOptions="depOptions"
+      :getAccountUserArr="getAccountUserArr"
+      @backEditForm="backEditForm"
+      :selectedRowKeys="selectedRowKeys"
+    ></editAccountConfig>
   </div>
 </template>
 
@@ -84,10 +142,13 @@ import tableHeader from "~@/pages/ozon/config/tabColumns/accountConfig";
 import addAccountConfig from "@/pages/ozon/configAccounts/component/addAccountConfig.vue";
 import editAccountConfig from "@/pages/ozon/configAccounts/component/editAccountConfig.vue";
 import { message } from "ant-design-vue";
+import appTableBox from "~/components/common/appTableBox.vue";
+import appTablePagination from "~@/components/common/appTablePagination.vue";
+import appTableForm from "~@/components/common/appTableForm.vue";
 
-const formRef = ref(null)
+const formRef = ref(null);
 const formState = reactive({
-  userId: "", //用户多选ID
+  userId: null, //用户多选ID
   depId: [], //部门多选ID
 });
 const accountOptions = ref([]);
@@ -101,7 +162,7 @@ const getAccountUserArr = ref([]);
 const pages = reactive({
   pageNum: 1,
   pageSize: 50,
-  total: 0
+  total: 0,
 });
 const columns = tableHeader;
 const userLabels = ref({
@@ -162,7 +223,7 @@ const getList = () => {
 const restForm = () => {
   formRef.value.resetFields();
   getList();
-}
+};
 
 // 获取账号
 const getAccountList = () => {
@@ -179,18 +240,18 @@ const getUserDep = () => {
 // 处理字段回显根据店铺中的数字值排序
 const getsimpleName = (v) => {
   // 分割account字符串为ID数组
-  const accountIds = v.split(',');
-  
+  const accountIds = v.split(",");
+
   // 创建account到simpleName的映射表
   const accountMap = new Map(
-    accountOptions.value.map(option => [option.account, option.simpleName])
+    accountOptions.value.map((option) => [option.account, option.simpleName])
   );
-  
+
   // 匹配并过滤有效结果
   const matchedNames = accountIds
-    .map(id => accountMap.get(id))
+    .map((id) => accountMap.get(id))
     .filter(Boolean); // 排除未匹配项
-  
+
   // 按simpleName中的数字排序 (例如Ozon04中的04)
   const numberRegex = /Ozon(\d+)-/;
   return matchedNames.sort((a, b) => {
@@ -203,6 +264,20 @@ const getAccountUserList = () => {
   getAccountUser({ userName: "" }).then((res) => {
     getAccountUserArr.value = res.data;
   });
+};
+
+// 分页变化
+function pageNumChange(val) {
+  pages.pageNum = val;
+  console.log({ val });
+  getList();
+
+};
+function pageSizeChange(val) {
+  pages.pageSize = val;
+  console.log({ val });
+  getList();
+
 };
 
 const hideUser = (id) => {
