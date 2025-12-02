@@ -99,16 +99,17 @@
       <div class="table-content" :class="`${resetSetMenu}-table`">
         <a-table 
           :columns="showHeader" 
-          :data-source="tableInfo.data" 
+          :data-source="tableData" 
           :scroll="scrollData"
           :pagination="false"
           :customRow="customRow" 
           bordered 
           :row-key="rowKey"
-          v-bind="$attrs" 
           :row-class-name="rowClassNameFn"
           ref="tableRef"
-          v-if="tableInfo.updateIf"
+          v-model:expanded-row-keys="tableInfo.expandedRowKeys"
+          v-bind="$attrs" 
+          :key="tableInfo.key"
         >
           <template #headerCell="{ title, column }">
             <div class="resizable-header" v-if="column.key">
@@ -163,11 +164,12 @@
 <script setup>
 import { SettingOutlined } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep, debounce, set } from 'lodash-es';
 import Sortable from 'sortablejs';
 import { computed, onMounted, reactive, ref, useSlots } from 'vue';
 
 import appEllipsisTooltip from '@/components/common/appEllipsisTooltip.vue';
+import { v4 as uuid } from 'uuid';
 defineOptions({ name: 'appTableBox' });
 const { proxy: _this } = getCurrentInstance();
 /**
@@ -198,6 +200,10 @@ const props = defineProps({
   rowClassName: {
     type: [String, Function],
     default: '',
+  },
+  rowSelection: {
+    type: Object,
+    default: () => ({}),
   },
   filterColumns: {
     // 当前展示的表头，用v-model直接绑定即可
@@ -232,7 +238,7 @@ const {
 } = useSlots();
 
 // console.log({slots});
-
+tableData
 const btnLoading = ref(false);
 const columns = reactive({
   list: [],                 // 实际表头
@@ -265,7 +271,11 @@ const heightInfo = reactive({
 const tableInfo = reactive({
   data: [],              // 用于渲染的表格数据
   sortable: null,             // Sortable实例
-  updateIf: true,
+  key: uuid(),
+  expandedRowKeys: [],
+})
+const tableData = computed(() => {
+  return tableInfo.data
 })
 const showHeader = computed(() => {
   let list = columns.list.filter(i => i.show);
@@ -310,11 +320,10 @@ watch(() => columns.list, (val, oldVal) => {
   deep: true,
 });
 watch(() => props.dataSource, (val, oldVal) => {
-  tableInfo.updateIf = false;
   tableInfo.data = cloneDeep(val)
   setTableData(tableInfo.data)
+  tableInfo.key = uuid()
   setTimeout(() => {
-    tableInfo.updateIf = true;
     nextTick(dragInit())
   });
 }, {
@@ -436,7 +445,10 @@ function customRow(row) {
     },
   };
 }
-
+// function rowKeyFn(record, index) {
+//   let rowKey = typeof props.rowKey === 'string' ? record[props.rowKey] : props.rowKey(record, index);
+//   return `${rowKey}_${record._dragKey}`
+// }
 // 为每行绑定层级和父节点ID的DOM属性
 function rowClassNameFn(record, index) {
   // 异步获取行元素并绑定data属性（确保DOM已渲染）
@@ -627,6 +639,7 @@ function dragInit() {
   });
 }
 // 初始化拖拽逻辑
+let dragVerify = false;
 function initSortable() {
   if (!props.rowDrag) return;
   const tableEl = _this.$refs.tableRef?.$el;
@@ -646,8 +659,10 @@ function initSortable() {
     animation: 150,
     handle: '.ant-table-row', // 整行可拖拽
     // 拖拽校验：仅同层级+同父节点允许拖拽
+    
     onMove: (evt) => {
-      console.log({ evt });
+      // console.log(evt.dragged, evt.related);
+      // console.log({ evt });
       const sourceEl = evt.dragged;         // 拖拽节点
       const targetEl = evt.related;         // 被放置的节点
 
@@ -658,22 +673,23 @@ function initSortable() {
       const targetParentKey = targetEl?.getAttribute('data-parent-key');
 
       // 层级或父节点不一致则阻止拖拽
+      dragVerify = sourceLevel === targetLevel && sourceParentKey === targetParentKey;
       return sourceLevel === targetLevel && sourceParentKey === targetParentKey;
     },
     // 拖拽结束后更新树形数据
     onEnd: (evt) => {
-      
-      const { oldIndex, newIndex } = evt;
+      // if (!dragVerify) {
+      //   tableInfo.data = [...tableInfo.data]
+      // };
       const sourceEl = evt.item;
       const sourceParentKey = sourceEl.getAttribute('data-parent-key');
       const sourceLevel = sourceEl.getAttribute('data-level');
       const sourceDragKey = sourceEl.getAttribute('data-drag-key');
-      console.log({sourceParentKey,sourceLevel,sourceDragKey});
-      
-
+      // console.log({sourceParentKey,sourceLevel,sourceDragKey});
+      // console.log({sourceParentKey});
       // 递归查找当前父节点的子数组
       function findParentChildren(data, parentKey) {
-        if (!parentKey) {
+        if (parentKey === `${props.resetSetMenu}_parentKey`) {
           return null;
         }
         let parentNode = null;
@@ -687,27 +703,32 @@ function initSortable() {
         })
         return parentNode;
       }
-      // const findParentChildren = (data, parentKey) => {
-      //   for (const item of data) {
-      //     if (item._dragKey === parentKey) return item.children;
-      //     if (item.children) {
-      //       const res = findParentChildren(item.children, parentKey);
-      //       if (res) return res;
-      //     }
-      //   }
-      //   // 顶级节点（level=0）直接返回根数组
-      //   return sourceLevel === '1' ? data : null;
-      // };
-
-      // 调整子数组顺序并触发响应式更新
-      const targetChildren = findParentChildren(tableInfo.data, sourceParentKey);
-      // console.log({targetChildren});
-      
-      // if (targetChildren) {
-      //   const [movedItem] = targetChildren.splice(oldIndex, 1);
-      //   targetChildren.splice(newIndex, 0, movedItem);
-      //   tableInfo.data = [...tableInfo.data]; // 触发视图更新
-      // }
+      nextTick(() => {
+        setTimeout(() => {
+          // 调整子数组顺序并触发响应式更新
+          const parentNode = findParentChildren(tableInfo.data, sourceParentKey);
+          let rowList = []
+          if (parentNode) {
+            rowList = [...document.querySelectorAll(`tr[data-parent-key="${sourceParentKey}"]`)].map(item => {
+              let dragKey = item.getAttribute('data-drag-key');
+              let row = parentNode.children.find(i => i._dragKey === dragKey);
+              return row;
+            })
+            parentNode.children = rowList
+          } else {
+            rowList = [...document.querySelectorAll(`tr[data-parent-key="${sourceParentKey}"]`)].map(item => {
+              let rowKey = item.getAttribute('data-row-key');
+              let row = tableInfo.data.find(i => i[props.rowKey] === rowKey);
+              return row;
+            })
+            tableInfo.data = [...rowList]
+          }
+          console.log({rowList});
+          // setTableData(tableInfo.data)
+          tableInfo.data = [...tableInfo.data]
+          initSortable()
+        }, 100);
+      })
     },
   });
 };
@@ -719,8 +740,8 @@ function setTableData(data, pNode = null) {
       item._parentKey = pNode._dragKey;
     } else {
       item._level = 1;
-      item._dragKey = `${index}`;
-      item._parentKey = '';
+      item._dragKey = `${props.resetSetMenu}_${index}`;
+      item._parentKey = `${props.resetSetMenu}_parentKey`;
     }
     if (item.children?.length) {
       setTableData(item.children, item);
