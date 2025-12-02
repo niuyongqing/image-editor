@@ -23,7 +23,12 @@
             </a-popconfirm>
             <!-- 顶部右侧工具按钮插槽 -->
             <slot name="rightTool"></slot>
-            <a-popover placement="bottomRight" trigger="click" v-if="isTableSetting">
+            <a-popover 
+              placement="bottomRight" 
+              trigger="click" 
+              v-if="isTableSetting"
+              @openChange="e => columnDrop(e)"
+            >
               <template #content>
                 <div class="tableSetting-box leftList">
                   <div class="tableSetting-columnRow" v-for="item in columns.leftList" :key="item.key">
@@ -83,7 +88,7 @@
               <template #title>
                 <span>表格设置</span>
               </template>
-              <a-button type="primary" @click="columnDrop()">
+              <a-button type="primary">
                 <template #icon><SettingOutlined /></template>
                 {{ '表格设置' }}
               </a-button>
@@ -94,13 +99,18 @@
       <div class="table-content" :class="`${resetSetMenu}-table`">
         <a-table 
           :columns="showHeader" 
-          :data-source="dataSource" 
+          :data-source="tableInfo.data" 
           :scroll="scrollData"
           :pagination="false"
           :customRow="customRow" 
           bordered 
+          :row-key="rowKeyFn"
+          :row-class-name="rowClassNameFn"
+          ref="tableRef"
+          :expanded-row-keys="tableInfo.expandedRowKeys"
+          @update:expanded-row-keys="(val) => emit('update:expandedRowKeys', val)"
           v-bind="$attrs" 
-          :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
+          :key="tableInfo.key"
         >
           <template #headerCell="{ title, column }">
             <div class="resizable-header" v-if="column.key">
@@ -123,6 +133,7 @@
               :text="text"
             >
               {{ record[column?.key] }}
+              <!-- <appEllipsisTooltip :title="record[column.key || column.dataIndex]"></appEllipsisTooltip> -->
             </slot>
             <template v-if="!!options && column.key === 'options'">
               <a-space>
@@ -154,16 +165,19 @@
 <script setup>
 import { SettingOutlined } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep, debounce, set } from 'lodash-es';
 import Sortable from 'sortablejs';
 import { computed, onMounted, reactive, ref, useSlots } from 'vue';
+
+import appEllipsisTooltip from '@/components/common/appEllipsisTooltip.vue';
+import { v4 as uuid } from 'uuid';
 defineOptions({ name: 'appTableBox' });
 const { proxy: _this } = getCurrentInstance();
 /**
  * rowClick         行单击事件
  * rowDoubleClick   行双击事件
  */
-const emit = defineEmits(['update:filterColumns', 'rowClick', 'rowDoubleClick']);
+const emit = defineEmits(['update:filterColumns', 'update:expandedRowKeys', 'rowClick', 'rowDoubleClick']);
 const props = defineProps({
   resetSetMenu: {
     // 表头唯一标识，不能重复，必传
@@ -180,8 +194,24 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  rowKey: {
+    type: [String, Function],
+    default: 'key'
+  },
+  rowClassName: {
+    type: [String, Function],
+    default: '',
+  },
+  rowSelection: {
+    type: Object,
+    default: () => ({}),
+  },
   filterColumns: {
     // 当前展示的表头，用v-model直接绑定即可
+    type: Array,
+    default: () => [],
+  },
+  expandedRowKeys: {
     type: Array,
     default: () => [],
   },
@@ -194,10 +224,11 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
-  autoHeight: {             // 是否启用表格设置
+  autoHeight: {             // 是否启用表格自适应
     type: Boolean,
     default: true,
   },
+  rowDrag: Boolean,         // 是否启用行拖拽
 });
 const {
   otherCount,           // 最上方插槽，防止tabs，上分页器等
@@ -212,7 +243,6 @@ const {
 } = useSlots();
 
 // console.log({slots});
-
 const btnLoading = ref(false);
 const columns = reactive({
   list: [],                 // 实际表头
@@ -242,6 +272,12 @@ const heightInfo = reactive({
   formHeight: 0,          // 表单高度
   outerDomHeight: 0,      // 除了表单之外计算出来的滚动高度
 })
+const tableInfo = reactive({
+  data: [],              // 用于渲染的表格数据
+  sortable: null,             // Sortable实例
+  key: uuid(),
+  expandedRowKeys: [],
+})
 const showHeader = computed(() => {
   let list = columns.list.filter(i => i.show);
   // list = !!options ? [...list, optionsColumn] : list;
@@ -270,14 +306,13 @@ onMounted(() => {
   nextTick(() => {
     columns.columnChange = false;
     // columnDrop();
-    resizDomSetting();
     setTimeout(() => {
       getHeight()
-    }, 100);
+    }, 300);
   });
 });
 onUnmounted(() => {
-  heightInfo.formDom.disconnect();
+  heightInfo.formDom && heightInfo.formDom.disconnect();
 })
 watch(() => columns.list, (val, oldVal) => {
   columns.columnChange = true;
@@ -285,6 +320,27 @@ watch(() => columns.list, (val, oldVal) => {
 }, {
   deep: true,
 });
+// 监听默认展开的行
+watch(() => props.expandedRowKeys, (val) => {
+  tableInfo.expandedRowKeys = [...val]
+}, {
+  deep: true,
+  immediate: true,
+})
+watch(() => props.dataSource, (val, oldVal) => {
+  tableInfo.data = cloneDeep(val)
+  setTableData(tableInfo.data)
+  tableInfo.key = uuid()
+  setTimeout(() => {
+    nextTick(dragInit())
+  });
+}, {
+  deep: true,
+  immediate: true,
+})
+watch(() => tableInfo.data, () => {
+  nextTick(dragInit())
+})
 // 计算查询表单和表格滚动区的总高度
 function getHeight() {
   let dom = document.querySelector(`.${props.resetSetMenu}-appTableBox`)
@@ -299,8 +355,8 @@ function getHeight() {
   //   antTabsHeight,tableOtherCountHeight,tableTitleHeight,tablePaginationHeight,tableSummaryHeight,tableHeaderHeight,thead
   // });
   
-  heightInfo.outerDomHeight = window.innerHeight - antTabsHeight - tableOtherCountHeight - (tableTitleHeight + 8) - tablePaginationHeight - tableHeaderHeight - tableSummaryHeight - 20 - 24 - 10 - 8;
-  // 总高度 - 页签栏高度 - 表格最上方插槽高度 - 表格工具按钮栏高度+margin-bottom - 分页器插槽高度 - 表头高度 - 合计行高度 - main容器上下margin（20） - 表格组件card容器上下padding（24） - 横向滚动条高度（10） - 表格组件和查询表单组件的上下padding（8）
+  heightInfo.outerDomHeight = window.innerHeight - antTabsHeight - tableOtherCountHeight - (tableTitleHeight + 8) - tablePaginationHeight - tableHeaderHeight - tableSummaryHeight - 20 - 24 - 12 - 8 - 4;
+  // 总高度 - 页签栏高度 - 表格最上方插槽高度 - 表格工具按钮栏高度+margin-bottom - 分页器插槽高度 - 表头高度 - 合计行高度 - main容器上下margin（20） - 表格组件card容器上下padding（24） - 横向滚动条高度（12） - 表格组件和查询表单组件的上下padding（8） - 冗余（4）
 
   const targetDom = document.getElementById('appTableForm');
   if (!targetDom) return;
@@ -397,6 +453,26 @@ function customRow(row) {
     },
   };
 }
+function rowKeyFn(record, index) {
+  let rowKey = typeof props.rowKey === 'string' ? record[props.rowKey] : props.rowKey(record, index);
+  // console.log({rowKey});
+  return rowKey;
+}
+// 为每行绑定层级和父节点ID的DOM属性
+function rowClassNameFn(record, index) {
+  nextTick(() => {
+    // 异步获取行元素并绑定data属性（确保DOM已渲染），用于表格行拖拽
+    const rowEl = document.querySelector(`tr[data-row-key="${rowKeyFn(record)}"]`);
+    if (rowEl) {
+      rowEl.setAttribute('data-level', record._level);
+      rowEl.setAttribute('data-drag-key', record._dragKey);
+      rowEl.setAttribute('data-parent-key', record._parentKey);
+    }
+  });
+  let className = typeof props.rowClassName === 'string' ? props.rowClassName : props.rowClassName(record, index);
+  let striped = index % 2 === 1 ? 'table-striped' : '';   // 斑马纹设定
+  return striped + (className ? (striped ? ` ${className}` : className) : '');
+};
 // 处理拖动dom
 function resizDomSetting() {
   let thead = document.querySelector(`.${props.resetSetMenu}-table`);
@@ -443,6 +519,7 @@ function onMouseDown(event, column) {
   // 只能拖拽最底层表头
   if (column.children) return;
   const startX = event.clientX; // 获取鼠标初始位置
+
   const startWidth = column.width || 0; // 获取初始宽度
   columns.isResizing = true;
   columns.resizingColumnKey = column.key;
@@ -503,9 +580,10 @@ function tableSetting(val) {
   });
 }
 //列拖拽
-function columnDrop() {
+function columnDrop(e) {
+  if (!e) return;
   let arr = ['leftList', 'centerList', 'rightList'];
-  setTimeout(() => {
+  nextTick(() => {
     arr.forEach(item => {
       const wrapperTr = document.querySelector(`.tableSetting-box.${item}`);
       if (!wrapperTr) return;
@@ -517,7 +595,7 @@ function columnDrop() {
         },
       });
     });
-  }, 200);
+  })
 }
 // 保存拖拽列
 function dropColumn(evt, key) {
@@ -559,6 +637,129 @@ function getHeader() {
     data: header ? header.data : null,
   };
   return obj;
+}
+
+// 拖拽相关方法
+function dragInit() {
+  // setTableData(tableInfo.data)
+  setTimeout(() => {
+    resizDomSetting();
+    initSortable()
+  });
+}
+// 初始化拖拽逻辑
+let dragVerify = false;
+function initSortable() {
+  if (!props.rowDrag) return;
+  const tableEl = _this.$refs.tableRef?.$el;
+  // console.log(tableEl);
+  
+  if (!tableEl) return;
+  
+  // 获取表格tbody（Ant Design Vue 4.x DOM结构）  
+  const tbody = tableEl.querySelector('.ant-table-tbody');
+  if (!tbody) return;
+
+  // 销毁旧实例，避免重复绑定
+  if (tableInfo.sortable) tableInfo.sortable.destroy();
+
+  // 创建Sortable实例
+  tableInfo.sortable = new Sortable(tbody, {
+    animation: 150,
+    handle: '.ant-table-row', // 整行可拖拽
+    // 拖拽校验：仅同层级+同父节点允许拖拽
+    
+    onMove: (evt) => {
+      // console.log(evt.dragged, evt.related);
+      // console.log({ evt });
+      const sourceEl = evt.dragged;         // 拖拽节点
+      const targetEl = evt.related;         // 被放置的节点
+
+      // 从DOM属性获取层级和父节点ID
+      const sourceLevel = sourceEl.getAttribute('data-level');
+      const sourceParentKey = sourceEl.getAttribute('data-parent-key');
+      const targetLevel = targetEl?.getAttribute('data-level');
+      const targetParentKey = targetEl?.getAttribute('data-parent-key');
+
+      // 层级或父节点不一致则阻止拖拽
+      dragVerify = sourceLevel === targetLevel && sourceParentKey === targetParentKey;
+      return sourceLevel === targetLevel && sourceParentKey === targetParentKey;
+    },
+    // 拖拽结束后更新树形数据
+    onEnd: (evt) => {
+      // if (!dragVerify) {
+      //   tableInfo.data = [...tableInfo.data]
+      // };
+      const sourceEl = evt.item;
+      const sourceParentKey = sourceEl.getAttribute('data-parent-key');
+      const sourceLevel = sourceEl.getAttribute('data-level');
+      const sourceDragKey = sourceEl.getAttribute('data-drag-key');
+      // console.log({sourceParentKey,sourceLevel,sourceDragKey});
+      // console.log({sourceParentKey});
+      // 递归查找当前排序层级的父节点
+      function findParentChildren(data, parentKey) {
+        if (parentKey === `${props.resetSetMenu}_parentKey`) {
+          return null;
+        }
+        let parentNode = null;
+        data.some(item => {
+          if (item._dragKey === parentKey) {
+            parentNode = item
+          } else if (item.children?.length) {
+            parentNode = findParentChildren(item.children, parentKey)
+          }
+          return parentNode;
+        })
+        return parentNode;
+      }
+      let expandedRowKeys = [...tableInfo.expandedRowKeys]
+      nextTick(() => {
+        // 调整子数组顺序并触发响应式更新
+        const parentNode = findParentChildren(tableInfo.data, sourceParentKey);
+        let children = parentNode ? parentNode.children : tableInfo.data
+        let rowList = [...document.querySelectorAll(`tr[data-parent-key="${sourceParentKey}"]`)].map(item => {
+          let dragKey = item.getAttribute('data-drag-key');
+          let row = children.find(i => i._dragKey === dragKey);
+          return row;
+        })
+        if (parentNode) {
+          parentNode.children = rowList
+        } else {
+          tableInfo.data = [...rowList]
+        }
+        // console.log({rowList});
+        // setTableData(tableInfo.data)
+        // tableInfo.data = [...tableInfo.data]
+        // 通过改变key来更新表格
+        tableInfo.key = uuid()
+        tableInfo.expandedRowKeys = expandedRowKeys
+        setTimeout(() => {
+          initSortable()
+        }, 200);
+      })
+    },
+  });
+};
+// 处理树形结构数据，添加必要属性
+function setTableData(data, pNode = null) {
+  // console.log(_this.$attrs.defaultExpandAllRows, _this.$attrs);
+  data.forEach((item, index) => {
+    if (pNode) {
+      item._level = (pNode._level + 1);
+      item._dragKey = `${pNode._dragKey}-${index}`;
+      item._parentKey = pNode._dragKey;
+    } else {
+      item._level = 1;
+      item._dragKey = `${props.resetSetMenu}_${index}`;
+      item._parentKey = `${props.resetSetMenu}_parentKey`;
+    }
+    if (item.children?.length) {
+      setTableData(item.children, item);
+      if (_this.$attrs.defaultExpandAllRows || _this.$attrs['default-expand-all-rows']) {
+        tableInfo.expandedRowKeys.push(rowKeyFn(item))
+      }
+    }
+  });
 }
 </script>
 

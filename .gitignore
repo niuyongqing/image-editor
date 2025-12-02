@@ -6,6 +6,7 @@ dist
 /.env.development
 /.env.development.local
 platform
-.vscode
 types
 !auto-imports.d.ts
+.vscode
+.env.development.local

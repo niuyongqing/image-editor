@@ -18,7 +18,7 @@
         <slot name="formItemBox"></slot>
       </div>
       <div class="formItem-row" v-if="!!formItemRow">
-        <!-- 自定义宽度的筛选项用这个插槽，独占一行 -->
+        <!-- 自定义宽度的筛选项用这个插槽，自由排列 -->
         <slot name="formItemRow"></slot>
       </div>
       <div class="formItem-row right">
