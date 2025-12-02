@@ -99,15 +99,16 @@
       <div class="table-content" :class="`${resetSetMenu}-table`">
         <a-table 
           :columns="showHeader" 
-          :data-source="tableData" 
+          :data-source="tableInfo.data" 
           :scroll="scrollData"
           :pagination="false"
           :customRow="customRow" 
           bordered 
-          :row-key="rowKey"
+          :row-key="rowKeyFn"
           :row-class-name="rowClassNameFn"
           ref="tableRef"
-          v-model:expanded-row-keys="tableInfo.expandedRowKeys"
+          :expanded-row-keys="tableInfo.expandedRowKeys"
+          @update:expanded-row-keys="(val) => emit('update:expandedRowKeys', val)"
           v-bind="$attrs" 
           :key="tableInfo.key"
         >
@@ -176,7 +177,7 @@ const { proxy: _this } = getCurrentInstance();
  * rowClick         行单击事件
  * rowDoubleClick   行双击事件
  */
-const emit = defineEmits(['update:filterColumns', 'rowClick', 'rowDoubleClick']);
+const emit = defineEmits(['update:filterColumns', 'update:expandedRowKeys', 'rowClick', 'rowDoubleClick']);
 const props = defineProps({
   resetSetMenu: {
     // 表头唯一标识，不能重复，必传
@@ -194,7 +195,7 @@ const props = defineProps({
     default: () => [],
   },
   rowKey: {
-    type: [String, Function, Number],
+    type: [String, Function],
     default: undefined
   },
   rowClassName: {
@@ -207,6 +208,10 @@ const props = defineProps({
   },
   filterColumns: {
     // 当前展示的表头，用v-model直接绑定即可
+    type: Array,
+    default: () => [],
+  },
+  expandedRowKeys: {
     type: Array,
     default: () => [],
   },
@@ -238,7 +243,6 @@ const {
 } = useSlots();
 
 // console.log({slots});
-tableData
 const btnLoading = ref(false);
 const columns = reactive({
   list: [],                 // 实际表头
@@ -273,9 +277,6 @@ const tableInfo = reactive({
   sortable: null,             // Sortable实例
   key: uuid(),
   expandedRowKeys: [],
-})
-const tableData = computed(() => {
-  return tableInfo.data
 })
 const showHeader = computed(() => {
   let list = columns.list.filter(i => i.show);
@@ -319,6 +320,13 @@ watch(() => columns.list, (val, oldVal) => {
 }, {
   deep: true,
 });
+// 监听默认展开的行
+watch(() => props.expandedRowKeys, (val) => {
+  tableInfo.expandedRowKeys = [...val]
+}, {
+  deep: true,
+  immediate: true,
+})
 watch(() => props.dataSource, (val, oldVal) => {
   tableInfo.data = cloneDeep(val)
   setTableData(tableInfo.data)
@@ -445,15 +453,16 @@ function customRow(row) {
     },
   };
 }
-// function rowKeyFn(record, index) {
-//   let rowKey = typeof props.rowKey === 'string' ? record[props.rowKey] : props.rowKey(record, index);
-//   return `${rowKey}_${record._dragKey}`
-// }
+function rowKeyFn(record, index) {
+  let rowKey = typeof props.rowKey === 'string' ? record[props.rowKey] : props.rowKey(record, index);
+  // console.log({rowKey});
+  return rowKey;
+}
 // 为每行绑定层级和父节点ID的DOM属性
 function rowClassNameFn(record, index) {
-  // 异步获取行元素并绑定data属性（确保DOM已渲染）
   nextTick(() => {
-    const rowEl = document.querySelector(`tr[data-row-key="${record[props.rowKey]}"]`);
+    // 异步获取行元素并绑定data属性（确保DOM已渲染），用于表格行拖拽
+    const rowEl = document.querySelector(`tr[data-row-key="${rowKeyFn(record)}"]`);
     if (rowEl) {
       rowEl.setAttribute('data-level', record._level);
       rowEl.setAttribute('data-drag-key', record._dragKey);
@@ -687,7 +696,7 @@ function initSortable() {
       const sourceDragKey = sourceEl.getAttribute('data-drag-key');
       // console.log({sourceParentKey,sourceLevel,sourceDragKey});
       // console.log({sourceParentKey});
-      // 递归查找当前父节点的子数组
+      // 递归查找当前排序层级的父节点
       function findParentChildren(data, parentKey) {
         if (parentKey === `${props.resetSetMenu}_parentKey`) {
           return null;
@@ -703,36 +712,37 @@ function initSortable() {
         })
         return parentNode;
       }
+      let expandedRowKeys = [...tableInfo.expandedRowKeys]
       nextTick(() => {
+        // 调整子数组顺序并触发响应式更新
+        const parentNode = findParentChildren(tableInfo.data, sourceParentKey);
+        let children = parentNode ? parentNode.children : tableInfo.data
+        let rowList = [...document.querySelectorAll(`tr[data-parent-key="${sourceParentKey}"]`)].map(item => {
+          let dragKey = item.getAttribute('data-drag-key');
+          let row = children.find(i => i._dragKey === dragKey);
+          return row;
+        })
+        if (parentNode) {
+          parentNode.children = rowList
+        } else {
+          tableInfo.data = [...rowList]
+        }
+        // console.log({rowList});
+        // setTableData(tableInfo.data)
+        // tableInfo.data = [...tableInfo.data]
+        // 通过改变key来更新表格
+        tableInfo.key = uuid()
+        tableInfo.expandedRowKeys = expandedRowKeys
         setTimeout(() => {
-          // 调整子数组顺序并触发响应式更新
-          const parentNode = findParentChildren(tableInfo.data, sourceParentKey);
-          let rowList = []
-          if (parentNode) {
-            rowList = [...document.querySelectorAll(`tr[data-parent-key="${sourceParentKey}"]`)].map(item => {
-              let dragKey = item.getAttribute('data-drag-key');
-              let row = parentNode.children.find(i => i._dragKey === dragKey);
-              return row;
-            })
-            parentNode.children = rowList
-          } else {
-            rowList = [...document.querySelectorAll(`tr[data-parent-key="${sourceParentKey}"]`)].map(item => {
-              let rowKey = item.getAttribute('data-row-key');
-              let row = tableInfo.data.find(i => i[props.rowKey] === rowKey);
-              return row;
-            })
-            tableInfo.data = [...rowList]
-          }
-          console.log({rowList});
-          // setTableData(tableInfo.data)
-          tableInfo.data = [...tableInfo.data]
           initSortable()
-        }, 100);
+        }, 200);
       })
     },
   });
 };
+// 处理树形结构数据，添加必要属性
 function setTableData(data, pNode = null) {
+  // console.log(_this.$attrs.defaultExpandAllRows, _this.$attrs);
   data.forEach((item, index) => {
     if (pNode) {
       item._level = (pNode._level + 1);
@@ -745,6 +755,9 @@ function setTableData(data, pNode = null) {
     }
     if (item.children?.length) {
       setTableData(item.children, item);
+      if (_this.$attrs.defaultExpandAllRows || _this.$attrs['default-expand-all-rows']) {
+        tableInfo.expandedRowKeys.push(rowKeyFn(item))
+      }
     }
   });
 }
