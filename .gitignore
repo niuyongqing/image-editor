@@ -3,9 +3,7 @@
 dist
 /package-lock.json
 platform
-<<<<<<< HEAD
 types
 !auto-imports.d.ts
-=======
 .vscode
->>>>>>> standardComponent-whd-251126
+.env.development.local

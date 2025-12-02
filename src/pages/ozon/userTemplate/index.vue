@@ -40,9 +40,19 @@
               </div>
             </a-form-item>
           </template>
-        </appTableForm>
-        <!-- <div style="background-color: #fff;  margin:  4px auto; width: 99.2%;border-radius: 4px;"> -->
-          <div style="background-color: #fff;  margin:  4px auto; width: 99.05%;border-radius: 6px;" flex justify-between items-center>
+        </appTableForm>     
+          <app-table-box
+            v-model:filter-columns="columns"
+            :data-source="tableData"
+            :table-header="columns"
+            reset-set-menu="userTemplate"
+            rowKey="id"
+            :row-selection="rowSelection"
+            :loading="loading"
+            :scroll="{ y: 980 }"
+          >
+          <template #otherCount>
+             <div flex justify-between items-center>
             <div flex text-left p-10px>
               <div><a-tag color="success"> 说明! </a-tag></div>
               <div >
@@ -64,16 +74,8 @@
               @change="handleChangePagination"
             />
           </div>
-          <app-table-box
-            v-model:filter-columns="columns"
-            :data-source="tableData"
-            :table-header="columns"
-            reset-set-menu="userTemplate"
-            rowKey="id"
-            :row-selection="rowSelection"
-            :loading="loading"
-            :scroll="{ y: 980 }"
-          >
+          </template>
+          
             <template #leftTool>
               <a-button
                 type="primary"
@@ -172,6 +174,7 @@ const tableHead = ref([
     title: "归属店铺",
     dataIndex: "account",
     key: "account",
+    align: "left",
     active: 0,
     width: 300,
     show: [1, 3],
@@ -181,6 +184,7 @@ const tableHead = ref([
     dataIndex: "fieldValue",
     key: "fieldValue",
     active: 1,
+    align: "center",
     width: 300,
     show: [1, 3],
   },
@@ -189,21 +193,24 @@ const tableHead = ref([
     dataIndex: "gmtCreate",
     key: "gmtCreate",
     active: 0,
+    align: "center",
     width: 300,
     show: [1, 3, 4],
   },
   {
     title: "开启和关闭",
     dataIndex: "state",
+    align: "center",
     key: "state",
     active: 0,
-    width: 200,
+    width: 100,
     show: [1, 3, 4],
   },
   {
     title: "操作",
     dataIndex: "action",
     key: "action",
+    align: "center",
     width: 200,
     active: 0,
     show: [1, 3, 4],
