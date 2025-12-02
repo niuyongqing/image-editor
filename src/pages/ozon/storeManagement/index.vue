@@ -15,11 +15,9 @@
             :fieldObj="shopObj"
             @backSelectAll="shopSelectAll"
             @backSelectItem="shopSelectItem"
-          ></selectComm>
+          >
+          </selectComm>
         </a-form-item>
-      </template>
-
-      <template #formItemBox>
         <a-form-item name="name" label="仓库名称：">
           <a-input
             v-model:value="formData.name"
@@ -38,83 +36,50 @@
         </a-form-item>
       </template>
     </appTableForm>
-
-
-    <!-- <a-card style="margin: 10px 0">
-      <a-row style="margin: 10px">
-        <a-col :span="1.5">
-          <a-button type="primary" @click="syncOrder" :loading="syncLoading"
-            >同步仓库数据</a-button
-          >
-        </a-col>
-        <a-col :span="1.5">
-          <a-button
-            type="primary"
-            style="margin-left: 10px"
-            @click="syncStore"
-            :loading="exportLoading"
-            >同步仓库方式信息</a-button
-          >
-        </a-col>
-      </a-row> -->
-
-       <app-table-box
+    <app-table-box
       v-model:filter-columns="columns"
       :data-source="tableData"
       :table-header="columns"
       reset-set-menu="empowerCont"
       :loading="loading"
-      :scroll="{y: 'none'}"
+      :scroll="{ y: 'none' }"
     >
-    <template #leftTool>
-          <a-button type="primary" @click="syncOrder" :loading="syncLoading"
-            >同步仓库数据</a-button
-          >
-          <a-button
-            type="primary"
-            style="margin-left: 10px"
-            @click="syncStore"
-            :loading="exportLoading"
-            >同步仓库方式信息</a-button
-          >
-    </template>
-        <template #bodyCell="{ column, record, index }">
-             <!-- 索引列 -->
+      <template #leftTool>
+        <a-button type="primary" @click="syncOrder" :loading="syncLoading"
+          >同步仓库数据</a-button
+        >
+        <a-button
+          type="primary"
+          style="margin-left: 10px"
+          @click="syncStore"
+          :loading="exportLoading"
+          >同步仓库方式信息</a-button
+        >
+      </template>
+      <template #bodyCell="{ column, record, index }">
+        <!-- 索引列 -->
         <template v-if="column.key === 'index'">
           {{ index + 1 + (paginations.pageNum - 1) * paginations.pageSize }}
         </template>
-          <template v-if="column.dataIndex === 'status'">
-            <span>{{ getChineseLabelByValue(record.status) }}</span>
-          </template>
-          <template v-if="column.dataIndex === 'option'">
-            <a-button @click="edit(record)">查看物流方式</a-button>
-          </template>
+        <template v-if="column.dataIndex === 'status'">
+          <span>{{ getChineseLabelByValue(record.status) }}</span>
         </template>
-        <template #pagination>
-            <appTablePagination
-                v-model:current="paginations.pageNum"
-                v-model:pageSize="paginations.pageSize"
-                :defaultPageSize="50"
-                :showSizeChanger="true"
-                 @pageNumChange="pageNumChange"
+        <template v-if="column.dataIndex === 'option'">
+          <a-button @click="edit(record)">查看物流方式</a-button>
+        </template>
+      </template>
+      <template #pagination>
+        <appTablePagination
+          v-model:current="paginations.pageNum"
+          v-model:pageSize="paginations.pageSize"
+          :defaultPageSize="50"
+          :showSizeChanger="true"
+          @pageNumChange="pageNumChange"
           @pageSizeChange="pageSizeChange"
-          :total="paginations.total" 
-            />
-        </template>
-        </app-table-box>
-      <!-- </a-table> -->
-      <!-- <a-pagination
-        style="margin-top: 20px; text-align: right"
-        :show-total="(total) => `共 ${total} 条`"
-        :total="paginations.total"
-        v-model:current="paginations.pageNum"
-        v-model:pageSize="paginations.pageSize"
-        :defaultPageSize="50"
-        :showSizeChanger="true"
-        @change="getList"
-        :pageSizeOptions="[50, 100, 200]"
-      ></a-pagination> -->
-    <!-- </a-card> -->
+          :total="paginations.total"
+        />
+      </template>
+    </app-table-box>
     <showModal
       :showOpen="showOpen"
       :tabRow="tabRow"
@@ -221,12 +186,15 @@ const onSubmit = () => {
   getList();
 };
 
-watch(() => formData.account, (newVal, oldVal) => {
+watch(
+  () => formData.account,
+  (newVal, oldVal) => {
     console.log({ newVal, oldVal });
-  if (newVal === '') {
-    shopSelectComm.value?.selectAll(false);
+    if (newVal === "") {
+      shopSelectComm.value?.selectAll(false);
+    }
   }
-});
+);
 
 // 分页变化
 function pageNumChange(val) {

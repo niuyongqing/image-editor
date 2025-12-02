@@ -1,9 +1,17 @@
 export default [
+   {
+    title: '序号',
+    dataIndex: 'index',
+    key: 'index',
+    align: 'center',
+    width: 60,
+    fixed: 'left',
+  },
     {
       title: '图片',
       dataIndex: 'image',
       align: "center",
-      width: 80,
+      width: 120,
     },
     {
       title: '标题/产品ID',
