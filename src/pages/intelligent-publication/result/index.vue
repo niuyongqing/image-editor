@@ -371,12 +371,7 @@
                       :src="processImageSource((record.primaryImage?.length > 0 && record.primaryImage[0]) || (record.images?.length > 0 && record.images[0]) || '')"
                     />
                     <div class="block ml-2.5">
-                      <a-tooltip class="item">
-                        <template #title>
-                          <span>{{ record.name }}</span>
-                        </template>
-                        <div class="truncate prodTitle">{{ record.name }}</div>
-                      </a-tooltip>
+                      <div class="prodTitle">{{ record.name }}</div>
                       <div class="float-left text-[#999]">
                         产品ID：
                         <a-tooltip placement="top">
