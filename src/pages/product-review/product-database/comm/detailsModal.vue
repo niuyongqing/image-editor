@@ -1,6 +1,6 @@
 <template>
   <div id="productDatabase_detailsModal" class="productDatabase_detailsModal">
-    <a-modal v-model:open="modalOpen" :style="{ top: '10px', padding: 0, height: '99vh' }"
+    <a-modal v-model:open="modalOpen" :class="origin === 'product-database' ? 'ml-96' : ''" :style="{ top: '10px', padding: 0, height: '99vh' }"
       :bodyStyle="{ height: 'calc(95vh - 100px)', 'overflow-y': 'auto' }" :title="'产品详情'" :maskClosable="false"
       width="80%">
       <a-spin :spinning="loading" class="dialog-box">
@@ -270,8 +270,14 @@
         <br />
       </a-spin>
       <template #footer>
-        <a-button key="back" type="primary" @click="handleSelect">选中</a-button>
+        <a-button v-if="origin !== 'product-database'" key="back" type="primary" @click="handleSelect">选中</a-button>
         <a-button key="back" @click="closeModalFn">关闭</a-button>
+        <a-button
+          v-if="isDatabase"
+          type="primary"
+          @click="listingPicks"
+          >智能选品</a-button
+        >
       </template>
     </a-modal>
   </div>
@@ -287,9 +293,10 @@ import devProhibitPlatformRevert from '~@/utils/devProhibitPlatformRevert';
 import { devStockAreaTag } from '~@/utils/devStatusTag';
 import { productAttr, meansKeepGrains } from '@/utils/devStatusSelect'
 import sheepProhibitionSelect from "@/utils/sheepProhibitionSelect";
+const route = useRoute()
 defineOptions({ name: "productDatabase_detailsModal" })
 const { proxy: _this } = getCurrentInstance()
-const emits = defineEmits(['handleSelect'])
+const emits = defineEmits(['handleSelect', 'listingPicks'])
 const modalOpen = ref(false);
 const loading = ref(false);
 const detailData = reactive({
@@ -419,7 +426,8 @@ const remarksList = [
     value: '9'
   }
 ];
-
+// 选品资料库
+const isDatabase = computed(() => route.path === '/platform/product-review/product-database')
 const userStore = useUserStore();
 const vdata = computed(() => {
   return userStore.userInfo.sysUser.roles[0].vdata;
@@ -433,7 +441,11 @@ const roleName = computed(() => {
 const sale = computed(() => {
   return userStore.userInfo.sysUser.roles[0].sale;
 });
-async function modalOpenFn({ row, forbidSaleList, cacheGetArr }) {
+const origin = ref('');
+async function modalOpenFn({ row, forbidSaleList, cacheGetArr },ori = '') {
+  if(ori === 'product-database'){
+    origin.value = ori;
+  }
   detailData.cacheGetArr = cacheGetArr;
   detailData.forbidSaleList = forbidSaleList;
   detailData.row = row
@@ -542,6 +554,9 @@ async function modalOpenFn({ row, forbidSaleList, cacheGetArr }) {
   }
   loading.value = false
   // console.log({ id, forbidSaleList, cacheGetArr, res });
+}
+const listingPicks = ()=>{
+  emits('listingPicks', [detailData.row])
 }
 function handleSelect() {
   emits('handleSelect', detailData.row)

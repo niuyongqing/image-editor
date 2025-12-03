@@ -197,7 +197,7 @@
       fn(record)
       if (record.planNum <= 0) {
         record.planNum = null
-        message.warning('修改后不能为负数或0, 请核实后再修改哦~')
+        message.warning('修改后不能为负数或为 0, 请核实后再修改哦~')
 
         break
       }

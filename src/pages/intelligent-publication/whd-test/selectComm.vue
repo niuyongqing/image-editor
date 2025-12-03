@@ -63,6 +63,10 @@ const selectItem = (account) => {
     emit("backSelectItem", selectedIndex.value[0]);
   }
 };
+// 暴露内部状态和方法给父组件
+defineExpose({
+  selectAll,
+});
 </script>
 <style lang="less" scoped>
 .accountForm {

@@ -13,7 +13,7 @@ export const header = [
     dataIndex: "devAccount",
     key: "devAccount",
     slot: "devAccount",
-    align: "center",
+    align: "left",
     sorter: false,
     width: 120,
   },

@@ -2,9 +2,8 @@
 .idea
 dist
 /package-lock.json
-/vite.config.ts
-/.env.development
-/.env.development.local
-.vscode
-.trae
 platform
+types
+!auto-imports.d.ts
+.vscode
+.env.development.local

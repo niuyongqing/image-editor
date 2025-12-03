@@ -1,5 +1,5 @@
 <template>
-  <a-modal
+    <a-modal
     v-model:open="visible"
     title="智能刊登选品"
     :width="520"
@@ -48,7 +48,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['update:open', 'success']);
+const emit = defineEmits(['update:open', 'success', 'changeTableLoading']);
 
 const visible = ref(props.open);
 const reasonText = ref('');
@@ -85,8 +85,9 @@ const handleConfirm = () => {
     commodityId: props.selectedIds.join(','),
     remark: value,
   };
-  
+
   commdity(queryData).then((res) => {
+    emit('changeTableLoading', true);
     if (res.code === 200) {
       message.success("执行选品申请成功,勿重复操作");
       props.onSubmit();
@@ -95,6 +96,8 @@ const handleConfirm = () => {
     } else {
       message.error(res.msg);
     }
+  }).finally(() => {
+    emit('changeTableLoading', false);
   });
 };
 </script>
