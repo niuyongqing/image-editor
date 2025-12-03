@@ -208,10 +208,6 @@ const props = defineProps({
     type: [String, Function],
     default: '',
   },
-  rowSelection: {
-    type: Object,
-    default: () => ({}),
-  },
   filterColumns: {
     // 当前展示的表头，用v-model直接绑定即可
     type: Array,
