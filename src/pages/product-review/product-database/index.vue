@@ -495,7 +495,6 @@ function meansForbidAttributeFilterOption(val, option) {
 // 查询
 async function onSubmit() {
   copyFormData = _.cloneDeep(formData);
-  debugger
   paginationChange(1);
 }
 // 重置
@@ -510,7 +509,7 @@ function tableChange(
   sorter,
   { action, currentDataSource }
 ) {
-  // console.log({ pagination, filters, sorter, action, currentDataSource });
+  console.log(sorter);
   let prop = sorter.columnKey ?? "completeTime";
   tableData.params.order = (sorter.order ?? "ascend") + "ing";
   tableData.params.prop = toLowerLine(prop);
