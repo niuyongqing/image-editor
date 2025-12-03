@@ -1,0 +1,28 @@
+// 默认表头
+export const DEFAULT_TABLE_COLUMN = [
+  { title: '图片', key: 'image' },
+  { title: '标题/产品 ID', key: 'title' },
+  { title: 'SKU', key: 'sku', dataIndex: 'sku' },
+  { title: '是否可搜索', key: 'isSearchable', align: 'center' },
+  { title: '竞价', key: 'bidding', align: 'right' },
+  { title: '产品价格', key: 'productPrice', align: 'right' },
+  { title: '可见性指数', key: 'visibilityIndex', align: 'right' },
+  { title: '订单量', key: 'orderVolume', align: 'right' },
+  { title: '订单金额', key: 'orderAmount', align: 'right' },
+  { title: '广告费用', key: 'advertisingExpenses', align: 'right' },
+  { title: '广告收入率', key: 'proportionAdvertisingExpenses', align: 'right' },
+  { title: '展示次数', key: 'displayCount', align: 'right' },
+  { title: '点击量', key: 'hits', align: 'right' },
+  { title: '点击率', key: 'clickRate', align: 'right' },
+  { title: '上周期竞价', key: 'previousBidding', align: 'right' },
+  { title: '竞价更新时间', key: 'biddingUpdateTime', align: 'center' },
+  { title: '最近更新时间', key: 'recentUpdateTime', align: 'center' },
+  { title: '启用状态', key: 'state', align: 'center', fixed: 'center' },
+  { title: '操作', key: 'operation', fixed: 'right' }
+]
+
+// 启用状态
+export const ENABLE_STATE_OPTIONS = [
+  { label: '开启', value: 'CAMPAIGN_STATE_RUNNING' },
+  { label: '关闭', value: 'CAMPAIGN_STATE_INACTIVE' }
+]
