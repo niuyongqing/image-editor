@@ -12,7 +12,7 @@
 
     <!-- <a-form :model="formData" layout="inline" :label-col="{ span: 6 }"> -->
     <appTableForm
-      @onSubmit="getTableList"
+      @onSubmit="onSubmit"
       resetSetMenu="productDatabase_index"
       v-model:formData="formData"
     >
@@ -184,6 +184,7 @@
       resetSetMenu="productDatabase_index"
       :tableHeader="header"
       :dataSource="tableData.data"
+      @change="tableChange"
       :scroll="{ y: 880}"
       :loading="tableData.loading"
       rowKey="commodityId"
@@ -508,7 +509,7 @@ function tableChange(
   sorter,
   { action, currentDataSource }
 ) {
-  // console.log({ pagination, filters, sorter, action, currentDataSource });
+  console.log(sorter);
   let prop = sorter.columnKey ?? "completeTime";
   tableData.params.order = (sorter.order ?? "ascend") + "ing";
   tableData.params.prop = toLowerLine(prop);
