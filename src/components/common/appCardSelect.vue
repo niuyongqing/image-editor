@@ -76,7 +76,7 @@ watch(() => props.account, (val, oldVal) => {
     actionItem.value = [optionList.value.find(i => i[fieldValue] === val) || {}];
   }
 }, {
-  // deep: true,
+  deep: true,
   immediate: true,
 });
 function selectItem(index, item) {
