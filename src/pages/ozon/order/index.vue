@@ -349,25 +349,22 @@ const columns = [
     title: "订单编号",
     dataIndex: "orderNumber",
     key: "orderNumber",
-    align: "center",
   },
   {
     title: "店铺单号",
     dataIndex: "postingNumber",
     key: "postingNumber",
-    align: "center",
   },
   {
     title: "订单金额",
     dataIndex: "orderAmount",
     key: "orderAmount",
-    align: "center",
+    align: "right",
   },
   {
     title: "收件人「国家/地区」",
     dataIndex: "customerName",
     key: "customerName",
-    align: "center",
   },
   {
     title: "时间",
