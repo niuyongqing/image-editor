@@ -332,7 +332,6 @@ watch(() => props.expandedRowKeys, (val) => {
 watch(() => props.dataSource, (val, oldVal) => {
   tableInfo.data = cloneDeep(val)
   setTableData(tableInfo.data)
-  tableInfo.key = uuid()
   nextTick(dragInit())
 }, {
   deep: true,
