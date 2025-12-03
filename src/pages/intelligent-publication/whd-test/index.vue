@@ -1,15 +1,22 @@
 <template>
+  
   <appTableBox
     ref="tableRef"
     :table-header="tableColumns"
     :data-source="treeTableData"
-    :reset-set-menu="'sdsdfsadfsad'"
+    :reset-set-menu="'testTable'"
     bordered
     :defaultExpandAllRows="true"
     :row-class-name="rowClassNameFn"
-    :row-key="'id'"
-    :row-drag="true"
-  />
+    v-model:expandedRowKeys="expandedRowKeys.data"
+    :rowKey="rowKeyFn"
+    :row-drag="expandedRowKeys.rowDrag"
+    @dragEnd="dragEnd"
+  >
+    <template #leftTool>
+      <a-button type="primary" @click="aaaaa">{{ expandedRowKeys.rowDrag ? '完成拖拽':'开始拖拽' }}</a-button>
+    </template>
+  </appTableBox>
 </template>
 
 <script setup>
@@ -1198,7 +1205,14 @@ const tableColumns =  [
 //   }
 // ];
 const treeTableData = ref([])
-
+const expandedRowKeys = reactive({
+  data: [],
+  rowDrag: false,
+})
+function aaaaa() {
+  // expandedRowKeys.data.shift()
+  expandedRowKeys.rowDrag = !expandedRowKeys.rowDrag
+}
 setTimeout(() => {
   treeTableData.value = [
     {
@@ -1770,7 +1784,13 @@ setTimeout(() => {
     }
   ];
 }, 500);
-
+function rowKeyFn(row, index) {
+  // console.log({row, index});
+  return row.id
+}
+function dragEnd({ node, parentNode, findParentChildren }) {
+  // console.log({ node, parentNode, findParentChildren });
+}
 // 模拟树形表格数据（含层级、父节点标识）
 const treeData = ref([
   {
