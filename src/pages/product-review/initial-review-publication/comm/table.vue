@@ -257,10 +257,11 @@ const processedColumns = computed(() => {
  */
 const rowSelection = {
   selectedRowKeys,
-  onChange: (_, selectedRows) => {
-    selectedRowKeys.value = selectedRows;
-    emit("selection-change", selectedRowKeys.value);
+  onChange: (keys, selectedRows) => {
+    selectedRowKeys.value = keys;
+    emit("selection-change", selectedRows);
     console.log("selectedRowKeys", selectedRowKeys.value);
+    console.log("selectedRows", selectedRows);
   },
   // getCheckboxProps: (record) => ({
   //   disabled: !!record.auditStatus, // 已审核的商品不可选
