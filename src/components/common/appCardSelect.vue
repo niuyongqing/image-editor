@@ -1,6 +1,6 @@
 <template>
 <div id="appCardSelect" class="appCardSelect">
-  <a-popover placement="bottomLeft" trigger="click">
+  <a-popover trigger="click" :arrow="false">
     <template #content>
       <div class="appCardSelect-accountForm">
         <div

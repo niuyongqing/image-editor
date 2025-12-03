@@ -8,6 +8,9 @@
       :hide-name-list="['sdgdfg']"
     >
       <template #formItemBox>
+        <a-form-item label="店铺" name="sdgdfg">
+          <appCardSelect :multiple="false" :options="shopData" :fieldObj="shopObj" v-model:account="formData.account"></appCardSelect>
+        </a-form-item>
         <a-form-item label="年份" name="dataYear">
           <a-date-picker v-model:value="formData.dataYear" picker="year" value-format="YYYY" :allowClear="false" />
         </a-form-item>
@@ -25,9 +28,6 @@
         </a-form-item> -->
         <a-form-item label="月份" name="dfhdfhgdsf">
           <a-select allowClear v-model:value="formData.dataMonth" :options="options.monthList" placeholder="请选择月份"></a-select>
-        </a-form-item>
-        <a-form-item label="店铺" name="sdgdfg">
-          <appCardSelect :multiple="false" :options="shopData" :fieldObj="shopObj" v-model:account="formData.account"></appCardSelect>
         </a-form-item>
       </template>
     </appTableForm>
