@@ -448,7 +448,7 @@ const handlePageSizeChange = (val) => {
           resetSetMenu="product-list"
           :table-header="columns"
           :data-source="tableData"
-          :scroll="{ y: tableHeight, x: '100%', virtual: true }"
+          :scroll="{ y: 1000, x: '100%', virtual: true }"
           v-model:filter-columns="columns"
           row-key="roleId"
           :loading="tableLoading"
