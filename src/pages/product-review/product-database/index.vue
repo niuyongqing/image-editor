@@ -12,7 +12,7 @@
 
     <!-- <a-form :model="formData" layout="inline" :label-col="{ span: 6 }"> -->
     <appTableForm
-      @onSubmit="getTableList"
+      @onSubmit="onSubmit"
       resetSetMenu="productDatabase_index"
       v-model:formData="formData"
     >
@@ -184,6 +184,7 @@
       resetSetMenu="productDatabase_index"
       :tableHeader="header"
       :dataSource="tableData.data"
+      @change="tableChange"
       :scroll="{ y: 880}"
       :loading="tableData.loading"
       rowKey="commodityId"
@@ -494,6 +495,7 @@ function meansForbidAttributeFilterOption(val, option) {
 // 查询
 async function onSubmit() {
   copyFormData = _.cloneDeep(formData);
+  debugger
   paginationChange(1);
 }
 // 重置
