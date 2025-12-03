@@ -686,8 +686,6 @@ function initSortable() {
     // 拖拽校验：仅同层级+同父节点允许拖拽
     
     onMove: (evt) => {
-      // console.log(evt.dragged, evt.related);
-      // console.log({ evt });
       const sourceEl = evt.dragged;         // 拖拽节点
       const targetEl = evt.related;         // 被放置的节点
 
@@ -704,10 +702,8 @@ function initSortable() {
     onEnd: (evt) => {
       const sourceEl = evt.item;
       const sourceParentKey = sourceEl.getAttribute('data-parent-key');
-      const sourceLevel = sourceEl.getAttribute('data-level');
+      // const sourceLevel = sourceEl.getAttribute('data-level');
       const sourceDragKey = sourceEl.getAttribute('data-drag-key');
-      // console.log({sourceParentKey,sourceLevel,sourceDragKey});
-      // console.log({sourceParentKey});
       let expandedRowKeys = [...tableInfo.expandedRowKeys]
       nextTick(() => {
         // 调整子数组顺序并触发响应式更新
@@ -724,6 +720,7 @@ function initSortable() {
           tableInfo.data = [...rowList]
         }
         // 通过改变key来更新表格
+        setTableData(tableInfo.data)
         tableInfo.key = uuid()
         tableInfo.expandedRowKeys = expandedRowKeys;
         let obj = {
