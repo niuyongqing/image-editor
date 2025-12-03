@@ -1,8 +1,8 @@
 <template>
-<div id="appShopSelect" class="appShopSelect">
+<div id="appCardSelect" class="appCardSelect">
   <a-popover placement="bottomLeft" trigger="click">
     <template #content>
-      <div class="appShopSelect-accountForm">
+      <div class="appCardSelect-accountForm">
         <div
           @click="selectItem(index, item)"
           class="ant-btn"
@@ -12,12 +12,12 @@
         >{{ item[fieldLabel] }}</div>
       </div>
     </template>
-    <div class="appShopSelect-btn">
-      <span class="appShopSelect-btn-text">
+    <div class="appCardSelect-btn">
+      <span class="appCardSelect-btn-text">
         <!-- {{ actionItem.length > 0 ? actionItem[0][fieldLabel]:'' }} -->
         {{ actionItem.map(i => i[fieldLabel]).join(' , ') }}
       </span>
-      <span class="appShopSelect-btn-num" v-if="multiple && actionItem.length > 1">
+      <span class="appCardSelect-btn-num" v-if="multiple && actionItem.length > 1">
         {{ `  +${actionItem.length - 1}` }}
       </span>
       <asyncIcon 
@@ -33,7 +33,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import asyncIcon from '~@/layouts/components/menu/async-icon.vue';
-defineOptions({ name: "appShopSelect" });
+defineOptions({ name: "appCardSelect" });
 const { proxy: _this } = getCurrentInstance();
 const props = defineProps({
   account: {            // 绑定字段 v-model:account
@@ -111,10 +111,10 @@ function allowClear() {
 // defineExpose({});
 </script>
 <style lang="less" scoped>
-.appShopSelect {
+.appCardSelect {
   width: 400px;
   height: 100%;
-  .appShopSelect-btn {
+  .appCardSelect-btn {
     width: 100%; 
     height: 24px; 
     font-size: 14px;
@@ -130,7 +130,7 @@ function allowClear() {
       // color: #4096ff;
       border-color: #4096ff;
     }
-    .appShopSelect-btn-text {
+    .appCardSelect-btn-text {
       display: inline-block;
       // width: calc(100% - 20px);
       white-space: nowrap; 
@@ -138,7 +138,7 @@ function allowClear() {
       text-overflow: ellipsis; 
       margin-right: 4px;
     }
-    .appShopSelect-btn-num {
+    .appCardSelect-btn-num {
       margin-right: 8px;
     }
     :deep(.anticon) {
@@ -149,7 +149,7 @@ function allowClear() {
     }
   }
 }
-.appShopSelect-accountForm {
+.appCardSelect-accountForm {
   width: 1600px;
   display: flex;
   flex-wrap: wrap;
