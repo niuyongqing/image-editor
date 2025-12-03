@@ -1,3 +1,10 @@
+// 颜色样本在最前面
+export const COLOR_IMAGE_COL = [{
+  title: '颜色样本',
+  key: 'colorImage',
+  width: 130
+}]
+
 // 变种信息表头
 export const COLUMNS = [
   {

@@ -115,6 +115,8 @@
     imgH: undefined
   })
 
+  const emit = defineEmits(['submit'])
+
   const loading = ref(false) // 提交按钮loading
   const fileList = ref([]) // 图片列表
   const modalMethods = ref()
@@ -134,6 +136,12 @@
 
   const showModal = list => {
     fileList.value = list || []
+    if (!fileList.value?.[0].width) {
+      fileList.value.forEach(item => {
+        getImgSize(item)
+      })
+    }
+
     fileList.value.forEach(item => {
       item.checked = true
     })
@@ -150,6 +158,19 @@
     }
 
     modalMethods.value.openModal()
+  }
+
+  // 获取图片尺寸
+  function getImgSize(item) {
+    return new Promise(resolve => {
+      const image = new Image()
+      image.src = item.url
+      image.onload = () => {
+        item.width = image.width
+        item.height = image.height
+        resolve()
+      }
+    })
   }
 
   const cancel = () => {
@@ -235,6 +256,8 @@
         }
       }
     }
+
+    emit('submit', fileList.value)
 
     // 是否记住本次设置
     if (rememberConfig.value) {

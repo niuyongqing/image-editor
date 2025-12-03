@@ -160,6 +160,7 @@
               <a-button
                 type="link"
                 :disabled="![10, 40].includes(record.publishStatus)"
+                :loading="record.waitPublishProductId === loadingId"
                 @click="publish(record)"
                 >刊登</a-button
               >
@@ -365,10 +366,14 @@
   }
 
   // 刊登
+  const loadingId = ref(null)
   function publish(record) {
+    loadingId.value = record.waitPublishProductId
     submitToPublishApi(record.waitPublishProductId).then(res => {
       message.success('刊登成功')
       getList()
+    }).finally(() => {
+      loadingId.value = null
     })
   }
 

@@ -14,8 +14,9 @@
               :key="item.key"
               type="link"
               @click="addAspect(item)"
-              >{{ item.name }} <PlusOutlined
-            /></a-button>
+            >{{ item.name }}
+              <PlusOutlined />
+            </a-button>
           </a-space>
           <span v-else>无可选变种</span>
         </div>
@@ -30,8 +31,7 @@
             <span
               v-if="item.isRequired"
               class="text-[#ff4d4f]"
-              >*</span
-            >
+            >*</span>
             <span>{{ item.name }}</span>
           </template>
 
@@ -41,8 +41,7 @@
               type="link"
               danger
               @click="removeAspect(item)"
-              >移除</a-button
-            >
+            >移除</a-button>
           </template>
 
           <a-table
@@ -57,8 +56,7 @@
                 <span
                   v-if="column.isRequired"
                   class="text-[#ff4d4f] mr-1"
-                  >*</span
-                >
+                >*</span>
                 <span>{{ title }}</span>
                 <!-- 店小蜜做法: column.selectType === 'multSelect' (感觉没逻辑) -->
                 <!-- v-if="column.options" -->
@@ -66,8 +64,7 @@
                   v-if="title !== '操作'"
                   type="link"
                   @click="batchAddAspectRow(column, item)"
-                  >批量</a-button
-                >
+                >批量</a-button>
               </template>
             </template>
 
@@ -146,7 +143,10 @@
         class="text-left mt-4"
       >
         <template #extra>
-          <a-checkbox-group v-model:value="checkedList" :options="RIGHT_OPTIONS" />
+          <a-checkbox-group
+            v-model:value="checkedList"
+            :options="RIGHT_OPTIONS"
+          />
         </template>
 
         <a-table
@@ -157,39 +157,101 @@
           :scroll="{ x: 'max-content' }"
         >
           <template #headerCell="{ title }">
-            <template v-if="title === 'SKU标题'">
+            <template v-if="title === '颜色样本'">
+              <span class="mr-1">{{ title }}</span>
+              <a-tooltip
+                :title="colorImageDesc"
+                :overlay-inner-style="{ width: '600px', whiteSpace: 'break-spaces' }"
+              >
+                <QuestionCircleOutlined />
+              </a-tooltip>
+              <br />
+              <a-dropdown>
+                <a-button type="link">批量
+                  <DownOutlined />
+                </a-button>
+                <template #overlay>
+                  <a-menu @click="handleCommand">
+                    <a-menu-item key="1">查看大图</a-menu-item>
+                    <a-menu-item key="2">批量修改图片尺寸</a-menu-item>
+                    <a-menu-item key="3">图片翻译</a-menu-item>
+                    <a-sub-menu
+                      key="4"
+                      title="添加水印"
+                    >
+                      <a-menu-item
+                        v-for="waterMark in watermarkOptions"
+                        :key="waterMark.id"
+                      >
+                        <div>
+                          <span class="mr-2">{{ waterMark.title }} </span>
+                          <a-image
+                            v-if="waterMark.type === 1"
+                            :src="waterMark.content"
+                            :width="20"
+                            :height="20"
+                            @click.stop
+                          />
+                          <span
+                            v-else
+                            class="ml-1"
+                          >({{ waterMark.content }})</span>
+                        </div>
+                      </a-menu-item>
+                    </a-sub-menu>
+                    <a-menu-item key="5">清空图片</a-menu-item>
+                  </a-menu>
+                </template>
+              </a-dropdown>
+              <!-- 查看图片 (预览) -->
+              <a-image-preview-group :preview="{
+                visible: previewVisible,
+                onVisibleChange: setVisible,
+              }">
+                <a-image
+                  v-for="img in nonEmptyColorImageList"
+                  :key="img"
+                  :src="img"
+                  class="hidden"
+                />
+              </a-image-preview-group>
+            </template>
+            <template v-else-if="title === '颜色样本'">
+              <span class="text-[#ff4d4f]">*</span>
+              <span>{{ title }}</span>
+              <br />
+              <a-button type="link">批量</a-button>
+            </template>
+            <template v-else-if="title === 'SKU标题'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
             </template>
             <template v-else-if="title === 'SKU'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
+              <br />
               <a-button
                 type="link"
-                class="ml-1"
                 @click="SKUCodeModalOpen = true"
-                >批量</a-button
-              >
+              >批量</a-button>
             </template>
             <template v-else-if="title === '售价(CNY)'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
+              <br />
               <a-button
                 type="link"
-                class="ml-1"
                 @click="openPriceModal('price')"
-                >批量</a-button
-              >
+              >批量</a-button>
             </template>
             <template v-else-if="title === '原价(CNY)'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
+              <br />
               <a-button
                 type="link"
-                class="ml-1"
                 @click="openPriceModal('oldPrice')"
-                >批量</a-button
-              >
+              >批量</a-button>
             </template>
             <template v-else-if="title === '成本价(CNY)'">
               <span class="text-[#ff4d4f]">*</span>
@@ -198,12 +260,11 @@
             <template v-else-if="title === '库存'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
+              <br />
               <a-button
                 type="link"
-                class="ml-1"
                 @click="stockModalOpen = true"
-                >批量</a-button
-              >
+              >批量</a-button>
             </template>
             <template v-else-if="title === '策划数量'">
               <span class="text-[#ff4d4f]">*</span>
@@ -212,27 +273,32 @@
             <template v-else-if="title === '尺寸(mm)'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
+              <br />
               <a-button
                 type="link"
-                class="ml-1"
                 @click="sizeModalOpen = true"
-                >批量</a-button
-              >
+              >批量</a-button>
             </template>
             <template v-else-if="title === '重量(g)'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
+              <br />
               <a-button
                 type="link"
-                class="ml-1"
                 @click="weightModalOpen = true"
-                >批量</a-button
-              >
+              >批量</a-button>
             </template>
           </template>
 
           <template #bodyCell="{ record, column }">
-            <template v-if="column.title === 'SKU标题'">
+            <template v-if="column.title === '颜色样本'">
+              <ImageOfColorSample
+                v-model:image="record.colorImage"
+                :loading="addWaterMarkLoading"
+                @apply-to="confirmMenuClick($event, record, 'colorImage')"
+              />
+            </template>
+            <template v-else-if="column.title === 'SKU标题'">
               <a-input
                 v-model:value="record.skuTitle"
                 placeholder="请输入"
@@ -261,15 +327,15 @@
                   <a-button
                     type="link"
                     class="flex-none"
-                    ><CopyOutlined
-                  /></a-button>
+                  >
+                    <CopyOutlined />
+                  </a-button>
                   <template #overlay>
                     <a-menu @click="confirmMenuClick($event, record, 'price')">
                       <a-menu-item
                         v-for="item in applyToMenuList"
                         :key="item.key"
-                        >{{ item.label }}</a-menu-item
-                      >
+                      >{{ item.label }}</a-menu-item>
                     </a-menu>
                   </template>
                 </a-dropdown>
@@ -290,15 +356,15 @@
                   <a-button
                     type="link"
                     class="flex-none"
-                    ><CopyOutlined
-                  /></a-button>
+                  >
+                    <CopyOutlined />
+                  </a-button>
                   <template #overlay>
                     <a-menu @click="confirmMenuClick($event, record, 'oldPrice')">
                       <a-menu-item
                         v-for="item in applyToMenuList"
                         :key="item.key"
-                        >{{ item.label }}</a-menu-item
-                      >
+                      >{{ item.label }}</a-menu-item>
                     </a-menu>
                   </template>
                 </a-dropdown>
@@ -333,15 +399,15 @@
                   <a-button
                     type="link"
                     class="flex-none"
-                    ><CopyOutlined
-                  /></a-button>
+                  >
+                    <CopyOutlined />
+                  </a-button>
                   <template #overlay>
                     <a-menu @click="confirmMenuClick($event, record, 'stock')">
                       <a-menu-item
                         v-for="item in applyToMenuList"
                         :key="item.key"
-                        >{{ item.label }}</a-menu-item
-                      >
+                      >{{ item.label }}</a-menu-item>
                     </a-menu>
                   </template>
                 </a-dropdown>
@@ -396,15 +462,15 @@
                   <a-button
                     type="link"
                     class="flex-none"
-                    ><CopyOutlined
-                  /></a-button>
+                  >
+                    <CopyOutlined />
+                  </a-button>
                   <template #overlay>
                     <a-menu @click="confirmMenuClick($event, record, 'size')">
                       <a-menu-item
                         v-for="item in applyToMenuList"
                         :key="item.key"
-                        >{{ item.label }}</a-menu-item
-                      >
+                      >{{ item.label }}</a-menu-item>
                     </a-menu>
                   </template>
                 </a-dropdown>
@@ -425,15 +491,15 @@
                   <a-button
                     type="link"
                     class="flex-none"
-                    ><CopyOutlined
-                  /></a-button>
+                  >
+                    <CopyOutlined />
+                  </a-button>
                   <template #overlay>
                     <a-menu @click="confirmMenuClick($event, record, 'weight')">
                       <a-menu-item
                         v-for="item in applyToMenuList"
                         :key="item.key"
-                        >{{ item.label }}</a-menu-item
-                      >
+                      >{{ item.label }}</a-menu-item>
                     </a-menu>
                   </template>
                 </a-dropdown>
@@ -462,6 +528,18 @@
       :column-data="columnData"
       :aspect-data="aspectData"
       @ok="batchAddAspectRowConfirm"
+    />
+
+    <!-- 批量修改图片尺寸弹窗 -->
+    <BacthSkuEditImg
+      ref="bacthEditImgSizeRef"
+      @submit="bacthEditImgSize"
+    />
+
+    <!-- 图片翻译弹窗 -->
+    <ImageTranslation
+      ref="imgTransRef"
+      @emitImages="handleEmitImages"
     />
 
     <!-- 变种信息表格批量编辑弹窗 -->
@@ -501,11 +579,12 @@
 </template>
 
 <script setup>
-  import { COLUMNS } from './config'
+  import { COLOR_IMAGE_COL, COLUMNS } from './config'
   import { message } from 'ant-design-vue'
   import { v4 as uuidv4 } from 'uuid'
-  import { PlusOutlined, MinusOutlined, DeleteOutlined, CopyOutlined } from '@ant-design/icons-vue'
+  import { PlusOutlined, MinusOutlined, DeleteOutlined, DownOutlined, CopyOutlined, QuestionCircleOutlined } from '@ant-design/icons-vue'
   import { processImageSource } from '@/pages/ozon/config/commJs/index'
+  import { watermarkApi } from '@/api/common/water-mark'
 
   import AddAspectRowModal from '@/pages/product-review/CommonDetail/components/components/AddAspectRowModal.vue'
   import SKUCodeModal from '@/pages/product-review/CommonDetail/components/components/SKUCodeModal.vue'
@@ -513,10 +592,14 @@
   import StockModal from '@/pages/product-review/CommonDetail/components/components/StockModal.vue'
   import SizeModal from '@/pages/product-review/CommonDetail/components/components/SizeModal.vue'
   import WeightModal from '@/pages/product-review/CommonDetail/components/components/WeightModal.vue'
+  import ImageOfColorSample from '@/components/image-of-color-sample/index.vue'
+  import BacthSkuEditImg from '@/components/skuDragUpload/bacthSkuEditImg.vue'
+  import ImageTranslation from '@/components/skuDragUpload/imageTranslation.vue'
 
   const store = useProductReviewStore()
   const detail = computed(() => store.detail)
   const rawAttributes = computed(() => store.attributes)
+  const watermarkOptions = computed(() => store.watermarkOptions)
 
   /** 变种属性列表 */
   watch(
@@ -682,7 +765,7 @@
     RIGHT_OPTIONS.map(item => item.value).filter(val => !checkedList.value.includes(val))
   )
   // SKU 表头(合并变种属性表头和常量表头)
-  const SKUColumns = computed(() => [...aspectColumns.value, ...COLUMNS.filter(col => !excludedList.value.includes(col.key))])
+  const SKUColumns = computed(() => [...COLOR_IMAGE_COL.filter(col => !excludedList.value.includes(col.key)), ...aspectColumns.value, ...COLUMNS.filter(col => !excludedList.value.includes(col.key))])
 
   // 应用到同 xx 变种
   const PERMANENT_LIST = [{ label: '应用到全部', key: 'applyAll' }]
@@ -725,11 +808,19 @@
 
     // 填充 filteredAspectList 中 tableData 数据
     const { skuList = [] } = detail.value
+    // 颜色样本 colorImage
+    if (skuList.length && skuList.some(item => item.colorImage)) {
+      !checkedList.value.includes('colorImage') && checkedList.value.push('colorImage')
+    } else {
+      checkedList.value = checkedList.value.filter(item => item !== 'colorImage')
+    }
+    // SKU标题 skuTitle
     if (skuList.length && skuList[0].skuTitle) {
       !checkedList.value.includes('skuTitle') && checkedList.value.push('skuTitle')
     } else {
       checkedList.value = checkedList.value.filter(item => item !== 'skuTitle')
     }
+
     const valObj = {} // 收集值(去重)
     filteredAspectList.value.forEach(item => {
       valObj[item.name] = {}
@@ -799,6 +890,7 @@
           recordUuidList.push(record.uuid)
 
           record.skuCode = sku.skuCode
+          record.colorImage = sku.colorImage
           record.skuTitle = sku.skuTitle
           record.price = sku.price
           record.oldPrice = sku.oldPrice
@@ -971,12 +1063,147 @@
 
   /** 变种信息(SKU 表格) */
   const SKUTableData = ref([{ uuid: uuidv4() }])
+  const colorImageDesc = `请用图片展示商品颜色，例如，衣服上的图案、颜色或口红的样品等。买家将在切换器中看见的不是标准圆形按钮，而是商品小图片;\n(说明：图片大小不大于5MB，只支持jpg、png、jpeg格式；图片尺寸为200*200-4320*7680)`
   // 右侧的勾选选项
   const RIGHT_OPTIONS = [
-    { label: 'SKU标题', value: 'skuTitle' }
+    { label: '颜色样本', value: 'colorImage' },
+    { label: 'SKU标题', value: 'skuTitle' },
   ]
   // 选中的 checkbox
   const checkedList = ref(['skuTitle'])
+
+  // 查看图片 (预览)
+  const previewVisible = ref(false)
+  const nonEmptyColorImageList = computed(() => SKUTableData.value.filter(item => item.colorImage).map(item => processImageSource(item.colorImage)))
+
+  function setVisible(visible) {
+    previewVisible.value = visible
+  }
+
+  const bacthEditImgSizeRef = ref(null)
+  const imgTransRef = ref(null)
+
+  // 批量操作
+  function handleCommand({ key }) {
+    if (nonEmptyColorImageList.value.length === 0) {
+      message.warning('请先添加颜色样本图片')
+      return
+    }
+
+    const list = nonEmptyColorImageList.value.map(url => ({ url }))
+    switch (key) {
+      case '1':
+        // 查看大图 (预览)
+        setVisible(true)
+        break
+      case '2':
+        // 批量修改图片尺寸
+        bacthEditImgSizeRef.value.showModal(list)
+        break
+      case '3':
+        // 图片翻译
+        imgTransRef.value.showModal(list)
+        break
+      case '5':
+        // 清空图片
+        SKUTableData.value.forEach(item => { item.colorImage = '' })
+        break
+      default:
+        // 其他, 就是添加水印
+        addWaterMark(key)
+        break
+    }
+  }
+
+  // 批量修改图片尺寸回调
+  function bacthEditImgSize(list) {
+    SKUTableData.value.filter(item => item.colorImage).forEach((item, i) => {
+      item.colorImage = list[i].url
+    })
+  }
+
+  // 图片翻译回调
+  function handleEmitImages(list) {
+    SKUTableData.value.filter(item => item.colorImage).forEach(item => {
+      list.forEach(ele => {
+        if (ele.oldUrl === item.colorImage) {
+          item.colorImage = processImageSource(ele.newUrl)
+        }
+      })
+    })
+  }
+
+  /** 批量加水印 */
+  const addWaterMarkLoading = ref(false)
+  function addWaterMark(id) {
+    addWaterMarkLoading.value = true
+    // 存在本地服务的图片
+    const imgLocalList = nonEmptyColorImageList.value.filter(url => url.includes('/prod-api'))
+    // 远端图片; 拿 url 先上传本地服务后再处理
+    const imgRemoteList = nonEmptyColorImageList.value.filter(url => !url.includes('/prod-api'))
+    const promiseList = []
+    if (imgLocalList.length) {
+      const p1 = new Promise(resolve => {
+        const imagePathList = imgLocalList.map(img => img.replace('/prod-api', ''))
+        watermarkApi({
+          id,
+          imagePathList
+        })
+          .then(res => {
+            const list = res.data || []
+            for (const item of list) {
+              loop: for (const SKU of SKUTableData.value) {
+                if (SKU.colorImage === '/prod-api' + item.originalFilename) {
+                  SKU.colorImage = item.url
+                  break loop
+                }
+              }
+            }
+          })
+          .finally(() => {
+            resolve()
+          })
+      })
+      promiseList.push(p1)
+    }
+    // 如有远端图片
+    if (imgRemoteList.length) {
+      const p2 = new Promise(resolve => {
+        batchUploadFromUrlApi({ imageList: imgRemoteList }).then(res => {
+          const imagePathList = res.data.map(item => ({
+            originalName: item.originalName,
+            url: item.url
+          }))
+          watermarkApi({
+            id,
+            imagePathList: imagePathList.map(item => item.url)
+          })
+            .then(res => {
+              const list = res.data || []
+              // 遍历查找两层, 找到对应的原图片
+              for (const SKU of SKUTableData.value) {
+                const originalName = SKU.colorImage.split('/').at(-1)
+                const target = imagePathList.find(item => item.originalName === originalName)
+                if (target) {
+                  const target2 = list.find(item => item.originalFilename === target.url)
+                  if (target2) {
+                    SKU.colorImage = target2.url // 接口返回数据自带 '/prod-api'
+                  }
+                }
+              }
+            })
+            .finally(() => {
+              resolve()
+            })
+        })
+      })
+      promiseList.push(p2)
+    }
+
+    Promise.all(promiseList).then(_ => {
+      addWaterMarkLoading.value = false
+    })
+  }
 
   watch(
     () => usefulAspect.value,
@@ -1301,6 +1528,7 @@
 
         const obj = {
           skuId: item.skuId,
+          colorImage: checkedList.value.includes('colorImage') ? processImageSource(item.colorImage) : '',
           skuTitle: includeSKUTitle ? item.skuTitle : '',
           skuCode: item.skuCode.trim(),
           price: item.price,

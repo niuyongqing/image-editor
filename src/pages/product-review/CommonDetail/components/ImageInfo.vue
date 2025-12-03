@@ -19,13 +19,13 @@
               :key="waterMark.id"
             >
               <div>
-                <span>{{ waterMark.title }} </span>
+                <span class="mr-2">{{ waterMark.title }} </span>
                 <a-image
                   v-if="waterMark.type === 1"
                   :src="waterMark.content"
                   :width="20"
                   :height="20"
-                  class="ml-1"
+                  @click.stop
                 />
                 <span
                   v-else
@@ -113,13 +113,13 @@
                       :key="waterMark.id"
                     >
                       <div>
-                        <span>{{ waterMark.title }} </span>
+                        <span class="mr-2">{{ waterMark.title }} </span>
                         <a-image
                           v-if="waterMark.type === 1"
                           :src="waterMark.content"
                           :width="20"
                           :height="20"
-                          class="ml-1"
+                          @click.stop
                         />
                         <span
                           v-else
@@ -267,13 +267,13 @@
                       :key="waterMark.id"
                     >
                       <div>
-                        <span>{{ waterMark.title }} </span>
+                        <span class="mr-2">{{ waterMark.title }} </span>
                         <a-image
                           v-if="waterMark.type === 1"
                           :src="waterMark.content"
                           :width="20"
                           :height="20"
-                          class="ml-1"
+                          @click.stop
                         />
                         <span
                           v-else
@@ -458,6 +458,9 @@
   function getWatermark() {
     watermarkListApi().then(res => {
       watermarkOptions.value = res.data || []
+      store.$patch(state => {
+        state.watermarkOptions = watermarkOptions.value
+      })
     })
   }
 

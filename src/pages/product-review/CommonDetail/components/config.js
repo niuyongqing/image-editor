@@ -1,39 +1,52 @@
+// 颜色样本在最前面
+export const COLOR_IMAGE_COL = [{
+  title: '颜色样本',
+  key: 'colorImage',
+  width: 90
+}]
+
 // 变种信息表头
 export const COLUMNS = [
   {
     title: 'SKU',
     key: 'skuCode',
-    width: 150
+    width: 160
   },
   {
     title: '成本价(CNY)',
     key: 'costPrice',
-    width: 150
+    width: 70
   },
   {
     title: '库存',
     key: 'stock',
-    width: 80
+    width: 70
   },
   {
     title: '策划数量',
     key: 'planNum',
-    width: 80
+    width: 70
+  },
+  {
+    title: '多数量策划',
+    key: 'mult',
+    align: 'center',
+    width: 110
   },
   {
     title: '售卖单位',
     key: 'saleUnit',
-    width: 120
+    width: 100
   },
   {
     title: '尺寸(mm)',
     key: 'size',
-    width: 180
+    width: 120
   },
   {
     title: '重量(g)',
     key: 'weight',
-    width: 80
+    width: 60
   },
   {
     title: '操作',
