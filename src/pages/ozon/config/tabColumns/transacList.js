@@ -9,6 +9,7 @@ export default [
     {
       title: '包裹或服务追踪号码',
       dataIndex: 'postingNumber',
+      width: 200,
       align:"center",
       sortable:false,
       filter:false,

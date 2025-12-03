@@ -27,7 +27,7 @@
           <a-select allowClear v-model:value="formData.dataMonth" :options="options.monthList" placeholder="请选择月份"></a-select>
         </a-form-item>
         <a-form-item label="店铺" name="sdgdfg">
-          <appShopSelect :multiple="true" :options="shopData" :fieldObj="shopObj" v-model:account="formData.account"></appShopSelect>
+          <appCardSelect :multiple="false" :options="shopData" :fieldObj="shopObj" v-model:account="formData.account"></appCardSelect>
         </a-form-item>
       </template>
     </appTableForm>
@@ -84,8 +84,13 @@
         </template>
       </template>
     </a-table> -->
-     <appTableBox :table-header="goalCompletion_header" :data-source="processedDataWithSummary"
-      reset-set-menu="serialNumberManagement">
+     <appTableBox 
+      :table-header="goalCompletion_header" 
+      :data-source="processedDataWithSummary"
+      reset-set-menu="serialNumberManagement"
+      row-drag
+      row-key="id"
+    >
       <template #bodyCell="{ column, record, text }">
         <template v-if="isSummaryRow(record)">
           <template v-if="column.dataIndex === 'deptName'">
@@ -194,7 +199,7 @@ import dayjs from 'dayjs';
 import { monthList } from '~@/pages/financialStatements/common/data';
 import appTableForm from '~@/components/common/appTableForm.vue';
 import appTableBox from '~@/components/common/appTableBox.vue';
-import appShopSelect from '~@/components/common/appShopSelect.vue';
+import appCardSelect from '~@/components/common/appCardSelect.vue';
 import download from "~/api/common/download.js";
 import { message } from "ant-design-vue";
 

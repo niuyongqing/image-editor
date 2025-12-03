@@ -169,7 +169,7 @@ import { cloneDeep, debounce, set } from 'lodash-es';
 import Sortable from 'sortablejs';
 import { computed, onMounted, reactive, ref, useSlots } from 'vue';
 
-import appEllipsisTooltip from '@/components/common/appEllipsisTooltip.vue';
+// import appEllipsisTooltip from '@/components/common/appEllipsisTooltip.vue';
 import { v4 as uuid } from 'uuid';
 defineOptions({ name: 'appTableBox' });
 const { proxy: _this } = getCurrentInstance();
