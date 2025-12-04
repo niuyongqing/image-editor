@@ -69,6 +69,7 @@
           <a-select
             v-model:value="formData.devAttributableMarket"
             :options="MarketDirection"
+            :show-search="false"
             mode="multiple"
             :maxTagCount="2"
             placeholder="请选择市场方向"

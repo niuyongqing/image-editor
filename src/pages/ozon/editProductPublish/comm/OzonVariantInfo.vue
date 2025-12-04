@@ -8,7 +8,7 @@
           <!-- <a-button type="primary" :disabled="custAttr.length == 0" @click="attrVisible = true"
                         class="mx-2.5">添加自定义变种属性</a-button> -->
         </div>
-        <a-table bordered :columns="filteredHeaderList" :data-source="tableData" :pagination="false">
+        <a-table bordered :columns="filteredHeaderList" :data-source="tableData" :pagination="false" :scroll="{ x: 1200 }">
           <template #headerCell="{ column }">
             <template v-if="column.dataIndex === 'colorImg'">
               <div><span style="color: #ff0a37">*</span> {{ column.title }}</div>
@@ -48,8 +48,10 @@
               </a-dropdown>
             </template>
             <template v-if="column.dataIndex === 'sellerSKU'">
-              <span><span style="color: #ff0a37;">*</span>
+              <div class="flex flex-col min-w-25">
+                <span><span style="color: #ff0a37;">*</span>
                 {{ column.title }}</span>
+              </div>
             </template>
             <template v-if="column.dataIndex === 'price'">
               <div class="flex flex-col min-w-25">
@@ -64,8 +66,10 @@
               </div>
             </template>
             <template v-if="column.dataIndex === 'minPrice'">
+               <div class="flex flex-col min-w-25">
               <span><span style="color: #ff0a37;">*</span>
                 {{ column.title }}</span>
+                </div>
             </template>
             <template v-if="column.dataIndex === 'quantity'">
               <div class="flex flex-col min-w-25">

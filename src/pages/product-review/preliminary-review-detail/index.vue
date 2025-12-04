@@ -307,6 +307,43 @@
         </a-row>
       </a-card>
       <br />
+      <!-- Ozon图 -->
+      <a-card title="Ozon图">
+        <a-empty
+          description="没有Ozon图"
+          v-if="!(Array.isArray(detailData.data.artOzonImage) && detailData.data.artOzonImage.length > 0)"
+        />
+        <a-row
+          v-else
+          style="display: flex; justify-content: flex-start; align-items: center; flex-wrap: wrap"
+        >
+          <div
+            v-for="(item, index) in images(detailData.data.artOzonImage)"
+            :key="index"
+            style="margin-right: 6px"
+          >
+            <a-col :span="3">
+              <a-card
+                :bodyStyle="{ padding: '0px' }"
+                style="width: 200px; margin-bottom: 10px"
+              >
+                <a-image :src="item.url" />
+                <div
+                  class="bottom clearfix"
+                  :style="
+                    item.name.includes('美工处理')
+                      ? 'background-image: linear-gradient(267deg, #ffffff, #3ad6ff80); font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; width: 100%;'
+                      : 'font-size: 13px; color: #5a5e66; text-align: center; display: flex; justify-content: center; align-items: center; height: 25px; background-image: linear-gradient(60deg, #ffffff, #FFB03A); width: 100%'
+                  "
+                >
+                  {{ item.name.length > 15 ? item.name.substring(0, 15) + '...' : item.name }}
+                </div>
+              </a-card>
+            </a-col>
+          </div>
+        </a-row>
+      </a-card>
+      <br />
       <!-- Amazon场景主图 -->
       <a-card title="Amazon场景主图">
         <a-empty
@@ -613,7 +650,7 @@
       </a-card>
       <br />
       <!-- 底部按钮 -->
-      <a-space class="float-right">
+      <a-space class="position-fixed bottom-4 right-4">
         <a-button
           v-if="!isEditDetail"
           @click="close"
@@ -625,15 +662,19 @@
           @click="reviewOpen = true"
           >审核</a-button
         >
+        <a-button
+          v-if="isDatabase"
+          type="primary"
+          @click="listingPicks"
+          >智能选品</a-button
+        >
       </a-space>
     </a-spin>
-
     <!-- 回到顶部(待编辑详情在左半部分) -->
     <a-back-top
       :target="targetFn"
       :class="isEditDetail && 'left-[calc(50vw-30px)]'"
     />
-
     <!-- 审核弹窗 -->
     <a-modal
       v-model:open="reviewOpen"
@@ -683,6 +724,12 @@
         </a-form-item>
       </a-form>
     </a-modal>
+    <!-- 智能刊登选品弹窗 -->
+    <listingPicksModal
+      v-if="isDatabase"
+      v-model:open="listingPicksVisible" 
+      :selected-ids="[detailData.data.commodityId]"
+    />
   </div>
 </template>
 
@@ -698,7 +745,7 @@
   import download from '@/api/common/download'
   import { firstAudit } from '~@/pages/product-review/config/api/product-review.js'
   import { checkPermi, checkRole } from '~/utils/permission/component/permission.js'
-
+import listingPicksModal from "../product-database/comm/listingPicksModal.vue";
   defineOptions({ name: 'PreliminaryReviewDetail' })
 
   const hasPermi = computed(() => checkPermi(['platform:ozon:intelligent:first:audit']) || checkRole('admin'))
@@ -710,7 +757,9 @@
     forbidSiteOptions: sheepProhibitionSelect,
     meansKeepGrainOptions: meansKeepGrains
   })
-
+// 智能刊登选品弹窗相关
+const listingPicksVisible = ref(false);
+const selectedProductIds = ref([]);
   const columns = [
     {
       title: 'SKU编码',
@@ -838,6 +887,19 @@
     return userStore.userInfo.sysUser.roles[0].sale
   })
 
+  const listingPicks = ()=>{
+    if (Number(detailData.data.isIntelligent) !== 0) {
+    message.warning('存在已智能刊登商品，不能重复刊登');
+    return;
+  }
+
+  if (Number(detailData.data.status) !== 1) {
+    message.warning('不是已完成状态商品，不能智能选品');
+    return;
+  }
+    listingPicksVisible.value = true;
+  }
+
   /** 图片切换按钮 */
   // 主图
   const artMainImageBtn = ref('all') // all-全部; dev-开发; art-美工;
@@ -930,6 +992,8 @@
   const isPreliminary = computed(() => route.path === '/platform/product-review/preliminary-review-detail')
   // 驳回详情
   const isReject = computed(() => route.path === '/platform/product-review/preliminary-review-detail')
+  // 选品资料库详情
+  const isDatabase = computed(() => route.path === '/platform/product-review/product-database-detail')
 
   // 获取详情数据
   async function getDetail() {
@@ -964,6 +1028,9 @@
       }
       if (data.artAssistantImage !== '' && data.artAssistantImage !== null) {
         data.artAssistantImage = JSON.parse(data.artAssistantImage)
+      }
+      if (data.artOzonImage) {
+        data.artOzonImage = JSON.parse(data.artOzonImage)
       }
 
       if (data.artSkuImage !== '' && data.artSkuImage !== null) {
