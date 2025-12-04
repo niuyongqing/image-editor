@@ -12,34 +12,32 @@
   >
     <slot>
       <a-button>
-        <async-icon icon="upload-outlined" />
-        上传
+        <async-icon icon="CloudUploadOutlined" />
+        {{ title }}
       </a-button>
     </slot>
   </a-upload>
-  <a-modal 
-    :footer="false" 
-    v-model:open="loading"
-    :maskClosable="false"
-    :keyboard="false"
-    :closable="false"
-    centered
-  > 
-    <div class="loading-box">
-      <a-spin tip="Loading..." />
-    </div>
-  </a-modal>
+  <app-full-loading :loading="loading" :loading-tip="loadingTip"></app-full-loading>
 </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed, watchPostEffect } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import request from '@/utils/request'
 import asyncIcon from '~@/layouts/components/menu/async-icon.vue'
+import appFullLoading from '@/components/common/appFullLoading.vue'
 defineOptions({ name: "appUpload_index" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['uploadEnd', 'update:fileList'])
 const props = defineProps({
+  title: {
+    type: String,
+    default: '上传'
+  },
+  loadingTip: {
+    type: String,
+    default: 'Loading...'
+  },
   url: {
     type: String,
     default: '',
@@ -65,7 +63,7 @@ const props = defineProps({
 })
 const { fileList } = toRefs(props);
 const loading = ref(false);
-
+// 上传校验
 function beforeUpload(file, fileList) {
   return (props.beforeUpload && props.beforeUpload(file, fileList)) || true;
 };
@@ -88,16 +86,8 @@ async function customRequest(options) {
     res = error
     console.error(error);
   }
-  emit('uploadEnd', res)
+  emit('uploadEnd', { res, options });
   loading.value = false;
 }
 </script>
-<style lang="less" scoped>
-.loading-box {
-  // width: 400px;
-  // height: 400px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-</style>
+<style lang="less" scoped></style>
