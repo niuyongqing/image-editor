@@ -13,7 +13,7 @@
             label="店铺账号"
             name="account"
           >
-            <AppShopSelect
+            <AppCardSelect
               v-model:account="formData.account"
               :options="shopAccount"
               :field-obj="{ label: 'simpleName', value: 'account' }"

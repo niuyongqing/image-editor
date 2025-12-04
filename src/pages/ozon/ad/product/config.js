@@ -1,13 +1,13 @@
 // 默认表头
 export const DEFAULT_TABLE_COLUMN = [
-  { title: '图片', key: 'image' },
-  { title: '标题/产品 ID', key: 'title' },
-  { title: 'SKU', key: 'sku', dataIndex: 'sku' },
-  { title: '活动名称', key: 'name' },
-  { title: '广告类型', key: 'type' },
-  { title: '广告策略', key: 'strategy' },
-  { title: '竞价', key: 'bidding' },
-  { title: '操作', key: 'operation' }
+  { title: '图片', key: 'image', align: 'left', width: 120 },
+  { title: '标题/产品 ID', key: 'title', align: 'left', width: 250 },
+  { title: 'SKU', key: 'sku', dataIndex: 'sku', align: 'left', width: 120 },
+  { title: '活动名称', key: 'name', align: 'center', width: 120 },
+  { title: '广告类型', key: 'type', align: 'center', width: 120 },
+  { title: '广告策略', key: 'strategy', align: 'center', width: 120 },
+  { title: '竞价', key: 'bidding', align: 'right', width: 120 },
+  { title: '操作', key: 'operation', align: 'left', width: 100 }
 ]
 
 // 搜索类型

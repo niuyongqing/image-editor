@@ -7,48 +7,58 @@
       reset-set-menu="adManagement"
       @on-submit="getList"
     >
-      <template #formItemRow>
+      <template #formItemBox>
         <a-form-item
           label="选择日期"
           name="dateRange"
         >
-          <TiledDateSelect v-model:value="searchForm.dateRange" />
+          <a-range-picker
+            v-model:value="searchForm.dateRange"
+            :presets="presets"
+            :disabled-date="cur => cur && cur > Date.now()"
+          />
         </a-form-item>
         <a-form-item
           label="店铺账号"
           name="account"
         >
-          <AppShopSelect
+          <AppCardSelect
             v-model:account="searchForm.account"
             :options="accountList"
             :field-obj="{ label: 'simpleName', value: 'account' }"
           />
         </a-form-item>
+      </template>
+
+      <template #formItemRow>
         <a-form-item
           label="付款类型"
           name="payType"
         >
-          <TiledSelect
+          <a-radio-group
             v-model:value="searchForm.payType"
             :options="PAY_TYPE_OPTIONS"
+            name="payType"
           />
         </a-form-item>
         <a-form-item
           label="启用状态"
           name="state"
         >
-          <TiledSelect
+          <a-radio-group
             v-model:value="searchForm.state"
             :options="ENABLE_STATE_OPTIONS"
+            name="state"
           />
         </a-form-item>
         <a-form-item
           label="活动状态"
           name="activityState"
         >
-          <TiledSelect
+          <a-radio-group
             v-model:value="searchForm.activityState"
             :options="ACTIVE_STATE_OPTIONS"
+            name="activityState"
           />
         </a-form-item>
         <a-form-item
@@ -74,8 +84,19 @@
     </AppTableForm>
 
     <!-- TABLE 区 -->
-    <a-card class="mt-2">
-      <div class="flex justify-between items-center">
+    <AppTableBox
+      :table-header="DEFAULT_TABLE_COLUMN"
+      :data-source="tableData"
+      :loading="loading"
+      reset-set-menu="adManagement"
+      stripe
+      ref="tableRef"
+      row-key="id"
+      :scroll="{ x: 'max-content' }"
+      :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }"
+      @rowDoubleClick="record => goDetail('view', record)"
+    >
+      <template #otherCount>
         <a-tabs
           v-model:activeKey="searchForm.tab"
           :animated="false"
@@ -88,214 +109,211 @@
             :tab="`${item.label}(${listTabsCountEnum[item.value] || 0})`"
           ></a-tab-pane>
         </a-tabs>
+      </template>
 
+      <template #leftTool>
+        <a-space>
+          <a-dropdown :disabled="selectedRows.length === 0">
+            <template #overlay>
+              <a-menu @click="handleMenuClick">
+                <a-menu-item key="1">批量修改预算</a-menu-item>
+                <a-menu-item key="2">批量开启</a-menu-item>
+                <a-menu-item key="3">批量关闭</a-menu-item>
+              </a-menu>
+            </template>
+            <a-button
+              type="primary"
+              title="勾选广告后批量操作"
+            >批量操作
+              <DownOutlined />
+            </a-button>
+          </a-dropdown>
+
+          <a-button
+            type="primary"
+            @click="add"
+          >创建广告</a-button>
+          <a-button
+            :loading="syncLoading"
+            @click="sync"
+          >同步广告</a-button>
+        </a-space>
+      </template>
+
+      <template #headerCell="{ column }">
+        <template v-if="column.title === '订单量'">
+          <span class="mr-1">{{ column.title }}</span>
+          <a-tooltip title="参与广告产生的订单数量">
+            <QuestionCircleOutlined />
+          </a-tooltip>
+        </template>
+        <template v-else-if="column.title === '订单金额'">
+          <span class="mr-1">{{ column.title }}</span>
+          <a-tooltip title="参与广告产生的订单金额">
+            <QuestionCircleOutlined />
+          </a-tooltip>
+        </template>
+        <template v-else-if="column.title === '广告费用'">
+          <span class="mr-1">{{ column.title }}</span>
+          <a-tooltip title="广告产生的花费">
+            <QuestionCircleOutlined />
+          </a-tooltip>
+        </template>
+        <template v-else-if="column.title === '广告费用占比'">
+          <span class="mr-1">{{ column.title }}</span>
+          <a-tooltip title="广告费用占比=广告费用/订单金额">
+            <QuestionCircleOutlined />
+          </a-tooltip>
+        </template>
+        <template v-else-if="column.title === '添加购物车次数'">
+          <span class="mr-1">{{ column.title }}</span>
+          <a-tooltip title="产品加入广告后添加到购物车的次数">
+            <QuestionCircleOutlined />
+          </a-tooltip>
+        </template>
+        <template v-else-if="column.title === '点击率'">
+          <span class="mr-1">{{ column.title }}</span>
+          <a-tooltip title="点击率=点击量/展示次数">
+            <QuestionCircleOutlined />
+          </a-tooltip>
+        </template>
+        <template v-else-if="column.title === '平均点击价格'">
+          <span class="mr-1">{{ column.title }}</span>
+          <a-tooltip title="平均点击价格=广告费用/点击量">
+            <QuestionCircleOutlined />
+          </a-tooltip>
+        </template>
+        <template v-else-if="column.title === 'CPM'">
+          <span class="mr-1">{{ column.title }}</span>
+          <a-tooltip title="每千次展示的广告费用">
+            <QuestionCircleOutlined />
+          </a-tooltip>
+        </template>
+      </template>
+
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.title === '活动名称'">
+          <div>
+            <span :title="record.title">{{ record.title }}</span>
+            <a-button
+              type="link"
+              @click="copy(record.title)"
+            >
+              <CopyOutlined />
+            </a-button>
+          </div>
+          <div>
+            <span>{{ record.id }}</span>
+            <a-button
+              type="link"
+              @click="copy(record.id)"
+            >
+              <CopyOutlined />
+            </a-button>
+          </div>
+          <div class="text-gray">「{{ record.simpleName }}」</div>
+        </template>
+        <template v-else-if="column.title === '广告类型'">
+          <span>{{ PLACEMENT_ENUM[record.placement] }}</span>
+        </template>
+        <template v-else-if="column.title === '广告产品'">
+          <a-button
+            type="link"
+            @click="goAdProduct(record.actionId)"
+          >{{ record.productCount }}</a-button>
+        </template>
+        <template v-else-if="column.title === '付费类型'">
+          <span>{{ CHARGE_TYPE_ENUM[record.advObjectType] }}</span>
+        </template>
+        <template v-else-if="column.title === '广告策略'">
+          <span>{{ STRATEGY_ENUM[record.productAutopilotStrategy] }}</span>
+        </template>
+        <template v-else-if="column.title === '每日预算'">
+          <span class="mr-1">{{ record.currency || 'RUB' }}</span>
+          <span>{{ record.dailyBudget || '--' }}</span>
+        </template>
+        <template v-else-if="column.title === '每周预算'">
+          <span class="mr-1">{{ record.currency || 'RUB' }}</span>
+          <span>{{ record.weeklyBudget || '--' }}</span>
+        </template>
+        <template v-else-if="column.title === '订单量'">
+          <span>{{ record.orderVolume || '--' }}</span>
+        </template>
+        <template v-else-if="column.title === '订单金额'">
+          <span class="mr-1">{{ record.currency || 'RUB' }}</span>
+          <span>{{ record.orderAmount || '--' }}</span>
+        </template>
+        <template v-else-if="column.title === '广告费用'">
+          <span class="mr-1">{{ record.currency || 'RUB' }}</span>
+          <span>{{ record.advertisingExpenses || '--' }}</span>
+        </template>
+        <template v-else-if="column.title === '广告费用占比'">
+          <span>{{ record.proportionAdvertisingExpenses ?? '--' }}</span>
+        </template>
+        <template v-else-if="column.title === '展示次数'">
+          <span>{{ record.displayCount ?? '--' }}</span>
+        </template>
+        <template v-else-if="column.title === '点击量'">
+          <span>{{ record.hits ?? '--' }}</span>
+        </template>
+        <template v-else-if="column.title === '添加购物车次数'">
+          <span>{{ record.shoppingCartcQuantity ?? '--' }}</span>
+        </template>
+        <template v-else-if="column.title === '点击率'">
+          <span>{{ record.clickRate ?? '--' }} %</span>
+        </template>
+        <template v-else-if="column.title === '平均点击价格'">
+          <span class="mr-1">{{ record.currency || 'RUB' }}</span>
+          <span>{{ record.averageClickPrice || '--' }}</span>
+        </template>
+        <template v-else-if="column.title === '平均利率'">
+          <span>{{ record.averageInterestRate ?? '--' }} %</span>
+        </template>
+        <template v-else-if="column.title === 'CPM'">
+          <span class="mr-1">{{ record.currency || 'RUB' }}</span>
+          <span>{{ record.cpm || '--' }}</span>
+        </template>
+        <template v-else-if="column.title === '活动状态'">
+          <span>{{ record.activityState || '--' }}</span>
+        </template>
+        <template v-else-if="column.title === '启用状态'">
+          <a-switch
+            :checked="record.state"
+            :disabled="record.activityState === 'CAMPAIGN_STATE_ARCHIVED'"
+            checked-value="CAMPAIGN_STATE_RUNNING"
+            un-checked-value="CAMPAIGN_STATE_INACTIVE"
+            @change="toggleState(record)"
+          />
+        </template>
+        <template v-else-if="column.title === '操作'">
+          <a-button
+            type="link"
+            @click="goDetail('view', record)"
+          >查看</a-button>
+          <br />
+          <a-dropdown>
+            <template #overlay>
+              <a-menu @click="({ key }) => handleMore(key, record)">
+                <a-menu-item key="1">同步</a-menu-item>
+                <a-menu-item key="2">复制</a-menu-item>
+              </a-menu>
+            </template>
+            <a-button type="link">更多
+              <DownOutlined />
+            </a-button>
+          </a-dropdown>
+        </template>
+      </template>
+
+      <template #pagination>
         <AppTablePagination
           v-model:current="tableParams.pageNum"
           v-model:pageSize="tableParams.pageSize"
           :total="total"
           @change="getList"
         />
-      </div>
-
-      <AppTableBox
-        :table-header="DEFAULT_TABLE_COLUMN"
-        :data-source="tableData"
-        :loading="loading"
-        reset-set-menu="adManagement"
-        stripe
-        ref="tableRef"
-        row-key="id"
-        :scroll="{ x: 'max-content' }"
-        :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }"
-        @rowDoubleClick="record => goDetail('view', record)"
-      >
-        <template #leftTool>
-          <a-space>
-            <a-dropdown :disabled="selectedRows.length === 0">
-              <template #overlay>
-                <a-menu @click="handleMenuClick">
-                  <a-menu-item key="1">批量修改预算</a-menu-item>
-                  <a-menu-item key="2">批量开启</a-menu-item>
-                  <a-menu-item key="3">批量关闭</a-menu-item>
-                </a-menu>
-              </template>
-              <a-button
-                type="primary"
-                title="勾选广告后批量操作"
-                >批量操作 <DownOutlined
-              /></a-button>
-            </a-dropdown>
-
-            <a-button
-              type="primary"
-              @click="add"
-              >创建广告</a-button
-            >
-            <a-button
-              :loading="syncLoading"
-              @click="sync"
-              >同步广告</a-button
-            >
-          </a-space>
-        </template>
-
-        <template #headerCell="{ column }">
-          <template v-if="column.title === '订单量'">
-            <span class="mr-1">{{ column.title }}</span>
-            <a-tooltip title="参与广告产生的订单数量"><QuestionCircleOutlined /></a-tooltip>
-          </template>
-          <template v-else-if="column.title === '订单金额'">
-            <span class="mr-1">{{ column.title }}</span>
-            <a-tooltip title="参与广告产生的订单金额"><QuestionCircleOutlined /></a-tooltip>
-          </template>
-          <template v-else-if="column.title === '广告费用'">
-            <span class="mr-1">{{ column.title }}</span>
-            <a-tooltip title="广告产生的花费"><QuestionCircleOutlined /></a-tooltip>
-          </template>
-          <template v-else-if="column.title === '广告费用占比'">
-            <span class="mr-1">{{ column.title }}</span>
-            <a-tooltip title="广告费用占比=广告费用/订单金额"><QuestionCircleOutlined /></a-tooltip>
-          </template>
-          <template v-else-if="column.title === '添加购物车次数'">
-            <span class="mr-1">{{ column.title }}</span>
-            <a-tooltip title="产品加入广告后添加到购物车的次数"><QuestionCircleOutlined /></a-tooltip>
-          </template>
-          <template v-else-if="column.title === '点击率'">
-            <span class="mr-1">{{ column.title }}</span>
-            <a-tooltip title="点击率=点击量/展示次数"><QuestionCircleOutlined /></a-tooltip>
-          </template>
-          <template v-else-if="column.title === '平均点击价格'">
-            <span class="mr-1">{{ column.title }}</span>
-            <a-tooltip title="平均点击价格=广告费用/点击量"><QuestionCircleOutlined /></a-tooltip>
-          </template>
-          <template v-else-if="column.title === 'CPM'">
-            <span class="mr-1">{{ column.title }}</span>
-            <a-tooltip title="每千次展示的广告费用"><QuestionCircleOutlined /></a-tooltip>
-          </template>
-        </template>
-
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.title === '活动名称'">
-            <div>
-              <span :title="record.title">{{ record.title }}</span>
-              <a-button
-                type="link"
-                @click="copy(record.title)"
-                ><CopyOutlined
-              /></a-button>
-            </div>
-            <div>
-              <span>{{ record.id }}</span>
-              <a-button
-                type="link"
-                @click="copy(record.id)"
-                ><CopyOutlined
-              /></a-button>
-            </div>
-            <div class="text-gray">「{{ record.simpleName }}」</div>
-          </template>
-          <template v-else-if="column.title === '广告类型'">
-            <span>{{ PLACEMENT_ENUM[record.placement] }}</span>
-          </template>
-          <template v-else-if="column.title === '广告产品'">
-            <a-button
-              type="link"
-              @click="goAdProduct(record.actionId)"
-              >{{ record.productCount }}</a-button
-            >
-          </template>
-          <template v-else-if="column.title === '付费类型'">
-            <span>{{ CHARGE_TYPE_ENUM[record.advObjectType] }}</span>
-          </template>
-          <template v-else-if="column.title === '广告策略'">
-            <span>{{ STRATEGY_ENUM[record.productAutopilotStrategy] }}</span>
-          </template>
-          <template v-else-if="column.title === '每日预算'">
-            <span class="mr-1">{{ record.currency || 'RUB' }}</span>
-            <span>{{ record.dailyBudget || '--' }}</span>
-          </template>
-          <template v-else-if="column.title === '每周预算'">
-            <span class="mr-1">{{ record.currency || 'RUB' }}</span>
-            <span>{{ record.weeklyBudget || '--' }}</span>
-          </template>
-          <template v-else-if="column.title === '订单量'">
-            <span>{{ record.orderVolume || '--' }}</span>
-          </template>
-          <template v-else-if="column.title === '订单金额'">
-            <span class="mr-1">{{ record.currency || 'RUB' }}</span>
-            <span>{{ record.orderAmount || '--' }}</span>
-          </template>
-          <template v-else-if="column.title === '广告费用'">
-            <span class="mr-1">{{ record.currency || 'RUB' }}</span>
-            <span>{{ record.advertisingExpenses || '--' }}</span>
-          </template>
-          <template v-else-if="column.title === '广告费用占比'">
-            <span>{{ record.proportionAdvertisingExpenses ?? '--' }}</span>
-          </template>
-          <template v-else-if="column.title === '展示次数'">
-            <span>{{ record.displayCount ?? '--' }}</span>
-          </template>
-          <template v-else-if="column.title === '点击量'">
-            <span>{{ record.hits ?? '--' }}</span>
-          </template>
-          <template v-else-if="column.title === '添加购物车次数'">
-            <span>{{ record.shoppingCartcQuantity ?? '--' }}</span>
-          </template>
-          <template v-else-if="column.title === '点击率'">
-            <span>{{ record.clickRate ?? '--' }} %</span>
-          </template>
-          <template v-else-if="column.title === '平均点击价格'">
-            <span class="mr-1">{{ record.currency || 'RUB' }}</span>
-            <span>{{ record.averageClickPrice || '--' }}</span>
-          </template>
-          <template v-else-if="column.title === '平均利率'">
-            <span>{{ record.averageInterestRate ?? '--' }} %</span>
-          </template>
-          <template v-else-if="column.title === 'CPM'">
-            <span class="mr-1">{{ record.currency || 'RUB' }}</span>
-            <span>{{ record.cpm || '--' }}</span>
-          </template>
-          <template v-else-if="column.title === '活动状态'">
-            <span>{{ record.activityState || '--' }}</span>
-          </template>
-          <template v-else-if="column.title === '启用状态'">
-            <a-switch
-              :checked="record.state"
-              :disabled="record.activityState === 'CAMPAIGN_STATE_ARCHIVED'"
-              checked-value="CAMPAIGN_STATE_RUNNING"
-              un-checked-value="CAMPAIGN_STATE_INACTIVE"
-              @change="toggleState(record)"
-            />
-          </template>
-          <template v-else-if="column.title === '操作'">
-            <a-button
-              type="link"
-              @click="goDetail('view', record)"
-              >查看</a-button
-            >
-            <br />
-            <a-dropdown>
-              <template #overlay>
-                <a-menu @click="({ key }) => handleMore(key, record)">
-                  <a-menu-item key="1">同步</a-menu-item>
-                  <a-menu-item key="2">复制</a-menu-item>
-                </a-menu>
-              </template>
-              <a-button type="link">更多 <DownOutlined /></a-button>
-            </a-dropdown>
-          </template>
-        </template>
-
-        <template #pagination>
-          <AppTablePagination
-            v-model:current="tableParams.pageNum"
-            v-model:pageSize="tableParams.pageSize"
-            :total="total"
-            @change="getList"
-          />
-        </template>
-      </AppTableBox>
-    </a-card>
+      </template>
+    </AppTableBox>
   </div>
 </template>
 
@@ -318,8 +336,6 @@
   import { accountCache } from '@/pages/ozon/config/api/product'
   import { adSyncApi, adSyncSingleApi, adListApi, toggleActivateApi } from '../api'
   import { message } from 'ant-design-vue'
-  import TiledSelect from '~/components/tiled-select/index.vue'
-  import TiledDateSelect from '../commComponents/TiledDateSelect.vue'
   import { CopyOutlined, DownOutlined, QuestionCircleOutlined } from '@ant-design/icons-vue'
 
   const router = useRouter()
@@ -334,6 +350,11 @@
     id: undefined,
     tab: 'ALL'
   })
+  const presets = ref([
+    { label: '昨天', value: [dayjs().add(-1, 'd'), dayjs()] },
+    { label: '7天内', value: [dayjs().add(-7, 'd'), dayjs()] },
+    { label: '30天内', value: [dayjs().add(-30, 'd'), dayjs()] },
+  ])
   const tableParams = reactive({
     pageNum: 1,
     pageSize: 50

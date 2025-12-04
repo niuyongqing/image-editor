@@ -9,22 +9,23 @@
     >
       <template #formItemRow>
         <a-form-item
-          label="店铺账号"
-          name="account"
-        >
-          <AppShopSelect
-            v-model:account="searchForm.account"
-            :options="accountList"
-            :field-obj="{ label: 'simpleName', value: 'account' }"
-          />
-        </a-form-item>
-        <a-form-item
           label="刊登模式"
           name="publishType"
         >
-          <TiledSelect
+          <a-radio-group
             v-model:value="searchForm.publishType"
             :options="PUBLISH_TYPE_OPTIONS"
+            name="publishType"
+          />
+        </a-form-item>
+        <a-form-item
+          label="店铺账号"
+          name="account"
+        >
+          <AppCardSelect
+            v-model:account="searchForm.account"
+            :options="accountList"
+            :field-obj="{ label: 'simpleName', value: 'account' }"
           />
         </a-form-item>
         <a-form-item
@@ -55,172 +56,165 @@
     </AppTableForm>
 
     <!-- TABLE 区 -->
-    <a-card class="mt-2">
-      <div class="flex justify-between items-center">
-        <a-tabs
-          v-model:activeKey="activeTab"
-          :animated="false"
-          @change="search"
-        >
-          <a-tab-pane
-            v-for="item in TABS"
-            :key="item.value"
-            :tab="item.label"
-          ></a-tab-pane>
-        </a-tabs>
+    <AppTableBox
+      :loading="state.loading"
+      :table-header="COLUMNS"
+      :data-source="tableData"
+      stripe
+      row-key="waitPublishProductId"
+      reset-set-menu="publicationList"
+      :scroll="{ x: 'max-content' }"
+      :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange }"
+      @rowDoubleClick="record => goEdit(record)"
+    >
+      <template #otherCount>
+        <div class="flex justify-between items-center">
+          <a-tabs
+            v-model:activeKey="activeTab"
+            :animated="false"
+            @change="search"
+          >
+            <a-tab-pane
+              v-for="item in TABS"
+              :key="item.value"
+              :tab="item.label"
+            ></a-tab-pane>
+          </a-tabs>
+        </div>
+      </template>
 
+      <template #leftTool>
+        <a-space>
+          <a-button
+            type="primary"
+            :disabled="state.selectedRowKeys.length === 0"
+            @click="batchPublish"
+            >批量刊登</a-button
+          >
+          <a-button
+            type="primary"
+            :disabled="state.selectedRowKeys.length === 0"
+            @click="remarkModalOpen = true"
+            >批量备注</a-button
+          >
+          <a-popconfirm
+            title="确定取消刊登?"
+            :disabled="state.selectedRowKeys.length === 0"
+            @confirm="cancel()"
+          >
+            <a-button
+              type="primary"
+              danger
+              :disabled="state.selectedRowKeys.length === 0"
+              >批量取消</a-button
+            >
+          </a-popconfirm>
+        </a-space>
+      </template>
+
+      <template #bodyCell="{ column, record, index }">
+        <template v-if="column.key === 'index'">
+          <div>{{ index + 1 + (tableParams.pageNum - 1) * tableParams.pageSize }}</div>
+        </template>
+        <template v-else-if="column.key === 'mainImage'">
+          <a-image
+            :src="fixedUrl(record)"
+            :width="80"
+            :height="80"
+            :fallback="EmptyImg"
+            class="object-contain border border-solid border-gray-200"
+          />
+        </template>
+        <template v-else-if="column.key === 'title'">
+          <div class="w-80">{{ record.productName || '--' }}</div>
+          <div>产品ID: {{ record.waitPublishProductId }}</div>
+        </template>
+        <template v-else-if="column.key === 'publishType'">
+          <div>{{ PUBLISH_TYPE_ENUM[record.publishType] || '--' }}</div>
+        </template>
+        <template v-else-if="column.key === 'publishStatus'">
+          <a-tooltip
+            v-if="record.errorMessage"
+            :title="record.errorMessage"
+            color="#fff"
+            :overlay-style="{ maxWidth: '500px' }"
+            :overlay-inner-style="{ color: '#ff4d4f' }"
+          >
+            <a-tag :color="STATUS_TAG_COLOR_ENUM[record.publishStatus]">{{ STATUS_ENUM[record.publishStatus] || '--' }}</a-tag>
+          </a-tooltip>
+          <a-tag
+            v-else
+            :color="STATUS_TAG_COLOR_ENUM[record.publishStatus]"
+            >{{ STATUS_ENUM[record.publishStatus] || '--' }}</a-tag
+          >
+        </template>
+        <template v-else-if="['skuCode', 'price', 'originalPrice', 'stock'].includes(column.key)">
+          <div
+            v-for="item in record.productSkuList"
+            :key="item.id"
+          >
+            <div class="text-center">{{ item[column.key] ?? '--' }}</div>
+            <a-divider
+              dashed
+              class="my-0"
+            />
+          </div>
+        </template>
+        <template v-else-if="column.key === 'time'">
+          <div>创建时间: {{ record.createTime || '--' }}</div>
+          <div>计划刊登时间: {{ record.planPublishTime || '--' }}</div>
+        </template>
+        <template v-else-if="column.key === 'remark'">
+          <div class="w-80">{{ record.remark || '--' }}</div>
+        </template>
+        <template v-else-if="column.key === 'operation'">
+          <a-space>
+            <a-button
+              type="link"
+              :disabled="![10, 40].includes(record.publishStatus)"
+              @click="publish(record)"
+              >刊登</a-button
+            >
+            <a-button
+              type="link"
+              @click="goEdit(record)"
+              >{{ [10, 40].includes(record.publishStatus) ? '编辑' : '查看' }}</a-button
+            >
+            <a-button
+              type="link"
+              @click="openRemorkModal(record)"
+              >备注</a-button
+            >
+            <a-button
+              type="link"
+              @click="goFather(record)"
+              >来源</a-button
+            >
+            <a-popconfirm
+              title="确定取消刊登?"
+              :disabled="record.publishStatus !== 10"
+              @confirm="cancel(record)"
+            >
+              <a-button
+                type="link"
+                danger
+                :disabled="record.publishStatus !== 10"
+                >取消</a-button
+              >
+            </a-popconfirm>
+          </a-space>
+        </template>
+      </template>
+
+      <template #pagination>
         <AppTablePagination
           v-model:current="tableParams.pageNum"
           v-model:pageSize="tableParams.pageSize"
           :total="state.total"
           @change="getList"
         />
-      </div>
-
-      <AppTableBox
-        :loading="state.loading"
-        :table-header="COLUMNS"
-        :data-source="tableData"
-        stripe
-        row-key="waitPublishProductId"
-        reset-set-menu="publicationList"
-        :scroll="{ x: 'max-content' }"
-        :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange }"
-        @rowDoubleClick="record => goEdit(record)"
-      >
-        <template #leftTool>
-          <a-space>
-            <a-button
-              type="primary"
-              :disabled="state.selectedRowKeys.length === 0"
-              @click="batchPublish"
-              >批量刊登</a-button
-            >
-            <a-button
-              type="primary"
-              :disabled="state.selectedRowKeys.length === 0"
-              @click="remarkModalOpen = true"
-              >批量备注</a-button
-            >
-            <a-popconfirm
-              title="确定取消刊登?"
-              :disabled="state.selectedRowKeys.length === 0"
-              @confirm="cancel()"
-            >
-              <a-button
-                type="primary"
-                danger
-                :disabled="state.selectedRowKeys.length === 0"
-                >批量取消</a-button
-              >
-            </a-popconfirm>
-          </a-space>
-        </template>
-
-        <template #bodyCell="{ column, record, index }">
-          <template v-if="column.key === 'index'">
-            <div>{{ index + 1 + (tableParams.pageNum - 1) * tableParams.pageSize }}</div>
-          </template>
-          <template v-else-if="column.key === 'mainImage'">
-            <a-image
-              :src="fixedUrl(record)"
-              :width="80"
-              :height="80"
-              :fallback="EmptyImg"
-              class="object-contain border border-solid border-gray-200"
-            />
-          </template>
-          <template v-else-if="column.key === 'title'">
-            <div class="w-80">{{ record.productName || '--' }}</div>
-            <div>产品ID: {{ record.waitPublishProductId }}</div>
-          </template>
-          <template v-else-if="column.key === 'publishType'">
-            <div>{{ PUBLISH_TYPE_ENUM[record.publishType] || '--' }}</div>
-          </template>
-          <template v-else-if="column.key === 'publishStatus'">
-            <a-tooltip
-              v-if="record.errorMessage"
-              :title="record.errorMessage"
-              color="#fff"
-              :overlay-style="{ maxWidth: '500px' }"
-              :overlay-inner-style="{ color: '#ff4d4f' }"
-            >
-              <a-tag :color="STATUS_TAG_COLOR_ENUM[record.publishStatus]">{{ STATUS_ENUM[record.publishStatus] || '--' }}</a-tag>
-            </a-tooltip>
-            <a-tag
-              v-else
-              :color="STATUS_TAG_COLOR_ENUM[record.publishStatus]"
-              >{{ STATUS_ENUM[record.publishStatus] || '--' }}</a-tag
-            >
-          </template>
-          <template v-else-if="['skuCode', 'price', 'originalPrice', 'stock'].includes(column.key)">
-            <div
-              v-for="item in record.productSkuList"
-              :key="item.id"
-            >
-              <div class="text-center">{{ item[column.key] ?? '--' }}</div>
-              <a-divider
-                dashed
-                class="my-0"
-              />
-            </div>
-          </template>
-          <template v-else-if="column.key === 'time'">
-            <div>创建时间: {{ record.createTime || '--' }}</div>
-            <div>计划刊登时间: {{ record.planPublishTime || '--' }}</div>
-          </template>
-          <template v-else-if="column.key === 'remark'">
-            <div class="w-80">{{ record.remark || '--' }}</div>
-          </template>
-          <template v-else-if="column.key === 'operation'">
-            <a-space>
-              <a-button
-                type="link"
-                :disabled="![10, 40].includes(record.publishStatus)"
-                @click="publish(record)"
-                >刊登</a-button
-              >
-              <a-button
-                type="link"
-                @click="goEdit(record)"
-                >{{ [10, 40].includes(record.publishStatus) ? '编辑' : '查看' }}</a-button
-              >
-              <a-button
-                type="link"
-                @click="openRemorkModal(record)"
-                >备注</a-button
-              >
-              <a-button
-                type="link"
-                @click="goFather(record)"
-                >来源</a-button
-              >
-              <a-popconfirm
-                title="确定取消刊登?"
-                :disabled="record.publishStatus !== 10"
-                @confirm="cancel(record)"
-              >
-                <a-button
-                  type="link"
-                  danger
-                  :disabled="record.publishStatus !== 10"
-                  >取消</a-button
-                >
-              </a-popconfirm>
-            </a-space>
-          </template>
-        </template>
-
-        <template #pagination>
-          <AppTablePagination
-            v-model:current="tableParams.pageNum"
-            v-model:pageSize="tableParams.pageSize"
-            :total="state.total"
-            @change="getList"
-          />
-        </template>
-      </AppTableBox>
-    </a-card>
+      </template>
+    </AppTableBox>
 
     <!-- 备注弹窗 -->
     <a-modal
@@ -272,6 +266,7 @@
   }
   // 刊登模式选项
   const PUBLISH_TYPE_OPTIONS = [
+    { label: '全部', value: undefined },
     { label: '手动刊登', value: 2 },
     { label: '自动刊登', value: 1 }
   ]

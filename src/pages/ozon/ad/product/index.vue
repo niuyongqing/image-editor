@@ -12,7 +12,7 @@
           label="店铺账号"
           name="account"
         >
-          <AppShopSelect
+          <AppCardSelect
             v-model:account="searchForm.account"
             :options="accountList"
             :field-obj="{ label: 'simpleName', value: 'account' }"
@@ -56,8 +56,18 @@
     </AppTableForm>
 
     <!-- TABLE 区 -->
-    <a-card class="mt-2">
-      <div class="flex justify-between items-center">
+    <AppTableBox
+      :table-header="DEFAULT_TABLE_COLUMN"
+      :data-source="tableData"
+      :loading="loading"
+      reset-set-menu="adProduct"
+      stripe
+      ref="tableRef"
+      row-key="id"
+      :scroll="{ x: 'max-content' }"
+      :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }"
+    >
+      <template #otherCount>
         <a-tabs
           v-model:activeKey="searchForm.tab"
           :animated="false"
@@ -70,130 +80,110 @@
             :tab="`${item.label}(${listTabsCountEnum[item.value] || 0})`"
           ></a-tab-pane>
         </a-tabs>
+      </template>
 
+      <template #leftTool>
+        <a-space>
+          <a-dropdown :disabled="selectedRows.length === 0">
+            <template #overlay>
+              <a-menu @click="handleMenuClick">
+                <a-menu-item key="1">批量修改竞价</a-menu-item>
+                <a-menu-item key="2">批量移除</a-menu-item>
+              </a-menu>
+            </template>
+            <a-button
+              type="primary"
+              title="勾选产品后批量操作"
+            >批量操作
+              <DownOutlined />
+            </a-button>
+          </a-dropdown>
+
+          <a-button
+            type="primary"
+            @click="open = true"
+          >添加广告产品</a-button>
+          <a-button @click="sync">同步广告产品</a-button>
+        </a-space>
+      </template>
+
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.key === 'image'">
+          <a-image
+            :src="record.image || EmptyImg"
+            :width="80"
+            :height="80"
+            :fallback="EmptyImg"
+            class="object-contain border border-solid border-gray-200"
+          />
+        </template>
+
+        <template v-else-if="column.key === 'title'">
+          <div>
+            <span :title="record.title">{{ record.title }}</span><a-button
+              type="link"
+              @click="copy(record.title)"
+            >
+              <CopyOutlined />
+            </a-button>
+          </div>
+          <div>
+            <a-button
+              type="link"
+              class="p-0!"
+              @click="goOzon(record.id)"
+            >{{ record.id }}</a-button><a-button
+              type="link"
+              @click="copy(record.id)"
+            >
+              <CopyOutlined />
+            </a-button>
+          </div>
+          <div class="text-gray">「{{ record.simpleName }}」</div>
+        </template>
+
+        <template v-else-if="column.key === 'name'">
+          <a-button
+            type="link"
+            class="p-0!"
+            @click="goAdManage(record.id)"
+          >{{ record.id }}</a-button><a-button
+            type="link"
+            @click="copy(record.id)"
+          >
+            <CopyOutlined />
+          </a-button>
+          <div>{{ record.activeId }}</div>
+        </template>
+
+        <template v-else-if="column.key === 'type'">{{ record.type }}</template>
+
+        <template v-else-if="column.key === 'strategy'">{{ record.strategy }}</template>
+
+        <template v-else-if="column.key === 'bidding'">{{ record.bidding || '--' }}</template>
+
+        <template v-else-if="column.key === 'operation'">
+          <a-popconfirm
+            title="移除广告产品后数据将会清空，请确定是否移除"
+            @confirm="del(record)"
+          >
+            <a-button
+              type="link"
+              danger
+            >移除</a-button>
+          </a-popconfirm>
+        </template>
+      </template>
+
+      <template #pagination>
         <AppTablePagination
           v-model:current="tableParams.pageNum"
           v-model:pageSize="tableParams.pageSize"
           :total="total"
           @change="getList"
         />
-      </div>
-
-      <AppTableBox
-        :table-header="DEFAULT_TABLE_COLUMN"
-        :data-source="tableData"
-        :loading="loading"
-        reset-set-menu="adProduct"
-        stripe
-        ref="tableRef"
-        row-key="id"
-        :scroll="{ x: 'max-content' }"
-        :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }"
-      >
-        <template #leftTool>
-          <a-space>
-            <a-dropdown :disabled="selectedRows.length === 0">
-              <template #overlay>
-                <a-menu @click="handleMenuClick">
-                  <a-menu-item key="1">批量修改竞价</a-menu-item>
-                  <a-menu-item key="2">批量移除</a-menu-item>
-                </a-menu>
-              </template>
-              <a-button
-                type="primary"
-                title="勾选产品后批量操作"
-                >批量操作 <DownOutlined
-              /></a-button>
-            </a-dropdown>
-
-            <a-button
-              type="primary"
-              @click="open = true"
-              >添加广告产品</a-button
-            >
-            <a-button @click="sync">同步广告产品</a-button>
-          </a-space>
-        </template>
-
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'image'">
-            <a-image
-              :src="record.image || EmptyImg"
-              :width="80"
-              :height="80"
-              :fallback="EmptyImg"
-              class="object-contain border border-solid border-gray-200"
-            />
-          </template>
-
-          <template v-else-if="column.key === 'title'">
-            <div>
-              <span :title="record.title">{{ record.title }}</span
-              ><a-button
-                type="link"
-                @click="copy(record.title)"
-                ><CopyOutlined
-              /></a-button>
-            </div>
-            <div>
-              <a-button
-                type="link"
-                class="p-0!"
-                @click="goOzon(record.id)"
-                >{{ record.id }}</a-button
-              ><a-button
-                type="link"
-                @click="copy(record.id)"
-                ><CopyOutlined
-              /></a-button>
-            </div>
-            <div class="text-gray">「{{ record.simpleName }}」</div>
-          </template>
-
-          <template v-else-if="column.key === 'name'">
-            <a-button
-              type="link"
-              class="p-0!"
-              @click="goAdManage(record.id)"
-              >{{ record.id }}</a-button
-            ><a-button
-              type="link"
-              @click="copy(record.id)"
-              ><CopyOutlined
-            /></a-button>
-            <div>{{ record.activeId }}</div>
-          </template>
-
-          <template v-else-if="column.key === 'type'">{{ record.type }}</template>
-
-          <template v-else-if="column.key === 'strategy'">{{ record.strategy }}</template>
-
-          <template v-else-if="column.key === 'bidding'">{{ record.bidding || '--' }}</template>
-
-          <template v-else-if="column.key === 'operation'">
-            <a-popconfirm
-              title="移除广告产品后数据将会清空，请确定是否移除"
-              @confirm="del(record)"
-            >
-              <a-button
-                type="link"
-                danger
-                >移除</a-button
-              >
-            </a-popconfirm>
-          </template>
-        </template>
-
-        <template #pagination>
-          <AppTablePagination
-            v-model:current="tableParams.pageNum"
-            v-model:pageSize="tableParams.pageSize"
-            :total="total"
-            @change="getList"
-          />
-        </template>
-      </AppTableBox>
-    </a-card>
+      </template>
+    </AppTableBox>
 
     <!-- 添加广告产品弹窗 -->
     <AddModal
@@ -309,7 +299,7 @@
   }
 
   // 同步
-  function sync() {}
+  function sync() { }
 
   function copy(context) {
     copyText(context)
@@ -350,5 +340,5 @@
   /** 添加广告产品弹窗 */
   const open = ref(false)
 
-  function refresh() {}
+  function refresh() { }
 </script>

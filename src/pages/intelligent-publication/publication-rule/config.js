@@ -47,7 +47,7 @@ export const DEFAULT_TABLE_COLUMN = [
     title: '操作',
     key: 'operation',
     fixed: 'right',
-    align: 'right',
+    align: 'left',
     width: 100
   }
 ]
