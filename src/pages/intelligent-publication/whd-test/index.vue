@@ -15,6 +15,10 @@
   >
     <template #leftTool>
       <a-button type="primary" @click="aaaaa">{{ expandedRowKeys.rowDrag ? '完成拖拽':'开始拖拽' }}</a-button>
+      <appUpload 
+        @uploadEnd="uploadEnd" 
+        url="/report-aliexpress/report/aliexpress/config-item-org/import"
+      ></appUpload>
     </template>
   </appTableBox>
 </template>
@@ -22,6 +26,7 @@
 <script setup>
 import { ref, onMounted, watch, nextTick } from 'vue';
 import appTableBox from '~@/components/common/appTableBox.vue';
+import appUpload from '~@/components/common/appUpload.vue';
 import Sortable from 'sortablejs';
 
 // const tableColumns = [
@@ -1215,6 +1220,10 @@ const expandedRowKeys = reactive({
 function aaaaa() {
   // expandedRowKeys.data.shift()
   expandedRowKeys.rowDrag = !expandedRowKeys.rowDrag
+}
+function uploadEnd(res) {
+  console.log({res});
+  
 }
 setTimeout(() => {
   treeTableData.value = [
