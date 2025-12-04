@@ -5,3 +5,6 @@ dist
 platform
 types
 !auto-imports.d.ts
+/.env.development
+/tsconfig.json
+/vite.config.ts
