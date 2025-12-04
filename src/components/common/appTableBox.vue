@@ -1,4 +1,5 @@
 <template>
+  <!-- 通用表格组件 -->
   <div id="appTableBox" class="appTableBox" :class="`${resetSetMenu}-appTableBox`">
     <a-card>
       <!--   表格 按钮设置区域上方其他功能插槽，如tabs，分页器等   -->
@@ -178,11 +179,11 @@ const { proxy: _this } = getCurrentInstance();
  * rowDoubleClick   行双击事件
  *//*  */
 const emit = defineEmits([
-  'update:filterColumns',
-  'update:expandedRowKeys',
-  'rowClick',
-  'rowDoubleClick',
-  'dragEnd'
+  'update:filterColumns',     
+  'update:expandedRowKeys',      
+  'rowClick',               // 表格行单击
+  'rowDoubleClick',         // 表格行双击
+  'dragEnd'                 // 行拖拽结束
 ]);
 const props = defineProps({
   resetSetMenu: {
@@ -200,7 +201,7 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
-  rowKey: {
+  rowKey: {       
     type: [String, Function],
     default: 'key'
   },

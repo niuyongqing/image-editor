@@ -1,4 +1,5 @@
 <template>
+<!-- 通用查询表单组件 -->
 <div 
   id="appTableForm" 
   class="appTableForm" 
@@ -71,13 +72,17 @@ import { ref, reactive, onMounted, onBeforeUnmount, computed, toRefs, useSlots }
 import asyncIcon from '~@/layouts/components/menu/async-icon.vue';
 defineOptions({ name: "appTableForm" });
 const { proxy: _this } = getCurrentInstance();
-const emit = defineEmits(['update:formData', 'onSubmit', 'formHeightChange']);
+const emit = defineEmits([
+  'update:formData',
+  'onSubmit',           // 查询事件
+  'formHeightChange'    // 表单高度变化
+]);
 const props = defineProps({
   resetSetMenu: { // 唯一标识，不能重复，必传
     type: String,
     default: ''
   },
-  formData: {
+  formData: {                 // 表单数据 v-model:formData 用于重置
     type: Object,
     default: () => ({})
   },
@@ -86,7 +91,7 @@ const props = defineProps({
     default: () => ({})
   },
   mini: Boolean,            // 是否采用小型紧凑
-  labelWidth: {
+  labelWidth: {             // label宽度
     type: [String, Number],
     default: '150',
   },
