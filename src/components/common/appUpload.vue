@@ -1,4 +1,5 @@
 <template>
+<!-- 上传组件 -->
 <div id="appUpload_index" class="appUpload_index">
   <a-upload
     :file-list="fileList"
@@ -28,38 +29,41 @@ import asyncIcon from '~@/layouts/components/menu/async-icon.vue'
 import appFullLoading from '@/components/common/appFullLoading.vue'
 defineOptions({ name: "appUpload_index" })
 const { proxy: _this } = getCurrentInstance()
-const emit = defineEmits(['uploadEnd', 'update:fileList'])
+const emit = defineEmits([
+  'uploadEnd',        // 上传完成事件
+  'update:fileList'
+]);
 const props = defineProps({
-  title: {
+  title: {                  // 按钮字段
     type: String,
     default: '上传'
   },
-  loadingTip: {
+  loadingTip: {             // loading字段
     type: String,
     default: 'Loading...'
   },
-  url: {
+  url: {                    // 上传接口url
     type: String,
     default: '',
   },
-  params: {
+  params: {                 // 上传的携带的额外参数
     type: Object,
     default: () => ({})
   },
-  method: {
+  method: {                 // 上传接口的类型，默认post
     type: String,
     default: 'post'
   },
-  name: {
+  name: {                   // 文件流参数字段，同a-upload原生
     type: String,
     default: 'file',
   },
-  beforeUpload: Function,
-  fileList: {
+  beforeUpload: Function,   // 上传前校验函数
+  fileList: {               // 上传文件列表，v-model:fileList
     type: Array,
     default: () => []
   },
-  showUploadList: Boolean,
+  showUploadList: Boolean,  // 是否显示上传文件列表，默认不展示，想要显示的时候必传fileList
 })
 const { fileList } = toRefs(props);
 const loading = ref(false);
@@ -79,14 +83,16 @@ async function customRequest(options) {
       data.append(key, element);
     }
   }
-  let res = null
+  let res = null;
+  let success = false;
   try {
     res = await request({ url, method, data, headers: { 'Content-Type': 'multipart/form-data' } });
+    success = true;
   } catch (error) {
     res = error
     console.error(error);
   }
-  emit('uploadEnd', { res, options });
+  emit('uploadEnd', { res, options, success });   // success: 是否上传成功 res：响应结果 options：上传组件返回的数据
   loading.value = false;
 }
 </script>

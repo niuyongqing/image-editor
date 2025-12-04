@@ -1,40 +1,47 @@
 <template>
-  <div id="appTablePagination" class="appTablePagination">
-    <a-pagination
-        :show-total="(total) => `共 ${total} 条`"
-        @update:current="pageNumChange"
-        @update:page-size="pageSizeChange"
-        :current="paginations.pageNum"
-        :pageSize="paginations.pageSize"
-        :total="props.total"
-        class="pages"
-        :show-quick-jumper="true"
-        :showSizeChanger="true"
-        :pageSizeOptions="props.pageSizeOptions"
-        @change="onChange"
-    />
-  </div>
+<!-- 二次封装的分页器，区分页数变化和每页条数变化 -->
+<div id="appTablePagination" class="appTablePagination">
+  <a-pagination
+    :show-total="(total) => `共 ${total} 条`"
+    @update:current="pageNumChange"
+    @update:page-size="pageSizeChange"
+    :current="paginations.pageNum"
+    :pageSize="paginations.pageSize"
+    :total="props.total"
+    class="pages"
+    :show-quick-jumper="true"
+    :showSizeChanger="true"
+    :pageSizeOptions="props.pageSizeOptions"
+    @change="onChange"
+  />
+</div>
 </template>
 
 <script setup>
 import { watch, reactive, toRefs } from 'vue'
 
 defineOptions({ name: "appTablePagination" })
-const emit = defineEmits(['update:current', 'update:pageSize', 'pageNumChange', 'pageSizeChange', 'change'])
+const emit = defineEmits([
+  'update:current',
+  'update:pageSize',
+  'pageNumChange',      // 页数变化事件
+  'pageSizeChange',     // 每页条数变化事件
+  'change'              // a-pagination原生事件，具体查看AntD文档
+]);
 const props = defineProps({
-  current: {
+  current: {          // 当前页 v-model
     type: Number,
     default: 1
   },
-  pageSize: {
+  pageSize: {         // 当前每页条数 v-model
     type: Number,
     default: 20
   },
-  total: {
+  total: {            // 总条数
     type: Number,
     default: 0
   },
-  pageSizeOptions: {
+  pageSizeOptions: {  
     type: Array,
     default: () => ([20, 50, 100, 200])
   }

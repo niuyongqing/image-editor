@@ -1,4 +1,5 @@
 <template>
+<!-- 全屏loading组件 -->
 <div id="appFullLoading" class="appFullLoading">
   <a-modal 
     :footer="false" 
@@ -22,8 +23,8 @@ defineOptions({ name: "appFullLoading" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits(['update:loading'])
 const props = defineProps({
-  loading: Boolean,
-  loadingTip: {
+  loading: Boolean,           // 控制是否全屏loading v-model:loading
+  loadingTip: {               // loading显示字段
     type: String,
     default: 'Loading...'
   },

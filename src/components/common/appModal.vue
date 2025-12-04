@@ -1,4 +1,5 @@
 <template>
+  <!-- 通用弹窗组件 -->
   <a-modal 
     v-model:open="internalOpen" 
     :title="title" 
@@ -27,7 +28,7 @@
 import { ref, watch } from 'vue';
 
 const props = defineProps({
-  openValue: {
+  openValue: {          // 控制弹窗展示   v-model:openValue
     type: Boolean,
     default: false,
   },
@@ -41,14 +42,20 @@ const props = defineProps({
     type: [String],
     default: '70%',
   },
-  contentHeight: {
+  contentHeight: {          // 弹窗高度
     type: [String],
     default: '600px',
   },
 });
 
 // 定义emit事件
-const emit = defineEmits(['update:openValue', 'open', 'close', 'cancel', 'ok']);
+const emit = defineEmits([
+  'update:openValue', 
+  'open',     // 弹窗打开事件
+  'close',    // 弹窗关闭事件
+  'cancel',   // 默认取消按钮点击事件
+  'ok'        // 默认确定按钮点击事件
+]);
 const internalOpen = ref(props.openValue);
 watch(() => props.openValue, newVal => {
   internalOpen.value = newVal;

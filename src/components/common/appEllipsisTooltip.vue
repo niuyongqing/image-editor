@@ -1,4 +1,5 @@
 <template>
+  <!-- 智能提示，自动根据元素宽度控制是否提示 -->
   <a-tooltip
     v-bind="$attrs"
     :trigger="isOverflow ? 'hover' : 'none'"
