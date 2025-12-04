@@ -3,4 +3,5 @@
 dist
 /package-lock.json
 platform
-.vscode
+types
+!auto-imports.d.ts

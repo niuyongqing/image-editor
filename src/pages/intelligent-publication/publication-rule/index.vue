@@ -3,36 +3,40 @@
   <div class="text-left">
     <!-- 搜索区 -->
     <a-card class="mb-3">
-      <a-form
-        :model="searchForm"
-        ref="searchFormRef"
-        layout="inline"
-      >
-        <a-form-item
-          label="状态"
-          name="status"
-        >
-          <a-radio-group
-            v-model:value="searchForm.status"
-            :options="STATUS_OPTIONS"
-          />
+      <a-form :model="searchForm" ref="searchFormRef" layout="inline">
+        <a-form-item label="状态" name="status">
+          <a-radio-group v-model:value="searchForm.status" :options="STATUS_OPTIONS" />
         </a-form-item>
         <a-form-item label="模糊查询">
           <a-space>
-            <a-input
-              v-model:value="searchForm.ruleName"
-              placeholder="请输入规则名称"
-              allow-clear
-            />
+            <a-input v-model:value="searchForm.ruleName" placeholder="请输入规则名称" allow-clear />
           </a-space>
         </a-form-item>
+        <a-form-item label="分类" name="categoryId">
+        <a-cascader 
+          placeholder="分类" 
+          allowClear 
+          style="width: 300px;"
+          v-model:value="searchForm.categoryId" 
+          :options="commodityTypeList"
+          :allow-clear="true" 
+          show-search
+          :filterOption="filterOption"
+          :field-names="{ value: 'descriptionCategoryId', label: 'categoryName', children: 'children' }" 
+        />
+      </a-form-item>
+        <!-- <a-form-item label="分类" name="categoryId">
+          <a-select filterable style="width: 600px" v-model:value="searchForm.categoryId" :options="flatTreeList" 
+          :field-names="{
+            label: 'label',
+            value: 'uniqueCode',
+          }"
+          show-search
+          :filterOption="filterOption"
+          placeholder="分类" allowClear></a-select>
+        </a-form-item> -->
         <a-form-item>
-          <a-button
-            type="primary"
-            class="mr-2"
-            @click="search"
-            >查询</a-button
-          >
+          <a-button type="primary" class="mr-2" @click="search">查询</a-button>
           <a-button @click="reset">重置</a-button>
         </a-form-item>
       </a-form>
@@ -41,11 +45,7 @@
     <!-- table 区 -->
     <a-card>
       <a-space>
-        <a-button
-          type="primary"
-          @click="add"
-          >新增</a-button
-        >
+        <a-button type="primary" @click="add">新增</a-button>
         <!-- <a-popconfirm
           title="确定启用吗?"
           :disabled="state.selectedRowKeys.length === 0"
@@ -64,37 +64,19 @@
             >批量停用</a-button
           >
         </a-popconfirm> -->
-        <a-button
-          type="primary"
-          :disabled="state.selectedRowKeys.length === 0"
-          @click="remarkModalOpen = true"
-          >批量备注</a-button
-        >
+        <a-button type="primary" :disabled="state.selectedRowKeys.length === 0"
+          @click="remarkModalOpen = true">批量备注</a-button>
       </a-space>
 
-      <a-pagination
-        v-model:current="tableParams.pageNum"
-        v-model:pageSize="tableParams.pageSize"
-        :total="state.total"
-        :default-page-size="50"
-        show-size-changer
-        show-quick-jumper
-        :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
-        class="mb-4 float-right"
-        @change="getList"
-      />
+      <a-pagination v-model:current="tableParams.pageNum" v-model:pageSize="tableParams.pageSize" :total="state.total"
+        :default-page-size="50" show-size-changer show-quick-jumper
+        :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`" class="mb-4 float-right"
+        @change="getList" />
 
-      <a-table
-        :columns="DEFAULT_TABLE_COLUMN"
-        :data-source="tableData"
-        :loading="state.loading"
-        stripe
-        row-key="id"
+      <a-table :columns="DEFAULT_TABLE_COLUMN" :data-source="tableData" :loading="state.loading" stripe row-key="id"
         :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange }"
-        :custom-row="record => ({ onDblclick: () => goDetail(record) })"
-        :pagination="false"
-        :scroll="{ x: 'max-content' }"
-      >
+        :custom-row="record => ({ onDblclick: () => goDetail(record) })" :pagination="false"
+        :scroll="{ x: 'max-content' }">
         <template #bodyCell="{ column, record, index }">
           <template v-if="column.key === 'index'">
             <div>{{ index + 1 + (tableParams.pageNum - 1) * tableParams.pageSize }}</div>
@@ -112,75 +94,31 @@
             <span>[ {{ record.weightMin || '_' }} , {{ record.weightMax || '_' }} ]</span>
           </template>
           <template v-else-if="column.key === 'status'">
-            <a-switch
-              :checked="record.status"
-              checked-children="启用"
-              :checked-value="1"
-              un-checked-children="停用"
-              :un-checked-value="0"
-              :loading="record.loading"
-              size="default"
-              @change="toggleStatus(record)"
-            />
+            <a-switch :checked="record.status" checked-children="启用" :checked-value="1" un-checked-children="停用"
+              :un-checked-value="0" :loading="record.loading" size="default" @change="toggleStatus(record)" />
           </template>
           <template v-else-if="column.key === 'remark'">
             <div class="w-50">{{ record.remark || '--' }}</div>
           </template>
           <template v-else-if="column.key === 'operation'">
             <a-space>
-              <a-button
-                type="link"
-                :disabled="false && !record.id"
-                @click="goDetail(record)"
-                >查看</a-button
-              >
-              <a-button
-                type="link"
-                :disabled="false && !record.id"
-                @click="goEdit(record)"
-                >编辑</a-button
-              >
-              <a-button
-                type="link"
-                @click="openRemorkModal(record)"
-                >备注</a-button
-              >
+              <a-button type="link" :disabled="false && !record.id" @click="goDetail(record)">查看</a-button>
+              <a-button type="link" :disabled="false && !record.id" @click="goEdit(record)">编辑</a-button>
+              <a-button type="link" @click="openRemorkModal(record)">备注</a-button>
             </a-space>
           </template>
         </template>
       </a-table>
 
-      <a-pagination
-        v-model:current="tableParams.pageNum"
-        v-model:pageSize="tableParams.pageSize"
-        :total="state.total"
-        :default-page-size="50"
-        show-size-changer
-        show-quick-jumper
-        :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
-        class="float-right"
-        @change="getList"
-      />
+      <a-pagination v-model:current="tableParams.pageNum" v-model:pageSize="tableParams.pageSize" :total="state.total"
+        :default-page-size="50" show-size-changer show-quick-jumper
+        :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`" class="float-right" @change="getList" />
     </a-card>
 
     <!-- 备注弹窗 -->
-    <a-modal
-      title="添加备注"
-      v-model:open="remarkModalOpen"
-      width="30%"
-      :confirm-loading="remarkLoading"
-      :mask-closable="false"
-      @cancel="remarkCancel"
-      @ok="remarkOk"
-    >
-      <a-textarea
-        v-model:value="remark"
-        :rows="4"
-        :maxlength="255"
-        show-count
-        placeholder="请输入备注内容"
-        class="mb-7"
-      />
+    <a-modal title="添加备注" v-model:open="remarkModalOpen" width="30%" :confirm-loading="remarkLoading"
+      :mask-closable="false" @cancel="remarkCancel" @ok="remarkOk">
+      <a-textarea v-model:value="remark" :rows="4" :maxlength="255" show-count placeholder="请输入备注内容" class="mb-7" />
     </a-modal>
   </div>
 </template>
@@ -197,6 +135,7 @@
   /** search */
   const searchForm = reactive({
     ruleName: '',
+    categoryId: [],
     status: 2
   })
   const searchFormRef = ref()
@@ -207,6 +146,12 @@
     { label: '停用', value: 0 }
   ]
 
+  // 过滤选项
+const filterOption = (inputValue, option) => {
+  const label = option.categoryName; // 因为你的数据中有 categoryName 字段
+  return label.toLowerCase().includes(inputValue.toLowerCase());
+};
+
   function search() {
     tableParams.pageNum = 1
     getList()
@@ -216,6 +161,7 @@
     tableParams.pageNum = 1
     searchFormRef.value.resetFields()
     searchForm.ruleName = ''
+    searchForm.categoryId = []
 
     getList()
   }
@@ -243,7 +189,7 @@
       ...tableParams,
       ...searchForm
     }
-
+    params.categoryId = params.categoryId?.join(',')
     state.loading = true
     listApi(params)
       .then(res => {
@@ -255,12 +201,16 @@
       })
   }
 
+  // 查询条件分类数据
+  const commodityTypeList = ref([])
+
   /** 分类数据 */
   const flatTreeList = ref([])
 
   getOptions()
   function getOptions() {
     newCategoryTreeApi().then(res => {
+      commodityTypeList.value = res.data || []
       const rawData = res.data || []
       const flatList = []
 
@@ -282,7 +232,7 @@
           }
         }
       }
-
+      console.log(flatList)
       flatTreeList.value = flatList
     })
   }

@@ -13,7 +13,13 @@
       message="规则仅本次提交时有效, 多次提交相同产品和相同规则会上架相同产品"
       type="warning"
       show-icon
-      class="mt-3 mb-4"
+      class="mt-2"
+    />
+    <a-alert
+      message="终审完成后，需要匹配系统已有规则，需要等待半个小时自动刊登序列生成完成后才可以手动创建刊登序列"
+      type="warning"
+      show-icon
+      class="mt-2 mb-4"
     />
 
     <a-form
