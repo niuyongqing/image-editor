@@ -91,7 +91,7 @@
               <a-form-item-rest>
                 <div flex gap-10px style="width: 800px">
                   <a-tooltip placement="top" title="分词查找从以下内容进行查找：产品名称、SKU编码、拍照人、开发人、品牌、中文描述、英文描述。">
-                      <InfoCircleOutlined class="font-size-3 color-[#faad14] position-relative top--1 mr--1" />
+                      <QuestionCircleOutlined class="font-size-3 color-[#faad14] position-relative top--1 mr--1 ml--1" />
                   </a-tooltip>
                   <a-input v-model:value="formData.tradeName" placeholder="分词查找"/>
                   <a-input v-model:value="formData.developPerson" placeholder="开发人员"></a-input>
@@ -260,7 +260,7 @@ import devAttributableMarketRevert from "~@/utils/devAttributableMarketRevert";
 import classifyRevert from "~@/utils/classifyRevert";
 import devProhibitPlatformRevert from "~@/utils/devProhibitPlatformRevert";
 import { camelCase, toLowerLine } from "~@/utils";
-import { InfoCircleOutlined } from '@ant-design/icons-vue'
+import { QuestionCircleOutlined } from '@ant-design/icons-vue'
 import EmptyImg from '@/assets/images/aliexpress/empty.png'
 defineOptions({ name: "productDatabase_index" });
 const { proxy: _this } = getCurrentInstance();
