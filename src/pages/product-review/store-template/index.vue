@@ -43,24 +43,15 @@
           name="account"
           :wrapper-col="wrapperColItem"
         >
-          <selectComm
-            ref="selectCommRef"
+        <appCardSelect
+            :multiple="false"
             :options="accountList"
             :fieldObj="{
-              fieldKey: 'account',
-              fieldLabel: 'simpleName',
+              value: 'account',
+              label: 'simpleName',
             }"
-            @backSelectAll="
-              (val) => {
-                formData.account = null;
-              }
-            "
-            @backSelectItem="
-              (val) => {
-                formData.account = val;
-              }
-            "
-          ></selectComm>
+            v-model:account="formData.account"
+          ></appCardSelect>
         </a-form-item>
       </template>
     </appTableForm>
@@ -384,6 +375,7 @@ import {
 import appTableForm from "@/components/common/appTableForm.vue";
 import AppTableBox from "@/components/common/appTableBox.vue";
 import appTablePagination from "@/components/common/appTablePagination.vue";
+import appCardSelect from "~@/components/common/appCardSelect.vue";
 const formRef = ref(null);
 const searchCardFormRef = ref(null);
 
