@@ -1,4 +1,5 @@
 <template>
+<!-- 下拉卡片式选择，用于之前店小秘选择样式改造 -->
 <div id="appCardSelect" class="appCardSelect">
   <a-popover trigger="click" :arrow="false">
     <template #content>
@@ -36,7 +37,7 @@ import asyncIcon from '~@/layouts/components/menu/async-icon.vue';
 defineOptions({ name: "appCardSelect" });
 const { proxy: _this } = getCurrentInstance();
 const props = defineProps({
-  account: {            // 绑定字段 v-model:account
+  account: {            // 选中的值 v-model:account
     type: [String, Array],
     default: ''
   },
@@ -44,7 +45,10 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
-  options: Array,       // 展示数据
+  options: {            // 用于展示的数据
+    type: Array,
+    default: () => [],
+  },       
   fieldObj: {           // 配置字段 label：展示字段 value：值
     type: Object,
     default: () => ({
@@ -54,8 +58,10 @@ const props = defineProps({
   },
   multiple: Boolean,    // 是否多选
 });
-// 使用defineEmits获取emit函数
-const emit = defineEmits(["selectItem", 'update:account']);
+const emit = defineEmits([
+  "selectItem",   // 选中选项事件
+  'update:account'
+]);
 const actionItem = ref([]);    // 被选中的项
 let {label: fieldLabel, value: fieldValue} = props.fieldObj
 const optionList = computed(() => {

@@ -1,5 +1,8 @@
 <template>
-  
+  <appVerifyUpload 
+    @uploadEnd="uploadEnd" 
+    url="/report-aliexpress/report/aliexpress/config-item-org/import"
+  ></appVerifyUpload>
   <appTableBox
     ref="tableRef"
     :table-header="tableColumns"
@@ -15,13 +18,21 @@
   >
     <template #leftTool>
       <a-button type="primary" @click="aaaaa">{{ expandedRowKeys.rowDrag ? '完成拖拽':'开始拖拽' }}</a-button>
+      <appUpload 
+        @uploadEnd="uploadEnd" 
+        url="/report-aliexpress/report/aliexpress/config-item-org/import"
+      ></appUpload>
     </template>
   </appTableBox>
+  <appFullLoading :loading="loading"></appFullLoading>
 </template>
 
 <script setup>
 import { ref, onMounted, watch, nextTick } from 'vue';
 import appTableBox from '~@/components/common/appTableBox.vue';
+import appUpload from '~@/components/common/appUpload.vue';
+import appFullLoading from '~@/components/common/appFullLoading.vue';
+import appVerifyUpload from '~@/components/common/appVerifyUpload.vue';
 import Sortable from 'sortablejs';
 
 // const tableColumns = [
@@ -1212,9 +1223,19 @@ const expandedRowKeys = reactive({
   ],
   rowDrag: false,
 })
-function aaaaa() {
+const loading = ref(false)
+const fileList = ref([])
+function aaaaa(a) {
   // expandedRowKeys.data.shift()
+  loading.value = true;
+  setTimeout(() => {
+    loading.value = false;
+  }, 1000);
   expandedRowKeys.rowDrag = !expandedRowKeys.rowDrag
+}
+function uploadEnd(res) {
+  console.log({res});
+  
 }
 setTimeout(() => {
   treeTableData.value = [
