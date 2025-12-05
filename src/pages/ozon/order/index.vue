@@ -6,6 +6,17 @@
       v-model:formData="formState"
     >
       <template #formItemRow>
+        <a-form-item label="店铺账号：" name="account">
+          <appCardSelect
+            :multiple="false"
+            :options="account"
+            :fieldObj="{
+              value: 'account',
+              label: 'simpleName',
+            }"
+            v-model:account="formState.account"
+          ></appCardSelect>
+        </a-form-item>
         <a-form-item label="订单状态：" name="status">
           <div class="flex flex-col items-center">
             <div style="display: flex; margin-bottom: 24px">
@@ -38,17 +49,6 @@
               />
             </a-button>
           </div>
-        </a-form-item>
-        <a-form-item label="店铺账号：" name="account">
-          <appCardSelect
-            :multiple="false"
-            :options="account"
-            :fieldObj="{
-              value: 'account',
-              label: 'simpleName',
-            }"
-            v-model:account="formState.account"
-          ></appCardSelect>
         </a-form-item>
       </template>
     </appTableForm>

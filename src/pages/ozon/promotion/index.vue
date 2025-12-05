@@ -5,17 +5,7 @@
       reset-set-menu="promotion"
       @on-submit="search"
     >
-      <template #formItemBox>
-        <a-form-item
-          label="活动名称"
-          name="title"
-        >
-          <a-input
-            v-model:value="formState.title"
-            placeholder="请输入活动名称"
-            clearable
-          ></a-input>
-        </a-form-item>
+      <template #formItemRow>
         <a-form-item
           label="店铺账号"
           name="account"
@@ -26,6 +16,16 @@
             :field-obj="{ label: 'simpleName', value: 'account' }"
             @selectItem="search"
           />
+        </a-form-item>
+        <a-form-item
+          label="活动名称"
+          name="title"
+        >
+          <a-input
+            v-model:value="formState.title"
+            placeholder="请输入活动名称"
+            clearable
+          ></a-input>
         </a-form-item>
       </template>
     </AppTableForm>

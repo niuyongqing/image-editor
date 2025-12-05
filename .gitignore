@@ -7,7 +7,6 @@ dist
 /.env.development.local
 .trae
 platform
-.vscode
 types
 !auto-imports.d.ts
-.vscode/
+.vscode

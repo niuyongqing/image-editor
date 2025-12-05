@@ -8,7 +8,14 @@
         resetSetMenu="transacListCont"
         v-model:formData="formData"
       >
-        <template #formItemBox>
+        <template #formItemRow>
+           <a-form-item  label="店铺：" name="account">
+            <appCardSelect
+              :multiple="false"
+              :options="shopAccount"
+              v-model:account="formData.account"
+            ></appCardSelect>
+          </a-form-item>
           <a-form-item label="状态：" name="type">
             <a-select
               v-model:value="formData.type"
@@ -24,13 +31,6 @@
             >
             </a-range-picker>
           </a-form-item>
-           <a-form-item  label="店铺：" name="account">
-          <appCardSelect
-            :multiple="false"
-            :options="shopAccount"
-            v-model:account="formData.account"
-          ></appCardSelect>
-        </a-form-item>
         </template>
       </appTableForm>
       <!-- </a-form> -->
