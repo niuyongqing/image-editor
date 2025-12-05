@@ -5,7 +5,10 @@
   class="appTableForm" 
   :class="`${form.scrollTop > form.offsetHeight ? 'stickyTop ':''}${resetSetMenu}-appTableForm`"
 >
-  <a-card>
+  <a-card :loading="loading">
+    <template #title v-if="!!formCardTitle">
+      <slot name="formCardTitle"></slot>
+    </template>
     <a-form 
       v-show="form.formShow"
       :model="formData" 
@@ -98,7 +101,8 @@ const props = defineProps({
   hideNameList: {           // 默认隐藏的项
     type: Array,
     default: () => ([])
-  }
+  },
+  loading: Boolean,
 });
 const { formData } = toRefs(props); 
 const form = reactive({
@@ -111,7 +115,7 @@ const form = reactive({
 let currentDom = null;      // 当前组件dom
 let contentDom = null;      // 滚动容器dom
 const btnLoading = ref(false);
-const { formItemBox, formItemRow, } = useSlots();
+const { formItemBox, formItemRow, formCardTitle} = useSlots();
 const labelWidth = computed(() => {
   let width = props.mini ? (Number(props.labelWidth) * 0.8) : props.labelWidth;
   return width + 'px';

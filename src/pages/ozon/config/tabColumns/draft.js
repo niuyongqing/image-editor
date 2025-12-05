@@ -1,9 +1,17 @@
 export default [
+   {
+    title: '序号',
+    dataIndex: 'index',
+    key: 'index',
+    align: 'center',
+    width: 60,
+    fixed: 'left',
+  },
     {
       title: '图片',
       dataIndex: 'image',
       align: "center",
-      width: 80,
+      width: 120,
     },
     {
       title: '标题/产品ID',
@@ -22,6 +30,7 @@ export default [
       dataIndex: 'price',
       align: "price",
       width: 150,
+      sorter: true,
     },
     {
       title: '原价',
@@ -34,13 +43,22 @@ export default [
       dataIndex: 'stock',
       align: "center",
       width: 150,
+      sorter: true,
     },
   
     {
-      title: '时间',
+      title: '创建时间',
       dataIndex: 'createTime',
       align: "center",
       width: 180,
+      sorter: true,
+    },
+     {
+      title: '更新时间',
+      dataIndex: 'updateTime',
+      align: "center",
+      width: 180,
+      sorter: true,
     },
     {
       title: '操作',

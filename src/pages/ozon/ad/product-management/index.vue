@@ -1,23 +1,13 @@
-<!-- 广告管理 列表 -->
+<!-- 广告产品管理 列表 -->
 <template>
   <div class="text-left">
     <!-- 搜索区 -->
     <AppTableForm
       v-model:formData="searchForm"
-      reset-set-menu="adManagement"
+      reset-set-menu="adProductManagement"
       @on-submit="search"
     >
-      <template #formItemBox>
-        <a-form-item
-          label="选择日期"
-          name="dateRange"
-        >
-          <a-range-picker
-            v-model:value="searchForm.dateRange"
-            :presets="presets"
-            :disabled-date="cur => cur && cur > Date.now()"
-          />
-        </a-form-item>
+      <template #formItemRow>
         <a-form-item
           label="店铺账号"
           name="account"
@@ -29,18 +19,14 @@
             @selectItem="search"
           />
         </a-form-item>
-      </template>
-
-      <template #formItemRow>
         <a-form-item
-          label="付款类型"
-          name="payType"
+          label="选择日期"
+          name="dateRange"
         >
-          <a-radio-group
-            v-model:value="searchForm.payType"
-            :options="PAY_TYPE_OPTIONS"
-            name="payType"
-            @change="search"
+          <a-range-picker
+            v-model:value="searchForm.dateRange"
+            :presets="presets"
+            :disabled-date="cur => cur && cur > Date.now()"
           />
         </a-form-item>
         <a-form-item
@@ -51,17 +37,6 @@
             v-model:value="searchForm.state"
             :options="ENABLE_STATE_OPTIONS"
             name="state"
-            @change="search"
-          />
-        </a-form-item>
-        <a-form-item
-          label="活动状态"
-          name="activityState"
-        >
-          <a-radio-group
-            v-model:value="searchForm.activityState"
-            :options="ACTIVE_STATE_OPTIONS"
-            name="activityState"
             @change="search"
           />
         </a-form-item>
@@ -81,6 +56,11 @@
                 placeholder="活动 ID, 多个 ID 间用英文逗号隔开"
                 allow-clear
               />
+              <a-input
+                v-model:value="searchForm.sku"
+                placeholder="sku编码, 多个编码间用英文逗号隔开"
+                allow-clear
+              />
             </a-space>
           </a-form-item-rest>
         </a-form-item>
@@ -92,60 +72,41 @@
       :table-header="DEFAULT_TABLE_COLUMN"
       :data-source="tableData"
       :loading="loading"
-      reset-set-menu="adManagement"
+      reset-set-menu="adProductManagement"
       stripe
       ref="tableRef"
       row-key="id"
       :scroll="{ x: 'max-content' }"
       :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }"
-      @rowDoubleClick="record => goDetail('view', record)"
     >
-      <template #otherCount>
-        <a-tabs
-          v-model:activeKey="searchForm.tab"
-          :animated="false"
-          class="flex-1"
-          @change="search"
-        >
-          <a-tab-pane
-            v-for="item in LIST_TABS"
-            :key="item.value"
-            :tab="`${item.label}(${listTabsCountEnum[item.value] || 0})`"
-          ></a-tab-pane>
-        </a-tabs>
-      </template>
-
       <template #leftTool>
         <a-space>
-          <a-dropdown :disabled="selectedRows.length === 0">
-            <template #overlay>
-              <a-menu @click="handleMenuClick">
-                <a-menu-item key="1">批量修改预算</a-menu-item>
-                <a-menu-item key="2">批量开启</a-menu-item>
-                <a-menu-item key="3">批量关闭</a-menu-item>
-              </a-menu>
-            </template>
-            <a-button
-              type="primary"
-              title="勾选广告后批量操作"
-            >批量操作
-              <DownOutlined />
-            </a-button>
-          </a-dropdown>
-
           <a-button
             type="primary"
-            @click="add"
-          >创建广告</a-button>
+            :disabled="selectedRows.length === 0"
+            @click="batchEditBidding"
+          >批量调整竞价</a-button>
+          <a-button
+            type="primary"
+            @click="addOpen = true"
+          >添加推广产品</a-button>
           <a-button
             :loading="syncLoading"
             @click="sync"
-          >同步广告</a-button>
+          >同步推广产品</a-button>
         </a-space>
       </template>
 
       <template #headerCell="{ column }">
-        <template v-if="column.title === '订单量'">
+        <template v-if="column.title === '可见性指数'">
+          <span class="mr-1">{{ column.title }}</span>
+          <a-tooltip
+            title="表示过去24小时内商品最常出现的搜索结果或目录页面。 例如，如果您的商品指数为 “1”，则用户更常在搜索结果或目录的第一页看到该商品。 如果指数为10+，说明该商品在搜索结果中排在第10页之后"
+          >
+            <QuestionCircleOutlined />
+          </a-tooltip>
+        </template>
+        <template v-else-if="column.title === '订单量'">
           <span class="mr-1">{{ column.title }}</span>
           <a-tooltip title="参与广告产生的订单数量">
             <QuestionCircleOutlined />
@@ -163,15 +124,9 @@
             <QuestionCircleOutlined />
           </a-tooltip>
         </template>
-        <template v-else-if="column.title === '广告费用占比'">
+        <template v-else-if="column.title === '广告收入率'">
           <span class="mr-1">{{ column.title }}</span>
-          <a-tooltip title="广告费用占比=广告费用/订单金额">
-            <QuestionCircleOutlined />
-          </a-tooltip>
-        </template>
-        <template v-else-if="column.title === '添加购物车次数'">
-          <span class="mr-1">{{ column.title }}</span>
-          <a-tooltip title="产品加入广告后添加到购物车的次数">
+          <a-tooltip title="广告收入率=订单金额/广告费用">
             <QuestionCircleOutlined />
           </a-tooltip>
         </template>
@@ -181,25 +136,22 @@
             <QuestionCircleOutlined />
           </a-tooltip>
         </template>
-        <template v-else-if="column.title === '平均点击价格'">
-          <span class="mr-1">{{ column.title }}</span>
-          <a-tooltip title="平均点击价格=广告费用/点击量">
-            <QuestionCircleOutlined />
-          </a-tooltip>
-        </template>
-        <template v-else-if="column.title === 'CPM'">
-          <span class="mr-1">{{ column.title }}</span>
-          <a-tooltip title="每千次展示的广告费用">
-            <QuestionCircleOutlined />
-          </a-tooltip>
-        </template>
       </template>
 
       <template #bodyCell="{ column, record }">
-        <template v-if="column.title === '活动名称'">
+        <template v-if="column.title === '图片'">
+          <a-image
+            :src="record.image || EmptyImg"
+            :width="80"
+            :height="80"
+            :fallback="EmptyImg"
+            class="object-contain border border-solid border-gray-200"
+          />
+        </template>
+
+        <template v-else-if="column.title === '标题/产品 ID'">
           <div>
-            <span :title="record.title">{{ record.title }}</span>
-            <a-button
+            <span :title="record.title">{{ record.title }}</span><a-button
               type="link"
               @click="copy(record.title)"
             >
@@ -207,8 +159,12 @@
             </a-button>
           </div>
           <div>
-            <span>{{ record.id }}</span>
             <a-button
+              type="link"
+              class="p-0!"
+              @click="goOzon(record.id)"
+            >{{ record.id
+            }}</a-button><a-button
               type="link"
               @click="copy(record.id)"
             >
@@ -217,28 +173,20 @@
           </div>
           <div class="text-gray">「{{ record.simpleName }}」</div>
         </template>
-        <template v-else-if="column.title === '广告类型'">
-          <span>{{ PLACEMENT_ENUM[record.placement] }}</span>
+
+        <template v-else-if="column.title === '是否可搜索'">
+          <div>{{ record.isSearchable ? '是' : '否' }}</div>
         </template>
-        <template v-else-if="column.title === '广告产品'">
-          <a-button
-            type="link"
-            @click="goAdProduct(record.actionId)"
-          >{{ record.productCount }}</a-button>
-        </template>
-        <template v-else-if="column.title === '付费类型'">
-          <span>{{ CHARGE_TYPE_ENUM[record.advObjectType] }}</span>
-        </template>
-        <template v-else-if="column.title === '广告策略'">
-          <span>{{ STRATEGY_ENUM[record.productAutopilotStrategy] }}</span>
-        </template>
-        <template v-else-if="column.title === '每日预算'">
-          <span class="mr-1">{{ record.currency || 'RUB' }}</span>
-          <span>{{ record.dailyBudget || '--' }}</span>
-        </template>
-        <template v-else-if="column.title === '每周预算'">
+        <template v-else-if="column.title === '竞价'">
           <span class="mr-1">{{ record.currency || 'RUB' }}</span>
           <span>{{ record.weeklyBudget || '--' }}</span>
+        </template>
+        <template v-else-if="column.title === '产品价格'">
+          <span class="mr-1">{{ record.currency || 'RUB' }}</span>
+          <span>{{ record.productPrice || '--' }}</span>
+        </template>
+        <template v-else-if="column.title === '可见性指数'">
+          <span>{{ record.visibilityIndex || '--' }}</span>
         </template>
         <template v-else-if="column.title === '订单量'">
           <span>{{ record.orderVolume || '--' }}</span>
@@ -260,52 +208,37 @@
         <template v-else-if="column.title === '点击量'">
           <span>{{ record.hits ?? '--' }}</span>
         </template>
-        <template v-else-if="column.title === '添加购物车次数'">
-          <span>{{ record.shoppingCartcQuantity ?? '--' }}</span>
-        </template>
         <template v-else-if="column.title === '点击率'">
           <span>{{ record.clickRate ?? '--' }} %</span>
         </template>
-        <template v-else-if="column.title === '平均点击价格'">
-          <span class="mr-1">{{ record.currency || 'RUB' }}</span>
-          <span>{{ record.averageClickPrice || '--' }}</span>
+        <template v-else-if="column.title === '上周期竞价'">
+          <span>{{ record.previousBidding ?? '--' }}</span>
         </template>
-        <template v-else-if="column.title === '平均利率'">
-          <span>{{ record.averageInterestRate ?? '--' }} %</span>
+        <template v-else-if="column.title === '竞价更新时间'">
+          <span>{{ record.biddingUpdateTime || '--' }}</span>
+        </template>
+        <template v-else-if="column.title === '最近更新时间'">
+          <span>{{ record.recentUpdateTime || '--' }}</span>
         </template>
         <template v-else-if="column.title === 'CPM'">
           <span class="mr-1">{{ record.currency || 'RUB' }}</span>
           <span>{{ record.cpm || '--' }}</span>
         </template>
-        <template v-else-if="column.title === '活动状态'">
-          <span>{{ record.activityState || '--' }}</span>
-        </template>
         <template v-else-if="column.title === '启用状态'">
           <a-switch
             :checked="record.state"
-            :disabled="record.activityState === 'CAMPAIGN_STATE_ARCHIVED'"
             checked-value="CAMPAIGN_STATE_RUNNING"
             un-checked-value="CAMPAIGN_STATE_INACTIVE"
             @change="toggleState(record)"
           />
         </template>
         <template v-else-if="column.title === '操作'">
-          <a-button
-            type="link"
-            @click="goDetail('view', record)"
-          >查看</a-button>
-          <br />
-          <a-dropdown>
-            <template #overlay>
-              <a-menu @click="({ key }) => handleMore(key, record)">
-                <a-menu-item key="1">同步</a-menu-item>
-                <a-menu-item key="2">复制</a-menu-item>
-              </a-menu>
-            </template>
-            <a-button type="link">更多
-              <DownOutlined />
-            </a-button>
-          </a-dropdown>
+          <a-space>
+            <a-button
+              type="link"
+              @click="del(record)"
+            >移除</a-button>
+          </a-space>
         </template>
       </template>
 
@@ -318,41 +251,38 @@
         />
       </template>
     </AppTableBox>
+
+    <!-- 添加推广产品弹窗 -->
+    <AddModal
+      v-model:open="addOpen"
+      @emitData="refresh"
+    />
   </div>
 </template>
 
 <script setup>
   import {
     DEFAULT_TABLE_COLUMN,
-    PLACEMENT_ENUM,
-    STRATEGY_ENUM,
-    CHARGE_TYPE_ENUM,
-    SEARCH_PROP_OPTIONS,
-    PLACEHOLDER_ENUM,
-    PAY_TYPE_OPTIONS,
     ENABLE_STATE_OPTIONS,
-    ACTIVE_STATE_OPTIONS,
-    LIST_TABS,
-    listTabsCountEnum
-  } from './config'
+  } from './config.js'
   import dayjs from 'dayjs'
   import { copyText } from '@/utils'
   import { accountCache } from '@/pages/ozon/config/api/product'
   import { adSyncApi, adSyncSingleApi, adListApi, toggleActivateApi } from '../api'
   import { message } from 'ant-design-vue'
+  import AddModal from '../product/components/AddModal.vue'
   import { CopyOutlined, DownOutlined, QuestionCircleOutlined } from '@ant-design/icons-vue'
+  import EmptyImg from '@/assets/images/aliexpress/empty.png'
 
   const router = useRouter()
   const accountList = ref([])
   const searchForm = reactive({
     dateRange: [dayjs().subtract(7, 'day'), dayjs()],
     account: undefined,
-    payType: undefined,
     state: undefined,
-    activityState: undefined,
     title: undefined,
-    id: undefined,
-    tab: 'ALL'
+    sku: undefined,
+    id: undefined
   })
   const presets = ref([
     { label: '昨天', value: [dayjs().add(-1, 'd'), dayjs()] },
@@ -406,12 +336,6 @@
       .then(res => {
         total.value = res.total ?? 0
         tableData.value = res.rows[0].list || []
-
-        const aggregationState = res.rows[0].aggregationState || []
-        for (const key in listTabsCountEnum) {
-          const target = aggregationState.find(item => item.state === key)
-          target && (listTabsCountEnum[key] = target.count ?? 0)
-        }
       })
       .finally(() => {
         loading.value = false
@@ -423,30 +347,15 @@
     getList()
   }
 
-  /** 批量操作 */
-  function handleMenuClick({ key }) {
-    switch (key) {
-      case '1':
-        // 批量修改预算
-        console.log('批量修改预算')
-        break
-      case '2':
-        // 批量开启
-        toggleStateBatch(true)
-        break
-      case '3':
-        // 批量关闭
-        toggleStateBatch(false)
-        break
-
-      default:
-        break
+  // 批量调整竞价
+  function batchEditBidding() {
+    const params = {
+      account: searchForm.account || '',
+      biddingList: selectedRows.value.map(item => ({
+        id: item.id,
+        bidding: item.bidding
+      }))
     }
-  }
-
-  // 创建
-  function add() {
-    window.open('/platform/ozon/ad/management/add')
   }
 
   // 同步
@@ -476,6 +385,11 @@
   // 点击广告产品数, 跳转到广告产品页
   function goAdProduct(id) {
     router.push(`/platform/ozon/ad/product?actionId=${id}`)
+  }
+
+  // 跳往 Ozon 后台
+  function goOzon(id) {
+    window.open(`https://ozon.ru/context/detail/id/${id}`)
   }
 
   // 切换启用状态
@@ -513,41 +427,20 @@
   }
 
   /** table 操作 */
-  // 跳转详情 [查看-view, 复制-copy]
-  function goDetail(type, record) {
-    const query = {
-      type,
-      id: record.id,
-      account: record.account
-    }
+  // 推广产品弹窗
+  const addOpen = ref(false)
 
-    const queryStr = Object.entries(query)
-      .map(arr => arr.join('='))
-      .join('&')
-    window.open(`/platform/ozon/ad/management/add?${queryStr}`)
+  function refresh() {
+    getList()
   }
-
   // 更多操作
-  function handleMore(key, record) {
-    switch (key) {
-      case '1':
-        // 同步单个
-        const params = {
-          account: record.account,
-          id: record.id
-        }
-        adSyncSingleApi(params).then(() => {
-          message.success('同步成功')
-          getList()
-        })
-        break
-      case '2':
-        // 复制
-        goDetail('copy', record)
-        break
-
-      default:
-        break
-    }
+  function del(record) {
+    const params = [
+      {
+        id: record.id,
+        productId: record.productId,
+        account: record.account
+      }
+    ]
   }
 </script>

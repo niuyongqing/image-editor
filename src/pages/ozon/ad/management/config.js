@@ -1,26 +1,26 @@
 // 默认表头
 export const DEFAULT_TABLE_COLUMN = [
-  { title: '活动名称', key: 'title', width: 400, fixed: 'left' },
-  { title: '广告类型', key: 'placement', fixed: 'left' },
-  { title: '广告产品', key: 'productCount' },
-  { title: '付费类型', key: 'advObjectType' },
-  { title: '广告策略', key: 'productAutopilotStrategy' },
-  { title: '每日预算', key: 'dailyBudget' },
-  { title: '每周预算', key: 'weeklyBudget' },
-  { title: '订单量', key: 'orderVolume' },
-  { title: '订单金额', key: 'orderAmount' },
-  { title: '广告费用', key: 'advertisingExpenses' },
-  { title: '广告费用占比', key: 'proportionAdvertisingExpenses' },
-  { title: '展示次数', key: 'displayCount' },
-  { title: '点击量', key: 'hits' },
-  { title: '添加购物车次数', key: 'shoppingCartcQuantity' },
-  { title: '点击率', key: 'clickRate' },
-  { title: '平均点击价格', key: 'averageClickPrice' },
-  { title: '平均利率', key: 'averageInterestRate' },
-  { title: 'CPM', key: 'cpm' },
-  { title: '活动状态', key: 'activityState', fixed: 'right' },
-  { title: '启用状态', key: 'state', fixed: 'right' },
-  { title: '操作', key: 'operation', fixed: 'right' }
+  { title: '活动名称', key: 'title', fixed: 'left', width: 300 },
+  { title: '广告类型', key: 'placement', align: 'center', fixed: 'left', width: 100 },
+  { title: '广告产品', key: 'productCount', align: 'right', width: 100 },
+  { title: '付费类型', key: 'advObjectType', align: 'center', width: 100 },
+  { title: '广告策略', key: 'productAutopilotStrategy', align: 'center', width: 100 },
+  { title: '每日预算', key: 'dailyBudget', align: 'right', width: 100 },
+  { title: '每周预算', key: 'weeklyBudget', align: 'right', width: 100 },
+  { title: '订单量', key: 'orderVolume', align: 'right', width: 100 },
+  { title: '订单金额', key: 'orderAmount', align: 'right', width: 100 },
+  { title: '广告费用', key: 'advertisingExpenses', align: 'right', width: 100 },
+  { title: '广告费用占比', key: 'proportionAdvertisingExpenses', align: 'right', width: 120 },
+  { title: '展示次数', key: 'displayCount', align: 'right', width: 100 },
+  { title: '点击量', key: 'hits', align: 'right', width: 100 },
+  { title: '添加购物车次数', key: 'shoppingCartcQuantity', align: 'right', width: 140 },
+  { title: '点击率', key: 'clickRate', align: 'right', width: 100 },
+  { title: '平均点击价格', key: 'averageClickPrice', align: 'right', width: 120 },
+  { title: '平均利率', key: 'averageInterestRate', align: 'right', width: 100 },
+  { title: 'CPM', key: 'cpm', align: 'right', width: 100 },
+  { title: '活动状态', key: 'activityState', align: 'center', fixed: 'right', width: 100 },
+  { title: '启用状态', key: 'state', align: 'center', fixed: 'right', width: 100 },
+  { title: '操作', key: 'operation', fixed: 'right', width: 80 }
 ]
 
 // 广告类型枚举
@@ -54,6 +54,7 @@ export const PLACEHOLDER_ENUM = {
 
 // 付款类型
 export const PAY_TYPE_OPTIONS = [
+  { label: '全部', value: undefined },
   { label: '按展示量', value: 'BANNER' },
   { label: '按点击量', value: 'SKU' },
   { label: '按订单', value: 'SEARCH_PROMO' }
@@ -61,12 +62,14 @@ export const PAY_TYPE_OPTIONS = [
 
 // 启用状态
 export const ENABLE_STATE_OPTIONS = [
+  { label: '全部', value: undefined },
   { label: '开启', value: 'CAMPAIGN_STATE_RUNNING' },
   { label: '关闭', value: 'CAMPAIGN_STATE_INACTIVE' }
 ]
 
 // 活动状态
 export const ACTIVE_STATE_OPTIONS = [
+  { label: '全部', value: undefined },
   { label: '进行中', value: 'CAMPAIGN_STATE_RUNNING' },
   { label: '未开始', value: '2' },
   { label: '已暂停', value: 'CAMPAIGN_STATE_INACTIVE' },

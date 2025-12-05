@@ -2,211 +2,221 @@
 <template>
   <div class="text-left">
     <!-- 搜索区 -->
-    <a-card>
-      <a-descriptions :column="1">
-        <a-descriptions-item label="店铺账号">
-          <TiledSelect
-            v-model:value="watchedSearchForm.account"
+    <AppTableForm
+      v-model:formData="searchForm"
+      reset-set-menu="publicationList"
+      @on-submit="search"
+    >
+      <template #formItemRow>
+        <a-form-item
+          label="店铺账号"
+          name="account"
+        >
+          <AppCardSelect
+            v-model:account="searchForm.account"
             :options="accountList"
-            :field-names="{ label: 'simpleName', value: 'account' }"
+            :field-obj="{ label: 'simpleName', value: 'account' }"
+            @selectItem="search"
           />
-        </a-descriptions-item>
-        <a-descriptions-item label="搜索类型">
-          <TiledSelect
-            v-model:value="lazySearchForm.searchKey"
-            :options="SEARCH_PROP_OPTIONS"
-            :append-all="false"
-          />
-        </a-descriptions-item>
-        <a-descriptions-item
-          label="搜索内容"
-          :content-style="{ 'flex-direction': 'column' }"
+        </a-form-item>
+        <a-form-item
+          label="刊登模式"
+          name="publishType"
         >
-          <a-space align="start">
-            <SearchContentInput
-              v-model:value="lazySearchForm.searchValue"
-              hide-control
-              :placeholder="PLACEHOLDER_ENUM[lazySearchForm.searchKey]"
-              @enter="search"
-            />
-            <a-button
-              type="primary"
-              :loading="state.loading"
-              @click="search"
-              >搜索</a-button
-            >
-          </a-space>
-        </a-descriptions-item>
-        <a-descriptions-item label="刊登模式">
-          <TiledSelect
-            v-model:value="watchedSearchForm.publishType"
+          <a-radio-group
+            v-model:value="searchForm.publishType"
             :options="PUBLISH_TYPE_OPTIONS"
+            name="publishType"
+            @change="search"
           />
-        </a-descriptions-item>
-      </a-descriptions>
-    </a-card>
-
-    <a-space class="my-4">
-      <a-button
-        type="primary"
-        :disabled="state.selectedRowKeys.length === 0"
-        @click="batchPublish"
-        >批量刊登</a-button
-      >
-      <a-button
-        type="primary"
-        :disabled="state.selectedRowKeys.length === 0"
-        @click="remarkModalOpen = true"
-        >批量备注</a-button
-      >
-      <a-popconfirm
-        title="确定取消刊登?"
-        :disabled="state.selectedRowKeys.length === 0"
-        @confirm="cancel()"
-      >
-        <a-button
-          type="primary"
-          danger
-          :disabled="state.selectedRowKeys.length === 0"
-          >批量取消</a-button
+        </a-form-item>
+        <a-form-item
+          label="模糊查询"
+          name="mult"
         >
-      </a-popconfirm>
-    </a-space>
+          <a-form-item-rest>
+            <a-space>
+              <a-input
+                v-model:value="searchForm.productName"
+                placeholder="标题"
+                allow-clear
+              />
+              <a-input
+                v-model:value="searchForm.skuCode"
+                placeholder="产品编码 SKU"
+                allow-clear
+              />
+              <a-input
+                v-model:value="searchForm.intelligentWaitProductId"
+                placeholder="产品ID"
+                allow-clear
+              />
+            </a-space>
+          </a-form-item-rest>
+        </a-form-item>
+      </template>
+    </AppTableForm>
 
     <!-- TABLE 区 -->
-    <a-card>
-      <div class="flex justify-between items-center">
-        <a-tabs
-          v-model:activeKey="activeTab"
-          :animated="false"
-          @change="search"
-        >
-          <a-tab-pane
-            v-for="item in TABS"
-            :key="item.value"
-            :tab="item.label"
-          ></a-tab-pane>
-        </a-tabs>
-        <a-pagination
+    <AppTableBox
+      :loading="state.loading"
+      :table-header="COLUMNS"
+      :data-source="tableData"
+      stripe
+      row-key="waitPublishProductId"
+      reset-set-menu="publicationList"
+      :scroll="{ x: 'max-content' }"
+      :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange }"
+      @rowDoubleClick="record => goEdit(record)"
+    >
+      <template #otherCount>
+        <div class="flex justify-between items-center">
+          <a-tabs
+            v-model:activeKey="activeTab"
+            :animated="false"
+            @change="search"
+          >
+            <a-tab-pane
+              v-for="item in TABS"
+              :key="item.value"
+              :tab="item.label"
+            ></a-tab-pane>
+          </a-tabs>
+        </div>
+      </template>
+
+      <template #leftTool>
+        <a-space>
+          <a-button
+            type="primary"
+            :disabled="state.selectedRowKeys.length === 0"
+            @click="batchPublish"
+            >批量刊登</a-button
+          >
+          <a-button
+            type="primary"
+            :disabled="state.selectedRowKeys.length === 0"
+            @click="remarkModalOpen = true"
+            >批量备注</a-button
+          >
+          <a-popconfirm
+            title="确定取消刊登?"
+            :disabled="state.selectedRowKeys.length === 0"
+            @confirm="cancel()"
+          >
+            <a-button
+              type="primary"
+              danger
+              :disabled="state.selectedRowKeys.length === 0"
+              >批量取消</a-button
+            >
+          </a-popconfirm>
+        </a-space>
+      </template>
+
+      <template #bodyCell="{ column, record, index }">
+        <template v-if="column.key === 'index'">
+          <div>{{ index + 1 + (tableParams.pageNum - 1) * tableParams.pageSize }}</div>
+        </template>
+        <template v-else-if="column.key === 'mainImage'">
+          <a-image
+            :src="fixedUrl(record)"
+            :width="80"
+            :height="80"
+            :fallback="EmptyImg"
+            class="object-contain border border-solid border-gray-200"
+          />
+        </template>
+        <template v-else-if="column.key === 'title'">
+          <div class="w-80">{{ record.productName || '--' }}</div>
+          <div>产品ID: {{ record.waitPublishProductId }}</div>
+        </template>
+        <template v-else-if="column.key === 'publishType'">
+          <div>{{ PUBLISH_TYPE_ENUM[record.publishType] || '--' }}</div>
+        </template>
+        <template v-else-if="column.key === 'publishStatus'">
+          <a-tooltip
+            v-if="record.errorMessage"
+            :title="record.errorMessage"
+            color="#fff"
+            :overlay-style="{ maxWidth: '500px' }"
+            :overlay-inner-style="{ color: '#ff4d4f' }"
+          >
+            <a-tag :color="STATUS_TAG_COLOR_ENUM[record.publishStatus]">{{ STATUS_ENUM[record.publishStatus] || '--' }}</a-tag>
+          </a-tooltip>
+          <a-tag
+            v-else
+            :color="STATUS_TAG_COLOR_ENUM[record.publishStatus]"
+            >{{ STATUS_ENUM[record.publishStatus] || '--' }}</a-tag
+          >
+        </template>
+        <template v-else-if="['skuCode', 'price', 'originalPrice', 'stock'].includes(column.key)">
+          <div
+            v-for="item in record.productSkuList"
+            :key="item.id"
+          >
+            <div class="text-center">{{ item[column.key] ?? '--' }}</div>
+            <a-divider
+              dashed
+              class="my-0"
+            />
+          </div>
+        </template>
+        <template v-else-if="column.key === 'time'">
+          <div>创建时间: {{ record.createTime || '--' }}</div>
+          <div>计划刊登时间: {{ record.planPublishTime || '--' }}</div>
+        </template>
+        <template v-else-if="column.key === 'remark'">
+          <div class="w-80">{{ record.remark || '--' }}</div>
+        </template>
+        <template v-else-if="column.key === 'operation'">
+          <a-space>
+            <a-button
+              type="link"
+              :disabled="![10, 40].includes(record.publishStatus)"
+              @click="publish(record)"
+              >刊登</a-button
+            >
+            <a-button
+              type="link"
+              @click="goEdit(record)"
+              >{{ [10, 40].includes(record.publishStatus) ? '编辑' : '查看' }}</a-button
+            >
+            <a-button
+              type="link"
+              @click="openRemorkModal(record)"
+              >备注</a-button
+            >
+            <a-button
+              type="link"
+              @click="goFather(record)"
+              >来源</a-button
+            >
+            <a-popconfirm
+              title="确定取消刊登?"
+              :disabled="record.publishStatus !== 10"
+              @confirm="cancel(record)"
+            >
+              <a-button
+                type="link"
+                danger
+                :disabled="record.publishStatus !== 10"
+                >取消</a-button
+              >
+            </a-popconfirm>
+          </a-space>
+        </template>
+      </template>
+
+      <template #pagination>
+        <AppTablePagination
           v-model:current="tableParams.pageNum"
           v-model:pageSize="tableParams.pageSize"
           :total="state.total"
-          :default-page-size="50"
-          show-size-changer
-          show-quick-jumper
-          :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
           @change="getList"
         />
-      </div>
-
-      <a-table
-        :loading="state.loading"
-        :columns="COLUMNS"
-        :data-source="tableData"
-        stripe
-        row-key="waitPublishProductId"
-        :pagination="false"
-        :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange }"
-        :custom-row="record => ({ onDblclick: () => goEdit(record) })"
-        :scroll="{ x: 'max-content' }"
-      >
-        <template #bodyCell="{ column, record, index }">
-          <template v-if="column.key === 'index'">
-            <div>{{ index + 1 + (tableParams.pageNum - 1) * tableParams.pageSize }}</div>
-          </template>
-          <template v-else-if="column.key === 'mainImage'">
-            <a-image
-              :src="fixedUrl(record)"
-              :width="80"
-              :height="80"
-              :fallback="EmptyImg"
-              class="object-contain border border-solid border-gray-200"
-            />
-          </template>
-          <template v-else-if="column.key === 'title'">
-            <div class="w-80">{{ record.productName || '--' }}</div>
-            <div>产品ID: {{ record.waitPublishProductId }}</div>
-          </template>
-          <template v-else-if="column.key === 'publishType'">
-            <div>{{ PUBLISH_TYPE_ENUM[record.publishType] || '--' }}</div>
-          </template>
-          <template v-else-if="column.key === 'publishStatus'">
-            <a-tooltip v-if="record.errorMessage" :title="record.errorMessage" color="#fff" :overlay-style="{ maxWidth: '500px' }" :overlay-inner-style="{ color: '#ff4d4f' }">
-              <a-tag :color="STATUS_TAG_COLOR_ENUM[record.publishStatus]">{{ STATUS_ENUM[record.publishStatus] || '--' }}</a-tag>
-            </a-tooltip>
-            <a-tag v-else :color="STATUS_TAG_COLOR_ENUM[record.publishStatus]">{{ STATUS_ENUM[record.publishStatus] || '--' }}</a-tag>
-          </template>
-          <template v-else-if="['skuCode', 'price', 'originalPrice', 'stock'].includes(column.key)">
-            <div
-              v-for="item in record.productSkuList"
-              :key="item.id"
-            >
-              <div class="text-center">{{ item[column.key] ?? '--' }}</div>
-              <a-divider
-                dashed
-                class="my-0"
-              />
-            </div>
-          </template>
-          <template v-else-if="column.key === 'time'">
-            <div>创建时间: {{ record.createTime || '--' }}</div>
-            <div>计划刊登时间: {{ record.planPublishTime || '--' }}</div>
-          </template>
-          <template v-else-if="column.key === 'remark'">
-            <div class="w-80">{{ record.remark || '--' }}</div>
-          </template>
-          <template v-else-if="column.key === 'operation'">
-            <a-space>
-              <a-button
-                type="link"
-                :disabled="![10, 40].includes(record.publishStatus)"
-                @click="publish(record)"
-                >刊登</a-button
-              >
-              <a-button
-                type="link"
-                @click="goEdit(record)"
-                >{{ [10, 40].includes(record.publishStatus) ? '编辑' : '查看' }}</a-button
-              >
-              <a-button
-                type="link"
-                @click="openRemorkModal(record)"
-                >备注</a-button
-              >
-              <a-button
-                type="link"
-                @click="goFather(record)"
-                >来源</a-button
-              >
-              <a-popconfirm
-                title="确定取消刊登?"
-                :disabled="record.publishStatus !== 10"
-                @confirm="cancel(record)"
-              >
-                <a-button
-                  type="link"
-                  danger
-                  :disabled="record.publishStatus !== 10"
-                  >取消</a-button
-                >
-              </a-popconfirm>
-            </a-space>
-          </template>
-        </template>
-      </a-table>
-
-      <a-pagination
-        v-model:current="tableParams.pageNum"
-        v-model:pageSize="tableParams.pageSize"
-        class="text-right mt-3"
-        :total="state.total"
-        :default-page-size="50"
-        show-size-changer
-        show-quick-jumper
-        :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
-        @change="getList"
-      />
-    </a-card>
+      </template>
+    </AppTableBox>
 
     <!-- 备注弹窗 -->
     <a-modal
@@ -239,13 +249,12 @@
 
   /** ======= data ======= */
   const accountList = ref([])
-  const watchedSearchForm = reactive({
+  const searchForm = reactive({
     account: undefined,
-    publishType: undefined
-  })
-  const lazySearchForm = reactive({
-    searchKey: 'productName',
-    searchValue: undefined
+    publishType: undefined,
+    productName: '',
+    skuCode: '',
+    intelligentWaitProductId: ''
   })
   const SEARCH_PROP_OPTIONS = [
     { label: '标题', value: 'productName' },
@@ -259,6 +268,7 @@
   }
   // 刊登模式选项
   const PUBLISH_TYPE_OPTIONS = [
+    { label: '全部', value: undefined },
     { label: '手动刊登', value: 2 },
     { label: '自动刊登', value: 1 }
   ]
@@ -290,15 +300,6 @@
   const remark = ref('')
   const remarkModalOpen = ref(false)
   const remarkLoading = ref(false)
-
-  /** ======= watch ======= */
-  watch(
-    () => watchedSearchForm,
-    _ => {
-      search()
-    },
-    { deep: true }
-  )
 
   /** ======= liftcycle hooks ======= */
   getAccountList()
@@ -332,9 +333,8 @@
     state.selectedRowKeys = []
     const params = {
       ...tableParams,
-      ...watchedSearchForm,
-      accountList: watchedSearchForm.account ? [watchedSearchForm.account] : accountList.value.map(item => item.account),
-      [lazySearchForm.searchKey]: lazySearchForm.searchValue,
+      ...searchForm,
+      accountList: searchForm.account ? [searchForm.account] : accountList.value.map(item => item.account),
       publishStatus: activeTab.value
     }
     delete params.account

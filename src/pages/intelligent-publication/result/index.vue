@@ -2,205 +2,52 @@
 <template>
   <div>
     <div>
-      <a-card class="mt-2.5">
-        <a-form
-          ref="ruleForm"
-          :model="formData"
-          class="form-padding"
-        >
-          <a-form-item label="店铺账号：">
-            <SelectComm
-              style="margin-left: 10px"
+      <!-- 搜索区 -->
+      <AppTableForm
+        v-model:formData="formData"
+        reset-set-menu="result"
+        @on-submit="search"
+      >
+        <template #formItemRow>
+          <a-form-item
+            label="店铺账号"
+            name="account"
+          >
+            <AppCardSelect
+              v-model:account="formData.account"
               :options="shopAccount"
-              :fieldObj="shopObj"
-              @backSelectAll="selectAll"
-              @backSelectItem="selectItem"
+              :field-obj="{ label: 'simpleName', value: 'account' }"
+              @selectItem="search"
             />
           </a-form-item>
-          <a-form-item label="搜索类型:">
-            <div class="fBox flex align-start ml-2.5">
-              <a-button
-                @click="selectTypes(item.prop)"
-                class="mr-2.5"
-                :type="item.prop === actives ? 'primary' : ''"
-                v-for="(item, index) in searchType"
-                :key="index"
-                >{{ item.label }}</a-button
-              >
-            </div>
-          </a-form-item>
-          <a-form-item label="搜索内容：">
-            <div class="searchs flex">
-              <div class="searchInputs flex align-start ml-2.5">
+          <a-form-item
+            label="模糊查询"
+            name="mult"
+          >
+            <a-form-item-rest>
+              <a-space>
                 <a-input
-                  v-if="actives == 1"
-                  style="width: 400px"
                   v-model:value="formData.name"
-                  placeholder="请输入标题查询"
-                  allowClear
-                  @clear="onSubmit"
-                ></a-input>
+                  placeholder="标题"
+                  allow-clear
+                />
                 <a-input
-                  v-if="actives == 2"
-                  style="width: 400px"
                   v-model:value="formData.sku"
-                  allowClear
-                  @clear="onSubmit"
-                  placeholder="请输入SKU查询,多个SKU间用逗号隔开，最多支持200个"
-                ></a-input>
+                  placeholder="SKU, 多个SKU间用逗号隔开，最多支持200个"
+                  allow-clear
+                />
                 <a-input
-                  v-if="actives == 3"
-                  style="width: 400px"
-                  allowClear
                   v-model:value="formData.id"
-                  @clear="onSubmit"
-                  placeholder="请输入产品ID查询,多个ID间用逗号隔开，最多支持200个"
-                ></a-input>
-              </div>
-              <a-button
-                type="primary"
-                class="ml-2.5"
-                @click="onSubmit(true)"
-                >查询</a-button
-              >
-              <a-button
-                type="link"
-                class="ml-2.5"
-                @click="advancedType = !advancedType"
-                >高级搜索</a-button
-              >
-            </div>
-          </a-form-item>
-          <a-form-item v-if="advancedType">
-            <a-form
-              :model="advancedForm"
-              ref="formRef"
-              class="text-left w-133 ml-20 py-5"
-              style="background-color: rgb(245, 245, 245)"
-              :labelAlign="'right'"
-              :labelCol="{ span: 7 }"
-            >
-              <a-form-item label="售价：">
-                <a-input-number
-                  style="width: 150px"
-                  :min="0"
-                  :max="99999999"
-                  :controls="false"
-                  v-model:value="advancedForm.minPrice"
-                  allowClear
-                ></a-input-number>
-                <span class="mx-2.5">-</span>
-                <a-input-number
-                  style="width: 150px"
-                  :min="0"
-                  :max="99999999"
-                  :controls="false"
-                  v-model:value="advancedForm.maxPrice"
-                  allowClear
-                ></a-input-number>
-              </a-form-item>
-              <a-form-item label="原价：">
-                <a-input-number
-                  style="width: 150px"
-                  :min="0"
-                  :max="99999999"
-                  :controls="false"
-                  v-model:value="advancedForm.minOldPrice"
-                  allowClear
-                ></a-input-number>
-                <span class="mx-2.5">-</span>
-                <a-input-number
-                  style="width: 150px"
-                  :min="0"
-                  :max="99999999"
-                  :controls="false"
-                  v-model:value="advancedForm.maxOldPrice"
-                  allowClear
-                ></a-input-number>
-              </a-form-item>
-              <a-form-item label="总库存：">
-                <a-input-number
-                  style="width: 150px"
-                  :min="0"
-                  :max="99999999"
-                  :controls="false"
-                  v-model:value="advancedForm.minStock"
-                  allowClear
-                ></a-input-number>
-                <span class="mx-2.5">-</span>
-                <a-input-number
-                  style="width: 150px"
-                  :min="0"
-                  :max="99999999"
-                  :controls="false"
-                  v-model:value="advancedForm.maxStock"
-                  allowClear
-                ></a-input-number>
-              </a-form-item>
-              <a-form-item>
-                <a-select
-                  ref="select"
-                  v-model:value="advancedForm.timeSearch"
-                  class="ml-6.5"
-                  style="width: 120px"
-                >
-                  <a-select-option value="update_time">更新时间</a-select-option>
-                  <a-select-option value="create_time">创建时间</a-select-option>
-                </a-select>
-                <a-range-picker
-                  class="ml-2.5"
-                  style="width: 320px"
-                  valueFormat="YYYY-MM-DD"
-                  v-model:value="advancedForm.time"
+                  placeholder="产品ID,多个ID间用逗号隔开，最多支持200个"
+                  allow-clear
                 />
-              </a-form-item>
-              <a-form-item>
-                <div class="text-right mr-15">
-                  <a-button
-                    type="link"
-                    @click="resetForm(1)"
-                    >取消</a-button
-                  >
-                  <a-button
-                    type="link"
-                    class="mx-2.5"
-                    @click="resetForm"
-                    >重置</a-button
-                  >
-                  <a-button
-                    type="primary"
-                    @click="onSubmit(true)"
-                    >搜索</a-button
-                  >
-                </div>
-              </a-form-item>
-            </a-form>
+              </a-space>
+            </a-form-item-rest>
           </a-form-item>
-          <a-form-item label="排序方式：">
-            <div class="flex align-start">
-              <a-button
-                v-for="item in strList"
-                :key="item.prop"
-                class="mx-2.5"
-                :type="item.prop === active.prop ? 'primary' : ''"
-                @click="storChange(item)"
-              >
-                <span>{{ item.label }}</span>
-                <AsyncIcon
-                  icon="CaretUpOutlined"
-                  v-if="item.prop === active.prop && active.type == 'bottom'"
-                />
-                <AsyncIcon
-                  icon="CaretDownOutlined"
-                  v-if="item.prop === active.prop && active.type == 'top'"
-                />
-              </a-button>
-            </div>
-          </a-form-item>
-        </a-form>
-      </a-card>
+        </template>
+      </AppTableForm>
 
-      <a-card class="my-2.5">
+      <a-card class="mt-2">
         <div
           style="width: 100%; height: 38px"
           class="flex justify-between"
@@ -269,11 +116,10 @@
             v-model:current="paginations.pageNum"
             v-model:pageSize="paginations.pageSize"
             :total="paginations.total"
-            class="pages mt-5 mb-2.5 text-right"
+            class="mt-5 mb-2.5 text-right"
             :show-quick-jumper="true"
             @change="getList"
             :showSizeChanger="true"
-            :pageSizeOptions="[50, 100, 200]"
           />
         </div>
         <div
@@ -326,7 +172,12 @@
                 ><span>总产品({{ tbItem.count }})</span>
               </div>
               <div class="mr-15px">
-                <a-button v-if="tbItem.count > 1" type="link" @click="edit(tbItem, 'all')">编辑总产品</a-button>
+                <a-button
+                  v-if="tbItem.count > 1"
+                  type="link"
+                  @click="edit(tbItem, 'all')"
+                  >编辑总产品</a-button
+                >
                 <!-- <a-dropdown>
                   <a
                     class="ant-dropdown-link mr-15px block"
@@ -849,68 +700,6 @@
                       >
                     </a-popconfirm>
                   </a-space>
-
-                  <!-- <a-row>
-                    <a-col
-                      :span="11"
-                      v-if="record.state !== '已归档'"
-                    >
-                      <a-button
-                        @click.stop="edit(record, 'single')"
-                        type="text"
-                        class="text-[#0b56fa]"
-                        >编辑</a-button
-                      >
-                    </a-col>
-                    <a-col :span="11">
-                      <a-dropdown>
-                        <a class="ant-dropdown-link">
-                          更多
-                          <DownOutlined />
-                        </a>
-                        <template #overlay>
-                          <a-menu>
-                            <a-menu-item
-                              style="color: #67c23a"
-                              @click="syncOne(record)"
-                            >
-                              同步
-                            </a-menu-item>
-                            <a-menu-item
-                              style="color: #0d9888"
-                              @click="copyItems(record, 'single')"
-                            >
-                              复制
-                            </a-menu-item>
-                            <a-menu-item
-                              v-if="record.state !== '已归档'"
-                              style="color: #e6a23c"
-                            >
-                              <a-popconfirm
-                                ok-text="确定"
-                                cancel-text="取消"
-                                title="归档吗？"
-                                @confirm="deactivate(record)"
-                              >
-                                <span>归档</span>
-                              </a-popconfirm>
-                            </a-menu-item>
-                            <a-menu-item @click="addRemark(record)"> 备注 </a-menu-item>
-                            <a-menu-item style="color: red">
-                              <a-popconfirm
-                                ok-text="确定"
-                                cancel-text="取消"
-                                title="删除代表该产品在ozon平台删除，确定删除吗？"
-                                @confirm="deleteItem(record)"
-                              >
-                                <span>删除</span>
-                              </a-popconfirm>
-                            </a-menu-item>
-                          </a-menu>
-                        </template>
-                      </a-dropdown>
-                    </a-col>
-                  </a-row> -->
                 </div>
               </template>
             </a-table>
@@ -921,11 +710,10 @@
           v-model:current="paginations.pageNum"
           v-model:pageSize="paginations.pageSize"
           :total="paginations.total"
-          class="pages mt-5 mb-2.5 text-right"
+          class="mt-5 mb-2.5 text-right"
           :show-quick-jumper="true"
           @change="getList"
           :showSizeChanger="true"
-          :pageSizeOptions="[50, 100, 200]"
         />
       </a-card>
     </div>
@@ -1204,15 +992,6 @@
         getList()
       }
     })
-  }
-  // 店铺单选多选
-  const selectAll = () => {
-    formData.account = ''
-    getList()
-  }
-  const selectItem = val => {
-    formData.account = val
-    getList()
   }
   const backToTop = () => {
     let elements = document.getElementsByClassName('ant-layout-content')
@@ -1921,6 +1700,11 @@
         })
       }
     })
+  }
+
+  const search = () => {
+    paginations.pageNum = 1
+    getList()
   }
 
   const shopSet = () => {

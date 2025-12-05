@@ -1,4 +1,12 @@
 export default [
+    {
+    title: '序号',
+    dataIndex: 'index',
+    key: 'index',
+    align: 'center',
+    width: 60,
+    fixed: 'left',
+  },
   {
     title: '账号Code',
     dataIndex: 'account',
@@ -21,19 +29,19 @@ export default [
     title: '是否推送库存',
     dataIndex: 'isPushStock',
     align: "center",
-    width: 200,
+    width: 120,
   },
   {
     title: '库存推送比例',
     dataIndex: 'pushRatio',
     align: "center",
-    width: 200,
+    width: 120,
   },
   {
     title: '是否自动刊登',
     dataIndex: 'autoPublish',
     align: "center",
-    width: 150,
+    width: 120,
   },
   {
     title: '简称',
@@ -63,10 +71,11 @@ export default [
     title: '修改时间',
     dataIndex: 'updateTime',
     align: "center",
-    width: 200,
+    width: 150,
   },
   {
     title: '创建时间',
+    width: 150,
     dataIndex: 'createTime',
     align: "center",
   },

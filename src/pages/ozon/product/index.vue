@@ -5,87 +5,110 @@
       <SideBar class="flex-none w-70" page-type="online" :default-active="defaultActive" :total-count="totalCount"
         :publish-failed-count="publishFailedCount" @draft-emit="handleDraftEmit" @wait-emit="handleWaitEmit"
         @online-emit="handleOnlineEmit" />
+
       <div class="flex-1 ml-3">
+        <AppTableForm
+          v-model:formData="formData"
+          reset-set-menu="ozonProduct"
+          :hide-name-list="['price', 'oldPrice', 'stock', 'updateTime']"
+          @on-submit="search"
+        >
+          <template #formItemBox>
+            <a-form-item
+              label="创建时间"
+              name="createTime"
+            >
+              <a-range-picker
+                v-model:value="formData.createTime"
+                :presets="presets"
+                :disabled-date="cur => cur && cur > Date.now()"
+              />
+            </a-form-item>
+            <a-form-item
+              label="更新时间"
+              name="updateTime"
+            >
+              <a-range-picker
+                v-model:value="formData.updateTime"
+                :presets="presets"
+                :disabled-date="cur => cur && cur > Date.now()"
+              />
+            </a-form-item>
+            <a-form-item label="售价" name="price">
+              <div class="flex">
+                <a-input-number :min="0" :max="99999" :controls="false"
+                  v-model:value="formData.minPrice" allowClear placeholder="最小" class="w-22!" />
+                <span class="mx-2.5">-</span>
+                <a-form-item-rest>
+                  <a-input-number :min="0" :max="99999" :controls="false"
+                    v-model:value="formData.maxPrice" allowClear placeholder="最大" class="w-22!" />
+                </a-form-item-rest>
+              </div>
+            </a-form-item>
+            <a-form-item label="原价" name="oldPrice">
+              <div class="flex">
+                <a-input-number :min="0" :max="99999" :controls="false"
+                  v-model:value="formData.minOldPrice" allowClear placeholder="最小" class="w-22!" />
+                <span class="mx-2.5">-</span>
+                <a-form-item-rest>
+                  <a-input-number :min="0" :max="99999" :controls="false"
+                    v-model:value="formData.maxOldPrice" allowClear placeholder="最大" class="w-22!" />
+                </a-form-item-rest>
+              </div>
+            </a-form-item>
+            <a-form-item label="总库存" name="stock">
+              <div class="flex">
+                <a-input-number :min="0" :max="99999" :controls="false"
+                  v-model:value="formData.minStock" allowClear placeholder="最小" class="w-22!" />
+                <span class="mx-2.5">-</span>
+                <a-form-item-rest>
+                  <a-input-number :min="0" :max="99999" :controls="false"
+                    v-model:value="formData.maxStock" allowClear placeholder="最大" class="w-22!" />
+                </a-form-item-rest>
+              </div>
+            </a-form-item>
+            <a-form-item
+              label="店铺账号"
+              name="account"
+            >
+              <AppCardSelect
+                v-model:account="formData.account"
+                :options="shopAccount"
+                :field-obj="{ label: 'simpleName', value: 'account' }"
+                @selectItem="search"
+              />
+            </a-form-item>
+          </template>
+          
+          <template #formItemRow>
+            <a-form-item
+              label="模糊查询"
+              name="mult"
+            >
+              <a-form-item-rest>
+                <a-space>
+                  <a-input
+                    v-model:value="formData.name"
+                    placeholder="标题"
+                    allow-clear
+                  />
+                  <a-input
+                    v-model:value="formData.sku"
+                    placeholder="SKU, 多个SKU间用逗号隔开，最多支持200个"
+                    allow-clear
+                  />
+                  <a-input
+                    v-model:value="formData.id"
+                    placeholder="产品ID,多个ID间用逗号隔开，最多支持200个"
+                    allow-clear
+                  />
+                </a-space>
+              </a-form-item-rest>
+            </a-form-item>
+          </template>
+        </AppTableForm>
+
         <a-card class="mt-2.5">
-          <a-form ref="ruleForm" :model="formData" class="form-padding">
-            <a-form-item label="店铺账号：">
-              <selectComm style="margin-left: 10px" :options="shopAccount" :fieldObj="shopObj"
-                @backSelectAll="selectAll" @backSelectItem="selectItem"></selectComm>
-            </a-form-item>
-            <a-form-item label="搜索类型:">
-              <div class="fBox flex align-start ml-2.5">
-                <a-button @click="selectTypes(item.prop)" class="mr-2.5" :type="item.prop === actives ? 'primary' : ''"
-                  v-for="(item, index) in searchType" :key="index">{{ item.label }}</a-button>
-              </div>
-            </a-form-item>
-            <a-form-item label="搜索内容：">
-              <div class="searchs flex">
-                <div class="searchInputs flex align-start ml-2.5">
-                  <a-input v-if="actives == 1" style="width: 400px" v-model:value="formData.name" placeholder="请输入标题查询"
-                    allowClear @clear="onSubmit"></a-input>
-                  <a-input v-if="actives == 2" style="width: 400px" v-model:value="formData.sku" allowClear
-                    @clear="onSubmit" placeholder="请输入SKU查询,多个SKU间用逗号隔开，最多支持200个"></a-input>
-                  <a-input v-if="actives == 3" style="width: 400px" allowClear v-model:value="formData.id"
-                    @clear="onSubmit" placeholder="请输入产品ID查询,多个ID间用逗号隔开，最多支持200个"></a-input>
-                </div>
-                <a-button type="primary" class="ml-2.5" @click="onSubmit(true)">查询</a-button>
-                <a-button type="link" class="ml-2.5" @click="advancedType = !advancedType">高级搜索</a-button>
-              </div>
-            </a-form-item>
-            <a-form-item v-if="advancedType">
-              <a-form :model="advancedForm" ref="formRef" class="text-left w-133 ml-20 py-5"
-                style="background-color: rgb(245, 245, 245)" :labelAlign="'right'" :labelCol="{ span: 7 }">
-                <a-form-item label="售价：">
-                  <a-input-number style="width: 150px" :min="0" :max="99999999" :controls="false"
-                    v-model:value="advancedForm.minPrice" allowClear></a-input-number>
-                  <span class="mx-2.5">-</span>
-                  <a-input-number style="width: 150px" :min="0" :max="99999999" :controls="false"
-                    v-model:value="advancedForm.maxPrice" allowClear></a-input-number>
-                </a-form-item>
-                <a-form-item label="原价：">
-                  <a-input-number style="width: 150px" :min="0" :max="99999999" :controls="false"
-                    v-model:value="advancedForm.minOldPrice" allowClear></a-input-number>
-                  <span class="mx-2.5">-</span>
-                  <a-input-number style="width: 150px" :min="0" :max="99999999" :controls="false"
-                    v-model:value="advancedForm.maxOldPrice" allowClear></a-input-number>
-                </a-form-item>
-                <a-form-item label="总库存：">
-                  <a-input-number style="width: 150px" :min="0" :max="99999999" :controls="false"
-                    v-model:value="advancedForm.minStock" allowClear></a-input-number>
-                  <span class="mx-2.5">-</span>
-                  <a-input-number style="width: 150px" :min="0" :max="99999999" :controls="false"
-                    v-model:value="advancedForm.maxStock" allowClear></a-input-number>
-                </a-form-item>
-                <a-form-item>
-                  <a-select ref="select" v-model:value="advancedForm.timeSearch" class="ml-6.5" style="width: 120px">
-                    <a-select-option value="update_time">更新时间</a-select-option>
-                    <a-select-option value="create_time">创建时间</a-select-option>
-                  </a-select>
-                  <a-range-picker class="ml-2.5" style="width: 320px" valueFormat="YYYY-MM-DD"
-                    v-model:value="advancedForm.time" />
-                </a-form-item>
-                <a-form-item>
-                  <div class="text-right mr-15">
-                    <a-button type="link" @click="resetForm(1)">取消</a-button>
-                    <a-button type="link" class="mx-2.5" @click="resetForm">重置</a-button>
-                    <a-button type="primary" @click="onSubmit(true)">搜索</a-button>
-                  </div>
-                </a-form-item>
-              </a-form>
-            </a-form-item>
-            <a-form-item label="排序方式：">
-              <div class="flex align-start">
-                <a-button v-for="item in strList" :key="item.prop" class="mx-2.5"
-                  :type="item.prop === active.prop ? 'primary' : ''" @click="storChange(item)">
-                  <span>{{ item.label }}</span>
-                  <AsyncIcon icon="CaretUpOutlined" v-if="item.prop === active.prop && active.type == 'bottom'" />
-                  <AsyncIcon icon="CaretDownOutlined" v-if="item.prop === active.prop && active.type == 'top'" />
-                </a-button>
-              </div>
-            </a-form-item>
-          </a-form>
-        </a-card>
-        <a-card class="my-2.5">
           <div style="width: 100%; height: 38px" class="flex justify-between">
             <div>
               <a-space :size="10">
@@ -165,12 +188,12 @@
             </a-tabs>
             <a-pagination :show-total="total => `共 ${total} 条`" v-model:current="paginations.pageNum"
               v-model:pageSize="paginations.pageSize" :total="paginations.total" class="pages mt-5 mb-2.5 text-right"
-              :show-quick-jumper="true" @change="getList" :showSizeChanger="true" :pageSizeOptions="[50, 100, 200]" />
+              :show-quick-jumper="true" @change="getList" :showSizeChanger="true" />
           </div>
           <div class="outContent" v-loading="loading">
             <div class="topHeader">
               <a-checkbox style="margin-right: 70px" v-model:checked="allChecked" @change="allChangeBox"></a-checkbox>
-              <a-table style="width: 100%; height: 39px" class="fixedTable" :columns="dropCol">
+              <a-table style="width: 100%; height: 39px" class="fixedTable" :columns="dropCol" @change="handleTableChange">
               </a-table>
             </div>
             <div v-if="selectedRows.length != 0" class="h-7.5 pl-5 lh-7.5 text-left" style="background-color: #ffffcd">
@@ -217,12 +240,7 @@
                         ''
                       )" />
                       <div class="block ml-2.5">
-                        <a-tooltip class="item">
-                          <template #title>
-                            <span>{{ record.name }}</span>
-                          </template>
-                          <div class="truncate prodTitle">{{ record.name }}</div>
-                        </a-tooltip>
+                        <div class="prodTitle">{{ record.name }}</div>
                         <div class="float-left text-[#999]">
                           产品ID：
                           <a-tooltip placement="top">
@@ -481,19 +499,16 @@
                       </div>
                     </div>
                   </div>
-                  <div v-else-if="column.dataIndex === 'createdAt'" class="flex flex-col items-start">
-                    <div>
-                      创建时间：<span class="text-[#9e9f9e]">{{ timestampToDateTime(record.createTime) }}</span>
-                    </div>
-                    <div>
-                      更新时间：<span class="text-[#9e9f9e]">{{ timestampToDateTime(record.updateTime) }}</span>
-                    </div>
+                  <div v-else-if="column.dataIndex === 'create_time'">
+                    <span class="text-gray">{{ record.createTime || '--' }}</span>
+                  </div>
+                  <div v-else-if="column.dataIndex === 'update_time'">
+                    <span class="text-gray">{{ record.updateTime || '--' }}</span>
                   </div>
                   <div v-else-if="column.dataIndex === 'option'">
                     <a-row>
                       <a-col :span="11" v-if="record.state !== '已归档'">
                         <a-button @click.stop="edit(record, 'single')" type="text" class="text-[#0b56fa]">编辑</a-button>
-
                       </a-col>
                       <a-col :span="11">
                         <a-dropdown>
@@ -532,7 +547,7 @@
           </div>
           <a-pagination :show-total="total => `共 ${total} 条`" v-model:current="paginations.pageNum"
             v-model:pageSize="paginations.pageSize" :total="paginations.total" class="pages mt-5 mb-2.5 text-right"
-            :show-quick-jumper="true" @change="getList" :showSizeChanger="true" :pageSizeOptions="[50, 100, 200]" />
+            :show-quick-jumper="true" @change="getList" :showSizeChanger="true" />
         </a-card>
       </div>
     </div>
@@ -618,26 +633,26 @@ const formData = reactive({
   account: "",
   sku: "",
   name: "",
-  prop: "create_time",
-  order: "desc",
   state: "",
-});
-const paginations = reactive({
-  pageNum: 1,
-  pageSize: 50,
-  total: 0,
-});
-const advancedForm = reactive({
   minPrice: null,
   maxPrice: null,
   minOldPrice: null,
   maxOldPrice: null,
   minStock: null,
   maxStock: null,
-  // isRemark: "",
-  timeSearch: "update_time",
-  time: [],
+  createTime: [],
+  updateTime: [],
 });
+const paginations = reactive({
+  pageNum: 1,
+  pageSize: 50,
+  total: 0,
+});
+const presets = ref([
+  { label: '昨天', value: [dayjs().add(-1, 'd'), dayjs()] },
+  { label: '7天内', value: [dayjs().add(-7, 'd'), dayjs()] },
+  { label: '30天内', value: [dayjs().add(-30, 'd'), dayjs()] },
+])
 const dropCol = tableHead;
 let tabList = tabDicList;
 let discLists = attrList;
@@ -692,66 +707,10 @@ const errorColumns = [
     width: 200,
   },
 ];
-const actives = ref(1);
-const sortObj = reactive({
-  sortField: "create_time",
-  sortType: "desc",
-});
-const searchType = [
-  {
-    label: "标题",
-    prop: 1,
-  },
-  {
-    label: "SKU",
-    prop: 2,
-  },
-  {
-    label: "产品ID",
-    prop: 3,
-  },
-];
 const shopObj = {
   fieldKey: "account",
   fieldLabel: "simpleName",
 };
-const active = ref({
-  label: "按创建时间",
-  value: "create_time",
-  type: "top",
-  prop: 1,
-  isDefault: true,
-}); // 默认按下单时间查询
-const strList = ref([
-  {
-    label: "按创建时间",
-    value: "create_time",
-    type: "top",
-    prop: 1,
-    isDefault: true,
-  },
-  {
-    label: "按更新时间",
-    type: "bottom",
-    value: "update_time",
-    prop: 2,
-    isDefault: false,
-  },
-  {
-    label: "按售价",
-    value: "price",
-    type: "top",
-    prop: 3,
-    isDefault: false,
-  },
-  {
-    label: "按总库存量",
-    value: "stock",
-    type: "top",
-    prop: 4,
-    isDefault: false,
-  },
-]);
 
 const getStateColor = (state) => {
   const colorMap = {
@@ -866,58 +825,6 @@ const remarkColor = (param) => {
     return item.id === param;
   });
   return findItem ? findItem.color : "#000000";
-};
-
-// 搜索内容
-const selectTypes = (index) => {
-  actives.value = index;
-  switch (index) {
-    case 1:
-      formData.sku = "";
-      formData.id = "";
-      break;
-    case 2:
-      formData.name = "";
-      formData.id = "";
-      break;
-    case 3:
-      formData.sku = "";
-      formData.name = "";
-      break;
-    default:
-      break;
-  }
-};
-
-// 高级搜索重置
-const resetForm = (type = 0) => {
-  formData.sku = "";
-  formData.id = "";
-  formData.name = "";
-  advancedForm.minPrice = null;
-  advancedForm.maxPrice = null;
-  advancedForm.minOldPrice = null;
-  advancedForm.maxOldPrice = null;
-  advancedForm.minStock = null;
-  advancedForm.maxStock = null;
-  // advancedForm.isRemark = ""
-  advancedForm.timeSearch = "update_time";
-  advancedForm.time = [];
-  advancedType.value = type == 1 ? false : true;
-  paginations.pageNum = 1
-  paginations.pageSize = 50
-  getList();
-};
-
-// 排序方式
-const storChange = (item) => {
-  item.type = item.type === "top" ? "bottom" : "top";
-  active.value = item;
-  sortObj.sortField = item.value;
-  sortObj.sortType = item.type === "top" ? "desc" : "asc";
-  formData.order = item.type === "top" ? "desc" : "asc";
-  formData.prop = item.value;
-  getList();
 };
 
 // 表单搜索
@@ -1506,51 +1413,43 @@ const syncHisAttr = () => {
     });
 };
 
-const timestampToDateTime = (timestamp) => {
-  if (timestamp == null || timestamp == "") {
-    return "无";
-  }
-  return timestamp;
-};
-
 // 获取店铺数据
 const getList = () => {
-  if (advancedForm.minPrice > advancedForm.maxPrice) {
+  if (formData.minPrice > formData.maxPrice) {
     message.error("最大售价必须大于最小售价！");
     return;
   }
-  if (advancedForm.minOldPrice > advancedForm.maxOldPrice) {
+  if (formData.minOldPrice > formData.maxOldPrice) {
     message.error("最大原价必须大于最小原价！");
     return;
   }
-  if (advancedForm.minStock > advancedForm.maxStock) {
+  if (formData.minStock > formData.maxStock) {
     message.error("最大库存必须大于最小库存！");
     return;
   }
   loading.value = true;
   let params = {
     ...formData,
+    ...sortObj,
     customCategoryId: categoryId,
-    // ...advancedForm,
-    ...Object.entries(advancedForm).reduce((acc, [key, value]) => {
-      // 过滤掉 timeSearch 和 time 字段
-      if (["time"].includes(key)) return acc;
-
-      // 保留原有转换逻辑并添加字符串转换
-      if (value !== null && value !== undefined && value !== '') {
-        acc[key] = typeof value === 'number' ? String(value) : value;
-      }
-      return acc;
-    }, {}),
-    startDateTime: advancedForm.time.length
-      ? dayjs(advancedForm.time[0]).startOf("day").format("YYYY-MM-DD HH:mm:ss")
+    startUpdateTime: formData.updateTime.length
+      ? dayjs(formData.updateTime[0]).startOf("day").format("YYYY-MM-DD HH:mm:ss")
       : undefined,
-    endDateTime: advancedForm.time.length
-      ? dayjs(advancedForm.time[1]).endOf("day").format("YYYY-MM-DD HH:mm:ss")
+    endUpdateTime: formData.updateTime.length
+      ? dayjs(formData.updateTime[1]).endOf("day").format("YYYY-MM-DD HH:mm:ss")
+      : undefined,
+    startCreateTime: formData.createTime.length
+      ? dayjs(formData.createTime[0]).startOf("day").format("YYYY-MM-DD HH:mm:ss")
+      : undefined,
+    endCreateTime: formData.createTime.length
+      ? dayjs(formData.createTime[1]).endOf("day").format("YYYY-MM-DD HH:mm:ss")
       : undefined,
     pageNum: paginations.pageNum,
     pageSize: paginations.pageSize,
   };
+  delete params.createTime;
+  delete params.updateTime;
+
   list(params)
     .then((res) => {
       tableData.value =
@@ -1576,6 +1475,28 @@ const getList = () => {
     tabQuantity.value = res?.data?.rows ?? [];
     paginations.total = res?.data?.total ?? 0;
   });
+};
+
+const search = () => {
+  paginations.pageNum = 1
+  getList()
+}
+
+const sortObj = reactive({
+  prop: "create_time",
+  order: "desc",
+});
+// 表格排序
+const handleTableChange = (pagination, filters, sorter) => {
+  console.log(sorter);
+  if (sorter.order) {
+    sortObj.prop = sorter.field;
+    sortObj.order = sorter.order === "ascend" ? "asc" : "desc";
+  } else {
+    sortObj.prop = undefined;
+    sortObj.order = undefined;
+  }
+  getList();
 };
 
 const shopSet = () => {

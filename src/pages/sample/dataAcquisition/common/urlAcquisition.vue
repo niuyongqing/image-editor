@@ -1,187 +1,187 @@
 <template>
   <div id="urlAcquisition" class="urlAcquisition text-left">
-    <a-card class="text-left my-2.5">
-      <template #title>
+    <appTableForm 
+      :form-data="formData" 
+      resetSetMenu="urlAcquisition-form"
+      label-width="80"
+      @onSubmit="onSubmit()"
+    >
+      <template #formCardTitle>
         采集地址--单品采集（目前仅支持插件采集，请
         <span style="font-weight: 700; color: #1677ff; cursor: pointer;" @click="loadDescribe">下载采集插件</span>
         ！）
       </template>
-      <a-spin :spinning="tableInfo.spinning">
-        <!-- <a-textarea v-model:value="dataUrl.url" placeholder="请填写产品的网址,多个网址用Enter换行" :auto-size="{ minRows: 7 }" />
-        <div class="flex mt-2.5 justify-between">
-          <div>
-            <span style="color: #999;">您还未安装采集插件，建议使用</span>
-            <span style="color: #1677ff;cursor: pointer;">采集插件</span><span style="color: #999;">，功能更稳定更快速！</span><span
-              style="color: #1677ff;cursor: pointer;" @click="showTeps = true">如何使用插件采集>></span>
-          </div>
-          <div>
-            <a-button type="primary" @click="acquisition">开始采集</a-button>
-            <a-button class="ml-2.5" @click="clearArea">清空</a-button>
-          </div>
-        </div> -->
-        <div class="mt-2.5">
-          <a-form ref="ruleForm" :model="formData" :labelCol="{ span: 1 }">
-            <a-form-item label="数据来源：">
-              <div class="flex justify-between">
-                <selectComm class="ml-2.5" :options="formBtnInfo.shopAccount" :fieldObj="shopObj"
-                  @backSelectAll="selectAll" @backSelectItem="selectItem"></selectComm>
-                <a-button @click="isShowSearch = !isShowSearch">{{ isShowSearch ? '收起' : '展开' }}</a-button>
-              </div>
-            </a-form-item>
-            <a-form-item label="搜索类型:" v-show="isShowSearch">
-              <div class="fBox flex align-start ml-2.5">
-                <a-button @click="selectTypes(item.prop)" class="mr-2.5" :type="item.prop === actives ? 'primary' : ''"
-                  v-for="(item, index) in formBtnInfo.searchType" :key="index">{{ item.label }}</a-button>
-              </div>
-            </a-form-item>
-            <a-form-item label="搜索内容：" v-show="isShowSearch">
-              <div class="searchs flex">
-                <div class="searchInputs flex align-start ml-2.5">
-                  <a-input v-if="actives == 1" style="width: 400px;" v-model:value="formData.name" placeholder="请输入标题查询"
-                    allowClear @clear="onSubmit"></a-input>
-                  <a-input v-if="actives == 2" style="width: 400px;" v-model:value="formData.url" allowClear
-                    @clear="onSubmit" placeholder="请输入url"></a-input>
-                </div>
-                <a-button type="primary" class="ml-2.5" @click="onSubmit(true)">查询</a-button>
-              </div>
-            </a-form-item>
-            <a-form-item label="采集时间：" v-show="isShowSearch">
-              <selectComm class="ml-2.5" :options="formBtnInfo.acquisitionTimes" :fieldObj="timeObj"
-                @backSelectAll="selectTimeAll" @backSelectItem="selectTimeItem"></selectComm>
-            </a-form-item>
-            <a-form-item label="时间选择：" v-show="formData.time === 'customize'">
-              <a-range-picker class="ml-2.5" v-model:value="formData.searchTime" format="YYYY-MM-DD"
-                value-format="YYYY-MM-DD" @change="pickerChange" />
-            </a-form-item>
-            <a-form-item label="备注：" v-show="isShowSearch">
-              <a-select v-model:value="formData.isRemark" class="ml-2.5" style="width: 150px" allowClear
-                @change="isRemarkSelect">
-                <a-select-option value="1">有备注</a-select-option>
-                <a-select-option value="0">无备注</a-select-option>
-              </a-select>
-            </a-form-item>
-          </a-form>
+      <template #formItemBox>
+        <a-form-item label="数据来源" name="platform">
+          <appCardSelect 
+            v-model:account="formData.platform"
+            :options="formBtnInfo.shopAccount"
+            :field-obj="{value: 'account', label: 'simpleName'}"
+            @selectItem="selectItem"
+            style="width: 200px;"
+            :cardContentStyle="{ width: '400px' }"
+          ></appCardSelect>
+        </a-form-item>
+        <a-form-item label="标题" name="name">
+          <a-input v-model:value="formData.name" placeholder="请输入标题查询" allowClear @clear="onSubmit"></a-input>
+        </a-form-item>
+        <a-form-item label="来源URL" name="url">
+          <a-input v-model:value="formData.url" placeholder="请输入url" allowClear @clear="onSubmit"></a-input>
+        </a-form-item>
+        <a-form-item label="采集时间" name="searchTime">
+          <appCardSelect 
+            v-model:account="formData.searchTime"
+            :options="formBtnInfo.acquisitionTimes"
+            @selectItem="selectTimeItem"
+            style="width: 200px;"
+            :cardContentStyle="{ width: '400px' }"
+          ></appCardSelect>
+        </a-form-item>
+        <a-form-item label="备注" name="isRemark">
+          <a-select v-model:value="formData.isRemark" allowClear @change="isRemarkSelect">
+            <a-select-option value="1">有备注</a-select-option>
+            <a-select-option value="0">无备注</a-select-option>
+          </a-select>
+        </a-form-item>
+      </template>
+    </appTableForm>
+    <appTableBox 
+      :data-source="tableInfo.data" 
+      :table-header="columns" 
+      :row-selection="rowSelection"
+      reset-set-menu="urlAcquisition-table"
+      row-key="id"
+      :loading="tableInfo.spinning"
+      :auto-height="false"
+    >
+      <template #otherCount>
+        <div style="display: flex;">
+          <a-tabs v-model:activeKey="activeName" style="width: 800px;" @change="tabsChange">
+            <a-tab-pane :key="item.prop" v-for="item in formBtnInfo.tabList">
+              <template #tab>
+                {{ item.label + `(${item.value})` }}
+                <a-tooltip :overlayInnerStyle="{ width: '300px' }" color="#fff" placement="right">
+                  <template #title>
+                    <span class=" text-black">通用采集箱超过180天的采集数据将会被删除，请及时认领
+                    </span>
+                  </template>
+                  <AsyncIcon v-if="item.prop === 1" icon="QuestionCircleOutlined" class="ml-2.5" />
+                </a-tooltip>
+              </template>
+            </a-tab-pane>
+          </a-tabs>
+          <appTablePagination
+            v-model:current="pages.pageNum"
+            v-model:page-size="pages.pageSize"
+            :total="tableInfo.total"
+            @pageNumChange="pageNumChange"
+            @pageSizeChange="pageSizeChange"
+          ></appTablePagination>
         </div>
-      </a-spin>
-    </a-card>
-    <a-card :loading="tableInfo.spinning">
-      <div class="flex my-2.5">
-        <a-space>
-          <a-button @click="batchClaim('acquisition')" type="primary"
-            :disabled="tableInfo.selectedRowKeys.length < 1">批量认领至采集箱</a-button>
-          <a-dropdown :trigger="['click']" :disabled="tableInfo.selectedRowKeys.length < 1">
-            <a-button type="primary" @click.prevent>
-              批量操作
-              <AsyncIcon icon="DownOutlined" class="ml-2.5" />
-            </a-button>
-            <template #overlay>
-              <a-menu @click="({ key }) => dropdownClick(key, tableInfo.selectedRowKeys)">
-                <a-menu-item key="remarkModal">批量备注</a-menu-item>
-                <a-menu-item key="del">批量删除</a-menu-item>
-              </a-menu>
-            </template>
-          </a-dropdown>
-          <a-dropdown :trigger="['click']" :destroyPopupOnHide="true" overlayClassName="urlAcquisition-typeTree_overlay"
-            :disabled="tableInfo.selectedRowKeys.length < 1">
-            <a-button type="primary" @click.prevent>
-              移动分类
-              <AsyncIcon icon="DownOutlined" class="ml-2.5" />
-            </a-button>
-            <template #overlay>
-              <typeTree :platform="'public'" @nodeClick="typeNodeClick"></typeTree>
-            </template>
-          </a-dropdown>
-        </a-space>
-      </div>
-      <a-tabs v-model:activeKey="activeName" style="width: 800px;" @change="tabsChange">
-        <a-tab-pane :key="item.prop" v-for="item in formBtnInfo.tabList">
-          <template #tab>
-            {{ item.label + `(${item.value})` }}
-            <a-tooltip :overlayInnerStyle="{ width: '300px' }" color="#fff" placement="right">
-              <template #title>
-                <span class=" text-black">通用采集箱超过180天的采集数据将会被删除，请及时认领
-                </span>
-              </template>
-              <AsyncIcon v-if="item.prop === 1" icon="QuestionCircleOutlined" class="ml-2.5" />
-            </a-tooltip>
+      </template>
+      <template #leftTool>
+        <a-button @click="batchClaim('acquisition')" type="primary"
+          :disabled="tableInfo.selectedRowKeys.length < 1">批量认领至采集箱</a-button>
+        <a-dropdown :trigger="['click']" :disabled="tableInfo.selectedRowKeys.length < 1">
+          <a-button type="primary" @click.prevent>
+            批量操作
+            <AsyncIcon icon="DownOutlined" class="ml-2.5" />
+          </a-button>
+          <template #overlay>
+            <a-menu @click="({ key }) => dropdownClick(key, tableInfo.selectedRowKeys)">
+              <a-menu-item key="remarkModal">批量备注</a-menu-item>
+              <a-menu-item key="del">批量删除</a-menu-item>
+            </a-menu>
           </template>
-        </a-tab-pane>
-      </a-tabs>
-
-      <a-table :data-source="tableInfo.data" style="width: 100%;" bordered :columns="columns" :pagination="false"
-        ref="OzonProduct" :row-selection="rowSelection" :rowKey="(row) => row">
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.dataIndex == 'imageList'">
-            <div style="display: flex; flex-direction: column; align-items: center;">
-              <a-image :width="60" :height="60" :src="record.imageList[0]" />
-              <a-button @click="openUrl(record.originUrl)" type="link">{{ getSimpleName(record.platform) }}</a-button>
-            </div>
+        </a-dropdown>
+        <a-dropdown :trigger="['click']" :destroyPopupOnHide="true" overlayClassName="urlAcquisition-typeTree_overlay"
+          :disabled="tableInfo.selectedRowKeys.length < 1">
+          <a-button type="primary" @click.prevent>
+            移动分类
+            <AsyncIcon icon="DownOutlined" class="ml-2.5" />
+          </a-button>
+          <template #overlay>
+            <typeTree :platform="'public'" @nodeClick="typeNodeClick"></typeTree>
           </template>
-          <template v-else-if="column.dataIndex == 'productTitle'">
-            <div style="display: flex; flex-direction: column;">
-              <div>{{ record[column.dataIndex] }}</div>
-              <div :style="`color: ${record.remark.color};`" v-if="record.remark?.content">{{
-                `备注：${record.remark.content}` }}</div>
-            </div>
-          </template>
-          <template v-else-if="column.dataIndex == 'simpleDesc'">
-            <a-tooltip overlayClassName="rowBox-simpleDesc">
-              <template #title>
-                <div class="rowBox-simpleDesc-content">
-                  {{ record.simpleDescTips }}
-                </div>
-              </template>
-              <div style="width: 200px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
-                {{ record.simpleDesc }}
-              </div>
-            </a-tooltip>
-          </template>
-          <template v-else-if="column.dataIndex === 'currentPrice'">
-            <span>{{ `${record.priceInfo.currencySymbol ?
-              record.priceInfo.currencySymbol : ''}${record.priceInfo.currentPrice}(${record.priceInfo.currency})`
-            }}</span>
-          </template>
-          <template v-else-if="column.dataIndex === 'option'">
-            <div class="option-btn-box">
-              <div class="option-btn" @click="acquisitionEdit(record)">编辑</div>
-              <a-dropdown>
-                <div class="option-btn" @click.prevent>
-                  认领
-                  <AsyncIcon icon="DownOutlined" />
-                </div>
-                <template #overlay>
-                  <a-menu @click="({ key }) => dropdownClick(key, [record])">
-                    <a-menu-item key="draft">认领至待发布</a-menu-item>
-                    <a-menu-item key="acquisition">认领至采集箱</a-menu-item>
-                  </a-menu>
-                </template>
-              </a-dropdown>
-              <!-- <div class="option-btn" @click="claim('draft', record)">认领至待发布</div> -->
-              <!-- <div class="option-btn" @click="batchClaim('acquisition', record)">认领至采集箱</div> -->
-
-              <a-dropdown>
-                <div class="option-btn" @click.prevent>
-                  更多
-                  <AsyncIcon icon="DownOutlined" />
-                </div>
-                <template #overlay>
-                  <a-menu @click="({ key }) => dropdownClick(key, [record])">
-                    <a-menu-item key="remarkModal">添加备注</a-menu-item>
-                    <a-menu-item key="del">删除</a-menu-item>
-                  </a-menu>
-                </template>
-              </a-dropdown>
-            </div>
-          </template>
-          <template v-else>
-            <span>{{ record[column.dataIndex] }}</span>
-          </template>
+        </a-dropdown>
+      </template>
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.dataIndex == 'imageList'">
+          <div style="display: flex; flex-direction: column; align-items: center;">
+            <a-image :width="60" :height="60" :src="record.imageList[0]" />
+            <a-button @click="openUrl(record.originUrl)" type="link">{{ getSimpleName(record.platform) }}</a-button>
+          </div>
         </template>
-      </a-table>
-      <a-pagination style="margin-top: 20px;text-align: right;" :show-total="(total) => `共 ${total} 条`"
-        v-model:current="pages.pageNum" v-model:pageSize="pages.pageSize" :total="tableInfo.total" class="pages"
-        :defaultPageSize="50" :showSizeChanger="true" :pageSizeOptions="[50, 100, 200]" @change="pageChange" />
-    </a-card>
+        <template v-else-if="column.dataIndex == 'productTitle'">
+          <div style="display: flex; flex-direction: column;">
+            <div>{{ record[column.dataIndex] }}</div>
+            <div :style="`color: ${record.remark.color};`" v-if="record.remark?.content">{{
+              `备注：${record.remark.content}` }}</div>
+          </div>
+        </template>
+        <template v-else-if="column.dataIndex == 'simpleDesc'">
+          <a-tooltip overlayClassName="rowBox-simpleDesc">
+            <template #title>
+              <div class="rowBox-simpleDesc-content">
+                {{ record.simpleDescTips }}
+              </div>
+            </template>
+            <div style="width: 200px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+              {{ record.simpleDesc }}
+            </div>
+          </a-tooltip>
+        </template>
+        <template v-else-if="column.dataIndex === 'currentPrice'">
+          <span>{{ `${record.priceInfo.currencySymbol ?
+            record.priceInfo.currencySymbol : ''}${record.priceInfo.currentPrice}(${record.priceInfo.currency})`
+          }}</span>
+        </template>
+        <template v-else-if="column.dataIndex === 'option'">
+          <div class="option-btn-box">
+            <div class="option-btn" @click="acquisitionEdit(record)">编辑</div>
+            <a-dropdown>
+              <div class="option-btn" @click.prevent>
+                认领
+                <AsyncIcon icon="DownOutlined" />
+              </div>
+              <template #overlay>
+                <a-menu @click="({ key }) => dropdownClick(key, [record])">
+                  <a-menu-item key="draft">认领至待发布</a-menu-item>
+                  <a-menu-item key="acquisition">认领至采集箱</a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
+            <!-- <div class="option-btn" @click="claim('draft', record)">认领至待发布</div> -->
+            <!-- <div class="option-btn" @click="batchClaim('acquisition', record)">认领至采集箱</div> -->
+
+            <a-dropdown>
+              <div class="option-btn" @click.prevent>
+                更多
+                <AsyncIcon icon="DownOutlined" />
+              </div>
+              <template #overlay>
+                <a-menu @click="({ key }) => dropdownClick(key, [record])">
+                  <a-menu-item key="remarkModal">添加备注</a-menu-item>
+                  <a-menu-item key="del">删除</a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
+          </div>
+        </template>
+        <template v-else>
+          <span>{{ record[column.dataIndex] }}</span>
+        </template>
+      </template>
+      <template #pagination>
+        <appTablePagination
+          v-model:current="pages.pageNum"
+          v-model:page-size="pages.pageSize"
+          :total="tableInfo.total"
+          @pageNumChange="pageNumChange"
+          @pageSizeChange="pageSizeChange"
+        ></appTablePagination>
+      </template>
+    </appTableBox>
     <!-- 弹窗组件 -->
     <component :is="modalInfo.name" v-model:modalOpen="modalInfo.open" :modalData="modalInfo.data"
       @addRemark="addRemark">
@@ -204,6 +204,10 @@ import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import ClaimModal from './ClaimModal.vue';
 import EditCategoryModal from './editCategoryModal.vue';
 import remarkModal from './remarkModal.vue';
+import appTableForm from '~@/components/common/appTableForm.vue';
+import appTableBox from '~@/components/common/appTableBox.vue';
+import appCardSelect from '~@/components/common/appCardSelect.vue';
+import appTablePagination from '~@/components/common/appTablePagination.vue';
 // import acquisitionEdit from '@/pages/sample/dataAcquisition/common/acquisitionEdit/index.vue'
 import typeTree from '~@/components/classificationTree/typeTree.vue';
 // import { dataGathe } from "../../../ozon/config/commDic/defDic"
@@ -286,7 +290,7 @@ const formData = reactive({
   name: "",
   isRemark: "",
   time: "",
-  searchTime: [],
+  searchTime: '',
   collectTimeStart: null,
   collectTimeEnd: null,
 })
@@ -297,7 +301,7 @@ const formParams = reactive({
   name: "",
   isRemark: "",
   time: "",
-  searchTime: [],
+  searchTime: '',
   collectTimeStart: null,
   collectTimeEnd: null,
 })
@@ -432,7 +436,7 @@ const selectAll = () => {
   onSubmit()
 }
 const selectItem = (val) => {
-  formData.platform = val
+  // formData.platform = val
   onSubmit()
 }
 function isRemarkSelect(val, option) {
@@ -448,13 +452,15 @@ const selectTimeAll = () => {
   // timestampToDateTime()
 }
 const selectTimeItem = (val) => {
-  formData.time = val
+  // formData.time = val
+  console.log({val});
+  
   let end = ''
   let start = ''
-  switch (val) {
+  switch (val.data) {
     case 1:
-      start = dayjs().add((0 - val), 'day').format('YYYY-MM-DD') + ' ' + '00:00:00'
-      end = dayjs().add((0 - val), 'day').format('YYYY-MM-DD') + ' ' + '23:59:59'
+      start = dayjs().add((0 - val.data), 'day').format('YYYY-MM-DD') + ' ' + '00:00:00'
+      end = dayjs().add((0 - val.data), 'day').format('YYYY-MM-DD') + ' ' + '23:59:59'
       break;
     case 0:
       start = dayjs().format('YYYY-MM-DD') + ' ' + '00:00:00'
@@ -462,10 +468,12 @@ const selectTimeItem = (val) => {
       break;
     case 7:
     case 30:
-      start = dayjs().add((0 - val), 'day').format('YYYY-MM-DD') + ' ' + '00:00:00'
+      start = dayjs().add((0 - val.data), 'day').format('YYYY-MM-DD') + ' ' + '00:00:00'
       end = dayjs().format('YYYY-MM-DD') + ' ' + '23:59:59'
       break;
     default:
+      formData.collectTimeStart = null
+      formData.collectTimeEnd = null
       break;
   }
   if (val === 'customize') return;
@@ -500,7 +508,7 @@ function onSubmit() {
     // console.log({key});
     formParams[key] = formData[key]
   })
-  pageChange(1)
+  pageNumChange(1)
 }
 // 表格tabs切换
 function tabsChange(activeKey) {
@@ -520,9 +528,13 @@ function tabsChange(activeKey) {
   }
   onSubmit()
 }
-function pageChange(val) {
+function pageNumChange(val) {
   pages.pageNum = val
   getList()
+}
+function pageSizeChange(val) {
+  pages.pageSize = val
+  pageNumChange(1)
 }
 function batchDropdownClick({ key }) {
   let selectedRow = [...tableInfo.selectedRowKeys];
