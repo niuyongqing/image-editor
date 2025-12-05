@@ -5,3 +5,4 @@ dist
 platform
 types
 !auto-imports.d.ts
+.vscode/
