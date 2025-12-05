@@ -13,6 +13,19 @@
       @on-submit="search"
     >
       <template #formItemRow>
+        <a-form-item label="分类" name="categoryId">
+          <a-cascader 
+            placeholder="分类" 
+            allowClear 
+            style="width: 300px;"
+            v-model:value="searchForm.categoryId" 
+            :options="commodityTypeList"
+            :allow-clear="true" 
+            show-search
+            :filterOption="filterOption"
+            :field-names="{ value: 'descriptionCategoryId', label: 'categoryName', children: 'children' }" 
+          />
+        </a-form-item>
         <a-form-item
           label="状态"
           name="status"
@@ -31,19 +44,6 @@
             <a-input v-model:value="searchForm.ruleName" placeholder="请输入规则名称" allow-clear />
           </a-space>
         </a-form-item>
-      <a-form-item label="分类" name="categoryId">
-        <a-cascader 
-          placeholder="分类" 
-          allowClear 
-          style="width: 300px;"
-          v-model:value="searchForm.categoryId" 
-          :options="commodityTypeList"
-          :allow-clear="true" 
-          show-search
-          :filterOption="filterOption"
-          :field-names="{ value: 'descriptionCategoryId', label: 'categoryName', children: 'children' }" 
-        />
-      </a-form-item>
       </template>
     </AppTableForm>
 
