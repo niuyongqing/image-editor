@@ -13,8 +13,8 @@
           </a-space>
         </a-form-item>
         <a-form-item label="分类" name="categoryId">
-          <a-cascader placeholder="分类" allowClear style="width: 300px;" v-model:value="searchForm.categoryId"
-            :options="commodityTypeList" :allow-clear="true" show-search :filterOption="filterOption"
+          <a-cascader v-model:value="searchForm.categoryId" placeholder="分类" allow-clear change-on-select
+            :options="commodityTypeList" show-search :filter-option="filterOption" class="min-w-60!"
             :field-names="{ value: 'descriptionCategoryId', label: 'categoryName', children: 'children' }" />
         </a-form-item>
         <a-form-item>

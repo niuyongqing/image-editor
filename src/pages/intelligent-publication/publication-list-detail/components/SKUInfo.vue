@@ -209,8 +209,8 @@
                 onVisibleChange: setVisible,
               }">
                 <a-image
-                  v-for="img in nonEmptyColorImageList"
-                  :key="img"
+                  v-for="(img, i) in nonEmptyColorImageList"
+                  :key="i"
                   :src="img"
                   class="hidden"
                 />

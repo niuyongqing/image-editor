@@ -209,8 +209,8 @@
                 onVisibleChange: setVisible,
               }">
                 <a-image
-                  v-for="img in nonEmptyColorImageList"
-                  :key="img"
+                  v-for="(img, i) in nonEmptyColorImageList"
+                  :key="i"
                   :src="img"
                   class="hidden"
                 />
@@ -932,7 +932,7 @@
           record.costPrice = sku.costPrice
           record.stock = sku.stock
           record.planNum = sku.planNum
-          record.mult = [undefined, 1].includes(sku.isPlanNum)
+          record.mult = sku.isPlanNum === 1
           record.saleUnit = sku.saleUnit
           record.length = sku.depth
           record.width = sku.width
@@ -1109,7 +1109,7 @@
   // 选中的 checkbox
   const checkedList = ref([])
   // 多数量策划全选
-  const multCheckAll = ref(true)
+  const multCheckAll = ref(false)
   const indeterminate = ref(false)
 
   function checkAll(e) {
@@ -1324,7 +1324,7 @@
         return combinations.flatMap(combination =>
           item.nonEmptyTableData.map(record => {
             // 收集父级 uuid, 做未使用变种的 tree shaking
-            const newObj = { uuid: uuidv4(), mult: true, mainImages: [], subImages: [], parentUuidList: combination.parentUuidList ? [...combination.parentUuidList] : [] }
+            const newObj = { uuid: uuidv4(), mult: multCheckAll.value, mainImages: [], subImages: [], parentUuidList: combination.parentUuidList ? [...combination.parentUuidList] : [] }
             newObj.parentUuidList.push(record.uuid)
             for (const key in record) {
               if (key === 'uuid') continue
