@@ -52,9 +52,6 @@
             :disabled-date="cur => cur && cur > Date.now()"
           />
         </a-form-item>
-      </template>
-
-      <template #formItemRow>
         <a-form-item
           label="模糊查询"
           name="mult"

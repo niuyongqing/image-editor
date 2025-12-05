@@ -185,7 +185,6 @@
       :tableHeader="header"
       :dataSource="tableData.data"
       @change="tableChange"
-      :scroll="{ y: 880}"
       :loading="tableData.loading"
       rowKey="commodityId"
       @rowDoubleClick="handleRowDoubleClick"
