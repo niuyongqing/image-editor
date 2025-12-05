@@ -6,7 +6,6 @@
     class="appVerifyUpload-uploader"
     :show-upload-list="false"
     :action="''"
-    multiple
     :before-upload="beforeUpload"
     v-bind="$attrs"
   >
