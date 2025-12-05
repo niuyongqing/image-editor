@@ -3,7 +3,7 @@
     <AppTableForm
       v-model:formData="formState"
       reset-set-menu="promotion"
-      @on-submit="getList"
+      @on-submit="search"
     >
       <template #formItemBox>
         <a-form-item
@@ -24,6 +24,7 @@
             v-model:account="formState.account"
             :options="shopAccount"
             :field-obj="{ label: 'simpleName', value: 'account' }"
+            @selectItem="search"
           />
         </a-form-item>
       </template>
@@ -170,6 +171,11 @@
       loading.value = false;
     });
   }
+  const search = () => {
+    paginations.pageNum = 1
+    getList()
+  }
+
   onMounted(() => {
     getAccount()
   })

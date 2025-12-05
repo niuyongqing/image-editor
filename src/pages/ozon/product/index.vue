@@ -11,7 +11,7 @@
           v-model:formData="formData"
           reset-set-menu="ozonProduct"
           :hide-name-list="['price', 'oldPrice', 'stock', 'updateTime']"
-          @on-submit="getList"
+          @on-submit="search"
         >
           <template #formItemBox>
             <a-form-item
@@ -75,6 +75,7 @@
                 v-model:account="formData.account"
                 :options="shopAccount"
                 :field-obj="{ label: 'simpleName', value: 'account' }"
+                @selectItem="search"
               />
             </a-form-item>
           </template>
@@ -187,7 +188,7 @@
             </a-tabs>
             <a-pagination :show-total="total => `共 ${total} 条`" v-model:current="paginations.pageNum"
               v-model:pageSize="paginations.pageSize" :total="paginations.total" class="pages mt-5 mb-2.5 text-right"
-              :show-quick-jumper="true" @change="getList" :showSizeChanger="true" :pageSizeOptions="[50, 100, 200]" />
+              :show-quick-jumper="true" @change="getList" :showSizeChanger="true" />
           </div>
           <div class="outContent" v-loading="loading">
             <div class="topHeader">
@@ -546,7 +547,7 @@
           </div>
           <a-pagination :show-total="total => `共 ${total} 条`" v-model:current="paginations.pageNum"
             v-model:pageSize="paginations.pageSize" :total="paginations.total" class="pages mt-5 mb-2.5 text-right"
-            :show-quick-jumper="true" @change="getList" :showSizeChanger="true" :pageSizeOptions="[50, 100, 200]" />
+            :show-quick-jumper="true" @change="getList" :showSizeChanger="true" />
         </a-card>
       </div>
     </div>
@@ -1475,6 +1476,11 @@ const getList = () => {
     paginations.total = res?.data?.total ?? 0;
   });
 };
+
+const search = () => {
+  paginations.pageNum = 1
+  getList()
+}
 
 const sortObj = reactive({
   prop: "create_time",

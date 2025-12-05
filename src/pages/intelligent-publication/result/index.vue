@@ -6,7 +6,7 @@
       <AppTableForm
         v-model:formData="formData"
         reset-set-menu="result"
-        @on-submit="getList"
+        @on-submit="search"
       >
         <template #formItemRow>
           <a-form-item
@@ -17,6 +17,7 @@
               v-model:account="formData.account"
               :options="shopAccount"
               :field-obj="{ label: 'simpleName', value: 'account' }"
+              @selectItem="search"
             />
           </a-form-item>
           <a-form-item
@@ -115,11 +116,10 @@
             v-model:current="paginations.pageNum"
             v-model:pageSize="paginations.pageSize"
             :total="paginations.total"
-            class="pages mt-5 mb-2.5 text-right"
+            class="mt-5 mb-2.5 text-right"
             :show-quick-jumper="true"
             @change="getList"
             :showSizeChanger="true"
-            :pageSizeOptions="[50, 100, 200]"
           />
         </div>
         <div
@@ -710,11 +710,10 @@
           v-model:current="paginations.pageNum"
           v-model:pageSize="paginations.pageSize"
           :total="paginations.total"
-          class="pages mt-5 mb-2.5 text-right"
+          class="mt-5 mb-2.5 text-right"
           :show-quick-jumper="true"
           @change="getList"
           :showSizeChanger="true"
-          :pageSizeOptions="[50, 100, 200]"
         />
       </a-card>
     </div>
@@ -993,15 +992,6 @@
         getList()
       }
     })
-  }
-  // 店铺单选多选
-  const selectAll = () => {
-    formData.account = ''
-    getList()
-  }
-  const selectItem = val => {
-    formData.account = val
-    getList()
   }
   const backToTop = () => {
     let elements = document.getElementsByClassName('ant-layout-content')
@@ -1710,6 +1700,11 @@
         })
       }
     })
+  }
+
+  const search = () => {
+    paginations.pageNum = 1
+    getList()
   }
 
   const shopSet = () => {

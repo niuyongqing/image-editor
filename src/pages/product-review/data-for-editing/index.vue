@@ -5,7 +5,7 @@
     <AppTableForm
       v-model:formData="searchForm"
       reset-set-menu="dataForEditing"
-      @on-submit="getList"
+      @on-submit="search"
       @formHeightChange="height => { formHeight = height }"
     >
       <template #formItemBox>
@@ -259,6 +259,11 @@
       .finally(() => {
         loading.value = false
       })
+  }
+
+  function search() {
+    tableParams.pageNum = 1
+    getList()
   }
 
   /** 编辑 */

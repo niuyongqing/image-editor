@@ -11,7 +11,7 @@
           v-model:formData="formData"
           reset-set-menu="waitPublish"
           :hide-name-list="['price', 'oldPrice', 'stock', 'updateTime']"
-          @on-submit="getList"
+          @on-submit="search"
         >
           <template #formItemBox>
             <a-form-item
@@ -69,6 +69,7 @@
                 v-model:account="formData.account"
                 :options="shopAccount"
                 :field-obj="{ label: 'simpleName', value: 'account' }"
+                @selectItem="search"
               />
             </a-form-item>
           </template>
@@ -790,6 +791,11 @@ const getList = () => {
       loading.value = false;
     });
 };
+
+const search = () => {
+  paginations.pageNum = 1
+  getList()
+}
 
 const sortObj = reactive({
   prop: "create_time",

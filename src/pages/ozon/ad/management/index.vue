@@ -5,7 +5,7 @@
     <AppTableForm
       v-model:formData="searchForm"
       reset-set-menu="adManagement"
-      @on-submit="getList"
+      @on-submit="search"
     >
       <template #formItemBox>
         <a-form-item
@@ -26,6 +26,7 @@
             v-model:account="searchForm.account"
             :options="accountList"
             :field-obj="{ label: 'simpleName', value: 'account' }"
+            @selectItem="search"
           />
         </a-form-item>
       </template>
@@ -39,6 +40,7 @@
             v-model:value="searchForm.payType"
             :options="PAY_TYPE_OPTIONS"
             name="payType"
+            @change="search"
           />
         </a-form-item>
         <a-form-item
@@ -49,6 +51,7 @@
             v-model:value="searchForm.state"
             :options="ENABLE_STATE_OPTIONS"
             name="state"
+            @change="search"
           />
         </a-form-item>
         <a-form-item
@@ -59,6 +62,7 @@
             v-model:value="searchForm.activityState"
             :options="ACTIVE_STATE_OPTIONS"
             name="activityState"
+            @change="search"
           />
         </a-form-item>
         <a-form-item

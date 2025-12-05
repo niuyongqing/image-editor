@@ -10,7 +10,7 @@
           formHeight = height
         }
       "
-      @on-submit="getList"
+      @on-submit="search"
     >
       <template #formItemRow>
         <a-form-item
@@ -20,6 +20,7 @@
           <a-radio-group
             v-model:value="searchForm.status"
             :options="STATUS_OPTIONS"
+            @change="search"
           />
         </a-form-item>
         <a-form-item

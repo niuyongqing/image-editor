@@ -5,7 +5,7 @@
     <AppTableForm
       v-model:formData="searchForm"
       reset-set-menu="adProduct"
-      @on-submit="getList"
+      @on-submit="search"
     >
       <template #formItemRow>
         <a-form-item
@@ -16,6 +16,7 @@
             v-model:account="searchForm.account"
             :options="accountList"
             :field-obj="{ label: 'simpleName', value: 'account' }"
+            @selectItem="search"
           />
         </a-form-item>
         <a-form-item

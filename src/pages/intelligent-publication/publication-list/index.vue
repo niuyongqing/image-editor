@@ -5,19 +5,9 @@
     <AppTableForm
       v-model:formData="searchForm"
       reset-set-menu="publicationList"
-      @on-submit="getList"
+      @on-submit="search"
     >
       <template #formItemRow>
-        <a-form-item
-          label="刊登模式"
-          name="publishType"
-        >
-          <a-radio-group
-            v-model:value="searchForm.publishType"
-            :options="PUBLISH_TYPE_OPTIONS"
-            name="publishType"
-          />
-        </a-form-item>
         <a-form-item
           label="店铺账号"
           name="account"
@@ -26,6 +16,18 @@
             v-model:account="searchForm.account"
             :options="accountList"
             :field-obj="{ label: 'simpleName', value: 'account' }"
+            @selectItem="search"
+          />
+        </a-form-item>
+        <a-form-item
+          label="刊登模式"
+          name="publishType"
+        >
+          <a-radio-group
+            v-model:value="searchForm.publishType"
+            :options="PUBLISH_TYPE_OPTIONS"
+            name="publishType"
+            @change="search"
           />
         </a-form-item>
         <a-form-item
