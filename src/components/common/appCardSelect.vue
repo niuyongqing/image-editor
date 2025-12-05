@@ -1,9 +1,14 @@
 <template>
 <!-- 下拉卡片式选择，用于之前店小秘选择样式改造 -->
 <div id="appCardSelect" class="appCardSelect">
-  <a-popover trigger="click" :arrow="false" v-model:open="popoverOpen">
+  <a-popover 
+    trigger="click" 
+    :arrow="false" 
+    v-model:open="popoverOpen"
+    :placement="placement"
+  >
     <template #content>
-      <div class="appCardSelect-accountForm">
+      <div class="appCardSelect-accountForm" :style="cardContentStyle">
         <div
           @click="selectItem(index, item)"
           class="ant-btn"
@@ -57,6 +62,14 @@ const props = defineProps({
     })
   },
   multiple: Boolean,    // 是否多选
+  cardContentStyle: {   // 气泡内容样式
+    type: Object,
+    default: () => ({})
+  },
+  placement: {
+    type: String,
+    default: 'bottom'
+  }
 });
 const emit = defineEmits([
   "selectItem",   // 选中选项事件
