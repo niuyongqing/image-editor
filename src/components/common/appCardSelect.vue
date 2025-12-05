@@ -1,7 +1,7 @@
 <template>
 <!-- 下拉卡片式选择，用于之前店小秘选择样式改造 -->
 <div id="appCardSelect" class="appCardSelect">
-  <a-popover trigger="click" :arrow="false">
+  <a-popover trigger="click" :arrow="false" v-model:open="popoverOpen">
     <template #content>
       <div class="appCardSelect-accountForm">
         <div
@@ -62,6 +62,7 @@ const emit = defineEmits([
   "selectItem",   // 选中选项事件
   'update:account'
 ]);
+const popoverOpen = ref(false);
 const actionItem = ref([]);    // 被选中的项
 let {label: fieldLabel, value: fieldValue} = props.fieldObj
 const optionList = computed(() => {
@@ -88,6 +89,7 @@ watch(() => props.account, (val, oldVal) => {
 function selectItem(index, item) {
   let data = null;
   if (props.multiple) {
+    // 多选模式
     data = actionItem.value.map(i => i[fieldValue]);
     if (data.includes(item[fieldValue])) {
       data = data.filter(i => i !== item[fieldValue]);
@@ -97,9 +99,11 @@ function selectItem(index, item) {
       actionItem.value.push(item);
     }
   } else {
+    // 单选模式
     actionItem.value = [];
     actionItem.value.push(item);
     data = item[fieldValue];
+    popoverOpen.value = false;
   }
   let option = [...actionItem.value]
   emit('update:account', data);
