@@ -133,7 +133,7 @@
               :column="column || {}"
               :text="text"
             >
-              {{ record[column?.key] }}
+              {{ record[column.dataIndex || column.key] }}
               <!-- <appEllipsisTooltip :title="record[column.key || column.dataIndex]"></appEllipsisTooltip> -->
             </slot>
             <template v-if="!!options && column.key === 'options'">
@@ -384,6 +384,7 @@ function generateHeader() {
       ...i,
       resizable: false,
     };
+    obj.key = obj.key || obj.dataIndex;
     return obj;
   });
 }
