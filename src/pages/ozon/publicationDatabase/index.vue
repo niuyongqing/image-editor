@@ -57,7 +57,6 @@
       rowKey="id"
       :row-selection="{ selectedRowKeys: tableData.selectedRowKeys, onChange: onSelectChange }"
       :loading="tableData.loading"
-      :scroll="{ y: 1100 - formHeight, x: '2000px' }"
     >
     <template #leftTool>
         <a-button 
@@ -122,16 +121,13 @@
       </template>
     <!-- </a-table> -->
      <template #pagination>
-      <a-pagination 
+      <appTablePagination 
         @update:current="pageNumChange" 
         @update:page-size="pageSizeChange"
         :current="tableData.params.pageNum" 
         :page-size="tableData.params.pageSize"
         :page-size-options="[10,50,100,200]" 
         :total="tableData.total" 
-        :show-total="total => `共 ${total} 条`"
-        show-size-changer 
-        showQuickJumper 
       />
     </template>
     </app-table-box>
@@ -185,6 +181,7 @@ import LogModal from "./common/LogModal.vue";
 import ListModal from './common/ListModal.vue';
 import appTableForm from "@/components/common/appTableForm.vue";
 import AppTableBox from "@/components/common/appTableBox.vue";
+import appTablePagination from '~@/components/common/appTablePagination.vue';
 defineOptions({ name: "ozon_publicationDatabase" })
 const { proxy: _this } = getCurrentInstance();
 

@@ -5,7 +5,6 @@
         resetSetMenu="product-list"
         :table-header="columns"
         :data-source="dataSource"
-        :scroll="{ y: tableHeight, x: '100%', virtual: true }"
         v-model:filter-columns="columns"
         row-key="deptId"
         :loading="tableLoading"

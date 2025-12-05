@@ -19,17 +19,13 @@
           ></appCardSelect>
         </a-form-item>
         <a-form-item label="订单状态：" name="status">
-          <div class="flex flex-col items-center">
-            <div style="display: flex; margin-bottom: 24px">
-              <selectComm
-                ref="selectCommRef"
-                :options="orderType"
-                :fieldObj="orderObj"
-                @backSelectAll="orderSelectAll"
-                @backSelectItem="orderSelectItem"
-              ></selectComm>
-            </div>
-          </div>
+          <selectComm
+            ref="selectCommRef"
+            :options="orderType"
+            :fieldObj="orderObj"
+            @backSelectAll="orderSelectAll"
+            @backSelectItem="orderSelectItem"
+          ></selectComm>
         </a-form-item>
         <!-- <a-form-item label="排序方式：" name="order">
           <div class="stor-box">
@@ -587,39 +583,4 @@ onMounted(() => {
   queryList();
 });
 </script>
-<style lang="less" scoped>
-:deep(.ant-form) {
-  .ant-form-item {
-    .ant-form-item-control-input-content {
-      display: flex;
-      align-items: flex-start;
-
-      .stor-box {
-        width: 100%;
-        display: flex;
-
-        .ant-btn {
-          margin: 0 10px;
-        }
-      }
-    }
-  }
-}
-
-.shopItem {
-  display: flex;
-
-  div {
-    border-right: 1px solid #ccc;
-  }
-}
-
-.accountForm {
-  display: flex;
-  flex-wrap: wrap;
-
-  .ant-btn {
-    margin: 0 5px 10px 0;
-  }
-}
-</style>
+<style lang="less" scoped></style>

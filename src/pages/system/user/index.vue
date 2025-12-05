@@ -302,7 +302,6 @@ const showTotal = (total, range) => {
       resetSetMenu="product-list"
       :table-header="columns"
       :data-source="tableData"
-      :scroll="{ y: 930 }"
       v-model:filter-columns="columns"
     >
       <!-- 左侧工具栏 -->

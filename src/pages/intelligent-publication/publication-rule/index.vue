@@ -56,7 +56,6 @@
       stripe
       row-key="id"
       :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange }"
-      :scroll="scrollConfig"
       @rowDoubleClick="record => goEdit(record)"
     >
       <template #leftTool>
