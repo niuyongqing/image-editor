@@ -13,6 +13,7 @@
             <appCardSelect
               :multiple="false"
               :options="shopAccount"
+              @selectItem="onSubmit()"
               v-model:account="formData.account"
             ></appCardSelect>
           </a-form-item>

@@ -4,11 +4,17 @@
       ref="formRef"
       v-model:formData="formData"
       reset-set-menu="storeManagementCont"
-      @onSubmit="onSubmit"
+      @onSubmit="onSubmit()"
     >
       <template #formItemRow>
         <a-form-item name="account" label="店铺：">
-          <selectComm
+           <appCardSelect
+            :multiple="false"
+            :options="shopAccount"
+            @selectItem="onSubmit()"
+            v-model:account="formData.account"
+          ></appCardSelect>
+          <!-- <selectComm
             ref="shopSelectComm"
             :options="shopAccount"
             style="margin-left: 10px"
@@ -16,7 +22,7 @@
             @backSelectAll="shopSelectAll"
             @backSelectItem="shopSelectItem"
           >
-          </selectComm>
+          </selectComm> -->
         </a-form-item>
         <a-form-item name="name" label="仓库名称：">
           <a-input
@@ -104,6 +110,7 @@ import appTableBox from "~/components/common/appTableBox.vue";
 import appTablePagination from "~@/components/common/appTablePagination.vue";
 import appTableForm from "~@/components/common/appTableForm.vue";
 import selectComm from "@/pages/intelligent-publication/whd-test/selectComm.vue";
+import appCardSelect from "~@/components/common/appCardSelect.vue";
 const ruleForm = ref(null);
 const shopSelectComm = ref(null);
 const formData = reactive({

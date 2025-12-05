@@ -5,26 +5,33 @@
       <div style="width: calc(100% - 250px)">
         <appTableForm
           ref="formRef"
-          @onSubmit="onSubmit"
+          @onSubmit="onSubmit()"
           resetSetMenu="userTemplate"
           v-model:formData="formData"
         >
           <template #formItemRow>
             <a-form-item label="店铺账号" name="account" v-if="activeId !== 4">
-              <selectComm
+                 <appCardSelect
+            :multiple="false"
+            :options="shopAccount"
+            :fieldObj="shopObj"
+            @selectItem="onSubmit()"
+            v-model:account="formData.account"
+          ></appCardSelect>
+              <!-- <selectComm
                 :options="shopAccount"
                 :fieldObj="shopObj"
                 @backSelectAll="selectAll"
                 @backSelectItem="selectItem"
-              ></selectComm>
+              ></selectComm> -->
             </a-form-item>
 
-            <a-form-item label="搜索类型:" name="search_type">
+            <!-- <a-form-item label="搜索类型:" name="search_type">
               <div class="fBox flex align-start gap-10px">
                 <a-button type="primary"> 模板名称 </a-button>
               </div>
-            </a-form-item>
-            <a-form-item label="搜索内容：" name="search_content">
+            </a-form-item> -->
+            <a-form-item label="模板名称：" name="search_content">
               <div class="flex">
                 <div class="flex align-start">
                   <a-input
@@ -34,9 +41,6 @@
                     placeholder="请输入模板名称"
                   ></a-input>
                 </div>
-                <a-button type="primary" class="ml-[10px]" @click="onSubmit()"
-                  >查询</a-button
-                >
               </div>
             </a-form-item>
           </template>
@@ -142,8 +146,8 @@ import AppTableBox from "@/components/common/appTableBox.vue";
 import appTablePagination from "@/components/common/appTablePagination.vue";
 
 const shopObj = {
-  fieldKey: "account",
-  fieldLabel: "simpleName",
+  value: "account",
+  label: "simpleName",
 };
 const selectedRowKeys = ref([]);
 const selectedRowList = ref([]);

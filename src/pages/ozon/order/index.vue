@@ -10,6 +10,7 @@
           <appCardSelect
             :multiple="false"
             :options="account"
+            @selectItem="queryList"
             :fieldObj="{
               value: 'account',
               label: 'simpleName',
@@ -30,7 +31,7 @@
             </div>
           </div>
         </a-form-item>
-        <a-form-item label="排序方式：" name="order">
+        <!-- <a-form-item label="排序方式：" name="order">
           <div class="stor-box">
             <a-button
               v-for="item in strList"
@@ -49,7 +50,7 @@
               />
             </a-button>
           </div>
-        </a-form-item>
+        </a-form-item> -->
       </template>
     </appTableForm>
 
@@ -61,6 +62,7 @@
       rowKey="id" 
       resetSetMenu="ozon-order"
       :row-selection="rowSelection"
+      @change="tableChange"
     >
       <template #otherCount>
         <a-tabs
@@ -115,7 +117,7 @@
           <span>{{ record.customerName }}</span
           ><span>[俄罗斯]</span>
         </template>
-        <template v-if="column.key === 'deliveryMethodName'">
+        <template v-if="column.key === 'inProcessAt'">
           <p>买家指定： {{ record.deliveryMethodName }}</p>
           <div>
             <span>下单时间：</span><span>{{ record.inProcessAt }}</span>
@@ -193,6 +195,7 @@ import appTableBox from "~/components/common/appTableBox.vue";
 import appTablePagination from "~@/components/common/appTablePagination.vue";
 import appTableForm from "~@/components/common/appTableForm.vue";
 import appCardSelect from "~@/components/common/appCardSelect.vue";
+import { camelCase, toLowerLine } from "~@/utils";
 const activeKey = ref(1); // 默认120天内订单
 const isAllSelected = ref(true);
 const selectedIndex = ref(null);
@@ -368,8 +371,11 @@ const columns = [
   },
   {
     title: "时间",
-    dataIndex: "deliveryMethodName",
-    key: "deliveryMethodName",
+    dataIndex: "inProcessAt",
+    key: "inProcessAt",
+    sorter: true,
+    sortField: "inProcessAt",
+    sortType: "ASC",
   },
   {
     title: "物流方式",
@@ -439,9 +445,23 @@ const handlePageSizeChange = (val) => {
   paginations.pageSize = Number(val);
   queryList();
 };
+function tableChange(
+  pagination,
+  filters,
+  sorter,
+  { action, currentDataSource }
+) {
+  console.log(sorter);
+  let prop = sorter.field || "inProcessAt";
+  sortObj.sortType = sorter.order === "ascend" ? "ASC" : "DESC";
+  sortObj.sortField = toLowerLine(prop);
+  queryList();
+}
 
 // 排序方式
 const storChange = (val) => {
+  console.log(val);
+  return
   val.type = val.type === "top" ? "bottom" : "top";
   active.value = val;
   sortObj.sortField = val.sortField;
@@ -520,6 +540,7 @@ const queryList = () => {
     queryHistoryOrder: activeKey.value == 1 ? true : false,
     prop: sortObj.sortField, //排序字段
     order: sortObj.sortType, //排序方式
+
   };
 
   orderList(params)

@@ -16,7 +16,7 @@
       resetSetMenu="productDatabase_index"
       v-model:formData="formData"
     >
-      <template #formItemBox>
+      <template #formItemRow>
         <a-form-item label="产品分类" name="classify">
           <a-cascader
             placeholder="产品分类"
@@ -112,9 +112,6 @@
             </div>
           </a-form-item-rest>
         </a-form-item>
-        <a-form-item label="审核时间" name="meansAuditTime">
-          <a-range-picker v-model:value="formData.meansAuditTime" allowClear />
-        </a-form-item>
         <a-form-item label="重量筛选" name="skuWeight">
           <a-form-item-rest>
             <div
@@ -141,8 +138,10 @@
             </div>
           </a-form-item-rest>
         </a-form-item>
-      </template>
-      <template #formItemRow>
+        <a-form-item label="审核时间" name="meansAuditTime">
+          <a-range-picker v-model:value="formData.meansAuditTime" allowClear />
+        </a-form-item>
+
         <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
           <a-form-item-rest>
             <div flex gap-10px style="width: 800px">

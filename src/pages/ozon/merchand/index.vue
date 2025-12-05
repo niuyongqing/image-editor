@@ -1,28 +1,29 @@
 <template>
   <div id="merchandCont">
     <appTableForm
-      @onSubmit="onSubmit"
+      @onSubmit="onSubmit()"
       resetSetMenu="ordemerchandContrsCont"
       v-model:formData="formData"
     >
-      <template #formItemBox>
+      <template #formItemRow>
+        <a-form-item label="店铺：" name="account">
+          <appCardSelect
+            :multiple="false"
+            :options="shopAccount"
+             @selectItem="onSubmit()"
+            v-model:account="formData.account"
+          ></appCardSelect>
+        </a-form-item>
         <a-form-item label="时间：" name="times">
           <a-date-picker
             v-model:value="formData.times"
-            style="width: 200px"
             @change="handlerChange"
             type="month"
             placeholder="选择月"
           >
           </a-date-picker>
         </a-form-item>
-        <a-form-item label="店铺：" name="account">
-          <appCardSelect
-            :multiple="false"
-            :options="shopAccount"
-            v-model:account="formData.account"
-          ></appCardSelect>
-        </a-form-item>
+
       </template>
     </appTableForm>
     <AppTableBox

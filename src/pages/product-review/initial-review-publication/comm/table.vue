@@ -356,7 +356,11 @@ function getCommodityTypeLabelFun(val) {
 /**
  * 获取产品列表数据
  */
-const getList = async () => {
+const getList = async (type = "search") => {
+   if (type === "search") {
+      pages.pageNum = 1;
+      pages.pageSize = 50;
+    }
   try {
     // 先设置loading状态为true
     loading.value = true;
@@ -457,7 +461,7 @@ const getCurrentSelectedProducts = () => {
  */
 const handlePageChange = (val) => {
   pages.pageNum = Number(val);
-  getList();
+  getList("PageChange");
 };
 
 /**
@@ -466,7 +470,7 @@ const handlePageChange = (val) => {
 const handlePageSizeChange = (val) => {
   // 确保pageSize是数字类型
   pages.pageSize = Number(val);
-  getList();
+  getList("PageChange");
 };
 
 /**

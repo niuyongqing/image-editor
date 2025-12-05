@@ -3,11 +3,29 @@
     <!-- 搜索筛选区域 -->
     <appTableForm
       @formHeightChange="handleFormHeightChange"
-      @onSubmit="getList"
+      @onSubmit="getList()"
       resetSetMenu="store-template"
       v-model:formData="formData"
     >
       <template #formItemRow>
+        <!-- 店铺账号 -->
+        <a-form-item
+          label="店铺账号:"
+          class="form-item-radio"
+          name="account"
+          :wrapper-col="wrapperColItem"
+        >
+        <appCardSelect
+            :multiple="false"
+            :options="accountList"
+            @selectItem="getList()"
+            :fieldObj="{
+              value: 'account',
+              label: 'simpleName',
+            }"
+            v-model:account="formData.account"
+          ></appCardSelect>
+        </a-form-item>
         <!-- 状态 -->
         <a-form-item label="状态:" name="status">
           <a-radio-group v-model:value="formData.status" name="status">
@@ -35,23 +53,6 @@
               />
             </a-form-item-rest>
           </a-space>
-        </a-form-item>
-        <!-- 店铺账号 -->
-        <a-form-item
-          label="店铺账号:"
-          class="form-item-radio"
-          name="account"
-          :wrapper-col="wrapperColItem"
-        >
-        <appCardSelect
-            :multiple="false"
-            :options="accountList"
-            :fieldObj="{
-              value: 'account',
-              label: 'simpleName',
-            }"
-            v-model:account="formData.account"
-          ></appCardSelect>
         </a-form-item>
       </template>
     </appTableForm>
@@ -669,6 +670,10 @@ const getShopLists = async () => {
 
 // 表格数据
 const getList = async (type = "search") => {
+      if (type === "search") {
+      pagination.pageNum = 1;
+      pagination.pageSize = 50;
+    }
   try {
     // 先设置loading状态为true
     tableLoading.value = true;
@@ -678,10 +683,6 @@ const getList = async (type = "search") => {
       ...formData,
       ...pagination,
     };
-    if (type === "search") {
-      params.pageNum = 1;
-      params.pageSize = 50;
-    }
     Object.keys(params).forEach((key) => {
       if (typeof params[key] === "string") {
         params[key] = params[key].trim();

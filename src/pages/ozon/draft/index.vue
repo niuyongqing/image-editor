@@ -15,19 +15,26 @@
           ref="formRef"
           v-model:formData="formData"
           reset-set-menu="draftCont"
-          @onSubmit="onSubmit"
+          @onSubmit="onSubmit()"
         >
           <template #formItemRow>
             <a-form-item label="店铺账号：" name="account">
-              <selectComm
+           <appCardSelect
+            :multiple="false"
+            :options="shopAccount"
+            :fieldObj="shopObj"
+            @selectItem="onSubmit()"
+            v-model:account="formData.account"
+          ></appCardSelect>
+              <!-- <selectComm
                 ref="shopSelectComm"
                 :options="shopAccount"
                 :fieldObj="shopObj"
                 @backSelectAll="selectAll"
                 @backSelectItem="selectItem"
-              ></selectComm>
+              ></selectComm> -->
             </a-form-item>
-            <a-form-item label="搜索类型:" name="searchType">
+            <!-- <a-form-item label="搜索类型:" name="searchType">
               <div class="fBox flex align-start gap-10px">
                 <a-button
                   @click="selectTypes(item.prop)"
@@ -37,33 +44,27 @@
                   >{{ item.label }}</a-button
                 >
               </div>
-            </a-form-item>
-            <a-form-item label="搜索内容：" name="name">
-              <div class="flex">
-                <div class="flex align-start">
+            </a-form-item> -->
+            <a-form-item label="标题：" name="name">
                   <a-input
-                    v-if="actives === 1"
                     style="width: 400px"
                     v-model:value="formData.name"
                     placeholder="请输入标题查询"
                     clearable
                     @clear="onSubmit"
                   ></a-input>
+            </a-form-item>
+                <a-form-item label="SKU：" name="sku">
                   <a-input
-                    v-if="actives === 2"
                     style="width: 400px"
                     v-model:value="formData.sku"
                     clearable
                     @clear="onSubmit"
                     placeholder="请输入SKU查询,多个SKU间用逗号隔开，最多支持200个"
                   ></a-input>
-                </div>
-                <!-- <a-button type="primary" class="ml-[10px]" @click="onSubmit()"
-                  >查询</a-button
-                > -->
-              </div>
+
             </a-form-item>
-            <a-form-item label="排序方式：" name="order">
+            <!-- <a-form-item label="排序方式：" name="order">
               <div class="flex align-start gap-10px">
                 <a-button
                   v-for="item in strList"
@@ -82,7 +83,7 @@
                   />
                 </a-button>
               </div>
-            </a-form-item>
+            </a-form-item> -->
           </template>
         </appTableForm>
         <app-table-box
@@ -94,6 +95,7 @@
           :row-selection="rowSelection"
           :loading="loading"
           :scroll="{ y: 'none' }"
+          @change="tableChange"
         >
           <template #leftTool>
             <a-dropdown :disabled="!selectedRowList.length">
@@ -292,20 +294,18 @@
               </div>
             </template>
             <template v-if="column.dataIndex === 'createTime'">
-              <div class="flex items-start flex-col">
-                <div>
-                  <span style="color: #9e9f9e"> 创建：</span>
-                  <span>
-                    {{ record.createTime }}
-                  </span>
-                </div>
-                <div>
-                  <span style="color: #9e9f9e"> 更新：</span>
+              <div>
+                <span>
+                  {{ record.createTime }}
+                </span>
+              </div>
+            </template>
+             <template v-if="column.dataIndex === 'updateTime'">
+               <div>
                   <span>
                     {{ record.updateTime }}
                   </span>
                 </div>
-              </div>
             </template>
             <template v-if="column.dataIndex === 'option'">
               <a-space direction="vertical">
@@ -444,6 +444,7 @@ import appTablePagination from "~@/components/common/appTablePagination.vue";
 import appTableForm from "~@/components/common/appTableForm.vue";
 import selectComm from "@/pages/intelligent-publication/whd-test/selectComm.vue";
 let columns = tableHeard;
+import {  toLowerLine } from "~@/utils";
 const baseApi = import.meta.env.VITE_APP_BASE_API;
 
 const { copy } = useClipboard();
@@ -486,8 +487,8 @@ const state = {
   publish_failed: "发布失败",
 };
 const shopObj = {
-  fieldKey: "account",
-  fieldLabel: "simpleName",
+  value: "account",
+  label: "simpleName",
 };
 const sortObj = reactive({
   sortField: "create_time",
@@ -639,17 +640,39 @@ const selectTypes = (index) => {
       break;
   }
 };
+const sortMap = {
+  price: "max_current_price",
+  createTime:'create_time',
+  updateTime:'update_time',
+  stock:'total_stock',
+}
 
 // 排序方式
-const storChange = (item) => {
-  item.type = item.type === "top" ? "bottom" : "top";
-  active.value = item;
-  sortObj.sortField = item.value;
-  sortObj.sortType = item.type === "top" ? "desc" : "asc";
-  formData.order = item.type === "top" ? "desc" : "asc";
-  formData.prop = item.value;
-  // getList();
+function tableChange(
+  pagination,
+  filters,
+  sorter,
+  { action, currentDataSource }
+){
+  console.log(sorter);
+  sortObj.order = sorter.order === "ascend" ? "asc" : "desc";
+  sortObj.prop = sortMap[sorter.field];
+  sortObj.sortField  = sortMap[sorter.field];
+  sortObj.sortType = sorter.order === "ascend" ? "asc" : "desc";
+  console.log( sortObj );
+  getList();
 };
+
+// // 排序方式
+// const storChange = (item) => {
+//   item.type = item.type === "top" ? "bottom" : "top";
+//   active.value = item;
+//   sortObj.sortField = item.value;
+//   sortObj.sortType = item.type === "top" ? "desc" : "asc";
+//   formData.order = item.type === "top" ? "desc" : "asc";
+//   formData.prop = item.value;
+//   getList();
+// };
 
 // 表单搜索
 const onSubmit = () => {
