@@ -1,4 +1,8 @@
 <template>
+  <appVerifyUpload 
+    @uploadEnd="uploadEnd" 
+    url="/report-aliexpress/report/aliexpress/config-item-org/import"
+  ></appVerifyUpload>
   <appTableBox
     ref="tableRef"
     :table-header="tableColumns"
@@ -21,11 +25,6 @@
     </template>
   </appTableBox>
   <appFullLoading :loading="loading"></appFullLoading>
-  <appUpload 
-    @uploadEnd="uploadEnd" 
-    v-model:file-list="fileList"
-    url="/report-aliexpress/report/aliexpress/config-item-org/import"
-  ></appUpload>
 </template>
 
 <script setup>
@@ -33,6 +32,7 @@ import { ref, onMounted, watch, nextTick } from 'vue';
 import appTableBox from '~@/components/common/appTableBox.vue';
 import appUpload from '~@/components/common/appUpload.vue';
 import appFullLoading from '~@/components/common/appFullLoading.vue';
+import appVerifyUpload from '~@/components/common/appVerifyUpload.vue';
 import Sortable from 'sortablejs';
 
 // const tableColumns = [

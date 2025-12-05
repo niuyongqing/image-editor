@@ -30,7 +30,7 @@ import appFullLoading from '@/components/common/appFullLoading.vue'
 defineOptions({ name: "appUpload_index" })
 const { proxy: _this } = getCurrentInstance()
 const emit = defineEmits([
-  'uploadEnd',        // 上传完成事件
+  'uploadEnd',        // success: 是否上传成功 res：响应结果 file：上传的文件数据
   'update:fileList'
 ]);
 const props = defineProps({
@@ -72,11 +72,11 @@ function beforeUpload(file, fileList) {
   return (props.beforeUpload && props.beforeUpload(file, fileList)) || true;
 };
 // 自定义上传
-async function customRequest(options) {
+async function customRequest({ file }) {
   loading.value = true;
   let { url, params, name, method } = props;
   const data = new FormData();
-  data.append(name, options.file);
+  data.append(name, file);
   for (const key in params) {
     if (params.prototype.hasOwnProperty.call(params, key)) {
       const element = params[key];
@@ -92,7 +92,7 @@ async function customRequest(options) {
     res = error
     console.error(error);
   }
-  emit('uploadEnd', { res, options, success });   // success: 是否上传成功 res：响应结果 options：上传组件返回的数据
+  emit('uploadEnd', { res, file, success });   // success: 是否上传成功 res：响应结果 file：上传的文件数据
   loading.value = false;
 }
 </script>

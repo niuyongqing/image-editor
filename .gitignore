@@ -10,3 +10,4 @@ platform
 .vscode
 types
 !auto-imports.d.ts
+.vscode/
