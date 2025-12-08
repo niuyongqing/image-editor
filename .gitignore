@@ -9,4 +9,3 @@ dist
 .trae
 platform
 types
-!auto-imports.d.ts
