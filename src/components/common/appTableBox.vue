@@ -385,6 +385,9 @@ function generateHeader() {
       resizable: false,
     };
     obj.key = obj.key || obj.dataIndex;
+    if (!obj.key) {
+      throw new Error('表头对象缺少key！') 
+    }
     return obj;
   });
 }
@@ -770,6 +773,20 @@ function setTableData(data, pNode = null) {
     }
   });
 }
+/**
+ * 手动改变表头显示和隐藏切换
+ * @param keyList 需要控制列的key数组
+ */
+function setTableHeaderShow(keyList) {
+  columns.list.forEach(item => {
+    if (keyList.includes(item.key)) {
+      item.show = !item.show;
+    }
+  })
+}
+defineExpose({
+  setTableHeaderShow,
+})
 </script>
 
 <style lang="less" scoped>
