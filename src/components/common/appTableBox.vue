@@ -166,7 +166,7 @@
 <script setup>
 import { SettingOutlined } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
-import { cloneDeep, debounce, set } from 'lodash-es';
+import { cloneDeep, debounce } from 'lodash-es';
 import Sortable from 'sortablejs';
 import { computed, onMounted, reactive, ref, useSlots } from 'vue';
 
@@ -777,7 +777,7 @@ function setTableData(data, pNode = null) {
  * 手动改变表头显示和隐藏切换
  * @param keyList 需要控制列的key数组
  */
-function setTableHeaderShow(keyList) {
+function setTableHeaderShow(keyList = []) {
   columns.list.forEach(item => {
     if (keyList.includes(item.key)) {
       item.show = !item.show;
