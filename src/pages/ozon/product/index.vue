@@ -219,10 +219,10 @@
                   </a-dropdown>
                 </div>
               </div>
-              <a-table :data-source="tbItem.children" style="width: 100%" row-key="id" :showHeader="false"
+              <a-table :data-source="tbItem.children"  row-key="id" :showHeader="false"
                 :columns="dropCol" :pagination="false" :data-index="index" ref="OzonProduct">
                 <template #bodyCell="{ column, record }">
-                  <div v-if="column.dataIndex === 'name'" class="flex">
+                  <div v-if="column.dataIndex === 'name'" class="flex w-110">
                     <a-checkbox class="mx-2.5" @change="handelChecked($event, tbItem, record)"
                       v-model:checked="record.checked"></a-checkbox>
                     <div class="flex text-left items-center">
@@ -267,6 +267,19 @@
                     <a-tag :bordered="false" :color="getStateColor(record.state)">
                       {{ record.state || ' ' }}
                     </a-tag>
+                  </div>
+                  <div v-else-if="column.dataIndex === 'saleNum'">
+                    <a-tooltip placement="top">
+                      <template #title>
+                        <span>优质产品为14天内销量大于10的SKU(该数据由馨站ERP统计仅供参考)</span>
+                      </template>
+                      <a-tag class="mr-1" v-if="record.saleNum14 >10" :bordered="false" color="#00aeb3">
+                      优质产品
+                      </a-tag>
+                    </a-tooltip>
+                    <span>
+                      {{ record.saleNum7 }}/{{ record.saleNum14 }}/{{ record.saleNum30 }}
+                    </span>
                   </div>
                   <div v-else-if="column.dataIndex === 'sku'" class="text-left">
                     <div>
