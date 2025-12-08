@@ -63,7 +63,7 @@
                 <a-button
                   v-if="title !== '操作'"
                   type="link"
-                  @click="batchAddAspectRow(column, item)"
+                  @click="batchAddAspectRow(column, item.tableData)"
                 >批量</a-button>
               </template>
             </template>
@@ -72,13 +72,13 @@
               <template v-if="column.selectType === 'input'">
                 <a-input
                   v-if="column.type === 'String'"
-                  v-model:value="record[column.title].value"
+                  v-model:value="record[column.title]"
                   placeholder="请输入"
                   class="w-full"
                 />
                 <a-input-number
                   v-else
-                  v-model:value="record[column.title].value"
+                  v-model:value="record[column.title]"
                   :controls="false"
                   :precision="0"
                   :min="0"
@@ -421,7 +421,7 @@
                   :precision="0"
                   disabled
                   :min="1"
-                  :max="99999"
+                  :max="9999"
                   placeholder="请输入数值"
                   class="flex-1"
                 />
@@ -680,8 +680,6 @@
   }
 
   /** computed START */
-  // name array of selectType is 'input'
-  const typeInputNameList = computed(() => rawAttributes.value.filter(item => item.isAspect && item.selectType === 'input').map(item => item.name))
   // 变种主题可选项(非必填的以按钮形式供选)
   const aspectBtnList = computed(() => aspectList.value.filter(item => !item.isRequired))
   // 过滤出已选择后的可选项(显示的按钮)
@@ -857,8 +855,6 @@
         case 'multSelect':
           return list.map(item => ({ label: item.value, value: item.dictionaryValueId }))
         case 'input':
-          // input 躯壳, 都是躯壳
-          return { uuid: uuidv4(), value: list[0].value }
         default:
           return list[0].value
       }
@@ -923,8 +919,6 @@
       case 'multSelect':
         return []
       case 'input':
-        // input 用一个 id 来绑定输入的值
-        return { uuid: uuidv4(), value: '' }
       default:
         return ''
     }
@@ -952,9 +946,7 @@
       case 'Array':
         return val.map(item => item[prop]).join(',')
       case 'Object':
-        // input 情况的特判; 为了在 selectType === 'input' 时也能取到文本值
-        const oppositeProp = prop === 'label' ? 'value' : 'label'
-        return val[prop] || val[oppositeProp]
+      return val[prop]
       case 'String':
       default:
         return val
@@ -982,12 +974,10 @@
   // 批量添加变种属性(行 hang) 打开弹窗
   const addAspectRowModalOpen = ref(false)
   const columnData = ref({})
-  const filteredAspectItem = ref({})
   const aspectData = ref([])
-  function batchAddAspectRow(column, item) {
+  function batchAddAspectRow(column, tableData) {
     columnData.value = column
-    filteredAspectItem.value = item
-    aspectData.value = item.tableData
+    aspectData.value = tableData
     addAspectRowModalOpen.value = true
   }
 
@@ -998,7 +988,7 @@
       // 如果有行, 且行存在空值, 先填充行; 再有多余的就往后添加新行
       for (const item of aspectData.value) {
         if (!nonEmpty(item[columnData.value.name])) {
-          item[columnData.value.name] = getValByType(val, columnData.value.selectType)
+          item[columnData.value.name] = columnData.value.selectType === 'multSelect' ? [val] : val
           continueFlag = true
 
           break
@@ -1006,43 +996,15 @@
       }
       if (continueFlag) continue
 
-      /* const row = { uuid: uuidv4() }
-      // just focus on self (如果是结对属性, 另一个值让双向绑定去隐式生成)
-      row[columnData.value.name] = getValByType(val, columnData.value.selectType)
-
-      aspectData.value.push(row) */
-
-      const itemAspectList = filteredAspectItem.value.columns.slice(0, -1)
       const row = { uuid: uuidv4() }
-      itemAspectList.forEach(ele => {
-        if (ele.name === columnData.value.name) {
-          row[ele.name] = getValByType(val, ele.selectType)
-        } else {
-          row[ele.name] = getDetaultByType(ele.selectType)
-        }
-      })
+      // just focus on self (如果是结对属性, 另一个值让双向绑定去隐式生成)
+      row[columnData.value.name] = columnData.value.selectType === 'multSelect' ? [val] : val
 
       aspectData.value.push(row)
     }
 
     columnData.value = {}
-    filteredAspectItem.value = {}
     aspectData.value = []
-
-    // 赋值方法
-    function getValByType(val, selectType) {
-      switch (selectType) {
-        case 'multSelect':
-          return [val]
-        case 'select':
-          return val
-        case 'input':
-          // input 躯壳, 都是躯壳
-          return { uuid: uuidv4(), value: val }
-        default:
-          return val
-      }
-    }
   }
 
   // 添加一行变种主题
@@ -1062,7 +1024,7 @@
   }
 
   /** 变种信息(SKU 表格) */
-  const SKUTableData = ref([{ uuid: uuidv4() }])
+  const SKUTableData = ref([{ uuid: uuidv4(), mainImages: [], subImages: [] }])
   const colorImageDesc = `请用图片展示商品颜色，例如，衣服上的图案、颜色或口红的样品等。买家将在切换器中看见的不是标准圆形按钮，而是商品小图片;\n(说明：图片大小不大于5MB，只支持jpg、png、jpeg格式；图片尺寸为200*200-4320*7680)`
   // 右侧的勾选选项
   const RIGHT_OPTIONS = [
@@ -1207,11 +1169,11 @@
 
   watch(
     () => usefulAspect.value,
-    (_, oldList) => {
+    _ => {
       if (hasDuplicateAspect.value) return
 
       // 备份老数据
-      const oldSKUData = SKUDataToMap(oldList, SKUTableData.value)
+      const oldSKUData = SKUTableData.value
       // 生成新表格数据
       SKUTableData.value = generateSKUCombinations()
       // 赋值老数据
@@ -1229,40 +1191,15 @@
     }
   )
 
-  /**
-   * @description SKU列表数据转map,方便映射查找，判断SKU数据对比复用
-   * @param SKUList  SKU列表
-   * @returns SKUKey做键, SKU数据做值的SKU查找映射
-   */
-  function SKUDataToMap(oldList, SKUList) {
-    const oldAspectNames = []
-    oldList.forEach(item => {
-      for (const key in item.nonEmptyTableData[0]) {
-        if (key === 'uuid') continue
-
-        oldAspectNames.push(key)
-      }
-    })
-
-    return SKUList.reduce((map, SKU) => {
-      const list = []
-      oldAspectNames.forEach(name => {
-        if (typeInputNameList.value.includes(name)) {
-          // 拿 input 值的 uuid
-          const nameId = rawAttributes.value.find(attr => attr.name === name).id
-          const inputUuid = oldList.find(item => String(item.key).includes(nameId)).nonEmptyTableData.find(row => SKU.parentUuidList.includes(row.uuid))[name].uuid
-
-          list.push(inputUuid)
-        } else {
-          list.push(SKU[name])
-        }
-      })
-      const SKUKey = list.join('-')
+  // 把老数据转成 map, parentUuidList 拼接为 key, 方便映射查找，判断 SKU 数据对比复用
+  /* function SKUDataToMap() {
+    return SKUTableData.value.reduce((map, SKU) => {
+      const SKUKey = SKU.parentUuidList?.join('_')
       SKUKey && (map[SKUKey] = SKU)
 
       return map
     }, {})
-  }
+  } */
 
   /** 生成 SKU 组合 (! KEY FUNCTION !) */
   function generateSKUCombinations() {
@@ -1293,33 +1230,20 @@
 
   // 赋值老数据
   function assignOldSKUData(oldSKUData) {
+    // init field: ['uuid', 'mainImages', 'subImages'].length = 3
+    if (!oldSKUData.length || Object.keys(oldSKUData[0]).length === 3) return
+
+    // 维持新值的字段
+    const fieldList = aspectColumns.value.map(col => col.title)
+    fieldList.push('uuid', 'parentUuidList')
+
     SKUTableData.value.forEach((record, i) => {
-      const list = []
-      aspectColumns.value.forEach(col => {
-        if (typeInputNameList.value.includes(col.title)) {
-          // 拿 input 值的 uuid
-          const nameId = rawAttributes.value.find(attr => attr.name === col.title).id
-          const inputUuid = usefulAspect.value.find(item => String(item.key).includes(nameId)).nonEmptyTableData.find(row => record.parentUuidList.includes(row.uuid))[col.title].uuid
-
-          list.push(inputUuid)
-        } else {
-          list.push(record[col.title])
-        }
-      })
-      const SKUKey = list.join('-')
-
-      if (oldSKUData[SKUKey]) {
-        const obj = {
-          ...oldSKUData[SKUKey],
-          uuid: record.uuid
-        }
-        aspectColumns.value.forEach(col => {
-          if (typeInputNameList.value.includes(col.title)) {
-            obj[col.title] = record[col.title] // 更新 input 的新值
-          }
+      if (oldSKUData[i]) {
+        SKUTableData.value[i] = { ...oldSKUData[i] }
+  
+        fieldList.forEach(field => {
+          SKUTableData.value[i][field] = record[field]
         })
-
-        SKUTableData.value[i] = obj
       }
     })
   }

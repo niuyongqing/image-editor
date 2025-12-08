@@ -105,7 +105,7 @@
                   v-else
                   v-model:value="attributesObj[item.name]"
                   :controls="false"
-                  :precision="0"
+                  :precision="item.type === 'Integer' ? 0 : 2"
                   :min="0"
                   :max="99999"
                   placeholder="请输入数值"
