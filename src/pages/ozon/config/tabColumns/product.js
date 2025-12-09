@@ -10,13 +10,13 @@ export default [
     title: 'SKU信息',
     dataIndex: 'sku',
     align: "center",
-    width: 180,
+    width: 160,
   },
   {
     title: '7/14/30天销量',
     dataIndex: 'saleNum',
     align: "center",
-    width: 180,
+    width: 150,
   },
   {
     title: '售价',

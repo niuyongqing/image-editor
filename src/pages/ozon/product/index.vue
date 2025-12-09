@@ -274,7 +274,7 @@
                       <template #title>
                         <span>优质产品为14天内销量大于10的SKU(该数据由馨站ERP统计仅供参考)</span>
                       </template>
-                      <a-tag class="mr-1" v-if="record.saleNum14 >10" :bordered="false" color="#00aeb3">
+                      <a-tag class="mr-1" v-if="record.saleNum14 > 10" :bordered="false" color="#00aeb3">
                       优质产品
                       </a-tag>
                     </a-tooltip>
@@ -297,7 +297,7 @@
                         已合并:{{ tbItem.count }}
                       </div>
                       <div>
-                        促销活动价：<span class="text-[#1677ff]">{{ record.marketingPrice || '暂未参加活动' }}</span>
+                        促销活动价：<br/><span class="text-[#1677ff]">{{ record.marketingPrice || '暂未参加活动' }}</span>
                       </div>
                       <div v-if="record.state === '已归档' || record.state === '在售'">
                         <div class="flex">
