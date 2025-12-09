@@ -303,8 +303,8 @@ const scrollHeigth = computed(() => {
   let maxHeight = (heightInfo.outerDomHeight - heightInfo.formHeight) + 'px';
   return props.autoHeight ? maxHeight : 'auto';
 })
-generateHeader();
-getSettingList();
+// generateHeader();
+// getSettingList();
 onMounted(() => {
   nextTick(() => {
     columns.columnChange = false;
@@ -323,6 +323,12 @@ watch(() => columns.list, (val, oldVal) => {
 }, {
   deep: true,
 });
+watch(() => props.tableHeader, (val, oldVal) => {
+  generateHeader();
+}, {
+  deep: true,
+  immediate: true,
+})
 // 监听默认展开的行
 watch(() => props.expandedRowKeys, (val) => {
   tableInfo.expandedRowKeys = [...val]
@@ -371,6 +377,8 @@ function getHeight() {
     heightInfo.formHeight = entries[0].contentRect.height;
   });
   heightInfo.formDom.observe(targetDom);
+  console.log(222);
+  
 }
 // 重新生成表头
 function generateHeader() {
@@ -390,6 +398,7 @@ function generateHeader() {
     }
     return obj;
   });
+  getSettingList();
 }
 // 获取表头
 function getSettingList() {
@@ -422,6 +431,8 @@ function getSettingList() {
   columns.list = [...columns.leftList, ...columns.centerList, ...columns.rightList];
   setColumnItem(columns.list);
   columns.columnChange = false;
+  console.log(111);
+  
 }
 /**
  * 固定表头
