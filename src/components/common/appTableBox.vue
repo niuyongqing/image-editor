@@ -221,7 +221,7 @@ const props = defineProps({
   scroll: {
     // 表格滚动属性
     type: Object,
-    default: () => ({ x: 'max-content', }),
+    default: () => ({}),
   },
   isTableSetting: {             // 是否启用表格设置
     type: Boolean,
