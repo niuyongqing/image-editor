@@ -543,14 +543,14 @@ const formHeight = ref(108);
 // 处理搜索筛选区域高度变化
 const handleFormHeightChange = (val) => {
   formHeight.value = val;
-  console.log("搜索筛选区域高度变化:", val);
+  // console.log("搜索筛选区域高度变化:", val);
 };
 
 const handleActionClick = (eventName, record) => {
   //eventName 事件名称
   //record 点击的行数据
   if (eventName) {
-    console.log(eventName, record);
+    // console.log(eventName, record);
     if (eventName === "copy") {
       return handleCopy(record);
     }
@@ -688,7 +688,7 @@ const getList = async (type = "search") => {
         params[key] = params[key].trim();
       }
     });
-    console.log("params", params);
+    // console.log("params", params);
     const res = await getStoreTemplateList(params);
     tableData.value = JSON.parse(JSON.stringify(res?.rows || []));
     // 整体表格数据处理
@@ -771,8 +771,8 @@ const handleSelectionChange = (selectedRowKeys, selectedRows) => {
   currentSelectRow.splice(0, currentSelectRow.length, ...selectedRows);
   // 更新选中行的keys，用于表格选择状态同步
   filterSelectedRows.value = [...selectedRowKeys];
-  console.log("selectedRows", selectedRows);
-  console.log("currentSelectRow", currentSelectRow);
+  // console.log("selectedRows", selectedRows);
+  // console.log("currentSelectRow", currentSelectRow);
 };
 
 // 处理编辑和查看单据操作

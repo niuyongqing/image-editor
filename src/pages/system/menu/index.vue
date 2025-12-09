@@ -388,7 +388,7 @@ const getTreeMenu = (menuList) => {
   // 直接赋值
   topLevelMenuList = topLevelMenus;
   handlePageData();
-  console.log("childrenMap:", childrenMap);
+  // console.log("childrenMap:", childrenMap);
   childrenMapList = childrenMap;
   // 复制原始子菜单映射到完整子菜单映射
   childrenMapList.forEach((children, parentId) => {

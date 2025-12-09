@@ -232,7 +232,7 @@ const formHeight = ref(98);
 // 处理搜索筛选区域高度变化
 const handleFormHeightChange = (val) => {
   formHeight.value = val;
-  console.log("搜索筛选区域高度变化:", val);
+  // console.log("搜索筛选区域高度变化:", val);
 };
 async function getCategoryTree(params) {
   try {
