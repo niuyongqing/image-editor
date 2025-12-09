@@ -92,7 +92,8 @@
                 <a-dropdown :disabled="selectedRows.length === 0">
                   <template #overlay>
                     <a-menu @click="handleMenuClick">
-                      <a-menu-item key="advertising">
+                      <!-- 后端接口还有问题暂时不展示 -->
+                      <a-menu-item key="advertising" v-if="false">
                         <a-tooltip placement="right" color="#fff">
                           <template #title>
                             <div class="text-[#1677ff] cursor-pointer p-1 hover:bg-[#1677ff] hover:text-white" href="#"
@@ -550,7 +551,8 @@
                                   <span>删除</span>
                                 </a-popconfirm>
                               </a-menu-item>
-                              <a-menu-item>
+                              <!-- 后端接口还有问题暂时不展示 -->
+                              <a-menu-item v-if="false">
                                 <a-tooltip placement="right" color="#fff">
                                   <template #title>
                                     <div class="text-[#1677ff] cursor-pointer p-1 hover:bg-[#1677ff] hover:text-white"
