@@ -1773,7 +1773,7 @@ onMounted(() => {
       }
     }
 
-    @media (min-width: 2560px) {
+    @media (min-width: 2550px) {
       .prodTitle {
         width: 390px !important;
       }
