@@ -6,7 +6,7 @@
       class="text-left"
     >
       <template #extra v-if="!detail.categoryId">
-        <a-button type="link" :disabled="!rawAttributes.length" @click="fillDataFromDetail">填入资料库数据</a-button>
+        <a-button type="link" :disabled="!rawAttributes.length" @click="fillDataFromDetail">填入资料库SKU数据</a-button>
         <a-tooltip
           :title="`将资料库数据填入当前变种信息和图片信息中;\n数据可能有缺失;\n若当前已填有数据, 则会被覆盖.`"
           placement="topRight"
