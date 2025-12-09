@@ -382,7 +382,8 @@ function getHeight() {
 }
 // 重新生成表头
 function generateHeader() {
-  columns.columnList = props.tableHeader.map((i, index) => {
+  let tableHeader = cloneDeep(props.tableHeader)
+  columns.columnList = tableHeader.map((i, index) => {
     let obj = {
       sorter: false,
       fixed: false,
