@@ -795,8 +795,15 @@ function setTableHeaderShow(keyList = []) {
     }
   })
 }
+/**
+ * 重新渲染表格
+ */
+function refreshTable() {
+  tableInfo.key = uuid()
+}
 defineExpose({
   setTableHeaderShow,
+  refreshTable,
 })
 </script>
 
