@@ -229,7 +229,12 @@
             </template>
             <template v-else-if="title === 'SKU'">
               <span class="text-[#ff4d4f]">*</span>
-              <span>{{ title }}</span>
+              <span class="mr-1">{{ title }}</span>
+              <a-tooltip
+                title="如果编码中包含 '*', '/', '+', 则认定为有多数量策划意图, 建议勾选多数量策划"
+              >
+                <QuestionCircleOutlined />
+              </a-tooltip>
               <br />
               <a-button
                 type="link"
