@@ -112,7 +112,7 @@
         </a-form>
       <br />
       <a-button class="float-left mb-2" v-has-permi="['system:store:intelligent:selection:product']" @click="batchListingPicks" type="primary" :disabled="selectedRowKeys.length === 0">批量智能选品</a-button>
-      <a-table :columns="header" :data-source="tableData.data" :scroll="{ y: 'calc(84vh - 120px)', x: '3200px' }"
+      <a-table :columns="header" :data-source="tableData.data" :scroll="{ y: 'calc(84vh - 130px)', x: '3200px' }"
         :pagination="false" :customRow="customRow" rowKey="commodityId" @change="tableChange"
         :loading="tableData.loading" class="productDatabase-table"
         :row-selection="{
