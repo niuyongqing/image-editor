@@ -377,7 +377,7 @@ function getHeight() {
     heightInfo.formHeight = entries[0].contentRect.height;
   });
   heightInfo.formDom.observe(targetDom);
-  console.log(222);
+  // console.log(222);
   
 }
 // 重新生成表头
@@ -431,8 +431,7 @@ function getSettingList() {
   columns.list = [...columns.leftList, ...columns.centerList, ...columns.rightList];
   setColumnItem(columns.list);
   columns.columnChange = false;
-  console.log(111);
-  
+  // console.log(111);
 }
 /**
  * 固定表头
