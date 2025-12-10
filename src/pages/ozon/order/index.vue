@@ -15,6 +15,24 @@
           <!-- <selectComm style="margin-left: 10px" :options="account" :fieldObj="shopObj" @backSelectAll="selectAll"
             @backSelectItem="selectItem"></selectComm> -->
         </a-form-item>
+        <!-- 模板查询 -->
+        <a-form-item label="模糊查询:">
+          <a-space size="middle">
+            <a-input
+              v-model:value="formState.offerId"
+              placeholder="请输入sku进行搜索"
+              allowClear
+            />
+            <a-input
+              v-model:value="formState.orderNumber"
+              placeholder="请输入订单编号进行搜索"
+              allowClear
+            />
+          </a-space>
+          <a-button class="ml-4" type="primary" @click="queryList" :disabled="tableLoading"
+            >查询</a-button
+          >
+        </a-form-item>
         <a-form-item>
           <div class="flex flex-col items-center">
             <div style="display: flex; margin-bottom: 24px">
@@ -417,7 +435,9 @@ const queryList = () => {
     pageNum: paginations.pageNum,
     queryHistoryOrder: activeKey.value == 1 ? true : false,
     prop: sortObj.sortField,  //排序字段
-    order: sortObj.sortType   //排序方式
+    order: sortObj.sortType,   //排序方式
+    offerId: formState.offerId || null,
+    orderNumber: formState.orderNumber || null
   }
 
   orderList(params).then(res => {
