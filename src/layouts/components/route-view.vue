@@ -17,7 +17,8 @@ const { getComp } = useCompConsumer()
       <RouterView>
         <template #default="{ Component, route }">
           <Transition appear :name="layoutSetting.animationName" mode="out-in">
-            <div :key="route.fullPath">
+            <!-- <div :key="route.fullPath"> -->
+            <div>
               <KeepAlive v-if="layoutSetting.keepAlive" :include="[...cacheList]">
                 <component :is="getComp(Component)" />
               </KeepAlive>

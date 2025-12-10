@@ -6,7 +6,7 @@ export function useCurrentRoute() {
   const { menuDataMap } = storeToRefs(layoutMenuStore)
   const pathsKeys = menuDataMap.value?.keys()
   const currentPath = currentRoute.value.path
-  console.log('currentPath', currentPath, pathsKeys)
+  // console.log('currentPath', currentPath, pathsKeys)
   return {
     currentRoute,
   }

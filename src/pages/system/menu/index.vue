@@ -115,6 +115,8 @@ import {
   fetchMenuChildren,
   buildCompleteMenuTree,
 } from "./menuDataUtils";
+import { useRouter } from 'vue-router';
+const router = useRouter();
 
 // 在组件中引入userStore
 import { useUserStore } from "~/stores/user.js";
@@ -147,7 +149,16 @@ const pageChange = ({ pageSize, currentPage }) => {
 // 更新菜单数据
 const refreshMenu = async () => {
   const userStore = useUserStore();
-  await userStore.generateDynamicRoutes();
+  const currentRoute = await userStore.generateDynamicRoutes();
+  // 更新路由
+  router.removeRoute(currentRoute.name)
+  router.addRoute(currentRoute)
+  // let rootPath = router.getRoutes().find(i => i.name === currentRoute.name)
+  // console.log({
+  //   router: router.getRoutes(),
+  //   hasRoute: router.hasRoute(currentRoute.name),
+  //   rootPath
+  // });
 };
 const tableContainer = ref(null);
 const originalData = ref([]); // 只保留一个数据源
