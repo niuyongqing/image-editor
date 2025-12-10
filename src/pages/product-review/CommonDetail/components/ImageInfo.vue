@@ -705,6 +705,9 @@
 
   // 添加进图片, 引用采集和资料库共用
   function pushImage(list) {
+    list.forEach(item => {
+      item.url = processImageSource(item.url)
+    })
     curImages.push(...list)
   }
 
