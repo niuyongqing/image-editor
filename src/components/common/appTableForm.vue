@@ -278,6 +278,9 @@ function resetForm() {
     _this.$refs.appTableFormRef.resetFields();
   });
 }
+defineExpose({
+  resetForm,
+})
 </script>
 <style lang="less" scoped>
 #appTableForm.appTableForm {
