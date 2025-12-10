@@ -1,6 +1,6 @@
 <!-- 仿店小蜜的可搜索分类选择器 -->
 <template>
-  <a-modal title="选择分类" :open="open" :mask-closable="false" width="996px" @cancel="cancel" @ok="ok">
+  <a-modal title="选择分类" :open="open" :mask-closable="false" centered width="996px" @cancel="cancel" @ok="ok">
     <a-select :options="flatTreeFilteredOptions" placeholder="搜索分类名称" allow-clear show-search :filter-option="false"
       :list-height="547" :dropdown-style="{ height: '555px' }" class="w-full"
       @search="val => (searchState.global = val)" @select="selectGlobalItem">
