@@ -55,6 +55,7 @@
       reset-set-menu="publicationRule"
       stripe
       row-key="id"
+      :scroll="{ x: 'max-content' }"
       :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange }"
       @rowDoubleClick="record => goEdit(record)"
     >
