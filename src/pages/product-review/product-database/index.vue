@@ -1,5 +1,9 @@
 <template>
-  <div v-loading="loadingFull" id="productDatabase_index" class="productDatabase_index">
+  <div
+    v-loading="loadingFull"
+    id="productDatabase_index"
+    class="productDatabase_index"
+  >
     <!-- <a-modal 
     v-model:open="modalOpen" 
     :style="{ top: '10px', padding: 0, height: '99vh' }" 
@@ -10,122 +14,232 @@
   >
   </a-modal> -->
     <div class="dialog-box">
-        <a-form :model="formData" layout="inline" :label-col="{ span: 6 }">
-          <div class="formItem-row">
-            <a-form-item label="产品分类" name="classify">
-              <a-cascader placeholder="产品分类" allowClear v-model:value="formData.classify" :options="commodityTypeList"
-                :allow-clear="true" :field-names="{
-                  label: 'label',
-                  value: 'value',
-                  children: 'children',
-                }" />
-            </a-form-item>
-            <a-form-item label="完成状态" name="status">
-              <a-select v-model:value="formData.status" :options="storeStatus" placeholder="完成状态" allowClear></a-select>
-            </a-form-item>
-            <a-form-item label="禁售站点" name="meansForbidSite">
-              <a-select v-model:value="formData.meansForbidSite" :options="sheepProhibitionSelect" placeholder="禁售站点"
-                allowClear></a-select>
-            </a-form-item>
-            <a-form-item label="禁售属性" name="meansForbidAttribute">
-              <a-select :options="forbidSaleList" placeholder="禁售属性" v-model:value="formData.meansForbidAttribute"
-                show-search :filter-option="meansForbidAttributeFilterOption"
-                :field-names="{ label: 'attributes', value: 'key' }" allowClear></a-select>
-            </a-form-item>
+      <a-form :model="formData" layout="inline" :label-col="{ span: 6 }">
+        <div class="formItem-row">
+          <a-form-item label="产品分类" name="classify">
+            <a-cascader
+              placeholder="产品分类"
+              allowClear
+              v-model:value="formData.classify"
+              :options="commodityTypeList"
+              :allow-clear="true"
+              :field-names="{
+                label: 'label',
+                value: 'value',
+                children: 'children',
+              }"
+            />
+          </a-form-item>
+          <a-form-item label="完成状态" name="status">
+            <a-select
+              v-model:value="formData.status"
+              :options="storeStatus"
+              placeholder="完成状态"
+              allowClear
+            ></a-select>
+          </a-form-item>
+          <a-form-item label="禁售站点" name="meansForbidSite">
+            <a-select
+              v-model:value="formData.meansForbidSite"
+              :options="sheepProhibitionSelect"
+              placeholder="禁售站点"
+              allowClear
+            ></a-select>
+          </a-form-item>
+          <a-form-item label="禁售属性" name="meansForbidAttribute">
+            <a-select
+              :options="forbidSaleList"
+              placeholder="禁售属性"
+              v-model:value="formData.meansForbidAttribute"
+              show-search
+              :filter-option="meansForbidAttributeFilterOption"
+              :field-names="{ label: 'attributes', value: 'key' }"
+              allowClear
+            ></a-select>
+          </a-form-item>
+        </div>
+        <div class="formItem-row">
+          <a-form-item label="仓储类别" name="meansKeepGrain">
+            <a-form-item-rest>
+              <div style="display: flex">
+                <a-select
+                  v-model:value="formData.meansKeepGrain"
+                  :options="meansKeepGrains"
+                  placeholder="仓储类别"
+                  allowClear
+                ></a-select>
+                <a-select
+                  v-model:value="formData.preciseMeansKeepGrain"
+                  placeholder=""
+                  style="width: 120px"
+                >
+                  <a-select-option :value="1">精确查询</a-select-option>
+                  <a-select-option :value="2">模糊查询</a-select-option>
+                </a-select>
+              </div>
+            </a-form-item-rest>
+          </a-form-item>
+          <a-form-item label="市场方向" name="devAttributableMarket">
+            <a-select
+              v-model:value="formData.devAttributableMarket"
+              :options="devAttributableMarketRevertSelect"
+              placeholder="市场方向"
+              allowClear
+            ></a-select>
+          </a-form-item>
+          <a-form-item label="成本筛选" name="skuCosts">
+            <a-form-item-rest>
+              <div
+                style="
+                  display: flex;
+                  justify-content: flex-start;
+                  align-items: center;
+                  font-size: 14px;
+                "
+              >
+                <a-input-number
+                  placeholder="最小值"
+                  v-model:value="formData.skuCostsMin"
+                  style="width: 100px"
+                  :controls="false"
+                />
+                <div style="margin: 0 5px">-</div>
+                <a-input-number
+                  placeholder="最大值"
+                  v-model:value="formData.skuCostsMax"
+                  style="width: 100px"
+                  :controls="false"
+                />
+              </div>
+            </a-form-item-rest>
+          </a-form-item>
+          <a-form-item label="审核时间" name="meansAuditTime">
+            <a-range-picker
+              v-model:value="formData.meansAuditTime"
+              allowClear
+            />
+          </a-form-item>
+        </div>
+        <div class="formItem-row">
+          <a-form-item label="重量筛选" name="skuWeight">
+            <a-form-item-rest>
+              <div
+                style="
+                  display: flex;
+                  justify-content: flex-start;
+                  align-items: center;
+                  font-size: 14px;
+                "
+              >
+                <a-input-number
+                  placeholder="最小值"
+                  v-model:value="formData.skuWeightMin"
+                  style="width: 100px"
+                  :controls="false"
+                />
+                <div style="margin: 0 5px">-</div>
+                <a-input-number
+                  placeholder="最大值"
+                  v-model:value="formData.skuWeightMax"
+                  style="width: 100px"
+                  :controls="false"
+                />
+              </div>
+            </a-form-item-rest>
+          </a-form-item>
+          <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
+            <a-form-item-rest>
+              <div flex gap-10px style="width: 800px">
+                <a-tooltip
+                  placement="top"
+                  title="分词查找从以下内容进行查找：产品名称、SKU编码、拍照人、开发人、品牌、中文描述、英文描述。"
+                >
+                  <QuestionCircleOutlined
+                    class="font-size-3 color-[#faad14] position-relative top--1 mr--1 ml--1"
+                  />
+                </a-tooltip>
+                <a-input
+                  v-model:value="formData.tradeName"
+                  placeholder="分词查找"
+                />
+                <a-input
+                  v-model:value="formData.developPerson"
+                  placeholder="开发人员"
+                ></a-input>
+                <a-input
+                  v-model:value="formData.accurateTradeName"
+                  placeholder="商品名"
+                ></a-input>
+                <a-input
+                  v-model:value="formData.sku"
+                  placeholder="SKU"
+                ></a-input>
+                <a-input
+                  v-model:value="formData.description"
+                  placeholder="描述"
+                >
+                </a-input>
+              </div>
+            </a-form-item-rest>
+          </a-form-item>
+          <div class="formItem-row-i right">
+            <a-space>
+              <a-button key="submit" type="primary" @click="onSubmit"
+                >查询</a-button
+              >
+              <a-button key="submit" @click="resetForm">重置</a-button>
+            </a-space>
           </div>
-          <div class="formItem-row">
-            <a-form-item label="仓储类别" name="meansKeepGrain">
-              <a-form-item-rest>
-                <div style="display: flex">
-                  <a-select v-model:value="formData.meansKeepGrain" :options="meansKeepGrains" placeholder="仓储类别"
-                    allowClear></a-select>
-                  <a-select v-model:value="formData.preciseMeansKeepGrain" placeholder="" style="width: 120px">
-                    <a-select-option :value="1">精确查询</a-select-option>
-                    <a-select-option :value="2">模糊查询</a-select-option>
-                  </a-select>
-                </div>
-              </a-form-item-rest>
-            </a-form-item>
-            <a-form-item label="市场方向" name="devAttributableMarket">
-              <a-select v-model:value="formData.devAttributableMarket" :options="devAttributableMarketRevertSelect"
-                placeholder="市场方向" allowClear></a-select>
-            </a-form-item>
-            <a-form-item label="成本筛选" name="skuCosts">
-              <a-form-item-rest>
-                <div style="
-                    display: flex;
-                    justify-content: flex-start;
-                    align-items: center;
-                    font-size: 14px;
-                  ">
-                  <a-input-number placeholder="最小值" v-model:value="formData.skuCostsMin" style="width: 100px"
-                    :controls="false" />
-                  <div style="margin: 0 5px">-</div>
-                  <a-input-number placeholder="最大值" v-model:value="formData.skuCostsMax" style="width: 100px"
-                    :controls="false" />
-                </div>
-              </a-form-item-rest>
-            </a-form-item>
-            <a-form-item label="审核时间" name="meansAuditTime">
-              <a-range-picker v-model:value="formData.meansAuditTime" allowClear />
-            </a-form-item>
-          </div>
-          <div class="formItem-row">
-            <a-form-item label="重量筛选" name="skuWeight">
-              <a-form-item-rest>
-                <div style="
-                    display: flex;
-                    justify-content: flex-start;
-                    align-items: center;
-                    font-size: 14px;
-                  ">
-                  <a-input-number placeholder="最小值" v-model:value="formData.skuWeightMin" style="width: 100px"
-                    :controls="false" />
-                  <div style="margin: 0 5px">-</div>
-                  <a-input-number placeholder="最大值" v-model:value="formData.skuWeightMax" style="width: 100px"
-                    :controls="false" />
-                </div>
-              </a-form-item-rest>
-            </a-form-item>
-            <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
-              <a-form-item-rest>
-                <div flex gap-10px style="width: 800px">
-                  <a-input v-model:value="formData.tradeName" placeholder="分词查找产品名称" />
-                  <a-input v-model:value="formData.developPerson" placeholder="开发人员"></a-input>
-                  <a-input v-model:value="formData.accurateTradeName" placeholder="商品名"></a-input>
-                  <a-input v-model:value="formData.sku" placeholder="SKU"></a-input>
-                  <a-input v-model:value="formData.description" placeholder="描述">
-                  </a-input>
-                </div>
-              </a-form-item-rest>
-            </a-form-item>
-            <div class="formItem-row-i right">
-              <a-space>
-                <a-button key="submit" type="primary" @click="onSubmit">查询</a-button>
-                <a-button key="submit" @click="resetForm">重置</a-button>
-              </a-space>
-            </div>
-          </div>
-        </a-form>
+        </div>
+      </a-form>
       <br />
-      <a-button class="float-left mb-2" v-has-permi="['system:store:intelligent:selection:product']" @click="batchListingPicks" type="primary" :disabled="selectedRowKeys.length === 0">批量智能选品</a-button>
-      <a-table :columns="header" :data-source="tableData.data" :scroll="{ y: 'calc(84vh - 120px)', x: '3200px' }"
-        :pagination="false" :customRow="customRow" rowKey="commodityId" @change="tableChange"
-        :loading="tableData.loading" class="productDatabase-table"
+      <a-button
+        class="float-left mb-2"
+        v-has-permi="['system:store:intelligent:selection:product']"
+        @click="batchListingPicks"
+        type="primary"
+        :disabled="selectedRowKeys.length === 0"
+        >批量智能选品</a-button
+      >
+      <a-table
+        :columns="header"
+        :data-source="tableData.data"
+        :scroll="{ y: 'calc(84vh - 130px)', x: '3200px' }"
+        :pagination="false"
+        :customRow="customRow"
+        rowKey="commodityId"
+        @change="tableChange"
+        :loading="tableData.loading"
+        class="productDatabase-table"
         :row-selection="{
           selectedRowKeys: selectedRowKeys,
-          onChange: onSelectChange
-        }">
+          onChange: onSelectChange,
+        }"
+      >
         <template #bodyCell="{ column: { key }, record }">
           <template v-if="key === 'action'">
             <!-- <a-button @click="handleSelect(record)" type="link">选中</a-button> -->
-            <a-button v-has-permi="['system:store:intelligent:selection:product']" @click="listingPicks([record])" type="link">智能选品</a-button>
-            <a-button @click="handleEditProduct(record);" type="link">详情</a-button>
+            <a-button
+              v-has-permi="['system:store:intelligent:selection:product']"
+              @click="listingPicks([record])"
+              type="link"
+              >智能选品</a-button
+            >
+            <a-button @click="handleEditProduct(record)" type="link"
+              >详情</a-button
+            >
             <!-- v-has-permi="['system:store:intelligent:selection:product']" -->
           </template>
           <template v-else-if="key === 'artMainImage'">
             <a-image-preview-group>
-              <a-image  width="50px" height="50px" :fallback="EmptyImg" v-for="(item, index) in artMainImageSrc(record)" :src="item || EmptyImg" :key="index" />
+              <a-image
+                width="50px"
+                height="50px"
+                :fallback="EmptyImg"
+                v-for="(item, index) in artMainImageSrc(record)"
+                :src="item || EmptyImg"
+                :key="index"
+              />
             </a-image-preview-group>
           </template>
           <template v-else-if="key === 'devAccount'">
@@ -133,28 +247,41 @@
             <span v-if="record.devAccount == 1">平台热销品</span>
             <span v-if="record.devAccount == 2">平台趋势产品</span>
             <span v-if="record.devAccount == 3">公司热销品周边产品</span>
-            <span v-if="record.devAccount == 4">季节、节日、重要事件相关产品</span>
+            <span v-if="record.devAccount == 4"
+              >季节、节日、重要事件相关产品</span
+            >
             <span v-if="record.devAccount == 5">市场热销品</span>
             <span v-if="record.devAccount == 6">前瞻性产品</span>
             <span v-if="record.devAccount == 7">其他</span>
             <span v-if="record.devAccount == 8">菲律宾本土仓开发</span>
           </template>
           <template v-else-if="key === 'isIntelligent'">
-            <a-tag v-if="record.isIntelligent == 1 || record.isIntelligent == 2" color="success">已选品</a-tag>
+            <a-tag
+              v-if="record.isIntelligent == 1 || record.isIntelligent == 2"
+              color="success"
+              >已选品</a-tag
+            >
             <a-tag v-else color="error">未选品</a-tag>
           </template>
           <template v-else-if="key === 'devAttributableMarket'">
-            <div v-html="devAttributableMarket(record.devAttributableMarket)"></div>
+            <div
+              v-html="devAttributableMarket(record.devAttributableMarket)"
+            ></div>
           </template>
           <template v-else-if="key === 'skuList'">
             <div v-html="sortArrey(record.skuList)"></div>
           </template>
           <template v-else-if="key === 'meansRelated'">
-            <div v-if="
-              record.meansRelated &&
-              JSON.parse(record.meansRelated).length > 0
-            ">
-              <div v-for="(item, index) in meansRelated(record.meansRelated)" :key="index">
+            <div
+              v-if="
+                record.meansRelated &&
+                JSON.parse(record.meansRelated).length > 0
+              "
+            >
+              <div
+                v-for="(item, index) in meansRelated(record.meansRelated)"
+                :key="index"
+              >
                 <span>
                   {{ item.sku }}
                 </span>
@@ -173,7 +300,11 @@
             <a-tag color="success">{{ classify(record.classify) }}</a-tag>
           </template>
           <template v-else-if="key === 'meansKeepGrain'">
-            <a-tag v-for="tag in meansKeepGrainMap(record.meansKeepGrain)" :key="tag.key" color="processing">
+            <a-tag
+              v-for="tag in meansKeepGrainMap(record.meansKeepGrain)"
+              :key="tag.key"
+              color="processing"
+            >
               {{ tag.label }}
             </a-tag>
           </template>
@@ -187,35 +318,56 @@
           </template>
           <template v-else-if="key === 'tortType'">
             <div>
-              <a-tag type="primary" danger v-if="record.tortType ? record.tortType.includes('1') : false" effect="dark"
-                style="margin-right: 5px">速卖通微侵权
+              <a-tag
+                type="primary"
+                danger
+                v-if="record.tortType ? record.tortType.includes('1') : false"
+                effect="dark"
+                style="margin-right: 5px"
+                >速卖通微侵权
               </a-tag>
-              <a-tag type="primary" danger v-if="record.tortType ? record.tortType.includes('2') : false"
-                effect="dark">Shopee微侵权
+              <a-tag
+                type="primary"
+                danger
+                v-if="record.tortType ? record.tortType.includes('2') : false"
+                effect="dark"
+                >Shopee微侵权
               </a-tag>
             </div>
           </template>
           <template v-else-if="key === 'meansForbidAttribute'">
-            <a-tag type="success" v-for="(item, index) in meansForbidAttribute(
-              record.meansForbidAttribute
-            )" :key="index" style="margin-right: 5px">
+            <a-tag
+              type="success"
+              v-for="(item, index) in meansForbidAttribute(
+                record.meansForbidAttribute
+              )"
+              :key="index"
+              style="margin-right: 5px"
+            >
               {{ getAttrName(item) }}
             </a-tag>
           </template>
           <template v-else-if="key === 'meansForbidSite'">
-            <a-tag v-for="tag in meansForbidSiteSplit(record.meansForbidSite)" :key="tag" color="red">
+            <a-tag
+              v-for="tag in meansForbidSiteSplit(record.meansForbidSite)"
+              :key="tag"
+              color="red"
+            >
               {{ tagMap(tag) }}
             </a-tag>
           </template>
           <template v-else-if="key === 'meansRemark'">
-            <div style="
+            <div
+              style="
                 width: 100%;
                 text-overflow: ellipsis;
                 overflow: hidden;
                 white-space: nowrap;
                 text-align: center;
                 padding: 0 8px;
-              " v-if="record.meansRemark">
+              "
+              v-if="record.meansRemark"
+            >
               <span v-html="record.meansRemark.replace(/<[^>]+>/g, '')"></span>
             </div>
           </template>
@@ -226,17 +378,28 @@
       </a-table>
       <br />
       <div class="pagination-box">
-        <a-pagination v-model:current="tableData.params.pageNum" v-model:page-size="tableData.params.pageSize"
-          :page-size-options="[10, 50, 100, 200]" :total="tableData.total" :show-total="(total) => `共 ${total} 条`"
-          show-size-changer showQuickJumper @change="paginationChange" />
+        <a-pagination
+          v-model:current="tableData.params.pageNum"
+          v-model:page-size="tableData.params.pageSize"
+          :page-size-options="[10, 50, 100, 200]"
+          :total="tableData.total"
+          :show-total="(total) => `共 ${total} 条`"
+          show-size-changer
+          showQuickJumper
+          @change="paginationChange"
+        />
       </div>
     </div>
     <!-- 详情弹窗 -->
-    <detailsModal @listingPicks="listingPicks" ref="detailsModalRef" @handleSelect="handleSelect" />
-  
+    <detailsModal
+      @listingPicks="listingPicks"
+      ref="detailsModalRef"
+      @handleSelect="handleSelect"
+    />
+
     <!-- 智能刊登选品弹窗 -->
-    <listingPicksModal 
-      v-model:open="listingPicksVisible" 
+    <listingPicksModal
+      v-model:open="listingPicksVisible"
       :selected-ids="selectedProductIds"
       :on-submit="onSubmit"
       @success="handleListingPicksSuccess"
@@ -245,8 +408,16 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed, watchPostEffect, getCurrentInstance, nextTick } from "vue";
-import { Modal, message } from 'ant-design-vue';
+import {
+  ref,
+  reactive,
+  onMounted,
+  computed,
+  watchPostEffect,
+  getCurrentInstance,
+  nextTick,
+} from "vue";
+import { Modal, message } from "ant-design-vue";
 import { storeList, commdity } from "@/api/common/selectProduct";
 import { useSelectProduct } from "./js/useSelectProduct";
 import { header } from "./js/header";
@@ -257,7 +428,8 @@ import devAttributableMarketRevert from "~@/utils/devAttributableMarketRevert";
 import classifyRevert from "~@/utils/classifyRevert";
 import devProhibitPlatformRevert from "~@/utils/devProhibitPlatformRevert";
 import { camelCase, toLowerLine } from "~@/utils";
-import EmptyImg from '@/assets/images/aliexpress/empty.png'
+import { QuestionCircleOutlined } from "@ant-design/icons-vue";
+import EmptyImg from "@/assets/images/aliexpress/empty.png";
 defineOptions({ name: "productDatabase_index" });
 const { proxy: _this } = getCurrentInstance();
 const emit = defineEmits(["handleSelect"]);
@@ -309,7 +481,7 @@ const { state: formData, reset } = useResetReactive({
   description: "", // 描述
 });
 // 默认查询已完成状态商品
-formData.status = '1';
+formData.status = "1";
 const tableData = reactive({
   data: [],
   total: 0,
@@ -435,7 +607,7 @@ function detailsModalOpen(row) {
     cacheGetArr: cacheGetArr.value,
     meansKeepGrains: meansKeepGrains.value,
   };
-  _this.$refs.detailsModalRef.modalOpenFn(detailsModalData,'product-database');
+  _this.$refs.detailsModalRef.modalOpenFn(detailsModalData, "product-database");
 }
 // 选中商品
 function handleSelect(row) {
@@ -446,11 +618,26 @@ function handleSelect(row) {
 
 // 主图显示
 const artMainImageSrc = (record) => {
-  if (record.artMainImage) {
-    const imgs = JSON.parse(record.artMainImage).map((item) => item.url);
-    return [imgs[0]];
+  try {
+    const artMainImage =
+      JSON.parse(record.devDrawing).length > 0
+        ? JSON.parse(record.devDrawing)
+        : JSON.parse(record.artMainImage).length > 0
+        ? JSON.parse(record.artMainImage)
+        : JSON.parse(record.artAssistantImage).length > 0
+        ? JSON.parse(record.artAssistantImage)
+        : JSON.parse(record.artSkuImage).length > 0
+        ? JSON.parse(record.artSkuImage)
+        : [];
+    if (artMainImage) {
+      const imgs = artMainImage.map((item) => item.url);
+      return [imgs[0]];
+    }
+    return [];
+  } catch (error) {
+    console.error(error);
+    return [];
   }
-  return [];
 };
 // 市场方向
 const devAttributableMarket = (record) => {
@@ -593,19 +780,19 @@ const tagMap = (code) => {
 const listingPicks = (currentRow = []) => {
   // 检查选中的商品是否有已初审商品 isIntelligent 0:未参加,1:审核中,2:审核完成
   let products = currentRow;
-  if (products.some(product => Number(product.isIntelligent) !== 0)) {
-    message.warning('存在已智能刊登商品，不能重复刊登');
+  if (products.some((product) => Number(product.isIntelligent) !== 0)) {
+    message.warning("存在已智能刊登商品，不能重复刊登");
     return;
   }
 
-  if (products.some(product => Number(product.status) !== 1)) {
-    message.warning('不是已完成状态商品，不能智能选品');
+  if (products.some((product) => Number(product.status) !== 1)) {
+    message.warning("不是已完成状态商品，不能智能选品");
     return;
   }
-  
+
   // 设置选中的商品ID
-  selectedProductIds.value = currentRow.map(v => v.commodityId);
-  
+  selectedProductIds.value = currentRow.map((v) => v.commodityId);
+
   // 打开弹窗
   listingPicksVisible.value = true;
 };
@@ -613,7 +800,7 @@ const listingPicks = (currentRow = []) => {
 // 批量智能选品
 const batchListingPicks = () => {
   if (selectedRows.value.length === 0) {
-    message.warning('请先选择商品');
+    message.warning("请先选择商品");
     return;
   }
   listingPicks(selectedRows.value);

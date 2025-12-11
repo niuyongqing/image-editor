@@ -172,7 +172,7 @@ const formState = reactive({
   // 原价折扣率，单位%
   originalDiscountRate: 60,
   // 折扣率，单位%
-  discountRate: 3,
+  discountRate: 75,
   // 富文本模版图片位置：例如standard,1,2,3,4
   jsonEditorImgIndex: "standard,1,2,3,4,5",
   // 主图水印模版id
