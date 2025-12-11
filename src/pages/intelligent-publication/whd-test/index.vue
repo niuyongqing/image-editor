@@ -1,8 +1,4 @@
 <template>
-  <appVerifyUpload 
-    @uploadEnd="uploadEnd" 
-    url="/report-aliexpress/report/aliexpress/config-item-org/import"
-  ></appVerifyUpload>
   <appTableBox
     ref="tableRef"
     :table-header="tableColumns"
@@ -20,8 +16,12 @@
       <a-button type="primary" @click="aaaaa">{{ expandedRowKeys.rowDrag ? '完成拖拽':'开始拖拽' }}</a-button>
       <appUpload 
         @uploadEnd="uploadEnd" 
-        url="/report-aliexpress/report/aliexpress/config-item-org/import"
+        url="/platform-ozon/platform/ozon/file/upload/img"
       ></appUpload>
+      <appVerifyUpload 
+        @uploadEnd="uploadEnd" 
+        url="/report-aliexpress/report/aliexpress/config-item-org/import"
+      ></appVerifyUpload>
     </template>
   </appTableBox>
   <appFullLoading :loading="loading"></appFullLoading>
