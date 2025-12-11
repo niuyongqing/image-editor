@@ -90,7 +90,10 @@
             <a-form-item class="tradeName-item" label="模糊查找" name="tradeName">
               <a-form-item-rest>
                 <div flex gap-10px style="width: 800px">
-                  <a-input v-model:value="formData.tradeName" placeholder="分词查找产品名称" />
+                  <a-tooltip placement="top" title="分词查找从以下内容进行查找：产品名称、SKU编码、拍照人、开发人、品牌、中文描述、英文描述。">
+                      <QuestionCircleOutlined class="font-size-3 color-[#faad14] position-relative top--1 mr--1 ml--1" />
+                  </a-tooltip>
+                  <a-input v-model:value="formData.tradeName" placeholder="分词查找"/>
                   <a-input v-model:value="formData.developPerson" placeholder="开发人员"></a-input>
                   <a-input v-model:value="formData.accurateTradeName" placeholder="商品名"></a-input>
                   <a-input v-model:value="formData.sku" placeholder="SKU"></a-input>
@@ -109,7 +112,7 @@
         </a-form>
       <br />
       <a-button class="float-left mb-2" v-has-permi="['system:store:intelligent:selection:product']" @click="batchListingPicks" type="primary" :disabled="selectedRowKeys.length === 0">批量智能选品</a-button>
-      <a-table :columns="header" :data-source="tableData.data" :scroll="{ y: 'calc(84vh - 120px)', x: '3200px' }"
+      <a-table :columns="header" :data-source="tableData.data" :scroll="{ y: 'calc(84vh - 130px)', x: '3200px' }"
         :pagination="false" :customRow="customRow" rowKey="commodityId" @change="tableChange"
         :loading="tableData.loading" class="productDatabase-table"
         :row-selection="{
@@ -257,6 +260,7 @@ import devAttributableMarketRevert from "~@/utils/devAttributableMarketRevert";
 import classifyRevert from "~@/utils/classifyRevert";
 import devProhibitPlatformRevert from "~@/utils/devProhibitPlatformRevert";
 import { camelCase, toLowerLine } from "~@/utils";
+import { QuestionCircleOutlined } from '@ant-design/icons-vue'
 import EmptyImg from '@/assets/images/aliexpress/empty.png'
 defineOptions({ name: "productDatabase_index" });
 const { proxy: _this } = getCurrentInstance();

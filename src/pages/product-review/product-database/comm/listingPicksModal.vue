@@ -76,11 +76,6 @@ const handleCancel = () => {
 const handleConfirm = () => {
   const value = reasonText.value.trim();
   
-  if (!value) {
-    message.warning('内容不能为空');
-    return;
-  }
-  
   const queryData = {
     commodityId: props.selectedIds.join(','),
     remark: value,
