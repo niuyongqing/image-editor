@@ -16,7 +16,7 @@
                     <div class="file-item">
                         <div class="file-img">
                             <img :src="element.url" alt="" class="file-img" />
-                            <div class="image-mask"> {{ element.height }} X {{ element.width }} </div>
+                            <div v-if="element.height || element.width" class="image-mask"> {{ element.height }} X {{ element.width }} </div>
 
                             <div class="image-check" v-if="element.checked">
                                 <CheckOutlined style="color: #00B903;font-size: 20px; font-weight: bold;" />
@@ -31,8 +31,8 @@
         </div>
         <div></div>
         <template #footer>
-            <a-button type="primary" @click="submit" :loading="loading">添加</a-button>
             <a-button @click="close">关闭</a-button>
+            <a-button type="primary" @click="submit" :loading="loading">添加</a-button>
         </template>
     </a-modal>
 </template>

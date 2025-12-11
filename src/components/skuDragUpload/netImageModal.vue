@@ -4,8 +4,8 @@
             <a-textarea v-model:value="form.imageUrl" placeholder="请填写图片URL地址，多个地址用回车换行" :rows="6" />
         </div>
         <template #footer>
-            <a-button type="primary" @click="submit" :loading="loading">添加</a-button>
             <a-button @click="close">关闭</a-button>
+            <a-button type="primary" @click="submit" :loading="loading">添加</a-button>
         </template>
     </a-modal>
 </template>

@@ -189,10 +189,10 @@
   const formHeight = ref(0)
 
   // 过滤选项
-const filterOption = (inputValue, option) => {
-  const label = option.categoryName; // 因为你的数据中有 categoryName 字段
-  return label.toLowerCase().includes(inputValue.toLowerCase());
-};
+  const filterOption = (inputValue, option) => {
+    const label = option.categoryName; // 因为你的数据中有 categoryName 字段
+    return label.toLowerCase().includes(inputValue.toLowerCase());
+  };
 
   function search() {
     tableParams.pageNum = 1
@@ -252,42 +252,26 @@ const filterOption = (inputValue, option) => {
   // 查询条件分类数据
   const commodityTypeList = ref([])
 
-  /** 分类数据 */
-  const flatTreeList = ref([])
-
   getOptions()
   function getOptions() {
     newCategoryTreeApi().then(res => {
       commodityTypeList.value = res.data || []
-      const rawData = res.data || []
-      const flatList = []
-
-      // 遍历第一级
-      for (const level1 of rawData) {
-        // 遍历第二级
-        for (const level2 of level1.children) {
-          // 遍历第三级
-          for (const level3 of level2.children) {
-            // 将路径添加到结果数组
-            const resLevel1 = { categoryName: level1.categoryName, descriptionCategoryId: level1.descriptionCategoryId }
-            const resLevel2 = { categoryName: level2.categoryName, descriptionCategoryId: level2.descriptionCategoryId }
-            const resLevel3 = { categoryName: level3.categoryName, descriptionCategoryId: level3.descriptionCategoryId }
-            const valueArr = [resLevel1, resLevel2, resLevel3]
-            const label = valueArr.map(item => item.categoryName).join(' / ')
-            const uniqueCode = valueArr.map(item => item.descriptionCategoryId).join(',')
-
-            flatList.push({ label, uniqueCode, value: valueArr })
-          }
-        }
-      }
-      console.log(flatList)
-      flatTreeList.value = flatList
     })
   }
 
   // 获取分类 label
   function getCategoryLabel(categoryIds) {
-    return flatTreeList.value.find(item => item.uniqueCode === categoryIds)?.label || '--'
+    const categoryIdList = categoryIds.split(',').map(Number)
+    let parentList = commodityTypeList.value
+    const list = []
+
+    categoryIdList.forEach(id => {
+      const res = parentList.find(item => item.descriptionCategoryId === id)
+      list.push(res?.categoryName || '--')
+      parentList = res?.children || []
+    })
+
+    return list.join('/')
   }
 
   /** 批量 启用/停用 */

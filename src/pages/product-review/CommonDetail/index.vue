@@ -17,7 +17,7 @@
         <a-button
           type="primary"
           :loading="saveLoading"
-          @click="save()"
+          @click="beforeSave(save)"
           >保存</a-button
         >
         <a-button
@@ -30,7 +30,7 @@
           v-if="hasEditPermi"
           type="primary"
           :loading="reviewLoading"
-          @click="toFinalReview"
+          @click="beforeSave(toFinalReview)"
           >保存并提交终审</a-button
         >
       </template>
@@ -161,7 +161,7 @@
   import { getDetailApi, updateProductDetailApi } from './api'
   import { yandexTranslateApi } from '@/api/common/translate.js'
   import { lastAudit, auditApi } from '~@/pages/product-review/config/api/product-review.js'
-  import { message } from 'ant-design-vue'
+  import { message, Modal } from 'ant-design-vue'
   import { checkPermi, checkRole } from '~/utils/permission/component/permission.js'
 
   const store = useProductReviewStore()
@@ -455,6 +455,32 @@
     return JSON.stringify(obj)
   }
 
+  /** 在保存前校验 SKU 和 多数量策划 */
+  async function beforeSave(fn) {
+    // 获取数据
+    const baseInfo = await baseInfoRef.value.emitData()
+    const skuList = SKUInfoRef.value.emitData()
+    if (!baseInfo || !skuList) return
+
+    // 校验 skuCode 中是否存在 [*, +, /], 存在则校验是否勾选多数量策划
+    const reg = /[/*/+//]/
+    const showModal = skuList.some(sku => reg.test(sku.skuCode) && sku.isPlanNum === 0)
+    if (showModal) {
+      Modal.confirm({
+        title: '提示',
+        content: '检测到SKU编码有多数量策划意图, 但对应的多数量策划未勾选, 是否继续保存？',
+        onOk() {
+          // 确认保存
+          fn()
+        },
+        onCancel() {}
+      })
+    } else {
+      // 校验通过, 直接执行后续 fn
+      fn()
+    }
+  }
+
   /** 保存 */
   const saveLoading = ref(false)
   function save(skipClose = false) {
@@ -519,9 +545,9 @@
   /** 保存并提交终审 */
   const reviewLoading = ref(false)
   function toFinalReview() {
+    reviewLoading.value = true
     save(true)
       .then(() => {
-        reviewLoading.value = true
         const params = [
           {
             auditStatus: 50, // 待终审

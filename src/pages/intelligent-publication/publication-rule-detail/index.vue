@@ -334,6 +334,7 @@
       v-model:open="categoryOpen"
       v-model:category-ids="form.categoryId"
       v-model:category-labels="categoryLabels"
+      change-on-select
       @change="validateCategory"
     />
   </a-card>

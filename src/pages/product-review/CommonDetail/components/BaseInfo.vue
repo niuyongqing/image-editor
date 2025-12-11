@@ -199,7 +199,7 @@
                   v-else
                   v-model:value="attributesObj[item.name]"
                   :controls="false"
-                  :precision="0"
+                  :precision="item.type === 'Integer' ? 0 : 2"
                   :min="0"
                   :max="99999"
                   placeholder="请输入数值"
@@ -567,6 +567,17 @@
             }
           }
         }
+
+        // 合并属性 [9048, 8292]
+        const combineItem = attributeList.value.find(attr => [9048, 8292].includes(attr.id))
+        if (combineItem) {
+          const firstSKU = store.detail.skuList?.[0]
+          if (!attributesObj.value[combineItem.name] && firstSKU) {
+            // 无值才设默认值
+            attributesObj.value[combineItem.name] = firstSKU.skuCode
+          }
+        }
+
         // (制造国 4389: 中国 90296)设默认值
         const countryLabel = attributeList.value.find(attr => attr.id === 4389)?.name
         if (countryLabel && !(attributesObj.value[countryLabel] && attributesObj.value[countryLabel].length)) {

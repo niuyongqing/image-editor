@@ -365,10 +365,14 @@
   }
 
   // 刊登
+  const loadingId = ref(null)
   function publish(record) {
+    loadingId.value = record.waitPublishProductId
     submitToPublishApi(record.waitPublishProductId).then(res => {
       message.success('刊登成功')
       getList()
+    }).finally(() => {
+      loadingId.value = null
     })
   }
 

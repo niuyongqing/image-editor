@@ -5,6 +5,17 @@
       title="SKU信息"
       class="text-left"
     >
+      <template #extra v-if="!detail.categoryId">
+        <a-button type="link" :disabled="!rawAttributes.length" @click="fillDataFromDetail">填入资料库SKU数据</a-button>
+        <a-tooltip
+          :title="`将资料库数据填入当前变种信息和图片信息中;\n数据可能有缺失;\n若当前已填有数据, 则会被覆盖.`"
+          placement="topRight"
+          :overlay-inner-style="{ width: '300px', whiteSpace: 'break-spaces' }"
+        >
+          <QuestionCircleOutlined class="ml-1" />
+        </a-tooltip>
+      </template>
+
       <a-card title="变种属性">
         <div class="mb-2">
           <span>变种主题: </span>
@@ -14,8 +25,9 @@
               :key="item.key"
               type="link"
               @click="addAspect(item)"
-              >{{ item.name }} <PlusOutlined
-            /></a-button>
+            >{{ item.name }}
+              <PlusOutlined />
+            </a-button>
           </a-space>
           <span v-else>无可选变种</span>
         </div>
@@ -30,8 +42,7 @@
             <span
               v-if="item.isRequired"
               class="text-[#ff4d4f]"
-              >*</span
-            >
+            >*</span>
             <span>{{ item.name }}</span>
           </template>
 
@@ -41,8 +52,7 @@
               type="link"
               danger
               @click="removeAspect(item)"
-              >移除</a-button
-            >
+            >移除</a-button>
           </template>
 
           <a-table
@@ -57,17 +67,15 @@
                 <span
                   v-if="column.isRequired"
                   class="text-[#ff4d4f] mr-1"
-                  >*</span
-                >
+                >*</span>
                 <span>{{ title }}</span>
                 <!-- 店小蜜做法: column.selectType === 'multSelect' (感觉没逻辑) -->
                 <!-- v-if="column.options" -->
                 <a-button
                   v-if="title !== '操作'"
                   type="link"
-                  @click="batchAddAspectRow(column, item)"
-                  >批量</a-button
-                >
+                  @click="batchAddAspectRow(column, item.tableData)"
+                >批量</a-button>
               </template>
             </template>
 
@@ -75,15 +83,15 @@
               <template v-if="column.selectType === 'input'">
                 <a-input
                   v-if="column.type === 'String'"
-                  v-model:value="record[column.title].value"
+                  v-model:value="record[column.title]"
                   placeholder="请输入"
                   class="w-full"
                 />
                 <a-input-number
                   v-else
-                  v-model:value="record[column.title].value"
+                  v-model:value="record[column.title]"
                   :controls="false"
-                  :precision="0"
+                  :precision="item.type === 'Integer' ? 0 : 2"
                   :min="0"
                   :max="99999"
                   placeholder="请输入数值"
@@ -145,6 +153,13 @@
         title="变种信息"
         class="text-left mt-4"
       >
+        <template #extra>
+          <a-checkbox-group
+            v-model:value="checkedList"
+            :options="RIGHT_OPTIONS"
+          />
+        </template>
+
         <a-table
           :columns="SKUColumns"
           :data-source="SKUTableData"
@@ -153,80 +168,158 @@
           :scroll="{ x: 'max-content' }"
         >
           <template #headerCell="{ title }">
-            <template v-if="title === 'SKU'">
+            <template v-if="title === '颜色样本'">
+              <span class="mr-1">{{ title }}</span>
+              <a-tooltip
+                :title="colorImageDesc"
+                :overlay-inner-style="{ width: '600px', whiteSpace: 'break-spaces' }"
+              >
+                <QuestionCircleOutlined />
+              </a-tooltip>
+              <br />
+              <a-dropdown>
+                <a-button type="link">批量
+                  <DownOutlined />
+                </a-button>
+                <template #overlay>
+                  <a-menu @click="handleCommand">
+                    <a-menu-item key="1">查看大图</a-menu-item>
+                    <a-menu-item key="2">批量修改图片尺寸</a-menu-item>
+                    <a-menu-item key="3">图片翻译</a-menu-item>
+                    <a-sub-menu
+                      key="4"
+                      title="添加水印"
+                    >
+                      <a-menu-item
+                        v-for="waterMark in watermarkOptions"
+                        :key="waterMark.id"
+                      >
+                        <div>
+                          <span class="mr-2">{{ waterMark.title }} </span>
+                          <a-image
+                            v-if="waterMark.type === 1"
+                            :src="waterMark.content"
+                            :width="20"
+                            :height="20"
+                            @click.stop
+                          />
+                          <span
+                            v-else
+                            class="ml-1"
+                          >({{ waterMark.content }})</span>
+                        </div>
+                      </a-menu-item>
+                    </a-sub-menu>
+                    <a-menu-item key="5">清空图片</a-menu-item>
+                  </a-menu>
+                </template>
+              </a-dropdown>
+              <!-- 查看图片 (预览) -->
+              <a-image-preview-group :preview="{
+                visible: previewVisible,
+                onVisibleChange: setVisible,
+              }">
+                <a-image
+                  v-for="(img, i) in nonEmptyColorImageList"
+                  :key="i"
+                  :src="img"
+                  class="hidden"
+                />
+              </a-image-preview-group>
+            </template>
+            <template v-else-if="title === 'SKU'">
               <span class="text-[#ff4d4f]">*</span>
-              <span>{{ title }}</span>
+              <span class="mr-1">{{ title }}</span>
+              <a-tooltip
+                title="如果编码中包含 '*', '/', '+', 则认定为有多数量策划意图, 建议勾选多数量策划"
+              >
+                <QuestionCircleOutlined />
+              </a-tooltip>
+              <br />
               <a-button
                 type="link"
-                class="ml-1"
                 @click="SKUCodeModalOpen = true"
-                >批量</a-button
-              >
+              >批量</a-button>
             </template>
             <template v-else-if="title === '成本价(CNY)'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
+              <br />
               <a-button
                 type="link"
-                class="ml-1"
                 @click="costPriceModalOpen = true"
-                >批量</a-button
-              >
+              >批量</a-button>
             </template>
             <template v-else-if="title === '库存'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
+              <br />
               <a-button
                 type="link"
-                class="ml-1"
                 @click="stockModalOpen = true"
-                >批量</a-button
-              >
+              >批量</a-button>
             </template>
             <template v-else-if="title === '策划数量'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
+              <br />
               <a-button
                 type="link"
-                class="ml-1"
                 @click="quantityModalOpen = true"
-                >批量</a-button
-              >
+              >批量</a-button>
+            </template>
+            <template v-else-if="title === '多数量策划'">
+              <span class="mr-1">{{ title }}</span>
+              <a-tooltip title="勾选后, 策划数量限制为 1">
+                <QuestionCircleOutlined />
+              </a-tooltip>
+              <br />
+              <a-checkbox
+                v-model:checked="multCheckAll"
+                :indeterminate="indeterminate"
+                class="ml-1"
+                @change="checkAll"
+              ><span class="text-[#1677ff] font-normal">全选</span></a-checkbox>
             </template>
             <template v-else-if="title === '售卖单位'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
+              <br />
               <a-button
                 type="link"
-                class="ml-1"
                 @click="unitModalOpen = true"
-                >批量</a-button
-              >
+              >批量</a-button>
             </template>
             <template v-else-if="title === '尺寸(mm)'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
+              <br />
               <a-button
                 type="link"
-                class="ml-1"
                 @click="sizeModalOpen = true"
-                >批量</a-button
-              >
+              >批量</a-button>
+              <br />
             </template>
             <template v-else-if="title === '重量(g)'">
               <span class="text-[#ff4d4f]">*</span>
               <span>{{ title }}</span>
+              <br />
               <a-button
                 type="link"
-                class="ml-1"
                 @click="weightModalOpen = true"
-                >批量</a-button
-              >
+              >批量</a-button>
             </template>
           </template>
 
           <template #bodyCell="{ record, column }">
-            <template v-if="column.title === 'SKU'">
+            <template v-if="column.title === '颜色样本'">
+              <ImageOfColorSample
+                v-model:image="record.colorImage"
+                :loading="addWaterMarkLoading"
+                @apply-to="confirmMenuClick($event, record, 'colorImage')"
+              />
+            </template>
+            <template v-else-if="column.title === 'SKU'">
               <a-input
                 v-model:value="record.skuCode"
                 placeholder="请输入"
@@ -248,15 +341,15 @@
                   <a-button
                     type="link"
                     class="flex-none"
-                    ><CopyOutlined
-                  /></a-button>
+                  >
+                    <CopyOutlined />
+                  </a-button>
                   <template #overlay>
                     <a-menu @click="confirmMenuClick($event, record, 'costPrice')">
                       <a-menu-item
                         v-for="item in applyToMenuList"
                         :key="item.key"
-                        >{{ item.label }}</a-menu-item
-                      >
+                      >{{ item.label }}</a-menu-item>
                     </a-menu>
                   </template>
                 </a-dropdown>
@@ -277,15 +370,15 @@
                   <a-button
                     type="link"
                     class="flex-none"
-                    ><CopyOutlined
-                  /></a-button>
+                  >
+                    <CopyOutlined />
+                  </a-button>
                   <template #overlay>
                     <a-menu @click="confirmMenuClick($event, record, 'stock')">
                       <a-menu-item
                         v-for="item in applyToMenuList"
                         :key="item.key"
-                        >{{ item.label }}</a-menu-item
-                      >
+                      >{{ item.label }}</a-menu-item>
                     </a-menu>
                   </template>
                 </a-dropdown>
@@ -298,7 +391,7 @@
                   :controls="false"
                   :precision="0"
                   :min="1"
-                  :max="99999"
+                  :max="9999"
                   placeholder="请输入数值"
                   class="flex-1"
                 />
@@ -306,15 +399,39 @@
                   <a-button
                     type="link"
                     class="flex-none"
-                    ><CopyOutlined
-                  /></a-button>
+                  >
+                    <CopyOutlined />
+                  </a-button>
                   <template #overlay>
                     <a-menu @click="confirmMenuClick($event, record, 'planNum')">
                       <a-menu-item
                         v-for="item in applyToMenuList"
                         :key="item.key"
-                        >{{ item.label }}</a-menu-item
-                      >
+                      >{{ item.label }}</a-menu-item>
+                    </a-menu>
+                  </template>
+                </a-dropdown>
+              </div>
+            </template>
+            <template v-else-if="column.title === '多数量策划'">
+              <div>
+                <a-checkbox
+                  v-model:checked="record.mult"
+                  @change="checkboxChange"
+                />
+                <a-dropdown>
+                  <a-button
+                    type="link"
+                    class="flex-none"
+                  >
+                    <CopyOutlined />
+                  </a-button>
+                  <template #overlay>
+                    <a-menu @click="confirmMenuClick($event, record, 'mult')">
+                      <a-menu-item
+                        v-for="item in applyToMenuList"
+                        :key="item.key"
+                      >{{ item.label }}</a-menu-item>
                     </a-menu>
                   </template>
                 </a-dropdown>
@@ -333,15 +450,15 @@
                   <a-button
                     type="link"
                     class="flex-none"
-                    ><CopyOutlined
-                  /></a-button>
+                  >
+                    <CopyOutlined />
+                  </a-button>
                   <template #overlay>
                     <a-menu @click="confirmMenuClick($event, record, 'saleUnit')">
                       <a-menu-item
                         v-for="item in applyToMenuList"
                         :key="item.key"
-                        >{{ item.label }}</a-menu-item
-                      >
+                      >{{ item.label }}</a-menu-item>
                     </a-menu>
                   </template>
                 </a-dropdown>
@@ -382,15 +499,15 @@
                   <a-button
                     type="link"
                     class="flex-none"
-                    ><CopyOutlined
-                  /></a-button>
+                  >
+                    <CopyOutlined />
+                  </a-button>
                   <template #overlay>
                     <a-menu @click="confirmMenuClick($event, record, 'size')">
                       <a-menu-item
                         v-for="item in applyToMenuList"
                         :key="item.key"
-                        >{{ item.label }}</a-menu-item
-                      >
+                      >{{ item.label }}</a-menu-item>
                     </a-menu>
                   </template>
                 </a-dropdown>
@@ -411,15 +528,15 @@
                   <a-button
                     type="link"
                     class="flex-none"
-                    ><CopyOutlined
-                  /></a-button>
+                  >
+                    <CopyOutlined />
+                  </a-button>
                   <template #overlay>
                     <a-menu @click="confirmMenuClick($event, record, 'weight')">
                       <a-menu-item
                         v-for="item in applyToMenuList"
                         :key="item.key"
-                        >{{ item.label }}</a-menu-item
-                      >
+                      >{{ item.label }}</a-menu-item>
                     </a-menu>
                   </template>
                 </a-dropdown>
@@ -448,6 +565,18 @@
       :column-data="columnData"
       :aspect-data="aspectData"
       @ok="batchAddAspectRowConfirm"
+    />
+
+    <!-- 批量修改图片尺寸弹窗 -->
+    <BacthSkuEditImg
+      ref="bacthEditImgSizeRef"
+      @submit="bacthEditImgSize"
+    />
+
+    <!-- 图片翻译弹窗 -->
+    <ImageTranslation
+      ref="imgTransRef"
+      @emitImages="handleEmitImages"
     />
 
     <!-- 变种信息表格批量编辑弹窗 -->
@@ -497,11 +626,12 @@
 </template>
 
 <script setup>
-  import { COLUMNS, UNIT_OPTIONS } from './config'
+  import { COLOR_IMAGE_COL, COLUMNS, UNIT_OPTIONS } from './config'
   import { message } from 'ant-design-vue'
   import { v4 as uuidv4 } from 'uuid'
-  import { PlusOutlined, MinusOutlined, DeleteOutlined, CopyOutlined } from '@ant-design/icons-vue'
+  import { PlusOutlined, MinusOutlined, DeleteOutlined, DownOutlined, CopyOutlined, QuestionCircleOutlined } from '@ant-design/icons-vue'
   import { processImageSource } from '@/pages/ozon/config/commJs/index'
+  import { watermarkApi } from '@/api/common/water-mark'
 
   import AddAspectRowModal from './components/AddAspectRowModal.vue'
   import SKUCodeModal from './components/SKUCodeModal.vue'
@@ -511,10 +641,14 @@
   import UnitModal from './components/UnitModal.vue'
   import SizeModal from './components/SizeModal.vue'
   import WeightModal from './components/WeightModal.vue'
+  import ImageOfColorSample from '@/components/image-of-color-sample/index.vue'
+  import BacthSkuEditImg from '@/components/skuDragUpload/bacthSkuEditImg.vue'
+  import ImageTranslation from '@/components/skuDragUpload/imageTranslation.vue'
 
   const store = useProductReviewStore()
   const detail = computed(() => store.detail)
   const rawAttributes = computed(() => store.attributes)
+  const watermarkOptions = computed(() => store.watermarkOptions)
 
   /** 变种属性列表 */
   watch(
@@ -595,8 +729,6 @@
   }
 
   /** computed START */
-  // name array of selectType is 'input'
-  const typeInputNameList = computed(() => rawAttributes.value.filter(item => item.isAspect && item.selectType === 'input').map(item => item.name))
   // 变种主题可选项(非必填的以按钮形式供选)
   const aspectBtnList = computed(() => aspectList.value.filter(item => !item.isRequired))
   // 过滤出已选择后的可选项(显示的按钮)
@@ -675,8 +807,12 @@
 
     return list
   })
+  // 右侧 未被勾选的 checkbox
+  const excludedList = computed(() =>
+    RIGHT_OPTIONS.map(item => item.value).filter(val => !checkedList.value.includes(val))
+  )
   // SKU 表头(合并变种属性表头和常量表头)
-  const SKUColumns = computed(() => [...aspectColumns.value, ...COLUMNS])
+  const SKUColumns = computed(() => [...COLOR_IMAGE_COL.filter(col => !excludedList.value.includes(col.key)), ...aspectColumns.value, ...COLUMNS.filter(col => !excludedList.value.includes(col.key))])
 
   // 应用到同 xx 变种
   const PERMANENT_LIST = [{ label: '应用到全部', key: 'applyAll' }]
@@ -718,7 +854,25 @@
     if (keySet.size) selectedAspectKeyList.value.push(...Array.from(keySet))
 
     // 填充 filteredAspectList 中 tableData 数据
-    const { skuList } = detail.value
+    const { skuList = [] } = detail.value
+    // 颜色样本 colorImage
+    if (skuList.length && skuList.some(item => item.colorImage)) {
+      !checkedList.value.includes('colorImage') && checkedList.value.push('colorImage')
+    } else {
+      checkedList.value = checkedList.value.filter(item => item !== 'colorImage')
+    }
+    // 多数量策划 mult
+    if (skuList.length && skuList.some(item => item.isPlanNum === 1)) {
+      !checkedList.value.includes('mult') && checkedList.value.push('mult')
+      indeterminate.value = true
+      if (skuList.every(item => item.isPlanNum === 1)) {
+        multCheckAll.value = true
+        indeterminate.value = false
+      }
+    } else {
+      checkedList.value = checkedList.value.filter(item => item !== 'mult')
+    }
+
     const valObj = {} // 收集值(去重)
     filteredAspectList.value.forEach(item => {
       valObj[item.name] = {}
@@ -755,8 +909,6 @@
         case 'multSelect':
           return list.map(item => ({ label: item.value, value: item.dictionaryValueId }))
         case 'input':
-          // input 躯壳, 都是躯壳
-          return { uuid: uuidv4(), value: list[0].value }
         default:
           return list[0].value
       }
@@ -788,9 +940,11 @@
           recordUuidList.push(record.uuid)
 
           record.skuCode = sku.skuCode
+          record.colorImage = sku.colorImage
           record.costPrice = sku.costPrice
           record.stock = sku.stock
           record.planNum = sku.planNum
+          record.mult = sku.isPlanNum === 1
           record.saleUnit = sku.saleUnit
           record.length = sku.depth
           record.width = sku.width
@@ -818,8 +972,6 @@
       case 'multSelect':
         return []
       case 'input':
-        // input 用一个 id 来绑定输入的值
-        return { uuid: uuidv4(), value: '' }
       default:
         return ''
     }
@@ -847,13 +999,33 @@
       case 'Array':
         return val.map(item => item[prop]).join(',')
       case 'Object':
-        // input 情况的特判; 为了在 selectType === 'input' 时也能取到文本值
-        const oppositeProp = prop === 'label' ? 'value' : 'label'
-        return val[prop] || val[oppositeProp]
+        return val[prop]
       case 'String':
       default:
         return val
     }
+  }
+
+  // 回填资料库数据
+  function fillDataFromDetail() {
+    const list = detail.value.skuList || []
+    const skuList = list.map(record => ({
+      skuCode: record.skuCode,
+      colorImage: record.colorImage,
+      costPrice: record.costPrice,
+      stock: record.stock,
+      planNum: record.planNum,
+      mult: record.isPlanNum === 1,
+      saleUnit: record.saleUnit,
+      length: record.depth,
+      width: record.width,
+      height: record.height,
+      weight: record.weight,
+      mainImages: record.mainImages.map(url => ({ id: uuidv4(), url: processImageSource(url) })),
+      subImages: record.subImages.map(url => ({ id: uuidv4(), url: processImageSource(url) }))
+    }))
+
+    assignOldSKUData(skuList, true)
   }
 
   // 添加变种主题
@@ -877,12 +1049,10 @@
   // 批量添加变种属性(行 hang) 打开弹窗
   const addAspectRowModalOpen = ref(false)
   const columnData = ref({})
-  const filteredAspectItem = ref({})
   const aspectData = ref([])
-  function batchAddAspectRow(column, item) {
+  function batchAddAspectRow(column, tableData) {
     columnData.value = column
-    filteredAspectItem.value = item
-    aspectData.value = item.tableData
+    aspectData.value = tableData
     addAspectRowModalOpen.value = true
   }
 
@@ -893,7 +1063,7 @@
       // 如果有行, 且行存在空值, 先填充行; 再有多余的就往后添加新行
       for (const item of aspectData.value) {
         if (!nonEmpty(item[columnData.value.name])) {
-          item[columnData.value.name] = getValByType(val, columnData.value.selectType)
+          item[columnData.value.name] = columnData.value.selectType === 'multSelect' ? [val] : val
           continueFlag = true
 
           break
@@ -901,43 +1071,17 @@
       }
       if (continueFlag) continue
 
-      /* const row = { uuid: uuidv4() }
-      // just focus on self (如果是结对属性, 另一个值让双向绑定去隐式生成)
-      row[columnData.value.name] = getValByType(val, columnData.value.selectType)
-
-      aspectData.value.push(row) */
-
-      const itemAspectList = filteredAspectItem.value.columns.slice(0, -1)
       const row = { uuid: uuidv4() }
-      itemAspectList.forEach(ele => {
-        if (ele.name === columnData.value.name) {
-          row[ele.name] = getValByType(val, ele.selectType)
-        } else {
-          row[ele.name] = getDetaultByType(ele.selectType)
-        }
-      })
+      // just focus on self (如果是结对属性, 另一个值让双向绑定去隐式生成)
+      row[columnData.value.name] = columnData.value.selectType === 'multSelect' ? [val] : val
+
+      aspectData.value.push(row)
 
       aspectData.value.push(row)
     }
 
     columnData.value = {}
-    filteredAspectItem.value = {}
     aspectData.value = []
-
-    // 赋值方法
-    function getValByType(val, selectType) {
-      switch (selectType) {
-        case 'multSelect':
-          return [val]
-        case 'select':
-          return val
-        case 'input':
-          // input 躯壳, 都是躯壳
-          return { uuid: uuidv4(), value: val }
-        default:
-          return val
-      }
-    }
   }
 
   // 添加一行变种主题
@@ -957,7 +1101,163 @@
   }
 
   /** 变种信息(SKU 表格) */
-  const SKUTableData = ref([{ uuid: uuidv4() }])
+  const SKUTableData = ref([{ uuid: uuidv4(), mainImages: [], subImages: [] }])
+  const colorImageDesc = `请用图片展示商品颜色，例如，衣服上的图案、颜色或口红的样品等。买家将在切换器中看见的不是标准圆形按钮，而是商品小图片;\n(说明：图片大小不大于5MB，只支持jpg、png、jpeg格式；图片尺寸为200*200-4320*7680)`
+  // 右侧的勾选选项
+  const RIGHT_OPTIONS = [
+    { label: '颜色样本', value: 'colorImage' },
+    { label: '多数量策划', value: 'mult' },
+  ]
+  // 选中的 checkbox
+  const checkedList = ref([])
+  // 多数量策划全选
+  const multCheckAll = ref(false)
+  const indeterminate = ref(false)
+
+  function checkAll(e) {
+    const checked = e.target.checked
+    SKUTableData.value.forEach(item => { item.mult = checked })
+    indeterminate.value = false
+  }
+
+  function checkboxChange() {
+    const checkedListLength = SKUTableData.value.filter(item => item.mult).length
+    indeterminate.value = checkedListLength > 0 && checkedListLength < SKUTableData.value.length
+    multCheckAll.value = checkedListLength === SKUTableData.value.length
+  }
+
+  // 查看图片 (预览)
+  const previewVisible = ref(false)
+  const nonEmptyColorImageList = computed(() => SKUTableData.value.filter(item => item.colorImage).map(item => processImageSource(item.colorImage)))
+
+  function setVisible(visible) {
+    previewVisible.value = visible
+  }
+
+  const bacthEditImgSizeRef = ref(null)
+  const imgTransRef = ref(null)
+
+  // 批量操作
+  function handleCommand({ key }) {
+    if (nonEmptyColorImageList.value.length === 0) {
+      message.warning('请先添加颜色样本图片')
+      return
+    }
+
+    const list = nonEmptyColorImageList.value.map(url => ({ url }))
+    switch (key) {
+      case '1':
+        // 查看大图 (预览)
+        setVisible(true)
+        break
+      case '2':
+        // 批量修改图片尺寸
+        bacthEditImgSizeRef.value.showModal(list)
+        break
+      case '3':
+        // 图片翻译
+        imgTransRef.value.showModal(list)
+        break
+      case '5':
+        // 清空图片
+        SKUTableData.value.forEach(item => { item.colorImage = '' })
+        break
+      default:
+        // 其他, 就是添加水印
+        addWaterMark(key)
+        break
+    }
+  }
+
+  // 批量修改图片尺寸回调
+  function bacthEditImgSize(list) {
+    SKUTableData.value.filter(item => item.colorImage).forEach((item, i) => {
+      item.colorImage = list[i].url
+    })
+  }
+
+  // 图片翻译回调
+  function handleEmitImages(list) {
+    SKUTableData.value.filter(item => item.colorImage).forEach(item => {
+      list.forEach(ele => {
+        if (ele.oldUrl === item.colorImage) {
+          item.colorImage = processImageSource(ele.newUrl)
+        }
+      })
+    })
+  }
+
+  /** 批量加水印 */
+  const addWaterMarkLoading = ref(false)
+  function addWaterMark(id) {
+    addWaterMarkLoading.value = true
+    // 存在本地服务的图片
+    const imgLocalList = nonEmptyColorImageList.value.filter(url => url.includes('/prod-api'))
+    // 远端图片; 拿 url 先上传本地服务后再处理
+    const imgRemoteList = nonEmptyColorImageList.value.filter(url => !url.includes('/prod-api'))
+    const promiseList = []
+    if (imgLocalList.length) {
+      const p1 = new Promise(resolve => {
+        const imagePathList = imgLocalList.map(img => img.replace('/prod-api', ''))
+        watermarkApi({
+          id,
+          imagePathList
+        })
+          .then(res => {
+            const list = res.data || []
+            for (const item of list) {
+              loop: for (const SKU of SKUTableData.value) {
+                if (SKU.colorImage === '/prod-api' + item.originalFilename) {
+                  SKU.colorImage = item.url
+                  break loop
+                }
+              }
+            }
+          })
+          .finally(() => {
+            resolve()
+          })
+      })
+      promiseList.push(p1)
+    }
+    // 如有远端图片
+    if (imgRemoteList.length) {
+      const p2 = new Promise(resolve => {
+        batchUploadFromUrlApi({ imageList: imgRemoteList }).then(res => {
+          const imagePathList = res.data.map(item => ({
+            originalName: item.originalName,
+            url: item.url
+          }))
+          watermarkApi({
+            id,
+            imagePathList: imagePathList.map(item => item.url)
+          })
+            .then(res => {
+              const list = res.data || []
+              // 遍历查找两层, 找到对应的原图片
+              for (const SKU of SKUTableData.value) {
+                const originalName = SKU.colorImage.split('/').at(-1)
+                const target = imagePathList.find(item => item.originalName === originalName)
+                if (target) {
+                  const target2 = list.find(item => item.originalFilename === target.url)
+                  if (target2) {
+                    SKU.colorImage = target2.url // 接口返回数据自带 '/prod-api'
+                  }
+                }
+              }
+            })
+            .finally(() => {
+              resolve()
+            })
+        })
+      })
+      promiseList.push(p2)
+    }
+
+    Promise.all(promiseList).then(_ => {
+      addWaterMarkLoading.value = false
+    })
+  }
 
   watch(
     () => usefulAspect.value,
@@ -965,7 +1265,7 @@
       if (hasDuplicateAspect.value) return
 
       // 备份老数据
-      const oldSKUData = SKUDataToMap(oldList, SKUTableData.value)
+      const oldSKUData = SKUTableData.value
       // 生成新表格数据
       SKUTableData.value = generateSKUCombinations()
       // 赋值老数据
@@ -983,12 +1283,8 @@
     }
   )
 
-  /**
-   * @description SKU列表数据转map,方便映射查找，判断SKU数据对比复用
-   * @param SKUList  SKU列表
-   * @returns SKUKey做键, SKU数据做值的SKU查找映射
-   */
-  function SKUDataToMap(oldList, SKUList) {
+  // SKU列表数据转map,方便映射查找，判断SKU数据对比复用
+  /* function SKUDataToMap(oldList, SKUList) {
     const oldAspectNames = []
     oldList.forEach(item => {
       for (const key in item.nonEmptyTableData[0]) {
@@ -999,24 +1295,12 @@
     })
 
     return SKUList.reduce((map, SKU) => {
-      const list = []
-      oldAspectNames.forEach(name => {
-        if (typeInputNameList.value.includes(name)) {
-          // 拿 input 值的 uuid
-          const nameId = rawAttributes.value.find(attr => attr.name === name).id
-          const inputUuid = oldList.find(item => String(item.key).includes(nameId)).nonEmptyTableData.find(row => SKU.parentUuidList.includes(row.uuid))[name].uuid
-
-          list.push(inputUuid)
-        } else {
-          list.push(SKU[name])
-        }
-      })
-      const SKUKey = list.join('-')
+      const SKUKey = oldAspectNames.map(name => SKU[name]).join('-')
       SKUKey && (map[SKUKey] = SKU)
 
       return map
     }, {})
-  }
+  } */
 
   /** 生成 SKU 组合 (! KEY FUNCTION !) */
   function generateSKUCombinations() {
@@ -1026,7 +1310,7 @@
         return combinations.flatMap(combination =>
           item.nonEmptyTableData.map(record => {
             // 收集父级 uuid, 做未使用变种的 tree shaking
-            const newObj = { uuid: uuidv4(), mainImages: [], subImages: [], parentUuidList: combination.parentUuidList ? [...combination.parentUuidList] : [] }
+            const newObj = { uuid: uuidv4(), mult: multCheckAll.value, mainImages: [], subImages: [], parentUuidList: combination.parentUuidList ? [...combination.parentUuidList] : [] }
             newObj.parentUuidList.push(record.uuid)
             for (const key in record) {
               if (key === 'uuid') continue
@@ -1046,36 +1330,38 @@
   }
 
   // 赋值老数据
-  function assignOldSKUData(oldSKUData) {
-    SKUTableData.value.forEach((record, i) => {
-      const list = []
-      aspectColumns.value.forEach(col => {
-        if (typeInputNameList.value.includes(col.title)) {
-          // 拿 input 值的 uuid
-          const nameId = rawAttributes.value.find(attr => attr.name === col.title).id
-          const inputUuid = usefulAspect.value.find(item => String(item.key).includes(nameId)).nonEmptyTableData.find(row => record.parentUuidList.includes(row.uuid))[col.title].uuid
+  function assignOldSKUData(oldSKUData, refresh = false) {
+    // init field: ['uuid', 'mainImages', 'subImages'].length = 3
+    if (!oldSKUData.length || Object.keys(oldSKUData[0]).length === 3) return
 
-          list.push(inputUuid)
-        } else {
-          list.push(record[col.title])
-        }
-      })
-      const SKUKey = list.join('-')
+    // 维持新值的字段
+    const fieldList = aspectColumns.value.map(col => col.title)
+    fieldList.push('uuid', 'parentUuidList')
+
+    SKUTableData.value.forEach((record, i) => {
+      if (oldSKUData[i]) {
+        SKUTableData.value[i] = { ...oldSKUData[i] }
+  
+        fieldList.forEach(field => {
+          SKUTableData.value[i][field] = record[field]
+        })
+      }
+    })
+
+    if (refresh) {
+      SKUTableData.value = [...SKUTableData.value]
+    }
+
+    /* SKUTableData.value.forEach((record, i) => {
+      const SKUKey = aspectColumns.value.map(col => record[col.title]).join('-')
 
       if (oldSKUData[SKUKey]) {
-        const obj = {
+        SKUTableData.value[i] = {
           ...oldSKUData[SKUKey],
           uuid: record.uuid
         }
-        aspectColumns.value.forEach(col => {
-          if (typeInputNameList.value.includes(col.title)) {
-            obj[col.title] = record[col.title] // 更新 input 的新值
-          }
-        })
-
-        SKUTableData.value[i] = obj
       }
-    })
+    }) */
   }
 
   // 移除一行 SKU
@@ -1205,7 +1491,7 @@
 
     if (!flag) return false // 短路
     // SKUTable 是否有空
-    const list = [...COLUMNS.slice(0, -1), { title: '长', key: 'length' }, { title: '宽', key: 'width' }, { title: '高', key: 'height' }].filter(item => item.key !== 'size')
+    const list = [...COLUMNS.slice(0, -1).filter(col => !excludedList.value.includes(col.key)), { title: '长', key: 'length' }, { title: '宽', key: 'width' }, { title: '高', key: 'height' }].filter(item => item.key !== 'size')
     loop2: for (const item of list) {
       for (const record of SKUTableData.value) {
         if (!nonEmpty(record[item.key])) {
@@ -1288,12 +1574,15 @@
             }
           })
 
+        const isPlanNum = checkedList.value.includes('mult') ? (item.mult ? 1 : 0) : 0
         const obj = {
           skuId: item.skuId,
+          colorImage: checkedList.value.includes('colorImage') ? processImageSource(item.colorImage) : '',
           skuCode: item.skuCode.trim(),
           costPrice: item.costPrice,
           stock: item.stock,
-          planNum: item.planNum,
+          planNum: isPlanNum === 1 ? 1 : item.planNum,
+          isPlanNum,
           saleUnit: item.saleUnit,
           length: item.length,
           width: item.width,
