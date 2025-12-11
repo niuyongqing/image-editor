@@ -449,7 +449,6 @@ const handlePageSizeChange = (val) => {
           :table-header="columns"
           :data-source="tableData"
           :scroll="{ y: 1000, x: '100%', virtual: true }"
-          v-model:filter-columns="columns"
           row-key="roleId"
           :loading="tableLoading"
           :expandedRowKeys="expandedKeys"

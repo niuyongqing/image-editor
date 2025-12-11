@@ -302,7 +302,6 @@ const showTotal = (total, range) => {
       resetSetMenu="product-list"
       :table-header="columns"
       :data-source="tableData"
-      v-model:filter-columns="columns"
     >
       <!-- 左侧工具栏 -->
       <template #leftTool>

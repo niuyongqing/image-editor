@@ -31,7 +31,6 @@
       </template>
     </appTableForm>
       <app-table-box
-        v-model:filter-columns="columns"
         :data-source="tableData"
         :table-header="columns"
         reset-set-menu="configAccountCont"

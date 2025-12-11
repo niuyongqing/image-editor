@@ -5,7 +5,6 @@
         resetSetMenu="product-list"
         :table-header="columns"
         :data-source="dataSource"
-        v-model:filter-columns="columns"
         row-key="deptId"
         :loading="tableLoading"
       >

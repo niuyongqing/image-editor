@@ -557,16 +557,13 @@ const queryList = () => {
     offerId: formState.offerId || null,
     orderNumber: formState.orderNumber || null
   }
-
-  };
-
   orderList(params)
     .then((res) => {
       data.value =
         res?.rows.map((item) => {
           return {
             id: item.orderId, // 添加id字段作为rowKey
-            customerName: item.customer.name,
+            customerName: item.customer?.name || '',
             deliveryMethodName: item.deliveryMethod.name,
             inProcessAt: item.inProcessAt,
             shipmentDate: item.shipmentDate,
@@ -590,6 +587,9 @@ const queryList = () => {
     .finally(() => {
       tableLoading.value = false;
     });
+  };
+
+
 
 // 导出方式
 const handleMenuClick = (e) => {
