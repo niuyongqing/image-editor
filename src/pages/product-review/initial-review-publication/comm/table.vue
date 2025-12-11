@@ -86,7 +86,7 @@
                 props.meansKeepGrainOptions.find((opt) => opt.value === item)
               "
             >
-              <a-tag style="margin-right: 3px" color="processing">
+              <a-tag color="processing">
                 {{
                   props.meansKeepGrainOptions.find((opt) => opt.value === item)
                     ?.label
@@ -102,8 +102,8 @@
         <template v-else-if="column.key === 'classify'">
           <a-tag
             v-if="record.classify"
-            style="margin-right: 3px"
             color="success"
+            class="whitespace-pre-wrap"
           >
             {{ getCommodityTypeLabelFun(record.classify) }}
           </a-tag>
