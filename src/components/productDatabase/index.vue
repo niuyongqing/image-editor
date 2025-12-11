@@ -421,11 +421,26 @@ function handleSelect(row) {
 
 // 主图显示
 const artMainImageSrc = (record) => {
-  if (record.artMainImage) {
-    const imgs = JSON.parse(record.artMainImage).map(item => item.url);
-    return [imgs[0]];
+  try {
+    const artMainImage =
+      JSON.parse(record.devDrawing).length > 0
+        ? JSON.parse(record.devDrawing)
+        : JSON.parse(record.artMainImage).length > 0
+        ? JSON.parse(record.artMainImage)
+        : JSON.parse(record.artAssistantImage).length > 0
+        ? JSON.parse(record.artAssistantImage)
+        : JSON.parse(record.artSkuImage).length > 0
+        ? JSON.parse(record.artSkuImage)
+        : [];
+    if (artMainImage) {
+      const imgs = artMainImage.map((item) => item.url);
+      return [imgs[0]];
+    }
+    return [];
+  } catch (error) {
+    console.error(error);
+    return [];
   }
-  return [];
 };
 // 市场方向
 const devAttributableMarket = (record) => {
