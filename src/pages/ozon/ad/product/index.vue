@@ -2,77 +2,78 @@
 <template>
   <div class="text-left">
     <!-- 搜索区 -->
-    <a-card>
-      <a-descriptions :column="1">
-        <a-descriptions-item label="店铺账号">
-          <TiledSelect
-            v-model:value="watchedSearchForm.sellerId"
+    <AppTableForm
+      v-model:formData="searchForm"
+      reset-set-menu="adProduct"
+      @on-submit="search"
+    >
+      <template #formItemRow>
+        <a-form-item
+          label="店铺账号"
+          name="account"
+        >
+          <AppCardSelect
+            v-model:account="searchForm.account"
             :options="accountList"
-            :field-names="{ label: 'simpleName', value: 'sellerId' }"
+            :field-obj="{ label: 'simpleName', value: 'account' }"
+            @selectItem="search"
           />
-        </a-descriptions-item>
-        <a-descriptions-item label="搜索类型">
-          <TiledSelect
-            v-model:value="lazySearchForm.searchKey"
-            :options="SEARCH_PROP_OPTIONS"
-            :append-all="false"
-          />
-        </a-descriptions-item>
-        <a-descriptions-item
-          label="搜索内容"
-          :content-style="{ 'flex-direction': 'column' }"
+        </a-form-item>
+        <a-form-item
+          label="模糊查询"
+          name="mult"
         >
-          <a-space align="start">
-            <SearchContentInput
-              v-model:value="lazySearchForm.searchValue"
-              :hide-control="['title', 'name'].includes(lazySearchForm.searchKey)"
-              :placeholder="PLACEHOLDER_ENUM[lazySearchForm.searchKey]"
-              @enter="search"
-            />
-            <a-button
-              type="primary"
-              :loading="loading"
-              @click="search"
-              >搜索</a-button
-            >
-          </a-space>
-        </a-descriptions-item>
-      </a-descriptions>
-    </a-card>
-
-    <!-- 按钮区 -->
-    <div class="my-4 flex justify-between">
-      <a-dropdown :disabled="selectedRows.length === 0">
-        <template #overlay>
-          <a-menu @click="handleMenuClick">
-            <a-menu-item key="1">批量修改竞价</a-menu-item>
-            <a-menu-item key="2">批量移除</a-menu-item>
-          </a-menu>
-        </template>
-        <a-button
-          type="primary"
-          title="勾选产品后批量操作"
-          >批量操作 <DownOutlined
-        /></a-button>
-      </a-dropdown>
-
-      <a-space>
-        <a-button
-          type="primary"
-          @click="open = true"
-          >添加广告产品</a-button
-        >
-        <a-button @click="sync">同步广告产品</a-button>
-      </a-space>
-    </div>
+          <a-form-item-rest>
+            <a-space>
+              <a-input
+                v-model:value="searchForm.title"
+                placeholder="活动名称"
+                allow-clear
+              />
+              <a-input
+                v-model:value="searchForm.activeId"
+                placeholder="活动 ID, 多个 ID 间用英文逗号隔开"
+                allow-clear
+              />
+              <a-input
+                v-model:value="searchForm.productId"
+                placeholder="产品 ID, 多个 ID 间用英文逗号隔开"
+                allow-clear
+              />
+              <a-input
+                v-model:value="searchForm.name"
+                placeholder="产品名称"
+                allow-clear
+              />
+              <a-input
+                v-model:value="searchForm.sku"
+                placeholder="SKU"
+                allow-clear
+              />
+            </a-space>
+          </a-form-item-rest>
+        </a-form-item>
+      </template>
+    </AppTableForm>
 
     <!-- TABLE 区 -->
-    <a-card>
-      <div class="flex justify-between items-center">
+    <AppTableBox
+      :table-header="DEFAULT_TABLE_COLUMN"
+      :data-source="tableData"
+      :loading="loading"
+      reset-set-menu="adProduct"
+      stripe
+      ref="tableRef"
+      row-key="id"
+      :scroll="{ x: 'max-content' }"
+      :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }"
+    >
+      <template #otherCount>
         <a-tabs
-          v-model:activeKey="watchedSearchForm.tab"
+          v-model:activeKey="searchForm.tab"
           :animated="false"
           class="flex-1"
+          @change="search"
         >
           <a-tab-pane
             v-for="item in LIST_TABS"
@@ -80,138 +81,110 @@
             :tab="`${item.label}(${listTabsCountEnum[item.value] || 0})`"
           ></a-tab-pane>
         </a-tabs>
-        <a-pagination
-          v-model:current="tableParams.pageNum"
-          v-model:pageSize="tableParams.pageSize"
-          :total="total"
-          :default-page-size="50"
-          show-size-changer
-          show-quick-jumper
-          :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
-          class="flex-none"
-          @change="getList"
-        />
-      </div>
+      </template>
 
-      <a-table
-        :columns="DEFAULT_TABLE_COLUMN"
-        :data-source="tableData"
-        :loading="loading"
-        stripe
-        ref="tableRef"
-        row-key="id"
-        :pagination="false"
-        :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }"
-        :scroll="{ x: 'max-content' }"
-      >
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'image'">
-            <div class="flex text-left">
-              <a-popover placement="right">
-                <template #content>
-                  <img
-                    :src="record.image || EmptyImg"
-                    width="400"
-                    height="400"
-                  />
-                </template>
-                <a-image
-                  :src="record.image || EmptyImg"
-                  :width="80"
-                  :height="80"
-                  :fallback="EmptyImg"
-                  class="object-contain border border-solid border-gray-200"
-                />
-                <!-- <span>
-                  <a-image-preview-group>
-                    <a-image
-                      style="width: 80px; height: 80px; border: 1px solid #ccc"
-                      :src="record.images[0] || EmptyImg"
-                      :fallback="EmptyImg"
-                    />
-                    <a-image
-                      v-for="url in record.images.slice(1)"
-                      :key="url"
-                      :src="url"
-                      class="hidden"
-                    />
-                  </a-image-preview-group>
-                </span> -->
-              </a-popover>
-            </div>
-          </template>
+      <template #leftTool>
+        <a-space>
+          <a-dropdown :disabled="selectedRows.length === 0">
+            <template #overlay>
+              <a-menu @click="handleMenuClick">
+                <a-menu-item key="1">批量修改竞价</a-menu-item>
+                <a-menu-item key="2">批量移除</a-menu-item>
+              </a-menu>
+            </template>
+            <a-button
+              type="primary"
+              title="勾选产品后批量操作"
+            >批量操作
+              <DownOutlined />
+            </a-button>
+          </a-dropdown>
 
-          <template v-else-if="column.key === 'title'">
-            <div>
-              <span :title="record.title">{{ record.title }}</span
-              ><a-button
-                type="link"
-                @click="copy(record.title)"
-                ><CopyOutlined
-              /></a-button>
-            </div>
-            <div>
-              <a-button
-                type="link"
-                class="p-0!"
-                @click="goOzon(record.id)"
-                >{{ record.id }}</a-button
-              ><a-button
-                type="link"
-                @click="copy(record.id)"
-                ><CopyOutlined
-              /></a-button>
-            </div>
-            <div class="text-gray">「{{ record.simpleName }}」</div>
-          </template>
+          <a-button
+            type="primary"
+            @click="open = true"
+          >添加广告产品</a-button>
+          <a-button @click="sync">同步广告产品</a-button>
+        </a-space>
+      </template>
 
-          <template v-else-if="column.key === 'name'">
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.key === 'image'">
+          <a-image
+            :src="record.image || EmptyImg"
+            :width="80"
+            :height="80"
+            :fallback="EmptyImg"
+            class="object-contain border border-solid border-gray-200"
+          />
+        </template>
+
+        <template v-else-if="column.key === 'title'">
+          <div>
+            <span :title="record.title">{{ record.title }}</span><a-button
+              type="link"
+              @click="copy(record.title)"
+            >
+              <CopyOutlined />
+            </a-button>
+          </div>
+          <div>
             <a-button
               type="link"
               class="p-0!"
-              @click="goAdManage(record.id)"
-              >{{ record.id }}</a-button
-            ><a-button
+              @click="goOzon(record.id)"
+            >{{ record.id }}</a-button><a-button
               type="link"
               @click="copy(record.id)"
-              ><CopyOutlined
-            /></a-button>
-            <div>{{ record.activeId }}</div>
-          </template>
-
-          <template v-else-if="column.key === 'type'">{{ record.type }}</template>
-
-          <template v-else-if="column.key === 'strategy'">{{ record.strategy }}</template>
-
-          <template v-else-if="column.key === 'bidding'">{{ record.bidding || '--' }}</template>
-
-          <template v-else-if="column.key === 'operation'">
-            <a-popconfirm
-              title="移除广告产品后数据将会清空，请确定是否移除"
-              @confirm="del(record)"
             >
-              <a-button
-                type="link"
-                danger
-                >移除</a-button
-              >
-            </a-popconfirm>
-          </template>
+              <CopyOutlined />
+            </a-button>
+          </div>
+          <div class="text-gray">「{{ record.simpleName }}」</div>
         </template>
-      </a-table>
 
-      <a-pagination
-        v-model:current="tableParams.pageNum"
-        v-model:pageSize="tableParams.pageSize"
-        class="text-right mt-3"
-        :total="total"
-        :default-page-size="50"
-        show-size-changer
-        show-quick-jumper
-        :show-total="(total, range) => `第${range[0]}-${range[1]}条, 共${total}条`"
-        @change="getList"
-      />
-    </a-card>
+        <template v-else-if="column.key === 'name'">
+          <a-button
+            type="link"
+            class="p-0!"
+            @click="goAdManage(record.id)"
+          >{{ record.id }}</a-button><a-button
+            type="link"
+            @click="copy(record.id)"
+          >
+            <CopyOutlined />
+          </a-button>
+          <div>{{ record.activeId }}</div>
+        </template>
+
+        <template v-else-if="column.key === 'type'">{{ record.type }}</template>
+
+        <template v-else-if="column.key === 'strategy'">{{ record.strategy }}</template>
+
+        <template v-else-if="column.key === 'bidding'">{{ record.bidding || '--' }}</template>
+
+        <template v-else-if="column.key === 'operation'">
+          <a-popconfirm
+            title="移除广告产品后数据将会清空，请确定是否移除"
+            @confirm="del(record)"
+          >
+            <a-button
+              type="link"
+              danger
+            >移除</a-button>
+          </a-popconfirm>
+        </template>
+      </template>
+
+      <template #pagination>
+        <AppTablePagination
+          v-model:current="tableParams.pageNum"
+          v-model:pageSize="tableParams.pageSize"
+          :total="total"
+          @change="getList"
+        />
+      </template>
+    </AppTableBox>
 
     <!-- 添加广告产品弹窗 -->
     <AddModal
@@ -234,17 +207,17 @@
   import { CopyOutlined, DownOutlined } from '@ant-design/icons-vue'
   import AddModal from './components/AddModal.vue'
   import EmptyImg from '@/assets/images/aliexpress/empty.png'
+  import { title } from 'process'
 
   const accountList = ref([])
-  // 被 watch 监听的搜索表单; 外层, 点击即可搜索
-  const watchedSearchForm = reactive({
-    sellerId: undefined,
+  const searchForm = reactive({
+    account: undefined,
+    title: '',
+    activeId: '',
+    productId: '',
+    name: '',
+    sku: '',
     tab: 'ALL'
-  })
-  // 点击'搜索'按钮再执行搜索动作
-  const lazySearchForm = reactive({
-    searchKey: 'title', // 搜索类型
-    searchValue: undefined // 搜索内容
   })
   const tableParams = reactive({
     pageNum: 1,
@@ -255,14 +228,6 @@
   const loading = ref(false)
   const selectedRowKeys = ref([])
   const selectedRows = ref([])
-
-  watch(
-    () => watchedSearchForm,
-    () => {
-      search()
-    },
-    { deep: true }
-  )
 
   getAccountList()
   function getAccountList() {
@@ -290,9 +255,7 @@
     selectedRows.value = []
 
     const params = {
-      ...watchedSearchForm,
-      ...lazySearchForm,
-      [lazySearchForm.searchKey]: lazySearchForm.searchValue,
+      ...searchForm,
       ...tableParams
     }
     delete params.searchKey
@@ -337,7 +300,7 @@
   }
 
   // 同步
-  function sync() {}
+  function sync() { }
 
   function copy(context) {
     copyText(context)
@@ -362,11 +325,13 @@
 
   // 移除
   function del(record) {
-    const params = [{
-      id: record.id,
-      productId: record.productId,
-      account: record.account
-    }]
+    const params = [
+      {
+        id: record.id,
+        productId: record.productId,
+        account: record.account
+      }
+    ]
 
     removeApi(params).then(res => {
       message.success('删除成功')
@@ -376,5 +341,5 @@
   /** 添加广告产品弹窗 */
   const open = ref(false)
 
-  function refresh() {}
+  function refresh() { }
 </script>

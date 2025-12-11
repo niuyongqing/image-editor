@@ -1,13 +1,14 @@
 <!-- 广告管理 列表 -->
 <template>
   <div class="text-left">
-    <a-table
+    <AppTableBox
       bordered
       row-key="id"
-      :columns="COLUMNS"
+      :table-header="COLUMNS"
       :data-source="tableData"
+      reset-set-menu="adAuthorization"
       :loading="loading"
-      :pagination="pagination"
+      :custom-row="record => ({ onDblclick: () => edit(record) })"
     >
       <template #bodyCell="{ record, column }">
         <template v-if="column.title === '操作'">
@@ -18,12 +19,22 @@
           >
         </template>
       </template>
-    </a-table>
+
+      <template #pagination>
+        <AppTablePagination
+          v-model:current="tableParams.pageNum"
+          v-model:pageSize="tableParams.pageSize"
+          :total="tableParams.total"
+          @change="getList"
+        />
+      </template>
+    </AppTableBox>
 
     <a-modal
       v-model:open="open"
       title="编辑Ozon广告API授权"
       width="650px"
+      :mask-closable="false"
       @cancel="cancel"
     >
       <a-form
@@ -96,7 +107,8 @@
     {
       title: '授权时间',
       key: 'updateTime',
-      dataIndex: 'updateTime'
+      dataIndex: 'updateTime',
+      align: 'center'
     },
     {
       title: '操作',
@@ -105,34 +117,22 @@
     }
   ]
   const tableData = ref([])
-  const pageParams = reactive({
+  const tableParams = reactive({
     pageNum: 1,
     pageSize: 50,
     total: 0
   })
-  const pagination = computed(() => ({
-    total: pageParams.total,
-    current: pageParams.pageNum,
-    pageSize: pageParams.pageSize,
-    showTotal: total => `共 ${total} 条`,
-    onChange: (page, pageSize) => {
-      pageParams.pageNum = page
-      pageParams.pageSize = pageSize
-
-      getList()
-    }
-  }))
 
   const loading = ref(false)
   getList()
   function getList() {
     loading.value = true
-    const params = { ...pageParams }
+    const params = { ...tableParams }
     delete params.total
     list(params)
       .then(res => {
         tableData.value = res.rows || []
-        pageParams.total = res.total || 0
+        tableParams.total = res.total || 0
       })
       .finally(() => {
         loading.value = false

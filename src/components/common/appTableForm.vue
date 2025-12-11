@@ -1,20 +1,28 @@
 <template>
-<div id="appTableForm" class="appTableForm" :class="{'stickyTop': form.scrollTop > form.offsetHeight}">
-  <a-card>
+<!-- 通用查询表单组件 -->
+<div 
+  id="appTableForm" 
+  class="appTableForm" 
+  :class="`${form.scrollTop > form.offsetHeight ? 'stickyTop ':''}${resetSetMenu}-appTableForm`"
+>
+  <a-card :loading="loading">
+    <template #title v-if="!!formCardTitle">
+      <slot name="formCardTitle"></slot>
+    </template>
     <a-form 
-      v-bind="$attrs" 
       v-show="form.formShow"
       :model="formData" 
       ref="appTableFormRef"
       :rules="rules"
       :class="{'mini-form': mini}"
+      v-bind="$attrs" 
     >
       <div class="formItem-box" v-if="!!formItemBox">
         <!-- 标准筛选项使用该插槽 -->
         <slot name="formItemBox"></slot>
       </div>
       <div class="formItem-row" v-if="!!formItemRow">
-        <!-- 自定义宽度的筛选项用这个插槽，独占一行 -->
+        <!-- 自定义宽度的筛选项用这个插槽，自由排列 -->
         <slot name="formItemRow"></slot>
       </div>
       <div class="formItem-row right">
@@ -26,7 +34,11 @@
               <div class="formSetting-box">
                 <div class="formSetting-itemRow" v-for="item in form.settingList" :key="item.name">
                   <div class="itemRow-title">{{ item.label }}</div>
-                  <a-checkbox v-model:checked="item.show" @change="e => formItemShow(item, e)">显示</a-checkbox>
+                  <a-checkbox 
+                    v-model:checked="item.show" 
+                    @change="e => formItemShow(item, e)"
+                    :disabled="item.disabled"
+                  >{{ item.disabled ? '必填项':'显示' }}</a-checkbox>
                 </div>
               </div>
               <div class="formSetting-btn">
@@ -63,13 +75,17 @@ import { ref, reactive, onMounted, onBeforeUnmount, computed, toRefs, useSlots }
 import asyncIcon from '~@/layouts/components/menu/async-icon.vue';
 defineOptions({ name: "appTableForm" });
 const { proxy: _this } = getCurrentInstance();
-const emit = defineEmits(['update:formData', 'onSubmit', 'formHeightChange']);
+const emit = defineEmits([
+  'update:formData',
+  'onSubmit',           // 查询事件
+  'formHeightChange'    // 表单高度变化
+]);
 const props = defineProps({
   resetSetMenu: { // 唯一标识，不能重复，必传
     type: String,
     default: ''
   },
-  formData: {
+  formData: {                 // 表单数据 v-model:formData 用于重置
     type: Object,
     default: () => ({})
   },
@@ -78,10 +94,15 @@ const props = defineProps({
     default: () => ({})
   },
   mini: Boolean,            // 是否采用小型紧凑
-  labelWidth: {
+  labelWidth: {             // label宽度
     type: [String, Number],
     default: '150',
-  }
+  },
+  hideNameList: {           // 默认隐藏的项
+    type: Array,
+    default: () => ([])
+  },
+  loading: Boolean,
 });
 const { formData } = toRefs(props); 
 const form = reactive({
@@ -94,13 +115,13 @@ const form = reactive({
 let currentDom = null;      // 当前组件dom
 let contentDom = null;      // 滚动容器dom
 const btnLoading = ref(false);
-const { formItemBox, formItemRow, } = useSlots();
+const { formItemBox, formItemRow, formCardTitle} = useSlots();
 const labelWidth = computed(() => {
   let width = props.mini ? (Number(props.labelWidth) * 0.8) : props.labelWidth;
   return width + 'px';
 })
 onMounted(() => {
-  currentDom = document.querySelector('#appTableForm');
+  currentDom = document.querySelector(`.${props.resetSetMenu}-appTableForm`);
   contentDom = document.querySelector('.ant-layout-content');
   form.copyFormData = cloneDeep(props.formData);
   getSettingList();
@@ -114,8 +135,9 @@ onBeforeUnmount(() => {
 const scrollFn = debounce(e => {
   form.scrollTop = contentDom.scrollTop;
   // form.formShow = (form.scrollTop <= form.offsetHeight)
-  if (form.scrollTop > form.offsetHeight) {
+  if (form.formShow && (form.scrollTop > form.offsetHeight)) {
     form.formShow = false;
+    contentDom.scrollTop += 10
   } else if (form.scrollTop === 0) {
     form.formShow = true;
   }
@@ -145,13 +167,19 @@ function generateSettingNameList(val) {
     let label = item.querySelector('label');
     let f = null;
     label && (f = label.getAttribute('for'));
-    if (f && !label.className.includes('ant-form-item-required')) {
+    if (f) {
+      let name = f.split('_')[2]
       let obj = {
-        name: f.split('_')[2],
+        name,
         label: label.innerText,
         formItem: item,
-        show: true,
+        show: !props.hideNameList.includes(name),
+        disabled: label.className.includes('ant-form-item-required')
       };
+      if (!val && !obj.show) {
+        // 重置时候默认隐藏的项
+        item.classList.add('item-hide');
+      }
       list.push(obj);
     }
   });
@@ -250,6 +278,9 @@ function resetForm() {
     _this.$refs.appTableFormRef.resetFields();
   });
 }
+defineExpose({
+  resetForm,
+})
 </script>
 <style lang="less" scoped>
 #appTableForm.appTableForm {
@@ -308,21 +339,56 @@ function resetForm() {
           padding: 0 4px;
         }
       }
-      .ant-select {
-        height: 20px;
-        * {
-          height: 20px;
-          font-size: 12px;
-          line-height: 20px;
-        }
-        .ant-select-arrow {
-          top: calc(50% - 2px);
-        }
-      }
       input {
         font-size: 12px !important;
         height: 20px !important;
         line-height: 20px;
+      }
+      .ant-form-item-control-input {
+        min-height: 20px;
+        .ant-form-item-control-input-content {
+          min-height: 20px;
+        }
+      }
+      .ant-select {
+        width: 100%;
+        height: 20px;
+        .ant-select-selector {
+          height: 20px;
+          line-height: 18px;
+          padding-top: 0;
+          padding-bottom: 0;
+          margin: 0;
+          .ant-select-selection-item {
+            line-height: 18px;
+          }
+          .ant-select-selection-overflow {
+            height: 14px;
+            line-height: 12px;
+            padding-top: 0;
+            padding-bottom: 0;
+            padding-top: 0;
+            & * {
+              height: 100% !important;
+              font-size: 8px !important;
+              line-height: 14px;
+              margin-top: 0;
+              margin-bottom: 0;
+              padding-top: 0;
+            }
+          }
+          input {
+            font-size: 12px !important;
+            height: 16px !important;
+            line-height: 16px;
+          }
+          .ant-select-selection-placeholder {
+            font-size: 10px;
+          }
+        }
+        .ant-select-arrow {
+          top: 50%
+        }
       }
     }
     .ant-form-item-explain.ant-form-item-explain-connected.ant-form-show-help {

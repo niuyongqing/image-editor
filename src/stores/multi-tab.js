@@ -41,6 +41,12 @@ export const useMultiTab = defineStore('multi-tab', () => {
       affix: route.meta.affix,
       locale: route.meta.locale,
     }
+    // console.log({
+    //   'appStore.layoutSetting.keepAlive': appStore.layoutSetting.keepAlive,
+    //   item,
+    //   'route.meta.keepAlive': route.meta.keepAlive
+    // });
+    
     if (!cacheList.value.includes(item?.name) && appStore.layoutSetting.keepAlive) {
       if (route.meta.keepAlive && route.name)
         cacheList.value.push(route.name)
@@ -73,7 +79,6 @@ export const useMultiTab = defineStore('multi-tab', () => {
       cacheList.value = cacheList.value.filter(name => name !== item.name)
       item.loading = true
       refreshItem.value = item
-      console.log(item.fullPath);
       // 检测是否包含editPsImage?
       if (item.fullPath.includes('editPsImage?')) {
         // 使用路由刷新当前页面
@@ -91,6 +96,13 @@ export const useMultiTab = defineStore('multi-tab', () => {
     try {
       // 使用Vue Router的内部方法检查路由是否存在
       const routeExists = router.resolve(key).matched.length > 0
+      // 判断该路由是否需要保活
+      let route = router.getRoutes().find(i => i.path === key);
+      if (route.meta.keepAlive) {
+        !cacheList.value.includes(route.name) && cacheList.value.push(route.name);
+      } else {
+        cacheList.value = cacheList.value.filter(i => i !== route.name);
+      }
       if (routeExists) {
         router.push(key)
       } else {

@@ -4,6 +4,7 @@ export const DEFAULT_TABLE_COLUMN = [
     title: '序号',
     key: 'index',
     fixed: 'left',
+    align: 'center',
     width: 50
   },
   {
@@ -21,17 +22,20 @@ export const DEFAULT_TABLE_COLUMN = [
     title: '平均成本价区间(CNY)',
     key: 'averageCostPriceRange',
     dataIndex: 'averageCostPriceRange',
+    align: 'center',
     width: 120
   },
   {
     title: '平均重量区间(g)',
     key: 'averageWeightRange',
     dataIndex: 'averageWeightRange',
+    align: 'center',
     width: 120
   },
   {
     title: '状态',
     key: 'status',
+    align: 'center',
     width: 80
   },
   {
@@ -43,6 +47,7 @@ export const DEFAULT_TABLE_COLUMN = [
     title: '操作',
     key: 'operation',
     fixed: 'right',
+    align: 'left',
     width: 100
   }
 ]
