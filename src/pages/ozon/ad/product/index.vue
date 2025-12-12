@@ -207,7 +207,6 @@
   import { CopyOutlined, DownOutlined } from '@ant-design/icons-vue'
   import AddModal from './components/AddModal.vue'
   import EmptyImg from '@/assets/images/aliexpress/empty.png'
-  import { title } from 'process'
 
   const accountList = ref([])
   const searchForm = reactive({

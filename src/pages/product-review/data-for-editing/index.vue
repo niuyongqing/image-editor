@@ -112,7 +112,7 @@
           <span>{{ STORAGE_OPTIONS.find(item => item.value === record.meansKeepGrain)?.label || '--' }}</span>
         </template>
         <template v-else-if="column.key === 'category'">
-          <span>{{ getClassifyLabel(record.classify) }}</span>
+          <a-tag color="success" class="whitespace-pre-wrap">{{ getClassifyLabel(record.classify) }}</a-tag>
         </template>
         <template v-else-if="column.key === 'reviewer'">
           <span>{{ record.lastAuditUserName || record.firstAuditName }}</span>

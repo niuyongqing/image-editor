@@ -55,7 +55,6 @@
       reset-set-menu="publicationRule"
       stripe
       row-key="id"
-      :scroll="{ x: 'max-content' }"
       :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange }"
       @rowDoubleClick="record => goEdit(record)"
     >
@@ -101,7 +100,7 @@
           <div class="w-50">{{ record.ruleName || '--' }}</div>
         </template>
         <template v-else-if="column.key === 'category'">
-          <a-tag color="success">{{ getCategoryLabel(record.categoryId) }}</a-tag>
+          <a-tag color="success" class="whitespace-pre-wrap">{{ getCategoryLabel(record.categoryId) }}</a-tag>
         </template>
         <template v-else-if="column.key === 'averageCostPriceRange'">
           <span>[ {{ record.costPriceMin || '_' }}, {{ record.costPriceMax || '_' }} ]</span>

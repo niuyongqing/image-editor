@@ -97,23 +97,26 @@
     {
       title: '店铺名称',
       key: 'simpleName',
+      width: 250,
       dataIndex: 'simpleName'
     },
     {
       title: 'Client ID',
       key: 'advertisementClientId',
+      width: 300,
       dataIndex: 'advertisementClientId'
     },
     {
       title: '授权时间',
       key: 'updateTime',
+      width: 200,
       dataIndex: 'updateTime',
       align: 'center'
     },
     {
       title: '操作',
       key: 'operation',
-      width: 150
+      width: 100
     }
   ]
   const tableData = ref([])

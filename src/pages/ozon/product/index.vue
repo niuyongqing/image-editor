@@ -209,7 +209,7 @@
           <div class="outContent" v-loading="loading">
             <div class="topHeader">
               <a-checkbox style="margin-right: 70px" v-model:checked="allChecked" @change="allChangeBox"></a-checkbox>
-              <a-table style="width: 100%; height: 39px" class="fixedTable" :columns="dropCol" @change="handleTableChange">
+              <a-table style="height: 39px"class="fixedTable" :columns="dropCol" @change="handleTableChange">
               </a-table>
             </div>
             <div v-if="selectedRows.length != 0" class="h-7.5 pl-5 lh-7.5 text-left" style="background-color: #ffffcd">
