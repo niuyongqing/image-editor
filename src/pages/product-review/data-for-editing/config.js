@@ -17,7 +17,7 @@ export const DEFAULT_TABLE_COLUMN = [
     key: 'commodityName',
     dataIndex: 'commodityName',
     fixed: 'left',
-    width: 140
+    width: 180
   },
   {
     title: '市场方向',
