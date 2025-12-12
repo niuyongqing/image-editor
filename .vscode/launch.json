@@ -1,0 +1,40 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Vue.js: 调试 Chrome",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/src",
+      "pathMapping": {
+        "/_karma_webpack_": "${workspaceFolder}"
+      },
+      "sourceMapPathOverrides": {
+        "webpack:///src/*": "${webRoot}/*"
+      },
+      "preLaunchTask": "npm: dev:port"
+    },
+    {
+      "name": "Vue.js: 调试 Edge",
+      "type": "msedge",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/src",
+      "sourceMapPathOverrides": {
+        "webpack:///src/*": "${webRoot}/*"
+      },
+      "preLaunchTask": "npm: dev:port"
+    },
+    {
+      "name": "JavaScript 调试终端",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "runtimeArgs": ["--experimental-modules"],
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/main.js"
+    }
+  ]
+}

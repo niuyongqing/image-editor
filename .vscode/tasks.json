@@ -1,0 +1,21 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "dev:port",
+      "group": "build",
+      "problemMatcher": [],
+      "label": "npm: dev:port",
+      "detail": "运行开发服务器"
+    },
+    {
+      "type": "npm",
+      "script": "build",
+      "group": "build",
+      "problemMatcher": [],
+      "label": "npm: build",
+      "detail": "构建项目"
+    }
+  ]
+}
