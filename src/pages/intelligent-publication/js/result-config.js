@@ -67,7 +67,7 @@ export const DEFAULT_COLUMNS = [
   {
     title: '操作',
     dataIndex: 'option',
-    align: 'right',
+    // align: 'right',
     width: 240,
     filter: false
   }
