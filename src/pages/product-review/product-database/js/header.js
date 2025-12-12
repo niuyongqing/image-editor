@@ -74,7 +74,7 @@ export const header = [
     sortField: "isIntelligent", // 排序字段
     align: "center",
     sorter: true,
-    width: 100,
+    width: 150,
   },
   {
     title: "重量",
