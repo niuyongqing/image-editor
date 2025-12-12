@@ -32,9 +32,9 @@
               allowClear
             />
           </a-space>
-          <a-button class="ml-4" type="primary" @click="queryList" :disabled="tableLoading"
+          <!-- <a-button class="ml-4" type="primary" @click="queryList" :disabled="tableLoading"
             >查询</a-button
-          >
+          > -->
         </a-form-item>
         <a-form-item label="订单状态：" name="status">
           <selectComm
@@ -229,6 +229,8 @@ const areaList = ref([]);
 const formState = reactive({
   account: "",
   orderStat: "",
+  offerId: "",
+  orderNumber: "",
 });
 // const tableData = ref([]);
 const paginations = reactive({
