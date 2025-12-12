@@ -17,7 +17,7 @@ export const COLUMNS = [
     title: '产品标题',
     key: 'title',
     fixed: 'left',
-    width: 240
+    width: 260
   },
   {
     title: '店铺',
