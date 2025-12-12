@@ -256,7 +256,7 @@
                         ''
                       )" />
                       <div class="block ml-2.5">
-                        <div class="prodTitle">{{ record.name }}</div>
+                        <div>{{ record.name }}</div>
                         <div class="float-left text-[#999]">
                           产品ID：
                           <a-tooltip placement="top">
@@ -1687,18 +1687,6 @@ onMounted(() => {
 
   .ant-table {
     border-bottom: none;
-
-    @media (min-width: 1920px) {
-      .prodTitle {
-        width: 200px !important;
-      }
-    }
-
-    @media (min-width: 2550px) {
-      .prodTitle {
-        width: 390px !important;
-      }
-    }
   }
 }
 

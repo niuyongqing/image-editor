@@ -222,7 +222,7 @@
                       :src="processImageSource((record.primaryImage?.length > 0 && record.primaryImage[0]) || (record.images?.length > 0 && record.images[0]) || '')"
                     />
                     <div class="block ml-2.5">
-                      <div class="prodTitle">{{ record.name }}</div>
+                      <div>{{ record.name }}</div>
                       <div class="float-left text-[#999]">
                         产品ID：
                         <a-tooltip placement="top">
@@ -1776,18 +1776,6 @@
 
     .ant-table {
       border-bottom: none;
-
-      @media (min-width: 1920px) {
-        .prodTitle {
-          width: 200px !important;
-        }
-      }
-
-      @media (min-width: 2560px) {
-        .prodTitle {
-          width: 390px !important;
-        }
-      }
     }
   }
 
