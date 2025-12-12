@@ -338,7 +338,7 @@ function getMeansKeepGrainOptions(val) {
 function getSkuListFun(e) {
   const sku = e.skuCodes || e.skuList;
   if(sku){
-    return getSkuList(sku);
+    return sku;
   }
   return "";
 }

@@ -40,7 +40,7 @@ export default [
     dataIndex: 'skuList',
     key: 'skuList',
     align: 'left',
-    width: 120,
+    width: 200,
     show: true,
     filter: true
   },

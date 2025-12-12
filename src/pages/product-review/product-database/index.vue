@@ -597,13 +597,7 @@ function rowClick(row) {
 }
 // 打开详情弹窗
 function detailsModalOpen(row) {
-  const detailsModalData = {
-    row,
-    forbidSaleList: forbidSaleList.value,
-    cacheGetArr: cacheGetArr.value,
-    meansKeepGrains: meansKeepGrains.value,
-  };
-  _this.$refs.detailsModalRef.modalOpenFn(detailsModalData, "product-database");
+  handleEditProduct(row);
 }
 // 选中商品
 function handleSelect(row) {
@@ -793,8 +787,14 @@ const handlePageSizeChange = (val) => {
 /**
  * 处理行双击事件
  */
-const handleRowDoubleClick = (record) => {
-  handleEditProduct(record);
+const handleRowDoubleClick = (row) => {
+    const detailsModalData = {
+    row,
+    forbidSaleList: forbidSaleList.value,
+    cacheGetArr: cacheGetArr.value,
+    meansKeepGrains: meansKeepGrains.value,
+  };
+  _this.$refs.detailsModalRef.modalOpenFn(detailsModalData, "product-database");
 };
 
 
