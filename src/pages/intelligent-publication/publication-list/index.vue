@@ -128,7 +128,7 @@
           />
         </template>
         <template v-else-if="column.key === 'title'">
-          <div class="w-80">{{ record.productName || '--' }}</div>
+          <div>{{ record.productName || '--' }}</div>
           <div>产品ID: {{ record.waitPublishProductId }}</div>
         </template>
         <template v-else-if="column.key === 'publishType'">
@@ -167,7 +167,7 @@
           <div>计划刊登时间: {{ record.planPublishTime || '--' }}</div>
         </template>
         <template v-else-if="column.key === 'remark'">
-          <div class="w-80">{{ record.remark || '--' }}</div>
+          <div>{{ record.remark || '--' }}</div>
         </template>
         <template v-else-if="column.key === 'operation'">
           <a-space>
