@@ -174,6 +174,7 @@
             <a-button
               type="link"
               :disabled="![10, 40].includes(record.publishStatus)"
+              :loading="record.waitPublishProductId === loadingId"
               @click="publish(record)"
               >刊登</a-button
             >
