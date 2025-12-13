@@ -140,7 +140,6 @@ const saveTemplate = async () => {
       jsonRich: image.jsons || {}
     }
   }
-  console.log("params", params);
 
   tempSaveOrUpdate(params).then(res => {
     if (res.code == 200) {
@@ -244,9 +243,6 @@ const onSubmit = async (type = 1) => {
   let image = ozonImageInfoRef.value.form;
   let tableDatas = ozonNewVariantInfoRef.value.tableData;
 
-  console.log('base', base);
-  // console.log('image', image);
-  console.log('tableDatas', tableDatas);
   let hisAttr = {}
   const source = base.attributes;
   for (const key in source) {
@@ -342,7 +338,6 @@ const onSubmit = async (type = 1) => {
     videoBaseObj = createAndUpdateBaseObj(image.video, 100001, 21841, type === 1 ? 1 : 2);
     newComplexAttributes.push(videoBaseObj);
   }
-  // console.log("newComplexAttributes", newComplexAttributes);
 
   const resItem = tableDatas.map((item) => {
     const moditAttributes = [];
@@ -398,7 +393,6 @@ const onSubmit = async (type = 1) => {
           break;
       }
     }
-    // console.log("moditAttributes--", moditAttributes);
 
 
     return {
@@ -435,7 +429,6 @@ const onSubmit = async (type = 1) => {
     sourceUrlList: erpInfo.sourceUrlList.map((item) => item.sourceUrl),
     isUpdate: true
   };
-  console.log('params', params);
   loading.value = true;
   add(params).then((res) => {
     message.success(res.msg);
@@ -501,12 +494,13 @@ const handleOk = () => {
   location.reload();
 }
 
+const route = useRoute()
 onMounted(() => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const rowId = urlParams.get('id');
-  const offerIds = rowId ? JSON.parse(decodeURIComponent(rowId)) : [];
-  const rowAccount = urlParams.get('account');
-  getProductDetail(offerIds, rowAccount)
+  const query = route.query
+  const account = query.account || ''
+  const id = query.id || ''
+  const offerIds = id.replaceAll('_', '+').split(',')
+  getProductDetail(offerIds, account)
   getAccount()
 })
 </script>

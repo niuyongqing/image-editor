@@ -1401,19 +1401,17 @@ const add = () => {
   window.open("productPublish", "_blank");
 };
 const edit = (row = {}, type) => {
-  let offerIds = [];
-  if (type == "single") {
-    offerIds.push(row.offerId);
-  } else if (type == "all") {
-    offerIds = row.children.map((item) => item.offerId);
+    let offerIds = ''
+    if (type == 'single') {
+      offerIds = row.offerId
+    } else if (type == 'all') {
+      offerIds = row.children.map(item => item.offerId).join(',')
+    }
+
+    const query = `?id=${offerIds.replaceAll('+', '_')}&account=${row.account}`
+
+    window.open(`/platform/ozon/editProductPublish?${query}`)
   }
-
-  const params = new URLSearchParams();
-  params.append('id', JSON.stringify(offerIds));
-  params.append('account', row.account);
-  window.open(`editProductPublish?${params.toString()}`, "_blank");
-
-};
 const sync = () => {
   loading.value = true;
   if (formData.account == null || formData.account == "") {

@@ -1518,17 +1518,16 @@
     window.open('/platform/ozon/productPublish', '_blank')
   }
   const edit = (row = {}, type) => {
-    let offerIds = []
+    let offerIds = ''
     if (type == 'single') {
-      offerIds.push(row.offerId)
+      offerIds = row.offerId
     } else if (type == 'all') {
-      offerIds = row.children.map(item => item.offerId)
+      offerIds = row.children.map(item => item.offerId).join(',')
     }
 
-    const params = new URLSearchParams()
-    params.append('id', JSON.stringify(offerIds))
-    params.append('account', row.account)
-    window.open(`/platform/ozon/editProductPublish?${params.toString()}`, '_blank')
+    const query = `?id=${offerIds.replaceAll('+', '_')}&account=${row.account}`
+
+    window.open(`/platform/ozon/editProductPublish?${query}`)
   }
   const sync = () => {
     loading.value = true
