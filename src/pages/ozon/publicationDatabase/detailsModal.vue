@@ -129,7 +129,18 @@
           </div>
         </a-card>
         <a-card title="变种信息" style="width: calc(100% - 25px)">
-          <a-table :columns="skuInfoHeader" :data-source="detailData.data.skuList" :pagination="false"></a-table>
+          <a-table :columns="skuInfoHeader" :data-source="detailData.data.skuList" :pagination="false">
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.dataIndex === 'colorImage'">
+                <a-image
+                  :width="60"
+                  :height="60"
+                  class="object-contain w-15! h-15!"
+                  :src="processImageSource(record.colorImage)"
+                />
+              </template>
+            </template>
+          </a-table>
         </a-card>
         <a-card title="图片信息" style="width: calc(100% - 25px)">
           <div v-for="item in detailData.data.skuList" :key="item.skuCode">
@@ -255,7 +266,16 @@ const publishHead = [
 ]
 // sku列表表头
 const skuInfoHeader = computed(() => {
-  return [...detailData.attrHeader, ...publishHead]
+  const hasColorImage = detailData.data?.skuList?.some(item => item.colorImage)
+  const list = hasColorImage ? [{
+    dataIndex: 'colorImage',
+    title: '颜色样本',
+    show: true,
+    align: 'center',
+    width: 80
+  }] : []
+
+  return [...list, ...detailData.attrHeader, ...publishHead]
 })
 async function modalOpenFn({ row, commodityTypeList }) {
   detailData.row = row
