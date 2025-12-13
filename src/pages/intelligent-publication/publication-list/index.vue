@@ -90,6 +90,7 @@
           <a-button
             type="primary"
             :disabled="state.selectedRowKeys.length === 0"
+            :loading="batchPublishLoading"
             @click="batchPublish"
             >批量刊登</a-button
           >
@@ -377,6 +378,7 @@
     })
   }
 
+  const batchPublishLoading = ref(false)
   function batchPublish() {
     return new Promise((resolve, reject) => {
       // 批量; 检查是否有不允许编辑的数据
@@ -388,12 +390,14 @@
         return
       }
 
+      batchPublishLoading.value = true
       batchSubmitToPublishApi({ waitPublishProductIdList: state.selectedRowKeys })
         .then(res => {
           message.info(res.data)
           getList()
         })
         .finally(() => {
+          batchPublishLoading.value = false
           resolve()
         })
     })
