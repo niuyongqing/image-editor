@@ -45,14 +45,15 @@ button {
   background-color: #1a1a1a;
   cursor: pointer;
   transition: border-color 0.25s;
+  outline: none;
 }
 button:hover {
   border-color: #646cff;
 }
-button:focus,
+/* button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
-}
+} */
 
 .card {
   padding: 2em;
@@ -185,3 +186,58 @@ button:focus-visible {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+/* === IE UI Kit (Image Editor UI) === */
+
+/* 1. 按钮 */
+.ie-btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  font-size: 13px;
+  border-radius: 4px;
+  border: 1px solid #dcdfe6;
+  background-color: #fff;
+  color: #606266;
+  cursor: pointer;
+  transition: .2s;
+  outline: none;
+}
+.ie-btn:hover { color: #409eff; border-color: #c6e2ff; background-color: #ecf5ff; }
+.ie-btn:disabled { color: #c0c4cc; cursor: not-allowed; background-color: #fff; border-color: #ebeef5; }
+.ie-btn.ie-primary { color: #fff; background-color: #409eff; border-color: #409eff; }
+.ie-btn.ie-primary:hover { background-color: #66b1ff; border-color: #66b1ff; }
+.ie-btn-circle { width: 32px; padding: 0; border-radius: 50%; }
+
+/* 2. 输入框 */
+.ie-input {
+  height: 28px;
+  line-height: 28px;
+  padding: 0 8px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  color: #606266;
+  width: 100%;
+  box-sizing: border-box;
+}
+.ie-input:focus { border-color: #409eff; outline: none; }
+
+/* 3. 分割线 */
+.ie-divider { width: 1px; height: 1em; margin: 0 8px; background: #dcdfe6; display: inline-block; vertical-align: middle; }
+
+/* 4. 简单的 Toast 提示样式 (替代 ElMessage) */
+.ie-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.7);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  z-index: 9999;
+  animation: ie-fade-in 0.3s;
+}
+@keyframes ie-fade-in { from { opacity: 0; transform: translate(-50%, -10px); } to { opacity: 1; transform: translate(-50%, 0); } }

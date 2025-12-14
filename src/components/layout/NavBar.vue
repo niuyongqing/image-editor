@@ -2,37 +2,22 @@
   <div class="navbar">
     <div class="logo">大秘美图</div>
     <div class="actions">
-      <input 
-        type="file" 
-        ref="fileInput" 
-        @change="onFileSelected" 
-        style="display:none" 
-        accept="image/*" 
-      />
-      <el-button size="small" @click="handleUpload">
-        <el-icon style="margin-right: 4px"><UploadFilled /></el-icon>
+      <input type="file" ref="fileInput" @change="onFileSelected" style="display:none" accept="image/*" />
+
+      <button class="ie-btn" @click="handleUpload">
+        <svg width="14" height="14" viewBox="0 0 1024 1024" style="margin-right:4px;fill:currentColor">
+          <path
+            d="M544 253.696V704h-64V247.296L237.248 490.048 192 444.8 512 128l320 316.8-45.248 45.248L544 253.696zM160 832h704a32 32 0 1 1 0 64H160a32 32 0 1 1 0-64z" />
+        </svg>
         打开图片
-      </el-button>
+      </button>
 
-      <el-divider direction="vertical" />
+      <span class="ie-divider"></span>
 
-      <el-button 
-        size="small" 
-        @click="handleUndo" 
-        :disabled="!store.canUndo"
-      >
-        撤销
-      </el-button>
-      
-      <el-button 
-        size="small" 
-        @click="handleRedo" 
-        :disabled="!store.canRedo"
-      >
-        重做
-      </el-button>
-      
-      <el-button type="primary" size="small" @click="handleSave">保存 / 导出</el-button>
+      <button class="ie-btn" style="margin-right:8px;" @click="handleUndo" :disabled="!state.canUndo">撤销</button>
+      <button class="ie-btn" style="margin-right:8px;" @click="handleRedo" :disabled="!state.canRedo">重做</button>
+
+      <button class="ie-btn ie-primary" @click="handleSave">保存 / 导出</button>
     </div>
   </div>
 </template>
@@ -40,13 +25,11 @@
 <script setup>
 import { inject, ref } from 'vue';
 import { saveAs } from 'file-saver';
-import { useEditorStore } from '@/stores/editorStore';
-import { ElMessage } from 'element-plus';
-import { UploadFilled } from '@element-plus/icons-vue';
-const store = useEditorStore();
-const canvasAPI = inject('canvasAPI');
+import { useEditorState } from '@/composables/useEditorState'; // 使用新状态
+import { Toast } from '@/utils/toast'; // 使用新提示
 
-// === 新增：文件上传逻辑 ===
+const { state } = useEditorState();
+const canvasAPI = inject('canvasAPI');
 const fileInput = ref(null);
 
 const handleUpload = () => {
@@ -57,7 +40,7 @@ const onFileSelected = (e) => {
   const file = e.target.files?.[0];
   if (file) {
     if (!canvasAPI) {
-      ElMessage.error('画布尚未初始化');
+      Toast.error('画布尚未初始化');
       return;
     }
     const url = URL.createObjectURL(file);
@@ -69,20 +52,20 @@ const onFileSelected = (e) => {
 
 const handleSave = () => {
   if (!canvasAPI) return;
-  
+
   // 1. 取消选中状态，防止把选中框（蓝色边框）也截进去
   canvasAPI.canvas.value?.discardActiveObject();
   canvasAPI.canvas.value?.renderAll();
 
   // 2. 导出图片 (如果不希望有背景色，可以用 { format: 'png', multiplier: 2 } 来提高分辨率)
   const dataURL = canvasAPI.exportImg();
-  
+
   if (dataURL) {
     // 3. 触发下载
     saveAs(dataURL, `edited-image-${Date.now()}.png`);
-    ElMessage.success('图片导出成功');
+    Toast.success('图片导出成功');
   } else {
-    ElMessage.warning('画布为空');
+    Toast.warning('画布为空');
   }
 };
 
@@ -105,5 +88,10 @@ const handleRedo = () => {
   justify-content: space-between;
   padding: 0 20px;
 }
-.logo { font-weight: bold; font-size: 16px; color: #333; }
+
+.logo {
+  font-weight: bold;
+  font-size: 16px;
+  color: #333;
+}
 </style>

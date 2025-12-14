@@ -1,12 +1,12 @@
 import { ref, shallowRef, markRaw, toRaw } from "vue";
 import { fabric } from "fabric";
-import { useEditorStore } from "../stores/editorStore"; // 引入 Store
+import { useEditorState } from "./useEditorState";
 let aspectRatioValue = null;
 export function useCanvas() {
   // 使用 shallowRef 避免 Vue 深度代理导致 Fabric 对象移除失败
   const canvas = shallowRef(null);
   const cropObject = shallowRef(null);
-  const store = useEditorStore(); // 获取 store 实例
+  const { setHistoryState } = useEditorState(); // 获取 store 实例
 
   // === 历史记录状态 ===
   const history = []; // 存放 JSON 字符串
@@ -41,7 +41,7 @@ export function useCanvas() {
 
   // 更新 Store 按钮状态
   const updateStoreHistory = () => {
-    store.setHistoryState(
+    setHistoryState(
       historyIndex > 0, // canUndo
       historyIndex > 0  // canRedo
     );
@@ -50,9 +50,9 @@ export function useCanvas() {
   // === 2. 撤销 ===
   const undo = () => {
     if (historyIndex <= 0 || historyProcessing) return;
-// [新增] 撤销时强制退出裁剪模式，防止 bug
+    // [新增] 撤销时强制退出裁剪模式，防止 bug
     if (cropObject.value) {
-        cancelCrop(); 
+      cancelCrop();
     }
     historyProcessing = true; // 加锁
     historyIndex--;
@@ -70,10 +70,10 @@ export function useCanvas() {
     if (historyIndex === 0 || historyProcessing) return;
     // [新增] 重做时也强制退出裁剪模式
     if (cropObject.value) {
-        cancelCrop();
+      cancelCrop();
     }
     historyProcessing = true; // 加锁
-    historyIndex = 0; 
+    historyIndex = 0;
 
     const content = history[historyIndex];
     canvas.value.loadFromJSON(content, () => {
@@ -173,18 +173,18 @@ export function useCanvas() {
       // [优化] 移除或调大这个限制。
       // 如果是为了让大图能完整显示在画布里，建议使用 zoom (缩放画布) 而不是 scale (缩放图片对象)。
       // 这里为了简单，我们先调大限制，或者根据画布容器大小动态缩放
-      
+
       // 方案 A：简单调大限制
       // if (img.width > 2048) img.scaleToWidth(2048); 
-      
+
       // 方案 B (推荐)：自适应画布大小，但记录 scale，导出时可恢复
       const canvasWidth = canvas.value.width;
       const canvasHeight = canvas.value.height;
-      
+
       // 如果图片比画布还大，就缩小它以适应屏幕显示
       if (img.width > canvasWidth || img.height > canvasHeight) {
-          const scale = Math.min(canvasWidth / img.width, canvasHeight / img.height) * 0.8; 
-          img.scale(scale);
+        const scale = Math.min(canvasWidth / img.width, canvasHeight / img.height) * 0.8;
+        img.scale(scale);
       }
       historyProcessing = true;
       canvas.value?.add(img);

@@ -6,9 +6,9 @@
 
 <script setup>
 import { computed, defineAsyncComponent } from 'vue';
-import { useEditorStore } from '../../stores/editorStore';
+import { useEditorState } from '../../composables/useEditorState';
 
-const store = useEditorStore();
+const { state } = useEditorState();
 
 // 动态映射表：将 activeTool 的 ID 映射到组件路径
 const modules = {
@@ -23,7 +23,7 @@ const modules = {
 };
 
 const currentModule = computed(() => {
-  return modules[store.activeTool] || modules['adjust']; // 默认显示 adjust
+  return modules[state.activeTool] || modules['adjust']; // 默认显示 adjust
 });
 </script>
 

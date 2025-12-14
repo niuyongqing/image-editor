@@ -1,14 +1,36 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import { fileURLToPath, URL } from 'node:url' // [新增] 引入 node:url
+import { fileURLToPath, URL } from 'node:url'
+import { resolve } from 'path'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [vue()],
-  // [新增] resolve 配置
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
+  },
+  build: {
+    lib: {
+      // 指定入口为 index.js
+      entry: resolve(__dirname, 'src/index.js'),
+      name: 'ImageEditor',
+      fileName: (format) => `image-editor.${format}.js`
+    },
+    rollupOptions: {
+      // 关键：确保外部化处理那些你不想打包进库的依赖
+      // vue 是必须排除的，fabric 建议打包进去(如果不希望用户自己装)
+      // 如果你希望用户自己装 fabric，也加到这里
+      external: ['vue'],
+      output: {
+        // 在 UMD 构建模式下为这些外部化的依赖提供一个全局变量
+        globals: {
+          vue: 'Vue'
+        },
+        exports: 'named'
+      }
+    },
+    // 将 CSS 提取为一个单独的文件 (dist/style.css)
+    cssCodeSplit: false
   }
 })

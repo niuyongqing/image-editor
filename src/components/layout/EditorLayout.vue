@@ -1,12 +1,12 @@
 <template>
   <div class="layout-container">
     <NavBar class="layout-header" />
-    
+
     <div class="layout-body">
       <LeftSidebar class="layout-sidebar" />
-      
+
       <ToolPanel class="layout-panel" />
-      
+
       <Workspace class="layout-workspace" />
     </div>
   </div>
@@ -22,29 +22,6 @@ import Workspace from '../Workspace.vue';
 
 // === 核心修复：在这里初始化 Canvas 逻辑 ===
 const {
-  init, 
-  initImage,
-  addImage, 
-  toggleDrawing, 
-  exportMask, 
-  replaceActiveImage, 
-  setCropBoxSize,
-  canvas, 
-  addText,
-  startCrop, 
-  confirmCrop, 
-  cancelCrop, 
-  rotateActive, 
-  flipActive,
-  undo,
-  redo,
-  saveHistory 
-} = useCanvas();
-
-// 组装 API 对象
-// 2. 组装 API 对象
-const api = {
-  canvas, 
   init,
   initImage,
   addImage,
@@ -52,10 +29,33 @@ const api = {
   exportMask,
   replaceActiveImage,
   setCropBoxSize,
-  startCrop, 
-  confirmCrop, 
-  cancelCrop, 
-  rotateActive, 
+  canvas,
+  addText,
+  startCrop,
+  confirmCrop,
+  cancelCrop,
+  rotateActive,
+  flipActive,
+  undo,
+  redo,
+  saveHistory
+} = useCanvas();
+
+// 组装 API 对象
+// 2. 组装 API 对象
+const api = {
+  canvas,
+  init,
+  initImage,
+  addImage,
+  toggleDrawing,
+  exportMask,
+  replaceActiveImage,
+  setCropBoxSize,
+  startCrop,
+  confirmCrop,
+  cancelCrop,
+  rotateActive,
   flipActive,
   undo,
   redo,
@@ -96,7 +96,8 @@ provide('canvasAPI', api);
 }
 
 .layout-sidebar {
-  width: 72px; /* 稍微宽一点适配图标 */
+  width: 72px;
+  /* 稍微宽一点适配图标 */
   flex-shrink: 0;
   z-index: 10;
 }
@@ -111,6 +112,7 @@ provide('canvasAPI', api);
   flex: 1;
   background-color: #f0f2f5;
   position: relative;
-  min-width: 0; /* 防止 flex 子元素溢出 */
+  min-width: 0;
+  /* 防止 flex 子元素溢出 */
 }
 </style>
