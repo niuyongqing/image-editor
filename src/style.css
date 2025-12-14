@@ -50,10 +50,41 @@ button {
 button:hover {
   border-color: #646cff;
 }
-/* button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-} */
+
+
+/* 2. 输入框 */
+.ie-input {
+  height: 32px;
+  line-height: 32px;
+  padding: 0 8px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  color: #606266;
+  background-color: #ffffff; /* [核心修复] 显式设置为白色背景 */
+  width: 100%;
+  box-sizing: border-box;
+  /* 修复数字输入框在某些浏览器下的默认样式 */
+  appearance: textfield; 
+}
+
+/* === 修复数字输入框样式 === */
+
+/* 1. 隐藏 Chrome, Safari, Edge, Opera 的原生旋转按钮 */
+.ie-input::-webkit-outer-spin-button,
+.ie-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* 2. 隐藏 Firefox 的原生旋转按钮 */
+.ie-input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.ie-input:focus { 
+  border-color: #409eff; 
+  outline: none; 
+}
 
 .card {
   padding: 2em;
