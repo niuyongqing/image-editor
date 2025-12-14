@@ -1,37 +1,36 @@
 import { ref, shallowRef, markRaw, toRaw } from "vue";
 import { fabric } from "fabric";
+// 确保这里的路径与你项目实际结构一致
 import { useEditorState } from "./useEditorState";
+
 let aspectRatioValue = null;
 
 export function useCanvas() {
   // 使用 shallowRef 避免 Vue 深度代理导致 Fabric 对象移除失败
   const canvas = shallowRef(null);
   const cropObject = shallowRef(null);
-  const { setHistoryState } = useEditorState(); // 获取 store 实例
+  const { setHistoryState } = useEditorState();
   const zoom = ref(1);
+
   // === 历史记录状态 ===
-  const history = []; // 存放 JSON 字符串
-  let historyIndex = -1; // 当前历史记录指针
-  let historyProcessing = false; // 锁：防止撤销重做时触发保存
+  const history = [];
+  let historyIndex = -1;
+  let historyProcessing = false;
 
   // === 1. 保存历史记录 ===
   const saveHistory = () => {
     if (!canvas.value || historyProcessing) return;
 
-    // 如果当前处于历史记录中间，丢弃指针后面的记录（产生新分支）
     if (historyIndex < history.length - 1) {
       history.splice(historyIndex + 1);
     }
 
-    // 保存当前画布状态为 JSON
-    // propertiesToInclude 确保自定义属性也能被保存
     const json = JSON.stringify(
       canvas.value.toJSON(["id", "selectable", "name"])
     );
     history.push(json);
     historyIndex++;
 
-    // 限制历史记录长度（例如 50 步），防止内存溢出
     if (history.length > 50) {
       history.shift();
       historyIndex--;
@@ -40,28 +39,26 @@ export function useCanvas() {
     updateStoreHistory();
   };
 
-  // 更新 Store 按钮状态
   const updateStoreHistory = () => {
     setHistoryState(
-      historyIndex > 0, // canUndo
-      historyIndex > 0  // canRedo
+      historyIndex > 0,
+      historyIndex > 0
     );
   };
 
   // === 2. 撤销 ===
   const undo = () => {
     if (historyIndex <= 0 || historyProcessing) return;
-    // [新增] 撤销时强制退出裁剪模式，防止 bug
     if (cropObject.value) {
       cancelCrop();
     }
-    historyProcessing = true; // 加锁
+    historyProcessing = true;
     historyIndex--;
 
     const content = history[historyIndex];
     canvas.value.loadFromJSON(content, () => {
       canvas.value.renderAll();
-      historyProcessing = false; // 解锁
+      historyProcessing = false;
       updateStoreHistory();
     });
   };
@@ -69,18 +66,17 @@ export function useCanvas() {
   // === 3. 重做 ===
   const redo = () => {
     if (historyIndex === 0 || historyProcessing) return;
-    // [新增] 重做时也强制退出裁剪模式
     if (cropObject.value) {
       cancelCrop();
     }
-    historyProcessing = true; // 加锁
+    historyProcessing = true;
     historyIndex = 0;
 
     const content = history[historyIndex];
     canvas.value.loadFromJSON(content, () => {
       canvas.value.renderAll();
-      historyProcessing = false; // 解锁
-      updateStoreHistory(); // 更新按钮状态
+      historyProcessing = false;
+      updateStoreHistory();
     });
   };
 
@@ -88,23 +84,18 @@ export function useCanvas() {
   const constrainCrop = (activeObj) => {
     if (!canvas.value || !activeObj) return;
 
-    // 只有当前操作的是裁剪框时才生效
     const cropRect = toRaw(cropObject.value);
     if (!cropRect || activeObj !== cropRect) return;
 
-    // 找到底图作为边界
     const bgImage = canvas.value.getObjects().find((o) => o.type === "image");
     if (!bgImage) return;
 
-    // [修复 1] 获取底图的视觉边界（支持旋转后）
-    // 原来使用 getScaledWidth() 在旋转后会导致边界计算错误
     const rect = bgImage.getBoundingRect();
     const bgWidth = rect.width;
     const bgHeight = rect.height;
     const bgLeft = rect.left;
     const bgTop = rect.top;
 
-    // 获取裁剪框的当前状态
     let top = activeObj.top;
     let left = activeObj.left;
     const scaleX = activeObj.scaleX;
@@ -112,32 +103,27 @@ export function useCanvas() {
     const width = activeObj.width * scaleX;
     const height = activeObj.height * scaleY;
 
-    // --- 1. 限制移动 (Moving) ---
-    // 限制左边
+    // --- 限制移动 ---
     if (left < bgLeft) activeObj.set("left", bgLeft);
-    // 限制上边
     if (top < bgTop) activeObj.set("top", bgTop);
-    // 限制右边 (左坐标 + 宽度 > 背景右边界)
     if (left + width > bgLeft + bgWidth)
       activeObj.set("left", bgLeft + bgWidth - width);
-    // 限制下边
     if (top + height > bgTop + bgHeight)
       activeObj.set("top", bgTop + bgHeight - height);
 
-    // --- 2. 限制缩放 (Scaling) ---
-    // 如果缩放导致宽高超过了底图，强制修正 scale
+    // --- 限制缩放 ---
     const currentWidth = activeObj.getScaledWidth();
     const currentHeight = activeObj.getScaledHeight();
 
     if (currentWidth > bgWidth) activeObj.scaleToWidth(bgWidth);
     if (currentHeight > bgHeight) activeObj.scaleToHeight(bgHeight);
 
-    // 二次检查位置（防止缩放后位置偏移出界）
+    // 二次检查位置
     if (activeObj.left < bgLeft) activeObj.set("left", bgLeft);
     if (activeObj.top < bgTop) activeObj.set("top", bgTop);
   };
 
-  // 初始化
+  // === 初始化 ===
   const init = (id, width, height) => {
     const c = new fabric.Canvas(id, {
       width: width,
@@ -147,88 +133,86 @@ export function useCanvas() {
     });
     canvas.value = markRaw(c);
 
-    // === 绑定事件监听 ===
-    // 在移动和缩放时触发限制逻辑
+    // === 绑定 Fabric 事件 ===
     c.on("object:moving", (e) => constrainCrop(e.target));
     c.on("object:scaling", (e) => constrainCrop(e.target));
-
-    // [新增] 绑定鼠标滚轮缩放事件
-    c.on('mouse:wheel', function (opt) {
-      const delta = opt.e.deltaY;
-      let newZoom = c.getZoom();
-
-      // 计算新缩放比例 (0.999 ** delta 是为了平滑缩放)
-      newZoom *= 0.999 ** delta;
-
-      // 限制缩放范围 (10% ~ 500%)
-      if (newZoom > 5) newZoom = 5;
-      if (newZoom < 0.1) newZoom = 0.1;
-
-      // 以鼠标指针为中心进行缩放
-      c.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, newZoom);
-
-      // 更新响应式状态
-      zoom.value = newZoom;
-
-      // [关键] 阻止默认的页面滚动行为
-      opt.e.preventDefault();
-      opt.e.stopPropagation();
-    });
-    // 监听对象的修改、添加、移除
     c.on("object:modified", (e) => {
       if (e.target && e.target.type !== "rect") saveHistory();
     });
     c.on("object:added", (e) => {
-      // 排除剪裁框本身被添加时触发保存，避免逻辑混乱
       if (e.target && e.target.type !== "rect") saveHistory();
     });
     c.on("object:removed", (e) => {
       if (e.target && e.target.type !== "rect") saveHistory();
     });
 
-    // 初始化时保存一次“空白/初始”状态
+    // 绑定原生 Wheel 事件
+    // 注意：这里显式设置 { passive: false } 是为了允许调用 e.preventDefault()
+    // 这会导致 Chrome 报 [Violation] 警告，这是正常的性能提示，请忽略。
+    const canvasEl = c.upperCanvasEl;
+    canvasEl.addEventListener(
+      "wheel",
+      (e) => {
+        // 1. 阻止默认的页面滚动行为 (必须在 passive: false 下才生效)
+        e.preventDefault();
+        e.stopPropagation();
+
+        // 2. 执行缩放逻辑
+        const delta = e.deltaY;
+        let newZoom = c.getZoom();
+
+        // 0.999 ** delta 提供了平滑的指数缩放体验
+        newZoom *= 0.999 ** delta;
+
+        // 限制缩放范围 (10% ~ 500%)
+        if (newZoom > 5) newZoom = 5;
+        if (newZoom < 0.1) newZoom = 0.1;
+
+        // 以鼠标指针为中心进行缩放
+        c.zoomToPoint({ x: e.offsetX, y: e.offsetY }, newZoom);
+
+        // 更新响应式状态
+        zoom.value = newZoom;
+      },
+      { passive: false } // <--- 这一行是必须的，不要删除
+    );
+
     saveHistory();
   };
 
   const addImage = (url) => {
-    fabric.Image.fromURL(url, (img) => {
-      // [优化] 移除或调大这个限制。
-      // 如果是为了让大图能完整显示在画布里，建议使用 zoom (缩放画布) 而不是 scale (缩放图片对象)。
-      // 这里为了简单，我们先调大限制，或者根据画布容器大小动态缩放
+    fabric.Image.fromURL(
+      url,
+      (img) => {
+        const canvasWidth = canvas.value.width;
+        const canvasHeight = canvas.value.height;
 
-      // 方案 A：简单调大限制
-      // if (img.width > 2048) img.scaleToWidth(2048); 
-
-      // 方案 B (推荐)：自适应画布大小，但记录 scale，导出时可恢复
-      const canvasWidth = canvas.value.width;
-      const canvasHeight = canvas.value.height;
-
-      // 如果图片比画布还大，就缩小它以适应屏幕显示
-      if (img.width > canvasWidth || img.height > canvasHeight) {
-        const scale = Math.min(canvasWidth / img.width, canvasHeight / img.height) * 0.8;
-        img.scale(scale);
-      }
-      zoom.value = canvas.value.getZoom();
-      historyProcessing = true;
-      canvas.value?.add(img);
-      canvas.value?.centerObject(img);
-      canvas.value?.setActiveObject(img);
-      historyProcessing = false;
-      saveHistory();
-    }, { crossOrigin: 'anonymous' });
+        // 自适应缩放
+        if (img.width > canvasWidth || img.height > canvasHeight) {
+          const scale =
+            Math.min(canvasWidth / img.width, canvasHeight / img.height) * 0.8;
+          img.scale(scale);
+        }
+        zoom.value = canvas.value.getZoom();
+        historyProcessing = true;
+        canvas.value?.add(img);
+        canvas.value?.centerObject(img);
+        canvas.value?.setActiveObject(img);
+        historyProcessing = false;
+        saveHistory();
+      },
+      { crossOrigin: "anonymous" }
+    );
   };
 
-  // [新增] 手动缩放控制 API
   const setZoom = (value) => {
     if (!canvas.value) return;
     let newZoom = value;
     if (newZoom > 5) newZoom = 5;
     if (newZoom < 0.1) newZoom = 0.1;
 
-    // 以画布中心为基准缩放
     const center = canvas.value.getCenter();
     canvas.value.zoomToPoint({ x: center.left, y: center.top }, newZoom);
-
     zoom.value = newZoom;
   };
 
@@ -238,26 +222,15 @@ export function useCanvas() {
 
   const initImage = (url) => {
     if (!canvas.value) return;
-
-    // 1. 上锁，防止 clear() 触发 object:removed 保存空画布的历史记录
     historyProcessing = true;
-
-    // 2. 清空画布
     canvas.value.clear();
-    // 恢复背景色（clear 会把背景色也清掉）
     canvas.value.setBackgroundColor("#f3f3f3", () => {
       canvas.value.renderAll();
     });
-
-    // 3. 解锁
     historyProcessing = false;
-
-    // 4. 重置历史记录栈
     history.length = 0;
     historyIndex = -1;
     updateStoreHistory();
-
-    // 5. 调用 addImage 加载新图 (addImage 内部会自动处理居中和保存第一条历史记录)
     addImage(url);
   };
 
@@ -265,16 +238,11 @@ export function useCanvas() {
   const startCrop = (aspectRatio = null) => {
     if (!canvas.value) return;
     aspectRatioValue = aspectRatio || null;
-    // 1. 查找底图
-    let activeObj = canvas.value
-      .getObjects()
-      .find((obj) => obj.type === "image");
+    let activeObj = canvas.value.getObjects().find((obj) => obj.type === "image");
     if (!activeObj) return;
 
-    cancelCrop(); // 移除旧框
+    cancelCrop();
 
-    // [修复 2] 使用 getBoundingRect 计算初始位置和大小
-    // 确保在图片已旋转的情况下，剪裁框能正确匹配视觉大小
     const rect = activeObj.getBoundingRect();
     const imgWidth = rect.width;
     const imgHeight = rect.height;
@@ -284,7 +252,6 @@ export function useCanvas() {
 
     if (aspectRatio) {
       height = width / aspectRatio;
-      // 如果算出高度溢出，改用高度基准
       if (height > imgHeight) {
         height = imgHeight;
         width = height * aspectRatio;
@@ -292,18 +259,18 @@ export function useCanvas() {
     }
 
     const cropZone = new fabric.Rect({
-      left: rect.left + (imgWidth - width) / 2, // 基于 bounding rect 居中
+      left: rect.left + (imgWidth - width) / 2,
       top: rect.top + (imgHeight - height) / 2,
       width: width,
       height: height,
-      fill: "rgba(0,0,0,0.3)", // 半透明蒙版
+      fill: "rgba(0,0,0,0.3)",
       stroke: "#409eff",
       strokeWidth: 2,
       cornerColor: "white",
       cornerStrokeColor: "#409eff",
       cornerSize: 10,
       transparentCorners: false,
-      lockRotation: true, // 裁剪框不旋转
+      lockRotation: true,
       hasRotatingPoint: false,
     });
 
@@ -316,7 +283,7 @@ export function useCanvas() {
 
     canvas.value.add(cropZone);
     canvas.value.setActiveObject(cropZone);
-    cropObject.value = cropZone; // shallowRef 存储原始对象
+    cropObject.value = cropZone;
     canvas.value.renderAll();
   };
 
@@ -327,18 +294,13 @@ export function useCanvas() {
     canvas.value.renderAll();
   };
 
-  // === 确认裁剪 (含蒙版修复) ===
   const confirmCrop = () => {
     if (!canvas.value || !cropObject.value) return;
-
     const cropRect = cropObject.value;
     const bgImage = canvas.value.getObjects().find((o) => o.type === "image");
     if (!bgImage) return cancelCrop();
 
-    // 1. 隐藏裁剪框以进行截图
     cropRect.visible = false;
-
-    // 2. 截图（生成的新图已经是旋转/翻转后的最终视觉效果）
     const croppedDataUrl = canvas.value.toDataURL({
       left: cropRect.left,
       top: cropRect.top,
@@ -348,30 +310,23 @@ export function useCanvas() {
       multiplier: 1,
     });
 
-    // 3. 替换原图
     bgImage.setSrc(croppedDataUrl, () => {
-      // [核心修复] 必须重置所有变换属性，防止叠加
       bgImage.set({
-        originX: "left", // 强制左上角原点，防止因 center origin 导致图片跑偏
+        originX: "left",
         originY: "top",
         left: cropRect.left,
         top: cropRect.top,
         scaleX: 1,
         scaleY: 1,
-        angle: 0, // 重置角度 (因为新图已经是转好的了)
-        flipX: false, // [修复] 重置水平翻转 (防止新图再次被翻转)
-        flipY: false, // [修复] 重置垂直翻转
+        angle: 0,
+        flipX: false,
+        flipY: false,
         width: cropRect.getScaledWidth(),
         height: cropRect.getScaledHeight(),
       });
-
-      // 恢复图片坐标系，防止下次操作异常
       bgImage.setCoords();
-
       cancelCrop();
       canvas.value.renderAll();
-
-      // 4. 保存历史记录
       saveHistory();
     });
   };
@@ -385,23 +340,18 @@ export function useCanvas() {
     }
   };
 
-  // === 其他功能 ===
   const rotateActive = (angle) => {
-    // [修复 4] 如果处于裁剪模式，旋转的是“底图”，而不是裁剪框
     if (cropObject.value) {
       const bgImage = canvas.value.getObjects().find((o) => o.type === "image");
       if (bgImage) {
         bgImage.rotate((bgImage.angle || 0) + angle);
-        canvas.value.centerObject(bgImage); // 保持居中
+        canvas.value.centerObject(bgImage);
         bgImage.setCoords();
         canvas.value.renderAll();
-        // 旋转后，重新初始化裁剪框以适应新的图片边界
         startCrop(aspectRatioValue);
       }
       return;
     }
-
-    // 正常模式：旋转选中的对象
     const activeObj = canvas.value?.getActiveObject();
     if (activeObj) {
       activeObj.rotate((activeObj.angle || 0) + angle);
@@ -412,9 +362,7 @@ export function useCanvas() {
 
   const flipActive = (axis) => {
     if (cropObject.value) {
-      const bgImage = canvas.value
-        ?.getObjects()
-        .find((o) => o.type === "image");
+      const bgImage = canvas.value?.getObjects().find((o) => o.type === "image");
       if (bgImage) {
         if (axis === "X") bgImage.set("flipX", !bgImage.flipX);
         if (axis === "Y") bgImage.set("flipY", !bgImage.flipY);
@@ -457,9 +405,7 @@ export function useCanvas() {
     });
     canvas.value.setBackgroundColor("#000000", null);
     canvas.value.renderAll();
-
     const dataURL = canvas.value.toDataURL({ format: "png", multiplier: 1 });
-
     objects.forEach((obj) => {
       if (obj.type === "path") {
         obj.set({ stroke: obj._originalStroke || "rgba(255, 0, 0, 0.5)" });
@@ -469,7 +415,6 @@ export function useCanvas() {
     });
     canvas.value.setBackgroundColor(originalBg, null);
     canvas.value.renderAll();
-
     return dataURL;
   };
 
