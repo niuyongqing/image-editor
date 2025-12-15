@@ -44,30 +44,57 @@ export const constrainCrop = (activeObj) => {
   const bgLeft = rect.left;
   const bgTop = rect.top;
 
+  // === 1. 第一步：先限制缩放范围 (优先级最高) ===
+  // 必须先确保宽度/高度合法，后续的位置计算才能准确。
+  // 如果宽度超出了，先缩放回来，并更新 currentWidth 变量供下一步使用
+  let currentWidth = activeObj.getScaledWidth();
+  let currentHeight = activeObj.getScaledHeight();
+
+  if (currentWidth > bgWidth) {
+    activeObj.scaleToWidth(bgWidth);
+    currentWidth = bgWidth; 
+  }
+  if (currentHeight > bgHeight) {
+    activeObj.scaleToHeight(bgHeight);
+    currentHeight = bgHeight;
+  }
+
+  // === 2. 第二步：再限制移动范围 ===
+  // 此时 currentWidth 已经是修正后的大小了，基于它计算位置才不会跑偏
   let top = activeObj.top;
   let left = activeObj.left;
-  const scaleX = activeObj.scaleX;
-  const scaleY = activeObj.scaleY;
-  const width = activeObj.width * scaleX;
-  const height = activeObj.height * scaleY;
 
-  // 限制移动
-  if (left < bgLeft) activeObj.set("left", bgLeft);
-  if (top < bgTop) activeObj.set("top", bgTop);
-  if (left + width > bgLeft + bgWidth)
-    activeObj.set("left", bgLeft + bgWidth - width);
-  if (top + height > bgTop + bgHeight)
-    activeObj.set("top", bgTop + bgHeight - height);
+  // 左边界检查
+  if (left < bgLeft) {
+    activeObj.set("left", bgLeft);
+    left = bgLeft; // 更新局部变量，供后续检查使用
+  }
+  // 上边界检查
+  if (top < bgTop) {
+    activeObj.set("top", bgTop);
+    top = bgTop;
+  }
+  // 右边界检查 (left + width 不能超过 bgRight)
+  if (left + currentWidth > bgLeft + bgWidth) {
+    activeObj.set("left", bgLeft + bgWidth - currentWidth);
+  }
+  // 下边界检查 (top + height 不能超过 bgBottom)
+  if (top + currentHeight > bgTop + bgHeight) {
+    activeObj.set("top", bgTop + bgHeight - currentHeight);
+  }
 
-  // 限制缩放
-  const currentWidth = activeObj.getScaledWidth();
-  const currentHeight = activeObj.getScaledHeight();
-  if (currentWidth > bgWidth) activeObj.scaleToWidth(bgWidth);
-  if (currentHeight > bgHeight) activeObj.scaleToHeight(bgHeight);
+  // === 3. 第三步：解锁移动属性 ===
+  // 显式设为 false，确保不会因为之前的状态导致无法拖动
+  // 使用 2px 容差判断是否铺满，仅用于视觉提示
+  const isFullWidth = Math.abs(currentWidth - bgWidth) < 2;
+  const isFullHeight = Math.abs(currentHeight - bgHeight) < 2;
 
-  // 二次检查
-  if (activeObj.left < bgLeft) activeObj.set("left", bgLeft);
-  if (activeObj.top < bgTop) activeObj.set("top", bgTop);
+  activeObj.set({
+    lockMovementX: false, 
+    lockMovementY: false, 
+    // 视觉优化：如果完全铺满，鼠标悬停在中间显示默认箭头，暗示不能"平移"（但依然可以通过控制点"缩放"）
+    hoverCursor: (isFullWidth && isFullHeight) ? 'default' : 'move'
+  });
 };
 
 // === 核心功能：取消裁剪 ===
@@ -227,25 +254,18 @@ export const setCropRatio = (ratio) => {
   isRatioLocked.value = true;
   currentAspectRatio.value = ratio;
 
-  // 3. 获取计算基准 (优先使用当前裁剪框，如果没有则使用图片)
+  // 3. 获取计算基准 (【关键修改】：强制始终基于原图计算)
   let baseW, baseH, left, top;
   const activeObj = canvas.getObjects().find((obj) => obj.type === "image");
   if (!activeObj) return;
 
-  if (cropObject.value) {
-    // 基于当前裁剪框计算
-    baseW = cropObject.value.getScaledWidth();
-    baseH = cropObject.value.getScaledHeight();
-    left = cropObject.value.left;
-    top = cropObject.value.top;
-  } else {
-    // 基于原图计算（初始化）
-    const rect = activeObj.getBoundingRect();
-    baseW = rect.width;
-    baseH = rect.height;
-    left = rect.left;
-    top = rect.top;
-  }
+  // 无论当前是否有 cropObject，都从 activeObj (背景图) 获取基准信息
+  // 这样保证了“每次都按照最初读取到的图片真实尺寸为标准”
+  const rect = activeObj.getBoundingRect();
+  baseW = rect.width;
+  baseH = rect.height;
+  left = rect.left;
+  top = rect.top;
 
   // 4. 【核心算法】计算最大内含尺寸 (Fit Inside)
   // 比较当前矩形的比例与目标比例
@@ -253,15 +273,13 @@ export const setCropRatio = (ratio) => {
   let newW, newH;
 
   if (currentRatio > ratio) {
-    // 当前比目标更“宽”，以高度为基准，缩小宽度
-    // 例如：当前 1:1，目标 9:16 (瘦高)。高度撑满，宽度变小。
+    // 图片比目标更“宽”，以高度为基准 (高度撑满，宽度缩小)
     newH = baseH;
     newW = newH * ratio;
     // 居中调整 left
     left += (baseW - newW) / 2;
   } else {
-    // 当前比目标更“瘦”，以宽度为基准，缩小高度
-    // 例如：当前 1:1，目标 3:2 (扁宽)。宽度撑满，高度变小。
+    // 图片比目标更“瘦”，以宽度为基准 (宽度撑满，高度缩小)
     newW = baseW;
     newH = newW / ratio;
     // 居中调整 top
@@ -280,7 +298,7 @@ export const setCropRatio = (ratio) => {
       lockUniScaling: true // 锁定等比缩放
     });
     cropObject.value.setCoords();
-    // 立即进行边界约束检查，防止计算出的框超出图片
+    // 立即进行边界约束检查
     constrainCrop(cropObject.value); 
     canvas.requestRenderAll();
   } else {
@@ -313,8 +331,8 @@ export const startCrop = (aspectRatio = null, customBox = null) => {
   } else {
     const imgWidth = rect.width;
     const imgHeight = rect.height;
-    width = imgWidth * 0.8;
-    height = imgHeight * 0.8;
+    width = imgWidth * 1;
+    height = imgHeight * 1;
 
     if (aspectRatio) {
       height = width / aspectRatio;

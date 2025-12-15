@@ -20,7 +20,7 @@
     <div v-if="isExpanded" class="tool-content">
 
       <div class="ratio-grid">
-        <div class="ratio-item" @click="resetCrop">
+        <div class="ratio-item" @click="handleSetRatio(null, true)">
           <div class="icon-box">
             <svg width="16" height="16" viewBox="0 0 24 24" style="fill: currentColor">
             <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
@@ -29,12 +29,12 @@
           <span>初始化</span>
         </div>
 
-        <div class="ratio-item" :class="{ active: currentRatio === 'original' }" @click="startCrop(null, true)">
+        <div class="ratio-item" :class="{ active: currentRatio === 'original' }" @click="handleSetRatio('original')">
           <div class="shape-rect" style="width: 14px; height: 14px; border:1px solid #666"></div>
           <span>原比例</span>
         </div>
 
-        <div class="ratio-item" :class="{ active: currentRatio === 'free' }" @click="startCrop(null)">
+        <div class="ratio-item" :class="{ active: currentRatio === 'free' }" @click="handleSetRatio(null)">
           <div class="shape-rect dashed"></div>
           <span>自由比例</span>
         </div>
@@ -49,37 +49,37 @@
           <span>手动选区</span>
         </div>
 
-        <div class="ratio-item" :class="{ active: currentRatio === 1 }" @click="startCrop(1)">
+        <div class="ratio-item" :class="{ active: isRatioMatch(1) }" @click="handleSetRatio(1)">
           <div class="shape-rect square"></div>
           <span>1:1</span>
         </div>
 
-        <div class="ratio-item" :class="{ active: currentRatio === 3 / 2 }" @click="startCrop(3 / 2)">
+        <div class="ratio-item" :class="{ active: isRatioMatch(3 / 2) }" @click="handleSetRatio(3 / 2)">
           <div class="shape-rect" style="width: 12px; height: 8px;"></div>
           <span>3:2</span>
         </div>
 
-        <div class="ratio-item" :class="{ active: currentRatio === 2 / 3 }" @click="handleStartCrop(2 / 3)">
+        <div class="ratio-item" :class="{ active: isRatioMatch(2 / 3) }" @click="handleSetRatio(2 / 3)">
           <div class="shape-rect" style="width: 8px; height: 12px;"></div>
           <span>2:3</span>
         </div>
 
-        <div class="ratio-item" :class="{ active: currentRatio === 4 / 3 }" @click="startCrop(4 / 3)">
+        <div class="ratio-item" :class="{ active: isRatioMatch(4 / 3) }" @click="handleSetRatio(4 / 3)">
           <div class="shape-rect" style="width: 16px; height: 12px;"></div>
           <span>4:3</span>
         </div>
 
-        <div class="ratio-item" :class="{ active: currentRatio === 3 / 4 }" @click="handleStartCrop(3 / 4)">
+        <div class="ratio-item" :class="{ active: isRatioMatch(3 / 4) }" @click="handleSetRatio(3 / 4)">
           <div class="shape-rect" style="width: 12px; height: 16px;"></div>
           <span>3:4</span>
         </div>
 
-        <div class="ratio-item" :class="{ active: currentRatio === 16 / 9 }" @click="startCrop(16 / 9)">
+        <div class="ratio-item" :class="{ active: isRatioMatch(16 / 9) }" @click="handleSetRatio(16 / 9)">
           <div class="shape-rect" style="width: 16px; height: 9px;"></div>
           <span>16:9</span>
         </div>
 
-        <div class="ratio-item" :class="{ active: currentRatio === 9 / 16 }" @click="handleStartCrop(9 / 16)">
+        <div class="ratio-item" :class="{ active: isRatioMatch(9 / 16) }" @click="handleSetRatio(9 / 16)">
           <div class="shape-rect" style="width: 9px; height: 16px;"></div>
           <span>9:16</span>
         </div>
@@ -88,16 +88,24 @@
       <div class="custom-size-box">
         <div class="input-row">
           <div class="input-wrapper">
-            <input type="number" v-model.number="cropW" class="ie-input" @change="updateCropSize">
+            <input type="number" v-model.number="cropW" class="ie-input" @change="applyInputSize">
             <span class="input-suffix">W</span>
           </div>
 
-          <div class="link-icon">
-            <span style="color: #909399; font-size: 14px;">×</span>
+          <div class="link-icon" @click="toggleRatioLock">
+            <svg v-if="isRatioLocked" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#409eff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+               <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+               <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+            </svg>
+            <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#909399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.6">
+               <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+               <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+               <line x1="4" y1="4" x2="20" y2="20" stroke="#909399" /> 
+            </svg>
           </div>
 
           <div class="input-wrapper">
-            <input type="number" v-model.number="cropH" class="ie-input" @change="updateCropSize">
+            <input type="number" v-model.number="cropH" class="ie-input" @change="applyInputSize">
             <span class="input-suffix">H</span>
           </div>
         </div>
@@ -105,39 +113,17 @@
 
       <div class="rotate-actions">
         <div class="action-btn" title="向左旋转90°" @click="rotate(-90)">
-          <svg width="20" height="20" viewBox="-1 -1 26 26" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-            <path d="M3 3v5h5" />
-          </svg>
+          <svg width="20" height="20" viewBox="-1 -1 26 26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg>
         </div>
-
         <div class="action-btn" title="向右旋转90°" @click="rotate(90)">
-          <svg width="20" height="20" viewBox="-1 -1 26 26" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-            <path d="M21 3v5h-5" />
-          </svg>
+          <svg width="20" height="20" viewBox="-1 -1 26 26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /></svg>
         </div>
-
         <div class="divider"></div>
-
         <div class="action-btn" title="水平翻转" @click="flip('X')">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 5v14" />
-            <path d="M8 9l-3 3 3 3" />
-            <path d="M16 9l3 3-3 3" />
-          </svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14" /><path d="M8 9l-3 3 3 3" /><path d="M16 9l3 3-3 3" /></svg>
         </div>
-
         <div class="action-btn" title="垂直翻转" @click="flip('Y')">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M5 12h14" />
-            <path d="M9 8l3-3 3 3" />
-            <path d="M9 16l3 3 3-3" />
-          </svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14" /><path d="M9 8l3-3 3 3" /><path d="M9 16l3 3 3-3" /></svg>
         </div>
       </div>
 
@@ -150,14 +136,13 @@
 </template>
 
 <script setup>
-import { ref, inject, watch, onMounted, onUnmounted, computed } from 'vue';
+import { ref, watch, onMounted, onUnmounted, computed, nextTick } from 'vue';
 import { fabric } from 'fabric'; 
 
-// === 【关键】直接从 Singleton 模块导入方法和状态 ===
 import { 
   startCrop, 
   confirmCrop,
-  setCropRatio,
+  setCropRatio, // 确保引入了 setCropRatio
   cancelCrop, 
   isRatioLocked,
   currentAspectRatio,
@@ -178,19 +163,23 @@ const props = defineProps({
 const emit = defineEmits(['toggle']);
 
 const currentRatio = ref('free');
-const cropW = ref(1000);
-const cropH = ref(1000);
+const cropW = ref(0);
+const cropH = ref(0);
 
-// 辅助函数：判断按钮是否激活
+// 判断按钮高亮
 const isRatioMatch = (r) => {
     if (!currentAspectRatio.value) return false;
-    // 简单的浮点数比较
     return Math.abs(currentAspectRatio.value - r) < 0.01;
 };
 
-// 切换比例
-const handleSetRatio = (ratio) => {
-    if (ratio === 'original') {
+// 【修复核心】统一处理比例设置
+const handleSetRatio = (ratio, isReset = false) => {
+    // 1. 设置 UI 状态
+    if (isReset) {
+       currentRatio.value = 'free';
+       // Reset 实际上是重新开始一个自由裁剪
+       startCrop(null); 
+    } else if (ratio === 'original') {
         currentRatio.value = 'original';
         // 计算原图比例
         const activeObj = cropObject.value?.canvas?.getObjects().find(o => o.type === 'image');
@@ -202,55 +191,41 @@ const handleSetRatio = (ratio) => {
         setCropRatio(null);
     } else {
         currentRatio.value = ratio;
+        // 2. 调用 setCropRatio 而不是 startCrop
         setCropRatio(ratio);
     }
-    // 更新输入框数值
-    updateInputFromCanvas();
+
+    // 3. 【关键】强制更新输入框数值
+    // 使用 nextTick 确保 Canvas 渲染完成后读取数值
+    nextTick(() => {
+        updateInputFromCanvas();
+    });
 };
 
-// 手动点击中间的链接图标
+// 尺寸输入框逻辑
+const applyInputSize = () => {
+    setCropBoxSize(cropW.value, cropH.value);
+    // 如果当前有锁定比例，改变尺寸后可能需要更新宽高以符合比例（根据 setCropBoxSize 内部约束）
+    // 这里简单地重新读取一次
+    nextTick(updateInputFromCanvas);
+};
+
+// 点击锁图标
 const toggleRatioLock = () => {
     if (isRatioLocked.value) {
-        // 解锁 -> 变自由比例
-        handleSetRatio(null);
+        handleSetRatio(null); // 解锁
     } else {
-        // 锁定 -> 锁定当前比例
+        // 锁定当前比例
         if (cropW.value && cropH.value) {
             const currentR = cropW.value / cropH.value;
-            currentRatio.value = ''; // 不高亮特定预设按钮
+            currentRatio.value = ''; 
             setCropRatio(currentR);
         }
     }
 };
 
-// 输入框输入宽度时的逻辑
-const onWidthInput = () => {
-    if (isRatioLocked.value && currentAspectRatio.value) {
-        // 锁定状态下，根据比例自动计算高度
-        // H = W / Ratio
-        cropH.value = Math.round(cropW.value / currentAspectRatio.value);
-    }
-};
-
-// 输入框输入高度时的逻辑
-const onHeightInput = () => {
-    if (isRatioLocked.value && currentAspectRatio.value) {
-        // 锁定状态下，根据比例自动计算宽度
-        // W = H * Ratio
-        cropW.value = Math.round(cropH.value * currentAspectRatio.value);
-    }
-};
-
-// 提交尺寸到 Canvas (change 或 enter 事件)
-const applyInputSize = () => {
-    setCropBoxSize(cropW.value, cropH.value);
-};
-
-
-// 状态计算属性
 const isManualActive = computed(() => isManualCropping.value);
 
-// 更新尺寸输入框的函数
 const updateInputFromCanvas = () => {
   if (cropObject.value) {
     cropW.value = Math.round(cropObject.value.getScaledWidth());
@@ -258,88 +233,48 @@ const updateInputFromCanvas = () => {
   }
 };
 
-// 监听展开状态
 watch(() => props.isExpanded, (val) => {
   if (val) {
-    setTimeout(() => startCrop(null), 50);
+    // 展开时初始化
+    setTimeout(() => {
+      startCrop(null);
+      updateInputFromCanvas(); // 确保初始化时读取数值
+    }, 50);
   } else {
     cancelCrop();
   }
 });
 
-const handleToggle = () => {
-  emit('toggle');
-};
-
-const resetCrop = () => {
-    // 初始化即为自由比例，但需要重新计算尺寸
-    startCrop(null); 
-};
-
-// 裁剪比例按钮点击事件
-const handleStartCrop = (ratio, isOriginal = false) => {
-  currentRatio.value = ratio;
-  if (ratio === null && !isOriginal) currentRatio.value = 'free';
-  if (isOriginal) currentRatio.value = 'original';
-
-  let targetRatio = ratio;
-  if (isOriginal) {
-    // 动态计算图片比例
-    const canvas = cropObject.value?.canvas;
-    const activeObj = canvas?.getObjects().find(o => o.type === 'image');
-    if (activeObj) {
-      targetRatio = activeObj.width / activeObj.height;
-    }
-  }
-  startCrop(targetRatio);
-};
-
-// 尺寸输入框改变事件
-const updateCropSize = () => {
-  setCropBoxSize(cropW.value, cropH.value);
-};
-
-// 手动选区
+const handleToggle = () => emit('toggle');
 const handleManualSelect = () => {
-  currentRatio.value = ''; // 清除选中状态高亮
+  currentRatio.value = '';
   startManualSelection();
 };
-
 const applyCrop = () => {
   confirmCrop();
   emit('toggle');
 };
-
 const rotate = (angle) => {
-  // 调用聚合后的 rotateActive
   rotateActive(angle);
-  setTimeout(() => updateInputFromCanvas(), 50);
+  setTimeout(updateInputFromCanvas, 50);
 };
-
-const flip = (axis) => {
-  // 调用聚合后的 flipActive
-  flipActive(axis);
-};
+const flip = (axis) => flipActive(axis);
 
 onMounted(() => {
-  // 注意：cropObject.value 在模块初始化时为空，需等待 canvas 加载
-  // 我们直接监听 cropObject.value?.canvas 上的事件
   const canvasInstance = cropObject.value?.canvas; 
-
   if (canvasInstance) {
     canvasInstance.on('object:scaling', updateInputFromCanvas);
     canvasInstance.on('object:modified', updateInputFromCanvas);
-    // 监听选区移动以更新数值（虽然移动不改宽高，但保持一致性）
     canvasInstance.on('object:moving', updateInputFromCanvas);
   }
-  updateInputFromCanvas();
-  // 如果当前是锁定状态（比如从其他 Tab 切回来），保持 UI 同步
-  if (!isRatioLocked.value) {
-      currentRatio.value = 'free';
-  }
+  
   if (props.isExpanded) {
+    // 如果组件加载时已经是展开状态
     startCrop(null);
+    setTimeout(updateInputFromCanvas, 100); // 稍作延迟确保对象已创建
   }
+  
+  if (!isRatioLocked.value) currentRatio.value = 'free';
 });
 
 onUnmounted(() => {
@@ -359,7 +294,13 @@ onUnmounted(() => {
   gap: 8px;
   margin-bottom: 16px;
 }
-
+.link-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  cursor: pointer;
+}
 .ratio-item {
   display: flex;
   flex-direction: column;
