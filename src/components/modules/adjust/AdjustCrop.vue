@@ -22,10 +22,9 @@
       <div class="ratio-grid">
         <div class="ratio-item" @click="resetCrop">
           <div class="icon-box">
-            <svg width="16" height="16" viewBox="0 0 1024 1024" style="fill: currentColor">
-              <path
-                d="M289.408 214.656L229.056 275.008 530.752 576.704 229.056 878.4 289.408 938.752 591.104 637.056 892.8 938.752 953.152 878.4 651.456 576.704 953.152 275.008 892.8 214.656 591.104 516.352z" />
-            </svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" style="fill: currentColor">
+            <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
+          </svg>
           </div>
           <span>初始化</span>
         </div>
@@ -40,9 +39,29 @@
           <span>自由比例</span>
         </div>
 
+        <div class="ratio-item" :class="{ active: isManualActive }" @click="handleManualSelect">
+          <div class="icon-box">
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path stroke-dasharray="4 4" d="M4 4h16v16H4z" />
+              <path fill="currentColor" stroke="none" d="M14 14l3.5 8 1.5-3.5 3.5-1.5-8-3.5z" />
+            </svg>
+          </div>
+          <span>手动选区</span>
+        </div>
+
         <div class="ratio-item" :class="{ active: currentRatio === 1 }" @click="startCrop(1)">
           <div class="shape-rect square"></div>
           <span>1:1</span>
+        </div>
+
+        <div class="ratio-item" :class="{ active: currentRatio === 3 / 2 }" @click="startCrop(3 / 2)">
+          <div class="shape-rect" style="width: 12px; height: 8px;"></div>
+          <span>3:2</span>
+        </div>
+
+        <div class="ratio-item" :class="{ active: currentRatio === 2 / 3 }" @click="handleStartCrop(2 / 3)">
+          <div class="shape-rect" style="width: 8px; height: 12px;"></div>
+          <span>2:3</span>
         </div>
 
         <div class="ratio-item" :class="{ active: currentRatio === 4 / 3 }" @click="startCrop(4 / 3)">
@@ -50,9 +69,19 @@
           <span>4:3</span>
         </div>
 
+        <div class="ratio-item" :class="{ active: currentRatio === 3 / 4 }" @click="handleStartCrop(3 / 4)">
+          <div class="shape-rect" style="width: 12px; height: 16px;"></div>
+          <span>3:4</span>
+        </div>
+
         <div class="ratio-item" :class="{ active: currentRatio === 16 / 9 }" @click="startCrop(16 / 9)">
-          <div class="shape-rect rect-h"></div>
+          <div class="shape-rect" style="width: 16px; height: 9px;"></div>
           <span>16:9</span>
+        </div>
+
+        <div class="ratio-item" :class="{ active: currentRatio === 9 / 16 }" @click="handleStartCrop(9 / 16)">
+          <div class="shape-rect" style="width: 9px; height: 16px;"></div>
+          <span>9:16</span>
         </div>
       </div>
 
@@ -121,9 +150,21 @@
 </template>
 
 <script setup>
-import { ref, inject, watch, onMounted, onUnmounted } from 'vue';
+import { ref, inject, watch, onMounted, onUnmounted, computed } from 'vue';
+import { fabric } from 'fabric'; 
 
-// 移除了 Element Plus 的图标引用
+// === 【关键】直接从 Singleton 模块导入方法和状态 ===
+import { 
+  startCrop, 
+  confirmCrop, 
+  cancelCrop, 
+  setCropBoxSize, 
+  rotateActive, 
+  flipActive, 
+  startManualSelection,
+  isManualCropping,
+  cropObject 
+} from './useCanvasCrop'; // <--- 相对路径导入
 
 const props = defineProps({
   isExpanded: {
@@ -133,20 +174,27 @@ const props = defineProps({
 });
 const emit = defineEmits(['toggle']);
 
-const canvasAPI = inject('canvasAPI');
 const currentRatio = ref('free');
 const cropW = ref(1000);
 const cropH = ref(1000);
 
-// === 核心改动：监听展开状态 ===
+// 状态计算属性
+const isManualActive = computed(() => isManualCropping.value);
+
+// 更新尺寸输入框的函数
+const updateInputFromCanvas = () => {
+  if (cropObject.value) {
+    cropW.value = Math.round(cropObject.value.getScaledWidth());
+    cropH.value = Math.round(cropObject.value.getScaledHeight());
+  }
+};
+
+// 监听展开状态
 watch(() => props.isExpanded, (val) => {
   if (val) {
-    // 展开面板 -> 开启自由比例裁剪
-    // 稍微延迟一点，确保 content 渲染完毕
     setTimeout(() => startCrop(null), 50);
   } else {
-    // 收起面板 -> 取消裁剪
-    canvasAPI?.cancelCrop();
+    cancelCrop();
   }
 });
 
@@ -154,62 +202,66 @@ const handleToggle = () => {
   emit('toggle');
 };
 
-const startCrop = (ratio, isOriginal = false) => {
+const resetCrop = () => {
+    // 初始化即为自由比例，但需要重新计算尺寸
+    startCrop(null); 
+};
+
+// 裁剪比例按钮点击事件
+const handleStartCrop = (ratio, isOriginal = false) => {
   currentRatio.value = ratio;
   if (ratio === null && !isOriginal) currentRatio.value = 'free';
   if (isOriginal) currentRatio.value = 'original';
 
-  if (!canvasAPI) return;
-
   let targetRatio = ratio;
   if (isOriginal) {
-    const activeObj = canvasAPI.canvas.value?.getObjects().find(o => o.type === 'image');
+    // 动态计算图片比例
+    const canvas = cropObject.value?.canvas;
+    const activeObj = canvas?.getObjects().find(o => o.type === 'image');
     if (activeObj) {
       targetRatio = activeObj.width / activeObj.height;
     }
   }
-  canvasAPI.startCrop(targetRatio);
-  updateInputFromCanvas();
+  startCrop(targetRatio);
 };
 
+// 尺寸输入框改变事件
 const updateCropSize = () => {
-  if (canvasAPI?.setCropBoxSize) {
-    canvasAPI.setCropBoxSize(cropW.value, cropH.value);
-  }
+  setCropBoxSize(cropW.value, cropH.value);
 };
 
-const updateInputFromCanvas = () => {
-  const cropObj = canvasAPI.canvas.value?.getObjects().find(o => o.type === 'rect');
-  if (cropObj) {
-    cropW.value = Math.round(cropObj.width * cropObj.scaleX);
-    cropH.value = Math.round(cropObj.height * cropObj.scaleY);
-  }
+// 手动选区
+const handleManualSelect = () => {
+  currentRatio.value = ''; // 清除选中状态高亮
+  startManualSelection();
 };
-
-const resetCrop = () => startCrop(null);
 
 const applyCrop = () => {
-  canvasAPI?.confirmCrop();
-  emit('toggle'); // 应用后自动收起
-};
-
-const cancelCrop = () => {
-  canvasAPI?.cancelCrop();
-  emit('toggle'); // 取消后自动收起
+  confirmCrop();
+  emit('toggle');
 };
 
 const rotate = (angle) => {
-  canvasAPI?.rotateActive(angle);
+  // 调用聚合后的 rotateActive
+  rotateActive(angle);
   setTimeout(() => updateInputFromCanvas(), 50);
 };
 
 const flip = (axis) => {
-  canvasAPI?.flipActive(axis);
+  // 调用聚合后的 flipActive
+  flipActive(axis);
 };
 
 onMounted(() => {
-  canvasAPI.canvas.value?.on('object:scaling', updateInputFromCanvas);
-  canvasAPI.canvas.value?.on('object:modified', updateInputFromCanvas);
+  // 注意：cropObject.value 在模块初始化时为空，需等待 canvas 加载
+  // 我们直接监听 cropObject.value?.canvas 上的事件
+  const canvasInstance = cropObject.value?.canvas; 
+
+  if (canvasInstance) {
+    canvasInstance.on('object:scaling', updateInputFromCanvas);
+    canvasInstance.on('object:modified', updateInputFromCanvas);
+  }
+  // 如果 canvas 还没有加载，我们依赖 init 时的 startCrop 触发后续更新
 
   if (props.isExpanded) {
     startCrop(null);
@@ -217,8 +269,11 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  canvasAPI.canvas.value?.off('object:scaling', updateInputFromCanvas);
-  canvasAPI.canvas.value?.off('object:modified', updateInputFromCanvas);
+  const canvasInstance = cropObject.value?.canvas;
+  if (canvasInstance) {
+    canvasInstance.off('object:scaling', updateInputFromCanvas);
+    canvasInstance.off('object:modified', updateInputFromCanvas);
+  }
 });
 </script>
 
@@ -272,6 +327,7 @@ onUnmounted(() => {
   box-sizing: border-box;
 }
 
+
 .shape-rect.dashed {
   border-style: dashed;
   width: 14px;
@@ -283,10 +339,6 @@ onUnmounted(() => {
   height: 14px;
 }
 
-.shape-rect.rect-h {
-  width: 18px;
-  height: 10px;
-}
 
 .custom-size-box {
   margin-bottom: 16px;
