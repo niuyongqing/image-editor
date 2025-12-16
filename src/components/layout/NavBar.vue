@@ -41,7 +41,7 @@
           <path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5v0A5.5 5.5 0 0 0 9.5 20H13"/>
         </svg>
       </button>
-      <button class="ie-btn" style="margin-right:8px;" @click="handleReset" :disabled="!state.canUndo">还原</button>
+      <button class="ie-btn" style="margin-right:8px;" @click="handleReset">还原</button>
       <button class="ie-btn ie-primary" @click="handleSave">{{ textMap.save }}</button>
     </div>
   </div>

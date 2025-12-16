@@ -90,9 +90,9 @@
 </template>
 
 <script setup>
-import { ref, inject, watch, onMounted } from 'vue';
+import { ref, inject, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { registerResizeModule, getCurrentSize, applyResize } from './useCanvasResize';
-
+import { fabric } from 'fabric';
 const props = defineProps({
   isExpanded: { type: Boolean, default: false }
 });
@@ -107,6 +107,9 @@ const height = ref(0);
 const locked = ref(true);     // 默认锁定比例
 const aspectRatio = ref(1);   // 宽高比
 const isAdaptive = ref(true); // 默认图片自适应
+
+// 2. 新增：预览框对象的引用
+let previewRect = null;
 
 // 预设数据 (模拟截图)
 const presets = [
@@ -132,6 +135,81 @@ const initSize = () => {
     if (size.height > 0) {
       aspectRatio.value = size.width / size.height;
     }
+    // 初始化时也尝试显示预览框
+    nextTick(() => updatePreviewRect(width.value, height.value));
+  }
+};
+
+// === 修改核心逻辑：绘制/更新预览框 ===
+const updatePreviewRect = (targetW, targetH) => {
+  const canvas = canvasAPI?.canvas?.value;
+  if (!canvas || !targetW || !targetH) return;
+
+  // 1. 找到背景图片
+  const bgImage = canvas.getObjects().find(o => o.type === 'image');
+  // 如果没有图片，降级处理（还是用画布中心）
+  if (!bgImage) return;
+
+  // 2. 获取图片当前的逻辑尺寸 (显示在屏幕上的实际大小)
+  const imgW = bgImage.width * bgImage.scaleX;
+  const imgH = bgImage.height * bgImage.scaleY;
+  const center = bgImage.getCenterPoint();
+
+  // 3. 计算比例
+  const targetRatio = targetW / targetH;
+  const imgRatio = imgW / imgH;
+
+  // 4. 计算预览框在原图上的投影尺寸 (Cover 逻辑的反向推导)
+  // 我们要在原图里画一个框，这个框的内容将来会被放大填满目标尺寸
+  let previewW, previewH;
+
+  if (targetRatio > imgRatio) {
+     // 目标更宽 (如原图 1:1，目标 16:9)
+     // 宽度取原图宽度，高度按比例缩小
+     previewW = imgW;
+     previewH = imgW / targetRatio;
+  } else {
+     // 目标更瘦 (如原图 16:9，目标 1:1)
+     // 高度取原图高度，宽度按比例缩小
+     previewH = imgH;
+     previewW = imgH * targetRatio;
+  }
+
+  // 5. 创建或更新预览框
+  if (!previewRect) {
+    previewRect = new fabric.Rect({
+      fill: 'transparent',
+      stroke: '#009688',
+      strokeWidth: 2,
+      strokeDashArray: [6, 6],
+      selectable: false,
+      evented: false,
+      excludeFromExport: true,
+      originX: 'center',
+      originY: 'center',
+    });
+    canvas.add(previewRect);
+  }
+
+  previewRect.set({
+    width: previewW,
+    height: previewH,
+    left: center.x,
+    top: center.y
+  });
+  
+  previewRect.setCoords();
+  canvas.bringToFront(previewRect);
+  canvas.requestRenderAll();
+};
+
+// === 新增核心逻辑：清除预览框 ===
+const clearPreviewRect = () => {
+  const canvas = canvasAPI?.canvas?.value;
+  if (canvas && previewRect) {
+    canvas.remove(previewRect);
+    previewRect = null;
+    canvas.requestRenderAll();
   }
 };
 
@@ -139,6 +217,13 @@ const initSize = () => {
 watch(() => props.isExpanded, (val) => {
   if (val) {
     initSize();
+  }
+});
+
+// 监听宽高变化，实时更新预览框
+watch([width, height], ([newW, newH]) => {
+  if (props.isExpanded) {
+    updatePreviewRect(newW, newH);
   }
 });
 
@@ -174,15 +259,29 @@ const selectPreset = (preset) => {
 
 const handleApply = () => {
   applyResize(width.value, height.value, isAdaptive.value);
+  clearPreviewRect();// 应用后清除预览
   emit('toggle'); // 关闭面板
 };
+
+// 修改：点击取消按钮的处理
+const handleCancel = () => {
+  clearPreviewRect(); // 清除预览
+  emit('toggle');
+}
 
 const handleToggle = () => {
   emit('toggle');
 };
 
 onMounted(() => {
-  initSize();
+  if (props.isExpanded) {
+      initSize();
+  }
+});
+
+// 组件销毁时确保清理
+onUnmounted(() => {
+  clearPreviewRect();
 });
 </script>
 
