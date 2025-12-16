@@ -464,6 +464,18 @@
         // 初始化(详情里的值回显)
         if (arg.init) dispatchDetail()
 
+        // 多选中, 详情中如果有不在前 25 个内的, 在结尾添加上
+        rawData.forEach(item => {
+          if (item.selectType === 'multSelect' && attributesObj.value[item.name]?.length) {
+            attributesObj.value[item.name].forEach(id => {
+              if (item.optionPieces.findIndex(opt => opt.id === id) === -1) {
+                const opt = item.options.find(opt => opt.id === id)
+                opt && item.optionPieces.push(opt)
+              }
+            })
+          }
+        })
+
         // (品牌 85: 无品牌 126745801)设默认值 | 后面又发现一个 id 为 31 的品牌, 加上
         const brandItem = attributeList.value.find(attr => [85, 31].includes(attr.id))
         if (brandItem) {
