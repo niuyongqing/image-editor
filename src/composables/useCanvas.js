@@ -78,6 +78,38 @@ export function useCanvas() {
     });
   };
 
+  const zoomToRect = (rect) => {
+    if (!canvas.value) return;
+    const width = canvas.value.width;
+    const height = canvas.value.height;
+
+    // 1. 计算目标缩放 (留 10% 边距，看着更舒服)
+    const padding = 0.9;
+    let targetZoom = Math.min(width / rect.width, height / rect.height) * padding;
+
+    // 限制最大缩放倍数 (与你 setZoom 中的逻辑保持一致，防止放太大)
+    targetZoom = Math.max(0.1, Math.min(targetZoom, 5));
+
+    // 2. 计算 Pan (偏移量)
+    // 目标：将选区中心点 (rectCenterX, rectCenterY) 移动到 画布中心
+    // 公式：CanvasCenter = ObjectCenter * Zoom + Pan
+    // 所以：Pan = CanvasCenter - ObjectCenter * Zoom
+    const rectCenterX = rect.left + rect.width / 2;
+    const rectCenterY = rect.top + rect.height / 2;
+
+    const panX = (width / 2) - (rectCenterX * targetZoom);
+    const panY = (height / 2) - (rectCenterY * targetZoom);
+
+    // 3. 应用视口变换 (这是 Fabric.js 改变视图的核心方法)
+    // 数组参数: [scaleX, skewY, skewX, scaleY, translateX, translateY]
+    canvas.value.setViewportTransform([targetZoom, 0, 0, targetZoom, panX, panY]);
+
+    // 4. 同步 zoom 状态 (让 UI 百分比更新)
+    zoom.value = targetZoom;
+    
+    canvas.value.requestRenderAll();
+  };
+
   // === 初始化与事件 ===
   const init = (id, width, height) => {
     const c = new fabric.Canvas(id, {
@@ -88,14 +120,13 @@ export function useCanvas() {
     });
     canvas.value = markRaw(c);
 
-    registerCropModule(canvas, saveHistory);
+    registerCropModule(canvas, saveHistory,zoomToRect);
 
     const checkConstraint = () => {
       if (cropObject.value) {
         constrainCrop(toRaw(cropObject.value));
       }
     };
-
     c.on("object:modified", (e) => {
       checkConstraint(); 
       if (e.target && e.target.type !== "rect") saveHistory();

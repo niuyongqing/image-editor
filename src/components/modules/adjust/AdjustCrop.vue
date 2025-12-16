@@ -128,8 +128,8 @@
       </div>
 
       <div class="confirm-row">
-        <button class="ie-btn ie-primary full-btn" @click="applyCrop">应用</button>
-        <button class="ie-btn full-btn" @click="cancelCrop">取消</button>
+        <button class="ie-btn ie-primary full-btn" @click="handleApply">应用</button>
+        <button class="ie-btn full-btn" @click="handleCancel">取消</button>
       </div>
     </div>
   </div>
@@ -142,8 +142,8 @@ import { fabric } from 'fabric';
 import { 
   startCrop, 
   confirmCrop,
-  setCropRatio, // 确保引入了 setCropRatio
-  cancelCrop, 
+  setCropRatio, 
+  currentSelectionDims,
   isRatioLocked,
   currentAspectRatio,
   setCropBoxSize, 
@@ -151,7 +151,10 @@ import {
   flipActive, 
   startManualSelection,
   isManualCropping,
-  cropObject
+  cropObject,
+  // 引入新的一对“大闸”函数
+  openCropPanel,
+  closeCropPanel,
 } from './useCanvasCrop';
 
 const props = defineProps({
@@ -166,22 +169,65 @@ const currentRatio = ref('free');
 const cropW = ref(0);
 const cropH = ref(0);
 
-// 判断按钮高亮
+// 【核心修改】监听来自逻辑层的尺寸变化
+watch(currentSelectionDims, (newVal) => {
+  // 只有当新的值有效时才更新，避免闪烁
+  if (newVal && (newVal.width !== 0 || newVal.height !== 0)) {
+    cropW.value = newVal.width;
+    cropH.value = newVal.height;
+  }
+});
+
+// === 1. 状态监听核心 (最重要的一步) ===
+watch(() => props.isExpanded, (val) => {
+  if (val) {
+    // 【展开】：先锁视图，再画框
+    // 1. 强制 100% 并劫持滚轮
+    // openCropPanel();
+    
+    // 2. 稍微延迟等待 Viewport 重置完成（虽然 setViewport 是同步的，但稳妥起见）
+    nextTick(() => {
+        startCrop(null); // 默认进入自由裁剪
+        updateInputFromCanvas();
+    });
+  } else {
+    // 【折叠】：清理一切，恢复视图
+    // closeCropPanel();
+  }
+});
+
+// === 2. 按钮事件处理 ===
+
+// 切换面板开关（不要在这里调 openCropPanel，交给 watch）
+const handleToggle = () => {
+  emit('toggle');
+};
+
+// 点击“取消”：只负责关闭面板，watch 会负责清理
+const handleCancel = () => {
+  emit('toggle'); // 这会导致 props.isExpanded 变 false -> 触发 closeCropPanel
+};
+
+// 点击“应用”：确认裁剪 -> 关闭面板
+const handleApply = () => {
+  confirmCrop();
+  emit('toggle'); // 关闭面板 -> 触发 closeCropPanel
+};
+
+
+
+// === 3. 其他辅助逻辑 (保持原有) ===
 const isRatioMatch = (r) => {
     if (!currentAspectRatio.value) return false;
     return Math.abs(currentAspectRatio.value - r) < 0.01;
 };
 
-// 【修复核心】统一处理比例设置
 const handleSetRatio = (ratio, isReset = false) => {
-    // 1. 设置 UI 状态
     if (isReset) {
        currentRatio.value = 'free';
-       // Reset 实际上是重新开始一个自由裁剪
        startCrop(null); 
     } else if (ratio === 'original') {
         currentRatio.value = 'original';
-        // 计算原图比例
         const activeObj = cropObject.value?.canvas?.getObjects().find(o => o.type === 'image');
         if (activeObj) {
             setCropRatio(activeObj.width / activeObj.height);
@@ -191,31 +237,22 @@ const handleSetRatio = (ratio, isReset = false) => {
         setCropRatio(null);
     } else {
         currentRatio.value = ratio;
-        // 2. 调用 setCropRatio 而不是 startCrop
         setCropRatio(ratio);
     }
-
-    // 3. 【关键】强制更新输入框数值
-    // 使用 nextTick 确保 Canvas 渲染完成后读取数值
     nextTick(() => {
         updateInputFromCanvas();
     });
 };
 
-// 尺寸输入框逻辑
 const applyInputSize = () => {
     setCropBoxSize(cropW.value, cropH.value);
-    // 如果当前有锁定比例，改变尺寸后可能需要更新宽高以符合比例（根据 setCropBoxSize 内部约束）
-    // 这里简单地重新读取一次
     nextTick(updateInputFromCanvas);
 };
 
-// 点击锁图标
 const toggleRatioLock = () => {
     if (isRatioLocked.value) {
-        handleSetRatio(null); // 解锁
+        handleSetRatio(null); 
     } else {
-        // 锁定当前比例
         if (cropW.value && cropH.value) {
             const currentR = cropW.value / cropH.value;
             currentRatio.value = ''; 
@@ -233,48 +270,40 @@ const updateInputFromCanvas = () => {
   }
 };
 
-watch(() => props.isExpanded, (val) => {
-  if (val) {
-    // 展开时初始化
-    setTimeout(() => {
-      startCrop(null);
-      updateInputFromCanvas(); // 确保初始化时读取数值
-    }, 50);
-  } else {
-    cancelCrop();
-  }
-});
-
-const handleToggle = () => emit('toggle');
 const handleManualSelect = () => {
   currentRatio.value = '';
   startManualSelection();
 };
-const applyCrop = () => {
-  confirmCrop();
-  emit('toggle');
-};
+
 const rotate = (angle) => {
   rotateActive(angle);
   setTimeout(updateInputFromCanvas, 50);
 };
 const flip = (axis) => flipActive(axis);
 
+// === 生命周期 ===
 onMounted(() => {
-  const canvasInstance = cropObject.value?.canvas; 
-  if (canvasInstance) {
-    canvasInstance.on('object:scaling', updateInputFromCanvas);
-    canvasInstance.on('object:modified', updateInputFromCanvas);
-    canvasInstance.on('object:moving', updateInputFromCanvas);
-  }
-  
+  // 如果组件挂载时默认为展开，手动触发一次打开逻辑
   if (props.isExpanded) {
-    // 如果组件加载时已经是展开状态
-    startCrop(null);
-    setTimeout(updateInputFromCanvas, 100); // 稍作延迟确保对象已创建
+    openCropPanel();
+    nextTick(() => {
+        startCrop(null);
+        updateInputFromCanvas();
+    });
   }
   
-  if (!isRatioLocked.value) currentRatio.value = 'free';
+  // 监听画布变动更新输入框数值
+  // 注意：这里需要确保 canvas 实例存在
+  // 由于 useCanvasCrop 是单例，我们可以在 startCrop 后获取 canvas
+  const checkCanvas = setInterval(() => {
+      const canvasInstance = cropObject.value?.canvas; 
+      if (canvasInstance) {
+        canvasInstance.on('object:scaling', updateInputFromCanvas);
+        canvasInstance.on('object:modified', updateInputFromCanvas);
+        canvasInstance.on('object:moving', updateInputFromCanvas);
+        clearInterval(checkCanvas);
+      }
+  }, 100);
 });
 
 onUnmounted(() => {
@@ -282,6 +311,13 @@ onUnmounted(() => {
   if (canvasInstance) {
     canvasInstance.off('object:scaling', updateInputFromCanvas);
     canvasInstance.off('object:modified', updateInputFromCanvas);
+    canvasInstance.off('object:moving', updateInputFromCanvas);
+  }
+  
+  // 安全起见，组件销毁时强制退出裁剪模式
+  // 防止用户直接路由跳转导致 Canvas 依然被锁定
+  if (props.isExpanded) {
+      closeCropPanel();
   }
 });
 </script>
