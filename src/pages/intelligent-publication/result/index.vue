@@ -305,18 +305,16 @@
                                     <div class="flex justify-between">
                                       <div>
                                         <span class="font-bold"> 搜索属性</span>
-                                        <a-tooltip
+                                        <a-popover
                                           placement="right"
                                           :overlayInnerStyle="{ width: '300px' }"
-                                          color="#fff"
+                                          :title="discLists[0].title"
                                         >
-                                          <template #title>
-                                            <span class="m-2.5 font-black text-black">{{ discLists[0].title }} </span>
-                                            <br />
+                                          <template #content>
                                             <div
                                               v-for="(e, ind) in discLists[0].list"
                                               :key="ind"
-                                              class="m-2.5 flex justify-between text-black"
+                                              class="m-2.5 flex justify-between"
                                             >
                                               <span>{{ e.sock }}</span
                                               ><span>{{ e.disc }}</span>
@@ -326,7 +324,7 @@
                                             icon="QuestionCircleOutlined"
                                             class="ml-2.5"
                                           />
-                                        </a-tooltip>
+                                        </a-popover>
                                       </div>
                                       <div>
                                         <span>分数:</span><span>{{ record.productsScore[0].groups[0].score }}分</span>
@@ -348,18 +346,16 @@
                                     <div class="flex justify-between">
                                       <div>
                                         <span class="font-bold">其他属性</span>
-                                        <a-tooltip
+                                        <a-popover
                                           placement="right"
                                           :overlayInnerStyle="{ width: '300px' }"
-                                          color="#fff"
+                                          :title="discLists[1].title"
                                         >
-                                          <template #title>
-                                            <span class="m-2.5 font-black text-black">{{ discLists[1].title }} </span>
-                                            <br />
+                                          <template #content>
                                             <div
                                               v-for="(e, ind) in discLists[1].list"
                                               :key="ind"
-                                              class="m-2.5 flex justify-between text-black"
+                                              class="m-2.5 flex justify-between"
                                             >
                                               <span>{{ e.sock }}</span
                                               ><span>{{ e.disc }}</span>
@@ -369,7 +365,7 @@
                                             icon="QuestionCircleOutlined"
                                             class="ml-2.5"
                                           />
-                                        </a-tooltip>
+                                        </a-popover>
                                       </div>
                                       <div>
                                         <span>分数:</span><span>{{ record.productsScore[0].groups[1].score }}分</span>
@@ -391,18 +387,16 @@
                                     <div class="flex justify-between">
                                       <div>
                                         <span class="font-bold">描述和丰富内容</span>
-                                        <a-tooltip
+                                        <a-popover
                                           placement="right"
                                           :overlayInnerStyle="{ width: '300px' }"
-                                          color="#fff"
+                                          :title="discLists[2].title"
                                         >
-                                          <template #title>
-                                            <span class="m-2.5 font-black text-black">{{ discLists[2].title }} </span>
-                                            <br />
+                                          <template #content>
                                             <div
                                               v-for="(e, ind) in discLists[2].list"
                                               :key="ind"
-                                              class="m-2.5 flex justify-between text-black"
+                                              class="m-2.5 flex justify-between"
                                             >
                                               <span>{{ e.sock }}</span
                                               ><span>{{ e.disc }}</span>
@@ -412,7 +406,7 @@
                                             icon="QuestionCircleOutlined"
                                             class="ml-2.5"
                                           />
-                                        </a-tooltip>
+                                        </a-popover>
                                       </div>
                                       <div>
                                         <span>分数:</span><span>{{ record.productsScore[0].groups[2].score }}分</span>
@@ -434,18 +428,16 @@
                                     <div class="flex justify-between">
                                       <div>
                                         <span class="font-bold">图片和视频</span>
-                                        <a-tooltip
+                                        <a-popover
                                           placement="right"
                                           :overlayInnerStyle="{ width: '300px' }"
-                                          color="#fff"
+                                          :title="discLists[3].title"
                                         >
-                                          <template #title>
-                                            <span class="m-2.5 font-black text-black">{{ discLists[3].title }} </span>
-                                            <br />
+                                          <template #content>
                                             <div
                                               v-for="(e, ind) in discLists[3].list"
                                               :key="ind"
-                                              class="m-2.5 flex justify-between text-black"
+                                              class="m-2.5 flex justify-between"
                                             >
                                               <span>{{ e.sock }}</span
                                               ><span>{{ e.disc }}</span>
@@ -455,7 +447,7 @@
                                             icon="QuestionCircleOutlined"
                                             class="ml-2.5"
                                           />
-                                        </a-tooltip>
+                                        </a-popover>
                                       </div>
                                       <div>
                                         <span>分数:</span><span>{{ record.productsScore[0].groups[3].score }}分</span>
