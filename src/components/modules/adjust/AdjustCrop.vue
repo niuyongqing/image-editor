@@ -20,76 +20,84 @@
     <div v-if="isExpanded" class="tool-content">
 
       <div class="ratio-grid">
-        <div class="ratio-item" @click="handleSetRatio(null, true)">
-          <div class="icon-box">
-            <svg width="16" height="16" viewBox="0 0 24 24" style="fill: currentColor">
-            <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
-          </svg>
-          </div>
-          <span>初始化</span>
-        </div>
-
-        <div class="ratio-item" :class="{ active: currentRatio === 'original' }" @click="handleSetRatio('original')">
-          <div class="shape-rect" style="width: 14px; height: 14px; border:1px solid #666"></div>
-          <span>原比例</span>
-        </div>
-
-        <div class="ratio-item" :class="{ active: currentRatio === 'free' }" @click="handleSetRatio(null)">
-          <div class="shape-rect dashed"></div>
-          <span>自由比例</span>
-        </div>
-
-        <div class="ratio-item" :class="{ active: isManualActive }" @click="handleManualSelect">
-          <div class="icon-box">
-             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path stroke-dasharray="4 4" d="M4 4h16v16H4z" />
-              <path fill="currentColor" stroke="none" d="M14 14l3.5 8 1.5-3.5 3.5-1.5-8-3.5z" />
+         <div class="ratio-item" @click="handleSetRatio(null, true)">
+            <div class="icon-box">
+              <svg width="16" height="16" viewBox="0 0 24 24" style="fill: currentColor">
+              <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
             </svg>
+            </div>
+            <span>初始化</span>
           </div>
-          <span>手动选区</span>
-        </div>
 
-        <div class="ratio-item" :class="{ active: isRatioMatch(1) }" @click="handleSetRatio(1)">
-          <div class="shape-rect square"></div>
-          <span>1:1</span>
-        </div>
+          <div class="ratio-item" :class="{ active: currentRatio === 'original' }" @click="handleSetRatio('original')">
+            <div class="shape-rect" style="width: 14px; height: 14px; border:1px solid #666"></div>
+            <span>原比例</span>
+          </div>
 
-        <div class="ratio-item" :class="{ active: isRatioMatch(3 / 2) }" @click="handleSetRatio(3 / 2)">
-          <div class="shape-rect" style="width: 12px; height: 8px;"></div>
-          <span>3:2</span>
-        </div>
+          <div class="ratio-item" :class="{ active: currentRatio === 'free' }" @click="handleSetRatio(null)">
+            <div class="shape-rect dashed"></div>
+            <span>自由比例</span>
+          </div>
 
-        <div class="ratio-item" :class="{ active: isRatioMatch(2 / 3) }" @click="handleSetRatio(2 / 3)">
-          <div class="shape-rect" style="width: 8px; height: 12px;"></div>
-          <span>2:3</span>
-        </div>
+          <div class="ratio-item" :class="{ active: isManualActive }" @click="handleManualSelect">
+            <div class="icon-box">
+               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path stroke-dasharray="4 4" d="M4 4h16v16H4z" />
+                <path fill="currentColor" stroke="none" d="M14 14l3.5 8 1.5-3.5 3.5-1.5-8-3.5z" />
+              </svg>
+            </div>
+            <span>手动选区</span>
+          </div>
 
-        <div class="ratio-item" :class="{ active: isRatioMatch(4 / 3) }" @click="handleSetRatio(4 / 3)">
-          <div class="shape-rect" style="width: 16px; height: 12px;"></div>
-          <span>4:3</span>
-        </div>
+          <div class="ratio-item" :class="{ active: isRatioMatch(1) }" @click="handleSetRatio(1)">
+            <div class="shape-rect square"></div>
+            <span>1:1</span>
+          </div>
 
-        <div class="ratio-item" :class="{ active: isRatioMatch(3 / 4) }" @click="handleSetRatio(3 / 4)">
-          <div class="shape-rect" style="width: 12px; height: 16px;"></div>
-          <span>3:4</span>
-        </div>
+          <div class="ratio-item" :class="{ active: isRatioMatch(3 / 2) }" @click="handleSetRatio(3 / 2)">
+            <div class="shape-rect" style="width: 12px; height: 8px;"></div>
+            <span>3:2</span>
+          </div>
 
-        <div class="ratio-item" :class="{ active: isRatioMatch(16 / 9) }" @click="handleSetRatio(16 / 9)">
-          <div class="shape-rect" style="width: 16px; height: 9px;"></div>
-          <span>16:9</span>
-        </div>
+          <div class="ratio-item" :class="{ active: isRatioMatch(2 / 3) }" @click="handleSetRatio(2 / 3)">
+            <div class="shape-rect" style="width: 8px; height: 12px;"></div>
+            <span>2:3</span>
+          </div>
 
-        <div class="ratio-item" :class="{ active: isRatioMatch(9 / 16) }" @click="handleSetRatio(9 / 16)">
-          <div class="shape-rect" style="width: 9px; height: 16px;"></div>
-          <span>9:16</span>
-        </div>
+          <div class="ratio-item" :class="{ active: isRatioMatch(4 / 3) }" @click="handleSetRatio(4 / 3)">
+            <div class="shape-rect" style="width: 16px; height: 12px;"></div>
+            <span>4:3</span>
+          </div>
+
+          <div class="ratio-item" :class="{ active: isRatioMatch(3 / 4) }" @click="handleSetRatio(3 / 4)">
+            <div class="shape-rect" style="width: 12px; height: 16px;"></div>
+            <span>3:4</span>
+          </div>
+
+          <div class="ratio-item" :class="{ active: isRatioMatch(16 / 9) }" @click="handleSetRatio(16 / 9)">
+            <div class="shape-rect" style="width: 16px; height: 9px;"></div>
+            <span>16:9</span>
+          </div>
+
+          <div class="ratio-item" :class="{ active: isRatioMatch(9 / 16) }" @click="handleSetRatio(9 / 16)">
+            <div class="shape-rect" style="width: 9px; height: 16px;"></div>
+            <span>9:16</span>
+          </div>
       </div>
 
-      <div class="custom-size-box">
-        <div class="input-row">
+      <div class="custom-input-box">
+        <div class="input-header">
+          <span>自定义</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor: pointer">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </div>
+
+        <div class="input-controls">
           <div class="input-wrapper">
-            <input type="number" v-model.number="cropW" class="ie-input" @change="applyInputSize">
-            <span class="input-suffix">W</span>
+            <input type="number" v-model.number="cropW" class="ie-input" @change="onWidthChange">
+            <span class="suffix">W</span>
           </div>
 
           <div class="link-icon" @click="toggleRatioLock">
@@ -105,8 +113,8 @@
           </div>
 
           <div class="input-wrapper">
-            <input type="number" v-model.number="cropH" class="ie-input" @change="applyInputSize">
-            <span class="input-suffix">H</span>
+             <input type="number" v-model.number="cropH" class="ie-input" @change="onHeightChange">
+            <span class="suffix">H</span>
           </div>
         </div>
       </div>
@@ -145,14 +153,13 @@ import {
   setCropRatio, 
   currentSelectionDims,
   isRatioLocked,
-  currentAspectRatio,
+  currentAspectRatio, // 确保引入了此变量
   setCropBoxSize, 
   rotateActive, 
   flipActive, 
   startManualSelection,
   isManualCropping,
   cropObject,
-  // 引入新的一对“大闸”函数
   openCropPanel,
   closeCropPanel,
 } from './useCanvasCrop';
@@ -169,54 +176,38 @@ const currentRatio = ref('free');
 const cropW = ref(0);
 const cropH = ref(0);
 
-// 【核心修改】监听来自逻辑层的尺寸变化
+// 监听来自逻辑层的尺寸变化
 watch(currentSelectionDims, (newVal) => {
-  // 只有当新的值有效时才更新，避免闪烁
   if (newVal && (newVal.width !== 0 || newVal.height !== 0)) {
     cropW.value = newVal.width;
     cropH.value = newVal.height;
   }
 });
 
-// === 1. 状态监听核心 (最重要的一步) ===
 watch(() => props.isExpanded, (val) => {
   if (val) {
-    // 【展开】：先锁视图，再画框
-    // 1. 强制 100% 并劫持滚轮
-    // openCropPanel();
-    
-    // 2. 稍微延迟等待 Viewport 重置完成（虽然 setViewport 是同步的，但稳妥起见）
     nextTick(() => {
-        startCrop(null); // 默认进入自由裁剪
+        startCrop(null); 
         updateInputFromCanvas();
     });
   } else {
-    // 【折叠】：清理一切，恢复视图
     closeCropPanel();
   }
 });
 
-// === 2. 按钮事件处理 ===
-
-// 切换面板开关（不要在这里调 openCropPanel，交给 watch）
 const handleToggle = () => {
   emit('toggle');
 };
 
-// 点击“取消”：只负责关闭面板，watch 会负责清理
 const handleCancel = () => {
-  emit('toggle'); // 这会导致 props.isExpanded 变 false -> 触发 closeCropPanel
+  emit('toggle'); 
 };
 
-// 点击“应用”：确认裁剪 -> 关闭面板
 const handleApply = () => {
   confirmCrop();
-  emit('toggle'); // 关闭面板 -> 触发 closeCropPanel
+  emit('toggle'); 
 };
 
-
-
-// === 3. 其他辅助逻辑 (保持原有) ===
 const isRatioMatch = (r) => {
   if (currentRatio.value === 'original') return false;
     if (!currentAspectRatio.value) return false;
@@ -245,22 +236,69 @@ const handleSetRatio = (ratio, isReset = false) => {
     });
 };
 
+// ============================================
+// 新增/修改：输入框联动计算逻辑
+// ============================================
+
+// 获取当前有效的计算比例
+const getActiveRatio = () => {
+  // 1. 如果当前选中的是数字比例 (如 1.5, 0.75 等)，直接返回
+  if (typeof currentRatio.value === 'number') {
+    return currentRatio.value;
+  }
+  // 2. 如果当前选中的是 'original'，则使用逻辑层计算出的真实比例
+  if (currentRatio.value === 'original' && currentAspectRatio.value) {
+    return currentAspectRatio.value;
+  }
+  // 3. 自由比例返回 null
+  return null;
+};
+
+// 宽度变化时
+const onWidthChange = () => {
+  const ratio = getActiveRatio();
+  // 如果有锁定比例，且宽度有效
+  if (ratio && cropW.value > 0) {
+    // 宽 = 高 * 比例  =>  高 = 宽 / 比例
+    cropH.value = Math.round(cropW.value / ratio);
+  }
+  // 应用到画布
+  applyInputSize();
+};
+
+// 高度变化时
+const onHeightChange = () => {
+  const ratio = getActiveRatio();
+  // 如果有锁定比例，且高度有效
+  if (ratio && cropH.value > 0) {
+    // 宽 = 高 * 比例
+    cropW.value = Math.round(cropH.value * ratio);
+  }
+  // 应用到画布
+  applyInputSize();
+};
+
+// 将输入框的值应用到 Canvas 选区
 const applyInputSize = () => {
-    setCropBoxSize(cropW.value, cropH.value);
-    nextTick(updateInputFromCanvas);
+    if (cropW.value > 0 && cropH.value > 0) {
+      setCropBoxSize(cropW.value, cropH.value);
+    }
 };
 
 const toggleRatioLock = () => {
     if (isRatioLocked.value) {
         handleSetRatio(null); 
     } else {
+        // 如果是从自由比例点击锁定，则锁定当前输入的比例
         if (cropW.value && cropH.value) {
             const currentR = cropW.value / cropH.value;
-            currentRatio.value = ''; 
+            currentRatio.value = currentR; 
             setCropRatio(currentR);
         }
     }
 };
+
+// ============================================
 
 const isManualActive = computed(() => isManualCropping.value);
 
@@ -274,13 +312,8 @@ const updateInputFromCanvas = () => {
     if (currentRatio.value !== 'free' && currentRatio.value !== 'original' && typeof currentRatio.value === 'number') {
       const currentRealRatio = w / h;
       const targetRatio = currentRatio.value;
-      
-      // 允许 1% 的误差 (比如 16:9 是 1.7777...)
       if (Math.abs(currentRealRatio - targetRatio) > 0.02) {
-        // 如果误差超过阈值，说明用户手动拉伸了，破坏了比例
-        // 自动切换为 'free' (自由比例)
         currentRatio.value = 'free';
-        // 同时在逻辑层也解除锁定标记（虽然我们已经解除了物理锁定，但状态变量也要同步）
         setCropRatio(null); 
       }
     }
@@ -298,9 +331,7 @@ const rotate = (angle) => {
 };
 const flip = (axis) => flipActive(axis);
 
-// === 生命周期 ===
 onMounted(() => {
-  // 如果组件挂载时默认为展开，手动触发一次打开逻辑
   if (props.isExpanded) {
     openCropPanel();
     nextTick(() => {
@@ -309,9 +340,6 @@ onMounted(() => {
     });
   }
   
-  // 监听画布变动更新输入框数值
-  // 注意：这里需要确保 canvas 实例存在
-  // 由于 useCanvasCrop 是单例，我们可以在 startCrop 后获取 canvas
   const checkCanvas = setInterval(() => {
       const canvasInstance = cropObject.value?.canvas; 
       if (canvasInstance) {
@@ -331,8 +359,6 @@ onUnmounted(() => {
     canvasInstance.off('object:moving', updateInputFromCanvas);
   }
   
-  // 安全起见，组件销毁时强制退出裁剪模式
-  // 防止用户直接路由跳转导致 Canvas 依然被锁定
   if (props.isExpanded) {
       closeCropPanel();
   }
@@ -340,19 +366,12 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 保持原有布局样式 */
+/* 保持所有样式不变 */
 .ratio-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin-bottom: 16px;
-}
-.link-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  cursor: pointer;
 }
 .ratio-item {
   display: flex;
@@ -369,81 +388,85 @@ onUnmounted(() => {
   transition: all 0.2s;
   height: 60px;
 }
-
 .ratio-item:hover {
   background-color: #f9f9f9;
   border-color: #dcdfe6;
 }
-
 .ratio-item.active {
   border-color: #409eff;
   color: #409eff;
   background-color: #ecf5ff;
 }
-
-/* 图标辅助样式 */
 .icon-box {
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 6px;
 }
-
 .shape-rect {
   border: 1px solid currentColor;
   margin-bottom: 6px;
   box-sizing: border-box;
 }
-
-
 .shape-rect.dashed {
   border-style: dashed;
   width: 14px;
   height: 14px;
 }
-
 .shape-rect.square {
   width: 14px;
   height: 14px;
 }
 
-
-.custom-size-box {
-  margin-bottom: 16px;
-  padding: 10px;
+.custom-input-box {
   background-color: #f8f9fa;
+  border: none;
   border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 12px;
+} 
+
+.input-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 8px;
 }
 
-.input-row {
+.input-controls {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-/* 输入框包装，用于定位 suffix */
 .input-wrapper {
   position: relative;
-  width: 45%;
+  width: 38%;
 }
 
 .ie-input {
-  padding-right: 25px;
   text-align: center;
+  padding-right: 20px;
+  font-weight: 500;
+  color: #333;
 }
 
-.input-suffix {
+.suffix {
   position: absolute;
-  right: 8px;
+  right: 6px;
   top: 50%;
   transform: translateY(-50%);
+  color: #c0c4cc;
   font-size: 12px;
-  color: #999;
   pointer-events: none;
 }
 
 .link-icon {
-  color: #909399;
+  width: 24px;
+  display: flex;
+  justify-content: center;
   cursor: pointer;
 }
 

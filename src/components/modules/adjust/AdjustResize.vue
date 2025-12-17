@@ -21,6 +21,19 @@
 
     <div v-if="isExpanded" class="tool-content">
       
+
+
+      <div class="preset-list">
+        <div 
+          v-for="(preset, index) in presets" 
+          :key="index" 
+          class="preset-item"
+          :class="{ active: activePresetIndex === index }" 
+          @click="selectPreset(preset, index)"
+        >
+          {{ preset.label }} ({{ preset.w }} × {{ preset.h }})
+        </div>
+      </div>
       <div class="resize-input-box">
         <div class="input-header">
           <span>自定义</span>
@@ -54,29 +67,6 @@
            </div>
         </div>
       </div>
-
-      <div class="preset-list">
-        <div 
-          v-for="(preset, index) in presets" 
-          :key="index" 
-          class="preset-item"
-          @click="selectPreset(preset)"
-        >
-          {{ preset.label }} ({{ preset.w }} × {{ preset.h }})
-        </div>
-      </div>
-
-      <div class="switch-row">
-        <label class="switch-label">
-          <span style="margin-left: 8px; font-size: 13px; color: #333;">图片宽高等比缩放</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;">
-             <circle cx="12" cy="12" r="10"></circle>
-             <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-             <line x1="12" y1="17" x2="12.01" y2="17"></line>
-          </svg>
-        </label>
-      </div>
-
       <div class="action-buttons">
         <button class="ie-btn ie-primary full" @click="handleApply">应用</button>
         <button class="ie-btn full" @click="handleCancel">取消</button>
@@ -102,6 +92,7 @@ const width = ref(0);
 const height = ref(0);
 const locked = ref(true);     
 const aspectRatio = ref(1);   
+const activePresetIndex = ref(-1); // 新增：记录当前选中的预设索引
 
 const presets = [
   { label: '方形主图', w: 800, h: 800 },
@@ -124,6 +115,7 @@ const initSize = () => {
     if (size.height > 0) {
       aspectRatio.value = size.width / size.height;
     }
+    activePresetIndex.value = -1; // 初始化时不选中任何预设
     nextTick(() => {
         startPreview(width.value, height.value);
     });
@@ -146,7 +138,11 @@ watch([width, height], ([newW, newH]) => {
 
 const toggleLock = () => {
   locked.value = !locked.value;
-  if (locked.value && height.value > 0) {
+  // 如果用户手动解锁，取消预设的高亮，表示进入了完全自由模式
+  if (!locked.value) {
+    activePresetIndex.value = -1;
+  } else if (height.value > 0) {
+    // 如果重新上锁，锁定当前输入框的比例
     aspectRatio.value = width.value / height.value;
   }
 };
@@ -163,10 +159,19 @@ const onHeightChange = () => {
   }
 };
 
-const selectPreset = (preset) => {
+const selectPreset = (preset, index) => {
   width.value = preset.w;
   height.value = preset.h;
-  if (locked.value) {
+  
+  // 1. 设置高亮
+  activePresetIndex.value = index; 
+  
+  // 2. 强制锁定比例
+  locked.value = true;
+  
+  // 3. 更新计算比例为当前预设的比例
+  // 这样当用户之后修改 width 时，height 会按照这个预设的比例自动计算
+  if (preset.h > 0) {
     aspectRatio.value = preset.w / preset.h;
   }
 };
@@ -197,15 +202,15 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 保持原有样式，仅作参考，无需修改 */
+/* 保持原有样式 */
 .tool-item:hover .arrow {
   transform: translateX(2px);
   transition: transform 0.2s;
 }
 
 .resize-input-box {
-  border: 1px solid #2db7a5;
-  background-color: #f6fffa;
+  background-color: #f8f9fa;
+  border: none;
   border-radius: 6px;
   padding: 10px;
   margin-bottom: 12px;
@@ -273,6 +278,7 @@ onUnmounted(() => {
   cursor: pointer;
   transition: all 0.2s;
   text-align: center;
+  border: 1px solid transparent; /* 预留边框位置防止抖动 */
 }
 
 .preset-item:hover {
@@ -280,45 +286,12 @@ onUnmounted(() => {
   color: #409eff;
 }
 
-.switch-row {
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-}
-
-.switch-label {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  user-select: none;
-}
-
-.switch-box {
-  width: 36px;
-  height: 18px;
-  background-color: #dcdfe6;
-  border-radius: 9px;
-  position: relative;
-  transition: background-color 0.3s;
-}
-
-.switch-box.checked {
-  background-color: #009688;
-}
-
-.switch-core {
-  width: 14px;
-  height: 14px;
-  background-color: #fff;
-  border-radius: 50%;
-  position: absolute;
-  left: 2px;
-  top: 2px;
-  transition: left 0.3s;
-}
-
-.switch-box.checked .switch-core {
-  left: 20px;
+/* 新增：选中状态的样式 */
+.preset-item.active {
+  background-color: #ecf5ff; /* 浅蓝色背景 */
+  color: #409eff; /* 蓝色文字 */
+  border-color: #409eff; /* 蓝色边框 */
+  font-weight: 500;
 }
 
 .action-buttons {

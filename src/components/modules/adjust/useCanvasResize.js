@@ -2,7 +2,6 @@
 
 import { ref, unref, shallowRef, toRaw } from "vue";
 import { fabric } from "fabric";
-import { ZOOM_PADDING } from "@/composables/useEditorState";
 
 let canvasRef = null;
 let saveHistoryFn = null;
@@ -234,6 +233,12 @@ export const applyResize = (width, height) => {
   const rect = previewRect.value;
   rect.visible = false;
   
+  // 记录原始视口数据（用于计算和临时恢复）
+  const originalVpt = [...canvas.viewportTransform];
+  const oldZoom = originalVpt[0];
+  const oldPanX = originalVpt[4];
+  const oldPanY = originalVpt[5];
+  
   // 临时重置视口以保证截图坐标准确
   canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
 
@@ -241,6 +246,7 @@ export const applyResize = (width, height) => {
   const cropTop = rect.top - (rect.height * rect.scaleY) / 2;
   const cropWidth = rect.width * rect.scaleX;
   const cropHeight = rect.height * rect.scaleY;
+  
   const multiplier = width / cropWidth;
 
   // 2. 生成新图
@@ -253,15 +259,17 @@ export const applyResize = (width, height) => {
     multiplier: multiplier
   });
 
-  // 3. 调整画布物理尺寸
-  canvas.setWidth(width);
-  canvas.setHeight(height);
+  // 【核心修复点】截图完成后，立刻恢复成“原来的样子”！
+  // 这样在等待 setSrc 加载图片的那几十毫秒里，用户看到的是旧图+旧视角，完全不动。
+  canvas.setViewportTransform(originalVpt);
+
+  // 3. (保持画布物理尺寸不变)
 
   // 4. 加载新图
   bgImage.setSrc(dataURL, () => {
-    // 图片加载完成
-    
-    // 重置图片属性：无缩放，重置位置
+    // === 图片加载完了，现在开始同时切换图片和视角 ===
+
+    // 重置图片属性
     bgImage.set({
       scaleX: 1, scaleY: 1,
       angle: 0, flipX: false, flipY: false,
@@ -270,38 +278,33 @@ export const applyResize = (width, height) => {
       cropX: 0, cropY: 0
     });
     
-    // 【关键】强制将图片居中于新画布
     canvas.centerObject(bgImage);
     bgImage.setCoords();
 
     stopPreview();
 
-    // 5. 【关键】计算视口：让画布在容器中居中并缩放适配 (Zoom to Fit)
-    const paddingFactor = ZOOM_PADDING;
-    // 获取容器尺寸（父元素尺寸）
-    const containerWidth = canvas.wrapperEl.parentNode.clientWidth || width;
-    const containerHeight = canvas.wrapperEl.parentNode.clientHeight || height;
+    // === 计算视觉补偿 (移到这里执行) ===
     
-    // 计算适配比例
-    const zoomToFit = Math.min(
-      (containerWidth * paddingFactor) / width,
-      (containerHeight * paddingFactor) / height
-    );
-    
-    // 计算平移量 Pan，使画布中心 (width/2, height/2) 对齐到容器中心
-    // 公式: Pan = ContainerCenter - CanvasCenter * Zoom
-    const vpt = canvas.viewportTransform;
-    vpt[0] = zoomToFit;
-    vpt[3] = zoomToFit;
-    vpt[4] = (containerWidth - width * zoomToFit) / 2;
-    vpt[5] = (containerHeight - height * zoomToFit) / 2;
-    
-    canvas.setViewportTransform(vpt);
-    canvas.setZoom(zoomToFit);
+    // 目标：新Zoom = 旧Zoom / 变化倍率
+    const newZoom = oldZoom / multiplier;
+
+    // 计算平移补偿：确保画布中心点在屏幕上的位置不变
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+
+    // 中心点在屏幕上的位置 (Screen Point)
+    const screenCenterX = centerX * oldZoom + oldPanX;
+    const screenCenterY = centerY * oldZoom + oldPanY;
+
+    // 反推新的 Pan
+    const newPanX = screenCenterX - centerX * newZoom;
+    const newPanY = screenCenterY - centerY * newZoom;
+
+    // 应用新的视口 (此刻图片已经是大的了，配合这个小的视角，刚好抵消)
+    canvas.setViewportTransform([newZoom, 0, 0, newZoom, newPanX, newPanY]);
 
     // 6. 渲染与保存
     canvas.requestRenderAll();
-    // 触发 zoom 更新事件，更新 UI 百分比
     canvas.fire('zoom:change', { from: 'resize-apply' });
     
     if (saveHistoryFn) saveHistoryFn();
