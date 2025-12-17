@@ -68,9 +68,6 @@
 
       <div class="switch-row">
         <label class="switch-label">
-          <div class="switch-box" :class="{ checked: isAdaptive }" @click="isAdaptive = !isAdaptive">
-            <div class="switch-core"></div>
-          </div>
           <span style="margin-left: 8px; font-size: 13px; color: #333;">图片宽高等比缩放</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;">
              <circle cx="12" cy="12" r="10"></circle>
@@ -82,7 +79,7 @@
 
       <div class="action-buttons">
         <button class="ie-btn ie-primary full" @click="handleApply">应用</button>
-        <button class="ie-btn full" @click="handleToggle">取消</button>
+        <button class="ie-btn full" @click="handleCancel">取消</button>
       </div>
 
     </div>
@@ -91,27 +88,21 @@
 
 <script setup>
 import { ref, inject, watch, onMounted, onUnmounted, nextTick } from 'vue';
-import { registerResizeModule, getCurrentSize, applyResize } from './useCanvasResize';
-import { fabric } from 'fabric';
+import { registerResizeModule, getCurrentSize, applyResize, startPreview, updatePreview, stopPreview } from './useCanvasResize';
+
 const props = defineProps({
   isExpanded: { type: Boolean, default: false }
 });
 
 const emit = defineEmits(['toggle']);
-
 const canvasAPI = inject('canvasAPI');
 
 // 状态
 const width = ref(0);
 const height = ref(0);
-const locked = ref(true);     // 默认锁定比例
-const aspectRatio = ref(1);   // 宽高比
-const isAdaptive = ref(true); // 默认图片自适应
+const locked = ref(true);     
+const aspectRatio = ref(1);   
 
-// 2. 新增：预览框对象的引用
-let previewRect = null;
-
-// 预设数据 (模拟截图)
 const presets = [
   { label: '方形主图', w: 800, h: 800 },
   { label: 'Temu服装图', w: 1340, h: 1785 },
@@ -124,10 +115,8 @@ const presets = [
   { label: 'Facebook封面', w: 851, h: 315 },
 ];
 
-// 初始化逻辑
 const initSize = () => {
   if (canvasAPI && canvasAPI.canvas) {
-    // 注册逻辑模块
     registerResizeModule(canvasAPI.canvas, canvasAPI.saveHistory);
     const size = getCurrentSize();
     width.value = size.width;
@@ -135,103 +124,29 @@ const initSize = () => {
     if (size.height > 0) {
       aspectRatio.value = size.width / size.height;
     }
-    // 初始化时也尝试显示预览框
-    nextTick(() => updatePreviewRect(width.value, height.value));
-  }
-};
-
-// === 修改核心逻辑：绘制/更新预览框 ===
-const updatePreviewRect = (targetW, targetH) => {
-  const canvas = canvasAPI?.canvas?.value;
-  if (!canvas || !targetW || !targetH) return;
-
-  // 1. 找到背景图片
-  const bgImage = canvas.getObjects().find(o => o.type === 'image');
-  // 如果没有图片，降级处理（还是用画布中心）
-  if (!bgImage) return;
-
-  // 2. 获取图片当前的逻辑尺寸 (显示在屏幕上的实际大小)
-  const imgW = bgImage.width * bgImage.scaleX;
-  const imgH = bgImage.height * bgImage.scaleY;
-  const center = bgImage.getCenterPoint();
-
-  // 3. 计算比例
-  const targetRatio = targetW / targetH;
-  const imgRatio = imgW / imgH;
-
-  // 4. 计算预览框在原图上的投影尺寸 (Cover 逻辑的反向推导)
-  // 我们要在原图里画一个框，这个框的内容将来会被放大填满目标尺寸
-  let previewW, previewH;
-
-  if (targetRatio > imgRatio) {
-     // 目标更宽 (如原图 1:1，目标 16:9)
-     // 宽度取原图宽度，高度按比例缩小
-     previewW = imgW;
-     previewH = imgW / targetRatio;
-  } else {
-     // 目标更瘦 (如原图 16:9，目标 1:1)
-     // 高度取原图高度，宽度按比例缩小
-     previewH = imgH;
-     previewW = imgH * targetRatio;
-  }
-
-  // 5. 创建或更新预览框
-  if (!previewRect) {
-    previewRect = new fabric.Rect({
-      fill: 'transparent',
-      stroke: '#009688',
-      strokeWidth: 2,
-      strokeDashArray: [6, 6],
-      selectable: false,
-      evented: false,
-      excludeFromExport: true,
-      originX: 'center',
-      originY: 'center',
+    nextTick(() => {
+        startPreview(width.value, height.value);
     });
-    canvas.add(previewRect);
-  }
-
-  previewRect.set({
-    width: previewW,
-    height: previewH,
-    left: center.x,
-    top: center.y
-  });
-  
-  previewRect.setCoords();
-  canvas.bringToFront(previewRect);
-  canvas.requestRenderAll();
-};
-
-// === 新增核心逻辑：清除预览框 ===
-const clearPreviewRect = () => {
-  const canvas = canvasAPI?.canvas?.value;
-  if (canvas && previewRect) {
-    canvas.remove(previewRect);
-    previewRect = null;
-    canvas.requestRenderAll();
   }
 };
 
-// 监听展开，获取当前尺寸
 watch(() => props.isExpanded, (val) => {
   if (val) {
     initSize();
+  } else {
+    stopPreview();
   }
 });
 
-// 监听宽高变化，实时更新预览框
 watch([width, height], ([newW, newH]) => {
-  if (props.isExpanded) {
-    updatePreviewRect(newW, newH);
+  if (props.isExpanded && newW > 0 && newH > 0) {
+    updatePreview(newW, newH);
   }
 });
 
-// 交互逻辑
 const toggleLock = () => {
   locked.value = !locked.value;
   if (locked.value && height.value > 0) {
-    // 重新计算当前比例作为锁定比例
     aspectRatio.value = width.value / height.value;
   }
 };
@@ -251,21 +166,18 @@ const onHeightChange = () => {
 const selectPreset = (preset) => {
   width.value = preset.w;
   height.value = preset.h;
-  // 选中预设时，自动更新比例（如果锁定了的话，需要更新比例基准，否则会跳回去）
   if (locked.value) {
     aspectRatio.value = preset.w / preset.h;
   }
 };
 
 const handleApply = () => {
-  applyResize(width.value, height.value, isAdaptive.value);
-  clearPreviewRect();// 应用后清除预览
-  emit('toggle'); // 关闭面板
+  applyResize(width.value, height.value);
+  emit('toggle');
 };
 
-// 修改：点击取消按钮的处理
 const handleCancel = () => {
-  clearPreviewRect(); // 清除预览
+  stopPreview(); 
   emit('toggle');
 }
 
@@ -279,21 +191,20 @@ onMounted(() => {
   }
 });
 
-// 组件销毁时确保清理
 onUnmounted(() => {
-  clearPreviewRect();
+  stopPreview();
 });
 </script>
 
 <style scoped>
-/* 简单的 hover 动画 */
+/* 保持原有样式，仅作参考，无需修改 */
 .tool-item:hover .arrow {
   transform: translateX(2px);
   transition: transform 0.2s;
 }
 
 .resize-input-box {
-  border: 1px solid #2db7a5; /* 截图中的绿色边框 */
+  border: 1px solid #2db7a5;
   background-color: #f6fffa;
   border-radius: 6px;
   padding: 10px;
@@ -344,7 +255,6 @@ onUnmounted(() => {
   cursor: pointer;
 }
 
-/* 预设列表样式 */
 .preset-list {
   display: flex;
   flex-direction: column;
@@ -370,7 +280,6 @@ onUnmounted(() => {
   color: #409eff;
 }
 
-/* 开关行 */
 .switch-row {
   margin-bottom: 16px;
   display: flex;
@@ -384,7 +293,6 @@ onUnmounted(() => {
   user-select: none;
 }
 
-/* 自定义开关样式 (仿 AntD/Element) */
 .switch-box {
   width: 36px;
   height: 18px;
@@ -395,7 +303,7 @@ onUnmounted(() => {
 }
 
 .switch-box.checked {
-  background-color: #009688; /* 截图中的墨绿色 */
+  background-color: #009688;
 }
 
 .switch-core {
@@ -413,7 +321,6 @@ onUnmounted(() => {
   left: 20px;
 }
 
-/* 底部按钮 */
 .action-buttons {
   display: flex;
   gap: 10px;
@@ -424,7 +331,7 @@ onUnmounted(() => {
 }
 
 .ie-btn.ie-primary {
-  background-color: #009688; /* 截图中的墨绿色 */
+  background-color: #009688;
   border-color: #009688;
 }
 
