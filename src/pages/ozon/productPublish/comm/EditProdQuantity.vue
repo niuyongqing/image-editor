@@ -50,7 +50,8 @@ const changeInputNumber = (item) => {
     let count = 0;
     
     item.children.forEach((child) => {
-        count = count + child.stock;
+        const stock = child.stock ?? 0
+        count = count + stock;
     });
     quantities.value = count
     item.allStock = count;
