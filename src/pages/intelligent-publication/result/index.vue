@@ -124,13 +124,11 @@
           <div class="outContent">
             <div class="topHeader">
               <a-checkbox
-                style="margin-right: 70px"
                 v-model:checked="allChecked"
                 @change="allChangeBox"
               ></a-checkbox>
               <a-table
-                style="width: 100%; height: 39px"
-                class="fixedTable"
+                style="height: 39px"
                 :columns="DEFAULT_COLUMNS"
               >
               </a-table>
@@ -175,33 +173,15 @@
                       @click="edit(tbItem, 'all')"
                       >编辑总产品</a-button
                     >
-                    <!-- <a-dropdown>
-                      <a
-                        class="ant-dropdown-link mr-15px block"
-                        @click.prevent
-                        v-if="tbItem.count > 1"
-                      >
-                        操作
-                        <DownOutlined />
-                      </a>
-                      <template #overlay>
-                        <a-menu>
-                          <a-menu-item @click="edit(tbItem, 'all')"> 编辑 </a-menu-item>
-                          <a-menu-item @click="copyItems(tbItem, 'all')"> 复制为"新产品" </a-menu-item>
-                        </a-menu>
-                      </template>
-                    </a-dropdown> -->
                   </div>
                 </div>
                 <a-table
                   :data-source="tbItem.children"
-                  style="width: 100%"
                   row-key="id"
                   :showHeader="false"
                   :columns="DEFAULT_COLUMNS"
                   :pagination="false"
                   :data-index="index"
-                  ref="OzonProduct"
                 >
                   <template #bodyCell="{ column, record }">
                     <div
@@ -219,7 +199,7 @@
                           :src="processImageSource((record.primaryImage?.length > 0 && record.primaryImage[0]) || (record.images?.length > 0 && record.images[0]) || '')"
                         />
                         <div class="block ml-2.5">
-                          <div>{{ record.name }}</div>
+                          <div class="break-all">{{ record.name }}</div>
                           <div class="float-left text-[#999]">
                             产品ID：
                             <a-tooltip placement="top">
@@ -801,7 +781,6 @@
   import download from '@/api/common/download'
 
   const { copy } = useClipboard()
-  const OzonProduct = ref(null)
   const formRef = ref(null)
   const formData = reactive({
     id: '',
@@ -1745,14 +1724,6 @@
 
     .ant-table {
       border-bottom: none;
-    }
-  }
-
-  :deep(.fixedTable) {
-    height: 38px;
-
-    table {
-      height: 38px;
     }
   }
 </style>
