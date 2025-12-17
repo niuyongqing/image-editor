@@ -3,13 +3,13 @@ export const DEFAULT_COLUMNS = [
     title: '标题/产品ID',
     dataIndex: 'name',
     align: 'center',
-    width: 540,
+    width: 550,
     filter: false
   },
   {
     title: 'SKU信息',
     dataIndex: 'sku',
-    width: 180
+    width: 200
   },
   {
     title: '售价',

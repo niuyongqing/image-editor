@@ -122,11 +122,13 @@
         </div>
         <a-spin :spinning="loading">
           <div class="outContent">
-            <div class="topHeader">
+            <div class="topHeader relative">
               <a-checkbox
                 v-model:checked="allChecked"
+                class="absolute top-2.5 left-5 z-1"
                 @change="allChangeBox"
               ></a-checkbox>
+
               <a-table
                 style="height: 39px"
                 :columns="DEFAULT_COLUMNS"
@@ -1676,11 +1678,6 @@
   }
 
   :deep(.topHeader) {
-    display: flex;
-    //background-color: #fff;
-    padding: 0 0 0 20px;
-    height: 40px;
-    align-items: center;
     border-bottom: 1px solid #ccc;
 
     .ant-spin-nested-loading {
