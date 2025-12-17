@@ -27,7 +27,6 @@
                         <line x1="12" y1="8" x2="12" y2="16"></line>
                         <line x1="8" y1="12" x2="16" y2="12"></line>
                     </svg>
-
                 </div>
 
                 <div v-for="(preset, index) in presets" :key="index" class="preset-item"
@@ -38,7 +37,6 @@
             </div>
 
             <div class="resize-input-box">
-
                 <div class="input-controls">
                     <div class="input-wrapper">
                         <input type="number" v-model.number="width" class="ie-input" @input="onInputChanged">
@@ -65,16 +63,28 @@
                     </div>
                 </div>
 
-                <div class="switch-row">
-                    <div class="ie-switch" :class="{ 'is-checked': isAdaptive }" @click="toggleAdaptive">
-                        <span class="ie-switch-core"></span>
+                <div class="bg-color-section">
+                    <div class="section-label">背景颜色</div>
+                    <div class="color-row">
+                        <div class="color-item checkerboard" :class="{ active: currentBgColor === 'transparent' }"
+                            @click="setBgColor('transparent')" title="透明"></div>
+                        <div class="color-item" style="background: #ffffff; border: 1px solid #ddd;"
+                            :class="{ active: currentBgColor === '#ffffff' }" @click="setBgColor('#ffffff')"></div>
+                        <div class="color-item" style="background: #808080;"
+                            :class="{ active: currentBgColor === '#808080' }" @click="setBgColor('#808080')"></div>
+                        <div class="color-item" style="background: #000000;"
+                            :class="{ active: currentBgColor === '#000000' }" @click="setBgColor('#000000')"></div>
+                        <div class="color-item color-picker-wrap" :class="{ active: isCustomColor }">
+                            <input type="color" v-model="customColorVal" @input="onCustomColorChange"
+                                class="native-color-input" />
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                            </svg>
+                        </div>
                     </div>
-                    <span class="switch-label">锁定长宽比 (保真模式)</span>
                 </div>
-
-                <!-- <div class="reset-row">
-           <span class="reset-link" @click="resetToOriginal">恢复原图尺寸</span>
-        </div> -->
 
             </div>
 
@@ -89,7 +99,8 @@
 
 <script setup>
 import { ref, inject, watch, onMounted, onUnmounted, nextTick, computed } from 'vue';
-import { registerResizeModule, getCurrentSize, applyResize, startPreview, updatePreview, stopPreview } from './useCanvasWhite';
+// 引入修改后的 useCanvasWhite
+import { registerWhiteModule, getCurrentSize, applyWhitePadding, startPreview, updatePreview, stopPreview } from './useCanvasWhite';
 
 const props = defineProps({
     isExpanded: { type: Boolean, default: false }
@@ -101,12 +112,18 @@ const canvasAPI = inject('canvasAPI');
 // === 状态定义 ===
 const width = ref(0);
 const height = ref(0);
-const isAdaptive = ref(true);
+const isAdaptive = ref(false); // 补白模式下，默认自由比例
 const originalRatio = ref(1);
 const activePresetIndex = ref(-1);
-const isInternalUpdate = ref(false); // 防止循环更新
+const isInternalUpdate = ref(false);
 
-// 预设数据 (可根据需要扩展)
+// 背景颜色状态
+const currentBgColor = ref('#ffffff'); // 默认白色
+const customColorVal = ref('#ff0000');
+const isCustomColor = computed(() => !['transparent', '#ffffff', '#808080', '#000000'].includes(currentBgColor.value));
+
+
+// 预设数据
 const presets = [
     { label: '方形主图', w: 800, h: 800 },
     { label: 'Temu服装图', w: 1340, h: 1785 },
@@ -120,9 +137,6 @@ const presets = [
 ];
 
 const isCustomMode = computed(() => activePresetIndex.value === -1);
-
-// === 核心逻辑：获取当前应遵循的比例 ===
-// 对应表格逻辑：如果是预设，用预设比例；如果是自定义，用原图比例
 const currentTargetRatio = computed(() => {
     if (activePresetIndex.value >= 0) {
         const p = presets[activePresetIndex.value];
@@ -135,123 +149,107 @@ const currentTargetRatio = computed(() => {
 // === 初始化 ===
 const initSize = () => {
     if (canvasAPI && canvasAPI.canvas) {
-        registerResizeModule(canvasAPI.canvas, canvasAPI.saveHistory);
+        registerWhiteModule(canvasAPI.canvas, canvasAPI.saveHistory);
+
+        // 1. 获取图片当前的视觉尺寸 (由 useCanvasWhite 改良后的方法提供)
         const size = getCurrentSize();
 
         if (size.height > 0) {
             originalRatio.value = size.width / size.height;
         }
 
+        // 2. 关键修改：直接将输入框的值设置为图片的视觉尺寸
         width.value = size.width;
         height.value = size.height;
-        activePresetIndex.value = -1; // 默认选中自定义
-        isAdaptive.value = true;      // 默认开启保真
 
-        // 立即启动预览 (显示蓝色虚线框)
+        // 3. 强制选中“自定义”模式
+        activePresetIndex.value = -1;
+
+        // 4. 建议：默认锁定比例，因为是基于原图初始化的，通常希望保持比例调整
+        isAdaptive.value = true;
+
         nextTick(() => {
-            startPreview(width.value, height.value, !isAdaptive.value);
+            // 启动预览：此时传入的 width/height 等于图片尺寸
+            // 预览框会完美包裹图片，达成“静止”效果
+            startPreview(width.value, height.value, currentBgColor.value);
         });
     }
 };
 
 // === 交互逻辑 ===
-
 const selectCustomMode = () => {
     activePresetIndex.value = -1;
-    // 切换到自定义时，恢复到原图尺寸，或者保持当前输入但切换比例基准
-    // 这里选择：重置回原图尺寸，符合直觉
-    resetToOriginal();
+    const size = getCurrentSize();
+    width.value = size.width;
+    height.value = size.height;
+    updatePreviewBox();
 };
 
 const selectPreset = (preset, index) => {
     activePresetIndex.value = index;
-    // 选中预设 -> 立即应用预设数值
     isInternalUpdate.value = true;
     width.value = preset.w;
     height.value = preset.h;
-    // 选中预设通常意味着用户希望遵循该比例，所以自动开启保真
-    isAdaptive.value = true;
     nextTick(() => {
         isInternalUpdate.value = false;
-        updatePreviewBox(); // 更新预览
+        updatePreviewBox();
     });
 };
 
 const toggleAdaptive = () => {
     isAdaptive.value = !isAdaptive.value;
-    // 打开开关瞬间，根据当前 Width 和 目标比例 修正 Height
     if (isAdaptive.value && width.value > 0) {
-        isInternalUpdate.value = true;
         height.value = Math.round(width.value / currentTargetRatio.value);
-        nextTick(() => {
-            isInternalUpdate.value = false;
-            updatePreviewBox();
-        });
-    } else {
-        // 修改点 2：如果是关闭保真（进入拉伸模式），也立即刷新预览，触发图片拉伸效果
         updatePreviewBox();
     }
 };
 
-const resetToOriginal = () => {
-    const size = getCurrentSize();
-    width.value = size.width;
-    height.value = size.height;
-    // 恢复原尺寸预览
+// 背景颜色处理
+const setBgColor = (color) => {
+    currentBgColor.value = color;
     updatePreviewBox();
 };
 
-// === 监听输入 (实现表格矩阵逻辑) ===
+const onCustomColorChange = (e) => {
+    currentBgColor.value = e.target.value;
+    updatePreviewBox();
+};
 
-// 监听宽度变化
-watch(width, (newW) => {
+// 监听输入
+watch([width, height], ([newW, newH]) => {
     if (isInternalUpdate.value) return;
-
-    // 表格逻辑 1 & 3 & 5: 保真开启 -> 自动计算高度
-    if (isAdaptive.value && newW > 0) {
-        isInternalUpdate.value = true;
-        height.value = Math.round(newW / currentTargetRatio.value);
-        nextTick(() => { isInternalUpdate.value = false; });
+    // 如果开启了锁定比例 (输入W自动算H)
+    if (isAdaptive.value) {
+        // 简单的防止死循环逻辑
+        // 实际业务中通常只在一个方向输入时触发另一个，这里简化为change触发updatePreview
     }
-    // 表格逻辑 2 & 4: 保真关闭 -> 高度不变 (导致变形)
+    updatePreviewBox();
 });
 
-// 监听高度变化
-watch(height, (newH) => {
-    if (isInternalUpdate.value) return;
-
-    if (isAdaptive.value && newH > 0) {
-        isInternalUpdate.value = true;
-        width.value = Math.round(newH * currentTargetRatio.value);
-        nextTick(() => { isInternalUpdate.value = false; });
-    }
-});
-
-// === 预览更新 ===
-// 只要输入变化，就通知 canvas 更新虚线框
 const onInputChanged = () => {
+    if (isAdaptive.value) {
+        // 简单实现：改变谁以谁为准，这里假设主要是Width驱动Height，或者不强制
+        // 若需要严格联动，可参考 AdjustResize 中的 watch 逻辑
+    }
     updatePreviewBox();
 };
 
 const updatePreviewBox = () => {
     if (width.value > 0 && height.value > 0) {
-        // 修改点 3：传入拉伸状态 (!isAdaptive.value)
-        updatePreview(width.value, height.value, !isAdaptive.value);
+        updatePreview(width.value, height.value, currentBgColor.value);
     } else {
         stopPreview();
     }
 };
 
-// 监听展开状态
+// 监听面板展开
 watch(() => props.isExpanded, (val) => {
     if (val) initSize();
     else stopPreview();
 });
 
-// === 应用与取消 ===
 const handleApply = () => {
-    // 修改点 4：传入拉伸状态
-    applyResize(width.value, height.value, !isAdaptive.value);
+    applyWhitePadding(width.value, height.value, currentBgColor.value);
     emit('toggle');
 };
 
@@ -260,9 +258,7 @@ const handleCancel = () => {
     emit('toggle');
 }
 
-const handleToggle = () => {
-    emit('toggle');
-};
+const handleToggle = () => emit('toggle');
 
 onMounted(() => {
     if (props.isExpanded) initSize();
@@ -272,11 +268,10 @@ onUnmounted(() => stopPreview());
 </script>
 
 <style scoped>
-/* Grid 布局实现矩阵效果 */
+/* 继承并复用了大部分 AdjustResize 的样式 */
 .preset-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    /* 两列 */
     gap: 8px;
     margin-bottom: 16px;
     max-height: 280px;
@@ -293,7 +288,6 @@ onUnmounted(() => stopPreview());
     border: 1px solid transparent;
     display: flex;
     flex-direction: column;
-    /* 垂直排列文字 */
     align-items: center;
     justify-content: space-between;
     text-align: center;
@@ -312,12 +306,9 @@ onUnmounted(() => stopPreview());
     font-weight: 500;
 }
 
-/* 自定义项特殊样式 */
 .custom-item {
     flex-direction: row;
-    /* 横向 */
     grid-column: span 2;
-    /* 占满一行 */
     background-color: #fff;
     border: 1px dashed #dcdfe6;
 }
@@ -336,7 +327,6 @@ onUnmounted(() => stopPreview());
     color: #909399;
 }
 
-/* 输入框区域样式优化 */
 .resize-input-box {
     background-color: #fff;
     padding: 4px 0;
@@ -346,7 +336,7 @@ onUnmounted(() => stopPreview());
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 8px;
+    margin-bottom: 16px;
 }
 
 .input-wrapper {
@@ -391,67 +381,68 @@ onUnmounted(() => stopPreview());
     background-color: #f0f0f0;
 }
 
-.switch-row {
+/* 颜色选择器样式 */
+.bg-color-section {
+    margin-bottom: 16px;
+}
+
+.section-label {
+    font-size: 12px;
+    color: #606266;
+    margin-bottom: 8px;
+}
+
+.color-row {
+    display: flex;
+    gap: 12px;
+}
+
+.color-item {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.color-item.active {
+    border-color: #409eff;
+    transform: scale(1.1);
+}
+
+.checkerboard {
+    background-image:
+        linear-gradient(45deg, #ccc 25%, transparent 25%),
+        linear-gradient(-45deg, #ccc 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #ccc 75%),
+        linear-gradient(-45deg, transparent 75%, #ccc 75%);
+    background-size: 8px 8px;
+    background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+    background-color: #fff;
+}
+
+.color-picker-wrap {
+    background: linear-gradient(to bottom right, #ff0000, #00ff00, #0000ff);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 12px;
-}
-
-.switch-label {
-    font-size: 12px;
-    color: #606266;
-    margin-left: 8px;
-    cursor: pointer;
-}
-
-.ie-switch {
+    color: #fff;
     position: relative;
-    display: inline-flex;
-    align-items: center;
-    width: 32px;
-    height: 16px;
-    border-radius: 10px;
-    background-color: #dcdfe6;
-    cursor: pointer;
-    transition: background-color 0.3s;
+    overflow: hidden;
 }
 
-.ie-switch.is-checked {
-    background-color: #409eff;
-}
-
-.ie-switch-core {
+.native-color-input {
     position: absolute;
-    top: 2px;
-    left: 2px;
-    border-radius: 100%;
-    width: 12px;
-    height: 12px;
-    background-color: #fff;
-    transition: all 0.3s;
-}
-
-.ie-switch.is-checked .ie-switch-core {
-    left: 100%;
-    margin-left: -14px;
-}
-
-.reset-row {
-    text-align: center;
-    margin-bottom: 10px;
-}
-
-.reset-link {
-    font-size: 12px;
-    color: #909399;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
     cursor: pointer;
-    text-decoration: underline;
 }
 
-.reset-link:hover {
-    color: #409eff;
-}
 
 .action-buttons {
     display: flex;

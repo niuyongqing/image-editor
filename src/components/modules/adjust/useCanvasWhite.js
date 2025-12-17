@@ -1,4 +1,4 @@
-// src/components/modules/adjust/useCanvasResize.js
+// src/components/modules/adjust/useCanvasWhite.js
 
 import { ref, unref, shallowRef, toRaw } from "vue";
 import { fabric } from "fabric";
@@ -7,131 +7,37 @@ let canvasRef = null;
 let saveHistoryFn = null;
 
 // === 预览相关状态 ===
-const previewRect = shallowRef(null);
-let isDraggingImage = false;
-let dragLastX = 0;
-let dragLastY = 0;
-
-// 记录交互状态 & 原始变换状态 (用于取消或切换模式时恢复)
+// previewBgRect 充当我们的“新画布背景”，所有内容基于它来定位
+const previewBgRect = shallowRef(null);
 let originalSelectable = true;
 let originalEvented = true;
-let originalTransform = null; // 新增：用于保存图片原始的缩放和位置
+// 保存原始图片的状态，以便取消时恢复
+let originalTransform = null;
 
-export const registerResizeModule = (canvas, saveHistory) => {
+export const registerWhiteModule = (canvas, saveHistory) => {
   canvasRef = canvas;
   saveHistoryFn = saveHistory;
 };
 
 export const getCurrentSize = () => {
-  if (!canvasRef?.value) return { width: 0, height: 0 };
-  const canvas = canvasRef.value;
+  const canvas = unref(canvasRef);
+  if (!canvas) return { width: 0, height: 0 };
+
+  // 1. 获取主图的“视觉尺寸”作为初始尺寸
+  const bgImage = canvas.getObjects().find(o => o.type === 'image');
+  if (bgImage) {
+    // getScaledWidth() 返回的是 width * scaleX，即图片在屏幕上占用的实际像素量
+    return {
+      width: Math.round(bgImage.getScaledWidth()),
+      height: Math.round(bgImage.getScaledHeight())
+    };
+  }
+
+  // 兜底：如果没有图片，才返回画布尺寸
   return { width: canvas.width, height: canvas.height };
 };
 
-// =========================================================
-// 核心工具
-// =========================================================
-const getLogicRect = (obj) => {
-  if (!canvasRef?.value || !obj) return { left: 0, top: 0, width: 0, height: 0 };
-  const canvas = canvasRef.value;
-  const zoom = canvas.getZoom(); 
-  const vpt = canvas.viewportTransform;
-  const rawRect = obj.getBoundingRect();
-  return {
-    left: (rawRect.left - vpt[4]) / zoom,
-    top: (rawRect.top - vpt[5]) / zoom,
-    width: rawRect.width / zoom,
-    height: rawRect.height / zoom
-  };
-};
-
-// =========================================================
-// 约束逻辑 (仅在裁剪模式下使用)
-// =========================================================
-const constrainImageToRect = (bgImage, targetRect) => {
-  if (!bgImage || !targetRect) return;
-
-  const bgRect = getLogicRect(bgImage);
-  let deltaX = 0;
-  let deltaY = 0;
-
-  // 简单碰撞检测
-  if (bgRect.left > targetRect.left) deltaX = targetRect.left - bgRect.left;
-  if (bgRect.top > targetRect.top) deltaY = targetRect.top - bgRect.top;
-  
-  const bgRight = bgRect.left + bgRect.width;
-  const targetRight = targetRect.left + targetRect.width;
-  if (bgRight < targetRight) deltaX = targetRight - bgRight; 
-  
-  const bgBottom = bgRect.top + bgRect.height;
-  const targetBottom = targetRect.top + targetRect.height;
-  if (bgBottom < targetBottom) deltaY = targetBottom - bgBottom;
-
-  if (deltaX !== 0 || deltaY !== 0) {
-    bgImage.left += deltaX;
-    bgImage.top += deltaY;
-    bgImage.setCoords();
-  }
-};
-
-// =========================================================
-// 拖拽逻辑 (仅在裁剪模式下生效)
-// =========================================================
-const onPreviewMouseDown = (opt) => {
-  if (!canvasRef?.value || !previewRect.value) return;
-  // 如果是拉伸模式，禁止拖拽图片
-  if (previewRect.value.data?.isStretch) return;
-
-  const canvas = canvasRef.value;
-  const bgImage = canvas.getObjects().find(o => o.type === 'image');
-  if (!bgImage) return;
-
-  isDraggingImage = true;
-  const pointer = canvas.getPointer(opt.e);
-  dragLastX = pointer.x;
-  dragLastY = pointer.y;
-  canvas.defaultCursor = 'move';
-};
-
-const onPreviewMouseMove = (opt) => {
-  if (!isDraggingImage || !canvasRef?.value) return;
-  const canvas = canvasRef.value;
-  const pointer = canvas.getPointer(opt.e);
-  const deltaX = pointer.x - dragLastX;
-  const deltaY = pointer.y - dragLastY;
-  
-  const bgImage = canvas.getObjects().find(o => o.type === 'image');
-  if (bgImage) {
-    bgImage.left += deltaX;
-    bgImage.top += deltaY;
-    bgImage.setCoords();
-  }
-  
-  dragLastX = pointer.x;
-  dragLastY = pointer.y;
-  canvas.requestRenderAll();
-};
-
-const onPreviewMouseUp = () => {
-  if (isDraggingImage) {
-    if (canvasRef?.value && previewRect.value) {
-       const bgImage = canvasRef.value.getObjects().find(o => o.type === 'image');
-       if (bgImage) {
-         const rectLogic = getLogicRect(previewRect.value);
-         constrainImageToRect(bgImage, rectLogic);
-         canvasRef.value.requestRenderAll();
-       }
-    }
-    isDraggingImage = false;
-    if (canvasRef?.value) canvasRef.value.defaultCursor = 'default';
-  }
-};
-
-// =========================================================
-// 预览控制 (核心修改部分)
-// =========================================================
-
-// 恢复图片的原始状态（用于切换模式或取消时）
+// 恢复图片的原始状态
 const restoreImageState = (bgImage) => {
   if (originalTransform && bgImage) {
     bgImage.set({
@@ -149,15 +55,18 @@ const restoreImageState = (bgImage) => {
   }
 };
 
-export const startPreview = (targetW, targetH, isStretch = false) => {
+// =========================================================
+// 预览核心逻辑：补白模式 (Fit / Contain)
+// =========================================================
+export const startPreview = (targetW, targetH, bgColor = '#ffffff') => {
   const canvas = unref(canvasRef);
   if (!canvas || !targetW || !targetH) return;
 
-  // 1. 获取背景图
+  // 1. 获取当前画布上的主图
   const bgImage = canvas.getObjects().find(o => o.type === 'image');
   if (!bgImage) return;
 
-  // 2. 第一次进入必须保存原始状态 (这是我们的“唯一真理来源”)
+  // 2. 首次进入，保存原始状态 (Single Source of Truth)
   if (!originalTransform) {
     originalSelectable = bgImage.selectable;
     originalEvented = bgImage.evented;
@@ -174,212 +83,229 @@ export const startPreview = (targetW, targetH, isStretch = false) => {
     };
   }
 
-  // 3. 清理旧的预览框
-  if (previewRect.value) {
-    canvas.remove(toRaw(previewRect.value));
-    previewRect.value = null;
+  // 3. 清理旧的预览背景框
+  if (previewBgRect.value) {
+    canvas.remove(toRaw(previewBgRect.value));
+    previewBgRect.value = null;
   }
-  
-  // 【修复核心】：如果是拉伸模式，不要把图片恢复成原样，否则会闪烁！
-  // 只有在“保真/裁剪模式”下，才需要图片恢复正常比例供用户操作。
-  if (!isStretch) {
-    restoreImageState(bgImage);
-  } else {
-    // 如果是拉伸模式，我们只锁定交互，不重置视觉，直接平滑过渡到下一个尺寸
-    bgImage.selectable = false;
-    bgImage.evented = false;
-  }
-  
-  // === 计算预览框尺寸 ===
-  // 注意：计算必须使用 originalTransform (原始数据)，不能用 bgImage (因为它可能被拉伸了)
+
+  // 4. 计算缩放和位置
+  // 原始图片尺寸
   const imgW = originalTransform.width * originalTransform.scaleX;
   const imgH = originalTransform.height * originalTransform.scaleY;
+
+  // 计算 "Fit" 比例
+  const scaleX = targetW / imgW;
+  const scaleY = targetH / imgH;
+  // Contain 模式取较小值
+  const fitScale = Math.min(scaleX, scaleY);
+
+  // 5. 视图自适应：修改为始终占据画布 85%
+  const canvasW = canvas.width;
+  const canvasH = canvas.height;
   const center = canvas.getCenter();
-  
-  const targetRatio = targetW / targetH;
-  const imgRatio = imgW / imgH;
 
-  let previewW, previewH;
-  
-  if (targetRatio > imgRatio) {
-     previewW = imgW;
-     previewH = imgW / targetRatio;
-  } else {
-     previewH = imgH;
-     previewW = imgH * targetRatio;
-  }
+  const VIEW_FACTOR = 0.85; // 占比系数
 
-  // 5. 绘制蓝框
+  // 计算目标 viewScale：让 targetW/targetH 缩放后等于 canvas 的 85%
+  // 使用 Math.min 确保无论是宽还是高超标，都限制在 85% 范围内
+  const viewScale = Math.min(
+    (canvasW * VIEW_FACTOR) / targetW,
+    (canvasH * VIEW_FACTOR) / targetH
+  );
+
+  // 创建背景框
   const rect = new fabric.Rect({
-    width: previewW,
-    height: previewH,
+    width: targetW,
+    height: targetH,
     left: center.left,
     top: center.top,
     originX: 'center',
     originY: 'center',
-    fill: 'transparent',
-    stroke: '#409eff',
-    strokeWidth: 2,
-    strokeDashArray: [6, 6],
+    fill: bgColor === 'transparent' ? 'transparent' : bgColor,
+    stroke: '#409eff', // 红色边框
+    strokeWidth: 2 / viewScale, // 保持边框视觉宽度一致
     selectable: false,
     evented: false,
     excludeFromExport: true,
-    data: { isStretch } 
+    scaleX: viewScale,
+    scaleY: viewScale
   });
 
-  previewRect.value = rect;
+  previewBgRect.value = rect;
   canvas.add(rect);
-  canvas.bringToFront(rect);
+  canvas.sendToBack(rect);
 
-  // === 应用拉伸或交互逻辑 ===
-  if (isStretch) {
-    // 【非保真模式】：强制拉伸图片以填充蓝框
-    // 算法：目标尺寸(previewW) / 图片原始物理宽度(originalTransform.width)
-    // 这样每次都是基于“原始数据”计算出“新的缩放比”，直接 apply，不会有中间态
-    const newScaleX = previewW / originalTransform.width;
-    const newScaleY = previewH / originalTransform.height;
+  // 6. 调整图片位置和大小
+  const finalScaleX = originalTransform.scaleX * fitScale * viewScale;
+  const finalScaleY = originalTransform.scaleY * fitScale * viewScale;
 
-    bgImage.set({
-      scaleX: newScaleX,
-      scaleY: newScaleY,
-      left: center.left,
-      top: center.top,
-      originX: 'center',
-      originY: 'center'
-    });
-    bgImage.setCoords();
-    
-    // 移除拖拽事件
-    canvas.off('mouse:down', onPreviewMouseDown);
-    canvas.off('mouse:move', onPreviewMouseMove);
-    canvas.off('mouse:up', onPreviewMouseUp);
-
-  } else {
-    // 【保真模式】：绑定拖拽事件
-    bgImage.setCoords();
-    canvas.on('mouse:down', onPreviewMouseDown);
-    canvas.on('mouse:move', onPreviewMouseMove);
-    canvas.on('mouse:up', onPreviewMouseUp);
-  }
+  bgImage.set({
+    scaleX: finalScaleX,
+    scaleY: finalScaleY,
+    left: center.left,
+    top: center.top,
+    originX: 'center',
+    originY: 'center',
+    selectable: false,
+    evented: false
+  });
+  bgImage.setCoords();
 
   canvas.requestRenderAll();
 };
 
-export const updatePreview = (targetW, targetH, isStretch = false) => {
-  startPreview(targetW, targetH, isStretch);
+export const updatePreview = (targetW, targetH, bgColor) => {
+  startPreview(targetW, targetH, bgColor);
 };
 
 export const stopPreview = () => {
   const canvas = unref(canvasRef);
   if (canvas) {
-    canvas.off('mouse:down', onPreviewMouseDown);
-    canvas.off('mouse:move', onPreviewMouseMove);
-    canvas.off('mouse:up', onPreviewMouseUp);
-    
-    if (previewRect.value) {
-      canvas.remove(toRaw(previewRect.value));
-      previewRect.value = null;
+    if (previewBgRect.value) {
+      canvas.remove(toRaw(previewBgRect.value));
+      previewBgRect.value = null;
     }
 
     const bgImage = canvas.getObjects().find(o => o.type === 'image');
     if (bgImage) {
-      // 退出预览时，彻底恢复到最初的样子
       restoreImageState(bgImage);
       bgImage.selectable = originalSelectable;
       bgImage.evented = originalEvented;
     }
-    
-    originalTransform = null; // 清空记录
+
+    originalTransform = null;
     canvas.requestRenderAll();
   }
 };
 
 // =========================================================
-// 应用尺寸调整
+// 应用补白
 // =========================================================
-export const applyResize = (width, height, isStretch = false) => {
-  const canvas = unref(canvasRef);
-  if (!canvas || !previewRect.value) return; 
 
-  width = Math.round(width);
-  height = Math.round(height);
-  if (width <= 0 || height <= 0) return;
+
+// [File: useCanvasWhite.js]
+
+// [File: useCanvasWhite.js] -> 替换 applyWhitePadding
+
+// [File: useCanvasWhite.js] -> 替换 applyWhitePadding
+
+export const applyWhitePadding = (width, height, bgColor) => {
+  const canvas = unref(canvasRef);
+  if (!canvas || !previewBgRect.value) return;
+
+  const targetW = Math.round(width);
+  const targetH = Math.round(height);
+  if (targetW <= 0 || targetH <= 0) return;
 
   const bgImage = canvas.getObjects().find(o => o.type === 'image');
   if (!bgImage) return;
-  originalTransform = null;
-  // 1. 截图准备
-  const rect = previewRect.value;
-  rect.visible = false;
-  
-  const originalVpt = [...canvas.viewportTransform];
-  const oldZoom = originalVpt[0];
-  const oldPanX = originalVpt[4];
-  const oldPanY = originalVpt[5];
-  
-  canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
 
-  // 计算裁剪区域
-  // 注意：在 isStretch 模式下，图片已经被我们在 updatePreview 中物理拉伸了
-  // 所以直接截取 rect 的范围，得到的就是拉伸后的图像数据
-  const cropLeft = rect.left - (rect.width * rect.scaleX) / 2;
-  const cropTop = rect.top - (rect.height * rect.scaleY) / 2;
-  const cropWidth = rect.width * rect.scaleX;
-  const cropHeight = rect.height * rect.scaleY;
-  
-  // 计算最终输出的倍率
-  const multiplier = width / cropWidth;
+  // 1. 捕获当前视觉状态 (用于保持静止)
+  const rect = previewBgRect.value;
+  // 获取当前红框在屏幕上的视觉大小，用于最后还原视图
+  const targetVisualZoom = rect.scaleX;
 
-  // 2. 生成新图
-  const dataURL = canvas.toDataURL({
-    left: cropLeft,
-    top: cropTop,
-    width: cropWidth,
-    height: cropHeight,
-    format: 'png',
-    multiplier: multiplier
+  // =========================================================
+  // 解决模糊的核心：计算高清倍率 (Multiplier)
+  // =========================================================
+  // 如果目标尺寸很小（比如 < 2000px），我们强制生成 2-3 倍的高清图
+  // 这样在屏幕上放大看时才不会糊
+  const maxDimension = Math.max(targetW, targetH);
+  let pixelMultiplier = 1;
+
+  if (maxDimension < 1000) {
+    pixelMultiplier = 3; // 极小图用 3 倍采样
+  } else if (maxDimension < 2500) {
+    pixelMultiplier = 2; // 中等图用 2 倍采样
+  }
+  // 大图保持 1 倍即可
+
+  // 2. 创建临时画布 (尺寸为 逻辑尺寸 * 倍率)
+  // 这样生成的图片物理像素非常多
+  const tempCanvas = new fabric.StaticCanvas(null, {
+    width: targetW * pixelMultiplier,
+    height: targetH * pixelMultiplier,
+    backgroundColor: bgColor
   });
 
-  // 截图完毕，恢复视口，避免加载等待期间画面跳动
-  canvas.setViewportTransform(originalVpt);
-  
-  // 3. 加载新图
-  bgImage.setSrc(dataURL, () => {
-    // 新图加载完毕，清理旧状态
-    
-    // 这里的 restoreImageState 调用很重要
-    // 因为 setSrc 只是换了源图，但对象的 scaleX/scaleY 还是刚才预览时的拉伸状态
-    // 我们需要重置它们为 1 (因为新图本身已经是处理好的尺寸了)
-    bgImage.set({
-      scaleX: 1, scaleY: 1,
-      angle: 0, flipX: false, flipY: false,
-      left: 0, top: 0,
-      originX: 'center', originY: 'center',
-      cropX: 0, cropY: 0
+  bgImage.clone((clonedImg) => {
+    // A. 计算原始图片在目标框里的适应比例
+    const imgRealW = bgImage.width * bgImage.scaleX;
+    const imgRealH = bgImage.height * bgImage.scaleY;
+    const fitScale = Math.min(targetW / imgRealW, targetH / imgRealH);
+
+    // B. 在临时画布中摆放图片
+    // 注意：所有参数都要乘以 pixelMultiplier
+    clonedImg.set({
+      originX: 'center',
+      originY: 'center',
+      left: (targetW * pixelMultiplier) / 2,
+      top: (targetH * pixelMultiplier) / 2,
+      // 缩放 = 原缩放 * 适应比例 * 高清倍率
+      scaleX: bgImage.scaleX * fitScale * pixelMultiplier,
+      scaleY: bgImage.scaleY * fitScale * pixelMultiplier,
+      angle: bgImage.angle
     });
-    
-    // 因为已经应用了，所以不需要再恢复到 originalTransform 了
-    // 我们手动清空它，防止 stopPreview 被调用时回滚回旧图
-    originalTransform = null; 
 
-    canvas.centerObject(bgImage);
-    bgImage.setCoords();
+    tempCanvas.add(clonedImg);
+    tempCanvas.renderAll();
 
-    stopPreview(); // 此时 stopPreview 内部发现 originalTransform 为空，就不会执行回滚
+    // C. 导出高清原图
+    const dataURL = tempCanvas.toDataURL({
+      format: 'png',
+      multiplier: 1, // 这里已经是大尺寸了，所以乘1即可
+      quality: 1
+    });
 
-    // === 计算视觉补偿 (保持画布在屏幕视觉大小不变) ===
-    const newZoom = oldZoom / multiplier;
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const screenCenterX = centerX * oldZoom + oldPanX;
-    const screenCenterY = centerY * oldZoom + oldPanY;
-    const newPanX = screenCenterX - centerX * newZoom;
-    const newPanY = screenCenterY - centerY * newZoom;
+    tempCanvas.dispose();
 
-    canvas.setViewportTransform([newZoom, 0, 0, newZoom, newPanX, newPanY]);
-    canvas.requestRenderAll();
-    canvas.fire('zoom:change', { from: 'resize-apply' });
-    
-    if (saveHistoryFn) saveHistoryFn();
+    // 3. 将高清图应用回主画布
+    bgImage.setSrc(dataURL, () => {
+
+      // === 关键修复：消除闪烁 ===
+      // 必须在 stopPreview 之前手动切断“后路”
+      // 这样 stopPreview 就不会执行 restoreImageState，避免了跳回到原图的瞬间
+      originalTransform = null;
+      stopPreview();
+
+      // === 关键修复：逻辑尺寸还原 ===
+      // 我们生成的是 3倍大图，现在要缩小 3倍 显示
+      // 这样：
+      // 1. bgImage.width 是 3倍大 (物理像素多，清晰！)
+      // 2. bgImage.getScaledWidth() 依然是 targetW (逻辑尺寸对，不影响功能！)
+
+      const finalScale = 1 / pixelMultiplier;
+
+      // 重置图片属性
+      bgImage.set({
+        scaleX: finalScale,
+        scaleY: finalScale,
+        angle: 0,
+        flipX: false,
+        flipY: false,
+        originX: 'center',
+        originY: 'center',
+        left: 0,
+        top: 0
+      });
+
+      // === 视觉静止还原 ===
+
+      // 1. 视口归零
+      canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+
+      // 2. 物理居中
+      canvas.centerObject(bgImage);
+      bgImage.setCoords();
+
+      // 3. 应用之前的视觉缩放 (实现绝对静止)
+      const centerPoint = new fabric.Point(canvas.width / 2, canvas.height / 2);
+      canvas.zoomToPoint(centerPoint, targetVisualZoom);
+
+      canvas.requestRenderAll();
+
+      if (saveHistoryFn) saveHistoryFn();
+    });
   });
 };
