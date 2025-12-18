@@ -4,12 +4,12 @@ import { fabric } from "fabric";
 import { useEditorState, ZOOM_PADDING } from "./useEditorState";
 
 // 引入剪裁模块
-import { 
-  registerCropModule, 
-  constrainCrop, 
-  cropObject, 
+import {
+  registerCropModule,
+  constrainCrop,
+  cropObject,
   cancelCrop,
-  rotateActive as rotateCrop, 
+  rotateActive as rotateCrop,
   flipActive as flipCrop
 } from "@/components/modules/adjust/useCanvasCrop";
 
@@ -44,34 +44,17 @@ export function useCanvas() {
     // 【修复】canRedo 应该是当前索引小于历史记录总长度减 1
     setHistoryState(historyIndex > 0, historyIndex < history.length - 1);
   };
-  
-// === 撤销 (Undo) ===
+
+  // === 撤销 (Undo) ===
   const undo = () => {
     if (!canvas.value || historyIndex <= 0 || historyProcessing) return;
-    
-    if (cropObject.value) cancelCrop(); 
-    
-    historyProcessing = true;
-    historyIndex--;
-    const content = history[historyIndex];
-    
-    canvas.value?.loadFromJSON(content, () => {
-      canvas.value?.renderAll();
-      historyProcessing = false;
-      updateStoreHistory();
-    });
-  };
 
-// === 重做 (Redo) ===
-  const redo = () => {
-    if (!canvas.value || historyIndex >= history.length - 1 || historyProcessing) return;
-    
     if (cropObject.value) cancelCrop();
 
     historyProcessing = true;
-    historyIndex++; 
+    historyIndex--;
     const content = history[historyIndex];
-    
+
     canvas.value?.loadFromJSON(content, () => {
       canvas.value?.renderAll();
       historyProcessing = false;
@@ -79,34 +62,41 @@ export function useCanvas() {
     });
   };
 
-  const zoomToRect = (rect) => {
+  // === 重做 (Redo) ===
+  const redo = () => {
+    if (!canvas.value || historyIndex >= history.length - 1 || historyProcessing) return;
+
+    if (cropObject.value) cancelCrop();
+
+    historyProcessing = true;
+    historyIndex++;
+    const content = history[historyIndex];
+
+    canvas.value?.loadFromJSON(content, () => {
+      canvas.value?.renderAll();
+      historyProcessing = false;
+      updateStoreHistory();
+    });
+  };
+
+  const zoomToRect = (rect, minZoomLimit = 0.1) => {
     if (!canvas.value) return;
     const width = canvas.value.width;
     const height = canvas.value.height;
 
-    // 1. 计算目标缩放 (留 10% 边距，看着更舒服)
     let targetZoom = Math.min(width / rect.width, height / rect.height) * ZOOM_PADDING;
 
-    // 限制最大缩放倍数 (与你 setZoom 中的逻辑保持一致，防止放太大)
-    targetZoom = Math.max(0.1, Math.min(targetZoom, 50));
+    // 【约束逻辑】：确保缩放不会小于我们传入的限制（比如原图适应比例）
+    targetZoom = Math.max(minZoomLimit, Math.min(targetZoom, 50));
 
-    // 2. 计算 Pan (偏移量)
-    // 目标：将选区中心点 (rectCenterX, rectCenterY) 移动到 画布中心
-    // 公式：CanvasCenter = ObjectCenter * Zoom + Pan
-    // 所以：Pan = CanvasCenter - ObjectCenter * Zoom
     const rectCenterX = rect.left + rect.width / 2;
     const rectCenterY = rect.top + rect.height / 2;
 
     const panX = (width / 2) - (rectCenterX * targetZoom);
     const panY = (height / 2) - (rectCenterY * targetZoom);
 
-    // 3. 应用视口变换 (这是 Fabric.js 改变视图的核心方法)
-    // 数组参数: [scaleX, skewY, skewX, scaleY, translateX, translateY]
     canvas.value.setViewportTransform([targetZoom, 0, 0, targetZoom, panX, panY]);
-
-    // 4. 同步 zoom 状态 (让 UI 百分比更新)
     zoom.value = targetZoom;
-    
     canvas.value.requestRenderAll();
   };
 
@@ -120,7 +110,7 @@ export function useCanvas() {
     });
     canvas.value = markRaw(c);
 
-    registerCropModule(canvas, saveHistory,zoomToRect);
+    registerCropModule(canvas, saveHistory, zoomToRect);
 
     const checkConstraint = () => {
       if (cropObject.value) {
@@ -128,7 +118,7 @@ export function useCanvas() {
       }
     };
     c.on("object:modified", (e) => {
-      checkConstraint(); 
+      checkConstraint();
       if (e.target && e.target.type !== "rect") saveHistory();
     });
     c.on("object:added", (e) => {
@@ -212,9 +202,9 @@ export function useCanvas() {
     updateStoreHistory();
     addImage(url);
   };
-  
+
   const rotateActive = (angle) => {
-    const handled = rotateCrop(angle); 
+    const handled = rotateCrop(angle);
     if (!handled) {
       const activeObj = canvas.value?.getActiveObject();
       if (activeObj) {
@@ -226,7 +216,7 @@ export function useCanvas() {
   };
 
   const flipActive = (axis) => {
-    const handled = flipCrop(axis); 
+    const handled = flipCrop(axis);
     if (!handled) {
       const activeObj = canvas.value?.getActiveObject();
       if (activeObj) {
@@ -310,6 +300,7 @@ export function useCanvas() {
     zoomIn,
     zoomOut,
     zoomReset,
+    zoomToRect,
     setZoom,
     undo,
     redo,
@@ -318,7 +309,7 @@ export function useCanvas() {
     exportMask,
     replaceActiveImage,
     addText,
-    rotateActive, 
-    flipActive   
+    rotateActive,
+    flipActive
   };
 }

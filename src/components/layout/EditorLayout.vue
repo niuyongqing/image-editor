@@ -64,6 +64,7 @@ const {
   zoomIn,
   zoomOut,
   zoomReset,
+  zoomToRect,
   addText,
   rotateActive,
   flipActive,
@@ -116,12 +117,13 @@ const handleExport = () => {
 
 // === 5. 组装 API 对象 ===
 const api = {
- canvas,
+  canvas,
   init: handleInit,
   zoom,
   zoomIn,
   zoomOut,
   zoomReset,
+  zoomToRect,
   initImage,
   addImage,
   toggleDrawing,

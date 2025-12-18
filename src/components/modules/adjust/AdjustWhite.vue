@@ -100,7 +100,7 @@
 <script setup>
 import { ref, inject, watch, onMounted, onUnmounted, nextTick, computed } from 'vue';
 // 引入修改后的 useCanvasWhite
-import { registerWhiteModule, getCurrentSize, applyWhitePadding, startPreview, updatePreview, stopPreview } from './useCanvasWhite';
+import { registerWhiteModule, getCurrentSize, applyWhitePadding, startPreview, updatePreview, stopPreview, zoomToPreview } from './useCanvasWhite';
 
 const props = defineProps({
     isExpanded: { type: Boolean, default: false }
@@ -149,32 +149,20 @@ const currentTargetRatio = computed(() => {
 // === 初始化 ===
 const initSize = () => {
     if (canvasAPI && canvasAPI.canvas) {
-        registerWhiteModule(canvasAPI.canvas, canvasAPI.saveHistory);
+        // 确保传入了 zoomToRect
+        registerWhiteModule(canvasAPI.canvas, canvasAPI.saveHistory, canvasAPI.zoomToRect);
 
-        // 1. 获取图片当前的视觉尺寸 (由 useCanvasWhite 改良后的方法提供)
         const size = getCurrentSize();
-
-        if (size.height > 0) {
-            originalRatio.value = size.width / size.height;
-        }
-
-        // 2. 关键修改：直接将输入框的值设置为图片的视觉尺寸
         width.value = size.width;
         height.value = size.height;
 
-        // 3. 强制选中“自定义”模式
-        activePresetIndex.value = -1;
-
-        // 4. 建议：默认锁定比例，因为是基于原图初始化的，通常希望保持比例调整
-        isAdaptive.value = true;
-
         nextTick(() => {
-            // 启动预览：此时传入的 width/height 等于图片尺寸
-            // 预览框会完美包裹图片，达成“静止”效果
+            // 仅开启预览框，不移动相机
             startPreview(width.value, height.value, currentBgColor.value);
         });
     }
 };
+
 
 // === 交互逻辑 ===
 const selectCustomMode = () => {
@@ -190,9 +178,13 @@ const selectPreset = (preset, index) => {
     isInternalUpdate.value = true;
     width.value = preset.w;
     height.value = preset.h;
+
     nextTick(() => {
         isInternalUpdate.value = false;
-        updatePreviewBox();
+        updatePreviewBox(); // 先更新蓝框尺寸
+
+        // ✅ 触发相机放大：让 500*500 的框占据当初图片占据的屏幕范围
+        zoomToPreview();
     });
 };
 

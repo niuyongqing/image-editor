@@ -23,8 +23,21 @@ export const registerResizeModule = (canvas, saveHistory) => {
 };
 
 export const getCurrentSize = () => {
-  if (!canvasRef?.value) return { width: 0, height: 0 };
-  const canvas = canvasRef.value;
+  const canvas = unref(canvasRef);
+  if (!canvas) return { width: 0, height: 0 };
+
+  // 查找画布上的背景图片
+  const bgImage = canvas.getObjects().find(o => o.type === 'image');
+
+  if (bgImage) {
+    // ✅ 返回图片当前的缩放宽高（即它在画布上看起来的大小）
+    return {
+      width: Math.round(bgImage.getScaledWidth()),
+      height: Math.round(bgImage.getScaledHeight())
+    };
+  }
+
+  // 兜底返回容器大小
   return { width: canvas.width, height: canvas.height };
 };
 

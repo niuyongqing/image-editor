@@ -20,77 +20,81 @@
     <div v-if="isExpanded" class="tool-content">
 
       <div class="ratio-grid">
-         <div class="ratio-item" @click="handleSetRatio(null, true)">
-            <div class="icon-box">
-              <svg width="16" height="16" viewBox="0 0 24 24" style="fill: currentColor">
-              <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
+        <div class="ratio-item" @click="handleSetRatio(null, true)">
+          <div class="icon-box">
+            <svg width="16" height="16" viewBox="0 0 24 24" style="fill: currentColor">
+              <path
+                d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
             </svg>
-            </div>
-            <span>初始化</span>
           </div>
+          <span>初始化</span>
+        </div>
 
-          <div class="ratio-item" :class="{ active: currentRatio === 'original' }" @click="handleSetRatio('original')">
-            <div class="shape-rect" style="width: 14px; height: 14px; border:1px solid #666"></div>
-            <span>原比例</span>
-          </div>
+        <div class="ratio-item" :class="{ active: currentRatio === 'original' }" @click="handleSetRatio('original')">
+          <div class="shape-rect" style="width: 14px; height: 14px; border:1px solid #666"></div>
+          <span>原比例</span>
+        </div>
 
-          <div class="ratio-item" :class="{ active: currentRatio === 'free' }" @click="handleSetRatio(null)">
-            <div class="shape-rect dashed"></div>
-            <span>自由比例</span>
-          </div>
+        <div class="ratio-item" :class="{ active: currentRatio === 'free' }" @click="handleSetRatio(null)">
+          <div class="shape-rect dashed"></div>
+          <span>自由比例</span>
+        </div>
 
-          <div class="ratio-item" :class="{ active: isManualActive }" @click="handleManualSelect">
-            <div class="icon-box">
-               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path stroke-dasharray="4 4" d="M4 4h16v16H4z" />
-                <path fill="currentColor" stroke="none" d="M14 14l3.5 8 1.5-3.5 3.5-1.5-8-3.5z" />
-              </svg>
-            </div>
-            <span>手动选区</span>
+        <div class="ratio-item" :class="{ active: isManualActive }" @click="handleManualSelect">
+          <div class="icon-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path stroke-dasharray="4 4" d="M4 4h16v16H4z" />
+              <path fill="currentColor" stroke="none" d="M14 14l3.5 8 1.5-3.5 3.5-1.5-8-3.5z" />
+            </svg>
           </div>
+          <span>手动选区</span>
+        </div>
 
-          <div class="ratio-item" :class="{ active: isRatioMatch(1) }" @click="handleSetRatio(1)">
-            <div class="shape-rect square"></div>
-            <span>1:1</span>
-          </div>
+        <div class="ratio-item" :class="{ active: isRatioMatch(1) }" @click="handleSetRatio(1)">
+          <div class="shape-rect square"></div>
+          <span>1:1</span>
+        </div>
 
-          <div class="ratio-item" :class="{ active: isRatioMatch(3 / 2) }" @click="handleSetRatio(3 / 2)">
-            <div class="shape-rect" style="width: 12px; height: 8px;"></div>
-            <span>3:2</span>
-          </div>
+        <div class="ratio-item" :class="{ active: isRatioMatch(3 / 2) }" @click="handleSetRatio(3 / 2)">
+          <div class="shape-rect" style="width: 12px; height: 8px;"></div>
+          <span>3:2</span>
+        </div>
 
-          <div class="ratio-item" :class="{ active: isRatioMatch(2 / 3) }" @click="handleSetRatio(2 / 3)">
-            <div class="shape-rect" style="width: 8px; height: 12px;"></div>
-            <span>2:3</span>
-          </div>
+        <div class="ratio-item" :class="{ active: isRatioMatch(2 / 3) }" @click="handleSetRatio(2 / 3)">
+          <div class="shape-rect" style="width: 8px; height: 12px;"></div>
+          <span>2:3</span>
+        </div>
 
-          <div class="ratio-item" :class="{ active: isRatioMatch(4 / 3) }" @click="handleSetRatio(4 / 3)">
-            <div class="shape-rect" style="width: 16px; height: 12px;"></div>
-            <span>4:3</span>
-          </div>
+        <div class="ratio-item" :class="{ active: isRatioMatch(4 / 3) }" @click="handleSetRatio(4 / 3)">
+          <div class="shape-rect" style="width: 16px; height: 12px;"></div>
+          <span>4:3</span>
+        </div>
 
-          <div class="ratio-item" :class="{ active: isRatioMatch(3 / 4) }" @click="handleSetRatio(3 / 4)">
-            <div class="shape-rect" style="width: 12px; height: 16px;"></div>
-            <span>3:4</span>
-          </div>
+        <div class="ratio-item" :class="{ active: isRatioMatch(3 / 4) }" @click="handleSetRatio(3 / 4)">
+          <div class="shape-rect" style="width: 12px; height: 16px;"></div>
+          <span>3:4</span>
+        </div>
 
-          <div class="ratio-item" :class="{ active: isRatioMatch(16 / 9) }" @click="handleSetRatio(16 / 9)">
-            <div class="shape-rect" style="width: 16px; height: 9px;"></div>
-            <span>16:9</span>
-          </div>
+        <div class="ratio-item" :class="{ active: isRatioMatch(16 / 9) }" @click="handleSetRatio(16 / 9)">
+          <div class="shape-rect" style="width: 16px; height: 9px;"></div>
+          <span>16:9</span>
+        </div>
 
-          <div class="ratio-item" :class="{ active: isRatioMatch(9 / 16) }" @click="handleSetRatio(9 / 16)">
-            <div class="shape-rect" style="width: 9px; height: 16px;"></div>
-            <span>9:16</span>
-          </div>
+        <div class="ratio-item" :class="{ active: isRatioMatch(9 / 16) }" @click="handleSetRatio(9 / 16)">
+          <div class="shape-rect" style="width: 9px; height: 16px;"></div>
+          <span>9:16</span>
+        </div>
       </div>
 
       <div class="custom-input-box">
         <div class="input-header">
           <span>自定义</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor: pointer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" style="cursor: pointer">
             <circle cx="12" cy="12" r="3"></circle>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+            </path>
           </svg>
         </div>
 
@@ -101,19 +105,21 @@
           </div>
 
           <div class="link-icon" @click="toggleRatioLock">
-            <svg v-if="isRatioLocked" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#409eff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-               <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-               <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+            <svg v-if="isRatioLocked" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#409eff"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
             </svg>
-            <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#909399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.6">
-               <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-               <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-               <line x1="4" y1="4" x2="20" y2="20" stroke="#909399" /> 
+            <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#909399" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.6">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+              <line x1="4" y1="4" x2="20" y2="20" stroke="#909399" />
             </svg>
           </div>
 
           <div class="input-wrapper">
-             <input type="number" v-model.number="cropH" class="ie-input" @change="onHeightChange">
+            <input type="number" v-model.number="cropH" class="ie-input" @change="onHeightChange">
             <span class="suffix">H</span>
           </div>
         </div>
@@ -121,17 +127,35 @@
 
       <div class="rotate-actions">
         <div class="action-btn" title="向左旋转90°" @click="rotate(-90)">
-          <svg width="20" height="20" viewBox="-1 -1 26 26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg>
+          <svg width="20" height="20" viewBox="-1 -1 26 26" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <path d="M3 3v5h5" />
+          </svg>
         </div>
         <div class="action-btn" title="向右旋转90°" @click="rotate(90)">
-          <svg width="20" height="20" viewBox="-1 -1 26 26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /></svg>
+          <svg width="20" height="20" viewBox="-1 -1 26 26" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+            <path d="M21 3v5h-5" />
+          </svg>
         </div>
         <div class="divider"></div>
         <div class="action-btn" title="水平翻转" @click="flip('X')">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14" /><path d="M8 9l-3 3 3 3" /><path d="M16 9l3 3-3 3" /></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14" />
+            <path d="M8 9l-3 3 3 3" />
+            <path d="M16 9l3 3-3 3" />
+          </svg>
         </div>
         <div class="action-btn" title="垂直翻转" @click="flip('Y')">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14" /><path d="M9 8l3-3 3 3" /><path d="M9 16l3 3 3-3" /></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14" />
+            <path d="M9 8l3-3 3 3" />
+            <path d="M9 16l3 3 3-3" />
+          </svg>
         </div>
       </div>
 
@@ -145,18 +169,18 @@
 
 <script setup>
 import { ref, watch, onMounted, onUnmounted, computed, nextTick } from 'vue';
-import { fabric } from 'fabric'; 
+import { fabric } from 'fabric';
 
-import { 
-  startCrop, 
+import {
+  startCrop,
   confirmCrop,
-  setCropRatio, 
+  setCropRatio,
   currentSelectionDims,
   isRatioLocked,
   currentAspectRatio, // 确保引入了此变量
-  setCropBoxSize, 
-  rotateActive, 
-  flipActive, 
+  setCropBoxSize,
+  rotateActive,
+  flipActive,
   startManualSelection,
   isManualCropping,
   cropObject,
@@ -187,8 +211,8 @@ watch(currentSelectionDims, (newVal) => {
 watch(() => props.isExpanded, (val) => {
   if (val) {
     nextTick(() => {
-        startCrop(null); 
-        updateInputFromCanvas();
+      startCrop(null);
+      updateInputFromCanvas();
     });
   } else {
     closeCropPanel();
@@ -200,40 +224,40 @@ const handleToggle = () => {
 };
 
 const handleCancel = () => {
-  emit('toggle'); 
+  emit('toggle');
 };
 
 const handleApply = () => {
   confirmCrop();
-  emit('toggle'); 
+  emit('toggle');
 };
 
 const isRatioMatch = (r) => {
   if (currentRatio.value === 'original') return false;
-    if (!currentAspectRatio.value) return false;
-    return Math.abs(currentAspectRatio.value - r) < 0.01;
+  if (!currentAspectRatio.value) return false;
+  return Math.abs(currentAspectRatio.value - r) < 0.01;
 };
 
 const handleSetRatio = (ratio, isReset = false) => {
-    if (isReset) {
-       currentRatio.value = 'free';
-       startCrop(null); 
-    } else if (ratio === 'original') {
-        currentRatio.value = 'original';
-        const activeObj = cropObject.value?.canvas?.getObjects().find(o => o.type === 'image');
-        if (activeObj) {
-            setCropRatio(activeObj.width / activeObj.height);
-        }
-    } else if (ratio === null) {
-        currentRatio.value = 'free';
-        setCropRatio(null);
-    } else {
-        currentRatio.value = ratio;
-        setCropRatio(ratio);
+  if (isReset) {
+    currentRatio.value = 'free';
+    startCrop(null);
+  } else if (ratio === 'original') {
+    currentRatio.value = 'original';
+    const activeObj = cropObject.value?.canvas?.getObjects().find(o => o.type === 'image');
+    if (activeObj) {
+      setCropRatio(activeObj.width / activeObj.height);
     }
-    nextTick(() => {
-        updateInputFromCanvas();
-    });
+  } else if (ratio === null) {
+    currentRatio.value = 'free';
+    setCropRatio(null);
+  } else {
+    currentRatio.value = ratio;
+    setCropRatio(ratio);
+  }
+  nextTick(() => {
+    updateInputFromCanvas();
+  });
 };
 
 // ============================================
@@ -280,22 +304,22 @@ const onHeightChange = () => {
 
 // 将输入框的值应用到 Canvas 选区
 const applyInputSize = () => {
-    if (cropW.value > 0 && cropH.value > 0) {
-      setCropBoxSize(cropW.value, cropH.value);
-    }
+  if (cropW.value > 0 && cropH.value > 0) {
+    setCropBoxSize(cropW.value, cropH.value);
+  }
 };
 
 const toggleRatioLock = () => {
-    if (isRatioLocked.value) {
-        handleSetRatio(null); 
-    } else {
-        // 如果是从自由比例点击锁定，则锁定当前输入的比例
-        if (cropW.value && cropH.value) {
-            const currentR = cropW.value / cropH.value;
-            currentRatio.value = currentR; 
-            setCropRatio(currentR);
-        }
+  if (isRatioLocked.value) {
+    handleSetRatio(null);
+  } else {
+    // 如果是从自由比例点击锁定，则锁定当前输入的比例
+    if (cropW.value && cropH.value) {
+      const currentR = cropW.value / cropH.value;
+      currentRatio.value = currentR;
+      setCropRatio(currentR);
     }
+  }
 };
 
 // ============================================
@@ -306,7 +330,7 @@ const updateInputFromCanvas = () => {
   if (cropObject.value) {
     const w = Math.round(cropObject.value.getScaledWidth());
     const h = Math.round(cropObject.value.getScaledHeight());
-    
+
     cropW.value = w;
     cropH.value = h;
     if (currentRatio.value !== 'free' && currentRatio.value !== 'original' && typeof currentRatio.value === 'number') {
@@ -314,15 +338,16 @@ const updateInputFromCanvas = () => {
       const targetRatio = currentRatio.value;
       if (Math.abs(currentRealRatio - targetRatio) > 0.02) {
         currentRatio.value = 'free';
-        setCropRatio(null); 
+        setCropRatio(null);
       }
     }
   }
 };
 
 const handleManualSelect = () => {
-  currentRatio.value = '';
-  startManualSelection();
+  currentRatio.value = 'manual'; // 1. 将 UI 状态设为 manual，清除“原比例”和“自由比例”的高亮
+  setCropRatio(null);            // 2. 核心修复：调用逻辑层方法，将比例锁定设为 null，从而清除 1:1、3:2 等项的高亮
+  startManualSelection()
 };
 
 const rotate = (angle) => {
@@ -335,19 +360,19 @@ onMounted(() => {
   if (props.isExpanded) {
     openCropPanel();
     nextTick(() => {
-        startCrop(null);
-        updateInputFromCanvas();
+      startCrop(null);
+      updateInputFromCanvas();
     });
   }
-  
+
   const checkCanvas = setInterval(() => {
-      const canvasInstance = cropObject.value?.canvas; 
-      if (canvasInstance) {
-        canvasInstance.on('object:scaling', updateInputFromCanvas);
-        canvasInstance.on('object:modified', updateInputFromCanvas);
-        canvasInstance.on('object:moving', updateInputFromCanvas);
-        clearInterval(checkCanvas);
-      }
+    const canvasInstance = cropObject.value?.canvas;
+    if (canvasInstance) {
+      canvasInstance.on('object:scaling', updateInputFromCanvas);
+      canvasInstance.on('object:modified', updateInputFromCanvas);
+      canvasInstance.on('object:moving', updateInputFromCanvas);
+      clearInterval(checkCanvas);
+    }
   }, 100);
 });
 
@@ -358,9 +383,9 @@ onUnmounted(() => {
     canvasInstance.off('object:modified', updateInputFromCanvas);
     canvasInstance.off('object:moving', updateInputFromCanvas);
   }
-  
+
   if (props.isExpanded) {
-      closeCropPanel();
+    closeCropPanel();
   }
 });
 </script>
@@ -373,6 +398,7 @@ onUnmounted(() => {
   gap: 8px;
   margin-bottom: 16px;
 }
+
 .ratio-item {
   display: flex;
   flex-direction: column;
@@ -388,31 +414,37 @@ onUnmounted(() => {
   transition: all 0.2s;
   height: 60px;
 }
+
 .ratio-item:hover {
   background-color: #f9f9f9;
   border-color: #dcdfe6;
 }
+
 .ratio-item.active {
   border-color: #409eff;
   color: #409eff;
   background-color: #ecf5ff;
 }
+
 .icon-box {
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 6px;
 }
+
 .shape-rect {
   border: 1px solid currentColor;
   margin-bottom: 6px;
   box-sizing: border-box;
 }
+
 .shape-rect.dashed {
   border-style: dashed;
   width: 14px;
   height: 14px;
 }
+
 .shape-rect.square {
   width: 14px;
   height: 14px;
@@ -424,7 +456,7 @@ onUnmounted(() => {
   border-radius: 6px;
   padding: 10px;
   margin-bottom: 12px;
-} 
+}
 
 .input-header {
   display: flex;

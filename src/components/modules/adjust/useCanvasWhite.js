@@ -5,17 +5,44 @@ import { fabric } from "fabric";
 
 let canvasRef = null;
 let saveHistoryFn = null;
-
+let zoomToRectFn = null;
 // === 预览相关状态 ===
 const previewBgRect = shallowRef(null);
 let originalSelectable = true;
 let originalEvented = true;
 let originalTransform = null;
 
-export const registerWhiteModule = (canvas, saveHistory) => {
+
+export const registerWhiteModule = (canvas, saveHistory, zoomToRect) => {
   canvasRef = canvas;
   saveHistoryFn = saveHistory;
+  zoomToRectFn = zoomToRect;
 };
+
+
+// 新增：手动触发视角对齐的方法
+export const zoomToPreview = () => {
+  const canvas = unref(canvasRef);
+  // 如果 zoomToRectFn 为 null，这里就会直接 return，导致没反应
+  if (!canvas || !previewBgRect.value || !zoomToRectFn || !originalTransform) return;
+
+  const rect = previewBgRect.value;
+
+  // 计算补白框在画布上的逻辑矩形范围
+  const logicRect = {
+    left: rect.left - (rect.width * rect.scaleX) / 2,
+    top: rect.top - (rect.height * rect.scaleY) / 2,
+    width: rect.width * rect.scaleX,
+    height: rect.height * rect.scaleY
+  };
+
+  // 调用相机缩放方法
+  zoomToRectFn(logicRect);
+};
+
+
+
+
 
 export const getCurrentSize = () => {
   const canvas = unref(canvasRef);
@@ -81,16 +108,17 @@ export const startPreview = (targetW, targetH, bgColor = '#ffffff') => {
   const scaleY = targetH / imgH;
   const fitScale = Math.min(scaleX, scaleY);
 
-  const canvasW = canvas.width;
-  const canvasH = canvas.height;
+  // const canvasW = canvas.width;
+  // const canvasH = canvas.height;
+  // const center = canvas.getCenter();
+  // const VIEW_FACTOR = 0.85;
+
+  // const viewScale = Math.min(
+  //   (canvasW * VIEW_FACTOR) / targetW,
+  //   (canvasH * VIEW_FACTOR) / targetH
+  // );
+  const viewScale = 1;
   const center = canvas.getCenter();
-  const VIEW_FACTOR = 0.85;
-
-  const viewScale = Math.min(
-    (canvasW * VIEW_FACTOR) / targetW,
-    (canvasH * VIEW_FACTOR) / targetH
-  );
-
   const rect = new fabric.Rect({
     width: targetW,
     height: targetH,
@@ -238,19 +266,20 @@ export const applyWhitePadding = (width, height, bgColor) => {
 
       // 7. 应用回主画布
       bgImage.setSrc(dataURL, () => {
-        // 清理预览资源
+        // 1. 清理预览资源
         if (previewBgRect.value) {
           canvas.remove(toRaw(previewBgRect.value));
           previewBgRect.value = null;
         }
         originalTransform = null;
 
+        // 2. 恢复交互状态
         bgImage.selectable = originalSelectable;
         bgImage.evented = originalEvented;
 
-        // 重置图片属性 (因为新图已经是处理好的样子了)
-        // 注意：我们需要把它缩放到逻辑尺寸 (targetW/targetH)
-        // 现在的图片物理尺寸是 outputW (例如 3000px)，逻辑尺寸需要是 targetW (1000px)
+        // === 3. 核心：清晰度调整 (Source Remastering) ===
+        // 注意：这段逻辑不能删。高清重制导出了物理像素极高的新图 (outputMultiplier)，
+        // 我们需要把它缩放到逻辑尺寸，否则图片会显得异常巨大或模糊。
         const displayScale = 1 / outputMultiplier;
 
         bgImage.set({
@@ -265,15 +294,18 @@ export const applyWhitePadding = (width, height, bgColor) => {
           top: 0
         });
 
-        // 视图复位与居中
-        canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+        // === 4. 视图处理 ===
+        // 根据你的要求，这里注释掉了会引起视角跳动的重置代码
+        // canvas.setViewportTransform([1, 0, 0, 1, 0, 0]); // ❌ 不进行视角复位
+
+        // 也不使用 zoomToPoint 跳转到预设视距
+        // canvas.zoomToPoint(new fabric.Point(canvas.width / 2, canvas.height / 2), targetVisualZoom); // ❌ 不改变当前缩放比例
+
+        // 5. 仅在当前视角下将图片居中
         canvas.centerObject(bgImage);
         bgImage.setCoords();
 
-        // 恢复之前的视觉缩放 (保持静止)
-        const centerPoint = new fabric.Point(canvas.width / 2, canvas.height / 2);
-        canvas.zoomToPoint(centerPoint, targetVisualZoom);
-
+        // 6. 刷新画布并保存历史
         canvas.requestRenderAll();
         if (saveHistoryFn) saveHistoryFn();
 

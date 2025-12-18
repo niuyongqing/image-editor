@@ -191,7 +191,7 @@ export const openCropPanel = () => {
   isApplyingCrop = false;
 
   const canvas = canvasRef.value;
-  canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+  // canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
   canvas.fire('zoom:change', { from: 'crop-module' });
 
   if (canvas.__eventListeners && canvas.__eventListeners['mouse:wheel']) {
@@ -221,24 +221,24 @@ export const closeCropPanel = () => {
 
   isCropping.value = false;
 
-  const bgImage = canvas.getObjects().find((o) => o.type === "image");
-  if (bgImage) {
-    const imgWidth = bgImage.width * bgImage.scaleX;
-    const imgHeight = bgImage.height * bgImage.scaleY;
-    const canvasWidth = canvas.width;
-    const canvasHeight = canvas.height;
-    const paddingFactor = ZOOM_PADDING;
-    const zoomToFit = Math.min(
-      (canvasWidth * paddingFactor) / imgWidth,
-      (canvasHeight * paddingFactor) / imgHeight
-    );
-    const center = bgImage.getCenterPoint();
-    const panX = (canvasWidth / 2) - center.x * zoomToFit;
-    const panY = (canvasHeight / 2) - center.y * zoomToFit;
+  // const bgImage = canvas.getObjects().find((o) => o.type === "image");
+  // if (bgImage) {
+  //   const imgWidth = bgImage.width * bgImage.scaleX;
+  //   const imgHeight = bgImage.height * bgImage.scaleY;
+  //   const canvasWidth = canvas.width;
+  //   const canvasHeight = canvas.height;
+  //   const paddingFactor = ZOOM_PADDING;
+  //   const zoomToFit = Math.min(
+  //     (canvasWidth * paddingFactor) / imgWidth,
+  //     (canvasHeight * paddingFactor) / imgHeight
+  //   );
+  //   const center = bgImage.getCenterPoint();
+  //   const panX = (canvasWidth / 2) - center.x * zoomToFit;
+  //   const panY = (canvasHeight / 2) - center.y * zoomToFit;
 
-    canvas.setViewportTransform([zoomToFit, 0, 0, zoomToFit, panX, panY]);
-    canvas.setZoom(zoomToFit);
-  }
+  //   canvas.setViewportTransform([zoomToFit, 0, 0, zoomToFit, panX, panY]);
+  //   canvas.setZoom(zoomToFit);
+  // }
   canvas.discardActiveObject();
   canvas.requestRenderAll();
   canvas.fire('zoom:change');
@@ -441,7 +441,6 @@ export const setCropRatio = (ratio) => {
     cropObject.value.setCoords();
     constrainCrop(cropObject.value);
     canvas.requestRenderAll();
-    if (zoomToRectFn) zoomToRectFn(getLogicRect(cropObject.value));
   } else {
     startCrop(ratio, { left, top, width: newW, height: newH });
   }
@@ -493,16 +492,11 @@ export const startCrop = (aspectRatio = null, customBox = null) => {
   });
   if (aspectRatio) cropZone.set("height", width / aspectRatio);
 
-  cropZone.on('modified', () => {
-    if (zoomToRectFn) zoomToRectFn(getLogicRect(cropZone));
-  });
-
   canvas.add(cropZone);
   canvas.setActiveObject(cropZone);
   cropObject.value = cropZone;
   canvas.renderAll();
   updateCurrentDims(cropZone);
-  if (zoomToRectFn) zoomToRectFn(getLogicRect(cropZone));
   constrainCrop(cropZone);
 
   // 绑定拖图事件
@@ -511,7 +505,6 @@ export const startCrop = (aspectRatio = null, customBox = null) => {
   canvas.on('mouse:up', onCropMouseUp);
 };
 
-// ... (confirmCrop, setCropBoxSize, rotateActive, flipActive 保持不变) ...
 export const confirmCrop = () => {
   if (!canvasRef?.value || !cropObject.value) return Promise.resolve();
   const canvas = canvasRef.value;
