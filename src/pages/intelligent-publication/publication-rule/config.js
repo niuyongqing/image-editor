@@ -39,6 +39,12 @@ export const DEFAULT_TABLE_COLUMN = [
     width: 80
   },
   {
+    title: '操作人',
+    key: 'operator',
+    align: 'center',
+    width: 80
+  },
+  {
     title: '备注',
     key: 'remark',
     width: 160

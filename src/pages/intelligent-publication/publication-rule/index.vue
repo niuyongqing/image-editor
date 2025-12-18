@@ -120,6 +120,10 @@
             @change="toggleStatus(record)"
           />
         </template>
+        <template v-else-if="column.key === 'operator'">
+          <div>创建人: {{ record.createUserName || '--' }}</div>
+          <div>更新人: {{ record.updateUserName || '--' }}</div>
+        </template>
         <template v-else-if="column.key === 'remark'">
           <div class="w-50">{{ record.remark || '--' }}</div>
         </template>
