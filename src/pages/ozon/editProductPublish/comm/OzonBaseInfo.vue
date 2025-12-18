@@ -275,8 +275,8 @@ const assignValues = (oldAttr, attr) => {
                 if (selectType === "multSelect") {
                     // result[name] = resItem.values.map(item => item.id); 旧写法
                     result[name] = resItem.values.map(item => Number(item.dictionaryValueId)); // 新
-                    // item.acquiesceList = moveMatchedItemForward(item.options, resItem.values.map(item => item.id))
-                    item.acquiesceList = moveMatchedItemForward(item.options, resItem.values.map(item => item.value))
+                    item.acquiesceList = moveMatchedItemForward(item.options, resItem.values.map(item => item.id))
+                    // item.acquiesceList = moveMatchedItemForward(item.options, resItem.values.map(item => item.value))
                 }
                 else if (selectType === "select") {
                     result[name] = findMatchedOption(attributeId, resItem.values[0], item.options)
@@ -314,19 +314,16 @@ const findMatchedOption = (attributeId, data, options) => {
     return null;
 }
 const moveMatchedItemForward = (data, arr) => {
-    const newData = [];
-    const remainingData = [];
+    const list = data.slice(0, 25);
 
     for (let i = 0; i < data.length; i++) {
         const item = data[i];
-        if (arr.includes(item.id)) {
-            newData.push(item);
-        } else {
-            remainingData.push(item);
+        if (arr.includes(item.id) && i > 25) {
+            list.push(item);
         }
     }
 
-    return newData.concat(remainingData).slice(0, 25);
+    return list;
 }
 
 const addItemValues = (obj) => {
@@ -338,8 +335,10 @@ const addItemValues = (obj) => {
     //!  判断搜索出来的是否在初始的数组中显示
     if (isExist) {
         const attr = attributes[obj.name] || [];
-        attr?.push(obj.selectDate.value);
-        attributes[obj.name] = attr
+        if (!attr.includes(obj.selectDate.value)) {
+            attr.push(obj.selectDate.value);
+            attributes[obj.name] = attr
+        };
     } else {
         attributes[obj.name] = attributes[obj.name] || []
         attributes[obj.name]?.push(obj.selectDate.value);
