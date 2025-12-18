@@ -524,6 +524,9 @@
                           </div>
                         </div>
                       </div>
+                      <div v-else-if="column.dataIndex === 'operatorName'">
+                        <span>{{ record.operatorName || '--' }}</span>
+                      </div>
                       <div v-else-if="column.dataIndex === 'create_time'">
                         <span class="text-gray">{{ record.createTime || '--' }}</span>
                       </div>

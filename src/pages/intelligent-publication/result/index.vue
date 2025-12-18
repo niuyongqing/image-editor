@@ -624,9 +624,15 @@
                           </div>
                         </div>
                       </div>
+                      <div v-else>
+                        <span>--</span>
+                      </div>
                     </div>
                     <div v-else-if="column.dataIndex === 'publishType'">
                       <div>{{ PUBLISH_TYPE_OPTIONS.find(opt => opt.value === record.publishType)?.label || '--' }}</div>
+                    </div>
+                    <div v-else-if="column.dataIndex === 'operatorName'">
+                      <span>{{ record.operatorName || '--' }}</span>
                     </div>
                     <div v-else-if="column.dataIndex === 'createdAt'">
                       <div>

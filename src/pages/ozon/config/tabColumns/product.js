@@ -58,6 +58,13 @@ export default [
     filter: false,
   },
   {
+    title: '操作人',
+    dataIndex: 'operatorName',
+    align: 'center',
+    width: 120,
+    filter: false
+  },
+  {
     title: '创建时间',
     dataIndex: 'create_time',
     align: "center",

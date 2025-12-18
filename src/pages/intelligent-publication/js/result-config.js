@@ -15,44 +15,51 @@ export const DEFAULT_COLUMNS = [
     title: '售价',
     dataIndex: 'price',
     align: 'center',
-    width: 180
+    width: 160
   },
   {
     title: '原价',
     dataIndex: 'oldPrice',
     align: 'center',
-    width: 180
+    width: 160
   },
   {
     title: '最低价',
     dataIndex: 'minPrice',
     align: 'center',
-    width: 180
+    width: 160
   },
   {
     title: '总库存',
     dataIndex: 'stock',
     align: 'center',
-    width: 180
+    width: 160
   },
   {
     title: '错误信息',
     dataIndex: 'errorInfo',
     align: 'center',
-    width: 180
+    width: 160
   },
   {
     title: '状态',
     dataIndex: 'state', // state
     align: 'center',
-    width: 180,
+    width: 160,
     filter: false
   },
   {
     title: '刊登模式',
     dataIndex: 'publishType',
     align: 'center',
-    width: 180,
+    width: 160,
+    filter: false
+  },
+  {
+    title: '操作人',
+    dataIndex: 'operatorName',
+    align: 'center',
+    width: 160,
     filter: false
   },
   {
