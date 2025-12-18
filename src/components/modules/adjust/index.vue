@@ -12,6 +12,7 @@
 
       <AdjustWhite :is-expanded="activeCollapse === 'white'" @toggle="toggle('white')" />
 
+      <AdjustColor :is-expanded="activeCollapse === 'color'" @toggle="toggle('color')" />
       <div class="tool-group">
         <div class="tool-item" @click="notImplemented">
           <div class="left">
@@ -29,25 +30,6 @@
           </div>
         </div>
       </div>
-
-      <!-- <div class="tool-group">
-        <div class="tool-item" @click="notImplemented">
-          <div class="left">
-            <svg width="18" height="18" viewBox="0 0 1024 1024" style="margin-right: 8px; fill: currentColor">
-              <path
-                d="M96 896a32 32 0 0 1-32-32V160a32 32 0 0 1 32-32h832a32 32 0 0 1 32 32v704a32 32 0 0 1-32 32H96z m315.52-228.48l-68.928-114.88a32 32 0 0 0-54.784 0l-68.928 114.88L158.72 768h316.16l-60.16-100.48zM288 384a64 64 0 1 0 0-128 64 64 0 0 0 0 128z m261.12 216.96l-78.72-118.08a32 32 0 0 0-53.12 0l-78.72 118.08L483.2 697.6h126.72l-54.4-96.64z m208.64-106.88l-98.56-147.84a32 32 0 0 0-53.12 0l-98.56 147.84L652.8 697.6h209.92l-104.96-157.44z" />
-            </svg>
-            <span>图片补白</span>
-          </div>
-          <div class="right-icon">
-            <svg class="arrow" width="14" height="14" viewBox="0 0 1024 1024" style="fill: currentColor">
-              <path
-                d="M340.864 149.312a30.592 30.592 0 0 0 0 42.752L652.736 512 340.864 831.872a30.592 30.592 0 0 0 0 42.752 29.12 29.12 0 0 0 41.728 0L714.24 534.336a32 32 0 0 0 0-44.672L382.592 149.376a29.12 29.12 0 0 0-41.728 0z" />
-            </svg>
-          </div>
-        </div>
-      </div> -->
-
     </div>
   </div>
 </template>
@@ -62,6 +44,7 @@ const AdjustResize = defineAsyncComponent(() => import('./AdjustResize.vue'));
 const AdjustInpaint = defineAsyncComponent(() => import('./AdjustInpaint.vue'));
 const AdjustRembg = defineAsyncComponent(() => import('./AdjustRembg.vue'));
 const AdjustWhite = defineAsyncComponent(() => import('./AdjustWhite.vue'));
+const AdjustColor = defineAsyncComponent(() => import('./AdjustColor.vue'));
 const activeCollapse = ref('');
 
 const toggle = (id) => {
