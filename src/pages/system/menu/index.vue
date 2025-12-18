@@ -2,21 +2,61 @@
   <div ref="tableContainerParent">
     <a-card style="margin-top: 10px">
       <div style="margin-bottom: 10px; text-align: left">
-        <a-button class="spacing" type="primary" @click="addOneMenu">添加</a-button>
-        <a-button class="spacing" type="primary" @click="dragMenuSave">拖拽保存</a-button>
+        <a-button class="spacing" type="primary" @click="addOneMenu"
+          >添加</a-button
+        >
+        <a-button class="spacing" type="primary" @click="dragMenuSave"
+          >拖拽保存</a-button
+        >
       </div>
-      <div :style="{ width: autoWidth }" class="table-container" ref="tableContainer">
-        <vxe-table border ref="xGrid2" class="mytable-style" :sort-config="sortConfig" :row-config="rowConfig"
-          :row-drag-config="rowDragConfig" :column-config="columnConfig" @cell-dblclick="cellDblclickEvent"
-          @row-dragend="rowDragendEvent" :tree-config="treeConfig" :data="newTopLevelMenuList" :loading="tableLoading"
-          header-align="center" height="1100">
-          <vxe-column type="seq" fixed="left" align="center" width="80"></vxe-column>
-          <vxe-column fixed="left" field="title" title="菜单名" tree-node drag-sort :key-field="'title'">
+      <div
+        :style="{ width: autoWidth }"
+        class="table-container"
+        ref="tableContainer"
+      >
+        <vxe-table
+          border
+          ref="xGrid2"
+          height="1160"
+          header-align="center"
+          :sort-config="sortConfig"
+          :row-drag-config="rowDragConfig"
+          :column-config="columnConfig"
+          class="mytable-style"
+          :loading="tableLoading"
+          :data="newTopLevelMenuList"
+          :row-config="{
+            keyField: 'id',
+            drag: true,
+            isHover: true,
+            isCurrent: true,
+          }"
+          :tree-config="treeConfig"
+          :scroll-y="{ enabled: true, gt: 100 }"
+          @cell-dblclick="cellDblclickEvent"
+          @row-dragend="rowDragendEvent"
+        >
+          <vxe-column
+            type="seq"
+            fixed="left"
+            align="center"
+            width="80"
+          ></vxe-column>
+          <vxe-column
+            fixed="left"
+            field="title"
+            title="菜单名"
+            tree-node
+            drag-sort
+            :key-field="'title'"
+          >
             <template #default="{ row }">
               <div class="menu-title-container">
-                <!-- 简化图标判断逻辑，减少不必要的属性访问 -->
-                <AsyncIcon v-if="row.icon || (row.meta && row.meta.icon)" :icon="row.icon || row.meta.icon"
-                  :component-key="`icon-${row.id}`"></AsyncIcon>
+                <AsyncIcon
+                  v-if="row.icon || (row.meta && row.meta.icon)"
+                  :icon="row.icon || row.meta.icon"
+                  :component-key="`icon-${row.id}`"
+                ></AsyncIcon>
                 {{ row.title }}
               </div>
             </template>
@@ -54,22 +94,33 @@
           </vxe-column>
           <vxe-column title="操作" fixed="right" align="center">
             <template #default="{ row }">
-              <a-button type="link" @click.stop="add(row)" color="#2db7f5">添加</a-button>
+              <a-button type="link" @click.stop="add(row)" color="#2db7f5"
+                >添加</a-button
+              >
               <a-button type="link" @click.stop="edit(row)">编辑</a-button>
-              <a-popconfirm :title="'确定要删除菜单吗？'" @confirm="confirmDeleteMenu(row)">
+              <a-popconfirm
+                :title="'确定要删除菜单吗？'"
+                @confirm="confirmDeleteMenu(row)"
+              >
                 <a-button type="text" danger>删除</a-button>
               </a-popconfirm>
             </template>
           </vxe-column>
         </vxe-table>
-        <vxe-pager v-model:currentPage="pageVO.currentPage" v-model:pageSize="pageVO.pageSize" :total="pageVO.total"
-          @page-change="pageChange">
-        </vxe-pager>
       </div>
     </a-card>
-    <add-or-edit ref="addOrEditRef" :open="open" :title="title" :data="editData" @close="close"
-      @getMenuClassify="getMenuClassify" @refreshMenu="refreshMenu" @getMenusList="getMenusList" :menus="treeMenuData"
-      :classify="classifyList"></add-or-edit>
+    <add-or-edit
+      ref="addOrEditRef"
+      :open="open"
+      :title="title"
+      :data="editData"
+      @close="close"
+      @getMenuClassify="getMenuClassify"
+      @refreshMenu="refreshMenu"
+      @getMenusList="getMenusList"
+      :menus="treeMenuData"
+      :classify="classifyList"
+    ></add-or-edit>
   </div>
 </template>
 <script setup>
@@ -87,12 +138,12 @@ import { useLayoutState } from "~/layouts/basic-layout/context.js";
 const { collapsed } = useLayoutState();
 const tableContainerParent = ref(null);
 let timer1 = null;
-const autoWidth = ref("2260px");
+const autoWidth = ref("2240px");
 watch(
   () => collapsed.value,
   (newVal) => {
     timer1 = setTimeout(() => {
-      autoWidth.value = tableContainerParent.value.clientWidth - 20 + "px";
+      autoWidth.value = tableContainerParent.value.clientWidth - 40 + "px";
     }, 220);
   }
 );
@@ -110,49 +161,21 @@ import AsyncIcon from "~/layouts/components/menu/async-icon.vue";
 import AddOrEdit from "~/pages/system/menu/component/addOrEdit.vue";
 import { message } from "ant-design-vue";
 import "vxe-table/lib/style.css";
-import {
-  splitMenuDataForLazyLoad,
-  fetchMenuChildren,
-  buildCompleteMenuTree,
-} from "./menuDataUtils";
-import { useRouter } from 'vue-router';
+import { useRouter } from "vue-router";
 const router = useRouter();
 
 // 在组件中引入userStore
 import { useUserStore } from "~/stores/user.js";
 
-const pageVO = reactive({
-  total: 0,
-  currentPage: 1,
-  pageSize: 20,
-});
 const newTopLevelMenuList = ref([]);
-// 前端分页
-const handlePageData = () => {
-  tableLoading.value = true;
-  setTimeout(() => {
-    const { pageSize, currentPage } = pageVO;
-    pageVO.total = topLevelMenuList.length;
-    newTopLevelMenuList.value = topLevelMenuList.slice(
-      (currentPage - 1) * pageSize,
-      currentPage * pageSize
-    );
-    tableLoading.value = false;
-  }, 100);
-};
-const pageChange = ({ pageSize, currentPage }) => {
-  pageVO.currentPage = currentPage;
-  pageVO.pageSize = pageSize;
-  handlePageData();
-};
 
 // 更新菜单数据
 const refreshMenu = async () => {
   const userStore = useUserStore();
   const currentRoute = await userStore.generateDynamicRoutes();
   // 更新路由
-  router.removeRoute(currentRoute.name)
-  router.addRoute(currentRoute)
+  router.removeRoute(currentRoute.name);
+  router.addRoute(currentRoute);
   // let rootPath = router.getRoutes().find(i => i.name === currentRoute.name)
   // console.log({
   //   router: router.getRoutes(),
@@ -182,24 +205,17 @@ const rowDragConfig = {
   trigger: "row",
 };
 
-// 优化树形配置，禁用不必要的特性
+// index.vue 约 157 行
 const treeConfig = ref({
-  transform: true,
-  rowField: "id",
-  parentField: "parentId",
-  lazy: true,
+  transform: true, // 开启平行数组自动转换
+  rowField: "id", // 对应数据中的 id
+  parentField: "parentId", // 对应数据中的 parentId
+  lazy: false, // 关闭懒加载，解决顶级菜单虚增问题
   hasChild: "hasChild",
+  reserve: true, // 核心：数据更新后自动保留展开状态
   trigger: "row",
-  iconOpen: "vxe-icon-arrow-right",
-  iconClose: "vxe-icon-arrow-down",
-  loadMethod({ row }) {
-    // 使用工具函数异步加载子菜单
-    return fetchMenuChildren(childrenMapList, row.id).then((children) => {
-      // 记录加载的子菜单，用于保存时重建完整菜单树
-      completeChildrenMap.set(row.id, [...children]);
-      return children;
-    });
-  },
+  iconClose: "vxe-icon-arrow-right",
+  iconOpen: "vxe-icon-arrow-down",
 });
 
 const addOrEditRef = ref(null);
@@ -237,7 +253,7 @@ function getMenuClassify() {
 }
 
 // 添加防抖函数 - 优化闭包结构
-  let timer = null;
+let timer = null;
 function debounce(fn, delay = 100) {
   return function (...args) {
     if (timer) clearTimeout(timer);
@@ -344,112 +360,46 @@ function confirmDeleteMenu(item) {
   });
 }
 
-/**
- * 将菜单列表转换为树结构 - 优化内存使用
- * @param {Array} menuList - 原始菜单列表
- */
-const getTreeMenu = (menuList) => {
-  if (!menuList || !menuList.length) {
-    treeMenuData = [];
-    return;
-  }
-
-  // 先对菜单列表进行排序
-  const sortedMenuList = [...menuList].sort((a, b) => {
-    const aSort = a.sort || 0;
-    const bSort = b.sort || 0;
-    return aSort - bSort;
-  });
-
-  // 使用局部变量构建树结构
-  const map = Object.create(null); // 使用Object.create(null)避免原型链查找
-  const result = [];
-  const len = sortedMenuList.length;
-
-  // 单次遍历构建树结构，避免两次遍历
-  for (let i = 0; i < len; i++) {
-    const item = sortedMenuList[i];
-    const id = item.id;
-
-    // 如果节点不存在，则创建
-    if (!map[id]) {
-      map[id] = { children: [] };
-    }
-
-    // 合并属性，避免完整复制对象
-    Object.assign(map[id], item);
-
-    const parentId = item.parentId;
-
-    if (!parentId || parentId === null) {
-      // 顶级节点
-      result.push(map[id]);
-    } else {
-      // 确保父节点存在
-      if (!map[parentId]) {
-        map[parentId] = { children: [] };
-      }
-      // 子节点，挂到父节点下
-      map[parentId].children.push(map[id]);
-    }
-  }
-  treeMenuData = JSON.parse(JSON.stringify(result));
-  // 初始化，拆分菜单数据用于懒加载
-  const { topLevelMenus, childrenMap } = splitMenuDataForLazyLoad(result);
-  // 直接赋值
-  topLevelMenuList = topLevelMenus;
-  handlePageData();
-  // console.log("childrenMap:", childrenMap);
-  childrenMapList = childrenMap;
-  // 复制原始子菜单映射到完整子菜单映射
-  childrenMapList.forEach((children, parentId) => {
-    completeChildrenMap.set(parentId, [...children]);
-  });
-
-  defaultSort();
-};
-
-// 默认排序
-const defaultSort = () => {
-  // 为顶级菜单排序
-  if (topLevelMenuList && topLevelMenuList.length > 0) {
-    topLevelMenuList.sort((a, b) => {
-      const sortA = a.sort || a.orderNum || 0;
-      const sortB = b.sort || b.orderNum || 0;
-      return sortA - sortB;
-    });
-  }
-
-  // 为所有子菜单排序
-  childrenMapList.forEach((children, parentId) => {
-    if (children && children.length > 0) {
-      children.sort((a, b) => {
-        const sortA = a.sort || a.orderNum || 0;
-        const sortB = b.sort || b.orderNum || 0;
-        return sortA - sortB;
-      });
-    }
-
-    // 同步更新完整子菜单映射
-    if (completeChildrenMap.has(parentId)) {
-      completeChildrenMap.set(parentId, [...children]);
-    }
-  });
-};
+// 2. 修改 getMenusList：对接平行数组，移除懒加载逻辑
 function getMenusList() {
   tableLoading.value = true;
   getMenusListApi({})
     .then((value) => {
-      // 使用局部变量缓存数据
       const data = value.data || [];
 
-      // 先创建树结构
-      getTreeMenu(data);
+      // 预排序：确保 transform 渲染后的同级顺序正确
+      const sortedMenuList = [...data].sort(
+        (a, b) => (a.sort || 0) - (b.sort || 0)
+      );
+
+      // 直接保存全量平行数组
+      topLevelMenuList = sortedMenuList;
+
+      newTopLevelMenuList.value = topLevelMenuList;
+      // 构建嵌套树，供 addOrEdit 弹窗的 a-tree-select 使用
+      buildTreeForComponent(sortedMenuList);
     })
     .finally(() => {
       tableLoading.value = false;
     });
 }
+
+// 3. 新增辅助函数：为弹窗组件构建嵌套树（因为 a-tree-select 需要 children 结构）
+const buildTreeForComponent = (flatData) => {
+  const map = Object.create(null);
+  const result = [];
+  flatData.forEach((item) => {
+    map[item.id] = { ...item, title: item.title, key: item.id, children: [] };
+  });
+  flatData.forEach((item) => {
+    if (item.parentId && map[item.parentId]) {
+      map[item.parentId].children.push(map[item.id]);
+    } else {
+      result.push(map[item.id]);
+    }
+  });
+  treeMenuData = result; // 响应式更新弹窗中的树
+};
 
 function edit(pam) {
   title.value = "编辑";
@@ -515,12 +465,10 @@ onBeforeUnmount(() => {
   clearTimeout(timer1);
 });
 
-// 已在上面的onMounted中处理
 </script>
 
 <style scoped lang="less">
 .table-container {
-  // width: 2260px;
   margin: 0 auto;
 }
 
@@ -545,7 +493,9 @@ onBeforeUnmount(() => {
   color: rgba(0, 0, 0, 0.88);
 }
 
-:deep(.vxe-table--render-default .vxe-cell--tree-btn .vxe-table-icon-caret-right) {
+:deep(
+    .vxe-table--render-default .vxe-cell--tree-btn .vxe-table-icon-caret-right
+  ) {
   color: rgba(0, 0, 0, 0.8);
   pointer-events: auto;
 }
