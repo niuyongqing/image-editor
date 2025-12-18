@@ -1076,8 +1076,6 @@
       row[columnData.value.name] = columnData.value.selectType === 'multSelect' ? [val] : val
 
       aspectData.value.push(row)
-
-      aspectData.value.push(row)
     }
 
     columnData.value = {}
