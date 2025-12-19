@@ -13,6 +13,8 @@
       <AdjustWhite :is-expanded="activeCollapse === 'white'" @toggle="toggle('white')" />
 
       <AdjustColor :is-expanded="activeCollapse === 'color'" @toggle="toggle('color')" />
+
+      <AdjustColorOverlay :is-expanded="activeCollapse === 'overlay'" @toggle="toggle('overlay')" />
       <div class="tool-group">
         <div class="tool-item" @click="notImplemented">
           <div class="left">
@@ -45,6 +47,7 @@ const AdjustInpaint = defineAsyncComponent(() => import('./AdjustInpaint.vue'));
 const AdjustRembg = defineAsyncComponent(() => import('./AdjustRembg.vue'));
 const AdjustWhite = defineAsyncComponent(() => import('./AdjustWhite.vue'));
 const AdjustColor = defineAsyncComponent(() => import('./AdjustColor.vue'));
+const AdjustColorOverlay = defineAsyncComponent(() => import('./AdjustColorOverlay.vue'));
 const activeCollapse = ref('');
 
 const toggle = (id) => {
