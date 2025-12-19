@@ -56,7 +56,7 @@ export const DEFAULT_COLUMNS = [
     filter: false
   },
   {
-    title: '操作人',
+    title: '创建人',
     dataIndex: 'operatorName',
     align: 'center',
     width: 160,
