@@ -5,7 +5,9 @@ const state = reactive({
     activeTool: 'adjust', // 当前激活的工具模块
     isDrawing: false,     // 是否处于绘制模式
     canUndo: false,       // 是否可撤销
-    canRedo: false        // 是否可重做
+    canRedo: false,        // 是否可重做
+    isLoading: false,
+    loadingText: '处理中...'
 });
 
 export function useEditorState() {
@@ -24,11 +26,18 @@ export function useEditorState() {
         state.canRedo = canRedo;
     };
 
+    // === 新增: Loading 控制 ===
+    const setLoading = (status, text = '处理中...') => {
+        state.isLoading = status;
+        state.loadingText = text;
+    };
+
     return {
         state: readonly(state), // 只读状态导出，防止直接修改
         setActiveTool,
         toggleDrawing,
-        setHistoryState
+        setHistoryState,
+        setLoading // 导出 Action
     };
 }
 

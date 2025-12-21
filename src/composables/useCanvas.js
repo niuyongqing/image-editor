@@ -244,27 +244,42 @@ export function useCanvas() {
     if (!canvas.value) return null;
     const originalBg = canvas.value.backgroundColor;
     const objects = canvas.value.getObjects();
+
     objects.forEach((obj) => {
-      if (obj.type === "path") {
+      // 变更点：不仅支持 path，还支持标记了 isMaskObject 的对象 (如框选矩形)
+      if (obj.type === "path" || obj.isMaskObject) {
         obj._originalStroke = obj.stroke;
-        obj.set({ stroke: "#ffffff" });
+        obj._originalFill = obj.fill; // 备份填充色
+
+        // 统一变成纯白，用于生成遮罩
+        obj.set({ stroke: "#ffffff", fill: "#ffffff" });
       } else {
         obj._originalOpacity = obj.opacity;
         obj.set({ opacity: 0 });
       }
     });
+
     canvas.value.setBackgroundColor("#000000", null);
     canvas.value.renderAll();
+
+    // 导出
     const dataURL = canvas.value.toDataURL({ format: "png", multiplier: 1 });
+
+    // 恢复现场
     objects.forEach((obj) => {
-      if (obj.type === "path") {
-        obj.set({ stroke: obj._originalStroke || "rgba(255, 0, 0, 0.5)" });
+      if (obj.type === "path" || obj.isMaskObject) {
+        obj.set({
+          stroke: obj._originalStroke,
+          fill: obj._originalFill
+        });
       } else {
         obj.set({ opacity: obj._originalOpacity ?? 1 });
       }
     });
+
     canvas.value.setBackgroundColor(originalBg, null);
     canvas.value.renderAll();
+
     return dataURL;
   };
 

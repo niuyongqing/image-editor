@@ -65,5 +65,31 @@ export const aiApi = {
       console.error('AI API Error:', error);
       throw error;
     }
+  },
+
+  /**
+    * AI 智能消除接口
+    * @param {string} imageUrl - 原图 URL
+    * @param {string} maskBase64 - 遮罩图片 Base64 (黑底白图)
+    * @returns {Promise<string>} 处理后的图片 URL
+    */
+  async inpaint(imageUrl, maskBase64) {
+    // 模拟网络延迟
+    return new Promise((resolve) => {
+      console.log('Calling AI Inpaint API...');
+      console.log('Image:', imageUrl.substring(0, 50) + '...');
+      console.log('Mask Length:', maskBase64.length);
+
+      setTimeout(() => {
+        // ⚠️ 这里目前直接返回原图，仅做流程跑通演示
+        // 真实开发请替换为：
+        // const formData = new FormData();
+        // formData.append('image', ...);
+        // formData.append('mask', ...);
+        // const res = await fetch('/api/inpaint', { ... });
+
+        resolve(imageUrl);
+      }, 2000);
+    });
   }
 };
