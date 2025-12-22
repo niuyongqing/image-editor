@@ -1,7 +1,7 @@
 import { ref, unref, watch } from 'vue';
 import { fabric } from 'fabric';
 import { aiApi } from '@/api/ai';
-import { Toast } from '@/utils/toast';
+import { toast } from '@/utils/toast';
 import { useEditorState } from '@/composables/useEditorState';
 
 // === 模块级单例状态 ===
@@ -269,7 +269,7 @@ const executeInpaint = async () => {
                 setObjectsLocked(true); // 重新锁定新图片
                 
                 if (saveHistoryFn) saveHistoryFn();
-                Toast.success('消除完成');
+                toast.success('消除完成');
                 canvas.requestRenderAll();
                 
                 // 图片加载完再关闭 Loading，体验更平滑
@@ -280,7 +280,7 @@ const executeInpaint = async () => {
         }
     } catch (error) {
         console.error('Inpaint error:', error);
-        Toast.error('消除失败，请重试');
+        toast.error('消除失败，请重试');
         clearMaskObjects();
         setLoading(false);
     }
@@ -305,7 +305,7 @@ export const handleRestoreOriginal = () => {
         else enableRect();
         
         if (saveHistoryFn) saveHistoryFn();
-        Toast.success('已恢复至初始状态');
+        toast.success('已恢复至初始状态');
     });
 };
 
