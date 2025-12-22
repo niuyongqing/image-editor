@@ -14,13 +14,21 @@
 </template>
 
 <script setup>
-import { provide, watch, defineProps, defineEmits } from 'vue';
+import { provide, ref, onMounted, watch, defineProps, defineEmits } from 'vue';
 import { useCanvas } from '../../composables/useCanvas';
 import NavBar from './NavBar.vue';
 import LeftSidebar from './LeftSidebar.vue';
 import ToolPanel from '../panels/ToolPanel.vue';
 import Workspace from '../Workspace.vue';
 import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
+import { applyTheme } from '@/config/theme.js';
+const sdkContainer = ref(null);
+onMounted(() => {
+  // 2. 将主题注入到这个特定的 DOM 节点
+  if (sdkContainer.value) {
+    applyTheme(sdkContainer.value);
+  }
+});
 // === 1. 定义组件接口 (Props & Emits) ===
 const props = defineProps({
   // 初始图片链接

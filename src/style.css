@@ -3,27 +3,28 @@
 
 /* 2. 将原先 :root 里的变量移到容器内，变成局部变量 */
 .image-editor-sdk-container {
-  /* 定义局部变量 */
-  --ie-font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  --ie-bg-color: #242424;
+ /* === 1. 定义默认变量 (JS 注入后会覆盖这些值) === */
+  --ie-font-family: system-ui, sans-serif;
+  --ie-bg-color: #242424; 
   --ie-text-color: rgba(255, 255, 255, 0.87);
   --ie-primary-color: #409eff;
-  --ie-border-color: #dcdfe6;
+  --ie-border-color: #414243;
 
-  /* === 核心重置 (替代 reset.css) === */
-  /* 强制在这个容器内使用 border-box，不依赖宿主环境 */
+  /* === 2. 基础盒子设定 === */
+  position: relative;
+  width: 100%;
+  height: 100%;
   box-sizing: border-box;
+  overflow: hidden;
+
+  /* === 3. 应用变量 === */
   font-family: var(--ie-font-family);
-  line-height: 1.5;
-  font-weight: 400;
-  color-scheme: light dark;
-  color: var(--ie-text-color);
   background-color: var(--ie-bg-color);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+  color: var(--ie-text-color);
+
+  /* 字体优化 */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: left;
   /* 覆盖可能居中的 body 样式 */
 
   /* 确保容器内的所有元素继承 box-sizing */

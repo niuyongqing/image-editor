@@ -67,7 +67,7 @@ const handleRembg = async () => {
 /* Loading 旋转动画 */
 .loading-icon {
   animation: rotating 1s linear infinite;
-  color: #409eff;
+  color: var(--ie-primary-color);
 }
 
 @keyframes rotating {

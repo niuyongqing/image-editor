@@ -196,7 +196,7 @@ const onFileSelected = (e) => {
 <style scoped>
 /* === 全局变量 (Design Token) === */
 .puzzle-panel {
-  --primary: #409eff;
+  --primary: var(--ie-primary-color);
   --primary-soft: #ecf5ff;
   --text-main: #2c3e50;
   --text-sub: #606266;

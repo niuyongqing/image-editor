@@ -194,7 +194,7 @@ onUnmounted(() => {
 }
 
 .zoom-text:hover {
-  color: #409eff;
+  color: var(--ie-primary-color);
 }
 
 /* ✅ 修复3: 必须添加按钮样式，否则按钮是透明的或者看不到 */
@@ -211,7 +211,7 @@ onUnmounted(() => {
 }
 
 .ie-btn:hover {
-  color: #409eff;
+  color: var(--ie-primary-color);
   /* 或者您的主题色 */
   background-color: #ecf5ff;
 }
