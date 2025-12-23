@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import { provide, watch, defineProps, defineEmits } from 'vue';
+import { provide, watch } from 'vue';
 import { useCanvas } from '../../composables/useCanvas';
 import NavBar from './NavBar.vue';
 import LeftSidebar from './LeftSidebar.vue';
