@@ -27,8 +27,9 @@
 </template>
 
 <script setup>
-import { ref, defineAsyncComponent } from 'vue';
+import { ref, defineAsyncComponent, watch } from 'vue';
 import { toast } from '@/utils/toast';
+import { useEditorState } from '@/composables/useEditorState'; // 假设与当前文件同级，如果在 composables 请修改路径
 
 // 异步组件引入
 const AdjustCrop = defineAsyncComponent(() => import('./AdjustCrop.vue'));
@@ -43,7 +44,25 @@ const AdjustMosaic = defineAsyncComponent(() => import('./AdjustMosaic.vue'));
 const AdjustRuler = defineAsyncComponent(() => import('./AdjustRuler.vue'));
 
 const activeCollapse = ref('');
+// ✨ 获取全局状态
+const { state } = useEditorState();
 
+// ✨✨✨ 核心链路修复：监听路由变化 ✨✨✨
+// 当 state.activeTab 变为 'ruler' 时，自动展开 'ruler' 面板
+watch(
+  () => state.activeTab,
+  (newTab) => {
+    // 这里做一个简单的白名单匹配，防止非 Adjust 面板的 Tab 干扰
+    // 这里的 'ruler' 对应 template 中 toggle('ruler') 的 id
+    const validTabs = ['crop', 'resize', 'inpaint', 'rembg', 'ruler', 'white', 'color', 'overlay', 'filters', 'mosaic'];
+    
+    if (newTab && validTabs.includes(newTab)) {
+      console.log('[AdjustPanel] Auto expanding:', newTab);
+      activeCollapse.value = newTab;
+    }
+  },
+  { immediate: true }
+);
 const toggle = (id) => {
   activeCollapse.value = activeCollapse.value === id ? '' : id;
 };

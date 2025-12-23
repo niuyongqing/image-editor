@@ -211,6 +211,13 @@ const createRulerObject = (start, end) => {
         originX: 'center', originY: 'center',
         opacity: cfg.opacity / 100,
         id: 'ruler-group',
+        
+        // ✨✨✨ 这里是关键修改 ✨✨✨
+        // 1. 告诉路由系统：选中我时，请自动打开 'ruler' 这个二级折叠面板
+        customTab: 'ruler', 
+        // 2. (可选) 强制指定一级面板为 'adjust' (防止被误判为 border)
+        customTool: 'adjust', 
+
         isRuler: true, // 关键标识
         _rulerValue: cfg.value, // 持久化数据
         _rulerUnit: cfg.unit,
