@@ -144,14 +144,14 @@
             <div class="control-group">
               <label>边框</label>
               <input
-                v-model="puzzleSettings.border"
+                v-model="puzzleSettings.padding"
                 type="range"
                 min="0"
                 max="100"
                 step="1"
                 @change="updateStyle"
               />
-              <span class="value-display">{{ puzzleSettings.border }}px</span>
+              <span class="value-display">{{ puzzleSettings.padding }}px</span>
             </div>
 
             <!-- 间距 -->
@@ -430,7 +430,7 @@
 
   const applyTemplate = (templ) => {
     const cells = parseTemplateToCells(templ);
-    updateLayout(cells);
+    updateLayout(cells, puzzleSettings);
   };
 
   const cancel = () => {
@@ -441,10 +441,10 @@
 
   // 配置面板数据
   const puzzleSettings = reactive({
-    width: 1200,
-    height: 1200,
+    width: 1000,
+    height: 1000,
     lockRatio: false,
-    border: 15,
+    padding: 15, // 语义上是边框, 实现上是用 padding
     spacing: 15,
     bgColor: '#ffffff'
   });

@@ -646,6 +646,8 @@ const onMouseWheel = (opt) => {
 export const updateLayout = (cellDefinitions = null, config = {}) => {
   const canvas = unref(canvasRef);
   if (!canvas) return;
+  if (config.width !== undefined) puzzleState.width = config.width;
+  if (config.height !== undefined) puzzleState.height = config.height;
   if (config.padding !== undefined) puzzleState.padding = config.padding;
   if (config.spacing !== undefined) puzzleState.spacing = config.spacing;
   if (config.radius !== undefined) puzzleState.radius = config.radius;
