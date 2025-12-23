@@ -3,21 +3,15 @@
 
 /* 2. 将原先 :root 里的变量移到容器内，变成局部变量 */
 .image-editor-sdk-container {
- /* === 1. 定义默认变量 (JS 注入后会覆盖这些值) === */
-  --ie-font-family: system-ui, sans-serif;
-  --ie-bg-color: #242424; 
-  --ie-text-color: rgba(255, 255, 255, 0.87);
-  --ie-primary-color: #409eff;
-  --ie-border-color: #414243;
 
-  /* === 2. 基础盒子设定 === */
+  /* === 1. 基础盒子设定 === */
   position: relative;
   width: 100%;
   height: 100%;
   box-sizing: border-box;
   overflow: hidden;
 
-  /* === 3. 应用变量 === */
+  /* === 2. 应用变量 === */
   font-family: var(--ie-font-family);
   background-color: var(--ie-bg-color);
   color: var(--ie-text-color);

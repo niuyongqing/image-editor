@@ -14,7 +14,7 @@ export const THEME = {
         bg: '#242424',            // 画布背景
         panel: '#1e1e1e',         // 工具栏背景 (如果你需要区分的话)
         text: 'rgba(255, 255, 255, 0.87)',
-        border: '#414243',
+        border: '#dcdfe6',
 
         // Canvas 交互专用 (JS 读取)
         selectionBorder: '#409eff',
@@ -39,6 +39,6 @@ export const applyTheme = (targetElement) => {
     root.style.setProperty('--ie-text-color', colors.text);
     root.style.setProperty('--ie-border-color', colors.border);
     root.style.setProperty('--ie-font-family', fontFamily);
-
+    console.log(targetElement);
     console.log(`🎨 Theme applied to ${targetElement ? 'SDK Container' : 'Global Root'}`);
 };
