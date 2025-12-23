@@ -43,7 +43,6 @@ The content is organized as follows:
 
 <directory_structure>
 .spec/active-context.md
-.spec/feature-ruler-interaction.md
 .spec/project-charter.md
 .spec/system-patterns.md
 index.html
@@ -96,6 +95,7 @@ src/components/modules/watermark/index.vue
 src/components/panels/ToolPanel.vue
 src/components/Workspace.vue
 src/composables/useCanvas.js
+src/composables/useCanvasLock.js
 src/composables/useConstraint.js
 src/composables/useEditorState.js
 src/composables/useKeyboardShortcuts.js
@@ -908,209 +908,6 @@ onMounted(() => {
 .label-row { display: flex; justify-content: space-between; font-size: 12px; color: #606266; margin-bottom: 8px; }
 .action-buttons { display: flex; gap: 10px; margin-top: 16px; }
 .full { flex: 1; }
-</style>
-</file>
-
-<file path="src/components/modules/adjust/AdjustRuler.vue">
-<template>
-  <div class="tool-group">
-    <div class="tool-item" :class="{ 'is-expanded': isExpanded }" @click="$emit('toggle')">
-      <div class="left">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0l12.6 12.6z"></path>
-          <path d="m5 6 1.7 1.7"></path>
-          <path d="m17 18 1.7 1.7"></path>
-          <path d="m11 12 1.7 1.7"></path>
-        </svg>
-        <span>测量标尺</span>
-      </div>
-      <div class="right-icon">
-        <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="m9 18 6-6-6-6" />
-        </svg>
-      </div>
-    </div>
-
-    <div v-if="isExpanded" class="tool-content">
-      
-      <div class="action-row">
-        <button 
-          class="ie-btn ie-primary" 
-          :class="{ 'active': isDrawing }"
-          @click="toggleDrawMode"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px">
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-            <polyline points="12 5 19 12 12 19"></polyline>
-          </svg>
-          {{ isDrawing ? '绘制中 (Esc退出)' : '新建标尺' }}
-        </button>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="control-group">
-        <div class="label-row">
-          <span>标注数值</span>
-        </div>
-        <div class="input-group">
-          <input 
-            type="number" 
-            v-model.number="rulerConfig.value" 
-            class="ie-input-number" 
-            style="flex:1; width:auto;"
-            @input="updateActiveRuler"
-          >
-          <select v-model="rulerConfig.unit" class="ie-select" @change="updateActiveRuler">
-            <option value="px">px</option>
-            <option value="cm">cm</option>
-            <option value="mm">mm</option>
-            <option value="m">m</option>
-            <option value="in">inch</option>
-            <option value="ft">foot</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="control-group">
-        <div class="label-row">
-          <span>线条颜色</span>
-          <input type="color" v-model="rulerConfig.color" @input="updateActiveRuler">
-        </div>
-        
-        <div class="label-row">
-          <span>透明度</span>
-          <span class="val">{{ rulerConfig.opacity }}%</span>
-        </div>
-        <input 
-          type="range" 
-          v-model.number="rulerConfig.opacity" 
-          min="10" max="100" 
-          class="ie-slider" 
-          @input="updateActiveRuler"
-        >
-      </div>
-
-      <div class="control-group">
-        <div class="label-row">
-          <span>线条粗细</span>
-          <span class="val">{{ rulerConfig.strokeWidth }}px</span>
-        </div>
-        <input 
-          type="range" 
-          v-model.number="rulerConfig.strokeWidth" 
-          min="1" max="10" 
-          class="ie-slider" 
-          @input="updateActiveRuler"
-        >
-      </div>
-
-      <div class="control-group">
-        <div class="label-row">
-          <span>字体大小</span>
-          <input 
-            type="number" 
-            v-model.number="rulerConfig.fontSize" 
-            class="ie-input-number"
-            @input="updateActiveRuler"
-          >
-        </div>
-        <div class="label-row" style="margin-top:8px">
-          <span>文字背景</span>
-          <input type="checkbox" v-model="rulerConfig.showBg" @change="updateActiveRuler">
-        </div>
-      </div>
-
-    </div>
-  </div>
-</template>
-
-<script setup>
-import { defineProps, defineEmits, inject, onMounted } from 'vue';
-import { 
-  registerRulerModule, 
-  rulerConfig, 
-  isDrawing, 
-  startDrawMode, 
-  stopDrawMode,
-  updateActiveRuler 
-} from './useCanvasRuler';
-
-const props = defineProps({
-  isExpanded: Boolean
-});
-
-const emit = defineEmits(['toggle']);
-const canvasAPI = inject('canvasAPI'); // 依赖注入获取 Canvas
-
-const toggleDrawMode = () => {
-  if (isDrawing.value) {
-    stopDrawMode();
-  } else {
-    startDrawMode();
-  }
-};
-
-onMounted(() => {
-  if (canvasAPI && canvasAPI.canvas) {
-    registerRulerModule(canvasAPI.canvas, canvasAPI.saveHistory);
-  } else {
-    console.warn('CanvasAPI not found in AdjustRuler');
-  }
-});
-</script>
-
-<style scoped>
-.tool-content { padding: 16px; }
-
-.action-row {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 16px;
-}
-
-.divider {
-  height: 1px;
-  background: #ebeef5;
-  margin: 16px 0;
-}
-
-.control-group {
-  margin-bottom: 16px;
-}
-
-.label-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-  color: #606266;
-  margin-bottom: 8px;
-}
-
-.input-group {
-  display: flex;
-  gap: 8px;
-}
-
-.ie-select {
-  height: 28px;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  font-size: 12px;
-  color: #606266;
-  padding: 0 4px;
-  outline: none;
-  background: white;
-}
-
-.ie-btn.active {
-  background-color: #ecf5ff;
-  color: var(--ie-primary-color);
-  border-color: var(--ie-primary-color);
-}
-
-.val { font-family: monospace; }
 </style>
 </file>
 
@@ -2155,10 +1952,6 @@ export { EditorLayout };
 export default EditorLayout;
 </file>
 
-<file path=".spec/feature-ruler-interaction.md">
-
-</file>
-
 <file path="index.html">
 <!doctype html>
 <html lang="en">
@@ -2324,6 +2117,307 @@ onUnmounted(() => {
 
 .action-buttons { display: flex; gap: 10px; }
 .full { flex: 1; }
+</style>
+</file>
+
+<file path="src/components/modules/adjust/AdjustRuler.vue">
+<template>
+  <div class="tool-group">
+    <div class="tool-item" :class="{ 'is-expanded': isExpanded }" @click="$emit('toggle')">
+      <div class="left">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0l12.6 12.6z"></path>
+          <path d="m5 6 1.7 1.7"></path>
+          <path d="m17 18 1.7 1.7"></path>
+          <path d="m11 12 1.7 1.7"></path>
+        </svg>
+        <span>测量标尺</span>
+      </div>
+      <div class="right-icon">
+        <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="m9 18 6-6-6-6" />
+        </svg>
+      </div>
+    </div>
+
+    <div v-if="isExpanded" class="tool-content">
+      
+      <div class="control-group">
+        <div class="section-title">
+          端点样式 
+          <span v-if="isDrawing" style="color:var(--ie-primary-color); float:right; font-weight:normal; animation: blink 1.5s infinite;">
+            绘制中...
+          </span>
+        </div>
+        <div class="style-grid">
+          <div 
+            v-for="style in CAP_STYLES" 
+            :key="style.id"
+            class="style-item"
+            :class="{ active: isStyleActive(style.id) }" 
+            @click="setCapStyle(style.id)"
+            :title="style.label"
+          >
+            <svg width="40" height="20" viewBox="0 0 60 20">
+              <line x1="10" y1="10" x2="50" y2="10" stroke="currentColor" stroke-width="2" />
+              <g v-if="style.id === 'line'">
+                <line x1="10" y1="5" x2="10" y2="15" stroke="currentColor" stroke-width="2" />
+                <line x1="50" y1="5" x2="50" y2="15" stroke="currentColor" stroke-width="2" />
+              </g>
+              <g v-if="style.id === 'arrow'">
+                <path d="M10 10 L15 7 V13 Z" fill="currentColor" />
+                <path d="M50 10 L45 7 V13 Z" fill="currentColor" />
+              </g>
+              <g v-if="style.id === 'arrow_in'">
+                <path d="M5 7 L10 10 L5 13 Z" fill="currentColor" />
+                <path d="M55 7 L50 10 L55 13 Z" fill="currentColor" />
+              </g>
+              <g v-if="style.id === 'dot'">
+                <circle cx="10" cy="10" r="3" fill="currentColor" />
+                <circle cx="50" cy="10" r="3" fill="currentColor" />
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <div class="section-title">线身类型</div>
+        <div class="custom-select" :class="{ open: isDashSelectOpen }">
+          <div class="selected-value" @click="isDashSelectOpen = !isDashSelectOpen">
+             <svg width="100%" height="10" viewBox="0 0 160 10" preserveAspectRatio="none">
+               <line 
+                 x1="0" y1="5" x2="160" y2="5" 
+                 stroke="currentColor" stroke-width="2" 
+                 :stroke-dasharray="currentDashStr"
+                 :stroke-linecap="rulerConfig.strokeLineCap || 'butt'"
+               />
+             </svg>
+             <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg>
+          </div>
+          
+          <div v-show="isDashSelectOpen" class="options-list">
+             <div 
+               v-for="(opt, idx) in DASH_OPTIONS" 
+               :key="idx" 
+               class="option-item"
+               @click="setDashPattern(opt)"
+             >
+                <div class="opt-label">{{ opt.label }}</div>
+                <svg width="80" height="10" viewBox="0 0 80 10" preserveAspectRatio="none">
+                  <line 
+                    x1="0" y1="5" x2="80" y2="5" 
+                    stroke="#606266" stroke-width="2" 
+                    :stroke-dasharray="opt.value.join(',')" 
+                    :stroke-linecap="opt.strokeLineCap || 'butt'"
+                  />
+                </svg>
+             </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="control-group">
+        <div class="label-row">
+          <span>标注数值</span>
+        </div>
+        <div class="input-group">
+          <input 
+            type="number" 
+            v-model.number="rulerConfig.value" 
+            class="ie-input-number" 
+            style="flex:1; width:auto;"
+            @input="updateActiveRuler"
+          >
+          <select v-model="rulerConfig.unit" class="ie-select" @change="updateActiveRuler">
+            <option value="px">px</option>
+            <option value="cm">cm</option>
+            <option value="mm">mm</option>
+            <option value="m">m</option>
+            <option value="in">inch</option>
+            <option value="ft">foot</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <div class="label-row">
+          <span>线条颜色</span>
+          <input type="color" v-model="rulerConfig.color" @input="updateActiveRuler">
+        </div>
+        
+        <div class="label-row">
+          <span>透明度</span>
+          <span class="val">{{ rulerConfig.opacity }}%</span>
+        </div>
+        <input 
+          type="range" 
+          v-model.number="rulerConfig.opacity" 
+          min="10" max="100" 
+          class="ie-slider" 
+          @input="updateActiveRuler"
+        >
+      </div>
+
+      <div class="control-group">
+        <div class="label-row">
+          <span>线条粗细</span>
+          <span class="val">{{ rulerConfig.strokeWidth }}px</span>
+        </div>
+        <input 
+          type="range" 
+          v-model.number="rulerConfig.strokeWidth" 
+          min="1" max="10" 
+          class="ie-slider" 
+          @input="updateActiveRuler"
+        >
+      </div>
+
+      <div class="control-group">
+        <div class="label-row">
+          <span>字体大小</span>
+          <input 
+            type="number" 
+            v-model.number="rulerConfig.fontSize" 
+            class="ie-input-number"
+            @input="updateActiveRuler"
+          >
+        </div>
+        <div class="label-row" style="margin-top:8px">
+          <span>文字背景</span>
+          <input type="checkbox" v-model="rulerConfig.showBg" @change="updateActiveRuler">
+        </div>
+      </div>
+
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { defineProps, defineEmits, inject, onMounted, onUnmounted, ref, computed, watch } from 'vue';
+import { 
+  registerRulerModule, 
+  rulerConfig, 
+  isDrawing, 
+  startDrawMode, 
+  stopDrawMode, 
+  updateActiveRuler,
+  CAP_STYLES,      
+  DASH_OPTIONS     
+} from './useCanvasRuler';
+// [NEW] 引入通用锁定钩子
+import { useCanvasLock } from '@/composables/useCanvasLock'; // 假设路径
+
+const props = defineProps({ isExpanded: Boolean });
+const emit = defineEmits(['toggle']);
+const canvasAPI = inject('canvasAPI');
+
+const isDashSelectOpen = ref(false);
+const { setBackgroundLock } = useCanvasLock();
+
+// === 生命周期与状态管理 ===
+watch(() => props.isExpanded, (val) => {
+    const canvas = canvasAPI.canvas.value;
+    
+    // [NEW] 同步锁定/解锁背景
+    // 进入模块 -> 锁背景; 离开模块 -> 解锁背景
+    setBackgroundLock(canvas, val);
+
+    if (val) {
+        // [场景1] 进入模块
+        const activeObj = canvas?.getActiveObject();
+        // 只有在【没有】选中现有尺子的情况下，才自动进入绘制模式
+        if (!activeObj || !activeObj.isRuler) {
+            setCapStyle(CAP_STYLES[0].id); 
+        }
+    } else {
+        // [场景2] 离开模块
+        if (isDrawing.value) {
+            stopDrawMode();
+        }
+    }
+});
+
+// [NEW] 组件销毁兜底：确保一定解锁背景，防止副作用残留
+onUnmounted(() => {
+    if (canvasAPI && canvasAPI.canvas.value) {
+        setBackgroundLock(canvasAPI.canvas.value, false);
+    }
+});
+
+// === 视觉高亮逻辑 ===
+const isStyleActive = (styleId) => {
+    // 仅在“绘制中”才高亮图标，选中旧尺子时不亮
+    return isDrawing.value && rulerConfig.value.capStyle === styleId;
+};
+
+// ...其余交互逻辑保持不变...
+const setCapStyle = (styleId) => {
+    rulerConfig.value.capStyle = styleId;
+    const canvas = canvasAPI.canvas.value;
+    const activeObj = canvas?.getActiveObject();
+
+    if (activeObj && activeObj.isRuler) {
+        updateActiveRuler();
+    } else {
+        if (!isDrawing.value) {
+            startDrawMode();
+        }
+    }
+};
+
+const setDashPattern = (opt) => {
+    rulerConfig.value.dashArray = opt.value;
+    rulerConfig.value.strokeLineCap = opt.strokeLineCap || 'butt';
+    isDashSelectOpen.value = false;
+    const canvas = canvasAPI.canvas.value;
+    const activeObj = canvas?.getActiveObject();
+    if (activeObj && activeObj.isRuler) {
+        updateActiveRuler();
+    }
+};
+
+const currentDashStr = computed(() => {
+    return rulerConfig.value.dashArray ? rulerConfig.value.dashArray.join(',') : '';
+});
+
+onMounted(() => {
+  if (canvasAPI && canvasAPI.canvas) {
+    registerRulerModule(canvasAPI.canvas, canvasAPI.saveHistory);
+  }
+});
+</script>
+
+<style scoped>
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.tool-content { padding: 16px; }
+.section-title { font-size: 12px; color: #909399; margin-bottom: 8px; font-weight: 500; }
+.style-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+.style-item { height: 32px; border: 1px solid #dcdfe6; border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #606266; background: #fff; transition: all 0.2s; }
+.style-item:hover { border-color: #c0c4cc; }
+.style-item.active { border-color: var(--ie-primary-color); color: var(--ie-primary-color); background-color: #ecf5ff; }
+
+.custom-select { position: relative; width: 100%; border: 1px solid #dcdfe6; border-radius: 4px; background: #fff; cursor: pointer; }
+.selected-value { height: 32px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; color: #606266; }
+.options-list { position: absolute; top: 100%; left: -1px; right: -1px; background: #fff; border: 1px solid #dcdfe6; border-radius: 0 0 4px 4px; z-index: 10; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.option-item { height: 32px; padding: 0 12px; display: flex; align-items: center; }
+.option-item:hover { background-color: #f5f7fa; }
+.opt-label { font-size: 12px; color: #606266; margin-right: 12px; min-width: 40px; }
+
+.divider { height: 1px; background: #ebeef5; margin: 16px 0; }
+.control-group { margin-bottom: 16px; }
+.label-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #606266; margin-bottom: 8px; }
+.input-group { display: flex; gap: 8px; }
+.ie-select { height: 28px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 12px; color: #606266; padding: 0 4px; outline: none; background: white; }
+.val { font-family: monospace; }
+.ie-slider { width: 100%; }
 </style>
 </file>
 
@@ -2518,281 +2612,53 @@ export const commitColorOverlay = () => {
 };
 </file>
 
-<file path="src/components/modules/adjust/useCanvasRuler.js">
-import { ref, unref, watch, nextTick } from 'vue';
-import { fabric } from 'fabric';
+<file path="src/composables/useCanvasLock.js">
+import { unref } from 'vue';
 
-// === 模块级单例状态 ===
-let canvasRef = null;
-let saveHistoryFn = null;
+/**
+ * 通用画布锁定钩子 (修正版)
+ * 针对：主图作为普通对象位于图层最底层 (Index 0) 的情况
+ */
+export function useCanvasLock() {
 
-// 响应式状态 (供 UI 双向绑定)
-const isDrawing = ref(false);
-const rulerConfig = ref({
-    value: 20,
-    unit: 'cm',
-    color: '#ff0000',
-    opacity: 100,
-    fontSize: 24,
-    fontFamily: 'Arial',
-    strokeWidth: 4,
-    showBg: true,
-    capStyle: 'line'
-});
+    /**
+     * 切换主图的锁定状态
+     * @param {Object} canvasInstance - Fabric canvas 实例
+     * @param {Boolean} shouldLock - true: 锁定; false: 解锁
+     */
+    const setBackgroundLock = (canvasInstance, shouldLock) => {
+        const canvas = unref(canvasInstance);
+        if (!canvas) return;
 
-// === 1. 注册与初始化 ===
-export const registerRulerModule = (canvas, saveHistory) => {
-    canvasRef = canvas;
-    saveHistoryFn = saveHistory;
+        // [修正点] 获取对象列表中的第一个元素 (最底层)
+        const objects = canvas.getObjects();
+        const bgObject = objects[0];
 
-    const c = unref(canvas);
-    if (c) {
-        // 绑定选择事件，实现“点击标尺回显属性”
-        c.on('selection:created', onSelectionChanged);
-        c.on('selection:updated', onSelectionChanged);
-        c.on('selection:cleared', onSelectionCleared);
-    }
-};
+        // 安全检查：确保底层存在对象，且通常应该是图片
+        if (bgObject && (bgObject.type === 'image' || bgObject.id === 'workspace_bg')) {
+            // 锁定核心属性
+            bgObject.set({
+                selectable: !shouldLock, // 锁定时不可选中
+                evented: !shouldLock,    // 锁定时不可响应鼠标 (允许穿透)
+                hoverCursor: shouldLock ? 'default' : null // 鼠标样式
+            });
 
-// === 2. 事件监听逻辑 ===
-const onSelectionChanged = (e) => {
-    const activeObj = e.selected?.[0];
-    if (activeObj && activeObj.isRuler) {
-        // 回显属性到面板
-        const items = activeObj.getObjects();
-        rulerConfig.value.value = activeObj._rulerValue ?? 20;
-        rulerConfig.value.unit = activeObj._rulerUnit ?? 'cm';
-        rulerConfig.value.opacity = (activeObj.opacity || 1) * 100;
-        
-        // 线条样式回显 (取 Line 对象)
-        if (items[0]) {
-            rulerConfig.value.color = items[0].stroke;
-            rulerConfig.value.strokeWidth = items[0].strokeWidth;
+            // 强制取消当前可能存在的选中状态
+            if (shouldLock && canvas.getActiveObject() === bgObject) {
+                canvas.discardActiveObject();
+            }
+
+            canvas.requestRenderAll();
+        } else {
+            // 仅在开发环境提示，避免干扰
+            console.warn('[useCanvasLock] 未在图层底部(Index 0)找到主图对象，锁定未生效。');
         }
-        // 文字样式回显 (取 Text 对象)
-        if (items[3]) {
-            rulerConfig.value.fontSize = items[3].fontSize;
-            rulerConfig.value.fontFamily = items[3].fontFamily;
-            rulerConfig.value.showBg = !!items[3].backgroundColor;
-        }
-    }
-};
+    };
 
-const onSelectionCleared = () => {
-    // 可选：清空或保持最后一次配置
-    // rulerConfig.value.value = 20; 
-};
-
-// === 3. 绘制交互流程 ===
-let startPoint = null;
-let activeLine = null;
-
-export const startDrawMode = () => {
-    const canvas = unref(canvasRef);
-    if (!canvas) return;
-    
-    isDrawing.value = true;
-    
-    // 锁定所有对象，防止误触
-    canvas.discardActiveObject();
-    canvas.selection = false;
-    canvas.defaultCursor = 'crosshair';
-    canvas.hoverCursor = 'crosshair';
-    
-    // 临时锁定其他对象
-    canvas.getObjects().forEach(obj => {
-        obj._prevSelectable = obj.selectable;
-        obj.selectable = false;
-    });
-
-    canvas.on('mouse:down', onMouseDown);
-};
-
-export const stopDrawMode = () => {
-    const canvas = unref(canvasRef);
-    if (!canvas) return;
-
-    isDrawing.value = false;
-    
-    canvas.selection = true;
-    canvas.defaultCursor = 'default';
-    canvas.hoverCursor = 'move';
-    
-    // 恢复对象可选中
-    canvas.getObjects().forEach(obj => {
-        if (obj._prevSelectable !== undefined) {
-            obj.selectable = obj._prevSelectable;
-            delete obj._prevSelectable;
-        }
-    });
-
-    canvas.off('mouse:down', onMouseDown);
-    canvas.off('mouse:move', onMouseMove);
-    canvas.off('mouse:up', onMouseUp);
-};
-
-const onMouseDown = (opt) => {
-    const canvas = unref(canvasRef);
-    const pointer = canvas.getPointer(opt.e);
-    startPoint = { x: pointer.x, y: pointer.y };
-    
-    activeLine = new fabric.Line([startPoint.x, startPoint.y, startPoint.x, startPoint.y], {
-        stroke: rulerConfig.value.color,
-        strokeWidth: rulerConfig.value.strokeWidth,
-        strokeDashArray: [5, 5],
-        selectable: false,
-        evented: false
-    });
-    
-    canvas.add(activeLine);
-    canvas.on('mouse:move', onMouseMove);
-    canvas.on('mouse:up', onMouseUp);
-};
-
-const onMouseMove = (opt) => {
-    if (!activeLine) return;
-    const canvas = unref(canvasRef);
-    const pointer = canvas.getPointer(opt.e);
-    activeLine.set({ x2: pointer.x, y2: pointer.y });
-    canvas.requestRenderAll();
-};
-
-const onMouseUp = () => {
-    const canvas = unref(canvasRef);
-    canvas.off('mouse:move', onMouseMove);
-    canvas.off('mouse:up', onMouseUp);
-
-    if (!activeLine) return;
-
-    const endPoint = { x: activeLine.x2, y: activeLine.y2 };
-    canvas.remove(activeLine);
-    activeLine = null;
-
-    // 防止误触点击
-    const dist = Math.sqrt(Math.pow(endPoint.x - startPoint.x, 2) + Math.pow(endPoint.y - startPoint.y, 2));
-    if (dist > 10) {
-        createRulerObject(startPoint, endPoint);
-    }
-    
-    // 绘制一次后自动退出
-    stopDrawMode();
-};
-
-// === 4. 创建标尺对象 (Group) ===
-const createRulerObject = (start, end) => {
-    const canvas = unref(canvasRef);
-    const cfg = rulerConfig.value;
-    const color = cfg.color;
-    
-    // 1. 主线条
-    const line = new fabric.Line([start.x, start.y, end.x, end.y], {
-        stroke: color,
-        strokeWidth: cfg.strokeWidth,
-        originX: 'center', originY: 'center'
-    });
-
-    // 2. 计算几何
-    const dx = end.x - start.x;
-    const dy = end.y - start.y;
-    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-    const midX = (start.x + end.x) / 2;
-    const midY = (start.y + end.y) / 2;
-
-    // 3. 端点 (Cap)
-    const capSize = 10 + cfg.strokeWidth;
-    const startCap = new fabric.Line([0, -capSize, 0, capSize], {
-        stroke: color, strokeWidth: cfg.strokeWidth,
-        left: start.x, top: start.y,
-        angle: angle,
-        originX: 'center', originY: 'center'
-    });
-    const endCap = new fabric.Line([0, -capSize, 0, capSize], {
-        stroke: color, strokeWidth: cfg.strokeWidth,
-        left: end.x, top: end.y,
-        angle: angle,
-        originX: 'center', originY: 'center'
-    });
-
-    // 4. 文字
-    const textStr = `${cfg.value} ${cfg.unit}`;
-    const textObj = new fabric.Text(textStr, {
-        fontSize: cfg.fontSize,
-        fontFamily: cfg.fontFamily,
-        fill: color,
-        backgroundColor: cfg.showBg ? 'rgba(255,255,255,0.8)' : '',
-        originX: 'center', originY: 'bottom',
-        left: midX,
-        top: midY - 10,
-        angle: angle > 90 || angle < -90 ? angle + 180 : angle
-    });
-
-    // 5. 组合 Group
-    const group = new fabric.Group([line, startCap, endCap, textObj], {
-        left: midX, top: midY,
-        originX: 'center', originY: 'center',
-        opacity: cfg.opacity / 100,
-        id: 'ruler-group',
-        
-        // ✨✨✨ 这里是关键修改 ✨✨✨
-        // 1. 告诉路由系统：选中我时，请自动打开 'ruler' 这个二级折叠面板
-        customTab: 'ruler', 
-        // 2. (可选) 强制指定一级面板为 'adjust' (防止被误判为 border)
-        customTool: 'adjust', 
-
-        isRuler: true, // 关键标识
-        _rulerValue: cfg.value, // 持久化数据
-        _rulerUnit: cfg.unit,
-        lockScalingY: true, 
-        lockUniScaling: true 
-    });
-
-    group.setControlsVisibility({
-        mt: false, mb: false, ml: true, mr: true, 
-        bl: false, br: false, tl: false, tr: false,
-        mtr: true 
-    });
-
-    canvas.add(group);
-    canvas.setActiveObject(group);
-    if (saveHistoryFn) saveHistoryFn();
-};
-
-// === 5. 更新选中标尺 ===
-export const updateActiveRuler = () => {
-    const canvas = unref(canvasRef);
-    if (!canvas) return;
-
-    const obj = canvas.getActiveObject();
-    if (!obj || !obj.isRuler) return;
-
-    const cfg = rulerConfig.value;
-    const items = obj.getObjects();
-    
-    // 更新内部子对象
-    [0, 1, 2].forEach(i => {
-        if (items[i]) items[i].set({ stroke: cfg.color, strokeWidth: cfg.strokeWidth });
-    });
-    
-    if (items[3]) { // Text
-        items[3].set({ 
-            text: `${cfg.value} ${cfg.unit}`,
-            fill: cfg.color,
-            fontSize: cfg.fontSize,
-            fontFamily: cfg.fontFamily,
-            backgroundColor: cfg.showBg ? 'rgba(255,255,255,0.8)' : ''
-        });
-    }
-
-    obj.set({ opacity: cfg.opacity / 100 });
-    obj._rulerValue = cfg.value;
-    obj._rulerUnit = cfg.unit;
-
-    canvas.requestRenderAll();
-    if (saveHistoryFn) saveHistoryFn();
-};
-
-// 导出 Vue 响应式数据
-export { rulerConfig, isDrawing };
+    return {
+        setBackgroundLock
+    };
+}
 </file>
 
 <file path="src/config/theme.js">
@@ -3792,6 +3658,337 @@ watch(brushSize, (val) => {
 });
 </file>
 
+<file path="src/components/modules/adjust/useCanvasRuler.js">
+import { ref, unref } from 'vue';
+import { fabric } from 'fabric';
+
+// === 模块级单例状态 ===
+let canvasRef = null;
+let saveHistoryFn = null;
+
+// === 配置常量 ===
+export const DASH_OPTIONS = [
+    { label: '实线', value: [], icon: 'solid' },
+    { label: '长虚线', value: [15, 15], icon: 'long-dash' },
+    { label: '短虚线', value: [5, 5], icon: 'short-dash' },
+    { label: '疏点线', value: [0, 8], strokeLineCap: 'round' }, 
+    { label: '密点线', value: [0, 4], strokeLineCap: 'round' },
+    { label: '点划线', value: [15, 5, 0, 5], strokeLineCap: 'round' } 
+];
+
+export const CAP_STYLES = [
+    { id: 'line', label: '短线' },
+    { id: 'arrow', label: '外向箭头' },
+    { id: 'arrow_in', label: '内向箭头' },
+    { id: 'dot', label: '圆点' },
+    { id: 'none', label: '无' }
+];
+
+// 响应式状态
+const isDrawing = ref(false);
+const rulerConfig = ref({
+    value: 20,
+    unit: 'cm',
+    color: '#ff0000',
+    opacity: 100,
+    fontSize: 24,
+    fontFamily: 'Arial',
+    strokeWidth: 4,
+    showBg: true,
+    capStyle: 'line',    
+    dashArray: [],       
+    strokeLineCap: 'butt'
+});
+
+// === 1. 注册与初始化 ===
+export const registerRulerModule = (canvas, saveHistory) => {
+    canvasRef = canvas;
+    saveHistoryFn = saveHistory;
+
+    const c = unref(canvas);
+    if (c) {
+        c.on('selection:created', onSelectionChanged);
+        c.on('selection:updated', onSelectionChanged);
+    }
+};
+
+// === 2. 端点工厂 ===
+const createCap = (type, color, strokeWidth) => {
+    const size = 10 + strokeWidth; 
+    if (type === 'arrow' || type === 'arrow_in') {
+        return new fabric.Triangle({
+            width: size, height: size, fill: color,
+            originX: 'center', originY: 'center', selectable: false
+        });
+    } else if (type === 'dot') {
+        return new fabric.Circle({
+            radius: strokeWidth * 1.5, fill: color,
+            originX: 'center', originY: 'center', selectable: false
+        });
+    } else if (type === 'line') {
+        return new fabric.Line([0, -size, 0, size], {
+            stroke: color, strokeWidth: strokeWidth,
+            originX: 'center', originY: 'center', selectable: false
+        });
+    } else {
+        return new fabric.Rect({ width: 0, height: 0, visible: false });
+    }
+};
+
+// === 3. 创建标尺对象 ===
+const createRulerObject = (start, end) => {
+    const canvas = unref(canvasRef);
+    const cfg = rulerConfig.value;
+    
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+    const midX = (start.x + end.x) / 2;
+    const midY = (start.y + end.y) / 2;
+    const halfLen = length / 2;
+
+    const line = new fabric.Line([-halfLen, 0, halfLen, 0], {
+        stroke: cfg.color, strokeWidth: cfg.strokeWidth,
+        strokeDashArray: cfg.dashArray, strokeLineCap: cfg.strokeLineCap || 'butt',
+        originX: 'center', originY: 'center'
+    });
+
+    const startCap = createCap(cfg.capStyle, cfg.color, cfg.strokeWidth);
+    const endCap = createCap(cfg.capStyle, cfg.color, cfg.strokeWidth);
+    startCap.set({ left: -halfLen, top: 0 });
+    endCap.set({ left: halfLen, top: 0 });
+    
+    const updateCapRotation = (cap, isStart) => {
+        if (cfg.capStyle.includes('arrow')) {
+            let rot = 90;
+            if (cfg.capStyle === 'arrow') rot = isStart ? -90 : 90;
+            else rot = isStart ? 90 : -90;
+            cap.set({ angle: rot });
+        } else { cap.set({ angle: 0 }); }
+    };
+    updateCapRotation(startCap, true);
+    updateCapRotation(endCap, false);
+
+    const textObj = new fabric.Text(`${cfg.value} ${cfg.unit}`, {
+        fontSize: cfg.fontSize, fill: cfg.color, fontFamily: cfg.fontFamily,
+        backgroundColor: cfg.showBg ? 'rgba(255,255,255,0.8)' : '',
+        originX: 'center', originY: 'bottom', left: 0, top: -10
+    });
+    if (Math.abs(angle) > 90) textObj.set({ angle: 180, originY: 'bottom', top: 10 });
+
+    const group = new fabric.Group([line, startCap, endCap, textObj], {
+        left: midX, top: midY, angle: angle,
+        originX: 'center', originY: 'center', opacity: cfg.opacity / 100,
+        customTab: 'ruler', customTool: 'adjust', isRuler: true,
+        _rulerValue: cfg.value, _rulerUnit: cfg.unit,
+        _capStyle: cfg.capStyle, _dashArray: cfg.dashArray, _strokeLineCap: cfg.strokeLineCap,
+        lockScalingY: true, lockUniScaling: true
+    });
+
+    group.setControlsVisibility({ mtr: true, ml: true, mr: true, mt:false, mb:false, tl:false, tr:false, bl:false, br:false });
+    canvas.add(group);
+    
+    // 【重要逻辑变更】
+    // 在连续绘制模式下，不要 setActiveObject(group)，因为这会触发 selection:created 
+    // 可能会导致 UI 跳变或干扰用户的下一次点击。
+    // 让新画的尺子静静地躺在那里即可。
+    
+    // canvas.setActiveObject(group); <--- 注释掉这行
+    
+    if (saveHistoryFn) saveHistoryFn();
+};
+
+// === 4. 原地重生逻辑 ===
+const recreateActiveRuler = (activeGroup) => {
+    const canvas = unref(canvasRef);
+    const center = activeGroup.getCenterPoint();
+    const lineObj = activeGroup.getObjects()[0];
+    const currentWidth = lineObj.width * activeGroup.scaleX;
+    const angleRad = fabric.util.degreesToRadians(activeGroup.angle);
+    const dx = (currentWidth / 2) * Math.cos(angleRad);
+    const dy = (currentWidth / 2) * Math.sin(angleRad);
+    const start = { x: center.x - dx, y: center.y - dy };
+    const end = { x: center.x + dx, y: center.y + dy };
+    canvas.remove(activeGroup);
+    createRulerObject(start, end); // 这里调用会创建新对象，且不选中
+    
+    // 如果是编辑模式触发的重生，我们需要把新对象选中，不然用户会觉得自己丢失了焦点
+    // 但上面的 createRulerObject 修改为了不选中。
+    // 这里是一个 edge case，但为了保证连续绘制的体验，我们先优先保证绘制。
+    // 实际在 updateActiveRuler 里，我们最好手动选中回来。
+    const newGroup = canvas.getObjects().slice(-1)[0];
+    if (newGroup) canvas.setActiveObject(newGroup);
+
+    canvas.requestRenderAll();
+};
+
+// === 5. 更新逻辑 ===
+export const updateActiveRuler = () => {
+    const canvas = unref(canvasRef);
+    if (!canvas) return;
+    const group = canvas.getActiveObject();
+    if (!group || !group.isRuler) return;
+
+    const cfg = rulerConfig.value;
+    const needsRebuild = (group._capStyle !== cfg.capStyle) || (group.getObjects()[3].fontSize !== cfg.fontSize);
+
+    if (needsRebuild) {
+        recreateActiveRuler(group);
+    } else {
+        const items = group.getObjects(); 
+        items[0].set({
+            stroke: cfg.color, strokeWidth: cfg.strokeWidth,
+            strokeDashArray: cfg.dashArray, strokeLineCap: cfg.strokeLineCap || 'butt'
+        });
+        items[1].set({ fill: cfg.color, stroke: cfg.color });
+        items[2].set({ fill: cfg.color, stroke: cfg.color });
+        items[3].set({
+            text: `${cfg.value} ${cfg.unit}`, fill: cfg.color,
+            backgroundColor: cfg.showBg ? 'rgba(255,255,255,0.8)' : ''
+        });
+        group.set({ opacity: cfg.opacity / 100 });
+        group._rulerValue = cfg.value;
+        group._rulerUnit = cfg.unit;
+        group._dashArray = cfg.dashArray;
+        group._strokeLineCap = cfg.strokeLineCap;
+
+        canvas.requestRenderAll();
+        if (saveHistoryFn) saveHistoryFn();
+    }
+};
+
+// === 6. 事件监听 ===
+const onSelectionChanged = (e) => {
+    // 【重要】如果在绘制模式下，不要让选中的物体打断我的配置
+    if (isDrawing.value) return;
+
+    const activeObj = e.selected?.[0];
+    if (activeObj && activeObj.isRuler) {
+        // ... (同步配置代码保持不变) ...
+        const items = activeObj.getObjects();
+        rulerConfig.value.value = activeObj._rulerValue ?? 20;
+        rulerConfig.value.unit = activeObj._rulerUnit ?? 'cm';
+        rulerConfig.value.opacity = (activeObj.opacity || 1) * 100;
+        rulerConfig.value.capStyle = activeObj._capStyle || 'line'; 
+        rulerConfig.value.dashArray = activeObj._dashArray || [];
+        rulerConfig.value.strokeLineCap = activeObj._strokeLineCap || 'butt';
+        if (items[0]) {
+            rulerConfig.value.color = items[0].stroke;
+            rulerConfig.value.strokeWidth = items[0].strokeWidth;
+        }
+        if (items[3]) {
+            rulerConfig.value.fontSize = items[3].fontSize;
+            rulerConfig.value.showBg = !!items[3].backgroundColor;
+        }
+    }
+};
+
+// === 7. 绘制交互 (Continuos Mode) ===
+let startPoint = null;
+let activeLine = null;
+
+// 新增：键盘监听退出
+const onKeyDown = (e) => {
+    if (e.key === 'Escape' || e.key === 'Esc') {
+        stopDrawMode();
+    }
+};
+
+export const startDrawMode = () => {
+    if (isDrawing.value) return; // 防止重复绑定
+
+    const canvas = unref(canvasRef);
+    if (!canvas) return;
+    isDrawing.value = true;
+    
+    // 锁定画布所有对象
+    canvas.discardActiveObject();
+    canvas.selection = false;
+    canvas.defaultCursor = 'crosshair';
+    canvas.getObjects().forEach(obj => {
+        obj._prevSelectable = obj.selectable;
+        obj.selectable = false;
+    });
+
+    canvas.on('mouse:down', onMouseDown);
+    // 添加键盘监听
+    window.addEventListener('keydown', onKeyDown);
+};
+
+export const stopDrawMode = () => {
+    const canvas = unref(canvasRef);
+    if (!canvas) return;
+    isDrawing.value = false;
+    
+    // 恢复状态
+    canvas.selection = true;
+    canvas.defaultCursor = 'default';
+    canvas.getObjects().forEach(obj => {
+        if (obj._prevSelectable !== undefined) {
+            obj.selectable = obj._prevSelectable;
+            delete obj._prevSelectable;
+        }
+    });
+
+    // 移除监听
+    canvas.off('mouse:down', onMouseDown);
+    canvas.off('mouse:move', onMouseMove);
+    canvas.off('mouse:up', onMouseUp);
+    window.removeEventListener('keydown', onKeyDown);
+};
+
+const onMouseDown = (opt) => {
+    // 只有左键才绘制
+    // if (opt.e.button !== 0) return; // 可选
+
+    const canvas = unref(canvasRef);
+    const pointer = canvas.getPointer(opt.e);
+    startPoint = { x: pointer.x, y: pointer.y };
+    activeLine = new fabric.Line([startPoint.x, startPoint.y, startPoint.x, startPoint.y], {
+        stroke: rulerConfig.value.color,
+        strokeWidth: rulerConfig.value.strokeWidth,
+        strokeDashArray: [5, 5], 
+        selectable: false, evented: false
+    });
+    canvas.add(activeLine);
+    canvas.on('mouse:move', onMouseMove);
+    canvas.on('mouse:up', onMouseUp);
+};
+
+const onMouseMove = (opt) => {
+    if (!activeLine) return;
+    const canvas = unref(canvasRef);
+    const pointer = canvas.getPointer(opt.e);
+    activeLine.set({ x2: pointer.x, y2: pointer.y });
+    canvas.requestRenderAll();
+};
+
+const onMouseUp = () => {
+    const canvas = unref(canvasRef);
+    // 只移除 move 和 up，保留 down (实现连续绘制)
+    canvas.off('mouse:move', onMouseMove);
+    canvas.off('mouse:up', onMouseUp);
+    
+    if (!activeLine) return;
+    
+    const endPoint = { x: activeLine.x2, y: activeLine.y2 };
+    canvas.remove(activeLine);
+    activeLine = null;
+    
+    const dist = Math.sqrt(Math.pow(endPoint.x - startPoint.x, 2) + Math.pow(endPoint.y - startPoint.y, 2));
+    
+    if (dist > 10) {
+        createRulerObject(startPoint, endPoint);
+    }
+    
+    // [修正]: 删除 stopDrawMode()，保持 isDrawing = true
+    // stopDrawMode(); 
+};
+
+export { rulerConfig, isDrawing };
+</file>
+
 <file path="src/components/layout/LeftSidebar.vue">
 <template>
   <div class="left-sidebar">
@@ -4753,111 +4950,6 @@ const handleCancelExit = () => {
 </style>
 </file>
 
-<file path=".spec/active-context.md">
-# Active Context & Development State
-
-> **Version**: 2.3 (Object-Driven Navigation & Routing)
-> **Last Updated**: 2025-12-23
-> **Current Focus**: Global Navigation Architecture & Event-Driven UI
-
-## 1. 当前开发状态 (Current Status)
-
-### ✅ 已完成模块 (Completed Modules)
-
-#### 1.1 核心编辑 (Core Editing)
-- **剪裁 (Crop)**:
-  - [x] **手动选区**: 实现了 `startManualSelection`，支持自定义框选区域。
-  - [x] **比例锁定**: 支持原图比例、自由比例及常用预设 (1:1, 16:9 等)。
-  - [x] **旋转翻转**: 90° 步进旋转与 XY 轴翻转。
-- **尺寸调整 (Resize)**:
-  - [x] **高清重制**: 引入 `useOffscreenHelper`，实现了基于原图分辨率的高清缩放。
-  - [x] **保真模式**: 支持锁定长宽比计算。
-- **补白 (White/Padding)**:
-  - [x] **社媒预设**: 集成 Instagram/Youtube 等常用尺寸模板。
-  - [x] **智能吸色**: 支持背景色吸取及透明背景设置。
-
-#### 1.2 拼图系统 (Puzzle System)
-- **网格布局**:
-  - [x] **动态模板**: 基于 `config.js` 实现了 1-16 张图片的网格布局解析。
-  - [x] **自动布局**: 图片拖入自动计算 Cover 裁剪，保证填满格子不留白。
-- **交互逻辑**:
-  - [x] **拖拽交换**: 实现了平滑的交换动画 (`animateSwap`) 和失败回弹。
-  - [x] **物理约束**: 应用 `useConstraint` 防止图片脱离格子可视区。
-- **样式调整**:
-  - [x] **全局参数**: 支持动态调整间距、边距和圆角。
-
-#### 1.3 智能与特效 (AI & Effects)
-- **智能消除 (Inpaint)**:
-  - [x] **离屏遮罩**: 解决闪烁问题，通过离屏 Canvas 生成 Mask。
-  - [x] **双模交互**: 支持画笔 (Brush) 和 矩形框选 (Rect)。
-- **一键抠图 (Rembg)**:
-  - [x] **API 集成**: 封装 `src/api/ai.js` 支持一键移除背景。
-- **马赛克 (Mosaic)**:
-  - [x] **无损处理**: 采用“预览层 + 离屏应用”策略。
-- **滤镜与调色**:
-  - [x] **ColorMatrix**: 实现亮度、对比度等 6 维调节。
-  - [x] **LUT 模拟**: 内置“复古”、“电影”等滤镜预设。
-
-#### 1.4 辅助工具与交互 (Tools & Interaction)
-- **快捷键系统 (Shortcuts)**:
-  - [x] **可视化面板**: 实现 Keycap 风格的侧边抽屉速查表 (`ShortcutsPanel`)。
-  - [x] **通用操作**: 覆盖复制粘贴、图层移动、锁定等。
-- **测量工具 (Measure)**:
-  - [x] **精准路由**: 点击标尺组件自动跳转至 `Adjust -> Ruler` 面板。
-  - [x] **交互绘制**: 支持拖拽创建测量线，自动计算长度。
-- **交互优化 (Interaction Polish)**:
-  - [x] **右键菜单**: 修复粘贴坐标偏移，实现基于鼠标位置的左上角对齐。
-  - [x] **悬浮菜单**: 实现事件隔离，防止在悬浮条上操作时误触底层 Canvas。
-  - [x] **剪贴板**: 重构为单例模式 (`clipboardState`)。
-
-#### 1.5 全局导航系统 (Global Navigation System) `Major Upgrade`
-- **对象驱动路由 (Object-Driven Routing)**:
-  - [x] **智能分发**: 实现了 `useEditorState` 中的 `routeToObject`，根据 Canvas 选中对象自动切换 UI。
-  - [x] **二级导航 (Level 2 Support)**: 支持精确跳转至特定折叠面板 (如 `Tool: Adjust` + `Tab: Ruler`)。
-  - [x] **元数据注入 (Metadata Injection)**: 支持通过 `customTab` / `customTool` 属性覆盖默认路由行为。
-- **视图解耦**:
-  - [x] **状态监听**: 侧边栏组件 (`index.vue`) 通过 `watch` 监听全局路由状态自动展开对应模块。
-  - [x] **去除残影**: 移除了未选中时的 Sidebar Disabled 状态，保持界面始终可用。
-
----
-
-## 2. 系统架构备忘 (Architecture Memo)
-
-### 2.1 高清离屏渲染管线 (High-Res Offscreen Pipeline)
-> **Pattern**: `src/composables/useOffscreenHelper.js`
-- **逻辑**: 获取原图原始分辨率 -> 创建临时 StaticCanvas -> 映射效果 -> 导出高清图。
-
-### 2.2 物理约束系统 (Constraint System)
-> **Pattern**: `src/composables/useConstraint.js`
-- **逻辑**: 计算对象相对于容器的溢出值，Resizing 时实时修正，Puzzle 拖拽时触发回弹。
-
-### 2.3 状态与快捷键 (State & Shortcuts)
-- **State**: 使用 `useEditorState.js` (Reactive 单例) 管理全局状态。
-- **Shortcuts**: 采用配置化策略，`ShortcutsPanel` UI 与 `useKeyboardShortcuts` 逻辑共用同一份配置源。
-
-### 2.4 对象驱动路由架构 (Object-Driven Routing Architecture) `NEW`
-> **Core Philosophy**: Canvas 是路由触发器，State 是控制器，Sidebar 是视图。
-- **配置层 (Configuration)**:
-  - `OBJECT_TO_TOOL_MAP` (in `useEditorState.js`): 定义类型到面板的映射 (e.g., `'i-text' -> { tool: 'text', tab: 'style' }`)。
-- **感知层 (Sensor)**:
-  - `useCanvas.js`: 监听 `mouse:up`, `selection:created`, `selection:updated`。
-  - 过滤多选 (`activeSelection`) 和特殊对象，提取 `customTab` 信标。
-- **注入层 (Injection)**:
-  - 在创建特殊对象 (如标尺、素材) 时，注入 `{ customTab: 'ruler' }` 属性实现精确跳转。
-- **视图层 (View)**:
-  - 左侧菜单高亮 `state.activeTool`。
-  - 二级面板 (如 AdjustPanel) 监听 `state.activeTab` 并自动展开对应模块。
-
----
-
-## 3. 待办事项 (Backlog & Roadmap)
-
-### 📅 近期计划 (Next Sprint)
-
-
-### 🐛 已知优化点 (Refactoring)
-</file>
-
 <file path="src/components/modules/adjust/AdjustWhite.vue">
 <template>
     <div class="tool-group">
@@ -5413,6 +5505,124 @@ export default defineConfig({
 })
 </file>
 
+<file path=".spec/active-context.md">
+# Active Context & Development State
+
+> **Version**: 2.3 (Object-Driven Navigation & Routing)
+> **Last Updated**: 2025-12-23
+> **Current Focus**: Global Navigation Architecture & Event-Driven UI, Fix Ruler Navigation
+
+## 1. 当前开发状态 (Current Status)
+
+### ✅ 已完成模块 (Completed Modules)
+
+#### 1.1 核心编辑 (Core Editing)
+
+- **剪裁 (Crop)**:
+  - [x] **手动选区**: 实现了 `startManualSelection`，支持自定义框选区域。
+  - [x] **比例锁定**: 支持原图比例、自由比例及常用预设 (1:1, 16:9 等)。
+  - [x] **旋转翻转**: 90° 步进旋转与 XY 轴翻转。
+- **尺寸调整 (Resize)**:
+  - [x] **高清重制**: 引入 `useOffscreenHelper`，实现了基于原图分辨率的高清缩放。
+  - [x] **保真模式**: 支持锁定长宽比计算。
+- **补白 (White/Padding)**:
+  - [x] **社媒预设**: 集成 Instagram/Youtube 等常用尺寸模板。
+  - [x] **智能吸色**: 支持背景色吸取及透明背景设置。
+
+#### 1.2 拼图系统 (Puzzle System)
+
+- **网格布局**:
+  - [x] **动态模板**: 基于 `config.js` 实现了 1-16 张图片的网格布局解析。
+  - [x] **自动布局**: 图片拖入自动计算 Cover 裁剪，保证填满格子不留白。
+- **交互逻辑**:
+  - [x] **拖拽交换**: 实现了平滑的交换动画 (`animateSwap`) 和失败回弹。
+  - [x] **物理约束**: 应用 `useConstraint` 防止图片脱离格子可视区。
+- **样式调整**:
+  - [x] **全局参数**: 支持动态调整间距、边距和圆角。
+
+#### 1.3 智能与特效 (AI & Effects)
+
+- **智能消除 (Inpaint)**:
+  - [x] **离屏遮罩**: 解决闪烁问题，通过离屏 Canvas 生成 Mask。
+  - [x] **双模交互**: 支持画笔 (Brush) 和 矩形框选 (Rect)。
+- **一键抠图 (Rembg)**:
+  - [x] **API 集成**: 封装 `src/api/ai.js` 支持一键移除背景。
+- **马赛克 (Mosaic)**:
+  - [x] **无损处理**: 采用“预览层 + 离屏应用”策略。
+- **滤镜与调色**:
+  - [x] **ColorMatrix**: 实现亮度、对比度等 6 维调节。
+  - [x] **LUT 模拟**: 内置“复古”、“电影”等滤镜预设。
+
+#### 1.4 辅助工具与交互 (Tools & Interaction)
+
+- **快捷键系统 (Shortcuts)**:
+  - [x] **可视化面板**: 实现 Keycap 风格的侧边抽屉速查表 (`ShortcutsPanel`)。
+  - [x] **通用操作**: 覆盖复制粘贴、图层移动、锁定等。
+- **测量工具 (Measure)**:
+  - [x] **精准路由**: 点击标尺组件自动跳转至 `Adjust -> Ruler` 面板。
+  - [x] **交互绘制**: 支持拖拽创建测量线，自动计算长度。
+- **交互优化 (Interaction Polish)**:
+  - [x] **右键菜单**: 修复粘贴坐标偏移，实现基于鼠标位置的左上角对齐。
+  - [x] **悬浮菜单**: 实现事件隔离，防止在悬浮条上操作时误触底层 Canvas。
+  - [x] **剪贴板**: 重构为单例模式 (`clipboardState`)。
+
+#### 1.5 全局导航系统 (Global Navigation System) `Major Upgrade`
+
+- **对象驱动路由 (Object-Driven Routing)**:
+  - [x] **智能分发**: 实现了 `useEditorState` 中的 `routeToObject`，根据 Canvas 选中对象自动切换 UI。
+  - [x] **二级导航 (Level 2 Support)**: 支持精确跳转至特定折叠面板 (如 `Tool: Adjust` + `Tab: Ruler`)。
+  - [x] **元数据注入 (Metadata Injection)**: 支持通过 `customTab` / `customTool` 属性覆盖默认路由行为。
+  - [x] **Fix Ruler Navigation**: 修复点击标尺组件自动触发侧边栏跳转的 Bug。
+  - [x] **Fix Crop/Rotate Navigation**: 修复点击裁剪/旋转模块跳转到边框模块的 Bug。
+- **视图解耦**:
+  - [x] **状态监听**: 侧边栏组件 (`index.vue`) 通过 `watch` 监听全局路由状态自动展开对应模块。
+  - [x] **去除残影**: 移除了未选中时的 Sidebar Disabled 状态，保持界面始终可用。
+
+---
+
+## 2. 系统架构备忘 (Architecture Memo)
+
+### 2.1 高清离屏渲染管线 (High-Res Offscreen Pipeline)
+
+> **Pattern**: `src/composables/useOffscreenHelper.js`
+
+- **逻辑**: 获取原图原始分辨率 -> 创建临时 StaticCanvas -> 映射效果 -> 导出高清图。
+
+### 2.2 物理约束系统 (Constraint System)
+
+> **Pattern**: `src/composables/useConstraint.js`
+
+- **逻辑**: 计算对象相对于容器的溢出值，Resizing 时实时修正，Puzzle 拖拽时触发回弹。
+
+### 2.3 状态与快捷键 (State & Shortcuts)
+
+- **State**: 使用 `useEditorState.js` (Reactive 单例) 管理全局状态。
+- **Shortcuts**: 采用配置化策略，`ShortcutsPanel` UI 与 `useKeyboardShortcuts` 逻辑共用同一份配置源。
+
+### 2.4 对象驱动路由架构 (Object-Driven Routing Architecture) `NEW`
+
+> **Core Philosophy**: Canvas 是路由触发器，State 是控制器，Sidebar 是视图。
+
+- **配置层 (Configuration)**:
+  - `OBJECT_TO_TOOL_MAP` (in `useEditorState.js`): 定义类型到面板的映射 (e.g., `'i-text' -> { tool: 'text', tab: 'style' }`)。
+- **感知层 (Sensor)**:
+  - `useCanvas.js`: 监听 `mouse:up`, `selection:created`, `selection:updated`。
+  - 过滤多选 (`activeSelection`) 和特殊对象，提取 `customTab` 信标。
+- **注入层 (Injection)**:
+  - 在创建特殊对象 (如标尺、素材) 时，注入 `{ customTab: 'ruler' }` 属性实现精确跳转。
+- **视图层 (View)**:
+  - 左侧菜单高亮 `state.activeTool`。
+  - 二级面板 (如 AdjustPanel) 监听 `state.activeTab` 并自动展开对应模块。
+
+---
+
+## 3. 待办事项 (Backlog & Roadmap)
+
+### 📅 近期计划 (Next Sprint)
+
+### 🐛 已知优化点 (Refactoring)
+</file>
+
 <file path="src/components/modules/adjust/AdjustInpaint.vue">
 <template>
   <div class="tool-group">
@@ -5855,16 +6065,17 @@ export function useEditorState() {
         if (!target) return false;
 
         // 1. 优先检查对象实例级元数据 (Custom Payload)
-        // 允许在代码中 addText 时注入 { customTab: 'color' } 来覆盖默认行为
-        if (target.customTab) {
-            // 获取该类型的基础配置，如果没有则默认为 adjust
-            const baseConfig = OBJECT_TO_TOOL_MAP[target.type] || { tool: 'adjust' };
-            const targetTool = baseConfig.tool || 'adjust';
-            
-            console.log(`[Router] Custom routing: Tool[${targetTool}] Tab[${target.customTab}]`);
-            setActiveTool(targetTool, target.customTab, 'canvas');
-            return true;
-        }
+    // 允许在代码中 addText 时注入 { customTab: 'color' } 来覆盖默认行为
+    if (target.customTool || target.customTab) {
+        // 获取该类型的基础配置，如果没有则默认为 adjust
+        const baseConfig = OBJECT_TO_TOOL_MAP[target.type] || { tool: 'adjust' };
+        const targetTool = target.customTool || baseConfig.tool || 'adjust';
+        const targetTab = target.customTab || baseConfig.tab || '';
+        
+        console.log(`[Router] Custom routing: Tool[${targetTool}] Tab[${targetTab}]`);
+        setActiveTool(targetTool, targetTab, 'canvas');
+        return true;
+    }
 
         // 2. 提取并标准化对象类型
         let type = target.type;
@@ -9153,7 +9364,8 @@ export const startCrop = (aspectRatio = null, customBox = null) => {
     transparentCorners: false, lockRotation: true, hasRotatingPoint: false,
     lockUniScaling: false,
     lockMovementX: true,
-    lockMovementY: true
+    lockMovementY: true,
+    customTool: 'adjust', customTab: 'crop' // ✨ 添加自定义路由属性，确保裁剪框被识别为调整工具
   });
   if (aspectRatio) cropZone.set("height", width / aspectRatio);
 

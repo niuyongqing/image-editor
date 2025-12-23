@@ -2,13 +2,14 @@
 
 > **Version**: 2.3 (Object-Driven Navigation & Routing)
 > **Last Updated**: 2025-12-23
-> **Current Focus**: Global Navigation Architecture & Event-Driven UI
+> **Current Focus**: Global Navigation Architecture & Event-Driven UI, Fix Ruler Navigation
 
 ## 1. 当前开发状态 (Current Status)
 
 ### ✅ 已完成模块 (Completed Modules)
 
 #### 1.1 核心编辑 (Core Editing)
+
 - **剪裁 (Crop)**:
   - [x] **手动选区**: 实现了 `startManualSelection`，支持自定义框选区域。
   - [x] **比例锁定**: 支持原图比例、自由比例及常用预设 (1:1, 16:9 等)。
@@ -21,6 +22,7 @@
   - [x] **智能吸色**: 支持背景色吸取及透明背景设置。
 
 #### 1.2 拼图系统 (Puzzle System)
+
 - **网格布局**:
   - [x] **动态模板**: 基于 `config.js` 实现了 1-16 张图片的网格布局解析。
   - [x] **自动布局**: 图片拖入自动计算 Cover 裁剪，保证填满格子不留白。
@@ -31,6 +33,7 @@
   - [x] **全局参数**: 支持动态调整间距、边距和圆角。
 
 #### 1.3 智能与特效 (AI & Effects)
+
 - **智能消除 (Inpaint)**:
   - [x] **离屏遮罩**: 解决闪烁问题，通过离屏 Canvas 生成 Mask。
   - [x] **双模交互**: 支持画笔 (Brush) 和 矩形框选 (Rect)。
@@ -43,6 +46,7 @@
   - [x] **LUT 模拟**: 内置“复古”、“电影”等滤镜预设。
 
 #### 1.4 辅助工具与交互 (Tools & Interaction)
+
 - **快捷键系统 (Shortcuts)**:
   - [x] **可视化面板**: 实现 Keycap 风格的侧边抽屉速查表 (`ShortcutsPanel`)。
   - [x] **通用操作**: 覆盖复制粘贴、图层移动、锁定等。
@@ -55,10 +59,13 @@
   - [x] **剪贴板**: 重构为单例模式 (`clipboardState`)。
 
 #### 1.5 全局导航系统 (Global Navigation System) `Major Upgrade`
+
 - **对象驱动路由 (Object-Driven Routing)**:
   - [x] **智能分发**: 实现了 `useEditorState` 中的 `routeToObject`，根据 Canvas 选中对象自动切换 UI。
   - [x] **二级导航 (Level 2 Support)**: 支持精确跳转至特定折叠面板 (如 `Tool: Adjust` + `Tab: Ruler`)。
   - [x] **元数据注入 (Metadata Injection)**: 支持通过 `customTab` / `customTool` 属性覆盖默认路由行为。
+  - [x] **Fix Ruler Navigation**: 修复点击标尺组件自动触发侧边栏跳转的 Bug。
+  - [x] **Fix Crop/Rotate Navigation**: 修复点击裁剪/旋转模块跳转到边框模块的 Bug。
 - **视图解耦**:
   - [x] **状态监听**: 侧边栏组件 (`index.vue`) 通过 `watch` 监听全局路由状态自动展开对应模块。
   - [x] **去除残影**: 移除了未选中时的 Sidebar Disabled 状态，保持界面始终可用。
@@ -68,19 +75,26 @@
 ## 2. 系统架构备忘 (Architecture Memo)
 
 ### 2.1 高清离屏渲染管线 (High-Res Offscreen Pipeline)
+
 > **Pattern**: `src/composables/useOffscreenHelper.js`
+
 - **逻辑**: 获取原图原始分辨率 -> 创建临时 StaticCanvas -> 映射效果 -> 导出高清图。
 
 ### 2.2 物理约束系统 (Constraint System)
+
 > **Pattern**: `src/composables/useConstraint.js`
+
 - **逻辑**: 计算对象相对于容器的溢出值，Resizing 时实时修正，Puzzle 拖拽时触发回弹。
 
 ### 2.3 状态与快捷键 (State & Shortcuts)
+
 - **State**: 使用 `useEditorState.js` (Reactive 单例) 管理全局状态。
 - **Shortcuts**: 采用配置化策略，`ShortcutsPanel` UI 与 `useKeyboardShortcuts` 逻辑共用同一份配置源。
 
 ### 2.4 对象驱动路由架构 (Object-Driven Routing Architecture) `NEW`
+
 > **Core Philosophy**: Canvas 是路由触发器，State 是控制器，Sidebar 是视图。
+
 - **配置层 (Configuration)**:
   - `OBJECT_TO_TOOL_MAP` (in `useEditorState.js`): 定义类型到面板的映射 (e.g., `'i-text' -> { tool: 'text', tab: 'style' }`)。
 - **感知层 (Sensor)**:
@@ -97,6 +111,5 @@
 ## 3. 待办事项 (Backlog & Roadmap)
 
 ### 📅 近期计划 (Next Sprint)
-
 
 ### 🐛 已知优化点 (Refactoring)
