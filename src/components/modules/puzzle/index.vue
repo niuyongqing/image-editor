@@ -355,9 +355,9 @@
   // 弹窗控制状态
   const showSaveModal = ref(false);
 
-  onMounted(() => {
+  const init = () => {
     if (canvasAPI) {
-      registerPuzzleModule(canvasAPI.canvas, canvasAPI.saveHistory, {
+      registerPuzzleModule(canvasAPI.canvas, {
         onCellClick: (index) => {
           pendingCellIndex = index;
           if (fileInput.value) {
@@ -384,12 +384,7 @@
       );
       initPuzzleMode();
     }
-  });
-
-  onUnmounted(() => {
-    // 离开组件时如果不保存，也应该执行退出清理逻辑
-    exitPuzzleMode();
-  });
+  }
 
   const onFileSelected = (e) => {
     const file = e.target.files?.[0];
@@ -444,6 +439,7 @@
     curTemp.value = template;
     showControlPanel.value = true;
     setPuzzleMode(true); // 切换到拼图模式
+    init();
     sub.value = 1;
     applyTemplate(template);
     zoomToPuzzleArea();
@@ -458,6 +454,7 @@
     restoreSnapshotBeforeLayout();
     showControlPanel.value = false;
     setPuzzleMode(false); // 退出拼图模式
+    exitPuzzleMode();
     curTemp.value = {};
   };
 
@@ -517,6 +514,7 @@
     // 3. 返回
     showControlPanel.value = false;
     setPuzzleMode(false); // 退出拼图模式
+    exitPuzzleMode();
   };
 
   // === Sub 3 逻辑 ===
