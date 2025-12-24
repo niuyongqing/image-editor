@@ -3460,522 +3460,6 @@ const menuItems = [
 </style>
 </file>
 
-<file path="src/components/modules/adjust/AdjustRuler.vue">
-<template>
-  <div class="tool-group">
-    <div
-      class="tool-item"
-      :class="{ 'is-expanded': isExpanded }"
-      @click="$emit('toggle')"
-    >
-      <div class="left">
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <path
-            d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0l12.6 12.6z"
-          ></path>
-          <path d="m5 6 1.7 1.7"></path>
-          <path d="m17 18 1.7 1.7"></path>
-          <path d="m11 12 1.7 1.7"></path>
-        </svg>
-        <span>测量标尺</span>
-      </div>
-      <div class="right-icon">
-        <svg
-          class="arrow"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <path d="m9 18 6-6-6-6" />
-        </svg>
-      </div>
-    </div>
-
-    <div v-if="isExpanded" class="tool-content">
-      <div class="control-group">
-        <div class="section-title">
-          端点样式
-          <span
-            v-if="isDrawing"
-            style="
-              color: var(--ie-primary-color);
-              float: right;
-              font-weight: normal;
-              animation: blink 1.5s infinite;
-            "
-          >
-            绘制中...
-          </span>
-        </div>
-        <div class="style-grid">
-          <div
-            v-for="style in CAP_STYLES"
-            :key="style.id"
-            class="style-item"
-            :class="{ active: isStyleActive(style.id) }"
-            @click="setCapStyle(style.id)"
-            :title="style.label"
-          >
-            <svg width="40" height="20" viewBox="0 0 60 20">
-              <line
-                x1="10"
-                y1="10"
-                x2="50"
-                y2="10"
-                stroke="currentColor"
-                stroke-width="2"
-              />
-              <g v-if="style.id === 'line'">
-                <line
-                  x1="10"
-                  y1="5"
-                  x2="10"
-                  y2="15"
-                  stroke="currentColor"
-                  stroke-width="2"
-                />
-                <line
-                  x1="50"
-                  y1="5"
-                  x2="50"
-                  y2="15"
-                  stroke="currentColor"
-                  stroke-width="2"
-                />
-              </g>
-              <g v-if="style.id === 'arrow'">
-                <path d="M10 10 L15 7 V13 Z" fill="currentColor" />
-                <path d="M50 10 L45 7 V13 Z" fill="currentColor" />
-              </g>
-              <g v-if="style.id === 'arrow_in'">
-                <path d="M5 7 L10 10 L5 13 Z" fill="currentColor" />
-                <path d="M55 7 L50 10 L55 13 Z" fill="currentColor" />
-              </g>
-              <g v-if="style.id === 'dot'">
-                <circle cx="10" cy="10" r="3" fill="currentColor" />
-                <circle cx="50" cy="10" r="3" fill="currentColor" />
-              </g>
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      <div class="control-group">
-        <div class="section-title">线身类型</div>
-        <div class="custom-select" :class="{ open: isDashSelectOpen }">
-          <div
-            class="selected-value"
-            @click="isDashSelectOpen = !isDashSelectOpen"
-          >
-            <svg
-              width="100%"
-              height="10"
-              viewBox="0 0 160 10"
-              preserveAspectRatio="none"
-            >
-              <line
-                x1="0"
-                y1="5"
-                x2="160"
-                y2="5"
-                stroke="currentColor"
-                stroke-width="2"
-                :stroke-dasharray="currentDashStr"
-                :stroke-linecap="rulerConfig.strokeLineCap || 'butt'"
-              />
-            </svg>
-            <svg
-              class="dropdown-arrow"
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-            >
-              <path d="M7 10l5 5 5-5z" fill="currentColor" />
-            </svg>
-          </div>
-
-          <div v-show="isDashSelectOpen" class="options-list">
-            <div
-              v-for="(opt, idx) in DASH_OPTIONS"
-              :key="idx"
-              class="option-item"
-              @click="setDashPattern(opt)"
-            >
-              <div class="opt-label">{{ opt.label }}</div>
-              <svg
-                width="80"
-                height="10"
-                viewBox="0 0 80 10"
-                preserveAspectRatio="none"
-              >
-                <line
-                  x1="0"
-                  y1="5"
-                  x2="80"
-                  y2="5"
-                  stroke="#606266"
-                  stroke-width="2"
-                  :stroke-dasharray="opt.value.join(',')"
-                  :stroke-linecap="opt.strokeLineCap || 'butt'"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="control-group">
-        <div class="label-row">
-          <span>标注数值</span>
-        </div>
-        <div class="input-group">
-          <input
-            type="number"
-            v-model.number="rulerConfig.value"
-            class="ie-input-number"
-            style="flex: 1; width: auto"
-            @input="updateActiveRuler"
-          />
-          <select
-            v-model="rulerConfig.unit"
-            class="ie-select"
-            @change="updateActiveRuler"
-          >
-            <option value="px">px</option>
-            <option value="cm">cm</option>
-            <option value="mm">mm</option>
-            <option value="m">m</option>
-            <option value="in">inch</option>
-            <option value="ft">foot</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="control-group">
-        <div class="label-row">
-          <span>线条颜色</span>
-          <input
-            type="color"
-            v-model="rulerConfig.color"
-            @input="updateActiveRuler"
-          />
-        </div>
-
-        <div class="label-row">
-          <span>透明度</span>
-          <span class="val">{{ rulerConfig.opacity }}%</span>
-        </div>
-        <input
-          type="range"
-          v-model.number="rulerConfig.opacity"
-          min="10"
-          max="100"
-          class="ie-slider"
-          @input="updateActiveRuler"
-        />
-      </div>
-
-      <div class="control-group">
-        <div class="label-row">
-          <span>线条粗细</span>
-          <span class="val">{{ rulerConfig.strokeWidth }}px</span>
-        </div>
-        <input
-          type="range"
-          v-model.number="rulerConfig.strokeWidth"
-          min="1"
-          max="10"
-          class="ie-slider"
-          @input="updateActiveRuler"
-        />
-      </div>
-
-      <div class="control-group">
-        <div class="label-row">
-          <span>字体大小</span>
-          <input
-            type="number"
-            v-model.number="rulerConfig.fontSize"
-            class="ie-input-number"
-            @input="updateActiveRuler"
-          />
-        </div>
-        <div class="label-row" style="margin-top: 8px">
-          <span>文字背景</span>
-          <input
-            type="checkbox"
-            v-model="rulerConfig.showBg"
-            @change="updateActiveRuler"
-          />
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
-<script setup>
-import {
-  defineProps,
-  defineEmits,
-  inject,
-  onMounted,
-  onUnmounted,
-  ref,
-  computed,
-  watch,
-} from "vue";
-import {
-  registerRulerModule,
-  rulerConfig,
-  isDrawing,
-  // ✨ 修复点：替换为新的模式控制函数
-  startRulerMode, 
-  stopRulerMode,
-  updateActiveRuler,
-  syncConfigFromActiveSelection,
-  CAP_STYLES,
-  DASH_OPTIONS,
-} from "./useCanvasRuler";
-import { useCanvasLock } from "@/composables/useCanvasLock";
-
-const props = defineProps({ isExpanded: Boolean });
-const emit = defineEmits(["toggle"]);
-const canvasAPI = inject("canvasAPI");
-
-const isDashSelectOpen = ref(false);
-const { setBackgroundLock } = useCanvasLock();
-
-// === 生命周期与状态管理 ===
-watch(
-  () => props.isExpanded,
-  (val) => {
-    const canvas = canvasAPI.canvas.value;
-    if (!canvas) return;
-
-    // ✨ 物理锁联动：进入标尺模块时，设置豁免标尺并进入标尺光标模式
-    setBackgroundLock(canvas, val, { 
-        excludeRulers: true, 
-        isRulerMode: val 
-    });
-
-    if (val) {
-      // 同步当前选中的标尺配置（如果有）
-      syncConfigFromActiveSelection();
-      // ✨ 开启“智能感知”标尺模式
-      startRulerMode(canvasAPI.canvas, canvasAPI.saveHistory);
-    } else {
-      // 退出标尺模式，移除监听
-      stopRulerMode();
-    }
-  }
-);
-
-onMounted(() => {
-  if (canvasAPI && canvasAPI.canvas) {
-    // 注册模块引用
-    registerRulerModule(canvasAPI.canvas, canvasAPI.saveHistory);
-
-    if (props.isExpanded) {
-      syncConfigFromActiveSelection();
-      startRulerMode(canvasAPI.canvas, canvasAPI.saveHistory);
-    }
-  }
-});
-
-onUnmounted(() => {
-  const canvas = canvasAPI?.canvas?.value;
-  if (canvas) {
-    setBackgroundLock(canvas, false);
-    stopRulerMode();
-  }
-});
-
-// === 视觉高亮 ===
-const isStyleActive = (styleId) => {
-  const isEditing = canvasAPI.canvas.value?.getActiveObject()?.isRuler;
-  if (isEditing) {
-    return rulerConfig.value.capStyle === styleId;
-  }
-  // 在测量模式下，即使没选中也高亮当前配置的样式
-  return props.isExpanded && rulerConfig.value.capStyle === styleId;
-};
-
-const setCapStyle = (styleId) => {
-  rulerConfig.value.capStyle = styleId;
-  const canvas = canvasAPI.canvas.value;
-  const activeObj = canvas?.getActiveObject();
-
-  if (activeObj && activeObj.isRuler) {
-    updateActiveRuler();
-  }
-  // 注意：不再需要手动调用 startDrawMode，startRulerMode 已在后台监听
-};
-
-const setDashPattern = (opt) => {
-  rulerConfig.value.dashArray = opt.value;
-  rulerConfig.value.strokeLineCap = opt.strokeLineCap || "butt";
-  isDashSelectOpen.value = false;
-  const canvas = canvasAPI.canvas.value;
-  const activeObj = canvas?.getActiveObject();
-  if (activeObj && activeObj.isRuler) {
-    updateActiveRuler();
-  }
-};
-
-const currentDashStr = computed(() => {
-  return rulerConfig.value.dashArray
-    ? rulerConfig.value.dashArray.join(",")
-    : "";
-});
-</script>
-
-<style scoped>
-@keyframes blink {
-  0% { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
-}
-
-.tool-content {
-  padding: 16px;
-}
-.section-title {
-  font-size: 12px;
-  color: #909399;
-  margin-bottom: 8px;
-  font-weight: 500;
-}
-.style-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 16px;
-}
-.style-item {
-  height: 32px;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #606266;
-  background: #fff;
-  transition: all 0.2s;
-}
-.style-item:hover {
-  border-color: #c0c4cc;
-}
-.style-item.active {
-  border-color: var(--ie-primary-color);
-  color: var(--ie-primary-color);
-  background-color: #ecf5ff;
-}
-
-.custom-select {
-  position: relative;
-  width: 100%;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  background: #fff;
-  cursor: pointer;
-}
-.selected-value {
-  height: 32px;
-  padding: 0 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: #606266;
-}
-.options-list {
-  position: absolute;
-  top: 100%;
-  left: -1px;
-  right: -1px;
-  background: #fff;
-  border: 1px solid #dcdfe6;
-  border-radius: 0 0 4px 4px;
-  z-index: 10;
-  max-height: 200px;
-  overflow-y: auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-.option-item {
-  height: 32px;
-  padding: 0 12px;
-  display: flex;
-  align-items: center;
-}
-.option-item:hover {
-  background-color: #f5f7fa;
-}
-.opt-label {
-  font-size: 12px;
-  color: #606266;
-  margin-right: 12px;
-  min-width: 40px;
-}
-
-.divider {
-  height: 1px;
-  background: #ebeef5;
-  margin: 16px 0;
-}
-.control-group {
-  margin-bottom: 16px;
-}
-.label-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-  color: #606266;
-  margin-bottom: 8px;
-}
-.input-group {
-  display: flex;
-  gap: 8px;
-}
-.ie-select {
-  height: 28px;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  font-size: 12px;
-  color: #606266;
-  padding: 0 4px;
-  outline: none;
-  background: white;
-}
-.ie-input-number {
-    height: 28px;
-    border: 1px solid #dcdfe6;
-    border-radius: 4px;
-    padding: 0 8px;
-    outline: none;
-    width: 60px;
-}
-.val {
-  font-family: monospace;
-}
-.ie-slider {
-  width: 100%;
-}
-</style>
-</file>
-
 <file path="src/components/modules/adjust/useCanvasWhite.js">
 // [File: src/components/modules/adjust/useCanvasWhite.js]
 
@@ -4295,522 +3779,6 @@ export const applyWhitePadding = (width, height, bgColor) => {
 };
 </file>
 
-<file path="src/components/modules/puzzle/config.js">
-// src/components/modules/puzzle/config.js
-
-// =========================================================================
-// 1. 网格模板数据 - 按图片数量分组
-// =========================================================================
-// 网格模板数据 - 按图片数量分组
-export const gridTemplates = {
-  1: [
-    {
-      id: '1-1',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(1, 1fr)',
-        'grid-template-rows': 'repeat(1, 1fr)',
-      },
-      gridAreas: ['1 / 1 / 2 / 2'],
-    }
-  ],
-  2: [
-    {
-      id: '2-1',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(2, 1fr)',
-        'grid-template-rows': 'repeat(2, 1fr)',
-      },
-      gridAreas: ['1 / 1 / 3 / 2', '1 / 2 / 3 / 3'],
-    },
-    {
-      id: '2-2',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(2, 1fr)',
-        'grid-template-rows': 'repeat(2, 1fr)',
-      },
-      gridAreas: ['1 / 1 / 2 / 3', '2 / 1 / 3 / 3'],
-    }
-  ],
-  3: [
-    {
-      id: '3-1',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(3, 1fr)',
-        'grid-template-rows': 'repeat(3, 1fr)',
-      },
-      gridAreas: ['1 / 1 / 3 / 3', '1 / 3 / 3 / 4', '3 / 1 / 4 / 4'],
-    },
-    {
-      id: '3-2',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(3, 1fr)',
-        'grid-template-rows': 'repeat(3, 1fr)',
-      },
-      gridAreas: ['1 / 1 / 2 / 4', '2 / 1 / 4 / 3', '2 / 3 / 4 / 4'],
-    },
-    {
-      id: '3-3',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(2, 1fr)',
-        'grid-template-rows': 'repeat(2, 1fr)',
-      },
-      gridAreas: [
-        '1 / 1 / 3 / 2',
-        '1 / 2 / 2 / 3',
-        '2 / 2 / 3 / 3'
-      ],
-    },
-    {
-      id: '3-4',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(2, 1fr)',
-        'grid-template-rows': 'repeat(2, 1fr)',
-      },
-      gridAreas: [
-        '1 / 1 / 2 / 2',
-        '1 / 2 / 3 / 3',
-        '2 / 1 / 3 / 2'
-      ],
-    },
-    {
-      id: '3-5',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(2, 1fr)',
-        'grid-template-rows': 'repeat(2, 1fr)',
-      },
-      gridAreas: [
-        '1 / 1 / 2 / 3',
-        '2 / 1 / 3 / 2',
-        '2 / 2 / 3 / 3'
-      ],
-    },
-    {
-      id: '3-6',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(2, 1fr)',
-        'grid-template-rows': 'repeat(2, 1fr)',
-      },
-      gridAreas: [
-        '1 / 1 / 2 / 2',
-        '1 / 2 / 2 / 3',
-        '2 / 1 / 3 / 3'
-      ],
-    },
-    {
-      id: '3-7',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(3, 1fr)',
-        'grid-template-rows': 'repeat(3, 1fr)',
-      },
-      gridAreas: [
-        '1 / 1 / 4 / 2',
-        '1 / 2 / 4 / 3',
-        '1 / 3 / 4 / 4'
-      ],
-    },
-    {
-      id: '3-8',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(3, 1fr)',
-        'grid-template-rows': 'repeat(3, 1fr)',
-      },
-      gridAreas: [
-        '1 / 1 / 2 / 4',
-        '2 / 1 / 3 / 4',
-        '3 / 1 / 4 / 4'
-      ],
-    }
-  ],
-  4: [
-    {
-      id: '4-1',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(2, 1fr)',
-        'grid-template-rows': 'repeat(2, 1fr)',
-      },
-      gridAreas: [
-        '1 / 1 / 2 / 2',
-        '1 / 2 / 2 / 3',
-        '2 / 1 / 3 / 2',
-        '2 / 2 / 3 / 3'
-      ],
-    },
-    {
-      id: '4-2',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(6, 1fr)',
-        'grid-template-rows': 'repeat(6, 1fr)',
-      },
-      gridAreas: [
-        '1 / 1 / 4 / 3',
-        '1 / 3 / 4 / 7',
-        '4 / 1 / 7 / 5',
-        '4 / 5 / 7 / 7'
-      ],
-    },
-    {
-      id: '4-3',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(6, 1fr)',
-        'grid-template-rows': 'repeat(6, 1fr)',
-      },
-      gridAreas: [
-        '1 / 1 / 7 / 3',
-        '1 / 3 / 4 / 5',
-        '4 / 3 / 7 / 5',
-        '1 / 5 / 7 / 7'
-      ],
-    },
-    {
-      id: '4-4',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(6, 1fr)',
-        'grid-template-rows': 'repeat(6, 1fr)',
-      },
-      gridAreas: [
-        '1 / 1 / 3 / 7',
-        '3 / 1 / 5 / 4',
-        '3 / 4 / 5 / 7',
-        '5 / 1 / 7 / 7'
-      ],
-    },
-    {
-      id: '4-5',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(4, 1fr)',
-        'grid-template-rows': 'repeat(4, 1fr)',
-      },
-      gridAreas: [
-        '1 / 1 / 5 / 2',
-        '1 / 2 / 5 / 3',
-        '1 / 3 / 5 / 4',
-        '1 / 4 / 5 / 5'
-      ],
-    },
-    {
-      id: '4-6',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(4, 1fr)',
-        'grid-template-rows': 'repeat(4, 1fr)',
-      },
-      gridAreas: [
-        '1 / 1 / 2 / 5',
-        '2 / 1 / 3 / 5',
-        '3 / 1 / 4 / 5',
-        '4 / 1 / 5 / 5'
-      ],
-    },
-    {
-      id: '4-7',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(6, 1fr)',
-        'grid-template-rows': 'repeat(6, 1fr)',
-      },
-      gridAreas: [
-        '1 / 1 / 3 / 4',
-        '3 / 1 / 5 / 4',
-        '5 / 1 / 7 / 4',
-        '1 / 4 / 7 / 7'
-      ],
-    },
-    {
-      id: '4-8',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(6, 1fr)',
-        'grid-template-rows': 'repeat(6, 1fr)',
-      },
-      gridAreas: [
-        '1 / 1 / 7 / 4',
-        '1 / 4 / 3 / 7',
-        '3 / 4 / 5 / 7',
-        '5 / 4 / 7 / 7'
-      ],
-    },
-    {
-      id: '4-9',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(6, 1fr)',
-        'grid-template-rows': 'repeat(6, 1fr)',
-      },
-      gridAreas: [
-        '1 / 1 / 4 / 3',
-        '1 / 3 / 4 / 5',
-        '1 / 5 / 4 / 7',
-        '4 / 1 / 7 / 7'
-      ],
-    },
-    {
-      id: '4-10',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(6, 1fr)',
-        'grid-template-rows': 'repeat(6, 1fr)',
-      },
-      gridAreas: [
-        '1 / 1 / 4 / 7',
-        '4 / 1 / 7 / 3',
-        '4 / 3 / 7 / 5',
-        '4 / 5 / 7 / 7'
-      ],
-    },
-    {
-      id: '4-11',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(4, 1fr)',
-        'grid-template-rows': 'repeat(4, 1fr)',
-      },
-      gridAreas: [
-        '1 / 1 / 3 / 5',
-        '3 / 1 / 5 / 3',
-        '3 / 3 / 4 / 5',
-        '4 / 3 / 5 / 5'
-      ],
-    },
-    {
-      id: '4-12',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(4, 1fr)',
-        'grid-template-rows': 'repeat(4, 1fr)',
-      },
-      gridAreas: [
-        '1 / 1 / 5 / 3',
-        '1 / 3 / 3 / 4',
-        '1 / 4 / 3 / 5',
-        '3 / 3 / 5 / 5'
-      ],
-    },
-    {
-      id: '4-13',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(4, 1fr)',
-        'grid-template-rows': 'repeat(4, 1fr)',
-      },
-      gridAreas: [
-        '1 / 1 / 2 / 3',
-        '2 / 1 / 3 / 3',
-        '1 / 3 / 3 / 5',
-        '3 / 1 / 5 / 5'
-      ],
-    },
-    {
-      id: '4-14',
-      wrapStyle: {
-        'grid-template-columns': 'repeat(4, 1fr)',
-        'grid-template-rows': 'repeat(4, 1fr)',
-      },
-      gridAreas: [
-        '1 / 1 / 3 / 3',
-        '3 / 1 / 5 / 2',
-        '3 / 2 / 5 / 3',
-        '1 / 3 / 5 / 5'
-      ],
-    },
-  ]
-};
-
-// 图片数量下拉
-export const countOptions = [
-  { value: 'all', label: '全部' },
-  ...Array.from({ length: 4 }, (_, i) => ({ value: `${i + 1}`, label: `${i + 1}` })),
-];
-
-// =========================================================================
-// 3. 核心工具函数：生成和解析网格
-// =========================================================================
-
-/**
- * 动态生成 NxM 网格的单元格数据
- * @param {Number} rows 行数
- * @param {Number} cols 列数
- * @returns {Array} 单元格数组
- */
-export const generateGridCells = (rows, cols) => {
-  const cells = [];
-  const w = 1 / cols;
-  const h = 1 / rows;
-
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      cells.push({
-        index: r * cols + c,
-        x: c * w,
-        y: r * h,
-        w,
-        h
-      });
-    }
-  }
-  return cells;
-};
-
-/**
- * 解析 CSS Grid Area 模板为百分比坐标
- * 兼容格式如: "1 / 1 / 2 / 2" (rowStart / colStart / rowEnd / colEnd)
- * @param {Object} tpl 模板对象
- */
-export const parseTemplateToCells = (tpl) => {
-  if (!tpl || !tpl.gridAreas) return [];
-
-  let maxR = 1, maxC = 1;
-
-  const getCountFromStyle = (styleStr) => {
-    if (!styleStr) return 1;
-    const repeatMatch = styleStr.match(/repeat\((\d+)/);
-    if (repeatMatch) return parseInt(repeatMatch[1]);
-    const spaceMatch = styleStr.trim().split(/\s+/);
-    return spaceMatch.length;
-  };
-
-  if (tpl.wrapStyle) {
-    maxC = Math.max(maxC, getCountFromStyle(tpl.wrapStyle['grid-template-columns']));
-    maxR = Math.max(maxR, getCountFromStyle(tpl.wrapStyle['grid-template-rows']));
-  }
-
-  tpl.gridAreas.forEach(area => {
-    const parts = area.split('/').map(s => parseInt(s.trim()));
-    if (parts.length >= 4) {
-      if (parts[2] - 1 > maxR) maxR = parts[2] - 1;
-      if (parts[3] - 1 > maxC) maxC = parts[3] - 1;
-    }
-  });
-
-  return tpl.gridAreas.map((area, index) => {
-    const [r1, c1, r2, c2] = area.split('/').map(s => parseInt(s.trim()));
-    const x = (c1 - 1) / maxC;
-    const y = (r1 - 1) / maxR;
-    const w = (c2 - c1) / maxC;
-    const h = (r2 - r1) / maxR;
-
-    return { index, x, y, w, h };
-  });
-};
-</file>
-
-<file path="src/composables/useCanvasLock.js">
-import { unref } from 'vue';
-
-/**
- * ✨ 1. 定义 LOCKABLE_PROPERTIES 静态常量列表
- * 所有的锁定和豁免动作都必须严格遵循此列表，确保逻辑一一对应
- */
-const LOCK_CONFIG = {
-  // 属性名: [锁定值, 交互值]
-  'selectable': [false, true],
-  'evented': [false, true],
-  'hasControls': [false, true],
-  'hasBorders': [false, true],
-  'lockMovementX': [true, false],
-  'lockMovementY': [true, false],
-  'lockRotation': [true, false],
-  'lockScalingX': [true, false],
-  'lockScalingY': [true, false],
-};
-
-export function useCanvasLock() {
-  // 状态记忆库 (WeakMap)
-  const objectStates = new WeakMap();
-
-  /**
-   * 🛡️ 内部函数：ObjectFunctions.enable(obj)
-   * 强制将对象恢复到全功能状态，用于豁免逻辑 (策略 B)
-   */
-  const forceEnableObject = (obj, isRulerMode) => {
-    Object.keys(LOCK_CONFIG).forEach(prop => {
-      const [_, interactiveValue] = LOCK_CONFIG[prop];
-      obj.set(prop, interactiveValue);
-    });
-    // 特殊光标处理
-    obj.set('hoverCursor', isRulerMode ? 'move' : 'default');
-  };
-
-  /**
-   * 🛡️ 内部函数：实施物理锁定并备份
-   */
-  const lockAndStoreObject = (obj) => {
-    const backup = {};
-    Object.keys(LOCK_CONFIG).forEach(prop => {
-      // ✨ 只有第一次锁定该对象时才备份，防止多层记忆覆盖原始状态
-      if (!objectStates.has(obj)) {
-        backup[prop] = obj[prop];
-      }
-      const [lockedValue] = LOCK_CONFIG[prop];
-      obj.set(prop, lockedValue);
-    });
-    
-    if (Object.keys(backup).length > 0) {
-      objectStates.set(obj, backup);
-    }
-    obj.set('hoverCursor', 'default');
-  };
-
-  /**
-   * 🛡️ 主函数：智能物理锁控制
-   */
-  const setBackgroundLock = (canvasInstance, shouldLock, options = {}) => {
-    const canvas = unref(canvasInstance);
-    if (!canvas) return;
-
-    const { excludeRulers = true, dragMode = false, isRulerMode = false } = options;
-    const objects = canvas.getObjects();
-    
-    if (shouldLock) {
-      // 1. 画布级状态调整
-      canvas.selection = false; 
-      canvas.defaultCursor = dragMode ? 'grab' : (isRulerMode ? 'crosshair' : 'default');
-
-      objects.forEach(obj => {
-        const isMain = obj.isMainImage || obj.id === 'main-image' || (obj.type === 'image' && objects.indexOf(obj) === 0);
-        
-        // 2. 主图路由 (始终拥有最高豁免权)
-        if (isMain) {
-          obj.set({
-            selectable: dragMode, 
-            evented: dragMode,
-            hoverCursor: dragMode ? 'grab' : (isRulerMode ? 'crosshair' : 'default'),
-            moveCursor: dragMode ? 'grabbing' : 'default'
-          });
-          return;
-        }
-
-        // 3. 策略 B 豁免逻辑：如果是标尺且开启豁免，执行“强制开启”循环
-        if (excludeRulers && obj.isRuler) {
-          forceEnableObject(obj, isRulerMode);
-          return;
-        }
-
-        // 4. 标准锁定逻辑：执行“强制锁定”循环并备份
-        lockAndStoreObject(obj);
-      });
-
-      // 自动清理非拖拽模式下的主图选中
-      if (!dragMode && canvas.getActiveObject()?.isMainImage) {
-        canvas.discardActiveObject();
-      }
-
-    } else {
-      // === 🔓 全局解锁阶段 ===
-      canvas.selection = true;
-      canvas.defaultCursor = 'default';
-
-      objects.forEach(obj => {
-        const originalState = objectStates.get(obj);
-        if (originalState) {
-          // 基于备份恢复
-          obj.set(originalState);
-          objectStates.delete(obj);
-        } else {
-          // 如果没有备份（可能是新生成的对象），执行标准化解锁
-          forceEnableObject(obj, false);
-        }
-      });
-    }
-
-    canvas.requestRenderAll();
-  };
-
-  return { setBackgroundLock };
-}
-</file>
-
 <file path=".spec/project-charter.md">
 # Project Charter: Image Editor SDK (大秘美图)
 
@@ -4962,6 +3930,522 @@ src/
 - **Configuration-Driven Lock**: 所有的锁定属性（selectable, lockMovement 等）均定义在 `LOCK_CONFIG` 中，系统通过遍历该配置实现逻辑自洽。
 - **Force Functional State (策略 B)**: 进入特定模块时，通过配置池强制恢复对象的所有交互属性，确保功能不受前序模块残留状态的影响。
 - **Configuration-Driven Lock**: 所有的锁定属性均集中定义在 `LOCK_CONFIG` 中。
+</file>
+
+<file path="src/components/modules/adjust/AdjustRuler.vue">
+<template>
+  <div class="tool-group">
+    <div
+      class="tool-item"
+      :class="{ 'is-expanded': isExpanded }"
+      @click="$emit('toggle')"
+    >
+      <div class="left">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0l12.6 12.6z"
+          ></path>
+          <path d="m5 6 1.7 1.7"></path>
+          <path d="m17 18 1.7 1.7"></path>
+          <path d="m11 12 1.7 1.7"></path>
+        </svg>
+        <span>测量标尺</span>
+      </div>
+      <div class="right-icon">
+        <svg
+          class="arrow"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="m9 18 6-6-6-6" />
+        </svg>
+      </div>
+    </div>
+
+    <div v-if="isExpanded" class="tool-content">
+      <div class="control-group">
+        <div class="section-title">
+          端点样式
+          <span
+            v-if="isDrawing"
+            style="
+              color: var(--ie-primary-color);
+              float: right;
+              font-weight: normal;
+              animation: blink 1.5s infinite;
+            "
+          >
+            绘制中...
+          </span>
+        </div>
+        <div class="style-grid">
+          <div
+            v-for="style in CAP_STYLES"
+            :key="style.id"
+            class="style-item"
+            :class="{ active: isStyleActive(style.id) }"
+            @click="setCapStyle(style.id)"
+            :title="style.label"
+          >
+            <svg width="40" height="20" viewBox="0 0 60 20">
+              <line
+                x1="10"
+                y1="10"
+                x2="50"
+                y2="10"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <g v-if="style.id === 'line'">
+                <line
+                  x1="10"
+                  y1="5"
+                  x2="10"
+                  y2="15"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+                <line
+                  x1="50"
+                  y1="5"
+                  x2="50"
+                  y2="15"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+              </g>
+              <g v-if="style.id === 'arrow'">
+                <path d="M10 10 L15 7 V13 Z" fill="currentColor" />
+                <path d="M50 10 L45 7 V13 Z" fill="currentColor" />
+              </g>
+              <g v-if="style.id === 'arrow_in'">
+                <path d="M5 7 L10 10 L5 13 Z" fill="currentColor" />
+                <path d="M55 7 L50 10 L55 13 Z" fill="currentColor" />
+              </g>
+              <g v-if="style.id === 'dot'">
+                <circle cx="10" cy="10" r="3" fill="currentColor" />
+                <circle cx="50" cy="10" r="3" fill="currentColor" />
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <div class="section-title">线身类型</div>
+        <div class="custom-select" :class="{ open: isDashSelectOpen }">
+          <div
+            class="selected-value"
+            @click="isDashSelectOpen = !isDashSelectOpen"
+          >
+            <svg
+              width="100%"
+              height="10"
+              viewBox="0 0 160 10"
+              preserveAspectRatio="none"
+            >
+              <line
+                x1="0"
+                y1="5"
+                x2="160"
+                y2="5"
+                stroke="currentColor"
+                stroke-width="2"
+                :stroke-dasharray="currentDashStr"
+                :stroke-linecap="rulerConfig.strokeLineCap || 'butt'"
+              />
+            </svg>
+            <svg
+              class="dropdown-arrow"
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+            >
+              <path d="M7 10l5 5 5-5z" fill="currentColor" />
+            </svg>
+          </div>
+
+          <div v-show="isDashSelectOpen" class="options-list">
+            <div
+              v-for="(opt, idx) in DASH_OPTIONS"
+              :key="idx"
+              class="option-item"
+              @click="setDashPattern(opt)"
+            >
+              <div class="opt-label">{{ opt.label }}</div>
+              <svg
+                width="80"
+                height="10"
+                viewBox="0 0 80 10"
+                preserveAspectRatio="none"
+              >
+                <line
+                  x1="0"
+                  y1="5"
+                  x2="80"
+                  y2="5"
+                  stroke="#606266"
+                  stroke-width="2"
+                  :stroke-dasharray="opt.value.join(',')"
+                  :stroke-linecap="opt.strokeLineCap || 'butt'"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="control-group">
+        <div class="label-row">
+          <span>标注数值</span>
+        </div>
+        <div class="input-group">
+          <input
+            type="number"
+            v-model.number="rulerConfig.value"
+            class="ie-input-number"
+            style="flex: 1; width: auto"
+            @input="updateActiveRuler"
+          />
+          <select
+            v-model="rulerConfig.unit"
+            class="ie-select"
+            @change="updateActiveRuler"
+          >
+            <option value="px">px</option>
+            <option value="cm">cm</option>
+            <option value="mm">mm</option>
+            <option value="m">m</option>
+            <option value="in">inch</option>
+            <option value="ft">foot</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <div class="label-row">
+          <span>线条颜色</span>
+          <input
+            type="color"
+            v-model="rulerConfig.color"
+            @input="updateActiveRuler"
+          />
+        </div>
+
+        <div class="label-row">
+          <span>透明度</span>
+          <span class="val">{{ rulerConfig.opacity }}%</span>
+        </div>
+        <input
+          type="range"
+          v-model.number="rulerConfig.opacity"
+          min="10"
+          max="100"
+          class="ie-slider"
+          @input="updateActiveRuler"
+        />
+      </div>
+
+      <div class="control-group">
+        <div class="label-row">
+          <span>线条粗细</span>
+          <span class="val">{{ rulerConfig.strokeWidth }}px</span>
+        </div>
+        <input
+          type="range"
+          v-model.number="rulerConfig.strokeWidth"
+          min="1"
+          max="10"
+          class="ie-slider"
+          @input="updateActiveRuler"
+        />
+      </div>
+
+      <div class="control-group">
+        <div class="label-row">
+          <span>字体大小</span>
+          <input
+            type="number"
+            v-model.number="rulerConfig.fontSize"
+            class="ie-input-number"
+            @input="updateActiveRuler"
+          />
+        </div>
+        <div class="label-row" style="margin-top: 8px">
+          <span>文字颜色</span>
+          <input
+            type="color"
+            v-model="rulerConfig.textColor"
+            @input="updateActiveRuler"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import {
+  defineProps,
+  defineEmits,
+  inject,
+  onMounted,
+  onUnmounted,
+  ref,
+  computed,
+  watch,
+} from "vue";
+import {
+  registerRulerModule,
+  rulerConfig,
+  isDrawing,
+  // ✨ 修复点：替换为新的模式控制函数
+  startRulerMode, 
+  stopRulerMode,
+  updateActiveRuler,
+  syncConfigFromActiveSelection,
+  CAP_STYLES,
+  DASH_OPTIONS,
+} from "./useCanvasRuler";
+import { useCanvasLock } from "@/composables/useCanvasLock";
+
+const props = defineProps({ isExpanded: Boolean });
+const emit = defineEmits(["toggle"]);
+const canvasAPI = inject("canvasAPI");
+
+const isDashSelectOpen = ref(false);
+const { setBackgroundLock } = useCanvasLock();
+
+// === 生命周期与状态管理 ===
+watch(
+  () => props.isExpanded,
+  (val) => {
+    const canvas = canvasAPI.canvas.value;
+    if (!canvas) return;
+
+    // ✨ 物理锁联动：进入标尺模块时，设置豁免标尺并进入标尺光标模式
+    setBackgroundLock(canvas, val, { 
+        excludeRulers: true, 
+        isRulerMode: val 
+    });
+
+    if (val) {
+      // 同步当前选中的标尺配置（如果有）
+      syncConfigFromActiveSelection();
+      // ✨ 开启“智能感知”标尺模式
+      startRulerMode(canvasAPI.canvas, canvasAPI.saveHistory);
+    } else {
+      // 退出标尺模式，移除监听
+      stopRulerMode();
+    }
+  }
+);
+
+onMounted(() => {
+  if (canvasAPI && canvasAPI.canvas) {
+    // 注册模块引用
+    registerRulerModule(canvasAPI.canvas, canvasAPI.saveHistory);
+
+    if (props.isExpanded) {
+      syncConfigFromActiveSelection();
+      startRulerMode(canvasAPI.canvas, canvasAPI.saveHistory);
+    }
+  }
+});
+
+onUnmounted(() => {
+  const canvas = canvasAPI?.canvas?.value;
+  if (canvas) {
+    setBackgroundLock(canvas, false);
+    stopRulerMode();
+  }
+});
+
+// === 视觉高亮 ===
+const isStyleActive = (styleId) => {
+  const isEditing = canvasAPI.canvas.value?.getActiveObject()?.isRuler;
+  if (isEditing) {
+    return rulerConfig.value.capStyle === styleId;
+  }
+  // 在测量模式下，即使没选中也高亮当前配置的样式
+  return props.isExpanded && rulerConfig.value.capStyle === styleId;
+};
+
+const setCapStyle = (styleId) => {
+  rulerConfig.value.capStyle = styleId;
+  const canvas = canvasAPI.canvas.value;
+  const activeObj = canvas?.getActiveObject();
+
+  if (activeObj && activeObj.isRuler) {
+    updateActiveRuler();
+  }
+  // 注意：不再需要手动调用 startDrawMode，startRulerMode 已在后台监听
+};
+
+const setDashPattern = (opt) => {
+  rulerConfig.value.dashArray = opt.value;
+  rulerConfig.value.strokeLineCap = opt.strokeLineCap || "butt";
+  isDashSelectOpen.value = false;
+  const canvas = canvasAPI.canvas.value;
+  const activeObj = canvas?.getActiveObject();
+  if (activeObj && activeObj.isRuler) {
+    updateActiveRuler();
+  }
+};
+
+const currentDashStr = computed(() => {
+  return rulerConfig.value.dashArray
+    ? rulerConfig.value.dashArray.join(",")
+    : "";
+});
+</script>
+
+<style scoped>
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.tool-content {
+  padding: 16px;
+}
+.section-title {
+  font-size: 12px;
+  color: #909399;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.style-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.style-item {
+  height: 32px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #606266;
+  background: #fff;
+  transition: all 0.2s;
+}
+.style-item:hover {
+  border-color: #c0c4cc;
+}
+.style-item.active {
+  border-color: var(--ie-primary-color);
+  color: var(--ie-primary-color);
+  background-color: #ecf5ff;
+}
+
+.custom-select {
+  position: relative;
+  width: 100%;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+.selected-value {
+  height: 32px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #606266;
+}
+.options-list {
+  position: absolute;
+  top: 100%;
+  left: -1px;
+  right: -1px;
+  background: #fff;
+  border: 1px solid #dcdfe6;
+  border-radius: 0 0 4px 4px;
+  z-index: 10;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.option-item {
+  height: 32px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+}
+.option-item:hover {
+  background-color: #f5f7fa;
+}
+.opt-label {
+  font-size: 12px;
+  color: #606266;
+  margin-right: 12px;
+  min-width: 40px;
+}
+
+.divider {
+  height: 1px;
+  background: #ebeef5;
+  margin: 16px 0;
+}
+.control-group {
+  margin-bottom: 16px;
+}
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #606266;
+  margin-bottom: 8px;
+}
+.input-group {
+  display: flex;
+  gap: 8px;
+}
+.ie-select {
+  height: 28px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #606266;
+  padding: 0 4px;
+  outline: none;
+  background: white;
+}
+.ie-input-number {
+    height: 28px;
+    border: 1px solid #dcdfe6;
+    border-radius: 4px;
+    padding: 0 8px;
+    outline: none;
+    width: 60px;
+}
+.val {
+  font-family: monospace;
+}
+.ie-slider {
+  width: 100%;
+}
+</style>
 </file>
 
 <file path="src/components/modules/adjust/AdjustWhite.vue">
@@ -5454,305 +4938,365 @@ onUnmounted(() => stopPreview());
 </style>
 </file>
 
-<file path="src/components/modules/adjust/useCanvasRuler.js">
-import { ref, unref } from 'vue';
-import { fabric } from 'fabric';
-import { useEditorState } from '@/composables/useEditorState';
+<file path="src/components/modules/puzzle/config.js">
+// src/components/modules/puzzle/config.js
 
-// === 模块级单例状态 ===
-let canvasRef = null;
-let saveHistoryFn = null;
-const { state } = useEditorState();
+// =========================================================================
+// 1. 网格模板数据 - 按图片数量分组
+// =========================================================================
+// 网格模板数据 - 按图片数量分组
+export const gridTemplates = {
+  1: [
+    {
+      id: '1-1',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(1, 1fr)',
+        'grid-template-rows': 'repeat(1, 1fr)',
+      },
+      gridAreas: ['1 / 1 / 2 / 2'],
+    }
+  ],
+  2: [
+    {
+      id: '2-1',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(2, 1fr)',
+        'grid-template-rows': 'repeat(2, 1fr)',
+      },
+      gridAreas: ['1 / 1 / 3 / 2', '1 / 2 / 3 / 3'],
+    },
+    {
+      id: '2-2',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(2, 1fr)',
+        'grid-template-rows': 'repeat(2, 1fr)',
+      },
+      gridAreas: ['1 / 1 / 2 / 3', '2 / 1 / 3 / 3'],
+    }
+  ],
+  3: [
+    {
+      id: '3-1',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(3, 1fr)',
+        'grid-template-rows': 'repeat(3, 1fr)',
+      },
+      gridAreas: ['1 / 1 / 3 / 3', '1 / 3 / 3 / 4', '3 / 1 / 4 / 4'],
+    },
+    {
+      id: '3-2',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(3, 1fr)',
+        'grid-template-rows': 'repeat(3, 1fr)',
+      },
+      gridAreas: ['1 / 1 / 2 / 4', '2 / 1 / 4 / 3', '2 / 3 / 4 / 4'],
+    },
+    {
+      id: '3-3',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(2, 1fr)',
+        'grid-template-rows': 'repeat(2, 1fr)',
+      },
+      gridAreas: [
+        '1 / 1 / 3 / 2',
+        '1 / 2 / 2 / 3',
+        '2 / 2 / 3 / 3'
+      ],
+    },
+    {
+      id: '3-4',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(2, 1fr)',
+        'grid-template-rows': 'repeat(2, 1fr)',
+      },
+      gridAreas: [
+        '1 / 1 / 2 / 2',
+        '1 / 2 / 3 / 3',
+        '2 / 1 / 3 / 2'
+      ],
+    },
+    {
+      id: '3-5',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(2, 1fr)',
+        'grid-template-rows': 'repeat(2, 1fr)',
+      },
+      gridAreas: [
+        '1 / 1 / 2 / 3',
+        '2 / 1 / 3 / 2',
+        '2 / 2 / 3 / 3'
+      ],
+    },
+    {
+      id: '3-6',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(2, 1fr)',
+        'grid-template-rows': 'repeat(2, 1fr)',
+      },
+      gridAreas: [
+        '1 / 1 / 2 / 2',
+        '1 / 2 / 2 / 3',
+        '2 / 1 / 3 / 3'
+      ],
+    },
+    {
+      id: '3-7',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(3, 1fr)',
+        'grid-template-rows': 'repeat(3, 1fr)',
+      },
+      gridAreas: [
+        '1 / 1 / 4 / 2',
+        '1 / 2 / 4 / 3',
+        '1 / 3 / 4 / 4'
+      ],
+    },
+    {
+      id: '3-8',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(3, 1fr)',
+        'grid-template-rows': 'repeat(3, 1fr)',
+      },
+      gridAreas: [
+        '1 / 1 / 2 / 4',
+        '2 / 1 / 3 / 4',
+        '3 / 1 / 4 / 4'
+      ],
+    }
+  ],
+  4: [
+    {
+      id: '4-1',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(2, 1fr)',
+        'grid-template-rows': 'repeat(2, 1fr)',
+      },
+      gridAreas: [
+        '1 / 1 / 2 / 2',
+        '1 / 2 / 2 / 3',
+        '2 / 1 / 3 / 2',
+        '2 / 2 / 3 / 3'
+      ],
+    },
+    {
+      id: '4-2',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(6, 1fr)',
+        'grid-template-rows': 'repeat(6, 1fr)',
+      },
+      gridAreas: [
+        '1 / 1 / 4 / 3',
+        '1 / 3 / 4 / 7',
+        '4 / 1 / 7 / 5',
+        '4 / 5 / 7 / 7'
+      ],
+    },
+    {
+      id: '4-3',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(6, 1fr)',
+        'grid-template-rows': 'repeat(6, 1fr)',
+      },
+      gridAreas: [
+        '1 / 1 / 7 / 3',
+        '1 / 3 / 4 / 5',
+        '4 / 3 / 7 / 5',
+        '1 / 5 / 7 / 7'
+      ],
+    },
+    {
+      id: '4-4',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(6, 1fr)',
+        'grid-template-rows': 'repeat(6, 1fr)',
+      },
+      gridAreas: [
+        '1 / 1 / 3 / 7',
+        '3 / 1 / 5 / 4',
+        '3 / 4 / 5 / 7',
+        '5 / 1 / 7 / 7'
+      ],
+    },
+    {
+      id: '4-5',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(4, 1fr)',
+        'grid-template-rows': 'repeat(4, 1fr)',
+      },
+      gridAreas: [
+        '1 / 1 / 5 / 2',
+        '1 / 2 / 5 / 3',
+        '1 / 3 / 5 / 4',
+        '1 / 4 / 5 / 5'
+      ],
+    },
+    {
+      id: '4-6',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(4, 1fr)',
+        'grid-template-rows': 'repeat(4, 1fr)',
+      },
+      gridAreas: [
+        '1 / 1 / 2 / 5',
+        '2 / 1 / 3 / 5',
+        '3 / 1 / 4 / 5',
+        '4 / 1 / 5 / 5'
+      ],
+    },
+    {
+      id: '4-7',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(6, 1fr)',
+        'grid-template-rows': 'repeat(6, 1fr)',
+      },
+      gridAreas: [
+        '1 / 1 / 3 / 4',
+        '3 / 1 / 5 / 4',
+        '5 / 1 / 7 / 4',
+        '1 / 4 / 7 / 7'
+      ],
+    },
+    {
+      id: '4-8',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(6, 1fr)',
+        'grid-template-rows': 'repeat(6, 1fr)',
+      },
+      gridAreas: [
+        '1 / 1 / 7 / 4',
+        '1 / 4 / 3 / 7',
+        '3 / 4 / 5 / 7',
+        '5 / 4 / 7 / 7'
+      ],
+    },
+    {
+      id: '4-9',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(6, 1fr)',
+        'grid-template-rows': 'repeat(6, 1fr)',
+      },
+      gridAreas: [
+        '1 / 1 / 4 / 3',
+        '1 / 3 / 4 / 5',
+        '1 / 5 / 4 / 7',
+        '4 / 1 / 7 / 7'
+      ],
+    },
+    {
+      id: '4-10',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(6, 1fr)',
+        'grid-template-rows': 'repeat(6, 1fr)',
+      },
+      gridAreas: [
+        '1 / 1 / 4 / 7',
+        '4 / 1 / 7 / 3',
+        '4 / 3 / 7 / 5',
+        '4 / 5 / 7 / 7'
+      ],
+    },
+    {
+      id: '4-11',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(4, 1fr)',
+        'grid-template-rows': 'repeat(4, 1fr)',
+      },
+      gridAreas: [
+        '1 / 1 / 3 / 5',
+        '3 / 1 / 5 / 3',
+        '3 / 3 / 4 / 5',
+        '4 / 3 / 5 / 5'
+      ],
+    },
+    {
+      id: '4-12',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(4, 1fr)',
+        'grid-template-rows': 'repeat(4, 1fr)',
+      },
+      gridAreas: [
+        '1 / 1 / 5 / 3',
+        '1 / 3 / 3 / 4',
+        '1 / 4 / 3 / 5',
+        '3 / 3 / 5 / 5'
+      ],
+    },
+    {
+      id: '4-13',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(4, 1fr)',
+        'grid-template-rows': 'repeat(4, 1fr)',
+      },
+      gridAreas: [
+        '1 / 1 / 2 / 3',
+        '2 / 1 / 3 / 3',
+        '1 / 3 / 3 / 5',
+        '3 / 1 / 5 / 5'
+      ],
+    },
+    {
+      id: '4-14',
+      wrapStyle: {
+        'grid-template-columns': 'repeat(4, 1fr)',
+        'grid-template-rows': 'repeat(4, 1fr)',
+      },
+      gridAreas: [
+        '1 / 1 / 3 / 3',
+        '3 / 1 / 5 / 2',
+        '3 / 2 / 5 / 3',
+        '1 / 3 / 5 / 5'
+      ],
+    },
+  ]
+};
 
-export const DASH_OPTIONS = [
-    { label: '实线', value: [], icon: 'solid' },
-    { label: '长虚线', value: [15, 15], icon: 'long-dash' },
-    { label: '短虚线', value: [5, 5], icon: 'short-dash' },
-    { label: '疏点线', value: [0, 8], strokeLineCap: 'round' }, 
-    { label: '密点线', value: [0, 4], strokeLineCap: 'round' },
-    { label: '点划线', value: [15, 5, 0, 5], strokeLineCap: 'round' } 
+// 图片数量下拉
+export const countOptions = [
+  { value: 'all', label: '全部' },
+  ...Array.from({ length: 4 }, (_, i) => ({ value: `${i + 1}`, label: `${i + 1}` })),
 ];
 
-export const CAP_STYLES = [
-    { id: 'line', label: '短线' },
-    { id: 'arrow', label: '外向箭头' },
-    { id: 'arrow_in', label: '内向箭头' },
-    { id: 'dot', label: '圆点' },
-    { id: 'none', label: '无' }
-];
+/**
+ * 解析 CSS Grid Area 模板为百分比坐标
+ * 兼容格式如: "1 / 1 / 2 / 2" (rowStart / colStart / rowEnd / colEnd)
+ * @param {Object} tpl 模板对象
+ */
+export const parseTemplateToCells = (tpl) => {
+  if (!tpl || !tpl.gridAreas) return [];
 
-const isDrawing = ref(false);
-const rulerConfig = ref({
-    value: 20,
-    unit: 'cm',
-    color: '#ff0000',
-    opacity: 100,
-    fontSize: 24,
-    fontFamily: 'Arial',
-    strokeWidth: 4,
-    showBg: true,
-    capStyle: 'line',    
-    dashArray: [],       
-    strokeLineCap: 'butt'
-});
+  let maxR = 1, maxC = 1;
 
-export const registerRulerModule = (canvas, saveHistory) => {
-    canvasRef = canvas;
-    saveHistoryFn = saveHistory;
+  const getCountFromStyle = (styleStr) => {
+    if (!styleStr) return 1;
+    const repeatMatch = styleStr.match(/repeat\((\d+)/);
+    if (repeatMatch) return parseInt(repeatMatch[1]);
+    const spaceMatch = styleStr.trim().split(/\s+/);
+    return spaceMatch.length;
+  };
 
-    const c = unref(canvas);
-    if (c) {
-        c.off('selection:created', onSelectionChanged);
-        c.off('selection:updated', onSelectionChanged);
-        c.on('selection:created', onSelectionChanged);
-        c.on('selection:updated', onSelectionChanged);
+  if (tpl.wrapStyle) {
+    maxC = Math.max(maxC, getCountFromStyle(tpl.wrapStyle['grid-template-columns']));
+    maxR = Math.max(maxR, getCountFromStyle(tpl.wrapStyle['grid-template-rows']));
+  }
+
+  tpl.gridAreas.forEach(area => {
+    const parts = area.split('/').map(s => parseInt(s.trim()));
+    if (parts.length >= 4) {
+      if (parts[2] - 1 > maxR) maxR = parts[2] - 1;
+      if (parts[3] - 1 > maxC) maxC = parts[3] - 1;
     }
+  });
+
+  return tpl.gridAreas.map((area, index) => {
+    const [r1, c1, r2, c2] = area.split('/').map(s => parseInt(s.trim()));
+    const x = (c1 - 1) / maxC;
+    const y = (r1 - 1) / maxR;
+    const w = (c2 - c1) / maxC;
+    const h = (r2 - r1) / maxR;
+
+    return { index, x, y, w, h };
+  });
 };
-
-const createCap = (type, color, strokeWidth) => {
-    const size = 10 + strokeWidth; 
-    if (type === 'arrow' || type === 'arrow_in') {
-        return new fabric.Triangle({
-            width: size, height: size, fill: color,
-            originX: 'center', originY: 'center', selectable: false
-        });
-    } else if (type === 'dot') {
-        return new fabric.Circle({
-            radius: strokeWidth * 1.5, fill: color,
-            originX: 'center', originY: 'center', selectable: false
-        });
-    } else if (type === 'line') {
-        return new fabric.Line([0, -size, 0, size], {
-            stroke: color, strokeWidth: strokeWidth,
-            originX: 'center', originY: 'center', selectable: false
-        });
-    } else {
-        return new fabric.Rect({ width: 0, height: 0, visible: false });
-    }
-};
-
-const createRulerObject = (start, end) => {
-    const canvas = unref(canvasRef);
-    const cfg = rulerConfig.value;
-    
-    const dx = end.x - start.x;
-    const dy = end.y - start.y;
-    const length = Math.sqrt(dx * dx + dy * dy);
-    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-    const midX = (start.x + end.x) / 2;
-    const midY = (start.y + end.y) / 2;
-    const halfLen = length / 2;
-
-    const line = new fabric.Line([-halfLen, 0, halfLen, 0], {
-        stroke: cfg.color, strokeWidth: cfg.strokeWidth,
-        strokeDashArray: cfg.dashArray, strokeLineCap: cfg.strokeLineCap || 'butt',
-        originX: 'center', originY: 'center'
-    });
-
-    const startCap = createCap(cfg.capStyle, cfg.color, cfg.strokeWidth);
-    const endCap = createCap(cfg.capStyle, cfg.color, cfg.strokeWidth);
-    startCap.set({ left: -halfLen, top: 0 });
-    endCap.set({ left: halfLen, top: 0 });
-    
-    const updateCapRotation = (cap, isStart) => {
-        if (cfg.capStyle.includes('arrow')) {
-            let rot = 90;
-            if (cfg.capStyle === 'arrow') rot = isStart ? -90 : 90;
-            else rot = isStart ? 90 : -90;
-            cap.set({ angle: rot });
-        } else { cap.set({ angle: 0 }); }
-    };
-    updateCapRotation(startCap, true);
-    updateCapRotation(endCap, false);
-
-    const textObj = new fabric.Text(`${cfg.value} ${cfg.unit}`, {
-        fontSize: cfg.fontSize, fill: cfg.color, fontFamily: cfg.fontFamily,
-        backgroundColor: cfg.showBg ? 'rgba(255,255,255,0.8)' : '',
-        originX: 'center', originY: 'bottom', left: 0, top: -10
-    });
-    if (Math.abs(angle) > 90) textObj.set({ angle: 180, originY: 'bottom', top: 10 });
-
-    const group = new fabric.Group([line, startCap, endCap, textObj], {
-        left: midX, top: midY, angle: angle,
-        originX: 'center', originY: 'center', opacity: cfg.opacity / 100,
-        customTab: 'ruler', customTool: 'adjust', isRuler: true,
-        _rulerValue: cfg.value, _rulerUnit: cfg.unit,
-        _capStyle: cfg.capStyle, _dashArray: cfg.dashArray, _strokeLineCap: cfg.strokeLineCap,
-        lockScalingY: true, lockUniScaling: true,
-        hoverCursor: 'move' // ✨ 确保对象自身的悬停形态
-    });
-
-    group.setControlsVisibility({ mtr: true, ml: true, mr: true, mt:false, mb:false, tl:false, tr:false, bl:false, br:false });
-    canvas.add(group);
-    
-    if (saveHistoryFn) saveHistoryFn();
-    return group;
-};
-
-const recreateActiveRuler = (activeGroup) => {
-    const canvas = unref(canvasRef);
-    const center = activeGroup.getCenterPoint();
-    const lineObj = activeGroup.getObjects()[0];
-    const currentWidth = lineObj.width * activeGroup.scaleX;
-    const angleRad = fabric.util.degreesToRadians(activeGroup.angle);
-    const dx = (currentWidth / 2) * Math.cos(angleRad);
-    const dy = (currentWidth / 2) * Math.sin(angleRad);
-    const start = { x: center.x - dx, y: center.y - dy };
-    const end = { x: center.x + dx, y: center.y + dy };
-    
-    canvas.remove(activeGroup);
-    const newGroup = createRulerObject(start, end);
-    canvas.setActiveObject(newGroup);
-    canvas.requestRenderAll();
-};
-
-export const updateActiveRuler = () => {
-    const canvas = unref(canvasRef);
-    if (!canvas) return;
-    const group = canvas.getActiveObject();
-    if (!group || !group.isRuler) return;
-
-    const cfg = rulerConfig.value;
-    const needsRebuild = (group._capStyle !== cfg.capStyle) || (group.getObjects()[3].fontSize !== cfg.fontSize);
-
-    if (needsRebuild) {
-        recreateActiveRuler(group);
-    } else {
-        const items = group.getObjects(); 
-        items[0].set({
-            stroke: cfg.color, strokeWidth: cfg.strokeWidth,
-            strokeDashArray: cfg.dashArray, strokeLineCap: cfg.strokeLineCap || 'butt'
-        });
-        items[1].set({ fill: cfg.color, stroke: cfg.color });
-        items[2].set({ fill: cfg.color, stroke: cfg.color });
-        items[3].set({
-            text: `${cfg.value} ${cfg.unit}`, fill: cfg.color,
-            backgroundColor: cfg.showBg ? 'rgba(255,255,255,0.8)' : ''
-        });
-        group.set({ opacity: cfg.opacity / 100 });
-        group._rulerValue = cfg.value;
-        group._rulerUnit = cfg.unit;
-        group._dashArray = cfg.dashArray;
-        group._strokeLineCap = cfg.strokeLineCap;
-
-        canvas.requestRenderAll();
-        if (saveHistoryFn) saveHistoryFn();
-    }
-};
-
-const onSelectionChanged = (e) => {
-    if (isDrawing.value) return;
-    const activeObj = e.selected?.[0];
-    syncConfigFromObject(activeObj);
-};
-
-export const syncConfigFromActiveSelection = () => {
-    const canvas = unref(canvasRef);
-    const activeObj = canvas?.getActiveObject();
-    syncConfigFromObject(activeObj);
-    return activeObj;
-};
-
-const syncConfigFromObject = (activeObj) => {
-    if (activeObj && activeObj.isRuler) {
-        const items = activeObj.getObjects();
-        rulerConfig.value.value = activeObj._rulerValue ?? 20;
-        rulerConfig.value.unit = activeObj._rulerUnit ?? 'cm';
-        rulerConfig.value.opacity = (activeObj.opacity || 1) * 100;
-        rulerConfig.value.capStyle = activeObj._capStyle || 'line'; 
-        rulerConfig.value.dashArray = activeObj._dashArray || [];
-        rulerConfig.value.strokeLineCap = activeObj._strokeLineCap || 'butt';
-        if (items[0]) {
-            rulerConfig.value.color = items[0].stroke;
-            rulerConfig.value.strokeWidth = items[0].strokeWidth;
-        }
-        if (items[3]) {
-            rulerConfig.value.fontSize = items[3].fontSize;
-            rulerConfig.value.showBg = !!items[3].backgroundColor;
-        }
-    }
-};
-
-let startPoint = null;
-let activeLine = null;
-
-const onKeyDown = (e) => {
-    if (e.key === 'Escape' || e.key === 'Esc') {
-        stopRulerMode();
-    }
-};
-
-const onMouseDown = (opt) => {
-    const canvas = unref(canvasRef);
-    if (!canvas || state.isGlobalDragMode) return;
-
-    if (opt.target && opt.target.isRuler) {
-        canvas.setActiveObject(opt.target);
-        return;
-    }
-
-    if (!opt.target) {
-        const pointer = canvas.getPointer(opt.e);
-        startPoint = { x: pointer.x, y: pointer.y };
-        
-        activeLine = new fabric.Line([startPoint.x, startPoint.y, startPoint.x, startPoint.y], {
-            stroke: rulerConfig.value.color,
-            strokeWidth: rulerConfig.value.strokeWidth,
-            selectable: true, 
-            evented: true,
-            isRuler: true
-        });
-        
-        canvas.add(activeLine);
-        canvas.on('mouse:move', onMouseMove);
-        canvas.on('mouse:up', onMouseUp);
-    }
-};
-
-const onMouseMove = (opt) => {
-    if (!activeLine) return;
-    const canvas = unref(canvasRef);
-    const pointer = canvas.getPointer(opt.e);
-    activeLine.set({ x2: pointer.x, y2: pointer.y });
-    canvas.requestRenderAll();
-};
-
-const onMouseUp = () => {
-    const canvas = unref(canvasRef);
-    canvas.off('mouse:move', onMouseMove);
-    canvas.off('mouse:up', onMouseUp);
-    
-    if (!activeLine) return;
-    const endPoint = { x: activeLine.x2, y: activeLine.y2 };
-    canvas.remove(activeLine);
-    activeLine = null;
-    
-    const dist = Math.sqrt(Math.pow(endPoint.x - startPoint.x, 2) + Math.pow(endPoint.y - startPoint.y, 2));
-    if (dist > 10) {
-        createRulerObject(startPoint, endPoint);
-    }
-};
-
-export const startRulerMode = (canvas) => {
-    canvasRef = canvas;
-    const c = unref(canvas);
-    if (!c) return;
-    
-    c.on('mouse:down', onMouseDown);
-    window.addEventListener('keydown', onKeyDown);
-    // ✨ 光标由 useCanvasLock 统一管理，无需此处手动设置
-};
-
-export const stopRulerMode = () => {
-    const c = unref(canvasRef);
-    if (!c) return;
-    c.off('mouse:down', onMouseDown);
-    c.off('mouse:move', onMouseMove);
-    c.off('mouse:up', onMouseUp);
-    window.removeEventListener('keydown', onKeyDown);
-};
-
-export { rulerConfig, isDrawing };
 </file>
 
 <file path="src/components/panels/ToolPanel.vue">
@@ -5840,6 +5384,127 @@ const handleCancelExit = () => {
   overflow-y: auto;
 }
 </style>
+</file>
+
+<file path="src/composables/useCanvasLock.js">
+import { unref } from 'vue';
+
+/**
+ * ✨ 1. 定义 LOCKABLE_PROPERTIES 静态常量列表
+ * 所有的锁定和豁免动作都必须严格遵循此列表，确保逻辑一一对应
+ */
+const LOCK_CONFIG = {
+  // 属性名: [锁定值, 交互值]
+  'selectable': [false, true],
+  'evented': [false, true],
+  'hasControls': [false, true],
+  'hasBorders': [false, true],
+  'lockMovementX': [true, false],
+  'lockMovementY': [true, false],
+  'lockRotation': [true, false],
+  'lockScalingX': [true, false],
+  'lockScalingY': [true, false],
+};
+
+export function useCanvasLock() {
+  // 状态记忆库 (WeakMap)
+  const objectStates = new WeakMap();
+
+  /**
+   * 🛡️ 内部函数：ObjectFunctions.enable(obj)
+   * 强制将对象恢复到全功能状态，用于豁免逻辑 (策略 B)
+   */
+  const forceEnableObject = (obj, isRulerMode) => {
+    Object.keys(LOCK_CONFIG).forEach(prop => {
+      const [_, interactiveValue] = LOCK_CONFIG[prop];
+      obj.set(prop, interactiveValue);
+    });
+    // 特殊光标处理
+    obj.set('hoverCursor', isRulerMode ? 'move' : 'default');
+  };
+
+  /**
+   * 🛡️ 内部函数：实施物理锁定并备份
+   */
+  const lockAndStoreObject = (obj) => {
+    const backup = {};
+    Object.keys(LOCK_CONFIG).forEach(prop => {
+      // ✨ 只有第一次锁定该对象时才备份，防止多层记忆覆盖原始状态
+      if (!objectStates.has(obj)) {
+        backup[prop] = obj[prop];
+      }
+      const [lockedValue] = LOCK_CONFIG[prop];
+      obj.set(prop, lockedValue);
+    });
+    
+    if (Object.keys(backup).length > 0) {
+      objectStates.set(obj, backup);
+    }
+    obj.set('hoverCursor', 'default');
+  };
+
+  /**
+   * 🛡️ 主函数：智能物理锁控制
+   */
+const setBackgroundLock = (canvasInstance, shouldLock, options = {}) => {
+    const canvas = unref(canvasInstance);
+    if (!canvas) return;
+
+    const { excludeRulers = true, dragMode = false, isRulerMode = false } = options;
+    const objects = canvas.getObjects();
+    
+    if (shouldLock) {
+      canvas.selection = false; 
+      canvas.defaultCursor = dragMode ? 'grab' : (isRulerMode ? 'crosshair' : 'default');
+
+      objects.forEach(obj => {
+        const isMain = obj.isMainImage || obj.id === 'main-image' || (obj.type === 'image' && objects.indexOf(obj) === 0);
+        
+        if (isMain) {
+          obj.set({
+            selectable: dragMode, 
+            evented: dragMode,
+            hoverCursor: dragMode ? 'grab' : (isRulerMode ? 'crosshair' : 'default'),
+            moveCursor: dragMode ? 'grabbing' : 'default'
+          });
+          return;
+        }
+
+        // ✨ 响应提议 Q2：如果处于拖拽模式 (dragMode === true)，强制锁定所有组件
+        // 只有在非拖拽模式下的标尺模式，才允许豁免标尺
+        const shouldExempt = !dragMode && excludeRulers && obj.isRuler;
+
+        if (shouldExempt) {
+          forceEnableObject(obj, isRulerMode);
+          return;
+        }
+
+        // 标准锁定
+        lockAndStoreObject(obj);
+      });
+
+      if (!dragMode && canvas.getActiveObject()?.isMainImage) {
+        canvas.discardActiveObject();
+      }
+    } else {
+      // 解锁阶段保持不变...
+      canvas.selection = true;
+      canvas.defaultCursor = 'default';
+      objects.forEach(obj => {
+        const originalState = objectStates.get(obj);
+        if (originalState) {
+          obj.set(originalState);
+          objectStates.delete(obj);
+        } else {
+          forceEnableObject(obj, false);
+        }
+      });
+    }
+    canvas.requestRenderAll();
+  };
+
+  return { setBackgroundLock };
+}
 </file>
 
 <file path="vite.config.js">
@@ -6232,6 +5897,305 @@ const handleRembg = async () => {
 </style>
 </file>
 
+<file path="src/components/modules/adjust/useCanvasRuler.js">
+import { ref, unref } from 'vue';
+import { fabric } from 'fabric';
+import { useEditorState } from '@/composables/useEditorState';
+
+// === 模块级单例状态 ===
+let canvasRef = null;
+let saveHistoryFn = null;
+const { state } = useEditorState();
+
+export const DASH_OPTIONS = [
+    { label: '实线', value: [], icon: 'solid' },
+    { label: '长虚线', value: [15, 15], icon: 'long-dash' },
+    { label: '短虚线', value: [5, 5], icon: 'short-dash' },
+    { label: '疏点线', value: [0, 8], strokeLineCap: 'round' }, 
+    { label: '密点线', value: [0, 4], strokeLineCap: 'round' },
+    { label: '点划线', value: [15, 5, 0, 5], strokeLineCap: 'round' } 
+];
+
+export const CAP_STYLES = [
+    { id: 'line', label: '短线' },
+    { id: 'arrow', label: '外向箭头' },
+    { id: 'arrow_in', label: '内向箭头' },
+    { id: 'dot', label: '圆点' },
+    { id: 'none', label: '无' }
+];
+
+const isDrawing = ref(false);
+const rulerConfig = ref({
+    value: 20,
+    unit: 'cm',
+    color: '#000000',
+    opacity: 100,
+    fontSize: 24,
+    textColor: '#000000',
+    fontFamily: 'Arial',
+    strokeWidth: 1,
+    capStyle: 'line',    
+    dashArray: [],       
+    strokeLineCap: 'butt'
+});
+
+export const registerRulerModule = (canvas, saveHistory) => {
+    canvasRef = canvas;
+    saveHistoryFn = saveHistory;
+
+    const c = unref(canvas);
+    if (c) {
+        c.off('selection:created', onSelectionChanged);
+        c.off('selection:updated', onSelectionChanged);
+        c.on('selection:created', onSelectionChanged);
+        c.on('selection:updated', onSelectionChanged);
+    }
+};
+
+const createCap = (type, color, strokeWidth) => {
+    const size = 10 + strokeWidth; 
+    if (type === 'arrow' || type === 'arrow_in') {
+        return new fabric.Triangle({
+            width: size, height: size, fill: color,
+            originX: 'center', originY: 'center', selectable: false
+        });
+    } else if (type === 'dot') {
+        return new fabric.Circle({
+            radius: strokeWidth * 1.5, fill: color,
+            originX: 'center', originY: 'center', selectable: false
+        });
+    } else if (type === 'line') {
+        return new fabric.Line([0, -size, 0, size], {
+            stroke: color, strokeWidth: strokeWidth,
+            originX: 'center', originY: 'center', selectable: false
+        });
+    } else {
+        return new fabric.Rect({ width: 0, height: 0, visible: false });
+    }
+};
+
+const createRulerObject = (start, end) => {
+    const canvas = unref(canvasRef);
+    const cfg = rulerConfig.value;
+    
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+    const midX = (start.x + end.x) / 2;
+    const midY = (start.y + end.y) / 2;
+    const halfLen = length / 2;
+
+    const line = new fabric.Line([-halfLen, 0, halfLen, 0], {
+        stroke: cfg.color, strokeWidth: cfg.strokeWidth,
+        strokeDashArray: cfg.dashArray, strokeLineCap: cfg.strokeLineCap || 'butt',
+        originX: 'center', originY: 'center'
+    });
+
+    const startCap = createCap(cfg.capStyle, cfg.color, cfg.strokeWidth);
+    const endCap = createCap(cfg.capStyle, cfg.color, cfg.strokeWidth);
+    startCap.set({ left: -halfLen, top: 0 });
+    endCap.set({ left: halfLen, top: 0 });
+    
+    const updateCapRotation = (cap, isStart) => {
+        if (cfg.capStyle.includes('arrow')) {
+            let rot = 90;
+            if (cfg.capStyle === 'arrow') rot = isStart ? -90 : 90;
+            else rot = isStart ? 90 : -90;
+            cap.set({ angle: rot });
+        } else { cap.set({ angle: 0 }); }
+    };
+    updateCapRotation(startCap, true);
+    updateCapRotation(endCap, false);
+
+    const textObj = new fabric.Text(`${cfg.value} ${cfg.unit}`, {
+        fontSize: cfg.fontSize, fill: cfg.textColor, fontFamily: cfg.fontFamily,
+        originX: 'center', originY: 'bottom', left: 0, top: -10
+    });
+    if (Math.abs(angle) > 90) textObj.set({ angle: 180, originY: 'bottom', top: 10 });
+
+    const group = new fabric.Group([line, startCap, endCap, textObj], {
+        left: midX, top: midY, angle: angle,
+        originX: 'center', originY: 'center', opacity: cfg.opacity / 100,
+        customTab: 'ruler', customTool: 'adjust', isRuler: true,
+        _rulerValue: cfg.value, _rulerUnit: cfg.unit,
+        _capStyle: cfg.capStyle, _dashArray: cfg.dashArray, _strokeLineCap: cfg.strokeLineCap,
+        lockScalingY: true, lockUniScaling: true,
+        hoverCursor: 'move',_textColor: cfg.textColor // ✨ 确保对象自身的悬停形态
+    });
+
+    group.setControlsVisibility({ mtr: true, ml: true, mr: true, mt:false, mb:false, tl:false, tr:false, bl:false, br:false });
+    canvas.add(group);
+    
+    if (saveHistoryFn) saveHistoryFn();
+    return group;
+};
+
+const recreateActiveRuler = (activeGroup) => {
+    const canvas = unref(canvasRef);
+    const center = activeGroup.getCenterPoint();
+    const lineObj = activeGroup.getObjects()[0];
+    const currentWidth = lineObj.width * activeGroup.scaleX;
+    const angleRad = fabric.util.degreesToRadians(activeGroup.angle);
+    const dx = (currentWidth / 2) * Math.cos(angleRad);
+    const dy = (currentWidth / 2) * Math.sin(angleRad);
+    const start = { x: center.x - dx, y: center.y - dy };
+    const end = { x: center.x + dx, y: center.y + dy };
+    
+    canvas.remove(activeGroup);
+    const newGroup = createRulerObject(start, end);
+    canvas.setActiveObject(newGroup);
+    canvas.requestRenderAll();
+};
+
+export const updateActiveRuler = () => {
+    const canvas = unref(canvasRef);
+    if (!canvas) return;
+    const group = canvas.getActiveObject();
+    if (!group || !group.isRuler) return;
+
+    const cfg = rulerConfig.value;
+    const needsRebuild = (group._capStyle !== cfg.capStyle) || (group.getObjects()[3].fontSize !== cfg.fontSize);
+
+    if (needsRebuild) {
+        recreateActiveRuler(group);
+    } else {
+        const items = group.getObjects(); 
+        items[0].set({
+            stroke: cfg.color, strokeWidth: cfg.strokeWidth,
+            strokeDashArray: cfg.dashArray, strokeLineCap: cfg.strokeLineCap || 'butt'
+        });
+        items[1].set({ fill: cfg.color, stroke: cfg.color });
+        items[2].set({ fill: cfg.color, stroke: cfg.color });
+        items[3].set({
+            text: `${cfg.value} ${cfg.unit}`, fill: cfg.textColor,
+        });
+        group.set({ opacity: cfg.opacity / 100,dirty: true });
+        group._rulerValue = cfg.value;
+        group._rulerUnit = cfg.unit;
+        group._dashArray = cfg.dashArray;
+        group._strokeLineCap = cfg.strokeLineCap;
+        group._textColor = cfg.textColor;
+        canvas.requestRenderAll();
+        if (saveHistoryFn) saveHistoryFn();
+    }
+};
+
+const onSelectionChanged = (e) => {
+    if (isDrawing.value) return;
+    const activeObj = e.selected?.[0];
+    syncConfigFromObject(activeObj);
+};
+
+export const syncConfigFromActiveSelection = () => {
+    const canvas = unref(canvasRef);
+    const activeObj = canvas?.getActiveObject();
+    syncConfigFromObject(activeObj);
+    return activeObj;
+};
+
+const syncConfigFromObject = (activeObj) => {
+    if (activeObj && activeObj.isRuler) {
+        const items = activeObj.getObjects();
+        rulerConfig.value.value = activeObj._rulerValue ?? 20;
+        rulerConfig.value.unit = activeObj._rulerUnit ?? 'cm';
+        rulerConfig.value.opacity = (activeObj.opacity || 1) * 100;
+        rulerConfig.value.capStyle = activeObj._capStyle || 'line'; 
+        rulerConfig.value.dashArray = activeObj._dashArray || [];
+        rulerConfig.value.strokeLineCap = activeObj._strokeLineCap || 'butt';
+        if (items[0]) {
+            rulerConfig.value.color = items[0].stroke;
+            rulerConfig.value.strokeWidth = items[0].strokeWidth;
+        }
+        if (items[3]) {
+            rulerConfig.value.fontSize = items[3].fontSize;
+            rulerConfig.value.textColor = items[3].fill;
+        }
+    }
+};
+
+let startPoint = null;
+let activeLine = null;
+
+const onKeyDown = (e) => {
+    if (e.key === 'Escape' || e.key === 'Esc') {
+        stopRulerMode();
+    }
+};
+
+const onMouseDown = (opt) => {
+    const canvas = unref(canvasRef);
+    if (!canvas || state.isGlobalDragMode) return;
+
+    if (opt.target && opt.target.isRuler) {
+        canvas.setActiveObject(opt.target);
+        return;
+    }
+
+    if (!opt.target) {
+        const pointer = canvas.getPointer(opt.e);
+        startPoint = { x: pointer.x, y: pointer.y };
+        
+        activeLine = new fabric.Line([startPoint.x, startPoint.y, startPoint.x, startPoint.y], {
+            stroke: rulerConfig.value.color,
+            strokeWidth: rulerConfig.value.strokeWidth,
+            selectable: true, 
+            evented: true,
+            isRuler: true
+        });
+        
+        canvas.add(activeLine);
+        canvas.on('mouse:move', onMouseMove);
+        canvas.on('mouse:up', onMouseUp);
+    }
+};
+
+const onMouseMove = (opt) => {
+    if (!activeLine) return;
+    const canvas = unref(canvasRef);
+    const pointer = canvas.getPointer(opt.e);
+    activeLine.set({ x2: pointer.x, y2: pointer.y });
+    canvas.requestRenderAll();
+};
+
+const onMouseUp = () => {
+    const canvas = unref(canvasRef);
+    canvas.off('mouse:move', onMouseMove);
+    canvas.off('mouse:up', onMouseUp);
+    
+    if (!activeLine) return;
+    const endPoint = { x: activeLine.x2, y: activeLine.y2 };
+    canvas.remove(activeLine);
+    activeLine = null;
+    
+    const dist = Math.sqrt(Math.pow(endPoint.x - startPoint.x, 2) + Math.pow(endPoint.y - startPoint.y, 2));
+    if (dist > 10) {
+        createRulerObject(startPoint, endPoint);
+    }
+};
+
+export const startRulerMode = (canvas) => {
+    canvasRef = canvas;
+    const c = unref(canvas);
+    if (!c) return;
+    
+    c.on('mouse:down', onMouseDown);
+    window.addEventListener('keydown', onKeyDown);
+    // ✨ 光标由 useCanvasLock 统一管理，无需此处手动设置
+};
+
+export const stopRulerMode = () => {
+    const c = unref(canvasRef);
+    if (!c) return;
+    c.off('mouse:down', onMouseDown);
+    c.off('mouse:move', onMouseMove);
+    c.off('mouse:up', onMouseUp);
+    window.removeEventListener('keydown', onKeyDown);
+};
+
+export { rulerConfig, isDrawing };
+</file>
+
 <file path="src/main.js">
 import { createApp } from 'vue'
 import './style.css' // 确保这里引入了我们新写的通用 CSS (包含 .ie-btn 等样式)
@@ -6283,1141 +6247,6 @@ app.mount('#app')
     "vite-plugin-dts": "^4.5.4"
   }
 }
-</file>
-
-<file path="src/components/modules/puzzle/useCanvasPuzzle.js">
-// src/components/modules/puzzle/useCanvasPuzzle.js
-import { unref, reactive, toRaw } from "vue";
-import { fabric } from "fabric";
-import { parseTemplateToCells, generateGridCells } from "./config";
-import { constrainObjectToRect, animateRebound } from '@/composables/useConstraint';
-
-// === 内部变量 ===
-let canvasRef = null;
-let saveHistoryFn = null;
-let zoomToRectFn = null;
-let uiCallbacks = { onCellClick: null, onImageSelect: null, onDeselect: null };
-let prePuzzleSnapshot = null;
-
-// Snapshot variables for the "Cancel" feature
-let snapshotBeforeLayout = null;
-let stateBackup = null;
-
-// 交互状态
-let isDragging = false;
-let dragOriginPoint = null;
-let dragLastPoint = { x: 0, y: 0 };
-let dragProxy = null;
-let dragOriginCellIndex = -1;
-let dragOffset = { x: 0, y: 0 };
-let isCreatingProxy = false;
-
-// 默认配置
-const DEFAULTS = {
-  padding: 0,
-  spacing: 10,
-  radius: 0,
-  width: 1000,
-  height: 1000,
-  bgColor: '#ffffff',
-  rows: 1,
-  cols: 1
-};
-
-const puzzleState = reactive({
-  isActive: false,
-  cells: [],
-  padding: DEFAULTS.padding,
-  spacing: DEFAULTS.spacing,
-  radius: DEFAULTS.radius,
-  width: DEFAULTS.width,
-  height: DEFAULTS.height,
-  bgColor: DEFAULTS.bgColor,
-  startX: 0,
-  startY: 0,
-  originalBg: null,
-  rawCells: [] // 存储原始格子定义
-});
-
-export const registerPuzzleModule = (canvas, saveHistory, callbacks = {}, zoomToRect = null) => {
-  canvasRef = canvas;
-  saveHistoryFn = saveHistory;
-  uiCallbacks = { ...uiCallbacks, ...callbacks };
-  zoomToRectFn = zoomToRect;
-};
-
-// === 新增：保存选择网格前的状态 ===
-export const saveSnapshotBeforeLayout = () => {
-  const canvas = unref(canvasRef);
-  if (!canvas) return;
-  // 1. Save Canvas visual state (includes images, text, existing puzzle items)
-  snapshotBeforeLayout = JSON.stringify(canvas.toJSON(["id", "selectable", "name", "isPuzzleItem", "cellIndex", "isPuzzleController", "isPuzzleBackground", "originalSrc"]));
-  // 2. Save Reactive State (grid config, padding, spacing)
-  stateBackup = JSON.parse(JSON.stringify(toRaw(puzzleState)));
-};
-
-// === 新增：恢复选择网格前的状态 ===
-export const restoreSnapshotBeforeLayout = () => {
-  const canvas = unref(canvasRef);
-  if (!canvas || !snapshotBeforeLayout) return;
-
-  // 1. Restore Canvas objects
-  canvas.loadFromJSON(snapshotBeforeLayout, () => {
-    // 2. Restore Reactive State
-    if (stateBackup) {
-      Object.assign(puzzleState, stateBackup);
-    }
-    
-    // 3. Reset interactions
-    unbindEvents(); // Prevent double binding
-    bindEvents();
-    
-    canvas.requestRenderAll();
-    if (saveHistoryFn) saveHistoryFn();
-  });
-};
-
-export const zoomToPuzzleArea = () => {
-  if (!zoomToRectFn) return;
-  const rect = {
-    left: puzzleState.startX,
-    top: puzzleState.startY,
-    width: puzzleState.width,
-    height: puzzleState.height
-  };
-  zoomToRectFn(rect);
-};
-
-export const initPuzzleMode = (initialTemplate = null) => {
-  const canvas = unref(canvasRef);
-  if (!canvas) return;
-
-  puzzleState.originalBg = canvas.backgroundColor;
-  prePuzzleSnapshot = JSON.stringify(canvas.toJSON(["id", "selectable", "name"]));
-
-  if (puzzleState.savedHistoryData && puzzleState.savedHistoryData.length > 0) {
-    restorePuzzleData();
-    bindEvents();
-    return;
-  }
-
-  puzzleState.isActive = true;
-
-  const activeImg = canvas.getObjects().find(o => o.type === 'image');
-  if (activeImg) {
-    const rect = activeImg.getBoundingRect();
-    puzzleState.width = rect.width;
-    puzzleState.height = rect.height;
-    puzzleState.startX = rect.left;
-    puzzleState.startY = rect.top;
-  } else {
-    const center = canvas.getCenter();
-    puzzleState.width = 1000;
-    puzzleState.height = 1000;
-    puzzleState.startX = center.left - 500;
-    puzzleState.startY = center.top - 500;
-  }
-
-  bindEvents();
-
-  const cells = initialTemplate ? parseTemplateToCells(initialTemplate) : generateGridCells(DEFAULTS.rows, DEFAULTS.cols);
-  updateLayout(cells);
-
-  zoomToPuzzleArea();
-};
-
-export const completeExitPuzzle = (action = 'save') => {
-  const canvas = unref(canvasRef);
-  if (!canvas) return;
-
-  const savedVpt = canvas.viewportTransform ? [...canvas.viewportTransform] : [1, 0, 0, 1, 0, 0];
-
-  exitPuzzleMode();
-
-  if (action === 'save') {
-    const hiddenObjs = canvas.getObjects().filter(o =>
-      o.isPuzzleController || o.isPlaceholder || o.isGhost || o.isPuzzleBackground
-    );
-    hiddenObjs.forEach(o => o.visible = false);
-
-    canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
-    canvas.renderAll();
-
-    const dataURL = canvas.toDataURL({
-      format: 'png', quality: 1, multiplier: 2,
-      left: puzzleState.startX, top: puzzleState.startY,
-      width: puzzleState.width, height: puzzleState.height
-    });
-
-    const allPuzzleObjs = canvas.getObjects().filter(o => o.isPuzzleItem);
-    canvas.remove(...allPuzzleObjs);
-
-    fabric.Image.fromURL(dataURL, (img) => {
-      img.set({
-        left: puzzleState.startX, top: puzzleState.startY,
-        originX: 'left', originY: 'top',
-        selectable: true
-      });
-      img.scaleToWidth(puzzleState.width);
-      canvas.add(img);
-      canvas.setViewportTransform(savedVpt);
-      if (saveHistoryFn) saveHistoryFn();
-      canvas.requestRenderAll();
-    }, { crossOrigin: 'anonymous' });
-
-  } else {
-    if (prePuzzleSnapshot) {
-      canvas.loadFromJSON(prePuzzleSnapshot, () => {
-        canvas.setViewportTransform(savedVpt);
-        if (puzzleState.originalBg !== null) {
-          canvas.setBackgroundColor(puzzleState.originalBg, () => canvas.requestRenderAll());
-        } else {
-          canvas.requestRenderAll();
-        }
-      });
-    }
-  }
-};
-
-export const resetPuzzle = () => {
-  const canvas = unref(canvasRef);
-  if (!canvas) return;
-
-  puzzleState.padding = DEFAULTS.padding;
-  puzzleState.spacing = DEFAULTS.spacing;
-  puzzleState.radius = DEFAULTS.radius;
-  puzzleState.bgColor = DEFAULTS.bgColor;
-
-  const defaultCells = generateGridCells(DEFAULTS.rows, DEFAULTS.cols);
-  updateLayout(defaultCells);
-  zoomToPuzzleArea();
-
-  if (saveHistoryFn) saveHistoryFn();
-};
-
-export const exitPuzzleMode = () => {
-  const canvas = unref(canvasRef);
-  if (!canvas) return;
-
-  puzzleState.isActive = false;
-
-  if (puzzleState.originalBg !== null) {
-    canvas.setBackgroundColor(puzzleState.originalBg, () => canvas.requestRenderAll());
-  }
-
-  unbindEvents();
-};
-
-export const restorePuzzleData = () => {
-  const canvas = unref(canvasRef);
-  if (!canvas) return;
-
-  const historyData = puzzleState.savedHistoryData;
-  const savedSettings = puzzleState.savedSettings;
-
-  if (!historyData || historyData.length === 0) return;
-
-  if (savedSettings) {
-    puzzleState.width = savedSettings.width;
-    puzzleState.height = savedSettings.height;
-    puzzleState.padding = savedSettings.padding;
-    puzzleState.spacing = savedSettings.spacing;
-    puzzleState.radius = savedSettings.radius;
-    if (savedSettings.bgColor) {
-      puzzleState.bgColor = savedSettings.bgColor;
-    }
-  }
-
-  let loadedCount = 0;
-
-  historyData.forEach(item => {
-    fabric.Image.fromURL(item.src, (img) => {
-      loadedCount++;
-
-      img.set({
-        id: item.id,
-        left: item.left,
-        top: item.top,
-        scaleX: item.scaleX,
-        scaleY: item.scaleY,
-        angle: item.angle,
-        flipX: item.flipX,
-        flipY: item.flipY,
-        cropX: item.cropX,
-        cropY: item.cropY,
-        originX: item.originX || 'center',
-        originY: item.originY || 'center',
-        cellIndex: item.cellIndex,
-        isPuzzleItem: true,
-        isPuzzleImage: true,
-        originalSrc: item.src,
-        selectable: false,
-        evented: false,
-        hasControls: false,
-        hasBorders: false,
-      });
-
-      canvas.add(img);
-
-      if (loadedCount === historyData.length) {
-        puzzleState.isActive = true;
-        refreshPuzzleObjects(false);
-        zoomToPuzzleArea();
-        canvas.requestRenderAll();
-      }
-    }, { crossOrigin: 'anonymous' });
-  });
-};
-
-export const getPuzzleImageCount = () => {
-  const canvas = unref(canvasRef);
-  if (!canvas) return 0;
-  return canvas.getObjects().filter(o => o.isPuzzleImage && !o.isGhost && !o.isPuzzleBackground).length;
-};
-
-export const updatePuzzleImageParams = (cellIndex, params = {}) => {
-  const canvas = unref(canvasRef);
-  if (!canvas) return;
-
-  const img = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === cellIndex);
-  const cell = puzzleState.cells.find(c => c.index === cellIndex);
-  
-  if (img && cell) {
-    if (params.opacity !== undefined) {
-      img.set('opacity', params.opacity);
-    }
-
-    if (params.scale !== undefined) {
-      const minScale = Math.max(cell.width / img.width, cell.height / img.height);
-      let newScale = Math.max(minScale, params.scale); 
-      
-      img.set({ scaleX: newScale, scaleY: newScale });
-      
-      const containerRect = {
-        left: cell.left, top: cell.top, width: cell.width, height: cell.height
-      };
-      constrainObjectToRect(img, containerRect, canvas);
-    }
-    canvas.requestRenderAll();
-  }
-};
-
-const calculateFitPosition = (img, cell) => {
-  const iW = img.width || 1;
-  const iH = img.height || 1;
-  const cW = Math.max(1, cell.width);
-  const cH = Math.max(1, cell.height);
-
-  const minScaleX = cW / iW;
-  const minScaleY = cH / iH;
-  const minScale = Math.max(minScaleX, minScaleY) + 0.0001;
-  return {
-    scaleX: minScale,
-    scaleY: minScale,
-    left: cell.left + cW / 2,
-    top: cell.top + cH / 2
-  };
-};
-
-const bindEvents = () => {
-  const canvas = unref(canvasRef);
-  canvas.on('mouse:down', onMouseDown);
-  canvas.on('mouse:move', onMouseMove);
-  canvas.on('mouse:up', onMouseUp);
-  canvas.on('mouse:wheel', onMouseWheel);
-};
-
-const unbindEvents = () => {
-  const canvas = unref(canvasRef);
-  canvas.off('mouse:down', onMouseDown);
-  canvas.off('mouse:move', onMouseMove);
-  canvas.off('mouse:up', onMouseUp);
-  canvas.off('mouse:wheel', onMouseWheel);
-};
-
-const onMouseDown = (opt) => {
-  if (!puzzleState.isActive) return;
-  const canvas = unref(canvasRef);
-  const target = opt.target;
-
-  dragOriginPoint = opt.absolutePointer;
-  const pointer = canvas.getPointer(opt.e);
-  dragLastPoint = { x: pointer.x, y: pointer.y };
-
-  if (target && target.isPuzzleController) {
-    isDragging = true;
-    dragOriginCellIndex = target.cellIndex;
-    canvas.setActiveObject(target);
-
-    const img = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === target.cellIndex);
-    if (img) {
-      dragOffset = {
-        x: img.left - pointer.x,
-        y: img.top - pointer.y
-      };
-    } else {
-      dragOffset = { x: 0, y: 0 };
-    }
-
-  } else {
-    isDragging = false;
-    dragOriginCellIndex = -1;
-  }
-};
-
-const onMouseMove = (opt) => {
-  if (!puzzleState.isActive || !isDragging || dragOriginCellIndex === -1) return;
-  const canvas = unref(canvasRef);
-  const pointer = canvas.getPointer(opt.e);
-  const distFromStart = Math.sqrt(
-    Math.pow(pointer.x - (dragOriginPoint?.x || 0), 2) +
-    Math.pow(pointer.y - (dragOriginPoint?.y || 0), 2)
-  );
-
-  if (distFromStart < 5) return;
-
-  const cell = puzzleState.cells.find(c => c.index === dragOriginCellIndex);
-  if (!cell) return;
-
-  const isInsideCell =
-    pointer.x >= cell.left && pointer.x <= cell.left + cell.width &&
-    pointer.y >= cell.top && pointer.y <= cell.top + cell.height;
-
-  if (isInsideCell) {
-    if (dragProxy) {
-      canvas.remove(dragProxy);
-      dragProxy = null;
-      isCreatingProxy = false;
-      const originImg = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === dragOriginCellIndex);
-      if (originImg) originImg.set('opacity', 1);
-    }
-    const deltaX = pointer.x - dragLastPoint.x;
-    const deltaY = pointer.y - dragLastPoint.y;
-    const img = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === dragOriginCellIndex);
-    if (img) {
-      img.set({ left: img.left + deltaX, top: img.top + deltaY });
-      img.setCoords();
-    }
-  } else {
-    if (!dragProxy && !isCreatingProxy) {
-      isCreatingProxy = true;
-      createDragProxy(dragOriginCellIndex, pointer);
-    }
-
-    if (dragProxy) {
-      dragProxy.set({
-        left: pointer.x + dragOffset.x,
-        top: pointer.y + dragOffset.y
-      });
-      dragProxy.setCoords();
-    }
-  }
-  dragLastPoint = { x: pointer.x, y: pointer.y };
-  canvas.requestRenderAll();
-};
-
-const createDragProxy = (cellIndex, pointer) => {
-  const canvas = unref(canvasRef);
-  const cell = puzzleState.cells.find(c => c.index === cellIndex);
-  const img = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === cellIndex);
-
-  if (!cell || !img) {
-    isCreatingProxy = false;
-    return;
-  }
-
-  img.set('opacity', 0.4);
-
-  img.clone((cloned) => {
-    dragProxy = cloned;
-
-    if (pointer) {
-      dragOffset = {
-        x: img.left - pointer.x,
-        y: img.top - pointer.y
-      };
-    }
-
-    dragProxy.set({
-      opacity: 0.8, evented: false, selectable: false,
-      originX: 'center', originY: 'center',
-      left: pointer ? pointer.x + dragOffset.x : img.left,
-      top: pointer ? pointer.y + dragOffset.y : img.top,
-      hasControls: false, hasBorders: false,
-      stroke: '#409eff', strokeWidth: 2,
-      isPuzzleImage: true,
-      isGhost: true
-    });
-
-    const cellCenterX = cell.left + cell.width / 2;
-    const cellCenterY = cell.top + cell.height / 2;
-    const offsetX = (cellCenterX - img.left) / img.scaleX;
-    const offsetY = (cellCenterY - img.top) / img.scaleY;
-
-    const clipRect = new fabric.Rect({
-      left: offsetX, top: offsetY,
-      width: cell.width / img.scaleX, height: cell.height / img.scaleY,
-      originX: 'center', originY: 'center',
-      absolutePositioned: false
-    });
-    dragProxy.clipPath = clipRect;
-
-    canvas.add(dragProxy);
-    canvas.bringToFront(dragProxy);
-    isCreatingProxy = false;
-  });
-};
-
-const onMouseUp = (opt) => {
-  if (!puzzleState.isActive) return;
-  const canvas = unref(canvasRef);
-  const pointer = canvas.getPointer(opt.e);
-  isDragging = false;
-  isCreatingProxy = false;
-
-  if (dragProxy) {
-    const dropCell = getCellFromPoint(pointer.x, pointer.y);
-    const originCellIndex = dragOriginCellIndex;
-    canvas.remove(dragProxy);
-    dragProxy = null;
-    const originImg = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === originCellIndex);
-    if (originImg) originImg.set('opacity', 1);
-
-    if (dropCell && dropCell.index !== originCellIndex) {
-      animateSwap(originCellIndex, dropCell.index);
-    } else {
-      animateSnapBack(originCellIndex);
-    }
-  } 
-  // 正常点击逻辑
-  else if (dragOriginPoint) {
-    const dist = Math.sqrt(
-      Math.pow(pointer.x - dragOriginPoint.x, 2) +
-      Math.pow(pointer.y - dragOriginPoint.y, 2)
-    );
-
-    // 判断为点击而非拖拽
-    if (dist < 5) {
-      const clickedCell = getCellFromPoint(pointer.x, pointer.y);
-      if (clickedCell) {
-        // 判断格子内是否有图片
-        const img = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === clickedCell.index);
-        
-        if (!img) {
-            // A. 点击空格子：上传
-            if (uiCallbacks.onCellClick) {
-                uiCallbacks.onCellClick(clickedCell.index);
-                canvas.discardActiveObject();
-            }
-        } else {
-            // B. 点击有图片的格子：选中并进入配置
-            const controller = canvas.getObjects().find(o => o.isPuzzleController && o.cellIndex === clickedCell.index);
-            if (controller) canvas.setActiveObject(controller);
-            
-            if (uiCallbacks.onImageSelect) {
-                uiCallbacks.onImageSelect(clickedCell.index, {
-                    opacity: img.opacity,
-                    scale: img.scaleX
-                });
-            }
-        }
-      } else {
-        // 点击空白处（网格外的区域）
-        if (uiCallbacks.onDeselect) uiCallbacks.onDeselect();
-      }
-    } else {
-      // 拖拽了但没产生交换（原地回弹）
-      if (dragOriginCellIndex !== -1) animateSnapBack(dragOriginCellIndex);
-    }
-  }
-  dragOriginCellIndex = -1;
-  dragOriginPoint = null;
-  canvas.requestRenderAll();
-};
-
-const animateSnapBack = (cellIndex) => {
-  const canvas = unref(canvasRef);
-  const cell = puzzleState.cells.find(c => c.index === cellIndex);
-  const img = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === cellIndex);
-
-  if (img && cell) {
-    const containerRect = {
-      left: cell.left,
-      top: cell.top,
-      width: cell.width,
-      height: cell.height
-    };
-    if (typeof animateRebound === 'function') {
-      animateRebound(img, containerRect, canvas);
-    } else {
-      img.set({
-        left: cell.left + cell.width / 2,
-        top: cell.top + cell.height / 2
-      });
-      canvas.requestRenderAll();
-    }
-  }
-};
-
-const animateSwap = (idxA, idxB) => {
-  const canvas = unref(canvasRef);
-  const imgA = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === idxA);
-  const imgB = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === idxB);
-  const cellA = puzzleState.cells.find(c => c.index === idxA);
-  const cellB = puzzleState.cells.find(c => c.index === idxB);
-  const animations = [];
-  const duration = 300;
-  const easing = fabric.util.ease.easeOutQuart;
-
-  const createSyncAnimation = (img, targetCell) => {
-    if (!img || !targetCell) return;
-    const targetImgState = calculateFitPosition(img, targetCell);
-    animations.push(new Promise(resolve => {
-      img.animate({
-        left: targetImgState.left,
-        top: targetImgState.top,
-        scaleX: targetImgState.scaleX,
-        scaleY: targetImgState.scaleY
-      }, {
-        duration, easing,
-        onChange: canvas.requestRenderAll.bind(canvas),
-        onComplete: resolve
-      });
-    }));
-
-    if (img.clipPath) {
-      animations.push(new Promise(resolve => {
-        img.clipPath.animate({
-          left: targetCell.left,
-          top: targetCell.top,
-          width: targetCell.width,
-          height: targetCell.height,
-          rx: puzzleState.radius,
-          ry: puzzleState.radius
-        }, {
-          duration, easing,
-          onComplete: resolve
-        });
-      }));
-    }
-  };
-
-  createSyncAnimation(imgA, cellB);
-  createSyncAnimation(imgB, cellA);
-
-  Promise.all(animations).then(() => {
-    if (imgA) imgA.cellIndex = idxB;
-    if (imgB) imgB.cellIndex = idxA;
-    const ctrlA = canvas.getObjects().find(o => o.isPuzzleController && o.cellIndex === idxA);
-    const ctrlB = canvas.getObjects().find(o => o.isPuzzleController && o.cellIndex === idxB);
-    if (ctrlA) ctrlA.cellIndex = idxB;
-    if (ctrlB) ctrlB.cellIndex = idxA;
-    refreshPuzzleObjects();
-    if (saveHistoryFn) saveHistoryFn();
-  });
-};
-
-const onMouseWheel = (opt) => {
-  const canvas = unref(canvasRef);
-  const target = canvas.getActiveObject();
-  if (!target || !target.isPuzzleController) return;
-  opt.e.preventDefault(); opt.e.stopPropagation();
-  const cell = puzzleState.cells.find(c => c.index === target.cellIndex);
-  const img = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === target.cellIndex);
-  if (!cell || !img) return;
-
-  let zoom = img.scaleX;
-  zoom *= 0.999 ** opt.e.deltaY;
-
-  const minScale = Math.max(cell.width / img.width, cell.height / img.height);
-  const maxScale = minScale * 5;
-  if (zoom < minScale) zoom = minScale;
-  if (zoom > maxScale) zoom = maxScale;
-
-  img.set({ scaleX: zoom, scaleY: zoom });
-
-  const containerRect = {
-    left: cell.left, top: cell.top, width: cell.width, height: cell.height
-  };
-  constrainObjectToRect(img, containerRect, canvas);
-
-  canvas.requestRenderAll();
-};
-
-export const updateLayout = (cellDefinitions = null, config = {}) => {
-  const canvas = unref(canvasRef);
-  if (!canvas) return;
-  if (config.width !== undefined) puzzleState.width = config.width;
-  if (config.height !== undefined) puzzleState.height = config.height;
-  if (config.padding !== undefined) puzzleState.padding = config.padding;
-  if (config.spacing !== undefined) puzzleState.spacing = config.spacing;
-  if (config.radius !== undefined) puzzleState.radius = config.radius;
-
-  if (config.bgColor) puzzleState.bgColor = config.bgColor;
-
-  if (cellDefinitions) puzzleState.rawCells = cellDefinitions;
-
-  const { width, height, padding, spacing, startX, startY } = puzzleState;
-  const safeW = Math.max(0, width - (padding * 2));
-  const safeH = Math.max(0, height - (padding * 2));
-
-  puzzleState.cells = puzzleState.rawCells.map(cell => {
-    const EPSILON = 0.01;
-    const isLeftEdge = cell.x < EPSILON;
-    const isTopEdge = cell.y < EPSILON;
-    const isRightEdge = Math.abs((cell.x + cell.w) - 1.0) < EPSILON;
-    const isBottomEdge = Math.abs((cell.y + cell.h) - 1.0) < EPSILON;
-
-    let boxLeft = startX + Number(padding) + (cell.x * safeW);
-    let boxTop = startY + Number(padding) + (cell.y * safeH);
-    let boxWidth = cell.w * safeW;
-    let boxHeight = cell.h * safeH;
-
-    if (!isLeftEdge) {
-      boxLeft += spacing / 2;
-      boxWidth -= spacing / 2;
-    }
-    if (!isRightEdge) {
-      boxWidth -= spacing / 2;
-    }
-
-    if (!isTopEdge) {
-      boxTop += spacing / 2;
-      boxHeight -= spacing / 2;
-    }
-    if (!isBottomEdge) {
-      boxHeight -= spacing / 2;
-    }
-
-    return {
-      index: cell.index,
-      left: boxLeft,
-      top: boxTop,
-      width: Math.max(1, boxWidth),
-      height: Math.max(1, boxHeight)
-    };
-  });
-
-  refreshPuzzleObjects(!!cellDefinitions);
-  if (saveHistoryFn) saveHistoryFn();
-};
-
-const refreshPuzzleObjects = (shouldResetImages = false) => {
-  const canvas = unref(canvasRef);
-  const { radius, startX, startY, width, height, bgColor } = puzzleState;
-
-  const toRemove = canvas.getObjects().filter(o =>
-    o.isPlaceholder || o.isPuzzleController || o.isPuzzleBackground
-  );
-  canvas.remove(...toRemove);
-
-  const localBg = new fabric.Rect({
-    left: startX,
-    top: startY,
-    width: width,
-    height: height,
-    fill: bgColor,
-    rx: radius,
-    ry: radius,
-    selectable: false,
-    evented: false,
-    isPuzzleBackground: true,
-    isPuzzleItem: true
-  });
-  canvas.add(localBg);
-  canvas.sendToBack(localBg);
-
-  const existingPuzzleImages = canvas.getObjects()
-    .filter(o => o.isPuzzleImage && !o.isGhost && o !== dragProxy && !o.isPuzzleBackground)
-    .sort((a, b) => a.cellIndex - b.cellIndex);
-
-  if (shouldResetImages && existingPuzzleImages.length === 0) {
-    const rawImages = canvas.getObjects().filter(o => o.type === 'image' && !o.isPuzzleItem);
-    if (rawImages.length > 0) {
-      const rawImg = rawImages[0];
-      const src = rawImg.getSrc();
-      canvas.remove(rawImg);
-      addImageToCell(src, 0);
-      puzzleState.cells.forEach(cell => drawPlaceholder(canvas, cell));
-      canvas.requestRenderAll();
-      return;
-    }
-  }
-
-  puzzleState.cells.forEach((cell, index) => {
-    let img = null;
-
-    if (shouldResetImages) {
-      if (index < existingPuzzleImages.length) {
-        img = existingPuzzleImages[index];
-        img.cellIndex = cell.index;
-        img.set({ opacity: 1, visible: true });
-        const fitState = calculateFitPosition(img, cell);
-        img.set({
-          scaleX: fitState.scaleX,
-          scaleY: fitState.scaleY,
-          left: fitState.left,
-          top: fitState.top
-        });
-        img.setCoords();
-      }
-    } else {
-      img = existingPuzzleImages.find(o => o.cellIndex === cell.index);
-      if (img) {
-        const newCellCenterX = cell.left + cell.width / 2;
-        const newCellCenterY = cell.top + cell.height / 2;
-
-        let targetLeft = newCellCenterX;
-        let targetTop = newCellCenterY;
-
-        if (img.clipPath && img.clipPath.absolutePositioned) {
-          const oldCell = img.clipPath;
-          const oldCellCenterX = oldCell.left + oldCell.width / 2;
-          const oldCellCenterY = oldCell.top + oldCell.height / 2;
-
-          const offsetX = img.left - oldCellCenterX;
-          const offsetY = img.top - oldCellCenterY;
-
-          if (!isNaN(offsetX) && Math.abs(offsetX) < 3000) {
-            targetLeft = newCellCenterX + offsetX;
-            targetTop = newCellCenterY + offsetY;
-          }
-        }
-
-        img.set({ left: targetLeft, top: targetTop });
-
-        const iW = img.width || 100;
-        const iH = img.height || 100;
-        const minScale = Math.max(cell.width / iW, cell.height / iH) + 0.0001;
-
-        if (img.scaleX < minScale) {
-          img.set({ scaleX: minScale, scaleY: minScale });
-        }
-
-        img.setCoords();
-
-        const containerRect = {
-          left: cell.left,
-          top: cell.top,
-          width: cell.width,
-          height: cell.height
-        };
-        constrainObjectToRect(img, containerRect, canvas);
-
-        if (!img.intersectsWithObject(new fabric.Rect(containerRect))) {
-          img.set({ left: newCellCenterX, top: newCellCenterY });
-          img.setCoords();
-        }
-      }
-    }
-
-    if (img) {
-      const clipRect = new fabric.Rect({
-        left: cell.left,
-        top: cell.top,
-        width: cell.width,
-        height: cell.height,
-        rx: radius,
-        ry: radius,
-        absolutePositioned: true
-      });
-      img.set({ clipPath: clipRect, opacity: img.opacity || 1 });
-      img.dirty = true;
-      img.setCoords();
-
-      const controller = new fabric.Rect({
-        left: cell.left,
-        top: cell.top,
-        width: cell.width,
-        height: cell.height,
-        fill: 'transparent',
-        transparentCorners: false,
-        selectable: true,
-        evented: true,
-        // 🔥 关键修改：禁用控件和边框显示
-        hasControls: false,
-        hasBorders: false,
-        lockMovementX: true,
-        lockMovementY: true,
-        lockRotation: true,
-        lockScalingX: true,
-        lockScalingY: true,
-        isPuzzleItem: true,
-        isPuzzleController: true,
-        cellIndex: cell.index
-      });
-      canvas.add(controller);
-      // 🔥 已移除 drawDeleteBtn 调用
-    } else {
-      drawPlaceholder(canvas, cell);
-    }
-  });
-
-  if (shouldResetImages && existingPuzzleImages.length > puzzleState.cells.length) {
-    const extras = existingPuzzleImages.slice(puzzleState.cells.length);
-    canvas.remove(...extras);
-  }
-
-  if (localBg) canvas.sendToBack(localBg);
-
-  canvas.requestRenderAll();
-};
-
-export const deleteImageFromCell = (cellIndex) => {
-  const canvas = unref(canvasRef);
-  const objs = canvas.getObjects().filter(o =>
-    (o.isPuzzleImage || o.isPuzzleController) && o.cellIndex === cellIndex
-  );
-  canvas.remove(...objs);
-  refreshPuzzleObjects();
-  if (saveHistoryFn) saveHistoryFn();
-};
-
-const drawPlaceholder = (canvas, cell) => {
-  const rect = new fabric.Rect({
-    left: cell.left, top: cell.top, width: cell.width, height: cell.height,
-    fill: '#f5f7fa', stroke: '#dcdfe6', strokeWidth: 1, strokeDashArray: [4, 4],
-    rx: puzzleState.radius, ry: puzzleState.radius,
-    selectable: false, evented: false, isPuzzleItem: true, isPlaceholder: true
-  });
-  const plus = new fabric.Text('+', {
-    left: cell.left + cell.width / 2, top: cell.top + cell.height / 2,
-    fontSize: 30, fill: '#909399', originX: 'center', originY: 'center',
-    selectable: false, evented: false, isPuzzleItem: true, isPlaceholder: true
-  });
-  canvas.add(rect, plus);
-};
-
-const getCellFromPoint = (x, y) => {
-  return puzzleState.cells.find(cell =>
-    x >= cell.left && x <= cell.left + cell.width &&
-    y >= cell.top && y <= cell.top + cell.height
-  );
-};
-
-export const addImageToCell = (url, cellIndex, options = {}) => {
-  const canvas = unref(canvasRef);
-  const oldObjs = canvas.getObjects().filter(o => (o.isPuzzleImage || o.isPuzzleController) && o.cellIndex === cellIndex);
-  canvas.remove(...oldObjs);
-
-  fabric.Image.fromURL(url, (img) => {
-    const cell = puzzleState.cells.find(c => c.index === cellIndex);
-    if (!cell) return;
-
-    let scale;
-    if (options.targetScale) {
-      scale = options.targetScale;
-    } else {
-      scale = Math.max(cell.width / img.width, cell.height / img.height) + 0.001;
-    }
-
-    img.set({
-      left: cell.left + cell.width / 2,
-      top: cell.top + cell.height / 2,
-      originX: 'center',
-      originY: 'center',
-      scaleX: scale,
-      scaleY: scale,
-      selectable: false, evented: false, hasControls: false, hasBorders: false,
-      isPuzzleItem: true, isPuzzleImage: true, cellIndex: cellIndex,
-    });
-
-    img.setCoords();
-
-    const controller = new fabric.Rect({
-      left: cell.left, top: cell.top, width: cell.width, height: cell.height,
-      fill: 'transparent', noScaleCache: false,
-      transparentCorners: false, cornerSize: 8, borderOpacityWhenMoving: 0.5,
-      selectable: true, evented: true, 
-      hasControls: false, // 禁用
-      hasBorders: false,  // 禁用
-      lockMovementX: true, lockMovementY: true,
-      lockRotation: true, lockScalingX: true, lockScalingY: true,
-      isPuzzleItem: true, isPuzzleController: true, cellIndex: cellIndex,
-    });
-
-    canvas.add(img);
-    canvas.add(controller);
-    canvas.setActiveObject(controller);
-
-    refreshPuzzleObjects();
-    if (saveHistoryFn) saveHistoryFn();
-  }, { crossOrigin: 'anonymous' });
-};
-</file>
-
-<file path="src/composables/useEditorState.js">
-import { reactive, readonly } from 'vue';
-
-/**
- * ✨ 全局路由配置表 (Single Source of Truth)
- * 定义 Fabric 对象类型 -> 工具面板(Tool) + 子选项卡(Tab) 的映射关系
- */
-export const OBJECT_TO_TOOL_MAP = {
-    // === 基础形状 ===
-    'i-text': { tool: 'text', tab: 'style' },    // 文本 -> 文本面板-样式Tab
-    'textbox': { tool: 'text', tab: 'style' },
-    'image': { tool: 'adjust', tab: 'filter' }, // 图片 -> 调整面板-滤镜Tab
-    'group': { tool: 'adjust', tab: '' },       // 组 -> 调整面板 (根据业务需求)
-
-    // === 绘制/矢量 ===
-    'path': { tool: 'draw', tab: '' },         // 路径 -> 绘制面板
-
-    // === 几何图形 (通常归类为素材或边框，根据你的业务定) ===
-    'rect': { tool: 'border', tab: 'style' },
-    'circle': { tool: 'material', tab: 'basic' },
-    'triangle': { tool: 'material', tab: 'basic' },
-
-    // === 自定义业务类型 ===
-    'puzzle': { tool: 'puzzle', tab: 'template' }
-};
-
-// 单例状态
-const state = reactive({
-    activeTool: 'adjust', // 一级菜单 ID
-    activeTab: '',        // ✨ 新增: 二级菜单 ID (例如 'style', 'color', 'filter')
-
-    isDrawing: false,     // 是否处于自由绘制模式
-
-    canUndo: false,       // 历史记录状态
-    canRedo: false,
-
-    isLoading: false,
-    loadingText: '处理中...',
-
-    isSidebarDisabled: false, // 侧边栏残影模式
-    isGlobalDragMode: false,  // 全局拖动模式
-
-    /**
-     * ✨ 导航来源标记
-     * 'system': 初始化或系统重置
-     * 'manual': 用户手动点击侧边栏 (优先级最高，应有点击反馈)
-     * 'canvas': 画布对象选中触发自动跳转 (应平滑过渡，无干扰)
-     */
-    navigationSource: 'system',
-    
-    // 新增：是否正在进行拼图操作
-    isPuzzleMode: false,
-});
-
-export function useEditorState() {
-
-    /**
-     * 切换当前激活的工具和选项卡
-     * @param {string} tool - 一级工具 ID
-     * @param {string} tab - (可选) 二级选项卡 ID
-     * @param {string} source - 触发来源 ('manual' | 'canvas' | 'system')
-     */
-    const setActiveTool = (tool, tab = '', source = 'manual') => {
-        // 状态防抖：如果 Tool 和 Tab 都没变，且侧边栏也是激活状态，则不执行
-        if (state.activeTool === tool && state.activeTab === tab && !state.isSidebarDisabled) {
-            return;
-        }
-
-        state.activeTool = tool;
-        state.activeTab = tab; // 更新二级路由
-        state.navigationSource = source;
-
-        // 副作用处理
-        state.isDrawing = false; // 切换工具默认退出绘制模式
-        state.isSidebarDisabled = false; // 只要切换工具，必定激活面板
-    };
-
-    // ✨ 新增：设置拖拽模式
-    const setGlobalDragMode = (val) => {
-        state.isGlobalDragMode = val;
-        console.log(`[State] Global Drag Mode: ${val ? 'ON' : 'OFF'}`);
-    };
-
-
-    // ✨ [核心补全] 切换二级 Tab (专门给 UI 组件用来清理状态)
-    const setActiveTab = (tab) => {
-        state.activeTab = tab;
-    };
-
-    const toggleDrawing = (status) => {
-        state.isDrawing = status;
-    };
-
-    const setHistoryState = (canUndo, canRedo) => {
-        state.canUndo = canUndo;
-        state.canRedo = canRedo;
-    };
-
-    const setLoading = (status, text = '处理中...') => {
-        state.isLoading = status;
-        state.loadingText = text;
-    };
-
-    const setSidebarDisabled = (status) => {
-        state.isSidebarDisabled = status;
-    };
-
-    // 新增：设置是否正在进行拼图操作
-    const setPuzzleMode = (status) => {
-        state.isPuzzleMode = status;
-    };
-
-    // === ✨ 核心：智能路由系统 ===
-
-    /**
-     * 根据 Canvas 选中的对象，自动路由到对应的工具面板
-     * @param {Object} target - Fabric 对象实例
-     * @returns {boolean} - 是否成功匹配并跳转
-     */
-    const routeToObject = (target) => {
-        if (!target) return false;
-
-        // 1. 优先读取对象上的自定义路由配置 (如标尺)
-        if (target.customTab) {
-            console.log(`[Router] Custom routing: Tool[${target.customTool || 'adjust'}] Tab[${target.customTab}]`);
-
-            // 激活对应的工具栏
-            setActiveTool(target.customTool || 'adjust');
-
-            // ✨ 强制刷新机制：
-            // 解决“状态死锁”：如果当前 activeTab 已经是这个 tab (比如 'ruler')，
-            // 直接赋值 Vue 不会认为发生了变化，因此 watch 不会触发。
-            // 我们先把它置空，利用 setTimeout 在下一帧改回来，强制触发 UI 展开。
-            if (state.activeTab === target.customTab) {
-                state.activeTab = '';
-                setTimeout(() => {
-                    state.activeTab = target.customTab;
-                }, 0);
-            } else {
-                state.activeTab = target.customTab;
-            }
-
-            return true;
-        }
-
-        // 2. 默认路由规则
-        if (target.type === "i-text") {
-            setActiveTool("text");
-            return true;
-        }
-
-        // ... 其他默认规则可在此补充 ...
-
-        return false;
-    };
-
-    return {
-        state: readonly(state), // 导出只读状态
-        setActiveTool,
-        setActiveTab,       // ✨ 确保导出此函数
-        toggleDrawing,
-        setHistoryState,
-        setLoading,
-        setSidebarDisabled,
-        setPuzzleMode,
-        routeToObject, // 导出路由动作供 useCanvas 使用
-        setGlobalDragMode // 导出全局拖动模式设置
-    };
-}
-
-// 全局聚焦系数 (保留)
-export const ZOOM_PADDING = 0.921;
 </file>
 
 <file path=".spec/active-context.md">
@@ -7871,6 +6700,1133 @@ export const applyResize = async (width, height, isStretch = false) => {
     if (saveHistoryFn) saveHistoryFn();
   });
 };
+</file>
+
+<file path="src/components/modules/puzzle/useCanvasPuzzle.js">
+// src/components/modules/puzzle/useCanvasPuzzle.js
+import { unref, reactive, toRaw } from "vue";
+import { fabric } from "fabric";
+import { constrainObjectToRect, animateRebound } from '@/composables/useConstraint';
+
+// === 内部变量 ===
+let canvasRef = null;
+let zoomToRectFn = null;
+let uiCallbacks = { onCellClick: null, onImageSelect: null, onDeselect: null };
+let prePuzzleSnapshot = null;
+
+// Snapshot variables for the "Cancel" feature
+let snapshotBeforeLayout = null;
+let stateBackup = null;
+
+// 交互状态
+let isDragging = false;
+let dragOriginPoint = null;
+let dragLastPoint = { x: 0, y: 0 };
+let dragProxy = null;
+let dragOriginCellIndex = -1;
+let dragOffset = { x: 0, y: 0 };
+let isCreatingProxy = false;
+
+// 默认配置
+const DEFAULTS = {
+  padding: 0,
+  spacing: 10,
+  radius: 0,
+  width: 1000,
+  height: 1000,
+  bgColor: '#ffffff',
+};
+
+const puzzleState = reactive({
+  isActive: false,
+  cells: [],
+  padding: DEFAULTS.padding,
+  spacing: DEFAULTS.spacing,
+  radius: DEFAULTS.radius,
+  width: DEFAULTS.width,
+  height: DEFAULTS.height,
+  bgColor: DEFAULTS.bgColor,
+  startX: 0,
+  startY: 0,
+  originalBg: null,
+  rawCells: [] // 存储原始格子定义
+});
+
+export const registerPuzzleModule = (canvas, callbacks = {}, zoomToRect = null) => {
+  canvasRef = canvas;
+  uiCallbacks = { ...uiCallbacks, ...callbacks };
+  zoomToRectFn = zoomToRect;
+};
+
+// === 新增：保存选择网格前的状态 ===
+export const saveSnapshotBeforeLayout = () => {
+  const canvas = unref(canvasRef);
+  if (!canvas) return;
+  // 1. Save Canvas visual state (includes images, text, existing puzzle items)
+  snapshotBeforeLayout = JSON.stringify(canvas.toJSON(["id", "selectable", "name", "isPuzzleItem", "cellIndex", "isPuzzleController", "isPuzzleBackground", "originalSrc"]));
+  // 2. Save Reactive State (grid config, padding, spacing)
+  stateBackup = JSON.parse(JSON.stringify(toRaw(puzzleState)));
+};
+
+// === 新增：恢复选择网格前的状态 ===
+export const restoreSnapshotBeforeLayout = () => {
+  const canvas = unref(canvasRef);
+  if (!canvas || !snapshotBeforeLayout) return;
+
+  // 1. Restore Canvas objects
+  canvas.loadFromJSON(snapshotBeforeLayout, () => {
+    // 2. Restore Reactive State
+    if (stateBackup) {
+      Object.assign(puzzleState, stateBackup);
+    }
+    
+    // 3. Reset interactions
+    unbindEvents(); // Prevent double binding
+    
+    canvas.requestRenderAll();
+  });
+};
+
+export const zoomToPuzzleArea = () => {
+  if (!zoomToRectFn) return;
+  const rect = {
+    left: puzzleState.startX,
+    top: puzzleState.startY,
+    width: puzzleState.width,
+    height: puzzleState.height
+  };
+  zoomToRectFn(rect);
+};
+
+export const initPuzzleMode = () => {
+  const canvas = unref(canvasRef);
+  if (!canvas) return;
+
+  puzzleState.originalBg = canvas.backgroundColor;
+  prePuzzleSnapshot = JSON.stringify(canvas.toJSON(["id", "selectable", "name"]));
+
+  if (puzzleState.savedHistoryData && puzzleState.savedHistoryData.length > 0) {
+    restorePuzzleData();
+    bindEvents();
+    return;
+  }
+
+  puzzleState.isActive = true;
+
+  const activeImg = canvas.getObjects().find(o => o.type === 'image');
+  if (activeImg) {
+    const rect = activeImg.getBoundingRect();
+    puzzleState.width = rect.width;
+    puzzleState.height = rect.height;
+    puzzleState.startX = rect.left;
+    puzzleState.startY = rect.top;
+  } else {
+    const center = canvas.getCenter();
+    puzzleState.width = 1000;
+    puzzleState.height = 1000;
+    puzzleState.startX = center.left - 500;
+    puzzleState.startY = center.top - 500;
+  }
+
+  bindEvents();
+
+  const cells = [{
+    w: 1,
+    h: 1,
+    x: 0,
+    y: 0,
+    index: 0
+  }]
+  updateLayout(cells);
+
+  zoomToPuzzleArea();
+};
+
+export const completeExitPuzzle = (action = 'save') => {
+  const canvas = unref(canvasRef);
+  if (!canvas) return;
+
+  const savedVpt = canvas.viewportTransform ? [...canvas.viewportTransform] : [1, 0, 0, 1, 0, 0];
+
+  exitPuzzleMode();
+
+  if (action === 'save') {
+    const hiddenObjs = canvas.getObjects().filter(o =>
+      o.isPuzzleController || o.isPlaceholder || o.isGhost || o.isPuzzleBackground
+    );
+    hiddenObjs.forEach(o => o.visible = false);
+
+    canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+    canvas.renderAll();
+
+    const dataURL = canvas.toDataURL({
+      format: 'png', quality: 1, multiplier: 2,
+      left: puzzleState.startX, top: puzzleState.startY,
+      width: puzzleState.width, height: puzzleState.height
+    });
+
+    const allPuzzleObjs = canvas.getObjects().filter(o => o.isPuzzleItem);
+    canvas.remove(...allPuzzleObjs);
+
+    fabric.Image.fromURL(dataURL, (img) => {
+      img.set({
+        left: puzzleState.startX, top: puzzleState.startY,
+        originX: 'left', originY: 'top',
+        selectable: true
+      });
+      img.scaleToWidth(puzzleState.width);
+      canvas.add(img);
+      canvas.setViewportTransform(savedVpt);
+      canvas.requestRenderAll();
+    }, { crossOrigin: 'anonymous' });
+
+  } else {
+    if (prePuzzleSnapshot) {
+      canvas.loadFromJSON(prePuzzleSnapshot, () => {
+        canvas.setViewportTransform(savedVpt);
+        if (puzzleState.originalBg !== null) {
+          canvas.setBackgroundColor(puzzleState.originalBg, () => canvas.requestRenderAll());
+        } else {
+          canvas.requestRenderAll();
+        }
+      });
+    }
+  }
+};
+
+export const exitPuzzleMode = () => {
+  const canvas = unref(canvasRef);
+  if (!canvas) return;
+
+  puzzleState.isActive = false;
+
+  if (puzzleState.originalBg !== null) {
+    canvas.setBackgroundColor(puzzleState.originalBg, () => canvas.requestRenderAll());
+  }
+
+  unbindEvents();
+};
+
+export const restorePuzzleData = () => {
+  const canvas = unref(canvasRef);
+  if (!canvas) return;
+
+  const historyData = puzzleState.savedHistoryData;
+  const savedSettings = puzzleState.savedSettings;
+
+  if (!historyData || historyData.length === 0) return;
+
+  if (savedSettings) {
+    puzzleState.width = savedSettings.width;
+    puzzleState.height = savedSettings.height;
+    puzzleState.padding = savedSettings.padding;
+    puzzleState.spacing = savedSettings.spacing;
+    puzzleState.radius = savedSettings.radius;
+    if (savedSettings.bgColor) {
+      puzzleState.bgColor = savedSettings.bgColor;
+    }
+  }
+
+  let loadedCount = 0;
+
+  historyData.forEach(item => {
+    fabric.Image.fromURL(item.src, (img) => {
+      loadedCount++;
+
+      img.set({
+        id: item.id,
+        left: item.left,
+        top: item.top,
+        scaleX: item.scaleX,
+        scaleY: item.scaleY,
+        angle: item.angle,
+        flipX: item.flipX,
+        flipY: item.flipY,
+        cropX: item.cropX,
+        cropY: item.cropY,
+        originX: item.originX || 'center',
+        originY: item.originY || 'center',
+        cellIndex: item.cellIndex,
+        isPuzzleItem: true,
+        isPuzzleImage: true,
+        originalSrc: item.src,
+        selectable: false,
+        evented: false,
+        hasControls: false,
+        hasBorders: false,
+      });
+
+      canvas.add(img);
+
+      if (loadedCount === historyData.length) {
+        puzzleState.isActive = true;
+        refreshPuzzleObjects(false);
+        zoomToPuzzleArea();
+        canvas.requestRenderAll();
+      }
+    }, { crossOrigin: 'anonymous' });
+  });
+};
+
+export const getPuzzleImageCount = () => {
+  const canvas = unref(canvasRef);
+  if (!canvas) return 0;
+  return canvas.getObjects().filter(o => o.isPuzzleImage && !o.isGhost && !o.isPuzzleBackground).length;
+};
+
+export const updatePuzzleImageParams = (cellIndex, params = {}) => {
+  const canvas = unref(canvasRef);
+  if (!canvas) return;
+
+  const img = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === cellIndex);
+  const cell = puzzleState.cells.find(c => c.index === cellIndex);
+  
+  if (img && cell) {
+    if (params.opacity !== undefined) {
+      img.set('opacity', params.opacity);
+    }
+
+    if (params.scale !== undefined) {
+      const minScale = Math.max(cell.width / img.width, cell.height / img.height);
+      let newScale = Math.max(minScale, params.scale); 
+      
+      img.set({ scaleX: newScale, scaleY: newScale });
+      
+      const containerRect = {
+        left: cell.left, top: cell.top, width: cell.width, height: cell.height
+      };
+      constrainObjectToRect(img, containerRect, canvas);
+    }
+    canvas.requestRenderAll();
+  }
+};
+
+const calculateFitPosition = (img, cell) => {
+  const iW = img.width || 1;
+  const iH = img.height || 1;
+  const cW = Math.max(1, cell.width);
+  const cH = Math.max(1, cell.height);
+
+  const minScaleX = cW / iW;
+  const minScaleY = cH / iH;
+  const minScale = Math.max(minScaleX, minScaleY) + 0.0001;
+  return {
+    scaleX: minScale,
+    scaleY: minScale,
+    left: cell.left + cW / 2,
+    top: cell.top + cH / 2
+  };
+};
+
+const bindEvents = () => {
+  const canvas = unref(canvasRef);
+  canvas.on('mouse:down', onMouseDown);
+  canvas.on('mouse:move', onMouseMove);
+  canvas.on('mouse:up', onMouseUp);
+  canvas.on('mouse:wheel', onMouseWheel);
+};
+
+const unbindEvents = () => {
+  const canvas = unref(canvasRef);
+  canvas.off('mouse:down', onMouseDown);
+  canvas.off('mouse:move', onMouseMove);
+  canvas.off('mouse:up', onMouseUp);
+  canvas.off('mouse:wheel', onMouseWheel);
+};
+
+const onMouseDown = (opt) => {
+  if (!puzzleState.isActive) return;
+  const canvas = unref(canvasRef);
+  const target = opt.target;
+
+  dragOriginPoint = opt.absolutePointer;
+  const pointer = canvas.getPointer(opt.e);
+  dragLastPoint = { x: pointer.x, y: pointer.y };
+
+  if (target && target.isPuzzleController) {
+    isDragging = true;
+    dragOriginCellIndex = target.cellIndex;
+    canvas.setActiveObject(target);
+
+    const img = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === target.cellIndex);
+    if (img) {
+      dragOffset = {
+        x: img.left - pointer.x,
+        y: img.top - pointer.y
+      };
+    } else {
+      dragOffset = { x: 0, y: 0 };
+    }
+
+  } else {
+    isDragging = false;
+    dragOriginCellIndex = -1;
+  }
+};
+
+const onMouseMove = (opt) => {
+  if (!puzzleState.isActive || !isDragging || dragOriginCellIndex === -1) return;
+  const canvas = unref(canvasRef);
+  const pointer = canvas.getPointer(opt.e);
+  const distFromStart = Math.sqrt(
+    Math.pow(pointer.x - (dragOriginPoint?.x || 0), 2) +
+    Math.pow(pointer.y - (dragOriginPoint?.y || 0), 2)
+  );
+
+  if (distFromStart < 5) return;
+
+  const cell = puzzleState.cells.find(c => c.index === dragOriginCellIndex);
+  if (!cell) return;
+
+  const isInsideCell =
+    pointer.x >= cell.left && pointer.x <= cell.left + cell.width &&
+    pointer.y >= cell.top && pointer.y <= cell.top + cell.height;
+
+  if (isInsideCell) {
+    if (dragProxy) {
+      canvas.remove(dragProxy);
+      dragProxy = null;
+      isCreatingProxy = false;
+      const originImg = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === dragOriginCellIndex);
+      if (originImg) originImg.set('opacity', 1);
+    }
+    const deltaX = pointer.x - dragLastPoint.x;
+    const deltaY = pointer.y - dragLastPoint.y;
+    const img = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === dragOriginCellIndex);
+    if (img) {
+      img.set({ left: img.left + deltaX, top: img.top + deltaY });
+      img.setCoords();
+    }
+  } else {
+    if (!dragProxy && !isCreatingProxy) {
+      isCreatingProxy = true;
+      createDragProxy(dragOriginCellIndex, pointer);
+    }
+
+    if (dragProxy) {
+      dragProxy.set({
+        left: pointer.x + dragOffset.x,
+        top: pointer.y + dragOffset.y
+      });
+      dragProxy.setCoords();
+    }
+  }
+  dragLastPoint = { x: pointer.x, y: pointer.y };
+  canvas.requestRenderAll();
+};
+
+const createDragProxy = (cellIndex, pointer) => {
+  const canvas = unref(canvasRef);
+  const cell = puzzleState.cells.find(c => c.index === cellIndex);
+  const img = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === cellIndex);
+
+  if (!cell || !img) {
+    isCreatingProxy = false;
+    return;
+  }
+
+  img.set('opacity', 0.4);
+
+  img.clone((cloned) => {
+    dragProxy = cloned;
+
+    if (pointer) {
+      dragOffset = {
+        x: img.left - pointer.x,
+        y: img.top - pointer.y
+      };
+    }
+
+    dragProxy.set({
+      opacity: 0.8, evented: false, selectable: false,
+      originX: 'center', originY: 'center',
+      left: pointer ? pointer.x + dragOffset.x : img.left,
+      top: pointer ? pointer.y + dragOffset.y : img.top,
+      hasControls: false, hasBorders: false,
+      stroke: '#409eff', strokeWidth: 2,
+      isPuzzleImage: true,
+      isGhost: true
+    });
+
+    const cellCenterX = cell.left + cell.width / 2;
+    const cellCenterY = cell.top + cell.height / 2;
+    const offsetX = (cellCenterX - img.left) / img.scaleX;
+    const offsetY = (cellCenterY - img.top) / img.scaleY;
+
+    const clipRect = new fabric.Rect({
+      left: offsetX, top: offsetY,
+      width: cell.width / img.scaleX, height: cell.height / img.scaleY,
+      originX: 'center', originY: 'center',
+      absolutePositioned: false
+    });
+    dragProxy.clipPath = clipRect;
+
+    canvas.add(dragProxy);
+    canvas.bringToFront(dragProxy);
+    isCreatingProxy = false;
+  });
+};
+
+const onMouseUp = (opt) => {
+  if (!puzzleState.isActive) return;
+  const canvas = unref(canvasRef);
+  const pointer = canvas.getPointer(opt.e);
+  isDragging = false;
+  isCreatingProxy = false;
+
+  if (dragProxy) {
+    const dropCell = getCellFromPoint(pointer.x, pointer.y);
+    const originCellIndex = dragOriginCellIndex;
+    canvas.remove(dragProxy);
+    dragProxy = null;
+    const originImg = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === originCellIndex);
+    if (originImg) originImg.set('opacity', 1);
+
+    if (dropCell && dropCell.index !== originCellIndex) {
+      animateSwap(originCellIndex, dropCell.index);
+    } else {
+      animateSnapBack(originCellIndex);
+    }
+  } 
+  // 正常点击逻辑
+  else if (dragOriginPoint) {
+    const dist = Math.sqrt(
+      Math.pow(pointer.x - dragOriginPoint.x, 2) +
+      Math.pow(pointer.y - dragOriginPoint.y, 2)
+    );
+
+    // 判断为点击而非拖拽
+    if (dist < 5) {
+      const clickedCell = getCellFromPoint(pointer.x, pointer.y);
+      if (clickedCell) {
+        // 判断格子内是否有图片
+        const img = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === clickedCell.index);
+        
+        if (!img) {
+            // A. 点击空格子：上传
+            if (uiCallbacks.onCellClick) {
+                uiCallbacks.onCellClick(clickedCell.index);
+                canvas.discardActiveObject();
+            }
+        } else {
+            // B. 点击有图片的格子：选中并进入配置
+            const controller = canvas.getObjects().find(o => o.isPuzzleController && o.cellIndex === clickedCell.index);
+            if (controller) canvas.setActiveObject(controller);
+            
+            if (uiCallbacks.onImageSelect) {
+                uiCallbacks.onImageSelect(clickedCell.index, {
+                    opacity: img.opacity,
+                    scale: img.scaleX
+                });
+            }
+        }
+      } else {
+        // 点击空白处（网格外的区域）
+        if (uiCallbacks.onDeselect) uiCallbacks.onDeselect();
+      }
+    } else {
+      // 拖拽了但没产生交换（原地回弹）
+      if (dragOriginCellIndex !== -1) animateSnapBack(dragOriginCellIndex);
+    }
+  }
+  dragOriginCellIndex = -1;
+  dragOriginPoint = null;
+  canvas.requestRenderAll();
+};
+
+const animateSnapBack = (cellIndex) => {
+  const canvas = unref(canvasRef);
+  const cell = puzzleState.cells.find(c => c.index === cellIndex);
+  const img = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === cellIndex);
+
+  if (img && cell) {
+    const containerRect = {
+      left: cell.left,
+      top: cell.top,
+      width: cell.width,
+      height: cell.height
+    };
+    if (typeof animateRebound === 'function') {
+      animateRebound(img, containerRect, canvas);
+    } else {
+      img.set({
+        left: cell.left + cell.width / 2,
+        top: cell.top + cell.height / 2
+      });
+      canvas.requestRenderAll();
+    }
+  }
+};
+
+const animateSwap = (idxA, idxB) => {
+  const canvas = unref(canvasRef);
+  const imgA = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === idxA);
+  const imgB = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === idxB);
+  const cellA = puzzleState.cells.find(c => c.index === idxA);
+  const cellB = puzzleState.cells.find(c => c.index === idxB);
+  const animations = [];
+  const duration = 300;
+  const easing = fabric.util.ease.easeOutQuart;
+
+  const createSyncAnimation = (img, targetCell) => {
+    if (!img || !targetCell) return;
+    const targetImgState = calculateFitPosition(img, targetCell);
+    animations.push(new Promise(resolve => {
+      img.animate({
+        left: targetImgState.left,
+        top: targetImgState.top,
+        scaleX: targetImgState.scaleX,
+        scaleY: targetImgState.scaleY
+      }, {
+        duration, easing,
+        onChange: canvas.requestRenderAll.bind(canvas),
+        onComplete: resolve
+      });
+    }));
+
+    if (img.clipPath) {
+      animations.push(new Promise(resolve => {
+        img.clipPath.animate({
+          left: targetCell.left,
+          top: targetCell.top,
+          width: targetCell.width,
+          height: targetCell.height,
+          rx: puzzleState.radius,
+          ry: puzzleState.radius
+        }, {
+          duration, easing,
+          onComplete: resolve
+        });
+      }));
+    }
+  };
+
+  createSyncAnimation(imgA, cellB);
+  createSyncAnimation(imgB, cellA);
+
+  Promise.all(animations).then(() => {
+    if (imgA) imgA.cellIndex = idxB;
+    if (imgB) imgB.cellIndex = idxA;
+    const ctrlA = canvas.getObjects().find(o => o.isPuzzleController && o.cellIndex === idxA);
+    const ctrlB = canvas.getObjects().find(o => o.isPuzzleController && o.cellIndex === idxB);
+    if (ctrlA) ctrlA.cellIndex = idxB;
+    if (ctrlB) ctrlB.cellIndex = idxA;
+    refreshPuzzleObjects();
+  });
+};
+
+const onMouseWheel = (opt) => {
+  const canvas = unref(canvasRef);
+  const target = canvas.getActiveObject();
+  if (!target || !target.isPuzzleController) return;
+  opt.e.preventDefault(); opt.e.stopPropagation();
+  const cell = puzzleState.cells.find(c => c.index === target.cellIndex);
+  const img = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === target.cellIndex);
+  if (!cell || !img) return;
+
+  let zoom = img.scaleX;
+  zoom *= 0.999 ** opt.e.deltaY;
+
+  const minScale = Math.max(cell.width / img.width, cell.height / img.height);
+  const maxScale = minScale * 5;
+  if (zoom < minScale) zoom = minScale;
+  if (zoom > maxScale) zoom = maxScale;
+
+  img.set({ scaleX: zoom, scaleY: zoom });
+
+  const containerRect = {
+    left: cell.left, top: cell.top, width: cell.width, height: cell.height
+  };
+  constrainObjectToRect(img, containerRect, canvas);
+
+  canvas.requestRenderAll();
+};
+
+export const updateLayout = (cellDefinitions = null, config = {}) => {
+  const canvas = unref(canvasRef);
+  if (!canvas) return;
+  if (config.width !== undefined) puzzleState.width = config.width;
+  if (config.height !== undefined) puzzleState.height = config.height;
+  if (config.padding !== undefined) puzzleState.padding = config.padding;
+  if (config.spacing !== undefined) puzzleState.spacing = config.spacing;
+  if (config.radius !== undefined) puzzleState.radius = config.radius;
+
+  if (config.bgColor) puzzleState.bgColor = config.bgColor;
+
+  if (cellDefinitions) puzzleState.rawCells = cellDefinitions;
+
+  const { width, height, padding, spacing, startX, startY } = puzzleState;
+  const safeW = Math.max(0, width - (padding * 2));
+  const safeH = Math.max(0, height - (padding * 2));
+
+  puzzleState.cells = puzzleState.rawCells.map(cell => {
+    const EPSILON = 0.01;
+    const isLeftEdge = cell.x < EPSILON;
+    const isTopEdge = cell.y < EPSILON;
+    const isRightEdge = Math.abs((cell.x + cell.w) - 1.0) < EPSILON;
+    const isBottomEdge = Math.abs((cell.y + cell.h) - 1.0) < EPSILON;
+
+    let boxLeft = startX + Number(padding) + (cell.x * safeW);
+    let boxTop = startY + Number(padding) + (cell.y * safeH);
+    let boxWidth = cell.w * safeW;
+    let boxHeight = cell.h * safeH;
+
+    if (!isLeftEdge) {
+      boxLeft += spacing / 2;
+      boxWidth -= spacing / 2;
+    }
+    if (!isRightEdge) {
+      boxWidth -= spacing / 2;
+    }
+
+    if (!isTopEdge) {
+      boxTop += spacing / 2;
+      boxHeight -= spacing / 2;
+    }
+    if (!isBottomEdge) {
+      boxHeight -= spacing / 2;
+    }
+
+    return {
+      index: cell.index,
+      left: boxLeft,
+      top: boxTop,
+      width: Math.max(1, boxWidth),
+      height: Math.max(1, boxHeight)
+    };
+  });
+
+  refreshPuzzleObjects(!!cellDefinitions);
+};
+
+const refreshPuzzleObjects = (shouldResetImages = false) => {
+  const canvas = unref(canvasRef);
+  const { radius, startX, startY, width, height, bgColor } = puzzleState;
+
+  const toRemove = canvas.getObjects().filter(o =>
+    o.isPlaceholder || o.isPuzzleController || o.isPuzzleBackground
+  );
+  canvas.remove(...toRemove);
+
+  const localBg = new fabric.Rect({
+    left: startX,
+    top: startY,
+    width: width,
+    height: height,
+    fill: bgColor,
+    rx: radius,
+    ry: radius,
+    selectable: false,
+    evented: false,
+    isPuzzleBackground: true,
+    isPuzzleItem: true
+  });
+  canvas.add(localBg);
+  canvas.sendToBack(localBg);
+
+  const existingPuzzleImages = canvas.getObjects()
+    .filter(o => o.isPuzzleImage && !o.isGhost && o !== dragProxy && !o.isPuzzleBackground)
+    .sort((a, b) => a.cellIndex - b.cellIndex);
+
+  if (shouldResetImages && existingPuzzleImages.length === 0) {
+    const rawImages = canvas.getObjects().filter(o => o.type === 'image' && !o.isPuzzleItem);
+    if (rawImages.length > 0) {
+      const rawImg = rawImages[0];
+      const src = rawImg.getSrc();
+      canvas.remove(rawImg);
+      addImageToCell(src, 0);
+      puzzleState.cells.forEach(cell => drawPlaceholder(canvas, cell));
+      canvas.requestRenderAll();
+      return;
+    }
+  }
+
+  puzzleState.cells.forEach((cell, index) => {
+    let img = null;
+
+    if (shouldResetImages) {
+      if (index < existingPuzzleImages.length) {
+        img = existingPuzzleImages[index];
+        img.cellIndex = cell.index;
+        img.set({ opacity: 1, visible: true });
+        const fitState = calculateFitPosition(img, cell);
+        img.set({
+          scaleX: fitState.scaleX,
+          scaleY: fitState.scaleY,
+          left: fitState.left,
+          top: fitState.top
+        });
+        img.setCoords();
+      }
+    } else {
+      img = existingPuzzleImages.find(o => o.cellIndex === cell.index);
+      if (img) {
+        const newCellCenterX = cell.left + cell.width / 2;
+        const newCellCenterY = cell.top + cell.height / 2;
+
+        let targetLeft = newCellCenterX;
+        let targetTop = newCellCenterY;
+
+        if (img.clipPath && img.clipPath.absolutePositioned) {
+          const oldCell = img.clipPath;
+          const oldCellCenterX = oldCell.left + oldCell.width / 2;
+          const oldCellCenterY = oldCell.top + oldCell.height / 2;
+
+          const offsetX = img.left - oldCellCenterX;
+          const offsetY = img.top - oldCellCenterY;
+
+          if (!isNaN(offsetX) && Math.abs(offsetX) < 3000) {
+            targetLeft = newCellCenterX + offsetX;
+            targetTop = newCellCenterY + offsetY;
+          }
+        }
+
+        img.set({ left: targetLeft, top: targetTop });
+
+        const iW = img.width || 100;
+        const iH = img.height || 100;
+        const minScale = Math.max(cell.width / iW, cell.height / iH) + 0.0001;
+
+        if (img.scaleX < minScale) {
+          img.set({ scaleX: minScale, scaleY: minScale });
+        }
+
+        img.setCoords();
+
+        const containerRect = {
+          left: cell.left,
+          top: cell.top,
+          width: cell.width,
+          height: cell.height
+        };
+        constrainObjectToRect(img, containerRect, canvas);
+
+        if (!img.intersectsWithObject(new fabric.Rect(containerRect))) {
+          img.set({ left: newCellCenterX, top: newCellCenterY });
+          img.setCoords();
+        }
+      }
+    }
+
+    if (img) {
+      const clipRect = new fabric.Rect({
+        left: cell.left,
+        top: cell.top,
+        width: cell.width,
+        height: cell.height,
+        rx: radius,
+        ry: radius,
+        absolutePositioned: true
+      });
+      img.set({ clipPath: clipRect, opacity: img.opacity || 1 });
+      img.dirty = true;
+      img.setCoords();
+
+      const controller = new fabric.Rect({
+        left: cell.left,
+        top: cell.top,
+        width: cell.width,
+        height: cell.height,
+        fill: 'transparent',
+        transparentCorners: false,
+        selectable: true,
+        evented: true,
+        // 🔥 关键修改：禁用控件和边框显示
+        hasControls: false,
+        hasBorders: false,
+        lockMovementX: true,
+        lockMovementY: true,
+        lockRotation: true,
+        lockScalingX: true,
+        lockScalingY: true,
+        isPuzzleItem: true,
+        isPuzzleController: true,
+        cellIndex: cell.index
+      });
+      canvas.add(controller);
+      // 🔥 已移除 drawDeleteBtn 调用
+    } else {
+      drawPlaceholder(canvas, cell);
+    }
+  });
+
+  if (shouldResetImages && existingPuzzleImages.length > puzzleState.cells.length) {
+    const extras = existingPuzzleImages.slice(puzzleState.cells.length);
+    canvas.remove(...extras);
+  }
+
+  if (localBg) canvas.sendToBack(localBg);
+
+  canvas.requestRenderAll();
+};
+
+export const deleteImageFromCell = (cellIndex) => {
+  const canvas = unref(canvasRef);
+  const objs = canvas.getObjects().filter(o =>
+    (o.isPuzzleImage || o.isPuzzleController) && o.cellIndex === cellIndex
+  );
+  canvas.remove(...objs);
+  refreshPuzzleObjects();
+};
+
+const drawPlaceholder = (canvas, cell) => {
+  const rect = new fabric.Rect({
+    left: cell.left, top: cell.top, width: cell.width, height: cell.height,
+    fill: '#f5f7fa', stroke: '#dcdfe6', strokeWidth: 1, strokeDashArray: [4, 4],
+    rx: puzzleState.radius, ry: puzzleState.radius,
+    selectable: false, evented: false, isPuzzleItem: true, isPlaceholder: true
+  });
+  const plus = new fabric.Text('+', {
+    left: cell.left + cell.width / 2, top: cell.top + cell.height / 2,
+    fontSize: 30, fill: '#909399', originX: 'center', originY: 'center',
+    selectable: false, evented: false, isPuzzleItem: true, isPlaceholder: true
+  });
+  canvas.add(rect, plus);
+};
+
+const getCellFromPoint = (x, y) => {
+  return puzzleState.cells.find(cell =>
+    x >= cell.left && x <= cell.left + cell.width &&
+    y >= cell.top && y <= cell.top + cell.height
+  );
+};
+
+export const addImageToCell = (url, cellIndex, options = {}) => {
+  const canvas = unref(canvasRef);
+  const oldObjs = canvas.getObjects().filter(o => (o.isPuzzleImage || o.isPuzzleController) && o.cellIndex === cellIndex);
+  canvas.remove(...oldObjs);
+
+  fabric.Image.fromURL(url, (img) => {
+    const cell = puzzleState.cells.find(c => c.index === cellIndex);
+    if (!cell) return;
+
+    let scale;
+    if (options.targetScale) {
+      scale = options.targetScale;
+    } else {
+      scale = Math.max(cell.width / img.width, cell.height / img.height) + 0.001;
+    }
+
+    img.set({
+      left: cell.left + cell.width / 2,
+      top: cell.top + cell.height / 2,
+      originX: 'center',
+      originY: 'center',
+      scaleX: scale,
+      scaleY: scale,
+      selectable: false, evented: false, hasControls: false, hasBorders: false,
+      isPuzzleItem: true, isPuzzleImage: true, cellIndex: cellIndex,
+    });
+
+    img.setCoords();
+
+    const controller = new fabric.Rect({
+      left: cell.left, top: cell.top, width: cell.width, height: cell.height,
+      fill: 'transparent', noScaleCache: false,
+      transparentCorners: false, cornerSize: 8, borderOpacityWhenMoving: 0.5,
+      selectable: true, evented: true, 
+      hasControls: false, // 禁用
+      hasBorders: false,  // 禁用
+      lockMovementX: true, lockMovementY: true,
+      lockRotation: true, lockScalingX: true, lockScalingY: true,
+      isPuzzleItem: true, isPuzzleController: true, cellIndex: cellIndex,
+    });
+
+    canvas.add(img);
+    canvas.add(controller);
+    canvas.setActiveObject(controller);
+
+    refreshPuzzleObjects();
+  }, { crossOrigin: 'anonymous' });
+};
+</file>
+
+<file path="src/composables/useEditorState.js">
+import { reactive, readonly,watch } from 'vue';
+
+/**
+ * ✨ 配置驱动：定义与全局拖拽模式冲突的二级 Tab 黑名单
+ */
+const DRAG_INCOMPATIBLE_TABS = ['crop', 'resize', 'ruler'];
+
+/**
+ * ✨ 全局路由配置表 (Single Source of Truth)
+ * 定义 Fabric 对象类型 -> 工具面板(Tool) + 子选项卡(Tab) 的映射关系
+ */
+export const OBJECT_TO_TOOL_MAP = {
+    // === 基础形状 ===
+    'i-text': { tool: 'text', tab: 'style' },    // 文本 -> 文本面板-样式Tab
+    'textbox': { tool: 'text', tab: 'style' },
+    'image': { tool: 'adjust', tab: 'filter' }, // 图片 -> 调整面板-滤镜Tab
+    'group': { tool: 'adjust', tab: '' },       // 组 -> 调整面板 (根据业务需求)
+
+    // === 绘制/矢量 ===
+    'path': { tool: 'draw', tab: '' },         // 路径 -> 绘制面板
+
+    // === 几何图形 (通常归类为素材或边框，根据你的业务定) ===
+    'rect': { tool: 'border', tab: 'style' },
+    'circle': { tool: 'material', tab: 'basic' },
+    'triangle': { tool: 'material', tab: 'basic' },
+
+    // === 自定义业务类型 ===
+    'puzzle': { tool: 'puzzle', tab: 'template' }
+};
+
+// 单例状态
+const state = reactive({
+    activeTool: 'adjust', // 一级菜单 ID
+    activeTab: '',        // ✨ 新增: 二级菜单 ID (例如 'style', 'color', 'filter')
+
+    isDrawing: false,     // 是否处于自由绘制模式
+
+    canUndo: false,       // 历史记录状态
+    canRedo: false,
+
+    isLoading: false,
+    loadingText: '处理中...',
+
+    isSidebarDisabled: false, // 侧边栏残影模式
+    isGlobalDragMode: false,  // 全局拖动模式
+
+    /**
+     * ✨ 导航来源标记
+     * 'system': 初始化或系统重置
+     * 'manual': 用户手动点击侧边栏 (优先级最高，应有点击反馈)
+     * 'canvas': 画布对象选中触发自动跳转 (应平滑过渡，无干扰)
+     */
+    navigationSource: 'system',
+    
+    // 新增：是否正在进行拼图操作
+    isPuzzleMode: false,
+});
+
+// ✨✨✨ 核心互斥逻辑：方式 2 (监听器模式) ✨✨✨
+watch(() => state.isGlobalDragMode, (isDragging) => {
+    if (isDragging) {
+        // 如果开启了拖拽模式，检查当前 Tab 是否在黑名单中
+        if (DRAG_INCOMPATIBLE_TABS.includes(state.activeTab)) {
+            console.log(`[Interaction] Drag Mode ON: Auto-closing incompatible tab: ${state.activeTab}`);
+            state.activeTab = ''; // 清空 Tab，触发 UI 收起与模块清理
+        }
+    }
+});
+
+export function useEditorState() {
+
+    /**
+     * 切换当前激活的工具和选项卡
+     * @param {string} tool - 一级工具 ID
+     * @param {string} tab - (可选) 二级选项卡 ID
+     * @param {string} source - 触发来源 ('manual' | 'canvas' | 'system')
+     */
+    const setActiveTool = (tool, tab = '', source = 'manual') => {
+        // 状态防抖：如果 Tool 和 Tab 都没变，且侧边栏也是激活状态，则不执行
+        if (state.activeTool === tool && state.activeTab === tab && !state.isSidebarDisabled) {
+            return;
+        }
+
+        state.activeTool = tool;
+        state.activeTab = tab; // 更新二级路由
+        state.navigationSource = source;
+
+        // 副作用处理
+        state.isDrawing = false; // 切换工具默认退出绘制模式
+        state.isSidebarDisabled = false; // 只要切换工具，必定激活面板
+    };
+
+    /**
+     * ✨ 动作驱动：设置拖拽模式
+     * 在此处执行同步互斥，确保 UI 立即响应
+     */
+    const setGlobalDragMode = (val) => {
+        state.isGlobalDragMode = val;
+        console.log(`[Interaction] Global Drag Mode: ${val ? 'ON' : 'OFF'}`);
+        
+        if (val) {
+            if (DRAG_INCOMPATIBLE_TABS.includes(state.activeTab)) {
+                console.log(`[Interaction] Auto-closing incompatible tab: ${state.activeTab}`);
+                state.activeTab = ''; // 立即清空，触发侧边栏收起
+            }
+        }
+    };
+
+
+    // ✨ [核心补全] 切换二级 Tab (专门给 UI 组件用来清理状态)
+    const setActiveTab = (tab) => {
+        state.activeTab = tab;
+    };
+
+    const toggleDrawing = (status) => {
+        state.isDrawing = status;
+    };
+
+    const setHistoryState = (canUndo, canRedo) => {
+        state.canUndo = canUndo;
+        state.canRedo = canRedo;
+    };
+
+    const setLoading = (status, text = '处理中...') => {
+        state.isLoading = status;
+        state.loadingText = text;
+    };
+
+    const setSidebarDisabled = (status) => {
+        state.isSidebarDisabled = status;
+    };
+
+    // 新增：设置是否正在进行拼图操作
+    const setPuzzleMode = (status) => {
+        state.isPuzzleMode = status;
+    };
+
+    // === ✨ 核心：智能路由系统 ===
+
+    /**
+     * 根据 Canvas 选中的对象，自动路由到对应的工具面板
+     * @param {Object} target - Fabric 对象实例
+     * @returns {boolean} - 是否成功匹配并跳转
+     */
+    const routeToObject = (target) => {
+      if (!target || state.isGlobalDragMode) return false; // ✨ 开启拖拽时，禁止自动跳转
+
+        if (target.customTab) {
+            setActiveTool(target.customTool || 'adjust');
+            if (state.activeTab === target.customTab) {
+                state.activeTab = '';
+                setTimeout(() => { state.activeTab = target.customTab; }, 0);
+            } else {
+                state.activeTab = target.customTab;
+            }
+            return true;
+        }
+
+        // 2. 默认路由规则
+        if (target.type === "i-text") {
+            setActiveTool("text");
+            return true;
+        }
+
+        // ... 其他默认规则可在此补充 ...
+
+        return false;
+    };
+
+    return {
+        state: readonly(state), // 导出只读状态
+        setActiveTool,
+        setActiveTab,       // ✨ 确保导出此函数
+        toggleDrawing,
+        setHistoryState,
+        setLoading,
+        setSidebarDisabled,
+        setPuzzleMode,
+        routeToObject, // 导出路由动作供 useCanvas 使用
+        setGlobalDragMode // 导出全局拖动模式设置
+    };
+}
+
+// 全局聚焦系数 (保留)
+export const ZOOM_PADDING = 0.921;
 </file>
 
 <file path="src/components/layout/NavBar.vue">
@@ -8557,127 +8513,6 @@ onUnmounted(() => {
   flex: 1;
 }
 </style>
-</file>
-
-<file path="src/components/modules/adjust/index.vue">
-<template>
-  <div class="panel-adjust">
-    <div class="tool-list">
-      <AdjustCrop
-        :is-expanded="activeCollapse === 'crop'"
-        @toggle="toggle('crop')"
-      />
-      <AdjustResize
-        :is-expanded="activeCollapse === 'resize'"
-        @toggle="toggle('resize')"
-      />
-      <AdjustInpaint
-        :is-expanded="activeCollapse === 'inpaint'"
-        @toggle="toggle('inpaint')"
-      />
-      <AdjustRembg
-        :is-expanded="activeCollapse === 'rembg'"
-        @toggle="toggle('rembg')"
-      />
-
-      <AdjustRuler
-        :is-expanded="activeCollapse === 'ruler'"
-        @toggle="toggle('ruler')"
-      />
-
-      <AdjustWhite
-        :is-expanded="activeCollapse === 'white'"
-        @toggle="toggle('white')"
-      />
-      <AdjustColor
-        :is-expanded="activeCollapse === 'color'"
-        @toggle="toggle('color')"
-      />
-      <AdjustColorOverlay
-        :is-expanded="activeCollapse === 'overlay'"
-        @toggle="toggle('overlay')"
-      />
-      <AdjustFilters
-        :is-expanded="activeCollapse === 'filters'"
-        @toggle="toggle('filters')"
-      />
-      <AdjustMosaic
-        :is-expanded="activeCollapse === 'mosaic'"
-        @toggle="toggle('mosaic')"
-      />
-    </div>
-  </div>
-</template>
-
-<script setup>
-import { ref, defineAsyncComponent, watch } from "vue";
-import { useEditorState } from "@/composables/useEditorState";
-
-// 异步组件加载
-const AdjustCrop = defineAsyncComponent(() => import("./AdjustCrop.vue"));
-const AdjustResize = defineAsyncComponent(() => import("./AdjustResize.vue"));
-const AdjustInpaint = defineAsyncComponent(() => import("./AdjustInpaint.vue"));
-const AdjustRembg = defineAsyncComponent(() => import("./AdjustRembg.vue"));
-const AdjustWhite = defineAsyncComponent(() => import("./AdjustWhite.vue"));
-const AdjustColor = defineAsyncComponent(() => import("./AdjustColor.vue"));
-const AdjustFilters = defineAsyncComponent(() => import("./AdjustFilters.vue"));
-const AdjustColorOverlay = defineAsyncComponent(() =>
-  import("./AdjustColorOverlay.vue")
-);
-const AdjustMosaic = defineAsyncComponent(() => import("./AdjustMosaic.vue"));
-const AdjustRuler = defineAsyncComponent(() => import("./AdjustRuler.vue"));
-
-const activeCollapse = ref("");
-// ✨ 获取 setActiveTab 方法
-const { state, setActiveTab } = useEditorState();
-
-// 监听路由变化，自动展开对应面板
-watch(
-  () => state.activeTab,
-  (newTab) => {
-    const validTabs = [
-      "crop",
-      "resize",
-      "inpaint",
-      "rembg",
-      "ruler",
-      "white",
-      "color",
-      "overlay",
-      "filters",
-      "mosaic",
-    ];
-
-    // 只有当 newTab 有效时才展开
-    // 如果 newTab 被置空，这里不处理，由 toggle 逻辑接管
-    if (newTab && validTabs.includes(newTab)) {
-      console.log("[AdjustPanel] Auto expanding:", newTab);
-      activeCollapse.value = newTab;
-    }
-  },
-  { immediate: true }
-);
-
-// 手动切换折叠状态
-const toggle = (id) => {
-  if (activeCollapse.value === id) {
-    // 动作：手动关闭
-    activeCollapse.value = "";
-
-    // ✨✨✨ 修复点：使用官方方法清理状态 ✨✨✨
-    // 如果当前全局状态正指着这个面板，必须把它清理掉
-    // 否则下次点击同一个物体时，状态从 'ruler' 变 'ruler'，watch 不会触发
-    if (state.activeTab === id) {
-      setActiveTab(""); // ✅ 合法修改，不会被 readonly 拦截
-    }
-  } else {
-    // 动作：手动展开
-    activeCollapse.value = id;
-    // 保持同步
-    setActiveTab(id);
-  }
-};
-</script>
 </file>
 
 <file path="src/components/modules/adjust/useCanvasCrop.js">
@@ -10163,881 +9998,120 @@ onUnmounted(() => cleanup());
 </style>
 </file>
 
-<file path="src/components/modules/puzzle/index.vue">
+<file path="src/components/modules/adjust/index.vue">
 <template>
-  <div class="puzzle-module">
-    <div
-      v-if="sub === 1"
-      class="puzzle-main"
-    >
-      <div class="puzzle-tabs">
-        <div
-          class="tab-item"
-          :class="{ active: activeTab === 'grid' }"
-          @click="activeTab = 'grid'"
-        >
-          网格
-        </div>
-        <div
-          class="tab-item"
-          :class="{ active: activeTab === 'join' }"
-          @click="activeTab = 'join'"
-        >
-          拼接
-        </div>
-      </div>
+  <div class="panel-adjust">
+    <div class="tool-list">
+      <AdjustCrop
+        :is-expanded="activeCollapse === 'crop'"
+        @toggle="toggle('crop')"
+      />
+      <AdjustResize
+        :is-expanded="activeCollapse === 'resize'"
+        @toggle="toggle('resize')"
+      />
+      <AdjustInpaint
+        :is-expanded="activeCollapse === 'inpaint'"
+        @toggle="toggle('inpaint')"
+      />
+      <AdjustRembg
+        :is-expanded="activeCollapse === 'rembg'"
+        @toggle="toggle('rembg')"
+      />
 
-      <div>
-        <div v-if="activeTab === 'grid'">
-          <button
-            class="select-btn"
-            @click="sub = 2"
-          >
-            <div class="icon-wrap">
-              <div
-                v-if="showControlPanel"
-                :style="curTemp.wrapStyle"
-                class="small-grid-template"
-              >
-                <div
-                  v-for="(gridArea, i) in curTemp.gridAreas"
-                  :key="i"
-                  class="grid-cell"
-                  :style="`grid-area: ${gridArea};`"
-                ></div>
-              </div>
-              <span
-                v-else
-                class="plus-icon"
-              >+</span>
-            </div>
-            <span>选择网格</span>
-            <span
-              v-if="showControlPanel"
-              class="cancel-btn"
-              @click.stop="cancel"
-            >取消</span>
-          </button>
+      <AdjustRuler
+        :is-expanded="activeCollapse === 'ruler'"
+        @toggle="toggle('ruler')"
+      />
 
-          <div
-            v-if="showControlPanel"
-            class="control-panel"
-          >
-            <div class="control-group">
-              <label>拼图尺寸</label>
-              <div class="size-controls">
-                <div class="input-wrapper">
-                  <input
-                    type="number"
-                    v-model.number="puzzleSettings.width"
-                    :min="min"
-                    :max="max"
-                    class="ie-input"
-                    @change="updateSize('width')"
-                  >
-                  <span class="suffix">W</span>
-                </div>
-
-                <div
-                  class="link-icon"
-                  title="锁定宽高比"
-                  @click="toggleRatioLock"
-                >
-                  <svg
-                    v-if="puzzleSettings.lockRatio"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#409eff"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                  </svg>
-                  <svg
-                    v-else
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#909399"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    style="opacity: 0.6"
-                  >
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                    <line
-                      x1="4"
-                      y1="4"
-                      x2="20"
-                      y2="20"
-                      stroke="#909399"
-                    />
-                  </svg>
-                </div>
-
-                <div class="input-wrapper">
-                  <input
-                    type="number"
-                    v-model.number="puzzleSettings.height"
-                    :min="min"
-                    :max="max"
-                    class="ie-input"
-                    @change="updateSize('height')"
-                  >
-                  <span class="suffix">H</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="control-group">
-              <label>边框</label>
-              <input
-                v-model.number="puzzleSettings.padding"
-                type="range"
-                min="0"
-                max="100"
-                step="1"
-                @change="updateStyle"
-              />
-              <span class="value-display">{{ puzzleSettings.padding }} px</span>
-            </div>
-
-            <div class="control-group">
-              <label>间距</label>
-              <input
-                type="range"
-                v-model.number="puzzleSettings.spacing"
-                min="0"
-                max="100"
-                step="1"
-                @change="updateStyle"
-              />
-              <span class="value-display">{{ puzzleSettings.spacing }} px</span>
-            </div>
-
-            <div class="control-group">
-              <label>拼图背景颜色</label>
-              <input
-                type="color"
-                class="color"
-                v-model="puzzleSettings.bgColor"
-                @input="updateStyle"
-              />
-            </div>
-
-            <button
-              class="save-btn"
-              @click="save"
-            >
-              保存
-            </button>
-          </div>
-        </div>
-
-        <div v-else>
-          <button class="select-btn">
-            <div class="icon-wrap">
-              <div
-                v-if="showControlPanel"
-                :style="curTemp.wrapStyle"
-                class="small-grid-template"
-              >
-                <div
-                  v-for="(gridArea, i) in curTemp.gridAreas"
-                  :key="i"
-                  class="grid-cell"
-                  :style="`grid-area: ${gridArea};`"
-                ></div>
-              </div>
-              <span
-                v-else
-                class="plus-icon"
-              >+</span>
-            </div>
-            <span>选择拼接</span>
-            <span
-              v-if="showControlPanel"
-              class="cancel-btn"
-              @click.stop="cancel"
-            >取消</span>
-          </button>
-        </div>
-      </div>
+      <AdjustWhite
+        :is-expanded="activeCollapse === 'white'"
+        @toggle="toggle('white')"
+      />
+      <AdjustColor
+        :is-expanded="activeCollapse === 'color'"
+        @toggle="toggle('color')"
+      />
+      <AdjustColorOverlay
+        :is-expanded="activeCollapse === 'overlay'"
+        @toggle="toggle('overlay')"
+      />
+      <AdjustFilters
+        :is-expanded="activeCollapse === 'filters'"
+        @toggle="toggle('filters')"
+      />
+      <AdjustMosaic
+        :is-expanded="activeCollapse === 'mosaic'"
+        @toggle="toggle('mosaic')"
+      />
     </div>
-
-    <div
-      v-if="sub === 2"
-      class="grid-templates"
-    >
-      <div
-        class="back-header"
-        @click="backToMain"
-      >
-        <span class="back-icon">‹</span> 网格
-      </div>
-
-      <div class="image-count-selector">
-        <label>图片数量</label>
-        <select v-model="selectedImageCount">
-          <option
-            v-for="item in countOptions"
-            :key="item.value"
-            :value="item.value"
-          >{{ item.label }}</option>
-        </select>
-      </div>
-
-      <div class="grid-list">
-        <div
-          v-for="(group, count) in filteredTemplates"
-          :key="count"
-          class="grid-group"
-        >
-          <div class="grid-group-title">{{ count }}</div>
-
-          <div class="grid-templates-row">
-            <div
-              v-for="template in group"
-              :key="template.id"
-              :style="template.wrapStyle"
-              class="grid-template"
-              @click="selectTemplate(template)"
-            >
-              <div
-                v-for="(gridArea, i) in template.gridAreas"
-                :key="i"
-                class="grid-cell"
-                :style="`grid-area: ${gridArea};`"
-              ></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div
-      v-if="sub === 3"
-      class="p-20"
-    >
-      <div class="operate-buttons">
-         <button class="ie-btn full" @click="triggerReplace">替换图片</button>
-         <button 
-            v-if="currentImgCount > 1" 
-            class="ie-btn btn-danger" 
-            style="margin-left: 8px;"
-            @click="handleDelete"
-         >删除</button>
-      </div>
-
-      <div class="divider-line"></div>
-
-      <div class="control-group">
-        <div class="label-row">
-            <label>透明度</label>
-            <span class="val">{{ transparent }}%</span>
-        </div>
-        <input
-          v-model.number="transparent"
-          type="range"
-          min="0"
-          max="100"
-          step="1"
-          @input="onParamsChange"
-        />
-      </div>
-
-      <div class="control-group">
-        <div class="label-row">
-            <label>放大 (Zoom)</label>
-            <span class="val">{{ Math.round(zoomScale * 100) }}%</span>
-        </div>
-        <input
-          type="range"
-          v-model.number="zoomScale"
-          min="0.1"
-          max="3"
-          step="0.01"
-          @input="onParamsChange"
-        />
-      </div>
-    </div>
-
-    <input
-      type="file"
-      ref="fileInput"
-      accept="image/png, image/jpeg, image/jpg"
-      style="display:none"
-      @change="onFileSelected"
-    >
-
-    <Modal
-      v-model="showSaveModal"
-      @confirm="handleConfirmSave"
-      @cancel="showSaveModal = false"
-      @discard="showSaveModal = false"
-    />
   </div>
 </template>
 
 <script setup>
-  import { ref, reactive, computed, inject, onMounted, onUnmounted } from 'vue';
-  import { toast } from '@/utils/toast';
-  import Modal from '@/components/common/Modal.vue'; // 引入 Modal 组件
-  import { gridTemplates, parseTemplateToCells, countOptions } from './config.js';
-  import {
-    registerPuzzleModule,
-    initPuzzleMode,
-    exitPuzzleMode,
-    updateLayout,
-    addImageToCell,
-    deleteImageFromCell,
-    updatePuzzleImageParams,
-    getPuzzleImageCount,
-    zoomToPuzzleArea,
-    saveSnapshotBeforeLayout,
-    restoreSnapshotBeforeLayout,
-    completeExitPuzzle // 引入完成拼图的方法
-  } from './useCanvasPuzzle.js';
-  import { useEditorState } from '@/composables/useEditorState';
+import { ref, defineAsyncComponent, watch } from "vue";
+import { useEditorState } from "@/composables/useEditorState";
 
-  const canvasAPI = inject('canvasAPI');
-  const fileInput = ref(null);
-  const { setPuzzleMode } = useEditorState();
-  
-  let pendingCellIndex = -1;
-  const selectedCellIndex = ref(-1);
+// 异步组件加载
+const AdjustCrop = defineAsyncComponent(() => import("./AdjustCrop.vue"));
+const AdjustResize = defineAsyncComponent(() => import("./AdjustResize.vue"));
+const AdjustInpaint = defineAsyncComponent(() => import("./AdjustInpaint.vue"));
+const AdjustRembg = defineAsyncComponent(() => import("./AdjustRembg.vue"));
+const AdjustWhite = defineAsyncComponent(() => import("./AdjustWhite.vue"));
+const AdjustColor = defineAsyncComponent(() => import("./AdjustColor.vue"));
+const AdjustFilters = defineAsyncComponent(() => import("./AdjustFilters.vue"));
+const AdjustColorOverlay = defineAsyncComponent(() =>
+  import("./AdjustColorOverlay.vue")
+);
+const AdjustMosaic = defineAsyncComponent(() => import("./AdjustMosaic.vue"));
+const AdjustRuler = defineAsyncComponent(() => import("./AdjustRuler.vue"));
 
-  // 图片参数状态
-  const transparent = ref(100);
-  const zoomScale = ref(1);
-  const currentImgCount = ref(1);
+const activeCollapse = ref("");
+// ✨ 获取 setActiveTab 方法
+const { state, setActiveTab } = useEditorState();
 
-  // 弹窗控制状态
-  const showSaveModal = ref(false);
+// 监听路由变化，自动展开对应面板
+watch(
+  () => state.activeTab,
+  (newTab) => {
+    const validTabs = [
+      "crop", "resize", "inpaint", "rembg", "ruler",
+      "white", "color", "overlay", "filters", "mosaic",
+    ];
 
-  onMounted(() => {
-    if (canvasAPI) {
-      registerPuzzleModule(canvasAPI.canvas, canvasAPI.saveHistory, {
-        onCellClick: (index) => {
-          pendingCellIndex = index;
-          if (fileInput.value) {
-            fileInput.value.value = '';
-            fileInput.value.click();
-          }
-        },
-        onImageSelect: (index, params) => {
-           selectedCellIndex.value = index;
-           pendingCellIndex = index;
-           
-           transparent.value = Math.round((params.opacity || 1) * 100);
-           zoomScale.value = params.scale || 1;
-           
-           currentImgCount.value = getPuzzleImageCount();
-           sub.value = 3;
-        },
-        onDeselect: () => {
-           sub.value = 1;
-           selectedCellIndex.value = -1;
-        }
-      },
-        canvasAPI.zoomToRect
-      );
-      initPuzzleMode();
+    if (newTab && validTabs.includes(newTab)) {
+      console.log("[AdjustPanel] Auto expanding:", newTab);
+      activeCollapse.value = newTab;
+    } 
+    // ✨✨✨ 关键修复：当全局路由清空时，同步清空局部折叠状态 ✨✨✨
+    else if (!newTab) {
+      console.log("[AdjustPanel] Auto collapsing due to empty activeTab");
+      activeCollapse.value = "";
     }
-  });
+  },
+  { immediate: true }
+);
 
-  onUnmounted(() => {
-    // 离开组件时如果不保存，也应该执行退出清理逻辑
-    exitPuzzleMode();
-  });
+// 手动切换折叠状态
+const toggle = (id) => {
+  if (activeCollapse.value === id) {
+    // 动作：手动关闭
+    activeCollapse.value = "";
 
-  const onFileSelected = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.type !== 'image/jpeg' && file.type !== 'image/png') {
-      toast.error('仅支持 JPG/PNG 图片格式');
-      return;
+    // ✨✨✨ 修复点：使用官方方法清理状态 ✨✨✨
+    // 如果当前全局状态正指着这个面板，必须把它清理掉
+    // 否则下次点击同一个物体时，状态从 'ruler' 变 'ruler'，watch 不会触发
+    if (state.activeTab === id) {
+      setActiveTab(""); // ✅ 合法修改，不会被 readonly 拦截
     }
-    if (pendingCellIndex >= 0) {
-      const url = URL.createObjectURL(file);
-      addImageToCell(url, pendingCellIndex);
-      if (sub.value === 3) {
-        transparent.value = 100;
-      } else {
-        pendingCellIndex = -1;
-      }
-    }
-  };
-
-  const sub = ref(1);
-  const showControlPanel = ref(false);
-  const selectedImageCount = ref('all');
-  const activeTab = ref('grid');
-
-  const filteredTemplates = computed(() => {
-    if (selectedImageCount.value === 'all') {
-      return gridTemplates;
-    } else {
-      const curCount = parseInt(selectedImageCount.value);
-      const result = {};
-      for (const count in gridTemplates) {
-        if (parseInt(count) === curCount) {
-          result[count] = gridTemplates[count];
-        }
-      }
-      return result;
-    }
-  });
-
-  const backToMain = () => {
-    sub.value = 1;
-    selectedImageCount.value = 'all';
-  };
-
-  const curTemp = ref({});
-  const selectTemplate = (template) => {
-    // Only capture snapshot if we are starting a new selection (curTemp is empty)
-    if (!curTemp.value.id) {
-      saveSnapshotBeforeLayout();
-    }
-    
-    curTemp.value = template;
-    showControlPanel.value = true;
-    setPuzzleMode(true); // 切换到拼图模式
-    sub.value = 1;
-    applyTemplate(template);
-    zoomToPuzzleArea();
-  };
-
-  const applyTemplate = (templ) => {
-    const cells = parseTemplateToCells(templ);
-    updateLayout(cells, puzzleSettings);
-  };
-
-  const cancel = () => {
-    restoreSnapshotBeforeLayout();
-    showControlPanel.value = false;
-    setPuzzleMode(false); // 退出拼图模式
-    curTemp.value = {};
-  };
-
-  const puzzleSettings = reactive({
-    width: 1000,
-    height: 1000,
-    lockRatio: false,
-    padding: 15,
-    spacing: 15,
-    bgColor: '#ffffff'
-  });
-  const min = 400;
-  const max = 3840;
-  let ratio = 1;
-
-  const toggleRatioLock = () => {
-    puzzleSettings.lockRatio = !puzzleSettings.lockRatio;
-    if (puzzleSettings.lockRatio) {
-      ratio = puzzleSettings.width / puzzleSettings.height;
-    }
-  };
-
-  const updateSize = (dimension) => {
-    if (puzzleSettings[dimension] < min) {
-      puzzleSettings[dimension] = min;
-    } else if (puzzleSettings[dimension] > max) {
-      puzzleSettings[dimension] = max;
-    }
-
-    if (puzzleSettings.lockRatio) {
-      if (dimension === 'width') {
-        puzzleSettings.height = Math.round(puzzleSettings.width / ratio);
-      } else {
-        puzzleSettings.width = Math.round(puzzleSettings.height * ratio);
-      }
-    }
-
-    updateStyle();
-  };
-
-  const updateStyle = () => {
-    updateLayout(null, puzzleSettings);
-  };
-
-  // === 保存逻辑 ===
-  const save = () => { 
-    showSaveModal.value = true;
-  };
-
-  const handleConfirmSave = () => {
-    // 1. 调用核心逻辑：生成图片并替换画布内容
-    completeExitPuzzle('save');
-    
-    // 2. 关闭弹窗
-    showSaveModal.value = false;
-    
-    // 3. 返回
-    showControlPanel.value = false;
-    setPuzzleMode(false); // 退出拼图模式
-  };
-
-  // === Sub 3 逻辑 ===
-
-  const deselectImage = () => {
-      sub.value = 1;
-      selectedCellIndex.value = -1;
-      if (canvasAPI && canvasAPI.canvas) {
-          canvasAPI.canvas.value.discardActiveObject();
-          canvasAPI.canvas.value.requestRenderAll();
-      }
-  };
-
-  const triggerReplace = () => {
-      if (fileInput.value) {
-          fileInput.value.value = '';
-          fileInput.value.click();
-      }
-  };
-
-  const handleDelete = () => {
-      if (selectedCellIndex.value === -1) return;
-      deleteImageFromCell(selectedCellIndex.value);
-      toast.success('图片已删除');
-      deselectImage();
-  };
-
-  const onParamsChange = () => {
-      if (selectedCellIndex.value === -1) return;
-      updatePuzzleImageParams(selectedCellIndex.value, {
-          opacity: transparent.value / 100,
-          scale: zoomScale.value
-      });
-  };
+  } else {
+    // 动作：手动展开
+    activeCollapse.value = id;
+    // 保持同步
+    setActiveTab(id);
+  }
+};
 </script>
-
-<style scoped>
-  .puzzle-module {
-    width: 100%;
-    height: 100%;
-    background-color: #fff;
-  }
-
-  .puzzle-main {
-    padding: 20px;
-  }
-
-  .puzzle-tabs {
-    display: flex;
-  }
-
-  .tab-item {
-    flex: 1;
-    text-align: center;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    color: #606266;
-  }
-
-  .tab-item.active {
-    background-color: #409eff;
-    color: #fff;
-  }
-
-  .select-btn {
-    display: inline-flex;
-    align-items: center;
-    padding: 14px;
-    border-radius: 4px;
-    width: 100%;
-    cursor: pointer;
-    font-size: 14px;
-    color: #606266;
-    transition: all 0.3s;
-  }
-
-  .select-btn:hover {
-    border-color: #409eff;
-    color: #409eff;
-  }
-
-  .icon-wrap {
-    width: 40px;
-    height: 40px;
-    border-radius: 4px;
-    background-color: #fff;
-    font-size: 24px;
-    line-height: 40px;
-    text-align: center;
-    margin-right: 16px;
-  }
-
-  .small-grid-template {
-    height: 100%;
-    display: grid;
-    overflow: hidden;
-  }
-
-  .plus-icon {
-    font-weight: bold;
-  }
-
-  .cancel-btn {
-    color: #409eff;
-    margin-left: 76px;
-    cursor: pointer;
-  }
-
-  .grid-templates {
-    padding: 20px 12px 20px;
-  }
-
-  .back-header {
-    display: flex;
-    align-items: center;
-    font-size: 16px;
-    font-weight: 500;
-    margin-bottom: 20px;
-    cursor: pointer;
-  }
-
-  .back-icon {
-    font-size: 20px;
-    margin-right: 8px;
-    color: #606266;
-  }
-
-  .image-count-selector {
-    margin-bottom: 20px;
-  }
-
-  .image-count-selector label {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 14px;
-    color: #606266;
-  }
-
-  .image-count-selector select {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #dcdfe6;
-    border-radius: 4px;
-    font-size: 14px;
-  }
-
-  .grid-list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .grid-group {
-    border-radius: 4px;
-    overflow: hidden;
-  }
-
-  .grid-group-title {
-    padding: 10px 15px;
-    background-color: #f5f7fa;
-    font-size: 14px;
-    font-weight: 500;
-    color: #606266;
-  }
-
-  .grid-templates-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding: 12px 4px;
-  }
-
-  .grid-template {
-    width: 120px;
-    height: 120px;
-    display: grid;
-    border-radius: 4px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-
-  .grid-template:hover {
-    border-color: #409eff;
-    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-  }
-
-  .grid-cell {
-    height: 100%;
-    background-color: #f0f0f0;
-    border: 1px solid #fff;
-  }
-
-  .control-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    padding: 15px 0;
-  }
-
-  .control-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .control-group label {
-    font-size: 14px;
-    color: #606266;
-    font-weight: 500;
-  }
-
-  .color {
-    width: 100%;
-    cursor: pointer;
-    border: none;
-  }
-
-  .size-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .input-wrapper {
-    position: relative;
-    width: 38%;
-  }
-
-  .ie-input {
-    text-align: center;
-    padding-right: 20px;
-    font-weight: 500;
-    color: #333;
-  }
-
-  .suffix {
-    position: absolute;
-    right: 6px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #c0c4cc;
-    font-size: 12px;
-    pointer-events: none;
-  }
-
-  .link-icon {
-    width: 24px;
-    display: flex;
-    justify-content: center;
-    cursor: pointer;
-  }
-
-  .control-group input[type="range"] {
-    width: 100%;
-    height: 4px;
-    border-radius: 2px;
-    background: #dcdfe6;
-    outline: none;
-    -webkit-appearance: none;
-  }
-
-  .control-group input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: #409eff;
-    cursor: pointer;
-  }
-
-  .control-group input[type="range"]::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: #409eff;
-    cursor: pointer;
-    border: none;
-  }
-
-  .value-display {
-    font-size: 14px;
-    color: #909399;
-    text-align: right;
-  }
-
-  .save-btn {
-    padding: 12px 20px;
-    margin-top: 20px;
-    border: none;
-    border-radius: 21px;
-    background-color: #409eff;
-    color: #fff;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-
-  .save-btn:hover {
-    background-color: #66b1ff;
-  }
-
-  .p-20 {
-    padding: 20px;
-  }
-
-  .operate-buttons {
-    display: flex;
-    margin-top: 10px;
-  }
-
-  .full {
-    flex: 1;
-  }
-
-  .btn-danger {
-    background-color: #fef0f0;
-    color: #f56c6c;
-    border-color: #fbc4c4;
-  }
-  .btn-danger:hover {
-    background-color: #f56c6c;
-    color: #fff;
-    border-color: #f56c6c;
-  }
-
-  .divider-line {
-    height: 1px;
-    background: #ebeef5;
-    margin: 20px 0;
-  }
-
-  .label-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    font-size: 13px;
-    color: #606266;
-  }
-
-  .val {
-    font-family: monospace;
-  }
-
-  .confirm-content {
-    display: flex;
-    align-items: center;
-    color: #606266;
-    font-size: 14px;
-  }
-</style>
 </file>
 
 <file path="src/style.css">
@@ -11510,6 +10584,722 @@ onUnmounted(() => cleanup());
 }
 </file>
 
+<file path="src/components/modules/puzzle/index.vue">
+<template>
+  <div class="puzzle-module">
+    <div v-if="sub === 1" class="puzzle-main">
+      <div class="puzzle-tabs">
+        <div class="tab-item" :class="{ active: activeTab === 'grid' }" @click="activeTab = 'grid'">
+          网格
+        </div>
+        <div class="tab-item" :class="{ active: activeTab === 'join' }" @click="activeTab = 'join'">
+          拼接
+        </div>
+      </div>
+
+      <div>
+        <div v-if="activeTab === 'grid'">
+          <button class="select-btn" @click="sub = 2">
+            <div class="icon-wrap">
+              <div v-if="showControlPanel" :style="curTemp.wrapStyle" class="small-grid-template">
+                <div v-for="(gridArea, i) in curTemp.gridAreas" :key="i" class="grid-cell"
+                  :style="`grid-area: ${gridArea};`"></div>
+              </div>
+              <span v-else class="plus-icon">+</span>
+            </div>
+            <span>选择网格</span>
+            <span v-if="showControlPanel" class="cancel-btn" @click.stop="cancel">取消</span>
+          </button>
+
+          <div v-if="showControlPanel" class="control-panel">
+            <div class="control-group">
+              <label>拼图尺寸</label>
+              <div class="size-controls">
+                <div class="input-wrapper">
+                  <input type="number" v-model.number="puzzleSettings.width" :min="min" :max="max" class="ie-input"
+                    @change="updateSize('width')">
+                  <span class="suffix">W</span>
+                </div>
+
+                <div class="link-icon" title="锁定宽高比" @click="toggleRatioLock">
+                  <svg v-if="puzzleSettings.lockRatio" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="#409eff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                  </svg>
+                  <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#909399" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.6">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                    <line x1="4" y1="4" x2="20" y2="20" stroke="#909399" />
+                  </svg>
+                </div>
+
+                <div class="input-wrapper">
+                  <input type="number" v-model.number="puzzleSettings.height" :min="min" :max="max" class="ie-input"
+                    @change="updateSize('height')">
+                  <span class="suffix">H</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <label>边框</label>
+              <input v-model.number="puzzleSettings.padding" type="range" min="0" max="100" step="1"
+                @change="updateStyle" />
+              <span class="value-display">{{ puzzleSettings.padding }} px</span>
+            </div>
+
+            <div class="control-group">
+              <label>间距</label>
+              <input type="range" v-model.number="puzzleSettings.spacing" min="0" max="100" step="1"
+                @change="updateStyle" />
+              <span class="value-display">{{ puzzleSettings.spacing }} px</span>
+            </div>
+
+            <div class="control-group">
+              <label>拼图背景颜色</label>
+              <input type="color" class="color" v-model="puzzleSettings.bgColor" @input="updateStyle" />
+            </div>
+
+            <button class="save-btn" @click="save">
+              保存
+            </button>
+          </div>
+        </div>
+
+        <div v-else>
+          <button class="select-btn">
+            <div class="icon-wrap">
+              <div v-if="showControlPanel" :style="curTemp.wrapStyle" class="small-grid-template">
+                <div v-for="(gridArea, i) in curTemp.gridAreas" :key="i" class="grid-cell"
+                  :style="`grid-area: ${gridArea};`"></div>
+              </div>
+              <span v-else class="plus-icon">+</span>
+            </div>
+            <span>选择拼接</span>
+            <span v-if="showControlPanel" class="cancel-btn" @click.stop="cancel">取消</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="sub === 2" class="grid-templates">
+      <div class="back-header" @click="backToMain">
+        <span class="back-icon">‹</span> 网格
+      </div>
+
+      <div class="image-count-selector">
+        <label>图片数量</label>
+        <select v-model="selectedImageCount">
+          <option v-for="item in countOptions" :key="item.value" :value="item.value">{{ item.label }}</option>
+        </select>
+      </div>
+
+      <div class="grid-list">
+        <div v-for="(group, count) in filteredTemplates" :key="count" class="grid-group">
+          <div class="grid-group-title">{{ count }}</div>
+
+          <div class="grid-templates-row">
+            <div v-for="template in group" :key="template.id" :style="template.wrapStyle" class="grid-template"
+              @click="selectTemplate(template)">
+              <div v-for="(gridArea, i) in template.gridAreas" :key="i" class="grid-cell"
+                :style="`grid-area: ${gridArea};`"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="sub === 3" class="p-20">
+      <div class="operate-buttons">
+        <button class="ie-btn full" @click="triggerReplace">替换图片</button>
+        <button v-if="currentImgCount > 1" class="ie-btn btn-danger" style="margin-left: 8px;"
+          @click="handleDelete">删除</button>
+      </div>
+
+      <div class="divider-line"></div>
+
+      <div class="control-group">
+        <div class="label-row">
+          <label>透明度</label>
+          <span class="val">{{ transparent }}%</span>
+        </div>
+        <input v-model.number="transparent" type="range" min="0" max="100" step="1" @input="onParamsChange" />
+      </div>
+
+      <div class="control-group">
+        <div class="label-row">
+          <label>放大 (Zoom)</label>
+          <span class="val">{{ Math.round(zoomScale * 100) }}%</span>
+        </div>
+        <input type="range" v-model.number="zoomScale" min="0.1" max="3" step="0.01" @input="onParamsChange" />
+      </div>
+    </div>
+
+    <input type="file" ref="fileInput" accept="image/png, image/jpeg, image/jpg" style="display:none"
+      @change="onFileSelected">
+
+    <Modal v-model="showSaveModal" @confirm="handleConfirmSave" @cancel="showSaveModal = false"
+      @discard="showSaveModal = false" />
+  </div>
+</template>
+
+<script setup>
+import { ref, reactive, computed, inject, onMounted, onUnmounted } from 'vue';
+import { toast } from '@/utils/toast';
+import Modal from '@/components/common/Modal.vue'; // 引入 Modal 组件
+import { gridTemplates, parseTemplateToCells, countOptions } from './config.js';
+import {
+  registerPuzzleModule,
+  initPuzzleMode,
+  exitPuzzleMode,
+  updateLayout,
+  addImageToCell,
+  deleteImageFromCell,
+  updatePuzzleImageParams,
+  getPuzzleImageCount,
+  zoomToPuzzleArea,
+  saveSnapshotBeforeLayout,
+  restoreSnapshotBeforeLayout,
+  completeExitPuzzle // 引入完成拼图的方法
+} from './useCanvasPuzzle.js';
+import { useEditorState } from '@/composables/useEditorState';
+
+const canvasAPI = inject('canvasAPI');
+const fileInput = ref(null);
+const { setPuzzleMode } = useEditorState();
+
+let pendingCellIndex = -1;
+const selectedCellIndex = ref(-1);
+
+// 图片参数状态
+const transparent = ref(100);
+const zoomScale = ref(1);
+const currentImgCount = ref(1);
+
+// 弹窗控制状态
+const showSaveModal = ref(false);
+
+const init = () => {
+  if (canvasAPI) {
+    registerPuzzleModule(canvasAPI.canvas, {
+      onCellClick: (index) => {
+        pendingCellIndex = index;
+        if (fileInput.value) {
+          fileInput.value.value = '';
+          fileInput.value.click();
+        }
+      },
+      onImageSelect: (index, params) => {
+        selectedCellIndex.value = index;
+        pendingCellIndex = index;
+
+        transparent.value = Math.round((params.opacity || 1) * 100);
+        zoomScale.value = params.scale || 1;
+
+        currentImgCount.value = getPuzzleImageCount();
+        sub.value = 3;
+      },
+      onDeselect: () => {
+        sub.value = 1;
+        selectedCellIndex.value = -1;
+      }
+    },
+      canvasAPI.zoomToRect
+    );
+    initPuzzleMode();
+  }
+}
+
+const onFileSelected = (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  if (file.type !== 'image/jpeg' && file.type !== 'image/png') {
+    toast.error('仅支持 JPG/PNG 图片格式');
+    return;
+  }
+  if (pendingCellIndex >= 0) {
+    const url = URL.createObjectURL(file);
+    addImageToCell(url, pendingCellIndex);
+    if (sub.value === 3) {
+      transparent.value = 100;
+    } else {
+      pendingCellIndex = -1;
+    }
+  }
+};
+
+const sub = ref(1);
+const showControlPanel = ref(false);
+const selectedImageCount = ref('all');
+const activeTab = ref('grid');
+
+const filteredTemplates = computed(() => {
+  if (selectedImageCount.value === 'all') {
+    return gridTemplates;
+  } else {
+    const curCount = parseInt(selectedImageCount.value);
+    const result = {};
+    for (const count in gridTemplates) {
+      if (parseInt(count) === curCount) {
+        result[count] = gridTemplates[count];
+      }
+    }
+    return result;
+  }
+});
+
+const backToMain = () => {
+  sub.value = 1;
+  selectedImageCount.value = 'all';
+};
+
+const curTemp = ref({});
+const selectTemplate = (template) => {
+  // Only capture snapshot if we are starting a new selection (curTemp is empty)
+  if (!curTemp.value.id) {
+    saveSnapshotBeforeLayout();
+  }
+
+  curTemp.value = template;
+  showControlPanel.value = true;
+  setPuzzleMode(true); // 切换到拼图模式
+  init();
+  sub.value = 1;
+  applyTemplate(template);
+  zoomToPuzzleArea();
+};
+
+const applyTemplate = (templ) => {
+  const cells = parseTemplateToCells(templ);
+  updateLayout(cells, puzzleSettings);
+};
+
+const cancel = () => {
+  restoreSnapshotBeforeLayout();
+  showControlPanel.value = false;
+  setPuzzleMode(false); // 退出拼图模式
+  exitPuzzleMode();
+  curTemp.value = {};
+};
+
+const puzzleSettings = reactive({
+  width: 1000,
+  height: 1000,
+  lockRatio: false,
+  padding: 15,
+  spacing: 15,
+  bgColor: '#ffffff'
+});
+const min = 400;
+const max = 3840;
+let ratio = 1;
+
+const toggleRatioLock = () => {
+  puzzleSettings.lockRatio = !puzzleSettings.lockRatio;
+  if (puzzleSettings.lockRatio) {
+    ratio = puzzleSettings.width / puzzleSettings.height;
+  }
+};
+
+const updateSize = (dimension) => {
+  if (puzzleSettings[dimension] < min) {
+    puzzleSettings[dimension] = min;
+  } else if (puzzleSettings[dimension] > max) {
+    puzzleSettings[dimension] = max;
+  }
+
+  if (puzzleSettings.lockRatio) {
+    if (dimension === 'width') {
+      puzzleSettings.height = Math.round(puzzleSettings.width / ratio);
+    } else {
+      puzzleSettings.width = Math.round(puzzleSettings.height * ratio);
+    }
+  }
+
+  updateStyle();
+};
+
+const updateStyle = () => {
+  updateLayout(null, puzzleSettings);
+};
+
+// === 保存逻辑 ===
+const save = () => {
+  showSaveModal.value = true;
+};
+
+const handleConfirmSave = () => {
+  // 1. 调用核心逻辑：生成图片并替换画布内容
+  completeExitPuzzle('save');
+
+  // 2. 关闭弹窗
+  showSaveModal.value = false;
+
+  // 3. 返回
+  showControlPanel.value = false;
+  setPuzzleMode(false); // 退出拼图模式
+  exitPuzzleMode();
+};
+
+// === Sub 3 逻辑 ===
+
+const deselectImage = () => {
+  sub.value = 1;
+  selectedCellIndex.value = -1;
+  if (canvasAPI && canvasAPI.canvas) {
+    canvasAPI.canvas.value.discardActiveObject();
+    canvasAPI.canvas.value.requestRenderAll();
+  }
+};
+
+const triggerReplace = () => {
+  if (fileInput.value) {
+    fileInput.value.value = '';
+    fileInput.value.click();
+  }
+};
+
+const handleDelete = () => {
+  if (selectedCellIndex.value === -1) return;
+  deleteImageFromCell(selectedCellIndex.value);
+  toast.success('图片已删除');
+  deselectImage();
+};
+
+const onParamsChange = () => {
+  if (selectedCellIndex.value === -1) return;
+  updatePuzzleImageParams(selectedCellIndex.value, {
+    opacity: transparent.value / 100,
+    scale: zoomScale.value
+  });
+};
+</script>
+
+<style scoped>
+.puzzle-module {
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+}
+
+.puzzle-main {
+  padding: 20px;
+}
+
+.puzzle-tabs {
+  display: flex;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #606266;
+}
+
+.tab-item.active {
+  background-color: #409eff;
+  color: #fff;
+}
+
+.select-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 14px;
+  border-radius: 4px;
+  width: 100%;
+  cursor: pointer;
+  font-size: 14px;
+  color: #606266;
+  transition: all 0.3s;
+  background-color: #f5f7fa;
+}
+
+.select-btn:hover {
+  border-color: #409eff;
+  color: #409eff;
+}
+
+.icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  background-color: #fff;
+  font-size: 24px;
+  line-height: 40px;
+  text-align: center;
+  margin-right: 16px;
+}
+
+.small-grid-template {
+  height: 100%;
+  display: grid;
+  overflow: hidden;
+}
+
+.plus-icon {
+  font-weight: bold;
+}
+
+.cancel-btn {
+  color: #409eff;
+  margin-left: 76px;
+  cursor: pointer;
+}
+
+.grid-templates {
+  padding: 20px 12px 20px;
+}
+
+.back-header {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+.back-icon {
+  font-size: 20px;
+  margin-right: 8px;
+  color: #606266;
+}
+
+.image-count-selector {
+  margin-bottom: 20px;
+}
+
+.image-count-selector label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #606266;
+}
+
+.image-count-selector select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.grid-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.grid-group {
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.grid-group-title {
+  padding: 10px 15px;
+  background-color: #f5f7fa;
+  font-size: 14px;
+  font-weight: 500;
+  color: #606266;
+}
+
+.grid-templates-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 4px;
+}
+
+.grid-template {
+  width: 120px;
+  height: 120px;
+  display: grid;
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.grid-template:hover {
+  border-color: #409eff;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.grid-cell {
+  height: 100%;
+  background-color: #f0f0f0;
+  border: 1px solid #fff;
+}
+
+.control-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 15px 0;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.control-group label {
+  font-size: 14px;
+  color: #606266;
+  font-weight: 500;
+}
+
+.color {
+  width: 100%;
+  cursor: pointer;
+  border: none;
+}
+
+.size-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.input-wrapper {
+  position: relative;
+  width: 38%;
+}
+
+.ie-input {
+  text-align: center;
+  padding-right: 20px;
+  font-weight: 500;
+  color: #333;
+}
+
+.suffix {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #c0c4cc;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.link-icon {
+  width: 24px;
+  display: flex;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.control-group input[type="range"] {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: #dcdfe6;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.control-group input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #409eff;
+  cursor: pointer;
+}
+
+.control-group input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #409eff;
+  cursor: pointer;
+  border: none;
+}
+
+.value-display {
+  font-size: 14px;
+  color: #909399;
+  text-align: right;
+}
+
+.save-btn {
+  padding: 12px 20px;
+  margin-top: 20px;
+  border: none;
+  border-radius: 21px;
+  background-color: #409eff;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.save-btn:hover {
+  background-color: #66b1ff;
+}
+
+.p-20 {
+  padding: 20px;
+}
+
+.operate-buttons {
+  display: flex;
+  margin-top: 10px;
+}
+
+.full {
+  flex: 1;
+}
+
+.btn-danger {
+  background-color: #fef0f0;
+  color: #f56c6c;
+  border-color: #fbc4c4;
+}
+
+.btn-danger:hover {
+  background-color: #f56c6c;
+  color: #fff;
+  border-color: #f56c6c;
+}
+
+.divider-line {
+  height: 1px;
+  background: #ebeef5;
+  margin: 20px 0;
+}
+
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #606266;
+}
+
+.val {
+  font-family: monospace;
+}
+
+.confirm-content {
+  display: flex;
+  align-items: center;
+  color: #606266;
+  font-size: 14px;
+}
+</style>
+</file>
+
 <file path="src/components/layout/EditorLayout.vue">
 <template>
   <div class="image-editor-sdk-container">
@@ -11739,6 +11529,7 @@ const ROUTING_ALLOWLIST = ['ruler'];
 
 export function useCanvas() {
   const canvas = shallowRef(null);
+
   // ✨ 获取 state 对象
   const { state, setHistoryState, setActiveTool, setSidebarDisabled, routeToObject } = useEditorState();
   const zoom = ref(1);
@@ -11775,6 +11566,84 @@ export function useCanvas() {
 
   const updateStoreHistory = () => {
     setHistoryState(historyIndex > 0, historyIndex < history.length - 1);
+  };
+
+  // ✨ 新增：变换快照，用于计算增量变换
+  let transformBase = null;
+
+/**
+   * 🛡️ 深度重构：全场变换同步系统 (轴心校准版)
+   */
+  const syncTransformToOthers = (main) => {
+    if (!transformBase || !canvas.value) return;
+
+    // ✨ 核心：获取主图当前的物理中心点 (这是旋转和缩放的唯一不动点)
+    const currentCenter = main.getCenterPoint();
+    
+    // 1. 计算各项变换增量
+    const angleDiff = main.angle - transformBase.angle;
+    const scaleDiffX = main.scaleX / transformBase.scaleX;
+    const scaleDiffY = main.scaleY / transformBase.scaleY;
+    // 计算中心点的位移 (处理拖拽)
+    const dX = currentCenter.x - transformBase.centerX;
+    const dY = currentCenter.y - transformBase.centerY;
+
+    const others = canvas.value.getObjects().filter(o => 
+        o !== main && !o.excludeFromExport && o.type !== 'rect'
+    );
+
+    others.forEach(obj => {
+        // --- A. 位移补偿 ---
+        // 先跟随主图中心的物理位移
+        let targetX = obj.left + dX;
+        let targetY = obj.top + dY;
+
+        // --- B. 旋转与缩放的矩阵联动 ---
+        if (angleDiff !== 0 || scaleDiffX !== 1 || scaleDiffY !== 1) {
+            // 1. 将对象位置封装为坐标点
+            const point = new fabric.Point(targetX, targetY);
+            
+            // 2. 旋转补偿：绕主图当前中心旋转 angleDiff 弧度
+            // 这是解决“飞走”问题的关键，确保标尺永远钉在图片的相对位置
+            const rotatedPoint = fabric.util.rotatePoint(
+                point, 
+                currentCenter, 
+                fabric.util.degreesToRadians(angleDiff)
+            );
+            
+            targetX = rotatedPoint.x;
+            targetY = rotatedPoint.y;
+
+            // 3. 缩放补偿 (基于矢量的相对距离缩放)
+            if (scaleDiffX !== 1 || scaleDiffY !== 1) {
+                const vector = rotatedPoint.subtract(currentCenter);
+                targetX = currentCenter.x + vector.x * scaleDiffX;
+                targetY = currentCenter.y + vector.y * scaleDiffY;
+                
+                // 同步对象自身的缩放
+                obj.set({
+                    scaleX: obj.scaleX * scaleDiffX,
+                    scaleY: obj.scaleY * scaleDiffY
+                });
+            }
+
+            // 4. 同步自转角度
+            obj.set('angle', (obj.angle || 0) + angleDiff);
+        }
+
+        // 应用最终坐标并刷新
+        obj.set({ left: targetX, top: targetY });
+        obj.setCoords();
+    });
+
+    // ✨ 更新基准快照 (必须记录中心点而不是 left/top)
+    transformBase = {
+        centerX: currentCenter.x,
+        centerY: currentCenter.y,
+        scaleX: main.scaleX,
+        scaleY: main.scaleY,
+        angle: main.angle
+    };
   };
 
   const undo = () => { /* ...保持原样... */ 
@@ -11880,7 +11749,6 @@ export function useCanvas() {
   // 仅需确保 handleSelection 和 handleMouseDown 已按上述逻辑更新
 
   const init = (id, width, height) => {
-    // ... 原有 init 代码 ...
     console.log("init canvas", id, width, height);
     const c = new fabric.Canvas(id, {
       width: width,
@@ -11909,12 +11777,34 @@ export function useCanvas() {
     c.on("object:removed", (e) => {
       if (e.target && e.target.type !== "rect") saveHistory();
     });
+    // ✨ 变换快照初始化：改用中心点记录
+    c.on('mouse:down', (opt) => {
+        if (state.isGlobalDragMode && opt.target && opt.target.isMainImage) {
+            const main = opt.target;
+            const center = main.getCenterPoint();
+            transformBase = {
+                centerX: center.x,
+                centerY: center.y,
+                scaleX: main.scaleX,
+                scaleY: main.scaleY,
+                angle: main.angle
+            };
+        }
+    });
 
-    c.on("mouse:down", (opt) => {
-      isPotentialClick = true;
-      const pointer = c.getPointer(opt.e);
-      dragStartPoint = { x: pointer.x, y: pointer.y };
-      handleMouseDown(opt);
+    // 变换监听
+    const handleSync = (e) => {
+        if (state.isGlobalDragMode && transformBase && e.target && e.target.isMainImage) {
+            syncTransformToOthers(e.target);
+        }
+    };
+    c.on('object:moving', handleSync);
+    c.on('object:scaling', handleSync);
+    c.on('object:rotating', handleSync);
+
+    // 3. 变换结束：销毁快照
+    c.on('mouse:up', () => {
+        transformBase = null;
     });
 
     c.on("mouse:move", (opt) => {

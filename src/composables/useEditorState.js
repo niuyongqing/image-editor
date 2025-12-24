@@ -1,4 +1,4 @@
-import { reactive, readonly,watch } from 'vue';
+import { reactive, readonly, watch } from 'vue';
 
 /**
  * ✨ 配置驱动：定义与全局拖拽模式冲突的二级 Tab 黑名单
@@ -28,6 +28,17 @@ export const OBJECT_TO_TOOL_MAP = {
     'puzzle': { tool: 'puzzle', tab: 'template' }
 };
 
+/**
+ * Fabric 对象序列化全局白名单
+ * 包含：标准属性 + 物理锁属性 + 业务标识 + 拼图模块属性 + 样式属性
+ */
+export const CANVAS_PROPS_WHITELIST = [
+    "id", "name", "selectable", "hasControls", "hasBorders",
+    "lockMovementX", "lockMovementY", "lockRotation", "lockScalingX", "lockScalingY",
+    "isMainImage", "isPuzzleItem", "cellIndex", "isPuzzleImage", "originalSrc",
+    "evented", "opacity", "clipPath", "absolutePositioned", "customTab"
+];
+
 // 单例状态
 const state = reactive({
     activeTool: 'adjust', // 一级菜单 ID
@@ -51,7 +62,7 @@ const state = reactive({
      * 'canvas': 画布对象选中触发自动跳转 (应平滑过渡，无干扰)
      */
     navigationSource: 'system',
-    
+
     // 新增：是否正在进行拼图操作
     isPuzzleMode: false,
 });
@@ -97,7 +108,7 @@ export function useEditorState() {
     const setGlobalDragMode = (val) => {
         state.isGlobalDragMode = val;
         console.log(`[Interaction] Global Drag Mode: ${val ? 'ON' : 'OFF'}`);
-        
+
         if (val) {
             if (DRAG_INCOMPATIBLE_TABS.includes(state.activeTab)) {
                 console.log(`[Interaction] Auto-closing incompatible tab: ${state.activeTab}`);
@@ -143,7 +154,7 @@ export function useEditorState() {
      * @returns {boolean} - 是否成功匹配并跳转
      */
     const routeToObject = (target) => {
-      if (!target || state.isGlobalDragMode) return false; // ✨ 开启拖拽时，禁止自动跳转
+        if (!target || state.isGlobalDragMode) return false; // ✨ 开启拖拽时，禁止自动跳转
 
         if (target.customTab) {
             setActiveTool(target.customTool || 'adjust');
