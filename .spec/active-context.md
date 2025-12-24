@@ -17,9 +17,14 @@
 - **尺寸调整 (Resize)**:
   - [x] **高清重制**: 引入 `useOffscreenHelper`，实现了基于原图分辨率的高清缩放。
   - [x] **保真模式**: 支持锁定长宽比计算。
+  - [x] **通用锁集成**: 成功接入 `useCanvasLock`，解决了标尺在调整尺寸时仍可被选中的 Bug。
+  - [x] **时序优化**: 通过 `nextTick` 解决了预览框创建导致的加锁失效问题。
+- **补白 (White/Padding)**:
+  - [x] **架构对齐**: 移除了模块内手动的 `originalSelectable` 逻辑，统一使用 `useCanvasLock`。
 - **补白 (White/Padding)**:
   - [x] **社媒预设**: 集成 Instagram/Youtube 等常用尺寸模板。
   - [x] **智能吸色**: 支持背景色吸取及透明背景设置。
+
 
 #### 1.2 拼图系统 (Puzzle System)
 
@@ -65,6 +70,7 @@
   - [x] **二级导航 (Level 2 Support)**: 支持精确跳转至特定折叠面板 (如 `Tool: Adjust` + `Tab: Ruler`)。
   - [x] **元数据注入 (Metadata Injection)**: 支持通过 `customTab` / `customTool` 属性覆盖默认路由行为。
   - [x] **Fix Ruler Navigation**: 修复点击标尺组件自动触发侧边栏跳转的 Bug。
+  - [x] **Fix Ruler Selection Visibility**: 修复标尺跳转后因竞态条件导致自动进入绘制模式而丢失选区控制框的问题。
   - [x] **Fix Crop/Rotate Navigation**: 修复点击裁剪/旋转模块跳转到边框模块的 Bug。
 - **视图解耦**:
   - [x] **状态监听**: 侧边栏组件 (`index.vue`) 通过 `watch` 监听全局路由状态自动展开对应模块。
@@ -106,10 +112,18 @@
   - 左侧菜单高亮 `state.activeTool`。
   - 二级面板 (如 AdjustPanel) 监听 `state.activeTab` 并自动展开对应模块。
 
+### 2.5 通用物理锁 (Universal Physical Lock)
+- **File**: `src/composables/useCanvasLock.js`
+- **逻辑**: 遍历 `allObjects`，排除 `isMainImage`。通过 `WeakMap` 实现无损状态恢复。
+
 ---
 
-## 3. 待办事项 (Backlog & Roadmap)
+## 3. 故障排查与最佳实践 (Troubleshooting & Best Practices)
 
-### 📅 近期计划 (Next Sprint)
-
-### 🐛 已知优化点 (Refactoring)
+### 3.1 为什么通用锁 (useCanvasLock) 会失效？
+在开发 `AdjustResize` 模块时，曾遇到通用锁失效的情况。复盘结论如下：
+1.  **身份识别问题**: 模块内部找图用 `type === 'image'`，而通用锁用 `isMainImage`。若初始化时未补齐 `isMainImage` 属性，主图会被误锁。
+2.  **异步竞态**: 标尺或预览对象在 `setBackgroundLock` 之后才渲染完成。
+3.  **解决方案**: 
+    - 初始化时显式设置 `mainImg.isMainImage = true`。
+    - 采用“双重加锁”：模块 `init` 锁一次，`nextTick` (预览渲染后) 再锁一次。

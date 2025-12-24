@@ -1,46 +1,80 @@
+/**
+ * @param {Boolean} shouldLock 
+ * ⚠️ 注意：此方法依赖对象的 isMainImage 标识。
+ * 开启前请确保主图已执行: obj.isMainImage = true; 否则主图将无法操作。
+ */
 import { unref } from 'vue';
 
-/**
- * 通用画布锁定钩子 (修正版)
- * 针对：主图作为普通对象位于图层最底层 (Index 0) 的情况
- */
 export function useCanvasLock() {
+  const objectStates = new WeakMap();
 
-    /**
-     * 切换主图的锁定状态
-     * @param {Object} canvasInstance - Fabric canvas 实例
-     * @param {Boolean} shouldLock - true: 锁定; false: 解锁
-     */
-    const setBackgroundLock = (canvasInstance, shouldLock) => {
-        const canvas = unref(canvasInstance);
-        if (!canvas) return;
+  const setBackgroundLock = (canvasInstance, shouldLock) => {
+    const canvas = unref(canvasInstance);
+    if (!canvas) return;
 
-        // [修正点] 获取对象列表中的第一个元素 (最底层)
-        const objects = canvas.getObjects();
-        const bgObject = objects[0];
+    const objects = canvas.getObjects();
+    
+    if (shouldLock) {
+      // === 🔒 上锁阶段 ===
+      canvas.selection = false; 
+      canvas.defaultCursor = 'default';
 
-        // 安全检查：确保底层存在对象，且通常应该是图片
-        if (bgObject && (bgObject.type === 'image' || bgObject.id === 'workspace_bg')) {
-            // 锁定核心属性
-            bgObject.set({
-                selectable: !shouldLock, // 锁定时不可选中
-                evented: !shouldLock,    // 锁定时不可响应鼠标 (允许穿透)
-                hoverCursor: shouldLock ? 'default' : null // 鼠标样式
-            });
+      objects.forEach(obj => {
+        // ✨ 增强识别：通过多个维度确认是否为主图，避免误锁
+        const isMain = obj.isMainImage || obj.id === 'main-image' || (obj.type === 'image' && objects.indexOf(obj) === 0);
+        if (isMain) return;
 
-            // 强制取消当前可能存在的选中状态
-            if (shouldLock && canvas.getActiveObject() === bgObject) {
-                canvas.discardActiveObject();
-            }
-
-            canvas.requestRenderAll();
-        } else {
-            // 仅在开发环境提示，避免干扰
-            console.warn('[useCanvasLock] 未在图层底部(Index 0)找到主图对象，锁定未生效。');
+        // 备份并锁定
+        if (!objectStates.has(obj)) {
+          objectStates.set(obj, {
+            selectable: obj.selectable,
+            evented: obj.evented,
+            hoverCursor: obj.hoverCursor,
+            hasControls: obj.hasControls,
+            hasBorders: obj.hasBorders
+          });
         }
-    };
 
-    return {
-        setBackgroundLock
-    };
+        obj.set({
+          selectable: false,     // 对应您之前的手动代码：解决蓝框
+          evented: false,        // 对应您之前的手动代码：解决菜单
+          hoverCursor: 'default',
+          hasControls: false,
+          hasBorders: false,
+          lockMovementX: true,
+          lockMovementY: true
+        });
+      });
+
+      canvas.discardActiveObject();
+
+    } else {
+      // === 🔓 解锁阶段 ===
+      canvas.selection = true;
+      objects.forEach(obj => {
+        const isMain = obj.isMainImage || obj.id === 'main-image';
+        if (isMain) return;
+
+        const originalState = objectStates.get(obj);
+        if (originalState) {
+          obj.set(originalState);
+          objectStates.delete(obj);
+        } else {
+          obj.set({
+            selectable: true,
+            evented: true,
+            hoverCursor: null,
+            hasControls: true,
+            hasBorders: true,
+            lockMovementX: false,
+            lockMovementY: false
+          });
+        }
+      });
+    }
+
+    canvas.requestRenderAll();
+  };
+
+  return { setBackgroundLock };
 }

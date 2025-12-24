@@ -14,7 +14,7 @@
 
 我将发给你一份项目的 **核心宪法 (Project Charter)**。在接下来的对话中，你生成的所有代码和建议必须**严格遵守**这份文档中的技术约束。
 
-请阅读我上传的repomix-output.xml 文件。如果你准备好了，请回复：“**已加载项目宪法，架构师就位。**”
+请阅读我上传的 repomix-output.xml 文件。如果你准备好了，请回复：“**已加载项目宪法，架构师就位。**”
 
 # 第二步 清空画布按钮功能（举例）
 
@@ -50,3 +50,15 @@
 
 这是我最新的 active-context.md（文件上传每个新窗口只用传一次）
 “代码写得不错。请帮我更新 .spec/active-context.md，把刚才完成的任务勾选掉，并记录下这次的变更点。”
+
+# trae
+
+我们要修复“xxx”的 Bug。
+
+1. 上下文加载： 请阅读 .spec/active-context.md 了解当前的“对象驱动路由架构 (Object-Driven Routing)”。 请阅读 .spec/project-charter.md 确认代码风格和 Fabric 版本约束。
+
+2. 记忆更新： 修复完成后，请更新 .spec/active-context.md：
+
+在 "Current Focus" 中添加并勾选 [x] Fix Ruler Navigation。
+
+更新版本号或 Last Updated 时间。

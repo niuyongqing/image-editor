@@ -1,6 +1,6 @@
 import { ref, shallowRef, markRaw, toRaw, unref, onMounted, onUnmounted } from "vue";
 import { fabric } from "fabric";
-// ✨ 引入 routeToObject 用于路由跳转
+// ✨ 引入 state 以便读取当前的 activeTool/activeTab
 import { useEditorState, ZOOM_PADDING } from "./useEditorState";
 
 import {
@@ -16,8 +16,8 @@ const ROUTING_ALLOWLIST = ['ruler'];
 
 export function useCanvas() {
   const canvas = shallowRef(null);
-  // ✨ 获取 routeToObject
-  const { setHistoryState, setActiveTool, setSidebarDisabled, routeToObject } = useEditorState();
+  // ✨ 获取 state 对象
+  const { state, setHistoryState, setActiveTool, setSidebarDisabled, routeToObject } = useEditorState();
   const zoom = ref(1);
 
   // 交互状态变量
@@ -36,7 +36,7 @@ export function useCanvas() {
     }
     const json = JSON.stringify(
       canvas.value.toJSON([
-        "id", "selectable", "name", "isMainImage", "isPuzzleImage",
+        "id", "selectable", "name", "isMainImage", "isPuzzleImage", 
         "cellIndex", "isMaskObject",
         "customTab", "customTool", "isRuler", "excludeFromExport"
       ])
@@ -54,7 +54,7 @@ export function useCanvas() {
     setHistoryState(historyIndex > 0, historyIndex < history.length - 1);
   };
 
-  const undo = () => { /* ...保持原样... */
+  const undo = () => { /* ...保持原样... */ 
     if (!canvas.value || historyIndex <= 0 || historyProcessing) return;
     if (cropObject.value) cancelCrop();
     historyProcessing = true;
@@ -67,7 +67,7 @@ export function useCanvas() {
     });
   };
 
-  const redo = () => { /* ...保持原样... */
+  const redo = () => { /* ...保持原样... */ 
     if (!canvas.value || historyIndex >= history.length - 1 || historyProcessing) return;
     if (cropObject.value) cancelCrop();
     historyProcessing = true;
@@ -80,7 +80,7 @@ export function useCanvas() {
     });
   };
 
-  const zoomToRect = (rect, minZoomLimit = 0.1) => { /* ...保持原样... */
+  const zoomToRect = (rect, minZoomLimit = 0.1) => { /* ...保持原样... */ 
     if (!canvas.value) return;
     const width = canvas.value.width;
     const height = canvas.value.height;
@@ -95,100 +95,76 @@ export function useCanvas() {
     canvas.value.requestRenderAll();
   };
 
-  // === 🕵️‍♂️ 调试核心：Handle Selection ===
+  // === 🛡️ 路由安保核心 ===
   const handleSelection = (eventOrObject) => {
-    console.group('🔍 [Router Debug] handleSelection Triggered');
-
     let target = null;
-    let source = '';
-
-    // 情况 A: 传入的是 Fabric 事件对象
+    
+    // 1. 解析目标
     if (eventOrObject && eventOrObject.selected) {
-      source = 'Event Object';
-      console.log('📋 Raw Selected Array:', eventOrObject.selected.map(o => ({
-        type: o.type,
-        customTab: o.customTab,
-        isRuler: o.isRuler,
-        id: o.id
-      })));
-
-      // 智能雷达扫描
-      target = eventOrObject.selected.find(obj =>
-        obj.customTab && ROUTING_ALLOWLIST.includes(obj.customTab)
-      );
-
-      if (target) {
-        console.log('✅ Smart Scan found WhiteListed Target:', target.customTab);
-      } else {
-        console.log('⚠️ Smart Scan failed, fallback to index 0');
-        target = eventOrObject.selected[0];
-      }
-    }
-    // 情况 B: 传入的是直接的对象
-    else {
-      source = 'Direct Object';
-      target = eventOrObject;
-      console.log('📦 Direct Target:', target ? { type: target.type, customTab: target.customTab } : 'NULL');
+        target = eventOrObject.selected.find(obj => 
+            obj.customTab && ROUTING_ALLOWLIST.includes(obj.customTab)
+        );
+        if (!target) target = eventOrObject.selected[0];
+    } else {
+        target = eventOrObject;
     }
 
-    // 1. 无效目标
     if (!target) {
-      console.log('❌ Target is null -> Disabling Sidebar');
+      // 只有在非独占模式下，才允许点击空白关闭侧边栏
+      // 如果正在 Resize，点击空白应该什么都不发生 (Silent)
+      if (state.activeTool === 'adjust' && state.activeTab) {
+          return; 
+      }
       setSidebarDisabled(true);
-      console.groupEnd();
       return;
     }
 
-    // 2. 特殊对象过滤
+    // ✨✨✨ 独占模式拦截器 (Exclusive Mode Guard) ✨✨✨
+    // 规则：如果当前是 'adjust' 工具，且有一个子 Tab 正在打开 (如 'resize')
+    // 并且用户点击的目标 不属于 当前打开的这个 Tab
+    // -> 强制拦截，禁止跳转
+    if (state.activeTool === 'adjust' && state.activeTab) {
+        // 如果点击的目标正是当前功能的附属对象（如果有的话），则放行
+        // 但如果点击的是标尺 (customTab='ruler') 而当前在 'resize' -> 拦截
+        if (target.customTab !== state.activeTab) {
+            console.log(`[Router] Blocked by Exclusive Mode. Current: ${state.activeTab}, Target: ${target.customTab}`);
+            return;
+        }
+    }
+
     if (target.isMaskObject || target.excludeFromExport) {
-      console.log('🛑 Ignored: Mask or ExcludeFromExport');
-      console.groupEnd();
       return;
     }
 
-    // 3. 多选过滤
-    if (target.type === 'activeSelection') {
-      console.log('🛑 Ignored: Multi-selection');
-      console.groupEnd();
-      return;
-    }
-
-    // 4. 白名单路由检查
-    console.log(`🧐 Checking Whitelist for [${target.customTab}]...`);
+    // 白名单路由
     if (target.customTab && ROUTING_ALLOWLIST.includes(target.customTab)) {
-      console.log('🚀 PASS! Routing to object...');
-      const routed = routeToObject(target);
-      console.log('🎉 Route Result:', routed);
+        routeToObject(target);
     } else {
-      console.log(`⛔ REJECTED: customTab '${target.customTab}' is not in allowlist:`, ROUTING_ALLOWLIST);
-      setSidebarDisabled(false); // 保持开启但不跳转
+        setSidebarDisabled(false);
     }
-    console.groupEnd();
   };
 
-  // === 🕵️‍♂️ 调试核心：Handle Mouse Down ===
   const handleMouseDown = (opt) => {
-    const target = opt.target;
-    // 只记录有意义的点击
-    if (!target) return;
+      const target = opt.target;
+      if (!target) return;
 
-    console.group('🖱️ [Click Debug] Mouse Down');
-    console.log('🎯 Clicked Target:', { type: target.type, customTab: target.customTab, isRuler: target.isRuler });
+      // ✨ 唤醒逻辑也受独占模式约束
+      if (state.activeTool === 'adjust' && state.activeTab && target.customTab !== state.activeTab) {
+          return; // 拦截唤醒
+      }
 
-    const activeObj = canvas.value?.getActiveObject();
-    console.log('🌟 Current Active Object:', activeObj ? { type: activeObj.type, customTab: activeObj.customTab } : 'NULL');
-
-    // 如果点击的对象 **已经是** 当前激活的对象
-    if (activeObj === target) {
-      console.log('⚡ Wakeup Triggered! (Clicking already active object)');
-      handleSelection({ selected: [target] });
-    } else {
-      console.log('💤 Normal Click (Fabric will handle selection:created)');
-    }
-    console.groupEnd();
+      const activeObj = canvas.value?.getActiveObject();
+      if (activeObj === target) {
+          handleSelection({ selected: [target] });
+      }
   };
+
+  // ... 初始化与辅助函数 (init, addImage, setZoom, etc.) 保持原样 ...
+  // 为节省篇幅，后续函数未变动，请保持您原有的代码
+  // 仅需确保 handleSelection 和 handleMouseDown 已按上述逻辑更新
 
   const init = (id, width, height) => {
+    // ... 原有 init 代码 ...
     console.log("init canvas", id, width, height);
     const c = new fabric.Canvas(id, {
       width: width,
@@ -222,7 +198,6 @@ export function useCanvas() {
       isPotentialClick = true;
       const pointer = c.getPointer(opt.e);
       dragStartPoint = { x: pointer.x, y: pointer.y };
-      // [调试] 绑定点击唤醒
       handleMouseDown(opt);
     });
 
@@ -234,78 +209,71 @@ export function useCanvas() {
         Math.pow(pointer.y - dragStartPoint.y, 2)
       );
       if (dist > 5) {
-        isPotentialClick = false;
+        isPotentialClick = false; 
       }
     });
 
     c.on("mouse:up", (opt) => {
       if (!isPotentialClick || c.isDrawingMode || cropObject.value) return;
-      // 这里的 handleSelection 是为了兜底，防止 Fabric 事件没触发
-      // 但在 mouse:down 里我们已经处理了 wakeup，所以这里主要是为了处理“点击空白取消选中”
       const target = c.getActiveObject();
-      // 如果没有点到任何东西，target 为 null，handleSelection 会处理 disable sidebar
       if (!target) {
-        handleSelection(null);
+          handleSelection(null);
       }
     });
 
-    // 路由触发点
     c.on("selection:created", (e) => {
       if (!isPotentialClick && (e.target || (e.selected && e.selected.length > 0))) {
-        console.log('📡 Event: selection:created');
-        handleSelection(e);
+        handleSelection(e); 
       }
     });
 
     c.on("selection:updated", (e) => {
-      console.log('📡 Event: selection:updated');
-      handleSelection(e);
+      handleSelection(e); 
     });
 
     c.on("selection:cleared", () => {
-      console.log('📡 Event: selection:cleared');
       setSidebarDisabled(true);
     });
-
-    // Zoom 事件 ... (保持原样)
+    
+    // ... zoom event ...
     const canvasEl = c.upperCanvasEl;
-    canvasEl.addEventListener(
-      "wheel",
-      (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const delta = e.deltaY;
-        let newZoom = c.getZoom();
-        newZoom *= 0.999 ** delta;
-        if (newZoom > 50) newZoom = 50;
-        if (newZoom < 0.1) newZoom = 0.1;
-        c.zoomToPoint({ x: e.offsetX, y: e.offsetY }, newZoom);
-        zoom.value = newZoom;
-      },
-      { passive: false }
-    );
+      canvasEl.addEventListener(
+        "wheel",
+        (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const delta = e.deltaY;
+          let newZoom = c.getZoom();
+          newZoom *= 0.999 ** delta;
+          if (newZoom > 50) newZoom = 50;
+          if (newZoom < 0.1) newZoom = 0.1;
+          c.zoomToPoint({ x: e.offsetX, y: e.offsetY }, newZoom);
+          zoom.value = newZoom;
+        },
+        { passive: false }
+      );
 
     saveHistory();
   };
-
-  // ... 辅助函数 (addImage, addText 等) ...
+  
+  // ... helper functions ...
   const addImage = (url) => {
     fabric.Image.fromURL(url, (img) => {
-      const canvasWidth = canvas.value.width;
-      const canvasHeight = canvas.value.height;
-      if (img.width > canvasWidth || img.height > canvasHeight) {
-        const scale = Math.min(canvasWidth / img.width, canvasHeight / img.height) * ZOOM_PADDING;
-        img.scale(scale);
-      }
-      img.set({ isMainImage: true, id: 'main-image' });
-      zoom.value = canvas.value.getZoom();
-      historyProcessing = true;
-      canvas.value?.add(img);
-      canvas.value?.centerObject(img);
-      canvas.value?.setActiveObject(img);
-      historyProcessing = false;
-      saveHistory();
-      canvas.value.fire('image:updated');
+        const canvasWidth = canvas.value.width;
+        const canvasHeight = canvas.value.height;
+        if (img.width > canvasWidth || img.height > canvasHeight) {
+          const scale = Math.min(canvasWidth / img.width, canvasHeight / img.height) * ZOOM_PADDING;
+          img.scale(scale);
+        }
+        img.set({ isMainImage: true, id: 'main-image' });
+        zoom.value = canvas.value.getZoom();
+        historyProcessing = true;
+        canvas.value?.add(img);
+        canvas.value?.centerObject(img);
+        canvas.value?.setActiveObject(img);
+        historyProcessing = false;
+        saveHistory();
+        canvas.value.fire('image:updated');
     }, { crossOrigin: "anonymous" });
   };
 
@@ -402,10 +370,10 @@ export function useCanvas() {
     const activeObj = canvas.value?.getActiveObject();
     if (!activeObj || activeObj.type !== "image") return;
     activeObj.setSrc(newUrl, () => {
-      canvas.value.renderAll();
-      saveHistory();
-      canvas.value.fire('image:updated');
-    }, { crossOrigin: "anonymous" }
+        canvas.value.renderAll();
+        saveHistory();
+        canvas.value.fire('image:updated');
+      }, { crossOrigin: "anonymous" }
     );
   };
 
@@ -417,7 +385,7 @@ export function useCanvas() {
     });
     canvas.value.add(text);
     canvas.value.setActiveObject(text);
-    canvas.value.requestRenderAll();
+    canvas.value.requestRenderAll(); 
     saveHistory();
   };
 

@@ -5,6 +5,22 @@
 > **Context**: High-performance Web Image Processing SDK
 > **Enforcement**: 此文档为最高准则，AI 生成代码必须严格查阅并遵循。
 
+## 0. AI 交互核心指令 (Prime Directives)
+
+> **优先级**: 🔴 最高 (Highest Priority)
+> **适用范围**: 所有代码生成与修改任务
+
+1.  **代码完整性公约 (Code Integrity Protocol)**:
+
+    - **全量交付 (Full Output)**: 除非用户明确要求“仅发送片段”，否则在修改文件时，**必须输出文件的完整代码**。
+    - **禁止精简 (No Simplification)**: 严禁使用 `// ... rest of code`、`// ... keep original` 或省略号来代替原有代码。必须完整保留未修改的 UI 结构、样式 (`<style>`)、SVG 图标及辅助函数。
+    - **无损注入 (Non-Destructive)**: 新代码必须是“注入”到现有逻辑中，严禁在重构时通过“重写”导致原有 Grid 布局、预设数据或逻辑丢失。
+
+2.  **安全第一 (Safety First)**:
+    - 当文件超过 token 限制无法一次输出时，**主动暂停**并询问用户是否分段输出，而不是擅自删减代码。
+
+---
+
 ## 1. 项目愿景 (Vision)
 
 构建一个**模块化、高性能**的 Web 端图像处理 SDK。核心架构采用“轻量级核心 (Core) + 功能插件化 (Modules)”的设计模式，支持从基础的裁剪旋转到复杂的 AI 消除、拼图和滤镜处理。
@@ -53,13 +69,23 @@
 
 ## 4. 目录结构规范 (Directory Structure)
 
-| 路径                      | 说明                 | 规则                                                                    |
-| :------------------------ | :------------------- | :---------------------------------------------------------------------- |
-| `src/components/modules/` | **独立功能模块**     | 包含完整业务逻辑 (UI + Canvas 交互)，如 `Crop/`, `Puzzle/`, `Filter/`。 |
-| `src/components/tools/`   | **纯 Canvas 工具**   | 仅包含 Fabric.js 的自定义类或交互逻辑，如 `RulerTool.js`。              |
-| `src/components/common/`  | **通用 UI 组件**     | 无业务逻辑的纯 UI，如 Slider, Button, Modal。                           |
-| `src/composables/`        | **逻辑复用 (Hooks)** | 必须以 `use` 开头，如 `useKeyboardShortcuts.js`。                       |
-| `src/config/`             | **静态配置**         | 快捷键定义、拼图模板数据、滤镜参数矩阵、`theme.js`。                    |
+src/
+├── api/ # 后端接口交互 (AI, Rembg, Inpaint)
+├── components/
+│ ├── common/ # 通用原子组件 (Modal, LoadingOverlay, ContextMenu...)
+│ ├── layout/ # 全局布局组件 (EditorLayout, LeftSidebar, NavBar)
+│ ├── modules/ # 独立功能模块 (业务逻辑核心)
+│ │ ├── adjust/ # 调整类 (Crop, Resize, Filter...) - 内含 Vue + useCanvasHooks
+│ │ ├── ai/ # AI 类功能 (AiGenerate, AiExpand)
+│ │ ├── draw/ # 自由绘制模块
+│ │ ├── text/ # 文本模块
+│ │ ├── puzzle/ # 拼图模块 (含 config.js)
+│ │ └── ... # 其他模块 (border, material, watermark)
+│ ├── panels/ # 二级侧边栏容器 (ToolPanel)
+│ └── Workspace.vue # 画布核心容器 (Canvas 初始化与事件绑定)
+├── composables/ # 核心逻辑 Hooks (useCanvas, useEditorState, useCanvasLock...)
+├── config/ # 静态配置 (theme.js, shortcuts.js)
+└── utils/ # 纯函数工具库 (toast.js)
 
 ---
 
@@ -94,16 +120,22 @@
 
 ### 6.2 实施检查清单 (The "Golden Checklist") [CRITICAL]
 
+- [ ]每次生成代码前，先读取 `active-context.md` 确认当前上下文。
 - [ ] **Canvas 销毁**: 组件 `onUnmounted` 时是否注销了 fabric 事件监听？
 - [ ] **状态清理**: 退出模块时，是否重置了 `activeTool` 和临时图层？
 - [ ] **键盘安全**: 新增快捷键是否判断了 `document.activeElement` 以防止输入框冲突？
 - [ ] **响应式检查**: 是否错误地使用了 `const { state } = useStore()` 导致响应性丢失？
 - [ ] **颜色合规**: 检查代码中是否还残留 `#hex` 硬编码颜色？
+- [ ]生成代码后，自我检查是否破坏了现有的 Grid 布局或 CSS 变量引用。
 
 ---
 
-## 7. 禁区 (Forbidden Zones)
+## 7. 术语表 (Glossary)
 
-1.  **DOM 操作**: 严禁使用 jQuery 操作 Canvas 内部。
-2.  **重型计算**: 严禁在 `mousemove` 中直接运行高开销算法。
-3.  **硬编码颜色**: 严禁写死颜色值，必须引用 `THEME` 或 CSS 变量。
+- **Main Image**: 画布底层的核心图片 (Index 0)，通常被锁定。
+- **Mask Object**: 用于遮罩的辅助对象，导出时通常不可见。
+- **Puzzle Controller**: 拼图模式下的虚拟控制器，用于调整间距和圆角。
+- **Physical Lock**: 通过 `useCanvasLock` 施加的强制不可交互状态。
+- **Main Image Identification**: 必须同时具备 isMainImage: true 和 id: 'main-image' 属性。所有操作主图的模块（如 Resize, White）
+  在初始化时必须校验并补齐此  标识，以防被 useCanvasLock 误锁。
+- **Physical Lock Priority**: 物理锁必须在所有 UI 渲染及预览对象创建（如 startPreview）完成后，在 nextTick 中执行最后一次“扫尾式”加锁。
