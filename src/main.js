@@ -8,5 +8,6 @@ const app = createApp(App)
 // 2. 应用主题
 applyTheme();
 
+
 // 3. 挂载
 app.mount('#app')

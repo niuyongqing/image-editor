@@ -12,6 +12,20 @@
     <ShortcutsPanel :visible="showShortcuts" @close="showShortcuts = false" />
 
     <div class="zoom-controls">
+      <button 
+        class="ie-btn ie-btn-circle control-btn" 
+        :class="{ 'is-active': state.isGlobalDragMode }"
+        @click="toggleDragMode"
+        :title="state.isGlobalDragMode ? '退出拖拽模式' : '进入拖拽模式 (空格键)'"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+           <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v5" />
+           <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v10" />
+           <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8" />
+           <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
+        </svg>
+      </button>
+
       <button class="ie-btn ie-btn-circle" title="快捷键列表" @click="showShortcuts = true">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
           stroke-linecap="round" stroke-linejoin="round">
@@ -25,7 +39,6 @@
           <path d="M7 16h10"></path>
           <path d="M12 12v-1"></path>
         </svg>
-
       </button>
 
       <div class="divider"></div>
@@ -52,12 +65,17 @@
 </template>
 
 <script setup>
-import { onMounted, inject, ref, computed, onUnmounted, unref } from 'vue';
+import { onMounted, inject, ref, watch, computed, onUnmounted, unref } from 'vue';
 import FloatingObjectMenu from "./common/FloatingObjectMenu.vue";
 import CanvasContextMenu from "./common/CanvasContextMenu.vue";
 import { useObjectActions } from "@/composables/useObjectActions";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import ShortcutsPanel from "@/components/common/ShortcutsPanel.vue";
+import { useEditorState } from '@/composables/useEditorState';
+import { useCanvasLock } from '@/composables/useCanvasLock';
+
+const { state, setGlobalDragMode } = useEditorState();
+const { setBackgroundLock } = useCanvasLock();
 
 const props = defineProps({
   imageUrl: {
@@ -86,6 +104,29 @@ const updateZoomState = () => {
   if (fabricCanvas && canvasAPI.zoom) {
     canvasAPI.zoom.value = fabricCanvas.getZoom();
   }
+};
+
+/**
+ * ✨ 同步物理锁状态
+ * 增加 isRulerMode 标记传递
+ */
+const syncLockState = () => {
+  const canvas = unref(canvasAPI.canvas);
+  if (!canvas) return;
+
+  const isRulerModule = state.activeTab === 'ruler';
+  
+  setBackgroundLock(canvas, true, { 
+      excludeRulers: isRulerModule, 
+      dragMode: state.isGlobalDragMode,
+      isRulerMode: isRulerModule // ✨ 明确告知物理锁当前是否在标尺模式
+  });
+};
+
+const toggleDragMode = () => {
+    const newMode = !state.isGlobalDragMode;
+    setGlobalDragMode(newMode);
+    syncLockState();
 };
 
 // === 右键菜单逻辑 ===
@@ -131,19 +172,32 @@ onMounted(() => {
     if (fabricCanvas) {
       fabricCanvas.on('zoom:change', updateZoomState);
       fabricCanvas.on('mouse:wheel', updateZoomState);
+      fabricCanvas.on('image:updated', syncLockState);
+      window.canvas = fabricCanvas; // ✨ 临时暴露给全局，方便调试
     }
-  } else {
-    console.error('CanvasAPI not found.');
   }
+
+  syncLockState();
 });
+
+watch(() => state.activeTab, () => {
+  syncLockState();
+});
+
 
 onUnmounted(() => {
   const fabricCanvas = canvasAPI?.canvas?.value;
   if (fabricCanvas) {
     fabricCanvas.off('zoom:change', updateZoomState);
     fabricCanvas.off('mouse:wheel', updateZoomState);
+    fabricCanvas.off('image:updated', syncLockState);
   }
   window.removeEventListener('click', onGlobalClick);
+  
+  const canvas = unref(canvasAPI.canvas);
+  if (canvas) {
+    setBackgroundLock(canvas, true, { dragMode: false });
+  }
 });
 </script>
 
@@ -197,7 +251,6 @@ onUnmounted(() => {
   color: var(--ie-primary-color);
 }
 
-/* ✅ 修复3: 必须添加按钮样式，否则按钮是透明的或者看不到 */
 .ie-btn {
   border: none;
   background: transparent;
@@ -212,7 +265,6 @@ onUnmounted(() => {
 
 .ie-btn:hover {
   color: var(--ie-primary-color);
-  /* 或者您的主题色 */
   background-color: #ecf5ff;
 }
 
@@ -220,6 +272,12 @@ onUnmounted(() => {
   width: 32px;
   height: 32px;
   border-radius: 50%;
+}
+
+.control-btn.is-active {
+  background: var(--ie-primary-color);
+  color: white;
+  border-color: var(--ie-primary-color);
 }
 
 .zoom-controls .divider {

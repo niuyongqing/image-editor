@@ -37,6 +37,7 @@ const state = reactive({
     loadingText: '处理中...',
 
     isSidebarDisabled: false, // 侧边栏残影模式
+    isGlobalDragMode: false,  // 全局拖动模式
 
     /**
      * ✨ 导航来源标记
@@ -69,6 +70,13 @@ export function useEditorState() {
         state.isDrawing = false; // 切换工具默认退出绘制模式
         state.isSidebarDisabled = false; // 只要切换工具，必定激活面板
     };
+
+    // ✨ 新增：设置拖拽模式
+    const setGlobalDragMode = (val) => {
+        state.isGlobalDragMode = val;
+        console.log(`[State] Global Drag Mode: ${val ? 'ON' : 'OFF'}`);
+    };
+
 
     // ✨ [核心补全] 切换二级 Tab (专门给 UI 组件用来清理状态)
     const setActiveTab = (tab) => {
@@ -145,7 +153,8 @@ export function useEditorState() {
         setHistoryState,
         setLoading,
         setSidebarDisabled,
-        routeToObject // 导出路由动作供 useCanvas 使用
+        routeToObject, // 导出路由动作供 useCanvas 使用
+        setGlobalDragMode // 导出全局拖动模式设置
     };
 }
 

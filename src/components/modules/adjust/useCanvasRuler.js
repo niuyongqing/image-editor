@@ -1,9 +1,11 @@
 import { ref, unref } from 'vue';
 import { fabric } from 'fabric';
+import { useEditorState } from '@/composables/useEditorState';
 
 // === 模块级单例状态 ===
 let canvasRef = null;
 let saveHistoryFn = null;
+const { state } = useEditorState();
 
 export const DASH_OPTIONS = [
     { label: '实线', value: [], icon: 'solid' },
@@ -119,18 +121,17 @@ const createRulerObject = (start, end) => {
         customTab: 'ruler', customTool: 'adjust', isRuler: true,
         _rulerValue: cfg.value, _rulerUnit: cfg.unit,
         _capStyle: cfg.capStyle, _dashArray: cfg.dashArray, _strokeLineCap: cfg.strokeLineCap,
-        lockScalingY: true, lockUniScaling: true
+        lockScalingY: true, lockUniScaling: true,
+        hoverCursor: 'move' // ✨ 确保对象自身的悬停形态
     });
 
-    // 标尺只允许旋转和横向拉伸(实际上是通过Group的scaleX)
     group.setControlsVisibility({ mtr: true, ml: true, mr: true, mt:false, mb:false, tl:false, tr:false, bl:false, br:false });
     canvas.add(group);
     
     if (saveHistoryFn) saveHistoryFn();
-    return group; // 返回对象供调用者使用
+    return group;
 };
 
-// === 4. 原地重生逻辑 (编辑模式) ===
 const recreateActiveRuler = (activeGroup) => {
     const canvas = unref(canvasRef);
     const center = activeGroup.getCenterPoint();
@@ -142,13 +143,8 @@ const recreateActiveRuler = (activeGroup) => {
     const start = { x: center.x - dx, y: center.y - dy };
     const end = { x: center.x + dx, y: center.y + dy };
     
-    // 移除旧的
     canvas.remove(activeGroup);
-    
-    // 创建新的
     const newGroup = createRulerObject(start, end);
-    
-    // [修复点 1] 重生后必须立即选中，否则蓝框会消失，用户会失去焦点
     canvas.setActiveObject(newGroup);
     canvas.requestRenderAll();
 };
@@ -165,7 +161,6 @@ export const updateActiveRuler = () => {
     if (needsRebuild) {
         recreateActiveRuler(group);
     } else {
-        // 轻量更新
         const items = group.getObjects(); 
         items[0].set({
             stroke: cfg.color, strokeWidth: cfg.strokeWidth,
@@ -188,17 +183,12 @@ export const updateActiveRuler = () => {
     }
 };
 
-// === 5. 状态同步 (从画布 -> Config) ===
 const onSelectionChanged = (e) => {
-    // 如果正在绘制中，不要让选中的物体打断配置，除非我们决定中断绘制
-    // 这里我们保持简单的策略：只有在非绘制模式下才同步
     if (isDrawing.value) return;
-
     const activeObj = e.selected?.[0];
     syncConfigFromObject(activeObj);
 };
 
-// [新增] 供外部组件调用的强制同步
 export const syncConfigFromActiveSelection = () => {
     const canvas = unref(canvasRef);
     const activeObj = canvas?.getActiveObject();
@@ -226,78 +216,40 @@ const syncConfigFromObject = (activeObj) => {
     }
 };
 
-// === 6. 绘制交互 (Continuos Mode) ===
 let startPoint = null;
 let activeLine = null;
 
 const onKeyDown = (e) => {
     if (e.key === 'Escape' || e.key === 'Esc') {
-        stopDrawMode();
+        stopRulerMode();
     }
-};
-
-export const startDrawMode = () => {
-    if (isDrawing.value) return;
-
-    const canvas = unref(canvasRef);
-    if (!canvas) return;
-    isDrawing.value = true;
-    
-    canvas.discardActiveObject();
-    canvas.selection = false;
-    canvas.defaultCursor = 'crosshair';
-    canvas.getObjects().forEach(obj => {
-        obj._prevSelectable = obj.selectable;
-        obj.selectable = false;
-    });
-
-    canvas.on('mouse:down', onMouseDown);
-    window.addEventListener('keydown', onKeyDown);
-    canvas.requestRenderAll();
-};
-
-export const stopDrawMode = () => {
-    const canvas = unref(canvasRef);
-    if (!canvas) return;
-    isDrawing.value = false;
-    
-    canvas.selection = true;
-    canvas.defaultCursor = 'default';
-    canvas.getObjects().forEach(obj => {
-        if (obj._prevSelectable !== undefined) {
-            obj.selectable = obj._prevSelectable;
-            delete obj._prevSelectable;
-        }
-    });
-
-    canvas.off('mouse:down', onMouseDown);
-    canvas.off('mouse:move', onMouseMove);
-    canvas.off('mouse:up', onMouseUp);
-    window.removeEventListener('keydown', onKeyDown);
-    canvas.requestRenderAll();
 };
 
 const onMouseDown = (opt) => {
     const canvas = unref(canvasRef);
-    // [场景 2A 核心]：如果点击到了现有的尺子 -> 中断绘制，切换为选中编辑
+    if (!canvas || state.isGlobalDragMode) return;
+
     if (opt.target && opt.target.isRuler) {
-        stopDrawMode();
         canvas.setActiveObject(opt.target);
-        syncConfigFromObject(opt.target); // 立即同步配置
         return;
     }
 
-    const pointer = canvas.getPointer(opt.e);
-    startPoint = { x: pointer.x, y: pointer.y };
-    activeLine = new fabric.Line([startPoint.x, startPoint.y, startPoint.x, startPoint.y], {
-        stroke: rulerConfig.value.color,
-        strokeWidth: rulerConfig.value.strokeWidth,
-        strokeDashArray: [5, 5], 
-        selectable: false, evented: false
-    });
-    canvas.add(activeLine);
-    canvas.on('mouse:move', onMouseMove);
-    canvas.on('mouse:up', onMouseUp);
+    if (!opt.target) {
+        const pointer = canvas.getPointer(opt.e);
+        startPoint = { x: pointer.x, y: pointer.y };
+        
+        activeLine = new fabric.Line([startPoint.x, startPoint.y, startPoint.x, startPoint.y], {
+            stroke: rulerConfig.value.color,
+            strokeWidth: rulerConfig.value.strokeWidth,
+            selectable: true, 
+            evented: true,
+            isRuler: true
+        });
+        
+        canvas.add(activeLine);
+        canvas.on('mouse:move', onMouseMove);
+        canvas.on('mouse:up', onMouseUp);
+    }
 };
 
 const onMouseMove = (opt) => {
@@ -314,17 +266,33 @@ const onMouseUp = () => {
     canvas.off('mouse:up', onMouseUp);
     
     if (!activeLine) return;
-    
     const endPoint = { x: activeLine.x2, y: activeLine.y2 };
     canvas.remove(activeLine);
     activeLine = null;
     
     const dist = Math.sqrt(Math.pow(endPoint.x - startPoint.x, 2) + Math.pow(endPoint.y - startPoint.y, 2));
-    
     if (dist > 10) {
-        // 画完不选中，继续保持连续绘制状态
         createRulerObject(startPoint, endPoint);
     }
+};
+
+export const startRulerMode = (canvas) => {
+    canvasRef = canvas;
+    const c = unref(canvas);
+    if (!c) return;
+    
+    c.on('mouse:down', onMouseDown);
+    window.addEventListener('keydown', onKeyDown);
+    // ✨ 光标由 useCanvasLock 统一管理，无需此处手动设置
+};
+
+export const stopRulerMode = () => {
+    const c = unref(canvasRef);
+    if (!c) return;
+    c.off('mouse:down', onMouseDown);
+    c.off('mouse:move', onMouseMove);
+    c.off('mouse:up', onMouseUp);
+    window.removeEventListener('keydown', onKeyDown);
 };
 
 export { rulerConfig, isDrawing };

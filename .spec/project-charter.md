@@ -9,16 +9,22 @@
 
 > **优先级**: 🔴 最高 (Highest Priority)
 > **适用范围**: 所有代码生成与修改任务
+> 
 
 1.  **代码完整性公约 (Code Integrity Protocol)**:
-
     - **全量交付 (Full Output)**: 除非用户明确要求“仅发送片段”，否则在修改文件时，**必须输出文件的完整代码**。
     - **禁止精简 (No Simplification)**: 严禁使用 `// ... rest of code`、`// ... keep original` 或省略号来代替原有代码。必须完整保留未修改的 UI 结构、样式 (`<style>`)、SVG 图标及辅助函数。
     - **无损注入 (Non-Destructive)**: 新代码必须是“注入”到现有逻辑中，严禁在重构时通过“重写”导致原有 Grid 布局、预设数据或逻辑丢失。
-
 2.  **安全第一 (Safety First)**:
     - 当文件超过 token 限制无法一次输出时，**主动暂停**并询问用户是否分段输出，而不是擅自删减代码。
-
+3.  **✨ 智能交互公约 (Smart Interaction Protocol) `NEW`**:
+    - **深度反问 (Proactive Counter-Questioning)**: 针对用户的任何技术提议或功能改变，AI 不得直接盲目执行。必须从架构一致性、潜在 Bug、用户体验、性能损耗等维度进行至少 2-3 个深度的“反问”或“质疑”。
+    -   **精准索取 (Precision File Solicitation)**: 在针对提议进行分析前，AI 必须根据提议涉及的模块，列出需要用户提供的核心文件列表（如 `useCanvasXXX.js`, `XXX.vue`），以确保分析是基于最新真实代码的。
+4.  **双重锁定准则 (Double-Locking)**: 针对异步加载对象，必须在 `onMounted` 与 `image:updated` (或 `nextTick`) 执行双重锁定。
+5.  **✨ 配置驱动原则 (Configuration-Driven Principle)**: 
+    - **核心规范**: 凡是涉及多属性映射、状态转换、锁定/恢复逻辑的，必须采用“配置对象 (Configuration Object)”或“常量池”进行驱动。
+    - **严禁硬编码**: 严禁在循环、条件判断中直接书写属性名字符串。
+    - **对称性保证**: 锁定与解锁、开启与关闭的逻辑必须共享同一份配置源，确保操作的原子性与完整性。  
 ---
 
 ## 1. 项目愿景 (Vision)
@@ -131,7 +137,7 @@ src/
 ---
 
 ## 7. 术语表 (Glossary)
-
+- **Counter-Questioning Logic**: 指 AI 在接受任务前，通过反问确认交互边界与技术细节的过程，旨在减少重构成本。
 - **Main Image**: 画布底层的核心图片 (Index 0)，通常被锁定。
 - **Mask Object**: 用于遮罩的辅助对象，导出时通常不可见。
 - **Puzzle Controller**: 拼图模式下的虚拟控制器，用于调整间距和圆角。
@@ -139,3 +145,6 @@ src/
 - **Main Image Identification**: 必须同时具备 isMainImage: true 和 id: 'main-image' 属性。所有操作主图的模块（如 Resize, White）
   在初始化时必须校验并补齐此  标识，以防被 useCanvasLock 误锁。
 - **Physical Lock Priority**: 物理锁必须在所有 UI 渲染及预览对象创建（如 startPreview）完成后，在 nextTick 中执行最后一次“扫尾式”加锁。
+- **Configuration-Driven Lock**: 所有的锁定属性（selectable, lockMovement 等）均定义在 `LOCK_CONFIG` 中，系统通过遍历该配置实现逻辑自洽。
+- **Force Functional State (策略 B)**: 进入特定模块时，通过配置池强制恢复对象的所有交互属性，确保功能不受前序模块残留状态的影响。
+- **Configuration-Driven Lock**: 所有的锁定属性均集中定义在 `LOCK_CONFIG` 中。

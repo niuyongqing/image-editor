@@ -1,15 +1,14 @@
 # Active Context & Development State
 
-> **Version**: 2.3 (Object-Driven Navigation & Routing)
-> **Last Updated**: 2025-12-23
-> **Current Focus**: Global Navigation Architecture & Event-Driven UI, Fix Ruler Navigation
+> **Version**: 3.0 (Hand Mode & Smart Sensing Integration)
+> **Last Updated**: 2025-12-24
+> **Current Focus**: 全局交互状态切换、标尺智能感知与光标优先级体系
 
 ## 1. 当前开发状态 (Current Status)
 
 ### ✅ 已完成模块 (Completed Modules)
 
 #### 1.1 核心编辑 (Core Editing)
-
 - **剪裁 (Crop)**:
   - [x] **手动选区**: 实现了 `startManualSelection`，支持自定义框选区域。
   - [x] **比例锁定**: 支持原图比例、自由比例及常用预设 (1:1, 16:9 等)。
@@ -17,17 +16,12 @@
 - **尺寸调整 (Resize)**:
   - [x] **高清重制**: 引入 `useOffscreenHelper`，实现了基于原图分辨率的高清缩放。
   - [x] **保真模式**: 支持锁定长宽比计算。
-  - [x] **通用锁集成**: 成功接入 `useCanvasLock`，解决了标尺在调整尺寸时仍可被选中的 Bug。
-  - [x] **时序优化**: 通过 `nextTick` 解决了预览框创建导致的加锁失效问题。
+  - [x] **通用锁集成**: 成功接入 `useCanvasLock`，锁定除主图外的一切对象。
 - **补白 (White/Padding)**:
-  - [x] **架构对齐**: 移除了模块内手动的 `originalSelectable` 逻辑，统一使用 `useCanvasLock`。
-- **补白 (White/Padding)**:
-  - [x] **社媒预设**: 集成 Instagram/Youtube 等常用尺寸模板。
-  - [x] **智能吸色**: 支持背景色吸取及透明背景设置。
-
+  - [x] **架构对齐**: 统一使用 `useCanvasLock` 管理交互锁。
+  - [x] **母带重制**: 实现了基于原始分辨率的高清补白与视图比例修正。
 
 #### 1.2 拼图系统 (Puzzle System)
-
 - **网格布局**:
   - [x] **动态模板**: 基于 `config.js` 实现了 1-16 张图片的网格布局解析。
   - [x] **自动布局**: 图片拖入自动计算 Cover 裁剪，保证填满格子不留白。
@@ -38,103 +32,72 @@
   - [x] **全局参数**: 支持动态调整间距、边距和圆角。
 
 #### 1.3 智能与特效 (AI & Effects)
-
 - **智能消除 (Inpaint)**:
   - [x] **离屏遮罩**: 解决闪烁问题，通过离屏 Canvas 生成 Mask。
   - [x] **双模交互**: 支持画笔 (Brush) 和 矩形框选 (Rect)。
 - **一键抠图 (Rembg)**:
   - [x] **API 集成**: 封装 `src/api/ai.js` 支持一键移除背景。
-- **马赛克 (Mosaic)**:
-  - [x] **无损处理**: 采用“预览层 + 离屏应用”策略。
 - **滤镜与调色**:
   - [x] **ColorMatrix**: 实现亮度、对比度等 6 维调节。
   - [x] **LUT 模拟**: 内置“复古”、“电影”等滤镜预设。
 
-#### 1.4 辅助工具与交互 (Tools & Interaction)
-
-- **快捷键系统 (Shortcuts)**:
-  - [x] **可视化面板**: 实现 Keycap 风格的侧边抽屉速查表 (`ShortcutsPanel`)。
-  - [x] **通用操作**: 覆盖复制粘贴、图层移动、锁定等。
-- **测量工具 (Measure)**:
-  - [x] **精准路由**: 点击标尺组件自动跳转至 `Adjust -> Ruler` 面板。
-  - [x] **交互绘制**: 支持拖拽创建测量线，自动计算长度。
-- **交互优化 (Interaction Polish)**:
-  - [x] **右键菜单**: 修复粘贴坐标偏移，实现基于鼠标位置的左上角对齐。
-  - [x] **悬浮菜单**: 实现事件隔离，防止在悬浮条上操作时误触底层 Canvas。
-  - [x] **剪贴板**: 重构为单例模式 (`clipboardState`)。
-
-#### 1.5 全局导航系统 (Global Navigation System) `Major Upgrade`
-
-- **对象驱动路由 (Object-Driven Routing)**:
-  - [x] **智能分发**: 实现了 `useEditorState` 中的 `routeToObject`，根据 Canvas 选中对象自动切换 UI。
-  - [x] **二级导航 (Level 2 Support)**: 支持精确跳转至特定折叠面板 (如 `Tool: Adjust` + `Tab: Ruler`)。
-  - [x] **元数据注入 (Metadata Injection)**: 支持通过 `customTab` / `customTool` 属性覆盖默认路由行为。
-  - [x] **Fix Ruler Navigation**: 修复点击标尺组件自动触发侧边栏跳转的 Bug。
-  - [x] **Fix Ruler Selection Visibility**: 修复标尺跳转后因竞态条件导致自动进入绘制模式而丢失选区控制框的问题。
-  - [x] **Fix Crop/Rotate Navigation**: 修复点击裁剪/旋转模块跳转到边框模块的 Bug。
-- **视图解耦**:
-  - [x] **状态监听**: 侧边栏组件 (`index.vue`) 通过 `watch` 监听全局路由状态自动展开对应模块。
-  - [x] **去除残影**: 移除了未选中时的 Sidebar Disabled 状态，保持界面始终可用。
+#### 1.4 全局交互与标尺智能 `NEW`
+- **全局手形模式 (Hand/Drag Mode)**:
+  - [x] **状态管理**: 在 `useEditorState.js` 中新增全局 `isGlobalDragMode` 状态。
+  - [x] **UI 部署**: 在 `Workspace.vue` 右下角部署手形按钮，实现模式实时切换。
+  - [x] **时序修复**: 通过监听 `image:updated` 解决了异步加载导致的物理锁失效问题。
+- **测量标尺 (AdjustRuler)**:
+  - [x] **智能感知绘制**: 实现了“按下即绘制”逻辑。点击空白处（穿透主图）启动绘制，点击已有标尺则选中。
+  - [x] **光标优先级**: 确立了 `grab` (手形) > `crosshair` (标尺) > `default` (默认) 的优先级体系。
+  - [x] **对象反馈**: 锁定状态下的标尺对象强制显示 `hoverCursor: 'move'`，以明确其可编辑性。
 
 ---
 
 ## 2. 系统架构备忘 (Architecture Memo)
 
 ### 2.1 高清离屏渲染管线 (High-Res Offscreen Pipeline)
-
-> **Pattern**: `src/composables/useOffscreenHelper.js`
-
 - **逻辑**: 获取原图原始分辨率 -> 创建临时 StaticCanvas -> 映射效果 -> 导出高清图。
 
 ### 2.2 物理约束系统 (Constraint System)
-
-> **Pattern**: `src/composables/useConstraint.js`
-
 - **逻辑**: 计算对象相对于容器的溢出值，Resizing 时实时修正，Puzzle 拖拽时触发回弹。
 
-### 2.3 状态与快捷键 (State & Shortcuts)
+### 2.3 身份识别标准 (Identity Standards) `NEW`
+- **主图 (Main Image)**: 必须具备 `isMainImage: true` 标识。
+- **标尺 (Ruler)**: 具备 `isRuler: true` 标识，用于豁免物理锁并切换 `hoverCursor`。
 
-- **State**: 使用 `useEditorState.js` (Reactive 单例) 管理全局状态。
-- **Shortcuts**: 采用配置化策略，`ShortcutsPanel` UI 与 `useKeyboardShortcuts` 逻辑共用同一份配置源。
+### 2.4 对象驱动路由架构 (Object-Driven Routing)
+- **核心理念**: Canvas 是路由触发器，State 是控制器，Sidebar 是视图。
+- **二级导航**: 支持通过 `customTab` 属性精确跳转至特定面板 (如标尺)。
 
-### 2.4 对象驱动路由架构 (Object-Driven Routing Architecture) `NEW`
-
-> **Core Philosophy**: Canvas 是路由触发器，State 是控制器，Sidebar 是视图。
-
-- **配置层 (Configuration)**:
-  - `OBJECT_TO_TOOL_MAP` (in `useEditorState.js`): 定义类型到面板的映射 (e.g., `'i-text' -> { tool: 'text', tab: 'style' }`)。
-- **感知层 (Sensor)**:
-  - `useCanvas.js`: 监听 `mouse:up`, `selection:created`, `selection:updated`。
-  - 过滤多选 (`activeSelection`) 和特殊对象，提取 `customTab` 信标。
-- **注入层 (Injection)**:
-  - 在创建特殊对象 (如标尺、素材) 时，注入 `{ customTab: 'ruler' }` 属性实现精确跳转。
-- **视图层 (View)**:
-  - 左侧菜单高亮 `state.activeTool`。
-  - 二级面板 (如 AdjustPanel) 监听 `state.activeTab` 并自动展开对应模块。
-
-### 2.4 通用物理锁 (Universal Physical Lock)
+### 2.5 配置驱动型物理锁 (Configuration-Driven Lock) `MAJOR UPGRADE`
 - **File**: `src/composables/useCanvasLock.js`
-- **逻辑**: 遍历 `allObjects`，排除 `isMainImage`。通过 `WeakMap` 实现无损状态恢复。
-### 2.5 强制类型安全原则 (Type Safety)
+- **核心逻辑**: 定义 `LOCK_CONFIG` 常量池作为唯一真相来源。
+- **对称性**: 锁定阶段执行 `lockedValue`，豁免/解锁阶段执行 `interactiveValue`，二者共享同一套循环遍历。
+- **原子备份**: 只有当 `WeakMap` 中不存在该对象记录时才备份，确保存储的是“最原始状态”。
 
-- **问题记录**：UI 输入控件（Slider/Input）绑定的响应式数据，在用户交互后会自动退化为 String 类型，导致数学计算（尤其是 + 运算）出错。
-
-- **强制规范**：
-
-    1. 在 Vue 模板中，所有数值型输入必须严格使用 v-model.number 修饰符。
-
-    2. 在 JS 逻辑处理计算前，必须对所有来自 UI 的变量进行防御性转换，例如 Number(value) 或 parseFloat(value)。
-
-    3. 禁止直接信任 UI 绑定的变量类型。
-
+### 2.6 交互协议 (Interaction Protocol) `NEW`
+- **逻辑**: 废弃用户手动的“反问/文件索取”提醒，将其下放到 AI 的默认行为层。
+- **执行准则**: 
+  1. 识别提议。
+  2. 触发 `project-charter` 中的反问逻辑。
+  3. 检索受影响的文件并向用户索取。
 ---
 
 ## 3. 故障排查与最佳实践 (Troubleshooting & Best Practices)
 
-### 3.1 为什么通用锁 (useCanvasLock) 会失效？
-在开发 `AdjustResize` 模块时，曾遇到通用锁失效的情况。复盘结论如下：
-1.  **身份识别问题**: 模块内部找图用 `type === 'image'`，而通用锁用 `isMainImage`。若初始化时未补齐 `isMainImage` 属性，主图会被误锁。
-2.  **异步竞态**: 标尺或预览对象在 `setBackgroundLock` 之后才渲染完成。
-3.  **解决方案**: 
-    - 初始化时显式设置 `mainImg.isMainImage = true`。
-    - 采用“双重加锁”：模块 `init` 锁一次，`nextTick` (预览渲染后) 再锁一次。
+### 3.1 解决初始化后主图仍可拖动的问题
+- **原因**: 异步加载的主图在 `onMounted` 锁执行后才被添加，覆盖了锁定态。
+- **方案**: 采用“双重加锁”：`onMounted` 锁一次，并在 `image:updated` 事件中再次执行 `syncLockState`。
+
+### 3.2 标尺模块语法错误 (startDrawMode 不存在)
+- **原因**: 重构为智能感知模式后，删除了手动的绘制开关，合并入 `startRulerMode`。
+- **方案**: 更新 `AdjustRuler.vue`，统一使用新的模式控制接口。
+
+### 3.3 物理锁 (useCanvasLock) 失效预防
+- **规范**: 模块初始化时必须显式设置 `mainImg.isMainImage = true`，否则主图会被误锁。
+
+### 3.4 为什么切回模块后功能“残缺” (如能选但不能动)？
+- **现象**: 标尺组件切回后出现蓝框，但无法移动。
+- **原因**: 之前的物理锁在豁免逻辑中采用了“硬编码恢复”，只恢复了 `selectable`，却遗漏了 `lockMovementX/Y` 等属性。
+- **终极解决方案**: 废弃硬编码，改用**配置驱动模式**。通过遍历属性池，确保每一项被锁定的属性在豁免时都能被精准解锁。
+- **教训**: “可以用配置驱动的都不要用硬编码”，保持逻辑的高度对称性。
