@@ -98,10 +98,11 @@ export const zoomToPuzzleArea = () => {
 export const initPuzzleMode = () => {
   const canvas = unref(canvasRef);
   if (!canvas) return;
+  prePuzzleVpt = canvas.viewportTransform ? [...canvas.viewportTransform] : [1, 0, 0, 1, 0, 0];
 
-  puzzleState.originalBg = canvas.backgroundColor;
   prePuzzleSnapshot = JSON.stringify(canvas.toJSON(CANVAS_PROPS_WHITELIST));
-  prePuzzleVpt = [...canvas.viewportTransform];
+  puzzleState.originalBg = canvas.backgroundColor;
+
   if (puzzleState.savedHistoryData && puzzleState.savedHistoryData.length > 0) {
     restorePuzzleData();
     bindEvents();
@@ -186,22 +187,28 @@ export const completeExitPuzzle = (action = 'save') => {
     }, { crossOrigin: 'anonymous' });
 
   } else {
+    // === 取消/不保存逻辑 ===
     if (prePuzzleSnapshot) {
-      // ✨ 异步恢复初始快照
+      console.log('取消拼图操作，正在利用全局白名单回滚状态...');
+
+      // ✨ 4. 异步恢复
       canvas.loadFromJSON(prePuzzleSnapshot, () => {
+        // ✨ 5. 核心修复：恢复进入前的相机视角（Viewport Transform）
+        // 这一步解决了你提到的“取消后位置偏移、相机放大”的问题
+        if (prePuzzleVpt) {
+          canvas.setViewportTransform(prePuzzleVpt);
+        }
+
         // 恢复背景色
         if (puzzleState.originalBg !== null) {
           canvas.setBackgroundColor(puzzleState.originalBg);
         }
 
-        // 清理拼图特有的鼠标事件监听
-        exitPuzzleMode();
-
-        // 关键：强制刷新画布锁定状态并重新渲染
-        canvas.fire('image:updated');
+        exitPuzzleMode(); // 清理事件
+        canvas.fire('image:updated'); // 触发全局状态同步
         canvas.requestRenderAll();
 
-        console.log("已成功回滚至初始状态");
+        console.log("已成功通过全局公约回滚至初始状态");
       });
     }
   }
