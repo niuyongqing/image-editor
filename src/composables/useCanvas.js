@@ -110,31 +110,24 @@ export function useCanvas() {
     }
 
     if (!target) {
-      // 只有在非独占模式下，才允许点击空白关闭侧边栏
-      // 如果正在 Resize，点击空白应该什么都不发生 (Silent)
-      if (state.activeTool === 'adjust' && state.activeTab) {
-          return; 
-      }
+      if (state.activeTool === 'adjust' && state.activeTab) return; 
       setSidebarDisabled(true);
       return;
     }
 
-    // ✨✨✨ 独占模式拦截器 (Exclusive Mode Guard) ✨✨✨
-    // 规则：如果当前是 'adjust' 工具，且有一个子 Tab 正在打开 (如 'resize')
-    // 并且用户点击的目标 不属于 当前打开的这个 Tab
-    // -> 强制拦截，禁止跳转
+    // ✨✨✨ 独占模式拦截器 (Exclusive Mode Guard) 优化 ✨✨✨
     if (state.activeTool === 'adjust' && state.activeTab) {
-        // 如果点击的目标正是当前功能的附属对象（如果有的话），则放行
-        // 但如果点击的是标尺 (customTab='ruler') 而当前在 'resize' -> 拦截
-        if (target.customTab !== state.activeTab) {
-            console.log(`[Router] Blocked by Exclusive Mode. Current: ${state.activeTab}, Target: ${target.customTab}`);
+        // ✨ 增加容错：如果点击的目标就是标尺，且我们正在处理标尺逻辑，则直接放行
+        // 防止 state.activeTab 还没来得及更新导致的死锁
+        const isRulerEmergency = target.isRuler || target.customTab === 'ruler';
+        
+        if (!isRulerEmergency && target.customTab !== state.activeTab) {
+            console.log(`[Router] Blocked by Exclusive Mode. Current: ${state.activeTab}`);
             return;
         }
     }
 
-    if (target.isMaskObject || target.excludeFromExport) {
-      return;
-    }
+    if (target.isMaskObject || target.excludeFromExport) return;
 
     // 白名单路由
     if (target.customTab && ROUTING_ALLOWLIST.includes(target.customTab)) {

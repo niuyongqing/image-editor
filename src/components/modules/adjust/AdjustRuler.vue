@@ -277,10 +277,11 @@ import {
   registerRulerModule,
   rulerConfig,
   isDrawing,
-  startDrawMode,
-  stopDrawMode,
+  // ✨ 修复点：替换为新的模式控制函数
+  startRulerMode, 
+  stopRulerMode,
   updateActiveRuler,
-  syncConfigFromActiveSelection, // ✨ 引入新函数
+  syncConfigFromActiveSelection,
   CAP_STYLES,
   DASH_OPTIONS,
 } from "./useCanvasRuler";
@@ -298,57 +299,56 @@ watch(
   () => props.isExpanded,
   (val) => {
     const canvas = canvasAPI.canvas.value;
-    setBackgroundLock(canvas, val);
+    if (!canvas) return;
+
+    // ✨ 物理锁联动：进入标尺模块时，设置豁免标尺并进入标尺光标模式
+    setBackgroundLock(canvas, val, { 
+        excludeRulers: true, 
+        isRulerMode: val 
+    });
 
     if (val) {
-      // [修正点 2]：展开时，先检查有没有选中的尺子
-      const activeRuler = syncConfigFromActiveSelection();
-
-      if (activeRuler) {
-        // A. 如果有选中的：编辑模式 (不开始绘制，蓝框保留)
-        stopDrawMode();
-      } else {
-        // B. 如果没选中的：新建模式 (开始绘制)
-        setCapStyle(CAP_STYLES[0].id);
-      }
+      // 同步当前选中的标尺配置（如果有）
+      syncConfigFromActiveSelection();
+      // ✨ 开启“智能感知”标尺模式
+      startRulerMode(canvasAPI.canvas, canvasAPI.saveHistory);
     } else {
-      if (isDrawing.value) stopDrawMode();
+      // 退出标尺模式，移除监听
+      stopRulerMode();
     }
   }
 );
 
-// [修正点 3]：组件挂载兜底 (针对 v-if 重新渲染的情况)
 onMounted(() => {
   if (canvasAPI && canvasAPI.canvas) {
+    // 注册模块引用
     registerRulerModule(canvasAPI.canvas, canvasAPI.saveHistory);
 
     if (props.isExpanded) {
-      // 挂载时如果已经是展开状态（比如路由跳转过来），立即同步
-      const activeRuler = syncConfigFromActiveSelection();
-      if (activeRuler) {
-        stopDrawMode(); // 确保不做任何会 discardActiveObject 的事情
-      }
+      syncConfigFromActiveSelection();
+      startRulerMode(canvasAPI.canvas, canvasAPI.saveHistory);
     }
   }
 });
 
 onUnmounted(() => {
-  if (canvasAPI && canvasAPI.canvas.value) {
-    setBackgroundLock(canvasAPI.canvas.value, false);
+  const canvas = canvasAPI?.canvas?.value;
+  if (canvas) {
+    setBackgroundLock(canvas, false);
+    stopRulerMode();
   }
 });
 
 // === 视觉高亮 ===
 const isStyleActive = (styleId) => {
-  // 逻辑：绘制中高亮 OR (编辑选中态 且 样式匹配)
   const isEditing = canvasAPI.canvas.value?.getActiveObject()?.isRuler;
   if (isEditing) {
     return rulerConfig.value.capStyle === styleId;
   }
-  return isDrawing.value && rulerConfig.value.capStyle === styleId;
+  // 在测量模式下，即使没选中也高亮当前配置的样式
+  return props.isExpanded && rulerConfig.value.capStyle === styleId;
 };
 
-// ...其余交互逻辑...
 const setCapStyle = (styleId) => {
   rulerConfig.value.capStyle = styleId;
   const canvas = canvasAPI.canvas.value;
@@ -356,11 +356,8 @@ const setCapStyle = (styleId) => {
 
   if (activeObj && activeObj.isRuler) {
     updateActiveRuler();
-  } else {
-    if (!isDrawing.value) {
-      startDrawMode();
-    }
   }
+  // 注意：不再需要手动调用 startDrawMode，startRulerMode 已在后台监听
 };
 
 const setDashPattern = (opt) => {
@@ -383,15 +380,9 @@ const currentDashStr = computed(() => {
 
 <style scoped>
 @keyframes blink {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 1;
-  }
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
 }
 
 .tool-content {
@@ -504,6 +495,14 @@ const currentDashStr = computed(() => {
   padding: 0 4px;
   outline: none;
   background: white;
+}
+.ie-input-number {
+    height: 28px;
+    border: 1px solid #dcdfe6;
+    border-radius: 4px;
+    padding: 0 8px;
+    outline: none;
+    width: 60px;
 }
 .val {
   font-family: monospace;
