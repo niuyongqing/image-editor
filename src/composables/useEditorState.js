@@ -44,7 +44,10 @@ const state = reactive({
      * 'manual': 用户手动点击侧边栏 (优先级最高，应有点击反馈)
      * 'canvas': 画布对象选中触发自动跳转 (应平滑过渡，无干扰)
      */
-    navigationSource: 'system'
+    navigationSource: 'system',
+    
+    // 新增：是否正在进行拼图操作
+    isPuzzleMode: false,
 });
 
 export function useEditorState() {
@@ -91,6 +94,11 @@ export function useEditorState() {
 
     const setSidebarDisabled = (status) => {
         state.isSidebarDisabled = status;
+    };
+
+    // 新增：设置是否正在进行拼图操作
+    const setPuzzleMode = (status) => {
+        state.isPuzzleMode = status;
     };
 
     // === ✨ 核心：智能路由系统 ===
@@ -145,6 +153,7 @@ export function useEditorState() {
         setHistoryState,
         setLoading,
         setSidebarDisabled,
+        setPuzzleMode,
         routeToObject // 导出路由动作供 useCanvas 使用
     };
 }
