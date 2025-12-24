@@ -1,0 +1,25 @@
+# === 依赖锁定文件 (AI 通常不需要看，太占行数) ===
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# === 构建产物 ===
+dist/
+build/
+
+# === 静态资源 (Repomix 默认不包二进制，但排除一下更稳) ===
+public/*
+src/assets/images/
+*.svg
+*.png
+*.jpg
+*.ico
+
+# === 杂项与日志 ===
+*.log
+.DS_Store
+.idea/
+.vscode/
+
+# === 如果你想暂时屏蔽某个还在乱写的模块 ===
+# src/components/modules/test-module/

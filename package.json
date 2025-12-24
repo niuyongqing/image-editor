@@ -16,7 +16,8 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "npx": "npx repomix"
   },
   "dependencies": {
     "fabric": "^5.3.0",

@@ -417,7 +417,8 @@ export const startCrop = (aspectRatio = null, customBox = null) => {
     transparentCorners: false, lockRotation: true, hasRotatingPoint: false,
     lockUniScaling: false,
     lockMovementX: true,
-    lockMovementY: true
+    lockMovementY: true,
+    customTool: 'adjust', customTab: 'crop' // ✨ 添加自定义路由属性，确保裁剪框被识别为调整工具
   });
   if (aspectRatio) cropZone.set("height", width / aspectRatio);
 

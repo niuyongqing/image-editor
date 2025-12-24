@@ -1,8 +1,8 @@
 # Active Context & Development State
 
-> **Version**: 2.0 (Codebase Sync)
-> **Last Updated**: 2025-12-22
-> **Current Focus**: Global Interaction Polish & Text/Draw Modules
+> **Version**: 2.3 (Object-Driven Navigation & Routing)
+> **Last Updated**: 2025-12-23
+> **Current Focus**: Global Navigation Architecture & Event-Driven UI, Fix Ruler Navigation
 
 ## 1. 当前开发状态 (Current Status)
 
@@ -15,44 +15,60 @@
   - [x] **比例锁定**: 支持原图比例、自由比例及常用预设 (1:1, 16:9 等)。
   - [x] **旋转翻转**: 90° 步进旋转与 XY 轴翻转。
 - **尺寸调整 (Resize)**:
-  - [x] **高清重制**: 引入 `useOffscreenHelper`，实现了基于原图分辨率的高清缩放，而非简单的 Canvas 缩放。
+  - [x] **高清重制**: 引入 `useOffscreenHelper`，实现了基于原图分辨率的高清缩放。
   - [x] **保真模式**: 支持锁定长宽比计算。
 - **补白 (White/Padding)**:
   - [x] **社媒预设**: 集成 Instagram/Youtube 等常用尺寸模板。
   - [x] **智能吸色**: 支持背景色吸取及透明背景设置。
 
-#### 1.2 拼图系统 (Puzzle System) `Major Feature`
+#### 1.2 拼图系统 (Puzzle System)
 
 - **网格布局**:
-  - [x] **动态模板**: 基于 `config.js` 实现了 1-16 张图片的网格布局解析 (`parseTemplateToCells`)。
+  - [x] **动态模板**: 基于 `config.js` 实现了 1-16 张图片的网格布局解析。
   - [x] **自动布局**: 图片拖入自动计算 Cover 裁剪，保证填满格子不留白。
 - **交互逻辑**:
-  - [x] **拖拽交换**: 实现了平滑的交换动画 (`animateSwap`) 和失败回弹 (`animateRebound`)。
-  - [x] **物理约束**: 在网格内缩放/移动图片时，应用 `useConstraint` 防止图片脱离格子可视区。
+  - [x] **拖拽交换**: 实现了平滑的交换动画 (`animateSwap`) 和失败回弹。
+  - [x] **物理约束**: 应用 `useConstraint` 防止图片脱离格子可视区。
 - **样式调整**:
-  - [x] **全局参数**: 支持动态调整间距 (Spacing)、边距 (Padding) 和圆角 (Radius)。
+  - [x] **全局参数**: 支持动态调整间距、边距和圆角。
 
 #### 1.3 智能与特效 (AI & Effects)
 
 - **智能消除 (Inpaint)**:
-  - [x] **离屏遮罩**: 解决了涂抹时的闪烁问题，通过离屏 Canvas 生成纯黑白 Mask 传给后端。
-  - [x] **双模交互**: 支持画笔涂抹 (Brush) 和 矩形框选 (Rect) 两种触发方式。
+  - [x] **离屏遮罩**: 解决闪烁问题，通过离屏 Canvas 生成 Mask。
+  - [x] **双模交互**: 支持画笔 (Brush) 和 矩形框选 (Rect)。
 - **一键抠图 (Rembg)**:
-  - [x] **API 集成**: 封装了 `src/api/ai.js`，支持一键移除背景。
+  - [x] **API 集成**: 封装 `src/api/ai.js` 支持一键移除背景。
 - **马赛克 (Mosaic)**:
-  - [x] **无损处理**: 采用“预览层 + 离屏应用”策略，确保马赛克应用到原图时依然清晰。
+  - [x] **无损处理**: 采用“预览层 + 离屏应用”策略。
 - **滤镜与调色**:
-  - [x] **ColorMatrix**: 实现了亮度、对比度、饱和度、色温等 6 维调节。
-  - [x] **LUT 模拟**: 内置了“复古”、“电影”等 4 大类滤镜预设。
+  - [x] **ColorMatrix**: 实现亮度、对比度等 6 维调节。
+  - [x] **LUT 模拟**: 内置“复古”、“电影”等滤镜预设。
 
-#### 1.4 辅助工具 (Tools & Helpers)
+#### 1.4 辅助工具与交互 (Tools & Interaction)
 
-- **测量标尺 (Ruler)**:
+- **快捷键系统 (Shortcuts)**:
+  - [x] **可视化面板**: 实现 Keycap 风格的侧边抽屉速查表 (`ShortcutsPanel`)。
+  - [x] **通用操作**: 覆盖复制粘贴、图层移动、锁定等。
+- **测量工具 (Measure)**:
+  - [x] **精准路由**: 点击标尺组件自动跳转至 `Adjust -> Ruler` 面板。
   - [x] **交互绘制**: 支持拖拽创建测量线，自动计算长度。
-  - [x] **单位系统**: 支持 px, cm, mm, inch 等多单位实时转换。
-- **快捷键 (Shortcuts)**:
-  - [x] **可视化面板**: 实现了 Keycap 风格的快捷键速查表。
-  - [x] **键盘流**: 覆盖了复制粘贴、图层移动 (`[` `]`)、锁定 (`Shift+Ctrl+L`) 等操作。
+- **交互优化 (Interaction Polish)**:
+  - [x] **右键菜单**: 修复粘贴坐标偏移，实现基于鼠标位置的左上角对齐。
+  - [x] **悬浮菜单**: 实现事件隔离，防止在悬浮条上操作时误触底层 Canvas。
+  - [x] **剪贴板**: 重构为单例模式 (`clipboardState`)。
+
+#### 1.5 全局导航系统 (Global Navigation System) `Major Upgrade`
+
+- **对象驱动路由 (Object-Driven Routing)**:
+  - [x] **智能分发**: 实现了 `useEditorState` 中的 `routeToObject`，根据 Canvas 选中对象自动切换 UI。
+  - [x] **二级导航 (Level 2 Support)**: 支持精确跳转至特定折叠面板 (如 `Tool: Adjust` + `Tab: Ruler`)。
+  - [x] **元数据注入 (Metadata Injection)**: 支持通过 `customTab` / `customTool` 属性覆盖默认路由行为。
+  - [x] **Fix Ruler Navigation**: 修复点击标尺组件自动触发侧边栏跳转的 Bug。
+  - [x] **Fix Crop/Rotate Navigation**: 修复点击裁剪/旋转模块跳转到边框模块的 Bug。
+- **视图解耦**:
+  - [x] **状态监听**: 侧边栏组件 (`index.vue`) 通过 `watch` 监听全局路由状态自动展开对应模块。
+  - [x] **去除残影**: 移除了未选中时的 Sidebar Disabled 状态，保持界面始终可用。
 
 ---
 
@@ -62,27 +78,33 @@
 
 > **Pattern**: `src/composables/useOffscreenHelper.js`
 
-- **问题**: 直接在 Fabric Canvas 上 `toDataURL` 会受限于当前的缩放级别 (`zoom`)，导致导出图片模糊。
-- **方案**:
-  1. 获取原图的原始分辨率 (`originalElement.width/height`)。
-  2. 创建一个临时的 `StaticCanvas` (不可见)。
-  3. 将原图和效果（滤镜、裁剪框）按原始比例映射到临时 Canvas。
-  4. 导出高清图并替换主画布上的对象。
-- **应用**: Resize, Crop, Inpaint, Mosaic 均采用了此模式。
+- **逻辑**: 获取原图原始分辨率 -> 创建临时 StaticCanvas -> 映射效果 -> 导出高清图。
 
 ### 2.2 物理约束系统 (Constraint System)
 
 > **Pattern**: `src/composables/useConstraint.js`
 
-- **逻辑**: 核心算法 `calculateConstraintOffset` 计算“对象”相对于“容器”的溢出值。
-- **行为**:
-  - **Resizing**: 实时修正坐标，防止图片小于容器导致露底。
-  - **Puzzle**: 拖拽松手时，如果图片位置不合法，触发 `animateRebound` 弹性回弹动画。
+- **逻辑**: 计算对象相对于容器的溢出值，Resizing 时实时修正，Puzzle 拖拽时触发回弹。
 
-### 2.3 状态管理策略 (State Strategy)
+### 2.3 状态与快捷键 (State & Shortcuts)
 
-- **Singleton**: 放弃 Pinia，使用 `useEditorState.js` (Reactive 单例) 管理全局工具状态 (`activeTool`) 和 Loading 状态。
-- **Events**: 模块间通信主要依赖 Fabric 的事件总线（如 `canvas.fire('image:updated')`），减少了 Vue 组件间的强耦合。
+- **State**: 使用 `useEditorState.js` (Reactive 单例) 管理全局状态。
+- **Shortcuts**: 采用配置化策略，`ShortcutsPanel` UI 与 `useKeyboardShortcuts` 逻辑共用同一份配置源。
+
+### 2.4 对象驱动路由架构 (Object-Driven Routing Architecture) `NEW`
+
+> **Core Philosophy**: Canvas 是路由触发器，State 是控制器，Sidebar 是视图。
+
+- **配置层 (Configuration)**:
+  - `OBJECT_TO_TOOL_MAP` (in `useEditorState.js`): 定义类型到面板的映射 (e.g., `'i-text' -> { tool: 'text', tab: 'style' }`)。
+- **感知层 (Sensor)**:
+  - `useCanvas.js`: 监听 `mouse:up`, `selection:created`, `selection:updated`。
+  - 过滤多选 (`activeSelection`) 和特殊对象，提取 `customTab` 信标。
+- **注入层 (Injection)**:
+  - 在创建特殊对象 (如标尺、素材) 时，注入 `{ customTab: 'ruler' }` 属性实现精确跳转。
+- **视图层 (View)**:
+  - 左侧菜单高亮 `state.activeTool`。
+  - 二级面板 (如 AdjustPanel) 监听 `state.activeTab` 并自动展开对应模块。
 
 ### 2.4 强制类型安全原则 (Type Safety)
 
@@ -102,16 +124,4 @@
 
 ### 📅 近期计划 (Next Sprint)
 
-1.  **文本模块 (Text Module)**:
-    - [ ] 实现 `TextAdd.vue`：添加标题/正文。
-    - [ ] 实现 `TextStyle.vue`：字体、颜色、描边、阴影控制。
-2.  **绘制模块 (Draw Module)**:
-    - [ ] 完善 `DrawBrush`：扩展画笔类型（荧光笔、喷枪）。
-    - [ ] 实现 `DrawShape`：添加基础几何图形（矩形、箭头、圆）。
-3.  **水印模块 (Watermark)**:
-    - [ ] 实现全屏平铺水印逻辑。
-
 ### 🐛 已知优化点 (Refactoring)
-
-- **Performance**: 拼图模块在拖拽高分辨率图片时，`onMouseMove` 中的计算量较大，考虑增加 `requestAnimationFrame` 节流。
-- **TS Migration**: 当前为纯 JS，部分复杂逻辑（如 Puzzle）类型提示不足，计划逐步引入 JSDoc 或迁移至 TS。

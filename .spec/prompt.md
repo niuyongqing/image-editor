@@ -14,16 +14,7 @@
 
 我将发给你一份项目的 **核心宪法 (Project Charter)**。在接下来的对话中，你生成的所有代码和建议必须**严格遵守**这份文档中的技术约束。
 
-**⚠️ 关键约束提醒 (基于宪法 v3.5)：**
-
-1.  **Fabric.js 版本**：必须使用 v5 语法（`new fabric.Canvas`），**严禁** v6 (Promise-based)。
-2.  **状态管理**：**严禁**引入 Pinia/Vuex，必须复用 `useEditorState.js` 单例。
-3.  **UI 设计规范**：**严禁**硬编码颜色（如 `#007bff`），必须使用 CSS 变量（如 `var(--primary-color)`）和标准类名（如 `.btn-primary`）。
-4.  **性能铁律**：Canvas 实例必须用 `markRaw()` 包装；批量操作必须用 `requestRenderAll()`。
-5.  **验收标准**：所有代码生成前，必须通过宪法 7.2 节的 **“黄金检查清单”**。
-
-请阅读已有的 我上传的repomix-output.xml 文件。如果你准备好了，请回复：“**已加载项目宪法 v3.5 (Final)，架构师就位。**”
-请输出 Markdown 格式的 Proposal 文档。
+请阅读我上传的repomix-output.xml 文件。如果你准备好了，请回复：“**已加载项目宪法，架构师就位。**”
 
 # 第二步 清空画布按钮功能（举例）
 
