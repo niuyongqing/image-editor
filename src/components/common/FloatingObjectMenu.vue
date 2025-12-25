@@ -192,7 +192,7 @@
 <script setup>
 import { ref, inject, onMounted, onUnmounted, unref } from "vue";
 import { useObjectActions } from "@/composables/useObjectActions";
-
+import { fabric } from "fabric";
 const canvasAPI = inject("canvasAPI");
 const actions = useObjectActions();
 
@@ -215,37 +215,63 @@ const handleLock = () => {
   isLocked.value = locked;
 };
 
+const excludeTabs = ['ruler'];
+
 // 更新菜单位置
 const updatePosition = () => {
   const canvas = unref(canvasAPI.canvas);
   const activeObj = canvas?.getActiveObject();
-
-  // 🛡️ [关键修复]：如果对象被标记为不可响应 (evented: false) 或者不可选中 (selectable: false)，
-  // 坚决不显示菜单！这能防止漏网之鱼。
+  // 🛡️ 拦截非法对象
   if (
     !activeObj ||
     activeObj.isMainImage ||
     activeObj.evented === false ||
-    activeObj.selectable === false
+    activeObj.selectable === false || !excludeTabs.includes(activeObj.customTab)
   ) {
     isVisible.value = false;
     isMenuOpen.value = false;
     return;
   }
 
-  const coords = activeObj.getBoundingRect(true, true);
+  // ✨ 核心逻辑：计算锚点位置
+  let anchorPoint;
+  
+  if (activeObj.isRuler) {
+    // 1. 标尺对象：计算其旋转后的“右端点”物理坐标
+    const center = activeObj.getCenterPoint();
+    // 标尺 Group 的宽度即为总物理长度
+    const halfWidth = (activeObj.width * activeObj.scaleX) / 2;
+    const angleRad = fabric.util.degreesToRadians(activeObj.angle);
+    
+    anchorPoint = new fabric.Point(
+      center.x + halfWidth * Math.cos(angleRad),
+      center.y + halfWidth * Math.sin(angleRad)
+    );
+  } else {
+    // 2. 普通对象：维持原有包围盒（Bounding Box）右边缘逻辑
+    const coords = activeObj.getBoundingRect(true, true);
+    anchorPoint = new fabric.Point(coords.left + coords.width, coords.top);
+  }
+
+  // ✨ 关键修复：将画布绝对坐标转换为 DOM 视口坐标 [大局观加固]
+  // 解决了之前在旋转、缩放或平移画布时，菜单位置偏移或“飞走”的问题
+  const vptPoint = fabric.util.transformPoint(anchorPoint, canvas.viewportTransform);
+
   const containerWidth = canvas.getElement().parentElement.offsetWidth;
   const menuWidth = 40;
 
-  let newLeft = coords.left + coords.width + 40;
+  // 计算 UI 最终 Left 位置 (偏移 40px 防止遮挡)
+  let newLeft = vptPoint.x + 40;
 
+  // 边界检查：如果超出容器右侧，则反向显示在左端
   if (newLeft + menuWidth > containerWidth) {
-    newLeft = coords.left - menuWidth + 76;
+    // 如果是标尺，建议向左偏移更多，以免盖住标尺本身
+    newLeft = vptPoint.x - menuWidth - (activeObj.isRuler ? 30 : 0);
   }
 
   position.value = {
     left: newLeft,
-    top: coords.top + 5,
+    top: vptPoint.y, // 保持小幅度下移
   };
 
   isVisible.value = true;
