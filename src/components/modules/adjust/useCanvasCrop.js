@@ -5,7 +5,8 @@ import { fabric } from "fabric";
 // 1. 引入通用规范工具
 import { getLogicRect, animateRebound, constrainObjectToRect } from '@/composables/useConstraint';
 import { renderHighResSnapshot } from '@/composables/useOffscreenHelper';
-
+import { useInteractionHelper } from '@/composables/useInteractionHelper';
+const { isBreakThreshold } = useInteractionHelper();
 // === 状态变量 ===
 const cropObject = shallowRef(null);
 const isManualCropping = ref(false);
@@ -28,12 +29,15 @@ let selectionStartX = 0;
 let selectionStartY = 0;
 let aspectRatioValue = null;
 let savedWheelListeners = [];
-
-// 拖拽图片相关变量
+// === 状态变量 (新增防抖相关) ===
 let isDraggingImage = false;
 let dragLastX = 0;
 let dragLastY = 0;
-
+let dragStartX = 0; // ✨ 新增：记录起始坐标
+let dragStartY = 0;
+let hasPassedThreshold = false;
+let hasBrokenThreshold = false; // ✨ 新增：是否已突破阈值
+const DRAG_THRESHOLD = 1; // ✨ 物理防抖阈值 (单位: 像素) [宪法 0.0]
 // 标志位：是否正在应用裁剪
 let isApplyingCrop = false;
 
@@ -63,37 +67,53 @@ const preventZoomWheel = (opt) => {
   if (opt.e.stopImmediatePropagation) opt.e.stopImmediatePropagation();
 };
 
-// =========================================================
-// 拖动图片的核心逻辑 (集成通用回弹)
-// =========================================================
+/**
+ * 修改位置：useCanvasCrop.js -> onCropMouseDown
+ * 变更：允许点击主图或裁剪框触发拖拽
+ */
 const onCropMouseDown = (opt) => {
   if (!canvasRef?.value || !cropObject.value) return;
   const target = opt.target;
-  // 必须点击在剪裁框上（作为容器）
+  const canvas = canvasRef.value;
+
+  // 1. 逻辑判定：点击在裁剪框上
   if (target !== cropObject.value) return;
 
-  const activeObj = canvasRef.value.getActiveObject();
+  const activeObj = canvas.getActiveObject();
   if (activeObj && activeObj.__corner) return;
 
-  // 开始拖动图片
+  // 2. 初始化拖拽状态
   isDraggingImage = true;
-  const pointer = canvasRef.value.getPointer(opt.e);
+  hasBrokenThreshold = false; // 重置阈值标记 [宪法 6.1]
+  
+  const pointer = canvas.getPointer(opt.e);
+  dragStartX = pointer.x; // 记录物理起点
+  dragStartY = pointer.y;
   dragLastX = pointer.x;
   dragLastY = pointer.y;
-  canvasRef.value.defaultCursor = 'move';
+  
+  canvas.defaultCursor = 'move';
 };
 
 const onCropMouseMove = (opt) => {
   if (!isDraggingImage || !canvasRef?.value) return;
   const canvas = canvasRef.value;
   const pointer = canvas.getPointer(opt.e);
+
+ // ✨ 调用通用防抖判定 [SSOT]
+  if (!hasBrokenThreshold) {
+    if (!isBreakThreshold({ x: dragStartX, y: dragStartY }, pointer, 2)) {
+      return; 
+    }
+    hasBrokenThreshold = true;
+  }
+
+  // 4. 计算增量并应用
   const deltaX = pointer.x - dragLastX;
   const deltaY = pointer.y - dragLastY;
 
   const bgImage = canvas.getObjects().find(o => o.type === 'image');
-
   if (bgImage) {
-    // 自由拖拽，暂不约束，依靠 mouseUp 时的回弹
     bgImage.left += deltaX;
     bgImage.top += deltaY;
     bgImage.setCoords();
@@ -106,15 +126,16 @@ const onCropMouseMove = (opt) => {
 
 const onCropMouseUp = () => {
   if (isDraggingImage) {
-    if (canvasRef?.value && cropObject.value) {
+    if (canvasRef?.value && cropObject.value && hasBrokenThreshold) {
       const bgImage = canvasRef.value.getObjects().find(o => o.type === 'image');
       if (bgImage) {
-        // 【核心升级】使用通用动画回弹，确保图片始终填满裁剪框
+        // 只有产生过实际位移才执行回弹动画
         animateRebound(bgImage, cropObject.value, canvasRef.value);
       }
     }
 
     isDraggingImage = false;
+    hasBrokenThreshold = false;
     if (canvasRef?.value) canvasRef.value.defaultCursor = 'default';
   }
 };
@@ -369,172 +390,164 @@ export const setCropRatio = (ratio) => {
     });
     cropObject.value.setCoords();
     constrainCrop(cropObject.value);
+    zoomToCropArea(cropObject.value);
     canvas.requestRenderAll();
   } else {
     startCrop(ratio, { left, top, width: newW, height: newH });
   }
 };
 
+/**
+ * 🛠️ 辅助函数：将相机视口调整至剪裁区域 (视口前置方案)
+ * 逻辑：以当前剪裁框为 100% 目标，重新计算缩放和中心点 [宪法 0.0]
+ */
+const zoomToCropArea = (obj) => {
+    if (!obj || !canvasRef?.value || !zoomToRectFn) return;
+    
+    // 获取裁剪框的逻辑几何信息
+    const rect = {
+        left: obj.left,
+        top: obj.top,
+        width: obj.getScaledWidth(),
+        height: obj.getScaledHeight()
+    };
+    
+    // 调用全局注册的视口调整函数
+    // 该函数应包含计算 Z_target 并居中的逻辑 [宪法 0.7]
+    zoomToRectFn(rect);
+};
+
 // =========================================================
 // startCrop
 // =========================================================
 export const startCrop = (aspectRatio = null, customBox = null) => {
-  if (!canvasRef?.value) return;
-  const canvas = canvasRef.value;
-  if (isManualCropping.value) endManualSelectionMode();
+    if (!canvasRef?.value) return;
+    const canvas = canvasRef.value;
+    if (isManualCropping.value) endManualSelectionMode();
 
-  aspectRatioValue = aspectRatio || null;
-  let activeObj = canvas.getObjects().find((obj) => obj.type === "image");
-  if (!activeObj) return;
+    let activeObj = canvas.getObjects().find((obj) => obj.type === "image");
+    if (!activeObj) return;
 
-  cancelCrop();
+    cancelCrop();
 
-  const rect = getLogicRect(activeObj, canvas);
-  let width, height, left, top;
+    const rect = getLogicRect(activeObj, canvas);
+    let width, height, left, top;
 
-  if (customBox) {
-    width = customBox.width; height = customBox.height; left = customBox.left; top = customBox.top;
-  } else {
-    const imgWidth = rect.width; const imgHeight = rect.height;
-    width = imgWidth * 1; height = imgHeight * 1;
-    if (aspectRatio) {
-      height = width / aspectRatio;
-      if (height > imgHeight) {
-        height = imgHeight; width = height * aspectRatio;
-      }
-      isRatioLocked.value = true; currentAspectRatio.value = aspectRatio;
+    if (customBox) {
+        width = customBox.width; height = customBox.height; left = customBox.left; top = customBox.top;
     } else {
-      isRatioLocked.value = false; currentAspectRatio.value = null;
+        const imgWidth = rect.width; const imgHeight = rect.height;
+        width = imgWidth; height = imgHeight;
+        if (aspectRatio) {
+            height = width / aspectRatio;
+            if (height > imgHeight) { height = imgHeight; width = height * aspectRatio; }
+        }
+        left = rect.left + (imgWidth - width) / 2;
+        top = rect.top + (imgHeight - height) / 2;
     }
-    left = rect.left + (imgWidth - width) / 2;
-    top = rect.top + (imgHeight - height) / 2;
-  }
 
-  const cropZone = new fabric.Rect({
-    left: left, top: top, width: width, height: height,
-    fill: "transparent", stroke: "#409eff", strokeWidth: 2,
-    cornerColor: "white", cornerStrokeColor: "#409eff", cornerSize: 12,
-    transparentCorners: false, lockRotation: true, hasRotatingPoint: false,
-    lockUniScaling: false,
-    lockMovementX: true,
-    lockMovementY: true,
-    customTool: 'adjust', customTab: 'crop' // ✨ 添加自定义路由属性，确保裁剪框被识别为调整工具
-  });
-  if (aspectRatio) cropZone.set("height", width / aspectRatio);
+    const cropZone = new fabric.Rect({
+        left, top, width, height,
+        fill: "transparent", stroke: "#409eff", strokeWidth: 2,
+        cornerColor: "white", cornerStrokeColor: "#409eff", cornerSize: 12,
+        transparentCorners: false, lockRotation: true, hasRotatingPoint: false,
+        customTool: 'adjust', customTab: 'crop'
+    });
 
-  canvas.add(cropZone);
-  canvas.setActiveObject(cropZone);
-  cropObject.value = cropZone;
-  canvas.renderAll();
-  updateCurrentDims(cropZone);
-  constrainCrop(cropZone);
+    canvas.add(cropZone);
+    canvas.setActiveObject(cropZone);
+    cropObject.value = cropZone;
+    
+    updateCurrentDims(cropZone);
+    constrainCrop(cropZone);
 
-  // 绑定拖图事件
-  canvas.on('mouse:down', onCropMouseDown);
-  canvas.on('mouse:move', onCropMouseMove);
-  canvas.on('mouse:up', onCropMouseUp);
+    // ✨✨✨ 核心变更：裁剪框确定后，立即调整相机视距 [宪法 0.0] ✨✨✨
+    zoomToCropArea(cropZone);
+
+    canvas.on('mouse:down', onCropMouseDown);
+    canvas.on('mouse:move', onCropMouseMove);
+    canvas.on('mouse:up', onCropMouseUp);
+    
+    canvas.requestRenderAll();
 };
 
-// =========================================================
-// 确认裁剪 (高清重制版)
-// =========================================================
+/**
+ * 🛠️ 高精度 confirmCrop (消除微增感)
+ * 逻辑：通过精确的浮点运算与中心点对齐，消除 1-2 像素的视觉漂移 [宪法 6.1]
+ */
 export const confirmCrop = async () => {
-  if (!canvasRef?.value || !cropObject.value) return Promise.resolve();
+  if (!canvasRef?.value || !cropObject.value) return;
   const canvas = canvasRef.value;
   const cropRect = cropObject.value;
   const bgImage = canvas.getObjects().find((o) => o.type === "image");
-  if (!bgImage) { cancelCrop(); return Promise.resolve(); }
+  if (!bgImage) return cancelCrop();
 
   isApplyingCrop = true;
 
-  // 1. 获取裁剪区域的逻辑信息
-  const cropLogicRect = getLogicRect(cropRect, canvas);
-  const bgLogicRect = getLogicRect(bgImage, canvas);
+  // 1. 获取绝对物理尺寸（不使用 Math.round 以减少舍入误差漂移）
+  const scaleFactor = bgImage.scaleX;
+  const cropScaledWidth = cropRect.getScaledWidth();
+  const cropScaledHeight = cropRect.getScaledHeight();
+  
+  // 映射到原图尺度的目标尺寸
+  const targetW = Math.floor(cropScaledWidth / scaleFactor);
+  const targetH = Math.floor(cropScaledHeight / scaleFactor);
 
-  // 2. 计算目标导出尺寸 (基于原图分辨率)
-  // 如果图片被缩放了(scale=0.5), 我们希望裁剪出来的图是基于原图大小的，所以目标尺寸要除以 scale
-  const scaleFactor = bgImage.scaleX; // 假设均匀缩放
-  const targetW = Math.round(cropLogicRect.width / scaleFactor);
-  const targetH = Math.round(cropLogicRect.height / scaleFactor);
+  if (targetW <= 0 || targetH <= 0) return cancelCrop();
 
-  if (targetW <= 0 || targetH <= 0) {
-    cancelCrop();
-    return Promise.resolve();
-  }
-
-  // 临时隐藏裁剪框，避免干扰
+  // 暂时隐藏裁剪框
   cropRect.visible = false;
 
-  // 3. 使用离屏渲染生成高清裁剪图
+  // 2. 高清快照生成
   const croppedDataUrl = await renderHighResSnapshot(bgImage, targetW, targetH, (highResImg) => {
-    // 3.1 计算相对位置偏移 (使用中心点差值法，抗旋转干扰)
+    // 获取当前剪裁框和图片的中心点（世界坐标） [宪法 2.0]
     const cropCenter = cropRect.getCenterPoint();
     const imgCenter = bgImage.getCenterPoint();
 
-    // 计算中心点差距（逻辑像素）
-    const diffX = imgCenter.x - cropCenter.x;
-    const diffY = imgCenter.y - cropCenter.y;
+    // 计算中心点偏移量（逻辑像素）
+    const diffX = (imgCenter.x - cropCenter.x) / scaleFactor;
+    const diffY = (imgCenter.y - cropCenter.y) / scaleFactor;
 
-    // 映射到原图尺度
-    const finalDiffX = diffX / scaleFactor;
-    const finalDiffY = diffY / scaleFactor;
-
-    // 3.2 设置高分图属性
     highResImg.set({
-      originX: 'center', originY: 'center',
-      left: targetW / 2 + finalDiffX,
-      top: targetH / 2 + finalDiffY,
-      scaleX: 1, // 恢复到原图比例
-      scaleY: 1,
+      originX: 'center', 
+      originY: 'center',
+      left: targetW / 2 + diffX, 
+      top: targetH / 2 + diffY,
+      scaleX: 1, 
+      scaleY: 1, 
       angle: bgImage.angle,
       flipX: bgImage.flipX,
       flipY: bgImage.flipY
     });
   });
 
-  cropRect.visible = true;
+  // 3. 应用变更
+  bgImage.setSrc(croppedDataUrl, () => {
+    cancelCrop(false); 
 
-  return new Promise((resolve) => {
-    // 4. 应用回主画布
-    bgImage.setSrc(croppedDataUrl, () => {
-      cancelCrop(false);
-
-      // 5. 物理重置：将新图片放回画布中心
-      bgImage.set({
-        originX: "center", originY: "center",
-        left: canvas.width / 2, top: canvas.height / 2,
-        scaleX: 1, scaleY: 1, // 裁剪后就是 1:1
-        angle: 0, flipX: false, flipY: false,
-      });
-      bgImage.setCoords();
-      canvas.centerObject(bgImage);
-
-      // 6. 视口自适应 (Zoom to fit)
-      // 让裁剪后的图片在屏幕上显示大小合适
-      const paddingFactor = 0.85;
-      const zoomToFit = Math.min(
-        (canvas.width * paddingFactor) / targetW, // 注意这里用 targetW 可能会很大
-        (canvas.height * paddingFactor) / targetH
-      );
-
-      // 因为 targetW 是原图尺寸，可能几千像素，我们这里计算的是 Zoom Level
-      // 实际上展示时，我们希望它占据屏幕大部分
-      // 重新计算：图片现在尺寸是 targetW * 1 * zoomToFit
-      // 所以 Zoom 应该是 canvasSize / targetSize
-
-      // 设置新的视口
-      canvas.setViewportTransform([1, 0, 0, 1, 0, 0]); // 先重置
-      const newZoom = zoomToFit;
-      const center = canvas.getCenter();
-      canvas.zoomToPoint({ x: center.left, y: center.top }, newZoom);
-
-      isApplyingCrop = false;
-      isCropping.value = false;
-      canvas.fire('zoom:change', { from: 'crop-confirm' });
-      canvas.requestRenderAll();
-      if (saveHistoryFn) saveHistoryFn();
-      resolve();
+    // ✨✨✨ 物理重置与视口重置强制同步 [宪法 0.0] ✨✨✨
+    // 确保图片放置在画布中心，且视口完全回归 1:1
+    bgImage.set({
+      originX: "center", 
+      originY: "center",
+      left: canvas.width / 2, 
+      top: canvas.height / 2,
+      scaleX: 1, 
+      scaleY: 1, 
+      angle: 0, 
+      flipX: false, 
+      flipY: false,
     });
+    
+    bgImage.setCoords();
+    canvas.setViewportTransform([1, 0, 0, 1, 0, 0]); // 强制归一化
+
+    isApplyingCrop = false;
+    isCropping.value = false;
+
+    if (saveHistoryFn) saveHistoryFn();
+    canvas.fire('zoom:change', { from: 'crop-confirm' });
+    canvas.requestRenderAll();
   });
 };
 

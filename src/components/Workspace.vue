@@ -107,19 +107,21 @@ const updateZoomState = () => {
 };
 
 /**
- * ✨ 同步物理锁状态
- * 增加 isRulerMode 标记传递
+ * 修改位置：Workspace.vue -> syncLockState 函数
+ * 变更点：增加对 resize 标签的感知
  */
 const syncLockState = () => {
   const canvas = unref(canvasAPI.canvas);
   if (!canvas) return;
 
   const isRulerModule = state.activeTab === 'ruler';
+  const isResizeModule = state.activeTab === 'resize'; // ✨ 识别尺寸调整模块
   
   setBackgroundLock(canvas, true, { 
       excludeRulers: isRulerModule, 
       dragMode: state.isGlobalDragMode,
-      isRulerMode: isRulerModule // ✨ 明确告知物理锁当前是否在标尺模式
+      isRulerMode: isRulerModule,
+      isResizeMode: isResizeModule // ✨ 将状态传递给物理锁逻辑 [宪法 0.6]
   });
 };
 
