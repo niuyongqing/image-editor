@@ -11,7 +11,8 @@
       </div>
 
       <div>
-        <div v-if="activeTab === 'grid'">
+        <!-- 网格/网格 -->
+        <div>
           <button class="select-btn" @click="sub = 2">
             <div class="icon-wrap">
               <div v-if="showControlPanel" :style="curTemp.wrapStyle" class="small-grid-template">
@@ -20,7 +21,7 @@
               </div>
               <span v-else class="plus-icon">+</span>
             </div>
-            <span>选择网格</span>
+            <span>{{ activeTab === 'grid' ? '选择网格' : '选择拼接' }}</span>
             <span v-if="showControlPanel" class="cancel-btn" @click.stop="cancel">取消</span>
           </button>
 
@@ -80,20 +81,6 @@
             </button>
           </div>
         </div>
-
-        <div v-else>
-          <button class="select-btn">
-            <div class="icon-wrap">
-              <div v-if="showControlPanel" :style="curTemp.wrapStyle" class="small-grid-template">
-                <div v-for="(gridArea, i) in curTemp.gridAreas" :key="i" class="grid-cell"
-                  :style="`grid-area: ${gridArea};`"></div>
-              </div>
-              <span v-else class="plus-icon">+</span>
-            </div>
-            <span>选择拼接</span>
-            <span v-if="showControlPanel" class="cancel-btn" @click.stop="cancel">取消</span>
-          </button>
-        </div>
       </div>
     </div>
 
@@ -102,7 +89,7 @@
         <span class="back-icon">‹</span> 网格
       </div>
 
-      <div class="image-count-selector">
+      <div v-if="activeTab === 'grid'" class="image-count-selector">
         <label>图片数量</label>
         <select v-model="selectedImageCount">
           <option v-for="item in countOptions" :key="item.value" :value="item.value">{{ item.label }}</option>
@@ -111,7 +98,7 @@
 
       <div class="grid-list">
         <div v-for="(group, count) in filteredTemplates" :key="count" class="grid-group">
-          <div class="grid-group-title">{{ count }}</div>
+          <div v-if="activeTab === 'grid'" class="grid-group-title">{{ count }}</div>
 
           <div class="grid-templates-row">
             <div v-for="template in group" :key="template.id" :style="template.wrapStyle" class="grid-template"
@@ -155,13 +142,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, inject, unref, onMounted, onUnmounted } from 'vue';
+import { ref, reactive, computed, inject, onMounted } from 'vue';
 import { toast } from '@/utils/toast';
 import Modal from '@/components/common/Modal.vue'; // 引入 Modal 组件
 import { gridTemplates, parseTemplateToCells, countOptions } from './config.js';
 import {
-  canvasRef,
-  puzzleState,
   registerPuzzleModule,
   initPuzzleMode,
   exitPuzzleMode,
@@ -172,7 +157,6 @@ import {
   getPuzzleImageCount,
   zoomToPuzzleArea,
   recordEntryState,
-  getInitialState,
   completeExitPuzzle // 引入完成拼图的方法
 } from './useCanvasPuzzle.js';
 import { useEditorState } from '@/composables/useEditorState';
@@ -191,12 +175,6 @@ const currentImgCount = ref(1);
 
 // 弹窗控制状态
 const showSaveModal = ref(false);
-// 修改进入网格选择界面的逻辑
-const enterGridSelection = () => {
-  // ✨ 在这里捕获！这是用户还没碰任何模板的最干净的状态
-  recordEntryState(); 
-  sub.value = 2;
-};
 
 const init = () => {
   if (canvasAPI) {
@@ -253,17 +231,10 @@ const selectedImageCount = ref('all');
 const activeTab = ref('grid');
 
 const filteredTemplates = computed(() => {
-  if (selectedImageCount.value === 'all') {
-    return gridTemplates;
+  if (activeTab.value === 'grid') {
+    return selectedImageCount.value === 'all' ? gridTemplates : { [selectedImageCount.value]: gridTemplates[selectedImageCount.value] };
   } else {
-    const curCount = parseInt(selectedImageCount.value);
-    const result = {};
-    for (const count in gridTemplates) {
-      if (parseInt(count) === curCount) {
-        result[count] = gridTemplates[count];
-      }
-    }
-    return result;
+    return { 2: gridTemplates[2] };
   }
 });
 
@@ -273,6 +244,7 @@ const backToMain = () => {
 };
 
 const curTemp = ref({});
+let oldTab = 'grid'
 // 模板选择逻辑
 const selectTemplate = (template) => {
   // 不再需要在这里做 snapshot 逻辑，因为进入列表时已经做过了
@@ -281,6 +253,21 @@ const selectTemplate = (template) => {
   setPuzzleMode(true);
   init(); // init 内部调用 initPuzzleMode
   sub.value = 1;
+
+  /**
+   * 在切换 网格 和 拼接 模式时，需要根据当前模式来重置 puzzleSettings
+   */
+  if (oldTab !== activeTab.value) {
+    oldTab = activeTab.value;
+
+    puzzleSettings.width = 1000
+    puzzleSettings.height = 1000
+    puzzleSettings.lockRatio = false
+    puzzleSettings.bgColor = '#ffffff'
+    puzzleSettings.padding = oldTab === 'grid' ? 15 : 0
+    puzzleSettings.spacing = oldTab === 'grid' ? 15 : 0
+  }
+
   applyTemplate(template);
   zoomToPuzzleArea();
 };
@@ -298,6 +285,13 @@ const cancel = () => {
   showControlPanel.value = false;
   sub.value = 1;
   setPuzzleMode(false);
+
+  puzzleSettings.width = 1000
+  puzzleSettings.height = 1000
+  puzzleSettings.lockRatio = false
+  puzzleSettings.bgColor = '#ffffff'
+  puzzleSettings.padding = oldTab === 'grid' ? 15 : 0
+  puzzleSettings.spacing = oldTab === 'grid' ? 15 : 0
 };
 
 const puzzleSettings = reactive({
