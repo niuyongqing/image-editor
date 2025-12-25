@@ -134,19 +134,15 @@
       <div class="divider-line"></div>
 
       <div class="control-group">
-        <div class="label-row">
-          <label>透明度</label>
-          <span class="val">{{ transparent }}%</span>
-        </div>
+        <label>透明度</label>
         <input v-model.number="transparent" type="range" min="0" max="100" step="1" @input="onParamsChange" />
+        <span class="value-display">{{ transparent }} %</span>
       </div>
 
       <div class="control-group">
-        <div class="label-row">
-          <label>放大 (Zoom)</label>
-          <span class="val">{{ Math.round(zoomScale * 100) }}%</span>
-        </div>
+        <label>放大</label>
         <input type="range" v-model.number="zoomScale" min="0.1" max="3" step="0.01" @input="onParamsChange" />
+        <span class="value-display">{{ Math.round(zoomScale * 100) }} %</span>
       </div>
     </div>
 
@@ -276,7 +272,7 @@ const selectTemplate = (template) => {
   if (!curTemp.value.id) {
     saveSnapshotBeforeLayout();
   }
-
+  
   curTemp.value = template;
   showControlPanel.value = true;
   setPuzzleMode(true); // 切换到拼图模式
@@ -725,18 +721,6 @@ const onParamsChange = () => {
   height: 1px;
   background: #ebeef5;
   margin: 20px 0;
-}
-
-.label-row {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 13px;
-  color: #606266;
-}
-
-.val {
-  font-family: monospace;
 }
 
 .confirm-content {
