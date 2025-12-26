@@ -142,7 +142,7 @@ const close = () => {
 .keycap {
   display: inline-block;
   padding: 2px 8px;
-  font-size: 12px;
+ 
   font-family: 'SF Mono', 'Roboto Mono', Monaco, monospace;
   color: #303133;
   background: #fdfdfd; /* 稍微白一点 */

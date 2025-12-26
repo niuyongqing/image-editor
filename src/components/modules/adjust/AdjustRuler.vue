@@ -461,7 +461,7 @@ const currentDashStr = computed(() => {
   padding: 0 8px;
   border: 1px solid #dcdfe6;
   border-radius: 4px;
-  font-size: 12px;
+ 
 }
 .font-row {
   margin-bottom: 8px;
@@ -478,7 +478,7 @@ const currentDashStr = computed(() => {
   padding: 16px;
 }
 .section-title {
-  font-size: 12px;
+ 
   color: #909399;
   margin-bottom: 8px;
   font-weight: 500;
@@ -549,7 +549,7 @@ const currentDashStr = computed(() => {
   background-color: #f5f7fa;
 }
 .opt-label {
-  font-size: 12px;
+ 
   color: #606266;
   margin-right: 12px;
   min-width: 40px;
@@ -567,7 +567,7 @@ const currentDashStr = computed(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
+ 
   color: #606266;
   margin-bottom: 8px;
 }
@@ -579,7 +579,7 @@ const currentDashStr = computed(() => {
   height: 28px;
   border: 1px solid #dcdfe6;
   border-radius: 4px;
-  font-size: 12px;
+ 
   color: #606266;
   padding: 0 4px;
   outline: none;
@@ -615,7 +615,7 @@ const currentDashStr = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+ 
   color: #909399;
   cursor: pointer;
   border-radius: 4px;
@@ -643,7 +643,7 @@ const currentDashStr = computed(() => {
   border: 1px solid #dcdfe6;
   border-radius: 4px;
   padding: 0 10px;
-  font-size: 12px;
+ 
   outline: none;
   transition: border-color 0.2s;
 }

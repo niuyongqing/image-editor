@@ -13,7 +13,7 @@ export const THEME = {
         // 基础色
         bg: '#242424',            // 画布背景
         panel: '#1e1e1e',         // 工具栏背景 (如果你需要区分的话)
-        text: 'rgba(255, 255, 255, 0.87)',
+        text: '#333',
         border: '#dcdfe6',
 
         // Canvas 交互专用 (JS 读取)

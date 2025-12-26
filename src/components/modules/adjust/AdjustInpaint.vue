@@ -160,7 +160,7 @@ onUnmounted(() => {
 }
 
 .mode-label {
-  font-size: 12px;
+ 
   margin-top: 4px;
 }
 
@@ -173,7 +173,7 @@ onUnmounted(() => {
   display: flex; 
   justify-content: space-between; 
   align-items: center; /* 确保垂直对齐 */
-  font-size: 12px; 
+  
   color: #606266; 
   margin-bottom: 8px; 
 }
@@ -185,14 +185,14 @@ onUnmounted(() => {
   background-color: #f4f4f5;
   border: 1px solid #e9e9eb;
   border-radius: 4px;
-  font-size: 12px;
+ 
   color: #909399;
   line-height: 1.4;
 }
 
 .auto-tip {
   margin-top: 8px;
-  font-size: 12px;
+ 
   color: var(--ie-primary-color); 
   text-align: center;
   background: #ecf5ff;
