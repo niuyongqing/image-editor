@@ -150,6 +150,7 @@ import { gridTemplates, parseTemplateToCells, countOptions } from './config.js';
 import {
   registerPuzzleModule,
   initPuzzleMode,
+  initJoinMode,
   exitPuzzleMode,
   updateLayout,
   addImageToCell,
@@ -272,7 +273,8 @@ const selectTemplate = (template) => {
   if (activeTab.value === 'grid') {
     applyTemplate(template);
   } else {
-    // TODO: 拼接模式的模板应用逻辑
+    const direction = template.id === '2-1' ? 'horizontal' : 'vertical';
+    initJoinMode(direction);
   }
   zoomToPuzzleArea();
 };
@@ -415,6 +417,9 @@ onMounted(() => {
 
 .puzzle-tabs {
   display: flex;
+  border: 1px solid #409eff;
+  border-radius: 4px;
+  overflow: hidden;
 }
 
 .tab-item {
@@ -446,7 +451,7 @@ onMounted(() => {
 }
 
 .select-btn:hover {
-  border-color: #409eff;
+  border-color: transparent;
   color: #409eff;
 }
 
