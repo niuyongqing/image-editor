@@ -1,25 +1,45 @@
 import { unref } from 'vue';
 import { useEditorState } from '@/composables/useEditorState'; // ✨ 引入状态机
 
+/**
+ * 配置驱动物理锁：LOCK_CONFIG 为唯一真相来源
+ * 约定：每项为 [lockedValue, interactiveValue]
+ */
 const LOCK_CONFIG = {
-  'selectable': [false, true],
-  'evented': [false, true],
-  'hasControls': [false, true],
-  'hasBorders': [false, true],
-  'lockMovementX': [true, false],
-  'lockMovementY': [true, false],
-  'lockRotation': [true, false],
-  'lockScalingX': [true, false],
-  'lockScalingY': [true, false],
+  selectable: [false, true],
+  evented: [false, true],
+  hasControls: [false, true],
+  hasBorders: [false, true],
+  lockMovementX: [true, false],
+  lockMovementY: [true, false],
+  lockRotation: [true, false],
+  lockScalingX: [true, false],
+  lockScalingY: [true, false],
 };
 
+/**
+ * setBackgroundLock options (策略由 Workspace.vue 配置驱动传入)
+ * @typedef {Object} BackgroundLockOptions
+ * @property {boolean} [dragMode=false] - 全局手形/拖拽模式
+ * @property {boolean} [isRulerMode=false] - 标尺模式（影响默认光标与标尺 hoverCursor）
+ * @property {boolean} [isResizeMode=false] - Resize 模式
+ * @property {boolean} [isCropMode=false] - Crop 模式
+ * @property {boolean} [allowMainImageDrag=false] - 是否允许主图可拖动
+ * @property {boolean} [allowRulerDrag=false] - 是否允许标尺可拖动
+ * @property {boolean} [allowNormalObjectDrag=false] - 是否允许普通对象可拖动
+ * @property {boolean} [cropMainImageAnchored=false] - Crop 下主图锚定锁（selectable=false, evented=true）
+ */
+
 export function useCanvasLock() {
-  const { state } = useEditorState(); // ✨ 获取全局状态
+  // ✨ 获取全局状态（目前仅用于兜底 cursor/selection 行为；策略以 options 为准）
+  const { state } = useEditorState();
+
+  // 对象原始交互态备份（原子备份：只备份一次，保证“最原始状态”）
   const objectStates = new WeakMap();
 
   const forceEnableObject = (obj, isRulerMode) => {
-    Object.keys(LOCK_CONFIG).forEach(prop => {
-      const [_, interactiveValue] = LOCK_CONFIG[prop];
+    Object.keys(LOCK_CONFIG).forEach((prop) => {
+      const [, interactiveValue] = LOCK_CONFIG[prop];
       obj.set(prop, interactiveValue);
     });
     obj.set('hoverCursor', isRulerMode ? 'move' : 'default');
@@ -27,95 +47,142 @@ export function useCanvasLock() {
 
   const lockAndStoreObject = (obj) => {
     const backup = {};
-    Object.keys(LOCK_CONFIG).forEach(prop => {
+
+    Object.keys(LOCK_CONFIG).forEach((prop) => {
       if (!objectStates.has(obj)) {
         backup[prop] = obj[prop];
       }
       const [lockedValue] = LOCK_CONFIG[prop];
       obj.set(prop, lockedValue);
     });
-    
+
     if (Object.keys(backup).length > 0) {
       objectStates.set(obj, backup);
     }
+
     obj.set('hoverCursor', 'default');
   };
 
- /**
- * 修改位置：useCanvasLock.js -> setBackgroundLock 函数
- * 变更点：注入 isCropMode 逻辑，实施“锚定锁定”以消除点击抖动
- */
-const setBackgroundLock = (canvasInstance, shouldLock, options = {}) => {
+  const restoreObjectFromBackup = (obj) => {
+    const backup = objectStates.get(obj);
+    if (!backup) return;
+
+    Object.keys(LOCK_CONFIG).forEach((prop) => {
+      if (Object.prototype.hasOwnProperty.call(backup, prop)) {
+        obj.set(prop, backup[prop]);
+      }
+    });
+
+    // hoverCursor：让路由/模式在下一次 setBackgroundLock(shouldLock=true) 时重设
+    obj.set('hoverCursor', obj.hoverCursor || 'default');
+  };
+
+  /**
+   * 修改位置：useCanvasLock.js -> setBackgroundLock 函数
+   * 变更点：
+   * 1) 将“按 activeTab 写死的分支”外移到 Workspace.vue 的策略表（配置驱动）
+   * 2) 保留 Crop 主图锚定锁能力（由 options.cropMainImageAnchored 控制）
+   */
+  const setBackgroundLock = (canvasInstance, shouldLock, options = {}) => {
     const canvas = unref(canvasInstance);
     if (!canvas) return;
 
-    // 1. 获取全局真相 [SSOT]
-    const activeTab = state.activeTab;
-    const dragMode = state.isGlobalDragMode;
-    const isResizeMode = activeTab === 'resize'; 
-    const isRulerMode = activeTab === 'ruler';
-    const isCropMode = activeTab === 'crop'; // ✨ 新增：剪裁模式识别 [宪法 0.0]
+    // === 策略输入（以 options 为准；提供默认值） ===
+    const {
+      dragMode = false,
+      isRulerMode = false,
+      isResizeMode = false,
+      isCropMode = false,
+      allowMainImageDrag = false,
+      allowRulerDrag = false,
+      allowNormalObjectDrag = false,
+      cropMainImageAnchored = false,
+    } = options;
 
     const objects = canvas.getObjects();
-    
+
+    // === 共同的 Canvas 级状态 ===
     if (shouldLock) {
-      canvas.discardActiveObject(); 
-        canvas.requestRenderAll();
-      canvas.selection = false; 
+      canvas.discardActiveObject();
+      canvas.requestRenderAll();
+
+      canvas.selection = false;
       canvas.defaultCursor = dragMode ? 'grab' : (isRulerMode ? 'crosshair' : 'default');
 
-      objects.forEach(obj => {
+      objects.forEach((obj) => {
         const isMain = obj.isMainImage || obj.id === 'main-image' || (obj.type === 'image' && objects.indexOf(obj) === 0);
-        
+
+        // --- 主图 ---
         if (isMain) {
-          // ✨✨✨ 核心修复：剪裁模式下的物理锚定 ✨✨✨
-          if (isCropMode) {
-           obj.set({
-    selectable: false, // ✨ 关键：禁用原生选择，消除点击瞬间的抖动
-    evented: true,     // ✨ 允许事件透传给 Canvas 监听器
-    lockMovementX: true,
-    lockMovementY: true,
-    hoverCursor: 'default'
-  });
-          } else {
-            // 尺寸模式或拖拽模式的逻辑保持不变
+          // Crop 模式下的“锚定锁定”（防抖动）：selectable=false 但 evented=true 允许事件透传
+          if (isCropMode && cropMainImageAnchored) {
             obj.set({
-              selectable: dragMode || isResizeMode,
-              evented: dragMode || isResizeMode,
-              lockMovementX: !dragMode, // 只有拖拽模式允许移动
-              lockMovementY: !dragMode,
-              hoverCursor: dragMode ? 'grab' : 'default'
+              selectable: false,
+              evented: true,
+              lockMovementX: true,
+              lockMovementY: true,
+              hoverCursor: 'default',
             });
+            return;
+          }
+
+          // 非 crop anchored：根据 allowMainImageDrag 决定能否拖
+          obj.set({
+            selectable: !!allowMainImageDrag,
+            evented: !!allowMainImageDrag,
+            lockMovementX: !allowMainImageDrag,
+            lockMovementY: !allowMainImageDrag,
+            hoverCursor: allowMainImageDrag ? (dragMode ? 'grab' : 'move') : 'default',
+          });
+          return;
+        }
+
+        // --- 非主图对象 ---
+        // Resize/Crop 等模块可能需要强制禁用所有非主图对象：由 Workspace 策略通过 allowNormalObjectDrag/allowRulerDrag 体现。
+        const isRuler = !!obj.isRuler;
+
+        // 标尺
+        if (isRuler) {
+          if (allowRulerDrag) {
+            forceEnableObject(obj, true);
+          } else {
+            lockAndStoreObject(obj);
           }
           return;
         }
 
-        // 屏蔽非主图对象（尺寸模式或剪裁模式下均生效）
-        if (isResizeMode || isCropMode) {
-          obj.set({ selectable: false, evented: false });
+        // 普通对象
+        if (allowNormalObjectDrag) {
+          forceEnableObject(obj, false);
           return;
         }
 
-        // 标尺豁免逻辑...
-        const shouldExempt = !dragMode && isRulerMode && obj.isRuler;
-        if (shouldExempt) {
-          forceEnableObject(obj, true);
-          return;
-        }
         lockAndStoreObject(obj);
       });
 
-      // 自动取消主图选中（除非是需要主图选中的模式）
-      if (!dragMode && !isResizeMode && !isCropMode && canvas.getActiveObject()?.isMainImage) {
+      // 自动取消主图选中（除非策略允许主图交互）
+      if (!allowMainImageDrag && canvas.getActiveObject()?.isMainImage) {
         canvas.discardActiveObject();
       }
     } else {
-      // 解锁阶段... (保持与 state 同步)
+      // 解锁阶段：恢复对象原始交互态
+      // 注意：这里不强制打开 selection；由外层(Workspace)根据模式决定是否调用 shouldLock=false
       canvas.selection = !dragMode && !isResizeMode && !isCropMode;
-      // ... 恢复逻辑
+
+      objects.forEach((obj) => {
+        restoreObjectFromBackup(obj);
+      });
+
+      // 退出标尺模式时，hoverCursor 统一回落
+      if (!isRulerMode) {
+        objects.forEach((obj) => {
+          if (obj.isRuler) obj.set('hoverCursor', 'default');
+        });
+      }
     }
+
     canvas.requestRenderAll();
-};
+  };
 
   return { setBackgroundLock };
 }

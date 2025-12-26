@@ -1,4 +1,4 @@
-import { ref, shallowRef, markRaw, toRaw, unref, onMounted, onUnmounted } from "vue";
+import { ref, shallowRef, markRaw, toRaw } from "vue";
 import { fabric } from "fabric";
 // ✨ 引入 state 以便读取当前的 activeTool/activeTab
 import { useEditorState, ZOOM_PADDING, CANVAS_PROPS_WHITELIST } from "./useEditorState";
@@ -12,13 +12,12 @@ import {
   flipActive as flipCrop
 } from "@/components/modules/adjust/useCanvasCrop";
 
-const ROUTING_ALLOWLIST = ['ruler'];
 
 export function useCanvas() {
   const canvas = shallowRef(null);
 
   // ✨ 获取 state 对象
-  const { state, setHistoryState, setActiveTool, setSidebarDisabled, routeToObject } = useEditorState();
+  const { state, setHistoryState, setSidebarDisabled, routeToObject } = useEditorState();
   const zoom = ref(1);
 
   // 交互状态变量
@@ -72,7 +71,7 @@ export function useCanvas() {
     const dY = currentCenter.y - transformBase.centerY;
 
     const others = canvas.value.getObjects().filter(o =>
-      o !== main && !o.excludeFromExport && o.type !== 'rect'
+      o !== main && !o.excludeFromExport
     );
 
     others.forEach(obj => {
@@ -137,6 +136,8 @@ export function useCanvas() {
     const content = history[historyIndex];
     canvas.value?.loadFromJSON(content, () => {
       canvas.value?.renderAll();
+      // ✨ 恢复完成后触发锁同步（Workspace.vue 监听 image:updated）
+      canvas.value?.fire('image:updated');
       historyProcessing = false;
       updateStoreHistory();
     });
@@ -150,6 +151,8 @@ export function useCanvas() {
     const content = history[historyIndex];
     canvas.value?.loadFromJSON(content, () => {
       canvas.value?.renderAll();
+      // ✨ 恢复完成后触发锁同步（Workspace.vue 监听 image:updated）
+      canvas.value?.fire('image:updated');
       historyProcessing = false;
       updateStoreHistory();
     });
@@ -176,9 +179,8 @@ export function useCanvas() {
 
     // 1. 解析目标
     if (eventOrObject && eventOrObject.selected) {
-      target = eventOrObject.selected.find(obj =>
-        obj.customTab && ROUTING_ALLOWLIST.includes(obj.customTab)
-      );
+      target = eventOrObject.selected.find(obj => obj.customTab);
+      // 若多选中存在 customTab，优先使用它触发对象路由；否则退回第一个选中对象
       if (!target) target = eventOrObject.selected[0];
     } else {
       target = eventOrObject;
@@ -204,28 +206,28 @@ export function useCanvas() {
 
     if (target.isMaskObject || target.excludeFromExport) return;
 
-    // 白名单路由
-    if (target.customTab && ROUTING_ALLOWLIST.includes(target.customTab)) {
-      routeToObject(target);
-    } else {
+    // ✨ 路由策略统一收敛到 useEditorState.routeToObject
+    // 由 routeToObject 决定是否跳转（例如：拖拽模式下禁止自动跳转）
+    const routed = routeToObject(target);
+    if (!routed) {
       setSidebarDisabled(false);
     }
   };
 
-  const handleMouseDown = (opt) => {
-    const target = opt.target;
-    if (!target) return;
-
-    // ✨ 唤醒逻辑也受独占模式约束
-    if (state.activeTool === 'adjust' && state.activeTab && target.customTab !== state.activeTab) {
-      return; // 拦截唤醒
-    }
-
-    const activeObj = canvas.value?.getActiveObject();
-    if (activeObj === target) {
-      handleSelection({ selected: [target] });
-    }
-  };
+  // const handleMouseDown = (opt) => {
+  //   const target = opt.target;
+  //   if (!target) return;
+  //
+  //   // ✨ 唤醒逻辑也受独占模式约束
+  //   if (state.activeTool === 'adjust' && state.activeTab && target.customTab !== state.activeTab) {
+  //     return; // 拦截唤醒
+  //   }
+  //
+  //   const activeObj = canvas.value?.getActiveObject();
+  //   if (activeObj === target) {
+  //     handleSelection({ selected: [target] });
+  //   }
+  // };
 
   // ... 初始化与辅助函数 (init, addImage, setZoom, etc.) 保持原样 ...
   // 为节省篇幅，后续函数未变动，请保持您原有的代码
@@ -313,7 +315,7 @@ export function useCanvas() {
       }
     });
 
-    c.on("mouse:up", (opt) => {
+    c.on("mouse:up", () => {
       if (!isPotentialClick || c.isDrawingMode || cropObject.value) return;
       const target = c.getActiveObject();
       if (!target) {
@@ -480,10 +482,10 @@ export function useCanvas() {
   const addText = (textStr = "双击编辑") => {
     if (!canvas.value) return;
     const text = new fabric.Textbox(textStr, {
-      left: 100, 
-      top: 100, 
+      left: 100,
+      top: 100,
       width: 300, // ✅ 统一使用 Textbox 并设置默认宽度
-      fontSize: 40, 
+      fontSize: 40,
       fill: "#333",
       customTab: 'text',
       fontFamily: 'Arial',

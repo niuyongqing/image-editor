@@ -1,9 +1,14 @@
 import { reactive, readonly, watch } from 'vue';
 
 /**
- * ✨ 配置驱动：定义与全局拖拽模式冲突的二级 Tab 黑名单
+ * ✨ 全局交互互斥策略 (SSOT)
+ * 规则：
+ * 1) 开启全局手形/拖拽模式(isGlobalDragMode)时，必须退出二级面板（activeTab 清空）
+ * 2) 进入任意二级面板（activeTab 非空）时，必须自动关闭全局手形/拖拽模式
+ *
+ * 注意：模块差异化“是否允许拖动/选择”的细粒度策略由 Workspace.vue 中的 syncLockState
+ * 通过 useCanvasLock 的配置驱动实现；这里仅负责全局互斥闭环。
  */
-const DRAG_INCOMPATIBLE_TABS = ['crop', 'resize', 'ruler'];
 
 /**
  * ✨ 全局路由配置表 (Single Source of Truth)
@@ -67,14 +72,22 @@ const state = reactive({
     isPuzzleMode: false,
 });
 
-// ✨✨✨ 核心互斥逻辑：方式 2 (监听器模式) ✨✨✨
+// ✨✨✨ 核心互斥逻辑：监听器模式 (SSOT) ✨✨✨
+// 1) 开启拖拽模式 -> 强制退出二级面板
 watch(() => state.isGlobalDragMode, (isDragging) => {
-    if (isDragging) {
-        // 如果开启了拖拽模式，检查当前 Tab 是否在黑名单中
-        if (DRAG_INCOMPATIBLE_TABS.includes(state.activeTab)) {
-            console.log(`[Interaction] Drag Mode ON: Auto-closing incompatible tab: ${state.activeTab}`);
-            state.activeTab = ''; // 清空 Tab，触发 UI 收起与模块清理
-        }
+    if (!isDragging) return;
+    if (state.activeTab) {
+        console.log(`[Interaction] Drag Mode ON: Auto-closing active tab: ${state.activeTab}`);
+        state.activeTab = '';
+    }
+});
+
+// 2) 进入任意二级面板 -> 强制关闭拖拽模式
+watch(() => state.activeTab, (tab) => {
+    if (!tab) return;
+    if (state.isGlobalDragMode) {
+        console.log(`[Interaction] Active Tab ON: Auto-disabling Drag Mode. Tab: ${tab}`);
+        state.isGlobalDragMode = false;
     }
 });
 
@@ -96,6 +109,12 @@ export function useEditorState() {
         state.activeTab = tab; // 更新二级路由
         state.navigationSource = source;
 
+        // ✨ 互斥闭环：进入任何二级面板时，自动关闭拖拽模式（用户手动优先级最高）
+        if (tab && state.isGlobalDragMode) {
+            console.log(`[Interaction] Enter Tab -> Auto-disabling Drag Mode. Tab: ${tab}`);
+            state.isGlobalDragMode = false;
+        }
+
         // 副作用处理
         state.isDrawing = false; // 切换工具默认退出绘制模式
         state.isSidebarDisabled = false; // 只要切换工具，必定激活面板
@@ -109,11 +128,11 @@ export function useEditorState() {
         state.isGlobalDragMode = val;
         console.log(`[Interaction] Global Drag Mode: ${val ? 'ON' : 'OFF'}`);
 
-        if (val) {
-            if (DRAG_INCOMPATIBLE_TABS.includes(state.activeTab)) {
-                console.log(`[Interaction] Auto-closing incompatible tab: ${state.activeTab}`);
-                state.activeTab = ''; // 立即清空，触发侧边栏收起
-            }
+        // ✨ 对称互斥：开启拖拽时必须退出二级面板
+        // 注意：这里做“立即”收敛；watch 里仍保留兜底，防止外部直接改 state 造成不一致
+        if (val && state.activeTab) {
+            console.log(`[Interaction] Drag Mode ON: Auto-closing active tab immediately: ${state.activeTab}`);
+            state.activeTab = '';
         }
     };
 
@@ -121,6 +140,12 @@ export function useEditorState() {
     // ✨ [核心补全] 切换二级 Tab (专门给 UI 组件用来清理状态)
     const setActiveTab = (tab) => {
         state.activeTab = tab;
+
+        // ✨ 互斥闭环：进入任何二级面板时，自动关闭拖拽模式
+        if (tab && state.isGlobalDragMode) {
+            console.log(`[Interaction] Enter Tab -> Auto-disabling Drag Mode. Tab: ${tab}`);
+            state.isGlobalDragMode = false;
+        }
     };
 
     const toggleDrawing = (status) => {

@@ -189,16 +189,82 @@
   };
 
   // ... Sync Lock State ...
+  // === ✨ 配置驱动：交互锁策略表（四类闭环：default/crop/resize/ruler） ===
+  const TAB_LOCK_POLICIES = {
+    default: {
+      isRulerMode: false,
+      isResizeMode: false,
+      isCropMode: false,
+      cropMainImageAnchored: false,
+      // 非拖拽模式：主图不可拖；普通对象不可拖；标尺不可拖
+      allowMainImageDrag: false,
+      allowNormalObjectDrag: false,
+      allowRulerDrag: false,
+    },
+    crop: {
+      isRulerMode: false,
+      isResizeMode: false,
+      isCropMode: true,
+      // Crop 的锚定锁（消除点击抖动，事件透传给 crop 监听器）
+      cropMainImageAnchored: true,
+      allowMainImageDrag: false,
+      allowNormalObjectDrag: false,
+      allowRulerDrag: false,
+    },
+    resize: {
+      isRulerMode: false,
+      isResizeMode: true,
+      isCropMode: false,
+      cropMainImageAnchored: false,
+      // Resize：允许主图交互（现有逻辑中主图可选）；但不允许拖动普通对象/标尺
+      // 注意：是否允许“拖动主图”取决于你们的产品定义；这里先保持与旧逻辑一致（主图可交互）
+      allowMainImageDrag: true,
+      allowNormalObjectDrag: false,
+      allowRulerDrag: false,
+    },
+    ruler: {
+      isRulerMode: true,
+      isResizeMode: false,
+      isCropMode: false,
+      cropMainImageAnchored: false,
+      // 标尺模式：标尺可拖；主图不可拖；普通对象不可拖
+      allowMainImageDrag: false,
+      allowNormalObjectDrag: false,
+      allowRulerDrag: true,
+    },
+  };
+
+  const getLockPolicyByTab = (tab) => {
+    if (tab === 'crop') return TAB_LOCK_POLICIES.crop;
+    if (tab === 'resize') return TAB_LOCK_POLICIES.resize;
+    if (tab === 'ruler') return TAB_LOCK_POLICIES.ruler;
+    return TAB_LOCK_POLICIES.default;
+  };
+
+  // ... Sync Lock State ...
   const syncLockState = () => {
     const canvas = unref(canvasAPI.canvas);
     if (!canvas) return;
-    const isRulerModule = state.activeTab === 'ruler';
-    const isResizeModule = state.activeTab === 'resize';
+
+    const basePolicy = getLockPolicyByTab(state.activeTab);
+
+    // ✨ 全局拖拽模式：主图可拖动，且 useCanvas.js 会驱动所有对象跟随主图变换
+    const dragPolicy = state.isGlobalDragMode
+      ? {
+          dragMode: true,
+          isRulerMode: false,
+          isResizeMode: false,
+          isCropMode: false,
+          cropMainImageAnchored: false,
+          allowMainImageDrag: true,
+          allowNormalObjectDrag: false,
+          allowRulerDrag: false,
+        }
+      : { dragMode: false };
+
     setBackgroundLock(canvas, true, {
-      excludeRulers: isRulerModule,
-      dragMode: state.isGlobalDragMode,
-      isRulerMode: isRulerModule,
-      isResizeMode: isResizeModule
+      ...basePolicy,
+      ...dragPolicy,
     });
   };
 
