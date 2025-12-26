@@ -34,7 +34,6 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue';
 import { SHORTCUT_GROUPS } from '@/config/shortcuts';
 
 defineProps({

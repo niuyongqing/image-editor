@@ -1,19 +1,16 @@
 // src/components/modules/puzzle/useCanvasPuzzle.js
-import { unref, reactive, toRaw } from "vue";
+import { unref, reactive, toRaw, nextTick } from "vue";
 import { fabric } from "fabric";
 import { constrainObjectToRect, animateRebound } from '@/composables/useConstraint';
 import { CANVAS_PROPS_WHITELIST } from "@/composables/useEditorState";
 
 // === 内部变量 ===
-// 1. 新增一个内部变量，用于标识当前的渲染任务
 let currentRenderToken = 0;
 export let canvasRef = null;
 let zoomToRectFn = null;
 let prePuzzleVpt = null;
 let uiCallbacks = { onCellClick: null, onImageSelect: null, onDeselect: null };
 export let prePuzzleSnapshot = null;
-
-
 
 // 交互状态
 let isDragging = false;
@@ -36,8 +33,10 @@ const DEFAULTS = {
 
 export const puzzleState = reactive({
   isActive: false,
+  mode: 'grid', // 'grid' | 'join'
+  joinDirection: 'horizontal', // 'horizontal' | 'vertical'
   cells: [],
-  imagePool: [],
+  imagePool: [], // 在 Join 模式下，池的顺序即为拼接顺序
   padding: DEFAULTS.padding,
   spacing: DEFAULTS.spacing,
   radius: DEFAULTS.radius,
@@ -47,7 +46,7 @@ export const puzzleState = reactive({
   startX: 0,
   startY: 0,
   originalBg: null,
-  rawCells: [] // 存储原始格子定义
+  rawCells: []
 });
 
 export const registerPuzzleModule = (canvas, callbacks = {}, zoomToRect = null) => {
@@ -56,23 +55,13 @@ export const registerPuzzleModule = (canvas, callbacks = {}, zoomToRect = null) 
   zoomToRectFn = zoomToRect;
 };
 
-// --- 全新增加 ---
-/**
- * 捕获进入模块时的绝对初始状态
- */
-/**
- * ✨ 核心：捕获进入模块时的“处女态”快照
- * 增加了 prePuzzleSnapshot 的存在检查，确保连续切换模板不会覆盖初始快照
- */
+// === 状态捕获与恢复 ===
+
 export const recordEntryState = () => {
   const canvas = unref(canvasRef);
   if (!canvas) return;
-
-  // 🔒 锁：如果已经存过快照了，绝对不要覆盖它
-  if (prePuzzleSnapshot) {
-    console.log("[Puzzle] 快照已存在，保留初始状态，不进行覆盖");
-    return;
-  }
+  // 锁：如果已经存过快照了，绝对不要覆盖它
+  if (prePuzzleSnapshot) return;
 
   console.log("[Puzzle] 📸 捕获初始状态快照");
   prePuzzleVpt = canvas.viewportTransform ? [...canvas.viewportTransform] : [1, 0, 0, 1, 0, 0];
@@ -80,14 +69,10 @@ export const recordEntryState = () => {
   puzzleState.originalBg = canvas.backgroundColor;
 };
 
-/**
- * 清理初始快照引用
- */
 export const clearEntryState = () => {
   prePuzzleSnapshot = null;
   prePuzzleVpt = null;
 };
-
 
 export const zoomToPuzzleArea = () => {
   if (!zoomToRectFn) return;
@@ -97,213 +82,334 @@ export const zoomToPuzzleArea = () => {
     width: puzzleState.width,
     height: puzzleState.height
   };
-  zoomToRectFn(rect);
+  // 增加视觉边距
+  const paddedRect = {
+    left: rect.left - 50,
+    top: rect.top - 50,
+    width: rect.width + 100,
+    height: rect.height + 100
+  };
+  zoomToRectFn(paddedRect);
 };
 
+// === 初始化逻辑 ===
 
-/**
- * 改进 initPuzzleMode：使其具有幂等性，防止重复初始化
- */
-export const initPuzzleMode = () => {
+const prepareInit = () => {
   const canvas = unref(canvasRef);
-  if (!canvas) return;
-
+  if (!canvas) return false;
   recordEntryState();
 
-  // ✨ 改进：如果已经处于拼图激活状态，不要重新提取主图，防止池被意外清空或重复
-  if (puzzleState.isActive && puzzleState.imagePool.length > 0) {
-    console.log("[Puzzle] 模块已激活，跳过重复初始化");
-    return;
-  }
+  // 如果已经激活且有内容，不重置池，防止切换 Tab 时丢失数据
+  if (puzzleState.isActive && puzzleState.imagePool.length > 0) return true;
 
-  puzzleState.imagePool = []; 
-
+  puzzleState.imagePool = [];
+  // 提取主图
   const activeImg = canvas.getObjects().find(o => o.type === 'image' && !o.isPuzzleItem);
   if (activeImg) {
     console.log("[Puzzle] 📸 正在提取唯一主图入池...");
     puzzleState.imagePool[0] = {
       id: `img_main_${Date.now()}`,
       src: activeImg.getSrc(),
+      width: activeImg.width,
+      height: activeImg.height,
       metadata: {
         filters: activeImg.filters ? [...activeImg.filters] : [],
         opacity: activeImg.opacity || 1,
-        // ✨ 新增：捕获当前缩放，防止初始化时图片缩小
-        scale: activeImg.scaleX 
+        scale: 1
       }
     };
     canvas.remove(activeImg);
-}
-
+  }
   puzzleState.isActive = true;
   bindEvents();
-  
+  return true;
+};
+
+// 1. 网格模式初始化
+export const initPuzzleMode = () => {
+  if (!prepareInit()) return;
+  puzzleState.mode = 'grid';
   // 默认 1x1
   updateLayout([{ w: 1, h: 1, x: 0, y: 0, index: 0 }]);
   zoomToPuzzleArea();
 };
 
-// 提供给 index.vue 使用的 getter
-export const getInitialState = () => ({
-  snapshot: prePuzzleSnapshot,
-  vpt: prePuzzleVpt
-});
+// 2. 拼接模式初始化
+export const initJoinMode = (direction = 'horizontal') => {
+  if (!prepareInit()) return;
 
-export const completeExitPuzzle = (action = 'save') => {
-  const canvas = unref(canvasRef);
-  if (!canvas) return;
+  puzzleState.mode = 'join';
+  puzzleState.joinDirection = direction;
 
-  // 1. 记录当前相机视口，用于 save 后的恢复（导出时需要重置视口）
-  const savedVpt = canvas.viewportTransform ? [...canvas.viewportTransform] : [1, 0, 0, 1, 0, 0];
+  // 设置默认基准尺寸
+  if (direction === 'horizontal') {
+    puzzleState.height = 1000; // 纵向拼接时，高度固定作为基准
+    puzzleState.width = 1000;  // 初始值
+  } else {
+    puzzleState.width = 1000;  // 横向拼接时，宽度固定作为基准
+    puzzleState.height = 1000;
+  }
+  puzzleState.spacing = 0; // 拼接默认无间距
+  puzzleState.padding = 0;
 
-  if (action === 'save') {
-    // === 保存逻辑 ===
-    const hiddenObjs = canvas.getObjects().filter(o =>
-      o.isPuzzleController ||
-      o.isGhost ||
-      (o.isPlaceholder && o.isPuzzleBackground)
-    );
-    hiddenObjs.forEach(o => o.visible = false);
+  // 立即执行重排
+  reflowJoinLayout();
+};
 
-    // 重置视口到 1:1 进行精准区域导出
-    canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
-    canvas.renderAll();
+// === 拼接模式核心引擎 (Reflow Engine) ===
 
-    const dataURL = canvas.toDataURL({
-      format: 'png', quality: 1, multiplier: 2,
-      left: puzzleState.startX, top: puzzleState.startY,
-      width: puzzleState.width, height: puzzleState.height
+export const reflowJoinLayout = () => {
+  if (puzzleState.mode !== 'join') return;
+
+  const { joinDirection, spacing, padding, imagePool } = puzzleState;
+  // 过滤空槽
+  const validImages = imagePool.filter(img => img && img.src);
+
+  if (validImages.length === 0) {
+    puzzleState.cells = [];
+    refreshPuzzleObjects(false);
+    return;
+  }
+
+  let currentPos = padding;
+  const cells = [];
+
+  // 方案B：等比适应
+  if (joinDirection === 'horizontal') {
+    // 横向拼接：高度固定，宽度动态延伸
+    const fixedHeight = puzzleState.height - (padding * 2);
+
+    validImages.forEach((img, index) => {
+      // 防止除以0
+      const h = img.height || 100;
+      const w = img.width || 100;
+      const ratio = w / h;
+
+      const cellWidth = fixedHeight * ratio;
+
+      cells.push({
+        index: index, // 在 Join 模式下，index 对应 imagePool 的顺序
+        left: puzzleState.startX + currentPos,
+        top: puzzleState.startY + padding,
+        width: cellWidth,
+        height: fixedHeight,
+        poolRef: img // 直接引用数据对象
+      });
+
+      currentPos += cellWidth + spacing;
     });
 
-    const allPuzzleObjs = canvas.getObjects().filter(o => o.isPuzzleItem);
-    canvas.remove(...allPuzzleObjs);
-
-    fabric.Image.fromURL(dataURL, (img) => {
-      img.set({
-        left: puzzleState.startX, top: puzzleState.startY,
-        originX: 'left', originY: 'top',
-        selectable: true
-      });
-      img.scaleToWidth(puzzleState.width);
-      canvas.add(img);
-      
-      // 还原导出前的相机位置
-      canvas.setViewportTransform(savedVpt);
-      
-      // ✨ 关键：最后执行清理并释放初始快照
-      exitPuzzleMode(); 
-      canvas.requestRenderAll();
-    }, { crossOrigin: 'anonymous' });
+    // 更新总宽度
+    puzzleState.width = Math.max(100, currentPos - spacing + padding);
 
   } else {
-   // === 取消逻辑 ===
-    if (prePuzzleSnapshot) {
-      console.log("[Puzzle] 🔄 正在回滚至初始状态...");
-      
-      canvas.loadFromJSON(prePuzzleSnapshot, () => {
-        // 1. 恢复视口和缩放
-        if (prePuzzleVpt) {
-          canvas.setViewportTransform(prePuzzleVpt);
-        }
-        // 2. 恢复背景
-        if (puzzleState.originalBg !== null) {
-          canvas.setBackgroundColor(puzzleState.originalBg);
-        }
+    // 纵向拼接：宽度固定，高度动态延伸
+    const fixedWidth = puzzleState.width - (padding * 2);
 
-        // 3. ✨ 只有在 loadFromJSON 彻底完成后，才清理模式和释放快照
-        exitPuzzleMode(); 
-        
-        canvas.fire('image:updated');
-        canvas.requestRenderAll();
-        console.log("[Puzzle] ✅ 已成功回滚。");
-      });
-    } else {
-      exitPuzzleMode();
-    }
-  }
-};
+    validImages.forEach((img, index) => {
+      const h = img.height || 100;
+      const w = img.width || 100;
+      const ratio = h / w;
 
-export const exitPuzzleMode = () => {
-const canvas = unref(canvasRef);
-  if (!canvas) return;
-  puzzleState.isActive = false;
-  unbindEvents();
-  // 彻底释放快照，允许下一次进入模块时重新捕获
-  prePuzzleSnapshot = null;
-  prePuzzleVpt = null;
-  console.log("[Puzzle] 🧹 模块状态已完全清理。");
-};
+      const cellHeight = fixedWidth * ratio;
 
-export const restorePuzzleData = () => {
-  const canvas = unref(canvasRef);
-  if (!canvas) return;
-
-  const historyData = puzzleState.savedHistoryData;
-  const savedSettings = puzzleState.savedSettings;
-
-  if (!historyData || historyData.length === 0) return;
-
-  if (savedSettings) {
-    puzzleState.width = savedSettings.width;
-    puzzleState.height = savedSettings.height;
-    puzzleState.padding = savedSettings.padding;
-    puzzleState.spacing = savedSettings.spacing;
-    puzzleState.radius = savedSettings.radius;
-    if (savedSettings.bgColor) {
-      puzzleState.bgColor = savedSettings.bgColor;
-    }
-  }
-
-  let loadedCount = 0;
-
-  historyData.forEach(item => {
-    fabric.Image.fromURL(item.src, (img) => {
-      loadedCount++;
-
-      img.set({
-        id: item.id,
-        left: item.left,
-        top: item.top,
-        scaleX: item.scaleX,
-        scaleY: item.scaleY,
-        angle: item.angle,
-        flipX: item.flipX,
-        flipY: item.flipY,
-        cropX: item.cropX,
-        cropY: item.cropY,
-        originX: item.originX || 'center',
-        originY: item.originY || 'center',
-        cellIndex: item.cellIndex,
-        isPuzzleItem: true,
-        isPuzzleImage: true,
-        originalSrc: item.src,
-        selectable: false,
-        evented: false,
-        hasControls: false,
-        hasBorders: false,
+      cells.push({
+        index: index,
+        left: puzzleState.startX + padding,
+        top: puzzleState.startY + currentPos,
+        width: fixedWidth,
+        height: cellHeight,
+        poolRef: img
       });
 
-      canvas.add(img);
+      currentPos += cellHeight + spacing;
+    });
 
-      if (loadedCount === historyData.length) {
-        puzzleState.isActive = true;
-        refreshPuzzleObjects(false);
-        zoomToPuzzleArea();
-        canvas.requestRenderAll();
-      }
-    }, { crossOrigin: 'anonymous' });
+    // 更新总高度
+    puzzleState.height = Math.max(100, currentPos - spacing + padding);
+  }
+
+  puzzleState.cells = cells;
+
+  // 重绘
+  refreshPuzzleObjects(false);
+
+  // 自动适配视口
+  nextTick(() => {
+    zoomToPuzzleArea();
   });
 };
 
-export const getPuzzleImageCount = () => {
-  const canvas = unref(canvasRef);
-  if (!canvas) return 0;
-  return canvas.getObjects().filter(o => o.isPuzzleImage && !o.isGhost && !o.isPuzzleBackground).length;
+/**
+ * 拼接模式：追加图片
+ */
+export const appendImageToJoin = (url) => {
+  // 1. 获取图片元数据
+  fabric.Image.fromURL(url, (img) => {
+    const newImgData = {
+      id: `img_join_${Date.now()}`,
+      src: url,
+      width: img.width,
+      height: img.height,
+      metadata: { filters: [], opacity: 1, scale: 1 }
+    };
+
+    // 2. 推入池
+    puzzleState.imagePool.push(newImgData);
+
+    // 3. 触发重排
+    reflowJoinLayout();
+
+  }, { crossOrigin: 'anonymous' });
 };
 
-// useCanvasPuzzle.js 中的 updatePuzzleImageParams
+// === 布局更新与管理 ===
+
+const calculateCellsInternal = () => {
+  const { width, height, padding, spacing, startX, startY } = puzzleState;
+  const safeW = Math.max(0, width - (padding * 2));
+  const safeH = Math.max(0, height - (padding * 2));
+
+  puzzleState.cells = puzzleState.rawCells.map(cell => {
+    const EPSILON = 0.01;
+    const isLeftEdge = cell.x < EPSILON;
+    const isTopEdge = cell.y < EPSILON;
+    const isRightEdge = Math.abs((cell.x + cell.w) - 1.0) < EPSILON;
+    const isBottomEdge = Math.abs((cell.y + cell.h) - 1.0) < EPSILON;
+
+    let boxLeft = startX + Number(padding) + (cell.x * safeW);
+    let boxTop = startY + Number(padding) + (cell.y * safeH);
+    let boxWidth = cell.w * safeW;
+    let boxHeight = cell.h * safeH;
+
+    if (!isLeftEdge) { boxLeft += spacing / 2; boxWidth -= spacing / 2; }
+    if (!isRightEdge) { boxWidth -= spacing / 2; }
+    if (!isTopEdge) { boxTop += spacing / 2; boxHeight -= spacing / 2; }
+    if (!isBottomEdge) { boxHeight -= spacing / 2; }
+
+    return {
+      index: cell.index,
+      left: boxLeft,
+      top: boxTop,
+      width: Math.max(1, boxWidth),
+      height: Math.max(1, boxHeight)
+    };
+  });
+};
+
+export const updateLayout = (cellDefinitions = null, config = {}) => {
+  if (puzzleState.mode === 'join') {
+    if (config.spacing !== undefined) puzzleState.spacing = config.spacing;
+    if (config.padding !== undefined) puzzleState.padding = config.padding;
+    if (config.bgColor) puzzleState.bgColor = config.bgColor;
+    if (config.width) puzzleState.width = config.width;
+    if (config.height) puzzleState.height = config.height;
+    reflowJoinLayout();
+    return;
+  }
+
+  const canvas = unref(canvasRef);
+  if (!canvas) return;
+  if (config.width !== undefined) puzzleState.width = config.width;
+  if (config.height !== undefined) puzzleState.height = config.height;
+  if (config.padding !== undefined) puzzleState.padding = config.padding;
+  if (config.spacing !== undefined) puzzleState.spacing = config.spacing;
+  if (config.radius !== undefined) puzzleState.radius = config.radius;
+  if (config.bgColor) puzzleState.bgColor = config.bgColor;
+
+  if (cellDefinitions) {
+    puzzleState.rawCells = cellDefinitions;
+    calculateCellsInternal();
+    refreshPuzzleObjects(true);
+  } else {
+    calculateCellsInternal();
+    refreshPuzzleObjects(false);
+  }
+};
+
+// === 图片操作 ===
+
+export const deleteImageFromCell = (cellIndex) => {
+  if (puzzleState.mode === 'join') {
+    puzzleState.imagePool.splice(cellIndex, 1);
+    reflowJoinLayout();
+  } else {
+    if (puzzleState.imagePool[cellIndex]) {
+      puzzleState.imagePool[cellIndex] = null;
+    }
+    refreshPuzzleObjects(false);
+  }
+};
+
+/**
+ * 向指定格子添加/替换图片
+ * @param {string} url - 图片地址
+ * @param {number} cellIndex - 格子索引
+ */
+export const addImageToCell = (url, cellIndex) => {
+  // === 1. Join (拼接) 模式处理逻辑 ===
+  if (puzzleState.mode === 'join') {
+    // 拼接模式下，必须先获取图片尺寸，因为布局依赖于图片宽高比
+    fabric.Image.fromURL(url, (img) => {
+      const newImgData = {
+        id: `img_join_${Date.now()}`,
+        src: url,
+        width: img.width,
+        height: img.height,
+        metadata: { filters: [], opacity: 1, scale: 1 }
+      };
+
+      // 核心修正：不再追加，而是替换指定位置的数据
+      if (cellIndex >= 0 && cellIndex < puzzleState.imagePool.length) {
+        puzzleState.imagePool[cellIndex] = newImgData;
+        console.log(`[Puzzle/Join] 已替换索引 ${cellIndex} 的图片，触发重排`);
+      } else {
+        // 兜底：如果索引异常，则追加
+        puzzleState.imagePool.push(newImgData);
+      }
+
+      // 触发拼接布局重排 (自动适应新图片的宽高比)
+      reflowJoinLayout();
+    }, { crossOrigin: 'anonymous' });
+    
+    return;
+  }
+
+  // === 2. Grid (网格) 模式处理逻辑 (保持原有逻辑) ===
+  fabric.Image.fromURL(url, (img) => {
+    puzzleState.imagePool[cellIndex] = {
+      id: `img_${Date.now()}`,
+      src: url,
+      width: img.width,
+      height: img.height,
+      metadata: { filters: [], opacity: 1, scale: 1 }
+    };
+    console.log(`[Puzzle] 图片已压入池索引: ${cellIndex}`);
+    refreshPuzzleObjects(false);
+
+    setTimeout(() => {
+      const canvas = unref(canvasRef);
+      const controller = canvas?.getObjects().find(
+        o => o.isPuzzleController && o.cellIndex === cellIndex
+      );
+      if (controller) {
+        canvas.setActiveObject(controller);
+        canvas.requestRenderAll();
+      }
+    }, 100);
+  }, { crossOrigin: 'anonymous' });
+};
+
 export const updatePuzzleImageParams = (cellIndex, params = {}) => {
   const canvas = unref(canvasRef);
-  const poolItem = puzzleState.imagePool[cellIndex];
+
+  let poolItem;
+  if (puzzleState.mode === 'join') {
+    poolItem = puzzleState.imagePool[cellIndex];
+  } else {
+    poolItem = puzzleState.imagePool[cellIndex];
+  }
+
   if (!canvas || !poolItem) return;
 
   const img = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === cellIndex);
@@ -312,21 +418,29 @@ export const updatePuzzleImageParams = (cellIndex, params = {}) => {
   if (img && cell) {
     if (params.opacity !== undefined) {
       img.set('opacity', params.opacity);
-      poolItem.metadata.opacity = params.opacity; // 同步到池
+      poolItem.metadata.opacity = params.opacity;
     }
     if (params.scale !== undefined) {
-      const minScale = Math.max(cell.width / img.width, cell.height / img.height);
+      const fitState = calculateFitPosition(img, cell);
+      const minScale = fitState.scaleX;
+
       let newScale = Math.max(minScale, params.scale);
       img.set({ scaleX: newScale, scaleY: newScale });
-      poolItem.metadata.scale = newScale; // ✨ 同步到池，防止刷新重置
-      
+      poolItem.metadata.scale = newScale;
+
       constrainObjectToRect(img, { left: cell.left, top: cell.top, width: cell.width, height: cell.height }, canvas);
     }
     canvas.requestRenderAll();
   }
 };
 
-// useCanvasPuzzle.js
+export const getPuzzleImageCount = () => {
+  const canvas = unref(canvasRef);
+  if (!canvas) return 0;
+  return canvas.getObjects().filter(o => o.isPuzzleImage && !o.isGhost && !o.isPuzzleBackground).length;
+};
+
+// === 核心渲染逻辑 ===
 
 const calculateFitPosition = (img, cell) => {
   const iW = img.width || 1;
@@ -337,9 +451,7 @@ const calculateFitPosition = (img, cell) => {
   const scaleX = cW / iW;
   const scaleY = cH / iH;
 
-  // ✨ 必须取最大值确保“覆盖(Cover)”全格
-  // 添加 0.01 补偿，解决边缘可能出现的 1px 留白问题
-  const fillScale = Math.max(scaleX, scaleY) + 0.01;
+  const fillScale = Math.max(scaleX, scaleY) + (puzzleState.mode === 'join' ? 0 : 0.01);
 
   return {
     scaleX: fillScale,
@@ -348,6 +460,132 @@ const calculateFitPosition = (img, cell) => {
     top: cell.top + cH / 2
   };
 };
+
+const refreshPuzzleObjects = (shouldResetImages = false) => {
+  const canvas = unref(canvasRef);
+  if (!canvas) return;
+
+  const thisRenderToken = ++currentRenderToken;
+  const { radius, startX, startY, width, height, bgColor } = puzzleState;
+
+  // 1. 清理
+  const toRemove = canvas.getObjects().filter(o =>
+    o.isPlaceholder || o.isPuzzleController || o.isPuzzleBackground || o.isPuzzleImage
+  );
+  canvas.remove(...toRemove);
+
+  // 2. 绘制背景
+  const localBg = new fabric.Rect({
+    left: startX, top: startY, width: width, height: height,
+    fill: bgColor, rx: radius, ry: radius,
+    selectable: false, evented: false, isPuzzleBackground: true, isPuzzleItem: true
+  });
+  canvas.add(localBg);
+  localBg.sendToBack();
+
+  // 3. 压实池 (Grid 模式)
+  if (shouldResetImages && puzzleState.mode === 'grid') {
+    puzzleState.imagePool = puzzleState.imagePool.filter(item => item && item.src);
+  }
+
+  // 4. 遍历格子渲染
+  puzzleState.cells.forEach((cell, index) => {
+    let poolData;
+    if (puzzleState.mode === 'join') {
+      poolData = cell.poolRef; // Join 模式直接读取引用
+    } else {
+      poolData = puzzleState.imagePool[index];
+    }
+
+    if (poolData && poolData.src) {
+      fabric.Image.fromURL(poolData.src, (img) => {
+        if (thisRenderToken !== currentRenderToken) return;
+
+        const fitState = calculateFitPosition(img, cell);
+        const autoScale = fitState.scaleX;
+        const savedScale = poolData.metadata?.scale || 0;
+        const finalScale = (puzzleState.mode === 'join') ? autoScale : Math.max(autoScale, savedScale);
+
+        img.set({
+          scaleX: finalScale,
+          scaleY: finalScale,
+          left: fitState.left,
+          top: fitState.top,
+          originX: 'center',
+          originY: 'center',
+          selectable: false,
+          evented: false,
+          isPuzzleItem: true,
+          isPuzzleImage: true,
+          cellIndex: cell.index
+        });
+
+        if (poolData.metadata?.opacity !== undefined) img.set('opacity', poolData.metadata.opacity);
+
+        canvas.add(img);
+        img.setCoords();
+
+        if (puzzleState.mode !== 'join') {
+          const containerRect = { left: cell.left, top: cell.top, width: cell.width, height: cell.height };
+          constrainObjectToRect(img, containerRect, canvas);
+        }
+
+        const clipRect = new fabric.Rect({
+          left: cell.left, top: cell.top, width: cell.width, height: cell.height,
+          rx: radius, ry: radius, absolutePositioned: true
+        });
+        img.set({ clipPath: clipRect });
+
+        const controller = new fabric.Rect({
+          left: cell.left, top: cell.top, width: cell.width, height: cell.height,
+          fill: 'transparent', selectable: true, evented: true,
+          hasControls: false, hasBorders: false, lockMovementX: true, lockMovementY: true,
+          isPuzzleItem: true, isPuzzleController: true, cellIndex: cell.index
+        });
+        canvas.add(controller);
+        controller.bringToFront();
+
+        canvas.requestRenderAll();
+      }, { crossOrigin: 'anonymous' });
+
+    } else {
+      if (puzzleState.mode === 'grid') {
+        drawPlaceholder(canvas, cell);
+      }
+    }
+  });
+
+  canvas.requestRenderAll();
+};
+
+const drawPlaceholder = (canvas, cell) => {
+  const rect = new fabric.Rect({
+    left: cell.left,
+    top: cell.top,
+    width: cell.width,
+    height: cell.height,
+    fill: 'transparent',
+    stroke: '#dcdfe6',
+    strokeWidth: 1,
+    strokeDashArray: [4, 4],
+    rx: puzzleState.radius,
+    ry: puzzleState.radius,
+    selectable: false,
+    evented: false,
+    isPuzzleItem: true,
+    isPlaceholder: true,
+    isPuzzleBackground: true
+  });
+  const plus = new fabric.Text('+', {
+    left: cell.left + cell.width / 2, top: cell.top + cell.height / 2,
+    fontSize: 30, fill: '#909399', originX: 'center', originY: 'center',
+    selectable: false, evented: false, isPuzzleItem: true, isPlaceholder: true
+  });
+  canvas.add(rect, plus);
+  rect.sendToBack();
+};
+
+// === 交互事件 ===
 
 const bindEvents = () => {
   const canvas = unref(canvasRef);
@@ -379,6 +617,7 @@ const onMouseDown = (opt) => {
     dragOriginCellIndex = target.cellIndex;
     canvas.setActiveObject(target);
 
+    // Join 模式也需要 dragOffset 用于拖拽代理显示
     const img = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === target.cellIndex);
     if (img) {
       dragOffset = {
@@ -388,7 +627,6 @@ const onMouseDown = (opt) => {
     } else {
       dragOffset = { x: 0, y: 0 };
     }
-
   } else {
     isDragging = false;
     dragOriginCellIndex = -1;
@@ -502,6 +740,7 @@ const onMouseUp = (opt) => {
   if (!puzzleState.isActive) return;
   const canvas = unref(canvasRef);
   const pointer = canvas.getPointer(opt.e);
+
   isDragging = false;
   isCreatingProxy = false;
 
@@ -519,28 +758,24 @@ const onMouseUp = (opt) => {
       animateSnapBack(originCellIndex);
     }
   }
-  // 正常点击逻辑
+  // 点击逻辑
   else if (dragOriginPoint) {
     const dist = Math.sqrt(
       Math.pow(pointer.x - dragOriginPoint.x, 2) +
       Math.pow(pointer.y - dragOriginPoint.y, 2)
     );
 
-    // 判断为点击而非拖拽
     if (dist < 5) {
       const clickedCell = getCellFromPoint(pointer.x, pointer.y);
       if (clickedCell) {
-        // 判断格子内是否有图片
         const img = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === clickedCell.index);
 
         if (!img) {
-          // A. 点击空格子：上传
           if (uiCallbacks.onCellClick) {
             uiCallbacks.onCellClick(clickedCell.index);
             canvas.discardActiveObject();
           }
         } else {
-          // B. 点击有图片的格子：选中并进入配置
           const controller = canvas.getObjects().find(o => o.isPuzzleController && o.cellIndex === clickedCell.index);
           if (controller) canvas.setActiveObject(controller);
 
@@ -552,17 +787,22 @@ const onMouseUp = (opt) => {
           }
         }
       } else {
-        // 点击空白处（网格外的区域）
         if (uiCallbacks.onDeselect) uiCallbacks.onDeselect();
       }
     } else {
-      // 拖拽了但没产生交换（原地回弹）
       if (dragOriginCellIndex !== -1) animateSnapBack(dragOriginCellIndex);
     }
   }
   dragOriginCellIndex = -1;
   dragOriginPoint = null;
   canvas.requestRenderAll();
+};
+
+const getCellFromPoint = (x, y) => {
+  return puzzleState.cells.find(cell =>
+    x >= cell.left && x <= cell.left + cell.width &&
+    y >= cell.top && y <= cell.top + cell.height
+  );
 };
 
 const animateSnapBack = (cellIndex) => {
@@ -589,13 +829,26 @@ const animateSnapBack = (cellIndex) => {
   }
 };
 
-/**
- * 执行格子交换动画，并同步更新图片池数据
- */
 const animateSwap = (idxA, idxB) => {
   const canvas = unref(canvasRef);
   if (!canvas) return;
 
+  // ✨✨✨ 拼接模式下的特殊交换逻辑 ✨✨✨
+  if (puzzleState.mode === 'join') {
+    console.log(`[Puzzle/Join] 交换图片顺序: ${idxA} <-> ${idxB}`);
+    // 1. 物理交换数据
+    const temp = puzzleState.imagePool[idxA];
+    puzzleState.imagePool[idxA] = puzzleState.imagePool[idxB];
+    puzzleState.imagePool[idxB] = temp;
+
+    // 2. 触发重排 (流式布局会自动计算新坐标)
+    reflowJoinLayout();
+
+    // Join 模式不需要执行动画，因为位置通常会发生较大跳变
+    return;
+  }
+
+  // --- 以下是网格模式的标准交换动画 ---
   const imgA = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === idxA);
   const imgB = canvas.getObjects().find(o => o.isPuzzleImage && o.cellIndex === idxB);
   const cellA = puzzleState.cells.find(c => c.index === idxA);
@@ -605,57 +858,41 @@ const animateSwap = (idxA, idxB) => {
   const duration = 300;
   const easing = fabric.util.ease.easeOutQuart;
 
-  // 提升层级，防止动画过程中被遮挡
   if (imgA) imgA.bringToFront();
   if (imgB) imgB.bringToFront();
 
-// useCanvasPuzzle.js 内部 animateSwap 部分
-const createSyncAnimation = (img, targetCell) => {
-  if (!img || !targetCell) return;
-  
-  // 这里计算的目标 scale 就是铺满后的 scale
-  const targetImgState = calculateFitPosition(img, targetCell);
-  
-  animations.push(new Promise(resolve => {
-    img.animate({
-      left: targetImgState.left,
-      top: targetImgState.top,
-      scaleX: targetImgState.scaleX,
-      scaleY: targetImgState.scaleY
-    }, {
-      duration, 
-      easing,
-      onChange: () => {
-        // 动画过程中实时更新裁剪区域（如果需要）
-        canvas.requestRenderAll();
-      },
-      onComplete: () => {
-        // 动画完成后强制执行一次物理对齐，防止浮点数误差导致缝隙
-        const containerRect = {
-          left: targetCell.left, top: targetCell.top, 
-          width: targetCell.width, height: targetCell.height
-        };
-        constrainObjectToRect(img, containerRect, canvas);
-        resolve();
-      }
-    });
-  }));
-};
+  const createSyncAnimation = (img, targetCell) => {
+    if (!img || !targetCell) return;
+    const targetImgState = calculateFitPosition(img, targetCell);
+    animations.push(new Promise(resolve => {
+      img.animate({
+        left: targetImgState.left,
+        top: targetImgState.top,
+        scaleX: targetImgState.scaleX,
+        scaleY: targetImgState.scaleY
+      }, {
+        duration, easing,
+        onChange: () => canvas.requestRenderAll(),
+        onComplete: () => {
+          const containerRect = {
+            left: targetCell.left, top: targetCell.top,
+            width: targetCell.width, height: targetCell.height
+          };
+          constrainObjectToRect(img, containerRect, canvas);
+          resolve();
+        }
+      });
+    }));
+  };
 
   createSyncAnimation(imgA, cellB);
   createSyncAnimation(imgB, cellA);
 
-  // ✨ 核心修复：动画完成后更新数据池
   Promise.all(animations).then(() => {
     console.log(`[Puzzle] 执行数据池索引交换: ${idxA} <-> ${idxB}`);
-
-    // 1. 同步交换图片池中的数据对象
     const temp = puzzleState.imagePool[idxA];
     puzzleState.imagePool[idxA] = puzzleState.imagePool[idxB];
     puzzleState.imagePool[idxB] = temp;
-
-    // 2. 调用刷新函数，由于此时池数据已更新，图片将保持在新的位置
-    // 传入 false，因为这只是位置交换，不需要执行“重排压缩”
     refreshPuzzleObjects(false);
   });
 };
@@ -687,319 +924,73 @@ const onMouseWheel = (opt) => {
   canvas.requestRenderAll();
 };
 
-/**
- * ✨ 内部辅助函数：计算格子的物理坐标
- * 从原 updateLayout 中提取，负责将 rawCells 转换为物理 cells
- */
-const calculateCellsInternal = () => {
-  const { width, height, padding, spacing, startX, startY } = puzzleState;
-  
-  // 计算安全区域（扣除四周内边距）
-  const safeW = Math.max(0, width - (padding * 2));
-  const safeH = Math.max(0, height - (padding * 2));
+// === 退出/导出逻辑 ===
 
-  puzzleState.cells = puzzleState.rawCells.map(cell => {
-    const EPSILON = 0.01;
-    const isLeftEdge = cell.x < EPSILON;
-    const isTopEdge = cell.y < EPSILON;
-    const isRightEdge = Math.abs((cell.x + cell.w) - 1.0) < EPSILON;
-    const isBottomEdge = Math.abs((cell.y + cell.h) - 1.0) < EPSILON;
-
-    // 基础坐标计算
-    let boxLeft = startX + Number(padding) + (cell.x * safeW);
-    let boxTop = startY + Number(padding) + (cell.y * safeH);
-    let boxWidth = cell.w * safeW;
-    let boxHeight = cell.h * safeH;
-
-    // 应用间距（Spacing）逻辑：非边缘处扣除间距的一半
-    if (!isLeftEdge) {
-      boxLeft += spacing / 2;
-      boxWidth -= spacing / 2;
-    }
-    if (!isRightEdge) {
-      boxWidth -= spacing / 2;
-    }
-    if (!isTopEdge) {
-      boxTop += spacing / 2;
-      boxHeight -= spacing / 2;
-    }
-    if (!isBottomEdge) {
-      boxHeight -= spacing / 2;
-    }
-
-    return {
-      index: cell.index,
-      left: boxLeft,
-      top: boxTop,
-      width: Math.max(1, boxWidth),
-      height: Math.max(1, boxHeight)
-    };
-  });
-};
-
-/**
- * 更新拼图布局及其参数
- */
-export const updateLayout = (cellDefinitions = null, config = {}) => {
+export const completeExitPuzzle = (action = 'save') => {
   const canvas = unref(canvasRef);
   if (!canvas) return;
 
-  // 1. 同步配置参数至响应式状态
-  if (config.width !== undefined) puzzleState.width = config.width;
-  if (config.height !== undefined) puzzleState.height = config.height;
-  if (config.padding !== undefined) puzzleState.padding = config.padding;
-  if (config.spacing !== undefined) puzzleState.spacing = config.spacing;
-  if (config.radius !== undefined) puzzleState.radius = config.radius;
-  if (config.bgColor) puzzleState.bgColor = config.bgColor;
+  const savedVpt = canvas.viewportTransform ? [...canvas.viewportTransform] : [1, 0, 0, 1, 0, 0];
 
-  // 2. 更新原始格子定义
-  if (cellDefinitions) {
-    puzzleState.rawCells = cellDefinitions;
-    
-    // 3. 执行物理坐标计算
-    calculateCellsInternal();
-    
-    // 4. ✨ 核心：若是切换模板（带了定义），执行压缩重排填充
-    refreshPuzzleObjects(true);
-  } else {
-    // 仅调整参数（如间距、圆角），不涉及图片顺序变动
-    calculateCellsInternal();
-    refreshPuzzleObjects(false);
-  }
-};
-
-
-
-export const deleteImageFromCell = (cellIndex) => {
-  const canvas = unref(canvasRef);
-  if (!canvas) return;
-
-  // 1. ✨ 更新池状态：将对应索引置为 null
-  // 注意：此处不使用 splice，以保持数组长度和索引位置，防止补位
-  if (puzzleState.imagePool[cellIndex]) {
-    puzzleState.imagePool[cellIndex] = null;
-    console.log(`[Puzzle] 已从池中标记删除索引为 ${cellIndex} 的图片`);
-  }
-
-  // 2. 触发刷新（非重置模式，保留当前空位状态）
-  refreshPuzzleObjects(false);
-};
-
-// 上传图片时
-export const addImageToPool = (url, cellIndex) => {
-  puzzleState.imagePool[cellIndex] = {
-    id: `img_${Date.now()}`,
-    src: url,
-    metadata: { filters: [], opacity: 1 }
-  };
-  refreshPuzzleObjects(false);
-};
-
-const drawPlaceholder = (canvas, cell) => {
-  const rect = new fabric.Rect({
-    left: cell.left,
-    top: cell.top,
-    width: cell.width,
-    height: cell.height,
-    // ✨ 核心修改：去掉原来的 #f5f7fa，改为透明
-    fill: 'transparent',
-    stroke: '#dcdfe6',
-    strokeWidth: 1,
-    strokeDashArray: [4, 4],
-    rx: puzzleState.radius,
-    ry: puzzleState.radius,
-    selectable: false,
-    evented: false,
-    isPuzzleItem: true,
-    isPlaceholder: true,
-    // 注意：这里保留 isPuzzleBackground 标记是为了保存时统一处理
-    isPuzzleBackground: true
-  });
-  const plus = new fabric.Text('+', {
-    left: cell.left + cell.width / 2, top: cell.top + cell.height / 2,
-    fontSize: 30, fill: '#909399', originX: 'center', originY: 'center',
-    selectable: false, evented: false, isPuzzleItem: true, isPlaceholder: true
-  });
-  canvas.add(rect, plus);
-  rect.sendToBack();
-};
-
-const getCellFromPoint = (x, y) => {
-  return puzzleState.cells.find(cell =>
-    x >= cell.left && x <= cell.left + cell.width &&
-    y >= cell.top && y <= cell.top + cell.height
-  );
-};
-
-/**
- * 将图片添加到指定格子的图片池中
- * 该函数不再直接创建 Fabric 对象，而是通过驱动图片池数据来触发画布更新
- * @param {String} url 图片地址
- * @param {Number} cellIndex 格子索引
- */
-export const addImageToCell = (url, cellIndex) => {
-  const canvas = unref(canvasRef);
-  if (!canvas) return;
-
-  // 1. 【数据逻辑先行】更新图片池 (SSOT)
-  // 创建新的池对象，初始化元数据（metadata）以支持后续的属性继承
-  puzzleState.imagePool[cellIndex] = {
-    id: `img_${Date.now()}`,
-    src: url,
-    metadata: {
-      filters: [],  // 新上传图片默认滤镜为空
-      opacity: 1    // 默认不透明度
-    }
-  };
-
-  console.log(`[Puzzle] 图片已压入池索引: ${cellIndex}`);
-
-  // 2. 【渲染调度】触发基于池的刷新逻辑
-  // 传入 false 表示非模板切换，不执行池压缩（即保留当前所有格子的空位状态）
-  refreshPuzzleObjects(false);
-
-  // 3. 【UI 交互处理】自动选中新生成的控制器
-  // 由于 refreshPuzzleObjects 内部的 fabric.Image.fromURL 是异步回调，
-  // 我们需要稍微延迟以确保对象已添加到画布
-  setTimeout(() => {
-    const controller = canvas.getObjects().find(
-      o => o.isPuzzleController && o.cellIndex === cellIndex
+  if (action === 'save') {
+    const hiddenObjs = canvas.getObjects().filter(o =>
+      o.isPuzzleController ||
+      o.isGhost ||
+      (o.isPlaceholder && o.isPuzzleBackground)
     );
-    if (controller) {
-      canvas.setActiveObject(controller);
+    hiddenObjs.forEach(o => o.visible = false);
+
+    canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+    canvas.renderAll();
+
+    const dataURL = canvas.toDataURL({
+      format: 'png', quality: 1, multiplier: 2,
+      left: puzzleState.startX, top: puzzleState.startY,
+      width: puzzleState.width, height: puzzleState.height
+    });
+
+    const allPuzzleObjs = canvas.getObjects().filter(o => o.isPuzzleItem);
+    canvas.remove(...allPuzzleObjs);
+
+    fabric.Image.fromURL(dataURL, (img) => {
+      img.set({
+        left: puzzleState.startX, top: puzzleState.startY,
+        originX: 'left', originY: 'top',
+        selectable: true
+      });
+      canvas.add(img);
+      canvas.setViewportTransform(savedVpt);
+      canvas.centerObject(img);
+
+      exitPuzzleMode();
       canvas.requestRenderAll();
+    }, { crossOrigin: 'anonymous' });
+
+  } else {
+    if (prePuzzleSnapshot) {
+      console.log("[Puzzle] 🔄 正在回滚至初始状态...");
+      canvas.loadFromJSON(prePuzzleSnapshot, () => {
+        if (prePuzzleVpt) canvas.setViewportTransform(prePuzzleVpt);
+        if (puzzleState.originalBg !== null) canvas.setBackgroundColor(puzzleState.originalBg);
+        exitPuzzleMode();
+        canvas.fire('image:updated');
+        canvas.requestRenderAll();
+        console.log("[Puzzle] ✅ 已成功回滚。");
+      });
+    } else {
+      exitPuzzleMode();
     }
-  }, 100); // 100ms 足够处理大多数本地或缓存图片的加载回调
+  }
 };
 
-/**
- * 强制让图片铺满指定的格子
- * @param {Object} imgObj - Canvas中的图片对象
- * @param {Object} cellRect - 格子的坐标和宽高信息
- */
-const fitImageToCell = (imgObj, cellRect) => {
-  // 1. 获取原始尺寸
-  const imgW = imgObj.width;
-  const imgH = imgObj.height;
-
-  // 2. 计算覆盖(Cover)所需的最小缩放比例
-  const scaleX = cellRect.width / imgW;
-  const scaleY = cellRect.height / imgH;
-  const fillScale = Math.max(scaleX, scaleY);
-
-  // 3. 应用缩放
-  imgObj.set({
-    scaleX: fillScale,
-    scaleY: fillScale,
-    // 居中对齐（可选）
-    left: cellRect.left + (cellRect.width - imgW * fillScale) / 2,
-    top: cellRect.top + (cellRect.height - imgH * fillScale) / 2
-  });
-
-  // 4. 重新渲染画布
-  canvas.renderAll();
-};
-
-
-
-const refreshPuzzleObjects = (shouldResetImages = false) => {
+export const exitPuzzleMode = () => {
   const canvas = unref(canvasRef);
   if (!canvas) return;
-
-  const thisRenderToken = ++currentRenderToken;
-  const { radius, startX, startY, width, height, bgColor } = puzzleState;
-
-  // 1. 彻底清理画布
-  const toRemove = canvas.getObjects().filter(o =>
-    o.isPlaceholder || o.isPuzzleController || o.isPuzzleBackground || o.isPuzzleImage
-  );
-  canvas.remove(...toRemove);
-
-  // 2. 绘制拼图底座
-  const localBg = new fabric.Rect({
-    left: startX, top: startY, width: width, height: height,
-    fill: bgColor, rx: radius, ry: radius,
-    selectable: false, evented: false, isPuzzleBackground: true, isPuzzleItem: true
-  });
-  canvas.add(localBg);
-  localBg.sendToBack();
-
-  // 3. ✨ 解决“模板切换不填充”：压实图片池
-  // 过滤掉 null/undefined，确保剩下的图片按顺序填入新模板的格子
-  if (shouldResetImages) {
-    puzzleState.imagePool = puzzleState.imagePool.filter(item => item && item.src);
-  }
-
-  // 4. 遍历当前布局的格子
-  puzzleState.cells.forEach((cell, index) => {
-    const poolData = puzzleState.imagePool[index];
-
-    if (poolData && poolData.src) {
-      fabric.Image.fromURL(poolData.src, (img) => {
-        if (thisRenderToken !== currentRenderToken) return;
-
-        // ✨ 解决“不铺满”：立即计算当前格子的 Cover 参数
-        const fitState = calculateFitPosition(img, cell);
-
-        // 确定缩放：优先保留手动调整过的缩放，但绝不小于铺满所需的最小值
-        const autoScale = fitState.scaleX;
-        const savedScale = poolData.metadata?.scale || 0;
-        const finalScale = Math.max(autoScale, savedScale);
-
-        img.set({
-          scaleX: finalScale,
-          scaleY: finalScale,
-          left: fitState.left,
-          top: fitState.top,
-          originX: 'center',
-          originY: 'center',
-          selectable: false,
-          evented: false,
-          isPuzzleItem: true,
-          isPuzzleImage: true,
-          cellIndex: cell.index
-        });
-
-        // 持久化当前的缩放值到池中
-        if (poolData.metadata) poolData.metadata.scale = finalScale;
-
-        // 继承属性
-        if (poolData.metadata?.opacity !== undefined) img.set('opacity', poolData.metadata.opacity);
-
-        // --- 关键顺序：先入场，再执行物理约束 ---
-        canvas.add(img); 
-        img.setCoords(); // 必须调用，让 getBoundingRect 生效
-
-        // 执行物理约束（修正位置偏移，防止留边）
-        const containerRect = { left: cell.left, top: cell.top, width: cell.width, height: cell.height };
-        if (typeof constrainObjectToRect === 'function') {
-          constrainObjectToRect(img, containerRect, canvas);
-        }
-
-        // 裁剪区域
-        const clipRect = new fabric.Rect({
-          left: cell.left, top: cell.top, width: cell.width, height: cell.height,
-          rx: radius, ry: radius, absolutePositioned: true
-        });
-        img.set({ clipPath: clipRect });
-
-        // 顶层控制器（确保可以拖动）
-        const controller = new fabric.Rect({
-          left: cell.left, top: cell.top, width: cell.width, height: cell.height,
-          fill: 'transparent', selectable: true, evented: true,
-          hasControls: false, hasBorders: false, lockMovementX: true, lockMovementY: true,
-          isPuzzleItem: true, isPuzzleController: true, cellIndex: cell.index
-        });
-        canvas.add(controller);
-        controller.bringToFront(); // 确保控制器在最顶层
-        
-        canvas.requestRenderAll();
-      }, { crossOrigin: 'anonymous' });
-
-    } else {
-      drawPlaceholder(canvas, cell);
-    }
-  });
-
-  canvas.requestRenderAll();
+  puzzleState.isActive = false;
+  puzzleState.cells = [];
+  puzzleState.imagePool = [];
+  unbindEvents();
+  prePuzzleSnapshot = null;
+  prePuzzleVpt = null;
+  console.log("[Puzzle] 🧹 模块状态已完全清理。");
 };
