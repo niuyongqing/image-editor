@@ -132,7 +132,7 @@ onMounted(() => {
 .filter-item.active .thumb-container { border-color: var(--ie-primary-color); }
 .filter-label { font-size: 11px; margin-top: 6px; color: #666; }
 .intensity-box { margin-top: 20px; padding: 12px 0; border-top: 1px solid #f0f0f0; }
-.label-row { display: flex; justify-content: space-between; font-size: 12px; color: #606266; margin-bottom: 8px; }
+.label-row { display: flex; justify-content: space-between; color: #606266; margin-bottom: 8px; }
 .action-buttons { display: flex; gap: 10px; margin-top: 16px; }
 .full { flex: 1; }
 </style>

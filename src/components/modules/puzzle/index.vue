@@ -616,7 +616,7 @@ onMounted(() => {
   top: 50%;
   transform: translateY(-50%);
   color: #c0c4cc;
-  font-size: 12px;
+ 
   pointer-events: none;
 }
 

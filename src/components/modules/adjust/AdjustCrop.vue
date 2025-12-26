@@ -408,7 +408,7 @@ onUnmounted(() => {
   border: 1px solid #f2f2f2;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 12px;
+ 
   color: #666;
   background: #fff;
   transition: all 0.2s;
@@ -491,7 +491,7 @@ onUnmounted(() => {
   top: 50%;
   transform: translateY(-50%);
   color: #c0c4cc;
-  font-size: 12px;
+ 
   pointer-events: none;
 }
 

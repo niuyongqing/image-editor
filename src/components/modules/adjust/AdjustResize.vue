@@ -515,7 +515,7 @@ onUnmounted(() => cleanup());
 }
 
 .switch-label {
-  font-size: 12px;
+ 
   color: #606266;
   margin-left: 8px;
   cursor: pointer;
@@ -559,7 +559,7 @@ onUnmounted(() => cleanup());
 }
 
 .reset-link {
-  font-size: 12px;
+ 
   color: #909399;
   cursor: pointer;
   text-decoration: underline;

@@ -10,7 +10,7 @@
   height: 100%;
   box-sizing: border-box;
   overflow: hidden;
-
+  font-size: 14px;
   /* === 2. 应用变量 === */
   font-family: var(--ie-font-family);
   background-color: var(--ie-bg-color);
@@ -88,6 +88,33 @@
     display: flex;
 
   }
+
+  /* 重置图标按钮样式 - 对齐项目标准 */
+.ie-btn-reset {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #fff;
+  color: #909399;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ie-btn-reset:hover {
+  color: var(--ie-primary-color);
+  border-color: var(--ie-primary-color);
+  background: #ecf5ff;
+}
+
+.ie-btn-reset:active {
+  transform: scale(0.9);
+  background: #d9ecff;
+}
 
   /* 1. 按钮增强 */
   .ie-btn {
@@ -297,6 +324,11 @@
   }
 }
 
+.absolute-popover {
+  position: absolute;
+  top: 32px; right: 0; z-index: 1000;
+}
+
 /* === toast 提示 (它通常挂载在 body 上，所以放在容器外面) === */
 /* 如果 toast 逻辑改为挂载到容器内，也可以移进去 */
 .ie-toast {
@@ -444,7 +476,7 @@
   border: 1px solid var(--ie-border-color);
   border-radius: 4px;
   text-align: center;
-  font-size: 12px;
+ 
   color: #606266;
   background-color: #ffffff;
   outline: none;
@@ -465,3 +497,84 @@
   -webkit-appearance: none;
   margin: 0;
 }
+
+/* 容器定位 */
+.color-picker-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* 触发器：必须设置宽高和边框 */
+.ie-color-trigger {
+  width: 24px;         /* 必须有宽度 */
+  height: 24px;        /* 必须有高度 */
+  border-radius: 4px;
+  border: 1px solid #dcdfe6;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+/* 透明状态的红斜杠 */
+.transparent-slash {
+  position: absolute;
+  width: 140%;
+  height: 1px;
+  background: #ff4d4f;
+  transform: rotate(45deg);
+  top: 50%;
+  left: -20%;
+}
+
+/* 弹出框绝对定位 */
+.absolute-popover {
+  position: absolute;
+  top: 32px;
+  right: 0;
+  z-index: 1000;
+}
+
+.ie-color-picker-panel { width: 240px; background: #fff; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); padding: 12px; }
+
+/* 调色盘 */
+.sv-panel {
+  width: 100%; height: 120px; border-radius: 4px; position: relative; cursor: crosshair; margin-bottom: 12px;
+}
+.sv-white-grad { position: absolute; inset: 0; background: linear-gradient(to right, #fff, transparent); }
+.sv-black-grad { position: absolute; inset: 0; background: linear-gradient(to top, #000, transparent); }
+.sv-cursor {
+  position: absolute; width: 10px; height: 10px; border: 2px solid #fff; border-radius: 50%;
+  box-shadow: 0 0 2px rgba(0,0,0,0.5); transform: translate(-50%, -50%); pointer-events: none;
+}
+
+/* 色相与吸管容器 */
+.hue-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.hue-slider-wrap { flex: 1; height: 12px; }
+.hue-range {
+  -webkit-appearance: none; width: 100%; height: 10px; border-radius: 5px;
+  background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+}
+.hue-range::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px; background: #fff; border: 1px solid #ddd; border-radius: 50%; cursor: pointer;
+}
+
+.eyedropper-btn {
+  width: 28px; height: 28px; border: 1px solid #dcdfe6; border-radius: 4px; background: #fff;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; color: #606266;
+}
+.eyedropper-btn:hover { background: #f5f7fa; color: var(--ie-primary-color); }
+
+/* 底部输入框 */
+.hex-input-wrap {
+  display: flex; align-items: center; background: #f5f7fa; border-radius: 4px; padding: 0 8px; border: 1px solid #dcdfe6;
+}
+.hex-prefix { color: #909399; font-size: 12px; margin-right: 4px; }
+.hex-input-wrap input {
+  width: 60px; border: none; background: transparent; height: 24px; font-size: 12px; font-family: monospace; outline: none;
+}
+
+/* 复用之前的 grid 和 button 样式 */
+.color-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; }
+.panel-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0; }

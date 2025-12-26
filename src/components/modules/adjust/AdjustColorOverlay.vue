@@ -108,7 +108,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.section-label { font-size: 12px; color: #666; margin-bottom: 8px; }
+.section-label { color: #666; margin-bottom: 8px; }
 .color-presets { display: flex; gap: 8px; margin-bottom: 20px; }
 .preset-item { width: 36px; height: 20px; border-radius: 4px; border: 1px solid #ddd; cursor: pointer; position: relative; overflow: hidden; }
 .preset-item.active { border-color: var(--ie-primary-color); border-width: 2px; }

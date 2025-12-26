@@ -66,25 +66,23 @@
 
                 <div class="bg-color-section">
                     <div class="section-label">背景颜色</div>
-                    <div class="color-row">
-                        <div class="color-item checkerboard" :class="{ active: currentBgColor === 'transparent' }"
-                            @click="setBgColor('transparent')" title="透明"></div>
-                        <div class="color-item" style="background: #ffffff; border: 1px solid #ddd;"
-                            :class="{ active: currentBgColor === '#ffffff' }" @click="setBgColor('#ffffff')"></div>
-                        <div class="color-item" style="background: #808080;"
-                            :class="{ active: currentBgColor === '#808080' }" @click="setBgColor('#808080')"></div>
-                        <div class="color-item" style="background: #000000;"
-                            :class="{ active: currentBgColor === '#000000' }" @click="setBgColor('#000000')"></div>
-                        <div class="color-item color-picker-wrap" :class="{ active: isCustomColor }">
-                            <input type="color" v-model="customColorVal" @input="onCustomColorChange"
-                                class="native-color-input" />
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path
-                                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                            </svg>
-                        </div>
-                    </div>
+                    <div class="flex-row">
+    <input 
+      type="color" 
+      :value="textState.textBackgroundColor || '#ffffff'" 
+      @input="e => updateTextProp('textBackgroundColor', e.target.value)" 
+    />
+    <button 
+      class="ie-btn-reset" 
+      title="设为透明"
+      @click="updateTextProp('textBackgroundColor', '')"
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+        <path d="M3 3v5h5"/>
+      </svg>
+    </button>
+  </div>
                 </div>
 
             </div>
@@ -408,7 +406,6 @@ onUnmounted(() => stopPreview());
 }
 
 .section-label {
-    font-size: 12px;
     color: #606266;
     margin-bottom: 8px;
 }

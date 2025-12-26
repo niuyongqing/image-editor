@@ -130,7 +130,7 @@ const menuItems = [
 }
 
 .label {
-  font-size: 12px;
+ 
   line-height: 1;
 }
 
