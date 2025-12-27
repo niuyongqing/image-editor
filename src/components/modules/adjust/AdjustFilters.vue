@@ -39,7 +39,7 @@
         <div class="label-row">
           <span>强度：{{ intensity }}</span>
         </div>
-        <input type="range" v-model.number="intensity" min="0" max="100" class="ie-slider" @input="updateIntensity">
+        <input type="range" v-model.number="intensity" min="0" max="100" class="ie-slider" v-ie-slider-progress @input="updateIntensity">
       </div>
 
       <div class="action-buttons">

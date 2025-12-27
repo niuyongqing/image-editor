@@ -471,11 +471,25 @@ export function useCanvas() {
   const replaceActiveImage = (newUrl) => {
     const activeObj = canvas.value?.getActiveObject();
     if (!activeObj || activeObj.type !== "image") return;
-    activeObj.setSrc(newUrl, () => {
-      canvas.value.renderAll();
-      saveHistory();
-      canvas.value.fire('image:updated');
-    }, { crossOrigin: "anonymous" }
+
+    // 🛡️ Blob URL 内存回收：如果旧 src 是 blob:，在替换完成后释放
+    // 注意：只回收 blob:（URL.createObjectURL），不处理 http(s)/data: 等。
+    const prevSrc = typeof activeObj.getSrc === 'function' ? activeObj.getSrc() : null;
+    const shouldRevoke = typeof prevSrc === 'string' && prevSrc.startsWith('blob:');
+
+    activeObj.setSrc(
+      newUrl,
+      () => {
+        canvas.value.renderAll();
+        saveHistory();
+        canvas.value.fire('image:updated');
+
+        // 在新图已生效后再回收旧 blob URL，避免竞态
+        if (shouldRevoke) {
+          try { URL.revokeObjectURL(prevSrc); } catch (_) { /* noop */ }
+        }
+      },
+      { crossOrigin: "anonymous" }
     );
   };
 

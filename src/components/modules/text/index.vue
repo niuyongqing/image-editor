@@ -62,21 +62,20 @@
           <span>字号大小</span>
           <input
             type="number"
-            :value="textState.fontSize"
+            v-model.number="textState.fontSize"
             class="ie-input-number"
-            @input="(e) => updateTextProp('fontSize', parseInt(e.target.value))"
+            @change="() => updateTextProp('fontSize', textState.fontSize)"
           />
         </div>
         <input
           type="range"
           min="10"
           max="200"
-          :value="textState.fontSize"
+          v-model.number="textState.fontSize"
           class="ie-slider"
-          @input="
-            (e) => updateTextProp('fontSize', parseInt(e.target.value), false)
-          "
-          @change="(e) => updateTextProp('fontSize', parseInt(e.target.value))"
+          v-ie-slider-progress
+          @input="() => updateTextProp('fontSize', textState.fontSize, false)"
+          @change="() => updateTextProp('fontSize', textState.fontSize)"
         />
 
         <div class="style-grid">
@@ -123,15 +122,13 @@
           type="range"
           min="-10"
           max="100"
-          :value="textState.charSpacing"
+          v-model.number="textState.charSpacing"
           class="ie-slider"
+          v-ie-slider-progress
           @input="
-            (e) =>
-              updateTextProp('charSpacing', parseInt(e.target.value), false)
+            () => updateTextProp('charSpacing', textState.charSpacing, false)
           "
-          @change="
-            (e) => updateTextProp('charSpacing', parseInt(e.target.value))
-          "
+          @change="() => updateTextProp('charSpacing', textState.charSpacing)"
         />
 
         <div class="label-row" style="margin-top: 12px">
@@ -143,15 +140,13 @@
           min="0.5"
           max="3"
           step="0.1"
-          :value="textState.lineHeight"
+          v-model.number="textState.lineHeight"
           class="ie-slider"
+          v-ie-slider-progress
           @input="
-            (e) =>
-              updateTextProp('lineHeight', parseFloat(e.target.value), false)
+            () => updateTextProp('lineHeight', textState.lineHeight, false)
           "
-          @change="
-            (e) => updateTextProp('lineHeight', parseFloat(e.target.value))
-          "
+          @change="() => updateTextProp('lineHeight', textState.lineHeight)"
         />
       </div>
 
@@ -216,10 +211,8 @@
           <input
             type="number"
             class="ie-input-number"
-            :value="textState.strokeWidth"
-            @input="
-              (e) => updateTextProp('strokeWidth', parseInt(e.target.value))
-            "
+            v-model.number="textState.strokeWidth"
+            @change="() => updateTextProp('strokeWidth', textState.strokeWidth)"
           />
         </div>
         <div class="label-row" v-if="textState.strokeWidth > 0">
@@ -273,20 +266,19 @@
           <input
             type="number"
             class="ie-input-number"
-            :value="textState.shadowBlur"
-            @input="
-              (e) => updateTextProp('shadowBlur', parseInt(e.target.value))
-            "
+            v-model.number="textState.shadowBlur"
+            @change="() => updateTextProp('shadowBlur', textState.shadowBlur)"
           />
         </div>
         <input
           type="range"
           min="0"
           max="30"
-          :value="textState.shadowBlur"
+          v-model.number="textState.shadowBlur"
           class="ie-slider"
+          v-ie-slider-progress
           @input="
-            (e) => updateTextProp('shadowBlur', parseInt(e.target.value), false)
+            () => updateTextProp('shadowBlur', textState.shadowBlur, false)
           "
         />
       </div>

@@ -25,7 +25,7 @@
                             @input="updateFilters">
                     </div>
                     <input type="range" v-model.number="values[item.key]" :min="item.min" :max="item.max" step="1"
-                        class="ie-slider" @input="updateFilters">
+                        class="ie-slider" v-ie-slider-progress @input="updateFilters">
                 </div>
             </div>
 
@@ -103,29 +103,8 @@ onMounted(() => {
 
 /* 已移除局部的 ie-small-input 样式 */
 
-.ie-slider {
-    width: 100%;
-    height: 4px;
-    background: #e4e7ed;
-    border-radius: 2px;
-    appearance: none;
-    outline: none;
-}
-
-.ie-slider::-webkit-slider-thumb {
-    appearance: none;
-    width: 12px;
-    height: 12px;
-    background: #fff;
-    border: 2px solid var(--ie-primary-color); /* 修正为主题色 */
-    border-radius: 50%;
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-
-.ie-slider::-webkit-slider-thumb:hover {
-    transform: scale(1.2);
-}
+/* Slider 样式已全局收敛到 src/style.css (.ie-slider + v-ie-slider-progress)
+   本组件内不再覆写，避免主题不一致与维护成本。 */
 
 .action-buttons {
     display: flex;

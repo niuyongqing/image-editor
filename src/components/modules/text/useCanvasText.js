@@ -2,6 +2,9 @@ import { ref, unref } from 'vue';
 import { fabric } from 'fabric';
 
 // === 单例状态 (SSOT) ===
+// 说明：textState 同时承担两种职责：
+// 1) 选中已有文本时：作为“属性面板”的实时镜像
+// 2) 未选中文本时：作为“新增文本默认样式”的缓存
 const textState = ref({
     isActive: false,
     fontFamily: 'Arial',
@@ -55,9 +58,6 @@ export function useCanvasText() {
      * - 横向拖动：改变文本框宽度（仅对 Textbox 生效）
      * - 纵向拖动：改变 fontSize
      * - 最终把 scaleX/scaleY 归一回 1，避免字形被拉伸
-     *
-     * 注意：Fabric 的 `object:scaling` 会被高频触发。
-     * 我们只做视觉跟随（实时归一缩放），历史保存统一放到 `object:modified`。
      */
     const handleTextScaling = (e) => {
         const c = unref(canvasRef);
@@ -80,7 +80,7 @@ export function useCanvasText() {
         const scaleX = obj.scaleX || 1;
         const scaleY = obj.scaleY || 1;
 
-        // 1) 横向：TextBox 用 width 来承接横向变化；IText 没有“文本框换行语义”，跳过 width 策略
+        // 1) 横向：TextBox 用 width 来承接横向变化
         if (obj.type === 'textbox') {
             const baseW = scalingCache.baseWidth || obj.width || 0;
             if (baseW > 0) {
@@ -89,7 +89,7 @@ export function useCanvasText() {
             }
         }
 
-        // 2) 纵向：用 fontSize 承接纵向变化（IText / Textbox 都适用）
+        // 2) 纵向：用 fontSize 承接纵向变化
         const nextFontSize = clamp(
             (scalingCache.baseFontSize || obj.fontSize || 40) * scaleY,
             TEXT_SCALE_GUARD.minFontSize,
@@ -97,16 +97,13 @@ export function useCanvasText() {
         );
         obj.set('fontSize', nextFontSize);
 
-        // 3) 归一缩放，防止字形被非等比拉伸
+        // 3) 归一缩放
         obj.set({ scaleX: 1, scaleY: 1 });
 
         obj.setCoords();
         c.requestRenderAll();
     };
 
-    /**
-     * 缩放结束：落地一次历史（由 useCanvas 的 object:modified 也会保存，但这里确保文本内部状态一致）
-     */
     const handleTextModified = (e) => {
         const c = unref(canvasRef);
         const obj = e?.target;
@@ -115,11 +112,7 @@ export function useCanvasText() {
         // 同步 UI 状态（避免缩放后面板数值不同步）
         textState.value.fontSize = obj.fontSize;
 
-        // 缩放会话结束，释放缓存
         scalingCache = null;
-
-        // 这里不强制 saveHistory，避免与 useCanvas 全局 object:modified 重复入栈。
-        // 如果你未来将全局保存逻辑对 text 做了豁免，可再在此处打开。
     };
 
     const initTextModule = (canvas, saveHistory) => {
@@ -152,12 +145,39 @@ export function useCanvasText() {
     const addText = (textStr = "双击编辑") => {
         const c = unref(canvasRef);
         if (!c) return;
+
+        // ✅ 使用 textState 作为“默认样式”来源
         const textObj = new fabric.Textbox(textStr, {
-            left: 100, top: 100,
-            width: 300, // ✅ Textbox 需要明确宽度，横向拖拽才有“拉伸文本框/换行”语义
-            fontSize: 40,
-            fill: '#333333',
-            fontFamily: 'Arial',
+            left: 100,
+            top: 100,
+            width: 300,
+
+            fontFamily: textState.value.fontFamily,
+            fontSize: textState.value.fontSize,
+            fill: textState.value.fill,
+            textAlign: textState.value.textAlign,
+            fontWeight: textState.value.fontWeight,
+            fontStyle: textState.value.fontStyle,
+            underline: textState.value.underline,
+            linethrough: textState.value.linethrough,
+
+            charSpacing: textState.value.charSpacing,
+            lineHeight: textState.value.lineHeight,
+            angle: textState.value.angle,
+            textBackgroundColor: textState.value.textBackgroundColor,
+            stroke: textState.value.stroke,
+            strokeWidth: textState.value.strokeWidth,
+
+            // shadow 需要用 fabric.Shadow
+            shadow: (textState.value.shadowBlur || textState.value.shadowOffsetX || textState.value.shadowOffsetY)
+                ? new fabric.Shadow({
+                    color: textState.value.shadowColor,
+                    blur: textState.value.shadowBlur,
+                    offsetX: textState.value.shadowOffsetX,
+                    offsetY: textState.value.shadowOffsetY
+                })
+                : undefined,
+
             customTab: 'text',
             transparentCorners: false,
             cornerColor: '#ffffff',
@@ -165,19 +185,32 @@ export function useCanvasText() {
             borderColor: '#1890ff',
             cornerSize: 10
         });
+
         c.add(textObj).setActiveObject(textObj).requestRenderAll();
         if (saveHistoryFn) saveHistoryFn();
     };
 
     // --- 核心属性更新逻辑 ---
+    // 新规则：
+    // - 未选中文本时：仅更新 textState（作为“默认样式”缓存），不触发画布变更
+    // - 选中文本时：同时更新 activeObj 并按 shouldSave 控制历史
     const updateTextProp = (key, value, shouldSave = true) => {
         const c = unref(canvasRef);
         const activeObj = c?.getActiveObject();
-        if (!activeObj || !activeObj.type.includes('text')) return;
 
-        // 1. 处理特殊复合属性：阴影
+        // 1) 永远先同步 UI 状态（支持“未选中文本也可调整默认样式”）
+        textState.value[key] = value;
+
+        // 2) 若未选中文本对象，则不触发画布更新
+        if (!activeObj || !activeObj.type.includes('text')) {
+            return;
+        }
+
+        // 3) 处理特殊复合属性：阴影
         if (['shadowColor', 'shadowBlur', 'shadowOffsetX', 'shadowOffsetY'].includes(key)) {
-            const currentShadow = activeObj.shadow ? { ...activeObj.shadow } : { color: '#000000', blur: 0, offsetX: 0, offsetY: 0 };
+            const currentShadow = activeObj.shadow
+                ? { ...activeObj.shadow }
+                : { color: '#000000', blur: 0, offsetX: 0, offsetY: 0 };
             const shadowMap = {
                 shadowColor: 'color',
                 shadowBlur: 'blur',
@@ -187,17 +220,13 @@ export function useCanvasText() {
             currentShadow[shadowMap[key]] = value;
             activeObj.set('shadow', new fabric.Shadow(currentShadow));
         }
-        // 2. 处理背景色 (空字符串代表透明)
+        // 处理背景色 (空字符串代表透明)
         else if (key === 'textBackgroundColor' && !value) {
             activeObj.set(key, '');
         }
-        // 3. 通用属性处理
         else {
             activeObj.set(key, value);
         }
-
-        // 同步 UI 状态
-        textState.value[key] = value;
 
         c.requestRenderAll();
         if (shouldSave && saveHistoryFn) saveHistoryFn();
@@ -207,6 +236,7 @@ export function useCanvasText() {
         const selected = e.selected?.[0] || unref(canvasRef)?.getActiveObject();
         if (selected && selected.type.includes('text')) {
             textState.value.isActive = true;
+
             // 批量同步属性
             const props = [
                 'fontFamily', 'fontSize', 'fill', 'textAlign',

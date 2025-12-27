@@ -403,6 +403,24 @@
   /* Chrome/Safari/Webkit */
 }
 
+.ie-slider {
+  /* 轨道“已滑过”部分：通过线性渐变实现（由 JS 写入 --ie-slider-percent） */
+  --ie-slider-percent: 0%;
+
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+  background: linear-gradient(
+    to right,
+    var(--ie-primary-color) 0%,
+    var(--ie-primary-color) var(--ie-slider-percent),
+    #e4e7ed var(--ie-slider-percent),
+    #e4e7ed 100%
+  );
+}
+
 .ie-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
@@ -410,7 +428,6 @@
   height: 16px;
   border-radius: 50%;
   background: var(--ie-primary-color);
-  /* 关键：使用主题色变量 */
   cursor: pointer;
   border: 2px solid white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -433,9 +450,15 @@
 /* 修正滑块轨道颜色 (可选，视全局样式而定) */
 .ie-slider::-webkit-slider-runnable-track {
   height: 4px;
-  background: #e4e7ed;
-  /* 轨道背景色 */
   border-radius: 2px;
+  /* 轨道背景色由 ie-slider 自身背景控制 */
+}
+
+/* Firefox 轨道 */
+.ie-slider::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: #e4e7ed;
 }
 
 /* ... 原有内容保持不变 ... */
@@ -534,6 +557,13 @@
   top: 32px;
   right: 0;
   z-index: 1000;
+}
+
+.flex-row{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .ie-color-picker-panel { width: 240px; background: #fff; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); padding: 12px; }

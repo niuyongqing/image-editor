@@ -59,7 +59,7 @@
             v-model.number="brushSize" 
             min="5" 
             max="100" 
-            class="ie-slider"
+            class="ie-slider" v-ie-slider-progress
           >
           <div class="auto-tip">
              💡 涂抹结束 1秒后自动消除
@@ -214,33 +214,6 @@ onUnmounted(() => {
   padding: 16px;
 }
 
-/* === 强制修正滑块主题色 === */
-.ie-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--ie-primary-color);
-  cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  margin-top: -6px;
-}
-
-.ie-slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border: 2px solid white;
-  border-radius: 50%;
-  background: var(--ie-primary-color);
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.ie-slider::-webkit-slider-runnable-track {
-  height: 4px;
-  background: #e4e7ed;
-  border-radius: 2px;
-}
+/* Slider 样式已全局收敛到 src/style.css (.ie-slider + v-ie-slider-progress)
+   本组件内不再覆写，避免主题不一致与维护成本。 */
 </style>

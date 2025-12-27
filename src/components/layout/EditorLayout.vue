@@ -14,13 +14,13 @@
 </template>
 
 <script setup>
-import { provide, ref, watch } from 'vue';
-import { useCanvas } from '../../composables/useCanvas';
-import NavBar from './NavBar.vue';
-import LeftSidebar from './LeftSidebar.vue';
-import ToolPanel from '../panels/ToolPanel.vue';
-import Workspace from '../Workspace.vue';
-import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
+import { provide, ref, watch } from "vue";
+import { useCanvas } from "../../composables/useCanvas";
+import NavBar from "./NavBar.vue";
+import LeftSidebar from "./LeftSidebar.vue";
+import ToolPanel from "../panels/ToolPanel.vue";
+import Workspace from "../Workspace.vue";
+import LoadingOverlay from "@/components/common/LoadingOverlay.vue";
 const sdkContainer = ref(null);
 
 // === 1. 定义组件接口 (Props & Emits) ===
@@ -28,31 +28,31 @@ const props = defineProps({
   // 初始图片链接
   imageUrl: {
     type: String,
-    default: 'https://wallpaperm.cmcm.com/21f96d39cffd296c2dd2f0cf9cf65c9b.jpg'
+    default: "https://wallpaperm.cmcm.com/21f96d39cffd296c2dd2f0cf9cf65c9b.jpg",
   },
   // 文本映射表
   textMap: {
     type: Object,
     default: () => ({
-      upload: '打开图片',
-      save: '保存',
-      title: '大秘美图'
-    })
+      upload: "打开图片",
+      save: "保存",
+      title: "大秘美图",
+    }),
   },
   // 全局配置（如 AI 后端地址）
   config: {
     type: Object,
     default: () => ({
-      aiBaseUrl: 'http://localhost:3000/ai', // 默认值
-    })
-  }
+      aiBaseUrl: "http://localhost:11111", // 默认值（本地 AI 服务）
+    }),
+  },
 });
 
-const emit = defineEmits(['save']); // 定义保存事件
+const emit = defineEmits(["save"]); // 定义保存事件
 
 // === 2. Provide 配置给子组件 ===
 // 这样 AdjustRembg.vue 等组件可以通过 inject('editorConfig') 获取配置
-provide('editorConfig', props.config);
+provide("editorConfig", props.config);
 
 // === 3. 初始化 Canvas 逻辑 ===
 const {
@@ -73,15 +73,18 @@ const {
   flipActive,
   undo,
   redo,
-  saveHistory
+  saveHistory,
 } = useCanvas();
 
 // === 4. 监听图片变化 ===
-watch(() => props.imageUrl, (newUrl) => {
-  if (newUrl && canvas.value) {
-    initImage(newUrl);
+watch(
+  () => props.imageUrl,
+  (newUrl) => {
+    if (newUrl && canvas.value) {
+      initImage(newUrl);
+    }
   }
-});
+);
 
 // 封装初始化方法，以便在 Canvas 准备好后加载初始图片
 const handleInit = (id, width, height) => {
@@ -112,10 +115,10 @@ const handleExport = () => {
   canvas.value?.renderAll();
 
   // 2. 获取 Base64
-  const dataURL = canvas.value?.toDataURL({ format: 'png' });
+  const dataURL = canvas.value?.toDataURL({ format: "png" });
 
   // 3. 抛出事件给父组件
-  emit('save', dataURL);
+  emit("save", dataURL);
 };
 
 // === 5. 组装 API 对象 ===
@@ -138,25 +141,25 @@ const api = {
   redo,
   saveHistory,
   addText: (text) => addText(text),
-  exportImg: () => canvas.value?.toDataURL({ format: 'png' }),
+  exportImg: () => canvas.value?.toDataURL({ format: "png" }),
   getActiveImgSrc: () => canvas.value?.getActiveObject()?.getSrc(),
   clearPaths: () => {
-    const paths = canvas.value?.getObjects().filter(o => o.type === 'path');
+    const paths = canvas.value?.getObjects().filter((o) => o.type === "path");
     canvas.value?.remove(...paths);
   },
   save: handleExport,
-  reset: handleReset
+  reset: handleReset,
 };
 
 // === 向下分发 ===
-provide('canvasAPI', api);
-provide('canvas', canvas);
+provide("canvasAPI", api);
+provide("canvas", canvas);
 defineExpose({
   save: handleExport,
   undo,
   redo,
-  canvas: canvas
-})
+  canvas: canvas,
+});
 </script>
 
 <style scoped>

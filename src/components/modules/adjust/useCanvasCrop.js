@@ -74,27 +74,23 @@ const preventZoomWheel = (opt) => {
 const onCropMouseDown = (opt) => {
   if (!canvasRef?.value || !cropObject.value) return;
 
-  // ✅ 产品规则 A：裁剪/旋转模块内禁止拖动主图
-  // 原逻辑：在裁剪框内按下后进入“拖主图对齐裁剪框”的模式。
-  // 现在要求彻底禁止，因此直接返回（不进入 isDraggingImage 状态）。
-  return;
+  const canvas = canvasRef.value;
+  const target = opt.target;
 
-  // --- 以下为历史逻辑（保留作为参考）---
-  // const target = opt.target;
-  // const canvas = canvasRef.value;
+  // ✅ 交互规则 A：裁剪模式下拖动的是【图片】，裁剪框固定（不响应拖拽）。
+  // 允许用户在“裁剪框区域内按下”（通常此时 target 会是 cropObject）来开始拖图。
+  if (!target || target !== cropObject.value) return;
 
-  // 1. 逻辑判定：点击在裁剪框上
-  if (target !== cropObject.value) return;
-
+  // 如果正在拖控制点缩放裁剪框，则不进入拖图模式
   const activeObj = canvas.getActiveObject();
   if (activeObj && activeObj.__corner) return;
 
-  // 2. 初始化拖拽状态
+  // 初始化拖拽状态
   isDraggingImage = true;
-  hasBrokenThreshold = false; // 重置阈值标记 [宪法 6.1]
+  hasBrokenThreshold = false;
 
   const pointer = canvas.getPointer(opt.e);
-  dragStartX = pointer.x; // 记录物理起点
+  dragStartX = pointer.x;
   dragStartY = pointer.y;
   dragLastX = pointer.x;
   dragLastY = pointer.y;
@@ -103,13 +99,10 @@ const onCropMouseDown = (opt) => {
 };
 
 const onCropMouseMove = (opt) => {
-  // ✅ 产品规则 A：裁剪/旋转模块内禁止拖动主图
-  // （历史逻辑：当 isDraggingImage=true 时，移动主图 left/top 来对齐裁剪框）
-  return;
+  if (!isDraggingImage || !canvasRef?.value) return;
 
-  // if (!isDraggingImage || !canvasRef?.value) return;
-  // const canvas = canvasRef.value;
-  // const pointer = canvas.getPointer(opt.e);
+  const canvas = canvasRef.value;
+  const pointer = canvas.getPointer(opt.e);
 
   // ✨ 调用通用防抖判定 [SSOT]
   if (!hasBrokenThreshold) {
@@ -119,7 +112,7 @@ const onCropMouseMove = (opt) => {
     hasBrokenThreshold = true;
   }
 
-  // 4. 计算增量并应用
+  // 计算增量并应用到图片
   const deltaX = pointer.x - dragLastX;
   const deltaY = pointer.y - dragLastY;
 
@@ -461,8 +454,17 @@ export const startCrop = (aspectRatio = null, customBox = null) => {
     left, top, width, height,
     fill: "transparent", stroke: "#409eff", strokeWidth: 2,
     cornerColor: "white", cornerStrokeColor: "#409eff", cornerSize: 12,
-    transparentCorners: false, lockRotation: true, hasRotatingPoint: false,
-    customTool: 'adjust', customTab: 'crop'
+    transparentCorners: false,
+
+    // ✅ 交互规则 A：裁剪模式下【裁剪框固定不拖动】，拖动行为交给图片
+    lockMovementX: true,
+    lockMovementY: true,
+
+    lockRotation: true,
+    hasRotatingPoint: false,
+
+    customTool: 'adjust',
+    customTab: 'crop'
   });
 
   canvas.add(cropZone);

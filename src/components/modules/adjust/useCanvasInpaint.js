@@ -260,7 +260,9 @@ const executeInpaint = async () => {
         if (!maskBase64) return;
 
         // 4. 调用 AI 接口
-        const resultUrl = await aiApi.inpaint(activeObj.getSrc(), maskBase64);
+        // aiApi.inpaint 现在是“真实接口版本”（入参为 imageBlob + maskBlob）
+        // 这里传入的是 (imageUrl, maskBase64) 形态，属于演示/Mock 逻辑，需调用 inpaintMock
+        const resultUrl = await aiApi.inpaintMock(activeObj.getSrc(), maskBase64);
         
         if (resultUrl) {
             // 5. 成功后替换图片

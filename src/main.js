@@ -2,6 +2,8 @@ import { createApp } from 'vue'
 import './style.css' // 确保这里引入了我们新写的通用 CSS (包含 .ie-btn 等样式)
 import App from './App.vue'
 import { applyTheme } from './config/theme.js';
+import { sliderProgressDirective } from './directives/sliderProgress';
+
 // 1. 创建 Vue 实例
 const app = createApp(App)
 
@@ -25,5 +27,9 @@ app.directive('click-outside', {
     document.removeEventListener("click", el.clickOutsideEvent);
   },
 });
+
+// ✅ Slider 进度主题色指令：v-ie-slider-progress
+app.directive('ie-slider-progress', sliderProgressDirective);
+
 // 3. 挂载
 app.mount('#app')

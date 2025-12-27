@@ -1,11 +1,22 @@
 <template>
   <div class="tool-group">
-    <div class="tool-item" :class="{ 'is-expanded': isExpanded }" @click="$emit('toggle')">
+    <div
+      class="tool-item"
+      :class="{ 'is-expanded': isExpanded }"
+      @click="$emit('toggle')"
+    >
       <div class="left">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
           <path
-            d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0l12.6 12.6z">
-          </path>
+            d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0l12.6 12.6z"
+          ></path>
           <path d="m5 6 1.7 1.7"></path>
           <path d="m17 18 1.7 1.7"></path>
           <path d="m11 12 1.7 1.7"></path>
@@ -13,8 +24,15 @@
         <span>测量标尺</span>
       </div>
       <div class="right-icon">
-        <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="2">
+        <svg
+          class="arrow"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
           <path d="m9 18 6-6-6-6" />
         </svg>
       </div>
@@ -24,23 +42,53 @@
       <div class="control-group">
         <div class="section-title">
           端点样式
-          <span v-if="isDrawing" style="
+          <span
+            v-if="isDrawing"
+            style="
               color: var(--ie-primary-color);
               float: right;
               font-weight: normal;
               animation: blink 1.5s infinite;
-            ">
+            "
+          >
             绘制中...
           </span>
         </div>
         <div class="style-grid">
-          <div v-for="style in CAP_STYLES" :key="style.id" class="style-item"
-            :class="{ active: isStyleActive(style.id) }" @click="setCapStyle(style.id)" :title="style.label">
+          <div
+            v-for="style in CAP_STYLES"
+            :key="style.id"
+            class="style-item"
+            :class="{ active: isStyleActive(style.id) }"
+            @click="setCapStyle(style.id)"
+            :title="style.label"
+          >
             <svg width="40" height="20" viewBox="0 0 60 20">
-              <line x1="10" y1="10" x2="50" y2="10" stroke="currentColor" stroke-width="2" />
+              <line
+                x1="10"
+                y1="10"
+                x2="50"
+                y2="10"
+                stroke="currentColor"
+                stroke-width="2"
+              />
               <g v-if="style.id === 'line'">
-                <line x1="10" y1="5" x2="10" y2="15" stroke="currentColor" stroke-width="2" />
-                <line x1="50" y1="5" x2="50" y2="15" stroke="currentColor" stroke-width="2" />
+                <line
+                  x1="10"
+                  y1="5"
+                  x2="10"
+                  y2="15"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+                <line
+                  x1="50"
+                  y1="5"
+                  x2="50"
+                  y2="15"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
               </g>
               <g v-if="style.id === 'arrow'">
                 <path d="M10 10 L15 7 V13 Z" fill="currentColor" />
@@ -62,22 +110,61 @@
       <div class="control-group">
         <div class="section-title">线身类型</div>
         <div class="custom-select" :class="{ open: isDashSelectOpen }">
-          <div class="selected-value" @click="isDashSelectOpen = !isDashSelectOpen">
-            <svg width="100%" height="10" viewBox="0 0 160 10" preserveAspectRatio="none">
-              <line x1="0" y1="5" x2="160" y2="5" stroke="currentColor" stroke-width="2"
-                :stroke-dasharray="currentDashStr" :stroke-linecap="rulerConfig.strokeLineCap || 'butt'" />
+          <div
+            class="selected-value"
+            @click="isDashSelectOpen = !isDashSelectOpen"
+          >
+            <svg
+              width="100%"
+              height="10"
+              viewBox="0 0 160 10"
+              preserveAspectRatio="none"
+            >
+              <line
+                x1="0"
+                y1="5"
+                x2="160"
+                y2="5"
+                stroke="currentColor"
+                stroke-width="2"
+                :stroke-dasharray="currentDashStr"
+                :stroke-linecap="rulerConfig.strokeLineCap || 'butt'"
+              />
             </svg>
-            <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24">
+            <svg
+              class="dropdown-arrow"
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+            >
               <path d="M7 10l5 5 5-5z" fill="currentColor" />
             </svg>
           </div>
 
           <div v-show="isDashSelectOpen" class="options-list">
-            <div v-for="(opt, idx) in DASH_OPTIONS" :key="idx" class="option-item" @click="setDashPattern(opt)">
+            <div
+              v-for="(opt, idx) in DASH_OPTIONS"
+              :key="idx"
+              class="option-item"
+              @click="setDashPattern(opt)"
+            >
               <div class="opt-label">{{ opt.label }}</div>
-              <svg width="80" height="10" viewBox="0 0 80 10" preserveAspectRatio="none">
-                <line x1="0" y1="5" x2="80" y2="5" stroke="#606266" stroke-width="2"
-                  :stroke-dasharray="opt.value.join(',')" :stroke-linecap="opt.strokeLineCap || 'butt'" />
+              <svg
+                width="80"
+                height="10"
+                viewBox="0 0 80 10"
+                preserveAspectRatio="none"
+              >
+                <line
+                  x1="0"
+                  y1="5"
+                  x2="80"
+                  y2="5"
+                  stroke="#606266"
+                  stroke-width="2"
+                  :stroke-dasharray="opt.value.join(',')"
+                  :stroke-linecap="opt.strokeLineCap || 'butt'"
+                />
               </svg>
             </div>
           </div>
@@ -90,23 +177,53 @@
         <div class="section-title">数值与文本</div>
 
         <div class="tabs-container">
-          <div class="tab-item" :class="{ active: !rulerConfig.isManualText }"
-            @click="rulerConfig.isManualText = false; updateActiveRuler()">
+          <div
+            class="tab-item"
+            :class="{ active: !rulerConfig.isManualText }"
+            @click="
+              rulerConfig.isManualText = false;
+              updateActiveRuler();
+            "
+          >
             自动测量
           </div>
-          <div class="tab-item" :class="{ active: rulerConfig.isManualText }"
-            @click="rulerConfig.isManualText = true; updateActiveRuler()">
+          <div
+            class="tab-item"
+            :class="{ active: rulerConfig.isManualText }"
+            @click="
+              rulerConfig.isManualText = true;
+              updateActiveRuler();
+            "
+          >
             手动输入
           </div>
         </div>
 
         <div class="input-content-wrap">
           <template v-if="!rulerConfig.isManualText">
-            <div class="secondary-unit-toggle"
-              @click="rulerConfig.showSecondaryUnit = !rulerConfig.showSecondaryUnit; updateActiveRuler()">
-              <div class="checkbox" :class="{ checked: rulerConfig.showSecondaryUnit }">
-                <svg v-if="rulerConfig.showSecondaryUnit" viewBox="0 0 24 24" width="12" height="12">
-                  <polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="3" />
+            <div
+              class="secondary-unit-toggle"
+              @click="
+                rulerConfig.showSecondaryUnit = !rulerConfig.showSecondaryUnit;
+                updateActiveRuler();
+              "
+            >
+              <div
+                class="checkbox"
+                :class="{ checked: rulerConfig.showSecondaryUnit }"
+              >
+                <svg
+                  v-if="rulerConfig.showSecondaryUnit"
+                  viewBox="0 0 24 24"
+                  width="12"
+                  height="12"
+                >
+                  <polyline
+                    points="20 6 9 17 4 12"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="3"
+                  />
                 </svg>
               </div>
               <span>显示英制换算 (inch)</span>
@@ -115,10 +232,18 @@
 
           <template v-if="!rulerConfig.isManualText">
             <div class="input-group">
-
-              <input type="number" v-model.number="rulerConfig.value" class="ie-input-number"
-                style="flex: 1; width: auto" @input="updateActiveRuler" />
-              <select v-model="rulerConfig.unit" class="ie-select" @change="updateActiveRuler">
+              <input
+                type="number"
+                v-model.number="rulerConfig.value"
+                class="ie-input-number"
+                style="flex: 1"
+                @input="updateActiveRuler"
+              />
+              <select
+                v-model="rulerConfig.unit"
+                class="ie-select"
+                @change="updateActiveRuler"
+              >
                 <option value="px">px</option>
                 <option value="cm">cm</option>
                 <option value="mm">mm</option>
@@ -130,8 +255,14 @@
           </template>
 
           <template v-else>
-            <input type="text" v-model="rulerConfig.customText" class="ie-input-text-full" placeholder="请输入自定义文字"
-              @input="updateActiveRuler" @keydown.stop />
+            <input
+              type="text"
+              v-model="rulerConfig.customText"
+              class="ie-input-text-full"
+              placeholder="请输入自定义文字"
+              @input="updateActiveRuler"
+              @keydown.stop
+            />
           </template>
         </div>
       </div>
@@ -139,14 +270,42 @@
       <div class="control-group">
         <div class="label-row">
           <span>线条颜色</span>
-          <input type="color" v-model="rulerConfig.color" @input="updateActiveRuler" />
+          <div class="color-picker-container">
+            <div
+              class="ie-color-trigger"
+              :style="{ backgroundColor: rulerConfig.color || '#000000' }"
+              @click.stop="togglePicker('rulerLine')"
+            ></div>
+            <transition name="fade">
+              <div v-if="activePicker === 'rulerLine'" class="absolute-popover">
+                <IeColorPicker
+                  :modelValue="rulerConfig.color || '#000000'"
+                  :allowTransparent="false"
+                  @update:modelValue="
+                    (val) => {
+                      rulerConfig.color = val;
+                      updateActiveRuler();
+                    }
+                  "
+                  @confirm="closePicker('rulerLine')"
+                />
+              </div>
+            </transition>
+          </div>
         </div>
         <div class="label-row">
           <span>透明度</span>
           <span class="val">{{ rulerConfig.opacity }}%</span>
         </div>
-        <input type="range" v-model.number="rulerConfig.opacity" min="10" max="100" class="ie-slider"
-          @input="updateActiveRuler" />
+        <input
+          type="range"
+          v-model.number="rulerConfig.opacity"
+          min="10"
+          max="100"
+          class="ie-slider"
+          v-ie-slider-progress
+          @input="updateActiveRuler"
+        />
       </div>
 
       <div class="control-group">
@@ -154,8 +313,14 @@
           <span>线条粗细</span>
           <span class="val">{{ rulerConfig.strokeWidth }}px</span>
         </div>
-        <input type="range" v-model.number="rulerConfig.strokeWidth" min="1" max="10" class="ie-slider"
-          @input="updateActiveRuler" />
+        <input
+          type="range"
+          v-model.number="rulerConfig.strokeWidth"
+          min="1"
+          max="10"
+          class="ie-slider"
+          @input="updateActiveRuler"
+        />
       </div>
 
       <div class="divider"></div>
@@ -163,15 +328,32 @@
       <div class="control-group">
         <div class="section-title">选择字体</div>
         <div class="custom-select" :class="{ open: isFontSelectOpen }">
-          <div class="selected-value" @click="isFontSelectOpen = !isFontSelectOpen">
-            <span :style="{ fontFamily: rulerConfig.fontFamily }">{{ rulerConfig.fontFamily }}</span>
-            <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24">
+          <div
+            class="selected-value"
+            @click="isFontSelectOpen = !isFontSelectOpen"
+          >
+            <span :style="{ fontFamily: rulerConfig.fontFamily }">{{
+              rulerConfig.fontFamily
+            }}</span>
+            <svg
+              class="dropdown-arrow"
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+            >
               <path d="M7 10l5 5 5-5z" fill="currentColor" />
             </svg>
           </div>
           <div v-show="isFontSelectOpen" class="options-list">
-            <div v-for="font in SYSTEM_FONTS" :key="font.value" class="option-item" @click="setRulerFont(font.value)">
-              <div class="opt-label" :style="{ fontFamily: font.value }">{{ font.label }}</div>
+            <div
+              v-for="font in SYSTEM_FONTS"
+              :key="font.value"
+              class="option-item"
+              @click="setRulerFont(font.value)"
+            >
+              <div class="opt-label" :style="{ fontFamily: font.value }">
+                {{ font.label }}
+              </div>
             </div>
           </div>
         </div>
@@ -180,12 +362,37 @@
       <div class="control-group">
         <div class="label-row">
           <span>字体大小</span>
-          <input type="number" v-model.number="rulerConfig.fontSize" class="ie-input-number"
-            @input="updateActiveRuler" />
+          <input
+            type="number"
+            v-model.number="rulerConfig.fontSize"
+            class="ie-input-number"
+            @input="updateActiveRuler"
+          />
         </div>
         <div class="label-row" style="margin-top: 8px">
           <span>文字颜色</span>
-          <input type="color" v-model="rulerConfig.textColor" @input="updateActiveRuler" />
+          <div class="color-picker-container">
+            <div
+              class="ie-color-trigger"
+              :style="{ backgroundColor: rulerConfig.textColor || '#000000' }"
+              @click.stop="togglePicker('rulerText')"
+            ></div>
+            <transition name="fade">
+              <div v-if="activePicker === 'rulerText'" class="absolute-popover">
+                <IeColorPicker
+                  :modelValue="rulerConfig.textColor || '#000000'"
+                  :allowTransparent="false"
+                  @update:modelValue="
+                    (val) => {
+                      rulerConfig.textColor = val;
+                      updateActiveRuler();
+                    }
+                  "
+                  @confirm="closePicker('rulerText')"
+                />
+              </div>
+            </transition>
+          </div>
         </div>
       </div>
     </div>
@@ -193,16 +400,8 @@
 </template>
 
 <script setup>
-import {
-  defineProps,
-  defineEmits,
-  inject,
-  onMounted,
-  onUnmounted,
-  ref,
-  computed,
-  watch,
-} from "vue";
+import { inject, onMounted, onUnmounted, ref, computed, watch } from "vue";
+import IeColorPicker from "@/components/common/IeColorPicker.vue";
 import {
   registerRulerModule,
   rulerConfig,
@@ -216,13 +415,23 @@ import {
   DASH_OPTIONS,
   SYSTEM_FONTS,
 } from "./useCanvasRuler";
-import { useCanvasLock } from "@/composables/useCanvasLock";
+// import { useCanvasLock } from "@/composables/useCanvasLock"; // ⚠️ 锁策略由 Workspace 统一管理，模块内禁止二次覆盖
 
 const props = defineProps({ isExpanded: Boolean });
 const emit = defineEmits(["toggle"]);
 const canvasAPI = inject("canvasAPI");
 
 const isDashSelectOpen = ref(false);
+
+// === 颜色选择器（使用 IeColorPicker）===
+const activePicker = ref(null);
+const togglePicker = (type) => {
+  activePicker.value = activePicker.value === type ? null : type;
+};
+const closePicker = (type) => {
+  if (activePicker.value === type) activePicker.value = null;
+};
+
 // const { setBackgroundLock } = useCanvasLock(); // ⚠️ 锁策略由 Workspace 统一管理，模块内禁止二次覆盖
 // ✨ 2. 控制下拉菜单显示的响应式变量
 const showFontSelect = ref(false); // ✨ 新增：字体下拉控制
@@ -361,7 +570,6 @@ const currentDashStr = computed(() => {
   padding: 0 8px;
   border: 1px solid #dcdfe6;
   border-radius: 4px;
-
 }
 
 .font-row {
@@ -382,7 +590,6 @@ const currentDashStr = computed(() => {
 }
 
 .section-title {
-
   color: #909399;
   margin-bottom: 8px;
   font-weight: 500;
@@ -462,7 +669,6 @@ const currentDashStr = computed(() => {
 }
 
 .opt-label {
-
   color: #606266;
   margin-right: 12px;
   min-width: 40px;
@@ -602,5 +808,30 @@ const currentDashStr = computed(() => {
   background-color: var(--ie-primary-color);
   border-color: var(--ie-primary-color);
   color: white;
+}
+
+/* 颜色触发器相关样式（与文本模块保持一致） */
+.color-picker-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.ie-color-trigger {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid #dcdfe6;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+.absolute-popover {
+  position: absolute;
+  top: 32px;
+  right: 0;
+  z-index: 1000;
 }
 </style>
