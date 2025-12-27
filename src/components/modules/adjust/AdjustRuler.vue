@@ -278,11 +278,8 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  const canvas = canvasAPI?.canvas?.value;
-  if (canvas) {
-    setBackgroundLock(canvas, false);
-    stopRulerMode();
-  }
+  // ⚠️ 锁策略由 Workspace 统一管理，模块内禁止调用 setBackgroundLock
+  stopRulerMode();
 });
 
 // === 视觉高亮 ===
