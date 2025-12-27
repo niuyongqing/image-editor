@@ -573,8 +573,7 @@ const drawPlaceholder = (canvas, cell) => {
     selectable: false,
     evented: false,
     isPuzzleItem: true,
-    isPlaceholder: true,
-    isPuzzleBackground: true
+    isPlaceholder: true
   });
   const plus = new fabric.Text('+', {
     left: cell.left + cell.width / 2, top: cell.top + cell.height / 2,
@@ -582,7 +581,6 @@ const drawPlaceholder = (canvas, cell) => {
     selectable: false, evented: false, isPuzzleItem: true, isPlaceholder: true
   });
   canvas.add(rect, plus);
-  rect.sendToBack();
 };
 
 // === 交互事件 ===
