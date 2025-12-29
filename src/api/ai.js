@@ -2,7 +2,9 @@
 
 // 默认地址 (作为兜底，防止调用时传空)
 const DEFAULT_BASE_URL = 'http://127.0.0.1:11111';
-const API_BASE_URL = 'http://10.93.83.151:8080'; // 张
+const API_BASE_URL = 'http://localhost/prod-api';
+
+const Authorization = ''
 
 export const aiApi = {
   /**
@@ -112,9 +114,9 @@ export const aiApi = {
    * @returns {Promise<string>} 处理后的图片 URL
    */
   async imageTranslate(file, languageParams = {}) {
-    const apiUrl = `${API_BASE_URL}/xinzhan-ai/alimt/image/translate`;
+    const apiUrl = `${API_BASE_URL}/xinzhan-ai/alimt/translatePictureFile`;
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append('imageFiles', file);
     for (const key in languageParams) {
       formData.append(key, languageParams[key]);
     }
@@ -122,6 +124,9 @@ export const aiApi = {
     try {
       const response = await fetch(apiUrl, {
         method: 'POST',
+        headers: {
+          'Authorization': Authorization,
+        },
         body: formData,
         // fetch 自动处理 multipart/form-data 的 Content-Type，无需手动设置
       });
@@ -130,8 +135,8 @@ export const aiApi = {
         throw new Error(`请求失败: ${response.status} ${response.statusText}`);
       }
 
-      const blob = await response.blob();
-      return URL.createObjectURL(blob);
+      const res = await response.json();
+      return res;
     } catch (error) {
       console.error('AI API Error:', error);
       throw error;
