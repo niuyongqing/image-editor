@@ -102,7 +102,8 @@ export function useCanvasLock() {
       canvas.defaultCursor = dragMode ? 'grab' : (isRulerMode ? 'crosshair' : 'default');
 
       objects.forEach((obj) => {
-        const isMain = obj.isMainImage || obj.id === 'main-image' || (obj.type === 'image' && objects.indexOf(obj) === 0);
+        // ✨ 精确识别主图：优先使用 isMainImage 标识，其次使用 id，最后使用位置判断
+        const isMain = !!(obj.isMainImage || obj.id === 'main-image' || (obj.type === 'image' && objects.indexOf(obj) === 0 && !obj.isRuler && !obj.isMaskObject));
         const isRuler = !!obj.isRuler;
 
         if (isMain) {
@@ -119,14 +120,32 @@ export function useCanvasLock() {
             return;
           }
 
+          // ✨ 强制锁定主图：确保 lockMovementX 和 lockMovementY 被正确设置
+          const shouldLockMainImage = !allowMainImageDrag;
           obj.set({
             selectable: !!allowMainImageSelect,
             evented: !!allowMainImageSelect,
-            lockMovementX: !allowMainImageDrag,
-            lockMovementY: !allowMainImageDrag,
+            lockMovementX: shouldLockMainImage,
+            lockMovementY: shouldLockMainImage,
             hoverCursor: allowMainImageDrag ? (dragMode ? 'grab' : 'move') : 'default',
           });
           applyControlVisibility(obj, showMainImageControls);
+          
+          // ✨ 调试信息：验证主图锁定状态（仅在文本模块时输出）
+          if (debugName === 'default' || (debugName && debugName.includes('text'))) {
+            console.log('[useCanvasLock] 主图锁定状态:', {
+              debugName,
+              isMainImage: obj.isMainImage,
+              id: obj.id,
+              allowMainImageDrag,
+              lockMovementX: obj.lockMovementX,
+              lockMovementY: obj.lockMovementY,
+              selectable: obj.selectable,
+              evented: obj.evented,
+              actualLockX: obj.lockMovementX,
+              actualLockY: obj.lockMovementY
+            });
+          }
           return;
         }
 
@@ -157,7 +176,8 @@ export function useCanvasLock() {
       // ✅ 最终态收敛：强制把 activeObject 按当前策略同步一次
       const active = canvas.getActiveObject();
       if (active) {
-        const isMain = active.isMainImage || active.id === 'main-image' || active.type === 'image';
+        // ✨ 精确识别主图：优先使用 isMainImage 标识，其次使用 id，最后使用类型判断
+        const isMain = !!(active.isMainImage || active.id === 'main-image' || (active.type === 'image' && !active.isRuler && !active.isMaskObject));
         if (active.isRuler && (allowRulerSelect || allowRulerDrag)) {
           forceEnableObject(active, true);
           if (!allowRulerDrag) active.set({ lockMovementX: true, lockMovementY: true });
@@ -169,14 +189,30 @@ export function useCanvasLock() {
           applyControlVisibility(active, showNormalObjectControls);
           active.setCoords();
         } else if (isMain) {
+          // ✨ 强制锁定主图：确保 lockMovementX 和 lockMovementY 被正确设置
+          const shouldLockMainImage = !allowMainImageDrag;
           active.set({
             selectable: !!allowMainImageSelect,
             evented: !!allowMainImageSelect,
-            lockMovementX: !allowMainImageDrag,
-            lockMovementY: !allowMainImageDrag,
+            lockMovementX: shouldLockMainImage,
+            lockMovementY: shouldLockMainImage,
           });
           applyControlVisibility(active, showMainImageControls);
           active.setCoords();
+          
+          // ✨ 调试信息：验证主图锁定状态（仅在文本模块时输出）
+          if (debugName === 'default' || (debugName && debugName.includes('text'))) {
+            console.log('[useCanvasLock] 活动主图锁定状态:', {
+              debugName,
+              isMainImage: active.isMainImage,
+              id: active.id,
+              allowMainImageDrag,
+              lockMovementX: active.lockMovementX,
+              lockMovementY: active.lockMovementY,
+              selectable: active.selectable,
+              evented: active.evented
+            });
+          }
         }
       }
 

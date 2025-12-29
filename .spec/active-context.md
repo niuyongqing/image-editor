@@ -1,8 +1,8 @@
 # Active Context & Development State
 
-> **Version**: 3.0 (Hand Mode & Smart Sensing Integration)
-> **Last Updated**: 2025-12-24
-> **Current Focus**: 全局交互状态切换、标尺智能感知与光标优先级体系
+> **Version**: 3.1 (Main Image Lock Fix)
+> **Last Updated**: 2025-12-25
+> **Current Focus**: 模块内主图锁定机制完善、时机问题修复
 
 ## 1. 当前开发状态 (Current Status)
 
@@ -35,14 +35,14 @@
 
 #### 1.3 智能与特效 (AI & Effects)
 
-- **智能消除 (Inpaint)**: 
+- **智能消除 (Inpaint)**:
   - [x] **离屏遮罩**: 解决闪烁问题，通过离屏 Canvas 生成 Mask。
   - [x] **双模交互**: 支持画笔 (Brush) 和 矩形框选 (Rect)。
-- **一键抠图 (Rembg)**: 
+- **一键抠图 (Rembg)**:
   - [x] **API 集成**: 封装 `src/api/ai.js` 支持一键移除背景。
-- **图片翻译 (Image Translation)**: 
+- **图片翻译 (Image Translation)**:
   - [x] **UI 组件**: 实现了图片翻译功能的下拉面板，包含源语言和目标语言选择。
-  - [x] **功能实现**: 完成了handleTranslate函数，支持将画布内容转为图片并调用AI API进行翻译。
+  - [x] **功能实现**: 完成了 handleTranslate 函数，支持将画布内容转为图片并调用 AI API 进行翻译。
 - **滤镜与调色**:
   - [x] **ColorMatrix**: 实现亮度、对比度等 6 维调节。
   - [x] **LUT 模拟**: 内置“复古”、“电影”等滤镜预设。
@@ -119,3 +119,26 @@
 - **原因**: 之前的物理锁在豁免逻辑中采用了“硬编码恢复”，只恢复了 `selectable`，却遗漏了 `lockMovementX/Y` 等属性。
 - **终极解决方案**: 废弃硬编码，改用**配置驱动模式**。通过遍历属性池，确保每一项被锁定的属性在豁免时都能被精准解锁。
 - **教训**: “可以用配置驱动的都不要用硬编码”，保持逻辑的高度对称性。
+
+### 3.5 模块进入后主图仍可拖动的问题 `NEW`
+
+- **现象**: 进入文本模块（或其他非 adjust 模块）后，主图仍然可以被拖动，即使策略配置正确（`allowMainImageDrag: false`）。
+- **原因分析**:
+  1. **时机问题**: `watch` 可能在模块组件挂载前触发，导致锁定逻辑执行时模块状态尚未完全更新。
+  2. **选中状态**: 即使 `lockMovementX/Y` 为 `true`，如果主图被选中（`selectable: true`），Fabric.js 在选中状态下仍可能允许拖动。
+  3. **策略覆盖**: 当 `isGlobalDragMode` 为 `true` 时，`dragPolicy` 会覆盖 `basePolicy`，导致主图可拖动。
+- **解决方案**:
+  1. **强制关闭手型模式**: 进入任何模块（非 resize）时，如果 `isGlobalDragMode` 为 `true`，强制关闭。
+  2. **禁止选中主图**: 在模块内设置 `allowMainImageSelect: false`，防止 Fabric.js 在选中状态下允许拖动。
+  3. **强制取消选中**: 如果主图已被选中，立即取消选中（在设置策略之前执行）。
+  4. **使用 nextTick**: 在 `watch` 中使用 `nextTick` 确保状态更新后再执行锁定逻辑。
+  5. **模块挂载时触发**: 在模块的 `onMounted` 中触发 `image:updated` 事件，确保模块挂载后立即锁定主图。
+- **关键代码位置**:
+  - `src/components/Workspace.vue`: `syncLockState` 函数中的模块锁定逻辑
+  - `src/components/modules/text/index.vue`: `onMounted` 中触发 `image:updated` 事件
+  - `src/composables/useCanvasLock.js`: 主图锁定状态的设置
+- **参考行为**: 调整模块（`activeTool === 'adjust'`）在没有子模块时，主图不能被移动，除非用户手动启用手型。所有模块应该遵循相同的行为。
+- **教训**:
+  - 时机问题很关键：使用 `nextTick` 确保状态更新完成后再执行锁定逻辑
+  - 选中状态会影响拖动：即使 `lockMovementX/Y` 为 `true`，选中状态下的主图仍可能被拖动
+  - 双重保障：既要在策略层面禁止，也要在对象层面强制取消选中

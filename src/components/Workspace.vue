@@ -1,38 +1,86 @@
 <template>
   <div class="workspace-container">
-    <div class="canvas-center" ref="canvasContainer" @contextmenu.prevent="handleRightClick">
+    <div
+      class="canvas-center"
+      ref="canvasContainer"
+      @contextmenu.prevent="handleRightClick"
+    >
       <canvas id="c"></canvas>
     </div>
 
     <FloatingObjectMenu />
-    <CanvasContextMenu :visible="showContextMenu" :position="contextMenuPos" @close="closeContextMenu"
-      @paste="handleMenuPaste" />
+    <CanvasContextMenu
+      :visible="showContextMenu"
+      :position="contextMenuPos"
+      @close="closeContextMenu"
+      @paste="handleMenuPaste"
+    />
     <ShortcutsPanel :visible="showShortcuts" @close="showShortcuts = false" />
 
     <div v-if="showJoinAddBtn" class="join-action-dock">
       <button class="add-image-btn" @click="handleJoinAdd">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
           <path d="M12 5v14M5 12h14" />
         </svg>
         继续添加
       </button>
-      <input type="file" ref="joinFileInput" accept="image/*" style="display:none" @change="onJoinFileSelected">
+      <input
+        type="file"
+        ref="joinFileInput"
+        accept="image/*"
+        style="display: none"
+        @change="onJoinFileSelected"
+      />
     </div>
 
     <div class="zoom-controls">
-      <button class="ie-btn ie-btn-circle control-btn" :class="{ 'is-active': state.isGlobalDragMode }"
-        @click="toggleDragMode" :title="state.isGlobalDragMode ? '退出拖拽模式' : '进入拖拽模式 (空格键)'">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button
+        class="ie-btn ie-btn-circle control-btn"
+        :class="{ 'is-active': state.isGlobalDragMode }"
+        @click="toggleDragMode"
+        :title="
+          state.isGlobalDragMode ? '退出拖拽模式' : '进入拖拽模式 (空格键)'
+        "
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
           <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v5" />
           <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v10" />
           <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8" />
-          <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
+          <path
+            d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"
+          />
         </svg>
       </button>
 
-      <button class="ie-btn ie-btn-circle" title="快捷键列表" @click="showShortcuts = true">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
+      <button
+        class="ie-btn ie-btn-circle"
+        title="快捷键列表"
+        @click="showShortcuts = true"
+      >
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
           <path d="M6 8h.01"></path>
           <path d="M10 8h.01"></path>
@@ -49,7 +97,10 @@
 
       <button class="ie-btn ie-btn-circle" title="缩小" @click="handleZoomOut">
         <svg viewBox="0 0 1024 1024" width="16" height="16">
-          <path d="M128 544h768a32 32 0 1 0 0-64H128a32 32 0 1 0 0 64z" fill="currentColor" />
+          <path
+            d="M128 544h768a32 32 0 1 0 0-64H128a32 32 0 1 0 0 64z"
+            fill="currentColor"
+          />
         </svg>
       </button>
 
@@ -61,7 +112,8 @@
         <svg viewBox="0 0 1024 1024" width="16" height="16">
           <path
             d="M480 480H160a32 32 0 0 0 0 64h320v320a32 32 0 0 0 64 0V544h320a32 32 0 0 0 0-64H544V160a32 32 0 0 0-64 0v320z"
-            fill="currentColor" />
+            fill="currentColor"
+          />
         </svg>
       </button>
     </div>
@@ -69,23 +121,35 @@
 </template>
 
 <script setup>
-import { onMounted, inject, ref, watch, computed, onUnmounted, unref } from 'vue';
+import {
+  onMounted,
+  inject,
+  ref,
+  watch,
+  computed,
+  onUnmounted,
+  unref,
+  nextTick,
+} from "vue";
 import FloatingObjectMenu from "./common/FloatingObjectMenu.vue";
 import CanvasContextMenu from "./common/CanvasContextMenu.vue";
 import { useObjectActions } from "@/composables/useObjectActions";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import ShortcutsPanel from "@/components/common/ShortcutsPanel.vue";
-import { useEditorState } from '@/composables/useEditorState';
-import { useCanvasLock } from '@/composables/useCanvasLock';
-import { puzzleState, appendImageToJoin } from './modules/puzzle/useCanvasPuzzle'; // ✨ 引入 puzzle 逻辑
+import { useEditorState } from "@/composables/useEditorState";
+import { useCanvasLock } from "@/composables/useCanvasLock";
+import {
+  puzzleState,
+  appendImageToJoin,
+} from "./modules/puzzle/useCanvasPuzzle"; // ✨ 引入 puzzle 逻辑
 
 const { state, setGlobalDragMode } = useEditorState();
 const { setBackgroundLock } = useCanvasLock();
 
 const props = defineProps({
-  imageUrl: { type: String, default: '' },
+  imageUrl: { type: String, default: "" },
 });
-const canvasAPI = inject('canvasAPI');
+const canvasAPI = inject("canvasAPI");
 const canvasContainer = ref(null);
 const pastePosition = ref(null);
 const showShortcuts = ref(false);
@@ -99,7 +163,8 @@ const handleZoomOut = () => canvasAPI?.zoomOut && canvasAPI.zoomOut();
 const handleReset = () => canvasAPI?.zoomReset && canvasAPI.zoomReset();
 const updateZoomState = () => {
   const fabricCanvas = canvasAPI?.canvas?.value;
-  if (fabricCanvas && canvasAPI.zoom) canvasAPI.zoom.value = fabricCanvas.getZoom();
+  if (fabricCanvas && canvasAPI.zoom)
+    canvasAPI.zoom.value = fabricCanvas.getZoom();
 };
 
 // === ✨ 配置驱动：交互锁策略表（四类闭环：default/crop/resize/ruler） ===
@@ -122,7 +187,7 @@ const TAB_LOCK_POLICIES = {
     allowRulerSelect: true,
     allowRulerDrag: true,
     showRulerControls: true,
-    debugName: 'default',
+    debugName: "default",
   },
   crop: {
     isRulerMode: false,
@@ -142,7 +207,7 @@ const TAB_LOCK_POLICIES = {
     allowRulerSelect: false,
     allowRulerDrag: false,
     showRulerControls: false,
-    debugName: 'crop',
+    debugName: "crop",
   },
   resize: {
     isRulerMode: false,
@@ -162,7 +227,7 @@ const TAB_LOCK_POLICIES = {
     allowRulerSelect: false,
     allowRulerDrag: false,
     showRulerControls: false,
-    debugName: 'resize',
+    debugName: "resize",
   },
   ruler: {
     isRulerMode: true,
@@ -183,14 +248,14 @@ const TAB_LOCK_POLICIES = {
     allowRulerSelect: true,
     allowRulerDrag: true,
     showRulerControls: true,
-    debugName: 'ruler',
+    debugName: "ruler",
   },
 };
 
 const getLockPolicyByTab = (tab) => {
-  if (tab === 'crop') return TAB_LOCK_POLICIES.crop;
-  if (tab === 'resize') return TAB_LOCK_POLICIES.resize;
-  if (tab === 'ruler') return TAB_LOCK_POLICIES.ruler;
+  if (tab === "crop") return TAB_LOCK_POLICIES.crop;
+  if (tab === "resize") return TAB_LOCK_POLICIES.resize;
+  if (tab === "ruler") return TAB_LOCK_POLICIES.ruler;
   return TAB_LOCK_POLICIES.default;
 };
 
@@ -200,33 +265,50 @@ const syncLockState = () => {
 
   const basePolicy = getLockPolicyByTab(state.activeTab);
 
-  // ✨ 规则：裁剪/旋转(crop) 模式下禁止拖动主图（即使手形模式此前开启，也必须强制关闭）
-  if (state.activeTab === 'crop' && state.isGlobalDragMode) {
+  // ✨ 规则：进入任何模块时，必须强制关闭全局手型模式，确保主图被锁定
+  // 主图的拖动开关只能在全局手型图标上触发，模块内禁止拖动主图
+  // 排除 resize 模式（resize 模式允许拖动主图，这是其特殊功能）
+  // 判断是否在模块中：
+  // - activeTool !== 'adjust'：肯定在模块中（如 text, draw, puzzle 等）
+  // - activeTool === 'adjust' && activeTab !== ''：在调整模块的子模块中（如 crop, resize, ruler 等）
+  const isInModule =
+    state.activeTool !== "adjust" ||
+    (state.activeTool === "adjust" && state.activeTab !== "");
+  const isResizeMode = state.activeTab === "resize";
+
+  // ✨ 关键修复：进入任何模块（非 resize）时，必须强制关闭全局手型模式
+  // 参考调整模块的行为：主图不能被移动，除非用户手动启用手型
+  if (isInModule && !isResizeMode && state.isGlobalDragMode) {
     setGlobalDragMode(false);
   }
 
-  const dragPolicy = state.isGlobalDragMode
+  // ✨ 关键修复：如果进入了模块（非 resize），即使手型模式开启，也不允许拖动主图
+  // 使用局部变量来确保逻辑正确执行
+  const isDragModeActive =
+    isInModule && !isResizeMode ? false : state.isGlobalDragMode;
+
+  const dragPolicy = isDragModeActive
     ? {
-      dragMode: true,
-      isRulerMode: false,
-      isResizeMode: false,
-      isCropMode: false,
-      cropMainImageAnchored: false,
-      discardActiveObject: true,
+        dragMode: true,
+        isRulerMode: false,
+        isResizeMode: false,
+        isCropMode: false,
+        cropMainImageAnchored: false,
+        discardActiveObject: true,
 
-      allowMainImageSelect: true,
-      allowMainImageDrag: true,
-      showMainImageControls: false,
+        allowMainImageSelect: true,
+        allowMainImageDrag: true,
+        showMainImageControls: false,
 
-      // 拖拽模式下避免误触：禁止直接点选普通对象/标尺
-      allowNormalObjectSelect: false,
-      allowNormalObjectDrag: false,
-      showNormalObjectControls: false,
+        // 拖拽模式下避免误触：禁止直接点选普通对象/标尺
+        allowNormalObjectSelect: false,
+        allowNormalObjectDrag: false,
+        showNormalObjectControls: false,
 
-      allowRulerSelect: false,
-      allowRulerDrag: false,
-      showRulerControls: false,
-    }
+        allowRulerSelect: false,
+        allowRulerDrag: false,
+        showRulerControls: false,
+      }
     : { dragMode: false };
 
   const finalPolicy = {
@@ -234,8 +316,41 @@ const syncLockState = () => {
     ...dragPolicy,
   };
 
+  // ✨ 强制规则：进入任何模块（非 resize）时，主图必须被锁定
+  // 参考调整模块的行为：主图不能被移动，除非用户手动启用手型
+  // 即使手型模式开启，也不允许在模块内拖动主图
+  // 这是最终保障，确保主图拖动开关只能在全局手型图标上触发
+  if (isInModule && !isResizeMode) {
+    // ✨ 强制取消选中主图：如果主图当前被选中，立即取消选中（必须在设置策略之前执行）
+    const activeObj = canvas.getActiveObject();
+    if (activeObj && (activeObj.isMainImage || activeObj.id === "main-image")) {
+      canvas.discardActiveObject();
+      canvas.requestRenderAll();
+    }
+
+    // ✨ 强制锁定主图：禁止拖动和选中
+    finalPolicy.allowMainImageDrag = false;
+    finalPolicy.dragMode = false;
+    // ✨ 关键修复：禁止选中主图，防止 Fabric.js 在选中状态下允许拖动
+    // 即使 lockMovementX/Y 为 true，选中状态下的主图仍可能被拖动
+    finalPolicy.allowMainImageSelect = false;
+  }
+
   // debug: 可在控制台观察当前锁策略命中
-  // console.log('[LockPolicy]', finalPolicy.debugName || 'unknown', finalPolicy);
+  if (isInModule && !isResizeMode) {
+    console.log("[LockPolicy] 模块锁定模式:", {
+      activeTool: state.activeTool,
+      activeTab: state.activeTab,
+      isGlobalDragMode: state.isGlobalDragMode,
+      allowMainImageDrag: finalPolicy.allowMainImageDrag,
+      dragMode: finalPolicy.dragMode,
+    });
+  }
+
+  // ✨ 确保 debugName 被传递，以便 useCanvasLock 输出调试信息
+  if (!finalPolicy.debugName) {
+    finalPolicy.debugName = basePolicy.debugName || "unknown";
+  }
 
   setBackgroundLock(canvas, true, finalPolicy);
 };
@@ -250,21 +365,27 @@ const actions = useObjectActions();
 useKeyboardShortcuts(actions);
 const showContextMenu = ref(false);
 const contextMenuPos = ref({ x: 0, y: 0 });
-const closeContextMenu = () => { showContextMenu.value = false; };
-const onGlobalClick = () => { if (showContextMenu.value) closeContextMenu(); };
+const closeContextMenu = () => {
+  showContextMenu.value = false;
+};
+const onGlobalClick = () => {
+  if (showContextMenu.value) closeContextMenu();
+};
 const handleRightClick = (e) => {
-  if (e.target.closest('.floating-wrapper')) return;
+  if (e.target.closest(".floating-wrapper")) return;
   contextMenuPos.value = { x: e.clientX, y: e.clientY };
   const canvas = unref(canvasAPI.canvas);
   if (canvas) pastePosition.value = canvas.getPointer(e);
   showContextMenu.value = true;
 };
-const handleMenuPaste = () => { actions.pasteActive(pastePosition.value); };
+const handleMenuPaste = () => {
+  actions.pasteActive(pastePosition.value);
+};
 
 const joinFileInput = ref(null);
 
 const showJoinAddBtn = computed(() => {
-  return state.isPuzzleMode && puzzleState.mode === 'join';
+  return state.isPuzzleMode && puzzleState.mode === "join";
 });
 
 const handleJoinAdd = () => {
@@ -276,37 +397,58 @@ const onJoinFileSelected = (e) => {
   if (file) {
     const url = URL.createObjectURL(file);
     appendImageToJoin(url);
-    e.target.value = '';
+    e.target.value = "";
   }
 };
 
 onMounted(() => {
-  window.addEventListener('click', onGlobalClick);
+  window.addEventListener("click", onGlobalClick);
   if (canvasAPI && canvasAPI.init) {
     const width = canvasContainer.value.clientWidth || 1900;
     const height = canvasContainer.value.clientHeight || 1000;
-    canvasAPI.init('c', width, height);
+    canvasAPI.init("c", width, height);
     const fabricCanvas = canvasAPI.canvas.value;
     if (fabricCanvas) {
-      fabricCanvas.on('zoom:change', updateZoomState);
-      fabricCanvas.on('mouse:wheel', updateZoomState);
-      fabricCanvas.on('image:updated', syncLockState);
+      fabricCanvas.on("zoom:change", updateZoomState);
+      fabricCanvas.on("mouse:wheel", updateZoomState);
+      fabricCanvas.on("image:updated", syncLockState);
       window.canvas = fabricCanvas;
     }
   }
   syncLockState();
 });
 
-watch(() => state.activeTab, () => { syncLockState(); });
+watch(
+  () => state.activeTab,
+  () => {
+    // ✨ 使用 nextTick 确保状态更新后再执行锁定逻辑
+    // 参考页面初始化逻辑：onMounted 中调用 syncLockState 确保主图被锁定
+    // 这样可以确保模块组件挂载完成后再执行锁定，避免时机问题
+    nextTick(() => {
+      syncLockState();
+    });
+  }
+);
+watch(
+  () => state.activeTool,
+  () => {
+    // ✨ 使用 nextTick 确保状态更新后再执行锁定逻辑
+    // 参考页面初始化逻辑：onMounted 中调用 syncLockState 确保主图被锁定
+    // 这样可以确保模块组件挂载完成后再执行锁定，避免时机问题
+    nextTick(() => {
+      syncLockState();
+    });
+  }
+);
 
 onUnmounted(() => {
   const fabricCanvas = canvasAPI?.canvas?.value;
   if (fabricCanvas) {
-    fabricCanvas.off('zoom:change', updateZoomState);
-    fabricCanvas.off('mouse:wheel', updateZoomState);
-    fabricCanvas.off('image:updated', syncLockState);
+    fabricCanvas.off("zoom:change", updateZoomState);
+    fabricCanvas.off("mouse:wheel", updateZoomState);
+    fabricCanvas.off("image:updated", syncLockState);
   }
-  window.removeEventListener('click', onGlobalClick);
+  window.removeEventListener("click", onGlobalClick);
   const canvas = unref(canvasAPI.canvas);
   if (canvas) setBackgroundLock(canvas, true, { dragMode: false });
 });

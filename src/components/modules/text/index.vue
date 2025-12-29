@@ -207,7 +207,16 @@ const setFont = (font) => {
 };
 
 onMounted(() => {
-  if (canvasAPI) initTextModule(canvasAPI.canvas, canvasAPI.saveHistory);
+  if (canvasAPI) {
+    initTextModule(canvasAPI.canvas, canvasAPI.saveHistory);
+    // ✨ 关键修复：模块挂载后立即触发锁定逻辑，确保主图被锁定
+    // 参考页面初始化逻辑：onMounted 中调用 syncLockState 确保主图被锁定
+    // 通过触发 image:updated 事件来触发 syncLockState（Workspace 中已监听此事件）
+    const canvas = canvasAPI.canvas?.value;
+    if (canvas) {
+      canvas.fire('image:updated');
+    }
+  }
 });
 
 onUnmounted(() => {
