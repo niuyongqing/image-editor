@@ -107,9 +107,12 @@
     };
 
     try {
-      const resultUrl = await aiApi.imageTranslate(file, languageParams);
-      console.log('翻译结果图片URL:', resultUrl);
-      // TODO: 根据resultUrl更新画布内容
+      const res = await aiApi.imageTranslate(file, languageParams);
+      console.log('翻译结果图片URL:', res.data[0].newImage);
+      // 清除画布上所有元素并替换为翻译结果图片
+      if (res.data[0].newImage && canvasAPI.initImage) {
+        canvasAPI.initImage(res.data[0].newImage);
+      }
     } catch (error) {
       console.error('图片翻译失败:', error);
     }
