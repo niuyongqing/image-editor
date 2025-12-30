@@ -19,7 +19,7 @@
           <circle cx="6" cy="18" r="3" />
           <path d="M14.8 14.8 20 20" />
         </svg>
-        <span>一键抠图</span>
+        <span>智能白底</span>
       </div>
 
       <div class="right-icon">

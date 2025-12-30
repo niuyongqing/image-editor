@@ -2,7 +2,8 @@
 
 // 默认地址 (作为兜底，防止调用时传空)
 const DEFAULT_BASE_URL = 'http://127.0.0.1:11111';
-const API_BASE_URL = 'http://localhost/prod-api';
+// const API_BASE_URL = 'http://localhost/prod-api';
+const API_BASE_URL = 'http://10.93.83.151:8080';
 
 const Authorization = ''
 

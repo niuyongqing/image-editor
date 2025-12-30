@@ -4,58 +4,96 @@
       <slot name="logo">{{ textMap.title }}</slot>
     </div>
     <div class="ie-actions">
-      <input type="file" ref="fileInput" @change="onFileSelected" style="display:none" accept="image/*" />
+      <input
+        type="file"
+        ref="fileInput"
+        @change="onFileSelected"
+        style="display: none"
+        accept="image/*"
+      />
 
       <button class="ie-btn" @click="handleUpload">
-        <svg width="14" height="14" viewBox="0 0 1024 1024" style="margin-right:4px;fill:currentColor">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 1024 1024"
+          style="margin-right: 4px; fill: currentColor"
+        >
           <path
-            d="M544 253.696V704h-64V247.296L237.248 490.048 192 444.8 512 128l320 316.8-45.248 45.248L544 253.696zM160 832h704a32 32 0 1 1 0 64H160a32 32 0 1 1 0-64z" />
+            d="M544 253.696V704h-64V247.296L237.248 490.048 192 444.8 512 128l320 316.8-45.248 45.248L544 253.696zM160 832h704a32 32 0 1 1 0 64H160a32 32 0 1 1 0-64z"
+          />
         </svg>
         {{ textMap.upload }}
       </button>
 
       <span class="ie-divider"></span>
 
-      <button 
-        class="ie-btn ie-btn-icon" 
-        style="margin-right:8px; padding: 0 8px;" 
-        title="撤销" 
-        @click="handleUndo" 
+      <button
+        class="ie-btn ie-btn-icon"
+        style="margin-right: 8px; padding: 0 8px"
+        title="撤销"
+        @click="handleUndo"
         :disabled="!state.canUndo"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 14 4 9l5-5"/>
-          <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M9 14 4 9l5-5" />
+          <path
+            d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"
+          />
         </svg>
       </button>
-      
-      <button 
-        class="ie-btn ie-btn-icon" 
-        style="margin-right:8px; padding: 0 8px;" 
-        title="重做" 
-        @click="handleRedo" 
+
+      <button
+        class="ie-btn ie-btn-icon"
+        style="margin-right: 8px; padding: 0 8px"
+        title="重做"
+        @click="handleRedo"
         :disabled="!state.canRedo"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M15 14l5-5-5-5"/>
-          <path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5v0A5.5 5.5 0 0 0 9.5 20H13"/>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M15 14l5-5-5-5" />
+          <path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5v0A5.5 5.5 0 0 0 9.5 20H13" />
         </svg>
       </button>
-      <button class="ie-btn" style="margin-right:8px;" @click="handleReset">还原</button>
-      <button class="ie-btn ie-primary" @click="handleSave">{{ textMap.save }}</button>
+      <button class="ie-btn" style="margin-right: 8px" @click="handleReset">
+        还原
+      </button>
+      <button class="ie-btn" style="margin-right: 8px" @click="handleExport">
+        导出
+      </button>
+      <button class="ie-btn ie-primary" @click="handleSave">
+        {{ textMap.save }}
+      </button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { inject, ref } from 'vue';
-import { useEditorState } from '@/composables/useEditorState'; 
-import { toast } from '@/utils/toast'; 
- 
+import { inject, ref } from "vue";
+import { useEditorState } from "@/composables/useEditorState";
+import { toast } from "@/utils/toast";
 
 const { state } = useEditorState();
 
-const canvasAPI = inject('canvasAPI');
+const canvasAPI = inject("canvasAPI");
 const fileInput = ref(null);
 
 const props = defineProps({
@@ -73,24 +111,63 @@ const onFileSelected = (e) => {
   const file = e.target.files?.[0];
   if (file) {
     // 检查 inject 的 API 是否存在
-    if (!canvasAPI || !canvasAPI.initImage) { 
-      toast.error('画布尚未初始化');
+    if (!canvasAPI || !canvasAPI.initImage) {
+      toast.error("画布尚未初始化");
       return;
     }
     const url = URL.createObjectURL(file);
-    
+
     // 调用 canvasAPI 中的方法
-    canvasAPI.initImage(url); 
-    
-    e.target.value = '';
+    canvasAPI.initImage(url);
+
+    e.target.value = "";
   }
 };
 
 const handleSave = () => {
+  // 保持原来的保存逻辑不变：抛出给外层（EditorLayout emit('save')）
   if (canvasAPI && canvasAPI.save) {
-    canvasAPI.save(); 
+    canvasAPI.save();
   } else {
-    toast.error('导出功能未实现');
+    toast.error("导出功能未实现");
+  }
+};
+
+// 新增：导出到本地下载
+const handleExport = () => {
+  if (!canvasAPI || !canvasAPI.exportImg) {
+    toast.error("画布尚未初始化，无法导出");
+    return;
+  }
+
+  try {
+    // 1) 导出 base64
+    const dataURL = canvasAPI.exportImg();
+    if (!dataURL) {
+      toast.error("导出失败");
+      return;
+    }
+
+    // 2) 触发浏览器下载
+    const a = document.createElement("a");
+    const ts = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    const filename = `image-editor-${ts.getFullYear()}${pad(
+      ts.getMonth() + 1
+    )}${pad(ts.getDate())}-${pad(ts.getHours())}${pad(ts.getMinutes())}${pad(
+      ts.getSeconds()
+    )}.png`;
+
+    a.href = dataURL;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    toast.success("已导出");
+  } catch (e) {
+    console.error("[NavBar] handleExport error:", e);
+    toast.error("导出失败");
   }
 };
 

@@ -44,7 +44,9 @@ export const startMosaicInteraction = (mode, intensity = 15) => {
   // 首次初始化
   bgImage.clone((cloned) => {
     mosaicPreviewLayer = cloned;
-    const pixelateFilter = new fabric.Image.filters.Pixelate({ blocksize: intensity });
+    const pixelateFilter = new fabric.Image.filters.Pixelate({
+      blocksize: intensity,
+    });
     mosaicPreviewLayer.filters = [pixelateFilter];
     mosaicPreviewLayer.applyFilters();
 
@@ -90,8 +92,14 @@ const bakePathToWorld = (path) => {
       return [cmd, c.x, c.y, p.x, p.y];
     }
     if (cmd === "C") {
-      const c1 = fabric.util.transformPoint(new fabric.Point(seg[1], seg[2]), m);
-      const c2 = fabric.util.transformPoint(new fabric.Point(seg[3], seg[4]), m);
+      const c1 = fabric.util.transformPoint(
+        new fabric.Point(seg[1], seg[2]),
+        m
+      );
+      const c2 = fabric.util.transformPoint(
+        new fabric.Point(seg[3], seg[4]),
+        m
+      );
       const p = fabric.util.transformPoint(new fabric.Point(seg[5], seg[6]), m);
       return [cmd, c1.x, c1.y, c2.x, c2.y, p.x, p.y];
     }
@@ -148,7 +156,8 @@ const addMosaicShape = (type) => {
     name: "mosaic-shape",
   };
 
-  const shape = type === "rect"
+  const shape =
+    type === "rect"
       ? new fabric.Rect({ ...commonTpl, width: 150, height: 150 })
       : new fabric.Circle({ ...commonTpl, radius: 75 });
 
@@ -190,12 +199,16 @@ export const applyMosaic = (intensity) => {
       finalMaskData.push(shape.toObject());
     }
 
-    console.log('[Mosaic] applyMosaic: collected maskData len=', finalMaskData.length, finalMaskData);
+    console.log(
+      "[Mosaic] applyMosaic: collected maskData len=",
+      finalMaskData.length,
+      finalMaskData
+    );
     if (finalMaskData.length === 0) return resolve();
 
     const originalSrc = bgImage.getSrc();
-    console.log('[Mosaic] applyMosaic: start Image.fromURL');
-fabric.Image.fromURL(
+    console.log("[Mosaic] applyMosaic: start Image.fromURL");
+    fabric.Image.fromURL(
       originalSrc,
       (highResImg) => {
         const { width, height } = highResImg;
@@ -211,7 +224,11 @@ fabric.Image.fromURL(
 
         // 使用 enlivenObjects 从纯数据恢复遮罩对象
         fabric.util.enlivenObjects(finalMaskData, (objects) => {
-          console.log('[Mosaic] enlivenObjects done, objects len=', objects.length, objects);
+          console.log(
+            "[Mosaic] enlivenObjects done, objects len=",
+            objects.length,
+            objects
+          );
           // 关键修复：使用包围盒差值算法，不受 originX/Y 影响，且在主图无旋转时最稳定
           const imgTLWorld = {
             x: bgImage.left - bgImage.getScaledWidth() / 2,
@@ -239,32 +256,46 @@ fabric.Image.fromURL(
           mosaicLayer.clipPath = new fabric.Group(finalMaskObjects, {
             absolutePositioned: true,
           });
-          console.log('[Mosaic] clipPath group created:', mosaicLayer.clipPath);
+          console.log("[Mosaic] clipPath group created:", mosaicLayer.clipPath);
 
           tempCanvas.add(highResImg);
           tempCanvas.add(mosaicLayer);
           tempCanvas.renderAll();
 
           const dataURL = tempCanvas.toDataURL({ format: "png", quality: 1 });
-          console.log('[Mosaic] offscreen dataURL len=', dataURL.length);
+          console.log("[Mosaic] offscreen dataURL len=", dataURL.length);
           tempCanvas.dispose(); // 在这里安全地销毁
 
           bgImage.setSrc(dataURL, () => {
             const newZoom = prevZoom / scale;
             bgImage.set({
-              scaleX: 1, scaleY: 1, angle: 0,
-              originX: "center", originY: "center",
-              left: canvas.width / 2, top: canvas.height / 2,
+              scaleX: 1,
+              scaleY: 1,
+              angle: 0,
+              originX: "center",
+              originY: "center",
+              left: canvas.width / 2,
+              top: canvas.height / 2,
             });
             bgImage.setCoords();
             canvas.centerObject(bgImage);
 
             stopMosaicInteraction();
 
-            const newCenterLogic = { x: canvas.width / 2, y: canvas.height / 2 };
+            const newCenterLogic = {
+              x: canvas.width / 2,
+              y: canvas.height / 2,
+            };
             const newPanX = rectCenterScreen.x - newCenterLogic.x * newZoom;
             const newPanY = rectCenterScreen.y - newCenterLogic.y * newZoom;
-            canvas.setViewportTransform([newZoom, 0, 0, newZoom, newPanX, newPanY]);
+            canvas.setViewportTransform([
+              newZoom,
+              0,
+              0,
+              newZoom,
+              newPanX,
+              newPanY,
+            ]);
 
             if (saveHistoryFn) saveHistoryFn();
             canvas.requestRenderAll();

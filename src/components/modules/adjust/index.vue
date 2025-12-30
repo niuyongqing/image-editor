@@ -39,10 +39,10 @@
         :is-expanded="activeCollapse === 'filters'"
         @toggle="toggle('filters')"
       />
-      <AdjustMosaic
+      <!-- <AdjustMosaic
         :is-expanded="activeCollapse === 'mosaic'"
         @toggle="toggle('mosaic')"
-      />
+      /> -->
       <AdjustHDRemaster
         :is-expanded="activeCollapse === 'hdremaster'"
         @toggle="toggle('hdremaster')"
