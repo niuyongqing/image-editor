@@ -6,7 +6,7 @@
         v-for="tab in tabs"
         :key="tab.key"
         class="tab-item"
-        :class="{ 'active': activeTab === tab.key }"
+        :class="{ active: activeTab === tab.key }"
         @click="switchTab(tab.key)"
       >
         {{ tab.label }}
@@ -204,6 +204,7 @@
         />
       </div>
 
+
       <!-- 选择状态和删除按钮 -->
       <div class="selection-bar">
         <div class="selection-info">
@@ -221,6 +222,7 @@
           :class="{ 'disabled': selectedIds.length === 0 }"
         >删除</div>
       </div>
+
 
       <!-- 素材列表 -->
       <div class="detail-items">

@@ -19,7 +19,7 @@
           <circle cx="6" cy="18" r="3" />
           <path d="M14.8 14.8 20 20" />
         </svg>
-        <span>一键抠图</span>
+        <span>智能白底</span>
       </div>
 
       <div class="right-icon">
@@ -36,20 +36,6 @@
           stroke-linejoin="round"
         >
           <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-        </svg>
-        <svg
-          v-else
-          class="arrow"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="m9 18 6-6-6-6" />
         </svg>
       </div>
     </div>
