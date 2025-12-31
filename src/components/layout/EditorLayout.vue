@@ -36,7 +36,7 @@ const props = defineProps({
     default: () => ({
       upload: "打开图片",
       save: "保存",
-      title: "大秘美图",
+      title: "小馨美图",
     }),
   },
   // 全局配置（如 AI 后端地址）
