@@ -1,7 +1,7 @@
-// 默认地址 (作为兜底，防止调用时传空)
+// 代理标识 前缀
 const PROXY_PREFIX = '/prod-api';
 
-const Authorization = `Bearer eyJhbGciOiJIUzUxMiJ9.eyJ1c2VyX2lkIjoxLCJ1c2VyX2tleSI6ImNhNjI5YjdmLTZjOWUtNDNjYy04OGQ0LWZhM2Y1Njg3MzMwZiIsInVzZXJuYW1lIjoiYWRtaW4ifQ.Esph8f8CWGfKuI9fGJpySQdiZgmcOI4giuKiTshhMQ56D85Gl8Uul2EjpZoe4kK0M-jQU1hBqLRRmCfjrtgrJA`;
+const Authorization = `Bearer eyJhbGciOiJIUzUxMiJ9.eyJ1c2VyX2lkIjoxLCJ1c2VyX2tleSI6ImJhZjUzZmIwLWQwYTItNDlkNi1iMzk5LWFhOWM5ZTg1NWE1ZCIsInVzZXJuYW1lIjoiYWRtaW4ifQ.oi-D9wK5A1T5alZP1aEur6Z_8LAjunPecxn1YFu8vPqnpUiDSI4lUn25NeqTrdcLQUyeCeyPJCje5KBDX6WCBw`;
 
 // 模板列表
 export const templateListApi = async () => {

@@ -264,7 +264,7 @@
 </template>
 
 <script setup>
-  import { ref, computed, inject, onMounted, nextTick } from "vue";
+  import { ref, computed, inject, onMounted } from "vue";
   import { useEditorState } from "@/composables/useEditorState";
   import { registerMaterialModule, addMaterial } from "@/components/modules/material/useCanvasMaterial";
   import {

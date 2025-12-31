@@ -24,7 +24,7 @@ export const addMaterial = url => {
     img.set({
       left: canvasW / 2, top: canvasH / 2, originX: 'center', originY: 'center',
       opacity: 1,
-      isWatermark: true, customTool: 'watermark', watermarkMode: 'single',
+      customTool: 'material',
       _wmConfig: {
         src: url,
         opacity: 1,

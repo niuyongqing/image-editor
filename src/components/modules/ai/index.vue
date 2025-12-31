@@ -88,7 +88,7 @@ const handleTranslate = async () => {
   // Canvas内容转File
   const dataURL = canvas.toDataURL("image/png");
   const blob = await (await fetch(dataURL)).blob();
-  const file = new File([blob], "canvas-image.png", { type: "image/png" });
+  const file = new File([blob], `canvas-image-${Date.now()}.png`, { type: "image/png" });
 
   // 语言参数
   const languageParams = {
