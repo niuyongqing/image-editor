@@ -447,20 +447,18 @@
   const toggleCollect = (item) => {
     item.isCollect = !item.isCollect; // 前端效果
 
-    const isLatest = activeTab.value === 'latest';
+    const isLatest = ['latest', 'collect'].includes(activeTab.value); // 看不懂吧, 看不懂找余熙
     const params = { id: item.id, isLatest };
-    if (item.isCollect) {
-      // 收藏
-      addCollectApi(params);
-    } else {
-      // 取消收藏
-      cancelCollectApi(params);
-    }
 
-    // 当前是 收藏 页，刷新收藏列表
-    if (activeTab.value === 'collect') {
-      getCollectList();
-    }
+    const request = item.isCollect ? addCollectApi : cancelCollectApi;
+    request(params).then(res => {
+      if (res.code === 200) {
+        // 当前是 收藏 页，刷新收藏列表
+        if (activeTab.value === 'collect') {
+          getCollectList();
+        }
+      }
+    });
   };
 
   /** 我的 */
@@ -541,7 +539,7 @@
     if (activeTab.value === 'mine') return;
 
     // 使用; 即添加到'最近'
-    const isLatest = activeTab.value === 'latest';
+    const isLatest = ['latest', 'collect'].includes(activeTab.value); // 看不懂吧, 看不懂找余熙
     templateUseApi({ id: material.id, isLatest }).then(() => {
       if (activeTab.value === 'latest') {
         getLatestList();
