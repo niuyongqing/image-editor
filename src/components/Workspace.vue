@@ -144,6 +144,10 @@ import {
 } from "./modules/puzzle/useCanvasPuzzle"; // ✨ 引入 puzzle 逻辑
 
 const { state, setGlobalDragMode } = useEditorState();
+
+const isDrawBlockingMode = () => {
+  return state.activeTool === "draw" && state.drawMode && !!state.drawType;
+};
 const { setBackgroundLock } = useCanvasLock();
 
 const props = defineProps({
@@ -259,11 +263,41 @@ const getLockPolicyByTab = (tab) => {
   return TAB_LOCK_POLICIES.default;
 };
 
+// draw 模式：禁止选中画布对象（主图/普通对象/标尺），用于“进入绘制后十字光标绘制”
+const getLockPolicyForDrawMode = () => {
+  return {
+    isRulerMode: false,
+    isResizeMode: false,
+    isCropMode: false,
+    cropMainImageAnchored: false,
+    discardActiveObject: true,
+
+    allowMainImageSelect: false,
+    allowMainImageDrag: false,
+    showMainImageControls: false,
+
+    allowNormalObjectSelect: false,
+    allowNormalObjectDrag: false,
+    showNormalObjectControls: false,
+
+    allowRulerSelect: false,
+    allowRulerDrag: false,
+    showRulerControls: false,
+    debugName: "draw-mode",
+  };
+};
+
 const syncLockState = () => {
   const canvas = unref(canvasAPI.canvas);
   if (!canvas) return;
 
-  const basePolicy = getLockPolicyByTab(state.activeTab);
+  // draw 模式拥有最高优先级：直接禁用对象选中，防止 selection/route 抢交互
+  const basePolicy = state.drawMode
+    ? getLockPolicyForDrawMode()
+    : getLockPolicyByTab(state.activeTab);
+
+  // ✨ 绘制模式：不允许选中任何对象（主图/普通对象/标尺），避免 selection 路由抢交互
+  const drawBlock = isDrawBlockingMode();
 
   // ✨ 规则：进入任何模块时，必须强制关闭全局手型模式，确保主图被锁定
   // 主图的拖动开关只能在全局手型图标上触发，模块内禁止拖动主图
@@ -325,6 +359,24 @@ const syncLockState = () => {
     ...basePolicy,
     ...dragPolicy,
   };
+
+  if (drawBlock) {
+    finalPolicy.discardActiveObject = true;
+
+    finalPolicy.allowMainImageSelect = false;
+    finalPolicy.allowMainImageDrag = false;
+    finalPolicy.showMainImageControls = false;
+
+    finalPolicy.allowNormalObjectSelect = false;
+    finalPolicy.allowNormalObjectDrag = false;
+    finalPolicy.showNormalObjectControls = false;
+
+    finalPolicy.allowRulerSelect = false;
+    finalPolicy.allowRulerDrag = false;
+    finalPolicy.showRulerControls = false;
+
+    finalPolicy.debugName = "draw-block";
+  }
 
   // ✨ 强制规则：进入任何模块（非 resize）时，主图必须被锁定
   // 参考调整模块的行为：主图不能被移动，除非用户手动启用手型
@@ -431,9 +483,16 @@ watch(
 watch(
   () => state.activeTool,
   () => {
-    // ✨ 使用 nextTick 确保状态更新后再执行锁定逻辑
-    // 参考页面初始化逻辑：onMounted 中调用 syncLockState 确保主图被锁定
-    // 这样可以确保模块组件挂载完成后再执行锁定，避免时机问题
+    nextTick(() => {
+      syncLockState();
+    });
+  }
+);
+
+// 绘制模式切换需要立即刷新锁策略
+watch(
+  () => state.drawMode,
+  () => {
     nextTick(() => {
       syncLockState();
     });

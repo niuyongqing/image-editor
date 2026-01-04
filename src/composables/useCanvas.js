@@ -18,6 +18,10 @@ export function useCanvas() {
 
   // ✨ 获取 state 对象
   const { state, setHistoryState, setSidebarDisabled, routeToObject } = useEditorState();
+
+  const isDrawBlockingMode = () => {
+    return state.activeTool === 'draw' && state.drawMode && !!state.drawType;
+  };
   const zoom = ref(1);
 
   // 交互状态变量
@@ -178,6 +182,9 @@ export function useCanvas() {
 
   // === 🛡️ 路由安保核心 ===
   const handleSelection = (eventOrObject) => {
+    // ✨ 绘制模式：彻底禁止自动路由与 selection 联动，避免抢交互
+    if (isDrawBlockingMode()) return;
+
     let target = null;
 
     // 1. 解析目标
@@ -194,6 +201,9 @@ export function useCanvas() {
       setSidebarDisabled(true);
       return;
     }
+
+    // 绘制模式：锁策略应已禁止选中对象，这里再加一层拦截，防止 selection/route 抢交互
+    if (state.drawMode) return;
 
     // ✨✨✨ 独占模式拦截器 (Exclusive Mode Guard) 优化 ✨✨✨
     if (state.activeTool === 'adjust' && state.activeTab) {

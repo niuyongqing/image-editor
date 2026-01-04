@@ -49,7 +49,18 @@ const state = reactive({
     activeTool: 'adjust', // 一级菜单 ID
     activeTab: '',        // ✨ 新增: 二级菜单 ID (例如 'style', 'color', 'filter')
 
-    isDrawing: false,     // 是否处于自由绘制模式
+    // 绘制模块 SSOT
+    drawMode: false,      // 是否处于“绘制模式”（选了某个绘制类型）
+    drawType: '',         // 'arrow' | 'line' | 'curve' | ...
+    drawStyle: {
+        strokeWidth: 2,
+        opacity: 1,
+        strokeColor: '#000000',
+        fillColor: '',
+        lineStyle: 'solid', // 'solid' | 'dash' | 'dotted'
+    },
+
+    isDrawing: false,     // (legacy) 是否处于自由绘制模式 - 保留字段，避免外部引用报错
 
     canUndo: false,       // 历史记录状态
     canRedo: false,
@@ -113,7 +124,10 @@ export function useEditorState() {
         }
 
         // 副作用处理
-        state.isDrawing = false; // 切换工具默认退出绘制模式
+        state.isDrawing = false; // (legacy)
+        // 切换工具默认退出绘制模式
+        state.drawMode = false;
+        state.drawType = '';
         state.isSidebarDisabled = false; // 只要切换工具，必定激活面板
     };
 
@@ -142,7 +156,23 @@ export function useEditorState() {
         }
     };
 
+    // --- 绘制模块动作 ---
+    const setDrawMode = (val) => {
+        state.drawMode = val;
+        if (!val) state.drawType = '';
+    };
+
+    const setDrawType = (type) => {
+        state.drawType = type;
+    };
+
+    const updateDrawStyle = (patch = {}) => {
+        state.drawStyle = { ...state.drawStyle, ...patch };
+    };
+
+    // legacy
     const toggleDrawing = (status) => {
+        // legacy: 仍保留字段，避免外部模块引用报错
         state.isDrawing = status;
     };
 
@@ -199,7 +229,15 @@ export function useEditorState() {
         state: readonly(state), // 导出只读状态
         setActiveTool,
         setActiveTab,       // ✨ 确保导出此函数
+
+        // 绘制模块
+        setDrawMode,
+        setDrawType,
+        updateDrawStyle,
+
+        // legacy
         toggleDrawing,
+
         setHistoryState,
         setLoading,
         setSidebarDisabled,
